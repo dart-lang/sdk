@@ -6,7 +6,7 @@ library test.analysis.get_type_hierarhy;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -14,9 +14,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(GetTypeHierarchyTest);
 }
 
@@ -74,7 +75,7 @@ class B extends A {
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': []
+        'subclasses': [1]
       },
       {
         'classElement': {
@@ -86,7 +87,7 @@ class B extends A {
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [1]
+        'subclasses': []
       }
     ]);
   }
@@ -106,16 +107,79 @@ class B extends A<int> {
     expect(itemA.displayName, 'A<int>');
   }
 
+  test_class_double_subclass() async {
+    addTestFile('''
+class AAA {} // A
+
+class BBB extends AAA {}
+
+class CCC extends BBB implements AAA {}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('AAA {} // A');
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'AAA',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [2, 3]
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'CCC',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'BBB',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 0,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [2]
+      }
+    ]);
+  }
+
   test_class_extends_fileAndPackageUris() async {
     // prepare packages
     String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(pkgFile, '''
+    resourceProvider.newFile(
+        pkgFile,
+        '''
 library lib_a;
 class A {}
 class B extends A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] =
-        [resourceProvider.getResource('/packages/pkgA')];
+    packageMapProvider.packageMap['pkgA'] = [
+      resourceProvider.getResource('/packages/pkgA')
+    ];
     // reference the package from a project
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -635,6 +699,56 @@ class D extends C {
         itemD.memberElement.location.offset, findOffset('test() {} // in D'));
   }
 
+  test_member_ofMixin2_method() async {
+    addTestFile('''
+class M1 {
+  void test() {} // in M1
+}
+class M2 {
+  void test() {} // in M2
+}
+class D1 extends Object with M1 {}
+class D2 extends Object with M1, M2 {}
+class D3 extends Object with M2, M1 {}
+class D4 extends Object with M2, M1 {
+  void test() {} // in D4
+}
+''');
+    List<TypeHierarchyItem> items =
+        await _getTypeHierarchy('test() {} // in M1');
+    var itemM1 = items.firstWhere((e) => e.classElement.name == 'M1');
+    var item1 = items.firstWhere((e) => e.classElement.name == 'D1');
+    var item2 = items.firstWhere((e) => e.classElement.name == 'D2');
+    var item3 = items.firstWhere((e) => e.classElement.name == 'D3');
+    var item4 = items.firstWhere((e) => e.classElement.name == 'D4');
+    expect(itemM1, isNotNull);
+    expect(item1, isNotNull);
+    expect(item2, isNotNull);
+    expect(item3, isNotNull);
+    expect(item4, isNotNull);
+    // D1 does not override
+    {
+      Element member1 = item1.memberElement;
+      expect(member1, isNull);
+    }
+    // D2 mixes-in M2 last, which overrides
+    {
+      Element member2 = item2.memberElement;
+      expect(member2, isNotNull);
+      expect(member2.location.offset, findOffset('test() {} // in M2'));
+    }
+    // D3 mixes-in M1 last and does not override itself
+    {
+      Element member3 = item3.memberElement;
+      expect(member3, isNull);
+    }
+    // D4 mixes-in M1 last, but it also overrides
+    {
+      Element member4 = item4.memberElement;
+      expect(member4.location.offset, findOffset('test() {} // in D4'));
+    }
+  }
+
   test_member_ofMixin_getter() async {
     addTestFile('''
 abstract class Base {
@@ -787,18 +901,90 @@ class D extends C {
         itemD.memberElement.location.offset, findOffset('test(x) {} // in D'));
   }
 
-  Request _createGetTypeHierarchyRequest(String search) {
-    return new SearchGetTypeHierarchyParams(testFile, findOffset(search))
-        .toRequest(requestId);
+  test_superOnly() async {
+    addTestFile('''
+class A {}
+class B {}
+class C extends A implements B {}
+class D extends C {}
+''');
+    List<TypeHierarchyItem> items =
+        await _getTypeHierarchy('C extends', superOnly: true);
+    expect(_toJson(items), [
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'C',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 1,
+        'interfaces': [3],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'A',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'B',
+          'location': anything,
+          'flags': 0
+        },
+        'superclass': 2,
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': []
+      }
+    ]);
   }
 
-  Future<List<TypeHierarchyItem>> _getTypeHierarchy(String search) async {
+  test_superOnly_fileDoesNotExist() async {
+    Request request = new SearchGetTypeHierarchyParams(
+        '/does/not/exist.dart', 0,
+        superOnly: true).toRequest(requestId);
+    Response response = await serverChannel.sendRequest(request);
+    List<TypeHierarchyItem> items =
+        new SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
+    expect(items, isNull);
+  }
+
+  Request _createGetTypeHierarchyRequest(String search, {bool superOnly}) {
+    return new SearchGetTypeHierarchyParams(testFile, findOffset(search),
+        superOnly: superOnly).toRequest(requestId);
+  }
+
+  Future<List<TypeHierarchyItem>> _getTypeHierarchy(String search,
+      {bool superOnly}) async {
     await waitForTasksFinished();
-    Request request = _createGetTypeHierarchyRequest(search);
+    Request request =
+        _createGetTypeHierarchyRequest(search, superOnly: superOnly);
     Response response = await serverChannel.sendRequest(request);
     expect(serverErrors, isEmpty);
-    return new SearchGetTypeHierarchyResult.fromResponse(
-        response).hierarchyItems;
+    return new SearchGetTypeHierarchyResult.fromResponse(response)
+        .hierarchyItems;
   }
 
   List _toJson(List<TypeHierarchyItem> items) {

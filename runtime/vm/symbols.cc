@@ -197,6 +197,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
+  Zone* zone = Thread::Current()->zone();
 
   // Create and setup a symbol table in the vm isolate.
   SetupSymbolTable(vm_isolate);
@@ -204,7 +205,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
   // Create all predefined symbols.
   ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kNullCharId);
 
-  SymbolTable table(vm_isolate, vm_isolate->object_store()->symbol_table());
+  SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
 
   // First set up all the predefined string symbols.
   // Create symbols for language keywords. Some keywords are equal to
@@ -244,8 +245,9 @@ void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(vm_isolate == Dart::vm_isolate());
+  Zone* zone = Thread::Current()->zone();
 
-  SymbolTable table(vm_isolate, vm_isolate->object_store()->symbol_table());
+  SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
 
   // Lookup all the predefined string symbols and language keyword symbols
   // and cache them in the read only handles for fast access.
@@ -282,11 +284,13 @@ void Symbols::InitOnceFromSnapshot(Isolate* vm_isolate) {
 
 void Symbols::AddPredefinedSymbolsToIsolate() {
   // Should only be run by regular Dart isolates.
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ASSERT(isolate != Dart::vm_isolate());
-  String& str = String::Handle(isolate);
+  String& str = String::Handle(zone);
 
-  SymbolTable table(isolate, isolate->object_store()->symbol_table());
+  SymbolTable table(zone, isolate->object_store()->symbol_table());
 
   // Set up all the predefined string symbols and create symbols for
   // language keywords.
@@ -329,7 +333,7 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
 
 void Symbols::GetStats(Isolate* isolate, intptr_t* size, intptr_t* capacity) {
   ASSERT(isolate != NULL);
-  SymbolTable table(isolate, isolate->object_store()->symbol_table());
+  SymbolTable table(isolate->object_store()->symbol_table());
   *size = table.NumOccupied();
   *capacity = table.NumEntries();
   table.Release();
@@ -379,29 +383,147 @@ RawString* Symbols::FromUTF32(const int32_t* utf32_array, intptr_t len) {
 
 
 RawString* Symbols::FromConcat(const String& str1, const String& str2) {
-  return NewSymbol(ConcatString(str1, str2));
+  if (str1.Length() == 0) {
+    return New(str2);
+  } else if (str2.Length() == 0) {
+    return New(str1);
+  } else {
+    return NewSymbol(ConcatString(str1, str2));
+  }
+}
+
+
+// TODO(srdjan): If this becomes performance critical code, consider looking
+// up symbol from hash of pieces instead of concatenating them first into
+// a string.
+RawString* Symbols::FromConcatAll(
+    const GrowableHandlePtrArray<const String>& strs) {
+  const intptr_t strs_length = strs.length();
+  GrowableArray<intptr_t> lengths(strs_length);
+
+  intptr_t len_sum = 0;
+  const intptr_t kOneByteChar = 1;
+  intptr_t char_size = kOneByteChar;
+
+  for (intptr_t i = 0; i < strs_length; i++) {
+    const String& str = strs[i];
+    const intptr_t str_len = str.Length();
+    if ((String::kMaxElements - len_sum) < str_len) {
+      Exceptions::ThrowOOM();
+      UNREACHABLE();
+    }
+    len_sum += str_len;
+    lengths.Add(str_len);
+    char_size = Utils::Maximum(char_size, str.CharSize());
+  }
+  const bool is_one_byte_string = char_size == kOneByteChar;
+
+  Zone* zone = Thread::Current()->zone();
+  if (is_one_byte_string) {
+    uint8_t* buffer = zone->Alloc<uint8_t>(len_sum);
+    const uint8_t* const orig_buffer = buffer;
+    for (intptr_t i = 0; i < strs_length; i++) {
+      NoSafepointScope no_safepoint;
+      intptr_t str_len = lengths[i];
+      if (str_len > 0) {
+        const String& str = strs[i];
+        ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
+        const uint8_t* src_p = str.IsOneByteString() ?
+            OneByteString::CharAddr(str, 0) :
+            ExternalOneByteString::CharAddr(str, 0);
+        memmove(buffer, src_p, str_len);
+        buffer += str_len;
+      }
+    }
+    ASSERT(len_sum == buffer - orig_buffer);
+    return Symbols::FromLatin1(orig_buffer, len_sum);
+  } else {
+    uint16_t* buffer = zone->Alloc<uint16_t>(len_sum);
+    const uint16_t* const orig_buffer = buffer;
+    for (intptr_t i = 0; i < strs_length; i++) {
+      NoSafepointScope no_safepoint;
+      intptr_t str_len = lengths[i];
+      if (str_len > 0) {
+        const String& str = strs[i];
+        if (str.IsTwoByteString()) {
+          memmove(buffer, TwoByteString::CharAddr(str, 0), str_len * 2);
+        } else if (str.IsExternalTwoByteString()) {
+          memmove(buffer, ExternalTwoByteString::CharAddr(str, 0), str_len * 2);
+        } else {
+          // One-byte to two-byte string copy.
+          ASSERT(str.IsOneByteString() || str.IsExternalOneByteString());
+          const uint8_t* src_p = str.IsOneByteString() ?
+              OneByteString::CharAddr(str, 0) :
+              ExternalOneByteString::CharAddr(str, 0);
+          for (int n = 0; n < str_len; n++) {
+            buffer[n] = src_p[n];
+          }
+        }
+        buffer += str_len;
+      }
+    }
+    ASSERT(len_sum == buffer - orig_buffer);
+    return Symbols::FromUTF16(orig_buffer, len_sum);
+  }
 }
 
 
 // StringType can be StringSlice, ConcatString, or {Latin1,UTF16,UTF32}Array.
 template<typename StringType>
 RawString* Symbols::NewSymbol(const StringType& str) {
-  Isolate* isolate = Isolate::Current();
-  String& symbol = String::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  String& symbol = String::Handle(zone);
   {
     Isolate* vm_isolate = Dart::vm_isolate();
-    SymbolTable table(isolate, vm_isolate->object_store()->symbol_table());
+    SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
     symbol ^= table.GetOrNull(str);
     table.Release();
   }
   if (symbol.IsNull()) {
-    SymbolTable table(isolate, isolate->object_store()->symbol_table());
+    SymbolTable table(zone, isolate->object_store()->symbol_table());
     symbol ^= table.InsertNewOrGet(str);
     isolate->object_store()->set_symbol_table(table.Release());
   }
   ASSERT(symbol.IsSymbol());
   ASSERT(symbol.HasHash());
   return symbol.raw();
+}
+
+
+template<typename StringType>
+RawString* Symbols::Lookup(const StringType& str) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  String& symbol = String::Handle(zone);
+  {
+    Isolate* vm_isolate = Dart::vm_isolate();
+    SymbolTable table(zone, vm_isolate->object_store()->symbol_table());
+    symbol ^= table.GetOrNull(str);
+    table.Release();
+  }
+  if (symbol.IsNull()) {
+    SymbolTable table(zone, isolate->object_store()->symbol_table());
+    symbol ^= table.GetOrNull(str);
+    table.Release();
+  }
+
+  ASSERT(symbol.IsNull() || symbol.IsSymbol());
+  ASSERT(symbol.IsNull() || symbol.HasHash());
+  return symbol.raw();
+}
+
+
+RawString* Symbols::LookupFromConcat(const String& str1, const String& str2) {
+  if (str1.Length() == 0) {
+    return Lookup(str2);
+  } else if (str2.Length() == 0) {
+    return Lookup(str1);
+  } else {
+    return Lookup(ConcatString(str1, str2));
+  }
 }
 
 
@@ -415,6 +537,31 @@ RawString* Symbols::New(const String& str) {
 
 RawString* Symbols::New(const String& str, intptr_t begin_index, intptr_t len) {
   return NewSymbol(StringSlice(str, begin_index, len));
+}
+
+
+
+RawString* Symbols::NewFormatted(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  RawString* result = NewFormattedV(format, args);
+  NoSafepointScope no_safepoint;
+  va_end(args);
+  return result;
+}
+
+
+RawString* Symbols::NewFormattedV(const char* format, va_list args) {
+  va_list args_copy;
+  va_copy(args_copy, args);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args_copy);
+  va_end(args_copy);
+
+  Zone* zone = Thread::Current()->zone();
+  char* buffer = zone->Alloc<char>(len + 1);
+  OS::VSNPrint(buffer, (len + 1), format, args);
+
+  return Symbols::New(buffer);
 }
 
 

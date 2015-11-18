@@ -392,13 +392,27 @@ void testNullValue() {
 }
 
 void testTypes() {
-  Map<int, dynamic> map;
-  testMap(Map map) {
-    map[42] = "text";
-    map[43] = "text";
-    map[42] = "text";
-    map.remove(42);
-    map[42] = "text";
+  testMap(Map<num, String> map) {
+    Expect.isTrue(map is Map<num, String>);
+    Expect.isTrue(map is! Map<String, dynamic>);
+    Expect.isTrue(map is! Map<dynamic, int>);
+
+    // Use with properly typed keys and values.
+    map[42] = "text1";
+    map[43] = "text2";
+    map[42] = "text3";
+    Expect.equals("text3", map.remove(42));
+    Expect.equals(null, map[42]);
+    map[42] = "text4";
+
+    // Ensure that "containsKey", "containsValue" and "remove"
+    // accepts any object.
+    for (var object in [true, null, new Object()]) {
+      Expect.isFalse(map.containsKey(object));
+      Expect.isFalse(map.containsValue(object));
+      Expect.isNull(map.remove(object));
+      Expect.isNull(map[object]);
+    }
   }
   testMap(new HashMap<int, String>());
   testMap(new LinkedHashMap<int, String>());

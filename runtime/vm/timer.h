@@ -90,41 +90,6 @@ class Timer : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(Timer);
 };
 
-// List of per isolate timers.
-#define TIMER_LIST(V)                                                          \
-  V(time_script_loading, "Script Loading")                                     \
-  V(time_creating_snapshot, "Snapshot Creation")                               \
-  V(time_isolate_initialization, "Isolate initialization")                     \
-  V(time_compilation, "Function compilation")                                  \
-  V(time_bootstrap, "Bootstrap of core classes")                               \
-  V(time_dart_execution, "Dart execution")                                     \
-  V(time_total_runtime, "Total runtime for isolate")                           \
-  V(time_gc, "Garbage collection")                                             \
-
-// Maintains a list of timers per isolate.
-class TimerList : public ValueObject {
- public:
-  TimerList();
-  ~TimerList() {}
-
-  // Accessors.
-#define TIMER_FIELD_ACCESSOR(name, msg)                                        \
-  Timer& name() { return name##_; }
-  TIMER_LIST(TIMER_FIELD_ACCESSOR)
-#undef TIMER_FIELD_ACCESSOR
-
-  void ReportTimers();
-
-  void PrintTimersToJSONProperty(JSONObject* jsobj);
-
- private:
-#define TIMER_FIELD(name, msg) Timer name##_;
-  TIMER_LIST(TIMER_FIELD)
-#undef TIMER_FIELD
-  bool padding_;
-  DISALLOW_COPY_AND_ASSIGN(TimerList);
-};
-
 
 // The class TimerScope is used to start and stop a timer within a scope.
 // It is used as follows:
@@ -136,10 +101,21 @@ class TimerList : public ValueObject {
 // }
 class TimerScope : public StackResource {
  public:
+  TimerScope(bool flag, Timer* timer, Thread* thread = NULL)
+      : StackResource(thread),
+        nested_(false),
+        timer_(flag ? timer : NULL) {
+    Init();
+  }
+
   TimerScope(bool flag, Timer* timer, Isolate* isolate = NULL)
       : StackResource(isolate),
         nested_(false),
         timer_(flag ? timer : NULL) {
+    Init();
+  }
+
+  void Init() {
     if (timer_ != NULL) {
       if (!timer_->running()) {
         timer_->Start();
@@ -167,8 +143,8 @@ class TimerScope : public StackResource {
 
 class PauseTimerScope : public StackResource {
  public:
-  PauseTimerScope(bool flag, Timer* timer, Isolate* isolate = NULL)
-      : StackResource(isolate),
+  PauseTimerScope(bool flag, Timer* timer, Thread* thread = NULL)
+      : StackResource(thread),
         nested_(false),
         timer_(flag ? timer : NULL) {
     if (timer_) {
@@ -196,20 +172,6 @@ class PauseTimerScope : public StackResource {
 };
 
 
-// Macros to deal with named timers in the isolate.
-#define START_TIMER(isolate, name)                                             \
-isolate->timer_list().name().Start();
-
-#define STOP_TIMER(isolate, name)                                              \
-isolate->timer_list().name().Stop();
-
-#define TIMERSCOPE(isolate, name)                                              \
-  TimerScope vm_internal_timer_(true, &(isolate->timer_list().name()), isolate)
-
-#define PAUSETIMERSCOPE(isolate, name)                                         \
-PauseTimerScope vm_internal_timer_(true,                                       \
-                                   &(isolate->timer_list().name()),            \
-                                   isolate)
 
 }  // namespace dart
 

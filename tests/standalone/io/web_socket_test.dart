@@ -19,8 +19,17 @@ import "package:path/path.dart";
 
 const WEB_SOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-const String CERT_NAME = 'localhost_cert';
 const String HOST_NAME = 'localhost';
+
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
 
 /**
  * A SecurityConfiguration lets us run the tests over HTTP or HTTPS.
@@ -33,13 +42,14 @@ class SecurityConfiguration {
   Future<HttpServer> createServer({int backlog: 0}) =>
       secure ? HttpServer.bindSecure(HOST_NAME,
                                      0,
-                                     backlog: backlog,
-                                     certificateName: CERT_NAME)
+                                     serverContext,
+                                     backlog: backlog)
              : HttpServer.bind(HOST_NAME,
                                0,
                                backlog: backlog);
 
   Future<WebSocket> createClient(int port) =>
+    // TODO(whesse): Add client context argument to WebSocket.connect
     WebSocket.connect('${secure ? "wss" : "ws"}://$HOST_NAME:$port/');
 
   checkCloseStatus(webSocket, closeStatus, closeReason) {
@@ -581,15 +591,8 @@ class SecurityConfiguration {
 }
 
 
-void initializeSSL() {
-  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: testPkcertDatabase,
-                          password: "dartdart");
-}
-
-
 main() {
   new SecurityConfiguration(secure: false).runTests();
-  initializeSSL();
-  new SecurityConfiguration(secure: true).runTests();
+  // TODO(whesse): Make WebSocket.connect() take an optional context: parameter.
+  // new SecurityConfiguration(secure: true).runTests();
 }

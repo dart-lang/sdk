@@ -5017,7 +5017,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
   Zone* zone = Thread::Current()->zone();
 
   const Function& function = parsed_function->function();
-  const intptr_t specialization_cid = function.regexp_cid();
+  const intptr_t specialization_cid = function.string_specialization_cid();
   const bool is_one_byte = (specialization_cid == kOneByteStringCid ||
                             specialization_cid == kExternalOneByteStringCid);
   JSRegExp& regexp = JSRegExp::Handle(zone, function.regexp());
@@ -5275,17 +5275,24 @@ static void CreateSpecializedFunction(Zone* zone,
                                                            Heap::kOld)));
   fn.set_parameter_names(Array::Handle(zone, Array::New(kParamCount,
                                                            Heap::kOld)));
-  fn.SetParameterTypeAt(0, Type::Handle(zone, Type::DynamicType()));
-  fn.SetParameterNameAt(0, Symbols::string_param());
-  fn.SetParameterTypeAt(1, Type::Handle(zone, Type::DynamicType()));
-  fn.SetParameterNameAt(1, Symbols::start_index_param());
+  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
+                        Type::Handle(zone, Type::DynamicType()));
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
+                        Symbols::This());
+  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
+                        Type::Handle(zone, Type::DynamicType()));
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
+                        Symbols::string_param());
+  fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                        Type::Handle(zone, Type::DynamicType()));
+  fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
+                        Symbols::start_index_param());
   fn.set_result_type(Type::Handle(zone, Type::ArrayType()));
 
   // Cache the result.
   regexp.set_function(specialization_cid, fn);
 
-  fn.set_regexp(regexp);
-  fn.set_regexp_cid(specialization_cid);
+  fn.SetRegExpData(regexp, specialization_cid);
   fn.set_is_debuggable(false);
 
   // The function is compiled lazily during the first call.

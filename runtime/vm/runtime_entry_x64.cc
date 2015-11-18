@@ -15,6 +15,11 @@ namespace dart {
 #define __ assembler->
 
 
+uword RuntimeEntry::GetEntryPoint() const {
+  return reinterpret_cast<uword>(function());
+}
+
+
 // Generate code to call into the stub which will call the runtime
 // function. Input for the stub is as follows:
 //   RSP : points to the arguments and return value array.
@@ -23,13 +28,13 @@ namespace dart {
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    ExternalLabel label(GetEntryPoint());
-    __ CallCFunction(&label);
+    COMPILE_ASSERT(CallingConventions::kVolatileCpuRegisters & (1 << RAX));
+    __ movq(RAX, Address(THR, Thread::OffsetFromThread(this)));
+    __ CallCFunction(RAX);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    ExternalLabel label(GetEntryPoint());
-    __ LoadExternalLabel(RBX, &label, kNotPatchable);
+    __ movq(RBX, Address(THR, Thread::OffsetFromThread(this)));
     __ movq(R10, Immediate(argument_count));
     __ Call(*StubCode::CallToRuntime_entry());
   }

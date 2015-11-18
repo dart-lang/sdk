@@ -6,7 +6,7 @@ library services.src.correction.util;
 
 import 'dart:math';
 
-import 'package:analysis_server/src/protocol.dart'
+import 'package:analysis_server/plugin/protocol/protocol.dart'
     show SourceChange, SourceEdit;
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
@@ -143,6 +143,18 @@ List<SourceRange> getCommentRanges(CompilationUnit unit) {
   return ranges;
 }
 
+/**
+ * Return the given [element] if it is a [CompilationUnitElement].
+ * Return the enclosing [CompilationUnitElement] of the given [element],
+ * maybe `null`.
+ */
+CompilationUnitElement getCompilationUnitElement(Element element) {
+  if (element is CompilationUnitElement) {
+    return element;
+  }
+  return element.getAncestor((e) => e is CompilationUnitElement);
+}
+
 String getDefaultValueCode(DartType type) {
   if (type != null) {
     String typeName = type.displayName;
@@ -175,7 +187,9 @@ String getElementKindName(Element element) {
  */
 String getElementQualifiedName(Element element) {
   ElementKind kind = element.kind;
-  if (kind == ElementKind.FIELD || kind == ElementKind.METHOD) {
+  if (kind == ElementKind.CONSTRUCTOR ||
+      kind == ElementKind.FIELD ||
+      kind == ElementKind.METHOD) {
     return '${element.enclosingElement.displayName}.${element.displayName}';
   } else {
     return element.displayName;
@@ -439,8 +453,7 @@ List<AstNode> getParents(AstNode node) {
  * The resulting AST structure may or may not be resolved.
  */
 AstNode getParsedClassElementNode(ClassElement classElement) {
-  CompilationUnitElement unitElement =
-      classElement.getAncestor((e) => e is CompilationUnitElement);
+  CompilationUnitElement unitElement = getCompilationUnitElement(classElement);
   CompilationUnit unit = getParsedUnit(unitElement);
   int offset = classElement.nameOffset;
   AstNode classNameNode = new NodeLocator(offset).searchWithin(unit);

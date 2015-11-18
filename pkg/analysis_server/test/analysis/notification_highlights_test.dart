@@ -6,14 +6,16 @@ library test.analysis.notification.highlights;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisNotificationHighlightsTest);
   defineReflectiveTests(HighlightTypeTest);
 }
@@ -995,7 +997,9 @@ class A<T> {
   }
 
   void _addLibraryForTestPart() {
-    addFile('$testFolder/my_lib.dart', '''
+    addFile(
+        '$testFolder/my_lib.dart',
+        '''
 library lib;
 part 'test.dart';
     ''');

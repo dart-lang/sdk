@@ -26,13 +26,7 @@ import 'dart:_foreign_helper' show
     JS_GET_STATIC_STATE,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EMBEDDED_GLOBAL,
-    JS_GET_NAME,
-    JS_TYPEDEF_TAG,
-    JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
-    JS_FUNCTION_TYPE_VOID_RETURN_TAG,
-    JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG;
+    JS_GET_NAME;
 
 
 import 'dart:_internal' as _symbol_dev;
@@ -43,7 +37,6 @@ import 'dart:_js_helper' show
     Closure,
     JSInvocationMirror,
     JsCache,
-    Null,
     Primitives,
     ReflectionInfo,
     RuntimeError,

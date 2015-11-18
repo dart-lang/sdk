@@ -57,11 +57,15 @@ abstract class Annotation implements Comparable<Annotation> {
   int line;
   int columnStart;
   int columnStop;
+  int get priority;
 
   void applyStyleTo(element);
 
   int compareTo(Annotation other) {
     if (line == other.line) {
+      if (columnStart == other.columnStart) {
+        return priority.compareTo(other.priority);
+      }
       return columnStart.compareTo(other.columnStart);
     }
     return line.compareTo(other.line);
@@ -100,6 +104,8 @@ abstract class Annotation implements Comparable<Annotation> {
 }
 
 class CurrentExecutionAnnotation extends Annotation {
+  int priority = 0;  // highest priority.
+
   void applyStyleTo(element) {
     if (element == null) {
       return;  // TODO(rmacnak): Handling overlapping annotations.
@@ -109,9 +115,53 @@ class CurrentExecutionAnnotation extends Annotation {
   }
 }
 
+class BreakpointAnnotation extends Annotation {
+  Breakpoint bpt;
+  int priority = 1;
+
+  BreakpointAnnotation(this.bpt) {
+    var script = bpt.location.script;
+    var location = bpt.location;
+    if (location.tokenPos != null) {
+      var pos = location.tokenPos;
+      line = script.tokenToLine(pos);
+      columnStart = script.tokenToCol(pos) - 1;  // tokenToCol is 1-origin.
+    } else if (location is UnresolvedSourceLocation) {
+      line = location.line;
+      columnStart = location.column;
+      if (columnStart == null) {
+        columnStart = 0;
+      }
+    }
+    var length = script.guessTokenLength(line, columnStart);
+    if (length == null) {
+      length = 1;
+    }
+    columnStop = columnStart + length;
+  }
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return;  // TODO(rmacnak): Handling overlapping annotations.
+    }
+    var script = bpt.location.script;
+    var pos = bpt.location.tokenPos;
+    int line = script.tokenToLine(pos);
+    int column = script.tokenToCol(pos);
+    if (bpt.resolved) {
+      element.classes.add("resolvedBreakAnnotation");
+    } else {
+      element.classes.add("unresolvedBreakAnnotation");
+    }
+    element.title = "Breakpoint ${bpt.number} at ${line}:${column}";
+  }
+}
+
 class LibraryAnnotation extends Annotation {
   Library target;
   String url;
+  int priority = 2;
+
   LibraryAnnotation(this.target, this.url);
 
   void applyStyleTo(element) {
@@ -126,6 +176,8 @@ class LibraryAnnotation extends Annotation {
 class PartAnnotation extends Annotation {
   Script part;
   String url;
+  int priority = 2;
+
   PartAnnotation(this.part, this.url);
 
   void applyStyleTo(element) {
@@ -139,6 +191,7 @@ class PartAnnotation extends Annotation {
 
 class LocalVariableAnnotation extends Annotation {
   final value;
+  int priority = 2;
 
   LocalVariableAnnotation(LocalVarLocation location, this.value) {
     line = location.line;
@@ -157,13 +210,17 @@ class LocalVariableAnnotation extends Annotation {
 
 class CallSiteAnnotation extends Annotation {
   CallSite callSite;
+  int priority = 2;
 
   CallSiteAnnotation(this.callSite) {
     line = callSite.line;
     columnStart = callSite.column - 1;  // Call site is 1-origin.
-    var tokenLength = callSite.name.length;  // Approximate.
-    if (callSite.name.startsWith("get:") ||
-        callSite.name.startsWith("set:")) tokenLength -= 4;
+    var tokenLength = callSite.script.guessTokenLength(line, columnStart);
+    if (tokenLength == null) {
+      tokenLength = callSite.name.length;  // Approximate.
+      if (callSite.name.startsWith("get:") ||
+          callSite.name.startsWith("set:")) tokenLength -= 4;
+    }
     columnStop = columnStart + tokenLength;
   }
 
@@ -200,6 +257,8 @@ class CallSiteAnnotation extends Annotation {
 
 abstract class DeclarationAnnotation extends Annotation {
   String url;
+  int priority = 2;
+
   DeclarationAnnotation(decl, this.url) {
     assert(decl.loaded);
     SourceLocation location = decl.location;
@@ -323,7 +382,8 @@ class ScriptInsetElement extends ObservatoryElement {
   var annotations = [];
   var annotationsCursor;
 
-  StreamSubscription scriptChangeSubscription;
+  StreamSubscription _scriptChangeSubscription;
+  Future<StreamSubscription> _debugSubscriptionFuture;
 
   bool hasLoadedLibraryDeclarations = false;
 
@@ -338,13 +398,48 @@ class ScriptInsetElement extends ObservatoryElement {
     }
   }
 
+  void attached() {
+    super.attached();
+    _debugSubscriptionFuture =
+        app.vm.listenEventStream(VM.kDebugStream, _onDebugEvent);
+  }
+
   void detached() {
-    if (scriptChangeSubscription != null) {
+    cancelFutureSubscription(_debugSubscriptionFuture);
+    _debugSubscriptionFuture = null;
+    if (_scriptChangeSubscription != null) {
       // Don't leak. If only Dart and Javascript exposed weak references...
-      scriptChangeSubscription.cancel();
-      scriptChangeSubscription = null;
+      _scriptChangeSubscription.cancel();
+      _scriptChangeSubscription = null;
     }
     super.detached();
+  }
+
+  void _onDebugEvent(event) {
+    if (script == null) {
+      return;
+    }
+    switch (event.kind) {
+      case ServiceEvent.kBreakpointAdded:
+      case ServiceEvent.kBreakpointResolved:
+      case ServiceEvent.kBreakpointRemoved:
+        var loc = event.breakpoint.location;
+        if (loc.script == script) {
+          int line;
+          if (loc.tokenPos != null) {
+            line = script.tokenToLine(loc.tokenPos);
+          } else {
+            line = script.tokenToLine(loc.line);
+          }
+          if ((line >= _startLine) && (line <= _endLine)) {
+            _updateTask.queue();
+          }
+        }
+        break;
+      default:
+        // Ignore.
+        break;
+    }
   }
 
   void currentPosChanged(oldValue) {
@@ -371,6 +466,11 @@ class ScriptInsetElement extends ObservatoryElement {
   Element a(String text) => new AnchorElement()..text = text;
   Element span(String text) => new SpanElement()..text = text;
 
+  Element hitsCurrent(Element element) {
+    element.classes.add('hitsCurrent');
+    element.title = "";
+    return element;
+  }
   Element hitsUnknown(Element element) {
     element.classes.add('hitsNone');
     element.title = "";
@@ -404,8 +504,8 @@ class ScriptInsetElement extends ObservatoryElement {
       return;
     }
 
-    if (scriptChangeSubscription == null) {
-      scriptChangeSubscription = script.changes.listen((_) => update());
+    if (_scriptChangeSubscription == null) {
+      _scriptChangeSubscription = script.changes.listen((_) => update());
     }
 
     computeAnnotations();
@@ -444,9 +544,14 @@ class ScriptInsetElement extends ObservatoryElement {
                 ? script.tokenToLine(endPos)
                 : script.lines.length + script.lineOffset);
 
+    if (_startLine == null || _endLine == null) {
+      return;
+    }
+
     annotations.clear();
 
     addCurrentExecutionAnnotation();
+    addBreakpointAnnotations();
 
     if (!inDebuggerContext && script.library != null) {
       if (hasLoadedLibraryDeclarations) {
@@ -475,8 +580,25 @@ class ScriptInsetElement extends ObservatoryElement {
       var a = new CurrentExecutionAnnotation();
       a.line = _currentLine;
       a.columnStart = _currentCol;
-      a.columnStop = _currentCol + 1;
+      var length = script.guessTokenLength(_currentLine, _currentCol);
+      if (length == null) {
+        length = 1;
+      }
+      a.columnStop = _currentCol + length;
       annotations.add(a);
+    }
+  }
+
+  void addBreakpointAnnotations() {
+    for (var line = _startLine; line <= _endLine; line++) {
+      var bpts = script.getLine(line).breakpoints;
+      if (bpts != null) {
+        for (var bpt in bpts) {
+          if (bpt.location != null) {
+            annotations.add(new BreakpointAnnotation(bpt));
+          }
+        }
+      }
     }
   }
 
@@ -835,7 +957,9 @@ class ScriptInsetElement extends ObservatoryElement {
     var e = span("$nbsp$lineNumber$nbsp");
     e.classes.add('noCopy');
 
-    if ((line == null) || (line.hits == null)) {
+    if (lineNumber == _currentLine) {
+      hitsCurrent(e);
+    } else if ((line == null) || (line.hits == null)) {
       hitsUnknown(e);
     } else if (line.hits == 0) {
       hitsNotExecuted(e);
@@ -905,4 +1029,3 @@ class SourceInsetElement extends PolymerElement {
   @published bool inDebuggerContext = false;
   @published ObservableList variables;
 }
-

@@ -22,9 +22,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(AnalysisCacheTest);
   runReflectiveTests(CacheEntryTest);
   runReflectiveTests(CacheFlushManagerTest);
@@ -33,7 +34,8 @@ main() {
   runReflectiveTests(ResultDataTest);
 }
 
-AnalysisCache createCache({AnalysisContext context,
+AnalysisCache createCache(
+    {AnalysisContext context,
     RetentionPriority policy: RetentionPriority.LOW}) {
   CachePartition partition = new UniversalCachePartition(context);
   return new AnalysisCache(<CachePartition>[partition]);
@@ -594,6 +596,21 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(cache.get(target), entry);
   }
 
+  test_setState_invalid_keepEmpty_ifExplicitlyAdded() {
+    AnalysisTarget target = new TestSource('/a.dart');
+    CacheEntry entry = new CacheEntry(target);
+    entry.explicitlyAdded = true;
+    cache.put(entry);
+    ResultDescriptor result = new ResultDescriptor('result1', -1);
+    // set results, all of them are VALID
+    entry.setValue(result, 111, TargetedResult.EMPTY_LIST);
+    expect(entry.getState(result), CacheState.VALID);
+    expect(entry.getValue(result), 111);
+    // invalidate result, keep entry
+    entry.setState(result, CacheState.INVALID);
+    expect(cache.get(target), isNotNull);
+  }
+
   test_setState_invalid_removeEmptyEntry() {
     AnalysisTarget target1 = new TestSource('/a.dart');
     AnalysisTarget target2 = new TestSource('/b.dart');
@@ -618,6 +635,38 @@ class CacheEntryTest extends AbstractCacheTest {
     entry1.setState(result1, CacheState.INVALID);
     expect(cache.get(target1), isNull);
     expect(cache.get(target2), isNull);
+  }
+
+  test_setState_invalid_withDelta_keepDependency() {
+    Source target = new TestSource('/test.dart');
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
+    // set results, all of them are VALID
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getState(result3), CacheState.VALID);
+    // result2 depends on result1
+    expect(entry.getResultData(result1).dependentResults,
+        unorderedEquals([new TargetedResult(target, result2)]));
+    expect(entry.getResultData(result2).dependedOnResults,
+        unorderedEquals([new TargetedResult(target, result1)]));
+    // invalidate result2 with Delta: keep result2, invalidate result3
+    entry.setState(result2, CacheState.INVALID,
+        delta: new _KeepContinueDelta(target, result2));
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getState(result3), CacheState.INVALID);
+    // result2 still depends on result1
+    expect(entry.getResultData(result1).dependentResults,
+        unorderedEquals([new TargetedResult(target, result2)]));
+    expect(entry.getResultData(result2).dependedOnResults,
+        unorderedEquals([new TargetedResult(target, result1)]));
   }
 
   test_setState_valid() {
@@ -704,13 +753,15 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result2), 222);
     expect(entry.getValue(result3), 333);
     // replace result1, keep "dependedOn", invalidate result3
-    entry.setValueIncremental(result2, 2222);
+    entry.setValueIncremental(result2, 2222, true);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getState(result3), CacheState.INVALID);
     expect(entry.getValue(result1), 111);
     expect(entry.getValue(result2), 2222);
     expect(entry.getValue(result3), -3);
+    expect(entry.getResultData(result1).dependentResults,
+        unorderedEquals([new TargetedResult(target, result2)]));
     expect(entry.getResultData(result2).dependedOnResults,
         unorderedEquals([new TargetedResult(target, result1)]));
   }
@@ -1053,6 +1104,25 @@ class UniversalCachePartitionTest extends CachePartitionTest {
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * Keep the given [keepDescriptor], invalidate all the other results.
+ */
+class _KeepContinueDelta implements Delta {
+  final Source source;
+  final ResultDescriptor keepDescriptor;
+
+  _KeepContinueDelta(this.source, this.keepDescriptor);
+
+  @override
+  DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor) {
+    if (descriptor == keepDescriptor) {
+      return DeltaResult.KEEP_CONTINUE;
+    }
+    return DeltaResult.INVALIDATE;
+  }
 }
 
 class _TestAnalysisTarget implements AnalysisTarget {

@@ -148,7 +148,7 @@ class Location : public ValueObject {
     return (value_ & kLocationTagMask) == kConstantTag;
   }
 
-  static Location Constant(ConstantInstr* obj) {
+  static Location Constant(const ConstantInstr* obj) {
     Location loc(reinterpret_cast<uword>(obj) | kConstantTag);
     ASSERT(obj == loc.constant_instruction());
     return loc;
@@ -519,7 +519,7 @@ class RegisterSet : public ValueObject {
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
       Register r = static_cast<Register>(i);
       if (ContainsRegister(r)) {
-        ISL_Print("%s %s\n", Assembler::RegisterName(r),
+        THR_Print("%s %s\n", Assembler::RegisterName(r),
                            IsTagged(r) ? "tagged" : "untagged");
       }
     }
@@ -527,7 +527,7 @@ class RegisterSet : public ValueObject {
     for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
       FpuRegister r = static_cast<FpuRegister>(i);
       if (ContainsFpuRegister(r)) {
-        ISL_Print("%s\n", Assembler::FpuRegisterName(r));
+        THR_Print("%s\n", Assembler::FpuRegisterName(r));
       }
     }
   }

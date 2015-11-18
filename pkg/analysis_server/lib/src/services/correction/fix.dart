@@ -4,12 +4,13 @@
 
 library analysis_server.src.services.correction.fix;
 
-import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
 
 /**
  * Compute and return the fixes available for the given [error]. The error was
@@ -38,6 +39,63 @@ List<Fix> computeFixes(ServerPlugin plugin, ResourceProvider resourceProvider,
 }
 
 /**
+ * Return true if this [errorCode] is likely to have a fix associated with it.
+ */
+bool hasFix(ErrorCode errorCode) => errorCode ==
+        StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
+    errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
+    errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS ||
+    errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR ||
+    errorCode ==
+        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
+    errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
+    errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
+    errorCode == StaticWarningCode.UNDEFINED_CLASS ||
+    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED ||
+    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1 ||
+    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2 ||
+    errorCode == StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS ||
+    errorCode == StaticWarningCode.UNDEFINED_IDENTIFIER ||
+    errorCode ==
+        CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE ||
+    errorCode == CompileTimeErrorCode.INVALID_ANNOTATION ||
+    errorCode == CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT ||
+    errorCode == CompileTimeErrorCode.PART_OF_NON_PART ||
+    errorCode ==
+        CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
+    errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
+    errorCode == HintCode.DEAD_CODE ||
+    errorCode == HintCode.DIVISION_OPTIMIZATION ||
+    errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL ||
+    errorCode == HintCode.TYPE_CHECK_IS_NULL ||
+    errorCode == HintCode.UNDEFINED_GETTER ||
+    errorCode == HintCode.UNDEFINED_SETTER ||
+    errorCode == HintCode.UNNECESSARY_CAST ||
+    errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+    errorCode == HintCode.UNUSED_CATCH_STACK ||
+    errorCode == HintCode.UNUSED_IMPORT ||
+    errorCode == HintCode.UNDEFINED_METHOD ||
+    errorCode == ParserErrorCode.EXPECTED_TOKEN ||
+    errorCode == ParserErrorCode.GETTER_WITH_PARAMETERS ||
+    errorCode == ParserErrorCode.VAR_AS_TYPE_NAME ||
+    errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE ||
+    errorCode == StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER ||
+    errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION ||
+    errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT ||
+    errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
+    errorCode == StaticTypeWarningCode.UNDEFINED_GETTER ||
+    errorCode == StaticTypeWarningCode.UNDEFINED_METHOD ||
+    errorCode == StaticTypeWarningCode.UNDEFINED_SETTER;
+
+/**
  * An enumeration of possible quick fix kinds.
  */
 class DartFixKind {
@@ -51,6 +109,7 @@ class DartFixKind {
       "Add optional positional parameter");
   static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
       'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
+  static const ADD_NE_NULL = const FixKind('ADD_NE_NULL', 50, "Add != null");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
   static const ADD_PART_OF =
@@ -85,7 +144,7 @@ class DartFixKind {
   static const CREATE_METHOD =
       const FixKind('CREATE_METHOD', 50, "Create method '{0}'");
   static const CREATE_MISSING_OVERRIDES = const FixKind(
-      'CREATE_MISSING_OVERRIDES', 50, "Create {0} missing override(s)");
+      'CREATE_MISSING_OVERRIDES', 49, "Create {0} missing override(s)");
   static const CREATE_NO_SUCH_METHOD = const FixKind(
       'CREATE_NO_SUCH_METHOD', 51, "Create 'noSuchMethod' method");
   static const IMPORT_LIBRARY_PREFIX = const FixKind('IMPORT_LIBRARY_PREFIX',

@@ -9,6 +9,16 @@ import "dart:async";
 import "dart:io";
 import 'dart:convert';
 
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+
 class Server {
   HttpServer server;
   bool secure;
@@ -19,47 +29,45 @@ class Server {
   Server(this.proxyHops, this.directRequestPaths, this.secure);
 
   Future<Server> start() {
-    var x = new Completer();
-    Future f = secure
-        ? HttpServer.bindSecure(
-            "localhost", 0, certificateName: 'localhost_cert')
-        : HttpServer.bind("localhost", 0);
-    return f.then((s) {
+    return (secure ?
+        HttpServer.bindSecure("localhost", 0, serverContext) :
+        HttpServer.bind("localhost", 0))
+    .then((s) {
       server = s;
-      x.complete(this);
-      server.listen((request) {
-        var response = request.response;
-        requestCount++;
-        // Check whether a proxy or direct connection is expected.
-        bool direct = directRequestPaths.fold(
-            false,
-            (prev, path) => prev ? prev : path == request.uri.path);
-        if (!secure && !direct && proxyHops > 0) {
-          Expect.isNotNull(request.headers[HttpHeaders.VIA]);
-          Expect.equals(1, request.headers[HttpHeaders.VIA].length);
-          Expect.equals(
-              proxyHops,
-              request.headers[HttpHeaders.VIA][0].split(",").length);
-        } else {
-          Expect.isNull(request.headers[HttpHeaders.VIA]);
-        }
-        var body = new StringBuffer();
-        request.listen(
-            (data) {
-              body.write(new String.fromCharCodes(data));
-            },
-            onDone: () {
-              String path = request.uri.path.substring(1);
-              if (path != "A") {
-                String content = "$path$path$path";
-                Expect.equals(content, body.toString());
-              }
-              response.write(request.uri.path);
-              response.close();
-            });
-      });
-      return x.future;
+      server.listen(requestHandler);
+      return this;
     });
+  }
+
+  void requestHandler(HttpRequest request) {
+    var response = request.response;
+    requestCount++;
+    // Check whether a proxy or direct connection is expected.
+    bool direct = directRequestPaths.fold(
+        false,
+        (prev, path) => prev ? prev : path == request.uri.path);
+    if (!secure && !direct && proxyHops > 0) {
+      Expect.isNotNull(request.headers[HttpHeaders.VIA]);
+      Expect.equals(1, request.headers[HttpHeaders.VIA].length);
+      Expect.equals(
+          proxyHops,
+          request.headers[HttpHeaders.VIA][0].split(",").length);
+    } else {
+      Expect.isNull(request.headers[HttpHeaders.VIA]);
+    }
+    var body = new StringBuffer();
+    onRequestComplete() {
+      String path = request.uri.path.substring(1);
+      if (path != "A") {
+        String content = "$path$path$path";
+        Expect.equals(content, body.toString());
+      }
+      response.write(request.uri.path);
+      response.close();
+    }
+    request.listen((data) {
+      body.write(new String.fromCharCodes(data));
+    }, onDone: onRequestComplete);
   }
 
   void shutdown() {
@@ -277,7 +285,7 @@ Future<ProxyServer> setupProxyServer({ipV6: false}) {
 }
 
 testInvalidProxy() {
-  HttpClient client = new HttpClient();
+  HttpClient client = new HttpClient(context: clientContext);
 
   client.findProxy = (Uri uri) => "";
   client.getUrl(Uri.parse("http://www.google.com/test"))
@@ -299,7 +307,7 @@ testInvalidProxy() {
 int testDirectDoneCount = 0;
 void testDirectProxy() {
   setupServer(0).then((server) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
     List<String> proxy =
         ["DIRECT", " DIRECT ", "DIRECT ;", " DIRECT ; ",
          ";DIRECT", " ; DIRECT ", ";;DIRECT;;"];
@@ -336,7 +344,7 @@ void testProxy() {
   setupProxyServer().then((proxyServer) {
   setupServer(1, directRequestPaths: ["/4"]).then((server) {
   setupServer(1, directRequestPaths: ["/4"], secure: true).then((secureServer) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
 
     List<String> proxy;
     if (Platform.operatingSystem == "windows") {
@@ -399,54 +407,6 @@ void testProxy() {
   });
 }
 
-int testProxyIPV6DoneCount = 0;
-void testProxyIPV6() {
-  setupProxyServer(ipV6: true).then((proxyServer) {
-  setupServer(1, directRequestPaths: ["/4"]).then((server) {
-  setupServer(1, directRequestPaths: ["/4"], secure: true).then((secureServer) {
-    HttpClient client = new HttpClient();
-
-    List<String> proxy = ["PROXY [::1]:${proxyServer.port}"];
-    client.findProxy = (Uri uri) {
-      // Pick the proxy configuration based on the request path.
-      int index = int.parse(uri.path.substring(1));
-      return proxy[index];
-    };
-
-    for (int i = 0; i < proxy.length; i++) {
-      test(bool secure) {
-        String url = secure
-            ? "https://localhost:${secureServer.port}/$i"
-            : "http://localhost:${server.port}/$i";
-
-        client.postUrl(Uri.parse(url))
-          .then((HttpClientRequest clientRequest) {
-            String content = "$i$i$i";
-            clientRequest.write(content);
-            return clientRequest.close();
-          })
-          .then((HttpClientResponse response) {
-            response.listen((_) {}, onDone: () {
-              testProxyIPV6DoneCount++;
-              if (testProxyIPV6DoneCount == proxy.length * 2) {
-                Expect.equals(proxy.length, server.requestCount);
-                Expect.equals(proxy.length, secureServer.requestCount);
-                proxyServer.shutdown();
-                server.shutdown();
-                secureServer.shutdown();
-                client.close();
-              }
-            });
-          });
-      }
-
-      test(false);
-      test(true);
-    }
-  });
-  });
-  });
-}
 
 int testProxyChainDoneCount = 0;
 void testProxyChain() {
@@ -456,7 +416,7 @@ void testProxyChain() {
   proxyServer1.client.findProxy = (_) => "PROXY localhost:${proxyServer2.port}";
 
   setupServer(2, directRequestPaths: ["/4"]).then((server) {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(context: clientContext);
 
     List<String> proxy;
     if (Platform.operatingSystem == "windows") {
@@ -510,312 +470,9 @@ void testProxyChain() {
   });
 }
 
-int testProxyFromEnviromentDoneCount = 0;
-void testProxyFromEnviroment() {
-  setupProxyServer().then((proxyServer) {
-  setupServer(1).then((server) {
-  setupServer(1, secure: true).then((secureServer) {
-    HttpClient client = new HttpClient();
-
-    client.findProxy = (Uri uri) {
-      return HttpClient.findProxyFromEnvironment(
-          uri,
-          environment: {"http_proxy": "localhost:${proxyServer.port}",
-                        "https_proxy": "localhost:${proxyServer.port}"});
-    };
-
-    const int loopCount = 5;
-    for (int i = 0; i < loopCount; i++) {
-      test(bool secure) {
-        String url = secure
-            ? "https://localhost:${secureServer.port}/$i"
-            : "http://localhost:${server.port}/$i";
-
-        client.postUrl(Uri.parse(url))
-          .then((HttpClientRequest clientRequest) {
-            String content = "$i$i$i";
-            clientRequest.write(content);
-            return clientRequest.close();
-          })
-          .then((HttpClientResponse response) {
-            response.listen((_) {}, onDone: () {
-              testProxyFromEnviromentDoneCount++;
-              if (testProxyFromEnviromentDoneCount == loopCount * 2) {
-                Expect.equals(loopCount, server.requestCount);
-                Expect.equals(loopCount, secureServer.requestCount);
-                proxyServer.shutdown();
-                server.shutdown();
-                secureServer.shutdown();
-                client.close();
-              }
-            });
-          });
-      }
-
-      test(false);
-      test(true);
-    }
-  });
-  });
-  });
-}
-
-
-int testProxyAuthenticateCount = 0;
-Future testProxyAuthenticate(bool useDigestAuthentication) {
-  testProxyAuthenticateCount = 0;
-  var completer = new Completer();
-
-  setupProxyServer().then((proxyServer) {
-  setupServer(1).then((server) {
-  setupServer(1, secure: true).then((secureServer) {
-    HttpClient client = new HttpClient();
-
-    Completer step1 = new Completer();
-    Completer step2 = new Completer();
-
-    if (useDigestAuthentication) {
-      proxyServer.useDigestAuthentication("dart", "password");
-    } else {
-      proxyServer.useBasicAuthentication("dart", "password");
-    }
-
-    // Test with no authentication.
-    client.findProxy = (Uri uri) {
-      return "PROXY localhost:${proxyServer.port}";
-    };
-
-    const int loopCount = 2;
-    for (int i = 0; i < loopCount; i++) {
-      test(bool secure) {
-        String url = secure
-            ? "https://localhost:${secureServer.port}/$i"
-            : "http://localhost:${server.port}/$i";
-
-        client.postUrl(Uri.parse(url))
-          .then((HttpClientRequest clientRequest) {
-            String content = "$i$i$i";
-            clientRequest.write(content);
-            return clientRequest.close();
-          })
-          .then((HttpClientResponse response) {
-            Expect.fail("No response expected");
-          }).
-          catchError((e) {
-            testProxyAuthenticateCount++;
-            if (testProxyAuthenticateCount == loopCount * 2) {
-              Expect.equals(0, server.requestCount);
-              Expect.equals(0, secureServer.requestCount);
-              step1.complete(null);
-            }
-        });
-      }
-
-      test(false);
-      test(true);
-    }
-    step1.future.then((_) {
-      testProxyAuthenticateCount = 0;
-      if (useDigestAuthentication) {
-        client.findProxy = (Uri uri) => "PROXY localhost:${proxyServer.port}";
-        client.addProxyCredentials(
-            "localhost",
-            proxyServer.port,
-            "test",
-            new HttpClientDigestCredentials("dart", "password"));
-      } else {
-        client.findProxy = (Uri uri) {
-          return "PROXY dart:password@localhost:${proxyServer.port}";
-        };
-      }
-
-      for (int i = 0; i < loopCount; i++) {
-        test(bool secure) {
-          var path = useDigestAuthentication ? "A" : "$i";
-          String url = secure
-              ? "https://localhost:${secureServer.port}/$path"
-              : "http://localhost:${server.port}/$path";
-
-          client.postUrl(Uri.parse(url))
-            .then((HttpClientRequest clientRequest) {
-              String content = "$i$i$i";
-              clientRequest.write(content);
-              return clientRequest.close();
-            })
-            .then((HttpClientResponse response) {
-              response.listen((_) {}, onDone: () {
-                testProxyAuthenticateCount++;
-                Expect.equals(HttpStatus.OK, response.statusCode);
-                if (testProxyAuthenticateCount == loopCount * 2) {
-                  Expect.equals(loopCount, server.requestCount);
-                  Expect.equals(loopCount, secureServer.requestCount);
-                  step2.complete(null);
-                }
-              });
-            });
-        }
-
-        test(false);
-        test(true);
-      }
-    });
-
-    step2.future.then((_) {
-      testProxyAuthenticateCount = 0;
-      client.findProxy = (Uri uri) {
-        return "PROXY localhost:${proxyServer.port}";
-      };
-
-      client.authenticateProxy = (host, port, scheme, realm) {
-        client.addProxyCredentials(
-            "localhost",
-            proxyServer.port,
-            "realm",
-            new HttpClientBasicCredentials("dart", "password"));
-        return new Future.value(true);
-      };
-
-      for (int i = 0; i < loopCount; i++) {
-        test(bool secure) {
-          String url = secure
-              ? "https://localhost:${secureServer.port}/A"
-              : "http://localhost:${server.port}/A";
-
-          client.postUrl(Uri.parse(url))
-            .then((HttpClientRequest clientRequest) {
-              String content = "$i$i$i";
-              clientRequest.write(content);
-              return clientRequest.close();
-            })
-            .then((HttpClientResponse response) {
-              response.listen((_) {}, onDone: () {
-                testProxyAuthenticateCount++;
-                Expect.equals(HttpStatus.OK, response.statusCode);
-                if (testProxyAuthenticateCount == loopCount * 2) {
-                  Expect.equals(loopCount * 2, server.requestCount);
-                  Expect.equals(loopCount * 2, secureServer.requestCount);
-                  proxyServer.shutdown();
-                  server.shutdown();
-                  secureServer.shutdown();
-                  client.close();
-                  completer.complete(null);
-                }
-              });
-            });
-        }
-        test(false);
-        test(true);
-      }
-    });
-
-  });
-  });
-  });
-
-  return completer.future;
-}
-
-int testRealProxyDoneCount = 0;
-void testRealProxy() {
-  setupServer(1).then((server) {
-    HttpClient client = new HttpClient();
-     client.addProxyCredentials(
-         "localhost",
-         8080,
-         "test",
-         new HttpClientBasicCredentials("dart", "password"));
-
-    List<String> proxy =
-        ["PROXY localhost:8080",
-         "PROXY localhost:8080; PROXY hede.hule.hest:8080",
-         "PROXY hede.hule.hest:8080; PROXY localhost:8080",
-         "PROXY localhost:8080; DIRECT"];
-
-    client.findProxy = (Uri uri) {
-      // Pick the proxy configuration based on the request path.
-      int index = int.parse(uri.path.substring(1));
-      return proxy[index];
-    };
-
-    for (int i = 0; i < proxy.length; i++) {
-      client.getUrl(Uri.parse("http://localhost:${server.port}/$i"))
-        .then((HttpClientRequest clientRequest) {
-          String content = "$i$i$i";
-          clientRequest.contentLength = content.length;
-          clientRequest.write(content);
-          return clientRequest.close();
-        })
-        .then((HttpClientResponse response) {
-          response.listen((_) {}, onDone: () {
-            if (++testRealProxyDoneCount == proxy.length) {
-              Expect.equals(proxy.length, server.requestCount);
-              server.shutdown();
-              client.close();
-            }
-          });
-        });
-    }
-  });
-}
-
-int testRealProxyAuthDoneCount = 0;
-void testRealProxyAuth() {
-  setupServer(1).then((server) {
-    HttpClient client = new HttpClient();
-
-    List<String> proxy =
-        ["PROXY dart:password@localhost:8080",
-         "PROXY dart:password@localhost:8080; PROXY hede.hule.hest:8080",
-         "PROXY hede.hule.hest:8080; PROXY dart:password@localhost:8080",
-         "PROXY dart:password@localhost:8080; DIRECT"];
-
-    client.findProxy = (Uri uri) {
-      // Pick the proxy configuration based on the request path.
-      int index = int.parse(uri.path.substring(1));
-      return proxy[index];
-    };
-
-    for (int i = 0; i < proxy.length; i++) {
-      client.getUrl(Uri.parse("http://localhost:${server.port}/$i"))
-        .then((HttpClientRequest clientRequest) {
-          String content = "$i$i$i";
-          clientRequest.contentLength = content.length;
-          clientRequest.write(content);
-          return clientRequest.close();
-        })
-        .then((HttpClientResponse response) {
-          response.listen((_) {}, onDone: () {
-            if (++testRealProxyAuthDoneCount == proxy.length) {
-              Expect.equals(proxy.length, server.requestCount);
-              server.shutdown();
-              client.close();
-            }
-          });
-        });
-    }
-  });
-}
-
-void InitializeSSL() {
-  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: testPkcertDatabase,
-                          password: 'dartdart');
-}
-
 main() {
-  InitializeSSL();
   testInvalidProxy();
   testDirectProxy();
   testProxy();
-  testProxyIPV6();
   testProxyChain();
-  testProxyFromEnviroment();
-  // The two invocations of uses the same global variable for state -
-  // run one after the other.
-  testProxyAuthenticate(false)
-      .then((_) => testProxyAuthenticate(true));
-  // This test is not normally run. It can be used for locally testing
-  // with a real proxy server (e.g. Apache).
-  //testRealProxy();
-  //testRealProxyAuth();
 }

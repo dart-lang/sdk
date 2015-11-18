@@ -4,13 +4,15 @@
 
 library test.integration.completion.get.suggestions;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(Test);
 }
 
@@ -32,7 +34,9 @@ class Test extends AbstractAnalysisServerIntegrationTest {
   }
 
   test_getSuggestions() async {
-    setTestSource('test.dart', r'''
+    setTestSource(
+        'test.dart',
+        r'''
 String test = '';
 main() {
   test.^
@@ -54,7 +58,9 @@ main() {
   }
 
   test_getSuggestions_onlyOverlay() async {
-    setTestSource('test.dart', r'''
+    setTestSource(
+        'test.dart',
+        r'''
 String test = '';
 main() {
   test.^
@@ -78,7 +84,9 @@ main() {
   }
 
   test_getSuggestions_onlyOverlay_noWait() async {
-    setTestSource('test.dart', r'''
+    setTestSource(
+        'test.dart',
+        r'''
 String test = '';
 main() {
   test.^

@@ -8,8 +8,9 @@ import 'dart:async';
 import 'dart:io';
 import 'package:compiler/compiler.dart' as api;
 import 'package:compiler/src/apiimpl.dart';
-import 'package:compiler/src/dart2jslib.dart'
-    hide Compiler;
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/diagnostics/messages.dart' show
+    Message;
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
@@ -136,6 +137,7 @@ typedef bool CheckResults(Compiler compiler,
 Future analyze(List<Uri> uriList,
                Map<String, List<String>> whiteList,
                {bool analyzeAll: true,
+                bool analyzeMain: false,
                 CheckResults checkResults}) {
   String testFileName =
       relativize(Uri.base, Platform.script, Platform.isWindows);
@@ -155,9 +157,10 @@ Future analyze(List<Uri> uriList,
       currentDirectory.resolveUri(new Uri.file('${Platform.packageRoot}/'));
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
-  var options = <String>['--analyze-only', '--categories=Client,Server',
-    '--show-package-warnings'];
-  if (analyzeAll) options.add('--analyze-all');
+  var options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
+      Flags.showPackageWarnings];
+  if (analyzeAll) options.add(Flags.analyzeAll);
+  if (analyzeMain) options.add(Flags.analyzeMain);
   var compiler = new Compiler(
       provider,
       null,
@@ -188,7 +191,7 @@ Future analyze(List<Uri> uriList,
       exit(1);
     }
   }
-  if (analyzeAll) {
+  if (analyzeAll || analyzeMain) {
     compiler.librariesToAnalyzeWhenRun = uriList;
     return compiler.run(null).then(onCompletion);
   } else {

@@ -6,17 +6,18 @@ library test.edit.format;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(FormatTest);
 }
 
@@ -29,6 +30,24 @@ class FormatTest extends AbstractAnalysisTest {
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
+  }
+
+  Future test_format_longLine() {
+    String content = '''
+fun(firstParam, secondParam, thirdParam, fourthParam) {
+  if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
+}
+''';
+    addTestFile(content);
+    return waitForTasksFinished().then((_) {
+      EditFormatResult formatResult = _formatAt(0, 3, lineLength: 100);
+
+      expect(formatResult.edits, isNotNull);
+      expect(formatResult.edits, hasLength(0));
+
+      expect(formatResult.selectionOffset, equals(0));
+      expect(formatResult.selectionLength, equals(3));
+    });
   }
 
   Future test_format_noOp() {
@@ -86,24 +105,6 @@ main() {
     });
   }
 
-  Future test_format_longLine() {
-    String content = '''
-fun(firstParam, secondParam, thirdParam, fourthParam) {
-  if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
-}
-''';
-    addTestFile(content);
-    return waitForTasksFinished().then((_) {
-      EditFormatResult formatResult = _formatAt(0, 3, lineLength: 100);
-
-      expect(formatResult.edits, isNotNull);
-      expect(formatResult.edits, hasLength(0));
-
-      expect(formatResult.selectionOffset, equals(0));
-      expect(formatResult.selectionLength, equals(3));
-    });
-  }
-
   Future test_format_withErrors() {
     addTestFile('''
 main() { int x = 
@@ -115,9 +116,11 @@ main() { int x =
     });
   }
 
-  EditFormatResult _formatAt(int selectionOffset, int selectionLength, {int lineLength}) {
+  EditFormatResult _formatAt(int selectionOffset, int selectionLength,
+      {int lineLength}) {
     Request request = new EditFormatParams(
-        testFile, selectionOffset, selectionLength, lineLength: lineLength).toRequest('0');
+        testFile, selectionOffset, selectionLength,
+        lineLength: lineLength).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     return new EditFormatResult.fromResponse(response);
   }

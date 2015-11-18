@@ -12,8 +12,10 @@ import "dart:convert";
 import "dart:io";
 
 const HOST_NAME = "localhost";
-const CERTIFICATE = "localhost_cert";
+String localFile(path) => Platform.script.resolve(path).toFilePath();
 
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
 
 class ExpectException implements Exception {
   ExpectException(this.message);
@@ -37,7 +39,9 @@ void expect(condition) {
 
 
 void runClient(int port) {
-  SecureSocket.connect(HOST_NAME, port, sendClientCertificate: true)
+  SecureSocket.connect(HOST_NAME,
+                       port,
+                       context: clientContext)
     .then((SecureSocket socket) {
       X509Certificate certificate = socket.peerCertificate;
       expect(certificate != null);
@@ -74,6 +78,5 @@ void runClient(int port) {
 
 
 void main(List<String> args) {
-  SecureSocket.initialize(database: args[1], password: 'dartdart');
   runClient(int.parse(args[0]));
 }

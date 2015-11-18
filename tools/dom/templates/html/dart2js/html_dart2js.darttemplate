@@ -34,7 +34,7 @@ library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal' hide Symbol, deprecated;
+import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -52,7 +52,7 @@ import 'dart:web_gl' show RenderingContext;
 import 'dart:web_sql';
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Native, Null, Returns, Inline, ForceInline,
+    JSName, Native, Returns, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
@@ -149,3 +149,8 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   // TODO(17738): Implement this.
   throw new UnimplementedError();
 }
+
+/// Dartium functions that are a NOOP in dart2js.
+unwrap_jso(dartClass_instance) => dartClass_instance;
+wrap_jso(jsObject) => jsObject;
+createCustomUpgrader(Type customElementClass, $this) => $this;

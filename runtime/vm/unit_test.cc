@@ -215,8 +215,6 @@ void AssemblerTest::Assemble() {
     Disassembler::Disassemble(start, start + assembler_->CodeSize());
     OS::Print("}\n");
   }
-  const Instructions& instructions = Instructions::Handle(code_.instructions());
-  entry_ = instructions.EntryPoint();
 }
 
 
@@ -224,7 +222,7 @@ CodeGenTest::CodeGenTest(const char* name)
   : function_(Function::ZoneHandle()),
     node_sequence_(new SequenceNode(Scanner::kNoSourcePos,
                                     new LocalScope(NULL, 0, 0))),
-    default_parameter_values_(Array::ZoneHandle()) {
+    default_parameter_values_(new ZoneGrowableArray<const Instance*> ()) {
   ASSERT(name != NULL);
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   // Add function to a class and that class to the class dictionary so that
@@ -281,6 +279,26 @@ bool CompilerTest::TestCompileFunction(const Function& function) {
   const Error& error = Error::Handle(Compiler::CompileFunction(thread,
                                                                function));
   return error.IsNull();
+}
+
+
+void ElideJSONSubstring(const char* prefix, const char* in, char* out) {
+  const char* pos = strstr(in, prefix);
+  while (pos != NULL) {
+    // Copy up to pos into the output buffer.
+    while (in < pos) {
+      *out++ = *in++;
+    }
+
+    // Skip to the close quote.
+    in += strcspn(in, "\"");
+    pos = strstr(in, prefix);
+  }
+  // Copy the remainder of in to out.
+  while (*in != '\0') {
+    *out++ = *in++;
+  }
+  *out = '\0';
 }
 
 

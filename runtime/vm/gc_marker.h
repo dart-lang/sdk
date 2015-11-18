@@ -6,6 +6,7 @@
 #define VM_GC_MARKER_H_
 
 #include "vm/allocation.h"
+#include "vm/os_thread.h"  // Mutex.
 
 namespace dart {
 
@@ -13,7 +14,6 @@ namespace dart {
 class HandleVisitor;
 class Heap;
 class Isolate;
-class MarkingVisitor;
 class ObjectPointerVisitor;
 class PageSpace;
 class RawWeakProperty;
@@ -22,7 +22,8 @@ class RawWeakProperty;
 // of the mark-sweep collection. The marking bit used is defined in RawObject.
 class GCMarker : public ValueObject {
  public:
-  explicit GCMarker(Heap* heap) : heap_(heap), marked_bytes_(0) { }
+  explicit GCMarker(Heap* heap)
+      : heap_(heap), marked_bytes_(0) { }
   ~GCMarker() { }
 
   void MarkObjects(Isolate* isolate,
@@ -37,19 +38,27 @@ class GCMarker : public ValueObject {
   void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateRoots(Isolate* isolate,
                     ObjectPointerVisitor* visitor,
-                    bool visit_prologue_weak_persistent_handles);
+                    bool visit_prologue_weak_persistent_handles,
+                    intptr_t slice_index, intptr_t num_slices);
   void IterateWeakRoots(Isolate* isolate,
                         HandleVisitor* visitor,
                         bool visit_prologue_weak_persistent_handles);
-  void IterateWeakReferences(Isolate* isolate, MarkingVisitor* visitor);
-  void DrainMarkingStack(Isolate* isolate, MarkingVisitor* visitor);
+  template<class MarkingVisitorType>
+  void IterateWeakReferences(Isolate* isolate, MarkingVisitorType* visitor);
   void ProcessWeakTables(PageSpace* page_space);
   void ProcessObjectIdTable(Isolate* isolate);
 
+  // Called by anyone: finalize and accumulate stats from 'visitor'.
+  template<class MarkingVisitorType>
+  void FinalizeResultsFrom(MarkingVisitorType* visitor);
 
   Heap* heap_;
+
+  Mutex stats_mutex_;
+  // TODO(koda): Remove after verifying it's redundant w.r.t. ClassHeapStats.
   uintptr_t marked_bytes_;
 
+  friend class MarkTask;
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);
 };
 

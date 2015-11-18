@@ -10,7 +10,9 @@ library dart2js.test.import;
 import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/warnings.dart' show MessageKind, MessageTemplate;
+import 'package:compiler/src/diagnostics/messages.dart' show
+    MessageKind,
+    MessageTemplate;
 import 'memory_compiler.dart';
 
 const DIRECT_IMPORT = const {

@@ -4,20 +4,21 @@
 
 library test.services.src.index.local_index;
 
+import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/local_index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
+import '../../utils.dart';
 import 'store/single_source_container.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(LocalIndexTest);
 }
 
@@ -36,6 +37,7 @@ class LocalIndexTest extends AbstractContextTest {
   void setUp() {
     super.setUp();
     index = createLocalMemoryIndex();
+    index.contributors = [new DartIndexContributor()];
   }
 
   void tearDown() {
@@ -51,27 +53,18 @@ class LocalIndexTest extends AbstractContextTest {
     expect(_getTopElements(), isEmpty);
   }
 
-  void test_indexHtmlUnit_nullUnit() {
-    index.indexHtmlUnit(context, null);
-  }
-
-  void test_indexHtmlUnit_nullUnitElement() {
-    HtmlUnit unit = new HtmlUnit(null, [], null);
-    index.indexHtmlUnit(context, unit);
-  }
-
-  void test_indexUnit() {
+  void test_index() {
     _indexTest('main() {}');
     _assertElementNames(_getTopElements(), ['main']);
   }
 
-  void test_indexUnit_nullUnit() {
-    index.indexUnit(context, null);
+  void test_index_nullObject() {
+    index.index(context, null);
   }
 
-  void test_indexUnit_nullUnitElement() {
+  void test_index_nullUnitElement() {
     CompilationUnit unit = new CompilationUnit(null, null, [], [], null);
-    index.indexUnit(context, unit);
+    index.index(context, unit);
   }
 
   void test_removeContext() {
@@ -114,7 +107,7 @@ class LocalIndexTest extends AbstractContextTest {
   Source _indexLibraryUnit(String path, String content) {
     Source source = addSource(path, content);
     CompilationUnit dartUnit = resolveLibraryUnit(source);
-    index.indexUnit(context, dartUnit);
+    index.index(context, dartUnit);
     return source;
   }
 

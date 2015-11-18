@@ -12,8 +12,9 @@ import 'package:js_runtime/shared/async_await_error_codes.dart'
 
 import "js.dart" as js;
 
-import '../util/util.dart';
-import '../dart2jslib.dart' show DiagnosticListener;
+import '../common.dart';
+import '../util/util.dart' show
+    Pair;
 
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
 /// (with dart-like semantics) to an equivalent function without these.
@@ -154,7 +155,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.VariableUse get self => new js.VariableUse(selfName);
   String selfName;
 
-  final DiagnosticListener diagnosticListener;
+  final DiagnosticReporter reporter;
   // For error reporting only.
   Spannable get spannable {
     return (_spannable == null) ? NO_LOCATION_SPANNABLE : _spannable;
@@ -174,11 +175,10 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   bool get isSyncStar => false;
   bool get isAsyncStar => false;
 
-  AsyncRewriterBase(this.diagnosticListener,
-                    spannable,
+  AsyncRewriterBase(this.reporter,
+                    this._spannable,
                     this.safeVariableName,
-                    this.bodyName)
-      : _spannable = spannable;
+                    this.bodyName);
 
   /// Initialize names used by the subClass.
   void initializeNames();
@@ -348,7 +348,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 
   void unreachable(js.Node node) {
-    diagnosticListener.internalError(
+    reporter.internalError(
         spannable, "Internal error, trying to visit $node");
   }
 
@@ -1372,7 +1372,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
           clauses.add(new js.Default(gotoAndBreak(labels[i])));
           hasDefault = true;
         } else {
-          diagnosticListener.internalError(
+          reporter.internalError(
               spannable, "Unknown clause type $clause");
         }
         i++;
@@ -1689,21 +1689,23 @@ class AsyncRewriter extends AsyncRewriterBase {
   /// Specific to async methods.
   final js.Expression newCompleter;
 
+  final js.Expression wrapBody;
 
-  AsyncRewriter(DiagnosticListener diagnosticListener,
-                spannable,
+  AsyncRewriter(DiagnosticReporter reporter,
+                Spannable spannable,
                 {this.asyncHelper,
                  this.newCompleter,
+                 this.wrapBody,
                  String safeVariableName(String proposedName),
                  js.Name bodyName})
-        : super(diagnosticListener,
+        : super(reporter,
                 spannable,
                 safeVariableName,
                 bodyName);
 
   @override
   void addYield(js.DartYield node, js.Expression expression) {
-    diagnosticListener.internalError(spannable,
+    reporter.internalError(spannable,
         "Yield in non-generating async function");
   }
 
@@ -1774,13 +1776,13 @@ class AsyncRewriter extends AsyncRewriterBase {
     return js.js("""
         function (#parameters) {
           #variableDeclarations;
-          function #bodyName(#errorCode, #result) {
+          var #bodyName = #wrapBody(function (#errorCode, #result) {
             if (#errorCode === #ERROR) {
                 #currentError = #result;
                 #goto = #handler;
             }
             #rewrittenBody;
-          }
+          });
           return #asyncHelper(null, #bodyName, #completer, null);
         }""", {
           "parameters": parameters,
@@ -1795,6 +1797,7 @@ class AsyncRewriter extends AsyncRewriterBase {
           "result": resultName,
           "asyncHelper": asyncHelper,
           "completer": completer,
+          "wrapBody": wrapBody,
         });
   }
 }
@@ -1820,7 +1823,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Used by sync* functions to throw exeptions.
   final js.Expression uncaughtErrorExpression;
 
-  SyncStarRewriter(DiagnosticListener diagnosticListener,
+  SyncStarRewriter(DiagnosticReporter diagnosticListener,
                 spannable,
                 {this.endOfIteration,
                  this.newIterable,
@@ -1930,7 +1933,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
 
   @override
   js.Statement awaitStatement(js.Expression value) {
-    throw diagnosticListener.internalError(spannable,
+    throw reporter.internalError(spannable,
         "Sync* functions cannot contain await statements.");
   }
 
@@ -1989,16 +1992,19 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   /// Called with the stream to yield from.
   final js.Expression yieldStarExpression;
 
-  AsyncStarRewriter(DiagnosticListener diagnosticListener,
-                spannable,
-                {this.asyncStarHelper,
-                 this.streamOfController,
-                 this.newController,
-                 this.yieldExpression,
-                 this.yieldStarExpression,
-                 String safeVariableName(String proposedName),
-                 js.Name bodyName})
-        : super(diagnosticListener,
+  final js.Expression wrapBody;
+
+  AsyncStarRewriter(DiagnosticReporter reporter,
+                    Spannable spannable,
+                    {this.asyncStarHelper,
+                     this.streamOfController,
+                     this.newController,
+                     this.yieldExpression,
+                     this.yieldStarExpression,
+                     this.wrapBody,
+                     String safeVariableName(String proposedName),
+                     js.Name bodyName})
+        : super(reporter,
                 spannable,
                 safeVariableName,
                 bodyName);
@@ -2041,8 +2047,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
                         js.VariableDeclarationList variableDeclarations) {
     return js.js("""
         function (#parameters) {
-          #variableDeclarations;
-          function #bodyName(#errorCode, #result) {
+          var #bodyName = #wrapBody(function (#errorCode, #result) {
             if (#hasYield) {
               switch (#errorCode) {
                 case #STREAM_WAS_CANCELED:
@@ -2060,7 +2065,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
               }
             }
             #rewrittenBody;
-          }
+          });
+          #variableDeclarations;
           return #streamOfController(#controller);
         }""", {
           "parameters": parameters,
@@ -2079,6 +2085,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
           "result": resultName,
           "streamOfController": streamOfController,
           "controller": controllerName,
+          "wrapBody": wrapBody,
         });
   }
 
@@ -2111,7 +2118,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     List<js.VariableInitialization> variables =
         new List<js.VariableInitialization>();
     variables.add(_makeVariableInitializer(controller,
-                         js.js('#(#)', [newController, bodyName])));
+                         js.js('#(#)',
+                               [newController, bodyName])));
     if (analysis.hasYield) {
       variables.add(_makeVariableInitializer(nextWhenCanceled, null));
     }

@@ -131,12 +131,15 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       const intptr_t unique_smi = id_ + 928327281;
       Smi& smi = Smi::Handle(zone, Smi::New(unique_smi));
       EXPECT(smi.Value() == unique_smi);
-      ObjectCounter counter(isolate_, &smi);
-      // Ensure that our particular zone is visited.
-      // TODO(koda): Remove "->thread_registry()" after updating stack walker.
-      isolate_->thread_registry()->VisitObjectPointers(&counter);
-      EXPECT_EQ(1, counter.count());
-
+      {
+        ObjectCounter counter(isolate_, &smi);
+        // Ensure that our particular zone is visited.
+        isolate_->IterateObjectPointers(
+            &counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
+        EXPECT_EQ(1, counter.count());
+      }
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
       String& unique_str = String::Handle(zone);
       {
@@ -146,12 +149,16 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         unique_str = String::New(unique_chars, Heap::kOld);
       }
       EXPECT(unique_str.Equals(unique_chars));
-      ObjectCounter str_counter(isolate_, &unique_str);
-      // Ensure that our particular zone is visited.
-      // TODO(koda): Remove "->thread_registry()" after updating stack walker.
-      isolate_->thread_registry()->VisitObjectPointers(&str_counter);
-      // We should visit the string object exactly once.
-      EXPECT_EQ(1, str_counter.count());
+      {
+        ObjectCounter str_counter(isolate_, &unique_str);
+        // Ensure that our particular zone is visited.
+        isolate_->IterateObjectPointers(
+            &str_counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
+        // We should visit the string object exactly once.
+        EXPECT_EQ(1, str_counter.count());
+      }
     }
     Thread::ExitIsolateAsHelper();
     {
@@ -272,7 +279,10 @@ class SafepointTestTask : public ThreadPool::Task {
         // But occasionally, organize a rendezvous.
         isolate_->thread_registry()->SafepointThreads();
         ObjectCounter counter(isolate_, &smi);
-        isolate_->thread_registry()->VisitObjectPointers(&counter);
+        isolate_->IterateObjectPointers(
+            &counter,
+            /* visit_prologue_weak_handles = */ true,
+            StackFrameIterator::kValidateFrames);
         {
           MutexLocker ml(mutex_);
           EXPECT_EQ(*expected_count_, counter.count());
@@ -348,7 +358,7 @@ TEST_CASE(SafepointTestDart) {
 #endif  // USING_SIMULATOR
   char buffer[1024];
   OS::SNPrint(buffer, sizeof(buffer),
-      "import 'dart:profiler';\n"
+      "import 'dart:developer';\n"
       "int dummy = 0;\n"
       "main() {\n"
       "  new UserTag('foo').makeCurrent();\n"
@@ -375,7 +385,6 @@ TEST_CASE(SafepointTestDart) {
 // organized by
 // - helpers.
 TEST_CASE(SafepointTestVM) {
-  Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Mutex mutex;
   intptr_t expected_count = 0;
@@ -398,6 +407,115 @@ TEST_CASE(SafepointTestVM) {
 }
 
 
+TEST_CASE(ThreadIterator_Count) {
+  intptr_t thread_count_0 = 0;
+  intptr_t thread_count_1 = 0;
+
+  {
+    ThreadIterator ti;
+    while (ti.HasNext()) {
+      Thread* thread = ti.Next();
+      EXPECT(thread != NULL);
+      thread_count_0++;
+    }
+  }
+
+  {
+    ThreadIterator ti;
+    while (ti.HasNext()) {
+      Thread* thread = ti.Next();
+      EXPECT(thread != NULL);
+      thread_count_1++;
+    }
+  }
+
+  EXPECT(thread_count_0 > 0);
+  EXPECT(thread_count_1 > 0);
+  EXPECT(thread_count_0 >= thread_count_1);
+}
+
+
+static bool ThreadInList(Thread* thread) {
+  ThreadIterator it;
+  while (it.HasNext()) {
+    Thread* t = it.Next();
+    if (t == thread) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+TEST_CASE(ThreadIterator_FindSelf) {
+  Thread* current = Thread::Current();
+  EXPECT(ThreadInList(current));
+}
+
+
+struct ThreadIteratorTestParams {
+  Isolate* isolate;
+  Thread* spawned_thread;
+  ThreadJoinId spawned_thread_join_id;
+  Monitor* monitor;
+};
+
+
+void ThreadIteratorTestMain(uword parameter) {
+  Thread::EnsureInit();
+  ThreadIteratorTestParams* params =
+      reinterpret_cast<ThreadIteratorTestParams*>(parameter);
+  Isolate* isolate = params->isolate;
+  EXPECT(isolate != NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread != NULL);
+
+  MonitorLocker ml(params->monitor);
+  params->spawned_thread = thread;
+  params->spawned_thread_join_id = OSThread::GetCurrentThreadJoinId();
+  EXPECT(params->spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
+  EXPECT(ThreadInList(thread));
+  ml.Notify();
+}
+
+
+TEST_CASE(ThreadIterator_AddFindRemove) {
+  Isolate* isolate = thread->isolate();
+  ThreadIteratorTestParams params;
+  params.isolate = isolate;
+  params.spawned_thread = NULL;
+  params.spawned_thread_join_id = OSThread::kInvalidThreadJoinId;
+  params.monitor = new Monitor();
+
+  {
+    MonitorLocker ml(params.monitor);
+    EXPECT(params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId);
+    EXPECT(params.spawned_thread == NULL);
+    // Spawn thread and wait to receive the thread join id.
+    OSThread::Start(ThreadIteratorTestMain, reinterpret_cast<uword>(&params));
+    while (params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId) {
+      ml.Wait();
+    }
+    EXPECT(params.spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
+    EXPECT(params.spawned_thread != NULL);
+    // Join thread.
+    OSThread::Join(params.spawned_thread_join_id);
+  }
+
+  for (intptr_t i = 0; i < 10; i++) {
+    // Sleep for 10 milliseconds.
+    OS::Sleep(10);
+    if (!ThreadInList(params.spawned_thread)) {
+      break;
+    }
+  }
+
+  EXPECT(!ThreadInList(params.spawned_thread))
+
+  delete params.monitor;
+}
+
+
 // Test rendezvous of:
 // - helpers in VM code, and
 // - main thread in VM code,
@@ -405,7 +523,6 @@ TEST_CASE(SafepointTestVM) {
 // - main thread, and
 // - helpers.
 TEST_CASE(SafepointTestVM2) {
-  Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Mutex mutex;
   intptr_t expected_count = 0;
@@ -434,6 +551,66 @@ TEST_CASE(SafepointTestVM2) {
     MutexLocker ml(&mutex);
     if (exited == SafepointTestTask::kTaskCount) {
       break;
+    }
+  }
+}
+
+
+class AllocAndGCTask : public ThreadPool::Task {
+ public:
+  AllocAndGCTask(Isolate* isolate,
+                 Monitor* done_monitor,
+                 bool* done)
+    : isolate_(isolate),
+      done_monitor_(done_monitor),
+      done_(done) {
+  }
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_);
+    {
+      Thread* thread = Thread::Current();
+      StackZone stack_zone(thread);
+      Zone* zone = stack_zone.GetZone();
+      HANDLESCOPE(thread);
+      String& old_str = String::Handle(zone, String::New("old", Heap::kOld));
+      isolate_->heap()->CollectAllGarbage();
+      EXPECT(old_str.Equals("old"));
+    }
+    Thread::ExitIsolateAsHelper();
+    // Tell main thread that we are ready.
+    {
+      MonitorLocker ml(done_monitor_);
+      ASSERT(!*done_);
+      *done_ = true;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  Monitor* done_monitor_;
+  bool* done_;
+};
+
+
+TEST_CASE(HelperAllocAndGC) {
+  Monitor done_monitor;
+  bool done = false;
+  Isolate* isolate = Thread::Current()->isolate();
+  // Flush store buffers, etc.
+  // TODO(koda): Currently, the GC only does this for the current thread, (i.e,
+  // the helper, in this test), but it should be done for all *threads*
+  // while reaching a safepoint.
+  Thread::PrepareForGC();
+  Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
+  {
+    while (true) {
+      isolate->thread_registry()->CheckSafepoint();
+      MonitorLocker ml(&done_monitor);
+      if (done) {
+        break;
+      }
     }
   }
 }

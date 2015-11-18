@@ -12,7 +12,7 @@ library dart.dom.web_sql;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal' hide deprecated;
+import 'dart:_internal';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show convertDartClosureToJS, Creates, JSName, Native;
@@ -228,7 +228,7 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
   // Map is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 

@@ -2,7 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.scanner.array_based;
+
+import '../io/source_file.dart' show
+    SourceFile;
+import '../tokens/keyword.dart' show
+    Keyword;
+import '../tokens/precedence.dart' show
+    PrecedenceInfo;
+import '../tokens/precedence_constants.dart' as Precedence show
+    COMMENT_INFO,
+    EOF_INFO;
+import '../tokens/token.dart' show
+    BeginGroupToken,
+    ErrorToken,
+    KeywordToken,
+    SymbolToken,
+    Token;
+import '../tokens/token_constants.dart' as Tokens show
+    LT_TOKEN,
+    OPEN_CURLY_BRACKET_TOKEN,
+    STRING_INTERPOLATION_TOKEN;
+import '../util/characters.dart' show
+    $LF,
+    $STX;
+import '../util/util.dart' show
+    Link;
+
+import 'scanner.dart' show
+    AbstractScanner;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
   ArrayBasedScanner(SourceFile file, bool includeComments)
@@ -64,7 +92,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       unmatchedBeginGroup(groupingStack.head);
       groupingStack = groupingStack.tail;
     }
-    tail.next = new SymbolToken(EOF_INFO, tokenStart);
+    tail.next = new SymbolToken(Precedence.EOF_INFO, tokenStart);
     tail = tail.next;
     // EOF points to itself so there's always infinite look-ahead.
     tail.next = tail;
@@ -105,7 +133,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     tail = tail.next;
 
     // { (  [ ${ cannot appear inside a type parameters / arguments.
-    if (!identical(info.kind, LT_TOKEN)) discardOpenLt();
+    if (!identical(info.kind, Tokens.LT_TOKEN)) discardOpenLt();
     groupingStack = groupingStack.prepend(token);
   }
 
@@ -115,7 +143,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    * '>>' are handled separately bo [appendGt] and [appendGtGt].
    */
   int appendEndGroup(PrecedenceInfo info, int openKind) {
-    assert(!identical(openKind, LT_TOKEN)); // openKind is < for > and >>
+    assert(!identical(openKind, Tokens.LT_TOKEN)); // openKind is < for > and >>
     discardBeginGroupUntil(openKind);
     appendPrecedenceToken(info);
     Token close = tail;
@@ -124,8 +152,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
     }
     BeginGroupToken begin = groupingStack.head;
     if (!identical(begin.kind, openKind)) {
-      assert(begin.kind == STRING_INTERPOLATION_TOKEN &&
-             openKind == OPEN_CURLY_BRACKET_TOKEN);
+      assert(begin.kind == Tokens.STRING_INTERPOLATION_TOKEN &&
+             openKind == Tokens.OPEN_CURLY_BRACKET_TOKEN);
       // We're ending an interpolated expression.
       begin.endGroup = close;
       groupingStack = groupingStack.tail;
@@ -149,8 +177,8 @@ abstract class ArrayBasedScanner extends AbstractScanner {
       if (groupingStack.isEmpty) return;
       BeginGroupToken begin = groupingStack.head;
       if (openKind == begin.kind) return;
-      if (openKind == OPEN_CURLY_BRACKET_TOKEN &&
-          begin.kind == STRING_INTERPOLATION_TOKEN) return;
+      if (openKind == Tokens.OPEN_CURLY_BRACKET_TOKEN &&
+          begin.kind == Tokens.STRING_INTERPOLATION_TOKEN) return;
       unmatchedBeginGroup(begin);
       groupingStack = groupingStack.tail;
     }
@@ -164,7 +192,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   void appendGt(PrecedenceInfo info) {
     appendPrecedenceToken(info);
     if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (identical(groupingStack.head.kind, Tokens.LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
     }
@@ -178,13 +206,13 @@ abstract class ArrayBasedScanner extends AbstractScanner {
   void appendGtGt(PrecedenceInfo info) {
     appendPrecedenceToken(info);
     if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (identical(groupingStack.head.kind, Tokens.LT_TOKEN)) {
       // Don't assign endGroup: in "T<U<V>>", the '>>' token closes the outer
       // '<', the inner '<' is left without endGroup.
       groupingStack = groupingStack.tail;
     }
     if (groupingStack.isEmpty) return;
-    if (identical(groupingStack.head.kind, LT_TOKEN)) {
+    if (identical(groupingStack.head.kind, Tokens.LT_TOKEN)) {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
     }
@@ -192,7 +220,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
 
   void appendComment(start, bool asciiOnly) {
     if (!includeComments) return;
-    appendSubstringToken(COMMENT_INFO, start, asciiOnly);
+    appendSubstringToken(Precedence.COMMENT_INFO, start, asciiOnly);
   }
 
   void appendErrorToken(ErrorToken token) {
@@ -213,7 +241,7 @@ abstract class ArrayBasedScanner extends AbstractScanner {
    */
   void discardOpenLt() {
     while (!groupingStack.isEmpty
-        && identical(groupingStack.head.kind, LT_TOKEN)) {
+        && identical(groupingStack.head.kind, Tokens.LT_TOKEN)) {
       groupingStack = groupingStack.tail;
     }
   }

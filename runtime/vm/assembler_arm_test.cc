@@ -3928,18 +3928,16 @@ ASSEMBLER_TEST_RUN(Vnegqs, test) {
 
 // Called from assembler_test.cc.
 // LR: return address.
-// R0: context.
-// R1: value.
-// R2: growable array.
-// R3: current thread.
+// R0: value.
+// R1: growable array.
+// R2: current thread.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ PushList((1 << CTX) | (1 << LR) | (1 << THR));
-  __ mov(CTX, Operand(R0));
-  __ mov(THR, Operand(R3));
-  __ StoreIntoObject(R2,
-                     FieldAddress(R2, GrowableObjectArray::data_offset()),
-                     R1);
-  __ PopList((1 << CTX) | (1 << LR) | (1 << THR));
+  __ PushList((1 << LR) | (1 << THR));
+  __ mov(THR, Operand(R2));
+  __ StoreIntoObject(R1,
+                     FieldAddress(R1, GrowableObjectArray::data_offset()),
+                     R0);
+  __ PopList((1 << LR) | (1 << THR));
   __ Ret();
 }
 

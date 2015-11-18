@@ -483,22 +483,22 @@ class _FilterSink extends ByteConversionSink {
 
   void addSlice(List<int> data, int start, int end, bool isLast) {
     if (_closed) return;
-    if (start < 0 || start > data.length) {
-      throw new ArgumentError("Invalid start position");
-    }
-    if (end < 0 || end > data.length || end < start) {
-      throw new ArgumentError("Invalid end position");
-    }
+    if (end == null) throw new ArgumentError.notNull("end");
+    RangeError.checkValidRange(start, end, data.length);
     try {
       _empty = false;
-      _filter.process(data, start, end);
+      _BufferAndStart bufferAndStart =
+          _ensureFastAndSerializableByteData(data, start, end);
+      _filter.process(bufferAndStart.buffer,
+                      bufferAndStart.start,
+                      end - (start - bufferAndStart.start));
       var out;
       while ((out = _filter.processed(flush: false)) != null) {
         _sink.add(out);
       }
     } catch (e) {
       _closed = true;
-      throw e;
+      rethrow;
     }
 
     if (isLast) close();

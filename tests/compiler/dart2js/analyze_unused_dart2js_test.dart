@@ -6,7 +6,8 @@ library analyze_unused_dart2js;
 
 import 'package:async_helper/async_helper.dart';
 
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/filenames.dart';
 
 import 'analyze_helper.dart';
@@ -17,9 +18,10 @@ const Map<String, List<String>> WHITE_LIST = const {
   // Helper methods for debugging should never be called from production code:
   "lib/src/helpers/": const [" is never "],
 
-  // Node.asLiteralBool is never used.
+  // Node.asAssert, Node.asLiteralBool is never used.
   "lib/src/tree/nodes.dart": const [
-      "The method 'asLiteralBool' is never called"],
+      "The method 'asAssert' is never called.",
+      "The method 'asLiteralBool' is never called."],
 
   // Some things in dart_printer are not yet used
   "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],
@@ -28,15 +30,14 @@ const Map<String, List<String>> WHITE_LIST = const {
   "lib/src/resolution/semantic_visitor.dart": const [
       "The method 'error"],
   "lib/src/resolution/semantic_visitor_mixins.dart": const [
-      "The class 'Base", "The method 'error", "The method 'visit"],
+      "The class 'SuperBulkMixin'",
+      "The class 'Base",
+      "The method 'error",
+      "The method 'visit"],
 
   // Uncalled type predicate.  Keep while related predicates are used.
   "lib/src/ssa/nodes.dart": const [
       "The method 'isArray' is never called"],
-
-  // Method in abstract class. Currently only instantiated trough tests.
-  "lib/src/constants/expressions.dart": const [
-      "The method 'readFromEnvironment' is never called"],
 
   // Serialization code is only used in test.
   "lib/src/serialization/": const [
@@ -55,16 +56,28 @@ const Map<String, List<String>> WHITE_LIST = const {
     "accept", "CreateFunction",
   ],
 
-  "/lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
+  "lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
     " is never "
+  ],
+
+  // Useful utility functions that are not currently used.
+  "lib/src/cps_ir/cps_fragment.dart": const [
+    "The method 'beginLoop' is never called.",
+    "The method 'continueLoop' is never called.",
+    "The method 'invokeMethod' is never called.",
   ],
 };
 
 void main() {
   var uri = currentDirectory.resolve(
       'pkg/compiler/lib/src/use_unused_api.dart');
-  asyncTest(() => analyze([uri], WHITE_LIST,
-      analyzeAll: false, checkResults: checkResults));
+  asyncTest(() => analyze(
+      [uri],
+      // TODO(johnniwinther): Use [WHITE_LIST] again when
+      // [Compiler.reportUnusedCode] is reenabled.
+      const {}, // WHITE_LIST
+      analyzeAll: false,
+      checkResults: checkResults));
 }
 
 bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
@@ -72,20 +85,23 @@ bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
       'pkg/compiler/lib/src/helpers/helpers.dart');
   void checkLive(member) {
     if (member.isFunction) {
-      if (compiler.enqueuer.resolution.hasBeenResolved(member)) {
-        compiler.reportHint(member, MessageKind.GENERIC,
+      if (compiler.enqueuer.resolution.hasBeenProcessed(member)) {
+        compiler.reporter.reportHintMessage(
+            member, MessageKind.GENERIC,
             {'text': "Helper function in production code '$member'."});
       }
     } else if (member.isClass) {
       if (member.isResolved) {
-        compiler.reportHint(member, MessageKind.GENERIC,
+        compiler.reporter.reportHintMessage(
+            member, MessageKind.GENERIC,
             {'text': "Helper class in production code '$member'."});
       } else {
         member.forEachLocalMember(checkLive);
       }
     } else if (member.isTypedef) {
       if (member.isResolved) {
-        compiler.reportHint(member, MessageKind.GENERIC,
+        compiler.reporter.reportHintMessage(
+            member, MessageKind.GENERIC,
             {'text': "Helper typedef in production code '$member'."});
       }
     }

@@ -196,7 +196,7 @@ class NativeBehavior {
   /// latter is used for the type strings of the form '' and 'var'.
   /// [validTags] can be used to restrict which tags are accepted.
   static void processSpecString(
-      DiagnosticListener listener,
+      DiagnosticReporter reporter,
       Spannable spannable,
       String specString,
       {Iterable<String> validTags,
@@ -214,7 +214,8 @@ class NativeBehavior {
 
     void reportError(String message) {
       seenError = true;
-      listener.reportError(spannable, MessageKind.GENERIC, {'text': message});
+      reporter.reportErrorMessage(
+          spannable, MessageKind.GENERIC, {'text': message});
     }
 
     const List<String> knownTags = const [
@@ -423,7 +424,12 @@ class NativeBehavior {
     return sideEffects;
   }
 
-  static NativeBehavior ofJsCall(Send jsCall, Compiler compiler, resolver) {
+  static NativeBehavior ofJsCall(
+      Send jsCall,
+      DiagnosticReporter reporter,
+      Parsing parsing,
+      CoreTypes coreTypes,
+      ForeignResolver resolver) {
     // The first argument of a JS-call is a string encoding various attributes
     // of the code.
     //
@@ -434,21 +440,25 @@ class NativeBehavior {
 
     var argNodes = jsCall.arguments;
     if (argNodes.isEmpty || argNodes.tail.isEmpty) {
-      compiler.reportError(jsCall, MessageKind.GENERIC,
+      reporter.reportErrorMessage(
+          jsCall,
+          MessageKind.GENERIC,
           {'text': "JS expression takes two or more arguments."});
       return behavior;
     }
 
     var specArgument = argNodes.head;
     if (specArgument is !StringNode || specArgument.isInterpolation) {
-      compiler.reportError(specArgument, MessageKind.GENERIC,
+      reporter.reportErrorMessage(
+          specArgument, MessageKind.GENERIC,
           {'text': "JS first argument must be a string literal."});
       return behavior;
     }
 
     var codeArgument = argNodes.tail.head;
     if (codeArgument is !StringNode || codeArgument.isInterpolation) {
-      compiler.reportError(codeArgument, MessageKind.GENERIC,
+      reporter.reportErrorMessage(
+          codeArgument, MessageKind.GENERIC,
           {'text': "JS second argument must be a string literal."});
       return behavior;
     }
@@ -461,7 +471,7 @@ class NativeBehavior {
     dynamic resolveType(String typeString) {
       return _parseType(
           typeString,
-          compiler,
+          parsing,
           (name) => resolver.resolveTypeFromString(specArgument, name),
           specArgument);
     }
@@ -487,7 +497,9 @@ class NativeBehavior {
       behavior.useGvn = useGvn;
     }
 
-    processSpecString(compiler, specArgument,
+    processSpecString(
+        reporter,
+        specArgument,
         specString,
         setSideEffects: setSideEffects,
         setThrows: setThrows,
@@ -496,8 +508,8 @@ class NativeBehavior {
         resolveType: resolveType,
         typesReturned: behavior.typesReturned,
         typesInstantiated: behavior.typesInstantiated,
-        objectType: compiler.objectClass.computeType(compiler),
-        nullType: compiler.nullClass.computeType(compiler));
+        objectType: coreTypes.objectType,
+        nullType: coreTypes.nullType);
 
     if (!sideEffectsAreEncodedInSpecString) {
       new SideEffectsVisitor(behavior.sideEffects)
@@ -514,8 +526,10 @@ class NativeBehavior {
   static void _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
       NativeBehavior behavior,
       Send jsBuiltinOrEmbeddedGlobalCall,
-      Compiler compiler,
-      ResolverVisitor resolver,
+      DiagnosticReporter reporter,
+      Parsing parsing,
+      CoreTypes coreTypes,
+      ForeignResolver resolver,
       {bool isBuiltin,
        List<String> validTags}) {
     // The first argument of a JS-embedded global call is a string encoding
@@ -528,7 +542,7 @@ class NativeBehavior {
 
     Link<Node> argNodes = jsBuiltinOrEmbeddedGlobalCall.arguments;
     if (argNodes.isEmpty) {
-      compiler.internalError(jsBuiltinOrEmbeddedGlobalCall,
+      reporter.internalError(jsBuiltinOrEmbeddedGlobalCall,
           "JS $builtinOrGlobal expression has no type.");
     }
 
@@ -536,13 +550,13 @@ class NativeBehavior {
     // This is, because we want to allow non-literals (like references to
     // enums) as names.
     if (argNodes.tail.isEmpty) {
-      compiler.internalError(jsBuiltinOrEmbeddedGlobalCall,
+      reporter.internalError(jsBuiltinOrEmbeddedGlobalCall,
           'JS $builtinOrGlobal is missing name.');
     }
 
     if (!isBuiltin) {
       if (!argNodes.tail.tail.isEmpty) {
-        compiler.internalError(argNodes.tail.tail.head,
+        reporter.internalError(argNodes.tail.tail.head,
             'JS embedded global has more than 2 arguments');
       }
     }
@@ -551,7 +565,7 @@ class NativeBehavior {
     if (specLiteral == null) {
       // TODO(sra): We could accept a type identifier? e.g. JS(bool, '1<2').  It
       // is not very satisfactory because it does not work for void, dynamic.
-      compiler.internalError(argNodes.head, "Unexpected first argument.");
+      reporter.internalError(argNodes.head, "Unexpected first argument.");
     }
 
     String specString = specLiteral.dartString.slowToString();
@@ -559,7 +573,7 @@ class NativeBehavior {
     dynamic resolveType(String typeString) {
       return _parseType(
           typeString,
-          compiler,
+          parsing,
           (name) => resolver.resolveTypeFromString(specLiteral, name),
           jsBuiltinOrEmbeddedGlobalCall);
     }
@@ -568,32 +582,46 @@ class NativeBehavior {
       behavior.sideEffects.setTo(newEffects);
     }
 
-    processSpecString(compiler, jsBuiltinOrEmbeddedGlobalCall,
-                      specString,
-                      validTags: validTags,
-                      resolveType: resolveType,
-                      setSideEffects: setSideEffects,
-                      typesReturned: behavior.typesReturned,
-                      typesInstantiated: behavior.typesInstantiated,
-                      objectType: compiler.objectClass.computeType(compiler),
-                      nullType: compiler.nullClass.computeType(compiler));
+    processSpecString(
+        reporter,
+        jsBuiltinOrEmbeddedGlobalCall,
+        specString,
+        validTags: validTags,
+        resolveType: resolveType,
+        setSideEffects: setSideEffects,
+        typesReturned: behavior.typesReturned,
+        typesInstantiated: behavior.typesInstantiated,
+        objectType: coreTypes.objectType,
+        nullType: coreTypes.nullType);
   }
 
-  static NativeBehavior ofJsBuiltinCall(Send jsBuiltinCall,
-                                        Compiler compiler,
-                                        ResolverVisitor resolver) {
+  static NativeBehavior ofJsBuiltinCall(
+      Send jsBuiltinCall,
+      DiagnosticReporter reporter,
+      Parsing parsing,
+      CoreTypes coreTypes,
+      ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
     behavior.sideEffects.setTo(new SideEffects());
 
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-        behavior, jsBuiltinCall, compiler, resolver, isBuiltin: true);
+        behavior,
+        jsBuiltinCall,
+        reporter,
+        parsing,
+        coreTypes,
+        resolver,
+        isBuiltin: true);
 
     return behavior;
   }
 
-  static NativeBehavior ofJsEmbeddedGlobalCall(Send jsEmbeddedGlobalCall,
-                                               Compiler compiler,
-                                               ResolverVisitor resolver) {
+  static NativeBehavior ofJsEmbeddedGlobalCall(
+      Send jsEmbeddedGlobalCall,
+      DiagnosticReporter reporter,
+      Parsing parsing,
+      CoreTypes coreTypes,
+      ForeignResolver resolver) {
     NativeBehavior behavior = new NativeBehavior();
     // TODO(sra): Allow the use site to override these defaults.
     // Embedded globals are usually pre-computed data structures or JavaScript
@@ -602,29 +630,34 @@ class NativeBehavior {
     behavior.throwBehavior = NativeThrowBehavior.NEVER;
 
     _fillNativeBehaviorOfBuiltinOrEmbeddedGlobal(
-        behavior, jsEmbeddedGlobalCall, compiler, resolver,
+        behavior,
+        jsEmbeddedGlobalCall,
+        reporter,
+        parsing,
+        coreTypes,
+        resolver,
         isBuiltin: false,
         validTags: const ['returns', 'creates']);
 
     return behavior;
   }
 
-  static NativeBehavior ofMethod(FunctionElement method, Compiler compiler) {
-    FunctionType type = method.computeType(compiler);
+  static NativeBehavior ofMethod(FunctionElement method,  Compiler compiler) {
+    FunctionType type = method.computeType(compiler.resolution);
     var behavior = new NativeBehavior();
     behavior.typesReturned.add(type.returnType);
     if (!type.returnType.isVoid) {
       // Declared types are nullable.
-      behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
+      behavior.typesReturned.add(compiler.coreTypes.nullType);
     }
-    behavior._capture(type, compiler);
+    behavior._capture(type, compiler.resolution);
 
     // TODO(sra): Optional arguments are currently missing from the
     // DartType. This should be fixed so the following work-around can be
     // removed.
     method.functionSignature.forEachOptionalParameter(
         (ParameterElement parameter) {
-          behavior._escape(parameter.type, compiler);
+          behavior._escape(parameter.type, compiler.resolution);
         });
 
     behavior._overrideWithAnnotations(method, compiler);
@@ -632,34 +665,36 @@ class NativeBehavior {
   }
 
   static NativeBehavior ofFieldLoad(MemberElement field, Compiler compiler) {
-    DartType type = field.computeType(compiler);
+    Resolution resolution = compiler.resolution;
+    DartType type = field.computeType(resolution);
     var behavior = new NativeBehavior();
     behavior.typesReturned.add(type);
     // Declared types are nullable.
-    behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
-    behavior._capture(type, compiler);
+    behavior.typesReturned.add(resolution.coreTypes.nullType);
+    behavior._capture(type, resolution);
     behavior._overrideWithAnnotations(field, compiler);
     return behavior;
   }
 
   static NativeBehavior ofFieldStore(MemberElement field, Compiler compiler) {
-    DartType type = field.computeType(compiler);
+    Resolution resolution = compiler.resolution;
+    DartType type = field.computeType(resolution);
     var behavior = new NativeBehavior();
-    behavior._escape(type, compiler);
+    behavior._escape(type, resolution);
     // We don't override the default behaviour - the annotations apply to
     // loading the field.
     return behavior;
   }
 
   void _overrideWithAnnotations(Element element, Compiler compiler) {
-    if (element.metadata.isEmpty) return;
+    if (element.implementation.metadata.isEmpty) return;
 
     DartType lookup(String name) {
       Element e = element.buildScope().lookup(name);
       if (e == null) return null;
       if (e is! ClassElement) return null;
       ClassElement cls = e;
-      cls.ensureResolved(compiler);
+      cls.ensureResolved(compiler.resolution);
       return cls.thisType;
     }
 
@@ -684,11 +719,10 @@ class NativeBehavior {
    */
   static _collect(Element element, Compiler compiler, Element annotationClass,
                   lookup(str)) {
+    DiagnosticReporter reporter = compiler.reporter;
     var types = null;
-    for (Link<MetadataAnnotation> link = element.metadata;
-         !link.isEmpty;
-         link = link.tail) {
-      MetadataAnnotation annotation = link.head.ensureResolved(compiler);
+    for (MetadataAnnotation annotation in element.implementation.metadata) {
+      annotation.ensureResolved(compiler.resolution);
       ConstantValue value =
           compiler.constants.getConstantValue(annotation.constant);
       if (!value.isConstructedObject) continue;
@@ -698,14 +732,13 @@ class NativeBehavior {
       Iterable<ConstantValue> fields = constructedObject.fields.values;
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || !fields.single.isString) {
-        PartialMetadataAnnotation partial = annotation;
-        compiler.internalError(annotation,
-            'Annotations needs one string: ${partial.parseNode(compiler)}');
+        reporter.internalError(annotation,
+            'Annotations needs one string: ${annotation.node}');
       }
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
       for (final typeString in specString.split('|')) {
-        var type = _parseType(typeString, compiler, lookup, annotation);
+        var type = _parseType(typeString, compiler.parsing, lookup, annotation);
         if (types == null) types = [];
         types.add(type);
       }
@@ -715,15 +748,16 @@ class NativeBehavior {
 
   /// Models the behavior of having intances of [type] escape from Dart code
   /// into native code.
-  void _escape(DartType type, Compiler compiler) {
-    type = type.unalias(compiler);
+  void _escape(DartType type, Resolution resolution) {
+    type.computeUnaliased(resolution);
+    type = type.unaliased;
     if (type is FunctionType) {
       FunctionType functionType = type;
       // A function might be called from native code, passing us novel
       // parameters.
-      _escape(functionType.returnType, compiler);
+      _escape(functionType.returnType, resolution);
       for (DartType parameter in functionType.parameterTypes) {
-        _capture(parameter, compiler);
+        _capture(parameter, resolution);
       }
     }
   }
@@ -731,21 +765,26 @@ class NativeBehavior {
   /// Models the behavior of Dart code receiving instances and methods of [type]
   /// from native code.  We usually start the analysis by capturing a native
   /// method that has been used.
-  void _capture(DartType type, Compiler compiler) {
-    type = type.unalias(compiler);
+  void _capture(DartType type, Resolution resolution) {
+    type.computeUnaliased(resolution);
+    type = type.unaliased;
     if (type is FunctionType) {
       FunctionType functionType = type;
-      _capture(functionType.returnType, compiler);
+      _capture(functionType.returnType, resolution);
       for (DartType parameter in functionType.parameterTypes) {
-        _escape(parameter, compiler);
+        _escape(parameter, resolution);
       }
     } else {
       typesInstantiated.add(type);
     }
   }
 
-  static dynamic _parseType(String typeString, Compiler compiler,
-      lookup(name), locationNodeOrElement) {
+  static dynamic _parseType(
+      String typeString,
+      Parsing parsing,
+      lookup(name),
+      locationNodeOrElement) {
+    DiagnosticReporter reporter = parsing.reporter;
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
       return const DynamicType();
@@ -755,8 +794,8 @@ class NativeBehavior {
 
     int index = typeString.indexOf('<');
     if (index < 1) {
-      compiler.reportError(
-          _errorNode(locationNodeOrElement, compiler),
+      reporter.reportErrorMessage(
+          _errorNode(locationNodeOrElement, parsing),
           MessageKind.GENERIC,
           {'text': "Type '$typeString' not found."});
       return const DynamicType();
@@ -766,15 +805,15 @@ class NativeBehavior {
       // TODO(sra): Parse type parameters.
       return type;
     }
-    compiler.reportError(
-        _errorNode(locationNodeOrElement, compiler),
+    reporter.reportErrorMessage(
+        _errorNode(locationNodeOrElement, parsing),
         MessageKind.GENERIC,
         {'text': "Type '$typeString' not found."});
     return const DynamicType();
   }
 
-  static _errorNode(locationNodeOrElement, compiler) {
+  static _errorNode(locationNodeOrElement, Parsing parsing) {
     if (locationNodeOrElement is Node) return locationNodeOrElement;
-    return locationNodeOrElement.parseNode(compiler);
+    return locationNodeOrElement.parseNode(parsing);
   }
 }

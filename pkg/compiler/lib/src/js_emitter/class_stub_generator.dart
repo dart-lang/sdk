@@ -48,7 +48,7 @@ class ClassStubGenerator {
    * Invariant: [member] must be a declaration element.
    */
   Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
-      Element member, Map<Selector, TypeMaskSet> selectors) {
+      Element member, Map<Selector, SelectorConstraints> selectors) {
     assert(invariant(member, member.isDeclaration));
 
     // If the method is intercepted, the stub gets the
@@ -84,12 +84,7 @@ class ClassStubGenerator {
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member, compiler.world)) continue;
-      for (TypeMask mask in selectors[selector].masks) {
-        if (mask != null &&
-            !mask.canHit(member, selector, compiler.world)) {
-          continue;
-        }
-
+      if (selectors[selector].applies(member, selector, compiler.world)) {
         generatedSelectors.add(selector);
 
         jsAst.Name invocationName = namer.invocationName(selector);
@@ -129,20 +124,12 @@ class ClassStubGenerator {
     }
 
     void addNoSuchMethodHandlers(String ignore,
-                                 Map<Selector, TypeMaskSet> selectors) {
-      TypeMask objectSubclassTypeMask =
-          new TypeMask.subclass(compiler.objectClass, compiler.world);
-
+                                 Map<Selector, SelectorConstraints> selectors) {
       for (Selector selector in selectors.keys) {
-        TypeMaskSet maskSet = selectors[selector];
-        for (TypeMask mask in maskSet.masks) {
-          if (mask == null) mask = objectSubclassTypeMask;
-
-          if (mask.needsNoSuchMethodHandling(selector, compiler.world)) {
-            jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
-            jsNames[jsName] = selector;
-            break;
-          }
+        SelectorConstraints maskSet = selectors[selector];
+        if (maskSet.needsNoSuchMethodHandling(selector, compiler.world)) {
+          jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
+          jsNames[jsName] = selector;
         }
       }
     }
@@ -167,7 +154,7 @@ class ClassStubGenerator {
     jsAst.Name methodName = namer.asName(selector.invocationMirrorMemberName);
     jsAst.Name internalName = namer.invocationMirrorInternalName(selector);
 
-    assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
+    assert(backend.isInterceptedName(Identifiers.noSuchMethod_));
     bool isIntercepted = backend.isInterceptedName(selector.name);
     jsAst.Expression expression =
         js('''this.#noSuchMethodName(#receiver,
@@ -180,7 +167,7 @@ class ClassStubGenerator {
             'noSuchMethodName': namer.noSuchMethodName,
             'createInvocationMirror':
                 backend.emitter.staticFunctionAccess(
-                    backend.getCreateInvocationMirror()),
+                    backend.helpers.createInvocationMirror),
             'methodName':
                 js.quoteName(compiler.enableMinification
                     ? internalName : methodName),

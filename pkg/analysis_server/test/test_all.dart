@@ -14,20 +14,22 @@ import 'domain_execution_test.dart' as domain_execution_test;
 import 'domain_server_test.dart' as domain_server_test;
 import 'edit/test_all.dart' as edit_all;
 import 'operation/test_all.dart' as operation_test_all;
+import 'plugin/test_all.dart' as plugin_all;
 import 'protocol_server_test.dart' as protocol_server_test;
 import 'protocol_test.dart' as protocol_test;
 import 'search/test_all.dart' as search_all;
-import 'services/test_all.dart' as services_all;
 import 'server_options_test.dart' as server_options;
+import 'services/test_all.dart' as services_all;
 import 'socket_server_test.dart' as socket_server_test;
 import 'source/test_all.dart' as source_all;
 import 'src/test_all.dart' as src_all;
+import 'utils.dart';
 
 /**
  * Utility for manually running all tests.
  */
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('analysis_server', () {
     analysis_all.main();
     analysis_server_test.main();
@@ -39,6 +41,7 @@ main() {
     domain_server_test.main();
     edit_all.main();
     operation_test_all.main();
+    plugin_all.main();
     protocol_server_test.main();
     protocol_test.main();
     search_all.main();

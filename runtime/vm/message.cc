@@ -181,10 +181,9 @@ Message* MessageQueue::FindMessageById(intptr_t id) {
 
 
 void MessageQueue::PrintJSON(JSONStream* stream) {
-  Isolate* isolate = Isolate::Current();
   JSONArray messages(stream);
 
-  Object& msg_handler = Object::Handle(isolate);
+  Object& msg_handler = Object::Handle();
 
   MessageQueue::Iterator it(this);
   intptr_t depth = 0;

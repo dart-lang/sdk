@@ -4,7 +4,7 @@
 
 // Patch file for dart:developer library.
 
-import 'dart:_js_helper' show patch;
+import 'dart:_js_helper' show patch, ForceInline;
 import 'dart:_foreign_helper' show JS;
 
 @patch
@@ -22,13 +22,56 @@ Object inspect(Object object) {
 }
 
 @patch
-log(String message,
-    {DateTime time,
-     int sequenceNumber,
-     int level: 0,
-     String name: '',
-     Zone zone,
-     Object error,
-     StackTrace stackTrace}) {
+void log(String message,
+         {DateTime time,
+          int sequenceNumber,
+          int level: 0,
+          String name: '',
+          Zone zone,
+          Object error,
+          StackTrace stackTrace}) {
   // TODO.
+}
+
+final _extensions = new Map<String, ServiceExtensionHandler>();
+
+@patch
+ServiceExtensionHandler _lookupExtension(String method) {
+  return _extensions[method];
+}
+
+@patch
+_registerExtension(String method, ServiceExtensionHandler handler) {
+  _extensions[method] = handler;
+}
+
+@patch
+int _getTraceClock() {
+  // TODO.
+  return _clockValue++;
+}
+int _clockValue = 0;
+
+@patch
+void _reportCompleteEvent(int start,
+                          int end,
+                          String category,
+                          String name,
+                          String argumentsAsJson) {
+  // TODO.
+}
+
+@patch
+int _getNextAsyncId() {
+  return 0;
+}
+
+@patch
+void _reportTaskEvent(int start,
+                      int taskId,
+                      String phase,
+                      String category,
+                      String name,
+                      String argumentsAsJson) {
+ // TODO.
 }

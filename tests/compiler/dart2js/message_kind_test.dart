@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/warnings.dart' show
+import 'package:compiler/src/diagnostics/messages.dart' show
     MessageKind,
     MessageTemplate;
 
@@ -26,7 +26,13 @@ main(List<String> arguments) {
         || name == 'COMPILER_CRASHED'
         || name == 'PLEASE_REPORT_THE_CRASH'
         // We cannot provide examples for patch errors.
-        || name.startsWith('PATCH_')) continue;
+        || name.startsWith('PATCH_')
+        || name == 'LIBRARY_NOT_SUPPORTED'
+        // TODO(johnniwinther): Remove these when [Compiler.reportUnusedCode] is
+        // reenabled.
+        || name == 'UNUSED_METHOD'
+        || name == 'UNUSED_CLASS'
+        || name == 'UNUSED_TYPEDEF') continue;
     if (template.examples != null) {
       examples.add(template);
     } else {

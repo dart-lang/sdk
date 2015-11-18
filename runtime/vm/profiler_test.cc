@@ -13,6 +13,43 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, profile_vm);
+DECLARE_FLAG(int, max_profile_depth);
+
+// Some tests are written assuming native stack trace profiling is disabled.
+class DisableNativeProfileScope : public ValueObject {
+ public:
+  DisableNativeProfileScope()
+      : FLAG_profile_vm_(FLAG_profile_vm) {
+    FLAG_profile_vm = false;
+  }
+
+  ~DisableNativeProfileScope() {
+    FLAG_profile_vm = FLAG_profile_vm_;
+  }
+
+ private:
+  const bool FLAG_profile_vm_;
+};
+
+
+// Temporarily adjust the maximum profile depth.
+class MaxProfileDepthScope : public ValueObject {
+ public:
+  explicit MaxProfileDepthScope(intptr_t new_max_depth)
+      : FLAG_max_profile_depth_(FLAG_max_profile_depth) {
+    Profiler::SetSampleDepth(new_max_depth);
+  }
+
+  ~MaxProfileDepthScope() {
+    Profiler::SetSampleDepth(FLAG_max_profile_depth_);
+  }
+
+ private:
+  const intptr_t FLAG_max_profile_depth_;
+};
+
+
 class ProfileSampleBufferTestHelper {
  public:
   static intptr_t IterateCount(const Isolate* isolate,
@@ -113,19 +150,32 @@ class AllocationFilter : public SampleFilter {
  public:
   explicit AllocationFilter(Isolate* isolate, intptr_t cid)
       : SampleFilter(isolate),
-        cid_(cid) {
+        cid_(cid),
+        enable_embedder_ticks_(false) {
   }
 
   bool FilterSample(Sample* sample) {
-    return sample->is_allocation_sample() && (sample->allocation_cid() == cid_);
+    if (!enable_embedder_ticks_ &&
+        (sample->vm_tag() == VMTag::kEmbedderTagId)) {
+      // We don't want to see embedder ticks in the test.
+      return false;
+    }
+    return sample->is_allocation_sample() &&
+           (sample->allocation_cid() == cid_);
+  }
+
+  void set_enable_embedder_ticks(bool enable) {
+    enable_embedder_ticks_ = enable;
   }
 
  private:
   intptr_t cid_;
+  bool enable_embedder_ticks_;
 };
 
 
 TEST_CASE(Profiler_TrivialRecordAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -154,9 +204,10 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
 
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -204,6 +255,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
 
 
 TEST_CASE(Profiler_ToggleRecordAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -231,9 +283,10 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
 
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -248,9 +301,10 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -302,9 +356,10 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -315,6 +370,7 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
 
 
 TEST_CASE(Profiler_CodeTicks) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -341,9 +397,10 @@ TEST_CASE(Profiler_CodeTicks) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -363,9 +420,10 @@ TEST_CASE(Profiler_CodeTicks) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -407,6 +465,7 @@ TEST_CASE(Profiler_CodeTicks) {
 
 
 TEST_CASE(Profiler_FunctionTicks) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -433,9 +492,10 @@ TEST_CASE(Profiler_FunctionTicks) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -455,9 +515,10 @@ TEST_CASE(Profiler_FunctionTicks) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -499,12 +560,13 @@ TEST_CASE(Profiler_FunctionTicks) {
 
 
 TEST_CASE(Profiler_IntrinsicAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript = "double foo(double a, double b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& double_class =
       Class::Handle(isolate->object_store()->double_class());
@@ -516,8 +578,8 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, double_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -530,8 +592,8 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, double_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -554,8 +616,8 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, double_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -566,6 +628,7 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
 
 
 TEST_CASE(Profiler_ArrayAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "List foo() => new List(4);\n"
       "List bar() => new List();\n";
@@ -573,7 +636,7 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& array_class =
       Class::Handle(isolate->object_store()->array_class());
@@ -583,8 +646,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, array_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -597,8 +660,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, array_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -621,8 +684,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, array_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -645,8 +708,8 @@ TEST_CASE(Profiler_ArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, array_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -668,7 +731,148 @@ TEST_CASE(Profiler_ArrayAllocation) {
 }
 
 
+TEST_CASE(Profiler_ContextAllocation) {
+  DisableNativeProfileScope dnps;
+  const char* kScript =
+      "var msg1 = 'a';\n"
+      "foo() {\n"
+      "  var msg = msg1 + msg1;\n"
+      "  return (x) { return '$msg + $msg'; }(msg);\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = thread->isolate();
+
+  const Class& context_class =
+      Class::Handle(Object::context_class());
+  EXPECT(!context_class.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, context_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  context_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, context_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  context_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, context_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+}
+
+
+TEST_CASE(Profiler_ClassAllocation) {
+  DisableNativeProfileScope dnps;
+  const char* kScript =
+      "var msg1 = 'a';\n"
+      "\n"
+      "foo() {\n"
+      "  var msg = msg1 + msg1;\n"
+      "  var msg2 = msg + msg;\n"
+      "  return (x, y, z, w) { return '$x + $y + $z'; }(msg, msg2, msg, msg);\n"
+      "}\n"
+      "bar() {\n"
+      "  var msg = msg1 + msg1;\n"
+      "  var msg2 = msg + msg;\n"
+      "  return (x, y) { return '$x + $y'; }(msg, msg2);\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = thread->isolate();
+
+  const Class& class_class =
+      Class::Handle(Object::class_class());
+  EXPECT(!class_class.IsNull());
+  class_class.SetTraceAllocation(true);
+
+  // Invoke "foo" which during compilation, triggers a closure class allocation.
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_class.id());
+    filter.set_enable_embedder_ticks(true);
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+#if defined(TARGET_OS_WINDOWS)
+    // TODO(johnmccutchan): Hookup native symbol resolver on Windows.
+    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
+#else
+    EXPECT_SUBSTRING("dart::Profiler::RecordAllocation", walker.CurrentName());
+#endif
+    EXPECT(!walker.Down());
+  }
+
+  // Disable allocation tracing for Class.
+  class_class.SetTraceAllocation(false);
+
+  // Invoke "bar" which during compilation, triggers a closure class allocation.
+  result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_class.id());
+    filter.set_enable_embedder_ticks(true);
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+}
+
+
 TEST_CASE(Profiler_TypedArrayAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "import 'dart:typed_data';\n"
       "List foo() => new Float32List(4);\n";
@@ -676,7 +880,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Library& typed_data_library =
       Library::Handle(isolate->object_store()->typed_data_library());
@@ -689,8 +893,8 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, float32_list_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -703,8 +907,8 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, float32_list_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -729,8 +933,8 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, float32_list_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -743,8 +947,8 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, float32_list_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -755,12 +959,13 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
 
 
 TEST_CASE(Profiler_StringAllocation) {
+  DisableNativeProfileScope dnps;
   const char* kScript = "String foo(String a, String b) => a + b;";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
       Class::Handle(isolate->object_store()->one_byte_string_class());
@@ -772,8 +977,8 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -786,8 +991,8 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -808,8 +1013,8 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -822,8 +1027,8 @@ TEST_CASE(Profiler_StringAllocation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -834,12 +1039,13 @@ TEST_CASE(Profiler_StringAllocation) {
 
 
 TEST_CASE(Profiler_StringInterpolation) {
+  DisableNativeProfileScope dnps;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
 
   const Class& one_byte_string_class =
       Class::Handle(isolate->object_store()->one_byte_string_class());
@@ -851,8 +1057,8 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -865,8 +1071,8 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -891,8 +1097,8 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -905,8 +1111,8 @@ TEST_CASE(Profiler_StringInterpolation) {
   EXPECT_VALID(result);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, one_byte_string_class.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -917,6 +1123,7 @@ TEST_CASE(Profiler_StringInterpolation) {
 
 
 TEST_CASE(Profiler_FunctionInline) {
+  DisableNativeProfileScope dnps;
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -960,9 +1167,10 @@ TEST_CASE(Profiler_FunctionInline) {
   // At this point B.boo should be optimized and inlined B.foo and B.choo.
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -978,9 +1186,10 @@ TEST_CASE(Profiler_FunctionInline) {
   EXPECT_VALID(result);
 
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter, Profile::kNoTags);
@@ -1079,9 +1288,10 @@ TEST_CASE(Profiler_FunctionInline) {
 
   // Test code transition tags.
   {
-    Isolate* isolate = Isolate::Current();
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
     profile.Build(&filter,
@@ -1153,6 +1363,116 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("B.choo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_ChainedSamples) {
+  MaxProfileDepthScope mpds(32);
+  DisableNativeProfileScope dnps;
+
+  // Each sample holds 8 stack frames.
+  // This chain is 20 stack frames deep.
+  const char* kScript =
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "}\n"
+      "class B {\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "go() => init();\n"
+      "init() => secondInit();\n"
+      "secondInit() => apple();\n"
+      "apple() => banana();\n"
+      "banana() => cantaloupe();\n"
+      "cantaloupe() => dog();\n"
+      "dog() => elephant();\n"
+      "elephant() => fred();\n"
+      "fred() => granola();\n"
+      "granola() => haystack();\n"
+      "haystack() => ice();\n"
+      "ice() => jeep();\n"
+      "jeep() => kindle();\n"
+      "kindle() => lemon();\n"
+      "lemon() => mayo();\n"
+      "mayo() => napkin();\n"
+      "napkin() => orange();\n"
+      "orange() => B.boo();\n"
+      "main() {\n"
+      "  return go();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+  class_a.SetTraceAllocation(true);
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have 1 allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("orange", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("napkin", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mayo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("lemon", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("kindle", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("jeep", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("ice", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("haystack", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("granola", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("fred", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("elephant", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("dog", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("cantaloupe", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("banana", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("apple", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("secondInit", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("init", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("go", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }

@@ -70,14 +70,13 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   void removeRange(int start, int end) {
-    Lists.indicesCheck(this, start, end);
+    RangeError.checkValidRange(start, end, this.length);
     Lists.copy(this, end, this, start, this.length - end);
     this.length = this.length - (end - start);
   }
 
   List<T> sublist(int start, [int end]) {
-    Lists.indicesCheck(this, start, end);
-    if (end == null) end = this.length;
+    end = RangeError.checkValidRange(start, end, this.length);
     int length = end - start;
     if (length == 0) return <T>[];
     List list = new _List(length);

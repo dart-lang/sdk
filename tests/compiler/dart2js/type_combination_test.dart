@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:async_helper/async_helper.dart";
-import "package:expect/expect.dart";
-import "compiler_helper.dart";
-import "package:compiler/src/types/types.dart";
-import "type_mask_test_helper.dart";
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
+import 'package:compiler/src/types/types.dart';
+import 'package:compiler/src/world.dart';
+import 'compiler_helper.dart';
+import 'type_mask_test_helper.dart';
 
 TypeMask nullType;
 TypeMask objectType;
@@ -733,13 +734,21 @@ void main() {
     World world = compiler.world;
     backend.interceptorsLibrary.forEachLocalMember((element) {
       if (element.isClass) {
-        element.ensureResolved(compiler);
-        compiler.enqueuer.resolution.registerInstantiatedType(
-            element.rawType, compiler.globalDependencies);
+        element.ensureResolved(compiler.resolution);
+        backend.registerInstantiatedType(
+            element.rawType,
+            compiler.enqueuer.resolution,
+            compiler.globalDependencies);
       }
     });
-    compiler.enqueuer.resolution.registerInstantiatedType(
-        compiler.coreTypes.mapType(), compiler.globalDependencies);
+    backend.registerInstantiatedType(
+        compiler.coreTypes.mapType(),
+        compiler.enqueuer.resolution,
+        compiler.globalDependencies);
+    backend.registerInstantiatedType(
+        compiler.coreTypes.functionType,
+        compiler.enqueuer.resolution,
+        compiler.globalDependencies);
     compiler.world.populate();
 
     // Grab hold of a supertype for String so we can produce potential

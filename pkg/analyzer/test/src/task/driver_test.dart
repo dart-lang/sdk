@@ -22,10 +22,11 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(AnalysisDriverTest);
   runReflectiveTests(CycleAwareDependencyWalkerTest);
   runReflectiveTests(WorkItemTest);
@@ -132,8 +133,9 @@ class AnalysisDriverTest extends AbstractDriverTest {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
     CaughtException exception = new CaughtException(null, null);
-    context.getCacheEntry(target).setErrorState(
-        exception, <ResultDescriptor>[result]);
+    context
+        .getCacheEntry(target)
+        .setErrorState(exception, <ResultDescriptor>[result]);
 
     expect(analysisDriver.createWorkOrderForResult(target, result), isNull);
   }
@@ -149,9 +151,11 @@ class AnalysisDriverTest extends AbstractDriverTest {
   test_createWorkOrderForResult_invalid() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [result]);
+        (target) => {},
+        [result]);
     taskManager.addTaskDescriptor(descriptor);
     context.getCacheEntry(target).setState(result, CacheState.INVALID);
 
@@ -163,8 +167,9 @@ class AnalysisDriverTest extends AbstractDriverTest {
   test_createWorkOrderForResult_valid() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
-    context.getCacheEntry(target).setValue(
-        result, '', TargetedResult.EMPTY_LIST);
+    context
+        .getCacheEntry(target)
+        .setValue(result, '', TargetedResult.EMPTY_LIST);
 
     expect(analysisDriver.createWorkOrderForResult(target, result), isNull);
   }
@@ -220,14 +225,16 @@ class AnalysisDriverTest extends AbstractDriverTest {
     // configure tasks
     TestAnalysisTask task1;
     TestAnalysisTask task2;
-    TaskDescriptor descriptor1 = new TaskDescriptor('task1',
-        (context, target) => task1, (target) => {
-      'inputB': new SimpleTaskInput<int>(target, resultB)
-    }, [resultA]);
-    TaskDescriptor descriptor2 = new TaskDescriptor('task2',
-        (context, target) => task2, (target) => {
-      'inputA': new SimpleTaskInput<int>(target, resultA)
-    }, [resultB]);
+    TaskDescriptor descriptor1 = new TaskDescriptor(
+        'task1',
+        (context, target) => task1,
+        (target) => {'inputB': new SimpleTaskInput<int>(target, resultB)},
+        [resultA]);
+    TaskDescriptor descriptor2 = new TaskDescriptor(
+        'task2',
+        (context, target) => task2,
+        (target) => {'inputA': new SimpleTaskInput<int>(target, resultA)},
+        [resultB]);
     task1 = new TestAnalysisTask(context, target,
         descriptor: descriptor1,
         results: [resultA],
@@ -267,14 +274,16 @@ class AnalysisDriverTest extends AbstractDriverTest {
     // configure tasks
     TestAnalysisTask task1;
     TestAnalysisTask task2;
-    TaskDescriptor descriptor1 = new TaskDescriptor('task1',
-        (context, target) => task1, (target) => {
-      'inputB': new SimpleTaskInput<int>(target, resultB)
-    }, [resultA]);
-    TaskDescriptor descriptor2 = new TaskDescriptor('task2',
-        (context, target) => task2, (target) => {
-      'inputA': new SimpleTaskInput<int>(target, resultA)
-    }, [resultB]);
+    TaskDescriptor descriptor1 = new TaskDescriptor(
+        'task1',
+        (context, target) => task1,
+        (target) => {'inputB': new SimpleTaskInput<int>(target, resultB)},
+        [resultA]);
+    TaskDescriptor descriptor2 = new TaskDescriptor(
+        'task2',
+        (context, target) => task2,
+        (target) => {'inputA': new SimpleTaskInput<int>(target, resultA)},
+        [resultB]);
     task1 = new TestAnalysisTask(context, target, descriptor: descriptor1);
     task2 = new TestAnalysisTask(context, target, descriptor: descriptor2);
     taskManager.addTaskDescriptor(descriptor1);
@@ -301,10 +310,11 @@ class AnalysisDriverTest extends AbstractDriverTest {
     TestAnalysisTask task2;
     TaskDescriptor descriptor1 = new TaskDescriptor(
         'task1', (context, target) => task1, (target) => {}, [resultA]);
-    TaskDescriptor descriptor2 = new TaskDescriptor('task2',
-        (context, target) => task2, (target) => {
-      'inputA': new SimpleTaskInput<int>(target, resultA)
-    }, [resultB]);
+    TaskDescriptor descriptor2 = new TaskDescriptor(
+        'task2',
+        (context, target) => task2,
+        (target) => {'inputA': new SimpleTaskInput<int>(target, resultA)},
+        [resultB]);
     task1 = new TestAnalysisTask(context, target,
         descriptor: descriptor1, results: [resultA], value: 10);
     task2 = new TestAnalysisTask(context, target,
@@ -390,9 +400,11 @@ class AnalysisDriverTest extends AbstractDriverTest {
   test_performWorkItem_preExistingException() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [result]);
+        (target) => {},
+        [result]);
     CaughtException exception =
         new CaughtException(new AnalysisException(), null);
     WorkItem item = new WorkItem(context, target, descriptor, null);
@@ -406,7 +418,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
 
   test_reset() {
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task',
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {'one': inputResult.of(target)},
         [new ResultDescriptor('output', null)]);
@@ -418,14 +431,20 @@ class AnalysisDriverTest extends AbstractDriverTest {
   }
 
   void _configureDescriptors12() {
-    descriptor1 = new TaskDescriptor('task1', (context, target) =>
+    descriptor1 = new TaskDescriptor(
+        'task1',
+        (context, target) =>
             new TestAnalysisTask(context, target, descriptor: descriptor1),
-        (target) => {}, [result1]);
+        (target) => {},
+        [result1]);
     taskManager.addTaskDescriptor(descriptor1);
 
-    descriptor2 = new TaskDescriptor('task2', (context, target) =>
+    descriptor2 = new TaskDescriptor(
+        'task2',
+        (context, target) =>
             new TestAnalysisTask(context, target, descriptor: descriptor1),
-        (target) => {}, [result2]);
+        (target) => {},
+        [result2]);
     taskManager.addTaskDescriptor(descriptor2);
   }
 
@@ -440,9 +459,11 @@ class AnalysisDriverTest extends AbstractDriverTest {
       bool complete, bool priorityTarget, bool priorityResult) {
     AnalysisTarget target = new TestSource();
     ResultDescriptor result = new ResultDescriptor('result', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [result]);
+        (target) => {},
+        [result]);
     if (priorityResult) {
       taskManager.addPriorityResult(result);
     } else {
@@ -455,8 +476,9 @@ class AnalysisDriverTest extends AbstractDriverTest {
       context.explicitTargets.add(target);
     }
     if (complete) {
-      context.getCacheEntry(target).setValue(
-          result, '', TargetedResult.EMPTY_LIST);
+      context
+          .getCacheEntry(target)
+          .setValue(result, '', TargetedResult.EMPTY_LIST);
     } else {
       context.getCacheEntry(target).setState(result, CacheState.INVALID);
     }
@@ -506,34 +528,73 @@ class CycleAwareDependencyWalkerTest {
       new StronglyConnectedComponent(<int>[node], false);
 
   void test_complex_graph() {
-    checkGraph({
-      1: [2, 3],
-      2: [3, 4],
-      3: [],
-      4: [3, 5],
-      5: [2, 6],
-      6: [3, 4]
-    }, 1, [singleton(3), cycle([2, 4, 5, 6]), singleton(1)]);
+    checkGraph(
+        {
+          1: [2, 3],
+          2: [3, 4],
+          3: [],
+          4: [3, 5],
+          5: [2, 6],
+          6: [3, 4]
+        },
+        1,
+        [
+          singleton(3),
+          cycle([2, 4, 5, 6]),
+          singleton(1)
+        ]);
   }
 
   void test_cycle_depends_on_other_nodes() {
-    checkGraph({1: [2, 3], 2: [4, 1], 3: [], 4: []}, 1, [
-      singleton(4),
-      singleton(3),
-      cycle([1, 2])
-    ]);
+    checkGraph(
+        {
+          1: [2, 3],
+          2: [4, 1],
+          3: [],
+          4: []
+        },
+        1,
+        [
+          singleton(4),
+          singleton(3),
+          cycle([1, 2])
+        ]);
   }
 
   void test_initial_node_depends_on_cycle() {
-    checkGraph({1: [2], 2: [3], 3: [2]}, 1, [cycle([2, 3]), singleton(1)]);
+    checkGraph(
+        {
+          1: [2],
+          2: [3],
+          3: [2]
+        },
+        1,
+        [
+          cycle([2, 3]),
+          singleton(1)
+        ]);
   }
 
   void test_simple_cycle() {
-    checkGraph({1: [2], 2: [1]}, 1, [cycle([1, 2])]);
+    checkGraph(
+        {
+          1: [2],
+          2: [1]
+        },
+        1,
+        [
+          cycle([1, 2])
+        ]);
   }
 
   void test_simple_dependency_chain() {
-    checkGraph({1: [2], 2: []}, 1, [singleton(2), singleton(1)]);
+    checkGraph(
+        {
+          1: [2],
+          2: []
+        },
+        1,
+        [singleton(2), singleton(1)]);
   }
 
   void test_single_node() {
@@ -541,7 +602,14 @@ class CycleAwareDependencyWalkerTest {
   }
 
   void test_single_node_cycle() {
-    checkGraph({1: [1]}, 1, [cycle([1])]);
+    checkGraph(
+        {
+          1: [1]
+        },
+        1,
+        [
+          cycle([1])
+        ]);
   }
 }
 
@@ -549,9 +617,11 @@ class CycleAwareDependencyWalkerTest {
 class WorkItemTest extends AbstractDriverTest {
   test_buildTask_complete() {
     AnalysisTarget target = new TestSource();
-    TaskDescriptor descriptor = new TaskDescriptor('task',
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [new ResultDescriptor('output', null)]);
+        (target) => {},
+        [new ResultDescriptor('output', null)]);
     WorkItem item = new WorkItem(context, target, descriptor, null);
     AnalysisTask task = item.buildTask();
     expect(task, isNotNull);
@@ -560,11 +630,15 @@ class WorkItemTest extends AbstractDriverTest {
   test_buildTask_incomplete() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
-    List<ResultDescriptor> outputResults =
-        <ResultDescriptor>[new ResultDescriptor('output', null)];
-    TaskDescriptor descriptor = new TaskDescriptor('task', (context, target) =>
+    List<ResultDescriptor> outputResults = <ResultDescriptor>[
+      new ResultDescriptor('output', null)
+    ];
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task',
+        (context, target) =>
             new TestAnalysisTask(context, target, results: outputResults),
-        (target) => {'one': inputResult.of(target)}, outputResults);
+        (target) => {'one': inputResult.of(target)},
+        outputResults);
     WorkItem item = new WorkItem(context, target, descriptor, null);
     expect(() => item.buildTask(), throwsStateError);
   }
@@ -582,9 +656,11 @@ class WorkItemTest extends AbstractDriverTest {
 
   test_gatherInputs_complete() {
     AnalysisTarget target = new TestSource();
-    TaskDescriptor descriptor = new TaskDescriptor('task',
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {}, [new ResultDescriptor('output', null)]);
+        (target) => {},
+        [new ResultDescriptor('output', null)]);
     WorkItem item = new WorkItem(context, target, descriptor, null);
     WorkItem result = item.gatherInputs(taskManager, []);
     expect(result, isNull);
@@ -596,12 +672,17 @@ class WorkItemTest extends AbstractDriverTest {
     ResultDescriptor resultA = new ResultDescriptor('resultA', null);
     ResultDescriptor resultB = new ResultDescriptor('resultB', null);
     // prepare tasks
-    TaskDescriptor task1 = new TaskDescriptor('task', (context, target) =>
+    TaskDescriptor task1 = new TaskDescriptor(
+        'task',
+        (context, target) =>
             new TestAnalysisTask(context, target, results: [resultA]),
-        (target) => {}, [resultA]);
-    TaskDescriptor task2 = new TaskDescriptor('task',
+        (target) => {},
+        [resultA]);
+    TaskDescriptor task2 = new TaskDescriptor(
+        'task',
         (context, target) => new TestAnalysisTask(context, target),
-        (target) => {'one': resultA.of(target)}, [resultB]);
+        (target) => {'one': resultA.of(target)},
+        [resultB]);
     taskManager.addTaskDescriptor(task1);
     taskManager.addTaskDescriptor(task2);
     // gather inputs
@@ -613,7 +694,8 @@ class WorkItemTest extends AbstractDriverTest {
   test_gatherInputs_invalid() {
     AnalysisTarget target = new TestSource();
     ResultDescriptor inputResult = new ResultDescriptor('input', null);
-    TaskDescriptor descriptor = new TaskDescriptor('task',
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task',
         (context, target) => new TestAnalysisTask(context, target),
         (target) => {'one': inputResult.of(target)},
         [new ResultDescriptor('output', null)]);

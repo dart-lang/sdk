@@ -33,56 +33,14 @@ DECLARE_FLAG(bool, interpret_irregexp);
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
 
-static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls = Class::Handle(
-      core_lib.LookupClassAllowPrivate(Symbols::_List()));
-  ASSERT(!cls.IsNull());
-  ASSERT(cls.NumTypeArguments() == 1);
-  const intptr_t field_offset = cls.type_arguments_field_offset();
-  ASSERT(field_offset != Class::kNoTypeArguments);
-  return field_offset;
-}
-
-
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  Label fall_through;
-
   if (Isolate::Current()->flags().type_checks()) {
-    const intptr_t type_args_field_offset =
-        ComputeObjectArrayTypeArgumentsOffset();
-    // Inline simple tests (Smi, null), fallthrough if not positive.
-    Label checked_ok;
-    __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
-
-    // Null value is valid for any type.
-    __ CompareObject(R2, Object::null_object());
-    __ b(&checked_ok, EQ);
-
-    __ ldr(R1, Address(SP, 2 * kWordSize));  // Array.
-    __ ldr(R1, FieldAddress(R1, type_args_field_offset));
-
-    // R1: Type arguments of array.
-    __ CompareObject(R1, Object::null_object());
-    __ b(&checked_ok, EQ);
-
-    // Check if it's dynamic.
-    // Get type at index 0.
-    __ ldr(R0, FieldAddress(R1, TypeArguments::type_at_offset(0)));
-    __ CompareObject(R0, Type::ZoneHandle(Type::DynamicType()));
-    __ b(&checked_ok, EQ);
-
-    // Check for int and num.
-    __ tsti(R2, Immediate(Immediate(kSmiTagMask)));  // Value is Smi?
-    __ b(&fall_through, NE);  // Non-smi value.
-    __ CompareObject(R0, Type::ZoneHandle(Type::IntType()));
-    __ b(&checked_ok, EQ);
-    __ CompareObject(R0, Type::ZoneHandle(Type::Number()));
-    __ b(&fall_through, NE);
-    __ Bind(&checked_ok);
+    return;
   }
+
+  Label fall_through;
   __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
   __ tsti(R1, Immediate(kSmiTagMask));
   // Index not Smi.
@@ -229,8 +187,8 @@ static int GetScaleFactor(intptr_t size) {
   /* R1: potential next object start. */                                       \
   /* R2: allocation size. */                                                   \
   /* R3: heap. */                                                              \
-  __ ldr(R4, Address(R3, Heap::EndOffset(space)));                             \
-  __ cmp(R1, Operand(R4));                                                     \
+  __ ldr(R6, Address(R3, Heap::EndOffset(space)));                             \
+  __ cmp(R1, Operand(R6));                                                     \
   __ b(&fall_through, CS);                                                     \
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
@@ -1617,11 +1575,13 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       random_class.LookupStaticField(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
   const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
 
-  __ ldr(R0, Address(SP, 0 * kWordSize));  // Receiver.
-  __ ldr(R1, FieldAddress(R0, state_field.Offset()));  // Field '_state'.
+  // Receiver.
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  // Field '_state'.
+  __ ldr(R1, FieldAddress(R0, state_field.Offset()));
 
   // Addresses of _state[0].
   const int64_t disp =
@@ -1736,12 +1696,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldr(R1, Address(R0, R1), kUnsignedByte);
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ TagAndPushPP();
-  __ LoadPoolPointer();
-  __ LoadExternalLabel(R0, &symbols_label);
-  __ PopAndUntagPP();
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(
       R0, R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
@@ -1755,10 +1710,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ ldr(R1, Address(R0, R1), kUnsignedHalfword);
   __ CompareImmediate(R1, Symbols::kNumberOfOneCharCodeSymbols);
   __ b(&fall_through, GE);
-  __ TagAndPushPP();
-  __ LoadPoolPointer();
-  __ LoadExternalLabel(R0, &symbols_label);
-  __ PopAndUntagPP();
+  __ ldr(R0, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(
       R0, R0, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ ldr(R0, Address(R0, R1, UXTX, Address::Scaled));
@@ -2097,13 +2049,11 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.
-  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(R4, Array::Handle(ArgumentsDescriptor::New(arg_count)));
   __ eor(R5, R5, Operand(R5));
 
   // Tail-call the function.
-  __ ldr(R1, FieldAddress(R0, Function::instructions_offset()));
-  __ AddImmediate(R1, R1, Instructions::HeaderSize() - kHeapObjectTag);
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ br(R1);
 }
 

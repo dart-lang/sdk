@@ -183,7 +183,8 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(metadata is InstanceMirror);
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
-  Expect.isTrue(metadata is CommentInstanceMirror);
+  Expect.isTrue(metadata is CommentInstanceMirror,
+      "Unexpected metadata: $metadata");
   Expect.equals(commentType.originalDeclaration, metadata.type);
   Expect.isTrue(metadata.isDocComment);
   Expect.stringEquals(

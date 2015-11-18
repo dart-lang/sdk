@@ -12,12 +12,22 @@ import "package:path/path.dart";
 import "dart:async";
 import "dart:io";
 
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+
 Future<HttpServer> startServer() {
   return HttpServer.bindSecure(
       "localhost",
       0,
-      backlog: 5,
-      certificateName: 'localhost_cert').then((server) {
+      serverContext,
+      backlog: 5).then((server) {
     server.listen((HttpRequest request) {
       request.listen(
         (_) { },
@@ -33,17 +43,11 @@ Future<HttpServer> startServer() {
   });
 }
 
-void InitializeSSL() {
-  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: testPkcertDatabase,
-                          password: 'dartdart');
-}
-
 void main() {
-  InitializeSSL();
   List<int> body = <int>[];
   startServer().then((server) {
-    SecureSocket.connect("localhost", server.port).then((socket) {
+    SecureSocket.connect("localhost", server.port, context: clientContext)
+    .then((socket) {
       socket.write("GET / HTTP/1.0\r\nHost: localhost\r\n\r\n");
       socket.close();
       socket.listen(

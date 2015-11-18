@@ -33,7 +33,7 @@ class _ChildrenElementList extends ListBase<Element>
     _element._replaceChild(value, _childElements[index]);
   }
 
-  void set length(int newLength) {
+  set length(int newLength) {
     // TODO(jacobr): remove children when length is reduced.
     throw new UnsupportedError('Cannot resize element lists');
   }
@@ -97,7 +97,12 @@ class _ChildrenElementList extends ListBase<Element>
   bool remove(Object object) {
     if (object is Element) {
       Element element = object;
+$if JSINTEROP
+      // We aren't preserving identity of nodes in JSINTEROP mode
+      if (element.parentNode == _element) {
+$else
       if (identical(element.parentNode, _element)) {
+$endif
         _element._removeChild(element);
         return true;
       }
@@ -281,7 +286,7 @@ $endif
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void set length(int newLength) {
+  set length(int newLength) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -304,7 +309,7 @@ $endif
   CssStyleDeclarationBase get style =>
       new _CssStyleDeclarationSet(this);
 
-  void set classes(Iterable<String> value) {
+  set classes(Iterable<String> value) {
     // TODO(sra): This might be faster for Sets:
     //
     //     new _MultiElementCssClassSet(this).writeClasses(value)
@@ -328,7 +333,7 @@ $!ELEMENT_STREAM_GETTERS
 }
 
 @DocsEditable()
-$(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.
@@ -375,11 +380,7 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *     }
    *     document.registerElement('x-custom', CustomElement);
    */
-  Element.created() : super._created() {
-    // Validate that this is a custom element & perform any additional
-    // initialization.
-    _initializeCustomElement(this);
-  }
+  Element.created() : super._created();
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -560,7 +561,7 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   Map<String, String> get attributes => new _ElementAttributeMap(this);
 
-  void set attributes(Map<String, String> value) {
+  set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.keys) {
@@ -580,17 +581,9 @@ $(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *       element.style.background = 'red'; // Turns every child of body red.
    *     }
    */
-$if DART2JS
   List<Element> get children => new _ChildrenElementList._wrap(this);
-$else
-  $if JSINTEROP
-  List<Element> get children => new FilteredElementList(this);
-  $else
-  List<Element> get children => new _ChildrenElementList._wrap(this);
-  $endif
-$endif
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -611,11 +604,7 @@ $endif
    */
   @DomName('Element.querySelectorAll')
   ElementList<Element> querySelectorAll(String selectors) =>
-$if JSINTEROP
-    _querySelectorAll(selectors);
-$else
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
-$endif
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -648,7 +637,7 @@ $endif
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  void set classes(Iterable<String> value) {
+  set classes(Iterable<String> value) {
     // TODO(sra): Do this without reading the classes in clear() and addAll(),
     // or writing the classes in clear().
     CssClassSet classSet = classes;
@@ -682,7 +671,7 @@ $endif
   Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
 
-  void set dataset(Map<String, String> value) {
+  set dataset(Map<String, String> value) {
     final data = this.dataset;
     data.clear();
     for (String key in value.keys) {
@@ -801,7 +790,6 @@ $endif
   @deprecated
   void leftView() {}
 
-$if DART2JS
   /**
    * Creates a new AnimationEffect object whose target element is the object
    * on which the method is called, and calls the play() method of the
@@ -816,18 +804,15 @@ $if DART2JS
    *     var animation = elem.animate([
    *       {"transform": "translate(100px, -100%)"},
    *       {"transform" : "translate(400px, 500px)"}
-   *     ], 1500);  
+   *     ], 1500);
    *
    * The [frames] parameter is an Iterable<Map>, where the
    * map entries specify CSS animation effects. The
    * [timing] paramter can be a double, representing the number of milliseconds
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
-   *
-   * This is not yet supported in Dartium.
   **/
-// TODO(alanknight): Correct above comment once it works in Dartium.
-  @Experimental
+  @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
@@ -836,7 +821,12 @@ $if DART2JS
     }
     var convertedFrames = frames;
     if (convertedFrames is Iterable) {
+$if DART2JS
       convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
+$else
+      convertedFrames = convertDartToNative_List(
+          frames.map(convertDartToNative_Dictionary).toList());
+$endif
     }
     var convertedTiming = timing;
     if (convertedTiming is Map) {
@@ -847,6 +837,7 @@ $if DART2JS
       : _animate(convertedFrames, convertedTiming);
   }
 
+$if DART2JS
   @DomName('Element.animate')
   @JSName('animate')
   @Experimental() // untriaged
@@ -880,7 +871,7 @@ $endif
   // members of the component are used. The actual type is a subtype of Element.
   get xtag => _xtag != null ? _xtag : this;
 
-  void set xtag(Element value) {
+  set xtag(Element value) {
     _xtag = value;
   }
 
@@ -1006,7 +997,7 @@ $if DART2JS
 
   @JSName('insertAdjacentText')
   void _insertAdjacentText(String where, String text) native;
-  
+
 $else
 $endif
 
@@ -1269,8 +1260,13 @@ $endif
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
-    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
-    if (current == null || identical(current, parent)) {
+$if JSINTEROP
+    bool sameAsParent = current == parent;
+$else
+    bool sameAsParent = identical(current, parent);
+$endif
+    bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
+    if (current == null || sameAsParent) {
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
@@ -1328,11 +1324,11 @@ $endif
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-	
+
       // Workaround for Safari bug. Was also previously Chrome bug 229142
-      // - URIs are not resolved in new doc.	
-      var base = _parseDocument.createElement('base');	
-      base.href = document.baseUri;	
+      // - URIs are not resolved in new doc.
+      var base = _parseDocument.createElement('base');
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -1390,7 +1386,7 @@ $endif
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  void set innerHtml(String html) {
+  set innerHtml(String html) {
     this.setInnerHtml(html);
   }
 
@@ -1432,7 +1428,7 @@ $endif
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
-  
+
   /**
    * Verify if any of the attributes that we use in the sanitizer look unexpected,
    * possibly indicating DOM clobbering attacks.
@@ -1457,13 +1453,73 @@ $if DART2JS
 	     return true;
 	   }
 	 }
+         var length = 0;
+         if (element.children) {
+           length = element.children.length;
+         }
+         for (var i = 0; i < length; i++) {
+           var child = element.children[i];
+           // On IE it seems like we sometimes don't see the clobbered attribute,
+           // perhaps as a result of an over-optimization. Also use another route
+           // to check of attributes, children, or lastChild are clobbered. It may
+           // seem silly to check children as we rely on children to do this iteration,
+           // but it seems possible that the access to children might see the real thing,
+           // allowing us to check for clobbering that may show up in other accesses.
+           if (child["id"] == 'attributes' || child["name"] == 'attributes' ||
+               child["id"] == 'lastChild'  || child["name"] == 'lastChild' ||
+               child["id"] == 'children' || child["name"] == 'children') {
+             return true;
+           }
+         }
 	 return false;
           })(#)''', element);
   }
+
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) {
+    return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
+  }
 $else
-  // Dartium isn't affected by these attacks, because it goes directly to the C++ API.
-  static bool _hasCorruptedAttributes(Element element) => false;
+
+  static var _namedNodeMap = js.context["NamedNodeMap"];
+  static var _htmlCollection = js.context["HTMLCollection"];
+  static var _nodeList = js.context["NodeList"];
+
+  static bool _hasCorruptedAttributes(Element element) {
+    var attributes = unwrap_jso(element)["attributes"];
+    if (!attributes.instanceof(_namedNodeMap)) {
+      return true;
+    }
+    var childNodes = unwrap_jso(element.childNodes);
+    var length = childNodes["length"];
+    var lastChild = unwrap_jso(element.lastChild);
+    if (null != lastChild &&
+        lastChild != childNodes[length - 1]) {
+      return true;
+    }
+    var children = unwrap_jso(element._children);
+    if (null != children) { // On Safari, children can apparently be null.
+      if (!children.instanceof(_htmlCollection) ||
+          children.instanceof(_nodeList)) {
+	return true;
+      }
+    }
+    return false;
+  }
+
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) => false;
 $endif
+
+  static String _safeTagName(element) {
+    String result = 'element tag unavailable';
+    try {
+      if (element.tagName is String) {
+        result = element.tagName;
+      }
+    } catch (e) {}
+    return result;
+  }
 
 $if DART2JS
   @DomName('Element.offsetHeight')
@@ -1508,7 +1564,7 @@ $if DART2JS
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) {
+  set scrollLeft(int value) {
     JS("void", "#.scrollLeft = #", this, value.round());
   }
 
@@ -1518,7 +1574,7 @@ $if DART2JS
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) {
+  set scrollTop(int value) {
     JS("void", "#.scrollTop = #", this, value.round());
   }
 
@@ -1528,6 +1584,10 @@ $if DART2JS
 
 $else
   $if JSINTEROP
+  // Need to explicitly delegate because Element is no longer abstract for Dartium.
+  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
+  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this)).round();
@@ -1570,7 +1630,7 @@ $else
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
+  set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
@@ -1578,7 +1638,7 @@ $else
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
+  set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
@@ -1626,7 +1686,7 @@ $else
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter(this, value.round());
+  set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter(this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
@@ -1634,7 +1694,7 @@ $else
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter(this, value.round());
+  set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter(this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()

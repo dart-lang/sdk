@@ -160,7 +160,7 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
-  Statement visitWhileCondition(WhileCondition node) {
+  Statement visitFor(For node) {
     return node;
   }
 
@@ -315,6 +315,11 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Expression visitGetTypeTestProperty(GetTypeTestProperty node) {
+    super.visitGetTypeTestProperty(node);
+    return node;
+  }
+
   Expression visitGetLength(GetLength node) {
     super.visitGetLength(node);
     ++impureCounter;
@@ -344,6 +349,17 @@ class PullIntoInitializers extends RecursiveTransformer
 
   Expression visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     rewriteList(node.arguments);
+    return node;
+  }
+
+  Expression visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    node.receiver = visitExpression(node.receiver);
+    if (!node.receiverIsNotNull) {
+      // If the receiver is null, the method lookup throws.
+      ++impureCounter;
+    }
+    rewriteList(node.arguments);
+    ++impureCounter;
     return node;
   }
 

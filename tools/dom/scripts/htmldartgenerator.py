@@ -14,6 +14,7 @@ from copy import deepcopy
 from htmlrenamer import convert_to_future_members, custom_html_constructors, \
     keep_overloaded_members, overloaded_and_renamed, private_html_members, \
     renamed_html_members, renamed_overloads, removed_html_members
+from generator import TypeOrVar
 import logging
 import monitored
 import sys
@@ -324,6 +325,7 @@ class HtmlDartGenerator(object):
                                              info.operations[0],
                                              info.name,
                                              'call:')
+
     if not method_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.
@@ -526,7 +528,7 @@ class HtmlDartGenerator(object):
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
     # Hack to ignore the Image constructor used by JavaScript.
-    if (self._interface.id == 'HTMLImageElement'
+    if ((self._interface.id == 'HTMLImageElement' or self._interface.id == 'Blob')
       and not constructor_info.pure_dart_constructor):
       return
 
@@ -595,6 +597,7 @@ class HtmlDartGenerator(object):
         name = emitter.Format('_create_$VERSION', VERSION=version)
         arguments = constructor_info.idl_args[signature_index][:argument_count]
         args = None
+        call_template = ''
         if self._dart_use_blink:
             type_ids = [p.type.id for p in arguments]
             base_name, rs = \
@@ -603,6 +606,12 @@ class HtmlDartGenerator(object):
                 self.DeriveQualifiedBlinkName(self._interface.id,
                                               base_name)
             args = constructor_info.ParametersAsArgumentList(argument_count)
+
+            # Handle converting Maps to Dictionaries, etc.
+            (factory_params, converted_arguments) = self._ConvertArgumentTypes(
+                stmts_emitter, arguments, argument_count, constructor_info)
+            args = ', '.join(converted_arguments)
+            call_template = 'wrap_jso($FACTORY_NAME($FACTORY_PARAMS))'
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',
@@ -611,9 +620,8 @@ class HtmlDartGenerator(object):
             (factory_params, converted_arguments) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
-        call_emitter.Emit('$FACTORY_NAME($FACTORY_PARAMS)',
-            FACTORY_NAME=qualified_name,
-            FACTORY_PARAMS=args)
+            call_template = '$FACTORY_NAME($FACTORY_PARAMS)'
+        call_emitter.Emit(call_template, FACTORY_NAME=qualified_name, FACTORY_PARAMS=args)
         self.EmitStaticFactoryOverload(constructor_info, name, arguments)
 
       def IsOptional(signature_index, argument):
@@ -699,7 +707,14 @@ class HtmlDartGenerator(object):
     """ Declares an attribute but does not include the code to invoke it.
     """
     if read_only:
-      template = '\n  $TYPE get $NAME;\n'
+      # HACK(terry): Element is not abstract for Dartium so isContentEditable
+      # must have a body see impl_Element.darttemplate
+      if (self._interface.id == 'Element' and
+          attr_name == 'isContentEditable' and
+          self._dart_js_interop):
+        return
+      else:
+        template = '\n  $TYPE get $NAME;\n'
     else:
       template = '\n  $TYPE $NAME;\n'
 
@@ -714,9 +729,17 @@ class HtmlDartGenerator(object):
       return_type_name - The name of the return type.
       method_name - The name of the method.
     """
+      # HACK(terry): Element is not abstract for Dartium so click
+      # must have a body see impl_Element.darttemplate
+    if (self._interface.id == 'Element' and
+        method_name == 'click' and
+        self._dart_js_interop):
+      return
+    else:
+      template = '\n  $TYPE $NAME($PARAMS);\n'
+
     self._members_emitter.Emit(
-             '\n'
-             '  $TYPE $NAME($PARAMS);\n',
+             template,
              TYPE=return_type_name,
              NAME=method_name,
              PARAMS=operation.ParametersAsDeclaration(self._DartType))
@@ -804,3 +827,49 @@ class HtmlDartGenerator(object):
 
   def _TypeInfo(self, type_name):
     return self._type_registry.TypeInfo(type_name)
+
+  def _ConvertArgumentTypes(self, stmts_emitter, arguments, argument_count, info):
+    temp_version = [0]
+    converted_arguments = []
+    target_parameters = []
+    for position, arg in enumerate(arguments[:argument_count]):
+      conversion = self._InputConversion(arg.type.id, info.declared_name)
+      param_name = arguments[position].id
+      if conversion:
+        temp_version[0] += 1
+        temp_name = '%s_%s' % (param_name, temp_version[0])
+        temp_type = conversion.output_type
+        stmts_emitter.Emit(
+            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
+            TYPE=TypeOrVar(temp_type),
+            NAME=temp_name,
+            CONVERT=conversion.function_name,
+            ARG=info.param_infos[position].name)
+        converted_arguments.append(temp_name)
+        param_type = temp_type
+        verified_type = temp_type  # verified by assignment in checked mode.
+      else:
+        converted_arguments.append(info.param_infos[position].name)
+        param_type = self._NarrowInputType(arg.type.id)
+        # Verified by argument checking on entry to the dispatcher.
+
+        verified_type = self._InputType(
+            info.param_infos[position].type_id, info)
+        # The native method does not need an argument type if we know the type.
+        # But we do need the native methods to have correct function types, so
+        # be conservative.
+        if param_type == verified_type:
+          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
+            param_type = 'dynamic'
+
+      target_parameters.append(
+          '%s%s' % (TypeOrNothing(param_type), param_name))
+
+    return target_parameters, converted_arguments
+
+  def _InputType(self, type_name, info):
+    conversion = self._InputConversion(type_name, info.declared_name)
+    if conversion:
+      return conversion.input_type
+    else:
+      return self._NarrowInputType(type_name) if type_name else 'dynamic'

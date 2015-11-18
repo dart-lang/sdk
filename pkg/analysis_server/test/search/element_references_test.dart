@@ -6,15 +6,16 @@ library test.search.element_references;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'abstract_search_domain.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ElementReferencesTest);
   defineReflectiveTests(_NoSearchEngine);
 }
@@ -219,6 +220,178 @@ class A {
     assertHasResult(SearchResultKind.WRITE, 'fff); // in constructor');
     assertHasResult(SearchResultKind.WRITE, 'fff = 2;');
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
+  }
+
+  test_file_libraryUnit_atImportDirective() async {
+    String fileLib = '$testFolder/my_lib.dart';
+    String fileUser = '$testFolder/userA.dart';
+    String codeUser = "import 'my_lib.dart'; // U";
+    addFile(fileLib, 'library my.lib;');
+    addFile(fileUser, codeUser);
+    addTestFile('''
+import 'my_lib.dart'; // T
+''');
+    await findElementReferences('import ', false);
+    expect(searchElement.kind, ElementKind.FILE);
+    expect(results, hasLength(2));
+    // in U
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == fileUser;
+      });
+      expect(result.location.offset, codeUser.indexOf("'my_lib.dart'; // U"));
+      expect(result.location.length, "'my_lib.dart'".length);
+    }
+    // in T
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == testFile;
+      });
+      expect(result.location.offset, testCode.indexOf("'my_lib.dart'; // T"));
+      expect(result.location.length, "'my_lib.dart'".length);
+    }
+  }
+
+  test_file_libraryUnit_atImportDirectiveUri() async {
+    String fileLib = '$testFolder/my_lib.dart';
+    String fileA = '$testFolder/userA.dart';
+    String fileB = '$testFolder/userB.dart';
+    String codeA = "import 'my_lib.dart'; // A";
+    String codeB = "export 'my_lib.dart'; // B";
+    addFile(fileLib, 'library my.lib;');
+    addFile(fileA, codeA);
+    addFile(fileB, codeB);
+    addTestFile('''
+import 'my_lib.dart'; // T
+''');
+    await findElementReferences('my_', false);
+    expect(searchElement.kind, ElementKind.FILE);
+    expect(results, hasLength(3));
+    // in A
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == fileA;
+      });
+      expect(result.location.offset, codeA.indexOf("'my_lib.dart'; // A"));
+      expect(result.location.length, "'my_lib.dart'".length);
+    }
+    // in B
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == fileB;
+      });
+      expect(result.location.offset, codeB.indexOf("'my_lib.dart'; // B"));
+      expect(result.location.length, "'my_lib.dart'".length);
+    }
+    // in T
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == testFile;
+      });
+      expect(result.location.offset, testCode.indexOf("'my_lib.dart'; // T"));
+      expect(result.location.length, "'my_lib.dart'".length);
+    }
+  }
+
+  test_file_libraryUnit_atLibraryDirectiveIdentifier() async {
+    String fileA = '$testFolder/userA.dart';
+    String fileB = '$testFolder/userB.dart';
+    String codeA = "import 'test.dart'; // A";
+    String codeB = "export 'test.dart'; // B";
+    addFile(fileA, codeA);
+    addFile(fileB, codeB);
+    addTestFile('''
+library my.test.lib;
+''');
+    await findElementReferences('test.', false);
+    expect(searchElement.kind, ElementKind.LIBRARY);
+    expect(results, hasLength(2));
+    // in A
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == fileA;
+      });
+      expect(result.location.offset, codeA.indexOf("'test.dart'; // A"));
+      expect(result.location.length, "'test.dart'".length);
+    }
+    // in B
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == fileB;
+      });
+      expect(result.location.offset, codeB.indexOf("'test.dart'; // B"));
+      expect(result.location.length, "'test.dart'".length);
+    }
+  }
+
+  test_file_partUnit_atPartDirective() async {
+    String filePart = '$testFolder/my_part.dart';
+    String fileOther = '$testFolder/userOther.dart';
+    String codeOther = '''
+library lib;
+part 'my_part.dart'; // O
+''';
+    addFile(filePart, 'part of lib;');
+    addFile(fileOther, codeOther);
+    addTestFile('''
+library lib;
+part 'my_part.dart'; // T
+''');
+    await findElementReferences('part ', false);
+    expect(searchElement.kind, ElementKind.FILE);
+    expect(searchElement.name, filePart);
+    expect(results, hasLength(2));
+    // in O
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == fileOther;
+      });
+      expect(result.location.offset, codeOther.indexOf("'my_part.dart'; // O"));
+      expect(result.location.length, "'my_part.dart'".length);
+    }
+    // in T
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == testFile;
+      });
+      expect(result.location.offset, testCode.indexOf("'my_part.dart'; // T"));
+      expect(result.location.length, "'my_part.dart'".length);
+    }
+  }
+
+  test_file_partUnit_atPartDirectiveUri() async {
+    String filePart = '$testFolder/my_part.dart';
+    String fileOther = '$testFolder/userOther.dart';
+    String codeOther = '''
+library lib;
+part 'my_part.dart'; // O
+''';
+    addFile(filePart, 'part of lib;');
+    addFile(fileOther, codeOther);
+    addTestFile('''
+library lib;
+part 'my_part.dart'; // T
+''');
+    await findElementReferences('my_', false);
+    expect(searchElement.kind, ElementKind.FILE);
+    expect(searchElement.name, filePart);
+    expect(results, hasLength(2));
+    // in O
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == fileOther;
+      });
+      expect(result.location.offset, codeOther.indexOf("'my_part.dart'; // O"));
+      expect(result.location.length, "'my_part.dart'".length);
+    }
+    // in T
+    {
+      SearchResult result = results.singleWhere((result) {
+        return result.location.file == testFile;
+      });
+      expect(result.location.offset, testCode.indexOf("'my_part.dart'; // T"));
+      expect(result.location.length, "'my_part.dart'".length);
+    }
   }
 
   test_function() async {
@@ -453,7 +626,9 @@ class B {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(getPathString(result.path), '''
+    expect(
+        getPathString(result.path),
+        '''
 LOCAL_VARIABLE a
 CONSTRUCTOR named
 CLASS B
@@ -473,9 +648,11 @@ class B {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(getPathString(result.path), '''
+    expect(
+        getPathString(result.path),
+        '''
 LOCAL_VARIABLE a
-CONSTRUCTOR 
+CONSTRUCTOR
 CLASS B
 COMPILATION_UNIT test.dart
 LIBRARY my_lib''');
@@ -491,7 +668,9 @@ main() {
 ''');
     await findElementReferences('A {}', false);
     assertHasResult(SearchResultKind.REFERENCE, 'A a = null;');
-    expect(getPathString(result.path), '''
+    expect(
+        getPathString(result.path),
+        '''
 LOCAL_VARIABLE a
 FUNCTION main
 COMPILATION_UNIT test.dart
@@ -599,18 +778,6 @@ main() {
     assertHasResult(SearchResultKind.DECLARATION, 'ppp;');
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Future');
     assertHasResult(SearchResultKind.REFERENCE, 'ppp.Stream');
-  }
-
-  test_prefix_null() async {
-    addTestFile('''
-import 'dart:async';
-main() {
-  Future a;
-  Stream b;
-}
-''');
-    await findElementReferences("import ", false);
-    expect(searchElement, isNull);
   }
 
   test_topLevelVariable_explicit() async {

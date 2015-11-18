@@ -4,6 +4,7 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
+import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
 
@@ -14,24 +15,41 @@ void testMain() {
 var tests = [
 
 (Isolate isolate) async {
+  print('Getting stream...');
   Completer completer = new Completer();
   var stream = await isolate.vm.getEventStream(VM.kDebugStream);
+  print('Subscribing...');
   var subscription;
   subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseStart) {
-      print('Received PauseStart');
+      print('Received $event');
       subscription.cancel();
       completer.complete();
+    } else {
+      print('Ignoring event $event');
     }
   });
+  print('Subscribed.  Pause event is ${isolate.pauseEvent}');
 
   if (isolate.pauseEvent != null &&
       isolate.pauseEvent.kind == ServiceEvent.kPauseStart) {
     // Wait for the isolate to hit PauseStart.
     subscription.cancel();
+    print('Subscription cancelled.');
   } else {
+    print('Waiting for pause start event.');
     await completer.future;
   }
+  print('Done waiting for pause event.');
+
+  // Grab the timestamp.
+  var pausetime1 = isolate.pauseEvent.timestamp;
+  expect(pausetime1, isNotNull);
+  // Reload the isolate.
+  await isolate.reload();
+  // Verify that it is the same.
+  expect(pausetime1.millisecondsSinceEpoch,
+         equals(isolate.pauseEvent.timestamp.millisecondsSinceEpoch));
 
   completer = new Completer();
   stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -41,17 +59,34 @@ var tests = [
       subscription.cancel();
       completer.complete();
     }
+    print('Got ${event.kind}');
   });
 
   print('Stepping...');
   isolate.stepInto();
 
   // Wait for the isolate to hit PauseBreakpoint.
+  print('Waiting for PauseBreakpoint');
   await completer.future;
+
+  // Grab the timestamp.
+  var pausetime2 = isolate.pauseEvent.timestamp;
+  expect(pausetime2, isNotNull);
+  // Reload the isolate.
+  await isolate.reload();
+  // Verify that it is the same.
+  expect(pausetime2.millisecondsSinceEpoch,
+         equals(isolate.pauseEvent.timestamp.millisecondsSinceEpoch));
+
+ expect(pausetime2.millisecondsSinceEpoch,
+        greaterThan(pausetime1.millisecondsSinceEpoch));
 },
 
 ];
 
 main(args) => runIsolateTests(args, tests,
                               testeeConcurrent: testMain,
-                              pause_on_start: true, pause_on_exit: true);
+                              pause_on_start: true,
+                              pause_on_exit: true,
+                              trace_service: true,
+                              verbose_vm: true);

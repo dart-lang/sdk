@@ -14,7 +14,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(int, profile_depth);
+DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, profile_period);
 
 DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
@@ -58,7 +58,7 @@ class DeoptimizedCodeSet : public ZoneAllocated {
       return false;
     }
     NoSafepointScope no_safepoint_scope;
-    for (intptr_t i = 0; array.Length(); i++) {
+    for (intptr_t i = 0; i < array.Length(); i++) {
       if (code.raw() == array.At(i)) {
         return true;
       }
@@ -1845,7 +1845,7 @@ class ProfileBuilder : public ValueObject {
   ProfileCode* CreateProfileCode(uword pc) {
     const intptr_t kDartCodeAlignment = OS::PreferredCodeAlignment();
     const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
-    Code& code = Code::Handle(isolate_);
+    Code& code = Code::Handle(isolate_->current_zone());
 
     // Check current isolate for pc.
     if (isolate_->heap()->CodeContains(pc)) {
@@ -2043,7 +2043,7 @@ void Profile::PrintJSON(JSONStream* stream) {
   obj.AddProperty("samplePeriod",
                   static_cast<intptr_t>(FLAG_profile_period));
   obj.AddProperty("stackDepth",
-                  static_cast<intptr_t>(FLAG_profile_depth));
+                  static_cast<intptr_t>(FLAG_max_profile_depth));
   obj.AddProperty("sampleCount", sample_count());
   obj.AddProperty("timeSpan", MicrosecondsToSeconds(GetTimeSpan()));
   {
@@ -2194,11 +2194,12 @@ intptr_t ProfileTrieWalker::SiblingCount() {
 }
 
 
-void ProfilerService::PrintJSONImpl(Isolate* isolate,
+void ProfilerService::PrintJSONImpl(Thread* thread,
                                     JSONStream* stream,
                                     Profile::TagOrder tag_order,
                                     intptr_t extra_tags,
                                     SampleFilter* filter) {
+  Isolate* isolate = thread->isolate();
   // Disable profile interrupts while processing the buffer.
   Profiler::EndExecution(isolate);
 
@@ -2212,8 +2213,8 @@ void ProfilerService::PrintJSONImpl(Isolate* isolate,
   }
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
     Profile profile(isolate);
     profile.Build(filter, tag_order, extra_tags);
     profile.PrintJSON(stream);
@@ -2239,9 +2240,10 @@ class NoAllocationSampleFilter : public SampleFilter {
 void ProfilerService::PrintJSON(JSONStream* stream,
                                 Profile::TagOrder tag_order,
                                 intptr_t extra_tags) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   NoAllocationSampleFilter filter(isolate);
-  PrintJSONImpl(isolate, stream, tag_order, extra_tags, &filter);
+  PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter);
 }
 
 
@@ -2266,9 +2268,10 @@ class ClassAllocationSampleFilter : public SampleFilter {
 void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                           Profile::TagOrder tag_order,
                                           const Class& cls) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ClassAllocationSampleFilter filter(isolate, cls);
-  PrintJSONImpl(isolate, stream, tag_order, kNoExtraTags, &filter);
+  PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter);
 }
 
 

@@ -4,9 +4,9 @@
 
 library test.services.correction.assist;
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -14,9 +14,10 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AssistProcessorTest);
 }
 
@@ -793,6 +794,26 @@ main() {
     assertNoAssistAt('vvv =', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  void test_assignToLocalVariable_inClosure() {
+    resolveTestUnit(r'''
+main() {
+  print(() {
+    12345;
+  });
+}
+''');
+    assertHasAssistAt(
+        '345',
+        DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE,
+        '''
+main() {
+  print(() {
+    var i = 12345;
+  });
+}
+''');
+  }
+
   void test_assignToLocalVariable_invocationArgument() {
     resolveTestUnit(r'''
 main() {
@@ -820,6 +841,24 @@ main() {
 void f() {}
 ''');
     assertNoAssistAt('f();', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
+  }
+
+  void test_convertToBlockBody_OK_async() {
+    resolveTestUnit('''
+class A {
+  mmm() async => 123;
+}
+''');
+    assertHasAssistAt(
+        'mmm()',
+        DartAssistKind.CONVERT_INTO_BLOCK_BODY,
+        '''
+class A {
+  mmm() async {
+    return 123;
+  }
+}
+''');
   }
 
   void test_convertToBlockBody_OK_closure() {
@@ -952,6 +991,24 @@ fff() {
 }
 ''');
     assertNoAssistAt('fff() {', DartAssistKind.CONVERT_INTO_BLOCK_BODY);
+  }
+
+  void test_convertToExpressionBody_OK_async() {
+    resolveTestUnit('''
+class A {
+  mmm() async {
+    return 42;
+  }
+}
+''');
+    assertHasAssistAt(
+        'mmm',
+        DartAssistKind.CONVERT_INTO_EXPRESSION_BODY,
+        '''
+class A {
+  mmm() async => 42;
+}
+''');
   }
 
   void test_convertToExpressionBody_OK_closure() {

@@ -20,8 +20,9 @@ wrap(value) => new ToStringWrapper(value);
 final bool checkedMode = computeCheckedMode();
 bool computeCheckedMode() {
   try {
-    int x = "foo";
-  } on Error {
+    var i = 42;
+    String s = i;
+  } on TypeError catch (e) {
     return true;
   }
   return false;

@@ -21,6 +21,11 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
+  return __sync_fetch_and_sub(p, 1);
+}
+
+
 #if !defined(USING_SIMULATOR)
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,

@@ -37,8 +37,26 @@
 
 namespace dart {
 
+#define Z (T->zone())
+
+
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
+DEFINE_FLAG(charp, vm_name, "vm",
+            "The default name of this vm as reported by the VM service "
+            "protocol");
+
+// The name of this of this vm as reported by the VM service protocol.
+static char* vm_name = NULL;
+
+
+static const char* GetVMName() {
+  if (vm_name == NULL) {
+    return FLAG_vm_name;
+  }
+  return vm_name;
+}
+
 
 ServiceIdZone::ServiceIdZone() {
 }
@@ -48,11 +66,9 @@ ServiceIdZone::~ServiceIdZone() {
 }
 
 
-RingServiceIdZone::RingServiceIdZone(
-    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy)
-        : ring_(ring),
-          policy_(policy) {
-  ASSERT(ring_ != NULL);
+RingServiceIdZone::RingServiceIdZone()
+    : ring_(NULL),
+      policy_(ObjectIdRing::kAllocateId) {
 }
 
 
@@ -60,7 +76,15 @@ RingServiceIdZone::~RingServiceIdZone() {
 }
 
 
+void RingServiceIdZone::Init(
+    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy) {
+  ring_ = ring;
+  policy_ = policy;
+}
+
+
 char* RingServiceIdZone::GetServiceId(const Object& obj) {
+  ASSERT(ring_ != NULL);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != NULL);
@@ -82,6 +106,7 @@ Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = NULL;
 
 
 // These are the set of streams known to the core VM.
+StreamInfo Service::vm_stream("VM");
 StreamInfo Service::isolate_stream("Isolate");
 StreamInfo Service::debug_stream("Debug");
 StreamInfo Service::gc_stream("GC");
@@ -90,6 +115,7 @@ StreamInfo Service::graph_stream("_Graph");
 StreamInfo Service::logging_stream("_Logging");
 
 static StreamInfo* streams_[] = {
+  &Service::vm_stream,
   &Service::isolate_stream,
   &Service::debug_stream,
   &Service::gc_stream,
@@ -499,20 +525,41 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
 }
 
 
-void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
-  ASSERT(isolate != NULL);
+void Service::PostError(const String& method_name,
+                        const Array& parameter_keys,
+                        const Array& parameter_values,
+                        const Instance& reply_port,
+                        const Instance& id,
+                        const Error& error) {
+  Thread* T = Thread::Current();
+  StackZone zone(T);
+  HANDLESCOPE(T);
+  JSONStream js;
+  js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+           id, method_name, parameter_keys, parameter_values);
+  js.PrintError(kExtensionError,
+                "Error in extension `%s`: %s",
+                js.method(), error.ToErrorCString());
+  js.PostReply();
+}
+
+
+void Service::InvokeMethod(Isolate* I, const Array& msg) {
+  Thread* T = Thread::Current();
+  ASSERT(I == T->isolate());
+  ASSERT(I != NULL);
   ASSERT(!msg.IsNull());
   ASSERT(msg.Length() == 6);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(T);
+    HANDLESCOPE(T);
 
-    Instance& reply_port = Instance::Handle(isolate);
-    Instance& seq = String::Handle(isolate);
-    String& method_name = String::Handle(isolate);
-    Array& param_keys = Array::Handle(isolate);
-    Array& param_values = Array::Handle(isolate);
+    Instance& reply_port = Instance::Handle(Z);
+    Instance& seq = String::Handle(Z);
+    String& method_name = String::Handle(Z);
+    Array& param_keys = Array::Handle(Z);
+    Array& param_values = Array::Handle(Z);
     reply_port ^= msg.At(1);
     seq ^= msg.At(2);
     method_name ^= msg.At(3);
@@ -564,7 +611,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
         js.PostReply();
         return;
       }
-      if (method->entry(isolate, &js)) {
+      if (method->entry(I, &js)) {
         js.PostReply();
       } else {
         // NOTE(turnidge): All message handlers currently return true,
@@ -582,6 +629,20 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     if (handler != NULL) {
       EmbedderHandleMessage(handler, &js);
       js.PostReply();
+      return;
+    }
+
+    const Instance& extension_handler = Instance::Handle(Z,
+        I->LookupServiceExtensionHandler(method_name));
+    if (!extension_handler.IsNull()) {
+      ScheduleExtensionHandler(extension_handler,
+                               method_name,
+                               param_keys,
+                               param_values,
+                               reply_port,
+                               seq);
+      // Schedule was successful. Extension code will post a reply
+      // asynchronously.
       return;
     }
 
@@ -607,13 +668,14 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
 void Service::SendEvent(const char* stream_id,
                         const char* event_type,
                         const Object& event_message) {
-  ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current()));
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(isolate));
   if (!ServiceIsolate::IsRunning()) {
     return;
   }
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
 
   const Array& list = Array::Handle(Array::New(2));
   ASSERT(!list.IsNull());
@@ -627,9 +689,9 @@ void Service::SendEvent(const char* stream_id,
   writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print(
-        "vm-service: Pushing event of type %s to stream %s, len %" Pd "\n",
-        event_type, stream_id, len);
+    OS::Print("vm-service: Pushing ServiceEvent(isolate='%s', kind='%s',"
+              " len=%" Pd ") to stream %s\n",
+              isolate->name(), event_type, len, stream_id);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
@@ -670,7 +732,8 @@ void Service::SendEventWithData(const char* stream_id,
 
 
 void Service::HandleEvent(ServiceEvent* event) {
-  if (ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
+  if (event->isolate() != NULL &&
+      ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
   }
   if (!ServiceIsolate::IsRunning()) {
@@ -720,8 +783,14 @@ void Service::PostEvent(const char* stream_id,
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
-    OS::Print(
-        "vm-service: Pushing event of type %s to stream %s\n", kind, stream_id);
+    Isolate* isolate = Isolate::Current();
+    const char* isolate_name = "<no current isolate>";
+    if (isolate != NULL) {
+      isolate_name = isolate->name();
+    }
+    OS::Print("vm-service: Pushing ServiceEvent(isolate='%s', kind='%s') "
+              "to stream %s\n",
+              isolate_name, kind, stream_id);
   }
 
   Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
@@ -869,6 +938,28 @@ EmbedderServiceHandler* Service::FindRootEmbedderHandler(
 }
 
 
+void Service::ScheduleExtensionHandler(const Instance& handler,
+                                       const String& method_name,
+                                       const Array& parameter_keys,
+                                       const Array& parameter_values,
+                                       const Instance& reply_port,
+                                       const Instance& id) {
+  ASSERT(!handler.IsNull());
+  ASSERT(!method_name.IsNull());
+  ASSERT(!parameter_keys.IsNull());
+  ASSERT(!parameter_values.IsNull());
+  ASSERT(!reply_port.IsNull());
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  isolate->AppendServiceExtensionCall(handler,
+                                      method_name,
+                                      parameter_keys,
+                                      parameter_values,
+                                      reply_port,
+                                      id);
+}
+
+
 static const MethodParameter* get_isolate_params[] = {
   ISOLATE_PARAMETER,
   NULL,
@@ -943,6 +1034,7 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
         if (text != NULL) {
           event.AddProperty("text", text);
         }
+        event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
       }
     }
   }
@@ -968,7 +1060,8 @@ static bool DumpIdZone(Isolate* isolate, JSONStream* js) {
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   // When printing the ObjectIdRing, force object id reuse policy.
-  RingServiceIdZone reuse_zone(ring, ObjectIdRing::kReuseId);
+  RingServiceIdZone reuse_zone;
+  reuse_zone.Init(ring, ObjectIdRing::kReuseId);
   js->set_id_zone(&reuse_zone);
   ring->PrintJSON(js);
   return true;
@@ -1020,8 +1113,8 @@ static RawObject* LookupObjectId(Isolate* isolate,
       *kind = ObjectIdRing::kInvalid;
       return Object::null();
     }
-    const Integer& obj =
-        Integer::Handle(isolate, Smi::New(static_cast<intptr_t>(value)));
+    const Integer& obj = Integer::Handle(isolate->current_zone(),
+        Smi::New(static_cast<intptr_t>(value)));
     return obj.raw();
   } else if (strcmp(arg, "bool-true") == 0) {
     return Bool::True().raw();
@@ -1145,7 +1238,8 @@ static RawObject* LookupHeapObjectClasses(Isolate* isolate,
       return Object::sentinel().raw();
     }
     const char* encoded_id = parts[3];
-    String& id = String::Handle(isolate, String::New(encoded_id));
+    String& id = String::Handle(isolate->current_zone(),
+        String::New(encoded_id));
     id = String::DecodeIRI(id);
     if (id.IsNull()) {
       return Object::sentinel().raw();
@@ -1279,6 +1373,29 @@ static RawObject* LookupHeapObjectCode(Isolate* isolate,
 }
 
 
+static RawObject* LookupHeapObjectMessage(Isolate* isolate,
+                                          char** parts, int num_parts) {
+  if (num_parts != 2) {
+    return Object::sentinel().raw();
+  }
+  uword message_id = 0;
+  if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
+    return Object::sentinel().raw();
+  }
+  MessageHandler::AcquiredQueues aq;
+  isolate->message_handler()->AcquireQueues(&aq);
+  Message* message = aq.queue()->FindMessageById(message_id);
+  if (message == NULL) {
+    // The user may try to load an expired message.
+    return Object::sentinel().raw();
+  }
+  MessageSnapshotReader reader(message->data(),
+                               message->len(),
+                               Thread::Current());
+  return reader.ReadObject();
+}
+
+
 static RawObject* LookupHeapObject(Isolate* isolate,
                                    const char* id_original,
                                    ObjectIdRing::LookupResult* result) {
@@ -1312,7 +1429,7 @@ static RawObject* LookupHeapObject(Isolate* isolate,
 
   if (strcmp(parts[0], "objects") == 0) {
     // Object ids look like "objects/1123"
-    Object& obj = Object::Handle(isolate);
+    Object& obj = Object::Handle(isolate->current_zone());
     ObjectIdRing::LookupResult lookup_result;
     obj = LookupObjectId(isolate, parts[1], &lookup_result);
     if (lookup_result != ObjectIdRing::kValid) {
@@ -1331,6 +1448,8 @@ static RawObject* LookupHeapObject(Isolate* isolate,
     return LookupHeapObjectTypeArguments(isolate, parts, num_parts);
   } else if (strcmp(parts[0], "code") == 0) {
     return LookupHeapObjectCode(isolate, parts, num_parts);
+  } else if (strcmp(parts[0], "messages") == 0) {
+    return LookupHeapObjectMessage(isolate, parts, num_parts);
   }
 
   // Not found.
@@ -1368,7 +1487,10 @@ static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
 }
 
 
-static Breakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
+static Breakpoint* LookupBreakpoint(Isolate* isolate,
+                                    const char* id,
+                                    ObjectIdRing::LookupResult* result) {
+  *result = ObjectIdRing::kInvalid;
   size_t end_pos = strcspn(id, "/");
   if (end_pos == strlen(id)) {
     return NULL;
@@ -1379,44 +1501,17 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
     Breakpoint* bpt = NULL;
     if (GetIntegerId(rest, &bpt_id)) {
       bpt = isolate->debugger()->GetBreakpointById(bpt_id);
+      if (bpt) {
+        *result = ObjectIdRing::kValid;
+        return bpt;
+      }
+      if (bpt_id < isolate->debugger()->limitBreakpointId()) {
+        *result = ObjectIdRing::kCollected;
+        return NULL;
+      }
     }
-    return bpt;
   }
   return NULL;
-}
-
-
-// Scans |isolate|'s message queue looking for a message with |id|.
-// If found, the message is printed to |js| and true is returned.
-// If not found, false is returned.
-static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
-  size_t end_pos = strcspn(id, "/");
-  if (end_pos == strlen(id)) {
-    return false;
-  }
-  const char* rest = id + end_pos + 1;  // +1 for '/'.
-  if (strncmp("messages", id, end_pos) == 0) {
-    uword message_id = 0;
-    if (GetUnsignedIntegerId(rest, &message_id, 16)) {
-      MessageHandler::AcquiredQueues aq;
-      isolate->message_handler()->AcquireQueues(&aq);
-      Message* message = aq.queue()->FindMessageById(message_id);
-      if (message == NULL) {
-        // The user may try to load an expired message, so we treat
-        // unrecognized ids as if they are expired.
-        PrintSentinel(js, kExpiredSentinel);
-        return true;
-      }
-      MessageSnapshotReader reader(message->data(),
-                                   message->len(),
-                                   isolate,
-                                   Thread::Current()->zone());
-      const Object& msg_obj = Object::Handle(reader.ReadObject());
-      msg_obj.PrintJSON(js);
-      return true;
-    }
-  }
-  return false;
 }
 
 
@@ -1443,19 +1538,21 @@ static bool PrintInboundReferences(Isolate* isolate,
       slot_offset ^= path.At((i * 2) + 1);
 
       jselement.AddProperty("source", source);
-      jselement.AddProperty("slot", "<unknown>");
       if (source.IsArray()) {
         intptr_t element_index = slot_offset.Value() -
             (Array::element_offset(0) >> kWordSizeLog2);
-        jselement.AddProperty("slot", element_index);
+        jselement.AddProperty("parentListIndex", element_index);
       } else if (source.IsInstance()) {
         source_class ^= source.clazz();
         parent_field_map = source_class.OffsetToFieldMap();
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < parent_field_map.Length()) {
           field ^= parent_field_map.At(offset);
-          jselement.AddProperty("slot", field);
+          jselement.AddProperty("parentField", field);
         }
+      } else {
+        intptr_t element_index = slot_offset.Value();
+        jselement.AddProperty("_parentWordOffset", element_index);
       }
 
       // We nil out the array after generating the response to prevent
@@ -1475,6 +1572,9 @@ static const MethodParameter* get_inbound_references_params[] = {
 
 
 static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
+
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1491,10 +1591,10 @@ static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
     return true;
   }
 
-  Object& obj = Object::Handle(isolate);
+  Object& obj = Object::Handle(thread->zone());
   ObjectIdRing::LookupResult lookup_result;
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     obj = LookupHeapObject(isolate, target_id, &lookup_result);
   }
   if (obj.raw() == Object::sentinel().raw()) {
@@ -1574,6 +1674,9 @@ static const MethodParameter* get_retaining_path_params[] = {
 
 
 static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
+
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1590,10 +1693,10 @@ static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
     return true;
   }
 
-  Object& obj = Object::Handle(isolate);
+  Object& obj = Object::Handle(thread->zone());
   ObjectIdRing::LookupResult lookup_result;
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     obj = LookupHeapObject(isolate, target_id, &lookup_result);
   }
   if (obj.raw() == Object::sentinel().raw()) {
@@ -1661,6 +1764,11 @@ static const MethodParameter* evaluate_params[] = {
 
 
 static bool Evaluate(Isolate* isolate, JSONStream* js) {
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+                   "Cannot evaluate when running a precompiled program.");
+    return true;
+  }
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1671,7 +1779,8 @@ static bool Evaluate(Isolate* isolate, JSONStream* js) {
     PrintMissingParamError(js, "expression");
     return true;
   }
-  const String& expr_str = String::Handle(isolate, String::New(expr));
+  const String& expr_str =
+      String::Handle(isolate->current_zone(), String::New(expr));
   ObjectIdRing::LookupResult lookup_result;
   Object& obj = Object::Handle(LookupHeapObject(isolate, target_id,
                                                 &lookup_result));
@@ -1704,7 +1813,7 @@ static bool Evaluate(Isolate* isolate, JSONStream* js) {
   if ((obj.IsInstance() || obj.IsNull()) &&
       !ContainsNonInstance(obj)) {
     // We don't use Instance::Cast here because it doesn't allow null.
-    Instance& instance = Instance::Handle(isolate);
+    Instance& instance = Instance::Handle(isolate->current_zone());
     instance ^= obj.raw();
     const Object& result =
         Object::Handle(instance.Evaluate(expr_str,
@@ -1730,6 +1839,11 @@ static const MethodParameter* evaluate_in_frame_params[] = {
 
 
 static bool EvaluateInFrame(Isolate* isolate, JSONStream* js) {
+  if (!isolate->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+                   "Cannot evaluate when running a precompiled program.");
+    return true;
+  }
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (framePos > stack->Length()) {
@@ -1739,7 +1853,8 @@ static bool EvaluateInFrame(Isolate* isolate, JSONStream* js) {
   ActivationFrame* frame = stack->FrameAt(framePos);
 
   const char* expr = js->LookupParam("expression");
-  const String& expr_str = String::Handle(isolate, String::New(expr));
+  const String& expr_str = String::Handle(isolate->current_zone(),
+      String::New(expr));
 
   const Object& result = Object::Handle(frame->Evaluate(expr_str));
   result.PrintJSON(js, true);
@@ -1757,9 +1872,9 @@ class GetInstancesVisitor : public ObjectGraph::Visitor {
     if (raw_obj->IsFreeListElement()) {
       return kProceed;
     }
-    Isolate* isolate = Isolate::Current();
-    REUSABLE_OBJECT_HANDLESCOPE(isolate);
-    Object& obj = isolate->ObjectHandle();
+    Thread* thread = Thread::Current();
+    REUSABLE_OBJECT_HANDLESCOPE(thread);
+    Object& obj = thread->ObjectHandle();
     obj = raw_obj;
     if (obj.GetClassId() == cls_.id()) {
       if (!storage_.IsNull() && count_ < storage_.Length()) {
@@ -1828,7 +1943,7 @@ static bool GetInstances(Isolate* isolate, JSONStream* js) {
     JSONArray samples(&jsobj, "samples");
     for (int i = 0; i < storage.Length(); i++) {
       const Object& sample = Object::Handle(storage.At(i));
-      samples.AddValue(Instance::Cast(sample));
+      samples.AddValue(sample);
     }
   }
   return true;
@@ -1893,8 +2008,9 @@ class FunctionCoverageFilter : public CoverageFilter {
 
 
 static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
+  Thread* thread = Thread::Current();
   if (!js->HasParam("targetId")) {
-    CodeCoverage::PrintJSON(isolate, js, NULL, as_sites);
+    CodeCoverage::PrintJSON(thread, js, NULL, as_sites);
     return true;
   }
   const char* target_id = js->LookupParam("targetId");
@@ -1905,22 +2021,22 @@ static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
   }
   if (obj.IsScript()) {
     ScriptCoverageFilter sf(Script::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &sf, as_sites);
+    CodeCoverage::PrintJSON(thread, js, &sf, as_sites);
     return true;
   }
   if (obj.IsLibrary()) {
     LibraryCoverageFilter lf(Library::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &lf, as_sites);
+    CodeCoverage::PrintJSON(thread, js, &lf, as_sites);
     return true;
   }
   if (obj.IsClass()) {
     ClassCoverageFilter cf(Class::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &cf, as_sites);
+    CodeCoverage::PrintJSON(thread, js, &cf, as_sites);
     return true;
   }
   if (obj.IsFunction()) {
     FunctionCoverageFilter ff(Function::Cast(obj));
-    CodeCoverage::PrintJSON(isolate, js, &ff, as_sites);
+    CodeCoverage::PrintJSON(thread, js, &ff, as_sites);
     return true;
   }
   js->PrintError(kInvalidParams,
@@ -1957,27 +2073,24 @@ static bool GetCallSiteData(Isolate* isolate, JSONStream* js) {
 }
 
 
-static const MethodParameter* add_breakpoint_params[] = {
-  ISOLATE_PARAMETER,
-  new IdParameter("scriptId", true),
-  new UIntParameter("line", true),
-  NULL,
-};
-
-
-static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
+static bool AddBreakpointCommon(Isolate* isolate,
+                                JSONStream* js,
+                                const String& script_uri) {
   const char* line_param = js->LookupParam("line");
   intptr_t line = UIntParameter::Parse(line_param);
-  const char* script_id = js->LookupParam("scriptId");
-  Object& obj = Object::Handle(LookupHeapObject(isolate, script_id, NULL));
-  if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
-    PrintInvalidParamError(js, "scriptId");
-    return true;
+  const char* col_param = js->LookupParam("column");
+  intptr_t col = -1;
+  if (col_param != NULL) {
+    col = UIntParameter::Parse(col_param);
+    if (col == 0) {
+      // Column number is 1-based.
+      PrintInvalidParamError(js, "column");
+      return true;
+    }
   }
-  const Script& script = Script::Cast(obj);
-  const String& script_url = String::Handle(script.url());
-  Breakpoint* bpt =
-      isolate->debugger()->SetBreakpointAtLine(script_url, line);
+  ASSERT(!script_uri.IsNull());
+  Breakpoint* bpt = NULL;
+  bpt = isolate->debugger()->SetBreakpointAtLineCol(script_uri, line, col);
   if (bpt == NULL) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at line '%s'",
@@ -1986,6 +2099,46 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   }
   bpt->PrintJSON(js);
   return true;
+}
+
+
+static const MethodParameter* add_breakpoint_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("scriptId", true),
+  new UIntParameter("line", true),
+  new UIntParameter("column", false),
+  NULL,
+};
+
+
+static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
+  const char* script_id_param = js->LookupParam("scriptId");
+  Object& obj =
+      Object::Handle(LookupHeapObject(isolate, script_id_param, NULL));
+  if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
+    PrintInvalidParamError(js, "scriptId");
+    return true;
+  }
+  const Script& script = Script::Cast(obj);
+  const String& script_uri = String::Handle(script.url());
+  ASSERT(!script_uri.IsNull());
+  return AddBreakpointCommon(isolate, js, script_uri);
+}
+
+
+static const MethodParameter* add_breakpoint_with_script_uri_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("scriptUri", true),
+  new UIntParameter("line", true),
+  new UIntParameter("column", false),
+  NULL,
+};
+
+
+static bool AddBreakpointWithScriptUri(Isolate* isolate, JSONStream* js) {
+  const char* script_uri_param = js->LookupParam("scriptUri");
+  const String& script_uri = String::Handle(String::New(script_uri_param));
+  return AddBreakpointCommon(isolate, js, script_uri);
 }
 
 
@@ -2057,7 +2210,10 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const char* bpt_id = js->LookupParam("breakpointId");
-  Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
+  ObjectIdRing::LookupResult lookup_result;
+  Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id, &lookup_result);
+  // TODO(turnidge): Should we return a different error for bpts whic
+  // have been already removed?
   if (bpt == NULL) {
     PrintInvalidParamError(js, "breakpointId");
     return true;
@@ -2069,14 +2225,15 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
 
 
 static RawClass* GetMetricsClass(Isolate* isolate) {
+  Zone* zone = isolate->current_zone();
   const Library& prof_lib =
-      Library::Handle(isolate, Library::DeveloperLibrary());
+      Library::Handle(zone, Library::DeveloperLibrary());
   ASSERT(!prof_lib.IsNull());
   const String& metrics_cls_name =
-      String::Handle(isolate, String::New("Metrics"));
+      String::Handle(zone, String::New("Metrics"));
   ASSERT(!metrics_cls_name.IsNull());
   const Class& metrics_cls =
-      Class::Handle(isolate, prof_lib.LookupClass(metrics_cls_name));
+      Class::Handle(zone, prof_lib.LookupClass(metrics_cls_name));
   ASSERT(!metrics_cls.IsNull());
   return metrics_cls.raw();
 }
@@ -2117,17 +2274,18 @@ static bool HandleNativeMetric(Isolate* isolate,
 
 
 static bool HandleDartMetricsList(Isolate* isolate, JSONStream* js) {
-  const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
+  Zone* zone = isolate->current_zone();
+  const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(isolate));
   const String& print_metrics_name =
       String::Handle(String::New("_printMetrics"));
   ASSERT(!print_metrics_name.IsNull());
   const Function& print_metrics = Function::Handle(
-      isolate,
+      zone,
       metrics_cls.LookupStaticFunctionAllowPrivate(print_metrics_name));
   ASSERT(!print_metrics.IsNull());
   const Array& args = Object::empty_array();
   const Object& result =
-      Object::Handle(isolate, DartEntry::InvokeFunction(print_metrics, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(print_metrics, args));
   ASSERT(!result.IsNull());
   ASSERT(result.IsString());
   TextBuffer* buffer = js->buffer();
@@ -2137,12 +2295,13 @@ static bool HandleDartMetricsList(Isolate* isolate, JSONStream* js) {
 
 
 static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
-  const Class& metrics_cls = Class::Handle(isolate, GetMetricsClass(isolate));
+  Zone* zone = isolate->current_zone();
+  const Class& metrics_cls = Class::Handle(zone, GetMetricsClass(isolate));
   const String& print_metric_name =
       String::Handle(String::New("_printMetric"));
   ASSERT(!print_metric_name.IsNull());
   const Function& print_metric = Function::Handle(
-      isolate,
+      zone,
       metrics_cls.LookupStaticFunctionAllowPrivate(print_metric_name));
   ASSERT(!print_metric.IsNull());
   const String& arg0 = String::Handle(String::New(id));
@@ -2151,7 +2310,7 @@ static bool HandleDartMetric(Isolate* isolate, JSONStream* js, const char* id) {
   ASSERT(!args.IsNull());
   args.SetAt(0, arg0);
   const Object& result =
-      Object::Handle(isolate, DartEntry::InvokeFunction(print_metric, args));
+      Object::Handle(zone, DartEntry::InvokeFunction(print_metric, args));
   if (!result.IsNull()) {
     ASSERT(result.IsString());
     TextBuffer* buffer = js->buffer();
@@ -2265,6 +2424,7 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
       isolate->debugger()->EnterSingleStepMode();
     }
     isolate->message_handler()->set_pause_on_start(false);
+    isolate->set_last_resume_timestamp();
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
@@ -2308,8 +2468,12 @@ static const MethodParameter* pause_params[] = {
 
 
 static bool Pause(Isolate* isolate, JSONStream* js) {
-  // TODO(turnidge): Don't double-interrupt the isolate here.
-  isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
+  // TODO(turnidge): This interrupt message could have been sent from
+  // the service isolate directly, but would require some special case
+  // code.  That would prevent this isolate getting double-interrupted
+  // with OOB messages.
+  isolate->SendInternalLibMessage(Isolate::kInterruptMsg,
+                                  isolate->pause_capability());
   PrintSuccess(js);
   return true;
 }
@@ -2499,6 +2663,7 @@ void Service::SendGraphEvent(Isolate* isolate) {
           event.AddProperty("type", "Event");
           event.AddProperty("kind", "_Graph");
           event.AddProperty("isolate", isolate);
+          event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
 
           event.AddProperty("chunkIndex", i);
           event.AddProperty("chunkCount", num_chunks);
@@ -2599,7 +2764,7 @@ static const MethodParameter* get_object_by_address_params[] = {
 
 
 static RawObject* GetObjectHelper(Isolate* isolate, uword addr) {
-  Object& object = Object::Handle(isolate);
+  Object& object = Object::Handle(isolate->current_zone());
 
   {
     NoSafepointScope no_safepoint;
@@ -2635,7 +2800,8 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     return true;
   }
   bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
-  const Object& obj = Object::Handle(isolate, GetObjectHelper(isolate, addr));
+  const Object& obj = Object::Handle(isolate->current_zone(),
+      GetObjectHelper(isolate, addr));
   if (obj.IsNull()) {
     PrintSentinel(js, kFreeSentinel);
   } else {
@@ -2710,13 +2876,12 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
   }
 
   // Handle non-heap objects.
-  Breakpoint* bpt = LookupBreakpoint(isolate, id);
+  Breakpoint* bpt = LookupBreakpoint(isolate, id, &lookup_result);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
     return true;
-  }
-
-  if (PrintMessage(js, isolate, id)) {
+  } else if (lookup_result == ObjectIdRing::kCollected) {
+    PrintSentinel(js, kCollectedSentinel);
     return true;
   }
 
@@ -2782,7 +2947,7 @@ static const MethodParameter* get_version_params[] = {
 static bool GetVersion(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
-  jsobj.AddProperty("major", static_cast<intptr_t>(2));
+  jsobj.AddProperty("major", static_cast<intptr_t>(3));
   jsobj.AddProperty("minor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
@@ -2816,59 +2981,85 @@ static const MethodParameter* get_vm_params[] = {
 };
 
 
-static bool GetVM(Isolate* isolate, JSONStream* js) {
+void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "VM");
+  jsobj.AddProperty("type", (ref ? "@VM" : "VM"));
+  jsobj.AddProperty("name", GetVMName());
+  if (ref) {
+    return;
+  }
+  Isolate* vm_isolate = Dart::vm_isolate();
   jsobj.AddProperty("architectureBits", static_cast<intptr_t>(kBitsPerWord));
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
-  // Send pid as a string because it allows us to avoid any issues with
-  // pids > 53-bits (when consumed by JavaScript).
-  // TODO(johnmccutchan): Codify how integers are sent across the service.
-  jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
-  jsobj.AddProperty("_assertsEnabled", isolate->flags().asserts());
-  jsobj.AddProperty("_typeChecksEnabled", isolate->flags().type_checks());
-  int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
+  jsobj.AddProperty("pid", OS::ProcessId());
+  int64_t start_time_millis = (vm_isolate->start_time() /
                                kMicrosecondsPerMillisecond);
-  jsobj.AddProperty64("startTime", start_time_millis);
+  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");
     ServiceIsolateVisitor visitor(&jsarr);
     Isolate::VisitIsolates(&visitor);
   }
+}
+
+
+static bool GetVM(Isolate* isolate, JSONStream* js) {
+  Service::PrintJSONForVM(js, false);
   return true;
 }
 
 
-static const MethodParameter* set_exception_pause_info_params[] = {
-  ISOLATE_PARAMETER,
+static const MethodParameter* restart_vm_params[] = {
+  NO_ISOLATE_PARAMETER,
   NULL,
 };
 
 
-static bool SetExceptionPauseInfo(Isolate* isolate, JSONStream* js) {
-  const char* exceptions = js->LookupParam("exceptions");
-  if (exceptions == NULL) {
-    PrintMissingParamError(js, "exceptions");
+static bool RestartVM(Isolate* isolate, JSONStream* js) {
+  Isolate::KillAllIsolates(Isolate::kVMRestartMsg);
+  PrintSuccess(js);
+  return true;
+}
+
+
+static const char* exception_pause_mode_names[] = {
+  "All",
+  "None",
+  "Unhandled",
+  NULL,
+};
+
+
+static Dart_ExceptionPauseInfo exception_pause_mode_values[] = {
+  kPauseOnAllExceptions,
+  kNoPauseOnExceptions,
+  kPauseOnUnhandledExceptions,
+  kInvalidExceptionPauseInfo,
+};
+
+
+static const MethodParameter* set_exception_pause_mode_params[] = {
+  ISOLATE_PARAMETER,
+  new EnumParameter("mode", true, exception_pause_mode_names),
+  NULL,
+};
+
+
+static bool SetExceptionPauseMode(Isolate* isolate, JSONStream* js) {
+  const char* mode = js->LookupParam("mode");
+  if (mode == NULL) {
+    PrintMissingParamError(js, "mode");
     return true;
   }
-
-  Dart_ExceptionPauseInfo info = kNoPauseOnExceptions;
-  if (strcmp(exceptions, "none") == 0) {
-    info = kNoPauseOnExceptions;
-  } else if (strcmp(exceptions, "all") == 0) {
-    info = kPauseOnAllExceptions;
-  } else if (strcmp(exceptions, "unhandled") == 0) {
-    info = kPauseOnUnhandledExceptions;
-  } else {
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "Error");
-    jsobj.AddProperty("message", "illegal value for parameter 'exceptions'");
+  Dart_ExceptionPauseInfo info =
+      EnumMapper(mode, exception_pause_mode_names, exception_pause_mode_values);
+  if (info == kInvalidExceptionPauseInfo) {
+    PrintInvalidParamError(js, "mode");
     return true;
   }
-
   isolate->debugger()->SetExceptionPauseInfo(info);
   if (Service::debug_stream.enabled()) {
     ServiceEvent event(isolate, ServiceEvent::kDebuggerSettingsUpdate);
@@ -2965,6 +3156,25 @@ static bool SetName(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* set_vm_name_params[] = {
+  new MethodParameter("name", true),
+  NULL,
+};
+
+
+static bool SetVMName(Isolate* isolate, JSONStream* js) {
+  const char* name_param = js->LookupParam("name");
+  free(vm_name);
+  vm_name = strdup(name_param);
+  if (Service::vm_stream.enabled()) {
+    ServiceEvent event(NULL, ServiceEvent::kVMUpdate);
+    Service::HandleEvent(&event);
+  }
+  PrintSuccess(js);
+  return true;
+}
+
+
 static const MethodParameter* set_trace_class_allocation_params[] = {
   ISOLATE_PARAMETER,
   new IdParameter("classId", true),
@@ -3002,6 +3212,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     NULL },
   { "addBreakpoint", AddBreakpoint,
     add_breakpoint_params },
+  { "addBreakpointWithScriptUri", AddBreakpointWithScriptUri,
+    add_breakpoint_with_script_uri_params },
   { "addBreakpointAtEntry", AddBreakpointAtEntry,
     add_breakpoint_at_entry_params },
   { "_addBreakpointAtActivation", AddBreakpointAtActivation,
@@ -3066,12 +3278,14 @@ static ServiceMethodDescriptor service_methods_[] = {
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
     remove_breakpoint_params },
+  { "_restartVM", RestartVM,
+    restart_vm_params },
   { "resume", Resume,
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
-  { "_setExceptionPauseInfo", SetExceptionPauseInfo,
-    set_exception_pause_info_params },
+  { "setExceptionPauseMode", SetExceptionPauseMode,
+    set_exception_pause_mode_params },
   { "_setFlag", SetFlag,
     set_flags_params },
   { "setLibraryDebuggable", SetLibraryDebuggable,
@@ -3080,6 +3294,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     set_name_params },
   { "_setTraceClassAllocation", SetTraceClassAllocation,
     set_trace_class_allocation_params },
+  { "setVMName", SetVMName,
+    set_vm_name_params },
 };
 
 

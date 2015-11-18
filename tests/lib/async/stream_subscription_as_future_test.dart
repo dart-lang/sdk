@@ -40,6 +40,18 @@ main() {
     }));
   });
 
+  test("subscription.asStream different type", () {
+    Stream stream = new Stream<int>.fromIterable([1, 2, 3]);
+    var asyncCallback = expectAsync(() => {});
+    var output = [];
+    var subscription = stream.listen((x) { output.add(x); });
+    subscription.asFuture("string").then((String o) {
+      Expect.listEquals([1, 2, 3], output);
+      Expect.equals("string", o);
+      asyncCallback();
+    });
+  });
+
   test("subscription.asStream failure", () {
     StreamController controller = new StreamController(sync: true);
     [1, 2, 3].forEach(controller.add);

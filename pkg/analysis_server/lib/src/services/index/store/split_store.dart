@@ -8,18 +8,200 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analysis_server/src/services/index/store/collection.dart';
+import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+
+/**
+ * The implementation of [IndexObjectManager] for indexing
+ * [CompilationUnitElement]s.
+ */
+class DartUnitIndexObjectManager extends IndexObjectManager {
+  /**
+   * The mapping of library [Source] to the [Source]s of part units.
+   */
+  Map<AnalysisContext, Map<Source, Set<Source>>> _contextToLibraryToUnits =
+      new HashMap<AnalysisContext, Map<Source, Set<Source>>>();
+
+  /**
+   * The mapping of unit [Source] to the [Source]s of libraries it is used in.
+   */
+  Map<AnalysisContext, Map<Source, Set<Source>>> _contextToUnitToLibraries =
+      new HashMap<AnalysisContext, Map<Source, Set<Source>>>();
+
+  @override
+  String aboutToIndex(AnalysisContext context, Object object) {
+    CompilationUnitElement unitElement;
+    if (object is CompilationUnit) {
+      unitElement = object.element;
+    } else if (object is CompilationUnitElement) {
+      unitElement = object;
+    }
+    // validate unit
+    if (unitElement == null) {
+      return null;
+    }
+    LibraryElement libraryElement = unitElement.library;
+    if (libraryElement == null) {
+      return null;
+    }
+    CompilationUnitElement definingUnitElement =
+        libraryElement.definingCompilationUnit;
+    if (definingUnitElement == null) {
+      return null;
+    }
+    // prepare sources
+    Source library = definingUnitElement.source;
+    Source unit = unitElement.source;
+    // special handling for the defining library unit
+    if (unit == library) {
+      // prepare new parts
+      HashSet<Source> newParts = new HashSet<Source>();
+      for (CompilationUnitElement part in libraryElement.parts) {
+        newParts.add(part.source);
+      }
+      // prepare old parts
+      Map<Source, Set<Source>> libraryToUnits =
+          _contextToLibraryToUnits[context];
+      if (libraryToUnits == null) {
+        libraryToUnits = new HashMap<Source, Set<Source>>();
+        _contextToLibraryToUnits[context] = libraryToUnits;
+      }
+      Set<Source> oldParts = libraryToUnits[library];
+      // check if some parts are not in the library now
+      if (oldParts != null) {
+        Set<Source> noParts = oldParts.difference(newParts);
+        for (Source noPart in noParts) {
+          String nodeName = _getNodeName(library, noPart);
+          site.removeNodeByName(context, nodeName);
+          site.removeSource(library);
+          site.removeSource(noPart);
+        }
+      }
+      // remember new parts
+      libraryToUnits[library] = newParts;
+    }
+    // remember library/unit relations
+    _recordUnitInLibrary(context, library, unit);
+    _recordLibraryWithUnit(context, library, unit);
+    site.addSource(library);
+    site.addSource(unit);
+    // prepare node
+    String nodeName = _getNodeName(library, unit);
+    return nodeName;
+  }
+
+  @override
+  void removeContext(AnalysisContext context) {
+    _contextToLibraryToUnits.remove(context);
+    _contextToUnitToLibraries.remove(context);
+  }
+
+  @override
+  void removeSource(AnalysisContext context, Source source) {
+    // remove nodes for unit/library pairs
+    Map<Source, Set<Source>> unitToLibraries =
+        _contextToUnitToLibraries[context];
+    if (unitToLibraries != null) {
+      Set<Source> libraries = unitToLibraries.remove(source);
+      if (libraries != null) {
+        for (Source library in libraries) {
+          String nodeName = _getNodeName(library, source);
+          site.removeNodeByName(context, nodeName);
+          site.removeSource(library);
+          site.removeSource(source);
+        }
+      }
+    }
+    // remove nodes for library/unit pairs
+    Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
+    if (libraryToUnits != null) {
+      Set<Source> units = libraryToUnits.remove(source);
+      if (units != null) {
+        for (Source unit in units) {
+          String nodeName = _getNodeName(source, unit);
+          site.removeNodeByName(context, nodeName);
+          site.removeSource(source);
+          site.removeSource(unit);
+        }
+      }
+    }
+  }
+
+  @override
+  void removeSources(AnalysisContext context, SourceContainer container) {
+    // remove nodes for unit/library pairs
+    Map<Source, Set<Source>> unitToLibraries =
+        _contextToUnitToLibraries[context];
+    if (unitToLibraries != null) {
+      List<Source> units = unitToLibraries.keys.toList();
+      for (Source source in units) {
+        if (container == null || container.contains(source)) {
+          removeSource(context, source);
+        }
+      }
+    }
+    // remove nodes for library/unit pairs
+    Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
+    if (libraryToUnits != null) {
+      List<Source> libraries = libraryToUnits.keys.toList();
+      for (Source source in libraries) {
+        if (container == null || container.contains(source)) {
+          removeSource(context, source);
+        }
+      }
+    }
+  }
+
+  String _getNodeName(Source library, Source unit) {
+    String libraryName = library != null ? library.fullName : null;
+    String unitName = unit.fullName;
+    int libraryNameIndex = site.encodeString(libraryName);
+    int unitNameIndex = site.encodeString(unitName);
+    return 'DartUnitElement_${libraryNameIndex}_${unitNameIndex}.index';
+  }
+
+  void _recordLibraryWithUnit(
+      AnalysisContext context, Source library, Source unit) {
+    Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
+    if (libraryToUnits == null) {
+      libraryToUnits = new HashMap<Source, Set<Source>>();
+      _contextToLibraryToUnits[context] = libraryToUnits;
+    }
+    Set<Source> units = libraryToUnits[library];
+    if (units == null) {
+      units = new HashSet<Source>();
+      libraryToUnits[library] = units;
+    }
+    units.add(unit);
+  }
+
+  void _recordUnitInLibrary(
+      AnalysisContext context, Source library, Source unit) {
+    Map<Source, Set<Source>> unitToLibraries =
+        _contextToUnitToLibraries[context];
+    if (unitToLibraries == null) {
+      unitToLibraries = new HashMap<Source, Set<Source>>();
+      _contextToUnitToLibraries[context] = unitToLibraries;
+    }
+    Set<Source> libraries = unitToLibraries[unit];
+    if (libraries == null) {
+      libraries = new HashSet<Source>();
+      unitToLibraries[unit] = libraries;
+    }
+    libraries.add(library);
+  }
+}
 
 /**
  * A manager for files content.
@@ -341,6 +523,36 @@ class IndexNode {
   }
 }
 
+/**
+ * [SplitIndexStore] uses instances of this class to manager index nodes.
+ */
+abstract class IndexObjectManager {
+  SplitIndexStoreSite site;
+
+  /**
+   * Notifies the manager that the given [object] is to be indexed.
+   * Returns the name of the index node to put information into.
+   */
+  String aboutToIndex(AnalysisContext context, Object object);
+
+  /**
+   * Notifies the manager that the given [context] is disposed.
+   */
+  void removeContext(AnalysisContext context);
+
+  /**
+   * Notifies the manager that the given [source] is no longer part of
+   * the given [context].
+   */
+  void removeSource(AnalysisContext context, Source source);
+
+  /**
+   * Notifies the manager that the sources described by the given [container]
+   * are no longer part of the given [context].
+   */
+  void removeSources(AnalysisContext context, SourceContainer container);
+}
+
 class InspectLocation {
   final String nodeName;
   final RelationshipImpl relationship;
@@ -482,8 +694,10 @@ class RelationKeyData {
   RelationKeyData.forData(
       this.elementId1, this.elementId2, this.elementId3, this.relationshipId);
 
-  RelationKeyData.forObject(ElementCodec elementCodec,
-      RelationshipCodec relationshipCodec, IndexableObject indexable,
+  RelationKeyData.forObject(
+      ElementCodec elementCodec,
+      RelationshipCodec relationshipCodec,
+      IndexableObject indexable,
       RelationshipImpl relationship)
       : elementId1 = elementCodec.encode1(indexable),
         elementId2 = elementCodec.encode2(indexable),
@@ -524,9 +738,26 @@ class RelationKeyData {
  */
 class SplitIndexStore implements InternalIndexStore {
   /**
+   * The [NodeManager] to get/put [IndexNode]s.
+   */
+  final NodeManager _nodeManager;
+
+  final List<IndexObjectManager> _objectManagers;
+
+  /**
    * The [ContextCodec] to encode/decode [AnalysisContext]s.
    */
-  ContextCodec _contextCodec;
+  final ContextCodec _contextCodec;
+
+  /**
+   * The [ElementCodec] to encode/decode [Element]s.
+   */
+  final ElementCodec _elementCodec;
+
+  /**
+   * The [StringCodec] to encode/decode [String]s.
+   */
+  final StringCodec _stringCodec;
 
   /**
    * Information about top-level elements.
@@ -534,60 +765,35 @@ class SplitIndexStore implements InternalIndexStore {
    *
    * Order of keys: contextId, nodeId.
    */
-  Map<int, Map<int, List<_TopElementData>>> _topDeclarations =
+  final Map<int, Map<int, List<_TopElementData>>> _topDeclarations =
       new Map<int, Map<int, List<_TopElementData>>>();
 
-  /**
-   * The mapping of library [Source] to the [Source]s of part units.
-   */
-  Map<AnalysisContext, Map<Source, Set<Source>>> _contextToLibraryToUnits =
-      new HashMap<AnalysisContext, Map<Source, Set<Source>>>();
-
-  /**
-   * The mapping of unit [Source] to the [Source]s of libraries it is used in.
-   */
-  Map<AnalysisContext, Map<Source, Set<Source>>> _contextToUnitToLibraries =
-      new HashMap<AnalysisContext, Map<Source, Set<Source>>>();
-
-  int _currentContextId = 0;
-
-  IndexNode _currentNode;
-
+  int _currentContextId;
   String _currentNodeName;
-
-  int _currentNodeNameId = 0;
-
-  /**
-   * The [ElementCodec] to encode/decode [Element]s.
-   */
-  ElementCodec _elementCodec;
+  int _currentNodeNameId;
+  IndexNode _currentNode;
 
   /**
    * A table mapping element names to the node names that may have relations with elements with
    * these names.
    */
-  Map<RelationshipImpl, IntToIntSetMap> _relToNameMap =
+  final Map<RelationshipImpl, IntToIntSetMap> _relToNameMap =
       new HashMap<RelationshipImpl, IntToIntSetMap>();
-
-  /**
-   * The [NodeManager] to get/put [IndexNode]s.
-   */
-  final NodeManager _nodeManager;
 
   /**
    * The set of known [Source]s.
    */
-  Set<Source> _sources = new HashSet<Source>();
+  final Set<Source> _sources = new HashSet<Source>();
 
-  /**
-   * The [StringCodec] to encode/decode [String]s.
-   */
-  StringCodec _stringCodec;
-
-  SplitIndexStore(this._nodeManager) {
-    this._contextCodec = _nodeManager.contextCodec;
-    this._elementCodec = _nodeManager.elementCodec;
-    this._stringCodec = _nodeManager.stringCodec;
+  SplitIndexStore(NodeManager _nodeManager, this._objectManagers)
+      : _nodeManager = _nodeManager,
+        _contextCodec = _nodeManager.contextCodec,
+        _elementCodec = _nodeManager.elementCodec,
+        _stringCodec = _nodeManager.stringCodec {
+    SplitIndexStoreSiteImpl site = new SplitIndexStoreSiteImpl(this);
+    for (IndexObjectManager manager in _objectManagers) {
+      manager.site = site;
+    }
   }
 
   @override
@@ -606,64 +812,22 @@ class SplitIndexStore implements InternalIndexStore {
   }
 
   @override
-  bool aboutToIndexDart(
-      AnalysisContext context, CompilationUnitElement unitElement) {
-    // may be already disposed in other thread
-    if (context.isDisposed) {
+  bool aboutToIndex(AnalysisContext context, Object object) {
+    if (context == null || context.isDisposed) {
       return false;
     }
-    // validate unit
-    if (unitElement == null) {
-      return false;
-    }
-    LibraryElement libraryElement = unitElement.library;
-    if (libraryElement == null) {
-      return false;
-    }
-    CompilationUnitElement definingUnitElement =
-        libraryElement.definingCompilationUnit;
-    if (definingUnitElement == null) {
-      return false;
-    }
-    // prepare sources
-    Source library = definingUnitElement.source;
-    Source unit = unitElement.source;
-    // special handling for the defining library unit
-    if (unit == library) {
-      // prepare new parts
-      HashSet<Source> newParts = new HashSet<Source>();
-      for (CompilationUnitElement part in libraryElement.parts) {
-        newParts.add(part.source);
+    // try to find a node name
+    _currentNodeName = null;
+    for (IndexObjectManager manager in _objectManagers) {
+      _currentNodeName = manager.aboutToIndex(context, object);
+      if (_currentNodeName != null) {
+        break;
       }
-      // prepare old parts
-      Map<Source, Set<Source>> libraryToUnits =
-          _contextToLibraryToUnits[context];
-      if (libraryToUnits == null) {
-        libraryToUnits = new HashMap<Source, Set<Source>>();
-        _contextToLibraryToUnits[context] = libraryToUnits;
-      }
-      Set<Source> oldParts = libraryToUnits[library];
-      // check if some parts are not in the library now
-      if (oldParts != null) {
-        Set<Source> noParts = oldParts.difference(newParts);
-        for (Source noPart in noParts) {
-          _removeLocations(context, library, noPart);
-        }
-      }
-      // remember new parts
-      libraryToUnits[library] = newParts;
     }
-    // remember library/unit relations
-    _recordUnitInLibrary(context, library, unit);
-    _recordLibraryWithUnit(context, library, unit);
-    _sources.add(library);
-    _sources.add(unit);
+    if (_currentNodeName == null) {
+      return false;
+    }
     // prepare node
-    String libraryName = library.fullName;
-    String unitName = unit.fullName;
-    int libraryNameIndex = _stringCodec.encode(libraryName);
-    int unitNameIndex = _stringCodec.encode(unitName);
-    _currentNodeName = '${libraryNameIndex}_${unitNameIndex}.index';
     _currentNodeNameId = _stringCodec.encode(_currentNodeName);
     _currentNode = _nodeManager.newNode(context);
     _currentContextId = _contextCodec.encode(context);
@@ -676,27 +840,7 @@ class SplitIndexStore implements InternalIndexStore {
   }
 
   @override
-  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement) {
-    // may be already disposed in other thread
-    if (context.isDisposed) {
-      return false;
-    }
-    // remove locations
-    Source source = htmlElement.source;
-    _removeLocations(context, null, source);
-    // remember library/unit relations
-    _recordUnitInLibrary(context, null, source);
-    // prepare node
-    String sourceName = source.fullName;
-    int sourceNameIndex = _stringCodec.encode(sourceName);
-    _currentNodeName = '${sourceNameIndex}.index';
-    _currentNodeNameId = _stringCodec.encode(_currentNodeName);
-    _currentNode = _nodeManager.newNode(context);
-    return true;
-  }
-
-  @override
-  void cancelIndexDart() {
+  void cancelIndex() {
     if (_currentNode != null) {
       // remove top-level information for the current node
       for (Map<int, dynamic> nodeRelations in _topDeclarations.values) {
@@ -861,8 +1005,8 @@ class SplitIndexStore implements InternalIndexStore {
       nodeDeclarations[_currentNodeNameId] = declarations;
     }
     // record LocationData
-    declarations
-        .add(new _TopElementData(_elementCodec, new IndexableElement(element)));
+    declarations.add(new _TopElementData(
+        _elementCodec, element.displayName, new IndexableElement(element)));
   }
 
   @override
@@ -873,8 +1017,9 @@ class SplitIndexStore implements InternalIndexStore {
     // remove sources
     removeSources(context, null);
     // remove context information
-    _contextToLibraryToUnits.remove(context);
-    _contextToUnitToLibraries.remove(context);
+    for (IndexObjectManager manager in _objectManagers) {
+      manager.removeContext(context);
+    }
     _topDeclarations.remove(_contextCodec.encode(context));
     // remove context from codec
     _contextCodec.remove(context);
@@ -885,26 +1030,8 @@ class SplitIndexStore implements InternalIndexStore {
     if (context == null) {
       return;
     }
-    // remove nodes for unit/library pairs
-    Map<Source, Set<Source>> unitToLibraries =
-        _contextToUnitToLibraries[context];
-    if (unitToLibraries != null) {
-      Set<Source> libraries = unitToLibraries.remove(source);
-      if (libraries != null) {
-        for (Source library in libraries) {
-          _removeLocations(context, library, source);
-        }
-      }
-    }
-    // remove nodes for library/unit pairs
-    Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
-    if (libraryToUnits != null) {
-      Set<Source> units = libraryToUnits.remove(source);
-      if (units != null) {
-        for (Source unit in units) {
-          _removeLocations(context, source, unit);
-        }
-      }
+    for (IndexObjectManager manager in _objectManagers) {
+      manager.removeSource(context, source);
     }
   }
 
@@ -913,42 +1040,9 @@ class SplitIndexStore implements InternalIndexStore {
     if (context == null) {
       return;
     }
-    // remove nodes for unit/library pairs
-    Map<Source, Set<Source>> unitToLibraries =
-        _contextToUnitToLibraries[context];
-    if (unitToLibraries != null) {
-      List<Source> units = new List<Source>.from(unitToLibraries.keys);
-      for (Source source in units) {
-        if (container == null || container.contains(source)) {
-          removeSource(context, source);
-        }
-      }
+    for (IndexObjectManager manager in _objectManagers) {
+      manager.removeSources(context, container);
     }
-    // remove nodes for library/unit pairs
-    Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
-    if (libraryToUnits != null) {
-      List<Source> libraries = new List<Source>.from(libraryToUnits.keys);
-      for (Source source in libraries) {
-        if (container == null || container.contains(source)) {
-          removeSource(context, source);
-        }
-      }
-    }
-  }
-
-  void _recordLibraryWithUnit(
-      AnalysisContext context, Source library, Source unit) {
-    Map<Source, Set<Source>> libraryToUnits = _contextToLibraryToUnits[context];
-    if (libraryToUnits == null) {
-      libraryToUnits = new HashMap<Source, Set<Source>>();
-      _contextToLibraryToUnits[context] = libraryToUnits;
-    }
-    Set<Source> units = libraryToUnits[library];
-    if (units == null) {
-      units = new HashSet<Source>();
-      libraryToUnits[library] = units;
-    }
-    units.add(unit);
   }
 
   void _recordNodeNameForElement(
@@ -962,37 +1056,9 @@ class SplitIndexStore implements InternalIndexStore {
     nameToNodeNames.add(nameId, _currentNodeNameId);
   }
 
-  void _recordUnitInLibrary(
-      AnalysisContext context, Source library, Source unit) {
-    Map<Source, Set<Source>> unitToLibraries =
-        _contextToUnitToLibraries[context];
-    if (unitToLibraries == null) {
-      unitToLibraries = new HashMap<Source, Set<Source>>();
-      _contextToUnitToLibraries[context] = unitToLibraries;
-    }
-    Set<Source> libraries = unitToLibraries[unit];
-    if (libraries == null) {
-      libraries = new HashSet<Source>();
-      unitToLibraries[unit] = libraries;
-    }
-    libraries.add(library);
-  }
-
-  /**
-   * Removes locations recorded in the given library/unit pair.
-   */
-  void _removeLocations(AnalysisContext context, Source library, Source unit) {
-    // remove node
-    String libraryName = library != null ? library.fullName : null;
-    String unitName = unit.fullName;
-    int libraryNameIndex = _stringCodec.encode(libraryName);
-    int unitNameIndex = _stringCodec.encode(unitName);
-    String nodeName = '${libraryNameIndex}_${unitNameIndex}.index';
+  void _removeNodeByName(AnalysisContext context, String nodeName) {
     int nodeNameId = _stringCodec.encode(nodeName);
     _nodeManager.removeNode(nodeName);
-    // remove source
-    _sources.remove(library);
-    _sources.remove(unit);
     // remove top-level relations
     {
       int contextId = _contextCodec.encode(context);
@@ -1001,6 +1067,45 @@ class SplitIndexStore implements InternalIndexStore {
         nodeRelations.remove(nodeNameId);
       }
     }
+  }
+}
+
+/**
+ * Interface to [SplitIndexStore] for [IndexObjectManager] implementations.
+ */
+abstract class SplitIndexStoreSite {
+  void addSource(Source source);
+  int encodeString(String str);
+  void removeNodeByName(AnalysisContext context, String nodeName);
+  void removeSource(Source source);
+}
+
+/**
+ * The implementaiton of [SplitIndexStoreSite].
+ */
+class SplitIndexStoreSiteImpl implements SplitIndexStoreSite {
+  final SplitIndexStore store;
+
+  SplitIndexStoreSiteImpl(this.store);
+
+  @override
+  void addSource(Source source) {
+    store._sources.add(source);
+  }
+
+  @override
+  int encodeString(String str) {
+    return store._stringCodec.encode(str);
+  }
+
+  @override
+  void removeNodeByName(AnalysisContext context, String nodeName) {
+    store._removeNodeByName(context, nodeName);
+  }
+
+  @override
+  void removeSource(Source source) {
+    store._sources.remove(source);
   }
 }
 
@@ -1049,10 +1154,9 @@ class _TopElementData {
   final int elementId3;
 
   factory _TopElementData(
-      ElementCodec elementCodec, IndexableObject indexable) {
-    return new _TopElementData._(indexable.name,
-        elementCodec.encode1(indexable), elementCodec.encode2(indexable),
-        elementCodec.encode3(indexable));
+      ElementCodec elementCodec, String name, IndexableObject indexable) {
+    return new _TopElementData._(name, elementCodec.encode1(indexable),
+        elementCodec.encode2(indexable), elementCodec.encode3(indexable));
   }
 
   _TopElementData._(

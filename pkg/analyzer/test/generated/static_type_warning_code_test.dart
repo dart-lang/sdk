@@ -7,13 +7,13 @@ library engine.static_type_warning_code_test;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'resolver_test.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(StaticTypeWarningCodeTest);
 }
 
@@ -44,10 +44,14 @@ E e() {
 import 'lib1.dart';
 import 'lib2.dart';
 g() { return f(); }''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 f() {}''');
-    addNamedSource("/lib2.dart", r'''
+    addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 f() {}''');
     computeLibrarySourceErrors(source);
@@ -828,6 +832,27 @@ class A {
     verify([source]);
   }
 
+  // https://github.com/dart-lang/sdk/issues/24713
+  void test_returnOfInvalidType_not_issued_for_valid_generic_return() {
+    Source source = addSource(r'''
+abstract class F<T, U>  {
+  U get value;
+}
+
+abstract class G<T> {
+  T test(F<int, T> arg) => arg.value;
+}
+
+abstract class H<S> {
+  S test(F<int, S> arg) => arg.value;
+}
+
+void main() { }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_returnOfInvalidType_void() {
     Source source = addSource("void f() { return 42; }");
     computeLibrarySourceErrors(source);
@@ -1324,7 +1349,9 @@ void f() {
     Source source = addSource(r'''
 import 'lib.dart' as f;
 main() { return f.g(); }''');
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 h() {}''');
     computeLibrarySourceErrors(source);
@@ -1529,7 +1556,9 @@ f(Object o) {
   }
 
   void test_undefinedMethod_private() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 class A {
   _foo() {}

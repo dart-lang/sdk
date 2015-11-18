@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.test_support;
 
 import 'dart:collection';
@@ -561,7 +558,8 @@ class TestSource extends Source {
   bool generateExceptionOnRead = false;
 
   @override
-  int get modificationStamp => generateExceptionOnRead ? -1 : _modificationStamp;
+  int get modificationStamp =>
+      generateExceptionOnRead ? -1 : _modificationStamp;
 
   /**
    * The number of times that the contents of this source have been requested.
@@ -578,46 +576,58 @@ class TestSource extends Source {
     }
     return new TimestampedData<String>(0, _contents);
   }
+
   String get encoding {
     throw new UnsupportedOperationException();
   }
+
   String get fullName {
     return _name;
   }
+
   int get hashCode => 0;
   bool get isInSystemLibrary {
     return false;
   }
+
   String get shortName {
     return _name;
   }
+
   Uri get uri {
     throw new UnsupportedOperationException();
   }
+
   UriKind get uriKind {
     throw new UnsupportedOperationException();
   }
+
   bool operator ==(Object other) {
     if (other is TestSource) {
       return other._name == _name;
     }
     return false;
   }
+
   bool exists() => exists2;
   void getContentsToReceiver(Source_ContentReceiver receiver) {
     throw new UnsupportedOperationException();
   }
+
   Source resolve(String uri) {
     throw new UnsupportedOperationException();
   }
+
   Uri resolveRelativeUri(Uri uri) {
     return new Uri(scheme: 'file', path: _name).resolveUri(uri);
   }
+
   void setContents(String value) {
     generateExceptionOnRead = false;
     _modificationStamp = new DateTime.now().millisecondsSinceEpoch;
     _contents = value;
   }
+
   @override
   String toString() => '$_name';
 }

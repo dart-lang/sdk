@@ -35,8 +35,8 @@ const Map<String, String> specialElementFlags = const {
   'deprecated': '0x20'
 };
 
-final GeneratedFile target = new GeneratedFile(
-    '../../lib/src/generated_protocol.dart', () {
+final GeneratedFile target =
+    new GeneratedFile('../../lib/plugin/protocol/generated_protocol.dart', () {
   CodegenProtocolVisitor visitor = new CodegenProtocolVisitor(readApi());
   return visitor.collectCode(visitor.visitApi);
 });
@@ -65,6 +65,13 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     'SourceFileEdit': const ['edits'],
     'TypeHierarchyItem': const ['interfaces', 'mixins', 'subclasses'],
   };
+
+  /**
+   * The disclaimer added to the documentation comment for each of the classes
+   * that are generated.
+   */
+  static const String disclaimer =
+      'Clients may not extend, implement or mix-in this class.';
 
   /**
    * Visitor used to produce doc comments.
@@ -100,13 +107,13 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       String itemTypeName = dartType(resolvedType.itemType);
       String subComparison = compareEqualsCode(resolvedType.itemType, 'a', 'b');
       String closure = '($itemTypeName a, $itemTypeName b) => $subComparison';
-      return '_listEqual($thisVar, $otherVar, $closure)';
+      return 'listEqual($thisVar, $otherVar, $closure)';
     } else if (resolvedType is TypeMap) {
       String valueTypeName = dartType(resolvedType.valueType);
       String subComparison =
           compareEqualsCode(resolvedType.valueType, 'a', 'b');
       String closure = '($valueTypeName a, $valueTypeName b) => $subComparison';
-      return '_mapEqual($thisVar, $otherVar, $closure)';
+      return 'mapEqual($thisVar, $otherVar, $closure)';
     }
     throw new Exception(
         "Don't know how to compare for equality: $resolvedType");
@@ -121,7 +128,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       String dartTypeName = capitalize(impliedType.camelName);
       if (type == null) {
         emitEmptyObjectClass(dartTypeName, impliedType);
-      } else if (type is TypeObject || type == null) {
+      } else if (type is TypeObject) {
         writeln();
         emitObjectClass(dartTypeName, type, impliedType);
       } else if (type is TypeEnum) {
@@ -212,6 +219,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       toHtmlVisitor.p(() {
         toHtmlVisitor.write(impliedType.humanReadableName);
       });
+      toHtmlVisitor.p(() {
+        toHtmlVisitor.write(disclaimer);
+      });
     }));
     writeln('class $className {');
     indent(() {
@@ -242,6 +252,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       if (impliedType.type != null) {
         toHtmlVisitor.showType(null, impliedType.type);
       }
+      toHtmlVisitor.p(() {
+        toHtmlVisitor.write(disclaimer);
+      });
     }));
     writeln('class $className implements Enum {');
     indent(() {
@@ -366,6 +379,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       if (impliedType.type != null) {
         toHtmlVisitor.showType(null, impliedType.type);
       }
+      toHtmlVisitor.p(() {
+        toHtmlVisitor.write(disclaimer);
+      });
     }));
     write('class $className');
     if (impliedType.kind == 'refactoringFeedback') {
@@ -553,7 +569,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln('factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, '
           'String jsonPath, Object json, Map responseJson) {');
       indent(() {
-        writeln('return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
+        writeln('return refactoringFeedbackFromJson(jsonDecoder, jsonPath, '
             'json, responseJson);');
       });
       writeln('}');
@@ -563,8 +579,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       writeln('factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, '
           'String jsonPath, Object json, RefactoringKind kind) {');
       indent(() {
-        writeln(
-            'return _refactoringOptionsFromJson(jsonDecoder, jsonPath, ' 'json, kind);');
+        writeln('return refactoringOptionsFromJson(jsonDecoder, jsonPath, '
+            'json, kind);');
       });
       writeln('}');
       return;
@@ -652,9 +668,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           } else {
             valueToCombine = '${field.name}.hashCode';
           }
-          writeln('hash = _JenkinsSmiHash.combine(hash, $valueToCombine);');
+          writeln('hash = JenkinsSmiHash.combine(hash, $valueToCombine);');
         }
-        writeln('return _JenkinsSmiHash.finish(hash);');
+        writeln('return JenkinsSmiHash.finish(hash);');
       }
     });
     writeln('}');
@@ -678,7 +694,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         ]);
         writeln(
             'static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>');
-        writeln('    _maxRefactoringProblemSeverity(a, b);');
+        writeln('    maxRefactoringProblemSeverity(a, b);');
         return true;
       default:
         return false;
@@ -734,7 +750,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           new dom.Text('Adds [edit] to the [FileEdit] for the given [file].')
         ]);
         writeln('void addEdit(String file, int fileStamp, SourceEdit edit) =>');
-        writeln('    _addEditToSourceChange(this, file, fileStamp, edit);');
+        writeln('    addEditToSourceChange(this, file, fileStamp, edit);');
         writeln();
         docComment([new dom.Text('Adds the given [FileEdit].')]);
         writeln('void addFileEdit(SourceFileEdit edit) {');
@@ -755,22 +771,22 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
               'Returns the [FileEdit] for the given [file], maybe `null`.')
         ]);
         writeln('SourceFileEdit getFileEdit(String file) =>');
-        writeln('    _getChangeFileEdit(this, file);');
+        writeln('    getChangeFileEdit(this, file);');
         return true;
       case 'SourceEdit':
         docComment([
           new dom.Text(
               'Get the result of applying the edit to the given [code].')
         ]);
-        writeln('String apply(String code) => _applyEdit(code, this);');
+        writeln('String apply(String code) => applyEdit(code, this);');
         return true;
       case 'SourceFileEdit':
         docComment([new dom.Text('Adds the given [Edit] to the list.')]);
-        writeln('void add(SourceEdit edit) => _addEditForSource(this, edit);');
+        writeln('void add(SourceEdit edit) => addEditForSource(this, edit);');
         writeln();
         docComment([new dom.Text('Adds the given [Edit]s.')]);
         writeln('void addAll(Iterable<SourceEdit> edits) =>');
-        writeln('    _addAllEditsForSource(this, edits);');
+        writeln('    addAllEditsForSource(this, edits);');
         return true;
       default:
         return false;
@@ -812,7 +828,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         ]);
         writeln(
             'static String applySequence(String code, Iterable<SourceEdit> edits) =>');
-        writeln('    _applySequence(code, edits);');
+        writeln('    applySequenceOfEdits(code, edits);');
         return true;
       default:
         return false;
@@ -929,12 +945,12 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       } else {
         switch (type.typeName) {
           case 'String':
-            return new FromJsonFunction('jsonDecoder._decodeString');
+            return new FromJsonFunction('jsonDecoder.decodeString');
           case 'bool':
-            return new FromJsonFunction('jsonDecoder._decodeBool');
+            return new FromJsonFunction('jsonDecoder.decodeBool');
           case 'int':
           case 'long':
-            return new FromJsonFunction('jsonDecoder._decodeInt');
+            return new FromJsonFunction('jsonDecoder.decodeInt');
           case 'object':
             return new FromJsonIdentity();
           default:
@@ -950,11 +966,11 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       }
       FromJsonCode valueCode = fromJsonCode(type.valueType);
       if (keyCode.isIdentity && valueCode.isIdentity) {
-        return new FromJsonFunction('jsonDecoder._decodeMap');
+        return new FromJsonFunction('jsonDecoder.decodeMap');
       } else {
         return new FromJsonSnippet((String jsonPath, String json) {
           StringBuffer result = new StringBuffer();
-          result.write('jsonDecoder._decodeMap($jsonPath, $json');
+          result.write('jsonDecoder.decodeMap($jsonPath, $json');
           if (!keyCode.isIdentity) {
             result.write(', keyDecoder: ${keyCode.asClosure}');
           }
@@ -968,10 +984,10 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     } else if (type is TypeList) {
       FromJsonCode itemCode = fromJsonCode(type.itemType);
       if (itemCode.isIdentity) {
-        return new FromJsonFunction('jsonDecoder._decodeList');
+        return new FromJsonFunction('jsonDecoder.decodeList');
       } else {
         return new FromJsonSnippet((String jsonPath, String json) =>
-            'jsonDecoder._decodeList($jsonPath, $json, ${itemCode.asClosure})');
+            'jsonDecoder.decodeList($jsonPath, $json, ${itemCode.asClosure})');
       }
     } else if (type is TypeUnion) {
       List<String> decoders = <String>[];
@@ -994,7 +1010,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         }
       }
       return new FromJsonSnippet((String jsonPath, String json) =>
-          'jsonDecoder._decodeUnion($jsonPath, $json, ${literalString(type.field)}, {${decoders.join(', ')}})');
+          'jsonDecoder.decodeUnion($jsonPath, $json, ${literalString(type.field)}, {${decoders.join(', ')}})');
     } else {
       throw new Exception("Can't convert $type from JSON");
     }
@@ -1080,7 +1096,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   visitApi() {
     outputHeader();
     writeln();
-    writeln('part of protocol;');
+    writeln('part of analysis_server.plugin.protocol.protocol;');
+    writeln();
     emitClasses();
   }
 }

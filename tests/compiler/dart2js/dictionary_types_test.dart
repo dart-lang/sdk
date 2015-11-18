@@ -146,8 +146,8 @@ compileAndTest(source, checker, {createCode: false}) async {
   if (!createCode) {
     checker(typesTask, getType, compiler);
   } else {
-    var element = compiler.mainApp.findExported('main');
-    var code = compiler.backend.assembleCode(element);
+    var element = compiler.mainFunction;
+    var code = compiler.backend.getGeneratedCode(element);
     checker(code);
   }
 }

@@ -1,20 +1,21 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
+// VMOptions=--error_on_bad_type --error_on_bad_override
 
+import 'dart:async';
+import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
 
 int globalVar = 100;
 
 class MyClass {
   static int staticVar = 1000;
 
-  static void printValue(int value) {
-    print(value);   // line 17
+  static void method(int value) {
+    debugger();
   }
 }
 
@@ -22,37 +23,14 @@ void testFunction() {
   int i = 0;
   while (true) {
     if (++i % 100000000 == 0) {
-      MyClass.printValue(10000);
+      MyClass.method(10000);
     }
   }
 }
 
 var tests = [
 
-// Go to breakpoint at line 16.
-(Isolate isolate) {
-  return isolate.rootLibrary.load().then((_) {
-      // Set up a listener to wait for breakpoint events.
-      Completer completer = new Completer();
-      isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
-        var subscription;
-        subscription = stream.listen((ServiceEvent event) {
-          if (event.kind == ServiceEvent.kPauseBreakpoint) {
-            print('Breakpoint reached');
-            subscription.cancel();
-            completer.complete();
-          }
-        });
-      });
-
-      // Add the breakpoint.
-      var script = isolate.rootLibrary.scripts[0];
-      var line = 17;
-      return isolate.addBreakpoint(script, line).then((ServiceObject bpt) {
-          return completer.future;  // Wait for breakpoint reached.
-      });
-    });
-},
+hasStoppedAtBreakpoint,
 
 // Evaluate against library, class, and instance.
 (Isolate isolate) {
@@ -60,7 +38,7 @@ var tests = [
       // Make sure we are in the right place.
       expect(stack.type, equals('Stack'));
       expect(stack['frames'].length, greaterThanOrEqualTo(2));
-      expect(stack['frames'][0].function.name, equals('printValue'));
+      expect(stack['frames'][0].function.name, equals('method'));
       expect(stack['frames'][0].function.dartOwner.name, equals('MyClass'));
 
       var lib = isolate.rootLibrary;

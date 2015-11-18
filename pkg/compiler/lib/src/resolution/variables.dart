@@ -2,7 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.variables;
+
+import '../common.dart';
+import '../compiler.dart' show
+    Compiler;
+import '../elements/modelx.dart' show
+    LocalVariableElementX,
+    VariableList;
+import '../tree/tree.dart';
+import '../util/util.dart' show
+    Link;
+
+import 'members.dart' show
+    ResolverVisitor;
+import 'registry.dart' show
+    ResolutionRegistry;
+import 'resolution_common.dart' show
+    CommonResolverVisitor;
+import 'scope.dart' show
+    VariableDefinitionScope;
 
 class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
   VariableDefinitions definitions;
@@ -26,7 +45,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
         new VariableDefinitionScope(resolver.scope, name);
     resolver.visitIn(node.arguments.head, scope);
     if (scope.variableReferencedInInitializer) {
-      compiler.reportError(
+      reporter.reportErrorMessage(
           identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
           {'variableName': name});
     }
@@ -37,11 +56,13 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
     // The variable is initialized to null.
     registry.registerInstantiatedClass(compiler.nullClass);
     if (definitions.modifiers.isConst) {
-      compiler.reportError(node, MessageKind.CONST_WITHOUT_INITIALIZER);
+      reporter.reportErrorMessage(
+          node, MessageKind.CONST_WITHOUT_INITIALIZER);
     }
     if (definitions.modifiers.isFinal &&
         !resolver.allowFinalWithoutInitializer) {
-      compiler.reportError(node, MessageKind.FINAL_WITHOUT_INITIALIZER);
+      reporter.reportErrorMessage(
+          node, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
     return node;
   }

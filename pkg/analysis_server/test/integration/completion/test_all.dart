@@ -6,13 +6,14 @@ library test.integration.completion.all;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'get_suggestions_test.dart' as get_suggestions_test;
 
 /**
  * Utility for manually running all integration tests.
  */
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('completion', () {
     get_suggestions_test.main();
   });

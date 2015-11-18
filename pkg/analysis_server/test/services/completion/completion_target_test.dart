@@ -4,16 +4,17 @@
 
 library test.services.completion.target;
 
-import 'package:analysis_server/src/services/completion/completion_target.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(CompletionTargetTest);
 }
 
@@ -136,6 +137,16 @@ class CompletionTargetTest extends AbstractContextTest {
     // Block
     addTestSource('main() {^}');
     assertTarget('}', '{}');
+  }
+
+  test_Block_keyword() {
+    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    assertTarget('in', 'C.in');
+  }
+
+  test_Block_keyword2() {
+    addTestSource('class C { static C get instance => null; } main() {C.i^n}');
+    assertTarget('in', 'C.in');
   }
 
   test_FormalParameter_partialType() {

@@ -41,36 +41,30 @@ class SecureServerSocket extends Stream<SecureSocket> {
    * the system.
    *
    * Incoming client connections are promoted to secure connections, using
-   * the server certificate given by [certificateName].
+   * the server certificate and key set in [context].
    *
    * [address] must be given as a numeric address, not a host name.
-   *
-   * [certificateName] is the nickname or the distinguished name (DN) of
-   * the certificate in the certificate database. It is looked up in the
-   * NSS certificate database set by SecureSocket.initialize.
-   * If [certificateName] contains "CN=", it is assumed to be a distinguished
-   * name.  Otherwise, it is looked up as a nickname.
    *
    * To request or require that clients authenticate by providing an SSL (TLS)
    * client certificate, set the optional parameter [requestClientCertificate]
    * or [requireClientCertificate] to true.  Requiring a certificate implies
-   * requesting a certificate, so one doesn't need to set both to true.
+   * requesting a certificate, so setting both is redundant.
    * To check whether a client certificate was received, check
    * SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of
-   * `SecureServerSocket`s. One way of using this is to have number of
-   * isolates between which incoming connections are distributed.
+   * The optional argument [shared] specifies whether additional
+   * SecureServerSocket objects can bind to the same combination of `address`,
+   * `port` and `v6Only`.  If `shared` is `true` and more `SecureServerSocket`s
+   * from this isolate or other isolates are bound to the port, then the
+   * incoming connections will be distributed among all the bound
+   * `SecureServerSocket`s. Connections can be distributed over multiple
+   * isolates this way.
    */
   static Future<SecureServerSocket> bind(
       address,
       int port,
-      String certificateName,
+      SecurityContext context,
       {int backlog: 0,
        bool v6Only: false,
        bool requestClientCertificate: false,
@@ -80,7 +74,7 @@ class SecureServerSocket extends Stream<SecureSocket> {
     return RawSecureServerSocket.bind(
         address,
         port,
-        certificateName,
+        context,
         backlog: backlog,
         v6Only: v6Only,
         requestClientCertificate: requestClientCertificate,
@@ -128,21 +122,20 @@ class SecureServerSocket extends Stream<SecureSocket> {
  * See [RawSecureSocket] for more info.
  */
 class RawSecureServerSocket extends Stream<RawSecureSocket> {
-  RawServerSocket _socket;
+  final RawServerSocket _socket;
   StreamController<RawSecureSocket> _controller;
   StreamSubscription<RawSocket> _subscription;
-  final String certificateName;
+  final SecurityContext _context;
   final bool requestClientCertificate;
   final bool requireClientCertificate;
   final List<String> supportedProtocols;
   bool _closed = false;
 
-  RawSecureServerSocket._(RawServerSocket serverSocket,
-                          this.certificateName,
+  RawSecureServerSocket._(this._socket,
+                          this._context,
                           this.requestClientCertificate,
                           this.requireClientCertificate,
                           this.supportedProtocols) {
-    _socket = serverSocket;
     _controller = new StreamController<RawSecureSocket>(
         sync: true,
         onListen: _onSubscriptionStateChange,
@@ -177,15 +170,9 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * the system.
    *
    * Incoming client connections are promoted to secure connections,
-   * using the server certificate given by [certificateName].
+   * using the server certificate and key set in [context].
    *
    * [address] must be given as a numeric address, not a host name.
-   *
-   * [certificateName] is the nickname or the distinguished name (DN) of
-   * the certificate in the certificate database. It is looked up in the
-   * NSS certificate database set by SecureSocket.setCertificateDatabase.
-   * If [certificateName] contains "CN=", it is assumed to be a distinguished
-   * name.  Otherwise, it is looked up as a nickname.
    *
    * To request or require that clients authenticate by providing an SSL (TLS)
    * client certificate, set the optional parameters requestClientCertificate or
@@ -194,18 +181,18 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * check SecureSocket.peerCertificate after connecting.  If no certificate
    * was received, the result will be null.
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of
-   * `RawSecureServerSocket`s. One way of using this is to have number
-   * of isolates between which incoming connections are distributed.
+   * The optional argument [shared] specifies whether additional
+   * RawSecureServerSocket objects can bind to the same combination of
+   * `address`, `port` and `v6Only`.  If `shared` is `true` and more
+   * `RawSecureServerSocket`s from this isolate or other isolates are bound to
+   * the port, then the incoming connections will be distributed among all the
+   * bound `RawSecureServerSocket`s. Connections can be distributed over
+   * multiple isolates this way.
    */
   static Future<RawSecureServerSocket> bind(
       address,
       int port,
-      String certificateName,
+      SecurityContext context,
       {int backlog: 0,
        bool v6Only: false,
        bool requestClientCertificate: false,
@@ -216,7 +203,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
         address, port, backlog: backlog, v6Only: v6Only, shared: shared)
         .then((serverSocket) => new RawSecureServerSocket._(
             serverSocket,
-            certificateName,
+            context,
             requestClientCertificate,
             requireClientCertificate,
             supportedProtocols));
@@ -263,7 +250,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
     _RawSecureSocket.connect(
         connection.address,
         remotePort,
-        certificateName,
+        context: _context,
         is_server: true,
         socket: connection,
         requestClientCertificate: requestClientCertificate,

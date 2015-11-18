@@ -8,8 +8,9 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'compiler_helper.dart' as mock;
 import 'memory_compiler.dart' as memory;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/dart_types.dart';
-import 'package:compiler/src/dart2jslib.dart'
+import 'package:compiler/src/compiler.dart'
     show Compiler;
 import 'package:compiler/src/elements/elements.dart'
     show Element,
@@ -62,10 +63,10 @@ class TypeEnvironment {
       memory.DiagnosticCollector collector = new memory.DiagnosticCollector();
       uri = Uri.parse('memory:main.dart');
       compiler = memory.compilerFor(
-          {'main.dart': source},
+          memorySourceFiles: {'main.dart': source},
           diagnosticHandler: collector,
           options: stopAfterTypeInference
-              ? [] : ['--analyze-all', '--analyze-only']);
+              ? [] : [Flags.analyzeAll, Flags.analyzeOnly]);
       getErrors = () => collector.errors;
       getWarnings = () => collector.warnings;
     }
@@ -91,15 +92,15 @@ class TypeEnvironment {
     var element = compiler.mainApp.find(name);
     Expect.isNotNull(element);
     if (element.isClass) {
-      element.ensureResolved(compiler);
+      element.ensureResolved(compiler.resolution);
     } else if (element.isTypedef) {
-      element.computeType(compiler);
+      element.computeType(compiler.resolution);
     }
     return element;
   }
 
   DartType getElementType(String name) {
-    return getElement(name).computeType(compiler);
+    return getElement(name).computeType(compiler.resolution);
   }
 
   DartType operator[] (String name) {
@@ -110,7 +111,7 @@ class TypeEnvironment {
 
   DartType getMemberType(ClassElement element, String name) {
     Element member = element.localLookup(name);
-    return member.computeType(compiler);
+    return member.computeType(compiler.resolution);
   }
 
   bool isSubtype(DartType T, DartType S) {

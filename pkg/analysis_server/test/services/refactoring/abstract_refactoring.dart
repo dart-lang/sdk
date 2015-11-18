@@ -6,7 +6,7 @@ library test.services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -92,7 +92,8 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
    */
   void assertRefactoringStatus(
       RefactoringStatus status, RefactoringProblemSeverity expectedSeverity,
-      {String expectedMessage, SourceRange expectedContextRange,
+      {String expectedMessage,
+      SourceRange expectedContextRange,
       String expectedContextSearch}) {
     expect(status.severity, expectedSeverity, reason: status.toString());
     if (expectedSeverity != null) {
@@ -147,13 +148,13 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   void indexTestUnit(String code) {
     resolveTestUnit(code);
-    index.indexUnit(context, testUnit);
+    index.index(context, testUnit);
   }
 
   void indexUnit(String file, String code) {
     Source source = addSource(file, code);
     CompilationUnit unit = resolveLibraryUnit(source);
-    index.indexUnit(context, unit);
+    index.index(context, unit);
   }
 
   void setUp() {

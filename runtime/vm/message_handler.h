@@ -18,13 +18,21 @@ class MessageHandler {
   MessageHandler();
 
  public:
+  enum MessageStatus {
+    kOK,        // We successfully handled a message.
+    kError,     // We encountered an error handling a message.
+    kRestart,   // The VM is restarting.
+    kShutdown,  // The VM is shutting down.
+  };
+  static const char* MessageStatusString(MessageStatus status);
+
   virtual ~MessageHandler();
 
   // Allow subclasses to provide a handler name.
   virtual const char* name() const;
 
   typedef uword CallbackData;
-  typedef bool (*StartCallback)(CallbackData data);
+  typedef MessageStatus (*StartCallback)(CallbackData data);
   typedef void (*EndCallback)(CallbackData data);
 
   // Runs this message handler on the thread pool.
@@ -46,13 +54,13 @@ class MessageHandler {
   // or RunBlocking).
   //
   // Returns true on success.
-  bool HandleNextMessage();
+  MessageStatus HandleNextMessage();
 
   // Handles any OOB messages for this message handler.  Can be used
   // even if the message handler is running on the thread pool.
   //
   // Returns true on success.
-  bool HandleOOBMessages();
+  MessageStatus HandleOOBMessages();
 
   // Returns true if there are pending OOB messages for this message
   // handler.
@@ -94,6 +102,11 @@ class MessageHandler {
 
   bool paused_on_exit() const {
     return paused_on_exit_;
+  }
+
+  // Timestamp of the paused on start or paused on exit.
+  int64_t paused_timestamp() const {
+    return paused_timestamp_;
   }
 
   class AcquiredQueues : public ValueObject {
@@ -174,10 +187,13 @@ class MessageHandler {
   // Handles a single message.  Provided by subclass.
   //
   // Returns true on success.
-  virtual bool HandleMessage(Message* message) = 0;
+  virtual MessageStatus HandleMessage(Message* message) = 0;
 
   virtual void NotifyPauseOnStart() {}
   virtual void NotifyPauseOnExit() {}
+
+  // TODO(iposva): Set a local field before entering MessageHandler methods.
+  Thread* thread() const { return Thread::Current(); }
 
  private:
   friend class PortMap;
@@ -191,9 +207,11 @@ class MessageHandler {
   // messages from the queue_.
   Message* DequeueMessage(Message::Priority min_priority);
 
+  void ClearOOBQueue();
+
   // Handles any pending messages.
-  bool HandleMessages(bool allow_normal_messages,
-                      bool allow_multiple_normal_messages);
+  MessageStatus HandleMessages(bool allow_normal_messages,
+                               bool allow_multiple_normal_messages);
 
   Monitor monitor_;  // Protects all fields in MessageHandler.
   MessageQueue* queue_;
@@ -207,6 +225,7 @@ class MessageHandler {
   bool pause_on_exit_;
   bool paused_on_start_;
   bool paused_on_exit_;
+  int64_t paused_timestamp_;
   ThreadPool* pool_;
   ThreadPool::Task* task_;
   StartCallback start_callback_;

@@ -8,9 +8,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /**
@@ -30,7 +30,7 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
 
   ByteStreamClientChannel(this.input, this.output) {
     Stream jsonStream = input
-        .transform((new Utf8Codec()).decoder)
+        .transform(const Utf8Decoder())
         .transform(new LineSplitter())
         .transform(new JsonStreamDecoder())
         .where((json) => json is Map)
@@ -105,11 +105,9 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   @override
   void listen(void onRequest(Request request),
       {Function onError, void onDone()}) {
-    _input
-        .transform((new Utf8Codec()).decoder)
-        .transform(new LineSplitter())
-        .listen((String data) => _readRequest(data, onRequest),
-            onError: onError, onDone: () {
+    _input.transform(const Utf8Decoder()).transform(new LineSplitter()).listen(
+        (String data) => _readRequest(data, onRequest),
+        onError: onError, onDone: () {
       close();
       onDone();
     });

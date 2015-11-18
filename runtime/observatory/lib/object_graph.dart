@@ -682,12 +682,16 @@ class ObjectGraph {
       }
     }
 
+    Logger.root.info("Start remap dominators");
+
     // Reindex doms by id instead of post order index so we can throw away
     // the post order arrays.
     var domById = new Uint32List(N + 1);
     for (var id = 1; id <= N; id++) {
       domById[id] = postOrder[domByPOI[postOrderIndex[id]]];
     }
+
+    Logger.root.info("End remap dominators");
 
     domById[root] = 0;
 

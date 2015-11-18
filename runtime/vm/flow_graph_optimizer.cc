@@ -51,6 +51,7 @@ DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 
 DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, source_lines);
+DECLARE_FLAG(bool, trace_cha);
 DECLARE_FLAG(bool, trace_field_guards);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -223,6 +224,12 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     ArgumentsDescriptor args_desc(args_desc_array);
     const Class& receiver_class = Class::Handle(Z,
         isolate()->class_table()->At(class_ids[0]));
+    if (!receiver_class.is_finalized()) {
+      // Do not eagerly finalize classes. ResolveDynamicForReceiverClass can
+      // cause class finalization, since callee's receiver class may not be
+      // finalized yet.
+      return false;
+    }
     const Function& function = Function::Handle(Z,
         Resolver::ResolveDynamicForReceiverClass(
             receiver_class,
@@ -387,7 +394,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
         Token::kBIT_AND,
         new(Z) Value(left_instr),
         new(Z) Value(right_instr),
-        Isolate::kNoDeoptId);  // BIT_AND cannot deoptimize.
+        Thread::kNoDeoptId);  // BIT_AND cannot deoptimize.
     bit_and_instr->ReplaceWith(smi_op, current_iterator());
   }
 }
@@ -408,7 +415,7 @@ void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
                                       new(Z) Value(index_instr),
                                       index_scale,
                                       cid,
-                                      Isolate::kNoDeoptId,
+                                      Thread::kNoDeoptId,
                                       instr->token_pos());
   instr->ReplaceUsesWith(load);
   flow_graph()->InsertAfter(instr, load, NULL, FlowGraph::kValue);
@@ -619,7 +626,7 @@ static void EnsureSSATempIndex(FlowGraph* graph,
                                Definition* replacement) {
   if ((replacement->ssa_temp_index() == -1) &&
       (defn->ssa_temp_index() != -1)) {
-    replacement->set_ssa_temp_index(graph->alloc_ssa_temp_index());
+    graph->AllocateSSAIndexes(replacement);
   }
 }
 
@@ -636,16 +643,16 @@ static void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     EnsureSSATempIndex(graph, current_defn, replacement_defn);
 
     if (FLAG_trace_optimization) {
-      ISL_Print("Replacing v%" Pd " with v%" Pd "\n",
+      THR_Print("Replacing v%" Pd " with v%" Pd "\n",
                 current_defn->ssa_temp_index(),
                 replacement_defn->ssa_temp_index());
     }
   } else if (FLAG_trace_optimization) {
     if (current_defn == NULL) {
-      ISL_Print("Removing %s\n", current->DebugName());
+      THR_Print("Removing %s\n", current->DebugName());
     } else {
       ASSERT(!current_defn->HasUses());
-      ISL_Print("Removing v%" Pd ".\n", current_defn->ssa_temp_index());
+      THR_Print("Removing v%" Pd ".\n", current_defn->ssa_temp_index());
     }
   }
   iterator->RemoveCurrentFromGraph();
@@ -706,7 +713,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   Definition* converted = NULL;
   if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
     const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     converted = new(Z) UnboxedIntConverterInstr(from,
                                                 to,
                                                 use->CopyWithType(),
@@ -717,12 +724,12 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
              (to == kUnboxedDouble) &&
              CanConvertUnboxedMintToDouble()) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     ASSERT(CanUnboxDouble());
     converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id);
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
@@ -732,7 +739,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     // "from" and "to" representation. The inserted instructions will
     // trigger a deoptimization if executed. See #12417 for a discussion.
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     ASSERT(Boxing::Supports(from));
     ASSERT(Boxing::Supports(to));
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
@@ -770,7 +777,7 @@ void FlowGraphOptimizer::ConvertUse(Value* use, Representation from_rep) {
 void FlowGraphOptimizer::ConvertEnvironmentUse(Value* use,
                                                Representation from_rep) {
   const Representation to_rep = kTagged;
-  if (from_rep == to_rep || to_rep == kNoRepresentation) {
+  if (from_rep == to_rep) {
     return;
   }
   InsertConversion(from_rep, to_rep, use, /*is_environment_use=*/ true);
@@ -831,10 +838,10 @@ static void UnboxPhi(PhiInstr* phi) {
   if ((kSmiBits < 32) &&
       (unboxed == kTagged) &&
       phi->Type()->IsInt() &&
-      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)) {
+      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt64)) {
     // On 32-bit platforms conservatively unbox phis that:
     //   - are proven to be of type Int;
-    //   - fit into 32bits range;
+    //   - fit into 64bits range;
     //   - have either constants or Box() operations as inputs;
     //   - have at least one Box() operation as an input;
     //   - are used in at least 1 Unbox() operation.
@@ -843,7 +850,7 @@ static void UnboxPhi(PhiInstr* phi) {
       Definition* input = phi->InputAt(i)->definition();
       if (input->IsBox() &&
           RangeUtils::Fits(input->range(),
-                           RangeBoundary::kRangeBoundaryInt32)) {
+                           RangeBoundary::kRangeBoundaryInt64)) {
         should_unbox = true;
       } else if (!input->IsConstant()) {
         should_unbox = false;
@@ -875,7 +882,9 @@ static void UnboxPhi(PhiInstr* phi) {
     }
 
     if (should_unbox) {
-      unboxed = kUnboxedInt32;
+      unboxed =
+          RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
+          ? kUnboxedInt32 : kUnboxedMint;
     }
   }
 
@@ -1745,11 +1754,11 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                                      index,
                                      &cursor);
 
-  intptr_t deopt_id = Isolate::kNoDeoptId;
+  intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id = (kSmiBits >= 32) ? Isolate::kNoDeoptId : call->deopt_id();
+    deopt_id = (kSmiBits >= 32) ? Thread::kNoDeoptId : call->deopt_id();
   }
 
   // Array load and return.
@@ -1763,14 +1772,14 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
   cursor = flow_graph()->AppendTo(
       cursor,
       *last,
-      deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+      deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
     *last = new(Z) FloatToDoubleInstr(new(Z) Value(*last), deopt_id);
     flow_graph()->AppendTo(cursor,
                            *last,
-                           deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                           deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
                            FlowGraph::kValue);
   }
   return true;
@@ -2299,10 +2308,10 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 
 
 // Using field class
-static RawField* GetField(intptr_t class_id, const String& field_name) {
-  Isolate* isolate = Isolate::Current();
-  Class& cls = Class::Handle(isolate, isolate->class_table()->At(class_id));
-  Field& field = Field::Handle(isolate);
+RawField* FlowGraphOptimizer::GetField(intptr_t class_id,
+                                       const String& field_name) {
+  Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
+  Field& field = Field::Handle(Z);
   while (!cls.IsNull()) {
     field = cls.LookupInstanceField(field_name);
     if (!field.IsNull()) {
@@ -2335,6 +2344,11 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
         : call->function_name();
     const Class& cls = Class::Handle(Z, function.Owner());
     if (!thread()->cha()->HasOverride(cls, name)) {
+      if (FLAG_trace_cha) {
+        THR_Print("  **(CHA) Instance call needs no check, "
+            "no overrides of '%s' '%s'\n",
+            name.ToCString(), cls.ToCString());
+      }
       thread()->cha()->AddToLeafClasses(cls);
       return false;
     }
@@ -2781,7 +2795,7 @@ Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
       new(Z) Value(index),
       Instance::ElementSizeFor(cid),
       cid,
-      Isolate::kNoDeoptId,
+      Thread::kNoDeoptId,
       call->token_pos());
 
   cursor = flow_graph()->AppendTo(cursor,
@@ -3646,11 +3660,11 @@ bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
                                            index,
                                            &cursor);
 
-  intptr_t deopt_id = Isolate::kNoDeoptId;
+  intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id = (kSmiBits >= 32) ? Isolate::kNoDeoptId : call->deopt_id();
+    deopt_id = (kSmiBits >= 32) ? Thread::kNoDeoptId : call->deopt_id();
   }
 
   *last = new(Z) LoadIndexedInstr(new(Z) Value(array),
@@ -3662,14 +3676,14 @@ bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
   cursor = flow_graph()->AppendTo(
       cursor,
       *last,
-      deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+      deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
     *last = new(Z) FloatToDoubleInstr(new(Z) Value(*last), deopt_id);
     flow_graph()->AppendTo(cursor,
                            *last,
-                           deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                           deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
                            FlowGraph::kValue);
   }
   return true;
@@ -3722,7 +3736,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kSmiCid, target);
       break;
@@ -3734,7 +3748,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
         value_check = ICData::New(flow_graph_->function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
-                                  Isolate::kNoDeoptId,
+                                  Thread::kNoDeoptId,
                                   1);
         value_check.AddReceiverCheck(kSmiCid, target);
       }
@@ -3745,7 +3759,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kDoubleCid, target);
       break;
@@ -3755,7 +3769,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kInt32x4Cid, target);
       break;
@@ -3765,7 +3779,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kFloat32x4Cid, target);
       break;
@@ -3820,7 +3834,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
 
   flow_graph()->AppendTo(cursor,
                          *last,
-                         call->deopt_id() != Isolate::kNoDeoptId ?
+                         call->deopt_id() != Thread::kNoDeoptId ?
                             call->env() : NULL,
                          FlowGraph::kEffect);
   return true;
@@ -3996,7 +4010,8 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
         TypeArguments::Handle(Z),
         type_class,
         TypeArguments::Handle(Z),
-        NULL);
+        NULL,
+        Heap::kOld);
     results->Add(cls.id());
     results->Add(is_subtype);
     if (prev.IsNull()) {
@@ -4029,6 +4044,11 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Private classes cannot be subclassed by later loaded libs.
   if (!type_class.IsPrivate()) {
     if (FLAG_use_cha_deopt) {
+      if (FLAG_trace_cha) {
+        THR_Print("  **(CHA) Typecheck as class equality since no "
+            "subclasses: %s\n",
+            type_class.ToCString());
+      }
       thread()->cha()->AddToLeafClasses(type_class);
     } else {
       return false;
@@ -4082,7 +4102,8 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
     const bool smi_is_subtype = cls.IsSubtypeOf(TypeArguments::Handle(),
                                                 type_class,
                                                 TypeArguments::Handle(),
-                                                NULL);
+                                                NULL,
+                                                Heap::kOld);
     results->Add((*results)[results->length() - 2]);
     results->Add((*results)[results->length() - 2]);
     for (intptr_t i = results->length() - 3; i > 1; --i) {
@@ -4169,7 +4190,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
             negate ? Token::kISNOT : Token::kIS,
             new(Z) Value(left),
             *results,
-            can_deopt ? call->deopt_id() : Isolate::kNoDeoptId);
+            can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
         // Remove type.
         ReplaceCall(call, test_cids);
         return;
@@ -4609,7 +4630,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
     }
     if (!unboxed_field) {
       if (FLAG_trace_optimization || FLAG_trace_field_guards) {
-        ISL_Print("Disabling unboxing of %s\n", field.ToCString());
+        THR_Print("Disabling unboxing of %s\n", field.ToCString());
         if (!setter.IsNull()) {
           OS::Print("  setter usage count: %" Pd "\n", setter.usage_counter());
         }
@@ -4838,7 +4859,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
     }
 
     if (FLAG_trace_smi_widening) {
-      ISL_Print("analysing candidate: %s\n", op->ToCString());
+      THR_Print("analysing candidate: %s\n", op->ToCString());
     }
     worklist.Clear();
     worklist.Add(op);
@@ -4850,14 +4871,14 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
       Definition* defn = worklist.definitions()[j];
 
       if (FLAG_trace_smi_widening) {
-        ISL_Print("> %s\n", defn->ToCString());
+        THR_Print("> %s\n", defn->ToCString());
       }
 
       if (defn->IsBinarySmiOp() &&
           BenefitsFromWidening(defn->AsBinarySmiOp())) {
         gain++;
         if (FLAG_trace_smi_widening) {
-          ISL_Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
+          THR_Print("^ [%" Pd "] (o) %s\n", gain, defn->ToCString());
         }
       }
 
@@ -4875,7 +4896,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // Mint operation produces untagged result. We avoid tagging.
           gain++;
           if (FLAG_trace_smi_widening) {
-            ISL_Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
+            THR_Print("^ [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
         } else if (defn_loop == loops[input->GetBlock()->preorder_number()] &&
                    (input->Type()->ToCid() == kSmiCid)) {
@@ -4886,7 +4907,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // coalesced with untagging. Start coalescing them.
           gain--;
           if (FLAG_trace_smi_widening) {
-            ISL_Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
+            THR_Print("v [%" Pd "] (i) %s\n", gain, input->ToCString());
           }
         }
       }
@@ -4903,7 +4924,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           if (!instr->IsReturn() && !instr->IsPushArgument()) {
             gain--;
             if (FLAG_trace_smi_widening) {
-              ISL_Print("v [%" Pd "] (u) %s\n",
+              THR_Print("v [%" Pd "] (u) %s\n",
                         gain,
                         use->instruction()->ToCString());
             }
@@ -4921,14 +4942,14 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
           // sign extension operation.
           gain++;
           if (FLAG_trace_smi_widening) {
-            ISL_Print("^ [%" Pd "] (u) %s\n",
+            THR_Print("^ [%" Pd "] (u) %s\n",
                       gain,
                       use->instruction()->ToCString());
           }
         } else if (defn_loop == loops[instr->GetBlock()->preorder_number()]) {
           gain--;
           if (FLAG_trace_smi_widening) {
-            ISL_Print("v [%" Pd "] (u) %s\n",
+            THR_Print("v [%" Pd "] (u) %s\n",
                       gain,
                       use->instruction()->ToCString());
           }
@@ -4939,7 +4960,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
     processed->AddAll(worklist.contains_vector());
 
     if (FLAG_trace_smi_widening) {
-      ISL_Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
+      THR_Print("~ %s gain %" Pd "\n", op->ToCString(), gain);
     }
 
     if (gain > 0) {
@@ -5067,7 +5088,7 @@ void LICM::Hoist(ForwardInstructionIterator* it,
     current->AsCheckArrayBound()->set_licm_hoisted(true);
   }
   if (FLAG_trace_optimization) {
-    ISL_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
+    THR_Print("Hoisting instruction %s:%" Pd " from B%" Pd " to B%" Pd "\n",
               current->DebugName(),
               current->GetDeoptId(),
               current->GetBlock()->block_id(),
@@ -5884,9 +5905,9 @@ class AliasedSet : public ZoneAllocated {
          !it.Done();
          it.Advance()) {
       if (comma) {
-        ISL_Print(", ");
+        THR_Print(", ");
       }
-      ISL_Print("%s", places_[it.Current()]->ToCString());
+      THR_Print("%s", places_[it.Current()]->ToCString());
       comma = true;
     }
   }
@@ -5981,16 +6002,16 @@ class AliasedSet : public ZoneAllocated {
     }
 
     if (FLAG_trace_load_optimization) {
-      ISL_Print("Aliases KILL sets:\n");
+      THR_Print("Aliases KILL sets:\n");
       for (intptr_t i = 0; i < aliases_.length(); ++i) {
         const Place* alias = aliases_[i];
         BitVector* kill = GetKilledSet(alias->id());
 
-        ISL_Print("%s: ", alias->ToCString());
+        THR_Print("%s: ", alias->ToCString());
         if (kill != NULL) {
           PrintSet(kill);
         }
-        ISL_Print("\n");
+        THR_Print("\n");
       }
     }
   }
@@ -6377,7 +6398,7 @@ static PhiPlaceMoves* ComputePhiMoves(
       BlockEntryInstr* block = phi->GetBlock();
 
       if (FLAG_trace_optimization) {
-        ISL_Print("phi dependent place %s\n", place->ToCString());
+        THR_Print("phi dependent place %s\n", place->ToCString());
       }
 
       Place input_place(*place);
@@ -6390,7 +6411,7 @@ static PhiPlaceMoves* ComputePhiMoves(
           map->Insert(result);
           places->Add(result);
           if (FLAG_trace_optimization) {
-            ISL_Print("  adding place %s as %" Pd "\n",
+            THR_Print("  adding place %s as %" Pd "\n",
                       result->ToCString(),
                       result->id());
           }
@@ -6446,7 +6467,7 @@ static AliasedSet* NumberPlaces(
         places->Add(result);
 
         if (FLAG_trace_optimization) {
-          ISL_Print("numbering %s as %" Pd "\n",
+          THR_Print("numbering %s as %" Pd "\n",
                     result->ToCString(),
                     result->id());
         }
@@ -6715,7 +6736,7 @@ class LoadOptimizer : public ValueObject {
           Definition* replacement = (*out_values)[place_id];
           EnsureSSATempIndex(graph_, defn, replacement);
           if (FLAG_trace_optimization) {
-            ISL_Print("Replacing load v%" Pd " with v%" Pd "\n",
+            THR_Print("Replacing load v%" Pd " with v%" Pd "\n",
                       defn->ssa_temp_index(),
                       replacement->ssa_temp_index());
           }
@@ -6923,18 +6944,18 @@ class LoadOptimizer : public ValueObject {
       }
 
       if (FLAG_trace_load_optimization) {
-        ISL_Print("B%" Pd "\n", block->block_id());
-        ISL_Print("  IN: ");
+        THR_Print("B%" Pd "\n", block->block_id());
+        THR_Print("  IN: ");
         aliased_set_->PrintSet(in_[preorder_number]);
-        ISL_Print("\n");
+        THR_Print("\n");
 
-        ISL_Print("  KILL: ");
+        THR_Print("  KILL: ");
         aliased_set_->PrintSet(kill_[preorder_number]);
-        ISL_Print("\n");
+        THR_Print("\n");
 
-        ISL_Print("  OUT: ");
+        THR_Print("  OUT: ");
         aliased_set_->PrintSet(out_[preorder_number]);
-        ISL_Print("\n");
+        THR_Print("\n");
       }
     }
 
@@ -6987,7 +7008,7 @@ class LoadOptimizer : public ValueObject {
 
       if (FLAG_trace_optimization) {
         for (BitVector::Iterator it(loop_gen); !it.Done(); it.Advance()) {
-          ISL_Print("place %s is loop invariant for B%" Pd "\n",
+          THR_Print("place %s is loop invariant for B%" Pd "\n",
                     aliased_set_->places()[it.Current()]->ToCString(),
                     header->block_id());
         }
@@ -7054,11 +7075,11 @@ class LoadOptimizer : public ValueObject {
       replacement->AddInputUse(input);
     }
 
-    phi->set_ssa_temp_index(graph_->alloc_ssa_temp_index());
+    graph_->AllocateSSAIndexes(phi);
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
     if (FLAG_trace_load_optimization) {
-      ISL_Print("created pending phi %s for %s at B%" Pd "\n",
+      THR_Print("created pending phi %s for %s at B%" Pd "\n",
                 phi->ToCString(),
                 aliased_set_->places()[place_id]->ToCString(),
                 block->block_id());
@@ -7097,7 +7118,7 @@ class LoadOptimizer : public ValueObject {
           EnsureSSATempIndex(graph_, load, replacement);
 
           if (FLAG_trace_optimization) {
-            ISL_Print("Replacing load v%" Pd " with v%" Pd "\n",
+            THR_Print("Replacing load v%" Pd " with v%" Pd "\n",
                       load->ssa_temp_index(),
                       replacement->ssa_temp_index());
           }
@@ -7286,7 +7307,7 @@ class LoadOptimizer : public ValueObject {
       }
 
       if (FLAG_trace_load_optimization) {
-        ISL_Print("Replacing %s with congruent %s\n",
+        THR_Print("Replacing %s with congruent %s\n",
                   a->ToCString(),
                   b->ToCString());
       }
@@ -7492,7 +7513,7 @@ class StoreOptimizer : public LivenessAnalysis {
             if (!live_in->Contains(instr->place_id()) &&
                 CanEliminateStore(instr)) {
               if (FLAG_trace_optimization) {
-                ISL_Print(
+                THR_Print(
                     "Removing dead store to place %" Pd " in block B%" Pd "\n",
                     instr->place_id(), block->block_id());
               }
@@ -7545,7 +7566,7 @@ class StoreOptimizer : public LivenessAnalysis {
     }
     if (FLAG_trace_load_optimization) {
       Dump();
-      ISL_Print("---\n");
+      THR_Print("---\n");
     }
   }
 
@@ -7579,7 +7600,7 @@ class StoreOptimizer : public LivenessAnalysis {
         if (!live_out->Contains(instr->place_id()) &&
             CanEliminateStore(instr)) {
           if (FLAG_trace_optimization) {
-            ISL_Print("Removing dead store to place %" Pd " block B%" Pd "\n",
+            THR_Print("Removing dead store to place %" Pd " block B%" Pd "\n",
                       instr->place_id(), block->block_id());
           }
           instr->RemoveFromGraph(/* ignored */ false);
@@ -7673,14 +7694,14 @@ void DeadCodeElimination::EliminateDeadPhis(FlowGraph* flow_graph) {
             phi->UnuseAllInputs();
             (*join->phis_)[i] = NULL;
             if (FLAG_trace_optimization) {
-              ISL_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
+              THR_Print("Removing dead phi v%" Pd "\n", phi->ssa_temp_index());
             }
           } else if (phi->IsRedundant()) {
             phi->ReplaceUsesWith(phi->InputAt(0)->definition());
             phi->UnuseAllInputs();
             (*join->phis_)[i] = NULL;
             if (FLAG_trace_optimization) {
-              ISL_Print("Removing redundant phi v%" Pd "\n",
+              THR_Print("Removing redundant phi v%" Pd "\n",
                          phi->ssa_temp_index());
             }
           } else {
@@ -8223,7 +8244,7 @@ static bool IsAllocationSinkingCandidate(Definition* alloc,
        use = use->next_use()) {
     if (!IsSafeUse(use, check_type)) {
       if (FLAG_trace_optimization) {
-        ISL_Print("use of %s at %s is unsafe for allocation sinking\n",
+        THR_Print("use of %s at %s is unsafe for allocation sinking\n",
                   alloc->ToCString(),
                   use->instruction()->ToCString());
       }
@@ -8253,7 +8274,7 @@ void AllocationSinking::EliminateAllocation(Definition* alloc) {
   ASSERT(IsAllocationSinkingCandidate(alloc, kStrictCheck));
 
   if (FLAG_trace_optimization) {
-    ISL_Print("removing allocation from the graph: v%" Pd "\n",
+    THR_Print("removing allocation from the graph: v%" Pd "\n",
               alloc->ssa_temp_index());
   }
 
@@ -8334,7 +8355,7 @@ void AllocationSinking::CollectCandidates() {
     Definition* alloc = candidates_[i];
     if (alloc->Identity().IsAllocationSinkingCandidate()) {
       if (FLAG_trace_optimization) {
-        ISL_Print("discovered allocation sinking candidate: v%" Pd "\n",
+        THR_Print("discovered allocation sinking candidate: v%" Pd "\n",
                   alloc->ssa_temp_index());
       }
 
@@ -8429,7 +8450,7 @@ void AllocationSinking::DiscoverFailedCandidates() {
     Definition* alloc = candidates_[i];
     if (!alloc->Identity().IsAllocationSinkingCandidate()) {
       if (FLAG_trace_optimization) {
-        ISL_Print("allocation v%" Pd " can't be eliminated\n",
+        THR_Print("allocation v%" Pd " can't be eliminated\n",
                   alloc->ssa_temp_index());
       }
 

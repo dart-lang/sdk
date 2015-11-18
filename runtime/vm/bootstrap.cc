@@ -75,6 +75,10 @@ static bootstrap_lib_props bootstrap_libraries[] = {
                typed_data,
                Bootstrap::typed_data_source_paths_,
                Bootstrap::typed_data_patch_paths_),
+  INIT_LIBRARY(ObjectStore::kVMService,
+               _vmservice,
+               Bootstrap::_vmservice_source_paths_,
+               Bootstrap::_vmservice_patch_paths_),
   { ObjectStore::kNone, NULL, NULL, NULL, NULL }
 };
 
@@ -154,35 +158,37 @@ static RawError* Compile(const Library& library, const Script& script) {
     } else {
       // Compilation errors are not Dart instances, so just mark the library
       // as having failed to load without providing an error instance.
-      library.SetLoadError(Instance::Handle());
+      library.SetLoadError(Object::null_instance());
     }
   }
   return error.raw();
 }
 
 
-static Dart_Handle LoadPartSource(Isolate* isolate,
+static Dart_Handle LoadPartSource(Thread* thread,
                                   const Library& lib,
                                   const String& uri) {
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const String& part_source = String::Handle(
-      isolate, GetLibrarySource(lib, uri, false));
-  const String& lib_uri = String::Handle(isolate, lib.url());
+      zone, GetLibrarySource(lib, uri, false));
+  const String& lib_uri = String::Handle(zone, lib.url());
   if (part_source.IsNull()) {
     return Api::NewError("Unable to read part file '%s' of library '%s'",
                          uri.ToCString(), lib_uri.ToCString());
   }
 
   // Prepend the library URI to form a unique script URI for the part.
-  const Array& strings = Array::Handle(isolate, Array::New(3));
+  const Array& strings = Array::Handle(zone, Array::New(3));
   strings.SetAt(0, lib_uri);
   strings.SetAt(1, Symbols::Slash());
   strings.SetAt(2, uri);
-  const String& part_uri = String::Handle(isolate, String::ConcatAll(strings));
+  const String& part_uri = String::Handle(zone, String::ConcatAll(strings));
 
   // Create a script object and compile the part.
   const Script& part_script = Script::Handle(
-      isolate, Script::New(part_uri, part_source, RawScript::kSourceTag));
-  const Error& error = Error::Handle(isolate, Compile(lib, part_script));
+      zone, Script::New(part_uri, part_source, RawScript::kSourceTag));
+  const Error& error = Error::Handle(zone, Compile(lib, part_script));
   return Api::NewHandle(isolate, error.raw());
 }
 
@@ -190,7 +196,8 @@ static Dart_Handle LoadPartSource(Isolate* isolate,
 static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                                               Dart_Handle library,
                                               Dart_Handle uri) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   if (!Dart_IsLibrary(library)) {
     return Api::NewError("not a library");
   }
@@ -201,7 +208,7 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
     // In the bootstrap loader we do not try and do any canonicalization.
     return uri;
   }
-  const String& uri_str = Api::UnwrapStringHandle(isolate, uri);
+  const String& uri_str = Api::UnwrapStringHandle(zone, uri);
   ASSERT(!uri_str.IsNull());
   if (tag == Dart_kImportTag) {
     // We expect the core bootstrap libraries to only import other
@@ -213,21 +220,21 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                          uri_str.ToCString());
   }
   ASSERT(tag == Dart_kSourceTag);
-  const Library& lib = Api::UnwrapLibraryHandle(isolate, library);
+  const Library& lib = Api::UnwrapLibraryHandle(zone, library);
   ASSERT(!lib.IsNull());
-  return LoadPartSource(isolate, lib, uri_str);
+  return LoadPartSource(thread, lib, uri_str);
 }
 
 
-static RawError* LoadPatchFiles(Isolate* isolate,
+static RawError* LoadPatchFiles(Zone* zone,
                                 const Library& lib,
                                 const String& patch_uri,
                                 const char** patch_files) {
-  String& patch_file_uri = String::Handle(isolate);
-  String& source = String::Handle(isolate);
-  Script& script = Script::Handle(isolate);
-  Error& error = Error::Handle(isolate);
-  const Array& strings = Array::Handle(isolate, Array::New(3));
+  String& patch_file_uri = String::Handle(zone);
+  String& source = String::Handle(zone);
+  Script& script = Script::Handle(zone);
+  Error& error = Error::Handle(zone);
+  const Array& strings = Array::Handle(zone, Array::New(3));
   strings.SetAt(0, patch_uri);
   strings.SetAt(1, Symbols::Slash());
   for (intptr_t j = 0; patch_files[j] != NULL; j += 2) {
@@ -253,20 +260,22 @@ static RawError* LoadPatchFiles(Isolate* isolate,
 
 
 RawError* Bootstrap::LoadandCompileScripts() {
-  Isolate* isolate = Isolate::Current();
-  String& uri = String::Handle(isolate);
-  String& patch_uri = String::Handle(isolate);
-  String& source = String::Handle(isolate);
-  Script& script = Script::Handle(isolate);
-  Library& lib = Library::Handle(isolate);
-  Error& error = Error::Handle(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  String& uri = String::Handle(zone);
+  String& patch_uri = String::Handle(zone);
+  String& source = String::Handle(zone);
+  Script& script = Script::Handle(zone);
+  Library& lib = Library::Handle(zone);
+  Error& error = Error::Handle(zone);
   Dart_LibraryTagHandler saved_tag_handler = isolate->library_tag_handler();
 
   // Set the library tag handler for the isolate to the bootstrap
   // library tag handler so that we can load all the bootstrap libraries.
   isolate->set_library_tag_handler(BootstrapLibraryTagHandler);
 
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
 
   // Create library objects for all the bootstrap libraries.
   for (intptr_t i = 0;
@@ -306,7 +315,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     // If a patch exists, load and patch the script.
     if (bootstrap_libraries[i].patch_paths_ != NULL) {
       patch_uri = Symbols::New(bootstrap_libraries[i].patch_uri_);
-      error = LoadPatchFiles(isolate,
+      error = LoadPatchFiles(zone,
                              lib,
                              patch_uri,
                              bootstrap_libraries[i].patch_paths_);
@@ -319,12 +328,12 @@ RawError* Bootstrap::LoadandCompileScripts() {
     SetupNativeResolver();
     ClassFinalizer::ProcessPendingClasses();
 
-    Class& cls = Class::Handle(isolate);
+    Class& cls = Class::Handle(zone);
     // Eagerly compile the function implementation class as it is the super
     // class of signature classes. This allows us to just finalize signature
     // classes without going through the hoops of trying to compile them.
     const Type& type =
-        Type::Handle(isolate, isolate->object_store()->function_impl_type());
+        Type::Handle(zone, isolate->object_store()->function_impl_type());
     cls = type.type_class();
     Compiler::CompileClass(cls);
   }

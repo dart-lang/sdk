@@ -27,7 +27,7 @@ class SdkExtUriResolver extends UriResolver {
   static const String SDK_EXT_NAME = '_sdkext';
   static const String DART_COLON_PREFIX = 'dart:';
 
-  final Map<String, String> _urlMappings = <String,String>{};
+  final Map<String, String> _urlMappings = <String, String>{};
 
   /// Construct a [SdkExtUriResolver] from a package map
   /// (see [PackageMapProvider]).
@@ -42,7 +42,7 @@ class SdkExtUriResolver extends UriResolver {
   int get length => _urlMappings.length;
 
   /// Return the path mapping for [libName] or null if there is none.
-  String operator[](String libName) => _urlMappings[libName];
+  String operator [](String libName) => _urlMappings[libName];
 
   /// Programmatically add a new SDK extension given a JSON description
   /// ([sdkExtJSON]) and a lib directory ([libDir]).
@@ -76,11 +76,23 @@ class SdkExtUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    String libraryName = _libraryName(source.uri);
-    if (_registeredSdkExtension(libraryName)) {
-      return source.uri;
+    String extensionName = _findExtensionNameFor(source.fullName);
+    if (extensionName != null) {
+      return Uri.parse(extensionName);
     }
+    // TODO(johnmccutchan): Handle restoring parts.
     return null;
+  }
+
+  /// Return the extension name for [fullName] or `null`.
+  String _findExtensionNameFor(String fullName) {
+    var result;
+    _urlMappings.forEach((extensionName, pathMapping) {
+      if (pathMapping == fullName) {
+        result = extensionName;
+      }
+    });
+    return result;
   }
 
   /// Return the library name of [importUri].
@@ -150,11 +162,6 @@ class SdkExtUriResolver extends UriResolver {
       // File can't be read.
       return null;
     }
-  }
-
-  /// Returns true if [libraryName] is a registered sdk extension.
-  bool _registeredSdkExtension(String libraryName) {
-    return _urlMappings[libraryName] != null;
   }
 
   /// Resolve an import of an sdk extension.

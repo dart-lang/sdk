@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.testing.element_factory;
 
 import 'dart:collection';
@@ -349,6 +346,40 @@ class ElementFactory {
       functionElement4(
           functionName, null, normalParameters, names, namedParameters);
 
+  static FunctionElementImpl functionElement8(
+      List<DartType> parameters, DartType returnType,
+      {List<DartType> optional, Map<String, DartType> named}) {
+    List<ParameterElement> parameterElements = new List<ParameterElement>();
+    for (int i = 0; i < parameters.length; i++) {
+      ParameterElementImpl parameterElement =
+          new ParameterElementImpl("a$i", i);
+      parameterElement.type = parameters[i];
+      parameterElement.parameterKind = ParameterKind.REQUIRED;
+      parameterElements.add(parameterElement);
+    }
+    if (optional != null) {
+      int j = parameters.length;
+      for (int i = 0; i < optional.length; i++) {
+        ParameterElementImpl parameterElement =
+            new ParameterElementImpl("o$i", j);
+        parameterElement.type = optional[i];
+        parameterElement.parameterKind = ParameterKind.POSITIONAL;
+        parameterElements.add(parameterElement);
+        j++;
+      }
+    } else if (named != null) {
+      int j = parameters.length;
+      for (String s in named.keys) {
+        ParameterElementImpl parameterElement = new ParameterElementImpl(s, j);
+        parameterElement.type = named[s];
+        parameterElement.parameterKind = ParameterKind.NAMED;
+        parameterElements.add(parameterElement);
+      }
+    }
+
+    return functionElementWithParameters("f", returnType, parameterElements);
+  }
+
   static FunctionElementImpl functionElementWithParameters(String functionName,
       DartType returnType, List<ParameterElement> parameters) {
     FunctionElementImpl functionElement =
@@ -411,7 +442,7 @@ class ElementFactory {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library =
-        new LibraryElementImpl(context, libraryName, 0);
+        new LibraryElementImpl(context, libraryName, 0, libraryName.length);
     library.definingCompilationUnit = unit;
     return library;
   }

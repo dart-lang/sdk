@@ -6,8 +6,7 @@ library test.domain.completion;
 
 import 'dart:async';
 
-import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -15,8 +14,12 @@ import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart'
+    show CompletionRequest, CompletionResult;
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
+    as newApi;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -34,9 +37,10 @@ import 'package:unittest/unittest.dart';
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(CompletionManagerTest);
   defineReflectiveTests(CompletionTest);
   defineReflectiveTests(_NoSearchEngine);
@@ -50,13 +54,21 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   int requestCount = 0;
   String testFile2 = '/project/bin/test2.dart';
 
+  /// Cached model state in case tests need to set task model to on/off.
+  bool wasTaskModelEnabled;
+
   AnalysisServer createAnalysisServer(Index index) {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    return new Test_AnalysisServer(super.serverChannel, super.resourceProvider,
-        super.packageMapProvider, index, serverPlugin,
-        new AnalysisServerOptions(), new MockSdk(),
+    return new Test_AnalysisServer(
+        super.serverChannel,
+        super.resourceProvider,
+        super.packageMapProvider,
+        index,
+        serverPlugin,
+        new AnalysisServerOptions(),
+        new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -75,6 +87,8 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
+    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
+    AnalysisEngine.instance.useTaskModel = true;
     createProject();
     analysisDomain = handler;
     completionDomain = new Test_CompletionDomainHandler(server);
@@ -87,6 +101,7 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     super.tearDown();
     analysisDomain = null;
     completionDomain = null;
+    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
   }
 
   /**
@@ -262,7 +277,7 @@ class CompletionTest extends AbstractAnalysisTest {
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
 
-  String addTestFile(String content, {offset}) {
+  String addTestFile(String content, {int offset}) {
     completionOffset = content.indexOf('^');
     if (offset != null) {
       expect(completionOffset, -1, reason: 'cannot supply offset and ^');
@@ -277,8 +292,10 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
-      [int relevance = DART_RELEVANCE_DEFAULT, bool isDeprecated = false,
-      bool isPotential = false]) {
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      bool isDeprecated: false,
+      bool isPotential: false,
+      int selectionOffset}) {
     var cs;
     suggestions.forEach((s) {
       if (s.completion == completion) {
@@ -295,7 +312,7 @@ class CompletionTest extends AbstractAnalysisTest {
     }
     expect(cs.kind, equals(kind));
     expect(cs.relevance, equals(relevance));
-    expect(cs.selectionOffset, equals(completion.length));
+    expect(cs.selectionOffset, selectionOffset ?? completion.length);
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
@@ -379,6 +396,65 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_imports_incremental() async {
+    addTestFile('''library foo;
+      e^
+      import "dart:async";
+      import "package:foo/foo.dart";
+      class foo { }''');
+    await waitForTasksFinished();
+    server.updateContent('uc1', {testFile: new AddContentOverlay(testCode)});
+    server.updateContent('uc2', {
+      testFile:
+          new ChangeContentOverlay([new SourceEdit(completionOffset, 0, 'xp')])
+    });
+    completionOffset += 2;
+    await getSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
+        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import',
+        relevance: DART_RELEVANCE_HIGH);
+    assertNoResult('extends');
+    assertNoResult('library');
+  }
+
+  test_imports_partial() async {
+    addTestFile('''^
+      import "package:foo/foo.dart";
+      import "package:bar/bar.dart";
+      class Baz { }''');
+
+    // Wait for analysis then edit the content
+    await waitForTasksFinished();
+    String revisedContent = testCode.substring(0, completionOffset) +
+        'i' +
+        testCode.substring(completionOffset);
+    ++completionOffset;
+    server.handleRequest(new AnalysisUpdateContentParams(
+        {testFile: new AddContentOverlay(revisedContent)}).toRequest('add1'));
+
+    // Request code completion immediately after edit
+    Response response = handleSuccessfulRequest(
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('0'));
+    completionId = response.id;
+    assertValidId(completionId);
+    await waitForTasksFinished();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'library',
+        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import',
+        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
+        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'part',
+        relevance: DART_RELEVANCE_HIGH);
+    assertNoResult('extends');
+  }
+
   test_imports_prefixed() {
     addTestFile('''
       import 'dart:html' as foo;
@@ -403,6 +479,29 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_invocation_sdk_relevancy_off() {
+    var originalSorter = DartCompletionManager.defaultContributionSorter;
+    var mockSorter = new MockRelevancySorter();
+    DartCompletionManager.defaultContributionSorter = mockSorter;
+    addTestFile('main() {Map m; m.^}');
+    return getSuggestions().then((_) {
+      // Assert that the CommonUsageComputer has been replaced
+      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
+          isFalse);
+      DartCompletionManager.defaultContributionSorter = originalSorter;
+      mockSorter.enabled = false;
+    });
+  }
+
+  test_invocation_sdk_relevancy_on() {
+    addTestFile('main() {Map m; m.^}');
+    return getSuggestions().then((_) {
+      // Assert that the CommonUsageComputer is working
+      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
+          isTrue);
+    });
+  }
+
   test_invocation_withTrailingStmt() {
     addTestFile('class A {b() {}} main() {A a; a.^ int x = 7;}');
     return getSuggestions().then((_) {
@@ -417,10 +516,10 @@ class CompletionTest extends AbstractAnalysisTest {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset - 2));
       expect(replacementLength, equals(2));
-      assertHasResult(
-          CompletionSuggestionKind.KEYWORD, 'export', DART_RELEVANCE_HIGH);
-      assertHasResult(
-          CompletionSuggestionKind.KEYWORD, 'class', DART_RELEVANCE_HIGH);
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
+          relevance: DART_RELEVANCE_HIGH);
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
+          relevance: DART_RELEVANCE_HIGH);
     });
   }
 
@@ -440,12 +539,12 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'A');
-      assertHasResult(
-          CompletionSuggestionKind.INVOCATION, 'a', DART_RELEVANCE_LOCAL_FIELD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'a',
+          relevance: DART_RELEVANCE_LOCAL_FIELD);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b',
-          DART_RELEVANCE_LOCAL_VARIABLE);
+          relevance: DART_RELEVANCE_LOCAL_VARIABLE);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'x',
-          DART_RELEVANCE_LOCAL_METHOD);
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'DateTime');
     });
   }
@@ -470,12 +569,14 @@ class B extends A {m() {^}}
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
-          DART_RELEVANCE_LOCAL_METHOD);
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
     });
   }
 
   test_partFile() {
-    addFile('/project/bin/testA.dart', '''
+    addFile(
+        '/project/bin/testA.dart',
+        '''
       library libA;
       part "$testFile";
       import 'dart:html';
@@ -495,7 +596,9 @@ class B extends A {m() {^}}
   }
 
   test_partFile2() {
-    addFile('/testA.dart', '''
+    addFile(
+        '/testA.dart',
+        '''
       part of libA;
       class A { }''');
     addTestFile('''
@@ -541,7 +644,7 @@ class B extends A {m() {^}}
       // Suggestions based upon imported elements are partially filtered
       //assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'test',
-          DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+          relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
       assertNoResult('HtmlElement');
     });
   }
@@ -619,6 +722,18 @@ class MockContext implements AnalysisContext {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class MockRelevancySorter implements ContributionSorter {
+  bool enabled = true;
+
+  @override
+  void sort(newApi.DartCompletionRequest request,
+      List<CompletionSuggestion> suggestions) {
+    if (!enabled) {
+      throw 'unexpected sort';
+    }
+  }
+}
+
 /**
  * Mock stream for tracking calls to listen and subscription.cancel.
  */
@@ -655,14 +770,24 @@ class MockSubscription<E> implements StreamSubscription<E> {
 class Test_AnalysisServer extends AnalysisServer {
   final MockContext mockContext = new MockContext();
 
-  Test_AnalysisServer(ServerCommunicationChannel channel,
+  Test_AnalysisServer(
+      ServerCommunicationChannel channel,
       ResourceProvider resourceProvider,
-      PubPackageMapProvider packageMapProvider, Index index,
-      ServerPlugin serverPlugin, AnalysisServerOptions analysisServerOptions,
-      DartSdk defaultSdk, InstrumentationService instrumentationService)
-      : super(channel, resourceProvider, packageMapProvider, index,
-          serverPlugin, analysisServerOptions, defaultSdk,
-          instrumentationService);
+      PubPackageMapProvider packageMapProvider,
+      Index index,
+      ServerPlugin serverPlugin,
+      AnalysisServerOptions analysisServerOptions,
+      DartSdk defaultSdk,
+      InstrumentationService instrumentationService)
+      : super(
+            channel,
+            resourceProvider,
+            packageMapProvider,
+            index,
+            serverPlugin,
+            analysisServerOptions,
+            defaultSdk,
+            instrumentationService);
 
   @override
   AnalysisContext getAnalysisContext(String path) {

@@ -7,7 +7,10 @@ library services.completion.computer.dart.relevance;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
+    show DART_RELEVANCE_COMMON_USAGE;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -15,9 +18,10 @@ part 'common_usage_generated.dart';
 
 /**
  * A computer for adjusting the relevance of completions computed by others
- * based upon common Dart usage patterns.
+ * based upon common Dart usage patterns. This is a long-lived object
+ * that should not maintain state between calls to it's [sort] method.
  */
-class CommonUsageComputer {
+class CommonUsageComputer implements ContributionSorter {
   /**
    * A map of <library>.<classname> to an ordered list of method names,
    * field names, getter names, and named constructors.
@@ -28,23 +32,10 @@ class CommonUsageComputer {
 
   CommonUsageComputer([this.selectorRelevance = defaultSelectorRelevance]);
 
-  /**
-   * Adjusts the relevance based on the given completion context.
-   * The compilation unit and completion node
-   * in the given completion context may not be resolved.
-   * This method should execute quickly and not block waiting for any analysis.
-   */
-  void computeFast(DartCompletionRequest request) {
-    _update(request);
-  }
-
-  /**
-   * Adjusts the relevance based on the given completion context.
-   * The compilation unit and completion node
-   * in the given completion context are resolved.
-   */
-  void computeFull(DartCompletionRequest request) {
-    _update(request);
+  @override
+  void sort(DartCompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions) {
+    _update(request, suggestions);
   }
 
   /**
@@ -52,7 +43,8 @@ class CommonUsageComputer {
    * The compilation unit and completion node
    * in the given completion context may not be resolved.
    */
-  void _update(DartCompletionRequest request) {
+  void _update(DartCompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions) {
     var visitor = new _BestTypeVisitor(request.target.entity);
     DartType type = request.target.containingNode.accept(visitor);
     if (type != null) {
@@ -60,7 +52,7 @@ class CommonUsageComputer {
       if (typeElem != null) {
         LibraryElement libElem = typeElem.library;
         if (libElem != null) {
-          _updateInvocationRelevance(request, type, libElem);
+          _updateInvocationRelevance(request, type, libElem, suggestions);
         }
       }
     }
@@ -70,12 +62,12 @@ class CommonUsageComputer {
    * Adjusts the relevance of all method suggestions based upon the given
    * target type and library.
    */
-  void _updateInvocationRelevance(
-      DartCompletionRequest request, DartType type, LibraryElement libElem) {
+  void _updateInvocationRelevance(DartCompletionRequest request, DartType type,
+      LibraryElement libElem, Iterable<CompletionSuggestion> suggestions) {
     String typeName = type.name;
     List<String> selectors = selectorRelevance['${libElem.name}.${typeName}'];
     if (selectors != null) {
-      for (CompletionSuggestion suggestion in request.suggestions) {
+      for (CompletionSuggestion suggestion in suggestions) {
         protocol.Element element = suggestion.element;
         if (element != null &&
             (element.kind == protocol.ElementKind.CONSTRUCTOR ||
@@ -99,7 +91,6 @@ class CommonUsageComputer {
  * An [AstVisitor] used to determine the best defining type of a node.
  */
 class _BestTypeVisitor extends GeneralizingAstVisitor {
-
   /**
    * The entity which the completed text will replace (or which will be
    * displaced once the completed text is inserted).  This may be an AstNode or

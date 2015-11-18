@@ -170,20 +170,6 @@ bool ListeningSocketRegistry::CloseSafe(intptr_t socketfd) {
 }
 
 
-Dart_Handle ListeningSocketRegistry::MarkSocketFdAsSharableHack(
-    intptr_t socketfd) {
-  MutexLocker ml(ListeningSocketRegistry::mutex_);
-
-  SocketsIterator it = sockets_by_fd_.find(socketfd);
-  if (it != sockets_by_fd_.end()) {
-    it->second->shared = true;
-    return Dart_True();
-  } else {
-    return Dart_False();
-  }
-}
-
-
 void FUNCTION_NAME(InternetAddress_Parse)(Dart_NativeArguments args) {
   const char* address =
       DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
@@ -852,15 +838,6 @@ void FUNCTION_NAME(Socket_LeaveMulticast)(Dart_NativeArguments args) {
   } else {
     Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
-}
-
-
-void FUNCTION_NAME(Socket_MarkSocketAsSharedHack)(Dart_NativeArguments args) {
-  intptr_t socketfd =
-      Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 0));
-
-  ListeningSocketRegistry *registry = ListeningSocketRegistry::Instance();
-  Dart_SetReturnValue(args, registry->MarkSocketFdAsSharableHack(socketfd));
 }
 
 

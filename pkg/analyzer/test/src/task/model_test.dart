@@ -12,10 +12,11 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(AnalysisTaskTest);
   runReflectiveTests(ResultDescriptorImplTest);
   runReflectiveTests(SimpleResultCachingPolicyTest);
@@ -117,8 +118,8 @@ class TaskDescriptorImplTest extends EngineTestCase {
   }
 
   test_createTask() {
-    BuildTask buildTask =
-        (context, target) => new TestAnalysisTask(context, target);
+    BuildTask buildTask = (context, target) =>
+        new TestAnalysisTask(context, target);
     CreateTaskInputs createTaskInputs = (target) {};
     List<ResultDescriptor> results = <ResultDescriptor>[];
     TaskDescriptorImpl descriptor =

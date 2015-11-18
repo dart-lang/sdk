@@ -6,10 +6,14 @@
 
 #include "include/dart_api.h"
 
+#include "vm/bootstrap.h"
+#include "vm/code_patcher.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"
+#include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/tags.h"
 
 
@@ -17,10 +21,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, trace_natives, false,
             "Trace invocation of natives (debug mode only)");
-
-
-static ExternalLabel native_call_label(
-    reinterpret_cast<uword>(&NativeEntry::NativeCallWrapper));
 
 
 NativeFunction NativeEntry::ResolveNative(const Library& library,
@@ -56,14 +56,14 @@ const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
 
 
 const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(thread);
   GrowableObjectArray& libs = reused_growable_object_array_handle.Handle();
-  libs ^= isolate->object_store()->libraries();
+  libs ^= thread->isolate()->object_store()->libraries();
   ASSERT(!libs.IsNull());
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
-    REUSABLE_LIBRARY_HANDLESCOPE(isolate);
+    REUSABLE_LIBRARY_HANDLESCOPE(thread);
     Library& lib = reused_library_handle.Handle();
     lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
@@ -76,8 +76,13 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
 }
 
 
-const ExternalLabel& NativeEntry::NativeCallWrapperLabel() {
-  return native_call_label;
+uword NativeEntry::NativeCallWrapperEntry() {
+  uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(
+      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
+#endif
+  return entry;
 }
 
 
@@ -122,5 +127,151 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
   DEOPTIMIZE_ALOT;
   VERIFY_ON_TRANSITION;
 }
+
+
+static bool IsNativeKeyword(const TokenStream::Iterator& it) {
+  return Token::IsIdentifier(it.CurrentTokenKind()) &&
+      (it.CurrentLiteral() == Symbols::Native().raw());
+}
+
+
+static NativeFunction ResolveNativeFunction(Zone* zone,
+                                            const Function& func,
+                                            bool* is_bootstrap_native) {
+  const Script& script = Script::Handle(zone, func.script());
+  const Class& cls = Class::Handle(zone, func.Owner());
+  const Library& library = Library::Handle(zone, cls.library());
+
+  *is_bootstrap_native =
+      Bootstrap::IsBootstapResolver(library.native_entry_resolver());
+
+  TokenStream::Iterator it(TokenStream::Handle(zone, script.tokens()),
+                           func.token_pos());
+
+  const intptr_t end_pos = func.end_token_pos();
+  while (!IsNativeKeyword(it) && it.CurrentPosition() <= end_pos) {
+    it.Advance();
+  }
+  ASSERT(IsNativeKeyword(it));
+  it.Advance();
+  ASSERT(it.CurrentTokenKind() == Token::kSTRING);
+  const String& native_name = String::Handle(it.CurrentLiteral());
+
+  const int num_params = NativeArguments::ParameterCountForResolution(func);
+  bool auto_setup_scope = true;
+  return NativeEntry::ResolveNative(
+      library, native_name, num_params, &auto_setup_scope);
+}
+
+
+uword NativeEntry::LinkNativeCallEntry() {
+  uword entry = reinterpret_cast<uword>(NativeEntry::LinkNativeCall);
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(
+      entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
+#endif
+  return entry;
+}
+
+
+void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
+  CHECK_STACK_ALIGNMENT;
+  VERIFY_ON_TRANSITION;
+  NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
+  MSAN_UNPOISON(arguments, sizeof(*arguments));
+  TRACE_NATIVE_CALL("%s", "LinkNative");
+
+  NativeFunction target_function = NULL;
+  bool call_through_wrapper = false;
+#ifdef USING_SIMULATOR
+  bool is_native_auto_setup_scope = false;
+#endif
+
+  {
+    StackZone zone(arguments->thread());
+
+    DartFrameIterator iterator;
+    StackFrame* caller_frame = iterator.NextFrame();
+
+    const Code& code = Code::Handle(caller_frame->LookupDartCode());
+    const Function& func = Function::Handle(code.function());
+#ifdef USING_SIMULATOR
+    is_native_auto_setup_scope = func.IsNativeAutoSetupScope();
+#endif
+
+    if (FLAG_trace_natives) {
+      OS::Print("Resolving native target for %s\n", func.ToCString());
+    }
+
+    bool is_bootstrap_native = false;
+    target_function = ResolveNativeFunction(
+        arguments->thread()->zone(), func, &is_bootstrap_native);
+    ASSERT(target_function != NULL);
+
+#if defined(DEBUG)
+    {
+      NativeFunction current_function = NULL;
+      const Code& current_trampoline = Code::Handle(
+          CodePatcher::GetNativeCallAt(caller_frame->pc(),
+                                       code,
+                                       &current_function));
+#if !defined(USING_SIMULATOR)
+      ASSERT(current_function ==
+             reinterpret_cast<NativeFunction>(LinkNativeCall));
+#else
+      ASSERT(current_function ==
+             reinterpret_cast<NativeFunction>(
+                 Simulator::RedirectExternalReference(
+                     reinterpret_cast<uword>(LinkNativeCall),
+                     Simulator::kBootstrapNativeCall,
+                     NativeEntry::kNumArguments)));
+#endif
+      ASSERT(current_trampoline.raw() ==
+             StubCode::CallBootstrapCFunction_entry()->code());
+    }
+#endif
+
+    const intptr_t argc_tag = NativeArguments::ComputeArgcTag(func);
+    const bool is_leaf_call =
+      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+
+    call_through_wrapper = !is_bootstrap_native && !is_leaf_call;
+
+    const Code& trampoline = Code::Handle(call_through_wrapper ?
+        StubCode::CallNativeCFunction_entry()->code() :
+        StubCode::CallBootstrapCFunction_entry()->code());
+
+    NativeFunction patch_target_function = target_function;
+#if defined(USING_SIMULATOR)
+    if (!call_through_wrapper || !is_native_auto_setup_scope) {
+      patch_target_function = reinterpret_cast<NativeFunction>(
+          Simulator::RedirectExternalReference(
+              reinterpret_cast<uword>(patch_target_function),
+              Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments));
+    }
+#endif
+
+    CodePatcher::PatchNativeCallAt(
+        caller_frame->pc(), code, patch_target_function, trampoline);
+
+    if (FLAG_trace_natives) {
+      OS::Print("    -> %p (%s, %s)\n",
+                target_function,
+                is_bootstrap_native ? "bootstrap" : "non-bootstrap",
+                is_leaf_call ? "leaf" : "non-leaf");
+    }
+  }
+  VERIFY_ON_TRANSITION;
+
+  // Tail-call resolved target.
+  if (call_through_wrapper) {
+    NativeEntry::NativeCallWrapper(
+        args, reinterpret_cast<Dart_NativeFunction>(target_function));
+  } else {
+    target_function(arguments);
+  }
+}
+
 
 }  // namespace dart

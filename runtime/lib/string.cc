@@ -515,7 +515,7 @@ static uint16_t StringValueAt(const String& str, const Integer& index) {
   }
 
   // An index larger than Smi is always illegal.
-  Exceptions::ThrowRangeError("index", index, 0, str.Length());
+  Exceptions::ThrowRangeError("index", index, 0, str.Length() - 1);
   return 0;
 }
 
@@ -601,7 +601,7 @@ DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
   intptr_t array_length = codeUnits.Length();
   intptr_t length_value = length.Value();
   if (length_value < 0 || length_value > array_length) {
-    Exceptions::ThrowRangeError("length", length, 0, array_length + 1);
+    Exceptions::ThrowRangeError("length", length, 0, array_length);
   }
   const String& result = isLatin1.value()
       ? String::Handle(OneByteString::New(length_value, Heap::kNew))

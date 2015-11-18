@@ -25,18 +25,19 @@ main() {
   print('($m)');
 }""",r"""
 function() {
+  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
   P.print("()");
   P.print("(true)");
   P.print("(1)");
   P.print("(" + H.S([1, 2, 3]) + ")");
   P.print("(" + H.S(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
   P.print("(1)");
-  P.print("(" + H.S([1, 2, 3]) + ")");
-  P.print("(" + H.S(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
+  P.print("(" + H.S(l) + ")");
+  P.print("(" + H.S(m) + ")");
 }"""),
   const TestEntry("""
-foo(a, [b = "b"]) => b;
-bar(a, {b: "b", c: "c"}) => c;
+foo(a, [b = "b"]) { print(b); return b; }
+bar(a, {b: "b", c: "c"}) { print(c); return c; }
 main() {
   foo(0);
   foo(1, 2);
@@ -58,6 +59,7 @@ function() {
   const TestEntry(
   """
 foo(a) {
+  print(a);
   return a;
 }
 main() {
@@ -83,7 +85,7 @@ function() {
 }"""),
   const TestEntry(
   """
-foo() { return 42; }
+foo() { print(42); return 42; }
 main() { return foo(); }
   """,
   """function() {

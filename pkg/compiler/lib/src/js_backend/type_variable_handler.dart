@@ -36,6 +36,7 @@ class TypeVariableHandler {
   CodeEmitterTask get _task => _backend.emitter;
   MetadataCollector get _metadataCollector => _task.metadataCollector;
   JavaScriptBackend get _backend => _compiler.backend;
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   void registerClassWithTypeVariables(ClassElement cls, Enqueuer enqueuer,
                                       Registry registry) {
@@ -43,19 +44,19 @@ class TypeVariableHandler {
       // On first encounter, we have to ensure that the support classes get
       // resolved.
       if (!_seenClassesWithTypeVariables) {
-        _backend.enqueueClass(
-            enqueuer, _typeVariableClass, registry);
-        _typeVariableClass.ensureResolved(_compiler);
+        _backend.enqueueClass(enqueuer, _typeVariableClass, registry);
+        _typeVariableClass.ensureResolved(_compiler.resolution);
         Link constructors = _typeVariableClass.constructors;
         if (constructors.isEmpty && constructors.tail.isEmpty) {
-          _compiler.internalError(_typeVariableClass,
+          reporter.internalError(_typeVariableClass,
               "Class '$_typeVariableClass' should only have one constructor");
         }
         _typeVariableConstructor = _typeVariableClass.constructors.head;
         _backend.enqueueInResolution(_typeVariableConstructor, registry);
-        enqueuer.registerInstantiatedType(_typeVariableClass.rawType,
-                                          registry);
-        enqueuer.registerStaticUse(_backend.getCreateRuntimeType());
+        _backend.registerInstantiatedType(
+            _typeVariableClass.rawType, enqueuer, registry);
+        enqueuer.registerStaticUse(
+            _backend.registerBackendUse(_backend.helpers.createRuntimeType));
         _seenClassesWithTypeVariables = true;
       }
     } else {

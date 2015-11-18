@@ -1626,6 +1626,7 @@ void Simulator::DoRedirectedCall(Instr* instr) {
       set_vregisterd(V0, 0, bit_cast<int64_t, double>(res));
       set_vregisterd(V0, 1, 0);
     } else if (redirection->call_kind() == kBootstrapNativeCall) {
+      ASSERT(redirection->argument_count() == 1);
       NativeArguments* arguments;
       arguments = reinterpret_cast<NativeArguments*>(get_register(R0));
       SimulatorBootstrapNativeCall target =
@@ -3527,7 +3528,7 @@ void Simulator::Longjmp(uword pc,
   set_register(NULL, FP, static_cast<int64_t>(fp));
   set_register(NULL, THR, reinterpret_cast<int64_t>(thread));
   // Set the tag.
-  isolate->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
   isolate->set_top_exit_frame_info(0);
 

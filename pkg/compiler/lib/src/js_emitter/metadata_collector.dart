@@ -145,6 +145,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
   JavaScriptBackend get _backend => _compiler.backend;
   TypeVariableHandler get _typeVariableHandler => _backend.typeVariableHandler;
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   bool _mustEmitMetadataFor(Element element) {
     return _backend.mustRetainMetadata &&
@@ -159,20 +160,15 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   /// mirrors_patch to implement DeclarationMirror.metadata.
   jsAst.Fun buildMetadataFunction(Element element) {
     if (!_mustEmitMetadataFor(element)) return null;
-    return _compiler.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element, () {
       List<jsAst.Expression> metadata = <jsAst.Expression>[];
-      Link link = element.metadata;
-      // TODO(ahe): Why is metadata sometimes null?
-      if (link != null) {
-        for (; !link.isEmpty; link = link.tail) {
-          MetadataAnnotation annotation = link.head;
-          ConstantValue constant =
-              _backend.constants.getConstantValueForMetadata(annotation);
-          if (constant == null) {
-            _compiler.internalError(annotation, 'Annotation value is null.');
-          } else {
-            metadata.add(_emitter.constantReference(constant));
-          }
+      for (MetadataAnnotation annotation in element.metadata) {
+        ConstantValue constant =
+            _backend.constants.getConstantValueForMetadata(annotation);
+        if (constant == null) {
+          reporter.internalError(annotation, 'Annotation value is null.');
+        } else {
+          metadata.add(_emitter.constantReference(constant));
         }
       }
       if (metadata.isEmpty) return null;
@@ -200,7 +196,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     ConstantValue constant =
         _backend.constants.getConstantValueForMetadata(annotation);
     if (constant == null) {
-      _compiler.internalError(annotation, 'Annotation value is null.');
+      reporter.internalError(annotation, 'Annotation value is null.');
       return null;
     }
     return _addGlobalMetadata(_emitter.constantReference(constant));
@@ -247,7 +243,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
   jsAst.Expression _computeTypeRepresentation(DartType type,
                                               {ignoreTypeVariables: false}) {
-    jsAst.Expression representation = _backend.rti.getTypeRepresentation(
+    jsAst.Expression representation = _backend.rtiEncoder.getTypeRepresentation(
         type,
         (variable) {
           if (ignoreTypeVariables) return new jsAst.LiteralNull();
@@ -260,7 +256,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
     if (representation is jsAst.LiteralString) {
       // We don't want the representation to be a string, since we use
       // strings as indicator for non-initialized types in the lazy emitter.
-      _compiler.internalError(
+      reporter.internalError(
           NO_LOCATION_SPANNABLE, 'reified types should not be strings.');
     }
 
@@ -286,15 +282,11 @@ class MetadataCollector implements jsAst.TokenFinalizer {
   }
 
   List<jsAst.DeferredNumber> computeMetadata(FunctionElement element) {
-    return _compiler.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element, () {
       if (!_mustEmitMetadataFor(element)) return const <jsAst.DeferredNumber>[];
       List<jsAst.DeferredNumber> metadata = <jsAst.DeferredNumber>[];
-      Link link = element.metadata;
-      // TODO(ahe): Why is metadata sometimes null?
-      if (link != null) {
-        for (; !link.isEmpty; link = link.tail) {
-          metadata.add(reifyMetadata(link.head));
-        }
+      for (MetadataAnnotation annotation in element.metadata) {
+        metadata.add(reifyMetadata(annotation));
       }
       return metadata;
     });

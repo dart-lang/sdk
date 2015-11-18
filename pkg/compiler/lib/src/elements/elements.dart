@@ -4,35 +4,27 @@
 
 library elements;
 
-
+import '../common.dart';
+import '../common/resolution.dart' show
+    Resolution;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../tree/tree.dart';
-import '../util/util.dart';
-import '../resolution/resolution.dart';
-
-import '../dart2jslib.dart' show InterfaceType,
-                                 DartType,
-                                 TypeVariableType,
-                                 TypedefType,
-                                 DualKind,
-                                 MessageKind,
-                                 DiagnosticListener,
-                                 Script,
-                                 FunctionType,
-                                 Selector,
-                                 SourceSpan,
-                                 Constant,
-                                 Compiler,
-                                 Backend,
-                                 isPrivateName;
-
 import '../dart_types.dart';
-
-import '../scanner/scannerlib.dart' show Token,
-                                         isUserDefinableOperator,
-                                         isMinusOperator;
-
+import '../resolution/scope.dart' show
+    Scope;
+import '../resolution/tree_elements.dart' show
+    TreeElements;
 import '../ordered_typeset.dart' show OrderedTypeSet;
+import '../script.dart';
+import '../tokens/token.dart' show
+    Token,
+    isUserDefinableOperator,
+    isMinusOperator;
+import '../tree/tree.dart';
+import '../util/characters.dart' show $_;
+import '../util/util.dart';
 
 import 'visitor.dart' show ElementVisitor;
 
@@ -110,6 +102,10 @@ class ElementKind {
       const ElementKind('abstract_field', ElementCategory.VARIABLE);
   static const ElementKind LIBRARY =
       const ElementKind('library', ElementCategory.NONE);
+  static const ElementKind IMPORT =
+      const ElementKind('import', ElementCategory.NONE);
+  static const ElementKind EXPORT =
+      const ElementKind('export', ElementCategory.NONE);
   static const ElementKind PREFIX =
       const ElementKind('prefix', ElementCategory.PREFIX);
   static const ElementKind TYPEDEF =
@@ -186,10 +182,16 @@ abstract class Element implements Entity {
   String get name;
   ElementKind get kind;
   Element get enclosingElement;
-  Link<MetadataAnnotation> get metadata;
+  Iterable<MetadataAnnotation> get metadata;
 
   /// `true` if this element is a library.
   bool get isLibrary;
+
+  /// `true` if this element is an import declaration.
+  bool get isImport => kind == ElementKind.IMPORT;
+
+  /// `true` if this element is an export declaration.
+  bool get isExport => kind == ElementKind.EXPORT;
 
   /// `true` if this element is a compilation unit.
   bool get isCompilationUnit;
@@ -304,6 +306,8 @@ abstract class Element implements Entity {
   bool get isTopLevel;
   bool get isAssignable;
   bool get isNative;
+  bool get isJsInterop;
+
   bool get isDeferredLoaderGetter;
 
   /// True if the element is declared in a patch library but has no
@@ -400,17 +404,20 @@ abstract class Element implements Entity {
   bool get hasFixedBackendName;
   String get fixedBackendName;
 
+  String get jsInteropName;
+
   bool get isAbstract;
 
   Scope buildScope();
-
-  void diagnose(Element context, DiagnosticListener listener);
 
   // TODO(johnniwinther): Move this to [AstElement].
   /// Returns the [Element] that holds the [TreeElements] for this element.
   AnalyzableElement get analyzableElement;
 
   accept(ElementVisitor visitor, arg);
+
+  void setJsInteropName(String name);
+  void markAsJsInterop();
 }
 
 class Elements {
@@ -421,7 +428,7 @@ class Elements {
 
   /// Unwraps [element] reporting any warnings attached to it, if any.
   static Element unwrap(Element element,
-                        DiagnosticListener listener,
+                        DiagnosticReporter listener,
                         Spannable spannable) {
     if (element != null && element.isWarnOnUse) {
       WarnOnUseElement wrappedElement = element;
@@ -515,7 +522,7 @@ class Elements {
 
   static bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
-    if (element.isNative) return true;
+    if (element.isNative || element.isJsInterop) return true;
     assert(element.isResolved);
     return isNativeOrExtendsNative(element.superclass);
   }
@@ -525,7 +532,7 @@ class Elements {
     if (element == null) return !isClosureSend(send, element);
     return isInstanceMethod(element) ||
            isInstanceField(element) ||
-           send.isConditional;
+           (send.isConditional && !element.isStatic);
   }
 
   static bool isClosureSend(Send send, Element element) {
@@ -664,12 +671,6 @@ class Elements {
     return null;
   }
 
-  static String mapToUserOperator(String op) {
-    String userOperator = mapToUserOperatorOrNull(op);
-    if (userOperator == null) throw 'Unhandled operator: $op';
-    else return userOperator;
-  }
-
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
     LibraryElement coreLibrary = compiler.coreLibrary;
     return (element == coreLibrary.find('Comparable'));
@@ -806,7 +807,7 @@ abstract class WarnOnUseElement extends Element {
   /// Reports the attached warning and returns the wrapped element.
   /// [usageSpannable] is used to report messages on the reference of
   /// [wrappedElement].
-  Element unwrap(DiagnosticListener listener, Spannable usageSpannable);
+  Element unwrap(DiagnosticReporter listener, Spannable usageSpannable);
 }
 
 /// An ambiguous element represents multiple elements accessible by the same
@@ -820,6 +821,10 @@ abstract class AmbiguousElement extends Element {
   Map get messageArguments;
   Element get existingElement;
   Element get newElement;
+
+  /// Compute the info messages associated with an error/warning on [context].
+  List<DiagnosticMessage> computeInfos(
+      Element context, DiagnosticReporter listener);
 }
 
 // TODO(kasperl): This probably shouldn't be called an element. It's
@@ -842,6 +847,22 @@ abstract class CompilationUnitElement extends Element {
   int compareTo(CompilationUnitElement other);
 }
 
+abstract class ImportElement extends Element {
+  Uri get uri;
+  LibraryElement get importedLibrary;
+  bool get isDeferred;
+  PrefixElement get prefix;
+  // TODO(johnniwinther): Remove this when no longer needed in source mirrors.
+  Import get node;
+}
+
+abstract class ExportElement extends Element {
+  Uri get uri;
+  LibraryElement get exportedLibrary;
+  // TODO(johnniwinther): Remove this when no longer needed in source mirrors.
+  Export get node;
+}
+
 abstract class LibraryElement extends Element
     implements ScopeContainerElement, AnalyzableElement {
   /**
@@ -857,9 +878,13 @@ abstract class LibraryElement extends Element
 
   CompilationUnitElement get entryCompilationUnit;
   Link<CompilationUnitElement> get compilationUnits;
-  Iterable<LibraryTag> get tags;
-  LibraryName get libraryTag;
-  Link<Element> get exports;
+
+  /// The import declarations in this library, including the implicit import of
+  /// 'dart:core', if present.
+  Iterable<ImportElement> get imports;
+
+  /// The export declarations in this library.
+  Iterable<ExportElement> get exports;
 
   /**
    * [:true:] if this library is part of the platform, that is, its canonical
@@ -884,9 +909,6 @@ abstract class LibraryElement extends Element
 
   LibraryElement get implementation;
 
-  /// Return the library element corresponding to an import or export.
-  LibraryElement getLibraryFromTag(LibraryDependency tag);
-
   Element find(String elementName);
   Element findLocal(String elementName);
   Element findExported(String elementName);
@@ -896,32 +918,35 @@ abstract class LibraryElement extends Element
   void forEachImport(f(Element element));
 
   /// Returns the imports that import element into this library.
-  Link<Import> getImportsFor(Element element);
+  Iterable<ImportElement> getImportsFor(Element element);
 
-  bool hasLibraryName();
-  String getLibraryName();
+  /// `true` if this library has name as given through a library tag.
+  bool get hasLibraryName;
 
-  /**
-   * Returns the library name (as defined by the library tag) or for script
-   * (which have no library tag) the script file name. The latter case is used
-   * to provide a 'library name' for scripts to use for instance in dartdoc.
-   *
-   * Note: the returned filename is still escaped ("a%20b.dart" instead of
-   * "a b.dart").
-   */
-  String getLibraryOrScriptName();
+  /// The library name, which is either the name given in the library tag
+  /// or the empty string if there is no library tag.
+  String get libraryName;
+
+  /// Returns the library name (as defined by the library tag) or for script
+  /// (which have no library tag) the script file name. The latter case is used
+  /// to provide a 'library name' for scripts to use for instance in dartdoc.
+  ///
+  /// Note: the returned filename is still escaped ("a%20b.dart" instead of
+  /// "a b.dart").
+  String get libraryOrScriptName;
 
   int compareTo(LibraryElement other);
 }
 
 /// The implicit scope defined by a import declaration with a prefix clause.
 abstract class PrefixElement extends Element {
-  void addImport(Element element, Import import, DiagnosticListener listener);
   Element lookupLocalMember(String memberName);
+
   /// Is true if this prefix belongs to a deferred import.
   bool get isDeferred;
-  void markAsDeferred(Import import);
-  Import get deferredImport;
+
+  /// Import that declared this deferred prefix.
+  ImportElement get deferredImport;
 }
 
 /// A type alias definition.
@@ -945,7 +970,7 @@ abstract class TypedefElement extends Element
   /// For instance `(int)->void` for `typedef void F(int)`.
   DartType get alias;
 
-  void checkCyclicReference(Compiler compiler);
+  void checkCyclicReference(Resolution resolution);
 }
 
 /// An executable element is an element that can hold code.
@@ -972,7 +997,7 @@ abstract class MemberElement extends Element implements ExecutableElement {
   /// The local functions defined within this member.
   List<FunctionElement> get nestedClosures;
 
-  /// The name of this member taking privacy into account.
+  /// The name of this member, taking privacy into account.
   Name get memberName;
 }
 
@@ -1266,7 +1291,8 @@ abstract class ConstructorElement extends FunctionElement
   /// `null` otherwise.
   ConstantConstructor get constantConstructor;
 
-  /// `true` if this constructor is either `bool.fromEnviroment`
+  /// `true` if this constructor is one of `bool.fromEnvironment`,
+  /// `int.fromEnvironment`, or `String.fromEnvironment`.
   bool get isFromEnvironmentConstructor;
 
   /// Use [enclosingClass] instead.
@@ -1283,6 +1309,9 @@ abstract class ConstructorBodyElement extends MethodElement {
 /// [TypeDeclarationElement] defines the common interface for class/interface
 /// declarations and typedefs.
 abstract class TypeDeclarationElement extends Element implements AstElement {
+  /// The name of this type declaration, taking privacy into account.
+  Name get memberName;
+
   /// Do not use [computeType] outside of the resolver; instead retrieve the
   /// type from the [thisType] or [rawType], depending on the use case.
   ///
@@ -1290,7 +1319,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  GenericType computeType(Compiler compiler);
+  GenericType computeType(Resolution resolution);
 
   /**
    * The `this type` for this type declaration.
@@ -1330,7 +1359,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
 
   bool get isResolved;
 
-  void ensureResolved(Compiler compiler);
+  void ensureResolved(Resolution resolution);
 }
 
 abstract class ClassElement extends TypeDeclarationElement
@@ -1369,8 +1398,23 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// `true` if this class is an enum declaration.
   bool get isEnumClass;
+
+  /// `true` if this class is a mixin application, either named or unnamed.
   bool get isMixinApplication;
+
+  /// `true` if this class is a named mixin application, e.g.
+  ///
+  ///     class NamedMixinApplication = SuperClass with MixinClass;
+  ///
+  bool get isNamedMixinApplication;
+
+  /// `true` if this class is an unnamed mixin application, e.g. the synthesized
+  /// `SuperClass+MixinClass` mixin application class in:
+  ///
+  ///     class Class extends SuperClass with MixinClass {}
+  ///
   bool get isUnnamedMixinApplication;
+
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
 
@@ -1381,13 +1425,19 @@ abstract class ClassElement extends TypeDeclarationElement
   /// implementing the interface or by providing a [call] method.
   bool implementsFunction(Compiler compiler);
 
+  /// Returns `true` if this class extends [cls] directly or indirectly.
+  ///
+  /// This method is not to be used for checking type hierarchy and assignments,
+  /// because it does not take parameterized types into account.
   bool isSubclassOf(ClassElement cls);
-  /// Returns true if `this` explicitly/nominally implements [intrface].
+
+  /// Returns `true` if this class explicitly implements [intrface].
   ///
   /// Note that, if [intrface] is the `Function` class, this method returns
   /// false for a class that has a `call` method but does not explicitly
   /// implement `Function`.
   bool implementsInterface(ClassElement intrface);
+
   bool hasFieldShadowedBy(Element fieldMember);
 
   /// Returns `true` if this class has a @proxy annotation.
@@ -1492,6 +1542,8 @@ abstract class JumpTarget extends Local {
 /// The [Element] for a type variable declaration on a generic class or typedef.
 abstract class TypeVariableElement extends Element
     implements AstElement, TypedElement {
+  /// The name of this type variable, taking privacy into account.
+  Name get memberName;
 
   /// Use [typeDeclaration] instead.
   @deprecated
@@ -1522,7 +1574,7 @@ abstract class MetadataAnnotation implements Spannable {
   bool get hasNode;
   Node get node;
 
-  MetadataAnnotation ensureResolved(Compiler compiler);
+  MetadataAnnotation ensureResolved(Resolution resolution);
 }
 
 /// An [Element] that has a type.
@@ -1534,7 +1586,7 @@ abstract class TypedElement extends Element {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  DartType computeType(Compiler compiler);
+  DartType computeType(Resolution resolution);
 
   DartType get type;
 }
@@ -1581,6 +1633,8 @@ class ResolvedAst {
   final TreeElements elements;
 
   ResolvedAst(this.element, this.node, this.elements);
+
+  String toString() => '$element:$node';
 }
 
 /// A [MemberSignature] is a member of an interface.

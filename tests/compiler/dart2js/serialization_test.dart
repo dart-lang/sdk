@@ -7,9 +7,11 @@ library dart2js.serialization_test;
 import 'dart:io';
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/ordered_typeset.dart';
@@ -425,6 +427,26 @@ class ElementIdentityEquivalence extends BaseElementVisitor<dynamic, Element> {
           element1.name, element2.name);
     visit(element1.functionDeclaration, element2.functionDeclaration);
   }
+
+  @override
+  void visitImportElement(ImportElement element1, ImportElement element2) {
+    visit(element1.importedLibrary, element2.importedLibrary);
+    visit(element1.library, element2.library);
+  }
+
+  @override
+  void visitExportElement(ExportElement element1, ExportElement element2) {
+    visit(element1.exportedLibrary, element2.exportedLibrary);
+    visit(element1.library, element2.library);
+  }
+
+  @override
+  void visitPrefixElement(PrefixElement element1, PrefixElement element2) {
+    check(element1, element2,
+          'name',
+          element1.name, element2.name);
+    visit(element1.library, element2.library);
+  }
 }
 
 /// Visitor that checks for equivalence of [Element] properties.
@@ -446,8 +468,8 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   void visitLibraryElement(LibraryElement element1, LibraryElement element2) {
     checkElementIdentities(null, null, null, element1, element2);
     check(element1, element2, 'name', element1.name, element2.name);
-    check(element1, element2, 'getLibraryName',
-          element1.getLibraryName(), element2.getLibraryName());
+    check(element1, element2, 'libraryName',
+          element1.libraryName, element2.libraryName);
     visitMembers(element1, element2);
     visit(element1.entryCompilationUnit, element2.entryCompilationUnit);
     checkElementLists(
@@ -455,18 +477,10 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1.compilationUnits.toList(),
         element2.compilationUnits.toList());
 
-    bool filterTags(LibraryTag tag) => tag.asLibraryDependency() != null;
-
-    List<LibraryTag> tags1 = element1.tags.where(filterTags).toList();
-    List<LibraryTag> tags2 = element2.tags.where(filterTags).toList();
-    checkListEquivalence(element1, element2, 'tags', tags1, tags2,
-        (Object object1, Object object2, String property,
-         LibraryDependency tag1, LibraryDependency tag2) {
-      checkElementIdentities(
-          tag1, tag2, 'getLibraryFromTag',
-          element1.getLibraryFromTag(tag1),
-          element2.getLibraryFromTag(tag2));
-    });
+    checkElementListIdentities(
+        element1, element2, 'imports', element1.imports, element2.imports);
+    checkElementListIdentities(
+        element1, element2, 'exports', element1.exports, element2.exports);
 
     List<Element> imports1 = <Element>[];
     List<Element> imports2 = <Element>[];
@@ -479,7 +493,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
       imports2.add(import);
     });
     checkElementListIdentities(
-        element1, element2, 'imports', imports1, imports2);
+        element1, element2, 'importScope', imports1, imports2);
 
     List<Element> exports1 = <Element>[];
     List<Element> exports2 = <Element>[];
@@ -492,7 +506,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
       exports2.add(export);
     });
     checkElementListIdentities(
-        element1, element2, 'exports', exports1, exports2);
+        element1, element2, 'exportScope', exports1, exports2);
   }
 
   @override
@@ -776,6 +790,39 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     checkElementIdentities(
         element1, element2, 'fieldElement',
         element1.fieldElement, element2.fieldElement);
+  }
+
+  @override
+  void visitImportElement(ImportElement element1, ImportElement element2) {
+    check(element1, element2, 'uri', element1.uri, element2.uri);
+    check(
+        element1, element2, 'isDeferred',
+        element1.isDeferred, element2.isDeferred);
+    checkElementProperties(
+        element1, element2, 'prefix',
+        element1.prefix, element2.prefix);
+    checkElementIdentities(
+        element1, element2, 'importedLibrary',
+        element1.importedLibrary, element2.importedLibrary);
+  }
+
+  @override
+  void visitExportElement(ExportElement element1, ExportElement element2) {
+    check(element1, element2, 'uri', element1.uri, element2.uri);
+    checkElementIdentities(
+        element1, element2, 'importedLibrary',
+        element1.exportedLibrary, element2.exportedLibrary);
+  }
+
+  @override
+  void visitPrefixElement(PrefixElement element1, PrefixElement element2) {
+    check(
+        element1, element2, 'isDeferred',
+        element1.isDeferred, element2.isDeferred);
+    checkElementIdentities(
+        element1, element2, 'importedLibrary',
+        element1.deferredImport, element2.deferredImport);
+    // TODO(johnniwinther): Check members.
   }
 }
 

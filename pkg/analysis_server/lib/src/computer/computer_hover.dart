@@ -4,7 +4,8 @@
 
 library computer.hover;
 
-import 'package:analysis_server/src/protocol.dart' show HoverInformation;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    show HoverInformation;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
@@ -83,7 +84,7 @@ class DartUnitHoverComputer {
       HoverInformation hover =
           new HoverInformation(expression.offset, expression.length);
       // element
-      Element element = ElementLocator.locateWithOffset(expression, _offset);
+      Element element = ElementLocator.locate(expression);
       if (element != null) {
         // variable, if synthetic accessor
         if (element is PropertyAccessorElement) {
@@ -111,9 +112,7 @@ class DartUnitHoverComputer {
           }
         }
         // documentation
-        String dartDoc = element.computeDocumentationComment();
-        dartDoc = _removeDartDocDelimiters(dartDoc);
-        hover.dartdoc = dartDoc;
+        hover.dartdoc = _computeDocumentation(element);
       }
       // parameter
       hover.parameter = _safeToString(expression.bestParameterElement);
@@ -125,6 +124,14 @@ class DartUnitHoverComputer {
     }
     // not an expression
     return null;
+  }
+
+  String _computeDocumentation(Element element) {
+    if (element is ParameterElement) {
+      element = element.enclosingElement;
+    }
+    String dartDoc = element.computeDocumentationComment();
+    return _removeDartDocDelimiters(dartDoc);
   }
 
   static _safeToString(obj) => obj != null ? obj.toString() : null;

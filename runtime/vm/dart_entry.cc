@@ -55,19 +55,19 @@ class ScopedIsolateStackLimits : public ValueObject {
 };
 
 
-// Clears/restores Isolate::long_jump_base on construction/destruction.
+// Clears/restores Thread::long_jump_base on construction/destruction.
 // Ensures that we do not attempt to long jump across Dart frames.
 class SuspendLongJumpScope : public StackResource {
  public:
-  explicit SuspendLongJumpScope(Isolate* isolate)
-      : StackResource(isolate),
-        saved_long_jump_base_(isolate->long_jump_base()) {
-    isolate->set_long_jump_base(NULL);
+  explicit SuspendLongJumpScope(Thread* thread)
+      : StackResource(thread),
+        saved_long_jump_base_(thread->long_jump_base()) {
+    thread->set_long_jump_base(NULL);
   }
 
   ~SuspendLongJumpScope() {
-    ASSERT(isolate()->long_jump_base() == NULL);
-    isolate()->set_long_jump_base(saved_long_jump_base_);
+    ASSERT(thread()->long_jump_base() == NULL);
+    thread()->set_long_jump_base(saved_long_jump_base_);
   }
 
  private:
@@ -84,6 +84,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
+  ASSERT(isolate->MutatorThreadIsCurrentThread());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(
         zone, Compiler::CompileFunction(thread, function));
@@ -96,31 +97,21 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       StubCode::InvokeDartCode_entry()->EntryPoint());
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
-  ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
+  ASSERT(thread->no_callback_scope_depth() == 0);
   ScopedIsolateStackLimits stack_limit(isolate);
-  SuspendLongJumpScope suspend_long_jump_scope(isolate);
+  SuspendLongJumpScope suspend_long_jump_scope(thread);
 #if defined(USING_SIMULATOR)
-#if defined(ARCH_IS_64_BIT)
-  // TODO(zra): Change to intptr_t so we have only one case.
-    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
-        reinterpret_cast<int64_t>(entrypoint),
-        static_cast<int64_t>(code.EntryPoint()),
-        reinterpret_cast<int64_t>(&arguments_descriptor),
-        reinterpret_cast<int64_t>(&arguments),
-        reinterpret_cast<int64_t>(thread)));
+  return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
+      reinterpret_cast<intptr_t>(entrypoint),
+      reinterpret_cast<intptr_t>(&code),
+      reinterpret_cast<intptr_t>(&arguments_descriptor),
+      reinterpret_cast<intptr_t>(&arguments),
+      reinterpret_cast<intptr_t>(thread)));
 #else
-    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
-        reinterpret_cast<int32_t>(entrypoint),
-        static_cast<int32_t>(code.EntryPoint()),
-        reinterpret_cast<int32_t>(&arguments_descriptor),
-        reinterpret_cast<int32_t>(&arguments),
-        reinterpret_cast<int32_t>(thread)));
-#endif
-#else
-    return entrypoint(code.EntryPoint(),
-                      arguments_descriptor,
-                      arguments,
-                      thread);
+  return entrypoint(code,
+                    arguments_descriptor,
+                    arguments,
+                    thread);
 #endif
 }
 
@@ -239,9 +230,10 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   if (function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
-    Isolate* isolate = Isolate::Current();
+    Thread* thread = Thread::Current();
     function ^= Resolver::ResolveDynamicForReceiverClass(
-        Class::Handle(isolate, isolate->object_store()->object_class()),
+        Class::Handle(thread->zone(),
+                      thread->isolate()->object_store()->object_class()),
         Symbols::NoSuchMethod(),
         args_desc);
   }
@@ -493,10 +485,9 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
 
 
 RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
-  Isolate* isolate = Isolate::Current();
-  Function& function =
-      Function::Handle(isolate,
-                       isolate->object_store()->lookup_port_handler());
+  Thread* thread = Thread::Current();
+  Function& function = Function::Handle(thread->zone(),
+      thread->isolate()->object_store()->lookup_port_handler());
   const int kNumArguments = 1;
   if (function.IsNull()) {
     Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
@@ -511,7 +502,7 @@ RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
                                        kNumArguments,
                                        Object::empty_array());
     ASSERT(!function.IsNull());
-    isolate->object_store()->set_lookup_port_handler(function);
+    thread->isolate()->object_store()->set_lookup_port_handler(function);
   }
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(Integer::New(port_id)));
@@ -523,16 +514,18 @@ RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
 
 RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
                                            const Instance& message) {
-  Isolate* isolate = Isolate::Current();
-  Function& function = Function::Handle(isolate,
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Function& function = Function::Handle(zone,
       isolate->object_store()->handle_message_function());
   const int kNumArguments = 2;
   if (function.IsNull()) {
-    Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
+    Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
     ASSERT(!isolate_lib.IsNull());
-    const String& class_name = String::Handle(isolate,
+    const String& class_name = String::Handle(zone,
         isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
-    const String& function_name = String::Handle(isolate,
+    const String& function_name = String::Handle(zone,
         isolate_lib.PrivateName(Symbols::_handleMessage()));
     function = Resolver::ResolveStatic(isolate_lib,
                                        class_name,
@@ -542,7 +535,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
     ASSERT(!function.IsNull());
     isolate->object_store()->set_handle_message_function(function);
   }
-  const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
+  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, handler);
   args.SetAt(1, message);
   if (isolate->debugger()->IsStepping()) {
@@ -551,8 +544,22 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
     // at the first location the user is interested in.
     isolate->debugger()->SetSingleStep();
   }
-  const Object& result = Object::Handle(isolate,
+  const Object& result = Object::Handle(zone,
       DartEntry::InvokeFunction(function, args));
+  ASSERT(result.IsNull() || result.IsError());
+  return result.raw();
+}
+
+
+RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
+  Zone* zone = Thread::Current()->zone();
+  Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
+  ASSERT(!isolate_lib.IsNull());
+  Function& function = Function::Handle(zone,
+      isolate_lib.LookupFunctionAllowPrivate(
+          Symbols::_runPendingImmediateCallback()));
+  const Object& result = Object::Handle(zone,
+      DartEntry::InvokeFunction(function, Object::empty_array()));
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();
 }

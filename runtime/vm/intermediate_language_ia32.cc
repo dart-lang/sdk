@@ -151,15 +151,19 @@ LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 0;
   return LocationSummary::Make(zone,
                                kNumInputs,
-                               Location::RequiresRegister(),
+                               Assembler::IsSafe(value())
+                                   ? Location::Constant(this)
+                                   : Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
 
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
-  if (!locs()->out(0).IsInvalid()) {
-    Register result = locs()->out(0).reg();
+  Location out = locs()->out(0);
+  ASSERT(out.IsRegister() || out.IsConstant() || out.IsInvalid());
+  if (out.IsRegister()) {
+    Register result = out.reg();
     __ LoadObjectSafely(result, value());
   }
 }
@@ -828,11 +832,19 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     __ leal(EAX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
   }
-  __ movl(ECX, Immediate(reinterpret_cast<uword>(native_c_function())));
   __ movl(EDX, Immediate(argc_tag));
-  const StubEntry* stub_entry = (is_bootstrap_native() || is_leaf_call) ?
-      StubCode::CallBootstrapCFunction_entry() :
-      StubCode::CallNativeCFunction_entry();
+
+  const StubEntry* stub_entry;
+  if (link_lazily()) {
+    stub_entry = StubCode::CallBootstrapCFunction_entry();
+    __ movl(ECX, Immediate(NativeEntry::LinkNativeCallEntry()));
+  } else {
+    stub_entry = (is_bootstrap_native() || is_leaf_call) ?
+        StubCode::CallBootstrapCFunction_entry() :
+        StubCode::CallNativeCFunction_entry();
+    const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
+    __ movl(ECX, Immediate(label.address()));
+  }
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
@@ -1648,16 +1660,14 @@ class BoxAllocationSlowPath : public SlowPathCode {
         result_(result) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    Isolate* isolate = compiler->isolate();
-
     if (Assembler::EmittingComments()) {
       __ Comment("%s slow path allocation of %s",
                  instruction_->DebugName(),
                  String::Handle(cls_.PrettyName()).ToCString());
     }
     __ Bind(entry_label());
-    const Code& stub =
-        Code::Handle(isolate, StubCode::GetAllocationStubForClass(cls_));
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
     const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction_->locs();
@@ -1965,7 +1975,7 @@ LocationSummary* LoadStaticFieldInstr::MakeLocationSummary(Zone* zone,
 void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register field = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ movl(result, FieldAddress(field, Field::value_offset()));
+  __ movl(result, FieldAddress(field, Field::static_value_offset()));
 }
 
 
@@ -1987,10 +1997,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp,
-        FieldAddress(temp, Field::value_offset()), value, CanValueBeSmi());
+                       FieldAddress(temp, Field::static_value_offset()),
+                       value,
+                       CanValueBeSmi());
   } else {
     __ StoreIntoObjectNoBarrier(
-        temp, FieldAddress(temp, Field::value_offset()), value);
+        temp, FieldAddress(temp, Field::static_value_offset()), value);
   }
 }
 
@@ -2128,8 +2140,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  const Code& stub = Code::Handle(compiler->isolate(),
-                                  StubCode::AllocateArray_entry()->code());
+  const Code& stub = Code::ZoneHandle(compiler->zone(),
+                                      StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
   compiler->GenerateCall(token_pos(),
                          *StubCode::AllocateArray_entry(),
@@ -2403,8 +2415,8 @@ class AllocateContextSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
 
     __ movl(EDX, Immediate(instruction_->num_context_variables()));
-    const Code& stub = Code::Handle(compiler->isolate(),
-                                    StubCode::AllocateContext_entry()->code());
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::AllocateContext_entry()->code());
     compiler->AddStubCallTarget(stub);
     compiler->GenerateCall(instruction_->token_pos(),
                            *StubCode::AllocateContext_entry(),
@@ -2487,7 +2499,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label call_runtime, no_call;
 
-  __ movl(temp, FieldAddress(field, Field::value_offset()));
+  __ movl(temp, FieldAddress(field, Field::static_value_offset()));
   __ CompareObject(temp, Object::sentinel());
   __ j(EQUAL, &call_runtime);
 
@@ -6076,7 +6088,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ movl(left_lo, left_hi);  // Shift by 32.
           __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
           if (shift > 32) {
-            __ sarl(left_lo, Immediate(shift - 32));
+            __ sarl(left_lo, Immediate(shift > 63 ? 31 : shift - 32));
           }
         } else {
           __ shrdl(left_lo, left_hi, Immediate(shift));
@@ -6085,6 +6097,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       }
       case Token::kSHL: {
+        ASSERT(shift < 64);
         if (can_overflow()) {
           Register temp1 = locs()->temp(0).reg();
           Register temp2 = locs()->temp(1).reg();
@@ -6534,13 +6547,10 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     if (FLAG_emit_edge_counters) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
-    // may be inserted before this instruction.  This descriptor points
-    // after the edge counter for uniformity with ARM and MIPS, where we can
-    // reuse pattern matching that matches backwards from the end of the
-    // pattern.
+    // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);
@@ -6573,20 +6583,22 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
+  Register target_reg = locs()->temp_slot(0)->reg();
 
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ movl(target_address_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+  // Load code object from frame.
+  __ movl(target_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+  // Load instructions entry point.
+  __ movl(target_reg, FieldAddress(target_reg, Code::entry_point_offset()));
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
   if (offset()->definition()->representation() == kTagged) {
     __ SmiUntag(offset_reg);
   }
-  __ addl(target_address_reg, offset_reg);
+  __ addl(target_reg, offset_reg);
 
   // Jump to the absolute address.
-  __ jmp(target_address_reg);
+  __ jmp(target_reg);
 }
 
 
@@ -6761,18 +6773,17 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // EBX: Code (compiled code or lazy compile stub).
   ASSERT(locs()->in(0).reg() == EAX);
-  __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
 
   // EAX: Function.
   // EDX: Arguments descriptor array.
   // ECX: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   __ xorl(ECX, ECX);
-  __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   __ call(EBX);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
   }
@@ -6815,9 +6826,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Isolate* isolate = compiler->isolate();
-  const Code& stub = Code::Handle(isolate,
-                                  StubCode::GetAllocationStubForClass(cls()));
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   const StubEntry stub_entry(stub);
   compiler->GenerateCall(token_pos(),
                          stub_entry,

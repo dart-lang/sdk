@@ -39,10 +39,20 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         static var NAN = 0;
         static parse(s) {}
       }''',
-  'Function': 'class Function {}',
+  'Function': r'''
+      class Function {
+        static apply(Function fn, List positional, [Map named]) => null;
+      }''',
   'identical': 'bool identical(Object a, Object b) { return true; }',
   'int': 'abstract class int extends num { }',
-  'Iterable': 'abstract class Iterable {}',
+  'Iterable': '''
+      abstract class Iterable<E> {
+          Iterator<E> get iterator => null;
+      }''',
+  'Iterator': '''
+      abstract class Iterator<E> {
+          E get current => null;
+      }''',
   'LinkedHashMap': r'''
       class LinkedHashMap {
         factory LinkedHashMap._empty() => null;
@@ -51,7 +61,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         static _makeLiteral(elements) => null;
       }''',
   'List': r'''
-      class List<E> {
+      class List<E> extends Iterable<E> {
         var length;
         List([length]);
         List.filled(length, element);
@@ -81,6 +91,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         String toString() { return null; }
         noSuchMethod(im) { throw im; }
       }''',
+  'Resource': 'class Resource {}',
   'StackTrace': 'abstract class StackTrace {}',
   'String': 'class String implements Pattern {}',
   'Symbol': 'class Symbol { final name; const Symbol(this.name); }',
@@ -96,7 +107,10 @@ import 'dart:async';
 ''';
 
 const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
+  'assertTest': 'assertTest(a) {}',
+  'assertThrow': 'assertThrow(a) {}',
   'assertHelper': 'assertHelper(a) {}',
+  'assertUnreachable': 'assertUnreachable() {}',
   'assertIsSubtype': 'assertIsSubtype(subtype, supertype, message) {}',
   'assertSubtype': 'assertSubtype(object, isField, checks, asField) {}',
   'assertSubtypeOfRuntimeType': 'assertSubtypeOfRuntimeType(object, type) {}',
@@ -227,7 +241,12 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'throwRuntimeError': 'throwRuntimeError(message) {}',
   'throwTypeError': 'throwTypeError(message) {}',
   'TypeImpl': 'class TypeImpl {}',
-  'TypeVariable': 'class TypeVariable {}',
+  'TypeVariable': '''class TypeVariable {
+    final Type owner;
+    final String name;
+    final int bound;
+    TypeVariable(this.owner, this.name, this.bound);
+  }''',
   'unwrapException': 'unwrapException(e) {}',
   'voidTypeCheck': 'voidTypeCheck(value) {}',
   'wrapException': 'wrapException(x) { return x; }',
@@ -277,6 +296,7 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
             E removeAt(index) => this[0];
             E elementAt(index) => this[0];
             E singleWhere(f) => this[0];
+            Iterator<E> get iterator => null; 
           }''',
   'JSBool': 'class JSBool extends Interceptor implements bool {}',
   'JSDouble': 'class JSDouble extends JSNumber implements double {}',
@@ -327,11 +347,11 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
         operator &(other) => 42;
         operator ^(other) => 42;
 
-        operator >(other) => true;
-        operator >=(other) => true;
-        operator <(other) => true;
-        operator <=(other) => true;
-        operator ==(other) => true;
+        operator >(other) => !identical(this, other);
+        operator >=(other) => !identical(this, other);
+        operator <(other) => !identical(this, other);
+        operator <=(other) => !identical(this, other);
+        operator ==(other) => identical(this, other);
         get hashCode => throw "JSNumber.hashCode not implemented.";
 
         // We force side effects on _tdivFast to mimic the shortcomings of
@@ -351,8 +371,8 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
       }''',
   'JSString': r'''
       class JSString extends Interceptor implements String, JSIndexable {
-        var split;
-        var length;
+        split(pattern) => [];
+        int get length => 42;
         operator[](index) {}
         toString() {}
         operator+(other) => this;
@@ -361,8 +381,10 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
   'JSUInt31': 'class JSUInt31 extends JSUInt32 {}',
   'JSUInt32': 'class JSUInt32 extends JSPositiveInt {}',
   'ObjectInterceptor': 'class ObjectInterceptor {}',
+  'JavaScriptObject': 'class JavaScriptObject {}',
   'PlainJavaScriptObject': 'class PlainJavaScriptObject {}',
   'UnknownJavaScriptObject': 'class UnknownJavaScriptObject {}',
+  'JavaScriptFunction': 'class JavaScriptFunction {}',
 };
 
 const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
@@ -375,7 +397,7 @@ const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
 
 const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
   'DeferredLibrary': 'class DeferredLibrary {}',
-  'Future': 
+  'Future':
       '''
       class Future<T> {
         Future.value([value]);
@@ -386,8 +408,49 @@ const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
   'StreamIterator': 'class StreamIterator<T> {}',
 };
 
-const Map<String, String> DEFAULT_MIRRORS_LIBRARY = const <String, String>{
-  'Comment': 'class Comment {}',
-  'MirrorSystem': 'class MirrorSystem {}',
-  'MirrorsUsed': 'class MirrorsUsed {}',
+/// These members are only needed when async/await is used.
+const Map<String, String> ASYNC_AWAIT_LIBRARY = const <String, String>{
+  '_wrapJsFunctionForAsync': '_wrapJsFunctionForAsync(f) {}',
+  '_asyncHelper': '_asyncHelper(o, f, c) {}',
+  '_SyncStarIterable': 'class _SyncStarIterable {}',
+  '_IterationMarker': 'class _IterationMarker {}',
+  '_AsyncStarStreamController': 'class _AsyncStarStreamController {}',
+  '_asyncStarHelper': '_asyncStarHelper(x, y, z) {}',
+  '_streamOfController': '_streamOfController(x) {}',
+};
+
+const String DEFAULT_MIRRORS_SOURCE = r'''
+import 'dart:_js_mirrors' as js;
+class Comment {}
+class MirrorSystem {}
+class MirrorsUsed {
+  final targets;
+  const MirrorsUsed({this.targets});
+}
+void reflectType(Type t) => js.disableTreeShaking();
+''';
+
+const String DEFAULT_JS_MIRRORS_SOURCE = r'''
+disableTreeShaking(){}
+preserveMetadata(){}
+preserveUris(){}
+preserveLibraryNames(){}
+''';
+
+const Map<String, String> DEFAULT_LOOKUP_MAP_LIBRARY = const <String, String>{
+  'LookupMap': r'''
+  class LookupMap<K, V> {
+    final _key;
+    final _value;
+    final _entries;
+    final _nestedMaps;
+
+    const LookupMap(this._entries, [this._nestedMaps = const []])
+        : _key = null, _value = null;
+
+    const LookupMap.pair(this._key, this._value)
+        : _entries = const [], _nestedMaps = const [];
+    V operator[](K k) => null;
+  }''',
+  '_version': 'const _version = "0.0.1+1";',
 };

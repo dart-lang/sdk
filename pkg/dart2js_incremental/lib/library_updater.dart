@@ -7,16 +7,13 @@ library dart2js_incremental.library_updater;
 import 'dart:async' show
     Future;
 
-import 'dart:convert' show
-    UTF8;
-
 import 'package:compiler/compiler.dart' as api;
 
-import 'package:compiler/src/dart2jslib.dart' show
-    Compiler,
-    EnqueueTask,
-    MessageKind,
-    Script;
+import 'package:compiler/src/compiler.dart' show
+    Compiler;
+
+import 'package:compiler/src/diagnostics/messages.dart' show
+    MessageKind;
 
 import 'package:compiler/src/elements/elements.dart' show
     ClassElement,
@@ -27,17 +24,35 @@ import 'package:compiler/src/elements/elements.dart' show
     STATE_NOT_STARTED,
     ScopeContainerElement;
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
-    EOF_TOKEN,
-    Listener,
-    NodeListener,
-    Parser,
+import 'package:compiler/src/enqueue.dart' show
+    EnqueueTask;
+
+import 'package:compiler/src/parser/listener.dart' show
+    Listener;
+
+import 'package:compiler/src/parser/node_listener.dart' show
+    NodeListener;
+
+import 'package:compiler/src/parser/partial_elements.dart' show
     PartialClassElement,
     PartialElement,
     PartialFieldList,
-    PartialFunctionElement,
-    Scanner,
+    PartialFunctionElement;
+
+import 'package:compiler/src/parser/parser.dart' show
+    Parser;
+
+import 'package:compiler/src/scanner/scanner.dart' show
+    Scanner;
+
+import 'package:compiler/src/tokens/token.dart' show
     Token;
+
+import 'package:compiler/src/tokens/token_constants.dart' show
+    EOF_TOKEN;
+
+import 'package:compiler/src/script.dart' show
+    Script;
 
 import 'package:compiler/src/io/source_file.dart' show
     CachingUtf8BytesSourceFile,
@@ -59,11 +74,7 @@ import 'package:compiler/src/js/js.dart' show
 import 'package:compiler/src/js/js.dart' as jsAst;
 
 import 'package:compiler/src/js_emitter/js_emitter.dart' show
-    ClassBuilder,
-    ClassEmitter,
     CodeEmitterTask,
-    ContainerBuilder,
-    MemberInfo,
     computeMixinClass;
 
 import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
@@ -95,7 +106,7 @@ import 'package:compiler/src/elements/modelx.dart' show
     FieldElementX,
     LibraryElementX;
 
-import 'package:compiler/src/universe/universe.dart' show
+import 'package:compiler/src/universe/selector.dart' show
     Selector;
 
 import 'package:compiler/src/constants/values.dart' show
@@ -672,7 +683,7 @@ class LibraryUpdater extends JsFeatures {
       PartialFunctionElement before,
       PartialFunctionElement after) {
     FunctionExpression node =
-        after.parseNode(compiler).asFunctionExpression();
+        after.parseNode(compiler.parsing).asFunctionExpression();
     if (node == null) {
       return cannotReuse(after, "Not a function expression: '$node'");
     }
@@ -694,7 +705,7 @@ class LibraryUpdater extends JsFeatures {
       Token diffToken,
       PartialClassElement before,
       PartialClassElement after) {
-    ClassNode node = after.parseNode(compiler).asClassNode();
+    ClassNode node = after.parseNode(compiler.parsing).asClassNode();
     if (node == null) {
       return cannotReuse(after, "Not a ClassNode: '$node'");
     }

@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.element_handle;
 
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'resolver.dart';
-import 'source.dart';
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Instances of the class `ClassElementHandle` implement a handle to a `ClassElement`.
@@ -340,6 +338,9 @@ abstract class ElementHandle implements Element {
   String get displayName => actualElement.displayName;
 
   @override
+  SourceRange get docRange => actualElement.docRange;
+
+  @override
   Element get enclosingElement => actualElement.enclosingElement;
 
   @override
@@ -372,6 +373,9 @@ abstract class ElementHandle implements Element {
 
   @override
   String get name => actualElement.name;
+
+  @override
+  int get nameLength => actualElement.nameLength;
 
   @override
   int get nameOffset => actualElement.nameOffset;
@@ -515,6 +519,9 @@ abstract class ExecutableElementHandle extends ElementHandle
   List<FunctionElement> get functions => actualElement.functions;
 
   @override
+  bool get hasImplicitReturnType => actualElement.hasImplicitReturnType;
+
+  @override
   bool get isAbstract => actualElement.isAbstract;
 
   @override
@@ -608,9 +615,6 @@ class FieldElementHandle extends PropertyInducingElementHandle
 
   @override
   bool get isEnumConstant => actualElement.isEnumConstant;
-
-  @override
-  bool get isStatic => actualElement.isStatic;
 
   @override
   ElementKind get kind => ElementKind.FIELD;
@@ -895,6 +899,7 @@ class MethodElementHandle extends ExecutableElementHandle
  * `ParameterElement`.
  */
 class ParameterElementHandle extends VariableElementHandle
+    with ParameterElementMixin
     implements ParameterElement {
   /**
    * Initialize a newly created element handle to represent the given element.
@@ -1020,9 +1025,6 @@ abstract class PropertyInducingElementHandle extends VariableElementHandle
   PropertyAccessorElement get getter => actualElement.getter;
 
   @override
-  bool get isStatic => actualElement.isStatic;
-
-  @override
   DartType get propagatedType => actualElement.propagatedType;
 
   @override
@@ -1091,6 +1093,12 @@ abstract class VariableElementHandle extends ElementHandle
   VariableElement get actualElement => super.actualElement as VariableElement;
 
   @override
+  DartObject get constantValue => actualElement.constantValue;
+
+  @override
+  bool get hasImplicitType => actualElement.hasImplicitType;
+
+  @override
   FunctionElement get initializer => actualElement.initializer;
 
   @override
@@ -1108,8 +1116,12 @@ abstract class VariableElementHandle extends ElementHandle
       actualElement.isPotentiallyMutatedInScope;
 
   @override
+  bool get isStatic => actualElement.isStatic;
+
+  @override
   DartType get type => actualElement.type;
 }
+
 /**
  * TODO(scheglov) invalid implementation
  */

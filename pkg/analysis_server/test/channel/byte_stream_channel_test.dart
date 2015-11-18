@@ -8,14 +8,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
+  initializeTestEnvironment();
   group('ByteStreamClientChannel', () {
     setUp(ByteStreamClientChannelTest.setUp);
     test('close', ByteStreamClientChannelTest.close);
@@ -215,8 +217,9 @@ class ByteStreamServerChannelTest {
 
   static Future sendNotification() {
     channel.sendNotification(new Notification('foo'));
-    return outputLineStream.first.timeout(new Duration(seconds: 1)).then(
-        (String notification) {
+    return outputLineStream.first
+        .timeout(new Duration(seconds: 1))
+        .then((String notification) {
       var jsonNotification = new JsonCodec().decode(notification);
       expect(jsonNotification, isMap);
       expect(jsonNotification, contains('event'));
@@ -226,8 +229,9 @@ class ByteStreamServerChannelTest {
 
   static Future sendResponse() {
     channel.sendResponse(new Response('foo'));
-    return outputLineStream.first.timeout(new Duration(seconds: 1)).then(
-        (String response) {
+    return outputLineStream.first
+        .timeout(new Duration(seconds: 1))
+        .then((String response) {
       var jsonResponse = new JsonCodec().decode(response);
       expect(jsonResponse, isMap);
       expect(jsonResponse, contains('id'));

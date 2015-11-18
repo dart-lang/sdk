@@ -260,6 +260,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void InstanceCallNoopt(InstanceCallInstr* instr);
 
+  RawField* GetField(intptr_t class_id, const String& field_name);
+
   Thread* thread() const { return flow_graph_->thread(); }
   Isolate* isolate() const { return flow_graph_->isolate(); }
   Zone* zone() const { return flow_graph_->zone(); }

@@ -9,75 +9,68 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 InternetAddress HOST;
-const CERTIFICATE = "localhost_cert";
 
-Future testClientCertificate() {
-  var completer = new Completer();
-  SecureServerSocket.bind(HOST,
-                          0,
-                          CERTIFICATE,
-                          requestClientCertificate: true).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST,
-                                               server.port,
-                                               sendClientCertificate: true);
-    server.listen((serverEnd) {
-      X509Certificate certificate = serverEnd.peerCertificate;
-      Expect.isNotNull(certificate);
-      Expect.equals("CN=localhost", certificate.subject);
-      Expect.equals("CN=myauthority", certificate.issuer);
-      clientEndFuture.then((clientEnd) {
-        X509Certificate certificate = clientEnd.peerCertificate;
-        Expect.isNotNull(certificate);
-        Expect.equals("CN=localhost", certificate.subject);
-        Expect.equals("CN=myauthority", certificate.issuer);
-        clientEnd.close();
-        serverEnd.close();
-        server.close();
-        completer.complete();
-      });
-    });
-  });
-  return completer.future;
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+      password: 'dartdart')
+  ..setTrustedCertificates(file: localFile('certificates/client_authority.pem'))
+  ..setClientAuthorities(localFile('certificates/client_authority.pem'));
+
+SecurityContext clientCertContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'))
+  ..useCertificateChain(localFile('certificates/client1.pem'))
+  ..usePrivateKey(localFile('certificates/client1_key.pem'),
+      password: 'dartdart');
+
+SecurityContext clientNoCertContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+
+Future testClientCertificate({bool required, bool sendCert}) async {
+  var server = await SecureServerSocket.bind(HOST, 0, serverContext,
+      requestClientCertificate: true, requireClientCertificate: required);
+  var clientContext = sendCert ? clientCertContext : clientNoCertContext;
+  var clientEndFuture =
+      SecureSocket.connect(HOST, server.port, context: clientContext);
+  if (required && !sendCert) {
+    try {
+      await server.first;
+    } catch (e) {
+      try {
+        await clientEndFuture;
+      } catch (e) {
+        return;
+      }
+    }
+    Expect.fail("Connection succeeded with no required client certificate");
+  }
+  var serverEnd = await server.first;
+  var clientEnd = await clientEndFuture;
+
+  X509Certificate clientCertificate = serverEnd.peerCertificate;
+  if (sendCert) {
+    Expect.isNotNull(clientCertificate);
+    Expect.equals("/CN=user1", clientCertificate.subject);
+    Expect.equals("/CN=clientauthority", clientCertificate.issuer);
+  } else {
+    Expect.isNull(clientCertificate);
+  }
+  X509Certificate serverCertificate = clientEnd.peerCertificate;
+  Expect.isNotNull(serverCertificate);
+  Expect.equals("/CN=localhost", serverCertificate.subject);
+  Expect.equals("/CN=intermediateauthority", serverCertificate.issuer);
+  clientEnd.close();
+  serverEnd.close();
 }
 
-Future testRequiredClientCertificate() {
-  var completer = new Completer();
-  SecureServerSocket.bind(HOST,
-                          0,
-                          CERTIFICATE,
-                          requireClientCertificate: true).then((server) {
-    var clientEndFuture = SecureSocket.connect(HOST,
-                                               server.port,
-                                               sendClientCertificate: true);
-    server.listen((serverEnd) {
-      X509Certificate certificate = serverEnd.peerCertificate;
-      Expect.isNotNull(certificate);
-      Expect.equals("CN=localhost", certificate.subject);
-      Expect.equals("CN=myauthority", certificate.issuer);
-      clientEndFuture.then((clientEnd) {
-        X509Certificate certificate = clientEnd.peerCertificate;
-        Expect.isNotNull(certificate);
-        Expect.equals("CN=localhost", certificate.subject);
-        Expect.equals("CN=myauthority", certificate.issuer);
-        clientEnd.close();
-        serverEnd.close();
-        server.close();
-        completer.complete();
-      });
-    });
-  });
-  return completer.future;
-}
-
-void main() {
-  String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: certificateDatabase,
-                          password: 'dartdart',
-                          useBuiltinRoots: false);
-
+main() async {
   asyncStart();
-  InternetAddress.lookup("localhost").then((hosts) => HOST = hosts.first)
-    .then((_) => testClientCertificate())
-    .then((_) => testRequiredClientCertificate())
-    .then((_) => asyncEnd());
+  HOST = (await InternetAddress.lookup("localhost")).first;
+  await testClientCertificate(required: false, sendCert: true);
+  await testClientCertificate(required: true, sendCert: true);
+  await testClientCertificate(required: false, sendCert: false);
+  await testClientCertificate(required: true, sendCert: false);
+  asyncEnd();
 }

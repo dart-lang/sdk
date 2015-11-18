@@ -6,10 +6,10 @@ library test.socket.server;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
@@ -17,8 +17,10 @@ import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
+  initializeTestEnvironment();
   group('SocketServer', () {
     test('createAnalysisServer_successful',
         SocketServerTest.createAnalysisServer_successful);
@@ -109,9 +111,12 @@ class SocketServerTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([serverPlugin]);
-    return new SocketServer(new AnalysisServerOptions(),
-        DirectoryBasedDartSdk.defaultSdk, InstrumentationService.NULL_SERVICE,
-        serverPlugin, null, null);
+    return new SocketServer(
+        new AnalysisServerOptions(),
+        DirectoryBasedDartSdk.defaultSdk,
+        InstrumentationService.NULL_SERVICE,
+        serverPlugin,
+        null);
   }
 }
 

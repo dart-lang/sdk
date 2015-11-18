@@ -11,10 +11,10 @@ import 'package:dart2js_incremental/library_updater.dart' show
     LibraryUpdater,
     Update;
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
+import 'package:compiler/src/parser/partial_elements.dart' show
     PartialFunctionElement;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/script.dart' show
     Script;
 
 import 'package:compiler/src/io/source_file.dart' show
@@ -40,7 +40,7 @@ class ApplyUpdateTestCase extends LibraryUpdaterTestCase {
   Future run() => loadMainApp().then((LibraryElement library) {
     // Capture the current version of [before] before invoking the [updater].
     PartialFunctionElement before = library.localLookup(expectedUpdate);
-    var beforeNode = before.parseNode(compiler);
+    var beforeNode = before.parseNode(compiler.parsing);
 
     var context = new IncrementalCompilerContext();
     LibraryUpdater updater =
@@ -56,10 +56,10 @@ class ApplyUpdateTestCase extends LibraryUpdaterTestCase {
 
     // Check that the [updater] didn't modify the changed element.
     Expect.identical(before, update.before);
-    Expect.identical(beforeNode, before.parseNode(compiler));
+    Expect.identical(beforeNode, before.parseNode(compiler.parsing));
 
     PartialFunctionElement after = update.after;
-    var afterNode = after.parseNode(compiler);
+    var afterNode = after.parseNode(compiler.parsing);
 
     // Check that pretty-printing the elements match [source] (before), and
     // [newSource] (after).
@@ -72,7 +72,7 @@ class ApplyUpdateTestCase extends LibraryUpdaterTestCase {
 
     // Check that the update was applied by pretty-printing [before]. Make no
     // assumptions about [after], as the update may destroy that element.
-    beforeNode = before.parseNode(compiler);
+    beforeNode = before.parseNode(compiler.parsing);
     Expect.notEquals(source, '$beforeNode');
     Expect.stringEquals(newSource, '$beforeNode');
   });

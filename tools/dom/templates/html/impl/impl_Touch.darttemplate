@@ -20,14 +20,14 @@ $if DART2JS
   int get __radiusX => JS('num', '#.radiusX', this).round();
   int get __radiusY => JS('num', '#.radiusY', this).round();
 $else
-  int get __clientX => _blink.BlinkTouch.clientX_Getter(unwrap_jso(this)).round();
-  int get __clientY => _blink.BlinkTouch.clientY_Getter(unwrap_jso(this)).round();
-  int get __screenX => _blink.BlinkTouch.screenX_Getter(unwrap_jso(this)).round();
-  int get __screenY => _blink.BlinkTouch.screenY_Getter(unwrap_jso(this)).round();
-  int get __pageX => _blink.BlinkTouch.pageX_Getter(unwrap_jso(this)).round();
-  int get __pageY => _blink.BlinkTouch.pageY_Getter(unwrap_jso(this)).round();
-  int get __radiusX => _blink.BlinkTouch.radiusX_Getter(unwrap_jso(this)).round();
-  int get __radiusY => _blink.BlinkTouch.radiusY_Getter(unwrap_jso(this)).round();
+  int get __clientX => _blink.BlinkTouch.instance.clientX_Getter_(unwrap_jso(this)).round();
+  int get __clientY => _blink.BlinkTouch.instance.clientY_Getter_(unwrap_jso(this)).round();
+  int get __screenX => _blink.BlinkTouch.instance.screenX_Getter_(unwrap_jso(this)).round();
+  int get __screenY => _blink.BlinkTouch.instance.screenY_Getter_(unwrap_jso(this)).round();
+  int get __pageX => _blink.BlinkTouch.instance.pageX_Getter_(unwrap_jso(this)).round();
+  int get __pageY => _blink.BlinkTouch.instance.pageY_Getter_(unwrap_jso(this)).round();
+  int get __radiusX => _blink.BlinkTouch.instance.radiusX_Getter_(unwrap_jso(this)).round();
+  int get __radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(unwrap_jso(this)).round();
 $endif
 
   @DomName('Touch.clientX')

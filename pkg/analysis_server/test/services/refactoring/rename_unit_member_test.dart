@@ -4,15 +4,16 @@
 
 library test.services.refactoring.rename_unit_member;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(RenameUnitMemberTest);
 }
 
@@ -42,7 +43,8 @@ typedef NewName(); // existing
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Library already declares function type alias with name 'NewName'.",
+        expectedMessage:
+            "Library already declares function type alias with name 'NewName'.",
         expectedContextSearch: 'NewName(); // existing');
   }
 
@@ -69,7 +71,9 @@ class B extends A {
     indexTestUnit('''
 class Test {}
 ''');
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 import 'test.dart';
 
@@ -100,7 +104,8 @@ class A {
     refactoring.newName = 'NewName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Reference to renamed class will be shadowed by method 'A.NewName'.",
+        expectedMessage:
+            "Reference to renamed class will be shadowed by method 'A.NewName'.",
         expectedContextSearch: 'NewName() {}');
   }
 
@@ -108,7 +113,9 @@ class A {
     indexTestUnit('''
 class Test {}
 ''');
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 import 'test.dart';
 class A {
@@ -132,7 +139,9 @@ class B extends A {
     indexTestUnit('''
 class Test {}
 ''');
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 import 'test.dart' hide Test;
 class A {
@@ -173,7 +182,9 @@ class B extends A {
   }
 
   test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 class A {
   NewName() {}
@@ -213,6 +224,63 @@ class B {
     assertRefactoringStatusOK(status);
   }
 
+  test_checkInitialConditions_inPubCache_posix() async {
+    addSource(
+        '/.pub-cache/lib.dart',
+        r'''
+class A {}
+''');
+    indexTestUnit('''
+import '/.pub-cache/lib.dart';
+main() {
+  A a;
+}
+''');
+    createRenameRefactoringAtString('A a');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'A' is defined in a pub package, so cannot be renamed.");
+  }
+
+  test_checkInitialConditions_inPubCache_windows() async {
+    addSource(
+        '/Pub/Cache/lib.dart',
+        r'''
+class A {}
+''');
+    indexTestUnit('''
+import '/Pub/Cache/lib.dart';
+main() {
+  A a;
+}
+''');
+    createRenameRefactoringAtString('A a');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'A' is defined in a pub package, so cannot be renamed.");
+  }
+
+  test_checkInitialConditions_inSDK() async {
+    indexTestUnit('''
+main() {
+  String s;
+}
+''');
+    createRenameRefactoringAtString('String s');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The class 'String' is defined in the SDK, so cannot be renamed.");
+  }
+
   test_checkNewName_ClassElement() {
     indexTestUnit('''
 class Test {}
@@ -232,7 +300,8 @@ class Test {}
     refactoring.newName = 'Test';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "The new name must be different than the current name.");
+        expectedMessage:
+            "The new name must be different than the current name.");
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -327,6 +396,31 @@ class Other {
 main() {
   NewName t1 = new NewName();
   NewName t2 = new NewName.named();
+}
+''');
+  }
+
+  test_createChange_ClassElement_invocation() {
+    verifyNoTestUnitErrors = false;
+    indexTestUnit('''
+class Test {
+}
+main() {
+  Test(); // invalid code, but still a reference
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test();');
+    expect(refactoring.refactoringName, 'Rename Class');
+    expect(refactoring.elementKindName, 'class');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class NewName {
+}
+main() {
+  NewName(); // invalid code, but still a reference
 }
 ''');
   }

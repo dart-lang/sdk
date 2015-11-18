@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.sdk;
 
 import 'dart:collection';
@@ -148,7 +145,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
    * The name of the optional parameter used to specify the category of the
    * library.
    */
-  static String _CATEGORY = "category";
+  static String _CATEGORIES = "categories";
 
   /**
    * The name of the optional parameter used to specify the platforms on which
@@ -186,6 +183,20 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
    */
   LibraryMap get librariesMap => _librariesMap;
 
+
+  // To be backwards-compatible the new categories field is translated to
+  // an old approximation.
+  String convertCategories(String categories) {
+    switch (categories) {
+      case "": return "Internal";
+      case "Client": return "Client";
+      case "Server": return "Server";
+      case "Client,Server": return "Shared";
+      case "Client,Server,Embedded": return "Shared";
+    }
+    return "Shared";
+  }
+
   @override
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
@@ -203,8 +214,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
         } else if (argument is NamedExpression) {
           String name = argument.name.label.name;
           Expression expression = argument.expression;
-          if (name == _CATEGORY) {
-            library.category = (expression as SimpleStringLiteral).value;
+          if (name == _CATEGORIES) {
+            library.category =
+                convertCategories((expression as StringLiteral).stringValue);
           } else if (name == _IMPLEMENTATION) {
             library.implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {

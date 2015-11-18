@@ -18,9 +18,10 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ServerOperationQueueTest);
 }
 
@@ -58,6 +59,23 @@ class ServerContextManagerMock extends TypedMock implements ContextManager {
 @reflectiveTest
 class ServerOperationQueueTest {
   ServerOperationQueue queue = new ServerOperationQueue();
+
+  void test_add_withMerge() {
+    var opA = new _MergeableOperationMock();
+    var opB = new _MergeableOperationMock();
+    var opC = new _MergeableOperationMock();
+    when(opA.merge(opC)).thenReturn(true);
+    when(opA.merge(anyObject)).thenReturn(false);
+    when(opB.merge(anyObject)).thenReturn(false);
+    when(opC.merge(anyObject)).thenReturn(false);
+    queue.add(opA);
+    queue.add(opB);
+    queue.add(opC);
+    expect(queue.take(), same(opA));
+    expect(queue.take(), same(opB));
+    // no opC, it was merged into opA
+    expect(queue.isEmpty, isTrue);
+  }
 
   void test_clear() {
     var operationA = mockOperation(ServerOperationPriority.ANALYSIS);
@@ -103,6 +121,20 @@ class ServerOperationQueueTest {
 
   void test_isEmpty_true() {
     expect(queue.isEmpty, isTrue);
+  }
+
+  void test_peek() {
+    var operationA = mockOperation(ServerOperationPriority.ANALYSIS);
+    var operationB = mockOperation(ServerOperationPriority.ANALYSIS);
+    queue.add(operationA);
+    queue.add(operationB);
+    expect(queue.peek(), operationA);
+    expect(queue.peek(), operationA);
+    expect(queue.peek(), operationA);
+  }
+
+  void test_peek_empty() {
+    expect(queue.peek(), isNull);
   }
 
   void test_reschedule() {
@@ -179,6 +211,27 @@ class ServerOperationQueueTest {
     expect(queue.take(), operationA);
     expect(queue.take(), isNull);
   }
+
+  void test_takeIf() {
+    var operationA = mockOperation(ServerOperationPriority.ANALYSIS);
+    var operationB = mockOperation(ServerOperationPriority.ANALYSIS);
+    queue.add(operationA);
+    queue.add(operationB);
+    expect(queue.takeIf((_) => false), isNull);
+    expect(queue.takeIf((operation) => operation == operationB), operationB);
+    expect(queue.takeIf((operation) => operation == operationB), isNull);
+    expect(queue.takeIf((operation) => operation == operationA), operationA);
+    expect(queue.isEmpty, isTrue);
+  }
+}
+
+class _MergeableOperationMock extends TypedMock implements MergeableOperation {
+  @override
+  ServerOperationPriority get priority {
+    return ServerOperationPriority.ANALYSIS_NOTIFICATION;
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _ServerOperationMock extends TypedMock implements ServerOperation {

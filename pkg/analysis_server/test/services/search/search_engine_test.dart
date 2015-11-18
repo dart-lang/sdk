@@ -17,9 +17,10 @@ import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(SearchEngineImplTest);
 }
 
@@ -74,6 +75,27 @@ class SearchEngineImplTest extends AbstractSingleUnitTest {
     super.setUp();
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
+  }
+
+  Future test_searchAllSubtypes() {
+    _indexTestUnit('''
+class T {}
+class A extends T {}
+class B extends A {}
+class C implements B {}
+''');
+    ClassElement element = findElement('T');
+    ClassElement elementA = findElement('A');
+    ClassElement elementB = findElement('B');
+    ClassElement elementC = findElement('C');
+    var expected = [
+      _expectId(elementA, MatchKind.DECLARATION, 'A extends T'),
+      _expectId(elementB, MatchKind.DECLARATION, 'B extends A'),
+      _expectId(elementC, MatchKind.DECLARATION, 'C implements B')
+    ];
+    return searchEngine.searchAllSubtypes(element).then((matches) {
+      _assertMatches(matches, expected);
+    });
   }
 
   Future test_searchElementDeclarations() {
@@ -185,7 +207,9 @@ main(A p) {
   }
 
   Future test_searchReferences_CompilationUnitElement() {
-    addSource('/my_part.dart', '''
+    addSource(
+        '/my_part.dart',
+        '''
 part of lib;
 ''');
     _indexTestUnit('''
@@ -211,8 +235,9 @@ main() {
 ''');
     ConstructorElement element = findElement('named');
     Element mainElement = findElement('main');
-    var expected =
-        [_expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)];
+    var expected = [
+      _expectId(mainElement, MatchKind.REFERENCE, '.named();', length: 6)
+    ];
     return _verifyReferences(element, expected);
   }
 
@@ -313,8 +338,9 @@ main() {
     ImportElement element = testLibraryElement.imports[0];
     Element mainElement = findElement('main');
     var kind = MatchKind.REFERENCE;
-    var expected =
-        [_expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)];
+    var expected = [
+      _expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)
+    ];
     return _verifyReferences(element, expected);
   }
 
@@ -352,8 +378,8 @@ part 'unitB.dart';
     LibraryElement element = testLibraryElement;
     CompilationUnitElement elementA = element.parts[0];
     CompilationUnitElement elementB = element.parts[1];
-    index.indexUnit(context, elementA.computeNode());
-    index.indexUnit(context, elementB.computeNode());
+    index.index(context, elementA.computeNode());
+    index.index(context, elementB.computeNode());
     var expected = [
       new ExpectedMatch(elementA, MatchKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),
@@ -418,8 +444,9 @@ main(A<int> a) {
 ''');
     MethodMember method = findNodeElementAtString('m(); // ref');
     Element mainElement = findElement('main');
-    var expected =
-        [_expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')];
+    var expected = [
+      _expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')
+    ];
     return _verifyReferences(method, expected);
   }
 
@@ -505,7 +532,9 @@ class A {
   }
 
   Future test_searchReferences_TopLevelVariableElement() {
-    addSource('/lib.dart', '''
+    addSource(
+        '/lib.dart',
+        '''
 library lib;
 var V;
 ''');
@@ -620,7 +649,7 @@ class NoMatchABCDE {}
 
   void _indexTestUnit(String code) {
     resolveTestUnit(code);
-    index.indexUnit(context, testUnit);
+    index.index(context, testUnit);
   }
 
   Future _verifyReferences(

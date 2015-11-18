@@ -9,7 +9,7 @@ import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisTask, AnalysisContextImpl;
+    hide AnalysisTask, AnalysisContextImpl, WorkManager;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -17,7 +17,10 @@ import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 
-final PerformanceTag workOrderMoveNextPerfTag =
+final PerformanceTag analysisDriverProcessOutputs =
+    new PerformanceTag('AnalysisDriver.processOutputs');
+
+final PerformanceTag workOrderMoveNextPerformanceTag =
     new PerformanceTag('WorkOrder.moveNext');
 
 /**
@@ -44,7 +47,8 @@ class AnalysisDriver {
   /**
    * The map of [ComputedResult] controllers.
    */
-  final Map<ResultDescriptor, StreamController<ComputedResult>> resultComputedControllers =
+  final Map<ResultDescriptor,
+          StreamController<ComputedResult>> resultComputedControllers =
       <ResultDescriptor, StreamController<ComputedResult>>{};
 
   /**
@@ -101,7 +105,12 @@ class AnalysisDriver {
       WorkOrder workOrder = createWorkOrderForResult(target, result);
       if (workOrder != null) {
         while (workOrder.moveNext()) {
+//          AnalysisTask previousTask = task;
+//          String message = workOrder.current.toString();
           task = performWorkItem(workOrder.current);
+//          if (task == null) {
+//            throw new AnalysisException(message, previousTask.caughtException);
+//          }
         }
       }
       return task;
@@ -197,8 +206,10 @@ class AnalysisDriver {
    * [descriptor] is computed.
    */
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    return resultComputedControllers.putIfAbsent(descriptor, () =>
-        new StreamController<ComputedResult>.broadcast(sync: true)).stream;
+    return resultComputedControllers
+        .putIfAbsent(descriptor,
+            () => new StreamController<ComputedResult>.broadcast(sync: true))
+        .stream;
   }
 
   /**
@@ -258,31 +269,33 @@ class AnalysisDriver {
     AnalysisTask task = item.buildTask();
     _onTaskStartedController.add(task);
     task.perform();
-    AnalysisTarget target = task.target;
-    CacheEntry entry = context.getCacheEntry(target);
-    if (task.caughtException == null) {
-      List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
-      Map<ResultDescriptor, dynamic> outputs = task.outputs;
-      for (ResultDescriptor result in task.descriptor.results) {
-        // TODO(brianwilkerson) We could check here that a value was produced
-        // and throw an exception if not (unless we want to allow null values).
-        entry.setValue(result, outputs[result], dependedOn);
-      }
-      outputs.forEach((ResultDescriptor descriptor, value) {
-        StreamController<ComputedResult> controller =
-            resultComputedControllers[descriptor];
-        if (controller != null) {
-          ComputedResult event =
-              new ComputedResult(context, descriptor, target, value);
-          controller.add(event);
+    analysisDriverProcessOutputs.makeCurrentWhile(() {
+      AnalysisTarget target = task.target;
+      CacheEntry entry = context.getCacheEntry(target);
+      if (task.caughtException == null) {
+        List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
+        Map<ResultDescriptor, dynamic> outputs = task.outputs;
+        for (ResultDescriptor result in task.descriptor.results) {
+          // TODO(brianwilkerson) We could check here that a value was produced
+          // and throw an exception if not (unless we want to allow null values).
+          entry.setValue(result, outputs[result], dependedOn);
         }
-      });
-      for (WorkManager manager in workManagers) {
-        manager.resultsComputed(target, outputs);
+        outputs.forEach((ResultDescriptor descriptor, value) {
+          StreamController<ComputedResult> controller =
+              resultComputedControllers[descriptor];
+          if (controller != null) {
+            ComputedResult event =
+                new ComputedResult(context, descriptor, target, value);
+            controller.add(event);
+          }
+        });
+        for (WorkManager manager in workManagers) {
+          manager.resultsComputed(target, outputs);
+        }
+      } else {
+        entry.setErrorState(task.caughtException, item.descriptor.results);
       }
-    } else {
-      entry.setErrorState(task.caughtException, item.descriptor.results);
-    }
+    });
     _onTaskCompletedController.add(task);
     return task;
   }
@@ -465,6 +478,14 @@ abstract class ExtendedAnalysisContext implements InternalAnalysisContext {
  */
 class InfiniteTaskLoopException extends AnalysisException {
   /**
+   * A concrete cyclic path of [TargetedResults] within the [dependencyCycle],
+   * `null` if no such path exists.  All nodes in the path are in the
+   * dependencyCycle, but the path is not guaranteed to cover the
+   * entire cycle.
+   */
+  final List<TargetedResult> cyclicPath;
+
+  /**
    * If a dependency cycle was found while computing the inputs for the task,
    * the set of [WorkItem]s contained in the cycle (if there are overlapping
    * cycles, this is the set of all [WorkItem]s in the entire strongly
@@ -476,8 +497,10 @@ class InfiniteTaskLoopException extends AnalysisException {
    * Initialize a newly created exception to represent a failed attempt to
    * perform the given [task] due to the given [dependencyCycle].
    */
-  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle) : super(
-          'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
+  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle,
+      [this.cyclicPath])
+      : super(
+            'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
 }
 
 /**
@@ -502,10 +525,25 @@ class StronglyConnectedComponent<Node> {
 }
 
 /**
- * A description of a single anaysis task that can be performed to advance
+ * A description of a single analysis task that can be performed to advance
  * analysis.
  */
 class WorkItem {
+  /**
+   * A table mapping the names of analysis tasks to the number of times each
+   * kind of task has been performed.
+   */
+  static final Map<TaskDescriptor, int> countMap =
+      new HashMap<TaskDescriptor, int>();
+
+  /**
+   * A table mapping the names of analysis tasks to stopwatches used to compute
+   * how much time was spent between creating an item and creating (for
+   * performing) of each kind of task
+   */
+  static final Map<TaskDescriptor, Stopwatch> stopwatchMap =
+      new HashMap<TaskDescriptor, Stopwatch>();
+
   /**
    * The context in which the task will be performed.
    */
@@ -525,6 +563,11 @@ class WorkItem {
    * The [ResultDescriptor] which was led to this work item being spawned.
    */
   final ResultDescriptor spawningResult;
+
+  /**
+   * The current inputs computing stopwatch.
+   */
+  Stopwatch stopwatch;
 
   /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
@@ -565,10 +608,10 @@ class WorkItem {
    * described by the given descriptor.
    */
   WorkItem(this.context, this.target, this.descriptor, this.spawningResult) {
-    AnalysisTarget actualTarget = identical(
-            target, AnalysisContextTarget.request)
-        ? new AnalysisContextTarget(context)
-        : target;
+    AnalysisTarget actualTarget =
+        identical(target, AnalysisContextTarget.request)
+            ? new AnalysisContextTarget(context)
+            : target;
     Map<String, TaskInput> inputDescriptors =
         descriptor.createTaskInputs(actualTarget);
     builder = new TopLevelTaskInputBuilder(inputDescriptors);
@@ -576,6 +619,19 @@ class WorkItem {
       builder = null;
     }
     inputs = new HashMap<String, dynamic>();
+    // Update performance counters.
+    {
+      stopwatch = stopwatchMap[descriptor];
+      if (stopwatch == null) {
+        stopwatch = new Stopwatch();
+        stopwatchMap[descriptor] = stopwatch;
+      }
+      stopwatch.start();
+    }
+    {
+      int count = countMap[descriptor];
+      countMap[descriptor] = count == null ? 1 : count + 1;
+    }
   }
 
   @override
@@ -595,6 +651,7 @@ class WorkItem {
    * Build the task represented by this work item.
    */
   AnalysisTask buildTask() {
+    stopwatch.stop();
     if (builder != null) {
       throw new StateError("some inputs have not been computed");
     }
@@ -658,6 +715,9 @@ class WorkItem {
         }
       } else {
         builder.currentValue = inputEntry.getValue(inputResult);
+        if (builder.flushOnAccess) {
+          inputEntry.setState(inputResult, CacheState.FLUSHED);
+        }
       }
       if (!builder.moveNext()) {
         inputs = builder.inputValue;
@@ -669,42 +729,6 @@ class WorkItem {
 
   @override
   String toString() => 'Run $descriptor on $target';
-}
-
-/**
- * [AnalysisDriver] uses [WorkManager]s to select results to compute.
- *
- * They know specific of the targets and results they care about,
- * so they can request analysis results in optimal order.
- */
-abstract class WorkManager {
-  /**
-   * Notifies the managers that the given set of priority [targets] was set.
-   */
-  void applyPriorityTargets(List<AnalysisTarget> targets);
-
-  /**
-   * Return the next [TargetedResult] that this work manager wants to be
-   * computed, or `null` if this manager doesn't need any new results.
-   */
-  TargetedResult getNextResult();
-
-  /**
-   * Return the priority if the next work order this work manager want to be
-   * computed. The [AnalysisDriver] will perform the work order with
-   * the highest priority.
-   *
-   * Even if the returned value is [WorkOrderPriority.NONE], it still does not
-   * guarantee that [getNextResult] will return not `null`.
-   */
-  WorkOrderPriority getNextResultPriority();
-
-  /**
-   * Notifies the manager that the given [outputs] were produced for
-   * the given [target].
-   */
-  void resultsComputed(
-      AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs);
 }
 
 /**
@@ -743,9 +767,11 @@ class WorkOrder implements Iterator<WorkItem> {
     }
   }
 
+  List<WorkItem> get workItems => _dependencyWalker._path;
+
   @override
   bool moveNext() {
-    return workOrderMoveNextPerfTag.makeCurrentWhile(() {
+    return workOrderMoveNextPerformanceTag.makeCurrentWhile(() {
       if (currentItems != null && currentItems.length > 1) {
         // Yield more items.
         currentItems.removeLast();
@@ -774,32 +800,7 @@ class WorkOrder implements Iterator<WorkItem> {
 }
 
 /**
- * The priorities of work orders returned by [WorkManager]s.
- */
-enum WorkOrderPriority {
-  /**
-   * Responding to an user's action.
-   */
-  INTERACTIVE,
-
-  /**
-   * Computing information for priority sources.
-   */
-  PRIORITY,
-
-  /**
-   * A work should be done, but without any special urgency.
-   */
-  NORMAL,
-
-  /**
-   * Nothing to do.
-   */
-  NONE
-}
-
-/**
- * Specilaization of [CycleAwareDependencyWalker] for use by [WorkOrder].
+ * Specialization of [CycleAwareDependencyWalker] for use by [WorkOrder].
  */
 class _WorkOrderDependencyWalker extends CycleAwareDependencyWalker<WorkItem> {
   /**

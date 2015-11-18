@@ -10,8 +10,8 @@
 #include "vm/message.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
-#include "vm/service_event.h"
 #include "vm/service.h"
+#include "vm/service_event.h"
 #include "vm/timeline.h"
 #include "vm/unicode.h"
 
@@ -23,15 +23,20 @@ DECLARE_FLAG(bool, trace_service);
 JSONStream::JSONStream(intptr_t buf_size)
     : open_objects_(0),
       buffer_(buf_size),
-      default_id_zone_(Isolate::Current()->object_id_ring(),
-                       ObjectIdRing::kAllocateId),
+      default_id_zone_(),
       id_zone_(&default_id_zone_),
       reply_port_(ILLEGAL_PORT),
-      seq_(Instance::Handle(Instance::null())),
+      seq_(NULL),
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
       num_params_(0) {
+  ObjectIdRing* ring = NULL;
+  Isolate* isolate = Isolate::Current();
+  if (isolate != NULL) {
+    ring = isolate->object_id_ring();
+  }
+  default_id_zone_.Init(ring, ObjectIdRing::kAllocateId);
 }
 
 
@@ -46,7 +51,7 @@ void JSONStream::Setup(Zone* zone,
                        const Array& param_keys,
                        const Array& param_values) {
   set_reply_port(reply_port);
-  seq_ ^= seq.raw();
+  seq_ = &Instance::ZoneHandle(seq.raw());
   method_ = method.ToCString();
 
   String& string_iterator = String::Handle();
@@ -103,8 +108,7 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
     case kCannotAddBreakpoint:
       return "Cannot add breakpoint";
     default:
-      UNIMPLEMENTED();
-      return "Unexpected rpc error code";
+      return "Extension error";
   }
 }
 
@@ -154,6 +158,20 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
+void JSONStream::PostNullReply(Dart_Port port) {
+  const Object& reply = Object::Handle(Object::null());
+  ASSERT(reply.IsNull());
+
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator, false);
+  writer.WriteMessage(reply);
+  PortMap::PostMessage(new Message(port,
+                                   data,
+                                   writer.BytesWritten(),
+                                   Message::kNormalPriority));
+}
+
+
 void JSONStream::PostReply() {
   Dart_Port port = reply_port();
   ASSERT(port != ILLEGAL_PORT);
@@ -162,18 +180,19 @@ void JSONStream::PostReply() {
   if (FLAG_trace_service) {
     process_delta_micros = OS::GetCurrentTimeMicros() - setup_time_micros_;
   }
-
-  if (seq_.IsString()) {
-    const String& str = String::Cast(seq_);
+  ASSERT(seq_ != NULL);
+  if (seq_->IsString()) {
+    const String& str = String::Cast(*seq_);
     PrintProperty("id", str.ToCString());
-  } else if (seq_.IsInteger()) {
-    const Integer& integer = Integer::Cast(seq_);
+  } else if (seq_->IsInteger()) {
+    const Integer& integer = Integer::Cast(*seq_);
     PrintProperty64("id", integer.AsInt64Value());
-  } else if (seq_.IsDouble()) {
-    const Double& dbl = Double::Cast(seq_);
+  } else if (seq_->IsDouble()) {
+    const Double& dbl = Double::Cast(*seq_);
     PrintProperty("id", dbl.value());
-  } else if (seq_.IsNull()) {
+  } else if (seq_->IsNull()) {
     // JSON-RPC 2.0 says that a request with a null ID shouldn't get a reply.
+    PostNullReply(port);
     return;
   }
   buffer_.AddChar('}');
@@ -273,19 +292,28 @@ void JSONStream::PrintValueBool(bool b) {
 
 
 void JSONStream::PrintValue(intptr_t i) {
+  EnsureIntegerIsRepresentableInJavaScript(static_cast<int64_t>(i));
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd "", i);
 }
 
 
 void JSONStream::PrintValue64(int64_t i) {
+  EnsureIntegerIsRepresentableInJavaScript(i);
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd64 "", i);
 }
 
 
 void JSONStream::PrintValueTimeMillis(int64_t millis) {
-  PrintValue(static_cast<double>(millis));
+  EnsureIntegerIsRepresentableInJavaScript(millis);
+  PrintValue64(millis);
+}
+
+
+void JSONStream::PrintValueTimeMicros(int64_t micros) {
+  EnsureIntegerIsRepresentableInJavaScript(micros);
+  PrintValue64(micros);
 }
 
 
@@ -415,6 +443,12 @@ void JSONStream::PrintValue(TimelineEvent* timeline_event) {
 }
 
 
+void JSONStream::PrintValueVM(bool ref) {
+  PrintCommaIfNeeded();
+  Service::PrintJSONForVM(this, ref);
+}
+
+
 void JSONStream::PrintServiceId(const Object& o) {
   ASSERT(id_zone_ != NULL);
   PrintProperty("id", id_zone_->GetServiceId(o));
@@ -428,21 +462,24 @@ void JSONStream::PrintPropertyBool(const char* name, bool b) {
 
 
 void JSONStream::PrintProperty(const char* name, intptr_t i) {
-  ASSERT(Utils::IsJavascriptInt(i));
   PrintPropertyName(name);
   PrintValue(i);
 }
 
 
 void JSONStream::PrintProperty64(const char* name, int64_t i) {
-  ASSERT(Utils::IsJavascriptInt64(i));
   PrintPropertyName(name);
   PrintValue64(i);
 }
 
 
 void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
-  PrintProperty(name, static_cast<double>(millis));
+  PrintProperty64(name, millis);
+}
+
+
+void JSONStream::PrintPropertyTimeMicros(const char* name, int64_t micros) {
+  PrintProperty64(name, micros);
 }
 
 
@@ -535,6 +572,14 @@ void JSONStream::PrintfProperty(const char* name, const char* format, ...) {
 }
 
 
+void JSONStream::Steal(const char** buffer, intptr_t* buffer_length) {
+  ASSERT(buffer != NULL);
+  ASSERT(buffer_length != NULL);
+  *buffer_length = buffer_.length();
+  *buffer = buffer_.Steal();
+}
+
+
 void JSONStream::set_reply_port(Dart_Port port) {
   reply_port_ = port;
 }
@@ -552,6 +597,12 @@ void JSONStream::SetParams(const char** param_keys,
 void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
   PrintPropertyName(name);
   PrintValue(o, ref);
+}
+
+
+void JSONStream::PrintPropertyVM(const char* name, bool ref) {
+  PrintPropertyName(name);
+  PrintValueVM(ref);
 }
 
 
@@ -580,6 +631,17 @@ bool JSONStream::NeedComma() {
   }
   char ch = buffer[length-1];
   return (ch != '[') && (ch != '{') && (ch != ':') && (ch != ',');
+}
+
+
+void JSONStream::EnsureIntegerIsRepresentableInJavaScript(int64_t i) {
+#ifdef DEBUG
+  if (!Utils::IsJavascriptInt(i)) {
+    OS::Print("JSONStream::EnsureIntegerIsRepresentableInJavaScript failed on "
+              "%" Pd64 "\n", i);
+    UNREACHABLE();
+  }
+#endif
 }
 
 
@@ -659,7 +721,7 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
 
 void JSONObject::AddLocation(const Script& script,
                              intptr_t token_pos,
-                             intptr_t end_token_pos) {
+                             intptr_t end_token_pos) const {
   JSONObject location(this, "location");
   location.AddProperty("type", "SourceLocation");
   location.AddProperty("script", script);
@@ -669,6 +731,49 @@ void JSONObject::AddLocation(const Script& script,
   }
 }
 
+
+void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
+  ASSERT(bpt_loc->IsResolved());
+
+  Zone* zone = Thread::Current()->zone();
+  Library& library = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
+  intptr_t token_pos;
+  bpt_loc->GetCodeLocation(&library, &script, &token_pos);
+  AddLocation(script, token_pos);
+}
+
+
+void JSONObject::AddUnresolvedLocation(
+    const BreakpointLocation* bpt_loc) const {
+  ASSERT(!bpt_loc->IsResolved());
+
+  Zone* zone = Thread::Current()->zone();
+  Library& library = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
+  intptr_t token_pos;
+  bpt_loc->GetCodeLocation(&library, &script, &token_pos);
+
+  JSONObject location(this, "location");
+  location.AddProperty("type", "UnresolvedSourceLocation");
+  if (!script.IsNull()) {
+    location.AddProperty("script", script);
+  } else {
+    const String& scriptUri = String::Handle(zone, bpt_loc->url());
+    location.AddPropertyStr("scriptUri", scriptUri);
+  }
+  if (bpt_loc->requested_line_number() >= 0) {
+    // This unresolved breakpoint was specified at a particular line.
+    location.AddProperty("line", bpt_loc->requested_line_number());
+    if (bpt_loc->requested_column_number() >= 0) {
+      location.AddProperty("column",
+                           bpt_loc->requested_column_number());
+    }
+  } else {
+    // This unresolved breakpoint was requested at some function entry.
+    location.AddProperty("tokenPos", token_pos);
+  }
+}
 
 
 void JSONObject::AddPropertyF(const char* name,

@@ -152,8 +152,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       continueAction = new Map<Entity, EntityAction>();
 
   Compiler get compiler => backend.compiler;
+
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
+
   CodegenRegistry get registry => work.registry;
+
+  native.NativeEnqueuer get nativeEnqueuer {
+    return compiler.enqueuer.codegen.nativeEnqueuer;
+  }
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
@@ -932,7 +940,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         currentContainer = oldContainer;
         break;
       default:
-        compiler.internalError(condition.conditionExpression,
+        reporter.internalError(condition.conditionExpression,
             'Unexpected loop kind: ${info.kind}.');
     }
     js.Statement result = loop;
@@ -1333,10 +1341,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // is responsible for visiting the successor.
     if (dominated.isEmpty) return;
     if (dominated.length > 2) {
-      compiler.internalError(node, 'dominated.length = ${dominated.length}');
+      reporter.internalError(node, 'dominated.length = ${dominated.length}');
     }
     if (dominated.length == 2 && block != currentGraph.entry) {
-      compiler.internalError(node, 'node.block != currentGraph.entry');
+      reporter.internalError(node, 'node.block != currentGraph.entry');
     }
     assert(dominated[0] == block.successors[0]);
     visitBasicBlock(dominated[0]);
@@ -1427,7 +1435,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitTry(HTry node) {
     // We should never get here. Try/catch/finally is always handled using block
     // information in [visitTryInfo].
-    compiler.internalError(node, 'visitTry should not be called.');
+    reporter.internalError(node, 'visitTry should not be called.');
   }
 
   bool tryControlFlowOperation(HIf node) {
@@ -1598,8 +1606,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      return
-          new TypeMask.nonNullExact(enclosing.declaration, compiler.world);
+      if (compiler.world.isInstantiated(enclosing)) {
+        return new TypeMask.nonNullExact(
+            enclosing.declaration, compiler.world);
+      } else {
+        // The element is mixed in so a non-null subtype mask is the most
+        // precise we have.
+        assert(invariant(node, compiler.world.isUsedAsMixin(enclosing),
+            message: "Element ${node.element} from $enclosing expected "
+                     "to be mixed in."));
+        return new TypeMask.nonNullSubtype(
+            enclosing.declaration, compiler.world);
+      }
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.
@@ -1679,7 +1697,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
 
-    if (element == backend.getCheckConcurrentModificationError()) {
+    if (element == backend.helpers.checkConcurrentModificationError) {
       // Manually inline the [checkConcurrentModificationError] function.  This
       // function is only called from a for-loop update.  Ideally we would just
       // generate the conditionalcontrol flow in the builder but it adds basic
@@ -1687,7 +1705,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // confuses loop recognition.
 
       assert(arguments.length == 2);
-      Element throwFunction = backend.getThrowConcurrentModificationError();
+      Element throwFunction = backend.helpers.throwConcurrentModificationError;
       registry.registerStaticInvocation(throwFunction);
 
       // Calling using `(0, #)(#)` instead of `#(#)` separates the property load
@@ -1737,8 +1755,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // If the selector we need to register a typed getter to the
           // [world]. The emitter needs to know if it needs to emit a
           // bound closure for a method.
+
+          // If [superMethod] is mixed in, [superClass] might not be live.
+          // We use the superclass of the access instead.
           TypeMask receiverType =
-              new TypeMask.nonNullExact(superClass, compiler.world);
+              new TypeMask.nonNullExact(node.caller.superclass, compiler.world);
           // TODO(floitsch): we know the target. We shouldn't register a
           // dynamic getter.
           registry.registerDynamicGetter(
@@ -1832,11 +1853,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerForeignTypes(HForeign node) {
     native.NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
-    nativeBehavior.typesReturned.forEach((type) {
-      if (type is InterfaceType) {
-        registry.registerInstantiatedType(type);
-      }
-    });
+    nativeEnqueuer.registerNativeBehavior(nativeBehavior, node);
   }
 
   visitForeignCode(HForeignCode node) {
@@ -1924,7 +1941,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     generateConstant(node.constant, node.sourceInformation);
 
     registry.registerCompileTimeConstant(node.constant);
-    backend.constants.addCompileTimeConstantForEmission(node.constant);
   }
 
   visitNot(HNot node) {
@@ -2123,7 +2139,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
-      generateThrowWithHelper('ioore', [node.array, node.index]);
+      generateThrowWithHelper('ioore', [node.array, node.reportedIndex]);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
       pushStatement(new js.If.noElse(underOver, thenBody)
@@ -2249,7 +2265,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             .withSourceInformation(node.sourceInformation));
       }
     } else {
-      Element convertToString = backend.getStringInterpolationHelper();
+      Element convertToString = backend.helpers.stringInterpolationHelper;
       registry.registerStaticUse(convertToString);
       js.Expression jsHelper =
           backend.emitter.staticFunctionAccess(convertToString);
@@ -2695,7 +2711,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkString(input, '!==', input.sourceInformation);
       return pop();
     }
-    compiler.internalError(input, 'Unexpected check.');
+    reporter.internalError(input, 'Unexpected check: $checkedType.');
     return null;
   }
 
@@ -2814,7 +2830,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.inputs[0]);
     if (node.hasReceiver) {
       if (backend.isInterceptorClass(element.enclosingClass)) {
-        int index = RuntimeTypes.getTypeVariableIndex(element);
+        int index = element.index;
         js.Expression receiver = pop();
         js.Expression helper = backend.emitter
             .staticFunctionAccess(helperElement);

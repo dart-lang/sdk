@@ -40,11 +40,10 @@ class ThreadInterrupter : public AllStatic {
   static bool initialized_;
   static bool shutdown_;
   static bool thread_running_;
-  static ThreadId interrupter_thread_id_;
+  static ThreadJoinId interrupter_thread_id_;
   static Monitor* monitor_;
   static intptr_t interrupt_period_;
   static intptr_t current_wait_time_;
-  static ThreadLocalKey thread_state_key_;
 
   static bool InDeepSleep() {
     return current_wait_time_ == Monitor::kNoTimeout;

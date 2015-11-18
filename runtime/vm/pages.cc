@@ -11,6 +11,7 @@
 #include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
+#include "vm/thread_registry.h"
 #include "vm/verified_memory.h"
 #include "vm/virtual_memory.h"
 
@@ -135,7 +136,6 @@ void HeapPage::WriteProtect(bool read_only) {
       prot = VirtualMemory::kReadOnly;
     }
   } else {
-    // TODO(23217): Should this really make all pages non-executable?
     prot = VirtualMemory::kReadWrite;
   }
   bool status = memory_->Protect(prot);
@@ -161,7 +161,7 @@ PageSpace::PageSpace(Heap* heap,
       tasks_lock_(new Monitor()),
       tasks_(0),
 #if defined(DEBUG)
-      is_iterating_(false),
+      iterating_thread_(NULL),
 #endif
       page_space_controller_(heap,
                              FLAG_old_gen_growth_space_ratio,
@@ -169,6 +169,9 @@ PageSpace::PageSpace(Heap* heap,
                              FLAG_old_gen_growth_time_ratio),
       gc_time_micros_(0),
       collections_(0) {
+  // We aren't holding the lock but no one can reference us yet.
+  UpdateMaxCapacityLocked();
+  UpdateMaxUsed();
 }
 
 
@@ -211,6 +214,10 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     }
     pages_tail_ = page;
   } else {
+    // Should not allocate executable pages when running from a precompiled
+    // snapshot.
+    ASSERT(!Dart::IsRunningPrecompiledCode());
+
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
@@ -528,6 +535,32 @@ void PageSpace::AbandonBumpAllocation() {
 }
 
 
+void PageSpace::UpdateMaxCapacityLocked() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(heap_ != NULL);
+  ASSERT(heap_->isolate() != NULL);
+  Isolate* isolate = heap_->isolate();
+  isolate->GetHeapOldCapacityMaxMetric()->SetValue(
+      static_cast<int64_t>(usage_.capacity_in_words) * kWordSize);
+}
+
+
+void PageSpace::UpdateMaxUsed() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(heap_ != NULL);
+  ASSERT(heap_->isolate() != NULL);
+  Isolate* isolate = heap_->isolate();
+  isolate->GetHeapOldUsedMaxMetric()->SetValue(
+      UsedInWords() * kWordSize);
+}
+
+
 bool PageSpace::Contains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->Contains(addr)) {
@@ -643,9 +676,9 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty("name", "old");
   space.AddProperty("vmName", "PageSpace");
   space.AddProperty("collections", collections());
-  space.AddProperty("used", UsedInWords() * kWordSize);
-  space.AddProperty("capacity", CapacityInWords() * kWordSize);
-  space.AddProperty("external", ExternalInWords() * kWordSize);
+  space.AddProperty64("used", UsedInWords() * kWordSize);
+  space.AddProperty64("capacity", CapacityInWords() * kWordSize);
+  space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
   if (collections() > 0) {
     int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
@@ -767,11 +800,17 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     }
     set_tasks(1);
   }
+  // Ensure that all threads for this isolate are at a safepoint (either stopped
+  // or in native code). If two threads are racing at this point, the loser
+  // will continue with its collection after waiting for the winner to complete.
+  // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
+  // logic to avoid needless collections.
+  isolate->thread_registry()->SafepointThreads();
 
   // Perform various cleanup that relies on no tasks interfering.
   isolate->class_table()->FreeOldTables();
 
-  NoHandleScope no_handles(isolate);
+  NoSafepointScope no_safepoints;
 
   if (FLAG_print_free_list_before_gc) {
     OS::Print("Data Freelist (before GC):\n");
@@ -907,6 +946,13 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     freelist_[HeapPage::kExecutable].Print();
   }
 
+  UpdateMaxUsed();
+  if (heap_ != NULL) {
+    heap_->UpdateGlobalMaxUsed();
+  }
+
+  isolate->thread_registry()->ResumeAllThreads();
+
   // Done, reset the task count.
   {
     MonitorLocker ml(tasks_lock());
@@ -1010,6 +1056,35 @@ uword PageSpace::TryAllocateSmiInitializedLocked(intptr_t size,
   }
 #endif
   return result;
+}
+
+
+void PageSpace::SetupInstructionsSnapshotPage(void* pointer, uword size) {
+  // Setup a HeapPage so precompiled Instructions can be traversed.
+  // Instructions are contiguous at [pointer, pointer + size). HeapPage
+  // expects to find objects at [memory->start() + ObjectStartOffset,
+  // memory->end()).
+  uword offset = HeapPage::ObjectStartOffset();
+  pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
+  size += offset;
+
+  ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
+
+  VirtualMemory* memory = VirtualMemory::ForInstructionsSnapshot(pointer, size);
+  ASSERT(memory != NULL);
+  HeapPage* page = reinterpret_cast<HeapPage*>(malloc(sizeof(HeapPage)));
+  page->memory_ = memory;
+  page->next_ = NULL;
+  page->object_end_ = memory->end();
+  page->executable_ = true;
+
+  MutexLocker ml(pages_lock_);
+  if (exec_pages_ == NULL) {
+    exec_pages_ = page;
+  } else {
+    exec_pages_tail_->set_next(page);
+  }
+  exec_pages_tail_ = page;
 }
 
 

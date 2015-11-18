@@ -11,49 +11,56 @@
 namespace dart {
 
 DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Thread* thread) {
-  thread->StoreBufferBlockProcess(true);
+  thread->StoreBufferBlockProcess(StoreBuffer::kCheckThreshold);
 }
 END_LEAF_RUNTIME_ENTRY
 
+template<int BlockSize>
+typename BlockStack<BlockSize>::List*
+BlockStack<BlockSize>::global_empty_ = NULL;
+template<int BlockSize>
+Mutex* BlockStack<BlockSize>::global_mutex_ = NULL;
 
-StoreBuffer::List* StoreBuffer::global_empty_ = NULL;
-Mutex* StoreBuffer::global_mutex_ = NULL;
 
-
-void StoreBuffer::InitOnce() {
+template<int BlockSize>
+void BlockStack<BlockSize>::InitOnce() {
   global_empty_ = new List();
   global_mutex_ = new Mutex();
 }
 
 
-void StoreBuffer::ShutDown() {
+template<int BlockSize>
+void BlockStack<BlockSize>::ShutDown() {
   delete global_empty_;
   delete global_mutex_;
 }
 
 
-StoreBuffer::StoreBuffer() : mutex_(new Mutex()) {
+template<int BlockSize>
+BlockStack<BlockSize>::BlockStack() : mutex_(new Mutex()) {
 }
 
 
-StoreBuffer::~StoreBuffer() {
+template<int BlockSize>
+BlockStack<BlockSize>::~BlockStack() {
   Reset();
   delete mutex_;
 }
 
 
-void StoreBuffer::Reset() {
+template<int BlockSize>
+void BlockStack<BlockSize>::Reset() {
   MutexLocker local_mutex_locker(mutex_);
   {
     // Empty all blocks and move them to the global cache.
     MutexLocker global_mutex_locker(global_mutex_);
     while (!full_.IsEmpty()) {
-      StoreBufferBlock* block = full_.Pop();
+      Block* block = full_.Pop();
       block->Reset();
       global_empty_->Push(block);
     }
     while (!partial_.IsEmpty()) {
-      StoreBufferBlock* block = partial_.Pop();
+      Block* block = partial_.Pop();
       block->Reset();
       global_empty_->Push(block);
     }
@@ -62,7 +69,8 @@ void StoreBuffer::Reset() {
 }
 
 
-StoreBufferBlock* StoreBuffer::Blocks() {
+template<int BlockSize>
+typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::Blocks() {
   MutexLocker ml(mutex_);
   while (!partial_.IsEmpty()) {
     full_.Push(partial_.Pop());
@@ -71,7 +79,8 @@ StoreBufferBlock* StoreBuffer::Blocks() {
 }
 
 
-void StoreBuffer::PushBlock(StoreBufferBlock* block, bool check_threshold) {
+template<int BlockSize>
+void BlockStack<BlockSize>::PushBlockImpl(Block* block) {
   ASSERT(block->next() == NULL);  // Should be just a single block.
   if (block->IsFull()) {
     MutexLocker ml(mutex_);
@@ -84,7 +93,12 @@ void StoreBuffer::PushBlock(StoreBufferBlock* block, bool check_threshold) {
     MutexLocker ml(mutex_);
     partial_.Push(block);
   }
-  if (check_threshold && Overflowed()) {
+}
+
+
+void StoreBuffer::PushBlock(Block* block, ThresholdPolicy policy) {
+  BlockStack<Block::kSize>::PushBlockImpl(block);
+  if ((policy == kCheckThreshold) && Overflowed()) {
     MutexLocker ml(mutex_);
     Isolate* isolate = Isolate::Current();
     // Sanity check: it makes no sense to schedule the GC in another isolate.
@@ -96,7 +110,9 @@ void StoreBuffer::PushBlock(StoreBufferBlock* block, bool check_threshold) {
 }
 
 
-StoreBufferBlock* StoreBuffer::PopBlock() {
+template<int BlockSize>
+typename BlockStack<BlockSize>::Block*
+BlockStack<BlockSize>::PopNonFullBlock() {
   {
     MutexLocker ml(mutex_);
     if (!partial_.IsEmpty()) {
@@ -107,26 +123,50 @@ StoreBufferBlock* StoreBuffer::PopBlock() {
 }
 
 
-StoreBufferBlock* StoreBuffer::PopEmptyBlock() {
+template<int BlockSize>
+typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::PopEmptyBlock() {
   {
     MutexLocker ml(global_mutex_);
     if (!global_empty_->IsEmpty()) {
       return global_empty_->Pop();
     }
   }
-  return new StoreBufferBlock();
+  return new Block();
 }
 
 
-StoreBuffer::List::~List() {
+template<int BlockSize>
+typename BlockStack<BlockSize>::Block*
+BlockStack<BlockSize>::PopNonEmptyBlock() {
+  MutexLocker ml(mutex_);
+  if (!full_.IsEmpty()) {
+    return full_.Pop();
+  } else if (!partial_.IsEmpty()) {
+    return partial_.Pop();
+  } else {
+    return NULL;
+  }
+}
+
+
+template<int BlockSize>
+bool BlockStack<BlockSize>::IsEmpty() {
+  MutexLocker ml(mutex_);
+  return full_.IsEmpty() && partial_.IsEmpty();
+}
+
+
+template<int BlockSize>
+BlockStack<BlockSize>::List::~List() {
   while (!IsEmpty()) {
     delete Pop();
   }
 }
 
 
-StoreBufferBlock* StoreBuffer::List::Pop() {
-  StoreBufferBlock* result = head_;
+template<int BlockSize>
+typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::List::Pop() {
+  Block* result = head_;
   head_ = head_->next_;
   --length_;
   result->next_ = NULL;
@@ -134,15 +174,17 @@ StoreBufferBlock* StoreBuffer::List::Pop() {
 }
 
 
-StoreBufferBlock* StoreBuffer::List::PopAll() {
-  StoreBufferBlock* result = head_;
+template<int BlockSize>
+typename BlockStack<BlockSize>::Block* BlockStack<BlockSize>::List::PopAll() {
+  Block* result = head_;
   head_ = NULL;
   length_ = 0;
   return result;
 }
 
 
-void StoreBuffer::List::Push(StoreBufferBlock* block) {
+template<int BlockSize>
+void BlockStack<BlockSize>::List::Push(Block* block) {
   ASSERT(block->next_ == NULL);
   block->next_ = head_;
   head_ = block;
@@ -156,11 +198,16 @@ bool StoreBuffer::Overflowed() {
 }
 
 
-void StoreBuffer::TrimGlobalEmpty() {
+template<int BlockSize>
+void BlockStack<BlockSize>::TrimGlobalEmpty() {
   DEBUG_ASSERT(global_mutex_->IsOwnedByCurrentThread());
   while (global_empty_->length() > kMaxGlobalEmpty) {
     delete global_empty_->Pop();
   }
 }
+
+
+template class BlockStack<kStoreBufferBlockSize>;
+template class BlockStack<kMarkingStackBlockSize>;
 
 }  // namespace dart

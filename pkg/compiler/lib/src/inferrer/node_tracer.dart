@@ -179,6 +179,8 @@ abstract class TracerVisitor<T extends TypeInformation>
 
   void visitStringLiteralTypeInformation(StringLiteralTypeInformation info) {}
 
+  void visitBoolLiteralTypeInformation(BoolLiteralTypeInformation info) {}
+
   void visitClosureTypeInformation(ClosureTypeInformation info) {}
 
   void visitClosureCallSiteTypeInformation(
@@ -355,7 +357,7 @@ abstract class TracerVisitor<T extends TypeInformation>
     /// return false. Instead we catch that case here for now.
     // TODO(herhut): Handle creation of closures from instances of Function.
     if (element.isInstanceMember &&
-        element.name == Compiler.CALL_OPERATOR_NAME) {
+        element.name == Identifiers.call) {
       return true;
     }
     Element outermost = element.outermostEnclosingMemberOrTopLevel;

@@ -67,18 +67,17 @@ class CustomElementsAnalysis {
       enqueuer.isResolutionQueue ? resolutionJoin : codegenJoin;
 
   void registerInstantiatedClass(ClassElement classElement, Enqueuer enqueuer) {
-    classElement.ensureResolved(compiler);
+    classElement.ensureResolved(compiler.resolution);
     if (!Elements.isNativeOrExtendsNative(classElement)) return;
     if (classElement.isMixinApplication) return;
     if (classElement.isAbstract) return;
+    // JsInterop classes are opaque interfaces without a concrete
+    // implementation.
+    if (classElement.isJsInterop) return;
     joinFor(enqueuer).instantiatedClasses.add(classElement);
   }
 
-  void registerTypeLiteral(DartType type, Registry registry) {
-    assert(registry.isForResolution);
-    // In codegen we see the TypeConstants instead.
-    if (!registry.isForResolution) return;
-
+  void registerTypeLiteral(DartType type) {
     if (type.isInterfaceType) {
       // TODO(sra): If we had a flow query from the type literal expression to
       // the Type argument of the metadata lookup, we could tell if this type
@@ -169,7 +168,6 @@ class CustomElementsAnalysisJoin {
         ConstantValue constant = makeTypeConstant(classElement);
         backend.registerCompileTimeConstant(
             constant, compiler.globalDependencies);
-        backend.constants.addCompileTimeConstantForEmission(constant);
       }
     }
     activeClasses.addAll(newActiveClasses);
@@ -192,7 +190,7 @@ class CustomElementsAnalysisJoin {
       if (member.isGenerativeConstructor) {
         // Ignore constructors that cannot be called with zero arguments.
         FunctionElement constructor = member;
-        constructor.computeType(compiler);
+        constructor.computeType(compiler.resolution);
         FunctionSignature parameters = constructor.functionSignature;
         if (parameters.requiredParameterCount == 0) {
           result.add(member);

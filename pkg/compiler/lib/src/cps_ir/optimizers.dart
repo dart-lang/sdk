@@ -8,11 +8,16 @@ import 'cps_ir_nodes.dart';
 import '../constants/values.dart';
 
 export 'type_propagation.dart' show TypePropagator;
+export 'scalar_replacement.dart' show ScalarReplacer;
 export 'redundant_phi.dart' show RedundantPhiEliminator;
 export 'redundant_join.dart' show RedundantJoinEliminator;
-export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
+export 'shrinking_reductions.dart' show ShrinkingReducer;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
-export 'let_sinking.dart' show LetSinker;
+export 'insert_refinements.dart' show InsertRefinements;
+export 'remove_refinements.dart' show RemoveRefinements;
+export 'share_interceptors.dart' show ShareInterceptors;
+export 'bounds_checker.dart' show BoundsChecker;
+export 'parent_visitor.dart' show ParentVisitor;
 
 /// An optimization pass over the CPS IR.
 abstract class Pass {
@@ -32,4 +37,12 @@ bool isFalsyConstant(ConstantValue value) {
       value.isMinusZero ||
       value.isNaN ||
       value is StringConstantValue && value.primitiveValue.isEmpty;
+}
+
+/// Returns true if [value] satisfies a branching condition with the
+/// given strictness.
+///
+/// For non-strict, this is the opposite of [isFalsyConstant].
+bool isTruthyConstant(ConstantValue value, {bool strict: false}) {
+  return strict ? value.isTrue : !isFalsyConstant(value);
 }

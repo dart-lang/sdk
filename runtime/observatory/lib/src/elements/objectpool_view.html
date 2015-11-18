@@ -28,19 +28,19 @@
 
       entries ({{ pool.entries.length }})
       <div class="memberList">
-        <template repeat="{{ index in pool.entries.asMap().keys }}">
+        <template repeat="{{ entry in pool.entries }}">
           <div class="memberItem">
-            <div class="memberName">[{{ index }}]</div>
+            <div class="memberName">[PP+0x{{ entry['offset'].toRadixString(16) }}]</div>
             <div class="memberValue">
-              <template if="{{ isServiceObject(pool.entries[index]) }}">
-                <any-service-ref ref="{{ pool.entries[index] }}">
+              <template if="{{ entry['kind'] == 'Object' }}">
+                <any-service-ref ref="{{ entry['value'] }}">
                 </any-service-ref>
               </template>
-              <template if="{{ !isServiceObject(pool.entries[index]) }}">
-                0x{{ pool.entries[index].toRadixString(16) }}
-                <template if="{{ annotatedEntries != null && annotatedEntries[index] != null }}">
-                  (<any-service-ref ref="{{ annotatedEntries[index] }}"></any-service-ref>)
-                </template>
+              <template if="{{ entry['kind'] == 'Immediate' }}">
+                Immediate 0x{{ entry['value'].toRadixString(16) }}
+             </template>
+              <template if="{{ entry['kind'] == 'NativeEntry' }}">
+                NativeEntry 0x{{ entry['value'].toRadixString(16) }}
              </template>
             </div>
           </div>

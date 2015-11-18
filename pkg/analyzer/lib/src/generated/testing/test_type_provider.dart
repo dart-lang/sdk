@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.testing.test_type_provider;
 
 import 'package:analyzer/src/generated/ast.dart';
@@ -340,13 +337,13 @@ class TestTypeProvider implements TypeProvider {
 
   @override
   List<InterfaceType> get nonSubtypableTypes => <InterfaceType>[
-    nullType,
-    numType,
-    intType,
-    doubleType,
-    boolType,
-    stringType
-  ];
+        nullType,
+        numType,
+        intType,
+        doubleType,
+        boolType,
+        stringType
+      ];
 
   @override
   DartObjectImpl get nullObject {

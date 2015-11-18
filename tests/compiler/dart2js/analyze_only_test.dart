@@ -11,8 +11,8 @@ import "package:async_helper/async_helper.dart";
 
 import '../../utils/dummy_compiler_test.dart' as dummy;
 import 'package:compiler/compiler.dart';
-
-import 'package:compiler/src/warnings.dart' show
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/diagnostics/messages.dart' show
     MessageKind, MessageTemplate;
 
 import 'output_collector.dart';
@@ -64,7 +64,7 @@ runCompiler(String main, List<String> options,
 main() {
   runCompiler(
     "",
-    ['--generate-code-with-compile-time-errors'],
+    [Flags.generateCodeWithCompileTimeErrors],
     (String code, List errors, List warnings) {
       Expect.isNotNull(code);
       Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
@@ -77,7 +77,7 @@ main() {
 
   runCompiler(
     "main() {}",
-    ['--generate-code-with-compile-time-errors'],
+    [Flags.generateCodeWithCompileTimeErrors],
     (String code, List errors, List warnings) {
       Expect.isNotNull(code);
       Expect.isTrue(errors.isEmpty);
@@ -86,7 +86,7 @@ main() {
 
   runCompiler(
     "",
-    ['--analyze-only'],
+    [Flags.analyzeOnly],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
@@ -99,7 +99,7 @@ main() {
 
   runCompiler(
     "main() {}",
-    ['--analyze-only'],
+    [Flags.analyzeOnly],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty);
@@ -108,7 +108,7 @@ main() {
 
   runCompiler(
     "Foo foo; // Unresolved but not analyzed.",
-    ['--analyze-only'],
+    [Flags.analyzeOnly],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
@@ -123,7 +123,7 @@ main() {
     """main() {
          Foo foo; // Unresolved and analyzed.
        }""",
-    ['--analyze-only'],
+    [Flags.analyzeOnly],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty);
@@ -136,7 +136,7 @@ main() {
     """main() {
          Foo foo; // Unresolved and analyzed.
        }""",
-    ['--analyze-only', '--analyze-signatures-only'],
+    [Flags.analyzeOnly, Flags.analyzeSignaturesOnly],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty);
@@ -145,7 +145,7 @@ main() {
 
   runCompiler(
     "Foo foo; // Unresolved and analyzed.",
-    ['--analyze-only', '--analyze-all'],
+    [Flags.analyzeOnly, Flags.analyzeAll],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty);
@@ -156,7 +156,7 @@ main() {
   runCompiler(
     """Foo foo; // Unresolved and analyzed.
        main() {}""",
-    ['--analyze-only', '--analyze-all'],
+    [Flags.analyzeOnly, Flags.analyzeAll],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty, 'Unexpected errors: $errors.');
@@ -167,7 +167,7 @@ main() {
 
   runCompiler(
     "",
-    ['--analyze-only', '--analyze-all'],
+    [Flags.analyzeOnly, Flags.analyzeAll],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty);
@@ -177,7 +177,7 @@ main() {
   // --analyze-signatures-only implies --analyze-only
   runCompiler(
     "",
-    ['--analyze-signatures-only', '--analyze-all'],
+    [Flags.analyzeSignaturesOnly, Flags.analyzeAll],
     (String code, List errors, List warnings) {
       Expect.isNull(code);
       Expect.isTrue(errors.isEmpty);

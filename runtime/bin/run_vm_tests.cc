@@ -102,6 +102,7 @@ static int Main(int argc, const char** argv) {
                                                              dart_argv);
   ASSERT(set_vm_flags_success);
   const char* err_msg = Dart::InitOnce(dart::bin::vm_isolate_snapshot_buffer,
+                                       NULL,
                                        NULL, NULL, NULL, NULL,
                                        dart::bin::DartUtils::OpenFile,
                                        dart::bin::DartUtils::ReadFile,
@@ -113,6 +114,12 @@ static int Main(int argc, const char** argv) {
   TestCaseBase::RunAll();
   // Apply the filter to all registered benchmarks.
   Benchmark::RunAll(argv[0]);
+
+  if (Flags::IsSet("shutdown")) {
+    err_msg = Dart::Cleanup();
+    ASSERT(err_msg == NULL);
+  }
+
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {
     fprintf(stderr, "No tests matched: %s\n", run_filter);

@@ -11,13 +11,11 @@
 #include "vm/timer.h"
 
 
-
 namespace dart {
 
-DECLARE_FLAG(bool, compiler_stats);
 
-// TODO(hausner): Might want to expose some of these values in the
-// observatory. Use the metrics mechanism (metrics.h) for this.
+DECLARE_FLAG(bool, compiler_stats);
+DECLARE_FLAG(bool, compiler_benchmark);
 
 class CompilerStats {
  public:
@@ -26,8 +24,6 @@ class CompilerStats {
 
   Isolate* isolate_;
 
-  // TODO(hausner): add these timers to the timer list maintained
-  // in the isolate?
   Timer parser_timer;         // Cumulative runtime of parser.
   Timer scanner_timer;        // Cumulative runtime of scanner.
   Timer codegen_timer;        // Cumulative runtime of code generator.
@@ -44,33 +40,52 @@ class CompilerStats {
   Timer graphcompiler_timer;   // Included in codegen_timer.
   Timer codefinalizer_timer;   // Included in codegen_timer.
 
-  int64_t num_tokens_total;
+  int64_t num_tokens_total;    // Isolate + VM isolate
   int64_t num_literal_tokens_total;
   int64_t num_ident_tokens_total;
+  int64_t num_tokens_scanned;
   int64_t num_tokens_consumed;
-  int64_t num_token_checks;
-  int64_t num_tokens_lookahead;
+  int64_t num_cached_consts;
+  int64_t num_const_cache_hits;
 
-  int64_t num_classes_compiled;
-  int64_t num_functions_compiled;
+  int64_t num_classes_parsed;
+  int64_t num_class_tokens;
+  int64_t num_functions_parsed;      // Num parsed functions.
+  int64_t num_functions_compiled;    // Num unoptimized compilations.
+  int64_t num_functions_optimized;   // Num optimized compilations.
+  int64_t num_func_tokens_compiled;
   int64_t num_implicit_final_getters;
+  int64_t num_method_extractors;
 
   int64_t src_length;          // Total number of characters in source.
   int64_t total_code_size;     // Bytes allocated for code and meta info.
   int64_t total_instr_size;    // Total size of generated code in bytes.
   int64_t pc_desc_size;
   int64_t vardesc_size;
+  char* text;
+  bool use_benchmark_output;
 
-  void Print();
+  // Update stats that are computed, e.g. token count.
+  void Update();
+
+  void EnableBenchmark();
+  char* BenchmarkOutput();
+  char* PrintToZone();
 };
 
-#define INC_STAT(isolate, counter, incr)                                       \
-  if (FLAG_compiler_stats) { (isolate)->compiler_stats()->counter += (incr); }
+// TODO(hausner): make the increment thread-safe.
+#define INC_STAT(thread, counter, incr)                                        \
+  if (FLAG_compiler_stats) {                                                   \
+      (thread)->isolate()->compiler_stats()->counter += (incr); }
 
-#define CSTAT_TIMER_SCOPE(iso, t)                                              \
+#define STAT_VALUE(thread, counter)                                            \
+  ((FLAG_compiler_stats != false) ?                                            \
+      (thread)->isolate()->compiler_stats()->counter : 0)
+
+#define CSTAT_TIMER_SCOPE(thr, t)                                              \
   TimerScope timer(FLAG_compiler_stats,                                        \
-  FLAG_compiler_stats ? &((iso)->compiler_stats()->t) : NULL,                  \
-  iso);
+      FLAG_compiler_stats ? &((thr)->isolate()->compiler_stats()->t) : NULL,   \
+      thr);
 
 }  // namespace dart
 

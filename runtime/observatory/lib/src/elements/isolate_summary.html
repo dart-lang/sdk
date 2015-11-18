@@ -9,43 +9,25 @@
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <div class="flex-row">
-      <div class="flex-item-10-percent">
-        <img src="img/isolate_icon.png">
-      </div>
-      <div class="flex-item-10-percent">
-        {{ isolate.number }}
-      </div>
-      <div class="flex-item-20-percent">
+      <div>
         <isolate-ref ref="{{ isolate }}"></isolate-ref>
       </div>
-      <div class="flex-item-10-percent">
+      <div style="flex:1"></div>
+      <div>
         <isolate-run-state isolate="{{ isolate }}"></isolate-run-state>
-      </div>
-      <div class="flex-item-40-percent">
         <isolate-location isolate="{{ isolate }}"></isolate-location>
         [<a on-click="{{ goto }}" _href="{{ gotoLink('/debugger', isolate) }}">debug</a>]
       </div>
-      <div class="flex-item-10-percent">
-      </div>
     </div>
-
-    <div class="flex-row">
-      <div class="flex-item-20-percent"></div>
-      <div class="flex-item-60-percent">
-        <hr>
-      </div>
-      <div class="flex-item-20-percent"></div>
-    </div>
-
+    <br>
     <isolate-shared-summary isolate="{{ isolate }}"></isolate-shared-summary>
-
   </template>
 </polymer-element>
 
 <polymer-element name="isolate-run-state" extends="observatory-element">
   <template>
     <template if="{{ isolate.paused }}">
-      <strong>paused</strong>
+      <strong title="{{ isolate.pauseEvent.timestamp.toString() }}">paused</strong>
     </template>
 
     <template if="{{ isolate.running }}">
@@ -106,7 +88,7 @@
       .errorBox {
         background-color: #f5f5f5;
         border: 1px solid #ccc;
-        padding: 10px;
+        padding: 2em;
         font-family: consolas, courier, monospace;
         font-size: 1em;
         line-height: 1.2em;
@@ -121,12 +103,10 @@
       </div>
     </template>
     <div class="flex-row">
-      <div class="flex-item-10-percent">
-      </div>
-      <div class="flex-item-40-percent">
+      <div style="flex:2">
         <isolate-counter-chart counters="{{ isolate.counters }}"></isolate-counter-chart>
       </div>
-      <div class="flex-item-40-percent">
+      <div style="flex:1">
         <div class="memberList">
           <div class="memberItem">
             <div class="memberName">new heap</div>
@@ -206,15 +186,36 @@
         </template>
         -->
       </div>
-      <div class="flex-item-10-percent">
-      </div>
     </div>
   </template>
 </polymer-element>
 
 <polymer-element name="isolate-counter-chart" extends="observatory-element">
   <template>
-    <div id="counterPieChart" style="height: 200px"></div>
+    <link rel="stylesheet" href="../../../../packages/charted/charts/themes/quantum_theme.css">
+    <style>
+.chart-wrapper {
+}
+.chart-host-wrapper {
+  display: flex;
+  flex-direction: row;
+  max-height: 250px;
+}
+.chart-host {
+  flex: 1;
+}
+.chart-legend-host {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+    </style>
+    <div class="chart-wrapper" id="isolate-counter-chart">
+      <div class="chart-host-wrapper">
+        <div class="chart-host" id="isolate-counter-chart-host"></div>
+        <div class="chart-legend-host" id="isolate-counter-chart-legend-host"></div>
+      </div>
+  </div>
   </template>
 </polymer-element>
 

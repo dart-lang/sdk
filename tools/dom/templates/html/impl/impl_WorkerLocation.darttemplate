@@ -1,0 +1,23 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable()
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+$if DARTIUM
+  // Override these methods for Dartium _WorkerLocation can't be abstract.
+  String get hash => _blink.BlinkWorkerLocation.instance.hash_Getter_(unwrap_jso(this));
+  String get host => _blink.BlinkWorkerLocation.instance.host_Getter_(unwrap_jso(this));
+  String get hostname => _blink.BlinkWorkerLocation.instance.hostname_Getter_(unwrap_jso(this));
+  String get href => _blink.BlinkWorkerLocation.instance.href_Getter_(unwrap_jso(this));
+  String get origin => _blink.BlinkWorkerLocation.instance.origin_Getter_(unwrap_jso(this));
+  String get pathname => _blink.BlinkWorkerLocation.instance.pathname_Getter_(unwrap_jso(this));
+  String get port => _blink.BlinkWorkerLocation.instance.port_Getter_(unwrap_jso(this));
+  String get protocol => _blink.BlinkWorkerLocation.instance.protocol_Getter_(unwrap_jso(this));
+  String get search => _blink.BlinkWorkerLocation.instance.search_Getter_(unwrap_jso(this));
+$endif
+}
+

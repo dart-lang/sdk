@@ -4,11 +4,11 @@
 
 library test.source;
 
+import '../utils.dart';
 import 'caching_put_package_map_provider_test.dart' as caching_provider_test;
-import 'package:unittest/unittest.dart';
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   caching_provider_test.main();
 }

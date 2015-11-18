@@ -2,28 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library driver;
+library analysis_server.starter;
 
-import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/server/driver.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:plugin/plugin.dart';
 
 /**
- * An object that can be used to start an analysis server.
+ * An object that can be used to start an analysis server. This class exists so
+ * that clients can configure an analysis server before starting it.
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ServerStarter {
   /**
    * Initialize a newly created starter to start up an analysis server.
    */
   factory ServerStarter() = Driver;
-
-  /**
-   * Set the context manager used to create analysis contexts within each of the
-   * analysis roots.
-   */
-  void set contextManager(ContextManager manager);
 
   /**
    * Set the instrumentation [server] that is to be used by the analysis server.
@@ -35,7 +31,6 @@ abstract class ServerStarter {
    * are resolved in some contexts. The provider should return `null` if the
    * default package resolution scheme should be used instead.
    */
-  @deprecated
   void set packageResolverProvider(ResolverProvider provider);
 
   /**

@@ -5,15 +5,26 @@
 import "dart:async";
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
-import "package:compiler/src/dart2jslib.dart";
 import "package:compiler/src/elements/elements.dart";
-import "package:compiler/src/resolution/resolution.dart";
-import "package:compiler/src/util/util.dart";
+import "package:compiler/src/resolution/members.dart";
+import "package:compiler/src/diagnostics/diagnostic_listener.dart";
 import "mock_compiler.dart";
+import "diagnostic_reporter_helper.dart";
 
 
 class CallbackMockCompiler extends MockCompiler {
-  CallbackMockCompiler() : super.internal();
+  CallbackReporter reporter;
+
+  CallbackMockCompiler() : super.internal() {
+    reporter = new CallbackReporter(super.reporter);
+  }
+
+}
+
+class CallbackReporter extends DiagnosticReporterWrapper {
+  final DiagnosticReporter reporter;
+
+  CallbackReporter(this.reporter);
 
   var onError;
   var onWarning;
@@ -21,24 +32,22 @@ class CallbackMockCompiler extends MockCompiler {
   setOnError(var f) => onError = f;
   setOnWarning(var f) => onWarning = f;
 
-  void reportWarning(Spannable node,
-                     MessageKind messageKind,
-                     [Map arguments = const {}]) {
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     if (onWarning != null) {
-      MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-      onWarning(this, node, template.message(arguments));
+      onWarning(this, message.spannable, message.message);
     }
-    super.reportWarning(node, messageKind, arguments);
+    super.reportWarning(message, infos);
   }
 
-  void reportError(Spannable node,
-                   MessageKind messageKind,
-                   [Map arguments = const {}]) {
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     if (onError != null) {
-      MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-      onError(this, node, template.message(arguments));
+      onError(this, message.spannable, message.message);
     }
-    super.reportError(node, messageKind, arguments);
+    super.reportError(message, infos);
   }
 }
 
@@ -50,9 +59,9 @@ Future testErrorHandling() {
     ResolverVisitor visitor = compiler.resolverVisitor();
     compiler.parseScript('NoSuchPrefix.NoSuchType foo() {}');
     FunctionElement foo = compiler.mainApp.find('foo');
-    compiler.setOnWarning(
+    compiler.reporter.setOnWarning(
         (c, n, m) => Expect.equals(foo, compiler.currentElement));
-    foo.computeType(compiler);
+    foo.computeType(compiler.resolution);
     Expect.equals(1, compiler.warnings.length);
   });
 }

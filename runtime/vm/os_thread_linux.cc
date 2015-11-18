@@ -9,6 +9,7 @@
 
 #include <errno.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
+#include <sys/syscall.h>  // NOLINT
 #include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
@@ -102,9 +103,6 @@ int OSThread::Start(ThreadStartFunction function, uword parameter) {
   int result = pthread_attr_init(&attr);
   RETURN_ON_PTHREAD_FAILURE(result);
 
-  result = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  RETURN_ON_PTHREAD_FAILURE(result);
-
   result = pthread_attr_setstacksize(&attr, OSThread::GetMaxStackSize());
   RETURN_ON_PTHREAD_FAILURE(result);
 
@@ -124,6 +122,7 @@ int OSThread::Start(ThreadStartFunction function, uword parameter) {
 ThreadLocalKey OSThread::kUnsetThreadLocalKey =
     static_cast<pthread_key_t>(-1);
 ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
+ThreadJoinId OSThread::kInvalidThreadJoinId = static_cast<ThreadJoinId>(0);
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -159,14 +158,30 @@ ThreadId OSThread::GetCurrentThreadId() {
 }
 
 
-bool OSThread::Join(ThreadId id) {
-  return false;
+ThreadId OSThread::GetCurrentThreadTraceId() {
+  return syscall(__NR_gettid);
+}
+
+
+ThreadJoinId OSThread::GetCurrentThreadJoinId() {
+  return pthread_self();
+}
+
+
+void OSThread::Join(ThreadJoinId id) {
+  int result = pthread_join(id, NULL);
+  ASSERT(result == 0);
 }
 
 
 intptr_t OSThread::ThreadIdToIntPtr(ThreadId id) {
   ASSERT(sizeof(id) == sizeof(intptr_t));
   return static_cast<intptr_t>(id);
+}
+
+
+ThreadId OSThread::ThreadIdFromIntPtr(intptr_t id) {
+  return static_cast<ThreadId>(id);
 }
 
 

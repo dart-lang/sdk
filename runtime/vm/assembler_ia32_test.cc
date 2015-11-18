@@ -3394,17 +3394,14 @@ ASSEMBLER_TEST_RUN(TestRepMovsBytes, test) {
 // Called from assembler_test.cc.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ pushl(THR);
-  __ pushl(CTX);
-  __ movl(CTX, Address(ESP, 3 * kWordSize));
-  __ movl(EAX, Address(ESP, 4 * kWordSize));
-  __ movl(ECX, Address(ESP, 5 * kWordSize));
-  __ movl(THR, Address(ESP, 6 * kWordSize));
+  __ movl(EAX, Address(ESP, 2 * kWordSize));
+  __ movl(ECX, Address(ESP, 3 * kWordSize));
+  __ movl(THR, Address(ESP, 4 * kWordSize));
   __ pushl(EAX);
   __ StoreIntoObject(ECX,
                      FieldAddress(ECX, GrowableObjectArray::data_offset()),
                      EAX);
   __ popl(EAX);
-  __ popl(CTX);
   __ popl(THR);
   __ ret();
 }

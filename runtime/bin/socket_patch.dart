@@ -280,9 +280,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   static const Duration _RETRY_DURATION_LOOPBACK =
       const Duration(milliseconds: 25);
 
-  // Use default Map so we keep order.
-  static Map<int, _NativeSocket> _sockets = new Map<int, _NativeSocket>();
-
   // Socket close state
   bool isClosed = false;
   bool isClosing = false;
@@ -316,14 +313,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool writeEventIssued = false;
   bool writeAvailable = false;
 
-  static final Stopwatch sw = new Stopwatch()..start();
-  // Statistics.
-  int totalRead = 0;
-  int totalWritten = 0;
-  int readCount = 0;
-  int writeCount = 0;
-  double lastRead;
-  double lastWrite;
+  static bool connectedResourceHandler = false;
+  _ReadWriteResourceInfo resourceInfo;
 
   // The owner object is the object that the Socket is being used by, e.g.
   // a HttpServer, a WebSocket connection, a process pipe, etc.
@@ -441,6 +432,8 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                   _RETRY_DURATION_LOOPBACK :
                   _RETRY_DURATION;
               var timer = new Timer(duration, connectNext);
+              setupResourceInfo(socket);
+
               connecting[socket] = timer;
               // Setup handlers for receiving the first write event which
               // indicate that the socket is fully connected.
@@ -492,7 +485,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         .then((address) {
           var socket = new _NativeSocket.listen();
           socket.localAddress = address;
-
           var result = socket.nativeCreateBindListen(address._in_addr,
                                                      port,
                                                      backlog,
@@ -505,9 +497,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                                       port: port);
           }
           if (port != 0) socket.localPort = port;
+          setupResourceInfo(socket);
           socket.connectToEventHandler();
           return socket;
         });
+  }
+
+  static void setupResourceInfo(_NativeSocket socket) {
+    socket.resourceInfo = new _SocketResourceInfo(socket);
   }
 
   static Future<_NativeSocket> bindDatagram(
@@ -534,6 +531,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                                       port: port);
           }
           if (port != 0) socket.localPort = port;
+          setupResourceInfo(socket);
           return socket;
         });
   }
@@ -575,10 +573,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
     if (result != null) {
       available -= result.length;
-      totalRead += result.length;
+      // TODO(ricow): Remove when we track internal and pipe uses.
+      assert(resourceInfo != null || isPipe || isInternal);
+      if (resourceInfo != null) {
+        resourceInfo.totalRead += result.length;
+      }
     }
-    readCount++;
-    lastRead = timestamp;
+    // TODO(ricow): Remove when we track internal and pipe uses.
+    assert(resourceInfo != null || isPipe || isInternal);
+    if (resourceInfo != null) {
+      resourceInfo.didRead();
+    }
     return result;
   }
 
@@ -595,10 +600,17 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       // receive. If available becomes > 0, the _NativeSocket will continue to
       // emit read events.
       available = nativeAvailable();
-      totalRead += result.data.length;
+      // TODO(ricow): Remove when we track internal and pipe uses.
+      assert(resourceInfo != null || isPipe || isInternal);
+      if (resourceInfo != null) {
+        resourceInfo.totalRead += result.data.length;
+      }
     }
-    readCount++;
-    lastRead = timestamp;
+    // TODO(ricow): Remove when we track internal and pipe uses.
+    assert(resourceInfo != null || isPipe || isInternal);
+    if (resourceInfo != null) {
+      resourceInfo.didRead();
+    }
     return result;
   }
 
@@ -637,9 +649,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
     // Negate the result, as stated above.
     if (result < 0) result = -result;
-    totalWritten += result;
-    writeCount++;
-    lastWrite = timestamp;
+    // TODO(ricow): Remove when we track internal and pipe uses.
+    assert(resourceInfo != null || isPipe || isInternal);
+    if (resourceInfo != null) {
+      resourceInfo.addWrite(result);
+    }
     return result;
   }
 
@@ -656,9 +670,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       scheduleMicrotask(() => reportError(result, "Send failed"));
       result = 0;
     }
-    totalWritten += result;
-    writeCount++;
-    lastWrite = timestamp;
+    // TODO(ricow): Remove when we track internal and pipe uses.
+    assert(resourceInfo != null || isPipe || isInternal);
+    if (resourceInfo != null) {
+      resourceInfo.addWrite(result);
+    }
     return result;
   }
 
@@ -673,8 +689,13 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (nativeAccept(socket) != true) return null;
     socket.localPort = localPort;
     socket.localAddress = address;
-    totalRead += 1;
-    lastRead = timestamp;
+    setupResourceInfo(socket);
+    // TODO(ricow): Remove when we track internal and pipe uses.
+    assert(resourceInfo != null || isPipe || isInternal);
+    if (resourceInfo != null) {
+      // We track this as read one byte.
+      resourceInfo.addRead(1);
+    }
     return socket;
   }
 
@@ -787,6 +808,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         if (i == DESTROYED_EVENT) {
           assert(isClosing);
           assert(!isClosed);
+          // TODO(ricow): Remove/update when we track internal and pipe uses.
+          assert(resourceInfo != null || isPipe || isInternal);
+          if (resourceInfo != null) {
+            _SocketResourceInfo.SocketClosed(resourceInfo);
+          }
           isClosed = true;
           closeCompleter.complete();
           disconnectFromEventHandler();
@@ -904,7 +930,14 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     assert(!isClosed);
     if (eventPort == null) {
       eventPort = new RawReceivePort(multiplex);
-      _sockets[_serviceId] = this;
+    }
+    if (!connectedResourceHandler) {
+      registerExtension('__getOpenSockets',
+                        _SocketResourceInfo.getOpenSockets);
+      registerExtension('__getSocketByID',
+                        _SocketResourceInfo.getSocketInfoMapByID);
+
+      connectedResourceHandler = true;
     }
   }
 
@@ -912,7 +945,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     assert(eventPort != null);
     eventPort.close();
     eventPort = null;
-    _sockets.remove(_serviceId);
     // Now that we don't track this Socket anymore, we can clear the owner
     // field.
     owner = null;
@@ -1017,123 +1049,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (result is OSError) throw result;
   }
 
-  String get _serviceTypePath => 'io/sockets';
-  String get _serviceTypeName => 'Socket';
-
-  String _JSONKind() {
-    return isListening ? "Listening" :
-           isPipe ? "Pipe" :
-           isInternal ? "Internal" : "Normal";
-  }
-
-  Map _toJSONPipe(bool ref) {
-    var name = 'Anonymous Pipe';
-    var r = {
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': name,
-      'user_name': name,
-      'kind': _JSONKind(),
-    };
-    if (ref) {
-      return r;
-    }
-    r['readClosed'] = isClosedRead;
-    r['writeClosed'] = isClosedWrite;
-    r['closing'] = isClosing;
-    r['fd'] = nativeGetSocketId();
-    if (owner != null) {
-      r['owner'] = owner._toJSON(true);
-    }
-    return r;
-  }
-
-  Map _toJSONInternal(bool ref) {
-    var name = 'Internal';
-    var r = {
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': name,
-      'user_name': name,
-      'kind': _JSONKind(),
-    };
-    if (ref) {
-      return r;
-    }
-    r['closing'] = isClosing;
-    r['fd'] = nativeGetSocketId();
-    if (owner != null) {
-      r['owner'] = owner._toJSON(true);
-    }
-    return r;
-  }
-
-  Map _toJSONNetwork(bool ref) {
-    var name = '${address.host}:$port';
-    if (isTcp && !isListening) name += " <-> ${remoteAddress.host}:$remotePort";
-    var r = {
-      'id': _servicePath,
-      'type': _serviceType(ref),
-      'name': name,
-      'user_name': name,
-      'kind': _JSONKind(),
-    };
-    if (ref) {
-      return r;
-    }
-    var protocol = isTcp ? "TCP" : isUdp ? "UDP" : null;
-    var localAddress;
-    var localPort;
-    var rAddress;
-    var rPort;
-    try {
-      localAddress = address.address;
-    } catch (e) { }
-    try {
-      localPort = port;
-    } catch (e) { }
-    try {
-      rAddress = this.remoteAddress.address;
-    } catch (e) { }
-    try {
-      rPort = remotePort;
-    } catch (e) { }
-    r['localAddress'] = localAddress;
-    r['localPort'] = localPort;
-    r['remoteAddress'] = rAddress;
-    r['remotePort'] = rPort;
-    r['protocol'] = protocol;
-    r['readClosed'] = isClosedRead;
-    r['writeClosed'] = isClosedWrite;
-    r['closing'] = isClosing;
-    r['listening'] = isListening;
-    r['fd'] = nativeGetSocketId();
-    if (owner != null) {
-      r['owner'] = owner._toJSON(true);
-    }
-    return r;
-  }
-
-  Map _toJSON(bool ref) {
-    var map;
-    if (isPipe) {
-      map =  _toJSONPipe(ref);
-    } else if (isInternal) {
-      map = _toJSONInternal(ref);
-    } else {
-      map = _toJSONNetwork(ref);
-    }
-    if (!ref) {
-      map['available'] = available;
-      map['totalRead'] = totalRead;
-      map['totalWritten'] = totalWritten;
-      map['readCount'] = totalWritten;
-      map['writeCount'] = writeCount;
-      map['lastRead'] = lastRead;
-      map['lastWrite'] = lastWrite;
-    }
-    return map;
-  }
 
   void nativeSetSocketId(int id) native "Socket_SetSocketId";
   nativeAvailable() native "Socket_Available";
@@ -1168,8 +1083,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool nativeLeaveMulticast(
       List<int> addr, List<int> interfaceAddr, int interfaceIndex)
       native "Socket_LeaveMulticast";
-  bool _nativeMarkSocketAsSharedHack()
-      native "Socket_MarkSocketAsSharedHack";
 }
 
 
@@ -1272,49 +1185,7 @@ class _RawServerSocket extends Stream<RawSocket>
     }
   }
 
-  RawServerSocketReference get reference {
-    if (_referencePort == null) {
-      bool successfull = _socket._nativeMarkSocketAsSharedHack();
-      _referencePort = new ReceivePort();
-      _referencePort.listen((sendPort) {
-        sendPort.send(
-          [_socket.address,
-           _socket.port,
-           _v6Only]);
-      });
-    }
-    return new _RawServerSocketReference(_referencePort.sendPort);
-  }
-
-  Map _toJSON(bool ref) => _socket._toJSON(ref);
-
   void set _owner(owner) { _socket.owner = owner; }
-}
-
-
-class _RawServerSocketReference implements RawServerSocketReference {
-  final SendPort _sendPort;
-
-  _RawServerSocketReference(this._sendPort);
-
-  Future<RawServerSocket> create() {
-    var port = new ReceivePort();
-    _sendPort.send(port.sendPort);
-    return port.first.then((List args) {
-      port.close();
-
-      InternetAddress address = args[0];
-      int tcpPort = args[1];
-      bool v6Only = args[2];
-      return
-          RawServerSocket.bind(address, tcpPort, v6Only: v6Only, shared: true);
-    });
-  }
-
-  int get hashCode => _sendPort.hashCode;
-
-  bool operator==(Object other)
-      => other is _RawServerSocketReference && _sendPort == other._sendPort;
 }
 
 
@@ -1465,7 +1336,6 @@ class _RawSocket extends Stream<RawSocketEvent>
     }
   }
 
-  Map _toJSON(bool ref) => _socket._toJSON(ref);
   void set _owner(owner) { _socket.owner = owner; }
 }
 
@@ -1477,17 +1347,6 @@ patch class ServerSocket {
                                                 bool v6Only: false,
                                                 bool shared: false}) {
     return _ServerSocket.bind(address, port, backlog, v6Only, shared);
-  }
-}
-
-
-class _ServerSocketReference implements ServerSocketReference {
-  final RawServerSocketReference _rawReference;
-
-  _ServerSocketReference(this._rawReference);
-
-  Future<ServerSocket> create() {
-    return _rawReference.create().then((raw) => new _ServerSocket(raw));
   }
 }
 
@@ -1523,12 +1382,6 @@ class _ServerSocket extends Stream<Socket>
   InternetAddress get address => _socket.address;
 
   Future close() => _socket.close().then((_) => this);
-
-  ServerSocketReference get reference {
-    return new _ServerSocketReference(_socket.reference);
-  }
-
-  Map _toJSON(bool ref) => _socket._toJSON(ref);
 
   void set _owner(owner) { _socket._owner = owner; }
 }
@@ -1843,7 +1696,6 @@ class _Socket extends Stream<List<int>> implements Socket {
     }
   }
 
-  Map _toJSON(bool ref) => _raw._toJSON(ref);
   void set _owner(owner) { _raw._owner = owner; }
 }
 
@@ -1999,4 +1851,3 @@ Datagram _makeDatagram(List<int> data,
       port);
 }
 
-String _socketsStats() => _SocketsObservatory.toJSON();

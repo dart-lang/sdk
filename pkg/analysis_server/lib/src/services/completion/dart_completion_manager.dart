@@ -6,23 +6,27 @@ library services.completion.dart;
 
 import 'dart:async';
 
-import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest;
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart'
+    show CompletionRequest;
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
+    as newApi;
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/completion_target.dart';
+import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
-import 'package:analysis_server/src/services/completion/import_uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
+import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -72,14 +76,21 @@ abstract class DartCompletionContributor {
  * Manages code completion for a given Dart file completion request.
  */
 class DartCompletionManager extends CompletionManager {
+  /**
+   * The [defaultContributionSorter] is a long-lived object that isn't allowed
+   * to maintain state between calls to [ContributionSorter#sort(...)].
+   */
+  static ContributionSorter defaultContributionSorter =
+      new CommonUsageComputer();
+
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
   List<DartCompletionContributor> contributors;
-  CommonUsageComputer commonUsageComputer;
+  ContributionSorter contributionSorter;
 
   DartCompletionManager(
       AnalysisContext context, this.searchEngine, Source source, this.cache,
-      [this.contributors, this.commonUsageComputer])
+      [this.contributors, this.contributionSorter])
       : super(context, source) {
     if (contributors == null) {
       contributors = [
@@ -92,11 +103,14 @@ class DartCompletionManager extends CompletionManager {
         new ArgListContributor(),
         new CombinatorContributor(),
         new PrefixedElementContributor(),
-        new ImportUriContributor(),
+        new UriContributor(),
+        // TODO(brianwilkerson) Use the completion contributor extension point
+        // to add the contributor below (and eventually, all the contributors).
+//        new NewCompletionWrapper(new InheritedContributor())
       ];
     }
-    if (commonUsageComputer == null) {
-      commonUsageComputer = new CommonUsageComputer();
+    if (contributionSorter == null) {
+      contributionSorter = defaultContributionSorter;
     }
   }
 
@@ -167,8 +181,12 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
-      commonUsageComputer.computeFast(request);
-      sendResults(request, todo.isEmpty);
+      contributionSorter.sort(
+          new OldRequestWrapper(request), request.suggestions);
+
+      if (todo.isEmpty) {
+        sendResults(request, todo.isEmpty);
+      }
       return todo;
     });
   }
@@ -205,7 +223,8 @@ class DartCompletionManager extends CompletionManager {
               performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
-                commonUsageComputer.computeFull(request);
+                contributionSorter.sort(
+                    new OldRequestWrapper(request), request.suggestions);
                 sendResults(request, last);
               }
             });
@@ -322,17 +341,20 @@ class DartCompletionRequest extends CompletionRequestImpl {
       Source source, int offset, this.cache)
       : super(server, context, source, offset);
 
-  factory DartCompletionRequest.from(CompletionRequestImpl request,
-      DartCompletionCache cache) => new DartCompletionRequest(
-      request.server, request.context, request.source, request.offset, cache);
+  factory DartCompletionRequest.from(
+          CompletionRequestImpl request, DartCompletionCache cache) =>
+      new DartCompletionRequest(request.server, request.context, request.source,
+          request.offset, cache);
 
   /**
    * Return the original text from the [replacementOffset] to the [offset]
    * that can be used to filter the suggestions on the server side.
    */
   String get filterText {
-    return context.getContents(source).data.substring(
-        replacementOffset, offset);
+    return context
+        .getContents(source)
+        .data
+        .substring(replacementOffset, offset);
   }
 
   /**
@@ -378,9 +400,12 @@ class DartCompletionRequest extends CompletionRequestImpl {
         // because [DartCompletionCache] may be caching that suggestion
         // for future completion requests
         _suggestions[index] = new CompletionSuggestion(
-            CompletionSuggestionKind.IDENTIFIER, suggestion.relevance,
-            suggestion.completion, suggestion.selectionOffset,
-            suggestion.selectionLength, suggestion.isDeprecated,
+            CompletionSuggestionKind.IDENTIFIER,
+            suggestion.relevance,
+            suggestion.completion,
+            suggestion.selectionOffset,
+            suggestion.selectionLength,
+            suggestion.isDeprecated,
             suggestion.isPotential,
             declaringType: suggestion.declaringType,
             parameterNames: suggestion.parameterNames,
@@ -392,4 +417,83 @@ class DartCompletionRequest extends CompletionRequestImpl {
       }
     }
   }
+}
+
+/**
+ * A wrapper around a new dart completion contributor that makes it usable where
+ * an old dart completion contributor is expected.
+ */
+class NewCompletionWrapper implements DartCompletionContributor {
+  /**
+   * The new-style contributor that is being wrapped.
+   */
+  final newApi.DartCompletionContributor contributor;
+
+  /**
+   * Initialize a newly created wrapper for the given [contributor].
+   */
+  NewCompletionWrapper(this.contributor);
+
+  @override
+  bool computeFast(DartCompletionRequest request) {
+    List<CompletionSuggestion> suggestions =
+        contributor.computeSuggestions(new OldRequestWrapper(request));
+    if (suggestions == null) {
+      return false;
+    }
+    for (CompletionSuggestion suggestion in suggestions) {
+      request.addSuggestion(suggestion);
+    }
+    return true;
+  }
+
+  @override
+  Future<bool> computeFull(DartCompletionRequest request) async {
+    List<CompletionSuggestion> suggestions =
+        contributor.computeSuggestions(new OldRequestWrapper(request));
+    if (suggestions != null) {
+      for (CompletionSuggestion suggestion in suggestions) {
+        request.addSuggestion(suggestion);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  String toString() => 'wrapped $contributor';
+}
+
+/**
+ * A wrapper around an old dart completion request that makes it usable where a
+ * new dart completion request is expected.
+ */
+class OldRequestWrapper implements newApi.DartCompletionRequest {
+  final DartCompletionRequest request;
+
+  OldRequestWrapper(this.request);
+
+  @override
+  AnalysisContext get context => request.context;
+
+  @override
+  bool get isResolved => request.unit.element != null;
+
+  @override
+  int get offset => request.offset;
+
+  @override
+  ResourceProvider get resourceProvider => request.resourceProvider;
+
+  @override
+  Source get source => request.source;
+
+  @override
+  CompletionTarget get target => request.target;
+
+  @override
+  CompilationUnit get unit => request.unit;
+
+  @override
+  String toString() => 'wrapped $request';
 }

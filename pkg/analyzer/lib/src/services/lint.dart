@@ -9,6 +9,25 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/visitors.dart';
+import 'package:analyzer/src/task/model.dart';
+import 'package:analyzer/task/model.dart';
+
+const List<Linter> _noLints = const <Linter>[];
+
+/// The descriptor used to associate lints with analysis contexts in
+/// configuration data.
+final ResultDescriptor<List<Linter>> CONFIGURED_LINTS_KEY =
+    new ResultDescriptorImpl('configured.lints', _noLints);
+
+/// Return lints associated with this [context], or an empty list if there are
+/// none.
+List<Linter> getLints(AnalysisContext context) =>
+    context.getConfigurationData(CONFIGURED_LINTS_KEY) ?? _noLints;
+
+/// Associate these [lints] with the given [context].
+void setLints(AnalysisContext context, List<Linter> lints) {
+  context.setConfigurationData(CONFIGURED_LINTS_KEY, lints);
+}
 
 /// Implementers contribute lint warnings via the provided error [reporter].
 abstract class Linter {
@@ -27,9 +46,7 @@ abstract class Linter {
 ///
 /// See [LintCode].
 class LintGenerator {
-
-  /// A global container for contributed linters.
-  static final List<Linter> LINTERS = <Linter>[];
+  static const List<Linter> _noLints = const <Linter>[];
 
   final Iterable<CompilationUnit> _compilationUnits;
   final AnalysisErrorListener _errorListener;
@@ -37,7 +54,7 @@ class LintGenerator {
 
   LintGenerator(this._compilationUnits, this._errorListener,
       [Iterable<Linter> linters])
-      : _linters = linters != null ? linters : LINTERS;
+      : _linters = linters ?? _noLints;
 
   void generate() {
     PerformanceStatistics.lint.makeCurrentWhile(() {

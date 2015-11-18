@@ -81,19 +81,19 @@ VMTag::TagEntry VMTag::entries_[] = {
 };
 
 
-VMTagScope::VMTagScope(Isolate* base_isolate, uword tag, bool conditional_set)
-    : StackResource(base_isolate) {
+VMTagScope::VMTagScope(Thread* thread, uword tag, bool conditional_set)
+    : StackResource(thread) {
   ASSERT(isolate() != NULL);
-  previous_tag_ = isolate()->vm_tag();
+  previous_tag_ = thread->vm_tag();
   if (conditional_set) {
-    isolate()->set_vm_tag(tag);
+    thread->set_vm_tag(tag);
   }
 }
 
 
 VMTagScope::~VMTagScope() {
   ASSERT(isolate() != NULL);
-  isolate()->set_vm_tag(previous_tag_);
+  thread()->set_vm_tag(previous_tag_);
 }
 
 
@@ -145,11 +145,11 @@ void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
 const char* UserTags::TagName(uword tag_id) {
   ASSERT(tag_id >= kUserTagIdOffset);
   ASSERT(tag_id < kUserTagIdOffset + kMaxUserTags);
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = Thread::Current()->zone();
   const UserTag& tag =
-      UserTag::Handle(isolate, UserTag::FindTagById(tag_id));
+      UserTag::Handle(zone, UserTag::FindTagById(tag_id));
   ASSERT(!tag.IsNull());
-  const String& label = String::Handle(isolate, tag.label());
+  const String& label = String::Handle(zone, tag.label());
   return label.ToCString();
 }
 

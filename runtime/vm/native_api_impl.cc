@@ -11,7 +11,6 @@
 #include "vm/message.h"
 #include "vm/native_message_handler.h"
 #include "vm/port.h"
-#include "vm/precompiler.h"
 
 namespace dart {
 
@@ -72,17 +71,8 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
 
 static void CompileAll(Isolate* isolate, Dart_Handle* result) {
   ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(isolate, Library::CompileAll());
-  if (error.IsNull()) {
-    *result = Api::Success();
-  } else {
-    *result = Api::NewHandle(isolate, error.raw());
-  }
-}
-
-static void Precompile(Isolate* isolate, Dart_Handle* result) {
-  ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(isolate, Precompiler::CompileAll());
+  const Error& error =
+      Error::Handle(isolate->current_zone(), Library::CompileAll());
   if (error.IsNull()) {
     *result = Api::Success();
   } else {
@@ -92,27 +82,13 @@ static void Precompile(Isolate* isolate, Dart_Handle* result) {
 
 
 DART_EXPORT Dart_Handle Dart_CompileAll() {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(isolate);
+  DARTSCOPE(Thread::Current());
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
   if (::Dart_IsError(result)) {
     return result;
   }
-  CHECK_CALLBACK_STATE(isolate);
-  CompileAll(isolate, &result);
-  return result;
-}
-
-
-DART_EXPORT Dart_Handle Dart_Precompile() {
-  Isolate* isolate = Isolate::Current();
-  DARTSCOPE(isolate);
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(isolate);
-  if (::Dart_IsError(result)) {
-    return result;
-  }
-  CHECK_CALLBACK_STATE(isolate);
-  Precompile(isolate, &result);
+  CHECK_CALLBACK_STATE(T);
+  CompileAll(I, &result);
   return result;
 }
 

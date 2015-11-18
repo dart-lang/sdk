@@ -45,9 +45,7 @@ class SendVisitor extends Visitor {
 
   visitSend(Send node) {
     Element element = elements[node];
-    if (elements.isAssert(node)) {
-      return;
-    } else if (elements.isTypeLiteral(node)) {
+    if (elements.isTypeLiteral(node)) {
       DartType type = elements.getTypeLiteralType(node);
       if (!type.isDynamic) {
         if (type is TypeVariableType) {
@@ -139,7 +137,6 @@ class SendVisitor extends Visitor {
         collector.currentElement, element, node);
 
     if (Elements.isUnresolved(element)
-        || elements.isAssert(node)
         || element.isDeferredLoaderGetter) {
       return;
     }
@@ -173,7 +170,7 @@ class SendVisitor extends Visitor {
 }
 
 class PlaceholderCollector extends Visitor {
-  final DiagnosticListener listener;
+  final DiagnosticReporter reporter;
   final MirrorRenamer mirrorRenamer;
   final FunctionElement mainFunction;
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
@@ -199,7 +196,7 @@ class PlaceholderCollector extends Visitor {
   get currentFunctionScope => functionScopes.putIfAbsent(
       topmostEnclosingFunction, () => new FunctionScope());
 
-  PlaceholderCollector(this.listener, this.mirrorRenamer,
+  PlaceholderCollector(this.reporter, this.mirrorRenamer,
                        this.fixedMemberNames, this.elementAsts,
                        this.mainFunction);
 
@@ -261,7 +258,7 @@ class PlaceholderCollector extends Visitor {
     currentLocalPlaceholders = new Map<String, LocalPlaceholder>();
     if (!(element is ConstructorElement && element.isRedirectingFactory)) {
       // Do not visit the body of redirecting factories.
-      listener.withCurrentElement(element, () {
+      reporter.withCurrentElement(element, () {
         elementNode.accept(this);
       });
     }
@@ -380,7 +377,7 @@ class PlaceholderCollector extends Visitor {
     if (node is Identifier &&
         !Elements.isStaticOrTopLevel(element) &&
         !Elements.isLocal(element) &&
-        isPrivateName(node.source)) {
+        Name.isPrivateName(node.source)) {
       privateNodes.putIfAbsent(
           currentElement.library, () => new Set<Identifier>()).add(node);
     }
@@ -478,7 +475,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   void internalError(String reason, {Node node}) {
-    listener.internalError(node, reason);
+    reporter.internalError(node, reason);
   }
 
   visit(Node node) => (node == null) ? null : node.accept(this);

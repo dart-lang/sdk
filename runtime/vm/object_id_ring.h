@@ -36,7 +36,7 @@ class ObjectIdRing {
 
   static const int32_t kMaxId = 0x3FFFFFFF;
   static const int32_t kInvalidId = -1;
-  static const int32_t kDefaultCapacity = 1024;
+  static const int32_t kDefaultCapacity = 8192;
 
   static void Init(Isolate* isolate, int32_t capacity = kDefaultCapacity);
 

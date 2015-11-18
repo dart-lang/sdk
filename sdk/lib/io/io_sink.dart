@@ -97,6 +97,9 @@ abstract class IOSink implements StreamSink<List<int>>, StringSink {
 
   /**
    * Adds all elements of the given [stream] to `this`.
+   *
+   * Returns a [Future] that completes when
+   * all elements of the given [stream] are added to `this`.
    */
   Future addStream(Stream<List<int>> stream);
 

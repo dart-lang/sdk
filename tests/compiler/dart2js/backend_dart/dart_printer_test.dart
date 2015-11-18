@@ -4,18 +4,24 @@
 
 library dart_printer_test;
 
-import "package:expect/expect.dart";
+import 'dart:mirrors';
+import 'package:expect/expect.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/dart_backend/backend_ast_nodes.dart';
-import 'package:compiler/src/scanner/scannerlib.dart';
-import 'package:compiler/src/io/source_file.dart';
-import 'package:compiler/src/dart2jslib.dart';
-import 'package:compiler/src/tree/tree.dart' show DartString;
-import 'dart:mirrors';
-import 'package:compiler/src/tree/tree.dart' as tree;
-import 'package:compiler/src/string_validator.dart';
 import 'package:compiler/src/dart_backend/backend_ast_to_frontend_ast.dart'
     show TreePrinter;
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
+import 'package:compiler/src/diagnostics/spannable.dart' show Spannable;
+import 'package:compiler/src/parser/listener.dart';
+import 'package:compiler/src/parser/parser.dart';
+import 'package:compiler/src/scanner/scanner.dart';
+import 'package:compiler/src/tokens/token.dart';
+import 'package:compiler/src/tokens/token_constants.dart';
+import 'package:compiler/src/io/source_file.dart';
+import 'package:compiler/src/string_validator.dart';
+import 'package:compiler/src/tree/tree.dart' show DartString;
+import 'package:compiler/src/tree/tree.dart' as tree;
 
 /// For debugging the [AstBuilder] stack. Prints information about [x].
 void show(x) {
@@ -45,7 +51,7 @@ void show(x) {
   print("${x.runtimeType}: ${buf.toString()}");
 }
 
-class PrintDiagnosticListener implements DiagnosticListener {
+class PrintDiagnosticListener implements DiagnosticReporter {
   void log(message) {
     print(message);
   }
@@ -581,9 +587,14 @@ class AstBuilder extends Listener {
     push(new ForIn(declaredIdentifier, exp, body));
   }
 
-  handleAssertStatement(Token assertKeyword, Token semicolonToken) {
+  handleAssertStatement(Token assertKeyword,
+                        Token commaToken, Token semicolonToken) {
+    Expression message;
+    if (commaToken != null) message = pop();
     Expression exp = pop();
-    Expression call = new CallFunction(new Identifier("assert"), [exp]);
+    var arguments = [exp];
+    if (message != null) arguments.add(message);
+    Expression call = new CallFunction(new Identifier("assert"), arguments);
     push(new ExpressionStatement(call));
   }
 

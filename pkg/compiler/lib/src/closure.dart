@@ -4,18 +4,28 @@
 
 library closureToClassMapper;
 
+import 'common.dart';
+import 'common/names.dart' show
+    Identifiers;
+import 'common/resolution.dart' show
+    Parsing,
+    Resolution;
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
 import 'constants/expressions.dart';
-import 'dart2jslib.dart';
 import 'dart_types.dart';
 import 'elements/elements.dart';
-import 'elements/modelx.dart'
-    show BaseFunctionElementX,
-         ClassElementX,
-         ElementX,
-         LocalFunctionElementX;
+import 'elements/modelx.dart' show
+    BaseFunctionElementX,
+    ClassElementX,
+    ElementX,
+    LocalFunctionElementX;
 import 'elements/visitor.dart' show ElementVisitor;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'scanner/scannerlib.dart' show Token;
+import 'resolution/tree_elements.dart' show TreeElements;
+import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
 import 'util/util.dart';
 import 'universe/universe.dart' show
@@ -66,7 +76,7 @@ class ClosureTask extends CompilerTask {
     return measure(() {
       ClosureClassMap nestedClosureData = closureMappingCache[node];
       if (nestedClosureData == null) {
-        compiler.internalError(node, "No closure cache.");
+        reporter.internalError(node, "No closure cache.");
       }
       return nestedClosureData;
     });
@@ -131,7 +141,7 @@ class ClosureFieldElement extends ElementX
   bool get isInstanceMember => true;
   bool get isAssignable => false;
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   DartType get type {
     if (local is LocalElement) {
@@ -188,7 +198,7 @@ class ClosureClassElement extends ClassElementX {
     ClassElement superclass = methodElement.isInstanceMember
         ? backend.boundClosureClass
         : backend.closureClass;
-    superclass.ensureResolved(compiler);
+    superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<DartType>();
     thisType = rawType = new InterfaceType(this);
@@ -199,7 +209,7 @@ class ClosureClassElement extends ClassElementX {
 
   Iterable<ClosureFieldElement> get closureFields => _closureFields;
 
-  void addField(ClosureFieldElement field, DiagnosticListener listener) {
+  void addField(ClosureFieldElement field, DiagnosticReporter listener) {
     _closureFields.add(field);
     addMember(field, listener);
   }
@@ -210,7 +220,7 @@ class ClosureClassElement extends ClassElementX {
 
   Token get position => node.getBeginToken();
 
-  Node parseNode(DiagnosticListener listener) => node;
+  Node parseNode(Parsing parsing) => node;
 
   // A [ClosureClassElement] is nested inside a function or initializer in terms
   // of [enclosingElement], but still has to be treated as a top-level
@@ -243,7 +253,7 @@ class BoxFieldElement extends ElementX
       : this.box = box,
         super(name, ElementKind.FIELD, box.executableContext);
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   DartType get type => variableElement.type;
 
@@ -306,7 +316,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
       : expression = other,
         super(name, other.kind, other.modifiers, enclosing) {
     asyncMarker = other.asyncMarker;
-    functionSignatureCache = other.functionSignature;
+    functionSignature = other.functionSignature;
   }
 
   /// Use [closureClass] instead.
@@ -323,7 +333,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
   FunctionExpression get node => expression.node;
 
-  FunctionExpression parseNode(DiagnosticListener listener) => node;
+  FunctionExpression parseNode(Parsing parsing) => node;
 
   ResolvedAst get resolvedAst {
     return new ResolvedAst(this, node, treeElements);
@@ -498,6 +508,8 @@ class ClosureTranslator extends Visitor {
                     this.elements,
                     this.closureMappingCache);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   /// Generate a unique name for the [id]th closure field, with proposed name
   /// [name].
   ///
@@ -530,7 +542,7 @@ class ClosureTranslator extends Visitor {
 
   void addCapturedVariable(Node node, Local variable) {
     if (_capturedVariableMapping[variable] != null) {
-      compiler.internalError(node, 'In closure analyzer.');
+      reporter.internalError(node, 'In closure analyzer.');
     }
     _capturedVariableMapping[variable] = null;
   }
@@ -600,7 +612,7 @@ class ClosureTranslator extends Visitor {
       void addClosureField(Local local, String name) {
         ClosureFieldElement closureField =
             new ClosureFieldElement(name, local, closureClass);
-        closureClass.addField(closureField, compiler);
+        closureClass.addField(closureField, reporter);
         data.freeVariableMap[local] = closureField;
       }
 
@@ -777,8 +789,6 @@ class ClosureTranslator extends Visitor {
     } else if (node.isTypeCast) {
       DartType type = elements.getType(node.arguments.head);
       analyzeType(type);
-    } else if (elements.isAssert(node) && !compiler.enableUserAssertions) {
-      return;
     }
     node.visitChildren(this);
   }
@@ -985,13 +995,14 @@ class ClosureTranslator extends Visitor {
     ClosureClassElement globalizedElement = new ClosureClassElement(
         node, closureName, compiler, element);
     FunctionElement callElement =
-        new SynthesizedCallMethodElementX(Compiler.CALL_OPERATOR_NAME,
+        new SynthesizedCallMethodElementX(Identifiers.call,
                                           element,
                                           globalizedElement);
-    backend.maybeMarkClosureAsNeededForReflection(globalizedElement, callElement, element);
+    backend.maybeMarkClosureAsNeededForReflection(
+        globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;
     enclosing.nestedClosures.add(callElement);
-    globalizedElement.addMember(callElement, compiler);
+    globalizedElement.addMember(callElement, reporter);
     globalizedElement.computeAllClassMembers(compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.

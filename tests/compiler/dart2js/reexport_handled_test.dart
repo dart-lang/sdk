@@ -32,24 +32,15 @@ void main() {
     return compiler.libraryLoader.loadLibrary(exportingLibraryUri);
   }).then((exportingLibrary) {
     Expect.isTrue(exportingLibrary.exportsHandled);
-    var foo = findInExports(exportingLibrary, 'foo');
+    var foo = exportingLibrary.findExported('foo');
     Expect.isNotNull(foo);
     Expect.isTrue(foo.isField);
 
     // Load reexporting library when exports are handled on the exporting library.
     return compiler.libraryLoader.loadLibrary(reexportingLibraryUri);
   }).then((reexportingLibrary) {
-    var foo = findInExports(reexportingLibrary, 'foo');
+    var foo = reexportingLibrary.findExported('foo');
     Expect.isNotNull(foo);
     Expect.isTrue(foo.isField);
   }));
-}
-
-Element findInExports(LibraryElement library, String name) {
-  for (var export in library.exports) {
-    if (export.name == name) {
-      return export;
-    }
-  }
-  return null;
 }

@@ -7,13 +7,13 @@ library engine.compile_time_error_code_test;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart' as _ut;
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'resolver_test.dart';
 
 main() {
-  _ut.groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(CompileTimeErrorCodeTest);
 }
 
@@ -207,10 +207,14 @@ String name(E e) {
 library L;
 export 'lib1.dart';
 export 'lib2.dart';''');
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 class N {}''');
-    addNamedSource("/lib2.dart", r'''
+    addNamedSource(
+        "/lib2.dart",
+        r'''
 library lib2;
 class N {}''');
     computeLibrarySourceErrors(source);
@@ -471,7 +475,9 @@ f() async {
   }
 
   void test_async_used_as_identifier_in_suffix() {
-    addNamedSource("/lib1.dart", r'''
+    addNamedSource(
+        "/lib1.dart",
+        r'''
 library lib1;
 int async;
 ''');
@@ -955,7 +961,9 @@ import 'lib1.dart' deferred as a;
 main() {
   const a.A();
 }'''
-    ], <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.CONST_DEFERRED_CLASS
+    ]);
   }
 
   void test_constDeferredClass_namedConstructor() {
@@ -971,7 +979,9 @@ import 'lib1.dart' deferred as a;
 main() {
   const a.A.b();
 }'''
-    ], <ErrorCode>[CompileTimeErrorCode.CONST_DEFERRED_CLASS]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.CONST_DEFERRED_CLASS
+    ]);
   }
 
   void test_constEval_newInstance_constConstructor() {
@@ -996,6 +1006,20 @@ class A {
 const x = const A();''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_constEval_nonStaticField_inGenericClass() {
+    Source source = addSource('''
+class C<T> {
+  const C();
+  T get t => null;
+}
+
+const x = const C().t;''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 
@@ -1411,8 +1435,10 @@ f() {
   }
 
   void test_constWithNonType_fromLibrary() {
-    Source source1 = addNamedSource("lib.dart", "");
-    Source source2 = addNamedSource("lib2.dart", r'''
+    Source source1 = addNamedSource("/lib.dart", "");
+    Source source2 = addNamedSource(
+        "/lib2.dart",
+        r'''
 import 'lib.dart' as lib;
 void f() {
   const lib.A();
@@ -1548,16 +1574,22 @@ class A {
   }
 
   void test_duplicateDefinition_acrossLibraries() {
-    Source librarySource = addNamedSource("/lib.dart", r'''
+    Source librarySource = addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 
 part 'a.dart';
 part 'b.dart';''');
-    Source sourceA = addNamedSource("/a.dart", r'''
+    Source sourceA = addNamedSource(
+        "/a.dart",
+        r'''
 part of lib;
 
 class A {}''');
-    Source sourceB = addNamedSource("/b.dart", r'''
+    Source sourceB = addNamedSource(
+        "/b.dart",
+        r'''
 part of lib;
 
 class A {}''');
@@ -1830,7 +1862,9 @@ class A {}''',
 library root;
 import 'lib1.dart' deferred as a;
 class B extends a.A {}'''
-    ], <ErrorCode>[CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS
+    ]);
   }
 
   void test_extendsDeferredClass_classTypeAlias() {
@@ -1843,7 +1877,9 @@ library root;
 import 'lib1.dart' deferred as a;
 class M {}
 class C = a.A with M;'''
-    ], <ErrorCode>[CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS
+    ]);
   }
 
   void test_extendsDisallowedClass_class_bool() {
@@ -2262,7 +2298,9 @@ class A {}''',
 library root;
 import 'lib1.dart' deferred as a;
 class B implements a.A {}'''
-    ], <ErrorCode>[CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS
+    ]);
   }
 
   void test_implementsDeferredClass_classTypeAlias() {
@@ -2276,7 +2314,9 @@ import 'lib1.dart' deferred as a;
 class B {}
 class M {}
 class C = B with M implements a.A;'''
-    ], <ErrorCode>[CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS
+    ]);
   }
 
   void test_implementsDisallowedClass_class_bool() {
@@ -2564,10 +2604,8 @@ class B extends A {
     // directive for the error, this is such a minor corner case that we don't
     // think we should add the additional computation time to figure out such
     // cases.
-    assertErrors(source, [
-      CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
-      HintCode.UNUSED_IMPORT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, HintCode.UNUSED_IMPORT]);
     verify([source]);
   }
 
@@ -2579,10 +2617,8 @@ class B extends A {
     // directive for the error, this is such a minor corner case that we don't
     // think we should add the additional computation time to figure out such
     // cases.
-    assertErrors(source, [
-      CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
-      HintCode.UNUSED_IMPORT
-    ]);
+    assertErrors(source,
+        [CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, HintCode.UNUSED_IMPORT]);
     verify([source]);
   }
 
@@ -2591,7 +2627,9 @@ class B extends A {
 library lib;
 import 'part.dart';
 A a;''');
-    addNamedSource("/part.dart", r'''
+    addNamedSource(
+        "/part.dart",
+        r'''
 part of lib;
 class A{}''');
     computeLibrarySourceErrors(source);
@@ -2865,7 +2903,9 @@ main() {
   }
 
   void test_invalidAnnotation_importWithPrefix_getter() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 get V => 0;''');
     Source source = addSource(r'''
@@ -2879,7 +2919,9 @@ main() {
   }
 
   void test_invalidAnnotation_importWithPrefix_notConstantVariable() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 final V = 0;''');
     Source source = addSource(r'''
@@ -2893,7 +2935,9 @@ main() {
   }
 
   void test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 typedef V();''');
     Source source = addSource(r'''
@@ -3464,7 +3508,9 @@ class A {}''',
 library root;
 import 'lib1.dart' deferred as a;
 class B extends Object with a.A {}'''
-    ], <ErrorCode>[CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.MIXIN_DEFERRED_CLASS
+    ]);
   }
 
   void test_mixinDeferredClass_classTypeAlias() {
@@ -3477,7 +3523,9 @@ library root;
 import 'lib1.dart' deferred as a;
 class B {}
 class C = B with a.A;'''
-    ], <ErrorCode>[CompileTimeErrorCode.MIXIN_DEFERRED_CLASS]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.MIXIN_DEFERRED_CLASS
+    ]);
   }
 
   void test_mixinHasNoConstructors_mixinApp() {
@@ -4756,7 +4804,9 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_call() {
-    addNamedSource('/lib.dart', '''
+    addNamedSource(
+        '/lib.dart',
+        '''
 library lib;
 g() {}
 ''');
@@ -4773,7 +4823,9 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_call_loadLibrary() {
-    addNamedSource('/lib.dart', '''
+    addNamedSource(
+        '/lib.dart',
+        '''
 library lib;
 ''');
     Source source = addSource('''
@@ -4789,7 +4841,9 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_get() {
-    addNamedSource('/lib.dart', '''
+    addNamedSource(
+        '/lib.dart',
+        '''
 library lib;
 var x;
 ''');
@@ -4806,7 +4860,9 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_get_loadLibrary() {
-    addNamedSource('/lib.dart', '''
+    addNamedSource(
+        '/lib.dart',
+        '''
 library lib;
 ''');
     Source source = addSource('''
@@ -4822,7 +4878,9 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_set() {
-    addNamedSource('/lib.dart', '''
+    addNamedSource(
+        '/lib.dart',
+        '''
 library lib;
 var x;
 ''');
@@ -4839,7 +4897,9 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_set_loadLibrary() {
-    addNamedSource('/lib.dart', '''
+    addNamedSource(
+        '/lib.dart',
+        '''
 library lib;
 ''');
     Source source = addSource('''
@@ -4885,7 +4945,9 @@ f() {
   }
 
   void test_prefixCollidesWithTopLevelMembers_functionTypeAlias() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -4899,7 +4961,9 @@ p.A a;''');
   }
 
   void test_prefixCollidesWithTopLevelMembers_topLevelFunction() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -4913,7 +4977,9 @@ p.A a;''');
   }
 
   void test_prefixCollidesWithTopLevelMembers_topLevelVariable() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -4927,7 +4993,9 @@ p.A a;''');
   }
 
   void test_prefixCollidesWithTopLevelMembers_type() {
-    addNamedSource("/lib.dart", r'''
+    addNamedSource(
+        "/lib.dart",
+        r'''
 library lib;
 class A{}''');
     Source source = addSource(r'''
@@ -4969,7 +5037,9 @@ f() {
   }
 
   void test_prefixNotFollowedByDot_conditionalMethodInvocation() {
-    addNamedSource('/lib.dart', '''
+    addNamedSource(
+        '/lib.dart',
+        '''
 library lib;
 g() {}
 ''');
@@ -5547,7 +5617,9 @@ library root;
 import 'lib1.dart' deferred as lib;
 import 'lib2.dart' as lib;
 main() { lib.f1(); lib.f2(); }'''
-    ], <ErrorCode>[CompileTimeErrorCode.SHARED_DEFERRED_PREFIX]);
+    ], <ErrorCode>[
+      CompileTimeErrorCode.SHARED_DEFERRED_PREFIX
+    ]);
   }
 
   void test_superInInvalidContext_binaryExpression() {

@@ -221,7 +221,7 @@ abstract class Future<T> {
    * See also [Completer] for a way to create and complete a future at a
    * later time that isn't necessarily after a known fixed duration.
    */
-  factory Future.delayed(Duration duration, [T computation()]) {
+  factory Future.delayed(Duration duration, [computation()]) {
     _Future result = new _Future<T>();
     new Timer(duration, () {
       try {

@@ -4,22 +4,23 @@
 
 library test.analysis.get_navigation;
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../utils.dart';
 import 'notification_navigation_test.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(GetNavigationTest);
 }
 
 @reflectiveTest
 class GetNavigationTest extends AbstractNavigationTest {
-  static const String requestId = 'test-getNavigtion';
+  static const String requestId = 'test-getNavigation';
 
   @override
   void setUp() {
@@ -47,12 +48,56 @@ main() {
 
   test_fileWithoutContext() {
     String file = '/outside.dart';
-    addFile(file, '''
+    addFile(
+        file,
+        '''
 main() {
   print(42);
 }
 ''');
     return _checkInvalid(file, -1, -1);
+  }
+
+  test_importDirective() async {
+    addTestFile('''
+import 'dart:math';
+
+main() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(testFile, 0, 17);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'dart:math'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+  }
+
+  test_importKeyword() async {
+    addTestFile('''
+import 'dart:math';
+
+main() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(testFile, 0, 1);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'dart:math'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
+  }
+
+  test_importUri() async {
+    addTestFile('''
+import 'dart:math';
+
+main() {
+}''');
+    await waitForTasksFinished();
+    await _getNavigation(testFile, 7, 11);
+    expect(regions, hasLength(1));
+    assertHasRegionString("'dart:math'");
+    expect(testTargets, hasLength(1));
+    expect(testTargets[0].kind, ElementKind.LIBRARY);
   }
 
   test_multipleRegions() async {
@@ -83,6 +128,52 @@ main() {
       assertHasTarget('ccc = 3');
     }
     assertNoRegionAt('ddd)');
+  }
+
+  test_operator_index() async {
+    addTestFile('''
+class A {
+  A operator [](index) => null;
+  operator []=(index, A value) {}
+}
+main() {
+  var a = new A();
+  a[0] // [];
+  a[1] = 1; // []=;
+  a[2] += 2;
+}
+''');
+    await waitForTasksFinished();
+    {
+      String search = '[0';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[](index)', 2);
+    }
+    {
+      String search = '] // []';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[](index)', 2);
+    }
+    {
+      String search = '[1';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[]=(index', 3);
+    }
+    {
+      String search = '] = 1';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[]=(index', 3);
+    }
+    {
+      String search = '[2';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[]=(index', 3);
+    }
+    {
+      String search = '] += 2';
+      await _getNavigation(testFile, testCode.indexOf(search), 1);
+      assertHasOperatorRegion(search, 1, '[]=(index', 3);
+    }
   }
 
   test_removeContextAfterRequest() async {

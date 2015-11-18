@@ -72,7 +72,7 @@ abstract class NodeTreeSanitizer {
   /**
    * A sanitizer for trees that we trust. It does no validation and allows
    * any elements. It is also more efficient, since it can pass the text
-   * directly through to the underlying APIs without creating a document 
+   * directly through to the underlying APIs without creating a document
    * fragment to be sanitized.
    */
   static const trusted = const _TrustedHtmlTreeSanitizer();
@@ -87,7 +87,7 @@ class _TrustedHtmlTreeSanitizer implements NodeTreeSanitizer {
 
   sanitizeTree(Node node) {}
 }
-  
+
 /**
  * Defines the policy for what types of uris are allowed for particular
  * attribute values.
@@ -141,14 +141,14 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsElement(Element element) {
     if (!validator.allowsElement(element)) {
-      throw new ArgumentError(element.tagName);
+      throw new ArgumentError(Element._safeTagName(element));
     }
     return true;
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${element.tagName}[$attributeName="$value"]');
+      throw new ArgumentError('${Element._safeTagName(element)}[$attributeName="$value"]');
     }
   }
 }
@@ -190,7 +190,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the element, assuming we can't trust anything about it.
-  void _sanitizeUntrustedElement(Element element, Node parent) {
+  void _sanitizeUntrustedElement(/* Element */ element, Node parent) {
     // If the _hasCorruptedAttributes does not successfully return false,
     // then we consider it corrupted and remove.
     // TODO(alanknight): This is a workaround because on Firefox
@@ -199,7 +199,9 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // can't call methods. This does mean that you can't explicitly allow an
     // embed tag. The only thing that will let it through is a null
     // sanitizer that doesn't traverse the tree at all. But sanitizing while
-    // allowing embeds seems quite unlikely.
+    // allowing embeds seems quite unlikely. This is also the reason that we
+    // can't declare the type of element, as an embed won't pass any type
+    // check in dart2js.
     var corrupted = true;
     var attrs;
     var isAttr;
@@ -207,18 +209,27 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // If getting/indexing attributes throws, count that as corrupt.
       attrs = element.attributes;
       isAttr = attrs['is'];
-      corrupted = Element._hasCorruptedAttributes(element);
+      var corruptedTest1 = Element._hasCorruptedAttributes(element);
+
+      // On IE, erratically, the hasCorruptedAttributes test can return false,
+      // even though it clearly is corrupted. A separate copy of the test
+      // inlining just the basic check seems to help.
+      corrupted = corruptedTest1 ? true : Element._hasCorruptedAttributesAdditionalCheck(element);
     } catch(e) {}
-     var elementText = 'element unprintable';
+    var elementText = 'element unprintable';
     try {
       elementText = element.toString();
     } catch(e) {}
-    var elementTagName = 'element tag unavailable';
     try {
-      elementTagName = element.tagName;
-    } catch(e) {}
-    _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
-        attrs, isAttr);
+      var elementTagName = Element._safeTagName(element);
+      _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
+          attrs, isAttr);
+    } on ArgumentError { // Thrown by _ThrowsNodeValidator
+      rethrow;
+    } catch(e) {  // Unexpected exception sanitizing -> remove
+      _removeNode(element, parent);
+      window.console.warn('Removing corrupted element $elementText');
+    }
   }
 
   /// Having done basic sanity checking on the element, and computed the
@@ -227,23 +238,23 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   void _sanitizeElement(Element element, Node parent, bool corrupted,
       String text, String tag, Map attrs, String isAttr) {
     if (false != corrupted) {
+       _removeNode(element, parent);
       window.console.warn(
           'Removing element due to corrupted attributes on <$text>');
-       _removeNode(element, parent);
        return;
     }
     if (!validator.allowsElement(element)) {
-      window.console.warn(
-          'Removing disallowed element <$tag>');
       _removeNode(element, parent);
+      window.console.warn(
+          'Removing disallowed element <$tag> from $parent');
       return;
     }
 
     if (isAttr != null) {
       if (!validator.allowsAttribute(element, 'is', isAttr)) {
+        _removeNode(element, parent);
         window.console.warn('Removing disallowed type extension '
             '<$tag is="$isAttr">');
-        _removeNode(element, parent);
         return;
       }
     }

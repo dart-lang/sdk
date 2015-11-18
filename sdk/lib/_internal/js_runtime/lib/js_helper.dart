@@ -4,8 +4,6 @@
 
 library _js_helper;
 
-import 'dart:_async_await_error_codes' as async_error_codes;
-
 import 'dart:_js_embedded_names' show
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,
@@ -37,7 +35,8 @@ import 'dart:async' show
     StreamController,
     Stream,
     StreamSubscription,
-    scheduleMicrotask;
+    scheduleMicrotask,
+    Zone;
 
 import 'dart:_foreign_helper' show
     DART_CLOSURE_TO_JS,
@@ -45,19 +44,21 @@ import 'dart:_foreign_helper' show
     JS_BUILTIN,
     JS_CALL_IN_ISOLATE,
     JS_CONST,
-    JS_GET_STATIC_STATEC,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EFFECT,
     JS_EMBEDDED_GLOBAL,
     JS_GET_FLAG,
     JS_GET_NAME,
-    JS_HAS_EQUALS,
+    JS_INTERCEPTOR_CONSTANT,
     JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
 
 import 'dart:_interceptors';
 import 'dart:_internal' as _symbol_dev;
-import 'dart:_internal' show EfficientLength, MappedIterable;
+import 'dart:_internal' show
+    EfficientLength,
+    MappedIterable,
+    IterableElementError;
 
 import 'dart:_native_typed_data';
 
@@ -148,7 +149,7 @@ bool builtinIsSubtype(type, String other) {
 @ForceInline()
 bool isDartFunctionTypeRti(Object type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti, 
+                    JsBuiltin.isGivenTypeRti,
                     type,
                     JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
 }
@@ -158,7 +159,7 @@ bool isDartFunctionTypeRti(Object type) {
 @ForceInline()
 bool isDartObjectTypeRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti, 
+                    JsBuiltin.isGivenTypeRti,
                     type,
                     JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME));
 }
@@ -168,7 +169,7 @@ bool isDartObjectTypeRti(type) {
 @ForceInline()
 bool isNullTypeRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isGivenTypeRti, 
+                    JsBuiltin.isGivenTypeRti,
                     type,
                     JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
 }
@@ -257,7 +258,7 @@ void throwInvalidReflectionError(String memberName) {
 /// Helper to print the given method information to the console the first
 /// time it is called with it.
 @NoInline()
-void traceHelper(String method) {
+void consoleTraceHelper(String method) {
   if (JS('bool', '!this.cache')) {
     JS('', 'this.cache = Object.create(null)');
   }
@@ -265,6 +266,31 @@ void traceHelper(String method) {
     JS('', 'console.log(#)', method);
     JS('', 'this.cache[#] = true', method);
   }
+}
+
+List _traceBuffer;
+
+/// Helper to send coverage information as a POST request to a server.
+@NoInline()
+void postTraceHelper(int id, String name) {
+  // Note: we can't move this initialization to the declaration of
+  // [_traceBuffer] because [postTraceHelper] is called very early on functions
+  // that define constants, this happens before getters and setters are expanded
+  // and before main starts executing. This initialization here allows us to
+  // skip the lazy field initialization logic.
+  if (_traceBuffer == null) _traceBuffer = JS('JSArray', '[]');
+  if (JS('bool', '#.length == 0', _traceBuffer)) {
+    JS('', r'''
+      window.setTimeout((function(buffer) {
+        return function() {
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/coverage_uri_to_amend_by_server");
+          xhr.send(JSON.stringify(buffer));
+          buffer.length = 0;
+        };
+      })(#), 1000)''', _traceBuffer);
+  }
+  JS('', '#.push([#, #])', _traceBuffer, id, name);
 }
 
 class JSInvocationMirror implements Invocation {
@@ -819,25 +845,76 @@ class Primitives {
   /// Returns the type of [object] as a string (including type arguments).
   ///
   /// In minified mode, uses the unminified names if available.
+  @NoInline()
   static String objectTypeName(Object object) {
-    String name = constructorNameFallback(getInterceptor(object));
-    if (name == 'Object') {
-      // Try to decompile the constructor by turning it into a string and get
-      // the name out of that. If the decompiled name is a string containing an
-      // identifier, we use that instead of the very generic 'Object'.
-      var decompiled =
-          JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)[1]',
-              JS('var', r'String(#.constructor)', object));
-      if (decompiled is String)
-        if (JS('bool', r'/^\w+$/.test(#)', decompiled))
-          name = decompiled;
+    return formatType(_objectRawTypeName(object), getRuntimeTypeInfo(object));
+  }
+
+  static String _objectRawTypeName(Object object) {
+    var interceptor = getInterceptor(object);
+    // The interceptor is either an object (self-intercepting plain Dart class),
+    // the prototype of the constructor for an Interceptor class (like
+    // `JSString.prototype`, `JSNull.prototype`), or an Interceptor object
+    // instance (`const JSString()`, should use `JSString.prototype`).
+    //
+    // These all should have a `constructor` property with a `name` property.
+    String name;
+    var interceptorConstructor = JS('', '#.constructor', interceptor);
+    if (JS('bool', 'typeof # == "function"', interceptorConstructor)) {
+      var interceptorConstructorName = JS('', '#.name', interceptorConstructor);
+      if (interceptorConstructorName is String) {
+        name = interceptorConstructorName;
+      }
     }
+
+    if (name == null ||
+        identical(interceptor, JS_INTERCEPTOR_CONSTANT(Interceptor)) ||
+        object is UnknownJavaScriptObject) {
+      // Try to do better.  If we do not find something better, leave the name
+      // as 'UnknownJavaScriptObject' or 'Interceptor' (or the minified name).
+      //
+      // When we get here via the UnknownJavaScriptObject test (for JavaScript
+      // objects from outside the program), the object's constructor has a
+      // better name that 'UnknownJavaScriptObject'.
+      //
+      // When we get here the Interceptor test (for Native classes that are
+      // declared in the Dart program but have been 'folded' into Interceptor),
+      // the native class's constructor name is better than the generic
+      // 'Interceptor' (an abstract class).
+
+      // Try the [constructorNameFallback]. This gets the constructor name for
+      // any browser (used by [getNativeInterceptor]).
+      String dispatchName = constructorNameFallback(object);
+      if (dispatchName == 'Object') {
+        // Try to decompile the constructor by turning it into a string and get
+        // the name out of that. If the decompiled name is a string containing
+        // an identifier, we use that instead of the very generic 'Object'.
+        var objectConstructor = JS('', '#.constructor', object);
+        if (JS('bool', 'typeof # == "function"', objectConstructor)) {
+          var decompiledName =
+              JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)[1]',
+                  JS('var', r'String(#)', objectConstructor));
+          if (decompiledName is String &&
+              JS('bool', r'/^\w+$/.test(#)', decompiledName)) {
+            name = decompiledName;
+          }
+        }
+        if (name == null) name = dispatchName;
+      } else {
+        name = dispatchName;
+      }
+    }
+
+    // Type inference does not understand that [name] is now always a non-null
+    // String. (There is some imprecision in the negation of the disjunction.)
+    name = JS('String', '#', name);
+
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
     if (name.length > 1 && identical(name.codeUnitAt(0), DOLLAR_CHAR_VALUE)) {
       name = name.substring(1);
     }
-    return formatType(name, getRuntimeTypeInfo(object));
+    return name;
   }
 
   /// In minified mode, uses the unminified names if available.
@@ -1482,12 +1559,6 @@ class Primitives {
     return JS('', '#.apply(#, #)', jsFunction, function, positionalArguments);
   }
 
-  static bool identicalImplementation(a, b) {
-    return JS('bool', '# == null', a)
-      ? JS('bool', '# == null', b)
-      : JS('bool', '# === #', a, b);
-  }
-
   static StackTrace extractStackTrace(Error error) {
     return getTraceFromException(JS('', r'#.$thrownJsError', error));
   }
@@ -1555,6 +1626,29 @@ Error diagnoseIndexError(indexable, index) {
   return new RangeError.value(index, 'index');
 }
 
+/**
+ * Diagnoses a range error. Returns the ArgumentError or RangeError that
+ * describes the problem.
+ */
+@NoInline()
+Error diagnoseRangeError(start, end, length) {
+  if (start is! int) {
+    return new ArgumentError.value(start, 'start');
+  }
+  if (start < 0 || start > length) {
+    return new RangeError.range(start, 0, length, 'start');
+  }
+  if (end != null) {
+    if (end is! int) {
+      return new ArgumentError.value(end, 'end');
+    }
+    if (end < start || end > length) {
+      return new RangeError.range(end, start, length, 'end');
+    }
+  }
+  // The above should always match, but if it does not, use the following.
+  return new ArgumentError.value(end, "end");
+}
 
 stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
@@ -2046,6 +2140,15 @@ class UnknownJsTypeError extends Error {
   String toString() => _message.isEmpty ? 'Error' : 'Error: $_message';
 }
 
+/// A wrapper around an exception, much like the one created by [wrapException]
+/// but with a pre-given stack-trace.
+class ExceptionAndStackTrace {
+  dynamic dartException;
+  StackTrace stackTrace;
+
+  ExceptionAndStackTrace(this.dartException, this.stackTrace);
+}
+
 /**
  * Called from catch blocks in generated code to extract the Dart
  * exception from the thrown value. The thrown value may have been
@@ -2365,8 +2468,12 @@ abstract class Closure implements Function {
                      jsArguments,
                      String propertyName) {
     JS_EFFECT(() {
-      BoundClosure.receiverOf(JS('BoundClosure', 'void 0'));
-      BoundClosure.selfOf(JS('BoundClosure', 'void 0'));
+      // The functions are called here to model the calls from JS forms below.
+      // The types in the JS forms in the arguments are propagated in type
+      // inference.
+      BoundClosure.receiverOf(JS('BoundClosure', '0'));
+      BoundClosure.selfOf(JS('BoundClosure', '0'));
+      getType(JS('int', '0'));
     });
     // TODO(ahe): All the place below using \$ should be rewritten to go
     // through the namer.
@@ -3072,8 +3179,9 @@ propertyTypeCast(value, property) {
  */
 interceptedTypeCheck(value, property) {
   if (value == null) return value;
-  if ((identical(JS('String', 'typeof #', value), 'object'))
-      && JS('bool', '#[#]', getInterceptor(value), property)) {
+  if ((JS('bool', 'typeof # === "object"', value) ||
+              JS('bool', 'typeof # === "function"', value)) &&
+      JS('bool', '#[#]', getInterceptor(value), property)) {
     return value;
   }
   propertyTypeError(value, property);
@@ -3085,9 +3193,10 @@ interceptedTypeCheck(value, property) {
  * prototype at load time.
  */
 interceptedTypeCast(value, property) {
-  if (value == null
-      || ((JS('bool', 'typeof # === "object"', value))
-          && JS('bool', '#[#]', getInterceptor(value), property))) {
+  if (value == null ||
+      ((JS('bool', 'typeof # === "object"', value) ||
+              JS('bool', 'typeof # === "function"', value)) &&
+          JS('bool', '#[#]', getInterceptor(value), property))) {
     return value;
   }
   propertyTypeCastError(value, property);
@@ -3263,18 +3372,33 @@ class FallThroughErrorImplementation extends FallThroughError {
 
 /**
  * Helper function for implementing asserts. The compiler treats this specially.
+ *
+ * Returns the negation of the condition. That is: `true` if the assert should
+ * fail.
  */
+bool assertTest(condition) {
+  // Do bool success check first, it is common and faster than 'is Function'.
+  if (true == condition) return false;
+  if (condition is Function) condition = condition();
+  if (condition is bool) return !condition;
+  throw new TypeErrorImplementation(condition, 'bool');
+}
+
+/**
+ * Helper function for implementing asserts with messages.
+ * The compiler treats this specially.
+ */
+void assertThrow(Object message) {
+  throw new _AssertionError(message);
+}
+
+/**
+ * Helper function for implementing asserts without messages.
+ * The compiler treats this specially.
+ */
+@NoInline()
 void assertHelper(condition) {
-  // Do a bool check first because it is common and faster than 'is Function'.
-  if (condition is !bool) {
-    if (condition is Function) condition = condition();
-    if (condition is !bool) {
-      throw new TypeErrorImplementation(condition, 'bool');
-    }
-  }
-  // Compare to true to avoid boolean conversion check in checked
-  // mode.
-  if (true != condition) throw new AssertionError();
+  if (assertTest(condition)) throw new AssertionError();
 }
 
 /**
@@ -3866,6 +3990,58 @@ Future<Null> _loadHunk(String hunkName) {
   return completer.future;
 }
 
+// Performs an HTTP GET of the given URI and returns the response. The response
+// is either a String or a ByteBuffer.
+Future<dynamic> readHttp(String uri) {
+  Completer completer = new Completer();
+
+  void failure([error, StackTrace stackTrace]) {
+    completer.completeError(
+        new Exception("Loading $uri failed: $error"),
+        stackTrace);
+  }
+
+  enterJsAsync();
+  completer.future.whenComplete(leaveJsAsync);
+
+  var xhr = JS('var', 'new XMLHttpRequest()');
+  JS('void', '#.open("GET", #)', xhr, uri);
+  JS('void', '#.addEventListener("load", #, false)',
+     xhr, convertDartClosureToJS((event) {
+    int status = JS('int', '#.status', xhr);
+    if (status != 200) {
+      failure("Status code: $status");
+      return;
+    }
+    String responseType = JS('String', '#.responseType', xhr);
+    var data;
+    if (responseType.isEmpty || responseType == 'text') {
+      data = JS('String', '#.response', xhr);
+      completer.complete(data);
+    } else if (responseType == 'document' || responseType == 'json') {
+      data = JS('String', '#.responseText', xhr);
+      completer.complete(data);
+    } else if (responseType == 'arraybuffer') {
+      data = JS('var', '#.response', xhr);
+      completer.complete(data);
+    } else if (responseType == 'blob') {
+      var reader = JS('var', 'new FileReader()');
+      JS('void', '#.addEventListener("loadend", #, false)',
+          reader, convertDartClosureToJS((event) {
+            data = JS('var', '#.result', reader);
+            completer.complete(data);
+          }, 1));
+    } else {
+      failure('Result had unexpected type: $responseType');
+    }
+  }, 1));
+
+  JS('void', '#.addEventListener("error", #, false)', xhr, failure);
+  JS('void', '#.addEventListener("abort", #, false)', xhr, failure);
+  JS('void', '#.send()', xhr);
+  return completer.future;
+}
+
 class MainError extends Error implements NoSuchMethodError {
   final String _message;
 
@@ -3886,385 +4062,23 @@ void mainHasTooManyParameters() {
   throw new MainError("'main' expects too many parameters.");
 }
 
-/// A wrapper around an exception, much like the one created by [wrapException]
-/// but with a pre-given stack-trace.
-class ExceptionAndStackTrace {
-  dynamic dartException;
-  StackTrace stackTrace;
+class _AssertionError extends AssertionError {
+  final _message;
+  _AssertionError(this._message);
 
-  ExceptionAndStackTrace(this.dartException, this.stackTrace);
+  String toString() => "Assertion failed: " + Error.safeToString(_message);
 }
 
-/// Runtime support for async-await transformation.
-///
-/// This function is called by a transformed function on each await and return
-/// in the untransformed function, and before starting.
-///
-/// If [object] is not a future it will be wrapped in a `new Future.value`.
-///
-/// If [asyncBody] is [async_error_codes.SUCCESS]/[async_error_codes.ERROR] it
-/// indicates a return or throw from the async function, and
-/// complete/completeError is called on [completer] with [object].
-///
-/// Otherwise [asyncBody] is set up to be called when the future is completed
-/// with a code [async_error_codes.SUCCESS]/[async_error_codes.ERROR] depending
-/// on the success of the future.
-///
-/// Returns the future of the completer for convenience of the first call.
-dynamic asyncHelper(dynamic object,
-                    dynamic /* js function */ bodyFunctionOrErrorCode,
-                    Completer completer) {
-  if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
-    completer.complete(object);
-    return;
-  } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
-    // The error is a js-error.
-    completer.completeError(unwrapException(object),
-                            getTraceFromException(object));
-    return;
-  }
-  Future future = object is Future ? object : new Future.value(object);
-  future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                      async_error_codes.SUCCESS),
-      onError: (dynamic error, StackTrace stackTrace) {
-        ExceptionAndStackTrace wrappedException =
-            new ExceptionAndStackTrace(error, stackTrace);
-        Function wrapped =_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-            async_error_codes.ERROR);
-        wrapped(wrappedException);
-      });
-  return completer.future;
+
+// [_UnreachableError] is a separate class because we always resolve
+// [assertUnreachable] and want to reduce the impact of resolving possibly
+// unneeded code.
+class _UnreachableError extends AssertionError {
+  _UnreachableError();
+  String toString() => "Assertion failed: Reached dead code";
 }
 
-Function _wrapJsFunctionForAsync(dynamic /* js function */ function,
-                                 int errorCode) {
-  var protected = JS('', """
-    // Invokes [function] with [errorCode] and [result].
-    //
-    // If (and as long as) the invocation throws, calls [function] again,
-    // with an error-code.
-    function(errorCode, result) {
-      while (true) {
-        try {
-          #(errorCode, result);
-          break;
-        } catch (error) {
-          result = error;
-          errorCode = #;
-        }
-      }
-    }""", function, async_error_codes.ERROR);
-  return (result) {
-    JS('', '#(#, #)', protected, errorCode, result);
-  };
-}
-
-/// Implements the runtime support for async* functions.
-///
-/// Called by the transformed function for each original return, await, yield,
-/// yield* and before starting the function.
-///
-/// When the async* function wants to return it calls this function with
-/// [asyncBody] == [async_error_codes.SUCCESS], the asyncStarHelper takes this
-/// as signal to close the stream.
-///
-/// When the async* function wants to signal that an uncaught error was thrown,
-/// it calls this function with [asyncBody] == [async_error_codes.ERROR],
-/// the streamHelper takes this as signal to addError [object] to the
-/// [controller] and close it.
-///
-/// If the async* function wants to do a yield or yield*, it calls this function
-/// with [object] being an [IterationMarker].
-///
-/// In the case of a yield or yield*, if the stream subscription has been
-/// canceled, schedules [asyncBody] to be called with
-/// [async_error_codes.STREAM_WAS_CANCELED].
-///
-/// If [object] is a single-yield [IterationMarker], adds the value of the
-/// [IterationMarker] to the stream. If the stream subscription has been
-/// paused, return early. Otherwise schedule the helper function to be
-/// executed again.
-///
-/// If [object] is a yield-star [IterationMarker], starts listening to the
-/// yielded stream, and adds all events and errors to our own controller (taking
-/// care if the subscription has been paused or canceled) - when the sub-stream
-/// is done, schedules [asyncBody] again.
-///
-/// If the async* function wants to do an await it calls this function with
-/// [object] not and [IterationMarker].
-///
-/// If [object] is not a [Future], it is wrapped in a `Future.value`.
-/// The [asyncBody] is called on completion of the future (see [asyncHelper].
-void asyncStarHelper(dynamic object,
-                     dynamic /* int | js function */ bodyFunctionOrErrorCode,
-                     AsyncStarStreamController controller) {
-  if (identical(bodyFunctionOrErrorCode, async_error_codes.SUCCESS)) {
-    // This happens on return from the async* function.
-    if (controller.isCanceled) {
-      controller.cancelationCompleter.complete();
-    } else {
-      controller.close();
-    }
-    return;
-  } else if (identical(bodyFunctionOrErrorCode, async_error_codes.ERROR)) {
-    // The error is a js-error.
-    if (controller.isCanceled) {
-      controller.cancelationCompleter.completeError(
-          unwrapException(object),
-          getTraceFromException(object));
-    } else {
-      controller.addError(unwrapException(object),
-                          getTraceFromException(object));
-      controller.close();
-    }
-    return;
-  }
-
-  if (object is IterationMarker) {
-    if (controller.isCanceled) {
-      Function wrapped = _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-          async_error_codes.STREAM_WAS_CANCELED);
-      wrapped(null);
-      return;
-    }
-    if (object.state == IterationMarker.YIELD_SINGLE) {
-      controller.add(object.value);
-
-      scheduleMicrotask(() {
-        if (controller.isPaused) {
-          // We only suspend the thread inside the microtask in order to allow
-          // listeners on the output stream to pause in response to the just
-          // output value, and have the stream immediately stop producing.
-          controller.isSuspended = true;
-          return;
-        }
-        Function wrapped = _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-            async_error_codes.SUCCESS);
-        wrapped(null);
-      });
-      return;
-    } else if (object.state == IterationMarker.YIELD_STAR) {
-      Stream stream = object.value;
-      // Errors of [stream] are passed though to the main stream. (see
-      // [AsyncStreamController.addStream]).
-      // TODO(sigurdm): The spec is not very clear here. Clarify with Gilad.
-      controller.addStream(stream).then((_) {
-        // No check for isPaused here because the spec 17.16.2 only
-        // demands checks *before* each element in [stream] not after the last
-        // one. On the other hand we check for isCanceled, as that check happens
-        // after insertion of each element.
-        int errorCode = controller.isCanceled
-            ? async_error_codes.STREAM_WAS_CANCELED
-            : async_error_codes.SUCCESS;
-        Function wrapped = _wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                errorCode);
-        wrapped(null);
-      });
-      return;
-    }
-  }
-
-  Future future = object is Future ? object : new Future.value(object);
-  future.then(_wrapJsFunctionForAsync(bodyFunctionOrErrorCode,
-                                      async_error_codes.SUCCESS),
-              onError: (error, StackTrace stackTrace) {
-                ExceptionAndStackTrace wrappedException =
-                    new ExceptionAndStackTrace(error, stackTrace);
-                Function wrapped = _wrapJsFunctionForAsync(
-                    bodyFunctionOrErrorCode, async_error_codes.ERROR);
-                return wrapped(wrappedException);
-              });
-}
-
-Stream streamOfController(AsyncStarStreamController controller) {
-  return controller.stream;
-}
-
-/// A wrapper around a [StreamController] that keeps track of the state of
-/// the execution of an async* function.
-/// It can be in 1 of 3 states:
-///
-/// - running/scheduled
-/// - suspended
-/// - canceled
-///
-/// If yielding while the subscription is paused it will become suspended. And
-/// only resume after the subscription is resumed or canceled.
-class AsyncStarStreamController {
-  StreamController controller;
-  Stream get stream => controller.stream;
-
-  /// True when the async* function has yielded while being paused.
-  /// When true execution will only resume after a `onResume` or `onCancel`
-  /// event.
-  bool isSuspended = false;
-
-  bool get isPaused => controller.isPaused;
-
-  Completer cancelationCompleter = null;
-
-  /// True after the StreamSubscription has been cancelled.
-  /// When this is true, errors thrown from the async* body should go to the
-  /// [cancelationCompleter] instead of adding them to [controller], and
-  /// returning from the async function should complete [cancelationCompleter].
-  bool get isCanceled => cancelationCompleter != null;
-
-  add(event) => controller.add(event);
-
-  addStream(Stream stream) {
-    return controller.addStream(stream, cancelOnError: false);
-  }
-
-  addError(error, stackTrace) => controller.addError(error, stackTrace);
-
-  close() => controller.close();
-
-  AsyncStarStreamController(body) {
-
-    _resumeBody() {
-      scheduleMicrotask(() {
-        Function wrapped =
-            _wrapJsFunctionForAsync(body, async_error_codes.SUCCESS);
-        wrapped(null);
-      });
-    }
-
-    controller = new StreamController(
-      onListen: () {
-        _resumeBody();
-      }, onResume: () {
-        // Only schedule again if the async* function actually is suspended.
-        // Resume directly instead of scheduling, so that the sequence
-        // `pause-resume-pause` will result in one extra event produced.
-        if (isSuspended) {
-          isSuspended = false;
-          _resumeBody();
-        }
-      }, onCancel: () {
-        // If the async* is finished we ignore cancel events.
-        if (!controller.isClosed) {
-          cancelationCompleter = new Completer();
-          if (isSuspended) {
-            // Resume the suspended async* function to run finalizers.
-            isSuspended = false;
-            scheduleMicrotask(() {
-              Function wrapped =_wrapJsFunctionForAsync(body,
-                  async_error_codes.STREAM_WAS_CANCELED);
-              wrapped(null);
-            });
-          }
-          return cancelationCompleter.future;
-        }
-      });
-  }
-}
-
-makeAsyncStarController(body) {
-  return new AsyncStarStreamController(body);
-}
-
-class IterationMarker {
-  static const YIELD_SINGLE = 0;
-  static const YIELD_STAR = 1;
-  static const ITERATION_ENDED = 2;
-  static const UNCAUGHT_ERROR = 3;
-
-  final value;
-  final int state;
-
-  IterationMarker._(this.state, this.value);
-
-  static yieldStar(dynamic /* Iterable or Stream */ values) {
-    return new IterationMarker._(YIELD_STAR, values);
-  }
-
-  static endOfIteration() {
-    return new IterationMarker._(ITERATION_ENDED, null);
-  }
-
-  static yieldSingle(dynamic value) {
-    return new IterationMarker._(YIELD_SINGLE, value);
-  }
-
-  static uncaughtError(dynamic error) {
-    return new IterationMarker._(UNCAUGHT_ERROR, error);
-  }
-
-  toString() => "IterationMarker($state, $value)";
-}
-
-class SyncStarIterator implements Iterator {
-  final dynamic _body;
-
-  // If [runningNested] this is the nested iterator, otherwise it is the
-  // current value.
-  dynamic _current = null;
-  bool _runningNested = false;
-
-  get current => _runningNested ? _current.current : _current;
-
-  SyncStarIterator(this._body);
-
-  _runBody() {
-    return JS('', '''
-      // Invokes [body] with [errorCode] and [result].
-      //
-      // If (and as long as) the invocation throws, calls [function] again,
-      // with an error-code.
-      (function(body) {
-        var errorValue, errorCode = #;
-        while (true) {
-          try {
-            return body(errorCode, errorValue);
-          } catch (error) {
-            errorValue = error;
-            errorCode = #
-          }
-        }
-      })(#)''', async_error_codes.SUCCESS, async_error_codes.ERROR, _body);
-  }
-
-
-  bool moveNext() {
-    if (_runningNested) {
-      if (_current.moveNext()) {
-        return true;
-      } else {
-        _runningNested = false;
-      }
-    }
-    _current = _runBody();
-    if (_current is IterationMarker) {
-      if (_current.state == IterationMarker.ITERATION_ENDED) {
-        _current = null;
-        // Rely on [_body] to repeatedly return `ITERATION_ENDED`.
-        return false;
-      } else if (_current.state == IterationMarker.UNCAUGHT_ERROR) {
-        // Rely on [_body] to repeatedly return `UNCAUGHT_ERROR`.
-        // This is a wrapped exception, so we use JavaScript throw to throw it.
-        JS('', 'throw #', _current.value);
-      } else {
-        assert(_current.state == IterationMarker.YIELD_STAR);
-        _current = _current.value.iterator;
-        _runningNested = true;
-        return moveNext();
-      }
-    }
-    return true;
-  }
-}
-
-/// An Iterable corresponding to a sync* method.
-///
-/// Each invocation of a sync* method will return a new instance of this class.
-class SyncStarIterable extends IterableBase {
-  // This is a function that will return a helper function that does the
-  // iteration of the sync*.
-  //
-  // Each invocation should give a body with fresh state.
-  final dynamic /* js function */ _outerHelper;
-
-  SyncStarIterable(this._outerHelper);
-
-  Iterator get iterator => new SyncStarIterator(JS('', '#()', _outerHelper));
+@NoInline()
+void assertUnreachable() {
+  throw new _UnreachableError();
 }

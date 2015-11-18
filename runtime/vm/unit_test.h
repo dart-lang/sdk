@@ -30,15 +30,17 @@
 // The TEST_CASE macro is used for tests that need an isolate and zone
 // in order to test its functionality.
 #define TEST_CASE(name)                                                        \
-  static void Dart_TestHelper##name();                                         \
+  static void Dart_TestHelper##name(Thread* thread);                           \
   UNIT_TEST_CASE(name)                                                         \
   {                                                                            \
     TestIsolateScope __test_isolate__;                                         \
-    StackZone __zone__(__test_isolate__.isolate());                            \
-    HandleScope __hs__(__test_isolate__.isolate());                            \
-    Dart_TestHelper##name();                                                   \
+    Thread* __thread__ = Thread::Current();                                    \
+    ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
+    StackZone __zone__(__thread__);                                            \
+    HandleScope __hs__(__thread__);                                            \
+    Dart_TestHelper##name(__thread__);                                         \
   }                                                                            \
-  static void Dart_TestHelper##name()
+  static void Dart_TestHelper##name(Thread* thread)
 
 // The ASSEMBLER_TEST_GENERATE macro is used to generate a unit test
 // for the assembler.
@@ -321,6 +323,26 @@ class TestIsolateScope {
 };
 
 
+template<typename T> struct is_void {
+  static const bool value = false;
+};
+
+
+template<> struct is_void<void> {
+  static const bool value = true;
+};
+
+
+template<typename T> struct is_double {
+  static const bool value = false;
+};
+
+
+template<> struct is_double<double> {
+  static const bool value = true;
+};
+
+
 class AssemblerTest {
  public:
   AssemblerTest(const char* name, Assembler* assembler)
@@ -336,16 +358,89 @@ class AssemblerTest {
 
   const Code& code() const { return code_; }
 
-  uword entry() const { return entry_; }
+  uword entry() const { return code_.EntryPoint(); }
 
-  // Assemble test and set code_ and entry_.
+  // Invoke/InvokeWithCode is used to call assembler test functions using the
+  // ABI calling convention.
+  // ResultType is the return type of the assembler test function.
+  // ArgNType is the type of the Nth argument.
+#if defined(USING_SIMULATOR)
+
+#if defined(ARCH_IS_64_BIT)
+  // TODO(fschneider): Make InvokeWithCode<> more general and work on 32-bit.
+  // Since Simulator::Call always return a int64_t, bit_cast does not work
+  // on 32-bit platforms when returning an int32_t. Since template functions
+  // don't support partial specialization, we'd need to introduce a helper
+  // class to support 32-bit return types.
+  template<typename ResultType> ResultType InvokeWithCode() {
+    const bool fp_return = is_double<ResultType>::value;
+    const bool fp_args = false;
+    return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
+        bit_cast<intptr_t, uword>(entry()),
+        reinterpret_cast<intptr_t>(&code_), 0, 0, 0, fp_return, fp_args));
+  }
+  template<typename ResultType, typename Arg1Type>
+  ResultType InvokeWithCode(Arg1Type arg1) {
+    const bool fp_return = is_double<ResultType>::value;
+    const bool fp_args = is_double<Arg1Type>::value;
+    // TODO(fschneider): Support double arguments for simulator calls.
+    COMPILE_ASSERT(!fp_args);
+    return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
+        bit_cast<intptr_t, uword>(entry()),
+        reinterpret_cast<intptr_t>(&code_),
+        reinterpret_cast<intptr_t>(arg1),
+        0, 0, fp_return, fp_args));
+  }
+#endif  // ARCH_IS_64_BIT
+
+  template<typename ResultType,
+           typename Arg1Type,
+           typename Arg2Type,
+           typename Arg3Type>
+  ResultType Invoke(Arg1Type arg1, Arg2Type arg2, Arg3Type arg3) {
+    // TODO(fschneider): Support double arguments for simulator calls.
+    COMPILE_ASSERT(is_void<ResultType>::value);
+    COMPILE_ASSERT(!is_double<Arg1Type>::value);
+    COMPILE_ASSERT(!is_double<Arg2Type>::value);
+    COMPILE_ASSERT(!is_double<Arg3Type>::value);
+    const bool fp_args = false;
+    const bool fp_return = false;
+    Simulator::Current()->Call(
+        bit_cast<intptr_t, uword>(entry()),
+        reinterpret_cast<intptr_t>(arg1),
+        reinterpret_cast<intptr_t>(arg2),
+        reinterpret_cast<intptr_t>(arg3),
+        0, fp_return, fp_args);
+  }
+#else
+  template<typename ResultType> ResultType InvokeWithCode() {
+    typedef ResultType (*FunctionType) (const Code&);
+    return reinterpret_cast<FunctionType>(entry())(code_);
+  }
+
+  template<typename ResultType, typename Arg1Type>
+  ResultType InvokeWithCode(Arg1Type arg1) {
+    typedef ResultType (*FunctionType) (const Code&, Arg1Type);
+    return reinterpret_cast<FunctionType>(entry())(code_, arg1);
+  }
+
+  template<typename ResultType,
+           typename Arg1Type,
+           typename Arg2Type,
+           typename Arg3Type>
+  ResultType Invoke(Arg1Type arg1, Arg2Type arg2, Arg3Type arg3) {
+    typedef ResultType (*FunctionType) (Arg1Type, Arg2Type, Arg3Type);
+    return reinterpret_cast<FunctionType>(entry())(arg1, arg2, arg3);
+  }
+#endif  // USING_SIMULATOR
+
+  // Assemble test and set code_.
   void Assemble();
 
  private:
   const char* name_;
   Assembler* assembler_;
   Code& code_;
-  uword entry_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblerTest);
 };
@@ -361,8 +456,8 @@ class CodeGenTest {
 
   SequenceNode* node_sequence() const { return node_sequence_; }
 
-  void set_default_parameter_values(const Array& value) {
-    default_parameter_values_ = value.raw();
+  void set_default_parameter_values(ZoneGrowableArray<const Instance*>* value) {
+    default_parameter_values_ = value;
   }
 
   // Compile test and set code in function.
@@ -371,7 +466,7 @@ class CodeGenTest {
  private:
   Function& function_;
   SequenceNode* node_sequence_;
-  Array& default_parameter_values_;
+  ZoneGrowableArray<const Instance*>* default_parameter_values_;
 
   DISALLOW_COPY_AND_ASSIGN(CodeGenTest);
 };
@@ -427,6 +522,24 @@ class CompilerTest : public AllStatic {
           #handle);                                                            \
     }                                                                          \
   } while (0)
+
+
+// Elide a substring which starts with some prefix and ends with a ".
+//
+// This is used to remove non-deterministic or fragile substrings from
+// JSON output.
+//
+// For example:
+//
+//    prefix = "classes"
+//    in = "\"id\":\"classes/46\""
+//
+// Yields:
+//
+//    out = "\"id\":\"\""
+//
+void ElideJSONSubstring(const char* prefix, const char* in, char* out);
+
 
 }  // namespace dart
 

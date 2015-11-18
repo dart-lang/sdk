@@ -19,8 +19,13 @@ void _addNamedParameterSuggestion(
     DartCompletionRequest request, List<String> namedArgs, String name) {
   if (name != null && name.length > 0 && !namedArgs.contains(name)) {
     request.addSuggestion(new CompletionSuggestion(
-        CompletionSuggestionKind.NAMED_ARGUMENT, DART_RELEVANCE_NAMED_PARAMETER,
-        '$name: ', name.length + 2, 0, false, false));
+        CompletionSuggestionKind.NAMED_ARGUMENT,
+        DART_RELEVANCE_NAMED_PARAMETER,
+        '$name: ',
+        name.length + 2,
+        0,
+        false,
+        false));
   }
 }
 
@@ -136,6 +141,21 @@ class _ArgListAstVisitor extends GeneralizingAstVisitor<_ArgSuggestionBuilder> {
           }
         }
       }
+      String constructorName;
+      if (parent is Annotation && parent.name != null) {
+        constructorName = parent.name.toSource();
+      }
+      if (parent is InstanceCreationExpression &&
+          parent.constructorName != null) {
+        constructorName = parent.constructorName.toSource();
+      }
+      if (constructorName != null && constructorName.length > 0) {
+        if (new _LocalArgSuggestionBuilder(
+            request, request.offset, constructorName).visit(node)) {
+          return null;
+        }
+        return new _ArgSuggestionBuilder(request, constructorName);
+      }
     }
     return null;
   }
@@ -169,6 +189,15 @@ class _ArgSuggestionBuilder {
         }
       }
     }
+    if (parent is InstanceCreationExpression) {
+      ConstructorName constructorName = parent.constructorName;
+      if (constructorName != null) {
+        ConstructorElement element = constructorName.staticElement;
+        if (element is ExecutableElement) {
+          _addSuggestions(element.parameters);
+        }
+      }
+    }
     return new Future.value(false);
   }
 
@@ -189,8 +218,13 @@ class _ArgSuggestionBuilder {
     }
     completion.write(')');
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.ARGUMENT_LIST, DART_RELEVANCE_HIGH,
-        completion.toString(), completion.length, 0, false, false);
+        CompletionSuggestionKind.ARGUMENT_LIST,
+        DART_RELEVANCE_HIGH,
+        completion.toString(),
+        completion.length,
+        0,
+        false,
+        false);
     suggestion.parameterNames = paramNames;
     suggestion.parameterTypes = paramTypes;
     request.addSuggestion(suggestion);
@@ -211,13 +245,15 @@ class _ArgSuggestionBuilder {
     }
     Iterable<ParameterElement> requiredParam = parameters.where(
         (ParameterElement p) => p.parameterKind == ParameterKind.REQUIRED);
-    if (requiredParam.length > 0 && _isEmptyArgList(request)) {
+    int requiredCount = requiredParam.length;
+    if (requiredCount > 0 && _isEmptyArgList(request)) {
       _addArgListSuggestion(requiredParam);
       return;
     }
-    if (_isAppendingToArgList(request) &&
-        _argCount(request) > requiredParam.length) {
-      _addDefaultParamSuggestions(parameters);
+    if (_isAppendingToArgList(request)) {
+      if (requiredCount == 0 || requiredCount < _argCount(request)) {
+        _addDefaultParamSuggestions(parameters);
+      }
     }
   }
 
@@ -243,7 +279,26 @@ class _LocalArgSuggestionBuilder extends LocalDeclarationVisitor {
       : super(offset);
 
   @override
-  void declaredClass(ClassDeclaration declaration) {}
+  void declaredClass(ClassDeclaration declaration) {
+    String className = null;
+    if (declaration.name != null) {
+      className = declaration.name.name;
+    }
+    if (className != null && className.length > 0) {
+      for (ClassMember member in declaration.members) {
+        if (member is ConstructorDeclaration) {
+          String selector = className;
+          if (member.name != null) {
+            selector = '$selector.${member.name.name}';
+          }
+          if (selector == name) {
+            _addSuggestions(member.parameters);
+            finished();
+          }
+        }
+      }
+    }
+  }
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {}
@@ -305,8 +360,13 @@ class _LocalArgSuggestionBuilder extends LocalDeclarationVisitor {
     }
     completion.write(')');
     CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.ARGUMENT_LIST, DART_RELEVANCE_HIGH,
-        completion.toString(), completion.length, 0, false, false);
+        CompletionSuggestionKind.ARGUMENT_LIST,
+        DART_RELEVANCE_HIGH,
+        completion.toString(),
+        completion.length,
+        0,
+        false,
+        false);
     suggestion.parameterNames = paramNames;
     suggestion.parameterTypes = paramTypes;
     request.addSuggestion(suggestion);
@@ -330,13 +390,15 @@ class _LocalArgSuggestionBuilder extends LocalDeclarationVisitor {
     }
     Iterable<FormalParameter> requiredParam = parameters.parameters
         .where((FormalParameter p) => p.kind == ParameterKind.REQUIRED);
-    if (requiredParam.length > 0 && _isEmptyArgList(request)) {
+    int requiredCount = requiredParam.length;
+    if (requiredCount > 0 && _isEmptyArgList(request)) {
       _addArgListSuggestion(requiredParam);
       return;
     }
-    if (_isAppendingToArgList(request) &&
-        _argCount(request) > requiredParam.length) {
-      _addDefaultParamSuggestions(parameters);
+    if (_isAppendingToArgList(request)) {
+      if (requiredCount == 0 || requiredCount < _argCount(request)) {
+        _addDefaultParamSuggestions(parameters);
+      }
     }
   }
 

@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.utilities.general;
 
-import 'dart:profiler';
+import 'dart:collection';
+import 'dart:developer' show UserTag;
 
 /**
  * Jenkins hash function, optimized for small integers.
@@ -35,8 +33,28 @@ class JenkinsSmiHash {
 }
 
 /**
+ * A simple limited queue.
+ */
+class LimitedQueue<E> extends ListQueue<E> {
+  final int limit;
+
+  /**
+   * Create a queue with [limit] items.
+   */
+  LimitedQueue(this.limit);
+
+  @override
+  void add(E o) {
+    super.add(o);
+    while (length > limit) {
+      remove(first);
+    }
+  }
+}
+
+/**
  * Helper class for gathering performance statistics.  This class is modeled on
- * the UserTag class in dart:profiler so that it can interoperate easily with
+ * the UserTag class in dart:developer so that it can interoperate easily with
  * it.
  */
 abstract class PerformanceTag {

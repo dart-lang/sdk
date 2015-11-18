@@ -67,7 +67,7 @@ class _CombinatorAstVisitor
 class _CombinatorSuggestionBuilder extends LibraryElementSuggestionBuilder {
   _CombinatorSuggestionBuilder(
       DartCompletionRequest request, CompletionSuggestionKind kind)
-      : super(request, kind, false);
+      : super(request, kind, false, false);
 
   Future<bool> execute(AstNode node) {
     var directive = node.getAncestor((parent) => parent is NamespaceDirective);

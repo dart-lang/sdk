@@ -203,7 +203,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
   }
 
   Future asFuture([var futureValue]) {
-    _Future<T> result = new _Future<T>();
+    _Future result = new _Future();
 
     // Overwrite the onDone and onError handlers.
     _onDone = () { result._complete(futureValue); };
@@ -839,7 +839,8 @@ class _AsBroadcastStream<T> extends Stream<T> {
   void _onCancel() {
     bool shutdown = (_controller == null) || _controller.isClosed;
     if (_onCancelHandler != null) {
-      _zone.runUnary(_onCancelHandler, new _BroadcastSubscriptionWrapper(this));
+      _zone.runUnary(
+          _onCancelHandler, new _BroadcastSubscriptionWrapper<T>(this));
     }
     if (shutdown) {
       if (_subscription != null) {
@@ -851,7 +852,8 @@ class _AsBroadcastStream<T> extends Stream<T> {
 
   void _onListen() {
     if (_onListenHandler != null) {
-      _zone.runUnary(_onListenHandler, new _BroadcastSubscriptionWrapper(this));
+      _zone.runUnary(
+          _onListenHandler, new _BroadcastSubscriptionWrapper<T>(this));
     }
   }
 

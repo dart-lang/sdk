@@ -6,16 +6,17 @@ library test.analysis.get_errors;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(GetErrorsTest);
 }
 
@@ -50,7 +51,9 @@ main() {
 
   test_fileWithoutContext() {
     String file = '/outside.dart';
-    addFile(file, '''
+    addFile(
+        file,
+        '''
 main() {
   print(42);
 }

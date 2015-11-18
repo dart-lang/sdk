@@ -69,6 +69,8 @@ class VirtualMemory {
   // Commit a reserved memory area, so that the memory can be accessed.
   bool Commit(uword addr, intptr_t size, bool is_executable);
 
+  static VirtualMemory* ForInstructionsSnapshot(void* pointer, uword size);
+
  private:
   static VirtualMemory* ReserveInternal(intptr_t size);
 

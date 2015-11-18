@@ -37,6 +37,8 @@ public class ElementKind {
 
   public static final String FIELD = "FIELD";
 
+  public static final String FILE = "FILE";
+
   public static final String FUNCTION = "FUNCTION";
 
   public static final String FUNCTION_TYPE_ALIAS = "FUNCTION_TYPE_ALIAS";

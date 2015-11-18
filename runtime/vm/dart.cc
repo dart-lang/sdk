@@ -28,21 +28,23 @@
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
-#include "vm/timeline.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
 namespace dart {
 
-DEFINE_FLAG(bool, keep_code, false,
-            "Keep deoptimized code for profiling.");
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
+DECLARE_FLAG(bool, trace_time_all);
+DEFINE_FLAG(bool, keep_code, false,
+            "Keep deoptimized code for profiling.");
+DEFINE_FLAG(bool, shutdown, false, "Do a clean shutdown of the VM");
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
+const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -69,6 +71,7 @@ class ReadOnlyHandles {
 
 
 const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
+                           const uint8_t* instructions_snapshot,
                            Dart_IsolateCreateCallback create,
                            Dart_IsolateInterruptCallback interrupt,
                            Dart_IsolateUnhandledExceptionCallback unhandled,
@@ -87,6 +90,10 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   OS::InitOnce();
   VirtualMemory::InitOnce();
   Thread::InitOnceBeforeIsolate();
+  Thread::EnsureInit();
+  Timeline::InitOnce();
+  TimelineDurationScope tds(Timeline::GetVMStream(),
+                            "Dart::InitOnce");
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
@@ -97,6 +104,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   SemiSpace::InitOnce();
   Metric::InitOnce();
   StoreBuffer::InitOnce();
+  MarkingStack::InitOnce();
+  Thread::EnsureInit();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
@@ -108,28 +117,38 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ASSERT(thread_pool_ == NULL);
   thread_pool_ = new ThreadPool();
   {
+    Thread* T = Thread::Current();
+    ASSERT(T != NULL);
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
+    const bool precompiled = instructions_snapshot != NULL;
 
     // Setup default flags for the VM isolate.
     Isolate::Flags vm_flags;
     Dart_IsolateFlags api_flags;
     vm_flags.CopyTo(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
+    vm_isolate_->set_compilation_allowed(!precompiled);
+    // Verify assumptions about executing in the VM isolate.
+    ASSERT(vm_isolate_ == Isolate::Current());
+    ASSERT(vm_isolate_ == Thread::Current()->isolate());
 
-    StackZone zone(vm_isolate_);
-    HandleScope handle_scope(vm_isolate_);
+    StackZone zone(T);
+    HandleScope handle_scope(T);
     Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
-    StubCode::InitOnce();
-    Thread::InitOnceAfterObjectAndStubCode();
-    // Now that the needed stub has been generated, set the stack limit.
-    vm_isolate_->InitializeStackLimit();
+    // When precompiled the stub code is initialized from the snapshot.
+    if (!precompiled) {
+      StubCode::InitOnce();
+    }
     if (vm_isolate_snapshot != NULL) {
+      if (instructions_snapshot != NULL) {
+        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
+      }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
       if (snapshot == NULL) {
         return "Invalid vm isolate snapshot seen.";
@@ -137,7 +156,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       ASSERT(snapshot->kind() == Snapshot::kFull);
       VmIsolateSnapshotReader reader(snapshot->content(),
                                      snapshot->length(),
-                                     zone.GetZone());
+                                     instructions_snapshot,
+                                     T);
       const Error& error = Error::Handle(reader.ReadVmIsolateSnapshot());
       if (!error.IsNull()) {
         return error.ToCString();
@@ -146,7 +166,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         OS::Print("Size of vm isolate snapshot = %" Pd "\n",
                   snapshot->length());
         vm_isolate_->heap()->PrintSizes();
-        vm_isolate_->megamorphic_cache_table()->PrintSizes();
+        MegamorphicCacheTable::PrintSizes(vm_isolate_);
         intptr_t size;
         intptr_t capacity;
         Symbols::GetStats(vm_isolate_, &size, &capacity);
@@ -156,6 +176,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     } else {
       Symbols::InitOnce(vm_isolate_);
     }
+    Thread::InitOnceAfterObjectAndStubCode();
+    // Now that the needed stub has been generated, set the stack limit.
+    vm_isolate_->InitializeStackLimit();
     Scanner::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
@@ -184,39 +207,65 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 }
 
 
+// This waits until only the VM isolate remains in the list.
+void Dart::WaitForIsolateShutdown() {
+  ASSERT(!Isolate::creation_enabled_);
+  MonitorLocker ml(Isolate::isolates_list_monitor_);
+  while ((Isolate::isolates_list_head_ != NULL) &&
+         (Isolate::isolates_list_head_->next_ != NULL)) {
+    ml.Wait();
+  }
+  ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
+}
+
+
 const char* Dart::Cleanup() {
-  // Shutdown the service isolate before shutting down the thread pool.
-  ServiceIsolate::Shutdown();
-#if 0
-  // Ideally we should shutdown the VM isolate here, but the thread pool
-  // shutdown does not seem to ensure that all the threads have stopped
-  // execution before it terminates, this results in racing isolates.
+  ASSERT(Isolate::Current() == NULL);
   if (vm_isolate_ == NULL) {
     return "VM already terminated.";
   }
 
-  ASSERT(Isolate::Current() == NULL);
-
-  delete thread_pool_;
-  thread_pool_ = NULL;
-
-  // Set the VM isolate as current isolate.
-  Thread::EnsureInit();
-  Thread::EnterIsolate(vm_isolate_);
-
-  // There is a planned and known asymmetry here: We exit one scope for the VM
-  // isolate to account for the scope that was entered in Dart_InitOnce.
-  Dart_ExitScope();
-
-  ShutdownIsolate();
-  vm_isolate_ = NULL;
-
-  TargetCPUFeatures::Cleanup();
-  StoreBuffer::ShutDown();
-#endif
-
+  // Shut down profiling.
   Profiler::Shutdown();
+
+  if (FLAG_shutdown) {
+    // Disable the creation of new isolates.
+    Isolate::DisableIsolateCreation();
+
+    // Send the OOB Kill message to all remaining application isolates.
+    Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
+
+    // Shutdown the service isolate.
+    ServiceIsolate::Shutdown();
+
+    // Wait for all application isolates and the service isolate to shutdown
+    // before shutting down the thread pool.
+    WaitForIsolateShutdown();
+
+    // Shutdown the thread pool. On return, all thread pool threads have exited.
+    delete thread_pool_;
+    thread_pool_ = NULL;
+
+    // Set the VM isolate as current isolate.
+    Thread::EnsureInit();
+    Thread::EnterIsolate(vm_isolate_);
+
+    ShutdownIsolate();
+    vm_isolate_ = NULL;
+    ASSERT(Isolate::IsolateListLength() == 0);
+
+    TargetCPUFeatures::Cleanup();
+    StoreBuffer::ShutDown();
+
+    Thread::Shutdown();
+  } else {
+    // Shutdown the service isolate.
+    ServiceIsolate::Shutdown();
+  }
+
   CodeObservers::DeleteAll();
+  Timeline::Shutdown();
+  Metric::Cleanup();
 
   return NULL;
 }
@@ -226,30 +275,37 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
                              const Dart_IsolateFlags& api_flags) {
   // Create a new isolate.
   Isolate* isolate = Isolate::Init(name_prefix, api_flags);
-  ASSERT(isolate != NULL);
   return isolate;
 }
 
 
 RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
-  Isolate* isolate = Isolate::Current();
-  TIMERSCOPE(isolate, time_isolate_initialization);
-  ASSERT(isolate != NULL);
-  StackZone zone(isolate);
-  HandleScope handle_scope(isolate);
-  ObjectStore::Init(isolate);
+  Thread* T = Thread::Current();
+  Isolate* I = T->isolate();
+  TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
+  tds.SetNumArguments(1);
+  tds.CopyArgument(0, "isolateName", I->name());
+
+  ASSERT(I != NULL);
+  StackZone zone(T);
+  HandleScope handle_scope(T);
+  {
+    TimelineDurationScope tds(T, I->GetIsolateStream(), "ObjectStore::Init");
+    ObjectStore::Init(I);
+  }
 
   // Setup for profiling.
-  Profiler::InitProfilingForIsolate(isolate);
+  Profiler::InitProfilingForIsolate(I);
 
-  const Error& error = Error::Handle(Object::Init(isolate));
+  const Error& error = Error::Handle(Object::Init(I));
   if (!error.IsNull()) {
     return error.raw();
   }
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
-
+    TimelineDurationScope tds(
+        T, I->GetIsolateStream(), "IsolateSnapshotReader");
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -263,15 +319,15 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
     IsolateSnapshotReader reader(snapshot->content(),
                                  snapshot->length(),
-                                 isolate,
-                                 zone.GetZone());
+                                 Dart::instructions_snapshot_buffer(),
+                                 T);
     const Error& error = Error::Handle(reader.ReadFullSnapshot());
     if (!error.IsNull()) {
       return error.raw();
     }
     if (FLAG_trace_isolates) {
-      isolate->heap()->PrintSizes();
-      isolate->megamorphic_cache_table()->PrintSizes();
+      I->heap()->PrintSizes();
+      MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
     // Populate the isolate's symbol table with all symbols from the
@@ -282,39 +338,47 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   }
 
   Object::VerifyBuiltinVtables();
+#if defined(DEBUG)
+  I->heap()->Verify(kForbidMarked);
+#endif
 
-  StubCode::Init(isolate);
-  isolate->megamorphic_cache_table()->InitMissHandler();
+  {
+    TimelineDurationScope tds(T, I->GetIsolateStream(), "StubCode::Init");
+    StubCode::Init(I);
+  }
+
+  // When running precompiled, the megamorphic miss function/code comes from the
+  // snapshot.
+  if (!Dart::IsRunningPrecompiledCode()) {
+    MegamorphicCacheTable::InitMissHandler(I);
+  }
   if (snapshot_buffer == NULL) {
-    if (!isolate->object_store()->PreallocateObjects()) {
-      return isolate->object_store()->sticky_error();
+    if (!I->object_store()->PreallocateObjects()) {
+      return I->object_store()->sticky_error();
     }
   }
 
-  isolate->heap()->EnableGrowthControl();
-  isolate->set_init_callback_data(data);
-  Api::SetupAcquiredError(isolate);
+  I->heap()->EnableGrowthControl();
+  I->set_init_callback_data(data);
+  Api::SetupAcquiredError(I);
   if (FLAG_print_class_table) {
-    isolate->class_table()->Print();
+    I->class_table()->Print();
   }
 
-  ServiceIsolate::MaybeInjectVMServiceLibrary(isolate);
+  ServiceIsolate::MaybeMakeServiceIsolate(I);
 
   ServiceIsolate::SendIsolateStartupMessage();
-  isolate->debugger()->NotifyIsolateCreated();
+  I->debugger()->NotifyIsolateCreated();
 
   // Create tag table.
-  isolate->set_tag_table(
-      GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  I->set_tag_table(GrowableObjectArray::Handle(GrowableObjectArray::New()));
   // Set up default UserTag.
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
-  isolate->set_current_tag(default_tag);
-
-  isolate->SetTimelineEventRecorder(new TimelineEventRingRecorder());
+  I->set_current_tag(default_tag);
 
   if (FLAG_keep_code) {
-    isolate->set_deoptimized_code_array(
-      GrowableObjectArray::Handle(GrowableObjectArray::New()));
+    I->set_deoptimized_code_array(
+        GrowableObjectArray::Handle(GrowableObjectArray::New()));
   }
   return Error::null();
 }

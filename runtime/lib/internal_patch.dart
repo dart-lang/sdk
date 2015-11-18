@@ -15,6 +15,9 @@ class VMLibraryHooks {
   static var eventHandlerSendData;
   // Implementation of Resource.readAsBytes.
   static var resourceReadAsBytes;
+  // Implementation of package root/map provision.
+  static var getPackageRoot;
+  static var getPackageMap;
 }
 
 patch class CodeUnits {

@@ -4,7 +4,6 @@
 
 part of dart2js.mirrors;
 
-
 class Dart2JsLibraryMirror
     extends Dart2JsElementMirror
     with ObjectMirrorMixin, ContainerMixin
@@ -18,7 +17,8 @@ class Dart2JsLibraryMirror
     throw new UnsupportedError('LibraryMirror.operator [] unsupported.');
   }
 
-  LibraryElement get _element => super._element;
+  // TODO(johnniwinther): Avoid the need for [LibraryElementX].
+  LibraryElementX get _element => super._element;
 
   Uri get uri => _element.canonicalUri;
 
@@ -33,7 +33,7 @@ class Dart2JsLibraryMirror
    * file name (for scripts without a library tag). The latter case is used to
    * provide a 'library name' for scripts, to use for instance in dartdoc.
    */
-  String get _simpleNameString => _element.getLibraryOrScriptName();
+  String get _simpleNameString => _element.libraryOrScriptName;
 
   Symbol get qualifiedName => simpleName;
 
@@ -75,17 +75,33 @@ class Dart2JsLibraryMirror
 
   void _ensureLibraryDependenciesAnalyzed() {
     if (_libraryDependencies == null) {
+      // TODO(johnniwinther): Support order of declarations on [LibraryElement].
+      Map<LibraryDependency, Dart2JsLibraryDependencyMirror> mirrorMap =
+          <LibraryDependency, Dart2JsLibraryDependencyMirror>{};
+
+      void addLibraryDependency(LibraryDependency libraryDependency,
+                                LibraryElement targetLibraryElement) {
+        assert(targetLibraryElement != null);
+        LibraryMirror targetLibrary =
+            mirrorSystem._getLibrary(targetLibraryElement);
+        mirrorMap[libraryDependency] = new Dart2JsLibraryDependencyMirror(
+            libraryDependency, this, targetLibrary);
+      }
+      for (ImportElement import in _element.imports) {
+        addLibraryDependency(import.node, import.importedLibrary);
+      }
+      for (ExportElement export in _element.exports) {
+        addLibraryDependency(export.node, export.exportedLibrary);
+      }
+
       _libraryDependencies = <LibraryDependencySourceMirror>[];
+
       for (LibraryTag node in _element.tags) {
         LibraryDependency libraryDependency = node.asLibraryDependency();
         if (libraryDependency != null) {
-          LibraryElement targetLibraryElement =
-              _element.getLibraryFromTag(libraryDependency);
-          assert(targetLibraryElement != null);
-          LibraryMirror targetLibrary =
-              mirrorSystem._getLibrary(targetLibraryElement);
-          _libraryDependencies.add(new Dart2JsLibraryDependencyMirror(
-              libraryDependency, this, targetLibrary));
+          Dart2JsLibraryDependencyMirror mirror = mirrorMap[libraryDependency];
+          assert(mirror != null);
+          _libraryDependencies.add(mirror);
         }
       }
     }
@@ -110,7 +126,7 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencySourceMirror {
   SourceLocation get location {
     return new Dart2JsSourceLocation(
       _sourceLibrary._element.entryCompilationUnit.script,
-      _sourceLibrary.mirrorSystem.compiler.spanFromNode(_node));
+      _sourceLibrary.mirrorSystem.compiler.reporter.spanFromSpannable(_node));
   }
 
   List<CombinatorMirror> get combinators {

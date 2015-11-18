@@ -9,25 +9,30 @@ import 'package:js_runtime/shared/embedded_names.dart' show
     METADATA,
     TYPES;
 
-import '../program_builder/program_builder.dart' show ProgramBuilder;
-import '../model.dart';
-import 'model_emitter.dart';
 import '../../common.dart';
-import '../../elements/elements.dart' show FieldElement;
+import '../../compiler.dart' show
+    Compiler;
+import '../../constants/values.dart' show
+    ConstantValue;
+import '../../elements/elements.dart' show
+    ClassElement,
+    Element,
+    FieldElement,
+    FunctionElement;
 import '../../js/js.dart' as js;
-
 import '../../js_backend/js_backend.dart' show
     JavaScriptBackend,
     Namer;
 
 import '../js_emitter.dart' show
     NativeEmitter;
-
 import '../js_emitter.dart' as emitterTask show
     Emitter;
+import '../model.dart';
+import '../program_builder/program_builder.dart' show
+    ProgramBuilder;
 
-import '../../util/util.dart' show
-    NO_LOCATION_SPANNABLE;
+import 'model_emitter.dart';
 
 class Emitter implements emitterTask.Emitter {
   final Compiler _compiler;
@@ -40,6 +45,8 @@ class Emitter implements emitterTask.Emitter {
       : this._compiler = compiler,
         this.namer = namer,
         _emitter = new ModelEmitter(compiler, namer, nativeEmitter);
+
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   @override
   String get patchVersion => "lazy";
@@ -150,7 +157,7 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
 
       case JsBuiltin.isFunctionType:
-        return _backend.rti.representationGenerator.templateForIsFunctionType;
+        return _backend.rtiEncoder.templateForIsFunctionType;
 
       case JsBuiltin.rawRtiToJsConstructorName:
         return js.js.expressionTemplateFor("#.$typeNameProperty");
@@ -159,8 +166,7 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateFor("#.constructor");
 
       case JsBuiltin.createFunctionTypeRti:
-        return _backend.rti.representationGenerator
-            .templateForCreateFunctionType;
+        return _backend.rtiEncoder.templateForCreateFunctionType;
 
       case JsBuiltin.isSubtype:
         // TODO(floitsch): move this closer to where is-check properties are
@@ -181,7 +187,7 @@ class Emitter implements emitterTask.Emitter {
         throw new UnsupportedError('createDartClosureFromNameOfStaticFunction');
 
       default:
-        _compiler.internalError(NO_LOCATION_SPANNABLE,
+        reporter.internalError(NO_LOCATION_SPANNABLE,
                                 "Unhandled Builtin: $builtin");
         return null;
     }

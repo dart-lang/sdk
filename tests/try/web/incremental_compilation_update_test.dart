@@ -37,7 +37,7 @@ import 'package:compiler/src/elements/elements.dart' show
     Element,
     LibraryElement;
 
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/compiler.dart' show
     Compiler;
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show

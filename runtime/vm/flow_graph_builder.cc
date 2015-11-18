@@ -325,8 +325,7 @@ FlowGraphBuilder::FlowGraphBuilder(
         nesting_stack_(NULL),
         osr_id_(osr_id),
         jump_count_(0),
-        await_joins_(new(Z) ZoneGrowableArray<JoinEntryInstr*>()),
-        await_levels_(new(Z) ZoneGrowableArray<intptr_t>()) { }
+        await_joins_(new(Z) ZoneGrowableArray<JoinEntryInstr*>()) { }
 
 
 void FlowGraphBuilder::AddCatchEntry(CatchBlockEntryInstr* entry) {
@@ -490,7 +489,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     if (call_->HasUses()) {
       // Add a phi of the return values.
       PhiInstr* phi = new(Z) PhiInstr(join, num_exits);
-      phi->set_ssa_temp_index(caller_graph_->alloc_ssa_temp_index());
+      caller_graph_->AllocateSSAIndexes(phi);
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
         ReturnAt(i)->RemoveEnvironment();
@@ -1607,7 +1606,7 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
                             &instantiator_type_arguments);
   }
 
-  const intptr_t deopt_id = Isolate::Current()->GetNextDeoptId();
+  const intptr_t deopt_id = Thread::Current()->GetNextDeoptId();
   return new(Z) AssertAssignableInstr(token_pos,
                                       value,
                                       instantiator,
@@ -1615,148 +1614,6 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
                                       dst_type,
                                       dst_name,
                                       deopt_id);
-}
-
-
-void EffectGraphVisitor::BuildSyncYieldJump(LocalVariable* old_context,
-                                            LocalVariable* iterator_param,
-                                            const intptr_t old_ctx_level,
-                                            JoinEntryInstr* target) {
-  // Building a jump consists of the following actions:
-  // * Load the generator body's iterator parameter (:iterator)
-  //   from the current context into a temporary.
-  // * Restore the old context from :await_cxt_var.
-  // * Copy the iterator saved above into the restored context.
-  // * Append a Goto to the target's join.
-  ASSERT((iterator_param != NULL) && iterator_param->is_captured());
-  ASSERT((old_context != NULL) && old_context->is_captured());
-  // Before restoring the context we need to temporarily save the
-  // iterator parameter.
-  LocalVariable* temp_iterator_var =
-      EnterTempLocalScope(Bind(BuildLoadLocal(*iterator_param)));
-
-  // Restore the saved continuation context, i.e. the context that was
-  // saved into :await_ctx_var before the closure suspended.
-  BuildRestoreContext(*old_context);
-
-  // Store the continuation result and continuation error values into
-  // the restored context.
-
-  // FlowGraphBuilder is at top context level, but the continuation
-  // target has possibly been recorded in a nested context (old_ctx_level).
-  // We need to unroll manually here.
-  intptr_t delta =
-      old_ctx_level - iterator_param->owner()->context_level();
-  ASSERT(delta >= 0);
-  Value* context = Bind(BuildCurrentContext());
-  while (delta-- > 0) {
-    context = Bind(new(Z) LoadFieldInstr(
-        context, Context::parent_offset(), Type::ZoneHandle(Z, Type::null()),
-        Scanner::kNoSourcePos));
-  }
-  LocalVariable* temp_context_var = EnterTempLocalScope(context);
-
-  Value* context_val = Bind(new(Z) LoadLocalInstr(*temp_context_var));
-  Value* store_val = Bind(new(Z) LoadLocalInstr(*temp_iterator_var));
-  StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-      Context::variable_offset(iterator_param->index()),
-      context_val,
-      store_val,
-      kEmitStoreBarrier,
-      Scanner::kNoSourcePos);
-  Do(store);
-
-  Do(ExitTempLocalScope(temp_context_var));
-  Do(ExitTempLocalScope(temp_iterator_var));
-
-  // Goto saved join.
-  Goto(target);
-}
-
-
-void EffectGraphVisitor::BuildAsyncJump(LocalVariable* old_context,
-                                        LocalVariable* continuation_result,
-                                        LocalVariable* continuation_error,
-                                        LocalVariable* continuation_stack_trace,
-                                        const intptr_t old_ctx_level,
-                                        JoinEntryInstr* target) {
-  // Building a jump consists of the following actions:
-  // * Load the current continuation result parameter (:async_result)
-  //   and continuation error parameter (:async_error_param) from
-  //   the current context into temporaries.
-  // * Restore the old context from :await_cxt_var.
-  // * Copy the result and error parameters saved above into the restored
-  //   context.
-  // * Append a Goto to the target's join.
-  ASSERT((continuation_result != NULL) && continuation_result->is_captured());
-  ASSERT((continuation_error != NULL) && continuation_error->is_captured());
-  ASSERT((old_context != NULL) && old_context->is_captured());
-  // Before restoring the continuation context we need to temporary save the
-  // result and error parameter.
-  LocalVariable* temp_result_var =
-      EnterTempLocalScope(Bind(BuildLoadLocal(*continuation_result)));
-  LocalVariable* temp_error_var =
-      EnterTempLocalScope(Bind(BuildLoadLocal(*continuation_error)));
-  LocalVariable* temp_stack_trace_var =
-      EnterTempLocalScope(Bind(BuildLoadLocal(*continuation_stack_trace)));
-
-  // Restore the saved continuation context, i.e. the context that was
-  // saved into :await_ctx_var before the closure suspended.
-  BuildRestoreContext(*old_context);
-
-  // Store the continuation result and continuation error values into
-  // the restored context.
-
-  // FlowGraphBuilder is at top context level, but the await target has possibly
-  // been recorded in a nested context (old_ctx_level). We need to unroll
-  // manually here.
-  intptr_t delta =
-      old_ctx_level - continuation_result->owner()->context_level();
-  ASSERT(delta >= 0);
-  Value* context = Bind(BuildCurrentContext());
-  while (delta-- > 0) {
-    context = Bind(new(Z) LoadFieldInstr(
-        context, Context::parent_offset(), Type::ZoneHandle(Z, Type::null()),
-        Scanner::kNoSourcePos));
-  }
-  LocalVariable* temp_context_var = EnterTempLocalScope(context);
-
-  Value* context_val = Bind(new(Z) LoadLocalInstr(*temp_context_var));
-  Value* store_val = Bind(new(Z) LoadLocalInstr(*temp_result_var));
-  StoreInstanceFieldInstr* store = new(Z) StoreInstanceFieldInstr(
-      Context::variable_offset(continuation_result->index()),
-      context_val,
-      store_val,
-      kEmitStoreBarrier,
-      Scanner::kNoSourcePos);
-  Do(store);
-  context_val = Bind(new(Z) LoadLocalInstr(*temp_context_var));
-  store_val = Bind(new(Z) LoadLocalInstr(*temp_error_var));
-  StoreInstanceFieldInstr* store2 = new(Z) StoreInstanceFieldInstr(
-      Context::variable_offset(continuation_error->index()),
-      context_val,
-      store_val,
-      kEmitStoreBarrier,
-      Scanner::kNoSourcePos);
-  Do(store2);
-
-  context_val = Bind(new(Z) LoadLocalInstr(*temp_context_var));
-  store_val = Bind(new(Z) LoadLocalInstr(*temp_stack_trace_var));
-  StoreInstanceFieldInstr* store3 = new(Z) StoreInstanceFieldInstr(
-      Context::variable_offset(continuation_stack_trace->index()),
-      context_val,
-      store_val,
-      kEmitStoreBarrier,
-      Scanner::kNoSourcePos);
-  Do(store3);
-
-  Do(ExitTempLocalScope(temp_context_var));
-  Do(ExitTempLocalScope(temp_stack_trace_var));
-  Do(ExitTempLocalScope(temp_error_var));
-  Do(ExitTempLocalScope(temp_result_var));
-
-  // Goto saved join.
-  Goto(target);
 }
 
 
@@ -1803,7 +1660,8 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Z, Type::ObjectType());
-  if (type.IsInstantiated() && object_type.IsSubtypeOf(type, NULL)) {
+  if (type.IsInstantiated() &&
+      object_type.IsSubtypeOf(type, NULL, Heap::kOld)) {
     // Must evaluate left side.
     EffectGraphVisitor for_left_value(owner());
     node->left()->Visit(&for_left_value);
@@ -2474,10 +2332,11 @@ void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
   // We need to create a new await state which involves:
   // * Increase the jump counter. Sanity check against the list of targets.
   // * Save the current context for resuming.
-  ASSERT(node->scope() != NULL);
-  LocalVariable* jump_var = node->scope()->LookupVariable(
+  ASSERT(node->async_scope() != NULL);
+  ASSERT(node->await_scope() != NULL);
+  LocalVariable* jump_var = node->async_scope()->LookupVariable(
       Symbols::AwaitJumpVar(), false);
-  LocalVariable* ctx_var = node->scope()->LookupVariable(
+  LocalVariable* ctx_var = node->async_scope()->LookupVariable(
       Symbols::AwaitContextVar(), false);
   ASSERT((jump_var != NULL) && jump_var->is_captured());
   ASSERT((ctx_var != NULL) && ctx_var->is_captured());
@@ -2492,7 +2351,6 @@ void EffectGraphVisitor::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
   Do(BuildStoreLocal(*jump_var, jump_val));
   // Save the current context for resuming.
   BuildSaveContext(*ctx_var);
-  owner()->await_levels()->Add(owner()->context_level());
 }
 
 
@@ -2603,7 +2461,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 
   { LocalVariable* tmp_var = EnterTempLocalScope(array_val);
     const intptr_t class_id = kArrayCid;
-    const intptr_t deopt_id = Isolate::kNoDeoptId;
+    const intptr_t deopt_id = Thread::kNoDeoptId;
     for (int i = 0; i < node->length(); ++i) {
       Value* array = Bind(new(Z) LoadLocalInstr(*tmp_var));
       Value* index =
@@ -2672,14 +2530,17 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
 static void CollectClosureFunction(const Function& function) {
   if (function.HasCode()) return;
 
-  Isolate* isolate = Isolate::Current();
-  if (isolate->collected_closures() == GrowableObjectArray::null()) {
-    isolate->set_collected_closures(
-        GrowableObjectArray::Handle(GrowableObjectArray::New()));
+  // Although this is only called when precompiling, this can happen before
+  // Dart_Precompile as part of loading code, so check for a non-null work
+  // list.
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  if (isolate->collected_closures() != GrowableObjectArray::null()) {
+    const GrowableObjectArray& functions =
+        GrowableObjectArray::Handle(thread->zone(),
+                                    isolate->collected_closures());
+    functions.Add(function);
   }
-  const GrowableObjectArray& functions =
-      GrowableObjectArray::Handle(isolate, isolate->collected_closures());
-  functions.Add(function);
 }
 
 
@@ -3923,13 +3784,13 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     GuardFieldClassInstr* guard_field_class =
         new(Z) GuardFieldClassInstr(store_value,
                                  node->field(),
-                                 isolate()->GetNextDeoptId());
+                                 thread()->GetNextDeoptId());
     AddInstruction(guard_field_class);
     store_value = Bind(BuildLoadExprTemp());
     GuardFieldLengthInstr* guard_field_length =
         new(Z) GuardFieldLengthInstr(store_value,
                                      node->field(),
-                                     isolate()->GetNextDeoptId());
+                                     thread()->GetNextDeoptId());
     AddInstruction(guard_field_length);
     store_value = Bind(BuildLoadExprTemp());
   }
@@ -3947,10 +3808,11 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
   if (node->field().is_const()) {
-    ASSERT(node->field().value() != Object::sentinel().raw());
-    ASSERT(node->field().value() != Object::transition_sentinel().raw());
-    Definition* result =
-        new(Z) ConstantInstr(Instance::ZoneHandle(Z, node->field().value()));
+    ASSERT(node->field().StaticValue() != Object::sentinel().raw());
+    ASSERT(node->field().StaticValue() !=
+           Object::transition_sentinel().raw());
+    Definition* result = new(Z) ConstantInstr(
+        Instance::ZoneHandle(Z, node->field().StaticValue()));
     return ReturnDefinition(result);
   }
   Value* field_value = Bind(new(Z) ConstantInstr(node->field()));
@@ -4220,11 +4082,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
 
-  if (FLAG_support_debugger && is_top_level_sequence) {
-    AddInstruction(new(Z) DebugStepCheckInstr(function.token_pos(),
-                                              RawPcDescriptors::kRuntimeCall));
-  }
-
   if (num_context_variables > 0) {
     // The local scope declares variables that are captured.
     // Allocate and chain a new context (Except don't chain when at the function
@@ -4285,6 +4142,27 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         }
       }
     }
+  }
+
+  if (FLAG_support_debugger &&
+      is_top_level_sequence &&
+      function.is_debuggable()) {
+    // Place a debug check at method entry to ensure breaking on a method always
+    // happens, even if there are no assignments/calls/runtimecalls in the first
+    // basic block. Place this check at the last parameter to ensure parameters
+    // are in scope in the debugger at method entry.
+    const int num_params = function.NumParameters();
+    intptr_t check_pos = Scanner::kNoSourcePos;
+    if (num_params > 0) {
+      const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
+      check_pos = parameter.token_pos();
+    }
+    if (check_pos == Scanner::kNoSourcePos) {
+      // No parameters or synthetic parameters.
+      check_pos = node->token_pos();
+    }
+    AddInstruction(new(Z) DebugStepCheckInstr(check_pos,
+                                              RawPcDescriptors::kRuntimeCall));
   }
 
   // This check may be deleted if the generated code is leaf.
@@ -4399,30 +4277,17 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       EffectGraphVisitor for_true(owner());
       EffectGraphVisitor for_false(owner());
 
-      if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        LocalVariable* result_param =
-            top_scope->LookupVariable(Symbols::AsyncOperationParam(), false);
-        LocalVariable* error_param =
-            top_scope->LookupVariable(Symbols::AsyncOperationErrorParam(),
-                                      false);
-        LocalVariable* stack_trace_param =
-            top_scope->LookupVariable(Symbols::AsyncOperationStackTraceParam(),
-                                      false);
-        for_true.BuildAsyncJump(old_context,
-                                result_param,
-                                error_param,
-                                stack_trace_param,
-                                (*owner()->await_levels())[i],
-                                (*owner()->await_joins())[i]);
-      } else {
-        ASSERT(function.IsSyncGenClosure());
-        LocalVariable* iterator_param =
-            top_scope->LookupVariable(Symbols::IteratorParameter(), false);
-        for_true.BuildSyncYieldJump(old_context,
-                                    iterator_param,
-                                    (*owner()->await_levels())[i],
-                                    (*owner()->await_joins())[i]);
-      }
+      // Build async jump or sync yield jump.
+      ASSERT(function.IsAsyncClosure() ||
+             function.IsAsyncGenClosure() ||
+             function.IsSyncGenClosure());
+
+      // Restore the saved continuation context, i.e. the context that was
+      // saved into :await_ctx_var before the closure suspended.
+      for_true.BuildRestoreContext(*old_context);
+
+      // Goto saved join.
+      for_true.Goto((*owner()->await_joins())[i]);
 
       Join(for_test, for_true, for_false);
       if (i == 0) {
@@ -4784,7 +4649,7 @@ void EffectGraphVisitor::VisitStopNode(StopNode* node) {
 
 
 FlowGraph* FlowGraphBuilder::BuildGraph() {
-  VMTagScope tagScope(Thread::Current()->isolate(),
+  VMTagScope tagScope(Thread::Current(),
                       VMTag::kCompileFlowGraphBuilderTagId,
                       FLAG_profile_vm);
   if (FLAG_print_ast) {
@@ -4808,7 +4673,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // When compiling for OSR, use a depth first search to prune instructions
   // unreachable from the OSR entry. Catch entries are always considered
   // reachable, even if they become unreachable after OSR.
-  if (osr_id_ != Isolate::kNoDeoptId) {
+  if (osr_id_ != Thread::kNoDeoptId) {
     PruneUnreachable();
   }
 
@@ -4819,7 +4684,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 
 void FlowGraphBuilder::PruneUnreachable() {
-  ASSERT(osr_id_ != Isolate::kNoDeoptId);
+  ASSERT(osr_id_ != Thread::kNoDeoptId);
   BitVector* block_marks = new(Z) BitVector(Z, last_used_block_id_ + 1);
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);

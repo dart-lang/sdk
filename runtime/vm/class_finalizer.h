@@ -7,27 +7,16 @@
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
 
 namespace dart {
-
-class AbstractType;
-class Class;
-class Error;
-class Function;
-class GrowableObjectArray;
-class MixinAppType;
-class RawAbstractType;
-class RawClass;
-class RawType;
-class Script;
-class Type;
-class TypeArguments;
-class UnresolvedClass;
 
 // Traverses all pending, unfinalized classes, validates and marks them as
 // finalized.
 class ClassFinalizer : public AllStatic {
  public:
+  typedef ZoneGrowableHandlePtrArray<const AbstractType> PendingTypes;
+
   // Modes for type resolution and finalization. The ordering is relevant.
   enum FinalizationKind {
     kIgnore,                   // Type is ignored and replaced by dynamic.
@@ -45,7 +34,7 @@ class ClassFinalizer : public AllStatic {
       const Class& cls,
       const AbstractType& type,
       FinalizationKind finalization,
-      GrowableObjectArray* pending_types = NULL);
+      PendingTypes* pending_types = NULL);
 
   // Allocate, finalize, and return a new malformed type as if it was declared
   // in class cls at the given token position.
@@ -108,7 +97,7 @@ class ClassFinalizer : public AllStatic {
 
   // Apply the mixin type to the mixin application class.
   static void ApplyMixinType(const Class& mixin_app_class,
-                             GrowableObjectArray* pending_types = NULL);
+                             PendingTypes* pending_types = NULL);
 
  private:
   static void AllocateEnumValues(const Class& enum_cls);
@@ -143,16 +132,16 @@ class ClassFinalizer : public AllStatic {
   static void ResolveSuperTypeAndInterfaces(const Class& cls,
                                             GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls,
-                                     GrowableObjectArray* pending_types = NULL);
+                                     PendingTypes* pending_types = NULL);
   static void FinalizeTypeArguments(const Class& cls,
                                     const TypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
                                     Error* bound_error,
-                                    GrowableObjectArray* pending_types,
-                                    GrowableObjectArray* trail);
+                                    PendingTypes* pending_types,
+                                    TrailPtr trail);
   static void CheckRecursiveType(const Class& cls,
                                  const Type& type,
-                                 GrowableObjectArray* pending_types);
+                                 PendingTypes* pending_types);
   static void CheckTypeBounds(const Class& cls, const Type& type);
   static void CheckTypeArgumentBounds(const Class& cls,
                                       const TypeArguments& arguments,
@@ -163,8 +152,9 @@ class ClassFinalizer : public AllStatic {
                                           const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);
   static void PrintClassInformation(const Class& cls);
-  static void CollectInterfaces(const Class& cls,
-                                const GrowableObjectArray& interfaces);
+  static void CollectInterfaces(
+      const Class& cls, GrowableArray<const Class*>* collected);
+
   static void MarkTypeMalformed(const Error& prev_error,
                                 const Script& script,
                                 const Type& type,

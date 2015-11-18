@@ -8,12 +8,59 @@
 #include "bin/dbg_connection.h"
 
 #include "bin/eventhandler.h"
-
+#include "bin/lockers.h"
+#include "bin/log.h"
+#include "bin/thread.h"
 
 namespace dart {
 namespace bin {
 
+Monitor* DebuggerConnectionImpl::handler_monitor_ = new Monitor();
+ThreadId DebuggerConnectionImpl::handler_thread_id_ = Thread::kInvalidThreadId;
+bool DebuggerConnectionImpl::handler_thread_running_ = false;
+
+
+void DebuggerConnectionImpl::NotifyThreadStarted() {
+  MonitorLocker ml(handler_monitor_);
+  ASSERT(!handler_thread_running_);
+  ASSERT(handler_thread_id_ == Thread::kInvalidThreadId);
+  handler_thread_running_ = true;
+  handler_thread_id_ = Thread::GetCurrentThreadId();
+  ml.Notify();
+}
+
+
+void DebuggerConnectionImpl::WaitForThreadStarted() {
+  MonitorLocker ml(handler_monitor_);
+  while (!handler_thread_running_) {
+    ml.Wait();
+  }
+  ASSERT(handler_thread_id_ != Thread::kInvalidThreadId);
+}
+
+
+void DebuggerConnectionImpl::NotifyThreadFinished() {
+  MonitorLocker ml(handler_monitor_);
+  ASSERT(handler_thread_running_);
+  ASSERT(handler_thread_id_ != Thread::kInvalidThreadId);
+  handler_thread_running_ = false;
+  ml.Notify();
+}
+
+
+void DebuggerConnectionImpl::WaitForThreadFinished() {
+  MonitorLocker ml(handler_monitor_);
+  while (handler_thread_running_) {
+    ml.Wait();
+  }
+  ASSERT(handler_thread_id_ != Thread::kInvalidThreadId);
+  Thread::Join(handler_thread_id_);
+  handler_thread_id_ = Thread::kInvalidThreadId;
+}
+
+
 void DebuggerConnectionImpl::ThreadEntry(uword args) {
+  NotifyThreadStarted();
   ListenSocket* listen_socket =
       reinterpret_cast<ListenSocket*>(DebuggerConnectionHandler::listener_fd_);
   SOCKET client_socket = accept(listen_socket->socket(), NULL, NULL);
@@ -23,6 +70,7 @@ void DebuggerConnectionImpl::ThreadEntry(uword args) {
   ClientSocket* socket = new ClientSocket(client_socket);
   DebuggerConnectionHandler::AcceptDbgConnection(
       reinterpret_cast<intptr_t>(socket));
+  NotifyThreadFinished();
 }
 
 
@@ -32,6 +80,13 @@ void DebuggerConnectionImpl::StartHandler(int port_number) {
   if (result != 0) {
     FATAL1("Failed to start debugger connection handler thread: %d\n", result);
   }
+  WaitForThreadStarted();
+}
+
+
+void DebuggerConnectionImpl::StopHandler(intptr_t debug_fd) {
+  Send(debug_fd, NULL, 0);
+  WaitForThreadFinished();
 }
 
 

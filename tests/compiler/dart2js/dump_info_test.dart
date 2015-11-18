@@ -3,11 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that parameters keep their names in the output.
 
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
-import 'memory_compiler.dart';
-import 'package:compiler/src/dump_info.dart';
 import 'dart:convert';
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
+import 'memory_compiler.dart';
 
 const String TEST_BASIC= r"""
 library main;
@@ -103,8 +102,6 @@ jsonTest(String program, JsonTaking testFn) async {
   var compiler = result.compiler;
   Expect.isFalse(compiler.compilationFailed);
   var dumpTask = compiler.dumpInfoTask;
-  dumpTask.collectInfo();
-  var info = dumpTask.infoCollector;
 
   StringBuffer sb = new StringBuffer();
   dumpTask.dumpInfoJson(sb);

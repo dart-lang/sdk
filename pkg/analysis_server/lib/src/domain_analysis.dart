@@ -7,15 +7,27 @@ library domain.analysis;
 import 'dart:async';
 import 'dart:core' hide Resource;
 
+import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/computer/computer_navigation.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/domains/analysis/navigation.dart';
+import 'package:analysis_server/src/operation/operation_analysis.dart'
+    show
+        NavigationOperation,
+        OccurrencesOperation,
+        sendAnalysisNotificationNavigation;
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
+import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/task/model.dart' show ResultDescriptor;
 
 /**
  * Instances of the class [AnalysisDomainHandler] implement a [RequestHandler]
@@ -30,7 +42,9 @@ class AnalysisDomainHandler implements RequestHandler {
   /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  AnalysisDomainHandler(this.server);
+  AnalysisDomainHandler(this.server) {
+    _callAnalysisDomainReceivers();
+  }
 
   /**
    * Implement the `analysis.getErrors` request.
@@ -125,15 +139,15 @@ class AnalysisDomainHandler implements RequestHandler {
           if (units.isEmpty) {
             server.sendResponse(new Response.getNavigationInvalidFile(request));
           } else {
-            DartUnitNavigationComputer computer =
-                new DartUnitNavigationComputer();
-            _GetNavigationAstVisitor visitor = new _GetNavigationAstVisitor(
-                params.offset, params.offset + params.length, computer);
-            for (CompilationUnit unit in units) {
-              unit.accept(visitor);
-            }
+            CompilationUnitElement unitElement = units.first.element;
+            NavigationCollectorImpl collector = computeNavigation(
+                server,
+                unitElement.context,
+                unitElement.source,
+                params.offset,
+                params.length);
             server.sendResponse(new AnalysisGetNavigationResult(
-                    computer.files, computer.targets, computer.regions)
+                    collector.files, collector.targets, collector.regions)
                 .toResponse(request.id));
           }
           break;
@@ -281,40 +295,82 @@ class AnalysisDomainHandler implements RequestHandler {
         options.lint = newOptions.generateLints;
       });
     }
+    if (newOptions.enableSuperMixins != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.enableSuperMixins = newOptions.enableSuperMixins;
+      });
+    }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
+  }
+
+  /**
+   * Call all the registered [SetAnalysisDomain] functions.
+   */
+  void _callAnalysisDomainReceivers() {
+    AnalysisDomain analysisDomain = new AnalysisDomainImpl(server);
+    for (SetAnalysisDomain function
+        in server.serverPlugin.setAnalysisDomainFunctions) {
+      try {
+        function(analysisDomain);
+      } catch (exception, stackTrace) {
+        engine.AnalysisEngine.instance.logger.logError(
+            'Exception from analysis domain receiver: ${function.runtimeType}',
+            new CaughtException(exception, stackTrace));
+      }
+    }
   }
 }
 
 /**
- * An AST visitor that computer navigation regions in the givne region.
+ * An implementation of [AnalysisDomain] for [AnalysisServer].
  */
-class _GetNavigationAstVisitor extends UnifyingAstVisitor {
-  final int rangeStart;
-  final int rangeEnd;
-  final DartUnitNavigationComputer computer;
+class AnalysisDomainImpl implements AnalysisDomain {
+  final AnalysisServer server;
 
-  _GetNavigationAstVisitor(this.rangeStart, this.rangeEnd, this.computer);
+  final Map<ResultDescriptor,
+          StreamController<engine.ComputedResult>> controllers =
+      <ResultDescriptor, StreamController<engine.ComputedResult>>{};
 
-  bool isInRange(int offset) {
-    return rangeStart <= offset && offset <= rangeEnd;
+  AnalysisDomainImpl(this.server) {
+    server.onContextsChanged.listen((ContextsChangedEvent event) {
+      event.added.forEach(_subscribeForContext);
+    });
   }
 
   @override
-  visitNode(AstNode node) {
-    // The node ends before the range starts.
-    if (node.end < rangeStart) {
-      return;
+  Stream<engine.ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    Stream<engine.ComputedResult> stream = controllers
+        .putIfAbsent(descriptor,
+            () => new StreamController<engine.ComputedResult>.broadcast())
+        .stream;
+    server.getAnalysisContexts().forEach(_subscribeForContext);
+    return stream;
+  }
+
+  @override
+  void scheduleNotification(
+      engine.AnalysisContext context, Source source, AnalysisService service) {
+    String file = source.fullName;
+    if (server.hasAnalysisSubscription(service, file)) {
+      if (service == AnalysisService.NAVIGATION) {
+        server.scheduleOperation(new NavigationOperation(context, source));
+      }
+      if (service == AnalysisService.OCCURRENCES) {
+        server.scheduleOperation(new OccurrencesOperation(context, source));
+      }
     }
-    // The node starts after the range ends.
-    if (node.offset > rangeEnd) {
-      return;
+  }
+
+  void _subscribeForContext(engine.AnalysisContext context) {
+    for (ResultDescriptor descriptor in controllers.keys) {
+      context.onResultComputed(descriptor).listen((result) {
+        StreamController<engine.ComputedResult> controller =
+            controllers[result.descriptor];
+        if (controller != null) {
+          controller.add(result);
+        }
+      });
     }
-    // The node starts or ends in the range.
-    if (isInRange(node.offset) || isInRange(node.end)) {
-      computer.compute(node);
-      return;
-    }
-    super.visitNode(node);
   }
 }

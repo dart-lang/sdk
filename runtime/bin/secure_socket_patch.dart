@@ -5,11 +5,6 @@
 patch class SecureSocket {
   /* patch */ factory SecureSocket._(RawSecureSocket rawSocket) =>
       new _SecureSocket(rawSocket);
-
-  /* patch */ static void initialize({String database,
-                                      String password,
-                                      bool useBuiltinRoots: true})
-  native "SecureSocket_InitializeLibrary";
 }
 
 
@@ -17,6 +12,9 @@ patch class _SecureFilter {
   /* patch */ factory _SecureFilter() => new _SecureFilterImpl();
 }
 
+patch class X509Certificate {
+  /* patch */ factory X509Certificate._() => new _X509CertificateImpl();
+}
 
 class _SecureSocket extends _Socket implements SecureSocket {
   _SecureSocket(RawSecureSocket raw) : super(raw);
@@ -79,13 +77,10 @@ class _SecureFilterImpl
   }
 
   void connect(String hostName,
-               Uint8List sockaddrStorage,
-               int port,
+               SecurityContext context,
                bool is_server,
-               String certificateName,
                bool requestClientCertificate,
                bool requireClientCertificate,
-               bool sendClientCertificate,
                Uint8List protocols) native "SecureSocket_Connect";
 
   void destroy() {
@@ -118,4 +113,69 @@ class _SecureFilterImpl
   int _pointer() native "SecureSocket_FilterPointer";
 
   List<_ExternalBuffer> buffers;
+}
+
+patch class SecurityContext {
+  /* patch */ factory SecurityContext() {
+    return new _SecurityContext();
+  }
+
+  /* patch */ static SecurityContext get defaultContext {
+    return _SecurityContext.defaultContext;
+  }
+}
+
+class _SecurityContext
+    extends NativeFieldWrapperClass1
+    implements SecurityContext {
+  _SecurityContext() {
+    _createNativeContext();
+  }
+
+  void _createNativeContext() native "SecurityContext_Allocate";
+
+  static final SecurityContext defaultContext =
+      new _SecurityContext().._trustBuiltinRoots();
+
+  void usePrivateKey(String keyFile, {String password})
+      native "SecurityContext_UsePrivateKey";
+  void setTrustedCertificates({String file, String directory})
+      native "SecurityContext_SetTrustedCertificates";
+  void useCertificateChain(String file)
+      native "SecurityContext_UseCertificateChain";
+  void setClientAuthorities(String file)
+      native "SecurityContext_SetClientAuthorities";
+  void setAlpnProtocols(List<String> protocols, bool isServer) {
+    Uint8List encodedProtocols =
+        SecurityContext._protocolsToLengthEncoding(protocols);
+    _setAlpnProtocols(encodedProtocols, isServer);
+  }
+  void _setAlpnProtocols(Uint8List protocols, bool isServer)
+      native "SecurityContext_SetAlpnProtocols";
+  void _trustBuiltinRoots()
+      native "SecurityContext_TrustBuiltinRoots";
+}
+
+/**
+ * _X509CertificateImpl wraps an X509 certificate object held by the BoringSSL
+ * library. It exposes the fields of the certificate object.
+ */
+class _X509CertificateImpl extends NativeFieldWrapperClass1
+    implements X509Certificate {
+  // The native field must be set manually on a new object, in native code.
+  // This is done by WrappedX509 in secure_socket.cc.
+  _X509CertificateImpl();
+
+  String get subject native "X509_Subject";
+  String get issuer native "X509_Issuer";
+  DateTime get startValidity {
+    return new DateTime.fromMillisecondsSinceEpoch(_startValidity(),
+                                                   isUtc: true);
+  }
+  DateTime get endValidity {
+    return new DateTime.fromMillisecondsSinceEpoch(_endValidity(),
+                                                   isUtc: true);
+  }
+  int _startValidity() native "X509_StartValidity";
+  int _endValidity() native "X509_EndValidity";
 }

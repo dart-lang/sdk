@@ -20,10 +20,26 @@ main(x) {
 """,
 r"""
 function(x) {
-  var _box_0 = {};
+  P.print(J.getInterceptor$ns(x).$add(x, "1"));
+}"""),
+
+  const TestEntry("""
+main(x) {
+  a() {
+    return x;
+  }
+  x = x + '1';
+  print(a());
+  return a;
+}
+""",
+r"""
+function(x) {
+  var _box_0 = {}, a = new V.main_a(_box_0);
   _box_0._captured_x_0 = x;
   _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, "1");
-  P.print(new V.main_a(_box_0).call$0());
+  P.print(a.call$0());
+  return a;
 }"""),
 
   const TestEntry("""
@@ -36,7 +52,23 @@ main(x) {
 """,
 r"""
 function(x) {
-  P.print(new V.main_a(x).call$0());
+  P.print(x);
+}"""),
+
+  const TestEntry("""
+main(x) {
+  a() {
+    return x;
+  }
+  print(a());
+  return a;
+}
+""",
+r"""
+function(x) {
+  var a = new V.main_a(x);
+  P.print(a.call$0());
+  return a;
 }"""),
 
   const TestEntry("""
@@ -49,10 +81,25 @@ main() {
 """,
 r"""
 function() {
-  var _box_0 = {};
+  P.print(122 + 1);
+}"""),
+
+  const TestEntry("""
+main() {
+  var x = 122;
+  var a = () => x;
+  x = x + 1;
+  print(a());
+  return a;
+}
+""",
+r"""
+function() {
+  var _box_0 = {}, a = new V.main_closure(_box_0);
   _box_0._captured_x_0 = 122;
   _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
-  P.print(new V.main_closure(_box_0).call$0());
+  P.print(a.call$0());
+  return a;
 }"""),
 
   const TestEntry("""
@@ -68,10 +115,28 @@ main() {
 """,
 r"""
 function() {
-  var _box_0 = {};
+  P.print(122 + 1);
+}"""),
+
+  const TestEntry("""
+main() {
+  var x = 122;
+  var a = () {
+    var y = x;
+    return () => y;
+  };
+  x = x + 1;
+  print(a()());
+  return a;
+}
+""",
+r"""
+function() {
+  var _box_0 = {}, a = new V.main_closure(_box_0);
   _box_0._captured_x_0 = 122;
   _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
-  P.print(new V.main_closure(_box_0).call$0().call$0());
+  P.print(a.call$0().call$0());
+  return a;
 }"""),
 
   const TestEntry("""
@@ -86,10 +151,8 @@ main() {
 r"""
 function() {
   var a = null, i = 0;
-  while (i < 10) {
-    a = new V.main_closure(i);
-    i = i + 1;
-  }
+  for (; i < 10; a = new V.main_closure(i), i = i + 1)
+    ;
   P.print(a.call$0());
 }"""),
 
@@ -108,7 +171,7 @@ function() {
 }"""),
 
   const TestEntry("""
-staticMethod(x) => x;
+staticMethod(x) { print(x); return x; }
 main(x) {
   var tearOff = staticMethod;
   print(tearOff(123));

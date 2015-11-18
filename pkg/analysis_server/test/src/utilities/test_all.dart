@@ -4,14 +4,13 @@
 
 library test.services;
 
-import 'package:unittest/unittest.dart';
-
+import '../../utils.dart';
 import 'change_builder_core_test.dart' as change_builder_core_test;
 import 'change_builder_dart_test.dart' as change_builder_dart_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   change_builder_core_test.main();
   change_builder_dart_test.main();
 }

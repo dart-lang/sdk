@@ -305,7 +305,8 @@ class Assembler : public ValueObject {
       : buffer_(),
         prologue_offset_(-1),
         jit_cookie_(0),
-        comments_() {
+        comments_(),
+        code_(Code::ZoneHandle()) {
     // This mode is only needed and implemented for MIPS and ARM.
     ASSERT(!use_far_branches);
   }
@@ -631,6 +632,10 @@ class Assembler : public ValueObject {
   void int3();
   void hlt();
 
+  static uword GetBreakInstructionFiller() {
+    return 0xCCCCCCCC;
+  }
+
   // Note: verified_mem mode forces far jumps.
   void j(Condition condition, Label* label, bool near = kFarJump);
   void j(Condition condition, const ExternalLabel* label);
@@ -781,6 +786,10 @@ class Assembler : public ValueObject {
                                            intptr_t index_scale,
                                            Register array,
                                            Register index);
+
+  static Address VMTagAddress() {
+    return Address(THR, Thread::vm_tag_offset());
+  }
 
   /*
    * Misc. functionality
@@ -957,6 +966,12 @@ class Assembler : public ValueObject {
     return !object.IsSmi() || IsSafeSmi(object);
   }
 
+  void set_code_object(const Code& code) {
+    code_ ^= code.raw();
+  }
+
+  void PushCodeObject();
+
  private:
   class CodeComment : public ZoneAllocated {
    public:
@@ -1017,6 +1032,7 @@ class Assembler : public ValueObject {
   intptr_t prologue_offset_;
   int32_t jit_cookie_;
   GrowableArray<CodeComment*> comments_;
+  Code& code_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

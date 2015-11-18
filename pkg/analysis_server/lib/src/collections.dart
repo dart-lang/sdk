@@ -28,3 +28,20 @@ List nullIfEmpty(List list) {
   }
   return list;
 }
+
+/// A pair of values.
+class Pair<E, F> {
+  final E first;
+  final F last;
+
+  Pair(this.first, this.last);
+
+  int get hashCode => first.hashCode ^ last.hashCode;
+
+  bool operator ==(other) {
+    if (other is! Pair) return false;
+    return other.first == first && other.last == last;
+  }
+
+  String toString() => '($first, $last)';
+}

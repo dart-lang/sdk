@@ -4,20 +4,75 @@
 
 library test.services.refactoring.rename_class_member;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(RenameClassMemberTest);
 }
 
 @reflectiveTest
 class RenameClassMemberTest extends RenameRefactoringTest {
+  test_checkFinalConditions_classNameConflict_sameClass() async {
+    indexTestUnit('''
+class NewName {
+  void test() {}
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Renamed method has the same name as the declaring class 'NewName'.",
+        expectedContextSearch: 'test() {}');
+  }
+
+  test_checkFinalConditions_classNameConflict_subClass() async {
+    indexTestUnit('''
+class A {
+  void test() {} // 1
+}
+class NewName extends A {
+  void test() {} // 2
+}
+''');
+    createRenameRefactoringAtString('test() {} // 1');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Renamed method has the same name as the declaring class 'NewName'.",
+        expectedContextSearch: 'test() {} // 2');
+  }
+
+  test_checkFinalConditions_classNameConflict_superClass() async {
+    indexTestUnit('''
+class NewName {
+  void test() {} // 1
+}
+class B extends NewName {
+  void test() {} // 2
+}
+''');
+    createRenameRefactoringAtString('test() {} // 2');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Renamed method has the same name as the declaring class 'NewName'.",
+        expectedContextSearch: 'test() {} // 1');
+  }
+
   test_checkFinalConditions_hasMember_MethodElement() async {
     indexTestUnit('''
 class A {
@@ -30,7 +85,8 @@ class A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Class 'A' already declares method with name 'newName'.",
+        expectedMessage:
+            "Class 'A' already declares method with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
   }
 
@@ -61,7 +117,9 @@ class A {
   test() {}
 }
 ''');
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library my.lib;
 import 'test.dart';
 
@@ -92,7 +150,8 @@ class A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Usage of renamed method will be shadowed by local variable 'newName'.",
+        expectedMessage:
+            "Usage of renamed method will be shadowed by local variable 'newName'.",
         expectedContextSearch: 'test(); // marker');
   }
 
@@ -113,7 +172,8 @@ class B extends A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Usage of renamed method will be shadowed by local variable 'newName'.",
+        expectedMessage:
+            "Usage of renamed method will be shadowed by local variable 'newName'.",
         expectedContextSearch: 'test(); // marker');
   }
 
@@ -164,7 +224,8 @@ class A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Usage of renamed method will be shadowed by parameter 'newName'.",
+        expectedMessage:
+            "Usage of renamed method will be shadowed by parameter 'newName'.",
         expectedContextSearch: 'test(); // marker');
   }
 
@@ -229,8 +290,24 @@ class B extends A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Renamed method will be shadowed by method 'B.newName'.",
+        expectedMessage:
+            "Renamed method will be shadowed by method 'B.newName'.",
         expectedContextSearch: 'newName() {} // marker');
+  }
+
+  test_checkInitialConditions_inSDK() async {
+    indexTestUnit('''
+main() {
+  'abc'.toUpperCase();
+}
+''');
+    createRenameRefactoringAtString('toUpperCase()');
+    // check status
+    refactoring.newName = 'NewName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The method 'String.toUpperCase' is defined in the SDK, so cannot be renamed.");
   }
 
   test_checkInitialConditions_operator() async {
@@ -284,7 +361,8 @@ class A {
     refactoring.newName = 'test';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "The new name must be different than the current name.");
+        expectedMessage:
+            "The new name must be different than the current name.");
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -558,8 +636,47 @@ main(var a) {
     assertPotentialEdits(['test(); // 1', 'test(); // 2']);
   }
 
+  test_createChange_MethodElement_potential_inPubCache() async {
+    String pkgLib = '/.pub-cache/lib.dart';
+    indexUnit(
+        pkgLib,
+        r'''
+processObj(p) {
+  p.test();
+}
+''');
+    indexTestUnit('''
+import '$pkgLib';
+class A {
+  test() {}
+}
+main(var a) {
+  a.test();
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {}');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    await assertSuccessfulRefactoring('''
+import '/.pub-cache/lib.dart';
+class A {
+  newName() {}
+}
+main(var a) {
+  a.newName();
+}
+''');
+    SourceFileEdit fileEdit = refactoringChange.getFileEdit(pkgLib);
+    expect(fileEdit, isNull);
+  }
+
   test_createChange_MethodElement_potential_private_otherLibrary() async {
-    indexUnit('/lib.dart', '''
+    indexUnit(
+        '/lib.dart',
+        '''
 library lib;
 main(p) {
   p._test();

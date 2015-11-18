@@ -431,15 +431,15 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
                        String protocolVersion,
                        _HttpOutgoing outgoing,
                        {_HttpHeaders initialHeaders})
-      : super(outgoing, null),
-        _uri = uri,
+      : _uri = uri,
         headers = new _HttpHeaders(
             protocolVersion,
             defaultPortForScheme: uri.scheme == 'https' ?
                 HttpClient.DEFAULT_HTTPS_PORT :
                 HttpClient.DEFAULT_HTTP_PORT,
             initialHeaders: initialHeaders),
-        _outgoing = outgoing {
+        _outgoing = outgoing,
+        super(outgoing, null) {
     _outgoing.outbound = this;
     _encodingMutable = false;
   }
@@ -718,8 +718,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   _HttpClientRequest(_HttpOutgoing outgoing, Uri uri, this.method, this._proxy,
                      this._httpClient, this._httpClientConnection)
-      : super(uri, "1.1", outgoing),
-        uri = uri {
+      : uri = uri,
+        super(uri, "1.1", outgoing) {
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
       contentLength = 0;
@@ -791,13 +791,9 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     // Generate the request URI starting from the path component.
     String uriStartingFromPath() {
       String result = uri.path;
-      if (result.length == 0) result = "/";
-      if (uri.query != "") {
-        if (uri.fragment != "") {
-          result = "${result}?${uri.query}#${uri.fragment}";
-        } else {
-          result = "${result}?${uri.query}";
-        }
+      if (result.isEmpty) result = "/";
+      if (uri.hasQuery) {
+        result = "${result}?${uri.query}";
       }
       return result;
     }
@@ -814,7 +810,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
         if (_httpClientConnection._proxyTunnel) {
           return uriStartingFromPath();
         } else {
-          return uri.toString();
+          return uri.removeFragment().toString();
         }
       }
     }
@@ -1260,6 +1256,7 @@ class _HttpClientConnection {
   final String key;
   final Socket _socket;
   final bool _proxyTunnel;
+  final SecurityContext _context;
   final _HttpParser _httpParser;
   StreamSubscription _subscription;
   final _HttpClient _httpClient;
@@ -1272,7 +1269,7 @@ class _HttpClientConnection {
   Future _streamFuture;
 
   _HttpClientConnection(this.key, this._socket, this._httpClient,
-                        [this._proxyTunnel = false])
+                        [this._proxyTunnel = false, this._context])
       : _httpParser = new _HttpParser.responseParser() {
     _httpParser.listenToStream(_socket);
 
@@ -1500,7 +1497,10 @@ class _HttpClientConnection {
           }
           var socket = response._httpRequest._httpClientConnection._socket;
           return SecureSocket.secure(
-              socket, host: host, onBadCertificate: callback);
+              socket,
+              host: host,
+              context: _context,
+              onBadCertificate: callback);
         })
         .then((secureSocket) {
           String key = _HttpClientConnection.makeKey(true, host, port);
@@ -1547,12 +1547,17 @@ class _ConnectionTarget {
   final String host;
   final int port;
   final bool isSecure;
+  final SecurityContext context;
   final Set<_HttpClientConnection> _idle = new HashSet();
   final Set<_HttpClientConnection> _active = new HashSet();
   final Queue _pending = new ListQueue();
   int _connecting = 0;
 
-  _ConnectionTarget(this.key, this.host, this.port, this.isSecure);
+  _ConnectionTarget(this.key,
+                    this.host,
+                    this.port,
+                    this.isSecure,
+                    this.context);
 
   bool get isEmpty => _idle.isEmpty && _active.isEmpty && _connecting == 0;
 
@@ -1624,20 +1629,21 @@ class _ConnectionTarget {
       return completer.future;
     }
     var currentBadCertificateCallback = client._badCertificateCallback;
-    bool callback(X509Certificate certificate) =>
+    callback(X509Certificate certificate) =>
         currentBadCertificateCallback == null ? false :
         currentBadCertificateCallback(certificate, uriHost, uriPort);
     Future socketFuture = (isSecure && proxy.isDirect
         ? SecureSocket.connect(host,
                                port,
-                               sendClientCertificate: true,
+                               context: context,
                                onBadCertificate: callback)
         : Socket.connect(host, port));
     _connecting++;
     return socketFuture.then((socket) {
         _connecting--;
         socket.setOption(SocketOption.TCP_NODELAY, true);
-        var connection = new _HttpClientConnection(key, socket, client);
+        var connection =
+            new _HttpClientConnection(key, socket, client, false, context);
         if (isSecure && !proxy.isDirect) {
           connection._dispose = true;
           return connection.createProxyTunnel(uriHost, uriPort, proxy, callback)
@@ -1666,6 +1672,7 @@ class _HttpClient implements HttpClient {
       = new HashMap<String, _ConnectionTarget>();
   final List<_Credentials> _credentials = [];
   final List<_ProxyCredentials> _proxyCredentials = [];
+  final SecurityContext _context;
   Function _authenticate;
   Function _authenticateProxy;
   Function _findProxy = HttpClient.findProxyFromEnvironment;
@@ -1679,6 +1686,8 @@ class _HttpClient implements HttpClient {
   bool autoUncompress = true;
 
   String userAgent = _getHttpVersion();
+
+  _HttpClient(SecurityContext this._context);
 
   void set idleTimeout(Duration timeout) {
     _idleTimeout = timeout;
@@ -1702,9 +1711,26 @@ class _HttpClient implements HttpClient {
                                  String host,
                                  int port,
                                  String path) {
-    Uri uri = new Uri(scheme: "http", host: host, port: port).resolve(path);
-    // TODO(sgjesse): The path set here can contain both query and
-    // fragment. They should be cracked and set correctly.
+    const int hashMark = 0x23;
+    const int questionMark = 0x3f;
+    int fragmentStart = path.length;
+    int queryStart = path.length;
+    for (int i = path.length - 1; i >= 0; i--) {
+      var char = path.codeUnitAt(i);
+      if (char == hashMark) {
+        fragmentStart = i;
+        queryStart = i;
+      } else if (char == questionMark) {
+        queryStart = i;
+      }
+    }
+    String query = null;
+    if (queryStart < fragmentStart) {
+      query = path.substring(queryStart + 1, fragmentStart);
+      path = path.substring(0, queryStart);
+    }
+    Uri uri = new Uri(scheme: "http", host: host, port: port,
+                      path: path, query: query);
     return _openUrl(method, uri);
   }
 
@@ -1772,6 +1798,9 @@ class _HttpClient implements HttpClient {
   set findProxy(String f(Uri uri)) => _findProxy = f;
 
   Future<HttpClientRequest> _openUrl(String method, Uri uri) {
+    // Ignore any fragments on the request URI.
+    uri = uri.removeFragment();
+
     if (method == null) {
       throw new ArgumentError(method);
     }
@@ -1878,8 +1907,9 @@ class _HttpClient implements HttpClient {
 
   _ConnectionTarget _getConnectionTarget(String host, int port, bool isSecure) {
     String key = _HttpClientConnection.makeKey(isSecure, host, port);
-    return _connectionTargets.putIfAbsent(
-        key, () => new _ConnectionTarget(key, host, port, isSecure));
+    return _connectionTargets.putIfAbsent(key, () {
+      return new _ConnectionTarget(key, host, port, isSecure, _context);
+    });
   }
 
   // Get a new _HttpClientConnection, from the matching _ConnectionTarget.
@@ -2191,15 +2221,15 @@ class _HttpServer
 
   static Future<HttpServer> bindSecure(address,
                                        int port,
+                                       SecurityContext context,
                                        int backlog,
                                        bool v6Only,
-                                       String certificate_name,
                                        bool requestClientCertificate,
                                        bool shared) {
     return SecureServerSocket.bind(
         address,
         port,
-        certificate_name,
+        context,
         backlog: backlog,
         v6Only: v6Only,
         requestClientCertificate: requestClientCertificate,

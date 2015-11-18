@@ -473,17 +473,15 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
       obj.IsClass() ||
       obj.IsFunction() ||
       obj.IsICData() ||
-      obj.IsField()) {
+      obj.IsField() ||
+      obj.IsCode()) {
     return obj.ToCString();
   }
 
   const Class& clazz = Class::Handle(obj.clazz());
   const char* full_class_name = clazz.ToCString();
-  const char* format = "instance of %s";
-  intptr_t len = OS::SNPrint(NULL, 0, format, full_class_name) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, full_class_name);
-  return chars;
+  return OS::SCreate(Thread::Current()->zone(),
+      "instance of %s", full_class_name);
 }
 
 
@@ -496,6 +494,7 @@ void X86Decoder::PrintAddress(uword addr) {
       reinterpret_cast<RawObject*>(addr)->IsWellFormed() &&
       reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
+      !Dart::vm_isolate()->heap()->CodeContains(addr) &&
       Disassembler::CanFindOldObject(addr)) {
     NoSafepointScope no_safepoint;
     const Object& obj = Object::Handle(reinterpret_cast<RawObject*>(addr));
@@ -526,16 +525,6 @@ void X86Decoder::PrintAddress(uword addr) {
       Print("  [stub: ");
       Print(name_of_stub);
       Print("]");
-    } else {
-      // Print only if jumping to entry point.
-      const Code& code = Code::Handle(Code::LookupCode(addr));
-      if (!code.IsNull() && (code.EntryPoint() == addr)) {
-        const String& name = String::Handle(code.PrettyName());
-        const char* name_c = name.ToCString();
-        Print(" [");
-        Print(name_c);
-        Print("]");
-      }
     }
   }
 }
@@ -1405,17 +1394,17 @@ int X86Decoder::InstructionDecode(uword pc) {
             data += 5;
           } else if (*(data+2) == 0x80 &&
                      *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+4) == 0x00) {
+                     *(data+4) == 0x00 &&
+                     *(data+5) == 0x00 &&
+                     *(data+6) == 0x00) {
             Print("nop");
             data += 7;
           } else if (*(data+2) == 0x84 &&
                      *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+3) == 0x00 &&
-                     *(data+4) == 0x00) {
+                     *(data+4) == 0x00 &&
+                     *(data+5) == 0x00 &&
+                     *(data+6) == 0x00 &&
+                     *(data+7) == 0x00) {
             Print("nop");
             data += 8;
           } else {

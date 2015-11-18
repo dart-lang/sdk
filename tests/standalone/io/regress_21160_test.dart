@@ -10,6 +10,16 @@ import "dart:async";
 import "dart:io";
 import "dart:typed_data";
 
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+
 // 10 KiB of i%256 data.
 Uint8List DATA = new Uint8List.fromList(
     new List.generate(10 * 1024, (i) => i % 256));
@@ -17,63 +27,54 @@ Uint8List DATA = new Uint8List.fromList(
 Future<SecureServerSocket> startServer() {
   return SecureServerSocket.bind("localhost",
                                  0,
-                                 'localhost_cert').then((server) {
-    server.listen((SecureSocket request) {
-      request.drain().then((_) {
-        request
-            ..add(DATA)
-            ..close();
-      });
+                                 serverContext).then((server) {
+    server.listen((SecureSocket request) async {
+      await request.drain();
+      request..add(DATA)..close();
     });
     return server;
   });
 }
 
-void InitializeSSL() {
-  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: testPkcertDatabase,
-                          password: 'dartdart');
-}
-
-void main() {
-  InitializeSSL();
-
+main() async {
   asyncStart();
-  startServer().then((SecureServerSocket server) {
-    RawSecureSocket.connect("localhost", server.port).then((socket) {
-      List<int> body = <int>[];
+  var server = await SecureServerSocket.bind("localhost", 0, serverContext);
+  server.listen((SecureSocket request) async {
+    await request.drain();
+    request..add(DATA)..close();
+  });
 
-      // Close our end, since we're not sending data.
-      socket.shutdown(SocketDirection.SEND);
+  var socket = await RawSecureSocket.connect("localhost",
+                                             server.port,
+                                             context: clientContext);
+  List<int> body = <int>[];
+  // Close our end, since we're not sending data.
+  socket.shutdown(SocketDirection.SEND);
 
-      socket.listen((RawSocketEvent event) {
-            switch (event) {
-              case RawSocketEvent.READ:
-                // NOTE: We have a very low prime number here. The internal
-                // ring buffers will not have a size of 3. This means that
-                // we'll reach the point where we would like to read 1/2 bytes
-                // at the end and then wrap around and read the next 2/1 bytes.
-                // [This will ensure we trigger the bug.]
-                body.addAll(socket.read(3));
-                break;
-              case RawSocketEvent.WRITE:
-                break;
-              case RawSocketEvent.READ_CLOSED:
-                break;
-              default: throw "Unexpected event $event";
-            }
-          },
-          onError: (e, _) {
-            Expect.fail('Unexpected error: $e');
-          },
-          onDone: () {
-            Expect.equals(body.length, DATA.length);
-            for (int i = 0; i < body.length; i++) {
-              Expect.equals(body[i], DATA[i]);
-            }
-            server.close();
-            asyncEnd();
-          });
-    });
+  socket.listen((RawSocketEvent event) {
+    switch (event) {
+      case RawSocketEvent.READ:
+        // NOTE: We have a very low prime number here. The internal
+        // ring buffers will not have a size of 3. This means that
+        // we'll reach the point where we would like to read 1/2 bytes
+        // at the end and then wrap around and read the next 2/1 bytes.
+        // [This will ensure we trigger the bug.]
+        body.addAll(socket.read(3));
+        break;
+      case RawSocketEvent.WRITE:
+        break;
+      case RawSocketEvent.READ_CLOSED:
+        break;
+      default: throw "Unexpected event $event";
+    }
+  }, onError: (e, _) {
+    Expect.fail('Unexpected error: $e');
+  }, onDone: () {
+    Expect.equals(body.length, DATA.length);
+    for (int i = 0; i < body.length; i++) {
+      Expect.equals(body[i], DATA[i]);
+    }
+    server.close();
+    asyncEnd();
   });
 }

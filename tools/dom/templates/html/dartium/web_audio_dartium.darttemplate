@@ -8,21 +8,24 @@ library dart.dom.web_audio;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal' hide deprecated;
+import 'dart:_internal';
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 
 $!GENERATED_DART_FILES
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_audioBlinkMap = {
 $!TYPE_MAP
 };
 
 $if JSINTEROP
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_audioBlinkFunctionMap = {
 $!TYPE_FUNCTION_MAP
 };

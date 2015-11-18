@@ -12,7 +12,7 @@ import 'optimizers.dart';
 ///
 /// We do not rewrite variables that have an assignment inside a try block that
 /// does not contain its declaration.
-class MutableVariablePreanalysis extends RecursiveVisitor {
+class MutableVariablePreanalysis extends TrampolineRecursiveVisitor {
   // Number of try blocks enclosing the current position.
   int currentDepth = 0;
 
@@ -114,12 +114,6 @@ class MutableVariableEliminator implements Pass {
            cont.firstRef.parent is InvokeContinuation;
   }
 
-  void removeNode(InteriorNode node) {
-    InteriorNode parent = node.parent;
-    parent.body = node.body;
-    node.body.parent = parent;
-  }
-
   /// If some useful source information is attached to exactly one of the
   /// two definitions, the information is copied onto the other.
   void mergeHints(MutableVariable variable, Primitive value) {
@@ -139,7 +133,8 @@ class MutableVariableEliminator implements Pass {
   /// Continuations to be processed are put on the stack for later processing.
   void processBlock(Expression node,
                     Map<MutableVariable, Primitive> environment) {
-    for (; node is! TailExpression; node = node.next) {
+    Expression next = node.next;
+    for (; node is! TailExpression; node = next, next = node.next) {
       if (node is LetMutable && shouldRewrite(node.variable)) {
         // Put the new mutable variable on the stack while processing the body,
         // and pop it off again when done with the body.
@@ -155,7 +150,7 @@ class MutableVariableEliminator implements Pass {
 
         // Remove the mutable variable binding.
         node.value.unlink();
-        removeNode(node);
+        node.remove();
       } else if (node is LetPrim && node.primitive is SetMutable) {
         SetMutable setter = node.primitive;
         MutableVariable variable = setter.variable.definition;
@@ -165,7 +160,7 @@ class MutableVariableEliminator implements Pass {
           environment[variable] = setter.value.definition;
           mergeHints(variable, setter.value.definition);
           setter.value.unlink();
-          removeNode(node);
+          node.remove();
         }
       } else if (node is LetPrim && node.primitive is GetMutable) {
         GetMutable getter = node.primitive;
@@ -175,7 +170,7 @@ class MutableVariableEliminator implements Pass {
           Primitive value = environment[variable];
           value.substituteFor(getter);
           mergeHints(variable, value);
-          removeNode(node);
+          node.remove();
         }
       } else if (node is LetCont) {
         // Create phi parameters for each join continuation bound here, and put
@@ -191,6 +186,7 @@ class MutableVariableEliminator implements Pass {
               <MutableVariable, Primitive>{};
           for (MutableVariable variable in mutableVariables) {
             Parameter phi = new Parameter(variable.hint);
+            phi.type = variable.type;
             cont.parameters.add(phi);
             phi.parent = cont;
             environment[variable] = phi;

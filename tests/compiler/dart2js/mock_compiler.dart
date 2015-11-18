@@ -9,15 +9,24 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/src/common/names.dart' show
+    Uris;
 import 'package:compiler/src/constants/expressions.dart';
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
+import 'package:compiler/src/diagnostics/source_span.dart';
+import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
-import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/io/source_file.dart';
+import 'package:compiler/src/resolution/members.dart';
+import 'package:compiler/src/resolution/registry.dart';
+import 'package:compiler/src/resolution/scope.dart';
+import 'package:compiler/src/resolution/tree_elements.dart';
+import 'package:compiler/src/script.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/old_to_new_api.dart';
-import 'package:compiler/src/util/util.dart';
 import 'parser_helper.dart';
 
 import 'package:compiler/src/elements/modelx.dart'
@@ -26,8 +35,7 @@ import 'package:compiler/src/elements/modelx.dart'
          ErroneousElementX,
          FunctionElementX;
 
-import 'package:compiler/src/dart2jslib.dart'
-    hide TreeElementMapping;
+import 'package:compiler/src/compiler.dart';
 
 import 'package:compiler/src/deferred_load.dart'
     show DeferredLoadTask,
@@ -40,10 +48,12 @@ class WarningMessage {
   Message message;
   WarningMessage(this.node, this.message);
 
-  toString() => message.toString();
+  toString() => message.kind.toString();
 }
 
 final Uri PATCH_CORE = new Uri(scheme: 'patch', path: 'core');
+
+typedef String LibrarySourceProvider(Uri uri);
 
 class MockCompiler extends Compiler {
   api.DiagnosticHandler diagnosticHandler;
@@ -60,12 +70,13 @@ class MockCompiler extends Compiler {
   final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
   final String testedPatchVersion;
+  final LibrarySourceProvider librariesOverride;
 
   MockCompiler.internal(
       {Map<String, String> coreSource,
        bool enableTypeAssertions: false,
+       bool enableUserAssertions: false,
        bool enableMinification: false,
-       bool enableConcreteTypeInference: false,
        int maxConcreteTypeSize: 5,
        bool disableTypeInference: false,
        bool analyzeAll: false,
@@ -80,12 +91,14 @@ class MockCompiler extends Compiler {
        int this.expectedWarnings,
        int this.expectedErrors,
        api.CompilerOutputProvider outputProvider,
-       String patchVersion})
+       String patchVersion,
+       LibrarySourceProvider this.librariesOverride})
       : sourceFiles = new Map<String, SourceFile>(),
         testedPatchVersion = patchVersion,
         super(enableTypeAssertions: enableTypeAssertions,
+              enableUserAssertions: enableUserAssertions,
+              enableAssertMessage: true,
               enableMinification: enableMinification,
-              enableConcreteTypeInference: enableConcreteTypeInference,
               maxConcreteTypeSize: maxConcreteTypeSize,
               disableTypeInferenceFlag: disableTypeInference,
               analyzeAllFlag: analyzeAll,
@@ -93,7 +106,8 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
-              showPackageWarnings: true,
+              diagnosticOptions:
+                  new DiagnosticOptions(showPackageWarnings: true),
               outputProvider: new LegacyCompilerOutput(outputProvider)) {
     this.disableInlining = disableInlining;
 
@@ -101,7 +115,7 @@ class MockCompiler extends Compiler {
 
     clearMessages();
 
-    registerSource(Compiler.DART_CORE,
+    registerSource(Uris.dart_core,
                    buildLibrarySource(DEFAULT_CORE_LIBRARY, coreSource));
     registerSource(PATCH_CORE, DEFAULT_PATCH_CORE_SOURCE);
 
@@ -113,10 +127,19 @@ class MockCompiler extends Compiler {
                    buildLibrarySource(DEFAULT_INTERCEPTORS_LIBRARY));
     registerSource(JavaScriptBackend.DART_ISOLATE_HELPER,
                    buildLibrarySource(DEFAULT_ISOLATE_HELPER_LIBRARY));
-    registerSource(Compiler.DART_MIRRORS,
-                   buildLibrarySource(DEFAULT_MIRRORS_LIBRARY));
-    registerSource(Compiler.DART_ASYNC,
-                   buildLibrarySource(DEFAULT_ASYNC_LIBRARY));
+    registerSource(Uris.dart_mirrors, DEFAULT_MIRRORS_SOURCE);
+    registerSource(JavaScriptBackend.DART_JS_MIRRORS,
+        DEFAULT_JS_MIRRORS_SOURCE);
+
+    Map<String, String> asyncLibrarySource = <String, String>{};
+    asyncLibrarySource.addAll(DEFAULT_ASYNC_LIBRARY);
+    if (enableAsyncAwait) {
+      asyncLibrarySource.addAll(ASYNC_AWAIT_LIBRARY);
+    }
+    registerSource(Uris.dart_async,
+                   buildLibrarySource(asyncLibrarySource));
+    registerSource(JavaScriptBackend.PACKAGE_LOOKUP_MAP,
+                   buildLibrarySource(DEFAULT_LOOKUP_MAP_LIBRARY));
   }
 
   String get patchVersion {
@@ -134,7 +157,7 @@ class MockCompiler extends Compiler {
       // dynamic invocation the ArgumentTypesRegistry eventually iterates over
       // the interfaces of the Object class which would be 'null' if the class
       // wasn't resolved.
-      objectClass.ensureResolved(this);
+      objectClass.ensureResolved(resolution);
     }).then((_) => uri);
   }
 
@@ -156,45 +179,57 @@ class MockCompiler extends Compiler {
 
   /**
    * Registers the [source] with [uri] making it possible load [source] as a
-   * library.
+   * library.  If an override has been provided in [librariesOverride], that
+   * is used instead.
    */
   void registerSource(Uri uri, String source) {
+    if (librariesOverride != null) {
+      String override = librariesOverride(uri);
+      if (override != null) {
+        source = override;
+      }
+    }
     sourceFiles[uri.toString()] = new MockFile(source);
   }
 
   // TODO(johnniwinther): Remove this when we don't filter certain type checker
   // warnings.
-  void reportWarning(Spannable node, MessageKind messageKind,
-                     [Map arguments = const {}]) {
-    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-    reportDiagnostic(node,
-                     template.message(arguments, terseDiagnostics),
-                     api.Diagnostic.WARNING);
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnostic(message, infos, api.Diagnostic.WARNING);
   }
 
-  void reportDiagnostic(Spannable node,
-                        Message message,
+  void reportDiagnostic(DiagnosticMessage message,
+                        List<DiagnosticMessage> infoMessages,
                         api.Diagnostic kind) {
-    var diagnostic = new WarningMessage(node, message);
-    if (kind == api.Diagnostic.CRASH) {
-      crashes.add(diagnostic);
-    } else if (kind == api.Diagnostic.ERROR) {
-      errors.add(diagnostic);
-    } else if (kind == api.Diagnostic.WARNING) {
-      warnings.add(diagnostic);
-    } else if (kind == api.Diagnostic.INFO) {
-      infos.add(diagnostic);
-    } else if (kind == api.Diagnostic.HINT) {
-      hints.add(diagnostic);
-    }
-    if (diagnosticHandler != null) {
-      SourceSpan span = spanFromSpannable(node);
-      if (span != null) {
-        diagnosticHandler(span.uri, span.begin, span.end, '$message', kind);
-      } else {
-        diagnosticHandler(null, null, null, '$message', kind);
+
+    void processMessage(DiagnosticMessage message, api.Diagnostic kind) {
+      var diagnostic = new WarningMessage(message.spannable, message.message);
+      if (kind == api.Diagnostic.CRASH) {
+        crashes.add(diagnostic);
+      } else if (kind == api.Diagnostic.ERROR) {
+        errors.add(diagnostic);
+      } else if (kind == api.Diagnostic.WARNING) {
+        warnings.add(diagnostic);
+      } else if (kind == api.Diagnostic.INFO) {
+        infos.add(diagnostic);
+      } else if (kind == api.Diagnostic.HINT) {
+        hints.add(diagnostic);
+      }
+      if (diagnosticHandler != null) {
+        SourceSpan span = message.sourceSpan;
+        if (span != null) {
+          diagnosticHandler(
+              span.uri, span.begin, span.end, '${message.message}', kind);
+        } else {
+          diagnosticHandler(null, null, null, '${message.message}', kind);
+        }
       }
     }
+
+    processMessage(message, kind);
+    infoMessages.forEach((i) => processMessage(i, api.Diagnostic.INFO));
   }
 
   bool get compilationFailed => !crashes.isEmpty || !errors.isEmpty;
@@ -216,7 +251,7 @@ class MockCompiler extends Compiler {
                                           ExecutableElement element) {
     ResolverVisitor visitor =
         new ResolverVisitor(this, element,
-            new ResolutionRegistry.internal(this,
+            new ResolutionRegistry(this,
                 new CollectingTreeElements(element)));
     if (visitor.scope is LibraryScope) {
       visitor.scope = new MethodScope(visitor.scope, element);
@@ -230,7 +265,7 @@ class MockCompiler extends Compiler {
     Element mockElement = new MockElement(mainApp.entryCompilationUnit);
     ResolverVisitor visitor =
         new ResolverVisitor(this, mockElement,
-          new ResolutionRegistry.internal(this,
+          new ResolutionRegistry(this,
               new CollectingTreeElements(mockElement)));
     visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
@@ -252,7 +287,7 @@ class MockCompiler extends Compiler {
   }
 
   Uri translateResolvedUri(LibraryElement importingLibrary,
-                           Uri resolvedUri, Node node) => resolvedUri;
+                           Uri resolvedUri, Spannable spannable) => resolvedUri;
 
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) {
@@ -343,7 +378,8 @@ void compareMessageKinds(String text,
   }
   if (foundIterator.hasNext) {
     do {
-      print('Additional $kind "${foundIterator.next()}"');
+      WarningMessage message = foundIterator.next();
+      print('Additional $kind "${message}: ${message.message}"');
     } while (foundIterator.hasNext);
     fail('Too many ${kind}s');
   }
@@ -408,4 +444,34 @@ class MockElement extends FunctionElementX {
   parseNode(_) => null;
 
   bool get hasNode => false;
+}
+
+// TODO(herhut): Disallow warnings and errors during compilation by default.
+MockCompiler compilerFor(String code, Uri uri,
+                         {bool analyzeAll: false,
+                          bool analyzeOnly: false,
+                          Map<String, String> coreSource,
+                          bool disableInlining: true,
+                          bool minify: false,
+                          bool trustTypeAnnotations: false,
+                          bool enableTypeAssertions: false,
+                          bool enableUserAssertions: false,
+                          int expectedErrors,
+                          int expectedWarnings,
+                          api.CompilerOutputProvider outputProvider}) {
+  MockCompiler compiler = new MockCompiler.internal(
+      analyzeAll: analyzeAll,
+      analyzeOnly: analyzeOnly,
+      coreSource: coreSource,
+      disableInlining: disableInlining,
+      enableMinification: minify,
+      trustTypeAnnotations: trustTypeAnnotations,
+      enableTypeAssertions: enableTypeAssertions,
+      enableUserAssertions: enableUserAssertions,
+      expectedErrors: expectedErrors,
+      expectedWarnings: expectedWarnings,
+      outputProvider: outputProvider);
+  compiler.registerSource(uri, code);
+  compiler.diagnosticHandler = createHandler(compiler, code);
+  return compiler;
 }

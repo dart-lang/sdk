@@ -5,7 +5,7 @@
 library dart2js.ir_tracer;
 
 import 'dart:async' show EventSink;
-import 'cps_ir_nodes.dart' as cps_ir hide Function;
+import 'cps_ir_nodes.dart' as cps_ir;
 import '../tracer.dart';
 
 /**
@@ -82,7 +82,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
       });
       tag("HIR", () {
         if (entryPointParameters != null) {
-          String params = entryPointParameters.map(names.name).join(', ');
+          String formatParameter(cps_ir.Parameter param) {
+            return '${names.name(param)} ${param.type}';
+          }
+          String params = entryPointParameters.map(formatParameter).join(', ');
           printStmt('x0', 'Entry ($params)');
         }
         for (cps_ir.Parameter param in block.parameters) {
@@ -103,7 +106,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitLetPrim(cps_ir.LetPrim node) {
     String id = names.name(node.primitive);
-    printStmt(id, "LetPrim $id = ${formatPrimitive(node.primitive)}");
+    String primitive = visit(node.primitive);
+    printStmt(id, "LetPrim $id = $primitive [type=${node.primitive.type}]");
     visit(node.body);
   }
 
@@ -115,7 +119,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         String name = names.name(cont);
         return cont.isRecursive ? '$name*' : name;
       }
-      
+
       String ids = node.continuations.map(nameContinuation).join(', ');
       printStmt(dummy, "LetCont $ids");
     }
@@ -215,7 +219,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
-    printStmt(dummy, "TypeCast ($value ${node.type} ($args)) $kont");
+    printStmt(dummy, "TypeCast ($value ${node.dartType} ($args)) $kont");
   }
 
   visitInvokeContinuation(cps_ir.InvokeContinuation node) {
@@ -227,10 +231,26 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitBranch(cps_ir.Branch node) {
     String dummy = names.name(node);
-    String condition = visit(node.condition);
+    String condition = formatReference(node.condition);
     String trueCont = formatReference(node.trueContinuation);
     String falseCont = formatReference(node.falseContinuation);
-    printStmt(dummy, "Branch $condition ($trueCont, $falseCont)");
+    String strict = node.isStrictCheck ? "Strict" : "NonStrict";
+    printStmt(dummy, "Branch $condition ($trueCont, $falseCont) $strict");
+  }
+
+  visitAwait(cps_ir.Await node) {
+    String dummy = names.name(node);
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    printStmt(dummy, 'Await $value $continuation');
+  }
+
+  visitYield(cps_ir.Yield node) {
+    String dummy = names.name(node);
+    String name = node.hasStar ? 'YieldStar' : 'Yield';
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    printStmt(dummy, '$name $value $continuation');
   }
 
   visitSetMutable(cps_ir.SetMutable node) {
@@ -248,8 +268,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     }
   }
 
-  String formatPrimitive(cps_ir.Primitive p) => visit(p);
-
   visitConstant(cps_ir.Constant node) {
     return "Constant ${node.value.toStructuredString()}";
   }
@@ -264,10 +282,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitContinuation(cps_ir.Continuation node) {
     return "Continuation ${names.name(node)}";
-  }
-
-  visitIsTrue(cps_ir.IsTrue node) {
-    return "IsTrue(${names.name(node.value.definition)})";
   }
 
   visitSetField(cps_ir.SetField node) {
@@ -347,13 +361,28 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitTypeTest(cps_ir.TypeTest node) {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
-    return "TypeTest ($value ${node.type} ($args))";
+    String interceptor = node.interceptor == null
+        ? ''
+        : ' ${formatReference(node.interceptor)}';
+    return "TypeTest ($value ${node.dartType} ($args)$interceptor)";
+  }
+
+  visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
+    String interceptor = formatReference(node.interceptor);
+    return "TypeTestViaFlag ($interceptor ${node.dartType})";
   }
 
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
     String operator = node.operator.toString();
     String args = node.arguments.map(formatReference).join(', ');
     return 'ApplyBuiltinOperator $operator ($args)';
+  }
+
+  visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
+    String method = node.method.toString();
+    String receiver = formatReference(node.receiver);
+    String args = node.arguments.map(formatReference).join(', ');
+    return 'ApplyBuiltinMethod $method $receiver ($args)';
   }
 
   @override
@@ -381,6 +410,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String index = formatReference(node.index);
     String value = formatReference(node.value);
     return 'SetIndex $object $index $value';
+  }
+
+  @override
+  visitRefinement(cps_ir.Refinement node) {
+    String value = formatReference(node.value);
+    return 'Refinement $value ${node.type}';
   }
 }
 
@@ -593,10 +628,6 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
-  visitIsTrue(cps_ir.IsTrue node) {
-    unexpectedNode(node);
-  }
-
   visitInterceptor(cps_ir.Interceptor node) {
     unexpectedNode(node);
   }
@@ -621,7 +652,15 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
+  visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
+    unexpectedNode(node);
+  }
+
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
+    unexpectedNode(node);
+  }
+
+  visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
     unexpectedNode(node);
   }
 
@@ -652,5 +691,20 @@ class BlockCollector implements cps_ir.Visitor {
   @override
   visitForeignCode(cps_ir.ForeignCode node) {
     addEdgeToContinuation(node.continuation);
+  }
+
+  @override
+  visitAwait(cps_ir.Await node) {
+    addEdgeToContinuation(node.continuation);
+  }
+
+  @override
+  visitYield(cps_ir.Yield node) {
+    addEdgeToContinuation(node.continuation);
+  }
+
+  @override
+  visitRefinement(cps_ir.Refinement node) {
+    unexpectedNode(node);
   }
 }

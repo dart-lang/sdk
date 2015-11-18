@@ -42,23 +42,29 @@ class DebuggerLocation {
         "Invalid source location '${locDesc}'"));
   }
 
-  static Future<DebuggerLocation> _currentLocation(Debugger debugger) {
+  static Future<Frame> _currentFrame(Debugger debugger) async {
     ServiceMap stack = debugger.stack;
     if (stack == null || stack['frames'].length == 0) {
-      return new Future.value(new DebuggerLocation.error(
-          'A script must be provided when the stack is empty'));
+      return null;
     }
-    var frame = stack['frames'][debugger.currentFrame];
+    return stack['frames'][debugger.currentFrame];
+  }
+
+  static Future<DebuggerLocation> _currentLocation(Debugger debugger) async {
+    var frame = await _currentFrame(debugger);
+    if (frame == null) {
+      return new DebuggerLocation.error(
+          'A script must be provided when the stack is empty');
+    }
     Script script = frame.location.script;
-    return script.load().then((_) {
-      var line = script.tokenToLine(frame.location.tokenPos);
-      // TODO(turnidge): Pass in the column here once the protocol supports it.
-      return new Future.value(new DebuggerLocation.file(script, line, null));
-    });
+    await script.load();
+    var line = script.tokenToLine(frame.location.tokenPos);
+    var col = script.tokenToCol(frame.location.tokenPos);
+    return new DebuggerLocation.file(script, line, col);
   }
 
   static Future<DebuggerLocation> _parseScriptLine(Debugger debugger,
-                                                   Match match) {
+                                                   Match match) async {
     var scriptName = match.group(1);
     if (scriptName != null) {
       scriptName = scriptName.substring(0, scriptName.length - 1);
@@ -84,25 +90,25 @@ class DebuggerLocation {
 
     if (scriptName != null) {
       // Resolve the script.
-      return _lookupScript(debugger.isolate, scriptName).then((scripts) {
-        if (scripts.length == 0) {
-          return new DebuggerLocation.error("Script '${scriptName}' not found");
-        } else if (scripts.length == 1) {
-          return new DebuggerLocation.file(scripts[0], line, col);
-        } else {
-          // TODO(turnidge): Allow the user to disambiguate.
-          return new DebuggerLocation.error("Script '${scriptName}' is ambigous");
-        }
-      });
+      var scripts = await _lookupScript(debugger.isolate, scriptName);
+      if (scripts.length == 0) {
+        return new DebuggerLocation.error("Script '${scriptName}' not found");
+      } else if (scripts.length == 1) {
+        return new DebuggerLocation.file(scripts[0], line, col);
+      } else {
+        // TODO(turnidge): Allow the user to disambiguate.
+        return new DebuggerLocation.error("Script '${scriptName}' is ambigous");
+      }
     } else {
       // No script provided.  Default to top of stack for now.
-      ServiceMap stack = debugger.stack;
-      if (stack == null || stack['frames'].length == 0) {
+      var frame = await _currentFrame(debugger);
+      if (frame == null) {
         return new Future.value(new DebuggerLocation.error(
             'A script must be provided when the stack is empty'));
       }
-      Script script = stack['frames'][0].location.script;
-      return new Future.value(new DebuggerLocation.file(script, line, col));
+      Script script = frame.location.script;
+      await script.load();
+      return new DebuggerLocation.file(script, line, col);
     }
   }
 
@@ -157,7 +163,10 @@ class DebuggerLocation {
 
   static Future<List<Class>> _lookupClass(Isolate isolate,
                                           String name,
-                                          { bool allowPrefix: false }) {
+                                          { bool allowPrefix: false }) async {
+    if (isolate == null) {
+      return [];
+    }
     var pending = [];
     for (var lib in isolate.libraries) {
       assert(lib.loaded);
@@ -167,23 +176,22 @@ class DebuggerLocation {
         }
       }
     }
-    return Future.wait(pending).then((_) {
-      var matches = [];
-      for (var lib in isolate.libraries) {
-        for (var cls in lib.classes) {
-          if (allowPrefix) {
-            if (cls.name.startsWith(name)) {
-              matches.add(cls);
-            }
-          } else {
-            if (name == cls.name) {
-              matches.add(cls);
-            }
+    await Future.wait(pending);
+    var matches = [];
+    for (var lib in isolate.libraries) {
+      for (var cls in lib.classes) {
+        if (allowPrefix) {
+          if (cls.name.startsWith(name)) {
+            matches.add(cls);
+          }
+        } else {
+          if (name == cls.name) {
+            matches.add(cls);
           }
         }
       }
-      return matches;
-    });
+    }
+    return matches;
   }
 
   static ServiceFunction _getConstructor(Class cls, String name) {
@@ -252,7 +260,7 @@ class DebuggerLocation {
   }
 
   static RegExp partialSourceLocMatcher =
-      new RegExp(r'^([^\d:]?[^:]+[:]?)?(\d+)?([:]\d+)?');
+      new RegExp(r'^([^\d:]?[^:]+[:]?)?(\d+)?([:]\d*)?');
   static RegExp partialFunctionMatcher = new RegExp(r'^([^.]*)([.][^.]*)?');
 
   /// Completes a partial source location description.
@@ -323,25 +331,105 @@ class DebuggerLocation {
     }
   }
 
-  static Future<List<String>> _completeFile(Debugger debugger, Match match) {
-    var scriptName = match.group(1);
-    var lineStr = match.group(2);
-    var colStr = match.group(3);
-    if (lineStr != null || colStr != null) {
-      // TODO(turnidge): Complete valid line and column numbers.
-      return new Future.value([]);
-    }
-    scriptName = (scriptName == null ? '' : scriptName);
+  static bool _startsWithDigit(String s) {
+    return '0'.compareTo(s[0]) <= 0 && '9'.compareTo(s[0]) >= 0;
+  }
 
-    return _lookupScript(debugger.isolate, scriptName, allowPrefix:true)
-      .then((scripts) {
+  static Future<List<String>> _completeFile(
+      Debugger debugger, Match match) async {
+    var scriptName;
+    var scriptNameComplete = false;
+    var lineStr;
+    var lineStrComplete = false;
+    var colStr;
+    if (_startsWithDigit(match.group(1))) {
+      // CASE 1: We have matched a prefix of (lineStr:)(colStr)
+      var frame = await _currentFrame(debugger);
+      if (frame == null) {
+        return [];
+      }
+      scriptName = frame.location.script.name;
+      scriptNameComplete = true;
+      lineStr = match.group(1);
+      lineStr = (lineStr == null ? '' : lineStr);
+      if (lineStr.endsWith(':')) {
+        lineStr = lineStr.substring(0, lineStr.length - 1);
+        lineStrComplete = true;
+      }
+      colStr = match.group(2);
+      colStr = (colStr == null ? '' : colStr);
+    } else {
+      // CASE 2: We have matched a prefix of (scriptName:)(lineStr)(:colStr)
+      scriptName = match.group(1);
+      scriptName = (scriptName == null ? '' : scriptName);
+      if (scriptName.endsWith(':')) {
+        scriptName = scriptName.substring(0, scriptName.length - 1);
+        scriptNameComplete = true;
+      }
+      lineStr = match.group(2);
+      lineStr = (lineStr == null ? '' : lineStr);
+      colStr = match.group(3);
+      colStr = (colStr == null ? '' : colStr);
+      if (colStr.startsWith(':')) {
+        lineStrComplete = true;
+        colStr = colStr.substring(1);
+      }
+    }
+
+    if (!scriptNameComplete) {
+      // The script name is incomplete.  Complete it.
+      var scripts =
+          await _lookupScript(debugger.isolate, scriptName, allowPrefix:true);
+      List completions = [];
+      for (var script in scripts) {
+        completions.add(script.name + ':');
+      }
+      completions.sort();
+      return completions;
+
+    } else {
+      // The script name is complete.  Look it up.
+      var scripts =
+          await _lookupScript(debugger.isolate, scriptName, allowPrefix:false);
+      if (scripts.isEmpty) {
+        return [];
+      }
+      var script = scripts[0];
+      await script.load();
+      if (!lineStrComplete) {
+        // Complete the line.
+        var sharedPrefix = '${script.name}:';
         List completions = [];
-        for (var script in scripts) {
-          completions.add(script.name + ':');
+        for (var line in script.lines) {
+          if (line.possibleBpt) {
+            var currentLineStr = line.line.toString();
+            if (currentLineStr.startsWith(lineStr)) {
+              completions.add('${sharedPrefix}${currentLineStr} ');
+              completions.add('${sharedPrefix}${currentLineStr}:');
+            }
+          }
         }
-        completions.sort();
         return completions;
-      });
+
+      } else {
+        // Complete the column.
+        int lineNum = int.parse(lineStr);
+        var scriptLine = script.getLine(lineNum);
+        if (!scriptLine.possibleBpt) {
+          return [];
+        }
+        var sharedPrefix = '${script.name}:${lineStr}:';
+        List completions = [];
+        int maxCol = scriptLine.text.trimRight().runes.length;
+        for (int i = 1; i <= maxCol; i++) {
+          var currentColStr = i.toString();
+          if (currentColStr.startsWith(colStr)) {
+            completions.add('${sharedPrefix}${currentColStr} ');
+          }
+        }
+        return completions;
+      }
+    }
   }
 
   String toString() {

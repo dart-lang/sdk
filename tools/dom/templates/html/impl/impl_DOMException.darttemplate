@@ -40,7 +40,55 @@ $if DART2JS
     return errorName;
   }
 $endif
+$if JSINTEROP
+  String _name;
+  String _message;
+
+  // To suppress missing implicit constructor warnings.
+  factory DomException._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static DomException internalCreateDomException() {
+    return new DomException._internalWrap();
+  }
+
+  @Deprecated("Internal Use Only")
+  js.JsObject blink_jsObject;
+
+  factory DomException._internalWrap() {
+    return new DomException.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  DomException.internal_() { }
+
+  @Deprecated("Internal Use Only")
+  DomException.jsInterop(String m) {
+    var name_index = m.indexOf(': ');
+    if (name_index < 0) {
+      _name = "";
+      _message = m;
+    } else {
+      _name = m.substring(0, name_index);
+      _message = m.substring(name_index + 1).trim();
+    }
+  }
+
+  @DomName('DOMException.message')
+  @DocsEditable()
+  String get message => _message;
+
+  @DomName('DOMException.name')
+  @DocsEditable()
+  String get name => _name;
+
+  @DomName('DOMException.toString')
+  @DocsEditable()
+  String toString() => "${_name}: $_message";
+
+$else
 $!MEMBERS
+$endif
 $if DART2JS
   @DomName('DOMException.toString')
   @DocsEditable()

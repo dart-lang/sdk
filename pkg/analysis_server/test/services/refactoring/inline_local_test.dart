@@ -4,17 +4,18 @@
 
 library test.services.refactoring.inline_local;
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_local.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(InlineLocalTest);
 }
 
@@ -627,7 +628,7 @@ main() {
     expect(refactoring.referenceCount, 0);
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: 'Local variable declaration or reference must be '
-        'selected to activate this refactoring.');
+            'selected to activate this refactoring.');
   }
 
   void _createRefactoring(String search) {

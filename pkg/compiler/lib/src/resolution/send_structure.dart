@@ -2,17 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.send_structure;
+library dart2js.resolution.send_structure;
+
+import '../common.dart';
+import '../constants/expressions.dart';
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../tree/tree.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 
 import 'access_semantics.dart';
 import 'operators.dart';
 import 'semantic_visitor.dart';
-import '../dart_types.dart';
-import '../constants/expressions.dart';
-import '../elements/elements.dart';
-import '../tree/tree.dart';
-import '../universe/universe.dart';
-import '../util/util.dart';
 
 /// Interface for the structure of the semantics of a [Send] or [NewExpression]
 /// node.
@@ -28,35 +32,6 @@ abstract class SemanticSendStructure<R, A> {
 abstract class SendStructure<R, A> extends SemanticSendStructure<R, A> {
   /// Calls the matching visit method on [visitor] with [send] and [arg].
   R dispatch(SemanticSendVisitor<R, A> visitor, Send send, A arg);
-}
-
-/// The structure for a [Send] of the form `assert(e)`.
-class AssertStructure<R, A> implements SendStructure<R, A> {
-  const AssertStructure();
-
-  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
-    return visitor.visitAssert(
-        node,
-        node.arguments.single,
-        arg);
-  }
-
-  String toString() => 'assert';
-}
-
-/// The structure for a [Send] of the form an `assert` with less or more than
-/// one argument.
-class InvalidAssertStructure<R, A> implements SendStructure<R, A> {
-  const InvalidAssertStructure();
-
-  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
-    return visitor.errorInvalidAssert(
-        node,
-        node.argumentsNode,
-        arg);
-  }
-
-  String toString() => 'invalid assert';
 }
 
 /// The structure for a [Send] of the form `a ?? b`.
@@ -309,7 +284,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             node,
             node.selector,
             node.argumentsNode,
-            selector,
+            callStructure,
             arg);
       case AccessKind.THIS:
         return visitor.visitThisInvoke(
@@ -452,10 +427,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
   /// The target of the read access.
   final AccessSemantics semantics;
 
-  /// The [Selector] for the getter invocation.
-  final Selector selector;
-
-  GetStructure(this.semantics, this.selector);
+  GetStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -463,13 +435,13 @@ class GetStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertyGet(
             node,
             node.receiver,
-            selector,
+            semantics.name,
             arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertyGet(
             node,
             node.receiver,
-            selector,
+            semantics.name,
             arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionGet(
@@ -559,7 +531,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyGet(
             node,
-            selector,
+            semantics.name,
             arg);
       case AccessKind.SUPER_FIELD:
       case AccessKind.SUPER_FINAL_FIELD:
@@ -609,7 +581,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node, "Invalid getter: ${semantics}");
   }
 
-  String toString() => 'get($selector, $semantics)';
+  String toString() => 'get($semantics)';
 }
 
 /// The structure for a [Send] that is an assignment.
@@ -617,10 +589,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
   /// The target of the assignment.
   final AccessSemantics semantics;
 
-  /// The [Selector] for the setter invocation.
-  final Selector selector;
-
-  SetStructure(this.semantics, this.selector);
+  SetStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -628,14 +597,14 @@ class SetStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertySet(
           node,
           node.receiver,
-          selector,
+          semantics.name,
           node.arguments.single,
           arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertySet(
           node,
           node.receiver,
-          selector,
+          semantics.name,
           node.arguments.single,
           arg);
       case AccessKind.LOCAL_FUNCTION:
@@ -761,7 +730,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertySet(
             node,
-            selector,
+            semantics.name,
             node.arguments.single,
             arg);
       case AccessKind.SUPER_FIELD:
@@ -818,31 +787,21 @@ class SetStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
   }
 
-  String toString() => 'set($selector,$semantics)';
+  String toString() => 'set($semantics)';
 }
 
 /// The structure for a [Send] that is a negation, i.e. of the form `!e`.
 class NotStructure<R, A> implements SendStructure<R, A> {
-  /// The target of the negation.
-  final AccessSemantics semantics;
-
-  NotStructure(this.semantics);
+  const NotStructure();
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
-    switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
-        return visitor.visitNot(
-            node,
-            node.receiver,
-            arg);
-     default:
-        // This is not a valid case.
-        break;
-    }
-    throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
+    return visitor.visitNot(
+        node,
+        node.receiver,
+        arg);
   }
 
-  String toString() => 'not($semantics)';
+  String toString() => 'not()';
 }
 
 /// The structure for a [Send] that is an invocation of a user definable unary
@@ -858,7 +817,7 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitUnary(
             node,
             operator,
@@ -919,7 +878,7 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitIndex(
             node,
             node.receiver,
@@ -961,7 +920,7 @@ class EqualsStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitEquals(
             node,
             node.receiver,
@@ -999,7 +958,7 @@ class NotEqualsStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitNotEquals(
             node,
             node.receiver,
@@ -1041,7 +1000,7 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitBinary(
             node,
             node.receiver,
@@ -1103,15 +1062,11 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
   /// The target of the index set operation.
   final AccessSemantics semantics;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]=` operator invocation.
-  final Selector selector;
-
-  IndexSetStructure(this.semantics, this.selector);
+  IndexSetStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitIndexSet(
             node,
             node.receiver,
@@ -1160,22 +1115,11 @@ class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
   /// The `++` or `--` operator used in the operation.
   final IncDecOperator operator;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]` invocation.
-  final Selector getterSelector;
-
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]=` invocation.
-  final Selector setterSelector;
-
-  IndexPrefixStructure(this.semantics,
-                       this.operator,
-                       this.getterSelector,
-                       this.setterSelector);
+  IndexPrefixStructure(this.semantics, this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitIndexPrefix(
             node,
             node.receiver,
@@ -1246,22 +1190,11 @@ class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
   /// The `++` or `--` operator used in the operation.
   final IncDecOperator operator;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]` invocation.
-  final Selector getterSelector;
-
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]=` invocation.
-  final Selector setterSelector;
-
-  IndexPostfixStructure(this.semantics,
-                        this.operator,
-                        this.getterSelector,
-                        this.setterSelector);
+  IndexPostfixStructure(this.semantics, this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitIndexPostfix(
             node,
             node.receiver,
@@ -1332,16 +1265,8 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
   /// The assignment operator used in the compound assignment.
   final AssignmentOperator operator;
 
-  /// The [Selector] for the getter invocation.
-  final Selector getterSelector;
-
-  /// The [Selector] for the setter invocation.
-  final Selector setterSelector;
-
   CompoundStructure(this.semantics,
-                    this.operator,
-                    this.getterSelector,
-                    this.setterSelector);
+                    this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -1349,19 +1274,17 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertyCompound(
             node,
             node.receiver,
+            semantics.name,
             operator,
             node.arguments.single,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertyCompound(
             node,
             node.receiver,
+            semantics.name,
             operator,
             node.arguments.single,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionCompound(
@@ -1489,10 +1412,9 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyCompound(
             node,
+            semantics.name,
             operator,
             node.arguments.single,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.SUPER_FIELD:
         return visitor.visitSuperFieldCompound(
@@ -1613,8 +1535,13 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
                 node.arguments.single,
                 arg);
           case CompoundAccessKind.SUPER_FIELD_FIELD:
-            // TODO(johnniwinther): Handle this.
-            break;
+            return visitor.visitSuperFieldFieldCompound(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                operator,
+                node.arguments.single,
+                arg);
           case CompoundAccessKind.SUPER_GETTER_SETTER:
             return visitor.visitSuperGetterSetterCompound(
                 node,
@@ -1673,6 +1600,307 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
   String toString() => 'compound($operator,$semantics)';
 }
 
+/// The structure for a [Send] that is an if-null assignment. For instance
+/// `a ??= b`.
+class SetIfNullStructure<R, A> implements SendStructure<R, A> {
+  /// The target of the if-null assignment, i.e. the left-hand side.
+  final AccessSemantics semantics;
+
+  SetIfNullStructure(this.semantics);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
+    switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertySetIfNull(
+            node,
+            node.receiver,
+            semantics.name,
+            node.arguments.single,
+            arg);
+      case AccessKind.DYNAMIC_PROPERTY:
+        return visitor.visitDynamicPropertySetIfNull(
+            node,
+            node.receiver,
+            semantics.name,
+            node.arguments.single,
+            arg);
+      case AccessKind.LOCAL_FUNCTION:
+        return visitor.visitLocalFunctionSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.LOCAL_VARIABLE:
+        return visitor.visitLocalVariableSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.FINAL_LOCAL_VARIABLE:
+        return visitor.visitFinalLocalVariableSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.PARAMETER:
+        return visitor.visitParameterSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.FINAL_PARAMETER:
+        return visitor.visitFinalParameterSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.STATIC_FIELD:
+        return visitor.visitStaticFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.FINAL_STATIC_FIELD:
+        return visitor.visitFinalStaticFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.STATIC_METHOD:
+        return visitor.visitStaticMethodSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.STATIC_GETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.STATIC_SETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.TOPLEVEL_FIELD:
+        return visitor.visitTopLevelFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.FINAL_TOPLEVEL_FIELD:
+        return visitor.visitFinalTopLevelFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.TOPLEVEL_METHOD:
+        return visitor.visitTopLevelMethodSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.TOPLEVEL_GETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.TOPLEVEL_SETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.CLASS_TYPE_LITERAL:
+        return visitor.visitClassTypeLiteralSetIfNull(
+            node,
+            semantics.constant,
+            node.arguments.single,
+            arg);
+      case AccessKind.TYPEDEF_TYPE_LITERAL:
+        return visitor.visitTypedefTypeLiteralSetIfNull(
+            node,
+            semantics.constant,
+            node.arguments.single,
+            arg);
+      case AccessKind.DYNAMIC_TYPE_LITERAL:
+        return visitor.visitDynamicTypeLiteralSetIfNull(
+            node,
+            semantics.constant,
+            node.arguments.single,
+            arg);
+      case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
+        return visitor.visitTypeVariableTypeLiteralSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.EXPRESSION:
+        // This is not a valid case.
+        break;
+      case AccessKind.THIS:
+        // This is not a valid case.
+        break;
+      case AccessKind.THIS_PROPERTY:
+        return visitor.visitThisPropertySetIfNull(
+            node,
+            semantics.name,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_FIELD:
+        return visitor.visitSuperFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_FINAL_FIELD:
+        return visitor.visitFinalSuperFieldSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_METHOD:
+        return visitor.visitSuperMethodSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.SUPER_GETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.SUPER_SETTER:
+        // This is not a valid case.
+        break;
+      case AccessKind.CONSTANT:
+        // TODO(johnniwinther): Should this be a valid case?
+        break;
+      case AccessKind.UNRESOLVED_SUPER:
+        return visitor.visitUnresolvedSuperSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.UNRESOLVED:
+        return visitor.visitUnresolvedSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.single,
+            arg);
+      case AccessKind.COMPOUND:
+        CompoundAccessSemantics compoundSemantics = semantics;
+        switch (compoundSemantics.compoundAccessKind) {
+          case CompoundAccessKind.STATIC_GETTER_SETTER:
+            return visitor.visitStaticGetterSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.STATIC_METHOD_SETTER:
+            return visitor.visitStaticMethodSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_STATIC_GETTER:
+            return visitor.visitUnresolvedStaticGetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_STATIC_SETTER:
+            return visitor.visitUnresolvedStaticSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.TOPLEVEL_GETTER_SETTER:
+            return visitor.visitTopLevelGetterSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.TOPLEVEL_METHOD_SETTER:
+            return visitor.visitTopLevelMethodSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_TOPLEVEL_GETTER:
+            return visitor.visitUnresolvedTopLevelGetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_TOPLEVEL_SETTER:
+            return visitor.visitUnresolvedTopLevelSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_FIELD_FIELD:
+            return visitor.visitSuperFieldFieldSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_GETTER_SETTER:
+            return visitor.visitSuperGetterSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_GETTER_FIELD:
+            return visitor.visitSuperGetterFieldSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_METHOD_SETTER:
+            return visitor.visitSuperMethodSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.SUPER_FIELD_SETTER:
+            return visitor.visitSuperFieldSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+            return visitor.visitUnresolvedSuperGetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            return visitor.visitUnresolvedSuperSetterSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.single,
+                arg);
+        }
+        break;
+    }
+    throw new SpannableAssertionFailure(node,
+        "Invalid if-null assigment: ${semantics}");
+  }
+
+  String toString() => 'ifNull($semantics)';
+}
+
 /// The structure for a [Send] that is a compound assignment on the index
 /// operator. For instance `a[b] += c`.
 class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
@@ -1682,19 +1910,11 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
   /// The assignment operator used in the compound assignment.
   final AssignmentOperator operator;
 
-  /// The [Selector] for the `[]` operator invocation.
-  final Selector getterSelector;
-
-  /// The [Selector] for the `[]=` operator invocation.
-  final Selector setterSelector;
-
-  CompoundIndexSetStructure(this.semantics, this.operator,
-                            this.getterSelector,
-                            this.setterSelector);
+  CompoundIndexSetStructure(this.semantics, this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
-      case AccessKind.DYNAMIC_PROPERTY:
+      case AccessKind.EXPRESSION:
         return visitor.visitCompoundIndexSet(
             node,
             node.receiver,
@@ -1773,16 +1993,8 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
   /// The `++` or `--` operator used in the operation.
   final IncDecOperator operator;
 
-  /// The [Selector] for the getter invocation.
-  final Selector getterSelector;
-
-  /// The [Selector] for the setter invocation.
-  final Selector setterSelector;
-
   PrefixStructure(this.semantics,
-                  this.operator,
-                  this.getterSelector,
-                  this.setterSelector);
+                  this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -1790,17 +2002,15 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertyPrefix(
             node,
             node.receiver,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertyPrefix(
             node,
             node.receiver,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionPrefix(
@@ -1913,9 +2123,8 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyPrefix(
             node,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.SUPER_FIELD:
         return visitor.visitSuperFieldPrefix(
@@ -2095,16 +2304,8 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
   /// The `++` or `--` operator used in the operation.
   final IncDecOperator operator;
 
-  /// The [Selector] for the getter invocation.
-  final Selector getterSelector;
-
-  /// The [Selector] for the setter invocation.
-  final Selector setterSelector;
-
   PostfixStructure(this.semantics,
-                   this.operator,
-                   this.getterSelector,
-                   this.setterSelector);
+                   this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -2112,17 +2313,15 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
         return visitor.visitIfNotNullDynamicPropertyPostfix(
             node,
             node.receiver,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.DYNAMIC_PROPERTY:
         return visitor.visitDynamicPropertyPostfix(
             node,
             node.receiver,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionPostfix(
@@ -2235,9 +2434,8 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.THIS_PROPERTY:
         return visitor.visitThisPropertyPostfix(
             node,
+            semantics.name,
             operator,
-            getterSelector,
-            setterSelector,
             arg);
       case AccessKind.SUPER_FIELD:
         return visitor.visitSuperFieldPostfix(

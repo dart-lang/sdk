@@ -7,15 +7,18 @@ library operation.analysis;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/computer/computer_highlights2.dart';
-import 'package:analysis_server/src/computer/computer_navigation.dart';
-import 'package:analysis_server/src/computer/computer_occurrences.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analysis_server/src/domains/analysis/implemented_dart.dart';
+import 'package:analysis_server/src/domains/analysis/navigation.dart';
+import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart';
@@ -39,12 +42,32 @@ runWithWorkingCacheSize(AnalysisContext context, f()) {
   }
 }
 
+scheduleImplementedNotification(
+    AnalysisServer server, Iterable<String> files) async {
+  SearchEngine searchEngine = server.searchEngine;
+  if (searchEngine == null) {
+    return;
+  }
+  for (String file in files) {
+    CompilationUnitElement unitElement = server.getCompilationUnitElement(file);
+    if (unitElement != null) {
+      ImplementedComputer computer =
+          new ImplementedComputer(searchEngine, unitElement);
+      await computer.compute();
+      var params = new protocol.AnalysisImplementedParams(
+          file, computer.classes, computer.members);
+      server.sendNotification(params.toNotification());
+    }
+  }
+}
+
 /**
  * Schedules indexing of the given [file] using the resolved [dartUnit].
  */
-void scheduleIndexOperation(AnalysisServer server, String file,
-    AnalysisContext context, CompilationUnit dartUnit) {
+void scheduleIndexOperation(
+    AnalysisServer server, String file, CompilationUnit dartUnit) {
   if (server.index != null) {
+    AnalysisContext context = dartUnit.element.context;
     server.addOperation(new _DartIndexOperation(context, file, dartUnit));
   }
 }
@@ -53,9 +76,15 @@ void scheduleIndexOperation(AnalysisServer server, String file,
  * Schedules sending notifications for the given [file] using the resolved
  * [resolvedDartUnit].
  */
-void scheduleNotificationOperations(AnalysisServer server, String file,
-    LineInfo lineInfo, AnalysisContext context, CompilationUnit parsedDartUnit,
-    CompilationUnit resolvedDartUnit, List<AnalysisError> errors) {
+void scheduleNotificationOperations(
+    AnalysisServer server,
+    Source source,
+    String file,
+    LineInfo lineInfo,
+    AnalysisContext context,
+    CompilationUnit parsedDartUnit,
+    CompilationUnit resolvedDartUnit,
+    List<AnalysisError> errors) {
   // If the file belongs to any analysis root, check whether we're in it now.
   AnalysisContext containingContext = server.getContainingContext(file);
   if (containingContext != null && context != containingContext) {
@@ -72,13 +101,11 @@ void scheduleNotificationOperations(AnalysisServer server, String file,
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.NAVIGATION, file)) {
-      server.scheduleOperation(
-          new _DartNavigationOperation(context, file, resolvedDartUnit));
+      server.scheduleOperation(new NavigationOperation(context, source));
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.OCCURRENCES, file)) {
-      server.scheduleOperation(
-          new _DartOccurrencesOperation(context, file, resolvedDartUnit));
+      server.scheduleOperation(new OccurrencesOperation(context, source));
     }
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.OVERRIDES, file)) {
@@ -89,8 +116,9 @@ void scheduleNotificationOperations(AnalysisServer server, String file,
   if (dartUnit != null) {
     if (server.hasAnalysisSubscription(
         protocol.AnalysisService.OUTLINE, file)) {
-      server.scheduleOperation(
-          new _DartOutlineOperation(context, file, lineInfo, dartUnit));
+      SourceKind sourceKind = context.getKindOf(source);
+      server.scheduleOperation(new _DartOutlineOperation(
+          context, file, lineInfo, sourceKind, dartUnit));
     }
   }
   // errors
@@ -162,31 +190,47 @@ void sendAnalysisNotificationHighlights(
 }
 
 void sendAnalysisNotificationNavigation(
-    AnalysisServer server, String file, CompilationUnit dartUnit) {
+    AnalysisServer server, AnalysisContext context, Source source) {
   _sendNotification(server, () {
-    var computer = new DartUnitNavigationComputer();
-    computer.compute(dartUnit);
+    NavigationCollectorImpl collector =
+        computeNavigation(server, context, source, null, null);
+    String file = source.fullName;
     var params = new protocol.AnalysisNavigationParams(
-        file, computer.regions, computer.targets, computer.files);
+        file, collector.regions, collector.targets, collector.files);
     server.sendNotification(params.toNotification());
   });
 }
 
 void sendAnalysisNotificationOccurrences(
-    AnalysisServer server, String file, CompilationUnit dartUnit) {
+    AnalysisServer server, AnalysisContext context, Source source) {
   _sendNotification(server, () {
-    var occurrences = new DartUnitOccurrencesComputer(dartUnit).compute();
-    var params = new protocol.AnalysisOccurrencesParams(file, occurrences);
+    OccurrencesCollectorImpl collector =
+        computeOccurrences(server, context, source);
+    String file = source.fullName;
+    var params =
+        new protocol.AnalysisOccurrencesParams(file, collector.allOccurrences);
     server.sendNotification(params.toNotification());
   });
 }
 
 void sendAnalysisNotificationOutline(AnalysisServer server, String file,
-    LineInfo lineInfo, CompilationUnit dartUnit) {
+    LineInfo lineInfo, SourceKind sourceKind, CompilationUnit dartUnit) {
   _sendNotification(server, () {
+    // compute FileKind
+    protocol.FileKind fileKind = protocol.FileKind.LIBRARY;
+    if (sourceKind == SourceKind.LIBRARY) {
+      fileKind = protocol.FileKind.LIBRARY;
+    } else if (sourceKind == SourceKind.PART) {
+      fileKind = protocol.FileKind.PART;
+    }
+    // compute library name
+    String libraryName = _computeLibraryName(dartUnit);
+    // compute Outline
     var computer = new DartUnitOutlineComputer(file, lineInfo, dartUnit);
-    var outline = computer.compute();
-    var params = new protocol.AnalysisOutlineParams(file, outline);
+    protocol.Outline outline = computer.compute();
+    // send notification
+    var params = new protocol.AnalysisOutlineParams(file, fileKind, outline,
+        libraryName: libraryName);
     server.sendNotification(params.toNotification());
   });
 }
@@ -210,6 +254,20 @@ void setCacheSize(AnalysisContext context, int cacheSize) {
   context.analysisOptions = options;
 }
 
+String _computeLibraryName(CompilationUnit unit) {
+  for (Directive directive in unit.directives) {
+    if (directive is LibraryDirective && directive.name != null) {
+      return directive.name.name;
+    }
+  }
+  for (Directive directive in unit.directives) {
+    if (directive is PartOfDirective && directive.libraryName != null) {
+      return directive.libraryName.name;
+    }
+  }
+  return null;
+}
+
 /**
  * Runs the given notification producing function [f], catching exceptions.
  */
@@ -218,9 +276,46 @@ void _sendNotification(AnalysisServer server, f()) {
     try {
       f();
     } catch (exception, stackTrace) {
-      server.sendServerErrorNotification(exception, stackTrace);
+      server.sendServerErrorNotification(
+          'Failed to send notification', exception, stackTrace);
     }
   });
+}
+
+class NavigationOperation extends _NotificationOperation
+    implements MergeableOperation {
+  NavigationOperation(AnalysisContext context, Source source)
+      : super(context, source);
+
+  @override
+  bool merge(ServerOperation other) {
+    return other is NavigationOperation &&
+        other.context == context &&
+        other.source == source;
+  }
+
+  @override
+  void perform(AnalysisServer server) {
+    sendAnalysisNotificationNavigation(server, context, source);
+  }
+}
+
+class OccurrencesOperation extends _NotificationOperation
+    implements MergeableOperation {
+  OccurrencesOperation(AnalysisContext context, Source source)
+      : super(context, source);
+
+  @override
+  bool merge(ServerOperation other) {
+    return other is OccurrencesOperation &&
+        other.context == context &&
+        other.source == source;
+  }
+
+  @override
+  void perform(AnalysisServer server) {
+    sendAnalysisNotificationOccurrences(server, context, source);
+  }
 }
 
 /**
@@ -304,8 +399,8 @@ class PerformAnalysisOperation extends ServerOperation {
       // Dart
       CompilationUnit parsedDartUnit = notice.parsedDartUnit;
       CompilationUnit resolvedDartUnit = notice.resolvedDartUnit;
-      scheduleNotificationOperations(server, file, notice.lineInfo, context,
-          parsedDartUnit, resolvedDartUnit, notice.errors);
+      scheduleNotificationOperations(server, source, file, notice.lineInfo,
+          context, parsedDartUnit, resolvedDartUnit, notice.errors);
       // done
       server.fileAnalyzed(notice);
     }
@@ -321,10 +416,11 @@ class PerformAnalysisOperation extends ServerOperation {
       try {
         CompilationUnit dartUnit = notice.resolvedDartUnit;
         if (dartUnit != null) {
-          server.addOperation(new _DartIndexOperation(context, file, dartUnit));
+          scheduleIndexOperation(server, file, dartUnit);
         }
       } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(exception, stackTrace);
+        server.sendServerErrorNotification(
+            'Failed to index Dart file: $file', exception, stackTrace);
       }
       // HTML
       try {
@@ -333,7 +429,8 @@ class PerformAnalysisOperation extends ServerOperation {
           server.addOperation(new _HtmlIndexOperation(context, file, htmlUnit));
         }
       } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(exception, stackTrace);
+        server.sendServerErrorNotification(
+            'Failed to index HTML file: $file', exception, stackTrace);
       }
     }
   }
@@ -366,22 +463,13 @@ class _DartIndexOperation extends _SingleFileOperation {
     ServerPerformanceStatistics.indexOperation.makeCurrentWhile(() {
       try {
         Index index = server.index;
-        index.indexUnit(context, unit);
+        AnalysisContext context = unit.element.context;
+        index.index(context, unit);
       } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(exception, stackTrace);
+        server.sendServerErrorNotification(
+            'Failed to index: $file', exception, stackTrace);
       }
     });
-  }
-}
-
-class _DartNavigationOperation extends _DartNotificationOperation {
-  _DartNavigationOperation(
-      AnalysisContext context, String file, CompilationUnit unit)
-      : super(context, file, unit);
-
-  @override
-  void perform(AnalysisServer server) {
-    sendAnalysisNotificationNavigation(server, file, unit);
   }
 }
 
@@ -397,27 +485,17 @@ abstract class _DartNotificationOperation extends _SingleFileOperation {
   }
 }
 
-class _DartOccurrencesOperation extends _DartNotificationOperation {
-  _DartOccurrencesOperation(
-      AnalysisContext context, String file, CompilationUnit unit)
-      : super(context, file, unit);
-
-  @override
-  void perform(AnalysisServer server) {
-    sendAnalysisNotificationOccurrences(server, file, unit);
-  }
-}
-
 class _DartOutlineOperation extends _DartNotificationOperation {
   final LineInfo lineInfo;
+  final SourceKind sourceKind;
 
-  _DartOutlineOperation(
-      AnalysisContext context, String file, this.lineInfo, CompilationUnit unit)
+  _DartOutlineOperation(AnalysisContext context, String file, this.lineInfo,
+      this.sourceKind, CompilationUnit unit)
       : super(context, file, unit);
 
   @override
   void perform(AnalysisServer server) {
-    sendAnalysisNotificationOutline(server, file, lineInfo, unit);
+    sendAnalysisNotificationOutline(server, file, lineInfo, sourceKind, unit);
   }
 }
 
@@ -446,7 +524,7 @@ class _HtmlIndexOperation extends _SingleFileOperation {
   @override
   void perform(AnalysisServer server) {
     Index index = server.index;
-    index.indexHtmlUnit(context, unit);
+    index.index(context, unit);
   }
 }
 
@@ -466,6 +544,22 @@ class _NotificationErrorsOperation extends _SingleFileOperation {
   @override
   void perform(AnalysisServer server) {
     sendAnalysisNotificationErrors(server, file, lineInfo, errors);
+  }
+}
+
+abstract class _NotificationOperation extends SourceSensitiveOperation {
+  final Source source;
+
+  _NotificationOperation(AnalysisContext context, this.source) : super(context);
+
+  @override
+  ServerOperationPriority get priority {
+    return ServerOperationPriority.ANALYSIS_NOTIFICATION;
+  }
+
+  @override
+  bool shouldBeDiscardedOnSourceChange(Source source) {
+    return source == this.source;
   }
 }
 

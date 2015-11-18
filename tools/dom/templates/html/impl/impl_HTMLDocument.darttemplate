@@ -17,7 +17,7 @@ $else
   BodyElement get body => _body;
 
   @DomName('Document.body')
-  void set body(BodyElement value) {
+  set body(BodyElement value) {
     _body = value;
   }
 $endif
@@ -90,7 +90,7 @@ $endif
 
   @DomName('Document.selectedStylesheetSet')
   String get selectedStylesheetSet => _selectedStylesheetSet;
-  void set selectedStylesheetSet(String value) {
+  set selectedStylesheetSet(String value) {
     _selectedStylesheetSet = value;
   }
 
@@ -101,7 +101,7 @@ $endif
   String get title => _title;
 
   @DomName('Document.title')
-  void set title(String value) {
+  set title(String value) {
     _title = value;
   }
 
@@ -187,6 +187,140 @@ $if DART2JS
 $else
   String get visibilityState => _webkitVisibilityState;
 $endif
+$if DARTIUM
+
+  /**
+   * Internal routine to find the DOM JS class name being extended for custom
+   * elements.
+   */
+  String _getJSClassName(ClassMirror classMirror) {
+    var jsClassName = null;
+    var isElement = false;
+
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      isElement = isElement ||
+          (fullName == #dart.dom.html.Element || fullName == #dart.dom.svg.Element);
+
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (jsClassName == null && domLibrary) {
+        // Lookup JS class name (if not found).
+        var metadatas = classMirror.metadata;
+        for (var metadata in metadatas) {
+          var metaDataMirror = metadata.reflectee;
+          var metaType = reflectClass(metaDataMirror.runtimeType);
+          if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
+              (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
+            jsClassName = metadata.reflectee.name;
+          }
+        }
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    // If we're an element then everything is okay.
+    return isElement ? jsClassName : null;
+  }
+
+  // Get the first class that's a super of a dart.dom library.
+  ClassMirror _getDartHtmlClassName(ClassMirror classMirror) {
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (domLibrary) {
+        return classMirror.superclass;
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    return null;
+  }
+
+  /**
+   * Get the class that immediately derived from a class in dart:html or
+   * dart:svg (has an attribute DomName of either HTML* or SVG*).
+   */
+  ClassMirror _getDomSuperClass(ClassMirror classMirror) {
+    var isElement = false;
+    var foundSuperElement = null;
+
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      isElement = isElement || (fullName == #dart.dom.html.Element || fullName == #dart.dom.svg.Element);
+
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (domLibrary) {
+        if (foundSuperElement == null) {
+          foundSuperElement = classMirror.superclass;
+        }
+        // Lookup JS class (if not found).
+        var metadatas = classMirror.metadata;
+        for (var metadata in metadatas) {
+          var metaDataMirror = metadata.reflectee;
+          var metaType = reflectClass(metaDataMirror.runtimeType);
+          if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
+              (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
+            if (isElement) return foundSuperElement;
+          }
+        }
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    return null;
+  }
+
+  /**
+   * Does this CustomElement class have:
+   *
+   *   - a created constructor with no arguments?
+   *   - a created constructor with a super.created() initializer?
+   *
+   * e.g.,    MyCustomClass.created() : super.created();
+   */
+  bool _hasCreatedConstructor(ClassMirror classToRegister) {
+    var htmlClassMirror = _getDomSuperClass(classToRegister);
+
+    var classMirror = classToRegister;
+    while (classMirror != null && classMirror != htmlClassMirror) {
+      var createdParametersValid = false;
+      var superCreatedCalled = false;
+      var className = MirrorSystem.getName(classMirror.simpleName);
+      var methodMirror = classMirror.declarations[new Symbol("$className.created")];
+      if (methodMirror != null && methodMirror.isConstructor) {
+        createdParametersValid = true;                // Assume no parameters.
+        if (methodMirror.parameters.length != 0) {
+          // If any parameters each one must be optional.
+          methodMirror.parameters.forEach((parameter) {
+            createdParametersValid = createdParametersValid && parameter.isOptional;
+          });
+        }
+
+        // Get the created constructor source and look at the initializer;
+        // Must call super.created() if not its as an error.
+        var createdSource = methodMirror.source;
+        superCreatedCalled = createdSource.contains("super.created(");
+      }
+
+      if (!superCreatedCalled) {
+        throw new DomException.jsInterop('created constructor initializer must call super.created()');
+      } else if (!createdParametersValid) {
+        throw new DomException.jsInterop('created constructor must have no parameters');
+      }
+
+      classMirror = classMirror.superclass;
+      while (classMirror != classMirror.mixin) {
+        // Skip the mixins.
+        classMirror = classMirror.superclass;
+      }
+    }
+
+    return true;
+  }
+$endif
 
   @Experimental()
   /**
@@ -236,7 +370,143 @@ $if DART2JS
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
         extendsTag);
 $else
-    _Utils.register(this, tag, customElementClass, extendsTag);
+    // Figure out which DOM class is being extended from the user's Dart class.
+    var classMirror = reflectClass(customElementClass);
+
+    var locationUri = classMirror.location.sourceUri.toString();
+    if (locationUri == 'dart:html' || locationUri == 'dart:svg') {
+      throw new DomException.jsInterop("HierarchyRequestError: Cannot register an existing dart:html or dart:svg type.");
+    }
+
+    if (classMirror.isAbstract) {
+      throw new DomException.jsInterop("HierarchyRequestError: Cannot register an abstract class.");
+    }
+
+    var jsClassName = _getJSClassName(classMirror);
+    if (jsClassName == null) {
+      // Only components derived from HTML* can be extended.
+      throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
+    }
+
+    var customClassType = _getDartHtmlClassName(classMirror);
+
+    if (extendsTag != null) {
+      var nativeElement = document.createElement(extendsTag);
+
+      // Trying to extend a native element is it the Dart class consistent with the
+      // extendsTag?
+      if (nativeElement.runtimeType != customClassType.reflectedType) {
+        var nativeElementClassMirror = reflectClass(nativeElement.runtimeType);
+        var customClassNativeElement = MirrorSystem.getName(customClassType.simpleName);
+        var extendsNativeElement = MirrorSystem.getName(nativeElementClassMirror.simpleName);
+        throw new DomException.jsInterop("HierarchyRequestError: Custom class type ($customClassNativeElement) and extendsTag class ($extendsNativeElement) don't match .");
+      }
+    } else if (customClassType.reflectedType != HtmlElement && customClassType.reflectedType != svg.SvgElement) {
+      var customClassName = MirrorSystem.getName(classMirror.simpleName);
+      var customClassElement = MirrorSystem.getName(customClassType.simpleName);
+      throw new DomException.jsInterop("HierarchyRequestError: Custom element $customClassName is a native $customClassElement should be derived from HtmlElement or SvgElement.");
+    }
+
+    if (_hasCreatedConstructor(classMirror)) {
+      // Start the hookup the JS way create an <x-foo> element that extends the
+      // <x-base> custom element. Inherit its prototype and signal what tag is
+      // inherited:
+      //
+      //     var myProto = Object.create(HTMLElement.prototype);
+      //     var myElement = document.registerElement('x-foo', {prototype: myProto});
+      var baseElement = js.JsNative.getProperty(js.context, jsClassName);
+      if (baseElement == null) {
+        // Couldn't find the HTML element so use a generic one.
+        baseElement = js.JsNative.getProperty(js.context, 'HTMLElement');
+      }
+      var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
+
+      // Remember for any upgrading done in wrap_jso.
+      addCustomElementType(tag, customElementClass, extendsTag);
+
+      // TODO(terry): Hack to stop recursion re-creating custom element when the
+      //              created() constructor of the custom element does e.g.,
+      //
+      //                  MyElement.created() : super.created() {
+      //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
+      //                  }
+      //
+      //              sanitizing causes custom element to created recursively
+      //              until stack overflow.
+      //
+      //              See https://github.com/dart-lang/sdk/issues/23666
+      int creating = 0;
+
+      // If any JS code is hooked we want to call it too.
+      var oldCreatedCallback = elemProto['createdCallback'];
+      var oldAttributeChangedCallback = elemProto['attributeChangedCallback'];
+      var oldAttachedCallback = elemProto['attachedCallback'];
+      var oldDetachedCallback = elemProto['detachedCallback'];
+
+      // TODO(jacobr): warning:
+      elemProto['createdCallback'] = js.JsNative.withThis(($this) {
+        if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
+          creating++;
+
+          var dartClass;
+          try {
+            if (extendsTag != null) {
+              // If we're extending a native element then create that element.
+              // Then upgrade that element to the customElementClass through
+              // normal flow.
+              dartClass = document.createElement(extendsTag);
+              js.setDartHtmlWrapperFor($this, dartClass);
+              dartClass.blink_jsObject = $this;
+            }
+
+            // Upgrade to the CustomElement Dart class.
+            dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+          } catch (e) {
+            // Got a problem make it an HtmlElement and rethrow the error.
+            dartClass = HtmlElement.internalCreateHtmlElement();
+            // We need to remember the JS object (because constructElement failed
+            // it normally sets up the blink_jsObject.
+            dartClass.blink_jsObject = $this;
+
+            // Mark to only try this once don't try upgrading from HtmlElement
+            // to the user's Dart class - we had a problem.
+            dartClass._badUpgrade();
+            throw e;
+          } finally {
+            // Need to remember the Dart class that was created for this custom so
+            // return it and setup the blink_jsObject to the $this that we'll be working
+            // with as we talk to blink.
+            js.setDartHtmlWrapperFor($this, dartClass);
+
+            creating--;
+          }
+        }
+
+        if (oldCreatedCallback != null)
+          oldCreatedCallback.apply([], thisArg: unwrap_jso($this));
+      });
+      elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
+        $this.attributeChanged(attrName, oldVal, newVal);
+
+        if (oldAttributeChangedCallback != null)
+          oldAttributeChangedCallback.apply([], thisArg: unwrap_jso($this));
+      });
+      elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
+        $this.attached();
+
+        if (oldAttachedCallback != null)
+          oldAttachedCallback.apply([], thisArg: unwrap_jso($this));
+      });
+      elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
+        $this.detached();
+
+        if (oldDetachedCallback != null)
+          oldDetachedCallback.apply([], thisArg: unwrap_jso($this));
+      });
+      // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
+      var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
+      js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
+    }
 $endif
   }
 

@@ -29,6 +29,10 @@ cc/ThreadInterrupterHigh: Skip
 cc/ThreadInterrupterMedium: Skip
 cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
+cc/Dart2JSCompilerStats: Skip
+cc/CorelibCompilerStats: Skip
+cc/ThreadIterator_AddFindRemove: Skip  # Issue 23474
+
 
 [ $system == linux ]
 cc/ThreadInterrupterHigh: Skip
@@ -88,6 +92,8 @@ dart/optimized_stacktrace_test: StaticWarning
 
 [ $runtime != vm ]
 dart/snapshot_version_test: SkipByDesign  # Spawns processes
+dart/spawn_infinite_loop_test: Skip  # VM shutdown test
+dart/spawn_shutdown_test: Skip  # VM Shutdown test
 
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Skip  # Timeout.

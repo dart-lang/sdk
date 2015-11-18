@@ -4,15 +4,16 @@
 
 library test.services.refactoring.rename_import;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(RenameImportTest);
 }
 
@@ -31,7 +32,8 @@ class RenameImportTest extends RenameRefactoringTest {
     refactoring.newName = 'test';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "The new name must be different than the current name.");
+        expectedMessage:
+            "The new name must be different than the current name.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatusOK(refactoring.checkNewName());

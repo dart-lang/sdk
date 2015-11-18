@@ -4,20 +4,20 @@
 
 library type_substitution_test;
 
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
+import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/dart_types.dart';
-import "compiler_helper.dart";
-import "parser_helper.dart";
-import "type_test_helper.dart";
+import 'compiler_helper.dart';
+import 'type_test_helper.dart';
 
 DartType getType(compiler, String name) {
   var clazz = findElement(compiler, "Class");
-  clazz.ensureResolved(compiler);
+  clazz.ensureResolved(compiler.resolution);
   var element = clazz.buildScope().lookup(name);
   Expect.isNotNull(element);
   Expect.equals(element.kind, ElementKind.FUNCTION);
-  FunctionSignature signature = element.computeSignature(compiler);
+  element.computeType(compiler.resolution);
+  FunctionSignature signature = element.functionSignature;
 
   // Function signatures are used to be to provide void types (only occuring as
   // as return types) and (inlined) function types (only occuring as method
@@ -211,7 +211,7 @@ void testTypeSubstitution() {
     Expect.isNotNull(Typedef2_int_String);
     DartType Function_int_String = getType(compiler, "Function2b");
     Expect.isNotNull(Function_int_String);
-    DartType unalias1 = Typedef2_int_String.unalias(compiler);
+    DartType unalias1 = Typedef2_int_String.unaliased;
     Expect.equals(Function_int_String, unalias1,
         '$Typedef2_int_String.unalias=$unalias1 != $Function_int_String');
 
@@ -219,7 +219,7 @@ void testTypeSubstitution() {
     Expect.isNotNull(Typedef1);
     DartType Function_dynamic_dynamic = getType(compiler, "Function1c");
     Expect.isNotNull(Function_dynamic_dynamic);
-    DartType unalias2 = Typedef1.unalias(compiler);
+    DartType unalias2 = Typedef1.unaliased;
     Expect.equals(Function_dynamic_dynamic, unalias2,
         '$Typedef1.unalias=$unalias2 != $Function_dynamic_dynamic');
   }));

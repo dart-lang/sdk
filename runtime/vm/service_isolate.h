@@ -32,6 +32,11 @@ class ServiceIsolate : public AllStatic {
   static void SendServiceExitMessage();
   static void Shutdown();
 
+  static void BootVmServiceLibrary();
+
+ private:
+  static void KillServiceIsolate();
+
  protected:
   static void SetServicePort(Dart_Port port);
   static void SetServiceIsolate(Isolate* isolate);
@@ -39,14 +44,10 @@ class ServiceIsolate : public AllStatic {
   static void ConstructExitMessageAndCache(Isolate* isolate);
   static void FinishedExiting();
   static void FinishedInitializing();
-  static void MaybeInjectVMServiceLibrary(Isolate* isolate);
+  static void MaybeMakeServiceIsolate(Isolate* isolate);
   static Dart_IsolateCreateCallback create_callback() {
     return create_callback_;
   }
-
-  static Dart_Handle GetSource(const char* name);
-  static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag, Dart_Handle library,
-                                       Dart_Handle url);
 
   static Dart_IsolateCreateCallback create_callback_;
   static uint8_t* exit_message_;

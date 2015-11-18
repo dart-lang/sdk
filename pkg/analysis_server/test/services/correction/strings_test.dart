@@ -8,8 +8,10 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide isEmpty;
 
+import '../../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(StringsTest);
 }
 
@@ -31,6 +33,15 @@ class StringsTest {
     expect(compareStrings('b', 'a'), 1);
   }
 
+  void test_countMatches() {
+    expect(countMatches(null, null), 0);
+    expect(countMatches('abc', null), 0);
+    expect(countMatches(null, 'abc'), 0);
+    expect(countMatches('ababa', 'a'), 3);
+    expect(countMatches('ababa', 'ab'), 2);
+    expect(countMatches('aaabaa', 'aa'), 2);
+  }
+
   void test_findCommonOverlap() {
     expect(findCommonOverlap('', 'abcd'), 0);
     expect(findCommonOverlap('abc', 'abcd'), 3);
@@ -50,6 +61,13 @@ class StringsTest {
     expect(findCommonSuffix('abc', 'xyz'), 0);
     expect(findCommonSuffix('abcdef1234', 'xyz1234'), 4);
     expect(findCommonSuffix('123', 'xyz123'), 3);
+  }
+
+  void test_getCamelWords() {
+    expect(getCamelWords(null), []);
+    expect(getCamelWords(''), []);
+    expect(getCamelWords('getCamelWords'), ['get', 'Camel', 'Words']);
+    expect(getCamelWords('getHTMLText'), ['get', 'HTML', 'Text']);
   }
 
   void test_isBlank() {

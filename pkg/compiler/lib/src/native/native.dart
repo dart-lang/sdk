@@ -6,20 +6,48 @@ library native;
 
 import 'dart:collection' show Queue;
 
+import '../common.dart';
+import '../common/backend_api.dart' show
+    ForeignResolver;
+import '../common/registry.dart' show
+    Registry;
+import '../common/resolution.dart' show
+    Parsing,
+    Resolution;
+import '../compiler.dart' show
+    Compiler;
 import '../constants/values.dart';
-import '../dart2jslib.dart';
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart';
+import '../enqueue.dart' show
+    Enqueuer,
+    ResolutionEnqueuer;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ElementX, BaseClassElementX, FunctionElementX, LibraryElementX;
+import '../elements/modelx.dart' show
+    BaseClassElementX,
+    ElementX,
+    FunctionElementX,
+    LibraryElementX;
 import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
-import '../resolution/resolution.dart' show ResolverVisitor;
-import '../scanner/scannerlib.dart';
+import '../js_emitter/js_emitter.dart' show
+    CodeEmitterTask,
+    NativeEmitter;
+import '../parser/listener.dart' show
+    Listener;
+import '../parser/element_listener.dart' show
+    ElementListener;
 import '../ssa/ssa.dart';
+import '../tokens/token.dart' show
+    BeginGroupToken,
+    Token;
+import '../tokens/token_constants.dart' as Tokens show
+    EOF_TOKEN,
+    STRING_TOKEN;
 import '../tree/tree.dart';
-import '../universe/universe.dart' show SideEffects;
+import '../universe/side_effects.dart' show
+    SideEffects;
 import '../util/util.dart';
 
 part 'behavior.dart';

@@ -31,6 +31,8 @@ namespace dart {
 DEFINE_FLAG(bool, deoptimize_alot, false,
     "Deoptimizes all live frames when we are about to return to Dart code from"
     " native entries.");
+DEFINE_FLAG(bool, background_compilation, false,
+    "Run optimizing compilation in background");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(int, optimization_counter_threshold, 30000,
@@ -57,6 +59,7 @@ DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
@@ -106,31 +109,38 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
 // Return value: newly allocated array of length arg0.
 DEFINE_RUNTIME_ENTRY(AllocateArray, 2) {
   const Instance& length = Instance::CheckedHandle(arguments.ArgAt(0));
-  if (!length.IsSmi()) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Length must be an integer in the range [0..%" Pd "].",
-        Array::kMaxElements));
-    Exceptions::ThrowArgumentError(error);
+  if (!length.IsInteger()) {
+    // Throw: new ArgumentError.value(length, "length", "is not an integer");
+    const Array& args = Array::Handle(Array::New(3));
+    args.SetAt(0, length);
+    args.SetAt(1, Symbols::Length());
+    args.SetAt(2, String::Handle(String::New("is not an integer")));
+    Exceptions::ThrowByType(Exceptions::kArgumentValue, args);
   }
-  const intptr_t len = Smi::Cast(length).Value();
-  if ((len < 0) || (len > Array::kMaxElements)) {
-    const String& error = String::Handle(String::NewFormatted(
-        "Length (%" Pd ") must be an integer in the range [0..%" Pd "].",
-        len, Array::kMaxElements));
-    Exceptions::ThrowArgumentError(error);
+  if (length.IsSmi()) {
+    const intptr_t len = Smi::Cast(length).Value();
+    if ((len >= 0) && (len <= Array::kMaxElements)) {
+      Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
+      const Array& array = Array::Handle(Array::New(len, space));
+      arguments.SetReturn(array);
+      TypeArguments& element_type =
+          TypeArguments::CheckedHandle(arguments.ArgAt(1));
+      // An Array is raw or takes one type argument. However, its type argument
+      // vector may be longer than 1 due to a type optimization reusing the type
+      // argument vector of the instantiator.
+      ASSERT(element_type.IsNull() ||
+             ((element_type.Length() >= 1) && element_type.IsInstantiated()));
+      array.SetTypeArguments(element_type);  // May be null.
+      return;
+    }
   }
-
-  Heap::Space space = isolate->heap()->SpaceForAllocation(kArrayCid);
-  const Array& array = Array::Handle(Array::New(len, space));
-  arguments.SetReturn(array);
-  TypeArguments& element_type =
-      TypeArguments::CheckedHandle(arguments.ArgAt(1));
-  // An Array is raw or takes one type argument. However, its type argument
-  // vector may be longer than 1 due to a type optimization reusing the type
-  // argument vector of the instantiator.
-  ASSERT(element_type.IsNull() ||
-         ((element_type.Length() >= 1) && element_type.IsInstantiated()));
-  array.SetTypeArguments(element_type);  // May be null.
+  // Throw: new RangeError.range(length, 0, Array::kMaxElements, "length");
+  const Array& args = Array::Handle(Array::New(4));
+  args.SetAt(0, length);
+  args.SetAt(1, Integer::Handle(Integer::New(0)));
+  args.SetAt(2, Integer::Handle(Integer::New(Array::kMaxElements)));
+  args.SetAt(3, Symbols::Length());
+  Exceptions::ThrowByType(Exceptions::kRange, args);
 }
 
 
@@ -268,7 +278,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   const Context& ctx = Context::CheckedHandle(arguments.ArgAt(0));
   Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));
   cloned_ctx.set_parent(Context::Handle(ctx.parent()));
-  Object& inst = Object::Handle(isolate);
+  Object& inst = Object::Handle(zone);
   for (int i = 0; i < ctx.num_variables(); i++) {
     inst = ctx.At(i);
     cloned_ctx.SetAt(i, inst);
@@ -666,16 +676,12 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
   const Code& target_code = Code::Handle(target_function.CurrentCode());
   // Before patching verify that we are not repeatedly patching to the same
   // target.
-  ASSERT(target_code.EntryPoint() !=
+  ASSERT(target_code.raw() !=
          CodePatcher::GetStaticCallTargetAt(caller_frame->pc(), caller_code));
-  const Instructions& instrs =
-      Instructions::Handle(caller_code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    CodePatcher::PatchStaticCallAt(caller_frame->pc(), caller_code,
-                                   target_code.EntryPoint());
-    caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
-  }
+  CodePatcher::PatchStaticCallAt(caller_frame->pc(),
+                                 caller_code,
+                                 target_code);
+  caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
     OS::PrintErr("PatchStaticCall: patching caller pc %#" Px ""
         " to '%s' new entry point %#" Px " (%s)\n",
@@ -703,16 +709,24 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
-  uword orig_stub =
-      isolate->debugger()->GetPatchedStubAddress(caller_frame->pc());
-  isolate->debugger()->SignalBpReached();
-  ASSERT((orig_stub & kSmiTagMask) == kSmiTag);
-  arguments.SetReturn(Smi::Handle(reinterpret_cast<RawSmi*>(orig_stub)));
+  const Code& orig_stub = Code::Handle(
+      isolate->debugger()->GetPatchedStubAddress(caller_frame->pc()));
+  const Error& error = Error::Handle(isolate->debugger()->SignalBpReached());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
+  arguments.SetReturn(orig_stub);
 }
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-  isolate->debugger()->DebuggerStepCallback();
+  const Error& error =
+      Error::Handle(isolate->debugger()->DebuggerStepCallback());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
 }
 
 
@@ -725,7 +739,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
                                      Function* result) {
-  ASSERT(FLAG_lazy_dispatchers);
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
   const int kNumArguments = 1;
@@ -749,13 +762,14 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
       Function::Handle(cache_class.GetInvocationDispatcher(
           target_name,
           arguments_descriptor,
-          RawFunction::kInvokeFieldDispatcher));
-  ASSERT(!target_function.IsNull());
+          RawFunction::kInvokeFieldDispatcher,
+          FLAG_lazy_dispatchers));
+  ASSERT(!target_function.IsNull() || !FLAG_lazy_dispatchers);
   if (FLAG_trace_ic) {
     OS::PrintErr("InvokeField IC miss: adding <%s> id:%" Pd " -> <%s>\n",
         Class::Handle(receiver.clazz()).ToCString(),
         receiver.GetClassId(),
-        target_function.ToCString());
+        target_function.IsNull() ? "null" : target_function.ToCString());
   }
   *result = target_function.raw();
   return true;
@@ -766,10 +780,6 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
 RawFunction* InlineCacheMissHelper(
     const Instance& receiver,
     const ICData& ic_data) {
-  if (!FLAG_lazy_dispatchers) {
-    return Function::null();  // We'll handle it in the runtime.
-  }
-
   const Array& args_descriptor = Array::Handle(ic_data.arguments_descriptor());
 
   const Class& receiver_class = Class::Handle(receiver.clazz());
@@ -786,15 +796,19 @@ RawFunction* InlineCacheMissHelper(
         Function::Handle(receiver_class.GetInvocationDispatcher(
             target_name,
             args_descriptor,
-            RawFunction::kNoSuchMethodDispatcher));
+            RawFunction::kNoSuchMethodDispatcher,
+            FLAG_lazy_dispatchers));
     if (FLAG_trace_ic) {
       OS::PrintErr("NoSuchMethod IC miss: adding <%s> id:%" Pd " -> <%s>\n",
           Class::Handle(receiver.clazz()).ToCString(),
           receiver.GetClassId(),
-          target_function.ToCString());
+          target_function.IsNull() ? "null" : target_function.ToCString());
     }
     result = target_function.raw();
   }
+  // May be null if --no-lazy-dispatchers, in which case dispatch will be
+  // handled by InvokeNoSuchMethodDispatcher.
+  ASSERT(!result.IsNull() || !FLAG_lazy_dispatchers);
   return result.raw();
 }
 
@@ -1004,7 +1018,7 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   const Array& descriptor = Array::CheckedHandle(arguments.ArgAt(2));
   const String& name = String::Handle(ic_data.target_name());
   const MegamorphicCache& cache = MegamorphicCache::Handle(
-      isolate->megamorphic_cache_table()->Lookup(name, descriptor));
+      MegamorphicCacheTable::Lookup(isolate, name, descriptor));
   Class& cls = Class::Handle(receiver.clazz());
   ASSERT(!cls.IsNull());
   if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
@@ -1344,40 +1358,10 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
   }
 
-  uword interrupt_bits = isolate->GetAndClearInterrupts();
-  if ((interrupt_bits & Isolate::kVMInterrupt) != 0) {
-    isolate->thread_registry()->CheckSafepoint();
-    if (isolate->store_buffer()->Overflowed()) {
-      if (FLAG_verbose_gc) {
-        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
-      }
-      isolate->heap()->CollectGarbage(Heap::kNew);
-    }
-  }
-  if ((interrupt_bits & Isolate::kMessageInterrupt) != 0) {
-    bool ok = isolate->message_handler()->HandleOOBMessages();
-    if (!ok) {
-      // False result from HandleOOBMessages signals that the isolate should
-      // be terminating.
-      const String& msg = String::Handle(String::New("isolate terminated"));
-      const UnwindError& error = UnwindError::Handle(UnwindError::New(msg));
-      Exceptions::PropagateError(error);
-      UNREACHABLE();
-    }
-  }
-  if ((interrupt_bits & Isolate::kApiInterrupt) != 0) {
-    // Signal isolate interrupt event.
-    Debugger::SignalIsolateInterrupted();
-
-    Dart_IsolateInterruptCallback callback = isolate->InterruptCallback();
-    if (callback) {
-      if ((*callback)()) {
-        return;
-      } else {
-        // TODO(turnidge): Unwind the stack.
-        UNIMPLEMENTED();
-      }
-    }
+  const Error& error = Error::Handle(isolate->HandleInterrupts());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
   }
 
   if ((stack_overflow_flags & Isolate::kOsrRequest) != 0) {
@@ -1403,7 +1387,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(function.unoptimized_code() != Object::null());
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
-    ASSERT(osr_id != Isolate::kNoDeoptId);
+    ASSERT(osr_id != Thread::kNoDeoptId);
     if (FLAG_trace_osr) {
       OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
                 function.ToFullyQualifiedCString(),
@@ -1432,6 +1416,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
           Instructions::Handle(optimized_code.instructions()).EntryPoint();
       function.AttachCode(original_code);
       frame->set_pc(optimized_entry);
+      frame->set_pc_marker(optimized_code.raw());
     }
   }
 }
@@ -1466,15 +1451,29 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
+    if (FLAG_background_compilation) {
+      BackgroundCompiler::EnsureInit(isolate);
+      ASSERT(isolate->background_compiler() != NULL);
+      isolate->background_compiler()->CompileOptimized(function);
+      // Continue in the same code.
+      arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
+      return;
+    }
+    if (FLAG_trace_compiler) {
+      if (function.HasOptimizedCode()) {
+        THR_Print("ReCompiling function: '%s' \n",
+                  function.ToFullyQualifiedCString());
+      }
+    }
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileOptimizedFunction(thread, function));
+        zone, Compiler::CompileOptimizedFunction(thread, function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
-    const Code& optimized_code = Code::Handle(isolate, function.CurrentCode());
+    const Code& optimized_code = Code::Handle(zone, function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
   }
-  arguments.SetReturn(Code::Handle(isolate, function.CurrentCode()));
+  arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
 }
 
 
@@ -1494,16 +1493,16 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
     UNREACHABLE();
   }
   ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
+  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
   ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
-      isolate, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
+      zone, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
   const Code& target_code = Code::Handle(
-      isolate, caller_code.GetStaticCallTargetCodeAt(frame->pc()));
+      zone, caller_code.GetStaticCallTargetCodeAt(frame->pc()));
   ASSERT(!target_code.IsNull());
   if (!target_function.HasCode()) {
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileFunction(thread, target_function));
+        zone, Compiler::CompileFunction(thread, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1512,15 +1511,11 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(target_function.raw() == target_code.function());
 
   const Code& current_target_code = Code::Handle(
-      isolate, target_function.CurrentCode());
-  const Instructions& instrs = Instructions::Handle(
-      isolate, caller_code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    CodePatcher::PatchStaticCallAt(frame->pc(), caller_code,
-                                   current_target_code.EntryPoint());
-    caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
-  }
+      zone, target_function.CurrentCode());
+  CodePatcher::PatchStaticCallAt(frame->pc(),
+                                 caller_code,
+                                 current_target_code);
+  caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
   if (FLAG_trace_patching) {
     OS::PrintErr("FixCallersTarget: caller %#" Px " "
         "target '%s' %#" Px " -> %#" Px "\n",
@@ -1548,27 +1543,21 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
     UNREACHABLE();
   }
   ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
+  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
-  const uword target =
-      CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code);
-  const Code& stub = Code::Handle(isolate, Code::LookupCode(target));
+  const Code& stub = Code::Handle(
+      CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code));
   Class& alloc_class = Class::ZoneHandle(zone);
   alloc_class ^= stub.owner();
-  Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
+  Code& alloc_stub = Code::Handle(zone, alloc_class.allocation_stub());
   if (alloc_stub.IsNull()) {
     alloc_stub = StubCode::GetAllocationStubForClass(alloc_class);
-    ASSERT(!CodePatcher::IsEntryPatched(alloc_stub));
+    ASSERT(!alloc_stub.IsDisabled());
   }
-  const Instructions& instrs =
-      Instructions::Handle(isolate, caller_code.instructions());
-  {
-    WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    CodePatcher::PatchStaticCallAt(frame->pc(),
-                                   caller_code,
-                                   alloc_stub.EntryPoint());
-    caller_code.SetStubCallTargetCodeAt(frame->pc(), alloc_stub);
-  }
+  CodePatcher::PatchStaticCallAt(frame->pc(),
+                                 caller_code,
+                                 alloc_stub);
+  caller_code.SetStubCallTargetCodeAt(frame->pc(), alloc_stub);
   if (FLAG_trace_patching) {
     OS::PrintErr("FixAllocationStubTarget: caller %#" Px " alloc-class %s "
         " -> %#" Px "\n",
@@ -1622,11 +1611,11 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
       Instructions::Handle(zone, optimized_code.instructions());
   {
     WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
-    CodePatcher::InsertCallAt(pc, lazy_deopt_jump);
+    CodePatcher::InsertDeoptimizationCallAt(pc, lazy_deopt_jump);
   }
   if (FLAG_trace_patching) {
     const String& name = String::Handle(function.name());
-    OS::PrintErr("InsertCallAt: %" Px " to %" Px " for %s\n", pc,
+    OS::PrintErr("InsertDeoptimizationCallAt: %" Px " to %" Px " for %s\n", pc,
                  lazy_deopt_jump, name.ToCString());
   }
   // Mark code as dead (do not GC its embedded objects).
@@ -1679,10 +1668,13 @@ static void CopySavedRegisters(uword saved_registers_address,
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                          1, uword saved_registers_address) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+                          2,
+                          uword saved_registers_address,
+                          uword is_lazy_deopt) {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
 
   // All registers have been saved below last-fp as if they were locals.
   const uword last_fp = saved_registers_address
@@ -1704,9 +1696,12 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   // Create the DeoptContext.
   DeoptContext* deopt_context =
-      new DeoptContext(caller_frame, optimized_code,
+      new DeoptContext(caller_frame,
+                       optimized_code,
                        DeoptContext::kDestIsOriginalFrame,
-                       fpu_registers, cpu_registers);
+                       fpu_registers,
+                       cpu_registers,
+                       is_lazy_deopt != 0);
   isolate->set_deopt_context(deopt_context);
 
   // Stack size (FP - SP) in bytes.
@@ -1718,9 +1713,10 @@ END_LEAF_RUNTIME_ENTRY
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
 
   DeoptContext* deopt_context = isolate->deopt_context();
   DartFrameIterator iterator(last_fp);
@@ -1777,9 +1773,9 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t,
                           2,
                           RawBigint* left,
                           RawBigint* right) {
-  Isolate* isolate = Isolate::Current();
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  StackZone zone(thread);
+  HANDLESCOPE(thread);
   const Bigint& big_left = Bigint::Handle(left);
   const Bigint& big_right = Bigint::Handle(right);
   return big_left.CompareWith(big_right);

@@ -176,6 +176,7 @@ convert_to_future_members = monitored.Set(
 # constructor for dispatch purposes.
 custom_html_constructors = monitored.Set(
     'htmlrenamer.custom_html_constructors', [
+  'HTMLAudioElement',
   'HTMLOptionElement',
   'MutationObserver',
 ])
@@ -196,6 +197,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'CanvasRenderingContext2D.arc',
   'CanvasRenderingContext2D.drawImage',
   'CanvasRenderingContext2D.getLineDash',
+  'Crypto.getRandomValues',
   'CSSStyleDeclaration.getPropertyValue',
   'CSSStyleDeclaration.setProperty',
   'CSSStyleDeclaration.var',
@@ -204,6 +206,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'CustomEvent.initCustomEvent',
   'DeviceOrientationEvent.initDeviceOrientationEvent',
   'Document.createElement',
+  'Document.createElementNS',
   'Document.createEvent',
   'Document.createNodeIterator',
   'Document.createTextNode',
@@ -233,6 +236,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Document.webkitIsFullScreen',
   'Document.webkitVisibilityState',
 
+  'Element.animate',
   'Element.children',
   'Element.childElementCount',
   'Element.firstElementChild',
@@ -780,6 +784,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'MouseEvent.y',
     'Navigator.registerServiceWorker',
     'Navigator.unregisterServiceWorker',
+    'Navigator.isProtocolHandlerRegistered',
+    'Navigator.unregisterProtocolHandler',
     'Node.compareDocumentPosition',
     'Node.get:DOCUMENT_POSITION_CONTAINED_BY',
     'Node.get:DOCUMENT_POSITION_CONTAINS',
@@ -821,6 +827,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Window.on:wheel',
     'WindowEventHandlers.on:beforeUnload',
     'WorkerGlobalScope.webkitIndexedDB',
+    'XMLHttpRequest.open',
 # TODO(jacobr): should these be removed?
     'Document.close',
     'Document.hasFocus',

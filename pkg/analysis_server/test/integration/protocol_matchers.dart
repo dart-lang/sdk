@@ -398,6 +398,22 @@ final Matcher isAnalysisHighlightsParams = new LazyMatcher(() => new MatchesJson
   }));
 
 /**
+ * analysis.implemented params
+ *
+ * {
+ *   "file": FilePath
+ *   "classes": List<ImplementedClass>
+ *   "members": List<ImplementedMember>
+ * }
+ */
+final Matcher isAnalysisImplementedParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.implemented params", {
+    "file": isFilePath,
+    "classes": isListOf(isImplementedClass),
+    "members": isListOf(isImplementedMember)
+  }));
+
+/**
  * analysis.invalidate params
  *
  * {
@@ -452,13 +468,18 @@ final Matcher isAnalysisOccurrencesParams = new LazyMatcher(() => new MatchesJso
  *
  * {
  *   "file": FilePath
+ *   "kind": FileKind
+ *   "libraryName": optional String
  *   "outline": Outline
  * }
  */
 final Matcher isAnalysisOutlineParams = new LazyMatcher(() => new MatchesJsonObject(
   "analysis.outline params", {
     "file": isFilePath,
+    "kind": isFileKind,
     "outline": isOutline
+  }, optionalFields: {
+    "libraryName": isString
   }));
 
 /**
@@ -629,12 +650,15 @@ final Matcher isSearchFindTopLevelDeclarationsResult = new LazyMatcher(() => new
  * {
  *   "file": FilePath
  *   "offset": int
+ *   "superOnly": optional bool
  * }
  */
 final Matcher isSearchGetTypeHierarchyParams = new LazyMatcher(() => new MatchesJsonObject(
   "search.getTypeHierarchy params", {
     "file": isFilePath,
     "offset": isInt
+  }, optionalFields: {
+    "superOnly": isBool
   }));
 
 /**
@@ -1005,6 +1029,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "location": Location
  *   "message": String
  *   "correction": optional String
+ *   "hasFix": optional bool
  * }
  */
 final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
@@ -1014,7 +1039,8 @@ final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
     "location": isLocation,
     "message": isString
   }, optionalFields: {
-    "correction": isString
+    "correction": isString,
+    "hasFix": isBool
   }));
 
 /**
@@ -1079,6 +1105,7 @@ final Matcher isAnalysisErrorType = new MatchesEnum("AnalysisErrorType", [
  *   "enableDeferredLoading": optional bool
  *   "enableEnums": optional bool
  *   "enableNullAwareOperators": optional bool
+ *   "enableSuperMixins": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
  *   "generateLints": optional bool
@@ -1090,6 +1117,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
     "enableDeferredLoading": isBool,
     "enableEnums": isBool,
     "enableNullAwareOperators": isBool,
+    "enableSuperMixins": isBool,
     "generateDart2jsHints": isBool,
     "generateHints": isBool,
     "generateLints": isBool
@@ -1101,6 +1129,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
  * enum {
  *   FOLDING
  *   HIGHLIGHTS
+ *   IMPLEMENTED
  *   INVALIDATE
  *   NAVIGATION
  *   OCCURRENCES
@@ -1111,6 +1140,7 @@ final Matcher isAnalysisOptions = new LazyMatcher(() => new MatchesJsonObject(
 final Matcher isAnalysisService = new MatchesEnum("AnalysisService", [
   "FOLDING",
   "HIGHLIGHTS",
+  "IMPLEMENTED",
   "INVALIDATE",
   "NAVIGATION",
   "OCCURRENCES",
@@ -1264,6 +1294,7 @@ final Matcher isElement = new LazyMatcher(() => new MatchesJsonObject(
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
+ *   FILE
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
@@ -1289,6 +1320,7 @@ final Matcher isElementKind = new MatchesEnum("ElementKind", [
   "ENUM",
   "ENUM_CONSTANT",
   "FIELD",
+  "FILE",
   "FUNCTION",
   "FUNCTION_TYPE_ALIAS",
   "GETTER",
@@ -1353,6 +1385,19 @@ final Matcher isExecutionContextId = isString;
  */
 final Matcher isExecutionService = new MatchesEnum("ExecutionService", [
   "LAUNCH_DATA"
+]);
+
+/**
+ * FileKind
+ *
+ * enum {
+ *   LIBRARY
+ *   PART
+ * }
+ */
+final Matcher isFileKind = new MatchesEnum("FileKind", [
+  "LIBRARY",
+  "PART"
 ]);
 
 /**
@@ -1610,6 +1655,34 @@ final Matcher isHoverInformation = new LazyMatcher(() => new MatchesJsonObject(
     "parameter": isString,
     "propagatedType": isString,
     "staticType": isString
+  }));
+
+/**
+ * ImplementedClass
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isImplementedClass = new LazyMatcher(() => new MatchesJsonObject(
+  "ImplementedClass", {
+    "offset": isInt,
+    "length": isInt
+  }));
+
+/**
+ * ImplementedMember
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ */
+final Matcher isImplementedMember = new LazyMatcher(() => new MatchesJsonObject(
+  "ImplementedMember", {
+    "offset": isInt,
+    "length": isInt
   }));
 
 /**
@@ -2170,6 +2243,8 @@ final Matcher isConvertMethodToGetterOptions = isNull;
  * extractLocalVariable feedback
  *
  * {
+ *   "coveringExpressionOffsets": List<int>
+ *   "coveringExpressionLengths": List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
@@ -2177,6 +2252,8 @@ final Matcher isConvertMethodToGetterOptions = isNull;
  */
 final Matcher isExtractLocalVariableFeedback = new LazyMatcher(() => new MatchesJsonObject(
   "extractLocalVariable feedback", {
+    "coveringExpressionOffsets": isListOf(isInt),
+    "coveringExpressionLengths": isListOf(isInt),
     "names": isListOf(isString),
     "offsets": isListOf(isInt),
     "lengths": isListOf(isInt)

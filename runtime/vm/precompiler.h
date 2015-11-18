@@ -6,6 +6,8 @@
 #define VM_PRECOMPILER_H_
 
 #include "vm/allocation.h"
+#include "vm/hash_map.h"
+#include "vm/object.h"
 
 namespace dart {
 
@@ -18,20 +20,69 @@ class GrowableObjectArray;
 class RawError;
 class String;
 
+class SymbolKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const String* Key;
+  typedef const String* Value;
+  typedef const String* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->Hash();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
+
+class StackmapKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Stackmap* Key;
+  typedef const Stackmap* Value;
+  typedef const Stackmap* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->PcOffset();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
+  }
+};
+
+typedef DirectChainedHashMap<StackmapKeyValueTrait> StackmapSet;
+
+
 class Precompiler : public ValueObject {
  public:
-  static RawError* CompileAll();
+  static RawError* CompileAll(
+      Dart_QualifiedFunctionName embedder_entry_points[],
+      bool reset_fields);
 
  private:
-  explicit Precompiler(Thread* thread);
+  Precompiler(Thread* thread, bool reset_fields);
 
-  void DoCompileAll();
+  void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
-  void AddRoots();
+  void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
+  void AddEntryPoints(Dart_QualifiedFunctionName entry_points[]);
   void Iterate();
   void CleanUp();
 
   void AddCalleesOf(const Function& function);
+  void AddClosureCall(const ICData& call_site);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
   void AddClass(const Class& cls);
@@ -41,6 +92,18 @@ class Precompiler : public ValueObject {
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
 
+  void DropUncompiledFunctions();
+  void BindStaticCalls();
+  void DedupStackmaps();
+
+  class FunctionVisitor : public ValueObject {
+   public:
+    virtual ~FunctionVisitor() {}
+    virtual void VisitFunction(const Function& function) = 0;
+  };
+
+  void VisitFunctions(FunctionVisitor* visitor);
+
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
   Isolate* isolate() const { return isolate_; }
@@ -49,14 +112,18 @@ class Precompiler : public ValueObject {
   Zone* zone_;
   Isolate* isolate_;
 
+  const bool reset_fields_;
+
   bool changed_;
   intptr_t function_count_;
   intptr_t class_count_;
+  intptr_t selector_count_;
+  intptr_t dropped_function_count_;
 
   const GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   const GrowableObjectArray& collected_closures_;
-  const GrowableObjectArray& sent_selectors_;
+  SymbolSet sent_selectors_;
   Error& error_;
 };
 

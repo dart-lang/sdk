@@ -24,7 +24,6 @@ import 'package:analyzer/src/generated/source.dart';
  * completion operation.
  */
 class DartCompletionCache extends CompletionCache {
-
   /**
    * A hash of the import directives
    * or `null` if nothing has been cached.
@@ -262,12 +261,17 @@ class DartCompletionCache extends CompletionCache {
     CompletionSuggestion suggestion = null;
     String completion = importElem.prefix.displayName;
     if (completion != null && completion.length > 0) {
-      suggestion = new CompletionSuggestion(CompletionSuggestionKind.INVOCATION,
-          DART_RELEVANCE_DEFAULT, completion, completion.length, 0,
-          importElem.isDeprecated, false);
+      suggestion = new CompletionSuggestion(
+          CompletionSuggestionKind.INVOCATION,
+          DART_RELEVANCE_DEFAULT,
+          completion,
+          completion.length,
+          0,
+          importElem.isDeprecated,
+          false);
       LibraryElement lib = importElem.importedLibrary;
       if (lib != null) {
-        suggestion.element = newElement_fromEngine(lib);
+        suggestion.element = convertElement(lib);
       }
       libraryPrefixSuggestions.add(suggestion);
       _importedCompletions.add(suggestion.completion);
@@ -280,7 +284,6 @@ class DartCompletionCache extends CompletionCache {
    */
   void _addNonImportedElementSuggestions(
       List<SearchMatch> matches, Set<LibraryElement> excludedLibs) {
-
     // Exclude internal Dart SDK libraries
     for (var lib in context.sourceFactory.dartSdk.sdkLibraries) {
       if (lib.isInternal) {

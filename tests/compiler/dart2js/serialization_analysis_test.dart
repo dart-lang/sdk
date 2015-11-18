@@ -7,12 +7,14 @@ library dart2js.serialization_analysis_test;
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/enqueue.dart';
+import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/task.dart';
-import 'package:compiler/src/dart2jslib.dart';
-import 'package:compiler/src/filenames.dart';
 import 'memory_compiler.dart';
 
 const List<Test> TESTS = const <Test>[
@@ -179,7 +181,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
   await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: test != null ? test.sourceFiles : const {},
-      options: ['--analyze-only', '--output-type=dart'],
+      options: [Flags.analyzeOnly, '--output-type=dart'],
       diagnosticHandler: diagnosticCollector,
       beforeRun: (Compiler compiler) {
         compiler.serialization.deserializer =
@@ -200,7 +202,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
 }
 
 Future<String> serializeDartCore() async {
-  Compiler compiler = compilerFor({},
+  Compiler compiler = compilerFor(
       options: ['--analyze-all', '--output-type=dart']);
   await compiler.runCompiler(Uri.parse('dart:core'));
   return serialize(compiler.libraryLoader.libraries);

@@ -7,26 +7,30 @@
 // much be included in the initial download (loaded eagerly).
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
 void main() {
+  deferredTest1();
+  deferredTest2();
+}
+
+void deferredTest1() {
   asyncTest(() async {
     CompilationResult result =
-        await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
+        await runCompiler(memorySourceFiles: TEST1);
     Compiler compiler = result.compiler;
 
     lookupLibrary(name) {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
     }
 
-    var main = compiler.mainApp.find(Compiler.MAIN);
+    var main = compiler.mainFunction;
     var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
 
     var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
     var backend = compiler.backend;
-    var classes = backend.emitter.neededClasses;
     var lib1 = lookupLibrary("memory:lib1.dart");
     var lib2 = lookupLibrary("memory:lib2.dart");
     var foo1 = lib1.find("foo1");
@@ -36,9 +40,29 @@ void main() {
   });
 }
 
+void deferredTest2() {
+  asyncTest(() async {
+    CompilationResult result = await runCompiler(memorySourceFiles: TEST2);
+    Compiler compiler = result.compiler;
+
+    lookupLibrary(name) {
+      return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
+    }
+
+    var main = compiler.mainFunction;
+    var outputUnitForElement = compiler.deferredLoadTask.outputUnitForElement;
+
+    var mainOutputUnit = compiler.deferredLoadTask.mainOutputUnit;
+    var shared = lookupLibrary("memory:shared.dart");
+    var a = shared.find("A");
+
+    Expect.equals(mainOutputUnit, outputUnitForElement(a));
+  });
+}
+
 // lib1 imports lib2 deferred. But mainlib never uses DeferredLibrary.
 // Test that this case works.
-const Map MEMORY_SOURCE_FILES = const {
+const Map TEST1 = const {
   "main.dart":"""
 library mainlib;
 
@@ -63,5 +87,33 @@ void foo1() {
 library lib2;
 
 void foo2() {}
+""",
+};
+
+// main indirectly uses class A from shared. A should still be included in the
+// main fragment.
+const Map TEST2 = const {
+  "main.dart":"""
+import 'def.dart' deferred as def;
+import 'shared.dart';
+
+typedef void F(x);
+
+main() {
+  print(foo is F);
+  def.loadLibrary().then((_) {
+    def.toto();
+  });
+}
+""",
+  "def.dart":"""
+import 'shared.dart';
+
+toto() { print(new A()); }
+""",
+  "shared.dart":"""
+class A {}
+class B extends A {}
+foo(B b) => null;
 """,
 };

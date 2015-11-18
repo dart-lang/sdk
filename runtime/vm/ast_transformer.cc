@@ -46,12 +46,12 @@ FOR_EACH_UNREACHABLE_NODE(DEFINE_UNREACHABLE)
 #undef DEFINE_UNREACHABLE
 
 AwaitTransformer::AwaitTransformer(SequenceNode* preamble,
-                                   LocalScope* function_top)
+                                   LocalScope* async_temp_scope)
     : preamble_(preamble),
       temp_cnt_(0),
-      function_top_(function_top),
+      async_temp_scope_(async_temp_scope),
       thread_(Thread::Current()) {
-  ASSERT(function_top_ != NULL);
+  ASSERT(async_temp_scope_ != NULL);
 }
 
 
@@ -62,18 +62,17 @@ AstNode* AwaitTransformer::Transform(AstNode* expr) {
 
 
 LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
-  const char* await_temp_prefix = ":await_temp_var_";
-  const String& cnt_str = String::ZoneHandle(
-      Z, String::NewFormatted("%s%d", await_temp_prefix, temp_cnt_));
-  const String& symbol = String::ZoneHandle(Z, Symbols::New(cnt_str));
+  String& symbol =
+      String::ZoneHandle(Z, Symbols::NewFormatted("%d", temp_cnt_));
+  symbol = Symbols::FromConcat(Symbols::AwaitTempVarPrefix(), symbol);
   ASSERT(!symbol.IsNull());
   // Look up the variable in the scope used for async temp variables.
-  LocalVariable* await_tmp = function_top_->LocalLookupVariable(symbol);
+  LocalVariable* await_tmp = async_temp_scope_->LocalLookupVariable(symbol);
   if (await_tmp == NULL) {
     // We need a new temp variable; add it to the function's top scope.
     await_tmp = new (Z) LocalVariable(
         Scanner::kNoSourcePos, symbol, Type::ZoneHandle(Type::DynamicType()));
-    function_top_->AddVariable(await_tmp);
+    async_temp_scope_->AddVariable(await_tmp);
     // After adding it to the top scope, we can look it up from the preamble.
     // The following call includes an ASSERT check.
     await_tmp = GetVariableInScope(preamble_->scope(), symbol);
@@ -112,13 +111,9 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   // Await transformation:
   //
   //   :await_temp_var_X = <expr>;
-  //   :result_param = :await_temp_var_X;
-  //   if (:result_param is !Future) {
-  //     :result_param = Future.value(:result_param);
-  //   }
   //   AwaitMarker(kNewContinuationState);
-  //   :result_param = :result_param.then(:async_op);
-  //   _asyncCatchHelper(:result_param.catchError, :async_op);
+  //   :result_param = _awaitHelper(
+  //      :await_temp_var_X, :async_then_callback, :async_catch_error_callback);
   //   return;  // (return_type() == kContinuationTarget)
   //
   //   :saved_try_ctx_var = :await_saved_try_ctx_var_y;
@@ -126,6 +121,10 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
 
   LocalVariable* async_op = GetVariableInScope(
       preamble_->scope(), Symbols::AsyncOperation());
+  LocalVariable* async_then_callback = GetVariableInScope(
+      preamble_->scope(), Symbols::AsyncThenCallback());
+  LocalVariable* async_catch_error_callback = GetVariableInScope(
+      preamble_->scope(), Symbols::AsyncCatchErrorCallback());
   LocalVariable* result_param = GetVariableInScope(
       preamble_->scope(), Symbols::AsyncOperationParam());
   LocalVariable* error_param = GetVariableInScope(
@@ -134,78 +133,34 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
       preamble_->scope(), Symbols::AsyncOperationStackTraceParam());
 
   AstNode* transformed_expr = Transform(node->expr());
-  preamble_->Add(new(Z) StoreLocalNode(
-      Scanner::kNoSourcePos, result_param, transformed_expr));
+  LocalVariable* await_temp = AddToPreambleNewTempVar(transformed_expr);
 
-  LoadLocalNode* load_result_param = new(Z) LoadLocalNode(
-      Scanner::kNoSourcePos, result_param);
-
-  const Class& future_cls =
-      Class::ZoneHandle(Z, thread()->isolate()->object_store()->future_class());
-  ASSERT(!future_cls.IsNull());
-  const AbstractType& future_type =
-      AbstractType::ZoneHandle(Z, future_cls.RareType());
-  ASSERT(!future_type.IsNull());
-
-  LocalScope* is_not_future_scope = ChainNewScope(preamble_->scope());
-  SequenceNode* is_not_future_branch =
-      new (Z) SequenceNode(Scanner::kNoSourcePos, is_not_future_scope);
-
-  // if (:result_param is !Future) {
-  //   :result_param = Future.value(:result_param);
-  // }
-  const Function& value_ctor = Function::ZoneHandle(
-      Z, future_cls.LookupFunction(Symbols::FutureValue()));
-  ASSERT(!value_ctor.IsNull());
-  ArgumentListNode* ctor_args = new (Z) ArgumentListNode(Scanner::kNoSourcePos);
-  ctor_args->Add(new (Z) LoadLocalNode(Scanner::kNoSourcePos, result_param));
-  ConstructorCallNode* ctor_call =
-      new (Z) ConstructorCallNode(Scanner::kNoSourcePos,
-                                  TypeArguments::ZoneHandle(Z),
-                                  value_ctor,
-                                  ctor_args);
-  is_not_future_branch->Add(new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos, result_param, ctor_call));
-  AstNode* is_not_future_test = new (Z) ComparisonNode(
-      Scanner::kNoSourcePos,
-      Token::kISNOT,
-      load_result_param,
-      new (Z) TypeNode(Scanner::kNoSourcePos, future_type));
-  preamble_->Add(new(Z) IfNode(Scanner::kNoSourcePos,
-                               is_not_future_test,
-                               is_not_future_branch,
-                               NULL));
-
-  AwaitMarkerNode* await_marker = new (Z) AwaitMarkerNode();
-  await_marker->set_scope(preamble_->scope());
+  AwaitMarkerNode* await_marker =
+      new (Z) AwaitMarkerNode(async_temp_scope_, node->scope());
   preamble_->Add(await_marker);
-  ArgumentListNode* args = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
 
-  args->Add(new(Z) LoadLocalNode(Scanner::kNoSourcePos, async_op));
-  preamble_->Add(new (Z) StoreLocalNode(
-      Scanner::kNoSourcePos,
-      result_param,
-      new(Z) InstanceCallNode(node->token_pos(),
-                              load_result_param,
-                              Symbols::FutureThen(),
-                              args)));
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Function& async_catch_helper = Function::ZoneHandle(
-      Z, core_lib.LookupFunctionAllowPrivate(Symbols::AsyncCatchHelper()));
-  ASSERT(!async_catch_helper.IsNull());
-  ArgumentListNode* catch_helper_args = new (Z) ArgumentListNode(
+  // :result_param = _awaitHelper(
+  //      :await_temp, :async_then_callback, :async_catch_error_callback)
+  const Library& async_lib = Library::Handle(Library::AsyncLibrary());
+  const Function& async_await_helper = Function::ZoneHandle(
+      Z, async_lib.LookupFunctionAllowPrivate(Symbols::AsyncAwaitHelper()));
+  ASSERT(!async_await_helper.IsNull());
+  ArgumentListNode* async_await_helper_args = new (Z) ArgumentListNode(
       Scanner::kNoSourcePos);
-  InstanceGetterNode* catch_error_getter = new (Z) InstanceGetterNode(
-      Scanner::kNoSourcePos,
-      load_result_param,
-      Symbols::FutureCatchError());
-  catch_helper_args->Add(catch_error_getter);
-  catch_helper_args->Add(new (Z) LoadLocalNode(
-      Scanner::kNoSourcePos, async_op));
-  preamble_->Add(new (Z) StaticCallNode(
-      Scanner::kNoSourcePos,
-      async_catch_helper,
-      catch_helper_args));
+  async_await_helper_args->Add(
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, await_temp));
+  async_await_helper_args->Add(
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, async_then_callback));
+  async_await_helper_args->Add(
+      new(Z) LoadLocalNode(Scanner::kNoSourcePos, async_catch_error_callback));
+  StaticCallNode* await_helper_call = new (Z) StaticCallNode(
+      node->token_pos(),
+      async_await_helper,
+      async_await_helper_args);
+
+  preamble_->Add(new(Z) StoreLocalNode(
+      Scanner::kNoSourcePos, result_param, await_helper_call));
+
   ReturnNode* continuation_return = new(Z) ReturnNode(Scanner::kNoSourcePos);
   continuation_return->set_return_type(ReturnNode::kContinuationTarget);
   preamble_->Add(continuation_return);
@@ -229,6 +184,12 @@ void AwaitTransformer::VisitAwaitNode(AwaitNode* node) {
   } else {
     ASSERT(node->outer_saved_try_ctx() == NULL);
   }
+
+  // Load the async_op variable. It is unused, but the observatory uses it
+  // to determine if a breakpoint is inside an asynchronous function.
+  LoadLocalNode* load_async_op = new (Z) LoadLocalNode(
+      Scanner::kNoSourcePos, async_op);
+  preamble_->Add(load_async_op);
 
   LoadLocalNode* load_error_param = new (Z) LoadLocalNode(
       Scanner::kNoSourcePos, error_param);
@@ -600,18 +561,27 @@ void AwaitTransformer::VisitLetNode(LetNode* node) {
   // added to a scope, and the subsequent nodes that are added to the
   // preample can access them.
   for (intptr_t i = 0; i < node->num_temps(); i++) {
-    function_top_->AddVariable(node->TempAt(i));
+    async_temp_scope_->AddVariable(node->TempAt(i));
     AstNode* new_init_val = Transform(node->InitializerAt(i));
     preamble_->Add(new(Z) StoreLocalNode(node->token_pos(),
                    node->TempAt(i),
                    new_init_val));
   }
-  // The transformed LetNode does not have any temporary variables.
-  LetNode* result = new(Z) LetNode(node->token_pos());
-  for (intptr_t i = 0; i < node->nodes().length(); i++) {
-    result->AddNode(Transform(node->nodes()[i]));
+
+  // Add all expressions but the last to the preamble. We must do
+  // this because subexpressions of the awaitable expression we
+  // are currently transforming may depend on each other,
+  // e.g. await foo(a++, a++). Thus we must preserve the order of the
+  // transformed subexpressions.
+  for (intptr_t i = 0; i < node->nodes().length() - 1; i++) {
+    preamble_->Add(Transform(node->nodes()[i]));
   }
-  result_ = result;
+
+  // The last expression in the let node is the value of the node.
+  // The result of the transformed let node is this expression.
+  ASSERT(node->nodes().length() > 0);
+  const intptr_t last_node_index = node->nodes().length() - 1;
+  result_ = Transform(node->nodes()[last_node_index]);
 }
 
 

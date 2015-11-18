@@ -34,8 +34,8 @@ class Unparser extends Indentation implements Visitor {
   void addToken(Token token) {
     if (token == null) return;
     write(token.value);
-    if (identical(token.kind, KEYWORD_TOKEN)
-        || identical(token.kind, IDENTIFIER_TOKEN)) {
+    if (identical(token.kind, Tokens.KEYWORD_TOKEN)
+        || identical(token.kind, Tokens.IDENTIFIER_TOKEN)) {
       write(' ');
     }
   }
@@ -56,6 +56,18 @@ class Unparser extends Indentation implements Visitor {
 
   visit(Node node) {
     if (node != null) node.accept(this);
+  }
+
+  visitAssert(Assert node) {
+    write(node.assertToken.value);
+    write('(');
+    visit(node.condition);
+    if (node.hasMessage) {
+      write(',');
+      space();
+      visit(node.message);
+    }
+    write(');');
   }
 
   visitBlock(Block node) => unparseBlockStatements(node.statements);
@@ -209,7 +221,7 @@ class Unparser extends Indentation implements Visitor {
       } else {
         visit(send.receiver);
         Identifier identifier = send.selector.asIdentifier();
-        if (identical(identifier.token.kind, KEYWORD_TOKEN)) {
+        if (identical(identifier.token.kind, Tokens.KEYWORD_TOKEN)) {
           write(' ');
         } else if (identifier.source == 'negate') {
           // TODO(ahe): Remove special case for negate.
@@ -292,13 +304,13 @@ class Unparser extends Indentation implements Visitor {
   visitLiteralDouble(LiteralDouble node) {
     write(node.token.value);
     // -Lit is represented as a send.
-    if (node.token.kind == PLUS_TOKEN) write(node.token.next.value);
+    if (node.token.kind == Tokens.PLUS_TOKEN) write(node.token.next.value);
   }
 
   visitLiteralInt(LiteralInt node) {
     write(node.token.value);
     // -Lit is represented as a send.
-    if (node.token.kind == PLUS_TOKEN) write(node.token.next.value);
+    if (node.token.kind == Tokens.PLUS_TOKEN) write(node.token.next.value);
   }
 
   visitLiteralString(LiteralString node) {
@@ -696,6 +708,11 @@ class Unparser extends Indentation implements Visitor {
     }
     unparseBlockStatements(node.statements);
     indentLess();
+  }
+
+  unparseLibraryName(String libraryName) {
+    write('library $libraryName;');
+    newline();
   }
 
   unparseImportTag(String uri, {String prefix,

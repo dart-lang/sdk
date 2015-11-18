@@ -178,6 +178,21 @@ char* Zone::MakeCopyOfString(const char* str) {
 }
 
 
+char* Zone::ConcatStrings(const char* a, const char* b, char join) {
+  intptr_t a_len = (a == NULL) ? 0 : strlen(a);
+  const intptr_t b_len = strlen(b) + 1;  // '\0'-terminated.
+  const intptr_t len = a_len + b_len;
+  char* copy = Alloc<char>(len);
+  if (a_len > 0) {
+    strncpy(copy, a, a_len);
+    // Insert join character.
+    copy[a_len++] = join;
+  }
+  strncpy(&copy[a_len], b, b_len);
+  return copy;
+}
+
+
 #if defined(DEBUG)
 void Zone::DumpZoneSizes() {
   intptr_t size = 0;
@@ -203,16 +218,15 @@ void Zone::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 char* Zone::PrintToString(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  char* buffer = OS::VSCreate(this, format, args);
   va_end(args);
-
-  char* buffer = Alloc<char>(len + 1);
-  va_list args2;
-  va_start(args2, format);
-  OS::VSNPrint(buffer, (len + 1), format, args2);
-  va_end(args2);
-
   return buffer;
 }
+
+
+char* Zone::VPrint(const char* format, va_list args) {
+  return OS::VSCreate(this, format, args);
+}
+
 
 }  // namespace dart

@@ -6,9 +6,15 @@
 
 library elements.common;
 
-import '../dart2jslib.dart' show Compiler, isPrivateName;
-import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
-import '../util/util.dart' show Link;
+import '../common/names.dart' show
+    Names,
+    Uris;
+import '../dart_types.dart' show
+    DartType,
+    InterfaceType,
+    FunctionType;
+import '../util/util.dart' show
+    Link;
 
 import 'elements.dart';
 
@@ -115,7 +121,7 @@ abstract class ElementCommon implements Element {
 
 abstract class LibraryElementCommon implements LibraryElement {
   @override
-  bool get isDartCore => canonicalUri == Compiler.DART_CORE;
+  bool get isDartCore => canonicalUri == Uris.dart_core;
 
   @override
   bool get isPlatformLibrary => canonicalUri.scheme == 'dart';
@@ -127,9 +133,9 @@ abstract class LibraryElementCommon implements LibraryElement {
   bool get isInternalLibrary =>
       isPlatformLibrary && canonicalUri.path.startsWith('_');
 
-  String getLibraryOrScriptName() {
-    if (hasLibraryName()) {
-      return getLibraryName();
+  String get libraryOrScriptName {
+    if (hasLibraryName) {
+      return libraryName;
     } else {
       // Use the file name as script name.
       String path = canonicalUri.path;
@@ -139,7 +145,7 @@ abstract class LibraryElementCommon implements LibraryElement {
 
   int compareTo(LibraryElement other) {
     if (this == other) return 0;
-    return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
+    return libraryOrScriptName.compareTo(other.libraryOrScriptName);
   }
 }
 
@@ -270,7 +276,7 @@ abstract class ClassElementCommon implements ClassElement {
   @override
   Element lookupSuperMemberInLibrary(String memberName,
                                      LibraryElement library) {
-    bool isPrivate = isPrivateName(memberName);
+    bool isPrivate = Name.isPrivateName(memberName);
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       // Private members from a different library are not visible.
       if (isPrivate && !identical(library, s.library)) continue;
@@ -379,7 +385,7 @@ abstract class ClassElementCommon implements ClassElement {
   bool hasFieldShadowedBy(Element fieldMember) {
     assert(fieldMember.isField);
     String fieldName = fieldMember.name;
-    bool isPrivate = isPrivateName(fieldName);
+    bool isPrivate = Name.isPrivateName(fieldName);
     LibraryElement memberLibrary = fieldMember.library;
     ClassElement lookupClass = this.superclass;
     while (lookupClass != null) {
@@ -400,22 +406,11 @@ abstract class ClassElementCommon implements ClassElement {
 
   @override
   bool implementsInterface(ClassElement intrface) {
-    for (DartType implementedInterfaceType in allSupertypes) {
-      ClassElement implementedInterface = implementedInterfaceType.element;
-      if (identical(implementedInterface, intrface)) {
-        return true;
-      }
-    }
-    return false;
+    return this != intrface &&
+        allSupertypesAndSelf.asInstanceOf(intrface) != null;
   }
 
-  /**
-   * Returns true if [this] is a subclass of [cls].
-   *
-   * This method is not to be used for checking type hierarchy and
-   * assignments, because it does not take parameterized types into
-   * account.
-   */
+  @override
   bool isSubclassOf(ClassElement cls) {
     // Use [declaration] for both [this] and [cls], because
     // declaration classes hold the superclass hierarchy.
@@ -427,9 +422,13 @@ abstract class ClassElementCommon implements ClassElement {
   }
 
   FunctionType get callType {
-    MemberSignature member =
-        lookupInterfaceMember(const PublicName(Compiler.CALL_OPERATOR_NAME));
+    MemberSignature member = lookupInterfaceMember(Names.call);
     return member != null && member.isMethod ? member.type : null;
+  }
+
+  @override
+  bool get isNamedMixinApplication {
+    return isMixinApplication && !isUnnamedMixinApplication;
   }
 }
 

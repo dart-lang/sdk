@@ -16,14 +16,27 @@
 namespace dart {
 
 inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
-#if defined(TARGET_ARCH_X64)
+#if defined(HOST_ARCH_X64)
   return static_cast<uintptr_t>(
       InterlockedIncrement64(reinterpret_cast<LONGLONG*>(p))) - 1;
-#elif defined(TARGET_ARCH_IA32)
+#elif defined(HOST_ARCH_IA32)
   return static_cast<uintptr_t>(
       InterlockedIncrement(reinterpret_cast<LONG*>(p))) - 1;
 #else
-  UNIMPLEMENTED();
+#error Unsupported host architecture.
+#endif
+}
+
+
+inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
+#if defined(HOST_ARCH_X64)
+  return static_cast<uintptr_t>(
+      InterlockedDecrement64(reinterpret_cast<LONGLONG*>(p))) + 1;
+#elif defined(HOST_ARCH_IA32)
+  return static_cast<uintptr_t>(
+      InterlockedDecrement(reinterpret_cast<LONG*>(p))) + 1;
+#else
+#error Unsupported host architecture.
 #endif
 }
 
@@ -32,18 +45,18 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
                                                   uword new_value) {
-#if defined(TARGET_ARCH_X64)
+#if defined(HOST_ARCH_X64)
   return static_cast<uword>(
       InterlockedCompareExchange64(reinterpret_cast<LONGLONG*>(ptr),
                                    static_cast<LONGLONG>(new_value),
                                    static_cast<LONGLONG>(old_value)));
-#elif defined(TARGET_ARCH_IA32)
+#elif defined(HOST_ARCH_IA32)
   return static_cast<uword>(
       InterlockedCompareExchange(reinterpret_cast<LONG*>(ptr),
                                  static_cast<LONG>(new_value),
                                  static_cast<LONG>(old_value)));
 #else
-  UNIMPLEMENTED();
+#error Unsupported host architecture.
 #endif
 }
 #endif  // !defined(USING_SIMULATOR)

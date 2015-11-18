@@ -13,6 +13,12 @@ declare_args() {
   dart_debug = false
 }
 
+config("dart_public_config") {
+  include_dirs = [
+    ".",
+  ]
+}
+
 config("dart_config") {
   defines = []
   if (dart_debug) {
@@ -66,6 +72,7 @@ static_library("libdart") {
   include_dirs = [
     ".",
   ]
+  public_configs = [":dart_public_config"]
   sources = [
     "include/dart_api.h",
     "include/dart_mirrors_api.h",

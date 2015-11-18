@@ -57,6 +57,7 @@ class Link<T> {
   }
 
   bool get isEmpty => true;
+  bool get isNotEmpty => false;
 
   Link<T> reverse() => this;
 
@@ -121,19 +122,31 @@ class Link<T> {
   Link copyWithout(e) => this;
 }
 
+/// Builder object for creating linked lists using [Link] or fixed-length [List]
+/// objects.
 abstract class LinkBuilder<T> {
   factory LinkBuilder() = LinkBuilderImplementation;
 
-  /**
-   * Prepends all elements added to the builder to [tail]. The resulting list is
-   * returned and the builder is cleared.
-   */
+  /// Prepends all elements added to the builder to [tail]. The resulting list
+  /// is returned and the builder is cleared.
   Link<T> toLink([Link<T> tail = const Link()]);
 
+  /// Creates a new fixed length containing all added elements. The
+  /// resulting list is returned and the builder is cleared.
   List<T> toList();
 
+  /// Adds the element [t] to the end of the list being built.
   Link<T> addLast(T t);
 
+  /// Returns the first element in the list being built.
+  T get first;
+
+  /// Returns the number of elements in the list being built.
   final int length;
+
+  /// Returns `true` if the list being built is empty.
   final bool isEmpty;
+
+  /// Removes all added elements and resets the builder.
+  void clear();
 }

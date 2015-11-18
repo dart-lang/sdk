@@ -2,7 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.scanner.string;
+
+import '../io/source_file.dart' show
+    SourceFile;
+import '../tokens/precedence.dart' show
+    PrecedenceInfo;
+import '../tokens/token.dart' show
+    StringToken,
+    Token;
+
+import 'array_based_scanner.dart' show
+    ArrayBasedScanner;
+
 
 /**
  * Scanner that reads from a String and creates tokens that points to

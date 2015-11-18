@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
+// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -51,13 +51,13 @@ var tests = [
     }
   });
 
-  test(String pauseInfo,
+  test(String pauseMode,
        String expression,
        bool shouldPause,
        bool shouldBeCaught) async {
-    print("Evaluating $expression with pause on $pauseInfo exception");
+    print("Evaluating $expression with pause on $pauseMode exception");
 
-    expect((await isolate.setExceptionPauseInfo(pauseInfo)) is DartError,
+    expect((await isolate.setExceptionPauseMode(pauseMode)) is DartError,
            isFalse);
 
     var t;
@@ -94,14 +94,14 @@ var tests = [
     }
   }
 
-  await test("all", "doCaught()", true, true);
-  await test("all", "doUncaught()", true, false);
+  await test("All", "doCaught()", true, true);
+  await test("All", "doUncaught()", true, false);
 
-  await test("unhandled", "doCaught()", false, true);
-  await test("unhandled", "doUncaught()", true, false);
+  await test("Unhandled", "doCaught()", false, true);
+  await test("Unhandled", "doUncaught()", true, false);
 
-  await test("none", "doCaught()", false, true);
-  await test("none", "doUncaught()", false, false);
+  await test("None", "doCaught()", false, true);
+  await test("None", "doUncaught()", false, false);
 
   subscription.cancel();
 },

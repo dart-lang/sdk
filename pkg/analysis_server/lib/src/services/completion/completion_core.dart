@@ -4,7 +4,7 @@
 
 library analysis_server.src.services.completion.completion_dart;
 
-import 'package:analysis_server/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';

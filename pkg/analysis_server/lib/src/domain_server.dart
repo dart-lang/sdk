@@ -4,9 +4,9 @@
 
 library domain.server;
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 
 /**
  * Instances of the class [ServerDomainHandler] implement a [RequestHandler]
@@ -55,7 +55,8 @@ class ServerDomainHandler implements RequestHandler {
    */
   Response setSubscriptions(Request request) {
     server.serverServices =
-        new ServerSetSubscriptionsParams.fromRequest(request).subscriptions
+        new ServerSetSubscriptionsParams.fromRequest(request)
+            .subscriptions
             .toSet();
     return new ServerSetSubscriptionsResult().toResponse(request.id);
   }

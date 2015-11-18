@@ -7,7 +7,7 @@ library dart_backend.sexpr_test;
 import 'dart:async';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
 import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart';
 import 'package:expect/expect.dart';

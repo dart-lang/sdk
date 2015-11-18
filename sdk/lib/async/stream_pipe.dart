@@ -161,7 +161,7 @@ class _ForwardingStreamSubscription<S, T>
     if (_subscription != null) {
       StreamSubscription subscription = _subscription;
       _subscription = null;
-      subscription.cancel();
+      return subscription.cancel();
     }
     return null;
   }

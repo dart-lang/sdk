@@ -107,7 +107,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln();
     writeln("import 'dart:async';");
     writeln();
-    writeln("import 'package:analysis_server/src/protocol.dart';");
+    writeln("import 'package:analysis_server/plugin/protocol/protocol.dart';");
+    writeln("import 'package:analysis_server/src/protocol/protocol_internal.dart';");
     writeln("import 'package:unittest/unittest.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
@@ -160,11 +161,9 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   visitNotification(Notification notification) {
     String streamName =
         camelJoin(['on', notification.domainName, notification.event]);
-    String className = camelJoin([
-      notification.domainName,
-      notification.event,
-      'params'
-    ], doCapitalize: true);
+    String className = camelJoin(
+        [notification.domainName, notification.event, 'params'],
+        doCapitalize: true);
     writeln();
     docComment(toHtmlVisitor.collectHtml(() {
       toHtmlVisitor.translateHtml(notification.html);
@@ -234,7 +233,8 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln('$futureClass $methodName(${args.join(', ')}) {');
     indent(() {
       String requestClass = camelJoin(
-          [request.domainName, request.method, 'params'], doCapitalize: true);
+          [request.domainName, request.method, 'params'],
+          doCapitalize: true);
       String paramsVar = 'null';
       if (request.params != null) {
         paramsVar = 'params';

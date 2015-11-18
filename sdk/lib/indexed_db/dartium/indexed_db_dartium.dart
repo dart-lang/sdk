@@ -62,7 +62,7 @@
  * and where both the keys and the values are strings.
  *
  * * [dart:web_sql]&mdash;a database that can be queried with SQL.
- * 
+ *
  * For a tutorial about using the indexed_db library with Dart,
  * check out
  * [Use IndexedDB](http://www.dartlang.org/docs/tutorials/indexeddb/).
@@ -77,6 +77,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -107,6 +108,7 @@ class _KeyRangeFactoryProvider {
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkMap = {
   'IDBCursor': () => Cursor,
   'IDBCursorWithValue': () => CursorWithValue,
@@ -122,6 +124,22 @@ final indexed_dbBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
+final indexed_dbBlinkFunctionMap = {
+  'IDBCursor': () => Cursor.internalCreateCursor,
+  'IDBCursorWithValue': () => CursorWithValue.internalCreateCursorWithValue,
+  'IDBDatabase': () => Database.internalCreateDatabase,
+  'IDBFactory': () => IdbFactory.internalCreateIdbFactory,
+  'IDBIndex': () => Index.internalCreateIndex,
+  'IDBKeyRange': () => KeyRange.internalCreateKeyRange,
+  'IDBObjectStore': () => ObjectStore.internalCreateObjectStore,
+  'IDBOpenDBRequest': () => OpenDBRequest.internalCreateOpenDBRequest,
+  'IDBRequest': () => Request.internalCreateRequest,
+  'IDBTransaction': () => Transaction.internalCreateTransaction,
+  'IDBVersionChangeEvent': () => VersionChangeEvent.internalCreateVersionChangeEvent,
+
+};
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -129,7 +147,7 @@ final indexed_dbBlinkMap = {
 
 @DomName('IDBCursor')
 @Unstable()
-class Cursor extends NativeFieldWrapperClass2 {
+class Cursor extends DartHtmlDomObject {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
@@ -151,21 +169,36 @@ class Cursor extends NativeFieldWrapperClass2 {
     // To suppress missing implicit constructor warnings.
   factory Cursor._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
+  static Cursor internalCreateCursor() {
+    return new Cursor._internalWrap();
+  }
+
+  factory Cursor._internalWrap() {
+    return new Cursor.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Cursor.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('IDBCursor.direction')
   @DocsEditable()
   String get direction => _blink.BlinkIDBCursor.instance.direction_Getter_(unwrap_jso(this));
   
   @DomName('IDBCursor.key')
   @DocsEditable()
-  Object get key => _blink.BlinkIDBCursor.instance.key_Getter_(unwrap_jso(this));
+  Object get key => wrap_jso(_blink.BlinkIDBCursor.instance.key_Getter_(unwrap_jso(this)));
   
   @DomName('IDBCursor.primaryKey')
   @DocsEditable()
-  Object get primaryKey => _blink.BlinkIDBCursor.instance.primaryKey_Getter_(unwrap_jso(this));
+  Object get primaryKey => wrap_jso(_blink.BlinkIDBCursor.instance.primaryKey_Getter_(unwrap_jso(this)));
   
   @DomName('IDBCursor.source')
   @DocsEditable()
-  Object get source => _blink.BlinkIDBCursor.instance.source_Getter_(unwrap_jso(this));
+  Object get source => wrap_jso(_blink.BlinkIDBCursor.instance.source_Getter_(unwrap_jso(this)));
   
   @DomName('IDBCursor.advance')
   @DocsEditable()
@@ -191,7 +224,7 @@ class Cursor extends NativeFieldWrapperClass2 {
 
   @DomName('IDBCursor.update')
   @DocsEditable()
-  Request _update(Object value) => wrap_jso(_blink.BlinkIDBCursor.instance.update_Callback_1_(unwrap_jso(this), value));
+  Request _update(Object value) => wrap_jso(_blink.BlinkIDBCursor.instance.update_Callback_1_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -208,9 +241,23 @@ class CursorWithValue extends Cursor {
   // To suppress missing implicit constructor warnings.
   factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
 
+
+  @Deprecated("Internal Use Only")
+  static CursorWithValue internalCreateCursorWithValue() {
+    return new CursorWithValue._internalWrap();
+  }
+
+  factory CursorWithValue._internalWrap() {
+    return new CursorWithValue.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  CursorWithValue.internal_() : super.internal_();
+
+
   @DomName('IDBCursorWithValue.value')
   @DocsEditable()
-  Object get value => _blink.BlinkIDBCursorWithValue.instance.value_Getter_(unwrap_jso(this));
+  Object get value => wrap_jso(_blink.BlinkIDBCursorWithValue.instance.value_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -291,17 +338,31 @@ class Database extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
 
+
+  @Deprecated("Internal Use Only")
+  static Database internalCreateDatabase() {
+    return new Database._internalWrap();
+  }
+
+  factory Database._internalWrap() {
+    return new Database.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Database.internal_() : super.internal_();
+
+
   @DomName('IDBDatabase.name')
   @DocsEditable()
   String get name => _blink.BlinkIDBDatabase.instance.name_Getter_(unwrap_jso(this));
   
   @DomName('IDBDatabase.objectStoreNames')
   @DocsEditable()
-  List<String> get objectStoreNames => _blink.BlinkIDBDatabase.instance.objectStoreNames_Getter_(unwrap_jso(this));
+  List<String> get objectStoreNames => wrap_jso(_blink.BlinkIDBDatabase.instance.objectStoreNames_Getter_(unwrap_jso(this)));
   
   @DomName('IDBDatabase.version')
   @DocsEditable()
-  Object get version => _blink.BlinkIDBDatabase.instance.version_Getter_(unwrap_jso(this));
+  Object get version => wrap_jso(_blink.BlinkIDBDatabase.instance.version_Getter_(unwrap_jso(this)));
   
   @DomName('IDBDatabase.close')
   @DocsEditable()
@@ -309,9 +370,9 @@ class Database extends EventTarget {
   
   ObjectStore _createObjectStore(String name, [Map options]) {
     if (options != null) {
-      return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, options);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, convertDartToNative_Dictionary(options)));
     }
-    return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_1_(unwrap_jso(this), name);
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.createObjectStore_Callback_1_(unwrap_jso(this), name));
   }
 
   @DomName('IDBDatabase.deleteObjectStore')
@@ -320,45 +381,45 @@ class Database extends EventTarget {
   
   Transaction transaction(storeName_OR_storeNames, [String mode]) {
     if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames));
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
     }
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames));
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
     }
     if ((storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames));
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   Transaction transactionList(List<String> storeNames, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeNames, mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), convertDartToNative_StringArray(storeNames), mode));
     }
-    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeNames);
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), convertDartToNative_StringArray(storeNames)));
   }
 
   Transaction transactionStore(String storeName, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeName, mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeName, mode));
     }
-    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeName);
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeName));
   }
 
   Transaction transactionStores(List<String> storeNames, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeNames), mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeNames), mode));
     }
-    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeNames));
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeNames)));
   }
 
   /// Stream of `abort` events handled by this [Database].
@@ -394,7 +455,7 @@ class Database extends EventTarget {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental()
 @Unstable()
-class IdbFactory extends NativeFieldWrapperClass2 {
+class IdbFactory extends DartHtmlDomObject {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
    */
@@ -473,19 +534,34 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
+  static IdbFactory internalCreateIdbFactory() {
+    return new IdbFactory._internalWrap();
+  }
+
+  factory IdbFactory._internalWrap() {
+    return new IdbFactory.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  IdbFactory.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('IDBFactory.cmp')
   @DocsEditable()
   int cmp(Object first, Object second) => _blink.BlinkIDBFactory.instance.cmp_Callback_2_(unwrap_jso(this), first, second);
   
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable()
-  OpenDBRequest _deleteDatabase(String name) => _blink.BlinkIDBFactory.instance.deleteDatabase_Callback_1_(unwrap_jso(this), name);
+  OpenDBRequest _deleteDatabase(String name) => wrap_jso(_blink.BlinkIDBFactory.instance.deleteDatabase_Callback_1_(unwrap_jso(this), name));
   
   OpenDBRequest _open(String name, [int version]) {
     if (version != null) {
-      return _blink.BlinkIDBFactory.instance.open_Callback_2_(unwrap_jso(this), name, version);
+      return wrap_jso(_blink.BlinkIDBFactory.instance.open_Callback_2_(unwrap_jso(this), name, version));
     }
-    return _blink.BlinkIDBFactory.instance.open_Callback_1_(unwrap_jso(this), name);
+    return wrap_jso(_blink.BlinkIDBFactory.instance.open_Callback_1_(unwrap_jso(this), name));
   }
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
@@ -519,7 +595,7 @@ Future _completeRequest(Request request) {
 
 @DomName('IDBIndex')
 @Unstable()
-class Index extends NativeFieldWrapperClass2 {
+class Index extends DartHtmlDomObject {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
@@ -611,9 +687,24 @@ class Index extends NativeFieldWrapperClass2 {
     // To suppress missing implicit constructor warnings.
   factory Index._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
+  static Index internalCreateIndex() {
+    return new Index._internalWrap();
+  }
+
+  factory Index._internalWrap() {
+    return new Index.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Index.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
-  Object get keyPath => _blink.BlinkIDBIndex.instance.keyPath_Getter_(unwrap_jso(this));
+  Object get keyPath => wrap_jso(_blink.BlinkIDBIndex.instance.keyPath_Getter_(unwrap_jso(this)));
   
   @DomName('IDBIndex.multiEntry')
   @DocsEditable()
@@ -665,7 +756,7 @@ class Index extends NativeFieldWrapperClass2 {
 
 @DomName('IDBKeyRange')
 @Unstable()
-class KeyRange extends NativeFieldWrapperClass2 {
+class KeyRange extends DartHtmlDomObject {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.createKeyRange_only(value);
@@ -687,9 +778,24 @@ class KeyRange extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory KeyRange._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
+  static KeyRange internalCreateKeyRange() {
+    return new KeyRange._internalWrap();
+  }
+
+  factory KeyRange._internalWrap() {
+    return new KeyRange.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  KeyRange.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
-  Object get lower => _blink.BlinkIDBKeyRange.instance.lower_Getter_(unwrap_jso(this));
+  Object get lower => wrap_jso(_blink.BlinkIDBKeyRange.instance.lower_Getter_(unwrap_jso(this)));
   
   @DomName('IDBKeyRange.lowerOpen')
   @DocsEditable()
@@ -697,7 +803,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
   
   @DomName('IDBKeyRange.upper')
   @DocsEditable()
-  Object get upper => _blink.BlinkIDBKeyRange.instance.upper_Getter_(unwrap_jso(this));
+  Object get upper => wrap_jso(_blink.BlinkIDBKeyRange.instance.upper_Getter_(unwrap_jso(this)));
   
   @DomName('IDBKeyRange.upperOpen')
   @DocsEditable()
@@ -705,31 +811,31 @@ class KeyRange extends NativeFieldWrapperClass2 {
   
   static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) {
     if (upperOpen != null) {
-      return _blink.BlinkIDBKeyRange.instance.bound_Callback_4_(lower, upper, lowerOpen, upperOpen);
+      return wrap_jso(_blink.BlinkIDBKeyRange.instance.bound_Callback_4_(lower, upper, lowerOpen, upperOpen));
     }
     if (lowerOpen != null) {
-      return _blink.BlinkIDBKeyRange.instance.bound_Callback_3_(lower, upper, lowerOpen);
+      return wrap_jso(_blink.BlinkIDBKeyRange.instance.bound_Callback_3_(lower, upper, lowerOpen));
     }
-    return _blink.BlinkIDBKeyRange.instance.bound_Callback_2_(lower, upper);
+    return wrap_jso(_blink.BlinkIDBKeyRange.instance.bound_Callback_2_(lower, upper));
   }
 
   static KeyRange lowerBound_(Object bound, [bool open]) {
     if (open != null) {
-      return _blink.BlinkIDBKeyRange.instance.lowerBound_Callback_2_(bound, open);
+      return wrap_jso(_blink.BlinkIDBKeyRange.instance.lowerBound_Callback_2_(bound, open));
     }
-    return _blink.BlinkIDBKeyRange.instance.lowerBound_Callback_1_(bound);
+    return wrap_jso(_blink.BlinkIDBKeyRange.instance.lowerBound_Callback_1_(bound));
   }
 
   @DomName('IDBKeyRange.only_')
   @DocsEditable()
   @Experimental() // non-standard
-  static KeyRange only_(Object value) => _blink.BlinkIDBKeyRange.instance.only_Callback_1_(value);
+  static KeyRange only_(Object value) => wrap_jso(_blink.BlinkIDBKeyRange.instance.only_Callback_1_(value));
   
   static KeyRange upperBound_(Object bound, [bool open]) {
     if (open != null) {
-      return _blink.BlinkIDBKeyRange.instance.upperBound_Callback_2_(bound, open);
+      return wrap_jso(_blink.BlinkIDBKeyRange.instance.upperBound_Callback_2_(bound, open));
     }
-    return _blink.BlinkIDBKeyRange.instance.upperBound_Callback_1_(bound);
+    return wrap_jso(_blink.BlinkIDBKeyRange.instance.upperBound_Callback_1_(bound));
   }
 
 }
@@ -740,7 +846,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
 
 @DomName('IDBObjectStore')
 @Unstable()
-class ObjectStore extends NativeFieldWrapperClass2 {
+class ObjectStore extends DartHtmlDomObject {
 
   @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
@@ -871,17 +977,32 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
+  static ObjectStore internalCreateObjectStore() {
+    return new ObjectStore._internalWrap();
+  }
+
+  factory ObjectStore._internalWrap() {
+    return new ObjectStore.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  ObjectStore.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable()
   bool get autoIncrement => _blink.BlinkIDBObjectStore.instance.autoIncrement_Getter_(unwrap_jso(this));
   
   @DomName('IDBObjectStore.indexNames')
   @DocsEditable()
-  List<String> get indexNames => _blink.BlinkIDBObjectStore.instance.indexNames_Getter_(unwrap_jso(this));
+  List<String> get indexNames => wrap_jso(_blink.BlinkIDBObjectStore.instance.indexNames_Getter_(unwrap_jso(this)));
   
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable()
-  Object get keyPath => _blink.BlinkIDBObjectStore.instance.keyPath_Getter_(unwrap_jso(this));
+  Object get keyPath => wrap_jso(_blink.BlinkIDBObjectStore.instance.keyPath_Getter_(unwrap_jso(this)));
   
   @DomName('IDBObjectStore.name')
   @DocsEditable()
@@ -893,9 +1014,9 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   
   Request _add(Object value, [Object key]) {
     if (key != null) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.add_Callback_2_(unwrap_jso(this), value, key));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.add_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value), convertDartToNative_SerializedScriptValue(key)));
     }
-    return wrap_jso(_blink.BlinkIDBObjectStore.instance.add_Callback_1_(unwrap_jso(this), value));
+    return wrap_jso(_blink.BlinkIDBObjectStore.instance.add_Callback_1_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value)));
   }
 
   @DomName('IDBObjectStore.clear')
@@ -908,16 +1029,16 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   
   Index _createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is String || keyPath == null) && (name is String || name == null) && options == null) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath)));
     }
     if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options);
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), convertDartToNative_Dictionary(options)));
     }
     if ((keyPath is List<String> || keyPath == null) && (name is String || name == null) && options == null) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath)));
     }
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options);
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), convertDartToNative_Dictionary(options)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -936,7 +1057,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   
   @DomName('IDBObjectStore.index')
   @DocsEditable()
-  Index index(String name) => _blink.BlinkIDBObjectStore.instance.index_Callback_1_(unwrap_jso(this), name);
+  Index index(String name) => wrap_jso(_blink.BlinkIDBObjectStore.instance.index_Callback_1_(unwrap_jso(this), name));
   
   Request _openCursor(Object range, [String direction]) {
     if (direction != null) {
@@ -954,9 +1075,9 @@ class ObjectStore extends NativeFieldWrapperClass2 {
 
   Request _put(Object value, [Object key]) {
     if (key != null) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.put_Callback_2_(unwrap_jso(this), value, key));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.put_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value), convertDartToNative_SerializedScriptValue(key)));
     }
-    return wrap_jso(_blink.BlinkIDBObjectStore.instance.put_Callback_1_(unwrap_jso(this), value));
+    return wrap_jso(_blink.BlinkIDBObjectStore.instance.put_Callback_1_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(value)));
   }
 
 
@@ -1021,6 +1142,20 @@ class OpenDBRequest extends Request {
   @DocsEditable()
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
+
+  @Deprecated("Internal Use Only")
+  static OpenDBRequest internalCreateOpenDBRequest() {
+    return new OpenDBRequest._internalWrap();
+  }
+
+  factory OpenDBRequest._internalWrap() {
+    return new OpenDBRequest.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  OpenDBRequest.internal_() : super.internal_();
+
+
   /// Stream of `blocked` events handled by this [OpenDBRequest].
   @DomName('IDBOpenDBRequest.onblocked')
   @DocsEditable()
@@ -1066,6 +1201,20 @@ class Request extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
 
+
+  @Deprecated("Internal Use Only")
+  static Request internalCreateRequest() {
+    return new Request._internalWrap();
+  }
+
+  factory Request._internalWrap() {
+    return new Request.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Request.internal_() : super.internal_();
+
+
   @DomName('IDBRequest.error')
   @DocsEditable()
   DomError get error => wrap_jso(_blink.BlinkIDBRequest.instance.error_Getter_(unwrap_jso(this)));
@@ -1076,11 +1225,11 @@ class Request extends EventTarget {
   
   @DomName('IDBRequest.result')
   @DocsEditable()
-  Object get result => _blink.BlinkIDBRequest.instance.result_Getter_(unwrap_jso(this));
+  Object get result => wrap_jso(_blink.BlinkIDBRequest.instance.result_Getter_(unwrap_jso(this)));
   
   @DomName('IDBRequest.source')
   @DocsEditable()
-  Object get source => _blink.BlinkIDBRequest.instance.source_Getter_(unwrap_jso(this));
+  Object get source => wrap_jso(_blink.BlinkIDBRequest.instance.source_Getter_(unwrap_jso(this)));
   
   @DomName('IDBRequest.transaction')
   @DocsEditable()
@@ -1167,6 +1316,20 @@ class Transaction extends EventTarget {
   @DocsEditable()
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
+
+  @Deprecated("Internal Use Only")
+  static Transaction internalCreateTransaction() {
+    return new Transaction._internalWrap();
+  }
+
+  factory Transaction._internalWrap() {
+    return new Transaction.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Transaction.internal_() : super.internal_();
+
+
   @DomName('IDBTransaction.db')
   @DocsEditable()
   Database get db => wrap_jso(_blink.BlinkIDBTransaction.instance.db_Getter_(unwrap_jso(this)));
@@ -1185,7 +1348,7 @@ class Transaction extends EventTarget {
   
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
-  ObjectStore objectStore(String name) => _blink.BlinkIDBTransaction.instance.objectStore_Callback_1_(unwrap_jso(this), name);
+  ObjectStore objectStore(String name) => wrap_jso(_blink.BlinkIDBTransaction.instance.objectStore_Callback_1_(unwrap_jso(this), name));
   
   /// Stream of `abort` events handled by this [Transaction].
   @DomName('IDBTransaction.onabort')
@@ -1216,6 +1379,20 @@ class Transaction extends EventTarget {
 class VersionChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static VersionChangeEvent internalCreateVersionChangeEvent() {
+    return new VersionChangeEvent._internalWrap();
+  }
+
+  factory VersionChangeEvent._internalWrap() {
+    return new VersionChangeEvent.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  VersionChangeEvent.internal_() : super.internal_();
+
 
   @DomName('IDBVersionChangeEvent.dataLoss')
   @DocsEditable()

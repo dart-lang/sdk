@@ -292,27 +292,32 @@ void testOperatorParse() {
   Expect.isNull(function.getOrSet);
 }
 
-class Collector implements DiagnosticListener {
+class Collector extends DiagnosticReporter {
   int token = -1;
 
-  void reportFatalError(Token token,
-                        messageKind,
-                        [Map arguments = const {}]) {
+  void reportFatalError(Token token) {
     this.token = token.kind;
     throw this;
   }
 
-  void reportError(Token token,
-                   messageKind,
-                   [Map arguments = const {}]) {
-    reportFatalError(token, messageKind, arguments);
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportFatalError(message.spannable);
   }
 
   void log(message) {
     print(message);
   }
 
-  noSuchMethod(Invocation invocation) => throw 'unsupported operation';
+  noSuchMethod(Invocation invocation) {
+    throw 'unsupported operation';
+  }
+
+  @override
+  DiagnosticMessage createMessage(spannable, messageKind, [arguments]) {
+    return new DiagnosticMessage(null, spannable, null);
+  }
 }
 
 void testMissingCloseParen() {
@@ -321,7 +326,7 @@ void testMissingCloseParen() {
   return x;
 }''';
   parse() {
-    parseMember(source, diagnosticHandler: new Collector());
+    parseMember(source, reporter: new Collector());
   }
   check(Collector c) {
     Expect.equals(OPEN_CURLY_BRACKET_TOKEN, c.token);
@@ -333,7 +338,7 @@ void testMissingCloseParen() {
 void testMissingCloseBraceInClass() {
   final String source = 'class Foo {'; // Missing close '}'.
   parse() {
-    fullParseUnit(source, diagnosticHandler: new Collector());
+    fullParseUnit(source, reporter: new Collector());
   }
   check(Collector c) {
     Expect.equals(BAD_INPUT_TOKEN, c.token);
@@ -345,7 +350,7 @@ void testMissingCloseBraceInClass() {
 void testUnmatchedAngleBracket() {
   final String source = 'A<'; // unmatched '<'
   parse() {
-    fullParseUnit(source, diagnosticHandler: new Collector());
+    fullParseUnit(source, reporter: new Collector());
   }
   check(Collector c) {
     Expect.equals(LT_TOKEN, c.token);

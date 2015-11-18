@@ -198,7 +198,8 @@ class _RenameUnitMemberValidator {
           if (hasDisplayName(shadow, name)) {
             String message = format(
                 "Reference to renamed {0} will be shadowed by {1} '{2}'.",
-                getElementKindName(element), getElementKindName(shadow),
+                getElementKindName(element),
+                getElementKindName(shadow),
                 getElementQualifiedName(shadow));
             result.addError(message, newLocation_fromElement(shadow));
           }
@@ -249,10 +250,13 @@ class _RenameUnitMemberValidator {
           continue;
         }
         // OK, reference will be shadowed be the element being renamed
-        String message = format(isRename
+        String message = format(
+            isRename
                 ? "Renamed {0} will shadow {1} '{2}'."
-                : "Created {0} will shadow {1} '{2}'.", elementKind.displayName,
-            getElementKindName(member), getElementQualifiedName(member));
+                : "Created {0} will shadow {1} '{2}'.",
+            elementKind.displayName,
+            getElementKindName(member),
+            getElementQualifiedName(member));
         result.addError(message, newLocation_fromMatch(memberReference));
       }
     }

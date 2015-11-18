@@ -6,13 +6,15 @@ library test.integration.analysis.highlights2;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisHighlightsTest);
 }
 
@@ -77,7 +79,9 @@ int topLevelVariable;
 ''';
     writeFile(pathname, text);
     standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({AnalysisService.HIGHLIGHTS: [pathname]});
+    sendAnalysisSetSubscriptions({
+      AnalysisService.HIGHLIGHTS: [pathname]
+    });
     // Map from highlight type to highlighted text
     Map<HighlightRegionType, Set<String>> highlights;
     onAnalysisHighlights.listen((AnalysisHighlightsParams params) {
@@ -103,21 +107,10 @@ int topLevelVariable;
         highlights.remove(type);
       }
       check(HighlightRegionType.ANNOTATION, ['@override']);
-      check(HighlightRegionType.BUILT_IN, [
-        'as',
-        'get',
-        'import',
-        'set',
-        'static',
-        'typedef'
-      ]);
-      check(HighlightRegionType.CLASS, [
-        'Class',
-        'Class2',
-        'Future',
-        'Map',
-        'int'
-      ]);
+      check(HighlightRegionType.BUILT_IN,
+          ['as', 'get', 'import', 'set', 'static', 'typedef']);
+      check(HighlightRegionType.CLASS,
+          ['Class', 'Class2', 'Future', 'Map', 'int']);
       check(HighlightRegionType.COMMENT_BLOCK, ['/* Block comment */']);
       check(HighlightRegionType.COMMENT_DOCUMENTATION,
           ['/**\n * Doc comment\n */']);
@@ -140,10 +133,8 @@ int topLevelVariable;
       check(HighlightRegionType.LITERAL_DOUBLE, ['1.0']);
       check(HighlightRegionType.LITERAL_INTEGER, ['2', '42']);
       check(HighlightRegionType.LITERAL_LIST, ['[]']);
-      check(HighlightRegionType.LITERAL_MAP, [
-        '{1.0: [].toList()}',
-        '{2: local}'
-      ]);
+      check(HighlightRegionType.LITERAL_MAP,
+          ['{1.0: [].toList()}', '{2: local}']);
       check(HighlightRegionType.LITERAL_STRING, ["'dart:async'", "'string'"]);
       check(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, ['local']);
       check(HighlightRegionType.LOCAL_VARIABLE_REFERENCE, ['local']);

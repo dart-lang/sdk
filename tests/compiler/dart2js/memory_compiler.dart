@@ -4,32 +4,26 @@
 
 library dart2js.test.memory_compiler;
 
-import 'memory_source_file_helper.dart';
-
-
-import 'package:compiler/src/null_compiler_output.dart' show
-    NullCompilerOutput;
-
-import 'package:compiler/src/dart2jslib.dart' show
-    Message;
+import 'dart:async';
 
 import 'package:compiler/compiler.dart' show
     DiagnosticHandler;
-
 import 'package:compiler/compiler_new.dart' show
     CompilationResult,
     CompilerDiagnostics,
     CompilerOutput,
     Diagnostic,
     PackagesDiscoveryProvider;
-
-import 'dart:async';
-
+import 'package:compiler/src/diagnostics/messages.dart' show
+    Message;
 import 'package:compiler/src/mirrors/source_mirrors.dart';
 import 'package:compiler/src/mirrors/analyze.dart';
+import 'package:compiler/src/null_compiler_output.dart' show
+    NullCompilerOutput;
+import 'package:compiler/src/library_loader.dart' show
+    LoadedLibraries;
 
-import 'package:compiler/src/library_loader.dart'
-    show LoadedLibraries;
+import 'memory_source_file_helper.dart';
 
 export 'output_collector.dart';
 export 'package:compiler/compiler_new.dart' show
@@ -87,6 +81,10 @@ class DiagnosticCollector implements CompilerDiagnostics {
   bool get hasRegularMessages {
     return messages.any((m) => m.kind != Diagnostic.VERBOSE_INFO);
   }
+
+  void clear() {
+    messages.clear();
+  }
 }
 
 class MultiDiagnostics implements CompilerDiagnostics {
@@ -106,13 +104,15 @@ class MultiDiagnostics implements CompilerDiagnostics {
 CompilerDiagnostics createCompilerDiagnostics(
     CompilerDiagnostics diagnostics,
     SourceFileProvider provider,
-    bool showDiagnostics) {
+    {bool showDiagnostics: true,
+     bool verbose: false}) {
   CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
-      handler = new FormattingDiagnosticHandler(provider);
+      handler = new FormattingDiagnosticHandler(provider)..verbose = verbose;
     } else {
-      var formattingHandler = new FormattingDiagnosticHandler(provider);
+      var formattingHandler =
+          new FormattingDiagnosticHandler(provider)..verbose = verbose;
       handler = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {
@@ -141,7 +141,7 @@ Future<CompilationResult> runCompiler(
     entryPoint = Uri.parse('memory:main.dart');
   }
   Compiler compiler = compilerFor(
-      memorySourceFiles,
+      memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
       options: options,
@@ -159,8 +159,8 @@ Future<CompilationResult> runCompiler(
 }
 
 Compiler compilerFor(
-    Map<String, String> memorySourceFiles,
-    {CompilerDiagnostics diagnosticHandler,
+    {Map<String, String> memorySourceFiles: const <String, String>{},
+     CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
      Compiler cachedCompiler,
@@ -187,8 +187,10 @@ Compiler compilerFor(
     provider = expando[cachedCompiler.provider];
     provider.memorySourceFiles = memorySourceFiles;
   }
-  diagnosticHandler =
-      createCompilerDiagnostics(diagnosticHandler, provider, showDiagnostics);
+  diagnosticHandler = createCompilerDiagnostics(
+      diagnosticHandler, provider,
+      showDiagnostics: showDiagnostics,
+      verbose: options.contains('-v') || options.contains('--verbose'));
 
   if (outputProvider == null) {
     outputProvider = const NullCompilerOutput();
@@ -208,7 +210,7 @@ Compiler compilerFor(
   if (cachedCompiler != null) {
     compiler.coreLibrary =
         cachedCompiler.libraryLoader.lookupLibrary(Uri.parse('dart:core'));
-    compiler.types = cachedCompiler.types.copy(compiler);
+    compiler.types = cachedCompiler.types.copy(compiler.resolution);
     Map copiedLibraries = {};
     cachedCompiler.libraryLoader.libraries.forEach((library) {
       if (library.isPlatformLibrary) {
@@ -243,10 +245,10 @@ Compiler compilerFor(
     compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
 
     Iterable cachedTreeElements =
-        cachedCompiler.enqueuer.resolution.resolvedElements;
+        cachedCompiler.enqueuer.resolution.processedElements;
     cachedTreeElements.forEach((element) {
       if (element.library.isPlatformLibrary) {
-        compiler.enqueuer.resolution.registerResolvedElement(element);
+        compiler.enqueuer.resolution.registerProcessedElement(element);
       }
     });
 
@@ -261,7 +263,6 @@ Compiler compilerFor(
     cachedCompiler.resolver = null;
     cachedCompiler.closureToClassMapper = null;
     cachedCompiler.checker = null;
-    cachedCompiler.irBuilder = null;
     cachedCompiler.typesTask = null;
     cachedCompiler.backend = null;
     // Don't null out the enqueuer as it prevents us from using cachedCompiler

@@ -4,9 +4,10 @@
 
 library services.completion.suggestion.builder.local;
 
-import 'package:analysis_server/src/protocol.dart' as protocol
+import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -22,7 +23,9 @@ final TypeName NO_RETURN_TYPE = new TypeName(
  */
 protocol.Element createElement(
     Source source, protocol.ElementKind kind, SimpleIdentifier id,
-    {String parameters, TypeName returnType, bool isAbstract: false,
+    {String parameters,
+    TypeName returnType,
+    bool isAbstract: false,
     bool isDeprecated: false}) {
   String name;
   Location location;
@@ -75,9 +78,14 @@ CompletionSuggestion createSuggestion(SimpleIdentifier id, bool isDeprecated,
   }
   CompletionSuggestion suggestion = new CompletionSuggestion(
       CompletionSuggestionKind.INVOCATION,
-      isDeprecated ? DART_RELEVANCE_LOW : defaultRelevance, completion,
-      completion.length, 0, isDeprecated, false,
-      returnType: nameForType(returnType), element: element);
+      isDeprecated ? DART_RELEVANCE_LOW : defaultRelevance,
+      completion,
+      completion.length,
+      0,
+      isDeprecated,
+      false,
+      returnType: nameForType(returnType),
+      element: element);
   if (classDecl != null) {
     SimpleIdentifier classId = classDecl.name;
     if (classId != null) {

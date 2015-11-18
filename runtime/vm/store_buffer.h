@@ -16,17 +16,17 @@ class Mutex;
 class RawObject;
 
 // A set of RawObject*. Must be emptied before destruction (using Pop/Reset).
-class StoreBufferBlock {
+template<int Size>
+class PointerBlock {
  public:
-  // Each full block contains kSize pointers.
-  static const int32_t kSize = 1024;
+  enum { kSize = Size };
 
   void Reset() {
     top_ = 0;
     next_ = NULL;
   }
 
-  StoreBufferBlock* next() const { return next_; }
+  PointerBlock<Size>* next() const { return next_; }
 
   intptr_t Count() const { return top_; }
   bool IsFull() const { return Count() == kSize; }
@@ -53,69 +53,73 @@ class StoreBufferBlock {
   }
 #endif  // TESTING
 
-  static intptr_t top_offset() { return OFFSET_OF(StoreBufferBlock, top_); }
+  static intptr_t top_offset() { return OFFSET_OF(PointerBlock<Size>, top_); }
   static intptr_t pointers_offset() {
-    return OFFSET_OF(StoreBufferBlock, pointers_);
+    return OFFSET_OF(PointerBlock<Size>, pointers_);
   }
 
  private:
-  StoreBufferBlock() : next_(NULL), top_(0) {}
-  ~StoreBufferBlock() {
+  PointerBlock() : next_(NULL), top_(0) {}
+  ~PointerBlock() {
     ASSERT(IsEmpty());  // Guard against unintentionally discarding pointers.
   }
 
-  StoreBufferBlock* next_;
+  PointerBlock<Size>* next_;
   int32_t top_;
   RawObject* pointers_[kSize];
 
-  friend class StoreBuffer;
+  template<int> friend class BlockStack;
 
-  DISALLOW_COPY_AND_ASSIGN(StoreBufferBlock);
+  DISALLOW_COPY_AND_ASSIGN(PointerBlock);
 };
 
 
-class StoreBuffer {
+// A synchronized collection of pointer blocks of a particular size.
+// This class is meant to be used as a base (note PushBlockImpl is protected).
+// The global list of cached empty blocks is currently per-size.
+template<int BlockSize>
+class BlockStack {
  public:
-  StoreBuffer();
-  ~StoreBuffer();
+  typedef PointerBlock<BlockSize> Block;
+
+  BlockStack();
+  ~BlockStack();
   static void InitOnce();
   static void ShutDown();
 
-  // Interrupt when crossing this threshold of non-empty blocks in the buffer.
-  static const intptr_t kMaxNonEmpty = 100;
-
-  // Adds and transfers ownership of the block to the buffer.
-  void PushBlock(StoreBufferBlock* block, bool check_threshold = true);
   // Partially filled blocks can be reused, and there is an "inifite" supply
   // of empty blocks (reused or newly allocated). In any case, the caller
   // takes ownership of the returned block.
-  StoreBufferBlock* PopBlock();
-  StoreBufferBlock* PopEmptyBlock();
+  Block* PopNonFullBlock();
+  Block* PopEmptyBlock();
+  Block* PopNonEmptyBlock();
 
   // Pops and returns all non-empty blocks as a linked list (owned by caller).
-  StoreBufferBlock* Blocks();
+  Block* Blocks();
 
-  // Discards the contents of this store buffer.
+  // Discards the contents of all non-empty blocks.
   void Reset();
 
-  // Check whether non-empty blocks have exceeded kMaxNonEmpty.
-  bool Overflowed();
+  bool IsEmpty();
 
- private:
+ protected:
   class List {
    public:
     List() : head_(NULL), length_(0) {}
     ~List();
-    void Push(StoreBufferBlock* block);
-    StoreBufferBlock* Pop();
+    void Push(Block* block);
+    Block* Pop();
     intptr_t length() const { return length_; }
     bool IsEmpty() const { return head_ == NULL; }
-    StoreBufferBlock* PopAll();
+    Block* PopAll();
    private:
-    StoreBufferBlock* head_;
+    Block* head_;
     intptr_t length_;
     DISALLOW_COPY_AND_ASSIGN(List);
   };
+
+  // Adds and transfers ownership of the block to the buffer.
+  void PushBlockImpl(Block* block);
 
   // If needed, trims the the global cache of empty blocks.
   static void TrimGlobalEmpty();
@@ -124,12 +128,50 @@ class StoreBuffer {
   List partial_;
   Mutex* mutex_;
 
+  // Note: This is shared on the basis of block size.
   static const intptr_t kMaxGlobalEmpty = 100;
   static List* global_empty_;
   static Mutex* global_mutex_;
 
-  DISALLOW_COPY_AND_ASSIGN(StoreBuffer);
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BlockStack);
 };
+
+
+static const int kStoreBufferBlockSize = 1024;
+class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
+ public:
+  // Interrupt when crossing this threshold of non-empty blocks in the buffer.
+  static const intptr_t kMaxNonEmpty = 100;
+
+  enum ThresholdPolicy {
+    kCheckThreshold,
+    kIgnoreThreshold
+  };
+
+  // Adds and transfers ownership of the block to the buffer. Optionally
+  // checks the number of non-empty blocks for overflow, and schedules an
+  // interrupt on the current isolate if so.
+  void PushBlock(Block* block, ThresholdPolicy policy);
+
+  // Check whether non-empty blocks have exceeded kMaxNonEmpty (but takes no
+  // action).
+  bool Overflowed();
+};
+
+
+typedef StoreBuffer::Block StoreBufferBlock;
+
+
+static const int kMarkingStackBlockSize = 64;
+class MarkingStack : public BlockStack<kMarkingStackBlockSize> {
+ public:
+  // Adds and transfers ownership of the block to the buffer.
+  void PushBlock(Block* block) {
+    BlockStack<Block::kSize>::PushBlockImpl(block);
+  }
+};
+
 
 }  // namespace dart
 

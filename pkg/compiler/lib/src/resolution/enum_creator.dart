@@ -4,11 +4,17 @@
 
 library dart2js.resolution.enum_creator;
 
+import '../common.dart';
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart';
-import '../dart2jslib.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
-import '../scanner/scannerlib.dart';
+import '../tokens/keyword.dart' show
+    Keyword;
+import '../tokens/precedence.dart';
+import '../tokens/precedence_constants.dart' as Precedence;
+import '../tokens/token.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 
@@ -45,7 +51,8 @@ class AstBuilder {
   }
 
   Token stringToken(String text) {
-    return new StringToken.fromString(IDENTIFIER_INFO, text, charOffset);
+    return new StringToken.fromString(
+        Precedence.IDENTIFIER_INFO, text, charOffset);
   }
 
   Token symbolToken(PrecedenceInfo info) {
@@ -70,16 +77,16 @@ class AstBuilder {
   }
 
   NodeList argumentList(List<Node> nodes) {
-    return new NodeList(symbolToken(OPEN_PAREN_INFO),
+    return new NodeList(symbolToken(Precedence.OPEN_PAREN_INFO),
                         linkedList(nodes),
-                        symbolToken(CLOSE_PAREN_INFO),
+                        symbolToken(Precedence.CLOSE_PAREN_INFO),
                         ',');
   }
 
   Return returnStatement(Expression expression) {
     return new Return(
         keywordToken('return'),
-        symbolToken(SEMICOLON_INFO),
+        symbolToken(Precedence.SEMICOLON_INFO),
         expression);
   }
 
@@ -101,7 +108,7 @@ class AstBuilder {
   }
 
   EmptyStatement emptyStatement() {
-    return new EmptyStatement(symbolToken(COMMA_INFO));
+    return new EmptyStatement(symbolToken(Precedence.COMMA_INFO));
   }
 
   LiteralInt literalInt(int value) {
@@ -118,17 +125,18 @@ class AstBuilder {
   LiteralList listLiteral(List<Node> elements, {bool isConst: false}) {
     return new LiteralList(
         null,
-        new NodeList(symbolToken(OPEN_SQUARE_BRACKET_INFO),
+        new NodeList(symbolToken(Precedence.OPEN_SQUARE_BRACKET_INFO),
                      linkedList(elements),
-                     symbolToken(CLOSE_SQUARE_BRACKET_INFO),
+                     symbolToken(Precedence.CLOSE_SQUARE_BRACKET_INFO),
                      ','),
         isConst ? keywordToken('const') : null);
   }
 
   Node createDefinition(Identifier name, Expression initializer) {
     if (initializer == null) return name;
-    return new SendSet(null, name, new Operator(symbolToken(EQ_INFO)),
-                 new NodeList.singleton(initializer));
+    return new SendSet(null, name,
+        new Operator(symbolToken(Precedence.EQ_INFO)),
+            new NodeList.singleton(initializer));
   }
 
   VariableDefinitions initializingFormal(String fieldName) {
@@ -153,38 +161,39 @@ class AstBuilder {
 
   Send indexGet(Expression receiver, Expression index) {
     return new Send(receiver,
-                    new Operator(symbolToken(INDEX_INFO)),
+                    new Operator(symbolToken(Precedence.INDEX_INFO)),
                     new NodeList.singleton(index));
   }
 
   LiteralMapEntry mapLiteralEntry(Expression key, Expression value) {
-    return new LiteralMapEntry(key, symbolToken(COLON_INFO), value);
+    return new LiteralMapEntry(key, symbolToken(Precedence.COLON_INFO), value);
   }
 
   LiteralMap mapLiteral(List<LiteralMapEntry> entries, {bool isConst: false}) {
     return new LiteralMap(
         null, // Type arguments.
-        new NodeList(symbolToken(OPEN_CURLY_BRACKET_INFO),
+        new NodeList(symbolToken(Precedence.OPEN_CURLY_BRACKET_INFO),
                      linkedList(entries),
-                     symbolToken(CLOSE_CURLY_BRACKET_INFO),
+                     symbolToken(Precedence.CLOSE_CURLY_BRACKET_INFO),
                      ','),
         isConst ? keywordToken('const') : null);
   }
 }
 
 class EnumCreator {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
+  final CoreTypes coreTypes;
   final EnumClassElementX enumClass;
 
-  EnumCreator(this.compiler, this.enumClass);
+  EnumCreator(this.reporter, this.coreTypes, this.enumClass);
 
   void createMembers() {
     Enum node = enumClass.node;
     InterfaceType enumType = enumClass.thisType;
     AstBuilder builder = new AstBuilder(enumClass.position.charOffset);
 
-    InterfaceType intType = compiler.intClass.computeType(compiler);
-    InterfaceType stringType = compiler.stringClass.computeType(compiler);
+    InterfaceType intType = coreTypes.intType;
+    InterfaceType stringType = coreTypes.stringType;
 
     EnumFieldElementX addInstanceMember(String name, InterfaceType type) {
       Identifier identifier = builder.identifier(name);
@@ -193,7 +202,7 @@ class EnumCreator {
       variableList.type = type;
       EnumFieldElementX variable = new EnumFieldElementX(
           identifier, enumClass, variableList, identifier);
-      enumClass.addMember(variable, compiler);
+      enumClass.addMember(variable, reporter);
       return variable;
     }
 
@@ -223,8 +232,8 @@ class EnumCreator {
         requiredParameterCount: 1,
         type: new FunctionType(constructor, const VoidType(),
             <DartType>[intType]));
-    constructor.functionSignatureCache = constructorSignature;
-    enumClass.addMember(constructor, compiler);
+    constructor.functionSignature = constructorSignature;
+    enumClass.addMember(constructor, reporter);
 
     List<FieldElement> enumValues = <FieldElement>[];
     VariableList variableList =
@@ -256,14 +265,13 @@ class EnumCreator {
       EnumFieldElementX field = new EnumFieldElementX(
           name, enumClass, variableList, definition, initializer);
       enumValues.add(field);
-      enumClass.addMember(field, compiler);
+      enumClass.addMember(field, reporter);
       index++;
     }
 
     VariableList valuesVariableList =
         new VariableList(builder.modifiers(isStatic: true, isConst: true));
-    InterfaceType listType = compiler.listClass.computeType(compiler);
-    valuesVariableList.type = listType.createInstantiation([enumType]);
+    valuesVariableList.type = coreTypes.listType(enumType);
 
     Identifier valuesIdentifier = builder.identifier('values');
     // TODO(johnniwinther): Add type argument.
@@ -276,7 +284,7 @@ class EnumCreator {
         valuesIdentifier, enumClass, valuesVariableList,
         definition, initializer);
 
-    enumClass.addMember(valuesVariable, compiler);
+    enumClass.addMember(valuesVariable, reporter);
 
     // TODO(johnniwinther): Support return type. Note `String` might be prefixed
     // or not imported within the current library.
@@ -295,8 +303,8 @@ class EnumCreator {
         enumClass, Modifiers.EMPTY, toStringNode);
     FunctionSignatureX toStringSignature = new FunctionSignatureX(
         type: new FunctionType(toString, stringType));
-    toString.functionSignatureCache = toStringSignature;
-    enumClass.addMember(toString, compiler);
+    toString.functionSignature = toStringSignature;
+    enumClass.addMember(toString, reporter);
 
     enumClass.enumValues = enumValues;
   }

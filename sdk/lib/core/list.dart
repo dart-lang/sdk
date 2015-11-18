@@ -159,7 +159,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    * Throws an [UnsupportedError] if the list is fixed-length.
    */
-  void set length(int newLength);
+  set length(int newLength);
 
   /**
    * Adds [value] to the end of this list,

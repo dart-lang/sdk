@@ -208,10 +208,11 @@ class BlockGraphBuilder extends RecursiveVisitor {
     visitStatement(node.body); // visitContinue will add predecessors to join.
   }
 
-  visitWhileCondition(WhileCondition node) {
-    Block join = _jumpTarget[node.label] = newBlock();
-    join.predecessors.add(_currentBlock);
-    _currentBlock = join;
+  visitFor(For node) {
+    Block entry = _currentBlock;
+    _currentBlock = _jumpTarget[node.label] = newBlock();
+    node.updates.forEach(visitExpression);
+    joinFrom(entry, _currentBlock);
     visitExpression(node.condition);
     Block afterCondition = _currentBlock;
     branchFrom(afterCondition);

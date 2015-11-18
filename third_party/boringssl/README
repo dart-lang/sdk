@@ -1,0 +1,17 @@
+The files in this directory, except for src/, boringssl_dart.gyp, and
+boringssl_configurations.gypi, are generated from the checkout of
+boringssl in src/, by running the script
+src/util/generate_build_files.py chromium.
+
+That script is maintained by the chromium team, to make a gyp build
+of boringssl that does not require go or perl.  We modify the main
+gyp file of this build, boringssl.gyp, to add configurations for
+the target architectures, creating boringssl_dart.gyp.
+
+When updating boringssl in Dart, delete this directory,
+and check out the new boringssl to src.  Then run the script, check out
+our two files boringssl_dart.gyp and boringssl_configurations.gypi and commit
+the changes and any added or deleted files, as well as a change to the
+boringssl revision in DEPS.  If there are changes in boringssl.gyp,
+consider making  similar changes to boringssl_dart.gyp
+Test the changes on all platforms before committing, of course.

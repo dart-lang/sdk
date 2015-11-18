@@ -17,6 +17,7 @@ namespace dart {
 #if defined(USING_SIMULATOR)
 DECLARE_FLAG(int, trace_sim_after);
 #endif
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
@@ -52,7 +53,7 @@ static bool CanEncodeBranchOffset(int32_t offset) {
 int32_t Assembler::EncodeBranchOffset(int32_t offset, int32_t instr) {
   if (!CanEncodeBranchOffset(offset)) {
     ASSERT(!use_far_branches());
-    Isolate::Current()->long_jump_base()->Jump(
+    Thread::Current()->long_jump_base()->Jump(
         1, Object::branch_offset_error());
   }
 
@@ -354,22 +355,24 @@ void Assembler::Bind(Label* label) {
 }
 
 
-void Assembler::LoadWordFromPoolOffset(Register rd, int32_t offset) {
-  ASSERT(constant_pool_allowed());
+void Assembler::LoadWordFromPoolOffset(Register rd,
+                                       int32_t offset,
+                                       Register pp) {
+  ASSERT((pp != PP) || constant_pool_allowed());
   ASSERT(!in_delay_slot_);
-  ASSERT(rd != PP);
+  ASSERT(rd != pp);
   if (Address::CanHoldOffset(offset)) {
-    lw(rd, Address(PP, offset));
+    lw(rd, Address(pp, offset));
   } else {
     const int16_t offset_low = Utils::Low16Bits(offset);  // Signed.
     offset -= offset_low;
     const uint16_t offset_high = Utils::High16Bits(offset);  // Unsigned.
     if (offset_high != 0) {
       lui(rd, Immediate(offset_high));
-      addu(rd, rd, PP);
+      addu(rd, rd, pp);
       lw(rd, Address(rd, offset_low));
     } else {
-      lw(rd, Address(PP, offset_low));
+      lw(rd, Address(pp, offset_low));
     }
   }
 }
@@ -456,64 +459,116 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 }
 
 
-void Assembler::Branch(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  Branch(&label);
+void Assembler::CheckCodePointer() {
+#ifdef DEBUG
+  Label cid_ok, instructions_ok;
+  Push(CMPRES1);
+  Push(CMPRES2);
+  LoadClassId(CMPRES1, CODE_REG);
+  BranchEqual(CMPRES1, Immediate(kCodeCid), &cid_ok);
+  break_(0);
+  Bind(&cid_ok);
+  GetNextPC(CMPRES1, TMP);
+  const intptr_t entry_offset = CodeSize() - Instr::kInstrSize +
+      Instructions::HeaderSize() - kHeapObjectTag;
+  AddImmediate(CMPRES1, CMPRES1, -entry_offset);
+  lw(CMPRES2, FieldAddress(CODE_REG, Code::saved_instructions_offset()));
+  BranchEqual(CMPRES1, CMPRES2, &instructions_ok);
+  break_(1);
+  Bind(&instructions_ok);
+  Pop(CMPRES2);
+  Pop(CMPRES1);
+#endif
 }
 
 
-void Assembler::BranchPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchPatchable(&label);
+void Assembler::RestoreCodePointer() {
+  lw(CODE_REG, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  CheckCodePointer();
 }
 
 
-void Assembler::BranchLink(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label);
+void Assembler::Branch(const StubEntry& stub_entry, Register pp) {
+  ASSERT(!in_delay_slot_);
+  const Code& target_code = Code::Handle(stub_entry.code());
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target_code, kPatchable));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, pp);
+  lw(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  jr(TMP);
+}
+
+
+void Assembler::BranchLink(const ExternalLabel* label) {
+  ASSERT(!in_delay_slot_);
+  LoadImmediate(T9, label->address());
+  jalr(T9);
+}
+
+
+void Assembler::BranchLink(const Code& target, Patchability patchable) {
+  ASSERT(!in_delay_slot_);
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, patchable));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  lw(T9, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  jalr(T9);
+  if (patchable == kPatchable) {
+    delay_slot_available_ = false;  // CodePatcher expects a nop.
+  }
 }
 
 
 void Assembler::BranchLink(const StubEntry& stub_entry,
                            Patchability patchable) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label, patchable);
+  BranchLink(Code::Handle(stub_entry.code()), patchable);
 }
 
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  BranchLink(&label, kPatchable);
+  BranchLink(Code::Handle(stub_entry.code()), kPatchable);
+}
+
+
+bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!Thread::CanLoadFromThread(object));
+  if (!constant_pool_allowed()) {
+    return false;
+  }
+
+  ASSERT(object.IsNotTemporaryScopedHandle());
+  ASSERT(object.IsOld());
+  return true;
 }
 
 
 void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  bool is_unique) {
-  // Load common VM constants from the thread. This works also in places where
-  // no constant pool is set up (e.g. intrinsic code).
-  if (Thread::CanLoadFromThread(object)) {
-    lw(rd, Address(THR, Thread::OffsetFromThread(object)));
-    return;
-  }
   ASSERT(!in_delay_slot_);
-  // Smis and VM heap objects are never relocated; do not use object pool.
-  if (object.IsSmi()) {
+  if (Thread::CanLoadFromThread(object)) {
+    // Load common VM constants from the thread. This works also in places where
+    // no constant pool is set up (e.g. intrinsic code).
+    lw(rd, Address(THR, Thread::OffsetFromThread(object)));
+  } else if (object.IsSmi()) {
+    // Relocation doesn't apply to Smis.
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()));
-  } else if (object.InVMHeap() || !constant_pool_allowed()) {
-    // Make sure that class CallPattern is able to decode this load immediate.
-    int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
-    const uint16_t object_low = Utils::Low16Bits(object_raw);
-    const uint16_t object_high = Utils::High16Bits(object_raw);
-    lui(rd, Immediate(object_high));
-    ori(rd, rd, Immediate(object_low));
-  } else {
+  } else if (CanLoadFromObjectPool(object)) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset = ObjectPool::element_offset(
         is_unique ? object_pool_wrapper_.AddObject(object)
                   : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
+  } else {
+    ASSERT(FLAG_allow_absolute_addresses);
+    ASSERT(object.IsOld());
+    // Make sure that class CallPattern is able to decode this load immediate.
+    int32_t object_raw = reinterpret_cast<int32_t>(object.raw());
+    const uint16_t object_low = Utils::Low16Bits(object_raw);
+    const uint16_t object_high = Utils::High16Bits(object_raw);
+    lui(rd, Immediate(object_high));
+    ori(rd, rd, Immediate(object_low));
   }
 }
 
@@ -528,11 +583,20 @@ void Assembler::LoadUniqueObject(Register rd, const Object& object) {
 }
 
 
-void Assembler::LoadExternalLabel(Register rd,
-                                  const ExternalLabel* label,
-                                  Patchability patchable) {
+void Assembler::LoadFunctionFromCalleePool(Register dst,
+                                           const Function& function,
+                                           Register new_pp) {
+  const int32_t offset =
+      ObjectPool::element_offset(object_pool_wrapper_.FindObject(function));
+  LoadWordFromPoolOffset(dst, offset - kHeapObjectTag, new_pp);
+}
+
+
+void Assembler::LoadNativeEntry(Register rd,
+                                const ExternalLabel* label,
+                                Patchability patchable) {
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, patchable));
+      object_pool_wrapper_.FindNativeEntry(label, patchable));
   LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
 }
 
@@ -605,6 +669,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != T0) {
     mov(T0, object);
   }
+  lw(CODE_REG, Address(THR, Thread::update_store_buffer_code_offset()));
   lw(T9, Address(THR, Thread::update_store_buffer_entry_point_offset()));
   jalr(T9);
   lw(RA, Address(SP, 0 * kWordSize));
@@ -720,15 +785,14 @@ void Assembler::LoadClass(Register result, Register object) {
 
 
 void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
-  static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
-
-  LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
+  Label heap_object, done;
   andi(CMPRES1, object, Immediate(kSmiTagMask));
-  if (result != object) {
-    mov(result, object);
-  }
-  movz(result, TMP, CMPRES1);
-  LoadClassId(result, result);
+  bne(CMPRES1, ZR, &heap_object);
+  LoadImmediate(result, kSmiCid);
+  b(&done);
+  Bind(&heap_object);
+  LoadClassId(result, object);
+  Bind(&done);
 }
 
 
@@ -800,38 +864,18 @@ void Assembler::LeaveFrameAndReturn() {
 }
 
 
-void Assembler::EnterStubFrame() {
-  ASSERT(!in_delay_slot_);
-  SetPrologueOffset();
-  addiu(SP, SP, Immediate(-4 * kWordSize));
-  sw(ZR, Address(SP, 3 * kWordSize));  // PC marker is 0 in stubs.
-  sw(RA, Address(SP, 2 * kWordSize));
-  sw(FP, Address(SP, 1 * kWordSize));
-  sw(PP, Address(SP, 0 * kWordSize));
-  addiu(FP, SP, Immediate(1 * kWordSize));
-  // Setup pool pointer for this stub.
-  LoadPoolPointer();
+void Assembler::EnterStubFrame(intptr_t frame_size) {
+  EnterDartFrame(frame_size);
 }
 
 
 void Assembler::LeaveStubFrame() {
-  ASSERT(!in_delay_slot_);
-  addiu(SP, FP, Immediate(-1 * kWordSize));
-  lw(RA, Address(SP, 2 * kWordSize));
-  lw(FP, Address(SP, 1 * kWordSize));
-  lw(PP, Address(SP, 0 * kWordSize));
-  addiu(SP, SP, Immediate(4 * kWordSize));
+  LeaveDartFrame();
 }
 
 
 void Assembler::LeaveStubFrameAndReturn(Register ra) {
-  ASSERT(!in_delay_slot_);
-  addiu(SP, FP, Immediate(-1 * kWordSize));
-  lw(RA, Address(SP, 2 * kWordSize));
-  lw(FP, Address(SP, 1 * kWordSize));
-  lw(PP, Address(SP, 0 * kWordSize));
-  jr(ra);
-  delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
+  LeaveDartFrameAndReturn(ra);
 }
 
 
@@ -846,6 +890,7 @@ void Assembler::UpdateAllocationStats(intptr_t cid,
   intptr_t counter_offset =
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {
@@ -924,6 +969,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
   ASSERT(temp_reg != TMP);
   intptr_t state_offset = ClassTable::StateOffsetFor(cid);
   if (inline_isolate) {
+    ASSERT(FLAG_allow_absolute_addresses);
     ClassTable* class_table = Isolate::Current()->class_table();
     ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
     if (cid < kNumPredefinedCids) {
@@ -1002,7 +1048,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
-    MaybeTraceAllocation(cid, temp1, failure);
+    MaybeTraceAllocation(cid, temp1, failure, /* inline_isolate = */ false);
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
     Heap::Space space = heap->SpaceForAllocation(cid);
@@ -1049,31 +1095,19 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   ASSERT(!in_delay_slot_);
-  const intptr_t offset = CodeSize();
 
   SetPrologueOffset();
 
   addiu(SP, SP, Immediate(-4 * kWordSize));
-  sw(RA, Address(SP, 2 * kWordSize));
-  sw(FP, Address(SP, 1 * kWordSize));
+  sw(RA, Address(SP, 3 * kWordSize));
+  sw(FP, Address(SP, 2 * kWordSize));
+  sw(CODE_REG, Address(SP, 1 * kWordSize));
   sw(PP, Address(SP, 0 * kWordSize));
 
-  GetNextPC(TMP);  // TMP gets the address of the next instruction.
-
-  // Calculate the offset of the pool pointer from the PC.
-  const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset() +
-      CodeSize();
-
-  // Save PC in frame for fast identification of corresponding code.
-  AddImmediate(TMP, -offset);
-  sw(TMP, Address(SP, 3 * kWordSize));
-
   // Set FP to the saved previous FP.
-  addiu(FP, SP, Immediate(kWordSize));
+  addiu(FP, SP, Immediate(2 * kWordSize));
 
-  // Load the pool pointer. offset has already been subtracted from TMP.
-  lw(PP, Address(TMP, -object_pool_pc_dist + offset));
+  LoadPoolPointer();
 
   // Reserve space for locals.
   AddImmediate(SP, -frame_size);
@@ -1089,55 +1123,43 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
   ASSERT(!in_delay_slot_);
   Comment("EnterOsrFrame");
 
-  GetNextPC(TMP);  // TMP gets the address of the next instruction.
-
-  // The runtime system assumes that the code marker address is
-  // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
-  // code to set up the frame pointer, etc., the address needs to be adjusted.
-  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
-  // Calculate the offset of the pool pointer from the PC.
-  const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset() +
-      CodeSize();
-
-  // Adjust PC by the offset, and store it in the stack frame.
-  AddImmediate(TMP, TMP, offset);
-  sw(TMP, Address(FP, kPcMarkerSlotFromFp * kWordSize));
-
   // Restore return address.
   lw(RA, Address(FP, 1 * kWordSize));
 
   // Load the pool pointer. offset has already been subtracted from temp.
-  lw(PP, Address(TMP, -object_pool_pc_dist - offset));
+  RestoreCodePointer();
+  LoadPoolPointer();
 
   // Reserve space for locals.
   AddImmediate(SP, -extra_size);
 }
 
 
-void Assembler::LeaveDartFrame() {
+void Assembler::LeaveDartFrame(RestorePP restore_pp) {
   ASSERT(!in_delay_slot_);
-  addiu(SP, FP, Immediate(-kWordSize));
+  addiu(SP, FP, Immediate(-2 * kWordSize));
 
-  lw(RA, Address(SP, 2 * kWordSize));
-  lw(FP, Address(SP, 1 * kWordSize));
-  lw(PP, Address(SP, 0 * kWordSize));
+  lw(RA, Address(SP, 3 * kWordSize));
+  lw(FP, Address(SP, 2 * kWordSize));
+  if (restore_pp == kRestoreCallerPP) {
+    lw(PP, Address(SP, 0 * kWordSize));
+  }
 
   // Adjust SP for PC, RA, FP, PP pushed in EnterDartFrame.
   addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
 
-void Assembler::LeaveDartFrameAndReturn() {
+void Assembler::LeaveDartFrameAndReturn(Register ra) {
   ASSERT(!in_delay_slot_);
-  addiu(SP, FP, Immediate(-kWordSize));
+  addiu(SP, FP, Immediate(-2 * kWordSize));
 
-  lw(RA, Address(SP, 2 * kWordSize));
-  lw(FP, Address(SP, 1 * kWordSize));
+  lw(RA, Address(SP, 3 * kWordSize));
+  lw(FP, Address(SP, 2 * kWordSize));
   lw(PP, Address(SP, 0 * kWordSize));
 
   // Adjust SP for PC, RA, FP, PP pushed in EnterDartFrame, and return.
-  Ret();
+  jr(ra);
   delay_slot()->addiu(SP, SP, Immediate(4 * kWordSize));
 }
 
@@ -1158,7 +1180,7 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   ASSERT(!in_delay_slot_);
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
-      2 * kWordSize +  // FP and RA.
+      3 * kWordSize +  // PP, FP and RA.
       kDartVolatileFpuRegCount * kWordSize;
 
   SetPrologueOffset();
@@ -1179,18 +1201,21 @@ void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
   for (int i = kDartFirstVolatileFpuReg; i <= kDartLastVolatileFpuReg; i++) {
     // These go above the volatile CPU registers.
     const int slot =
-        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 2;
+        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 3;
     FRegister reg = static_cast<FRegister>(i);
     swc1(reg, Address(SP, slot * kWordSize));
   }
   for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
     // + 2 because FP goes in slot 0.
-    const int slot = (i - kDartFirstVolatileCpuReg) + 2;
+    const int slot = (i - kDartFirstVolatileCpuReg) + 3;
     Register reg = static_cast<Register>(i);
     sw(reg, Address(SP, slot * kWordSize));
   }
-  sw(RA, Address(SP, 1 * kWordSize));
-  sw(FP, Address(SP, 0 * kWordSize));
+  sw(RA, Address(SP, 2 * kWordSize));
+  sw(FP, Address(SP, 1 * kWordSize));
+  sw(PP, Address(SP, 0 * kWordSize));
+  LoadPoolPointer();
+
   mov(FP, SP);
 
   ReserveAlignedFrameSpace(frame_space);
@@ -1201,7 +1226,7 @@ void Assembler::LeaveCallRuntimeFrame() {
   ASSERT(!in_delay_slot_);
   const intptr_t kPushedRegistersSize =
       kDartVolatileCpuRegCount * kWordSize +
-      2 * kWordSize +  // FP and RA.
+      3 * kWordSize +  // FP and RA.
       kDartVolatileFpuRegCount * kWordSize;
 
   Comment("LeaveCallRuntimeFrame");
@@ -1212,18 +1237,19 @@ void Assembler::LeaveCallRuntimeFrame() {
   mov(SP, FP);
 
   // Restore volatile CPU and FPU registers from the stack.
-  lw(FP, Address(SP, 0 * kWordSize));
-  lw(RA, Address(SP, 1 * kWordSize));
+  lw(PP, Address(SP, 0 * kWordSize));
+  lw(FP, Address(SP, 1 * kWordSize));
+  lw(RA, Address(SP, 2 * kWordSize));
   for (int i = kDartFirstVolatileCpuReg; i <= kDartLastVolatileCpuReg; i++) {
     // + 2 because FP goes in slot 0.
-    const int slot = (i - kDartFirstVolatileCpuReg) + 2;
+    const int slot = (i - kDartFirstVolatileCpuReg) + 3;
     Register reg = static_cast<Register>(i);
     lw(reg, Address(SP, slot * kWordSize));
   }
   for (int i = kDartFirstVolatileFpuReg; i <= kDartLastVolatileFpuReg; i++) {
     // These go above the volatile CPU registers.
     const int slot =
-        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 2;
+        (i - kDartFirstVolatileFpuReg) + kDartVolatileCpuRegCount + 3;
     FRegister reg = static_cast<FRegister>(i);
     lwc1(reg, Address(SP, slot * kWordSize));
   }

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.source;
 
 import 'dart:collection';
@@ -275,6 +272,9 @@ class LineInfo_Location {
    * @param columnNumber the one-based index of the column containing the character
    */
   LineInfo_Location(this.lineNumber, this.columnNumber);
+
+  @override
+  String toString() => '$lineNumber:$columnNumber';
 }
 
 /**
@@ -605,8 +605,8 @@ class SourceFactory {
   SourceFactory(this._resolvers,
       [this._packages, ResourceProvider resourceProvider])
       : _resourceProvider = resourceProvider != null
-          ? resourceProvider
-          : PhysicalResourceProvider.INSTANCE;
+            ? resourceProvider
+            : PhysicalResourceProvider.INSTANCE;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
@@ -642,16 +642,17 @@ class SourceFactory {
       Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
       _packages.asMap().forEach((String name, Uri uri) {
         if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-          packageMap[name] =
-              <Folder>[_resourceProvider.getFolder(uri.toFilePath())];
+          packageMap[name] = <Folder>[
+            _resourceProvider.getFolder(uri.toFilePath())
+          ];
         }
       });
       return packageMap;
     }
 
     // Default to the PackageMapUriResolver.
-    PackageMapUriResolver resolver = _resolvers.firstWhere(
-        (r) => r is PackageMapUriResolver, orElse: () => null);
+    PackageMapUriResolver resolver = _resolvers
+        .firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
     return resolver != null ? resolver.packageMap : null;
   }
 
@@ -1076,11 +1077,10 @@ abstract class UriResolver {
   Source resolveAbsolute(Uri uri, [Uri actualUri]);
 
   /**
-   * Return an absolute URI that represents the given source, or `null` if a valid URI cannot
-   * be computed.
+   * Return an absolute URI that represents the given [source], or `null` if a
+   * valid URI cannot be computed.
    *
-   * @param source the source to get URI for
-   * @return the absolute URI representing the given source
+   * The computation should be based solely on [source.fullName].
    */
   Uri restoreAbsolute(Source source) => null;
 }

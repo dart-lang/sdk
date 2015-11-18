@@ -4,7 +4,7 @@
 
 library services.completion.dart.optype;
 
-import 'package:analysis_server/src/services/completion/completion_target.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -14,7 +14,6 @@ import 'package:analyzer/src/generated/scanner.dart';
  * suggestions were requested.
  */
 class OpType {
-
   /**
    * Indicates whether constructor suggestions should be included.
    */
@@ -48,6 +47,11 @@ class OpType {
   bool includeCaseLabelSuggestions = false;
 
   /**
+   * Indicates whether the completion location is in the body of a static method.
+   */
+  bool inStaticMethodBody = false;
+
+  /**
    * Indicates whether the completion target is prefixed.
    */
   bool isPrefixed = false;
@@ -60,6 +64,10 @@ class OpType {
     OpType optype = new OpType._();
     target.containingNode
         .accept(new _OpTypeAstVisitor(optype, target.entity, offset));
+    var mthDecl =
+        target.containingNode.getAncestor((p) => p is MethodDeclaration);
+    optype.inStaticMethodBody =
+        mthDecl is MethodDeclaration && mthDecl.isStatic;
     return optype;
   }
 
@@ -74,7 +82,6 @@ class OpType {
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
-
   /**
    * The entity (AstNode or Token) which will be replaced or displaced by the
    * added text.
@@ -288,6 +295,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    if (entity == node.identifier) {
+      optype.isPrefixed = true;
+    } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitForEachStatement(ForEachStatement node) {
     if (identical(entity, node.identifier)) {
       optype.includeTypeNameSuggestions = true;
@@ -308,7 +325,36 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    optype.includeTypeNameSuggestions = true;
+    dynamic entity = this.entity;
+    if (entity is Token && entity.previous != null) {
+      TokenType type = entity.previous.type;
+      if (type == TokenType.OPEN_PAREN || type == TokenType.COMMA) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
+    // Handle default normal parameter just as a normal parameter.
+    if (entity is DefaultFormalParameter) {
+      entity = entity.parameter;
+    }
+    // "(^ this.field)"
+    if (entity is FieldFormalParameter) {
+      if (offset < entity.thisKeyword.offset) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
+    // "(Type name)"
+    if (entity is SimpleFormalParameter) {
+      // "(Type^)" is parsed as a parameter with the _name_ "Type".
+      if (entity.type == null) {
+        optype.includeTypeNameSuggestions = true;
+      }
+      // If inside of "Type" in "(Type^ name)", then include types.
+      if (entity.type != null &&
+          entity.type.offset <= offset &&
+          offset <= entity.type.end) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
   }
 
   @override
@@ -442,19 +488,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    if (entity == node.identifier) {
-      optype.isPrefixed = true;
-    } else {
+  void visitNormalFormalParameter(NormalFormalParameter node) {
+    if (node.identifier != entity) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
-  }
-
-  @override
-  void visitNormalFormalParameter(NormalFormalParameter node) {
-    optype.includeReturnValueSuggestions = true;
-    optype.includeTypeNameSuggestions = true;
   }
 
   void visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -472,7 +510,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (identical(entity, node.identifier)) {
+    if (identical(entity, node.identifier) ||
+        // In addition to the standard case,
+        // handle the exceptional case where the parser considers the would-be
+        // identifier to be a keyword and inserts a synthetic identifier
+        (node.identifier != null &&
+            node.identifier.isSynthetic &&
+            identical(entity, node.identifier.beginToken.previous))) {
       optype.isPrefixed = true;
       if (node.parent is TypeName && node.parent.parent is ConstructorName) {
         optype.includeConstructorSuggestions = true;
@@ -562,9 +606,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (entity is SwitchMember && entity != node.members.first) {
       SwitchMember member = entity as SwitchMember;
       if (offset <= member.offset) {
-          optype.includeReturnValueSuggestions = true;
-          optype.includeTypeNameSuggestions = true;
-          optype.includeVoidReturnSuggestions = true;
+        optype.includeReturnValueSuggestions = true;
+        optype.includeTypeNameSuggestions = true;
+        optype.includeVoidReturnSuggestions = true;
       }
     }
   }

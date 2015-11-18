@@ -4,7 +4,7 @@
 
 library services.src.refactoring.sort_members;
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -15,6 +15,8 @@ import 'package:analyzer/src/generated/scanner.dart';
 class MemberSorter {
   static List<_PriorityItem> _PRIORITY_ITEMS = [
     new _PriorityItem(false, _MemberKind.UNIT_FUNCTION_MAIN, false),
+    new _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, false),
+    new _PriorityItem(false, _MemberKind.UNIT_VARIABLE_CONST, true),
     new _PriorityItem(false, _MemberKind.UNIT_VARIABLE, false),
     new _PriorityItem(false, _MemberKind.UNIT_VARIABLE, true),
     new _PriorityItem(false, _MemberKind.UNIT_ACCESSOR, false),
@@ -67,7 +69,8 @@ class MemberSorter {
       String suffix = code.substring(code.length - suffixLength, code.length);
       int commonLength = findCommonOverlap(prefix, suffix);
       suffixLength -= commonLength;
-      SourceEdit edit = new SourceEdit(prefixLength,
+      SourceEdit edit = new SourceEdit(
+          prefixLength,
           initialCode.length - suffixLength - prefixLength,
           code.substring(prefixLength, code.length - suffixLength));
       edits.add(edit);
@@ -300,7 +303,11 @@ class MemberSorter {
         List<VariableDeclaration> variables =
             variableDeclaration.variables.variables;
         if (!variables.isEmpty) {
-          kind = _MemberKind.UNIT_VARIABLE;
+          if (variableDeclaration.variables.isConst) {
+            kind = _MemberKind.UNIT_VARIABLE_CONST;
+          } else {
+            kind = _MemberKind.UNIT_VARIABLE;
+          }
           name = variables[0].name.name;
         }
       }
@@ -443,11 +450,12 @@ class _MemberKind {
   static const UNIT_FUNCTION = const _MemberKind('UNIT_FUNCTION', 2);
   static const UNIT_FUNCTION_TYPE = const _MemberKind('UNIT_FUNCTION_TYPE', 3);
   static const UNIT_CLASS = const _MemberKind('UNIT_CLASS', 4);
-  static const UNIT_VARIABLE = const _MemberKind('UNIT_VARIABLE', 5);
-  static const CLASS_ACCESSOR = const _MemberKind('CLASS_ACCESSOR', 6);
-  static const CLASS_CONSTRUCTOR = const _MemberKind('CLASS_CONSTRUCTOR', 7);
-  static const CLASS_FIELD = const _MemberKind('CLASS_FIELD', 8);
-  static const CLASS_METHOD = const _MemberKind('CLASS_METHOD', 9);
+  static const UNIT_VARIABLE_CONST = const _MemberKind('UNIT_VARIABLE', 5);
+  static const UNIT_VARIABLE = const _MemberKind('UNIT_VARIABLE', 6);
+  static const CLASS_ACCESSOR = const _MemberKind('CLASS_ACCESSOR', 7);
+  static const CLASS_CONSTRUCTOR = const _MemberKind('CLASS_CONSTRUCTOR', 8);
+  static const CLASS_FIELD = const _MemberKind('CLASS_FIELD', 9);
+  static const CLASS_METHOD = const _MemberKind('CLASS_METHOD', 10);
 
   final String name;
   final int ordinal;

@@ -19,6 +19,9 @@
 
   <div class="content-centered-big">
     <h1>script {{ script.name }}</h1>
+    <object-common object="{{ script }}"></object-common>
+    <br>
+
     <hr>
     <script-inset id="scriptInset" script="{{ script }}"
                   currentPos="{{ app.locationManager.internalArguments['pos'] | parseInt }}">

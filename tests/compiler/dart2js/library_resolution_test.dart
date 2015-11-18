@@ -17,12 +17,12 @@ import "package:async_helper/async_helper.dart";
 import 'package:expect/expect.dart' show
     Expect;
 
-import 'package:compiler/src/elements/elements.dart' show
-    LibraryElement;
-
-import 'package:compiler/src/dart2jslib.dart' show
+import 'package:compiler/src/diagnostics/messages.dart' show
     MessageKind,
     MessageTemplate;
+
+import 'package:compiler/src/elements/elements.dart' show
+    LibraryElement;
 
 import 'package:compiler/src/null_compiler_output.dart' show
     NullCompilerOutput;
@@ -37,13 +37,13 @@ import 'package:sdk_library_metadata/libraries.dart' show
 
 const LibraryInfo mock1LibraryInfo = const LibraryInfo(
     "mock1.dart",
-    category: "Shared",
+    categories: "Client,Embedded",
     documented: false,
     platforms: DART2JS_PLATFORM);
 
 const LibraryInfo mock2LibraryInfo = const LibraryInfo(
     "mock2.dart",
-    category: "Shared",
+    categories: "Client,Embedded",
     documented: false,
     platforms: DART2JS_PLATFORM);
 

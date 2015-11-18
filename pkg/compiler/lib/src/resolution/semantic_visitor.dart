@@ -4,20 +4,22 @@
 
 library dart2js.semantics_visitor;
 
+import '../common.dart';
 import '../constants/expressions.dart';
-import '../dart2jslib.dart' show invariant, MessageKind;
 import '../dart_types.dart';
-import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../universe/universe.dart';
-import '../util/util.dart' show Spannable, SpannableAssertionFailure;
-import 'access_semantics.dart';
+import '../elements/elements.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+
 import 'operators.dart';
-import 'resolution.dart';
+import 'send_resolver.dart';
 import 'send_structure.dart';
+import 'tree_elements.dart';
 
 part 'semantic_visitor_mixins.dart';
-part 'send_resolver.dart';
 
 /// Mixin that couples a [SendResolverMixin] to a [SemanticSendVisitor] in a
 /// [Visitor].
@@ -43,7 +45,7 @@ abstract class SemanticSendResolvedMixin<R, A>
     // TODO(johnniwinther): Support argument.
     A arg = null;
 
-    SendStructure structure = computeSendStructure(node);
+    SendStructure structure = elements.getSendStructure(node);
     if (structure == null) {
       return internalError(node, 'No structure for $node');
     } else {
@@ -322,7 +324,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg);
 
   /// Conditional (if not null) getter call on [receiver] of the property
@@ -335,7 +337,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertyGet(
       Send node,
       Node receiver,
-      Selector selector,
+      Name name,
       A arg);
 
   /// Setter call on [receiver] with argument [rhs] of the property defined by
@@ -350,7 +352,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg);
 
@@ -366,7 +368,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertySet(
       SendSet node,
       Node receiver,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg);
 
@@ -418,7 +420,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitThisPropertyGet(
       Send node,
-      Selector selector,
+      Name name,
       A arg);
 
   /// Setter call on `this` with argument [rhs] of the property defined by
@@ -438,7 +440,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitThisPropertySet(
       SendSet node,
-      Selector selector,
+      Name name,
       Node rhs,
       A arg);
 
@@ -740,7 +742,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       Node expression,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// Read of the static [field].
@@ -1296,32 +1298,6 @@ abstract class SemanticSendVisitor<R, A> {
       Node rhs,
       A arg);
 
-  /// Call to `assert` with [expression] as the condition.
-  ///
-  /// For instance:
-  ///
-  ///     m() { assert(expression); }
-  ///
-  R visitAssert(
-      Send node,
-      Node expression,
-      A arg);
-
-  /// Call to `assert` with the wrong number of [arguments].
-  ///
-  /// For instance:
-  ///
-  ///     m() { assert(); }
-  ///
-  /// or
-  ///
-  ///     m() { assert(expression1, expression2); }
-  ///
-  R errorInvalidAssert(
-      Send node,
-      NodeList arguments,
-      A arg);
-
   /// Binary expression `left operator right` where [operator] is a user
   /// definable operator. Binary expressions using operator `==` are handled
   /// by [visitEquals] and index operations `a[b]` are handled by [visitIndex].
@@ -1874,10 +1850,9 @@ abstract class SemanticSendVisitor<R, A> {
   R visitDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Compound assignment expression of [rhs] with [operator] of the property on
@@ -1891,10 +1866,9 @@ abstract class SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertyCompound(
       Send node,
       Node receiver,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Compound assignment expression of [rhs] with [operator] of the property on
@@ -1915,10 +1889,9 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitThisPropertyCompound(
       Send node,
+      Name name,
       AssignmentOperator operator,
       Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Compound assignment expression of [rhs] with [operator] on a [parameter].
@@ -2188,6 +2161,705 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FieldElement field,
       AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the [name] property on
+  /// [receiver]. That is, [rhs] is only evaluated and assigned, if the value
+  /// of [name] on [receiver] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     m(receiver, rhs) => receiver.foo ??= rhs;
+  ///
+  R visitDynamicPropertySetIfNull(
+      Send node,
+      Node receiver,
+      Name name,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the [name] property on
+  /// [receiver] if not null. That is, [rhs] is only evaluated and assigned,
+  /// if the value of [receiver] is _not_ `null` and the value of [name] on
+  /// [receiver] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     m(receiver, rhs) => receiver?.foo ??= rhs;
+  ///
+  R visitIfNotNullDynamicPropertySetIfNull(
+      Send node,
+      Node receiver,
+      Name name,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the [name] property on `this`.
+  /// That is, [rhs] is only evaluated and assigned, if the value of [name] on
+  /// `this` is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class C {
+  ///       m(rhs) => this.foo ??= rhs;
+  ///     }
+  ///
+  /// or
+  ///
+  ///     class C {
+  ///       m(rhs) => foo ??= rhs;
+  ///     }
+  ///
+  R visitThisPropertySetIfNull(
+      Send node,
+      Name name,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to [parameter]. That is, [rhs] is
+  /// only evaluated and assigned, if the value of the [parameter] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     m(parameter, rhs) => parameter ??= rhs;
+  ///
+  R visitParameterSetIfNull(
+      Send node,
+      ParameterElement parameter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the final [parameter]. That is,
+  /// [rhs] is only evaluated and assigned, if the value of the [parameter] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     m(final parameter, rhs) => parameter ??= rhs;
+  ///
+  R visitFinalParameterSetIfNull(
+      Send node,
+      ParameterElement parameter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the local [variable]. That is,
+  /// [rhs] is only evaluated and assigned, if the value of the [variable] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     m(rhs) {
+  ///       var variable;
+  ///       variable ??= rhs;
+  ///     }
+  ///
+  R visitLocalVariableSetIfNull(
+      Send node,
+      LocalVariableElement variable,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the final local [variable]. That
+  /// is, [rhs] is only evaluated and assigned, if the value of the [variable]
+  /// is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     m(rhs) {
+  ///       final variable = 0;
+  ///       variable ??= rhs;
+  ///     }
+  ///
+  R visitFinalLocalVariableSetIfNull(
+      Send node,
+      LocalVariableElement variable,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the local [function]. That is,
+  /// [rhs] is only evaluated and assigned, if the value of the [function] is
+  /// `null`. The behavior is thus equivalent to a closurization of [function].
+  ///
+  /// For instance:
+  ///
+  ///     m(rhs) {
+  ///       function() {}
+  ///       function ??= rhs;
+  ///     }
+  ///
+  R visitLocalFunctionSetIfNull(
+      Send node,
+      LocalFunctionElement function,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the static [field]. That is,
+  /// [rhs] is only evaluated and assigned, if the value of the [field] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class C {
+  ///       static var field;
+  ///       m(rhs) => field ??= rhs;
+  ///     }
+  ///
+  R visitStaticFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the final static [field]. That
+  /// is, [rhs] is only evaluated and assigned, if the value of the [field] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class C {
+  ///       static final field = 0;
+  ///       m(rhs) => field ??= rhs;
+  ///     }
+  ///
+  R visitFinalStaticFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the static property defined by
+  /// [getter] and [setter]. That is, [rhs] is only evaluated and assigned to
+  /// the [setter], if the value of the [getter] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class C {
+  ///       static get o => 0;
+  ///       static set o(_) {}
+  ///       m(rhs) => o ??= rhs;
+  ///     }
+  ///
+  R visitStaticGetterSetterSetIfNull(
+      Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the static property defined by
+  /// [method] and [setter]. That is, [rhs] is only evaluated and assigned to
+  /// the [setter], if the value of the [method] is `null`. The behavior is thus
+  /// equivalent to a closurization of [method].
+  ///
+  /// For instance:
+  ///
+  ///     class C {
+  ///       static o() {}
+  ///       static set o(_) {}
+  ///       m(rhs) => o ??= rhs;
+  ///     }
+  ///
+  R visitStaticMethodSetterSetIfNull(
+      Send node,
+      MethodElement method,
+      MethodElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the static [method]. That is,
+  /// [rhs] is only evaluated and assigned, if the value of the [method] is
+  /// `null`. The behavior is thus equivalent to a closurization of [method].
+  ///
+  /// For instance:
+  ///
+  ///     o() {}
+  ///     m(rhs) => o ??= rhs;
+  ///
+  R visitStaticMethodSetIfNull(
+      Send node,
+      FunctionElement method,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the top level [field]. That is,
+  /// [rhs] is only evaluated and assigned, if the value of the [field] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     var field;
+  ///     m(rhs) => field ??= rhs;
+  ///
+  R visitTopLevelFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the final top level [field].
+  /// That is, [rhs] is only evaluated and assigned, if the value of the [field]
+  /// is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     final field = 0;
+  ///     m(rhs) => field ??= rhs;
+  ///
+  R visitFinalTopLevelFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the top level property defined
+  /// by [getter] and [setter]. That is, [rhs] is only evaluated and assigned to
+  /// the [setter], if the value of the [getter] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     get o => 0;
+  ///     set o(_) {}
+  ///     m(rhs) => o ??= rhs;
+  ///
+  R visitTopLevelGetterSetterSetIfNull(
+      Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the top level property defined
+  /// by [method] and [setter]. That is, [rhs] is only evaluated and assigned to
+  /// the [setter], if the value of the [method] is `null`. The behavior is thus
+  /// equivalent to a closurization of [method].
+  ///
+  /// For instance:
+  ///
+  ///     o() {}
+  ///     set o(_) {}
+  ///     m(rhs) => o ??= rhs;
+  ///
+  R visitTopLevelMethodSetterSetIfNull(
+      Send node,
+      FunctionElement method,
+      FunctionElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the top level [method]. That is,
+  /// [rhs] is only evaluated and assigned, if the value of the [method] is
+  /// `null`. The behavior is thus equivalent to a closurization of [method].
+  ///
+  /// For instance:
+  ///
+  ///     o() {}
+  ///     m(rhs) => o ??= rhs;
+  ///
+  R visitTopLevelMethodSetIfNull(
+      Send node,
+      FunctionElement method,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the super [field]. That is,
+  /// [rhs] is only evaluated and assigned, if the value of the [field] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       var field;
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.field ??= rhs;
+  ///     }
+  ///
+  R visitSuperFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the final super [field]. That
+  /// is, [rhs] is only evaluated and assigned, if the value of the [field] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       final field = 42;
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.field ??= rhs;
+  ///     }
+  ///
+  R visitFinalSuperFieldSetIfNull(
+      Send node,
+      FieldElement field,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the super property defined
+  /// by [readField] and [writtenField]. That is, [rhs] is only evaluated and
+  /// assigned to the [writtenField], if the value of the [readField] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class A {
+  ///       var field;
+  ///     }
+  ///     class B extends A {
+  ///       final field;
+  ///     }
+  ///     class C extends B {
+  ///       m() => super.field ??= rhs;
+  ///     }
+  ///
+  R visitSuperFieldFieldSetIfNull(
+      Send node,
+      FieldElement readField,
+      FieldElement writtenField,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the super property defined
+  /// by [getter] and [setter]. That is, [rhs] is only evaluated and assigned to
+  /// the [setter], if the value of the [getter] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       get o => 0;
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o ??= rhs;
+  ///     }
+  ///
+  R visitSuperGetterSetterSetIfNull(
+      Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the super property defined
+  /// by [method] and [setter]. That is, [rhs] is only evaluated and assigned to
+  /// the [setter], if the value of the [method] is `null`. The behavior is thus
+  /// equivalent to a closurization of [method].
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       o() {}
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o ??= rhs;
+  ///     }
+  ///
+  R visitSuperMethodSetterSetIfNull(
+      Send node,
+      FunctionElement method,
+      FunctionElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the super [method].
+  /// That is, [rhs] is only evaluated and assigned, if the value of
+  /// the [method] is `null`. The behavior is thus equivalent to a closurization
+  /// of [method].
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       o() {}
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o ??= rhs;
+  ///     }
+  ///
+  R visitSuperMethodSetIfNull(
+      Send node,
+      FunctionElement method,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the super property defined
+  /// by [setter] with no corresponding getter. That is, [rhs] is only evaluated
+  /// and assigned to the [setter], if the value of the unresolved getter is
+  /// `null`. The behavior is thus equivalent to a no such method error.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o ??= rhs;
+  ///     }
+  ///
+  R visitUnresolvedSuperGetterSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the super property defined
+  /// by [getter] with no corresponding setter. That is, [rhs] is only evaluated
+  /// and assigned to the unresolved setter, if the value of the [getter] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       get o => 42;
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o ??= rhs;
+  ///     }
+  ///
+  R visitUnresolvedSuperSetterSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the top level property defined
+  /// by [field] and [setter]. That is, [rhs] is only evaluated and assigned to
+  /// the [setter], if the value of the [field] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class A {
+  ///       var o;
+  ///     }
+  ///     class B extends A {
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o ??= rhs;
+  ///     }
+  ///
+  R visitSuperFieldSetterSetIfNull(
+      Send node,
+      FieldElement field,
+      FunctionElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the top level property defined
+  /// by [getter] and [field]. That is, [rhs] is only evaluated and assigned to
+  /// the [field], if the value of the [getter] is `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class A {
+  ///       var o;
+  ///     }
+  ///     class B extends A {
+  ///       get o => 0;
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o ??= rhs;
+  ///     }
+  ///
+  R visitSuperGetterFieldSetIfNull(
+      Send node,
+      FunctionElement getter,
+      FieldElement field,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to an unresolved super property.
+  /// That is, [rhs] is only evaluated and assigned, if the value of the
+  /// unresolved property is `null`. The behavior is thus equivalent to a no
+  /// such method error.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.unresolved ??= rhs;
+  ///     }
+  ///
+  R visitUnresolvedSuperSetIfNull(
+      Send node,
+      Element element,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the static property defined
+  /// by [setter] with no corresponding getter. That is, [rhs] is only evaluated
+  /// and assigned to the [setter], if the value of the unresolved
+  /// getter is `null`. The behavior is thus equivalent to a no such method
+  /// error.
+  ///
+  /// For instance:
+  ///
+  ///     class C {
+  ///       set foo(_) {}
+  ///     }
+  ///     m1() => C.foo ??= 42;
+  ///
+  R visitUnresolvedStaticGetterSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the top level property defined
+  /// by [setter] with no corresponding getter. That is, [rhs] is only evaluated
+  /// and assigned to the [setter], if the value of the unresolved getter is
+  /// `null`. The behavior is thus equivalent to a no such method error.
+  ///
+  /// For instance:
+  ///
+  ///     set foo(_) {}
+  ///     m1() => foo ??= 42;
+  ///
+  R visitUnresolvedTopLevelGetterSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the static property defined
+  /// by [getter] with no corresponding setter. That is, [rhs] is only evaluated
+  /// and assigned to the unresolved setter, if the value of the [getter] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     class C {
+  ///       get foo => 42;
+  ///     }
+  ///     m1() => C.foo ??= 42;
+  ///
+  R visitUnresolvedStaticSetterSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the top level property defined
+  /// by [getter] with no corresponding setter. That is, [rhs] is only evaluated
+  /// and assigned to the unresolved setter, if the value of the [getter] is
+  /// `null`.
+  ///
+  /// For instance:
+  ///
+  ///     get foo => 42;
+  ///     m1() => foo ??= 42;
+  ///
+  R visitUnresolvedTopLevelSetterSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to an unresolved property.
+  /// That is, [rhs] is only evaluated and assigned, if the value of the
+  /// unresolved property is `null`. The behavior is thus equivalent to a no
+  /// such method error.
+  ///
+  /// For instance:
+  ///
+  ///     class C {}
+  ///     m1() => unresolved ??= 42;
+  ///     m2() => C.unresolved ??= 42;
+  ///
+  // TODO(johnniwinther): Split the cases in which a prefix is resolved.
+  R visitUnresolvedSetIfNull(
+      Send node,
+      Element element,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to an invalid expression.
+  ///
+  /// For instance:
+  ///
+  ///     import 'foo.dart' as p;
+  ///
+  ///     m() => p ??= 42;
+  ///
+  R errorInvalidSetIfNull(
+      Send node,
+      ErroneousElement error,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the class type literal
+  /// [contant]. That is, [rhs] is only evaluated and assigned, if the value
+  /// is of the [constant] is `null`. The behavior is thus equivalent to a type
+  /// literal access.
+  ///
+  /// For instance:
+  ///
+  ///     class C {}
+  ///     m(rhs) => C ??= rhs;
+  ///
+  R visitClassTypeLiteralSetIfNull(
+      Send node,
+      ConstantExpression constant,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the typedef type literal
+  /// [constant]. That is, [rhs] is only evaluated and assigned, if the value
+  /// is of the [constant] is `null`. The behavior is thus equivalent to a type
+  /// literal access.
+  ///
+  /// For instance:
+  ///
+  ///     typedef F();
+  ///     m(rhs) => F ??= rhs;
+  ///
+  R visitTypedefTypeLiteralSetIfNull(
+      Send node,
+      ConstantExpression constant,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the type literal for the type
+  /// variable [element]. That is, [rhs] is only evaluated and assigned, if
+  /// the value is of the [element] is `null`. The behavior is thus equivalent to
+  /// a type literal access.
+  ///
+  /// For instance:
+  ///
+  ///     class C<T> {
+  ///       m(rhs) => T ??= rhs;
+  ///     }
+  ///
+  R visitTypeVariableTypeLiteralSetIfNull(
+      Send node,
+      TypeVariableElement element,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to the dynamic type literal
+  /// [constant]. That is, [rhs] is only evaluated and assigned, if the value
+  /// is of the [constant] is `null`. The behavior is thus equivalent to a type
+  /// literal access.
+  ///
+  /// For instance:
+  ///
+  ///     m(rhs) => dynamic ??= rhs;
+  ///
+  R visitDynamicTypeLiteralSetIfNull(
+      Send node,
+      ConstantExpression constant,
       Node rhs,
       A arg);
 
@@ -2618,9 +3290,8 @@ abstract class SemanticSendVisitor<R, A> {
   R visitDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Prefix expression with [operator] of the property on a possibly null
@@ -2634,9 +3305,8 @@ abstract class SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertyPrefix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Prefix expression with [operator] on a [parameter].
@@ -2727,9 +3397,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitThisPropertyPrefix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Prefix expression with [operator] on a static [field].
@@ -3105,9 +3774,8 @@ abstract class SemanticSendVisitor<R, A> {
   R visitDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Postfix expression with [operator] of the property on a possibly null
@@ -3121,9 +3789,8 @@ abstract class SemanticSendVisitor<R, A> {
   R visitIfNotNullDynamicPropertyPostfix(
       Send node,
       Node receiver,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Postfix expression with [operator] on a [parameter].
@@ -3214,9 +3881,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitThisPropertyPostfix(
       Send node,
+      Name name,
       IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
       A arg);
 
   /// Postfix expression with [operator] on a static [field].
@@ -3605,7 +4271,7 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       ConstantExpression constant,
       NodeList arguments,
-      CallStructure callStreucture,
+      CallStructure callStructure,
       A arg);
 
   /// Read of the unresolved [element].

@@ -83,11 +83,11 @@ bool FlowGraphPrinter::ShouldPrint(const Function& function) {
 
 
 void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
-  LogBlock lb(Isolate::Current());
-  ISL_Print("*** BEGIN CFG\n%s\n", phase);
+  LogBlock lb;
+  THR_Print("*** BEGIN CFG\n%s\n", phase);
   FlowGraphPrinter printer(*flow_graph);
   printer.PrintBlocks();
-  ISL_Print("*** END CFG\n");
+  THR_Print("*** END CFG\n");
   fflush(stdout);
 }
 
@@ -96,19 +96,19 @@ void FlowGraphPrinter::PrintBlock(BlockEntryInstr* block,
                                   bool print_locations) {
   // Print the block entry.
   PrintOneInstruction(block, print_locations);
-  ISL_Print("\n");
+  THR_Print("\n");
   // And all the successors in the block.
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
     PrintOneInstruction(current, print_locations);
-    ISL_Print("\n");
+    THR_Print("\n");
   }
 }
 
 
 void FlowGraphPrinter::PrintBlocks() {
   if (!function_.IsNull()) {
-    ISL_Print("==== %s\n", function_.ToFullyQualifiedCString());
+    THR_Print("==== %s\n", function_.ToFullyQualifiedCString());
   }
 
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -134,12 +134,12 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
     instr->locs()->PrintTo(&f);
   }
   if (instr->lifetime_position() != -1) {
-    ISL_Print("%3" Pd ": ", instr->lifetime_position());
+    THR_Print("%3" Pd ": ", instr->lifetime_position());
   }
-  if (!instr->IsBlockEntry()) ISL_Print("    ");
-  ISL_Print("%s", str);
+  if (!instr->IsBlockEntry()) THR_Print("    ");
+  THR_Print("%s", str);
   if (FLAG_trace_inlining_intervals) {
-    ISL_Print(" iid: %" Pd "", instr->inlining_id());
+    THR_Print(" iid: %" Pd "", instr->inlining_id());
   }
 }
 
@@ -154,7 +154,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
     if (value != NULL && value->reaching_type_ != NULL) {
       compile_type_name = value->reaching_type_->ToCString();
     }
-    ISL_Print("%s type check: compile type %s is %s specific than "
+    THR_Print("%s type check: compile type %s is %s specific than "
               "type '%s' of '%s'.\n",
                          eliminated ? "Eliminated" : "Generated",
                          compile_type_name,
@@ -168,7 +168,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
   const char* type_name = "?";
   if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
-      Class::Handle(Isolate::Current()->class_table()->At(cid_));
+        Class::Handle(Isolate::Current()->class_table()->At(cid_));
     type_name = String::Handle(cls.PrettyName()).ToCString();
   } else if (type_ != NULL &&
              !type_->Equals(Type::Handle(Type::DynamicType()))) {
@@ -228,17 +228,17 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
   char buffer[1024];
   BufferFormatter f(buffer, sizeof(buffer));
   PrintICDataHelper(&f, ic_data);
-  ISL_Print("%s ", buffer);
+  THR_Print("%s ", buffer);
   const Array& a = Array::Handle(ic_data.arguments_descriptor());
-  ISL_Print(" arg-desc %" Pd "\n", a.Length());
+  THR_Print(" arg-desc %" Pd "\n", a.Length());
 }
 
 
 static void PrintUse(BufferFormatter* f, const Definition& definition) {
   if (definition.HasSSATemp()) {
     if (definition.HasPairRepresentation()) {
-      f->Print("v%" Pd ", v%" Pd "", definition.ssa_temp_index(),
-                                     definition.ssa_temp_index() + 1);
+      f->Print("(v%" Pd ", v%" Pd ")", definition.ssa_temp_index(),
+                                       definition.ssa_temp_index() + 1);
     } else {
       f->Print("v%" Pd "", definition.ssa_temp_index());
     }
@@ -257,7 +257,7 @@ const char* Instruction::ToCString() const {
 
 
 void Instruction::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -278,7 +278,7 @@ void Instruction::PrintOperandsTo(BufferFormatter* f) const {
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
   if (HasSSATemp() || HasTemp()) f->Print(" <- ");
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -1050,7 +1050,12 @@ static const char *RepresentationToCString(Representation rep) {
 
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("v%" Pd " <- phi(", ssa_temp_index());
+  if (HasPairRepresentation()) {
+    f->Print("(v%" Pd ", v%" Pd ") <- phi(",
+             ssa_temp_index(), ssa_temp_index() + 1);
+  } else {
+    f->Print("v%" Pd " <- phi(", ssa_temp_index());
+  }
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(", ");
@@ -1150,7 +1155,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
     f->Print(" ");
   }
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("goto:%" Pd " B%" Pd "", GetDeoptId(), successor()->block_id());
   } else {
     f->Print("goto: B%" Pd "", successor()->block_id());
@@ -1159,7 +1164,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 
 
 void IndirectGotoInstr::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("igoto:%" Pd "(", GetDeoptId());
   } else {
     f->Print("igoto:(");

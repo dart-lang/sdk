@@ -67,13 +67,13 @@ patch class DateTime {
              const [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]];
 
   static List _computeUpperPart(int localMs) {
-    final int DAYS_IN_4_YEARS = 4 * 365 + 1;
-    final int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
-    final int DAYS_IN_400_YEARS = 4 * DAYS_IN_100_YEARS + 1;
-    final int DAYS_1970_TO_2000 = 30 * 365 + 7;
-    final int DAYS_OFFSET = 1000 * DAYS_IN_400_YEARS + 5 * DAYS_IN_400_YEARS -
+    const int DAYS_IN_4_YEARS = 4 * 365 + 1;
+    const int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
+    const int DAYS_IN_400_YEARS = 4 * DAYS_IN_100_YEARS + 1;
+    const int DAYS_1970_TO_2000 = 30 * 365 + 7;
+    const int DAYS_OFFSET = 1000 * DAYS_IN_400_YEARS + 5 * DAYS_IN_400_YEARS -
                             DAYS_1970_TO_2000;
-    final int YEARS_OFFSET = 400000;
+    const int YEARS_OFFSET = 400000;
 
     int resultYear = 0;
     int resultMonth = 0;
@@ -295,9 +295,9 @@ patch class DateTime {
    * Code is adapted from V8.
    */
   static int _yearsFromSecondsSinceEpoch(int secondsSinceEpoch) {
-    final int DAYS_IN_4_YEARS = 4 * 365 + 1;
-    final int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
-    final int DAYS_YEAR_2098 = DAYS_IN_100_YEARS + 6 * DAYS_IN_4_YEARS;
+    const int DAYS_IN_4_YEARS = 4 * 365 + 1;
+    const int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
+    const int DAYS_YEAR_2098 = DAYS_IN_100_YEARS + 6 * DAYS_IN_4_YEARS;
 
     int days = secondsSinceEpoch ~/ Duration.SECONDS_PER_DAY;
     if (days > 0 && days < DAYS_YEAR_2098) {
@@ -319,7 +319,7 @@ patch class DateTime {
    * * The week day of [this] is the same as the one for the returned date.
    */
   static int _equivalentSeconds(int millisecondsSinceEpoch) {
-    final int CUT_OFF_SECONDS = 2100000000;
+    const int CUT_OFF_SECONDS = 2100000000;
 
     int secondsSinceEpoch = _flooredDivision(millisecondsSinceEpoch,
                                              Duration.MILLISECONDS_PER_SECOND);

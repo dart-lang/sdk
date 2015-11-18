@@ -88,7 +88,7 @@ abstract class CommonWebSocketVM extends VM {
   int _requestSerial = 0;
   bool _hasInitiatedConnect = false;
   bool _hasFinishedConnect = false;
-  Utf8Decoder _utf8Decoder = new Utf8Decoder();
+  Utf8Decoder _utf8Decoder = const Utf8Decoder();
 
   CommonWebSocket _webSocket;
 
@@ -209,7 +209,7 @@ abstract class CommonWebSocketVM extends VM {
       }
       var event = map['params']['event'];
       var streamId = map['params']['streamId'];
-      postServiceEvent(streamId, event, data);
+      scheduleMicrotask(() { postServiceEvent(streamId, event, data); });
     });
   }
 
@@ -222,7 +222,7 @@ abstract class CommonWebSocketVM extends VM {
     if (map['method'] == 'streamNotify') {
       var event = map['params']['event'];
       var streamId = map['params']['streamId'];
-      postServiceEvent(streamId, event, null);
+      scheduleMicrotask(() { postServiceEvent(streamId, event, null); });
       return;
     }
 

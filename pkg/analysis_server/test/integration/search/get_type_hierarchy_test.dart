@@ -6,13 +6,15 @@ library test.integration.search.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(Test);
 }
 

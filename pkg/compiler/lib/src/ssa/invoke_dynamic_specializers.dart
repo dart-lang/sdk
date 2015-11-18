@@ -27,11 +27,11 @@ class InvokeDynamicSpecializer {
   Operation operation(ConstantSystem constantSystem) => null;
 
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
-    if (selector.kind == SelectorKind.INDEX) {
-      return selector.name == '[]'
-          ? const IndexSpecializer()
-          : const IndexAssignSpecializer();
-    } else if (selector.kind == SelectorKind.OPERATOR) {
+    if (selector.isIndex) {
+      return const IndexSpecializer();
+    } else if (selector.isIndexSet) {
+      return const IndexAssignSpecializer();
+    } else if (selector.isOperator) {
       if (selector.name == 'unary-') {
         return const UnaryNegateSpecializer();
       } else if (selector.name == '~') {
@@ -69,7 +69,7 @@ class InvokeDynamicSpecializer {
       } else if (selector.name == '>=') {
         return const GreaterEqualSpecializer();
       }
-    } else if (selector.kind == SelectorKind.CALL) {
+    } else if (selector.isCall) {
       if (selector.argumentCount == 1 && selector.namedArguments.length == 0) {
         if (selector.name == 'codeUnitAt') {
           return const CodeUnitAtSpecializer();
@@ -238,8 +238,7 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
                                      Compiler compiler) {
     if (selector.name == name) return selector;
     JavaScriptBackend backend = compiler.backend;
-    return new Selector(
-        SelectorKind.CALL, new Name(name, backend.interceptorsLibrary),
+    return new Selector.call(new Name(name, backend.interceptorsLibrary),
         new CallStructure(selector.argumentCount));
   }
 }

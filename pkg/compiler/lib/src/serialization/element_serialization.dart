@@ -4,11 +4,11 @@
 
 library dart2js.serialization.elements;
 
+import '../common.dart';
+import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../dart2jslib.dart' show SourceSpan;
 import '../elements/elements.dart';
-import '../tree/tree.dart';
 import 'constant_serialization.dart';
 import 'keys.dart';
 import 'modelz.dart';
@@ -37,6 +37,9 @@ enum SerializedElementKind {
   TYPEVARIABLE,
   PARAMETER,
   INITIALIZING_FORMAL,
+  IMPORT,
+  EXPORT,
+  PREFIX,
 }
 
 /// Set of serializers used to serialize different kinds of elements by
@@ -56,6 +59,9 @@ const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
     const TypedefSerializer(),
     const TypeVariableSerializer(),
     const ParameterSerializer(),
+    const ImportSerializer(),
+    const ExportSerializer(),
+    const PrefixSerializer(),
 ];
 
 /// Interface for a function that can serialize a set of element kinds.
@@ -148,32 +154,22 @@ class LibrarySerializer implements ElementSerializer {
                  SerializedElementKind kind) {
     encoder.setUri(
         Key.CANONICAL_URI, element.canonicalUri, element.canonicalUri);
-    encoder.setString(Key.LIBRARY_NAME, element.getLibraryName());
+    encoder.setString(Key.LIBRARY_NAME, element.libraryName);
     SerializerUtil.serializeMembers(element, encoder);
     encoder.setElement(Key.COMPILATION_UNIT, element.entryCompilationUnit);
     encoder.setElements(
         Key.COMPILATION_UNITS, element.compilationUnits.toList());
-    ListEncoder tags = encoder.createList(Key.TAGS);
+    encoder.setElements(Key.IMPORTS, element.imports);
+    encoder.setElements(Key.EXPORTS, element.exports);
 
-    for (LibraryTag tag in element.tags) {
-      if (tag is Import) {
-        ObjectEncoder importTag = tags.createObject();
-        importTag.setString(Key.KIND, 'import');
-        importTag.setElement(Key.LIBRARY, element.getLibraryFromTag(tag));
-      } else if (tag is Export) {
-        ObjectEncoder exportTag = tags.createObject();
-        exportTag.setString(Key.KIND, 'export');
-        exportTag.setElement(Key.LIBRARY, element.getLibraryFromTag(tag));
-      }
-    }
+    List<Element> importedElements = <Element>[];
+    element.forEachImport(SerializerUtil.flattenElements(importedElements));
+    encoder.setElements(Key.IMPORT_SCOPE, importedElements);
 
-    List<Element> imports = <Element>[];
-    element.forEachImport(SerializerUtil.flattenElements(imports));
-    encoder.setElements(Key.IMPORTS, imports);
+    List<Element> exportedElements = <Element>[];
+    element.forEachExport(SerializerUtil.flattenElements(exportedElements));
+    encoder.setElements(Key.EXPORT_SCOPE, exportedElements);
 
-    List<Element> exports = <Element>[];
-    element.forEachExport(SerializerUtil.flattenElements(exports));
-    encoder.setElements(Key.EXPORTS, exports);
   }
 }
 
@@ -423,6 +419,75 @@ class ParameterSerializer implements ElementSerializer {
   }
 }
 
+class ImportSerializer implements ElementSerializer {
+  const ImportSerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isImport) {
+      return SerializedElementKind.IMPORT;
+    }
+    return null;
+  }
+
+  void serialize(ImportElement element,
+                 ObjectEncoder encoder,
+                 SerializedElementKind kind) {
+    encoder.setElement(Key.LIBRARY, element.library);
+    encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
+    encoder.setElement(Key.LIBRARY_DEPENDENCY, element.importedLibrary);
+    if (element.prefix != null) {
+      encoder.setElement(Key.PREFIX, element.prefix);
+    }
+    encoder.setBool(Key.IS_DEFERRED, element.isDeferred);
+    // TODO(johnniwinther): What is the base for the URI?
+    encoder.setUri(Key.URI, element.uri, element.uri);
+  }
+}
+
+class ExportSerializer implements ElementSerializer {
+  const ExportSerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isExport) {
+      return SerializedElementKind.EXPORT;
+    }
+    return null;
+  }
+
+  void serialize(ExportElement element,
+                 ObjectEncoder encoder,
+                 SerializedElementKind kind) {
+    encoder.setElement(Key.LIBRARY, element.library);
+    encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
+    encoder.setElement(Key.LIBRARY_DEPENDENCY, element.exportedLibrary);
+    // TODO(johnniwinther): What is the base for the URI?
+    encoder.setUri(Key.URI, element.uri, element.uri);
+  }
+}
+
+class PrefixSerializer implements ElementSerializer {
+  const PrefixSerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isPrefix) {
+      return SerializedElementKind.PREFIX;
+    }
+    return null;
+  }
+
+  void serialize(PrefixElement element,
+                 ObjectEncoder encoder,
+                 SerializedElementKind kind) {
+    encoder.setString(Key.NAME, element.name);
+    encoder.setElement(Key.LIBRARY, element.library);
+    encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
+    if (element.deferredImport != null) {
+      encoder.setElement(Key.IMPORT, element.deferredImport);
+    }
+    encoder.setBool(Key.IS_DEFERRED, element.isDeferred);
+  }
+}
+
 /// Utility class for deserializing [Element]s.
 ///
 /// This is used by the [Deserializer].
@@ -480,6 +545,12 @@ class ElementDeserializer {
         return new ParameterElementZ(decoder);
       case SerializedElementKind.INITIALIZING_FORMAL:
         return new InitializingFormalElementZ(decoder);
+      case SerializedElementKind.IMPORT:
+        return new ImportElementZ(decoder);
+      case SerializedElementKind.EXPORT:
+        return new ExportElementZ(decoder);
+      case SerializedElementKind.PREFIX:
+        return new PrefixElementZ(decoder);
     }
     throw new UnsupportedError("Unexpected element kind '${elementKind}.");
   }

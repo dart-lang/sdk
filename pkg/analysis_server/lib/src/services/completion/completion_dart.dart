@@ -4,8 +4,9 @@
 
 library analysis_server.src.services.completion.completion_dart;
 
-import 'package:analysis_server/completion/completion_core.dart';
-import 'package:analysis_server/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analyzer/src/generated/ast.dart';
 
@@ -25,10 +26,16 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   final bool isResolved;
 
   /**
+   * The completion target.  This determines what part of the parse tree
+   * will receive the newly inserted text.
+   */
+  final CompletionTarget target;
+
+  /**
    * Initialize a newly created completion request based on the given arguments.
    */
   DartCompletionRequestImpl(
-      CompletionRequest request, this.unit, this.isResolved)
+      CompletionRequest request, this.unit, this.isResolved, this.target)
       : super(request.context, request.resourceProvider, request.source,
-          request.offset);
+            request.offset);
 }

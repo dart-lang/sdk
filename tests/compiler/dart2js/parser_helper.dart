@@ -8,21 +8,36 @@ import "package:expect/expect.dart";
 
 import "package:compiler/src/elements/elements.dart";
 import "package:compiler/src/tree/tree.dart";
-import "package:compiler/src/scanner/scannerlib.dart";
+import "package:compiler/src/parser/element_listener.dart";
+import "package:compiler/src/parser/node_listener.dart";
+import "package:compiler/src/parser/parser.dart";
+import "package:compiler/src/parser/partial_parser.dart";
+import "package:compiler/src/scanner/string_scanner.dart";
+import "package:compiler/src/tokens/token.dart";
+import "package:compiler/src/tokens/token_constants.dart";
 import "package:compiler/src/io/source_file.dart";
 import "package:compiler/src/util/util.dart";
 
 import "package:compiler/src/elements/modelx.dart"
     show CompilationUnitElementX, ElementX, LibraryElementX;
 
-import "package:compiler/src/dart2jslib.dart";
+import "package:compiler/src/compiler.dart";
+import "package:compiler/src/diagnostics/source_span.dart";
+import "package:compiler/src/diagnostics/spannable.dart";
+import "package:compiler/src/diagnostics/diagnostic_listener.dart";
+import "package:compiler/src/diagnostics/messages.dart";
+import "package:compiler/src/script.dart";
 
-export "package:compiler/src/dart2jslib.dart"
-    show DiagnosticListener;
-// TODO(ahe): We should have token library to export instead.
-export "package:compiler/src/scanner/scannerlib.dart";
+export "package:compiler/src/diagnostics/diagnostic_listener.dart";
+export 'package:compiler/src/parser/listener.dart';
+export 'package:compiler/src/parser/node_listener.dart';
+export 'package:compiler/src/parser/parser.dart';
+export 'package:compiler/src/parser/partial_parser.dart';
+export 'package:compiler/src/parser/partial_elements.dart';
+export "package:compiler/src/tokens/token.dart";
+export "package:compiler/src/tokens/token_constants.dart";
 
-class LoggerCanceler implements DiagnosticListener {
+class LoggerCanceler extends DiagnosticReporter {
   void log(message) {
     print(message);
   }
@@ -35,33 +50,42 @@ class LoggerCanceler implements DiagnosticListener {
     throw 'unsupported operation';
   }
 
-  void reportMessage(SourceSpan span, Message message, kind) {
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     log(message);
+    infos.forEach(log);
   }
 
-  void reportFatalError(Spannable node,
-                        MessageKind errorCode,
-                        [Map arguments]) {
-    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
-  }
-
-  void reportError(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
-  }
-
-  void reportWarning(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    log(message);
+    infos.forEach(log);
   }
 
   void reportInfo(Spannable node, MessageKind errorCode, [Map arguments]) {
     log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
-  void reportHint(Spannable node, MessageKind errorCode, [Map arguments]) {
-    log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
+  void reportHint(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    log(message);
+    infos.forEach(log);
   }
 
   withCurrentElement(Element element, f()) => f();
+
+  @override
+  DiagnosticMessage createMessage(
+      Spannable spannable,
+      MessageKind messageKind,
+      [Map arguments = const {}]) {
+    return new DiagnosticMessage(
+        null, spannable,
+        new Message(MessageTemplate.TEMPLATES[messageKind], arguments, false));
+  }
 }
 
 Token scan(String text) =>
@@ -69,15 +93,15 @@ Token scan(String text) =>
     .tokenize();
 
 Node parseBodyCode(String text, Function parseMethod,
-                   {DiagnosticListener diagnosticHandler}) {
+                   {DiagnosticReporter reporter}) {
   Token tokens = scan(text);
-  if (diagnosticHandler == null) diagnosticHandler = new LoggerCanceler();
+  if (reporter == null) reporter = new LoggerCanceler();
   Uri uri = new Uri(scheme: "source");
   Script script = new Script(uri, uri,new MockFile(text));
   LibraryElement library = new LibraryElementX(script);
   library.canUseNative = true;
   NodeListener listener =
-      new NodeListener(diagnosticHandler, library.entryCompilationUnit);
+      new NodeListener(reporter, library.entryCompilationUnit);
   Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
@@ -94,12 +118,14 @@ Node parseFunction(String text, Compiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
   Expect.isNotNull(element);
   Expect.equals(ElementKind.FUNCTION, element.kind);
-  return element.parseNode(compiler);
+  return element.parseNode(compiler.parsing);
 }
 
-Node parseMember(String text, {DiagnosticListener diagnosticHandler}) {
-  return parseBodyCode(text, (parser, tokens) => parser.parseMember(tokens),
-                       diagnosticHandler: diagnosticHandler);
+Node parseMember(String text, {DiagnosticReporter reporter}) {
+  return parseBodyCode(
+      text,
+      (parser, tokens) => parser.parseMember(tokens),
+      reporter: reporter);
 }
 
 class MockFile extends StringSourceFile {
@@ -120,13 +146,16 @@ Link<Element> parseUnit(String text, Compiler compiler,
   var script = new Script(uri, uri, new MockFile(text));
   var unit = new CompilationUnitElementX(script, library);
   int id = 0;
-  ElementListener listener = new ElementListener(compiler, unit, () => id++);
+  DiagnosticReporter reporter = compiler.reporter;
+  ElementListener listener = new ElementListener(reporter, unit, () => id++);
   PartialParser parser = new PartialParser(listener);
-  compiler.withCurrentElement(unit, () => parser.parseUnit(tokens));
+  reporter.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.localMembers;
 }
 
-NodeList fullParseUnit(String source, {DiagnosticListener diagnosticHandler}) {
-  return parseBodyCode(source, (parser, tokens) => parser.parseUnit(tokens),
-                       diagnosticHandler: diagnosticHandler);
+NodeList fullParseUnit(String source, {DiagnosticReporter reporter}) {
+  return parseBodyCode(
+      source,
+      (parser, tokens) => parser.parseUnit(tokens),
+      reporter: reporter);
 }

@@ -10,10 +10,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(CharSequenceReaderTest);
   runReflectiveTests(KeywordStateTest);
   runReflectiveTests(ScannerTest);
@@ -172,8 +173,8 @@ class KeywordStateTest {
 class ScannerTest {
   void fail_incomplete_string_interpolation() {
     // https://code.google.com/p/dart/issues/detail?id=18073
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9,
-        "\"foo \${bar", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "\"foo \${bar", [
       new StringToken(TokenType.STRING, "\"foo ", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 5),
       new StringToken(TokenType.IDENTIFIER, "bar", 7)
@@ -253,7 +254,8 @@ class ScannerTest {
   }
 
   void test_comment_disabled_multi() {
-    Scanner scanner = new Scanner(null,
+    Scanner scanner = new Scanner(
+        null,
         new CharSequenceReader("/* comment */ "),
         AnalysisErrorListener.NULL_LISTENER);
     scanner.preserveComments = false;
@@ -276,13 +278,15 @@ class ScannerTest {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner = new Scanner(null, new CharSequenceReader(code), listener);
     scanner.tokenize();
-    expect(scanner.lineStarts, equals(<int>[
-      code.indexOf('/**'),
-      code.indexOf(' * aa'),
-      code.indexOf(' * bbb'),
-      code.indexOf(' * c'),
-      code.indexOf(' */')
-    ]));
+    expect(
+        scanner.lineStarts,
+        equals(<int>[
+          code.indexOf('/**'),
+          code.indexOf(' * aa'),
+          code.indexOf(' * bbb'),
+          code.indexOf(' * c'),
+          code.indexOf(' */')
+        ]));
   }
 
   void test_comment_multi_unterminated() {
@@ -851,8 +855,8 @@ class ScannerTest {
   }
 
   void test_string_multi_unterminated_interpolation_block() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8,
-        "'''\${name", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''\${name", [
       new StringToken(TokenType.STRING, "'''", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
       new StringToken(TokenType.IDENTIFIER, "name", 5),
@@ -861,8 +865,8 @@ class ScannerTest {
   }
 
   void test_string_multi_unterminated_interpolation_identifier() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
-        "'''\$name", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'''\$name", [
       new StringToken(TokenType.STRING, "'''", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
       new StringToken(TokenType.IDENTIFIER, "name", 4),
@@ -1008,8 +1012,8 @@ class ScannerTest {
   }
 
   void test_string_simple_unterminated_interpolation_block() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6,
-        "'\${name", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'\${name", [
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 1),
       new StringToken(TokenType.IDENTIFIER, "name", 3),
@@ -1018,8 +1022,8 @@ class ScannerTest {
   }
 
   void test_string_simple_unterminated_interpolation_identifier() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5,
-        "'\$name", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5, "'\$name", [
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
       new StringToken(TokenType.IDENTIFIER, "name", 2),

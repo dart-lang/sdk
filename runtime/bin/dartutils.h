@@ -102,12 +102,12 @@ class DartUtils {
   // a boolean value an API error is propagated.
   static bool GetBooleanValue(Dart_Handle bool_obj);
 
-  static void SetIntegerField(Dart_Handle handle,
-                              const char* name,
-                              int64_t val);
-  static void SetStringField(Dart_Handle handle,
-                             const char* name,
-                             const char* val);
+  static Dart_Handle SetIntegerField(Dart_Handle handle,
+                                     const char* name,
+                                     int64_t val);
+  static Dart_Handle SetStringField(Dart_Handle handle,
+                                    const char* name,
+                                    const char* val);
   static bool IsDartSchemeURL(const char* url_name);
   static bool IsDartExtensionSchemeURL(const char* url_name);
   static bool IsDartIOLibURL(const char* url_name);
@@ -129,20 +129,22 @@ class DartUtils {
                                            bool is_service_isolate,
                                            bool trace_loading,
                                            const char* package_root,
+                                           const char** package_map,
                                            const char* packages_file);
-  static void PrepareCoreLibrary(Dart_Handle core_lib,
+  static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
                                  Dart_Handle builtin_lib,
                                  bool is_service_isolate);
-  static void PrepareAsyncLibrary(Dart_Handle async_lib,
+  static Dart_Handle PrepareAsyncLibrary(Dart_Handle async_lib,
                                   Dart_Handle isolate_lib);
-  static void PrepareIOLibrary(Dart_Handle io_lib);
-  static void PrepareIsolateLibrary(Dart_Handle isolate_lib);
+  static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
+  static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
+                                             const char** package_map,
                                              const char* packages_file,
                                              bool is_service_isolate,
                                              bool trace_loading,
                                              Dart_Handle builtin_lib);
-  static void SetupIOLibrary(const char* script_uri);
+  static Dart_Handle SetupIOLibrary(const char* script_uri);
 
   static bool PostNull(Dart_Port port_id);
   static bool PostInt32(Dart_Port port_id, int32_t value);

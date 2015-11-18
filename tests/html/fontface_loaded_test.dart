@@ -8,17 +8,18 @@ import 'dart:isolate';
 import 'dart:html';
 
 class NullTreeSanitizer implements NodeTreeSanitizer {
-    void sanitizeTree(Node node) {}
+  void sanitizeTree(Node node) {}
 }
 
 main() {
   useHtmlConfiguration();
 
-  var style = new Element.html('''
+  var style = new Element.html(
+      '''
       <style>
       @font-face {
         font-family: 'Ahem';
-        src: url(../../resources/Ahem.ttf);
+        src: url(/root_dart/tests/html/Ahem.ttf);
         font-style: italic;
         font-weight: 300;
         unicode-range: U+0-3FF;
@@ -27,20 +28,26 @@ main() {
         /* font-stretch property is not supported */
       }
       </style>
-      ''', treeSanitizer: new NullTreeSanitizer());
+      ''',
+      treeSanitizer: new NullTreeSanitizer());
   document.head.append(style);
-
 
   test('document fonts - temporary', () {
     var atLeastOneFont = false;
+    var loaded = [];
     document.fonts.forEach((FontFace fontFace, _, __) {
       atLeastOneFont = true;
       Future f1 = fontFace.loaded;
       Future f2 = fontFace.loaded;
-      expect(f1, equals(f2)); // Repeated calls should answer the same Future.
-
-      expect(fontFace.load(), throws);
+      loaded.add(fontFace.load());
+      loaded.add(f1);
+      loaded.add(f2);
     });
     expect(atLeastOneFont, isTrue);
+    return Future.wait(loaded).then(expectAsync((_) {
+      document.fonts.forEach((fontFace, _, __) {
+        expect(fontFace.status, 'loaded');
+      });
+    }));
   });
 }

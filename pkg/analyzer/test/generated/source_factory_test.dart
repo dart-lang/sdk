@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library analyzer.test.generated.source_factory;
 
 import 'dart:convert';
@@ -25,10 +22,11 @@ import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(SourceFactoryTest);
   runPackageMapTests();
 }
@@ -55,7 +53,10 @@ void runPackageMapTests() {
     return factory.packageMap;
   }
 
-  String resolvePackageUri({String uri, String config, Source containingSource,
+  String resolvePackageUri(
+      {String uri,
+      String config,
+      Source containingSource,
       UriResolver customResolver}) {
     Packages packages = createPackageMap(baseUri, config);
     List<UriResolver> resolvers = testResolvers.toList();
@@ -82,22 +83,30 @@ void runPackageMapTests() {
     group('package mapping', () {
       group('resolveUri', () {
         test('URI in mapping', () {
-          String uri = resolvePackageUri(config: '''
+          String uri = resolvePackageUri(
+              config: '''
 unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/
 async:file:///home/somebody/.pub/cache/async-1.1.0/lib/
 quiver:file:///home/somebody/.pub/cache/quiver-1.2.1/lib
-''', uri: 'package:unittest/unittest.dart');
-          expect(uri, equals(
-              '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
+''',
+              uri: 'package:unittest/unittest.dart');
+          expect(
+              uri,
+              equals(
+                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
         });
         test('URI in mapping (no scheme)', () {
-          String uri = resolvePackageUri(config: '''
+          String uri = resolvePackageUri(
+              config: '''
 unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/
 async:/home/somebody/.pub/cache/async-1.1.0/lib/
 quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
-''', uri: 'package:unittest/unittest.dart');
-          expect(uri, equals(
-              '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
+''',
+              uri: 'package:unittest/unittest.dart');
+          expect(
+              uri,
+              equals(
+                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
         });
         test('URI not in mapping', () {
           String uri = resolvePackageUri(
@@ -117,7 +126,8 @@ quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
           // TODO(pquitslund): fix clients to handle errors appropriately
           //   CLI: print message 'invalid package file format'
           //   SERVER: best case tell user somehow and recover...
-          expect(() => resolvePackageUri(
+          expect(
+              () => resolvePackageUri(
                   config: 'foo:<:&%>', uri: 'package:foo/bar.dart'),
               throwsA(new isInstanceOf('FormatException')));
         });
@@ -139,7 +149,8 @@ quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
       });
       group('restoreUri', () {
         test('URI in mapping', () {
-          Uri uri = restorePackageUri(config: '''
+          Uri uri = restorePackageUri(
+              config: '''
 unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/
 async:/home/somebody/.pub/cache/async-1.1.0/lib/
 quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
@@ -257,8 +268,9 @@ class SourceFactoryTest {
     File firstFile = provider.newFile(firstPath, '');
     provider.newFile(secondPath, '');
 
-    PackageMapUriResolver resolver =
-        new PackageMapUriResolver(provider, {'package': [libFolder]});
+    PackageMapUriResolver resolver = new PackageMapUriResolver(provider, {
+      'package': [libFolder]
+    });
     SourceFactory factory = new SourceFactory([resolver]);
     Source librarySource =
         firstFile.createSource(Uri.parse('package:package/dir/first.dart'));

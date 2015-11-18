@@ -17,9 +17,15 @@ import 'dart:_js_helper' show patch,
                               ConstantMap,
                               stringJoinUnchecked,
                               objectHashCode,
-                              Closure;
+                              Closure,
+                              readHttp,
+                              JsLinkedHashMap;
+
+import 'dart:_foreign_helper' show JS;
 
 import 'dart:_native_typed_data' show NativeUint8List;
+
+import 'dart:async' show StreamController;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
@@ -306,6 +312,9 @@ class List<E> {
 class Map<K, V> {
   @patch
   factory Map.unmodifiable(Map other) = ConstantMap<K, V>.from;
+
+  @patch
+  factory Map() = JsLinkedHashMap<K, V>.es6;
 }
 
 @patch
@@ -400,7 +409,7 @@ class RegExp {
 // Patch for 'identical' function.
 @patch
 bool identical(Object a, Object b) {
-  return Primitives.identicalImplementation(a, b);
+  return JS('bool', '(# == null ? # == null : # === #)', a, b, a, b);
 }
 
 @patch
@@ -570,20 +579,53 @@ class _Resource implements Resource {
       uri = _resolvePackageUri(uri);
     }
     if (uri.scheme == "http" || uri.scheme == "https") {
-      return _readAsString(uri);
+      return _readAsString(uri, encoding);
     }
     throw new StateError("Unable to find resource, unknown scheme: $_location");
   }
 
+  // TODO(het): Use a streaming XHR request instead of returning the entire
+  // payload in one event.
   Stream<List<int>> _readAsStream(Uri uri) {
-    throw new UnimplementedError("Streaming bytes via HTTP");
+    var controller = new StreamController.broadcast();
+    // We only need to implement the listener as there is no way to provide
+    // back pressure into the channel.
+    controller.onListen = () {
+      // Once there is a listener, we kick off the loading of the resource.
+      _readAsBytes(uri).then((value) {
+        // The resource loading implementation sends all of the data in a
+        // single message. So the stream will only get a single value posted.
+        controller.add(value);
+        controller.close();
+      },
+      onError: (e, s) {
+        // In case the future terminates with an error we propagate it to the
+        // stream.
+        controller.addError(e, s);
+        controller.close();
+      });
+    };
+
+    return controller.stream;
   }
 
   Future<List<int>> _readAsBytes(Uri uri) {
-    throw new UnimplementedError("Reading bytes via HTTP");
+    return readHttp('$uri').then((data) {
+      if (data is NativeUint8List) return data;
+      if (data is String) return data.codeUnits;
+      throw new StateError(
+          "Unable to read Resource, data could not be decoded");
+    });
   }
 
-  Future<String> _readAsString(Uri uri) {
-    throw new UnimplementedError("Reading string via HTTP");
+  Future<String> _readAsString(Uri uri, Encoding encoding) {
+    return readHttp('$uri').then((data) {
+      if (data is String) return data;
+      if (data is NativeUint8List) {
+        return encoding.decode(data);
+      };
+      throw new StateError(
+          "Unable to read Resource, data could not be decoded");
+    });
   }
 }

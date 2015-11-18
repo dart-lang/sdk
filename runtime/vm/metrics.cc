@@ -9,8 +9,12 @@
 #include "vm/native_entry.h"
 #include "vm/runtime_entry.h"
 #include "vm/object.h"
+#include "vm/log.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool, print_metrics, false,
+            "Print metrics when isolates (and the VM) are shutdown.");
 
 Metric* Metric::vm_list_head_ = NULL;
 
@@ -89,6 +93,48 @@ void Metric::PrintJSON(JSONStream* stream) {
   // TODO(johnmccutchan): Overflow?
   double value_as_double = static_cast<double>(Value());
   obj.AddProperty("value", value_as_double);
+}
+
+
+char* Metric::ValueToString(int64_t value, Unit unit) {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  Zone* zone = thread->zone();
+  ASSERT(zone != NULL);
+  switch (unit) {
+    case kCounter:
+      return zone->PrintToString("%" Pd64 "", value);
+    case kByte: {
+      const char* scaled_suffix = "b";
+      double scaled_value = static_cast<double>(value);
+      if (value > KB) {
+        scaled_suffix = "kb";
+        scaled_value /= KB;
+      } else if (value > MB) {
+        scaled_suffix = "mb";
+        scaled_value /= MB;
+      } else if (value > GB) {
+        scaled_suffix = "gb";
+        scaled_value /= GB;
+      }
+      return zone->PrintToString("%.3f %s (%" Pd64 ")",
+                                 scaled_value,
+                                 scaled_suffix,
+                                 value);
+    }
+    default:
+      UNREACHABLE();
+      return NULL;
+  }
+}
+
+
+char* Metric::ToString() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  Zone* zone = thread->zone();
+  ASSERT(zone != NULL);
+  return zone->PrintToString("%s %s", name(), ValueToString(value(), unit()));
 }
 
 
@@ -230,6 +276,12 @@ int64_t MetricHeapNewExternal::Value() const {
 }
 
 
+int64_t MetricHeapUsed::Value() const {
+  ASSERT(isolate() == Isolate::Current());
+  return isolate()->heap()->UsedInWords(Heap::kNew) * kWordSize +
+         isolate()->heap()->UsedInWords(Heap::kOld) * kWordSize;
+}
+
 int64_t MetricIsolateCount::Value() const {
   return Isolate::IsolateListLength();
 }
@@ -245,6 +297,46 @@ void Metric::InitOnce() {
   vm_metric_##variable##_.Init(name, NULL, Metric::unit);
   VM_METRIC_LIST(VM_METRIC_INIT);
 #undef VM_METRIC_INIT
+}
+
+void Metric::Cleanup() {
+  if (FLAG_print_metrics) {
+    // Create a zone to allocate temporary strings in.
+    StackZone sz(Thread::Current());
+    OS::Print("Printing metrics for VM\n");
+    Metric* current = Metric::vm_head();
+    while (current != NULL) {
+      OS::Print("%s\n", current->ToString());
+      current = current->next();
+    }
+    OS::Print("\n");
+  }
+}
+
+
+MaxMetric::MaxMetric()
+    : Metric() {
+  set_value(kMinInt64);
+}
+
+
+void MaxMetric::SetValue(int64_t new_value) {
+  if (new_value > value()) {
+    set_value(new_value);
+  }
+}
+
+
+MinMetric::MinMetric()
+    : Metric() {
+  set_value(kMaxInt64);
+}
+
+
+void MinMetric::SetValue(int64_t new_value) {
+  if (new_value < value()) {
+    set_value(new_value);
+  }
 }
 
 }  // namespace dart

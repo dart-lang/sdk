@@ -99,10 +99,13 @@ class BreakpointLocation {
   // Create a new unresolved breakpoint.
   BreakpointLocation(const Script& script,
                      intptr_t token_pos,
-                     intptr_t end_token_pos);
+                     intptr_t end_token_pos,
+                     intptr_t requested_line_number,
+                     intptr_t requested_column_number);
   // Create a new latent breakpoint.
   BreakpointLocation(const String& url,
-                     intptr_t line_number);
+                     intptr_t requested_line_number,
+                     intptr_t requested_column_number);
 
   ~BreakpointLocation();
 
@@ -112,9 +115,16 @@ class BreakpointLocation {
 
   RawScript* script() const { return script_; }
   RawString* url() const { return url_; }
-  intptr_t LineNumber();
 
-  void GetCodeLocation(Library* lib, Script* script, intptr_t* token_pos);
+  intptr_t requested_line_number() const { return requested_line_number_; }
+  intptr_t requested_column_number() const { return requested_column_number_; }
+
+  intptr_t LineNumber();
+  intptr_t ColumnNumber();
+
+  void GetCodeLocation(Library* lib,
+                       Script* script,
+                       intptr_t* token_pos) const;
 
   Breakpoint* AddRepeated(Debugger* dbg);
   Breakpoint* AddSingleShot(Debugger* dbg);
@@ -144,10 +154,13 @@ class BreakpointLocation {
   bool is_resolved_;
   BreakpointLocation* next_;
   Breakpoint* conditions_;
+  intptr_t requested_line_number_;
+  intptr_t requested_column_number_;
 
   // Valid for resolved breakpoints:
   RawFunction* function_;
   intptr_t line_number_;
+  intptr_t column_number_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(BreakpointLocation);
@@ -178,7 +191,7 @@ class CodeBreakpoint {
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
 
-  uword OrigStubAddress() const;
+  RawCode* OrigStubAddress() const;
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -202,7 +215,7 @@ class CodeBreakpoint {
   CodeBreakpoint* next_;
 
   RawPcDescriptors::Kind breakpoint_kind_;
-  uword saved_value_;
+  RawCode* saved_value_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
@@ -354,7 +367,9 @@ class DebuggerEvent {
         top_frame_(NULL),
         breakpoint_(NULL),
         exception_(NULL),
-        async_continuation_(NULL) {}
+        async_continuation_(NULL),
+        at_async_jump_(false),
+        timestamp_(-1) {}
 
   Isolate* isolate() const { return isolate_; }
 
@@ -402,8 +417,21 @@ class DebuggerEvent {
     async_continuation_ = closure;
   }
 
+  bool at_async_jump() const {
+    return at_async_jump_;
+  }
+  void set_at_async_jump(bool value) {
+    at_async_jump_ = value;
+  }
+
   Dart_Port isolate_id() const {
     return isolate_->main_port();
+  }
+
+  void UpdateTimestamp();
+
+  int64_t timestamp() const {
+    return timestamp_;
   }
 
  private:
@@ -413,6 +441,8 @@ class DebuggerEvent {
   Breakpoint* breakpoint_;
   const Object* exception_;
   const Object* async_continuation_;
+  bool at_async_jump_;
+  int64_t timestamp_;
 };
 
 
@@ -443,10 +473,14 @@ class Debugger {
   // TODO(turnidge): script_url may no longer be specific enough.
   Breakpoint* SetBreakpointAtLine(const String& script_url,
                                   intptr_t line_number);
+  Breakpoint* SetBreakpointAtLineCol(const String& script_url,
+                                     intptr_t line_number,
+                                     intptr_t column_number);
   RawError* OneTimeBreakAtEntry(const Function& target_function);
 
-  BreakpointLocation* BreakpointLocationAtLine(const String& script_url,
-                                               intptr_t line_number);
+  BreakpointLocation* BreakpointLocationAtLineCol(const String& script_url,
+                                                  intptr_t line_number,
+                                                  intptr_t column_number);
 
 
   void RemoveBreakpoint(intptr_t bp_id);
@@ -522,21 +556,23 @@ class Debugger {
   RawObject* GetStaticField(const Class& cls,
                             const String& field_name);
 
-  void SignalBpReached();
-  void DebuggerStepCallback();
+  RawError* SignalBpReached();
+  RawError* DebuggerStepCallback();
+  RawError* SignalIsolateInterrupted();
 
   void BreakHere(const String& msg);
 
   void SignalExceptionThrown(const Instance& exc);
   void SignalIsolateEvent(DebuggerEvent::EventType type);
-  static void SignalIsolateInterrupted();
 
-  uword GetPatchedStubAddress(uword breakpoint_address);
+  RawCode* GetPatchedStubAddress(uword breakpoint_address);
 
   void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;
 
   static bool IsDebuggable(const Function& func);
+
+  intptr_t limitBreakpointId() { return next_id_; }
 
  private:
   enum ResumeAction {
@@ -558,18 +594,24 @@ class Debugger {
                                     intptr_t token_pos);
   intptr_t ResolveBreakpointPos(const Function& func,
                                 intptr_t requested_token_pos,
-                                intptr_t last_token_pos);
+                                intptr_t last_token_pos,
+                                intptr_t requested_column);
   void DeoptimizeWorld();
   BreakpointLocation* SetBreakpoint(const Script& script,
                                     intptr_t token_pos,
-                                    intptr_t last_token_pos);
+                                    intptr_t last_token_pos,
+                                    intptr_t requested_line,
+                                    intptr_t requested_column);
   void RemoveInternalBreakpoints();
   void UnlinkCodeBreakpoints(BreakpointLocation* bpt_location);
-  BreakpointLocation* GetLatentBreakpoint(const String& url, intptr_t line);
+  BreakpointLocation* GetLatentBreakpoint(const String& url,
+                                          intptr_t line,
+                                          intptr_t column);
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   BreakpointLocation* GetBreakpointLocation(const Script& script,
-                                            intptr_t token_pos);
+                                            intptr_t token_pos,
+                                            intptr_t requested_column);
   void MakeCodeBreakpointAt(const Function& func,
                             BreakpointLocation* bpt);
   // Returns NULL if no breakpoint exists for the given address.
@@ -584,7 +626,7 @@ class Debugger {
                                            const Code& code,
                                            const Array& deopt_frame,
                                            intptr_t deopt_frame_offset);
-  static RawArray* DeoptimizeToArray(Isolate* isolate,
+  static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);
   static DebuggerStackTrace* CollectStackTrace();
@@ -607,6 +649,8 @@ class Debugger {
   void Pause(DebuggerEvent* event);
 
   void HandleSteppingRequest(DebuggerStackTrace* stack_trace);
+
+  Zone* zone() const { return isolate_->current_zone(); }
 
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.

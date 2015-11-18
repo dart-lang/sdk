@@ -4,7 +4,7 @@
 
 library test.services.src.index.store.codec;
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
@@ -15,9 +15,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../../abstract_single_unit.dart';
 import '../../../mocks.dart';
+import '../../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(_ContextCodecTest);
   defineReflectiveTests(_ElementCodecTest);
   defineReflectiveTests(_RelationshipCodecTest);
@@ -74,7 +75,9 @@ class _ElementCodecTest extends AbstractSingleUnitTest {
   }
 
   void test_encode_CompilationUnitElement() {
-    addSource('/my_part.dart', '''
+    addSource(
+        '/my_part.dart',
+        '''
 part of my_lib;
 ''');
     resolveTestUnit('''
@@ -90,7 +93,7 @@ part 'my_part.dart';
       int id2 = codec.encode2(indexable);
       int id3 = codec.encode3(indexable);
       expect(id1, isNonNegative);
-      expect(id2, isNonNegative);
+      expect(id2, -1);
       expect(id3, IndexableElementKind.forElement(element).index);
       validateDecode(id1, id2, id3, element);
     }
@@ -103,7 +106,7 @@ part 'my_part.dart';
       int id2 = codec.encode2(indexable);
       int id3 = codec.encode3(indexable);
       expect(id1, isNonNegative);
-      expect(id2, isNonNegative);
+      expect(id2, -1);
       expect(id3, IndexableElementKind.forElement(element).index);
       validateDecode(id1, id2, id3, element);
     }
@@ -249,6 +252,17 @@ class A {
     validateDecode(id1, id2, id3, element);
   }
 
+  void test_encode_IndexableName() {
+    IndexableName indexable = new IndexableName('test');
+    int id1 = codec.encode1(indexable);
+    int id2 = codec.encode2(indexable);
+    int id3 = codec.encode3(indexable);
+    expect(id1, -1);
+    expect(id2, isNonNegative);
+    expect(id3, IndexableNameKind.INSTANCE.index);
+    expect(codec.decode(context, id1, id2, id3), indexable);
+  }
+
   void test_encode_LibraryElement() {
     resolveTestUnit('''
 class A {
@@ -261,7 +275,7 @@ class A {
     int id2 = codec.encode2(indexable);
     int id3 = codec.encode3(indexable);
     expect(id1, isNonNegative);
-    expect(id2, isNonNegative);
+    expect(id2, -1);
     expect(id3, IndexableElementKind.forElement(element).index);
     validateDecode(id1, id2, id3, element);
   }
@@ -281,17 +295,6 @@ class A {
     expect(id2, element.nameOffset);
     expect(id3, IndexableElementKind.forElement(element).index);
     validateDecode(id1, id2, id3, element);
-  }
-
-  void test_encode_NameElement() {
-    Element element = new NameElement('test');
-    IndexableObject indexable = new IndexableElement(element);
-    int id1 = codec.encode1(indexable);
-    int id2 = codec.encode2(indexable);
-    int id3 = codec.encode3(indexable);
-    expect(id1, -1);
-    expect(id2, isNonNegative);
-    expect(id3, IndexableElementKind.forElement(element).index);
   }
 
   void test_encode_nullLibraryElement() {

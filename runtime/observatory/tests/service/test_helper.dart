@@ -26,13 +26,19 @@ class _TestLauncher {
                             Platform.script.toFilePath(),
                             _TESTEE_MODE_FLAG] {}
 
-  Future<int> launch(bool pause_on_start, bool pause_on_exit) {
+  Future<int> launch(bool pause_on_start, bool pause_on_exit, bool trace_service) {
+    assert(pause_on_start != null);
+    assert(pause_on_exit != null);
+    assert(trace_service != null);
     String dartExecutable = Platform.executable;
     var fullArgs = [];
-    if (pause_on_start == true) {
+    if (trace_service) {
+      fullArgs.add('--trace-service');
+    }
+    if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }
-    if (pause_on_exit == true) {
+    if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
     }
     fullArgs.addAll(Platform.executableArguments);
@@ -102,7 +108,9 @@ void runIsolateTests(List<String> mainArgs,
                      {void testeeBefore(),
                       void testeeConcurrent(),
                       bool pause_on_start: false,
-                      bool pause_on_exit: false}) {
+                      bool pause_on_exit: false,
+                      bool trace_service: false,
+                      bool verbose_vm: false}) {
   assert(!pause_on_start || testeeBefore == null);
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
@@ -120,7 +128,7 @@ void runIsolateTests(List<String> mainArgs,
     }
   } else {
     var process = new _TestLauncher();
-    process.launch(pause_on_start, pause_on_exit).then((port) {
+    process.launch(pause_on_start, pause_on_exit, trace_service).then((port) {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
@@ -133,6 +141,7 @@ void runIsolateTests(List<String> mainArgs,
         new WebSocketVM(new WebSocketVMTarget(addr)).load()
             .then((VM vm) => vm.isolates.first.load())
             .then((Isolate isolate) => Future.forEach(tests, (test) {
+              isolate.vm.verbose = verbose_vm;
               print('Running $name [$testIndex/$totalTests]');
               testIndex++;
               return test(isolate);
@@ -155,7 +164,6 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
-        print("Event: $event");
         if (event.kind == ServiceEvent.kPauseBreakpoint) {
           print('Breakpoint reached');
           subscription.cancel();
@@ -186,6 +194,41 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
 }
 
 
+Future<Isolate> hasPausedAtStart(Isolate isolate) {
+  // Set up a listener to wait for breakpoint events.
+  Completer completer = new Completer();
+  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+        if (event.kind == ServiceEvent.kPauseStart) {
+          print('Paused at isolate start');
+          subscription.cancel();
+          if (completer != null) {
+            // Reload to update isolate.pauseEvent.
+            completer.complete(isolate.reload());
+            completer = null;
+          }
+        }
+    });
+
+    // Pause may have happened before we subscribed.
+    isolate.reload().then((_) {
+      if ((isolate.pauseEvent != null) &&
+         (isolate.pauseEvent.kind == ServiceEvent.kPauseStart)) {
+        print('Paused at isolate start');
+        subscription.cancel();
+        if (completer != null) {
+          completer.complete(isolate);
+          completer = null;
+        }
+      }
+    });
+  });
+
+  return completer.future;
+}
+
+
 // Currying is your friend.
 IsolateTest setBreakpointAtLine(int line) {
   return (Isolate isolate) async {
@@ -206,11 +249,20 @@ IsolateTest stoppedAtLine(int line) {
 
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
-    expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
-    Frame top = stack['frames'][0];
+    List<Frame> frames = stack['frames'];
+    expect(frames.length, greaterThanOrEqualTo(1));
+
+    Frame top = frames[0];
     Script script = await top.location.script.load();
-    expect(script.tokenToLine(top.location.tokenPos), equals(line));
+    if (script.tokenToLine(top.location.tokenPos) != line) {
+      var sb = new StringBuffer();
+      sb.write("Expected to be at line $line, but got stack trace:\n");
+      for (Frame f in stack['frames']) {
+        sb.write(" $f\n");
+      }
+      throw sb.toString();
+    }
   };
 }
 
@@ -276,7 +328,9 @@ Future runVMTests(List<String> mainArgs,
                   {Future testeeBefore(),
                    Future testeeConcurrent(),
                    bool pause_on_start: false,
-                   bool pause_on_exit: false}) async {
+                   bool pause_on_exit: false,
+                   bool trace_service: false,
+                   bool verbose_vm: false}) async {
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
       if (testeeBefore != null) {
@@ -293,7 +347,9 @@ Future runVMTests(List<String> mainArgs,
     }
   } else {
     var process = new _TestLauncher();
-    process.launch(pause_on_start, pause_on_exit).then((port) async {
+    process.launch(pause_on_start,
+                   pause_on_exit,
+                   trace_service).then((port) async {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
@@ -305,6 +361,7 @@ Future runVMTests(List<String> mainArgs,
       runZoned(() {
         new WebSocketVM(new WebSocketVMTarget(addr)).load()
             .then((VM vm) => Future.forEach(tests, (test) {
+              vm.verbose = verbose_vm;
               print('Running $name [$testIndex/$totalTests]');
               testIndex++;
               return test(vm);

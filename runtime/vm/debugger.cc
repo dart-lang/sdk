@@ -15,6 +15,7 @@
 #include "vm/globals.h"
 #include "vm/longjump.h"
 #include "vm/json_stream.h"
+#include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -42,6 +43,8 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
 
+DECLARE_FLAG(bool, trace_isolates);
+
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
 
@@ -65,7 +68,9 @@ class RemoteObjectCache : public ZoneAllocated {
 // Create an unresolved breakpoint in given token range and script.
 BreakpointLocation::BreakpointLocation(const Script& script,
                                        intptr_t token_pos,
-                                       intptr_t end_token_pos)
+                                       intptr_t end_token_pos,
+                                       intptr_t requested_line_number,
+                                       intptr_t requested_column_number)
     : script_(script.raw()),
       url_(script.url()),
       token_pos_(token_pos),
@@ -73,15 +78,19 @@ BreakpointLocation::BreakpointLocation(const Script& script,
       is_resolved_(false),
       next_(NULL),
       conditions_(NULL),
+      requested_line_number_(requested_line_number),
+      requested_column_number_(requested_column_number),
       function_(Function::null()),
-      line_number_(-1) {
+      line_number_(-1),
+      column_number_(-1) {
   ASSERT(!script.IsNull());
   ASSERT(token_pos_ >= 0);
 }
 
 // Create a latent breakpoint at given url and line number.
 BreakpointLocation::BreakpointLocation(const String& url,
-                                       intptr_t line_number)
+                                       intptr_t requested_line_number,
+                                       intptr_t requested_column_number)
     : script_(Script::null()),
       url_(url.raw()),
       token_pos_(-1),
@@ -89,9 +98,12 @@ BreakpointLocation::BreakpointLocation(const String& url,
       is_resolved_(false),
       next_(NULL),
       conditions_(NULL),
+      requested_line_number_(requested_line_number),
+      requested_column_number_(requested_column_number),
       function_(Function::null()),
-      line_number_(line_number) {
-  ASSERT(line_number_ >= 0);
+      line_number_(-1),
+      column_number_(-1) {
+  ASSERT(requested_line_number_ >= 0);
 }
 
 
@@ -119,7 +131,6 @@ void BreakpointLocation::SetResolved(const Function& func, intptr_t token_pos) {
   function_ = func.raw();
   token_pos_ = token_pos;
   end_token_pos_ = token_pos;
-  line_number_ = -1;  // Recalculate lazily.
   is_resolved_ = true;
 }
 
@@ -129,7 +140,7 @@ void BreakpointLocation::SetResolved(const Function& func, intptr_t token_pos) {
 // in more than one library, e.g. the text location of mixin functions.
 void BreakpointLocation::GetCodeLocation(Library* lib,
                                          Script* script,
-                                         intptr_t* pos) {
+                                         intptr_t* pos) const {
   if (IsLatent()) {
     *lib = Library::null();
     *script = Script::null();
@@ -150,14 +161,24 @@ void BreakpointLocation::GetCodeLocation(Library* lib,
 
 
 intptr_t BreakpointLocation::LineNumber() {
-  // Latent breakpoints must have a requested line number >= 0.
-  ASSERT(!IsLatent() || line_number_ >= 0);
+  ASSERT(IsResolved());
   // Compute line number lazily since it causes scanning of the script.
   if (line_number_ < 0) {
     const Script& script = Script::Handle(this->script());
     script.GetTokenLocation(token_pos_, &line_number_, NULL);
   }
   return line_number_;
+}
+
+
+intptr_t BreakpointLocation::ColumnNumber() {
+  ASSERT(IsResolved());
+  // Compute column number lazily since it causes scanning of the script.
+  if (column_number_ < 0) {
+    const Script& script = Script::Handle(this->script());
+    script.GetTokenLocation(token_pos_, &line_number_, &column_number_);
+  }
+  return column_number_;
 }
 
 
@@ -186,25 +207,23 @@ void BreakpointLocation::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void Breakpoint::PrintJSON(JSONStream* stream) {
-  Isolate* isolate = Isolate::Current();
-
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "Breakpoint");
 
   jsobj.AddFixedServiceId("breakpoints/%" Pd "", id());
   jsobj.AddProperty("breakpointNumber", id());
   jsobj.AddProperty("resolved", bpt_location_->IsResolved());
-
-  Library& library = Library::Handle(isolate);
-  Script& script = Script::Handle(isolate);
-  intptr_t token_pos;
-  bpt_location_->GetCodeLocation(&library, &script, &token_pos);
-  jsobj.AddLocation(script, token_pos);
+  if (bpt_location_->IsResolved()) {
+    jsobj.AddLocation(bpt_location_);
+  } else {
+    jsobj.AddUnresolvedLocation(bpt_location_);
+  }
 }
 
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
 }
 
 
@@ -231,6 +250,11 @@ ActivationFrame::ActivationFrame(
       var_descriptors_(LocalVarDescriptors::ZoneHandle()),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
+}
+
+
+void DebuggerEvent::UpdateTimestamp() {
+  timestamp_ = OS::GetCurrentTimeMillis();
 }
 
 
@@ -286,9 +310,16 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
 
   if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {
     // If we were paused, notify the service that we have resumed.
-    ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
-    service_event.set_top_frame(event->top_frame());
-    Service::HandleEvent(&service_event);
+    const Error& error = Error::Handle(zone(),
+        isolate_->object_store()->sticky_error());
+    ASSERT(error.IsNull() || error.IsUnwindError());
+
+    // Only send a resume event when the isolate is not unwinding.
+    if (!error.IsUnwindError()) {
+      ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
+      service_event.set_top_frame(event->top_frame());
+      Service::HandleEvent(&service_event);
+    }
   }
 }
 
@@ -299,8 +330,9 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
     ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
     if (type == DebuggerEvent::kIsolateInterrupted) {
       DebuggerStackTrace* trace = CollectStackTrace();
-      ASSERT(trace->Length() > 0);
-      event.set_top_frame(trace->FrameAt(0));
+      if (trace->Length() > 0) {
+        event.set_top_frame(trace->FrameAt(0));
+      }
       ASSERT(stack_trace_ == NULL);
       stack_trace_ = trace;
       resume_action_ = kContinue;
@@ -314,11 +346,29 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
 }
 
 
-void Debugger::SignalIsolateInterrupted() {
+RawError* Debugger::SignalIsolateInterrupted() {
   if (HasEventHandler()) {
-    Debugger* debugger = Isolate::Current()->debugger();
-    debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
+    SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
   }
+  Dart_IsolateInterruptCallback callback = isolate_->InterruptCallback();
+  if (callback != NULL) {
+    if (!(*callback)()) {
+      if (FLAG_trace_isolates) {
+        OS::Print("[!] Embedder api: terminating isolate:\n"
+                  "\tisolate:    %s\n", isolate_->name());
+      }
+      const String& msg =
+          String::Handle(String::New("isolate terminated by embedder"));
+      return UnwindError::New(msg);
+    }
+  }
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(zone(), isolate_->object_store()->sticky_error());
+  ASSERT(error.IsNull() || error.IsUnwindError());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
@@ -398,18 +448,10 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
   Class& func_class = Class::Handle(func.Owner());
   String& class_name = String::Handle(func_class.Name());
 
-  const char* kFormat = "%s%s%s";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat,
-      func_class.IsTopLevel() ? "" : class_name.ToCString(),
-      func_class.IsTopLevel() ? "" : ".",
-      func_name.ToCString());
-  len++;  // String terminator.
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, kFormat,
-              func_class.IsTopLevel() ? "" : class_name.ToCString(),
+  return OS::SCreate(Thread::Current()->zone(),
+    "%s%s%s", func_class.IsTopLevel() ? "" : class_name.ToCString(),
               func_class.IsTopLevel() ? "" : ".",
               func_name.ToCString());
-  return chars;
 }
 
 
@@ -432,7 +474,7 @@ bool Debugger::HasBreakpoint(const Function& func) {
     // is a user-defined breakpoint that falls into the token
     // range of the function. This may be a false positive: the breakpoint
     // might be inside a local closure.
-    Script& script = Script::Handle(isolate_);
+    Script& script = Script::Handle(zone());
     BreakpointLocation* sbpt = breakpoint_locations_;
     while (sbpt != NULL) {
       script = sbpt->script();
@@ -662,7 +704,6 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       return ctx_;
     }
   }
-  UNREACHABLE();
   return Context::ZoneHandle(Context::null());
 }
 
@@ -673,9 +714,14 @@ RawObject* ActivationFrame::GetAsyncOperation() {
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
-    const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kAsyncOperation) {
-      return GetContextVar(var_info.scope_id, var_info.index());
+    if (var_descriptors_.GetName(i) == Symbols::AsyncOperation().raw()) {
+      const int8_t kind = var_info.kind();
+      if (kind == RawLocalVarDescriptors::kStackVar) {
+        return GetStackVar(var_info.index());
+      } else {
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        return GetContextVar(var_info.scope_id, var_info.index());
+      }
     }
   }
   return Object::null();
@@ -896,8 +942,7 @@ void ActivationFrame::VariableAt(intptr_t i,
   intptr_t desc_index = desc_indices_[i];
   ASSERT(name != NULL);
 
-  const String& tmp = String::Handle(var_descriptors_.GetName(desc_index));
-  *name ^= String::IdentifierPrettyName(tmp);
+  *name = var_descriptors_.GetName(desc_index);
 
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
@@ -983,6 +1028,11 @@ RawObject* ActivationFrame::GetReceiver() {
 }
 
 
+bool IsPrivateVariableName(const String& var_name) {
+  return (var_name.Length() >= 1) && (var_name.CharAt(0) == '_');
+}
+
+
 RawObject* ActivationFrame::Evaluate(const String& expr) {
   GetDescIndices();
   const GrowableObjectArray& param_names =
@@ -996,6 +1046,9 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
     intptr_t ignore;
     VariableAt(i, &name, &ignore, &ignore, &value);
     if (!name.Equals(Symbols::This())) {
+      if (IsPrivateVariableName(name)) {
+        name = String::IdentifierPrettyName(name);
+      }
       param_names.Add(name);
       param_values.Add(value);
     }
@@ -1059,19 +1112,22 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();
     for (intptr_t v = 0; v < num_vars; v++) {
-      JSONObject jsvar(&jsvars);
       String& var_name = String::Handle();
       Instance& var_value = Instance::Handle();
       intptr_t token_pos;
       intptr_t end_token_pos;
       VariableAt(v, &var_name, &token_pos, &end_token_pos, &var_value);
-      jsvar.AddProperty("name", var_name.ToCString());
-      jsvar.AddProperty("value", var_value, !full);
-      // TODO(turnidge): Do we really want to provide this on every
-      // stack dump?  Should be associated with the function object, I
-      // think, and not the stack frame.
-      jsvar.AddProperty("_tokenPos", token_pos);
-      jsvar.AddProperty("_endTokenPos", end_token_pos);
+      if (var_name.raw() != Symbols::AsyncOperation().raw()) {
+        JSONObject jsvar(&jsvars);
+        jsvar.AddProperty("type", "BoundVariable");
+        jsvar.AddProperty("name", var_name.ToCString());
+        jsvar.AddProperty("value", var_value, !full);
+        // TODO(turnidge): Do we really want to provide this on every
+        // stack dump?  Should be associated with the function object, I
+        // think, and not the stack frame.
+        jsvar.AddProperty("_tokenPos", token_pos);
+        jsvar.AddProperty("_endTokenPos", end_token_pos);
+      }
     }
   }
 }
@@ -1102,7 +1158,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(kind),
-      saved_value_(0) {
+      saved_value_(Code::null()) {
   ASSERT(!code.IsNull());
   ASSERT(token_pos_ > 0);
   ASSERT(pc_ != 0);
@@ -1377,21 +1433,23 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
 }
 
 
-RawArray* Debugger::DeoptimizeToArray(Isolate* isolate,
+RawArray* Debugger::DeoptimizeToArray(Thread* thread,
                                       StackFrame* frame,
                                       const Code& code) {
   ASSERT(code.is_optimized());
-
+  Isolate* isolate = thread->isolate();
   // Create the DeoptContext for this deoptimization.
   DeoptContext* deopt_context =
       new DeoptContext(frame, code,
                        DeoptContext::kDestIsAllocated,
-                       NULL, NULL);
+                       NULL,
+                       NULL,
+                       true);
   isolate->set_deopt_context(deopt_context);
 
   deopt_context->FillDestFrame();
   deopt_context->MaterializeDeferredObjects();
-  const Array& dest_frame = Array::Handle(isolate,
+  const Array& dest_frame = Array::Handle(thread->zone(),
                                           deopt_context->DestFrameAsArray());
 
   isolate->set_deopt_context(NULL);
@@ -1402,12 +1460,14 @@ RawArray* Debugger::DeoptimizeToArray(Isolate* isolate,
 
 
 DebuggerStackTrace* Debugger::CollectStackTrace() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   StackFrameIterator iterator(false);
-  Code& code = Code::Handle(isolate);
-  Code& inlined_code = Code::Handle(isolate);
-  Array& deopt_frame = Array::Handle(isolate);
+  Code& code = Code::Handle(zone);
+  Code& inlined_code = Code::Handle(zone);
+  Array& deopt_frame = Array::Handle(zone);
 
   for (StackFrame* frame = iterator.NextFrame();
        frame != NULL;
@@ -1420,14 +1480,14 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       if (code.is_optimized() && !Compiler::always_optimize()) {
-        deopt_frame = DeoptimizeToArray(isolate, frame, code);
+        deopt_frame = DeoptimizeToArray(thread, frame, code);
         for (InlinedFunctionsIterator it(code, frame->pc());
              !it.Done();
              it.Advance()) {
           inlined_code = it.code();
           if (FLAG_trace_debugger_stacktrace) {
             const Function& function =
-                Function::Handle(isolate, inlined_code.function());
+                Function::Handle(zone, inlined_code.function());
             ASSERT(!function.IsNull());
             OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
                          function.ToFullyQualifiedCString());
@@ -1460,7 +1520,7 @@ ActivationFrame* Debugger::TopDartFrame() const {
   while ((frame != NULL) && !frame->IsDartFrame()) {
     frame = iterator.NextFrame();
   }
-  Code& code = Code::Handle(isolate_, frame->LookupDartCode());
+  Code& code = Code::Handle(zone(), frame->LookupDartCode());
   ActivationFrame* activation =
       new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code,
                           Object::null_array(), 0);
@@ -1597,13 +1657,66 @@ static intptr_t LastTokenOnLine(const TokenStream& tokens, intptr_t pos) {
 }
 
 
-// Given a function and a token range, return the best fit
-// token position to set a breakpoint. The best fit is the safe point
-// in the line closest to the beginning of the token range, and within
-// that line, the safe point with the lowest compiled code address.
+// Returns the best fit token position for a breakpoint.
+//
+// Takes a range of tokens [requested_token_pos, last_token_pos] and
+// an optional column (requested_column).  The range of tokens usually
+// represents one line of the program text, but can represent a larger
+// range on recursive calls.
+//
+// The best fit is found in two passes.
+//
+// The first pass finds a candidate token which:
+//
+//   - is a safepoint,
+//   - has the lowest column number compatible with the requested column
+//     if a column has been specified,
+// and:
+//   - has the lowest token position number which satisfies the above.
+//
+// When we consider a column number, we look for the closed token
+// which intersects the desired column.  For example:
+//
+//          1         2         3
+// 12345678901234567890         0
+//
+//   var x = function(function(y));
+//              ^
+//
+// If we request a breakpoint at column 14, the lowest column number
+// compatible with that would for column 11 (beginning of the
+// 'function' token) in the example above.
+//
+// Once this candidate token from the first pass is found, we then
+// have a second pass which considers only those tokens on the same
+// line as the candidate token.
+//
+// The second pass finds a best fit token which:
+//
+//   - is a safepoint,
+//   - has the same column number as the candidate token (perhaps
+//     more than one token has the same column number),
+// and:
+//   - has the lowest code address in the generated code.
+//
+// We prefer the lowest compiled code address, because this tends to
+// select the first subexpression on a line.  For example in a line
+// with nested function calls f(g(x)), the call to g() will have a
+// lower compiled code address than the call to f().
+//
+// If no best fit token can be found, the search is expanded,
+// searching through the rest of the current function by calling this
+// function recursively.
+//
+// TODO(turnidge): Given that we usually call this function with a
+// token range restricted to a single line, this could be a one-pass
+// algorithm, which would be simpler.  I believe that it only needs
+// two passes to support the recursive try-the-whole-function case.
+// Rewrite this later, once there are more tests in place.
 intptr_t Debugger::ResolveBreakpointPos(const Function& func,
                                         intptr_t requested_token_pos,
-                                        intptr_t last_token_pos) {
+                                        intptr_t last_token_pos,
+                                        intptr_t requested_column) {
   ASSERT(func.HasCode());
   ASSERT(!func.HasOptimizedCode());
 
@@ -1614,6 +1727,7 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
     last_token_pos = func.end_token_pos();
   }
 
+  Script& script = Script::Handle(func.script());
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
@@ -1621,22 +1735,47 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
   // First pass: find the safe point which is closest to the beginning
   // of the given token range.
   intptr_t best_fit_pos = INT_MAX;
+  intptr_t best_column = INT_MAX;
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
-    const intptr_t desc_token_pos = iter.TokenPos();
-    if ((desc_token_pos != Scanner::kNoSourcePos) &&
-        (desc_token_pos < best_fit_pos) &&
-        (desc_token_pos >= requested_token_pos) &&
-        (desc_token_pos <= last_token_pos)) {
-       best_fit_pos = desc_token_pos;
+    const intptr_t pos = iter.TokenPos();
+    if ((pos == Scanner::kNoSourcePos) ||
+        (pos < requested_token_pos) ||
+        (pos > last_token_pos)) {
+      // Token is not in the target range.
+      continue;
+    }
+
+    intptr_t token_start_column = -1;
+    if (requested_column >= 0) {
+      intptr_t ignored = -1;
+      intptr_t token_len = -1;
+      // TODO(turnidge): GetTokenLocation is a very expensive
+      // operation, and this code will blow up when we are setting
+      // column breakpoints on, for example, a large, single-line
+      // program.  Consider rewriting this code so that it only scans
+      // the program code once and caches the token positions and
+      // lengths.
+      script.GetTokenLocation(pos, &ignored, &token_start_column, &token_len);
+      intptr_t token_end_column = token_start_column + token_len - 1;
+      if ((token_end_column < requested_column) ||
+          (token_start_column > best_column)) {
+        // Prefer the token with the lowest column number compatible
+        // with the requested column.
+        continue;
+      }
+    }
+
+    // Prefer the lowest (first) token pos.
+    if (pos < best_fit_pos) {
+      best_fit_pos = pos;
+      best_column = token_start_column;
     }
   }
-  // Second pass (if we found a safe point in the first pass):
-  // For all token positions on the same line, select the one
-  // with the lowest compiled code address. E.g., in a line with
-  // the nested function calls f(g(x)), the call g() will have a lower
-  // compiled code address but is not the lowest token position in the
-  // line.
+
+  // Second pass (if we found a safe point in the first pass).  Find
+  // the token on the line which is at the best fit column (if column
+  // was specified) and has the lowest code address.
   if (best_fit_pos != INT_MAX) {
     const Script& script = Script::Handle(func.script());
     const TokenStream& tokens = TokenStream::Handle(script.tokens());
@@ -1646,9 +1785,26 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
       const intptr_t pos = iter.TokenPos();
-      if ((pos != Scanner::kNoSourcePos) &&
-          (begin_pos <= pos) && (pos <= end_of_line_pos) &&
-          (iter.PcOffset() < lowest_pc_offset)) {
+      if ((pos == Scanner::kNoSourcePos) ||
+          (pos < begin_pos) ||
+          (pos > end_of_line_pos)) {
+        // Token is not on same line as best fit.
+        continue;
+      }
+
+      if (requested_column >= 0) {
+        intptr_t ignored = -1;
+        intptr_t token_start_column = -1;
+        // We look for other tokens at the best column in case there
+        // is more than one token at the same column offset.
+        script.GetTokenLocation(pos, &ignored, &token_start_column);
+        if (token_start_column != best_column) {
+          continue;
+        }
+      }
+
+      // Prefer the lowest pc offset.
+      if (iter.PcOffset() < lowest_pc_offset) {
         lowest_pc_offset = iter.PcOffset();
         best_fit_pos = pos;
       }
@@ -1656,10 +1812,13 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
     return best_fit_pos;
   }
 
-  // We didn't find a safe point in the given token range. Try and find
-  // a safe point in the remaining source code of the function.
+  // We didn't find a safe point in the given token range. Try and
+  // find a safe point in the remaining source code of the function.
+  // Since we have moved to the next line of the function, we no
+  // longer are requesting a specific column number.
   if (last_token_pos < func.end_token_pos()) {
-    return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos());
+    return ResolveBreakpointPos(func, last_token_pos, func.end_token_pos(),
+                                -1 /* no column */);
   }
   return -1;
 }
@@ -1708,10 +1867,11 @@ void Debugger::FindCompiledFunctions(const Script& script,
                                      intptr_t start_pos,
                                      intptr_t end_pos,
                                      GrowableObjectArray* function_list) {
-  Class& cls = Class::Handle(isolate_);
-  Array& functions = Array::Handle(isolate_);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(isolate_);
-  Function& function = Function::Handle(isolate_);
+  Zone* zn = zone();
+  Class& cls = Class::Handle(zn);
+  Array& functions = Array::Handle(zn);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(zn);
+  Function& function = Function::Handle(zn);
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -1791,12 +1951,13 @@ static void SelectBestFit(Function* best_fit, Function* func) {
 
 RawFunction* Debugger::FindBestFit(const Script& script,
                                    intptr_t token_pos) {
-  Class& cls = Class::Handle(isolate_);
-  Array& functions = Array::Handle(isolate_);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(isolate_);
-  Function& function = Function::Handle(isolate_);
-  Function& best_fit = Function::Handle(isolate_);
-  Error& error = Error::Handle(isolate_);
+  Zone* zn = zone();
+  Class& cls = Class::Handle(zn);
+  Array& functions = Array::Handle(zn);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(zn);
+  Function& function = Function::Handle(zn);
+  Function& best_fit = Function::Handle(zn);
+  Error& error = Error::Handle(zn);
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -1813,7 +1974,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         continue;
       }
       // Parse class definition if not done yet.
-      error = cls.EnsureIsFinalized(isolate_);
+      error = cls.EnsureIsFinalized(Thread::Current());
       if (!error.IsNull()) {
         // Ignore functions in this class.
         // TODO(hausner): Should we propagate this error? How?
@@ -1852,8 +2013,10 @@ RawFunction* Debugger::FindBestFit(const Script& script,
 
 BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                             intptr_t token_pos,
-                                            intptr_t last_token_pos) {
-  Function& func = Function::Handle(isolate_);
+                                            intptr_t last_token_pos,
+                                            intptr_t requested_line,
+                                            intptr_t requested_column) {
+  Function& func = Function::Handle(zone());
   func = FindBestFit(script, token_pos);
   if (func.IsNull()) {
     return NULL;
@@ -1876,14 +2039,16 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
     DeoptimizeWorld();
     func ^= functions.At(0);
     intptr_t breakpoint_pos =
-        ResolveBreakpointPos(func, token_pos, last_token_pos);
+        ResolveBreakpointPos(func, token_pos, last_token_pos, requested_column);
     if (breakpoint_pos >= 0) {
-      BreakpointLocation* bpt = GetBreakpointLocation(script, breakpoint_pos);
+      BreakpointLocation* bpt =
+          GetBreakpointLocation(script, breakpoint_pos, requested_column);
       if (bpt != NULL) {
         // A source breakpoint for this location already exists.
         return bpt;
       }
-      bpt = new BreakpointLocation(script, token_pos, last_token_pos);
+      bpt = new BreakpointLocation(script, token_pos, last_token_pos,
+                                   requested_line, requested_column);
       bpt->SetResolved(func, breakpoint_pos);
       RegisterBreakpointLocation(bpt);
 
@@ -1896,11 +2061,12 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
       }
       if (FLAG_verbose_debug) {
         intptr_t line_number;
-        script.GetTokenLocation(breakpoint_pos, &line_number, NULL);
+        intptr_t column_number;
+        script.GetTokenLocation(breakpoint_pos, &line_number, &column_number);
         OS::Print("Resolved BP for "
-                  "function '%s' at line %" Pd "\n",
+                  "function '%s' at line %" Pd " col %" Pd "\n",
                   func.ToFullyQualifiedCString(),
-                  line_number);
+                  line_number, column_number);
       }
       return bpt;
     }
@@ -1909,15 +2075,18 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
   // Register an unresolved breakpoint.
   if (FLAG_verbose_debug && !func.IsNull()) {
     intptr_t line_number;
-    script.GetTokenLocation(token_pos, &line_number, NULL);
+    intptr_t column_number;
+    script.GetTokenLocation(token_pos, &line_number, &column_number);
     OS::Print("Registering pending breakpoint for "
-              "uncompiled function '%s' at line %" Pd "\n",
+              "uncompiled function '%s' at line %" Pd " col %" Pd "\n",
               func.ToFullyQualifiedCString(),
-              line_number);
+              line_number, column_number);
   }
-  BreakpointLocation* bpt = GetBreakpointLocation(script, token_pos);
+  BreakpointLocation* bpt =
+      GetBreakpointLocation(script, token_pos, requested_column);
   if (bpt == NULL) {
-    bpt = new BreakpointLocation(script, token_pos, last_token_pos);
+    bpt = new BreakpointLocation(script, token_pos, last_token_pos,
+                                 requested_line, requested_column);
     RegisterBreakpointLocation(bpt);
   }
   return bpt;
@@ -1964,7 +2133,8 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
   BreakpointLocation* bpt_location =
       SetBreakpoint(script,
                     target_function.token_pos(),
-                    target_function.end_token_pos());
+                    target_function.end_token_pos(),
+                    -1, -1 /* no requested line/col */);
   if (single_shot) {
     return bpt_location->AddSingleShot(this);
   } else {
@@ -1981,7 +2151,8 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure) {
   const Script& script = Script::Handle(func.script());
   BreakpointLocation* bpt_location = SetBreakpoint(script,
                                                    func.token_pos(),
-                                                   func.end_token_pos());
+                                                   func.end_token_pos(),
+                                                   -1, -1 /* no line/col */);
   return bpt_location->AddPerClosure(this, closure);
 }
 
@@ -2011,7 +2182,8 @@ Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
 
 Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
                                           intptr_t line_number) {
-  BreakpointLocation* loc = BreakpointLocationAtLine(script_url, line_number);
+  BreakpointLocation* loc =
+      BreakpointLocationAtLineCol(script_url, line_number, -1 /* no column */);
   if (loc != NULL) {
     return loc->AddRepeated(this);
   }
@@ -2019,14 +2191,29 @@ Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
 }
 
 
-BreakpointLocation* Debugger::BreakpointLocationAtLine(const String& script_url,
-                                                       intptr_t line_number) {
-  Library& lib = Library::Handle(isolate_);
-  Script& script = Script::Handle(isolate_);
+Breakpoint* Debugger::SetBreakpointAtLineCol(const String& script_url,
+                                             intptr_t line_number,
+                                             intptr_t column_number) {
+  BreakpointLocation* loc = BreakpointLocationAtLineCol(script_url,
+                                                        line_number,
+                                                        column_number);
+  if (loc != NULL) {
+    return loc->AddRepeated(this);
+  }
+  return NULL;
+}
+
+
+BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
+    const String& script_url,
+    intptr_t line_number,
+    intptr_t column_number) {
+  Library& lib = Library::Handle(zone());
+  Script& script = Script::Handle(zone());
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
   const GrowableObjectArray& scripts =
-    GrowableObjectArray::Handle(isolate_, GrowableObjectArray::New());
+    GrowableObjectArray::Handle(zone(), GrowableObjectArray::New());
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     script = lib.LookupScript(script_url);
@@ -2038,11 +2225,13 @@ BreakpointLocation* Debugger::BreakpointLocationAtLine(const String& script_url,
     // No script found with given url. Create a latent breakpoint which
     // will be set if the url is loaded later.
     BreakpointLocation* latent_bpt = GetLatentBreakpoint(script_url,
-                                                         line_number);
+                                                         line_number,
+                                                         column_number);
     if (FLAG_verbose_debug) {
-      OS::Print("Set latent breakpoint in url '%s' at line %" Pd "\n",
+      OS::Print("Set latent breakpoint in url '%s' at "
+                "line %" Pd " col %" Pd "\n",
                 script_url.ToCString(),
-                line_number);
+                line_number, column_number);
     }
     return latent_bpt;
   }
@@ -2074,7 +2263,8 @@ BreakpointLocation* Debugger::BreakpointLocationAtLine(const String& script_url,
   BreakpointLocation* bpt = NULL;
   ASSERT(first_token_idx <= last_token_idx);
   while ((bpt == NULL) && (first_token_idx <= last_token_idx)) {
-    bpt = SetBreakpoint(script, first_token_idx, last_token_idx);
+    bpt = SetBreakpoint(script, first_token_idx, last_token_idx,
+                        line_number, column_number);
     first_token_idx++;
   }
   if ((bpt == NULL) && FLAG_verbose_debug) {
@@ -2133,7 +2323,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   const Field& fld = Field::Handle(cls.LookupStaticField(field_name));
   if (!fld.IsNull()) {
     // Return the value in the field if it has been initialized already.
-    const Instance& value = Instance::Handle(fld.value());
+    const Instance& value = Instance::Handle(fld.StaticValue());
     ASSERT(value.raw() != Object::transition_sentinel().raw());
     if (value.raw() != Object::sentinel().raw()) {
       return value.raw();
@@ -2213,10 +2403,10 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
                                     const String& prefix,
                                     bool include_private_fields) {
   DictionaryIterator it(lib);
-  Object& entry = Object::Handle(isolate_);
-  Field& field = Field::Handle(isolate_);
-  String& field_name = String::Handle(isolate_);
-  PassiveObject& field_value = PassiveObject::Handle(isolate_);
+  Object& entry = Object::Handle(isolate_->current_zone());
+  Field& field = Field::Handle(zone());
+  String& field_name = String::Handle(zone());
+  PassiveObject& field_value = PassiveObject::Handle(isolate_->current_zone());
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {
@@ -2230,11 +2420,11 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
       // If the field is not initialized yet, report the value to be
       // "<not initialized>". We don't want to execute the implicit getter
       // since it may have side effects.
-      if ((field.value() == Object::sentinel().raw()) ||
-          (field.value() == Object::transition_sentinel().raw())) {
+      if ((field.StaticValue() == Object::sentinel().raw()) ||
+          (field.StaticValue() == Object::transition_sentinel().raw())) {
         field_value = Symbols::NotInitialized().raw();
       } else {
-        field_value = field.value();
+        field_value = field.StaticValue();
       }
       if (!prefix.IsNull()) {
         field_name = String::Concat(prefix, field_name);
@@ -2249,7 +2439,7 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
 RawArray* Debugger::GetLibraryFields(const Library& lib) {
   const GrowableObjectArray& field_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  CollectLibraryFields(field_list, lib, String::Handle(isolate_), true);
+  CollectLibraryFields(field_list, lib, String::Handle(zone()), true);
   return Array::MakeArray(field_list);
 }
 
@@ -2257,16 +2447,16 @@ RawArray* Debugger::GetLibraryFields(const Library& lib) {
 RawArray* Debugger::GetGlobalFields(const Library& lib) {
   const GrowableObjectArray& field_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  String& prefix_name = String::Handle(isolate_);
+  String& prefix_name = String::Handle(zone());
   CollectLibraryFields(field_list, lib, prefix_name, true);
-  Library& imported = Library::Handle(isolate_);
+  Library& imported = Library::Handle(zone());
   intptr_t num_imports = lib.num_imports();
   for (intptr_t i = 0; i < num_imports; i++) {
     imported = lib.ImportLibraryAt(i);
     ASSERT(!imported.IsNull());
     CollectLibraryFields(field_list, imported, prefix_name, false);
   }
-  LibraryPrefix& prefix = LibraryPrefix::Handle(isolate_);
+  LibraryPrefix& prefix = LibraryPrefix::Handle(zone());
   LibraryPrefixIterator it(lib);
   while (it.HasNext()) {
     prefix = it.GetNext();
@@ -2314,6 +2504,7 @@ void Debugger::Pause(DebuggerEvent* event) {
   ASSERT(obj_cache_ == NULL);
 
   pause_event_ = event;
+  pause_event_->UpdateTimestamp();
   obj_cache_ = new RemoteObjectCache(64);
 
   InvokeEventHandler(event);
@@ -2395,18 +2586,32 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);
   Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
-  event.set_async_continuation(&closure_or_null);
+  if (!closure_or_null.IsNull()) {
+    ASSERT(closure_or_null.IsInstance());
+    ASSERT(Instance::Cast(closure_or_null).IsClosure());
+    event.set_async_continuation(&closure_or_null);
+    const Script& script = Script::Handle(top_frame->SourceScript());
+    const TokenStream& tokens = TokenStream::Handle(script.tokens());
+    TokenStream::Iterator iter(tokens, top_frame->TokenPos());
+    if ((iter.CurrentTokenKind() == Token::kIDENT) &&
+        ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
+         (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
+      event.set_at_async_jump(true);
+    }
+  }
   Pause(&event);
 }
 
 
-void Debugger::DebuggerStepCallback() {
+RawError* Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
   // We can't get here unless the debugger event handler enabled
   // single stepping.
   ASSERT(HasEventHandler());
   // Don't pause recursively.
-  if (IsPaused()) return;
+  if (IsPaused()) {
+    return Error::null();
+  }
 
   // Check whether we are in a Dart function that the user is
   // interested in. If we saved the frame pointer of a stack frame
@@ -2422,7 +2627,7 @@ void Debugger::DebuggerStepCallback() {
     if (stepping_fp_ > frame->fp()) {
       // We are in a callee of the frame we're interested in.
       // Ignore this stepping break.
-      return;
+      return Error::null();
     } else if (frame->fp() > stepping_fp_) {
       // We returned from the "interesting frame", there can be no more
       // stepping breaks for it. Pause at the next appropriate location
@@ -2432,16 +2637,16 @@ void Debugger::DebuggerStepCallback() {
   }
 
   if (!frame->IsDebuggable()) {
-    return;
+    return Error::null();
   }
   if (frame->TokenPos() == Scanner::kNoSourcePos) {
-    return;
+    return Error::null();
   }
 
   // Don't pause for a single step if there is a breakpoint set
   // at this location.
   if (HasActiveBreakpoint(frame->pc())) {
-    return;
+    return Error::null();
   }
 
   if (FLAG_verbose_debug) {
@@ -2457,15 +2662,21 @@ void Debugger::DebuggerStepCallback() {
   SignalPausedEvent(frame, NULL);
   HandleSteppingRequest(stack_trace_);
   stack_trace_ = NULL;
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(zone(), isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
-void Debugger::SignalBpReached() {
+RawError* Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
   if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
-    return;
+    return Error::null();
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
   ASSERT(stack_trace->Length() > 0);
@@ -2519,7 +2730,7 @@ void Debugger::SignalBpReached() {
   }
 
   if (bpt_hit == NULL) {
-    return;
+    return Error::null();
   }
 
   if (FLAG_verbose_debug) {
@@ -2540,6 +2751,12 @@ void Debugger::SignalBpReached() {
   if (cbpt->IsInternal()) {
     RemoveInternalBreakpoints();
   }
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(zone(), isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
@@ -2577,7 +2794,7 @@ void Debugger::Initialize(Isolate* isolate) {
   // Use the isolate's control port as the isolate_id for debugging.
   // This port will be used as a unique ID to represent the isolate in the
   // debugger wire protocol messages.
-  isolate_id_ = isolate->main_port();
+  isolate_id_ = isolate_->main_port();
   initialized_ = true;
 }
 
@@ -2594,7 +2811,7 @@ void Debugger::NotifyIsolateCreated() {
 // the given token position.
 RawFunction* Debugger::FindInnermostClosure(const Function& function,
                                             intptr_t token_pos) {
-  const Class& owner = Class::Handle(isolate_, function.Owner());
+  const Class& owner = Class::Handle(zone(), function.Owner());
   if (owner.closures() == GrowableObjectArray::null()) {
     return Function::null();
   }
@@ -2602,12 +2819,12 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
   // script as the outer function. We could have closures originating
   // in mixin classes whose source code is contained in a different
   // script.
-  const Script& outer_origin = Script::Handle(isolate_, function.script());
+  const Script& outer_origin = Script::Handle(zone(), function.script());
   const GrowableObjectArray& closures =
-     GrowableObjectArray::Handle(isolate_, owner.closures());
+     GrowableObjectArray::Handle(zone(), owner.closures());
   const intptr_t num_closures = closures.Length();
-  Function& closure = Function::Handle(isolate_);
-  Function& best_fit = Function::Handle(isolate_);
+  Function& closure = Function::Handle(zone());
+  Function& best_fit = Function::Handle(zone());
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
     if ((function.token_pos() < closure.token_pos()) &&
@@ -2635,13 +2852,13 @@ void Debugger::NotifyCompilation(const Function& func) {
   }
   // Iterate over all source breakpoints to check whether breakpoints
   // need to be set in the newly compiled function.
-  Script& script = Script::Handle(isolate_);
+  Script& script = Script::Handle(zone());
   for (BreakpointLocation* loc = breakpoint_locations_;
       loc != NULL;
       loc = loc->next()) {
     script = loc->script();
     if (FunctionContains(func, script, loc->token_pos())) {
-      Function& inner_function = Function::Handle(isolate_);
+      Function& inner_function = Function::Handle(zone());
       inner_function = FindInnermostClosure(func, loc->token_pos());
       if (!inner_function.IsNull()) {
         // The local function of a function we just compiled cannot
@@ -2664,7 +2881,8 @@ void Debugger::NotifyCompilation(const Function& func) {
       if (!loc->IsResolved()) {
         // Resolve source breakpoint in the newly compiled function.
         intptr_t bp_pos =
-            ResolveBreakpointPos(func, loc->token_pos(), loc->end_token_pos());
+            ResolveBreakpointPos(func, loc->token_pos(), loc->end_token_pos(),
+                                 loc->requested_column_number());
         if (bp_pos < 0) {
           if (FLAG_verbose_debug) {
             OS::Print("Failed resolving breakpoint for function '%s'\n",
@@ -2678,14 +2896,18 @@ void Debugger::NotifyCompilation(const Function& func) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
           if (FLAG_verbose_debug) {
-            OS::Print("Resolved BP %" Pd " to pos %" Pd ", line %" Pd ", "
-                      "function '%s' (requested range %" Pd "-%" Pd ")\n",
+            OS::Print("Resolved BP %" Pd " to pos %" Pd ", "
+                      "line %" Pd " col %" Pd ", "
+                      "function '%s' (requested range %" Pd "-%" Pd ", "
+                      "requested col %" Pd ")\n",
                       bpt->id(),
                       loc->token_pos(),
                       loc->LineNumber(),
+                      loc->ColumnNumber(),
                       func.ToFullyQualifiedCString(),
                       requested_pos,
-                      requested_end_pos);
+                      requested_end_pos,
+                      loc->requested_column_number());
           }
           SignalBpResolved(bpt);
           SendServiceBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
@@ -2696,9 +2918,11 @@ void Debugger::NotifyCompilation(const Function& func) {
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = loc->breakpoints();
         while (bpt != NULL) {
-          OS::Print("Setting breakpoint %" Pd " at line %" Pd " for %s '%s'\n",
+          OS::Print("Setting breakpoint %" Pd " at line %" Pd " col %" Pd ""
+                    " for %s '%s'\n",
                     bpt->id(),
                     loc->LineNumber(),
+                    loc->ColumnNumber(),
                     func.IsClosureFunction() ? "closure" : "function",
                     String::Handle(func.name()).ToCString());
           bpt = bpt->next();
@@ -2715,9 +2939,10 @@ void Debugger::NotifyDoneLoading() {
     // Common, fast path.
     return;
   }
-  Library& lib = Library::Handle(isolate_);
-  Script& script = Script::Handle(isolate_);
-  String& url = String::Handle(isolate_);
+  Zone* zn = zone();
+  Library& lib = Library::Handle(zn);
+  Script& script = Script::Handle(zn);
+  String& url = String::Handle(zn);
   BreakpointLocation* loc = latent_locations_;
   BreakpointLocation* prev_loc = NULL;
   const GrowableObjectArray& libs =
@@ -2741,7 +2966,8 @@ void Debugger::NotifyDoneLoading() {
         }
         // Now find the token range at the requested line and make a
         // new unresolved source breakpoint.
-        intptr_t line_number = matched_loc->LineNumber();
+        intptr_t line_number = matched_loc->requested_line_number();
+        intptr_t column_number = matched_loc->requested_column_number();
         ASSERT(line_number >= 0);
         intptr_t first_token_pos, last_token_pos;
         script.TokenRangeAtLine(line_number, &first_token_pos, &last_token_pos);
@@ -2768,15 +2994,15 @@ void Debugger::NotifyDoneLoading() {
           // If there is one, assert in debug build but silently drop
           // the latent breakpoint in release build.
           BreakpointLocation* existing_loc =
-              GetBreakpointLocation(script, first_token_pos);
+              GetBreakpointLocation(script, first_token_pos, column_number);
           ASSERT(existing_loc == NULL);
           if (existing_loc == NULL) {
             // Create and register a new source breakpoint for the
             // latent breakpoint.
             BreakpointLocation* unresolved_loc =
                 new BreakpointLocation(script,
-                                       first_token_pos,
-                                       last_token_pos);
+                                       first_token_pos, last_token_pos,
+                                       line_number, column_number);
             RegisterBreakpointLocation(unresolved_loc);
 
             // Move breakpoints over.
@@ -2787,10 +3013,10 @@ void Debugger::NotifyDoneLoading() {
               bpt->set_bpt_location(unresolved_loc);
               if (FLAG_verbose_debug) {
                 OS::Print("Converted latent breakpoint "
-                          "%" Pd " in '%s' at line %" Pd "\n",
+                          "%" Pd " in '%s' at line %" Pd " col %" Pd "\n",
                           bpt->id(),
                           url.ToCString(),
-                          line_number);
+                          line_number, column_number);
               }
               bpt = bpt->next();
             }
@@ -2848,13 +3074,13 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
 }
 
 
-uword Debugger::GetPatchedStubAddress(uword breakpoint_address) {
+RawCode* Debugger::GetPatchedStubAddress(uword breakpoint_address) {
   CodeBreakpoint* bpt = GetCodeBreakpoint(breakpoint_address);
   if (bpt != NULL) {
     return bpt->OrigStubAddress();
   }
   UNREACHABLE();
-  return 0L;
+  return Code::null();
 }
 
 
@@ -2954,10 +3180,13 @@ void Debugger::RemoveInternalBreakpoints() {
 
 
 BreakpointLocation* Debugger::GetBreakpointLocation(const Script& script,
-                                                    intptr_t token_pos) {
+                                                    intptr_t token_pos,
+                                                    intptr_t requested_column) {
   BreakpointLocation* bpt = breakpoint_locations_;
   while (bpt != NULL) {
-    if ((bpt->script_ == script.raw()) && (bpt->token_pos_ == token_pos)) {
+    if ((bpt->script_ == script.raw()) &&
+        (bpt->token_pos_ == token_pos) &&
+        (bpt->requested_column_number_ == requested_column)) {
       return bpt;
     }
     bpt = bpt->next();
@@ -2983,18 +3212,21 @@ Breakpoint* Debugger::GetBreakpointById(intptr_t id) {
 
 
 BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
-                                                  intptr_t line) {
+                                                  intptr_t line,
+                                                  intptr_t column) {
   BreakpointLocation* bpt = latent_locations_;
-  String& bpt_url = String::Handle(isolate_);
+  String& bpt_url = String::Handle(zone());
   while (bpt != NULL) {
     bpt_url = bpt->url();
-    if (bpt_url.Equals(url) && (bpt->LineNumber() == line)) {
+    if (bpt_url.Equals(url) &&
+        (bpt->requested_line_number() == line) &&
+        (bpt->requested_column_number() == column)) {
       return bpt;
     }
     bpt = bpt->next();
   }
-  // No breakpint for this url and line requested. Allocate new one.
-  bpt = new BreakpointLocation(url, line);
+  // No breakpoint for this location requested. Allocate new one.
+  bpt = new BreakpointLocation(url, line, column);
   bpt->set_next(latent_locations_);
   latent_locations_ = bpt;
   return bpt;

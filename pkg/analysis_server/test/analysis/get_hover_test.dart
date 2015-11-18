@@ -6,14 +6,15 @@ library test.domain.analysis.hover;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisHoverTest);
 }
 
@@ -161,6 +162,31 @@ main(A a) {
       expect(hover.elementKind, 'method');
       // types
       expect(hover.staticType, isNull);
+      expect(hover.propagatedType, isNull);
+      // no parameter
+      expect(hover.parameter, isNull);
+    });
+  }
+
+  test_expression_parameter() {
+    addTestFile('''
+library my.library;
+class A {
+  /// The method documentation.
+  m(int p) {
+  }
+}
+''');
+    return prepareHover('p) {').then((HoverInformation hover) {
+      // element
+      expect(hover.containingLibraryName, isNull);
+      expect(hover.containingLibraryPath, isNull);
+      expect(hover.containingClassDescription, isNull);
+      expect(hover.dartdoc, 'The method documentation.');
+      expect(hover.elementDescription, 'int p');
+      expect(hover.elementKind, 'parameter');
+      // types
+      expect(hover.staticType, 'int');
       expect(hover.propagatedType, isNull);
       // no parameter
       expect(hover.parameter, isNull);

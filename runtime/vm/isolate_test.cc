@@ -6,6 +6,9 @@
 #include "platform/assert.h"
 #include "vm/globals.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
+#include "vm/thread_barrier.h"
+#include "vm/thread_pool.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -78,6 +81,72 @@ TEST_CASE(IsolateSpawn) {
   EXPECT(Dart_ErrorHasException(result));
   Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);
+}
+
+
+class InterruptChecker : public ThreadPool::Task {
+ public:
+  static const intptr_t kTaskCount;
+  static const intptr_t kIterations;
+
+  InterruptChecker(Isolate* isolate,
+                   ThreadBarrier* barrier)
+    : isolate_(isolate),
+      barrier_(barrier) {
+  }
+
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_);
+    // Tell main thread that we are ready.
+    barrier_->Sync();
+    for (intptr_t i = 0; i < kIterations; ++i) {
+      // Busy wait for interrupts.
+      while (!isolate_->HasInterruptsScheduled(Isolate::kVMInterrupt)) {
+        // Do nothing.
+      }
+      // Tell main thread that we observed the interrupt.
+      barrier_->Sync();
+    }
+    Thread::ExitIsolateAsHelper();
+    barrier_->Exit();
+  }
+
+ private:
+  Isolate* isolate_;
+  ThreadBarrier* barrier_;
+};
+
+
+const intptr_t InterruptChecker::kTaskCount = 5;
+const intptr_t InterruptChecker::kIterations = 10;
+
+// Test and document usage of Isolate::HasInterruptsScheduled.
+//
+// Go through a number of rounds of scheduling interrupts and waiting until all
+// unsynchronized busy-waiting tasks observe it (in the current implementation,
+// the exact latency depends on cache coherence). Synchronization is then used
+// to ensure that the response to the interrupt, i.e., starting a new round,
+// happens *after* the interrupt is observed. Without this synchronization, the
+// compiler and/or CPU could reorder operations to make the tasks observe the
+// round update *before* the interrupt is set.
+TEST_CASE(StackLimitInterrupts) {
+  Isolate* isolate = Thread::Current()->isolate();
+  ThreadBarrier barrier(InterruptChecker::kTaskCount + 1);
+  // Start all tasks. They will busy-wait until interrupted in the first round.
+  for (intptr_t task = 0; task < InterruptChecker::kTaskCount; task++) {
+    Dart::thread_pool()->Run(new InterruptChecker(isolate, &barrier));
+  }
+  // Wait for all tasks to get ready for the first round.
+  barrier.Sync();
+  for (intptr_t i = 0; i < InterruptChecker::kIterations; ++i) {
+    isolate->ScheduleInterrupts(Isolate::kVMInterrupt);
+    // Wait for all tasks to observe the interrupt.
+    barrier.Sync();
+    // Continue with next round.
+    uword interrupts = isolate->GetAndClearInterrupts();
+    EXPECT((interrupts & Isolate::kVMInterrupt) != 0);
+  }
+  barrier.Exit();
 }
 
 }  // namespace dart

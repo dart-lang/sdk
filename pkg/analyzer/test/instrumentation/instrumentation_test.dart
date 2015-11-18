@@ -73,9 +73,12 @@ class InstrumentationServiceTest {
     String level = 'level';
     DateTime time = new DateTime(2001);
     String message = 'message';
-    service.logLogEntry(level, time, message);
+    String exception = 'exception';
+    String stackTraceText = 'stackTrace';
+    StackTrace stackTrace = new StackTrace.fromString(stackTraceText);
+    service.logLogEntry(level, time, message, exception, stackTrace);
     assertNormal(server, InstrumentationService.TAG_LOG_ENTRY,
-        '$level:${time.millisecondsSinceEpoch}:$message');
+        '$level:${time.millisecondsSinceEpoch}:$message:$exception:$stackTraceText');
   }
 
   void test_logNotification() {
@@ -108,8 +111,10 @@ class InstrumentationServiceTest {
     service.logVersion('myUuid', 'someClientId', 'someClientVersion',
         'aServerVersion', 'anSdkVersion');
     expect(server.normalChannel.toString(), '');
-    expect(server.priorityChannel.toString(), endsWith(
-        ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
+    expect(
+        server.priorityChannel.toString(),
+        endsWith(
+            ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
   }
 }
 

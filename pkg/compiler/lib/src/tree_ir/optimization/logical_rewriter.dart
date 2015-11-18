@@ -95,7 +95,8 @@ class LogicalRewriter extends RecursiveTransformer
 
   bool isTerminator(Statement node) {
     return (node is Jump || node is Return) && !isFallthrough(node) ||
-           (node is ExpressionStatement && node.next is Unreachable);
+           (node is ExpressionStatement && node.next is Unreachable) ||
+           node is Throw;
   }
 
   Statement visitIf(If node) {
@@ -190,7 +191,7 @@ class LogicalRewriter extends RecursiveTransformer
     return node;
   }
 
-  Statement visitWhileCondition(WhileCondition node) {
+  Statement visitFor(For node) {
     fallthrough.push(node);
     node.condition = makeCondition(node.condition, true, liftNots: false);
     node.body = visitStatement(node.body);
@@ -306,6 +307,17 @@ class LogicalRewriter extends RecursiveTransformer
       node.elseExpression = tmp;
     }
 
+    // x ? y : x ==> x && y
+    if (isSameVariable(node.condition, node.elseExpression)) {
+      destroyVariableUse(node.elseExpression);
+      return new LogicalOperator.and(node.condition, node.thenExpression);
+    }
+    // x ? x : y ==> x || y
+    if (isSameVariable(node.condition, node.thenExpression)) {
+      destroyVariableUse(node.thenExpression);
+      return new LogicalOperator.or(node.condition, node.elseExpression);
+    }
+
     return node;
   }
 
@@ -323,8 +335,13 @@ class LogicalRewriter extends RecursiveTransformer
     return isTrue(e) ||
            isFalse(e) ||
            e is Not ||
-           e is LogicalOperator ||
-           e is ApplyBuiltinOperator && operatorReturnsBool(e.operator);
+           e is LogicalOperator && isBooleanValuedLogicalOperator(e) ||
+           e is ApplyBuiltinOperator && operatorReturnsBool(e.operator) ||
+           e is TypeOperator && isBooleanValuedTypeOperator(e);
+  }
+
+  bool isBooleanValuedLogicalOperator(LogicalOperator e) {
+    return isBooleanValued(e.left) && isBooleanValued(e.right);
   }
 
   /// True if the given operator always returns `true` or `false`.
@@ -342,10 +359,15 @@ class LogicalRewriter extends RecursiveTransformer
       case BuiltinOperator.IsNotNumber:
       case BuiltinOperator.IsFloor:
       case BuiltinOperator.IsNumberAndFloor:
+      case BuiltinOperator.Identical:
         return true;
       default:
         return false;
     }
+  }
+
+  bool isBooleanValuedTypeOperator(TypeOperator e) {
+    return e.isTypeTest;
   }
 
   BuiltinOperator negateBuiltin(BuiltinOperator operator) {
@@ -467,6 +489,18 @@ class LogicalRewriter extends RecursiveTransformer
         e.elseExpression = (e.elseExpression as Not).operand;
         return new Not(e);
       }
+
+      // x ? y : x ==> x && y
+      if (isSameVariable(e.condition, e.elseExpression)) {
+        destroyVariableUse(e.elseExpression);
+        return new LogicalOperator.and(e.condition, e.thenExpression);
+      }
+      // x ? x : y ==> x || y
+      if (isSameVariable(e.condition, e.thenExpression)) {
+        destroyVariableUse(e.thenExpression);
+        return new LogicalOperator.or(e.condition, e.elseExpression);
+      }
+
       return e;
     }
     if (e is Constant && e.value.isBool) {
@@ -508,5 +542,22 @@ class LogicalRewriter extends RecursiveTransformer
       return new LogicalOperator.or(e1, e2);
     }
   }
-}
 
+  /// True if [e2] is known to return the same value as [e1] 
+  /// (with no additional side effects) if evaluated immediately after [e1].
+  /// 
+  /// Concretely, this is true if [e1] and [e2] are uses of the same variable,
+  /// or if [e2] is a use of a variable assigned by [e1].
+  bool isSameVariable(Expression e1, Expression e2) {
+    if (e1 is VariableUse) {
+      return e2 is VariableUse && e1.variable == e2.variable;
+    } else if (e1 is Assign) {
+      return e2 is VariableUse && e1.variable == e2.variable;
+    }
+    return false;
+  }
+
+  void destroyVariableUse(VariableUse node) {
+    --node.variable.readCount;
+  }
+}

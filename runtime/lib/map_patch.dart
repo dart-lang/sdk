@@ -20,4 +20,6 @@ patch class Map<K, V> {
   /* patch */ factory Map.unmodifiable(Map other) {
     return new UnmodifiableMapView<K, V>(new Map.from(other));
   }
+
+  /* patch */ factory Map() = LinkedHashMap<K, V>;
 }

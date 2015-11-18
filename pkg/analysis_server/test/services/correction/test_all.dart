@@ -6,6 +6,7 @@ library test.services.correction;
 
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'assist_test.dart' as assist_test;
 import 'change_test.dart' as change_test;
 import 'fix_test.dart' as fix_test;
@@ -19,7 +20,7 @@ import 'strings_test.dart' as strings_test;
 
 /// Utility for manually running all tests.
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('correction', () {
     assist_test.main();
     change_test.main();

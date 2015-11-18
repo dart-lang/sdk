@@ -23,10 +23,11 @@ static RawClass* CreateTestClass(const char* name) {
 
 
 TEST_CASE(ClassFinalizer) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
   const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(isolate, object_store->pending_classes());
+      GrowableObjectArray::Handle(zone, object_store->pending_classes());
   GrowableArray<const Class*> classes_1;
   classes_1.Add(&Class::Handle(CreateTestClass("BMW")));
   pending_classes.Add(*classes_1[0]);
@@ -53,10 +54,11 @@ TEST_CASE(ClassFinalizer) {
 
 
 TEST_CASE(ClassFinalize_Cycles) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
   const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(isolate, object_store->pending_classes());
+      GrowableObjectArray::Handle(zone, object_store->pending_classes());
   GrowableArray<const Class*> classes;
   classes.Add(&Class::Handle(CreateTestClass("Jungfrau")));
   pending_classes.Add(*classes[0]);
@@ -78,10 +80,11 @@ static RawLibrary* NewLib(const char* url_chars) {
 
 
 TEST_CASE(ClassFinalize_Resolve) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ObjectStore* object_store = isolate->object_store();
   const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(isolate, object_store->pending_classes());
+      GrowableObjectArray::Handle(zone, object_store->pending_classes());
   Class& rhb = Class::Handle(CreateTestClass("RhB"));
   pending_classes.Add(rhb);
   Class& sbb = Class::Handle(CreateTestClass("SBB"));

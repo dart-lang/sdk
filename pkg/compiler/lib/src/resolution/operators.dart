@@ -5,7 +5,11 @@
 library dart2js.operators;
 
 import '../elements/elements.dart';
-import '../universe/universe.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector,
+    SelectorKind;
 
 enum UnaryOperatorKind {
   NOT,

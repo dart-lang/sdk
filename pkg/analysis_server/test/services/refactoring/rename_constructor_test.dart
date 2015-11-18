@@ -4,17 +4,19 @@
 
 library test.services.refactoring.rename_constructor;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
+import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(RenameConstructorTest);
 }
 
@@ -32,7 +34,8 @@ class A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Class 'A' already declares constructor with name 'newName'.",
+        expectedMessage:
+            "Class 'A' already declares constructor with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
   }
 
@@ -48,8 +51,24 @@ class A {
     refactoring.newName = 'newName';
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: "Class 'A' already declares method with name 'newName'.",
+        expectedMessage:
+            "Class 'A' already declares method with name 'newName'.",
         expectedContextSearch: 'newName() {} // existing');
+  }
+
+  test_checkInitialConditions_inSDK() async {
+    indexTestUnit('''
+main() {
+  new String.fromCharCodes([]);
+}
+''');
+    createRenameRefactoringAtString('fromCharCodes(');
+    // check status
+    refactoring.newName = 'newName';
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.");
   }
 
   test_checkNewName() {
@@ -69,7 +88,8 @@ class A {
     refactoring.newName = 'test';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "The new name must be different than the current name.");
+        expectedMessage:
+            "The new name must be different than the current name.");
     // empty
     refactoring.newName = '';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -178,6 +198,11 @@ main() {
   new A();
 }
 ''');
+  }
+
+  void test_newInstance_nullElement() {
+    RenameRefactoring refactoring = new RenameRefactoring(searchEngine, null);
+    expect(refactoring, isNull);
   }
 
   void _createConstructorDeclarationRefactoring(String search) {

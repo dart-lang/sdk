@@ -184,7 +184,7 @@ void RangeAnalysis::DiscoverSimpleInductionVariables() {
         InductionVariableInfo* info = DetectSimpleInductionVariable(current);
         if (info != NULL) {
           if (FLAG_trace_range_analysis) {
-            ISL_Print("Simple loop variable: %s bound <%s>\n",
+            THR_Print("Simple loop variable: %s bound <%s>\n",
                        current->ToCString(),
                        info->limit() != NULL ?
                            info->limit()->ToCString() : "?");
@@ -694,7 +694,7 @@ bool RangeAnalysis::InferRange(JoinOperator op,
 
     if (!range.Equals(defn->range())) {
       if (FLAG_trace_range_analysis) {
-        ISL_Print("%c [%" Pd "] %s:  %s => %s\n",
+        THR_Print("%c [%" Pd "] %s:  %s => %s\n",
                   OpPrefix(op),
                   iteration,
                   defn->ToCString(),
@@ -997,7 +997,7 @@ class BoundsCheckGeneralizer {
     if (upper_bound == UnwrapConstraint(check->index()->definition())) {
       // Unable to construct upper bound for the index.
       if (FLAG_trace_range_analysis) {
-        ISL_Print("Failed to construct upper bound for %s index\n",
+        THR_Print("Failed to construct upper bound for %s index\n",
                   check->ToCString());
       }
       return;
@@ -1008,7 +1008,7 @@ class BoundsCheckGeneralizer {
     // upper bound through scheduler.
     if (!Simplify(&upper_bound, NULL)) {
       if (FLAG_trace_range_analysis) {
-        ISL_Print("Failed to simplify upper bound for %s index\n",
+        THR_Print("Failed to simplify upper bound for %s index\n",
                   check->ToCString());
       }
       return;
@@ -1023,7 +1023,7 @@ class BoundsCheckGeneralizer {
     GrowableArray<Definition*> non_positive_symbols;
     if (!FindNonPositiveSymbols(&non_positive_symbols, upper_bound)) {
       if (FLAG_trace_range_analysis) {
-        ISL_Print("Failed to generalize %s index to %s"
+        THR_Print("Failed to generalize %s index to %s"
                   " (can't ensure positivity)\n",
                   check->ToCString(),
                   IndexBoundToCString(upper_bound));
@@ -1057,7 +1057,7 @@ class BoundsCheckGeneralizer {
       // Can't prove that lower bound is positive even with additional checks
       // against potentially non-positive symbols. Give up.
       if (FLAG_trace_range_analysis) {
-        ISL_Print("Failed to generalize %s index to %s"
+        THR_Print("Failed to generalize %s index to %s"
                   " (lower bound is not positive)\n",
                   check->ToCString(),
                   IndexBoundToCString(upper_bound));
@@ -1066,7 +1066,7 @@ class BoundsCheckGeneralizer {
     }
 
     if (FLAG_trace_range_analysis) {
-      ISL_Print("For %s computed index bounds [%s, %s]\n",
+      THR_Print("For %s computed index bounds [%s, %s]\n",
                 check->ToCString(),
                 IndexBoundToCString(lower_bound),
                 IndexBoundToCString(upper_bound));
@@ -1082,12 +1082,12 @@ class BoundsCheckGeneralizer {
       CheckArrayBoundInstr* precondition = new CheckArrayBoundInstr(
           new Value(max_smi),
           new Value(non_positive_symbols[i]),
-          Isolate::kNoDeoptId);
+          Thread::kNoDeoptId);
       precondition->mark_generalized();
       precondition = scheduler_.Emit(precondition, check);
       if (precondition == NULL) {
         if (FLAG_trace_range_analysis) {
-          ISL_Print("  => failed to insert positivity constraint\n");
+          THR_Print("  => failed to insert positivity constraint\n");
         }
         scheduler_.Rollback();
         return;
@@ -1097,11 +1097,11 @@ class BoundsCheckGeneralizer {
     CheckArrayBoundInstr* new_check = new CheckArrayBoundInstr(
           new Value(UnwrapConstraint(check->length()->definition())),
           new Value(upper_bound),
-          Isolate::kNoDeoptId);
+          Thread::kNoDeoptId);
     new_check->mark_generalized();
     if (new_check->IsRedundant(array_length)) {
       if (FLAG_trace_range_analysis) {
-        ISL_Print("  => generalized check is redundant\n");
+        THR_Print("  => generalized check is redundant\n");
       }
       RemoveGeneralizedCheck(check);
       return;
@@ -1110,13 +1110,13 @@ class BoundsCheckGeneralizer {
     new_check = scheduler_.Emit(new_check, check);
     if (new_check != NULL) {
       if (FLAG_trace_range_analysis) {
-        ISL_Print("  => generalized check was hoisted into B%" Pd "\n",
+        THR_Print("  => generalized check was hoisted into B%" Pd "\n",
                   new_check->GetBlock()->block_id());
       }
       RemoveGeneralizedCheck(check);
     } else {
       if (FLAG_trace_range_analysis) {
-        ISL_Print("  => generalized check can't be hoisted\n");
+        THR_Print("  => generalized check can't be hoisted\n");
       }
       scheduler_.Rollback();
     }
@@ -1138,7 +1138,7 @@ class BoundsCheckGeneralizer {
     return new BinarySmiOpInstr(op_kind,
                                 new Value(left),
                                 new Value(right),
-                                Isolate::kNoDeoptId);
+                                Thread::kNoDeoptId);
   }
 
 
@@ -1566,7 +1566,7 @@ void RangeAnalysis::MarkUnreachableBlocks() {
       if (target == branch->true_successor()) {
         // True unreachable.
         if (FLAG_trace_constant_propagation) {
-          ISL_Print("Range analysis: True unreachable (B%" Pd ")\n",
+          THR_Print("Range analysis: True unreachable (B%" Pd ")\n",
                     branch->true_successor()->block_id());
         }
         branch->set_constant_target(branch->false_successor());
@@ -1574,7 +1574,7 @@ void RangeAnalysis::MarkUnreachableBlocks() {
         ASSERT(target == branch->false_successor());
         // False unreachable.
         if (FLAG_trace_constant_propagation) {
-          ISL_Print("Range analysis: False unreachable (B%" Pd ")\n",
+          THR_Print("Range analysis: False unreachable (B%" Pd ")\n",
                     branch->false_successor()->block_id());
         }
         branch->set_constant_target(branch->true_successor());
@@ -1662,14 +1662,14 @@ IntegerInstructionSelector::IntegerInstructionSelector(FlowGraph* flow_graph)
 
 void IntegerInstructionSelector::Select() {
   if (FLAG_trace_integer_ir_selection) {
-    ISL_Print("---- starting integer ir selection -------\n");
+    THR_Print("---- starting integer ir selection -------\n");
   }
   FindPotentialUint32Definitions();
   FindUint32NarrowingDefinitions();
   Propagate();
   ReplaceInstructions();
   if (FLAG_trace_integer_ir_selection) {
-    ISL_Print("---- after integer ir selection -------\n");
+    THR_Print("---- after integer ir selection -------\n");
     FlowGraphPrinter printer(*flow_graph_);
     printer.PrintBlocks();
   }
@@ -1690,7 +1690,7 @@ bool IntegerInstructionSelector::IsPotentialUint32Definition(Definition* def) {
 
 void IntegerInstructionSelector::FindPotentialUint32Definitions() {
   if (FLAG_trace_integer_ir_selection) {
-    ISL_Print("++++ Finding potential Uint32 definitions:\n");
+    THR_Print("++++ Finding potential Uint32 definitions:\n");
   }
 
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
@@ -1706,7 +1706,7 @@ void IntegerInstructionSelector::FindPotentialUint32Definitions() {
       if ((defn != NULL) && defn->HasSSATemp()) {
         if (IsPotentialUint32Definition(defn)) {
           if (FLAG_trace_integer_ir_selection) {
-           ISL_Print("Adding %s\n", current->ToCString());
+           THR_Print("Adding %s\n", current->ToCString());
           }
           potential_uint32_defs_.Add(defn);
         }
@@ -1740,14 +1740,14 @@ bool IntegerInstructionSelector::IsUint32NarrowingDefinition(Definition* def) {
 void IntegerInstructionSelector::FindUint32NarrowingDefinitions() {
   ASSERT(selected_uint32_defs_ != NULL);
   if (FLAG_trace_integer_ir_selection) {
-    ISL_Print("++++ Selecting Uint32 definitions:\n");
-    ISL_Print("++++ Initial set:\n");
+    THR_Print("++++ Selecting Uint32 definitions:\n");
+    THR_Print("++++ Initial set:\n");
   }
   for (intptr_t i = 0; i < potential_uint32_defs_.length(); i++) {
     Definition* defn = potential_uint32_defs_[i];
     if (IsUint32NarrowingDefinition(defn)) {
       if (FLAG_trace_integer_ir_selection) {
-        ISL_Print("Adding %s\n", defn->ToCString());
+        THR_Print("Adding %s\n", defn->ToCString());
       }
       selected_uint32_defs_->Add(defn->ssa_temp_index());
     }
@@ -1807,7 +1807,7 @@ void IntegerInstructionSelector::Propagate() {
   intptr_t iteration = 0;
   while (changed) {
     if (FLAG_trace_integer_ir_selection) {
-      ISL_Print("+++ Iteration: %" Pd "\n", iteration++);
+      THR_Print("+++ Iteration: %" Pd "\n", iteration++);
     }
     changed = false;
     for (intptr_t i = 0; i < potential_uint32_defs_.length(); i++) {
@@ -1822,7 +1822,7 @@ void IntegerInstructionSelector::Propagate() {
       }
       if (CanBecomeUint32(defn)) {
         if (FLAG_trace_integer_ir_selection) {
-          ISL_Print("Adding %s\n", defn->ToCString());
+          THR_Print("Adding %s\n", defn->ToCString());
         }
         // Found a new candidate.
         selected_uint32_defs_->Add(defn->ssa_temp_index());
@@ -1832,7 +1832,7 @@ void IntegerInstructionSelector::Propagate() {
     }
   }
   if (FLAG_trace_integer_ir_selection) {
-    ISL_Print("Reached fixed point\n");
+    THR_Print("Reached fixed point\n");
   }
 }
 
@@ -1879,7 +1879,7 @@ Definition* IntegerInstructionSelector::ConstructReplacementFor(
 
 void IntegerInstructionSelector::ReplaceInstructions() {
   if (FLAG_trace_integer_ir_selection) {
-    ISL_Print("++++ Replacing instructions:\n");
+    THR_Print("++++ Replacing instructions:\n");
   }
   for (intptr_t i = 0; i < potential_uint32_defs_.length(); i++) {
     Definition* defn = potential_uint32_defs_[i];
@@ -1890,7 +1890,7 @@ void IntegerInstructionSelector::ReplaceInstructions() {
     Definition* replacement = ConstructReplacementFor(defn);
     ASSERT(replacement != NULL);
     if (FLAG_trace_integer_ir_selection) {
-      ISL_Print("Replacing %s with %s\n", defn->ToCString(),
+      THR_Print("Replacing %s with %s\n", defn->ToCString(),
                                           replacement->ToCString());
     }
     if (!Range::IsUnknown(defn->range())) {

@@ -8,12 +8,12 @@
 #include "platform/assert.h"
 #include "vm/base_isolate.h"
 #include "vm/globals.h"
-#include "vm/thread.h"
 
 namespace dart {
 
 // Forward declarations.
 class Isolate;
+class Thread;
 
 // Stack allocated objects subclass from this base class. Objects of this type
 // cannot be allocated on either the C or object heaps. Destructors for objects
@@ -48,24 +48,10 @@ class StackResource {
     Init(thread);
   }
 
-  virtual ~StackResource() {
-    if (thread_ != NULL) {
-      StackResource* top = thread_->top_resource();
-      ASSERT(top == this);
-      thread_->set_top_resource(previous_);
-    }
-#if defined(DEBUG)
-    if (thread_ != NULL) {
-      ASSERT(Thread::Current() == thread_);
-      BaseIsolate::AssertCurrent(reinterpret_cast<BaseIsolate*>(isolate()));
-    }
-#endif
-  }
+  virtual ~StackResource();
 
   // Convenient access to the isolate of the thread of this resource.
-  Isolate* isolate() const {
-    return thread_ == NULL ? NULL : thread_->isolate();
-  }
+  Isolate* isolate() const;
 
   // The thread that owns this resource.
   Thread* thread() const { return thread_; }
@@ -76,19 +62,7 @@ class StackResource {
   static void UnwindAbove(Thread* thread, StackResource* new_top);
 
  private:
-  void Init(Thread* thread) {
-    // We can only have longjumps and exceptions when there is a current
-    // thread and isolate.  If there is no current thread, we don't need to
-    // protect this case.
-    // TODO(23807): Eliminate this special case.
-    if (thread != NULL) {
-      ASSERT(Thread::Current() == thread);
-      thread_ = thread;
-      previous_ = thread_->top_resource();
-      ASSERT((previous_ == NULL) || (previous_->thread_ == thread));
-      thread_->set_top_resource(this);
-    }
-  }
+  void Init(Thread* thread);
 
   Thread* thread_;
   StackResource* previous_;
@@ -133,6 +107,27 @@ class ZoneAllocated {
  private:
   DISALLOW_COPY_AND_ASSIGN(ZoneAllocated);
 };
+
+
+
+// Within a NoSafepointScope, the thread must not reach any safepoint. Used
+// around code that manipulates raw object pointers directly without handles.
+#if defined(DEBUG)
+class NoSafepointScope : public StackResource {
+ public:
+  NoSafepointScope();
+  ~NoSafepointScope();
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
+};
+#else  // defined(DEBUG)
+class NoSafepointScope : public ValueObject {
+ public:
+  NoSafepointScope() {}
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
+};
+#endif  // defined(DEBUG)
 
 }  // namespace dart
 

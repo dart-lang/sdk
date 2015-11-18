@@ -9,14 +9,14 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/server/driver.dart' as analysisServer;
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
-import 'package:analysis_server/src/server/driver.dart' as analysisServer;
 
 const Matcher isBool = const isInstanceOf<bool>('bool');
 
@@ -28,10 +28,10 @@ const Matcher isNotification = const MatchesJsonObject(
 
 const Matcher isObject = isMap;
 
+const Matcher isString = const isInstanceOf<String>('String');
+
 final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
-
-const Matcher isString = const isInstanceOf<String>('String');
 
 Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
 
@@ -165,6 +165,21 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
+   * If [skipShutdown] is not set, shut down the server.
+   */
+  Future shutdownIfNeeded() {
+    if (skipShutdown) {
+      return new Future.value();
+    }
+    // Give the server a short time to comply with the shutdown request; if it
+    // doesn't exit, then forcibly terminate it.
+    sendServerShutdown();
+    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
+      return server.kill();
+    });
+  }
+
+  /**
    * Convert the given [relativePath] to an absolute path, by interpreting it
    * relative to [sourceDirectory].  On Windows any forward slashes in
    * [relativePath] are converted to backslashes.
@@ -197,7 +212,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * After every test, the server is stopped and [sourceDirectory] is deleted.
    */
   Future tearDown() {
-    return _shutdownIfNeeded().then((_) {
+    return shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
     });
   }
@@ -217,21 +232,6 @@ abstract class AbstractAnalysisServerIntegrationTest
     File file = new File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
-  }
-
-  /**
-   * If [skipShutdown] is not set, shut down the server.
-   */
-  Future _shutdownIfNeeded() {
-    if (skipShutdown) {
-      return new Future.value();
-    }
-    // Give the server a short time to comply with the shutdown request; if it
-    // doesn't exit, then forcibly terminate it.
-    sendServerShutdown();
-    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill();
-    });
   }
 }
 
@@ -349,8 +349,8 @@ class MatchesJsonObject extends _RecursiveMatcher {
     if (requiredFields != null) {
       requiredFields.forEach((String key, Matcher valueMatcher) {
         if (!item.containsKey(key)) {
-          mismatches.add(
-              (Description mismatchDescription) => mismatchDescription
+          mismatches.add((Description mismatchDescription) =>
+              mismatchDescription
                   .add('is missing field ')
                   .addDescriptionOf(key)
                   .add(' (')
@@ -381,7 +381,10 @@ class MatchesJsonObject extends _RecursiveMatcher {
    */
   void _checkField(String key, value, Matcher valueMatcher,
       List<MismatchDescriber> mismatches) {
-    checkSubstructure(value, valueMatcher, mismatches,
+    checkSubstructure(
+        value,
+        valueMatcher,
+        mismatches,
         (Description description) =>
             description.add('field ').addDescriptionOf(key));
   }
@@ -590,8 +593,11 @@ class Server {
    * `true`, the server will be started with "--observe" and
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
-  Future start({bool debugServer: false, int diagnosticPort,
-      bool profileServer: false, bool newTaskModel: false,
+  Future start(
+      {bool debugServer: false,
+      int diagnosticPort,
+      bool profileServer: false,
+      bool newTaskModel: true,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -621,9 +627,11 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (newTaskModel) {
-      arguments.add('--${analysisServer.Driver.ENABLE_NEW_TASK_MODEL}');
+    if (!newTaskModel) {
+      arguments.add('--${analysisServer.Driver.DISABLE_NEW_TASK_MODEL}');
     }
+//    print('Launching $serverPath');
+//    print('$dartBinary ${arguments.join(' ')}');
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {
@@ -696,8 +704,8 @@ class _ListOf extends Matcher {
   Description describeMismatch(
       item, Description mismatchDescription, Map matchState, bool verbose) {
     if (item is! List) {
-      return super.describeMismatch(
-          item, mismatchDescription, matchState, verbose);
+      return super
+          .describeMismatch(item, mismatchDescription, matchState, verbose);
     } else {
       return iterableMatcher.describeMismatch(
           item, mismatchDescription, matchState, verbose);
@@ -744,10 +752,16 @@ class _MapOf extends _RecursiveMatcher {
       return;
     }
     item.forEach((key, value) {
-      checkSubstructure(key, keyMatcher, mismatches,
+      checkSubstructure(
+          key,
+          keyMatcher,
+          mismatches,
           (Description description) =>
               description.add('key ').addDescriptionOf(key));
-      checkSubstructure(value, valueMatcher, mismatches,
+      checkSubstructure(
+          value,
+          valueMatcher,
+          mismatches,
           (Description description) =>
               description.add('field ').addDescriptionOf(key));
     });
@@ -850,8 +864,8 @@ abstract class _RecursiveMatcher extends Matcher {
       }
       return mismatchDescription;
     } else {
-      return super.describeMismatch(
-          item, mismatchDescription, matchState, verbose);
+      return super
+          .describeMismatch(item, mismatchDescription, matchState, verbose);
     }
   }
 
@@ -878,6 +892,6 @@ abstract class _RecursiveMatcher extends Matcher {
    */
   MismatchDescriber simpleDescription(String description) =>
       (Description mismatchDescription) {
-    mismatchDescription.add(description);
-  };
+        mismatchDescription.add(description);
+      };
 }

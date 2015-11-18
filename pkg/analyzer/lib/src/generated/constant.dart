@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.constant;
 
 import 'dart:collection';
@@ -217,6 +214,11 @@ class ConstantEvaluationEngine {
       "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
+   * The type provider used to access the known types.
+   */
+  final TypeProvider typeProvider;
+
+  /**
    * The type system.  This is used to gues the types of constants when their
    * exact value is unknown.
    */
@@ -240,17 +242,12 @@ class ConstantEvaluationEngine {
    * given, is used to verify correct dependency analysis when running unit
    * tests.
    */
-  ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
-      {ConstantEvaluationValidator validator})
+  ConstantEvaluationEngine(this.typeProvider, this._declaredVariables,
+      {ConstantEvaluationValidator validator, TypeSystem typeSystem})
       : validator = validator != null
-          ? validator
-          : new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = new TypeSystemImpl(typeProvider);
-
-  /**
-   * The type provider used to access the known types.
-   */
-  TypeProvider get typeProvider => typeSystem.typeProvider;
+            ? validator
+            : new ConstantEvaluationValidator_ForProduction(),
+        typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -261,7 +258,8 @@ class ConstantEvaluationEngine {
    * "defaultValue" is always allowed to be null. Return `true` if the arguments
    * are correct, `false` if there is an error.
    */
-  bool checkFromEnvironmentArguments(NodeList<Expression> arguments,
+  bool checkFromEnvironmentArguments(
+      NodeList<Expression> arguments,
       List<DartObjectImpl> argumentValues,
       HashMap<String, DartObjectImpl> namedArgumentValues,
       InterfaceType expectedDefaultValueType) {
@@ -300,7 +298,8 @@ class ConstantEvaluationEngine {
    * named arguments. Return `true` if the arguments are correct, `false` if
    * there is an error.
    */
-  bool checkSymbolArguments(NodeList<Expression> arguments,
+  bool checkSymbolArguments(
+      NodeList<Expression> arguments,
       List<DartObjectImpl> argumentValues,
       HashMap<String, DartObjectImpl> namedArgumentValues) {
     if (arguments.length != 1) {
@@ -312,7 +311,7 @@ class ConstantEvaluationEngine {
     if (!identical(argumentValues[0].type, typeProvider.stringType)) {
       return false;
     }
-    String name = argumentValues[0].stringValue;
+    String name = argumentValues[0].toStringValue();
     return isValidPublicSymbol(name);
   }
 
@@ -321,23 +320,21 @@ class ConstantEvaluationEngine {
    */
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
-    if (constant is ParameterElement) {
+    if (constant is ParameterElementImpl) {
       if (constant.initializer != null) {
-        Expression defaultValue =
-            (constant as PotentiallyConstVariableElement).constantInitializer;
+        Expression defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           ErrorReporter errorReporter =
               new ErrorReporter(errorListener, constant.source);
           DartObjectImpl dartObject =
               defaultValue.accept(new ConstantVisitor(this, errorReporter));
-          (constant as ParameterElementImpl).evaluationResult =
+          constant.evaluationResult =
               new EvaluationResultImpl(dartObject, errorListener.errors);
         }
       }
-    } else if (constant is VariableElement) {
-      Expression constantInitializer =
-          (constant as PotentiallyConstVariableElement).constantInitializer;
+    } else if (constant is VariableElementImpl) {
+      Expression constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
         RecordingErrorListener errorListener = new RecordingErrorListener();
         ErrorReporter errorReporter =
@@ -352,10 +349,11 @@ class ConstantEvaluationEngine {
           if (!runtimeTypeMatch(dartObject, constant.type)) {
             errorReporter.reportErrorForElement(
                 CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
-                constant, [dartObject.type, constant.type]);
+                constant,
+                [dartObject.type, constant.type]);
           }
         }
-        (constant as VariableElementImpl).evaluationResult =
+        constant.evaluationResult =
             new EvaluationResultImpl(dartObject, errorListener.errors);
       }
     } else if (constant is ConstructorElement) {
@@ -400,8 +398,11 @@ class ConstantEvaluationEngine {
               errorListener, sourceCompilationUnit.element.source);
           ConstantVisitor constantVisitor =
               new ConstantVisitor(this, errorReporter);
-          DartObjectImpl result = evaluateConstructorCall(constNode,
-              constNode.arguments.arguments, element, constantVisitor,
+          DartObjectImpl result = evaluateConstructorCall(
+              constNode,
+              constNode.arguments.arguments,
+              element,
+              constantVisitor,
               errorReporter);
           elementAnnotation.evaluationResult =
               new EvaluationResultImpl(result, errorListener.errors);
@@ -412,6 +413,12 @@ class ConstantEvaluationEngine {
           elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
         }
       }
+    } else if (constant is VariableElement) {
+      // constant is a VariableElement but not a VariableElementImpl.  This can
+      // happen sometimes in the case of invalid user code (for example, a
+      // constant expression that refers to a nonstatic field inside a generic
+      // class will wind up referring to a FieldMember).  The error is detected
+      // elsewhere, so just silently ignore it here.
     } else {
       // Should not happen.
       assert(false);
@@ -436,15 +443,14 @@ class ConstantEvaluationEngine {
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     ReferenceFinder referenceFinder = new ReferenceFinder(callback);
-    if (constant is ParameterElement) {
+    if (constant is ParameterElementImpl) {
       if (constant.initializer != null) {
-        Expression defaultValue =
-            (constant as ConstVariableElement).constantInitializer;
+        Expression defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           defaultValue.accept(referenceFinder);
         }
       }
-    } else if (constant is PotentiallyConstVariableElement) {
+    } else if (constant is VariableElementImpl) {
       Expression initializer = constant.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
@@ -529,6 +535,12 @@ class ConstantEvaluationEngine {
       if (constNode.arguments != null) {
         constNode.arguments.accept(referenceFinder);
       }
+    } else if (constant is VariableElement) {
+      // constant is a VariableElement but not a VariableElementImpl.  This can
+      // happen sometimes in the case of invalid user code (for example, a
+      // constant expression that refers to a nonstatic field inside a generic
+      // class will wind up referring to a FieldMember).  So just don't bother
+      // computing any dependencies.
     } else {
       // Should not happen.
       assert(false);
@@ -546,7 +558,8 @@ class ConstantEvaluationEngine {
    * fromEnvironment(). Return a [DartObjectImpl] object corresponding to the
    * evaluated result.
    */
-  DartObjectImpl computeValueFromEnvironment(DartObject environmentValue,
+  DartObjectImpl computeValueFromEnvironment(
+      DartObject environmentValue,
       DartObjectImpl builtInDefaultValue,
       HashMap<String, DartObjectImpl> namedArgumentValues) {
     DartObjectImpl value = environmentValue as DartObjectImpl;
@@ -573,9 +586,12 @@ class ConstantEvaluationEngine {
     return value;
   }
 
-  DartObjectImpl evaluateConstructorCall(AstNode node,
-      NodeList<Expression> arguments, ConstructorElement constructor,
-      ConstantVisitor constantVisitor, ErrorReporter errorReporter) {
+  DartObjectImpl evaluateConstructorCall(
+      AstNode node,
+      NodeList<Expression> arguments,
+      ConstructorElement constructor,
+      ConstantVisitor constantVisitor,
+      ErrorReporter errorReporter) {
     if (!_getConstructorBase(constructor).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
@@ -619,26 +635,29 @@ class ConstantEvaluationEngine {
           return null;
         }
         String variableName =
-            argumentCount < 1 ? null : argumentValues[0].stringValue;
+            argumentCount < 1 ? null : argumentValues[0].toStringValue();
         if (identical(definingClass, typeProvider.boolType)) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
               _declaredVariables.getBool(typeProvider, variableName);
-          return computeValueFromEnvironment(valueFromEnvironment,
+          return computeValueFromEnvironment(
+              valueFromEnvironment,
               new DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE),
               namedArgumentValues);
         } else if (identical(definingClass, typeProvider.intType)) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
               _declaredVariables.getInt(typeProvider, variableName);
-          return computeValueFromEnvironment(valueFromEnvironment,
+          return computeValueFromEnvironment(
+              valueFromEnvironment,
               new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
               namedArgumentValues);
         } else if (identical(definingClass, typeProvider.stringType)) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
               _declaredVariables.getString(typeProvider, variableName);
-          return computeValueFromEnvironment(valueFromEnvironment,
+          return computeValueFromEnvironment(
+              valueFromEnvironment,
               new DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE),
               namedArgumentValues);
         }
@@ -651,7 +670,7 @@ class ConstantEvaluationEngine {
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
         }
-        String argumentValue = argumentValues[0].stringValue;
+        String argumentValue = argumentValues[0].toStringValue();
         return new DartObjectImpl(
             definingClass, new SymbolState(argumentValue));
       }
@@ -690,7 +709,8 @@ class ConstantEvaluationEngine {
         if (fieldValue != null && !runtimeTypeMatch(fieldValue, fieldType)) {
           errorReporter.reportErrorForNode(
               CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-              node, [fieldValue.type, field.name, fieldType]);
+              node,
+              [fieldValue.type, field.name, fieldType]);
         }
         fieldMap[field.name] = evaluationResult.value;
       }
@@ -737,7 +757,8 @@ class ConstantEvaluationEngine {
         if (!runtimeTypeMatch(argumentValue, parameter.type)) {
           errorReporter.reportErrorForNode(
               CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-              errorTarget, [argumentValue.type, parameter.type]);
+              errorTarget,
+              [argumentValue.type, parameter.type]);
         }
         if (baseParameter.isInitializingFormal) {
           FieldElement field = (parameter as FieldFormalParameterElement).field;
@@ -750,7 +771,8 @@ class ConstantEvaluationEngine {
               if (!runtimeTypeMatch(argumentValue, fieldType)) {
                 errorReporter.reportErrorForNode(
                     CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-                    errorTarget, [argumentValue.type, fieldType]);
+                    errorTarget,
+                    [argumentValue.type, fieldType]);
               }
             }
             String fieldName = field.name;
@@ -767,7 +789,8 @@ class ConstantEvaluationEngine {
       }
     }
     ConstantVisitor initializerVisitor = new ConstantVisitor(
-        this, errorReporter, lexicalEnvironment: parameterMap);
+        this, errorReporter,
+        lexicalEnvironment: parameterMap);
     String superName = null;
     NodeList<Expression> superArguments = null;
     for (ConstructorInitializer initializer in initializers) {
@@ -790,7 +813,8 @@ class ConstantEvaluationEngine {
             if (!runtimeTypeMatch(evaluationResult, field.type)) {
               errorReporter.reportErrorForNode(
                   CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-                  node, [evaluationResult.type, fieldName, field.type]);
+                  node,
+                  [evaluationResult.type, fieldName, field.type]);
             }
           }
         }
@@ -806,9 +830,12 @@ class ConstantEvaluationEngine {
         // it redirects to.
         ConstructorElement constructor = initializer.staticElement;
         if (constructor != null && constructor.isConst) {
-          return evaluateConstructorCall(node,
-              initializer.argumentList.arguments, constructor,
-              initializerVisitor, errorReporter);
+          return evaluateConstructorCall(
+              node,
+              initializer.argumentList.arguments,
+              constructor,
+              initializerVisitor,
+              errorReporter);
         }
       }
     }
@@ -828,10 +855,13 @@ class ConstantEvaluationEngine {
     return new DartObjectImpl(definingClass, new GenericState(fieldMap));
   }
 
-  void evaluateSuperConstructorCall(AstNode node,
+  void evaluateSuperConstructorCall(
+      AstNode node,
       HashMap<String, DartObjectImpl> fieldMap,
-      ConstructorElement superConstructor, NodeList<Expression> superArguments,
-      ConstantVisitor initializerVisitor, ErrorReporter errorReporter) {
+      ConstructorElement superConstructor,
+      NodeList<Expression> superArguments,
+      ConstantVisitor initializerVisitor,
+      ErrorReporter errorReporter) {
     if (superConstructor != null && superConstructor.isConst) {
       DartObjectImpl evaluationResult = evaluateConstructorCall(node,
           superArguments, superConstructor, initializerVisitor, errorReporter);
@@ -997,6 +1027,9 @@ class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
       return false;
     }
   }
+
+  @override
+  String toString() => 'Constant: $annotation';
 }
 
 /**
@@ -1061,62 +1094,81 @@ class ConstantEvaluationValidator_ForProduction
   void beforeGetParameterDefault(ParameterElement parameter) {}
 }
 
-/**
- * Instances of the class `ConstantEvaluator` evaluate constant expressions to
- * produce their compile-time value. According to the Dart Language
- * Specification:
- * <blockquote>
- * A constant expression is one of the following:
- * * A literal number.
- * * A literal boolean.
- * * A literal string where any interpolated expression is a compile-time
- *   constant that evaluates to a numeric, string or boolean value or to
- *   <b>null</b>.
- * * A literal symbol.
- * * <b>null</b>.
- * * A qualified reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, class or type
- *   alias.
- * * A constant constructor invocation.
- * * A constant list literal.
- * * A constant map literal.
- * * A simple or qualified identifier denoting a top-level function or a static
- *   method.
- * * A parenthesized expression <i>(e)</i> where <i>e</i> is a constant
- *   expression.
- * * An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i>
- *   where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- *   expressions and <i>identical()</i> is statically bound to the predefined
- *   dart function <i>identical()</i> discussed above.
- * * An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i> or
- *   <i>e<sub>1</sub> != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and
- *   <i>e<sub>2</sub></i> are constant expressions that evaluate to a numeric,
- *   string or boolean value.
- * * An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp;
- *   e<sub>2</sub></i> or <i>e<sub>1</sub> || e<sub>2</sub></i>, where <i>e</i>,
- *   <i>e1</sub></i> and <i>e2</sub></i> are constant expressions that evaluate
- *   to a boolean value.
- * * An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> &amp; e<sub>2</sub></i>,
- *   <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;&gt;
- *   e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where
- *   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- *   expressions that evaluate to an integer value or to <b>null</b>.
- * * An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> +
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> -e<sub>2</sub></i>, <i>e<sub>1</sub> *
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> / e<sub>2</sub></i>, <i>e<sub>1</sub>
- *   ~/ e<sub>2</sub></i>, <i>e<sub>1</sub> &gt; e<sub>2</sub></i>,
- *   <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or
- *   <i>e<sub>1</sub> % e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i>
- *   and <i>e<sub>2</sub></i> are constant expressions that evaluate to a
- *   numeric value or to <b>null</b>.
- * * An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
- *   e<sub>3</sub></i> where <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and
- *   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
- *   evaluates to a boolean value.
- * </blockquote>
- */
+/// Instances of the class [ConstantEvaluator] evaluate constant expressions to
+/// produce their compile-time value.
+///
+/// According to the Dart Language Specification:
+///
+/// > A constant expression is one of the following:
+/// >
+/// > * A literal number.
+/// > * A literal boolean.
+/// > * A literal string where any interpolated expression is a compile-time
+/// >   constant that evaluates to a numeric, string or boolean value or to
+/// >   **null**.
+/// > * A literal symbol.
+/// > * **null**.
+/// > * A qualified reference to a static constant variable.
+/// > * An identifier expression that denotes a constant variable, class or type
+/// >   alias.
+/// > * A constant constructor invocation.
+/// > * A constant list literal.
+/// > * A constant map literal.
+/// > * A simple or qualified identifier denoting a top-level function or a
+/// >   static method.
+/// > * A parenthesized expression _(e)_ where _e_ is a constant expression.
+/// > * <span>
+/// >   An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i>
+/// >   where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions and <i>identical()</i> is statically bound to the predefined
+/// >   dart function <i>identical()</i> discussed above.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i>
+/// >   or <i>e<sub>1</sub> != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and
+/// >   <i>e<sub>2</sub></i> are constant expressions that evaluate to a
+/// >   numeric, string or boolean value.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp;
+/// >   e<sub>2</sub></i> or <i>e<sub>1</sub> || e<sub>2</sub></i>, where
+/// >   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions that evaluate to a boolean value.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> &amp; e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;&gt;
+/// >   e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where
+/// >   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions that evaluate to an integer value or to <b>null</b>.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> +
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> -e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> * e<sub>2</sub></i>, <i>e<sub>1</sub> /
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> ~/ e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> &gt; e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;= e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or <i>e<sub>1</sub> %
+/// >   e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i> and
+/// >   <i>e<sub>2</sub></i> are constant expressions that evaluate to a numeric
+/// >   value or to <b>null</b>.
+/// >   </span>
+/// > * <span>
+/// >   An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
+/// >   e<sub>3</sub></i> where <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and
+/// >   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
+/// >   evaluates to a boolean value.
+/// >   </span>
+///
+/// The values returned by instances of this class are therefore `null` and
+/// instances of the classes `Boolean`, `BigInteger`, `Double`, `String`, and
+/// `DartObject`.
+///
+/// In addition, this class defines several values that can be returned to
+/// indicate various conditions encountered during evaluation. These are
+/// documented with the static fields that define those values.
 class ConstantEvaluator {
   /**
    * The source containing the expression(s) that will be evaluated.
@@ -1129,17 +1181,24 @@ class ConstantEvaluator {
   final TypeProvider _typeProvider;
 
   /**
+   * The type system primitives.
+   */
+  final TypeSystem _typeSystem;
+
+  /**
    * Initialize a newly created evaluator to evaluate expressions in the given
    * [source]. The [typeProvider] is the type provider used to access known
    * types.
    */
-  ConstantEvaluator(this._source, this._typeProvider);
+  ConstantEvaluator(this._source, this._typeProvider, {TypeSystem typeSystem})
+      : _typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables()),
+        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables(),
+            typeSystem: _typeSystem),
         errorReporter));
     if (result != null) {
       return EvaluationResult.forValue(result);
@@ -1175,8 +1234,9 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
+    AnalysisContext owningContext = _getOwningContext();
     constantsToCompute.add(new ConstantEvaluationTarget_Annotation(
-        context, source, librarySource, node));
+        owningContext, source, librarySource, node));
     return null;
   }
 
@@ -1225,6 +1285,14 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
       }
     }
     return null;
+  }
+
+  AnalysisContext _getOwningContext() {
+    if (context is InternalAnalysisContext) {
+      InternalAnalysisContext internalContext = context;
+      return internalContext.getContextFor(librarySource);
+    }
+    return context;
   }
 }
 
@@ -1283,9 +1351,10 @@ class ConstantValueComputer {
    */
   ConstantValueComputer(this._context, TypeProvider typeProvider,
       DeclaredVariables declaredVariables,
-      [ConstantEvaluationValidator validator])
+      [ConstantEvaluationValidator validator, TypeSystem typeSystem])
       : evaluationEngine = new ConstantEvaluationEngine(
-          typeProvider, declaredVariables, validator: validator);
+            typeProvider, declaredVariables,
+            validator: validator, typeSystem: typeSystem);
 
   /**
    * Add the constants in the given compilation [unit] to the list of constants
@@ -1547,15 +1616,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (conditionResult == null) {
       return conditionResult;
     }
-    if (conditionResult.isTrue) {
+    if (conditionResult.toBoolValue() == true) {
       return thenResult;
-    } else if (conditionResult.isFalse) {
+    } else if (conditionResult.toBoolValue() == false) {
       return elseResult;
     }
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
     return new DartObjectImpl.validWithUnknownValue(
-        _typeSystem.getLeastUpperBound(thenType, elseType) as InterfaceType);
+        _typeSystem.getLeastUpperBound(_typeProvider, thenType, elseType)
+        as InterfaceType);
   }
 
   @override
@@ -1884,64 +1954,214 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 }
 
 /**
- * The state of a Dart object.
+ * A representation of the value of a compile-time constant expression.
+ *
+ * Note that, unlike the mirrors system, the object being represented does *not*
+ * exist. This interface allows static analysis tools to determine something
+ * about the state of the object that would exist if the code that creates the
+ * object were executed, but none of the code being analyzed is actually
+ * executed.
  */
 abstract class DartObject {
   /**
    * Return the boolean value of this object, or `null` if either the value of
    * this object is not known or this object is not of type 'bool'.
+   *
+   * Deprecated. Use [toBoolValue].
    */
+  @deprecated
   bool get boolValue;
 
   /**
    * Return the floating point value of this object, or `null` if either the
    * value of this object is not known or this object is not of type 'double'.
+   *
+   * Deprecated. Use [toDoubleValue].
    */
+  @deprecated
   double get doubleValue;
 
   /**
    * Return `true` if this object's value can be represented exactly.
+   *
+   * Deprecated. The semantics of this method were not clear. One semantic is
+   * covered by [hasKnownValue].
    */
+  @deprecated
   bool get hasExactValue;
+
+  /**
+   * Return `true` if the value of the object being represented is known.
+   *
+   * This method will return `false` if
+   * * the value being represented is the value of a declared variable (a
+   *   variable whose value is provided at run-time using a `-D` command-line
+   *   option), or
+   * * the value is a function.
+   *
+   * The result of this method does not imply anything about the state of
+   * object representations returned by the method [getField], those that are
+   * elements of the list returned by [toListValue], or the keys or values in
+   * the map returned by [toMapValue]. For example, a representation of a list
+   * can return `true` even if one or more of the elements of that list would
+   * return `false`.
+   */
+  bool get hasKnownValue;
 
   /**
    * Return the integer value of this object, or `null` if either the value of
    * this object is not known or this object is not of type 'int'.
+   *
+   * Deprecated. Use [toIntValue].
    */
+  @deprecated
   int get intValue;
 
   /**
    * Return `true` if this object represents the value 'false'.
+   *
+   * Deprecated. Use `object.toBoolValue() == false`.
    */
+  @deprecated
   bool get isFalse;
 
   /**
-   * Return `true` if this object represents the value 'null'.
+   * Return `true` if the object being represented represents the value 'null'.
    */
   bool get isNull;
 
   /**
    * Return `true` if this object represents the value 'true'.
+   *
+   * Deprecated. Use `object.toBoolValue() == true`.
    */
+  @deprecated
   bool get isTrue;
 
   /**
    * Return the string value of this object, or `null` if either the value of
    * this object is not known or this object is not of type 'String'.
+   *
+   * Deprecated. Use [toStringValue].
    */
+  @deprecated
   String get stringValue;
 
   /**
-   * Return the run-time type of this object.
+   * Return a representation of the type of the object being represented.
+   *
+   * For values resulting from the invocation of a 'const' constructor, this
+   * will be a representation of the run-time type of the object.
+   *
+   * For values resulting from a literal expression, this will be a
+   * representation of the static type of the value -- `int` for integer
+   * literals, `List` for list literals, etc. -- even when the static type is an
+   * abstract type (such as `List`) and hence will never be the run-time type of
+   * the represented object.
+   *
+   * For values resulting from any other kind of expression, this will be a
+   * representation of the result of evaluating the expression.
+   *
+   * Return `null` if the expression cannot be evaluated, either because it is
+   * not a valid constant expression or because one or more of the values used
+   * in the expression does not have a known value.
+   *
+   * This method can return a representation of the type, even if this object
+   * would return `false` from [hasKnownValue].
    */
   ParameterizedType get type;
 
   /**
    * Return this object's value if it can be represented exactly, or `null` if
    * either the value cannot be represented exactly or if the value is `null`.
-   * Clients should use [hasExactValue] to distinguish between these two cases.
+   * Clients should use `hasExactValue` to distinguish between these two cases.
+   *
+   * Deprecated. Use one of the `isXValue()` methods.
    */
+  @deprecated
   Object get value;
+
+  /**
+   * Return a representation of the value of the field with the given [name].
+   *
+   * Return `null` if either the object being represented does not have a field
+   * with the given name or if the implementation of the class of the object is
+   * invalid, making it impossible to determine that value of the field.
+   *
+   * Note that, unlike the mirrors API, this method does *not* invoke a getter;
+   * it simply returns a representation of the known state of a field.
+   */
+  DartObject getField(String name);
+
+  /**
+   * Return a boolean corresponding to the value of the object being
+   * represented, or `null` if
+   * * this object is not of type 'bool',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  bool toBoolValue();
+
+  /**
+   * Return a double corresponding to the value of the object being represented,
+   * or `null`
+   * if
+   * * this object is not of type 'double',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  double toDoubleValue();
+
+  /**
+   * Return an integer corresponding to the value of the object being
+   * represented, or `null` if
+   * * this object is not of type 'int',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  int toIntValue();
+
+  /**
+   * Return a list corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'List', or
+   * * the value of the object being represented is `null`.
+   */
+  List<DartObject> toListValue();
+
+  /**
+   * Return a map corresponding to the value of the object being represented, or
+   * `null` if
+   * * this object is not of type 'Map', or
+   * * the value of the object being represented is `null`.
+   */
+  Map<DartObject, DartObject> toMapValue();
+
+  /**
+   * Return a string corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'String',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  String toStringValue();
+
+  /**
+   * Return a string corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'Symbol', or
+   * * the value of the object being represented is `null`.
+   * (We return the string
+   */
+  String toSymbolValue();
+
+  /**
+   * Return the representation of the type corresponding to the value of the
+   * object being represented, or `null` if
+   * * this object is not of type 'Type', or
+   * * the value of the object being represented is `null`.
+   */
+  ParameterizedType toTypeValue();
 }
 
 /**
@@ -2338,24 +2558,17 @@ class DartObjectImpl implements DartObject {
     return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
   }
 
+  @deprecated
   @override
-  bool get boolValue {
-    if (_state is BoolState) {
-      return (_state as BoolState).value;
-    }
-    return null;
-  }
+  bool get boolValue => toBoolValue();
 
+  @deprecated
   @override
-  double get doubleValue {
-    if (_state is DoubleState) {
-      return (_state as DoubleState).value;
-    }
-    return null;
-  }
+  double get doubleValue => toDoubleValue();
 
   HashMap<String, DartObjectImpl> get fields => _state.fields;
 
+  @deprecated
   @override
   bool get hasExactValue => _state.hasExactValue;
 
@@ -2363,12 +2576,11 @@ class DartObjectImpl implements DartObject {
   int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
 
   @override
-  int get intValue {
-    if (_state is IntState) {
-      return (_state as IntState).value;
-    }
-    return null;
-  }
+  bool get hasKnownValue => !_state.isUnknown;
+
+  @deprecated
+  @override
+  int get intValue => toIntValue();
 
   /**
    * Return `true` if this object represents an object whose type is 'bool'.
@@ -2381,13 +2593,14 @@ class DartObjectImpl implements DartObject {
    */
   bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
 
+  @deprecated
   @override
-  bool get isFalse =>
-      _state is BoolState && identical((_state as BoolState).value, false);
+  bool get isFalse => toBoolValue() == false;
 
   @override
   bool get isNull => _state is NullState;
 
+  @deprecated
   @override
   bool get isTrue =>
       _state is BoolState && identical((_state as BoolState).value, true);
@@ -2403,14 +2616,11 @@ class DartObjectImpl implements DartObject {
    */
   bool get isUserDefinedObject => _state is GenericState;
 
+  @deprecated
   @override
-  String get stringValue {
-    if (_state is StringState) {
-      return (_state as StringState).value;
-    }
-    return null;
-  }
+  String get stringValue => toStringValue();
 
+  @deprecated
   @override
   Object get value => _state.value;
 
@@ -2572,6 +2782,14 @@ class DartObjectImpl implements DartObject {
         typeProvider.boolType, _state.equalEqual(rightOperand._state));
   }
 
+  @override
+  DartObject getField(String name) {
+    if (_state is GenericState) {
+      return (_state as GenericState).fields[name];
+    }
+    return null;
+  }
+
   /**
    * Return the result of invoking the '&gt;' operator on this object with the
    * [rightOperand]. The [typeProvider] is the type provider used to find known
@@ -2593,9 +2811,10 @@ class DartObjectImpl implements DartObject {
    * Throws an [EvaluationException] if the operator is not appropriate for an
    * object of this kind.
    */
-  DartObjectImpl greaterThanOrEqual(TypeProvider typeProvider,
-      DartObjectImpl rightOperand) => new DartObjectImpl(
-      typeProvider.boolType, _state.greaterThanOrEqual(rightOperand._state));
+  DartObjectImpl greaterThanOrEqual(
+          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
+      new DartObjectImpl(typeProvider.boolType,
+          _state.greaterThanOrEqual(rightOperand._state));
 
   /**
    * Return the result of invoking the '~/' operator on this object with the
@@ -2844,7 +3063,77 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
+  bool toBoolValue() {
+    if (_state is BoolState) {
+      return (_state as BoolState).value;
+    }
+    return null;
+  }
+
+  @override
+  double toDoubleValue() {
+    if (_state is DoubleState) {
+      return (_state as DoubleState).value;
+    }
+    return null;
+  }
+
+  @override
+  int toIntValue() {
+    if (_state is IntState) {
+      return (_state as IntState).value;
+    }
+    return null;
+  }
+
+  @override
+  List<DartObject> toListValue() {
+    if (_state is ListState) {
+      return (_state as ListState)._elements;
+    }
+    return null;
+  }
+
+  @override
+  Map<DartObject, DartObject> toMapValue() {
+    if (_state is MapState) {
+      return (_state as MapState)._entries;
+    }
+    return null;
+  }
+
+  @override
   String toString() => "${type.displayName} ($_state)";
+
+  @override
+  String toStringValue() {
+    if (_state is StringState) {
+      return (_state as StringState).value;
+    }
+    return null;
+  }
+
+  @override
+  String toSymbolValue() {
+    if (_state is SymbolState) {
+      return (_state as SymbolState).value;
+    }
+    return null;
+  }
+
+  @override
+  ParameterizedType toTypeValue() {
+    if (_state is TypeState) {
+      Element element = (_state as TypeState).value;
+      if (element is ClassElement) {
+        return element.type;
+      }
+      if (element is FunctionElement) {
+        return element.type;
+      }
+    }
+    return null;
+  }
 }
 
 /**

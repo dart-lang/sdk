@@ -37,10 +37,11 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   if (Isolate::Current()->flags().type_checks()) {
     return;
   }
+
+  Label fall_through;
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
   __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
-  Label fall_through;
   __ testq(RCX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   // Range check.
@@ -1489,10 +1490,12 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       random_class.LookupStaticField(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
   const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
-  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Receiver.
-  __ movq(RBX, FieldAddress(RAX, state_field.Offset()));  // Field '_state'.
+  // Receiver.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  // Field '_state'.
+  __ movq(RBX, FieldAddress(RAX, state_field.Offset()));
   // Addresses of _state[0] and _state[1].
   const intptr_t scale = Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
   const intptr_t offset = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
@@ -1597,25 +1600,18 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
   __ testq(RCX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  __ j(NOT_ZERO, &fall_through);  // Non-smi index.
   // Range check.
   __ cmpq(RCX, FieldAddress(RAX, String::length_offset()));
   // Runtime throws exception.
-  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(ABOVE_EQUAL, &fall_through);
   __ CompareClassId(RAX, kOneByteStringCid);
   __ j(NOT_EQUAL, &try_two_byte_string, Assembler::kNearJump);
   __ SmiUntag(RCX);
   __ movzxb(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, &fall_through);
-  const ExternalLabel symbols_label(
-      reinterpret_cast<uword>(Symbols::PredefinedAddress()));
-  __ pushq(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(RAX, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ popq(PP);
+  __ movq(RAX, Address(THR, Thread::predefined_symbols_address_offset()));
   __ movq(RAX, Address(RAX,
                        RCX,
                        TIMES_8,
@@ -1624,17 +1620,12 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
 
   __ Bind(&try_two_byte_string);
   __ CompareClassId(RAX, kTwoByteStringCid);
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  __ j(NOT_EQUAL, &fall_through);
   ASSERT(kSmiTagShift == 1);
   __ movzxw(RCX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ cmpq(RCX, Immediate(Symbols::kNumberOfOneCharCodeSymbols));
   __ j(GREATER_EQUAL, &fall_through);
-  __ pushq(PP);
-  __ LoadPoolPointer();
-  assembler->set_constant_pool_allowed(true);
-  __ LoadExternalLabel(RAX, &symbols_label, kNotPatchable);
-  assembler->set_constant_pool_allowed(false);
-  __ popq(PP);
+  __ movq(RAX, Address(THR, Thread::predefined_symbols_address_offset()));
   __ movq(RAX, Address(RAX,
                        RCX,
                        TIMES_8,
@@ -1970,14 +1961,11 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in RAX, the argument descriptor in R10, and IC-Data in RCX.
-  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(R10,
-      Array::ZoneHandle(ArgumentsDescriptor::New(arg_count)));
   __ xorq(RCX, RCX);
 
   // Tail-call the function.
-  __ movq(RDI, FieldAddress(RAX, Function::instructions_offset()));
-  __ addq(RDI, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RDI, FieldAddress(RAX, Function::entry_point_offset()));
   __ jmp(RDI);
 }
 

@@ -10,8 +10,10 @@ library analysis_server.test.server_options;
 import 'package:analysis_server/src/server_options.dart';
 import 'package:unittest/unittest.dart';
 
+import 'utils.dart';
+
 void main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
 
   group('server_options', () {
     test('basic - []', () {

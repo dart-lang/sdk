@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'package:expect/expect.dart';
 import 'parser_helper.dart';
-import 'mock_compiler.dart';
 import 'package:compiler/src/tree/tree.dart';
 
 testUnparse(String statement) {

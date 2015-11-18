@@ -6,17 +6,18 @@ library test.edit.organize_directives;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(OrganizeDirectivesTest);
 }
 
@@ -62,6 +63,28 @@ main() {}
     Response response = handler.handleRequest(request);
     expect(
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
+  }
+
+  Future test_OK_remove_duplicateImports_withSamePrefix() {
+    addTestFile('''
+library lib;
+
+import 'dart:async' as async;
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
+}
+''');
+    return _assertOrganized(r'''
+library lib;
+
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
+}
+''');
   }
 
   Future test_OK_remove_unresolvedDirectives() {

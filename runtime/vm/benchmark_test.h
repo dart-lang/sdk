@@ -34,15 +34,17 @@ extern const uint8_t* isolate_snapshot_buffer;
 #define BENCHMARK_HELPER(name, kind)                                           \
   void Dart_Benchmark##name(Benchmark* benchmark);                             \
   static Benchmark kRegister##name(Dart_Benchmark##name, #name, kind);         \
-  static void Dart_BenchmarkHelper##name(Benchmark* benchmark);                \
+  static void Dart_BenchmarkHelper##name(Benchmark* benchmark, Thread* thread);\
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
     FLAG_old_gen_growth_space_ratio = 100;                                     \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
-    StackZone __zone__(benchmark->isolate());                                  \
-    HandleScope __hs__(benchmark->isolate());                                  \
-    Dart_BenchmarkHelper##name(benchmark);                                     \
+    Thread* __thread__ = Thread::Current();                                    \
+    ASSERT(__thread__->isolate() == benchmark->isolate());                     \
+    StackZone __zone__(__thread__);                                            \
+    HandleScope __hs__(__thread__);                                            \
+    Dart_BenchmarkHelper##name(benchmark, __thread__);                         \
   }                                                                            \
-  static void Dart_BenchmarkHelper##name(Benchmark* benchmark)
+  static void Dart_BenchmarkHelper##name(Benchmark* benchmark, Thread* thread)
 
 #define BENCHMARK(name) BENCHMARK_HELPER(name, "RunTime")
 #define BENCHMARK_SIZE(name) BENCHMARK_HELPER(name, "CodeSize")

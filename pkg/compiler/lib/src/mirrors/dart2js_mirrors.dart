@@ -6,13 +6,20 @@ library dart2js.mirrors;
 
 import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
+import '../common.dart';
+import '../compiler.dart' show
+    Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../elements/elements.dart';
-import '../scanner/scannerlib.dart';
-import '../resolution/resolution.dart' show Scope;
-import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../elements/modelx.dart' show
+    LibraryElementX;
+import '../resolution/scope.dart' show
+    Scope;
+import '../script.dart';
+import '../tokens/token.dart';
+import '../tokens/token_constants.dart' as Tokens;
 import '../tree/tree.dart';
 import '../util/util.dart'
     show Link,
@@ -123,7 +130,7 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
       }
       return members;
     }
-    mirrorSystem.compiler.internalError(element,
+    mirrorSystem.compiler.reporter.internalError(element,
         "Unexpected member type $element ${element.kind}.");
     return null;
   }
@@ -196,8 +203,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       span = new SourceSpan(script.resourceUri, 0, 0);
     } else {
       Token endToken = getEndToken();
-      span = mirrorSystem.compiler.spanFromTokens(
-          beginToken, endToken, script.resourceUri);
+      span = new SourceSpan.fromTokens(
+          script.resourceUri, beginToken, endToken);
     }
     return new Dart2JsSourceLocation(script, span);
   }
@@ -205,7 +212,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
   String toString() => _element.toString();
 
   void _appendCommentTokens(Token commentToken) {
-    while (commentToken != null && commentToken.kind == COMMENT_TOKEN) {
+    while (commentToken != null && commentToken.kind == Tokens.COMMENT_TOKEN) {
       _metadata.add(new Dart2JsCommentInstanceMirror(
           mirrorSystem, commentToken.value));
       commentToken = commentToken.next;
@@ -218,7 +225,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       for (MetadataAnnotation metadata in _element.metadata) {
         _appendCommentTokens(
             mirrorSystem.compiler.commentMap[metadata.beginToken]);
-        metadata.ensureResolved(mirrorSystem.compiler);
+        metadata.ensureResolved(mirrorSystem.compiler.resolution);
         _metadata.add(_convertConstantToInstanceMirror(
             mirrorSystem, metadata.constant,
             mirrorSystem.compiler.constants.getConstantValue(
@@ -336,7 +343,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
         return new Dart2JsTypedefMirror(this, type);
       }
     }
-    compiler.internalError(type.element,
+    compiler.reporter.internalError(type.element,
         "Unexpected type $type of kind ${type.kind}.");
     return null;
   }
@@ -347,7 +354,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
     } else if (element.isTypedef) {
       return new Dart2JsTypedefDeclarationMirror(this, element.thisType);
     }
-    compiler.internalError(element, "Unexpected element $element.");
+    compiler.reporter.internalError(element, "Unexpected element $element.");
     return null;
   }
 }

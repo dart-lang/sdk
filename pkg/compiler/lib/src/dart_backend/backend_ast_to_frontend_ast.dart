@@ -4,18 +4,23 @@
 
 library dart_tree_printer;
 
+import '../common.dart';
 import '../constants/values.dart' as values;
 import '../dart_types.dart' as types;
-import '../dart2jslib.dart' as dart2js;
 import '../elements/elements.dart' as elements;
+import '../resolution/tree_elements.dart' show
+    TreeElementMapping;
+import '../tokens/token.dart';
+import '../tokens/token_constants.dart';
+import '../tokens/precedence.dart';
+import '../tokens/precedence_constants.dart';
 import '../tree/tree.dart' as tree;
-import '../scanner/scannerlib.dart';
 import '../util/util.dart';
 import 'backend_ast_nodes.dart';
 import 'backend_ast_emitter.dart' show TypeGenerator;
 
 /// Translates the backend AST to Dart frontend AST.
-tree.Node emit(dart2js.TreeElementMapping treeElements,
+tree.Node emit(TreeElementMapping treeElements,
                RootNode root) {
   return new TreePrinter(treeElements).makeDefinition(root);
 }
@@ -28,7 +33,7 @@ bool INSERT_NEW_BACKEND_COMMENT =
 
 /// Converts backend ASTs to frontend ASTs.
 class TreePrinter {
-  dart2js.TreeElementMapping treeElements;
+  TreeElementMapping treeElements;
 
   TreePrinter([this.treeElements]);
 
@@ -1149,7 +1154,7 @@ class TreePrinter {
   tree.NamedMixinApplication makeNamedMixinApplication(
        elements.MixinApplicationElement cls) {
 
-    assert(dart2js.invariant(cls, !cls.isUnnamedMixinApplication,
+    assert(invariant(cls, !cls.isUnnamedMixinApplication,
         message: "Cannot create ClassNode for unnamed mixin application "
                  "$cls."));
     tree.Modifiers modifiers = makeModifiers(isAbstract: cls.isAbstract);
@@ -1196,7 +1201,7 @@ class TreePrinter {
 
   /// Creates a [tree.ClassNode] node for [cls].
   tree.ClassNode makeClassNode(elements.ClassElement cls) {
-    assert(dart2js.invariant(cls, !cls.isUnnamedMixinApplication,
+    assert(invariant(cls, !cls.isUnnamedMixinApplication,
         message: "Cannot create ClassNode for unnamed mixin application "
                  "$cls."));
     tree.Modifiers modifiers = makeModifiers(isAbstract: cls.isAbstract);

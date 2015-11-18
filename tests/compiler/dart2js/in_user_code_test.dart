@@ -7,7 +7,8 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/dart2jslib.dart' show Compiler;
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/compiler.dart' show Compiler;
 import 'memory_compiler.dart';
 
 const SOURCE = const {
@@ -47,7 +48,7 @@ Future test(List<Uri> entryPoints, Map<String, bool> expectedResults) async {
   CompilationResult result = await runCompiler(
     entryPoints: entryPoints,
     memorySourceFiles: SOURCE,
-    options: ['--analyze-only', '--analyze-all'],
+    options: [Flags.analyzeOnly, Flags.analyzeAll],
     packageRoot: Uri.parse('memory:pkg/'));
   Compiler compiler = result.compiler;
   expectedResults.forEach((String uri, bool expectedResult) {

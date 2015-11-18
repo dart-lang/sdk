@@ -22,7 +22,7 @@ DEFINE_NATIVE_ENTRY(List_getIndexed, 2) {
   const Array& array = Array::CheckedHandle(arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    Exceptions::ThrowRangeError("index", index, 0, array.Length());
+    Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
   }
   return array.At(index.Value());
 }
@@ -33,7 +33,7 @@ DEFINE_NATIVE_ENTRY(List_setIndexed, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, index, arguments->NativeArgAt(1));
   const Instance& value = Instance::CheckedHandle(arguments->NativeArgAt(2));
   if ((index.Value() < 0) || (index.Value() >= array.Length())) {
-    Exceptions::ThrowRangeError("index", index, 0, array.Length());
+    Exceptions::ThrowRangeError("index", index, 0, array.Length() - 1);
   }
   array.SetAt(index.Value(), value);
   return Object::null();
@@ -52,22 +52,22 @@ DEFINE_NATIVE_ENTRY(List_slice, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, count, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, needs_type_arg, arguments->NativeArgAt(3));
+  intptr_t istart = start.Value();
+  if ((istart < 0) || (istart > src.Length())) {
+    Exceptions::ThrowRangeError(
+        "start",
+        start,
+        0,
+        src.Length());
+  }
   intptr_t icount = count.Value();
   // Zero count should be handled outside already.
   if ((icount <= 0) || (icount > src.Length())) {
     Exceptions::ThrowRangeError(
         "count",
-        Smi::Handle(Smi::New(icount)),
-        1,
-        src.Length() + 1);
-  }
-  intptr_t istart = start.Value();
-  if ((istart < 0) || ((istart + icount) > src.Length())) {
-    Exceptions::ThrowRangeError(
-        "start",
-        Smi::Handle(Smi::New(istart)),
-        0,
-        src.Length() - icount + 1);
+        count,
+        0,                        // This is the limit the user sees.
+        src.Length() - istart);
   }
 
   return src.Slice(istart, icount, needs_type_arg.value());

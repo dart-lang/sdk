@@ -203,20 +203,19 @@ class _ZoneSpecification implements ZoneSpecification {
     this.fork: null
   });
 
-  // TODO(13406): Enable types when dart2js supports it.
-  final /*HandleUncaughtErrorHandler*/ handleUncaughtError;
-  final /*RunHandler*/ run;
-  final /*RunUnaryHandler*/ runUnary;
-  final /*RunBinaryHandler*/ runBinary;
-  final /*RegisterCallbackHandler*/ registerCallback;
-  final /*RegisterUnaryCallbackHandler*/ registerUnaryCallback;
-  final /*RegisterBinaryCallbackHandler*/ registerBinaryCallback;
-  final /*ErrorCallbackHandler*/ errorCallback;
-  final /*ScheduleMicrotaskHandler*/ scheduleMicrotask;
-  final /*CreateTimerHandler*/ createTimer;
-  final /*CreatePeriodicTimerHandler*/ createPeriodicTimer;
-  final /*PrintHandler*/ print;
-  final /*ForkHandler*/ fork;
+  final HandleUncaughtErrorHandler handleUncaughtError;
+  final RunHandler run;
+  final RunUnaryHandler runUnary;
+  final RunBinaryHandler runBinary;
+  final RegisterCallbackHandler registerCallback;
+  final RegisterUnaryCallbackHandler registerUnaryCallback;
+  final RegisterBinaryCallbackHandler registerBinaryCallback;
+  final ErrorCallbackHandler errorCallback;
+  final ScheduleMicrotaskHandler scheduleMicrotask;
+  final CreateTimerHandler createTimer;
+  final CreatePeriodicTimerHandler createPeriodicTimer;
+  final PrintHandler print;
+  final ForkHandler fork;
 }
 
 /**
@@ -892,9 +891,13 @@ class _CustomZone extends _Zone {
 void _rootHandleUncaughtError(
     Zone self, ZoneDelegate parent, Zone zone, error, StackTrace stackTrace) {
   _schedulePriorityAsyncCallback(() {
-    throw new _UncaughtAsyncError(error, stackTrace);
+    if (error == null) error = new NullThrownError();
+    if (stackTrace == null) throw error;
+    _rethrow(error, stackTrace);
   });
 }
+
+external void _rethrow(Object error, StackTrace stackTrace);
 
 dynamic _rootRun(Zone self, ZoneDelegate parent, Zone zone, f()) {
   if (Zone._current == zone) return f();
@@ -1008,26 +1011,6 @@ Zone _rootFork(Zone self, ZoneDelegate parent, Zone zone,
     valueMap = new HashMap.from(zoneValues);
   }
   return new _CustomZone(zone, specification, valueMap);
-}
-
-class _RootZoneSpecification implements ZoneSpecification {
-  HandleUncaughtErrorHandler get handleUncaughtError =>
-      _rootHandleUncaughtError;
-  RunHandler get run => _rootRun;
-  RunUnaryHandler get runUnary => _rootRunUnary;
-  RunBinaryHandler get runBinary => _rootRunBinary;
-  RegisterCallbackHandler get registerCallback => _rootRegisterCallback;
-  RegisterUnaryCallbackHandler get registerUnaryCallback =>
-      _rootRegisterUnaryCallback;
-  RegisterBinaryCallbackHandler get registerBinaryCallback =>
-      _rootRegisterBinaryCallback;
-  ErrorCallbackHandler get errorCallback => _rootErrorCallback;
-  ScheduleMicrotaskHandler get scheduleMicrotask => _rootScheduleMicrotask;
-  CreateTimerHandler get createTimer => _rootCreateTimer;
-  CreatePeriodicTimerHandler get createPeriodicTimer =>
-      _rootCreatePeriodicTimer;
-  PrintHandler get print => _rootPrint;
-  ForkHandler get fork => _rootFork;
 }
 
 class _RootZone extends _Zone {

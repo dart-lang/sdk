@@ -46,30 +46,23 @@ BRANCH_MULTIVM="dart/multivm"
 
 TARGETS = {
   'dartium': (
-    'https://dart.googlecode.com/svn/branches/bleeding_edge/deps/dartium.deps',
+    'git@github.com:dart-lang/sdk.git',
+    'tools/deps/dartium.deps',
+    'origin/master',
     'dartium',
     # TODO(vsm): Reenable 'chromium'
     ['webkit'],
     BRANCH_CURRENT,
     ),
   'integration': (
+    # TODO(jacobr): what is the git repo for integration if any?
     'https://dart.googlecode.com/svn/branches/dartium_integration/deps/dartium.deps',
+    'tools/deps/dartium.deps',
+    'origin/master',
     'dartium',
     # TODO(vsm): Reenable 'chromium'
     ['webkit'],
     BRANCH_NEXT,
-    ),
-  'clank': (
-    'https://dart.googlecode.com/svn/branches/bleeding_edge/deps/clank.deps',
-    'dartium',
-    ['webkit', 'chromium'],
-    BRANCH_CURRENT,
-    ),
-  'multivm': (
-    'https://dart.googlecode.com/svn/branches/bleeding_edge/deps/multivm.deps',
-    'multivm',
-    ['blink'],
-    BRANCH_MULTIVM,
     ),
 }
 
@@ -187,7 +180,7 @@ def merge_revs(revs):
 
 def main():
   option_parser = optparse.OptionParser()
-  option_parser.add_option('', '--target', help="Update one of [dartium|integration|multivm|clank]", action="store", dest="target", default="dartium")
+  option_parser.add_option('', '--target', help="Update one of [dartium|integration]", action="store", dest="target", default="dartium")
   option_parser.add_option('', '--force', help="Push DEPS update to server without prompting", action="store_true", dest="force")
   options, args = option_parser.parse_args()
 
@@ -195,19 +188,23 @@ def main():
   if not target in TARGETS.keys():
     print "Error: invalid target"
     print "Choose one of " + str(TARGETS)
-  (deps_dir, prefix, repos, branch) = TARGETS[target]
+  (repo_name, deps_dir, repo_branch, prefix, repos, branch) = TARGETS[target]
   deps_file = deps_dir + '/DEPS'
+  repo_branch_parts = repo_branch.split('/')
 
   src_dir = "/usr/local/google/home/%s/dartium_deps_updater/deps/%s" % (os.environ["USER"], target)
   os.putenv("GIT_PAGER", "")
 
   if not os.path.exists(src_dir):
-    print run_cmd(['svn', 'co', deps_dir, src_dir])
+    print run_cmd(['git', 'clone', repo_name, src_dir])
 
   os.chdir(src_dir)
+  deps = run_cmd(['git', 'fetch'])
+  deps = run_cmd(['git', 'stash'])
+  deps = run_cmd(['git', 'checkout', '-B', repo_branch_parts[1], repo_branch])
 
   # parse DEPS
-  deps = run_cmd(['svn', 'cat', deps_file])
+  deps = run_cmd(['cat', deps_file])
   rev_num = {}
   for repo in repos:
     revision = '%s_%s_revision":\s*"(.+)"' % (prefix, repo)
@@ -241,19 +238,20 @@ def main():
 
   # make the next DEPS update
   os.chdir(src_dir)
-  run_cmd(['rm', 'DEPS'])
-  print run_cmd(['svn', 'update'])
+  run_cmd(['rm', deps_file])
   s = pending_updates[0]
 
   pattern = re.compile(prefix + '_' + s['repo'] + '_revision":\s*"(.+)"')
   new_deps = pattern.sub(prefix + '_' + s['repo'] + '_revision": "' + s['rev'] + '"', deps)
-  write_file('DEPS', new_deps)
+  write_file(deps_file, new_deps)
 
   commit_log = 'DEPS AutoUpdate: %s to %s (%s) %s\n' % (s['repo'], s['rev'], s['isotime'], s['author'])
   commit_log += s['info'] + '\n' + commit_url(s['repo'], s['rev'])
 
   write_file('commit_log.txt', commit_log)
-  print run_cmd(['svn', 'diff'])
+  run_cmd(['git', 'add', deps_file])
+
+  print run_cmd(['git', 'diff', 'HEAD'])
   print
   print "Commit log:"
   print "---------------------------------------------"
@@ -263,7 +261,8 @@ def main():
   if not options.force:
     print "Ready to push; press Enter to continue or Control-C to abort..."
     sys.stdin.readline()
-  print run_cmd(['svn', 'commit', '--file', 'commit_log.txt'])
+  print run_cmd(['git', 'commit', '-F', 'commit_log.txt'])
+  print run_cmd(['git', 'push', repo_branch_parts[0], repo_branch_parts[1]])
   print "Done."
 
 

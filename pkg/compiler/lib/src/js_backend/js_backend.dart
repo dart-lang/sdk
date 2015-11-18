@@ -11,13 +11,46 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
+import '../common.dart';
+import '../common/backend_api.dart' show
+    Backend,
+    ForeignResolver;
+import '../common/codegen.dart' show
+    CodegenRegistry,
+    CodegenWorkItem;
+import '../common/names.dart' show
+    Identifiers,
+    Selectors,
+    Uris;
+import '../common/registry.dart' show
+    Registry;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../common/resolution.dart' show
+    Feature,
+    ListLiteralUse,
+    MapLiteralUse,
+    Resolution,
+    ResolutionCallbacks,
+    ResolutionImpact,
+    TransformedWorldImpact;
+import '../common/work.dart' show
+    ItemCompilationContext;
+import '../compiler.dart' show
+    Compiler;
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
-import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../elements/visitor.dart' show
+    BaseElementVisitor;
+import '../enqueue.dart' show
+    Enqueuer,
+    ResolutionEnqueuer,
+    WorldImpact;
+import '../helpers/helpers.dart';
 import '../io/code_output.dart';
 import '../io/source_information.dart' show
     SourceInformationStrategy,
@@ -30,27 +63,42 @@ import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js/js_source_mapping.dart' show
     JavaScriptSourceInformationStrategy;
-import '../js_emitter/js_emitter.dart'
-    show ClassBuilder, CodeEmitterTask, Emitter, MetadataCollector, Placeholder,
-        TokenFinalizer, USE_LAZY_EMITTER;
-
+import '../js/rewrite_async.dart';
+import '../js_emitter/js_emitter.dart' show
+    CodeEmitterTask,
+    Emitter,
+    MetadataCollector,
+    Placeholder,
+    USE_LAZY_EMITTER;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
+import '../patch_parser.dart' show
+    checkJsInteropAnnotation;
+import '../resolution/registry.dart' show
+    EagerRegistry;
+import '../resolution/tree_elements.dart' show
+    TreeElements;
 import '../ssa/ssa.dart';
 import '../tree/tree.dart';
 import '../types/types.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector,
+    SelectorKind;
 import '../universe/universe.dart';
 import '../util/characters.dart';
 import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld;
 
-import '../elements/visitor.dart' show
-    BaseElementVisitor;
-
-import '../js_backend/codegen/task.dart';
-import '../resolution/resolution.dart' show ResolutionRegistry;
-
+import 'backend_helpers.dart';
+import 'backend_impact.dart';
+import 'codegen/task.dart';
 import 'constant_system_javascript.dart';
 import 'patch_resolver.dart';
+import 'js_interop_analysis.dart' show JsInteropAnalysis;
+import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';

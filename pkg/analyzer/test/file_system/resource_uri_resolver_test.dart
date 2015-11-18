@@ -10,9 +10,10 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(ResourceUriResolverTest);
 }
 
@@ -53,5 +54,9 @@ class ResourceUriResolverTest {
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
+    expect(
+        resolver.restoreAbsolute(
+            new NonExistingSource(source.fullName, null, null)),
+        uri);
   }
 }

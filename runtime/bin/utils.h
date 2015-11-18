@@ -11,7 +11,6 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -20,7 +19,7 @@ class OSError {
   enum SubSystem {
     kSystem,
     kGetAddressInfo,
-    kNSS,
+    kBoringSSL,
     kUnknown = -1
   };
 

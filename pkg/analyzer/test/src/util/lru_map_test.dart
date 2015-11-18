@@ -8,9 +8,10 @@ import 'package:analyzer/src/util/lru_map.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(_LRUCacheTest);
 }
 

@@ -26,7 +26,8 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            const Code& code,
                            DestFrameOptions dest_options,
                            fpu_register_t* fpu_registers,
-                           intptr_t* cpu_registers)
+                           intptr_t* cpu_registers,
+                           bool is_lazy_deopt)
     : code_(code.raw()),
       object_pool_(code.GetObjectPool()),
       deopt_info_(TypedData::null()),
@@ -45,7 +46,8 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       timeline_event_(NULL),
       deferred_slots_(NULL),
       deferred_objects_count_(0),
-      deferred_objects_(NULL) {
+      deferred_objects_(NULL),
+      is_lazy_deopt_(is_lazy_deopt) {
   const TypedData& deopt_info = TypedData::Handle(
       code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason_, &deopt_flags_));
   ASSERT(!deopt_info.IsNull());
@@ -651,7 +653,16 @@ class DeoptPcMarkerInstr : public DeoptInstr {
   }
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
-    *dest_addr = Smi::RawValue(0);
+    Function& function = Function::Handle(deopt_context->zone());
+    function ^= deopt_context->ObjectAt(object_table_index_);
+    if (function.IsNull()) {
+      *reinterpret_cast<RawObject**>(dest_addr) = deopt_context->is_lazy_deopt()
+          ? StubCode::DeoptimizeLazy_entry()->code()
+          : StubCode::Deoptimize_entry()->code();
+      return;
+    }
+
+    *dest_addr = reinterpret_cast<intptr_t>(Object::null());
     deopt_context->DeferPcMarkerMaterialization(
         object_table_index_, dest_addr);
   }
@@ -815,7 +826,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
       static_cast<DeoptRetAddressInstr*>(instr);
   // The following assert may trigger when displaying a backtrace
   // from the simulator.
-  ASSERT(Isolate::IsDeoptAfter(ret_address_instr->deopt_id()));
+  ASSERT(Thread::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();

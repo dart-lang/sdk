@@ -7,9 +7,9 @@ library analysis_server.src.services.correction.fix_internal;
 import 'dart:collection';
 import 'dart:core' hide Resource;
 
-import 'package:analysis_server/edit/fix/fix_core.dart';
-import 'package:analysis_server/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/protocol.dart'
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError, Element, ElementKind;
 import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit, doSourceChange_addSourceEdit;
@@ -35,7 +35,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
-import 'package:path/path.dart' as ppp;
 
 /**
  * A predicate is a one-argument function that returns a boolean value.
@@ -272,6 +271,9 @@ class FixProcessor {
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       _addFix_removeParentheses_inGetterInvocation();
     }
+    if (errorCode == StaticTypeWarningCode.NON_BOOL_CONDITION) {
+      _addFix_nonBoolCondition_addNotNull();
+    }
     if (errorCode == StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT) {
       _addFix_importLibrary_withType();
       _addFix_createClass();
@@ -452,6 +454,9 @@ class FixProcessor {
       if (parent is PrefixedIdentifier) {
         PrefixedIdentifier prefixedIdentifier = parent;
         prefixElement = prefixedIdentifier.prefix.staticElement;
+        if (prefixElement == null) {
+          return;
+        }
         parent = prefixedIdentifier.parent;
         nameNode = prefixedIdentifier.identifier;
         name = prefixedIdentifier.identifier.name;
@@ -1334,6 +1339,7 @@ class FixProcessor {
     }
     // may be there is an existing import,
     // but it is with prefix and we don't use this prefix
+    Set<Source> alreadyImportedWithPrefix = new Set<Source>();
     for (ImportElement imp in unitLibraryElement.imports) {
       // prepare element
       LibraryElement libraryElement = imp.importedLibrary;
@@ -1370,13 +1376,13 @@ class FixProcessor {
         if (libraryElement.isInSdk) {
           libraryName = imp.uri;
         }
+        // don't add this library again
+        alreadyImportedWithPrefix.add(libraryElement.source);
         // update library
         String newShowCode = 'show ${StringUtils.join(showNames, ", ")}';
         _addReplaceEdit(
             rf.rangeOffsetEnd(showCombinator), newShowCode, unitLibraryElement);
         _addFix(DartFixKind.IMPORT_LIBRARY_SHOW, [libraryName]);
-        // we support only one import without prefix
-        return;
       }
     }
     // check SDK libraries
@@ -1415,6 +1421,10 @@ class FixProcessor {
       for (Source librarySource in librarySources) {
         // we don't need SDK libraries here
         if (librarySource.isInSystemLibrary) {
+          continue;
+        }
+        // maybe already imported with a prefix
+        if (alreadyImportedWithPrefix.contains(librarySource)) {
           continue;
         }
         // prepare LibraryElement
@@ -1514,6 +1524,11 @@ class FixProcessor {
     String className = enclosingClass.name.name;
     _addInsertEdit(enclosingClass.classKeyword.offset, 'abstract ');
     _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);
+  }
+
+  void _addFix_nonBoolCondition_addNotNull() {
+    _addInsertEdit(error.offset + error.length, ' != null');
+    _addFix(DartFixKind.ADD_NE_NULL, []);
   }
 
   void _addFix_removeDeadCode() {
@@ -1867,6 +1882,11 @@ class FixProcessor {
           sourcePrefix = eol;
         }
         sourceSuffix = eol;
+        // use different utils
+        CompilationUnitElement targetUnitElement =
+            getCompilationUnitElement(targetClassElement);
+        CompilationUnit targetUnit = getParsedUnit(targetUnitElement);
+        utils = new CorrectionUtils(targetUnit);
       }
       String targetFile = targetElement.source.fullName;
       // build method source

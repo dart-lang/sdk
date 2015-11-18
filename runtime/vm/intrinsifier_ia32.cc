@@ -1635,13 +1635,15 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       random_class.LookupStaticField(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.value());
+  const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
   const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
   // 'a_int_value' is a mask.
   ASSERT(Utils::IsUint(32, a_int_value));
   int32_t a_int32_value = static_cast<int32_t>(a_int_value);
-  __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Receiver.
-  __ movl(EBX, FieldAddress(EAX, state_field.Offset()));  // Field '_state'.
+  // Receiver.
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  // Field '_state'.
+  __ movl(EBX, FieldAddress(EAX, state_field.Offset()));
   // Addresses of _state[0] and _state[1].
   const intptr_t scale = Instance::ElementSizeFor(kTypedDataUint32ArrayCid);
   const intptr_t offset = Instance::DataOffsetFor(kTypedDataUint32ArrayCid);
@@ -2108,13 +2110,10 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
-  static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(EDX, Array::ZoneHandle(ArgumentsDescriptor::New(arg_count)));
   __ xorl(ECX, ECX);
 
   // Tail-call the function.
-  __ movl(EDI, FieldAddress(EAX, Function::instructions_offset()));
-  __ addl(EDI, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
+  __ movl(EDI, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EDI);
 }
 

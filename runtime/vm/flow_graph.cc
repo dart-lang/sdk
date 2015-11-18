@@ -185,7 +185,7 @@ class BlockTraversalState {
 
 
 void FlowGraph::DiscoverBlocks() {
-  StackZone zone(isolate());
+  StackZone zone(thread());
 
   // Initialize state.
   preorder_.Clear();
@@ -921,7 +921,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*join->phis())[i];
         if (phi != NULL) {
           (*env)[i] = phi;
-          phi->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+          AllocateSSAIndexes(phi);  // New SSA temp.
           if (block_entry->InsideTryBlock() && !phi->is_alive()) {
             // This is a safe approximation.  Inside try{} all locals are
             // used at every call implicitly, so we mark all phis as live

@@ -114,7 +114,7 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   // Check that deopt_id exists.
   // TODO(vegorov): verify after deoptimization targets as well.
 #ifdef DEBUG
-  ASSERT(Isolate::IsDeoptAfter(deopt_id_) ||
+  ASSERT(Thread::IsDeoptAfter(deopt_id_) ||
          (code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt) != 0));
 #endif
 
@@ -161,11 +161,7 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   uword* dest_addr = reinterpret_cast<uword*>(slot());
   Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
-  if (function.IsNull()) {
-    // Callee's PC marker is not used (pc of Deoptimize stub). Set to 0.
-    *dest_addr = 0;
-    return;
-  }
+  ASSERT(!function.IsNull());
   const Error& error = Error::Handle(zone,
       Compiler::EnsureUnoptimizedCode(thread, function));
   if (!error.IsNull()) {
@@ -174,9 +170,7 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   const Code& code = Code::Handle(zone, function.unoptimized_code());
   ASSERT(!code.IsNull());
   ASSERT(function.HasCode());
-  const intptr_t pc_marker =
-      code.EntryPoint() + Assembler::EntryPointToPcMarkerOffset();
-  *dest_addr = pc_marker;
+  *reinterpret_cast<RawObject**>(dest_addr) = code.raw();
 
   if (FLAG_trace_deoptimization_verbose) {
     OS::PrintErr("materializing pc marker at 0x%" Px ": %s, %s\n",

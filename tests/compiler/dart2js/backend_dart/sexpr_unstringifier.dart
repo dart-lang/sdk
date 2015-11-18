@@ -9,16 +9,18 @@ library sexpr_unstringifier;
 
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/constants/values.dart';
-import 'package:compiler/src/dart2jslib.dart' as dart2js
-    show MessageKind;
 import 'package:compiler/src/dart_types.dart' as dart_types
     show DartType;
+import 'package:compiler/src/diagnostics/messages.dart'
+    show MessageKind;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX, TypeVariableElementX;
 import 'package:compiler/src/tree/tree.dart' show LiteralDartString;
-import 'package:compiler/src/universe/universe.dart'
-    show Selector, SelectorKind, CallStructure;
+import 'package:compiler/src/universe/call_structure.dart'
+    show CallStructure;
+import 'package:compiler/src/universe/selector.dart'
+    show Selector, SelectorKind;
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a
@@ -48,7 +50,7 @@ class DummyLocal extends DummyEntity implements Local {
 class DummyElement extends ErroneousElementX
     implements TypeVariableElement, FieldElement {
   DummyElement(String name)
-      : super(dart2js.MessageKind.GENERIC, {}, name, null);
+      : super(MessageKind.GENERIC, {}, name, null);
 
   final dart_types.DartType bound = null;
   final TypeDeclarationElement typeDeclaration = null;

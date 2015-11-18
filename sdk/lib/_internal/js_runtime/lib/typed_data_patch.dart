@@ -9,7 +9,7 @@ import 'dart:math' as Math;
 import 'dart:_internal';
 import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
 import 'dart:_js_helper'
-    show Creates, JavaScriptIndexingBehavior, JSName, Null, Returns, patch;
+    show Creates, JavaScriptIndexingBehavior, JSName, Returns, patch;
 import 'dart:_native_typed_data';
 
 @patch class ByteData {

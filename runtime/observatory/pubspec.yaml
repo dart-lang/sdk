@@ -1,3 +1,4 @@
+# Generated file DO NOT EDIT
 name: observatory
 version: 1.6.0-dev.1
 transformers:
@@ -6,90 +7,99 @@ transformers:
     - web/index.html
     inline_stylesheets:
       lib/src/elements/css/shared.css: false
+      packages/charted/charts/themes/quantum_theme.css: false
 - $dart2js:
     $include: "**/*.polymer.bootstrap.dart"
     suppressWarnings: false
     commandLineOptions: [--show-package-warnings]
 dependencies:
   args: any
-  charted: any
-  polymer: any
+  charted: ^0.2.9
+  polymer: ^0.16.3
   unittest: < 0.12.0
   usage: any
 dependency_overrides:
   analyzer:
-    path: ../../third_party/observatory_pub_packages/analyzer
+    path: ../../third_party/observatory_pub_packages/packages/analyzer
   args:
-    path: ../../third_party/observatory_pub_packages/args
+    path: ../../third_party/observatory_pub_packages/packages/args
+  async:
+    path: ../../third_party/observatory_pub_packages/packages/async
   barback:
-    path: ../../third_party/observatory_pub_packages/barback
+    path: ../../third_party/observatory_pub_packages/packages/barback
   browser:
-    path: ../../third_party/observatory_pub_packages/browser
+    path: ../../third_party/observatory_pub_packages/packages/browser
+  charcode:
+    path: ../../third_party/observatory_pub_packages/packages/charcode
   charted:
-    path: ../../third_party/observatory_pub_packages/charted
+    path: ../../third_party/observatory_pub_packages/packages/charted
   cli_util:
-    path: ../../third_party/observatory_pub_packages/cli_util
+    path: ../../third_party/observatory_pub_packages/packages/cli_util
   code_transformers:
-    path: ../../third_party/observatory_pub_packages/code_transformers
+    path: ../../third_party/observatory_pub_packages/packages/code_transformers
   collection:
-    path: ../../third_party/observatory_pub_packages/collection
+    path: ../../third_party/observatory_pub_packages/packages/collection
   csslib:
-    path: ../../third_party/observatory_pub_packages/csslib
+    path: ../../third_party/observatory_pub_packages/packages/csslib
   dart_style:
-    path: ../../third_party/observatory_pub_packages/dart_style
+    path: ../../third_party/observatory_pub_packages/packages/dart_style
   glob:
-    path: ../../third_party/observatory_pub_packages/glob
+    path: ../../third_party/observatory_pub_packages/packages/glob
   html:
-    path: ../../third_party/observatory_pub_packages/html
+    path: ../../third_party/observatory_pub_packages/packages/html
   initialize:
-    path: ../../third_party/observatory_pub_packages/initialize
+    path: ../../third_party/observatory_pub_packages/packages/initialize
   intl:
-    path: ../../third_party/observatory_pub_packages/intl
+    path: ../../third_party/observatory_pub_packages/packages/intl
   logging:
-    path: ../../third_party/observatory_pub_packages/logging
+    path: ../../third_party/observatory_pub_packages/packages/logging
   matcher:
-    path: ../../third_party/observatory_pub_packages/matcher
+    path: ../../third_party/observatory_pub_packages/packages/matcher
   observe:
-    path: ../../third_party/observatory_pub_packages/observe
+    path: ../../third_party/observatory_pub_packages/packages/observe
+  package_config:
+    path: ../../third_party/observatory_pub_packages/packages/package_config
   path:
-    path: ../../third_party/observatory_pub_packages/path
+    path: ../../third_party/observatory_pub_packages/packages/path
   petitparser:
-    path: ../../third_party/observatory_pub_packages/petitparser
+    path: ../../third_party/observatory_pub_packages/packages/petitparser
+  plugin:
+    path: ../../third_party/observatory_pub_packages/packages/plugin
   polymer:
-    path: ../../third_party/observatory_pub_packages/polymer
+    path: ../../third_party/observatory_pub_packages/packages/polymer
   polymer_expressions:
-    path: ../../third_party/observatory_pub_packages/polymer_expressions
+    path: ../../third_party/observatory_pub_packages/packages/polymer_expressions
   polymer_interop:
-    path: ../../third_party/observatory_pub_packages/polymer_interop
+    path: ../../third_party/observatory_pub_packages/packages/polymer_interop
   pool:
-    path: ../../third_party/observatory_pub_packages/pool
+    path: ../../third_party/observatory_pub_packages/packages/pool
   quiver:
-    path: ../../third_party/observatory_pub_packages/quiver
+    path: ../../third_party/observatory_pub_packages/packages/quiver
   smoke:
-    path: ../../third_party/observatory_pub_packages/smoke
+    path: ../../third_party/observatory_pub_packages/packages/smoke
   source_maps:
-    path: ../../third_party/observatory_pub_packages/source_maps
+    path: ../../third_party/observatory_pub_packages/packages/source_maps
   source_span:
-    path: ../../third_party/observatory_pub_packages/source_span
+    path: ../../third_party/observatory_pub_packages/packages/source_span
   stack_trace:
-    path: ../../third_party/observatory_pub_packages/stack_trace
+    path: ../../third_party/observatory_pub_packages/packages/stack_trace
   string_scanner:
-    path: ../../third_party/observatory_pub_packages/string_scanner
+    path: ../../third_party/observatory_pub_packages/packages/string_scanner
   template_binding:
-    path: ../../third_party/observatory_pub_packages/template_binding
+    path: ../../third_party/observatory_pub_packages/packages/template_binding
   unittest:
-    path: ../../third_party/observatory_pub_packages/unittest
+    path: ../../third_party/observatory_pub_packages/packages/unittest
   usage:
-    path: ../../third_party/observatory_pub_packages/usage
+    path: ../../third_party/observatory_pub_packages/packages/usage
   utf:
-    path: ../../third_party/observatory_pub_packages/utf
+    path: ../../third_party/observatory_pub_packages/packages/utf
   watcher:
-    path: ../../third_party/observatory_pub_packages/watcher
+    path: ../../third_party/observatory_pub_packages/packages/watcher
   web_components:
-    path: ../../third_party/observatory_pub_packages/web_components
+    path: ../../third_party/observatory_pub_packages/packages/web_components
   when:
-    path: ../../third_party/observatory_pub_packages/when
+    path: ../../third_party/observatory_pub_packages/packages/when
   which:
-    path: ../../third_party/observatory_pub_packages/which
+    path: ../../third_party/observatory_pub_packages/packages/which
   yaml:
-    path: ../../third_party/observatory_pub_packages/yaml
+    path: ../../third_party/observatory_pub_packages/packages/yaml

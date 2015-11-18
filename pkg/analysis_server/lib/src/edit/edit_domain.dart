@@ -6,8 +6,8 @@ library edit.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
-import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -31,6 +31,10 @@ import 'package:dart_style/dart_style.dart';
 bool test_simulateRefactoringException_change = false;
 bool test_simulateRefactoringException_final = false;
 bool test_simulateRefactoringException_init = false;
+
+bool test_simulateRefactoringReset_afterCreateChange = false;
+bool test_simulateRefactoringReset_afterFinalConditions = false;
+bool test_simulateRefactoringReset_afterInitialConditions = false;
 
 /**
  * Instances of the class [EditDomainHandler] implement a [RequestHandler]
@@ -452,6 +456,7 @@ class _RefactoringManager {
       }
       // validation and create change
       finalStatus = await refactoring.checkFinalConditions();
+      _checkForReset_afterFinalConditions();
       if (_hasFatalError) {
         _sendResultResponse();
         return;
@@ -463,13 +468,45 @@ class _RefactoringManager {
       // create change
       result.change = await refactoring.createChange();
       result.potentialEdits = nullIfEmpty(refactoring.potentialEditIds);
+      _checkForReset_afterCreateChange();
       _sendResultResponse();
     }, onError: (exception, stackTrace) {
-      server.instrumentationService.logException(exception, stackTrace);
-      server.sendResponse(
-          new Response.serverError(_request, exception, stackTrace));
+      if (exception is _ResetError) {
+        cancel();
+      } else {
+        server.instrumentationService.logException(exception, stackTrace);
+        server.sendResponse(
+            new Response.serverError(_request, exception, stackTrace));
+      }
       _reset();
     });
+  }
+
+  void _checkForReset_afterCreateChange() {
+    if (test_simulateRefactoringReset_afterCreateChange) {
+      _reset();
+    }
+    if (refactoring == null) {
+      throw new _ResetError();
+    }
+  }
+
+  void _checkForReset_afterFinalConditions() {
+    if (test_simulateRefactoringReset_afterFinalConditions) {
+      _reset();
+    }
+    if (refactoring == null) {
+      throw new _ResetError();
+    }
+  }
+
+  void _checkForReset_afterInitialConditions() {
+    if (test_simulateRefactoringReset_afterInitialConditions) {
+      _reset();
+    }
+    if (refactoring == null) {
+      throw new _ResetError();
+    }
   }
 
   /**
@@ -520,7 +557,8 @@ class _RefactoringManager {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
         refactoring = new ExtractLocalRefactoring(units[0], offset, length);
-        feedback = new ExtractLocalVariableFeedback([], [], []);
+        feedback = new ExtractLocalVariableFeedback(
+            <int>[], <int>[], <String>[], <int>[], <int>[]);
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
@@ -528,8 +566,8 @@ class _RefactoringManager {
       if (units.isNotEmpty) {
         refactoring = new ExtractMethodRefactoring(
             searchEngine, units[0], offset, length);
-        feedback = new ExtractMethodFeedback(
-            offset, length, '', [], false, [], [], []);
+        feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
+            false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
@@ -555,7 +593,7 @@ class _RefactoringManager {
     }
     if (kind == RefactoringKind.RENAME) {
       List<AstNode> nodes = server.getNodesAtOffset(file, offset);
-      List<Element> elements = server.getElementsOfNodes(nodes, offset);
+      List<Element> elements = server.getElementsOfNodes(nodes);
       if (nodes.isNotEmpty && elements.isNotEmpty) {
         AstNode node = nodes[0];
         Element element = elements[0];
@@ -581,6 +619,7 @@ class _RefactoringManager {
     }
     // check initial conditions
     initStatus = await refactoring.checkInitialConditions();
+    _checkForReset_afterInitialConditions();
     if (refactoring is ExtractLocalRefactoring) {
       ExtractLocalRefactoring refactoring = this.refactoring;
       ExtractLocalVariableFeedback feedback = this.feedback;
@@ -692,3 +731,9 @@ class _RefactoringManager {
     return new RefactoringStatus();
   }
 }
+
+/**
+ * [_RefactoringManager] throws instances of this class internally to stop
+ * processing in a manager that was reset.
+ */
+class _ResetError {}

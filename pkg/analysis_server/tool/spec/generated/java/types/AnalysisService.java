@@ -28,6 +28,8 @@ public class AnalysisService {
 
   public static final String HIGHLIGHTS = "HIGHLIGHTS";
 
+  public static final String IMPLEMENTED = "IMPLEMENTED";
+
   /**
    * This service is not currently implemented and will become a GeneralAnalysisService in a future
    * release.

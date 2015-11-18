@@ -16,38 +16,43 @@ namespace dart {
 #define __ assembler->
 
 
+uword RuntimeEntry::GetEntryPoint() const {
+  // Compute the effective address. When running under the simulator,
+  // this is a redirection address that forces the simulator to call
+  // into the runtime system.
+  uword entry = reinterpret_cast<uword>(function());
+#if defined(USING_SIMULATOR)
+  // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
+  // in registers (maximum 2 double arguments for leaf float runtime calls).
+  ASSERT(argument_count() >= 0);
+  ASSERT(!is_leaf() ||
+         (!is_float() && (argument_count() <= 4)) ||
+         (argument_count() <= 2));
+  Simulator::CallKind call_kind =
+      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
+                              : Simulator::kLeafRuntimeCall)
+                : Simulator::kRuntimeCall;
+  entry =
+      Simulator::RedirectExternalReference(entry, call_kind, argument_count());
+#endif
+  return entry;
+}
+
+
 // Generate code to call into the stub which will call the runtime
 // function. Input for the stub is as follows:
 //   SP : points to the arguments and return value array.
 //   S5 : address of the runtime function to call.
 //   S4 : number of arguments to the call.
 void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
-  // Compute the effective address. When running under the simulator,
-  // this is a redirection address that forces the simulator to call
-  // into the runtime system.
-  uword entry = GetEntryPoint();
-#if defined(USING_SIMULATOR)
-  // Redirection to leaf runtime calls supports a maximum of 4 arguments passed
-  // in registers (maximum 2 double arguments for leaf float runtime calls).
-  ASSERT(argument_count >= 0);
-  ASSERT(!is_leaf() ||
-         (!is_float() && (argument_count <= 4)) ||
-         (argument_count <= 2));
-  Simulator::CallKind call_kind =
-      is_leaf() ? (is_float() ? Simulator::kLeafFloatRuntimeCall
-                              : Simulator::kLeafRuntimeCall)
-                : Simulator::kRuntimeCall;
-  entry =
-      Simulator::RedirectExternalReference(entry, call_kind, argument_count);
-#endif
-  ExternalLabel label(entry);
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    __ BranchLink(&label);
+    __ lw(T9, Address(THR, Thread::OffsetFromThread(this)));
+    __ jalr(T9);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ LoadExternalLabel(S5, &label, kNotPatchable);
+    __ lw(S5, Address(THR, Thread::OffsetFromThread(this)));
     __ LoadImmediate(S4, argument_count);
     __ BranchLink(*StubCode::CallToRuntime_entry(), kNotPatchable);
   }

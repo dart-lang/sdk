@@ -8,7 +8,7 @@
 {
   'WATCHLIST_DEFINITIONS': {
     'runtime': {
-      'filepath': 'runtime/',
+      'filepath': '^runtime/',
     },
     'tools': {
       'filepath': 'tools/',

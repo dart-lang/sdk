@@ -7,12 +7,14 @@ library dart2js.test.message_kind_helper;
 import 'package:expect/expect.dart';
 import 'dart:async';
 
-import 'package:compiler/src/dart2jslib.dart' show
-    Compiler,
-    MessageKind,
-    MessageTemplate;
+import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/compiler.dart' show
+    Compiler;
 import 'package:compiler/src/dart_backend/dart_backend.dart' show
     DartBackend;
+import 'package:compiler/src/diagnostics/messages.dart' show
+    MessageKind,
+    MessageTemplate;
 import 'package:compiler/src/old_to_new_api.dart' show
     LegacyCompilerDiagnostics;
 
@@ -81,10 +83,10 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
     bool newBackendIsDart = template.options.contains('--output-type=dart');
 
     Compiler compiler = compilerFor(
-        example,
+        memorySourceFiles: example,
         diagnosticHandler: new LegacyCompilerDiagnostics(collect),
-        options: ['--analyze-only',
-                  '--enable-experimental-mirrors']..addAll(template.options),
+        options: [Flags.analyzeOnly,
+                  Flags.enableExperimentalMirrors]..addAll(template.options),
         cachedCompiler:
              // TODO(johnniwinther): Remove this restriction when constant
              // values can be computed directly from the expressions.
@@ -112,7 +114,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
         }
       }
       Expect.isTrue(messageFound, '"$pattern" does not match any in $messages');
-      Expect.isFalse(compiler.hasCrashed);
+      Expect.isFalse(compiler.reporter.hasCrashed);
       if (!unexpectedMessages.isEmpty) {
         for (String message in unexpectedMessages) {
           print("Unexpected message: $message");
@@ -127,13 +129,13 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
       bool pendingStuff = false;
       for (var e in compiler.resolver.pendingClassesToBePostProcessed) {
         pendingStuff = true;
-        compiler.reportInfo(
+        compiler.reporter.reportInfo(
             e, MessageKind.GENERIC,
             {'text': 'Pending class to be post-processed.'});
       }
       for (var e in compiler.resolver.pendingClassesToBeResolved) {
         pendingStuff = true;
-        compiler.reportInfo(
+        compiler.reporter.reportInfo(
             e, MessageKind.GENERIC,
             {'text': 'Pending class to be resolved.'});
       }

@@ -124,7 +124,7 @@ class InlineExitCollector: public ZoneAllocated {
 class FlowGraphBuilder : public ValueObject {
  public:
   // The inlining context is NULL if not inlining.  The osr_id is the deopt
-  // id of the OSR entry or Isolate::kNoDeoptId if not compiling for OSR.
+  // id of the OSR entry or Thread::kNoDeoptId if not compiling for OSR.
   FlowGraphBuilder(const ParsedFunction& parsed_function,
                    const ZoneGrowableArray<const ICData*>& ic_data_array,
                    InlineExitCollector* exit_collector,
@@ -164,7 +164,6 @@ class FlowGraphBuilder : public ValueObject {
 
   intptr_t next_await_counter() { return jump_count_++; }
 
-  ZoneGrowableArray<intptr_t>* await_levels() const { return await_levels_; }
   ZoneGrowableArray<JoinEntryInstr*>* await_joins() const {
     return await_joins_;
   }
@@ -211,6 +210,7 @@ class FlowGraphBuilder : public ValueObject {
   // Returns address where the constant 'value' is stored or 0 if not found.
   static uword FindDoubleConstant(double value);
 
+  Thread* thread() const { return parsed_function().thread(); }
   Isolate* isolate() const { return parsed_function().isolate(); }
   Zone* zone() const { return parsed_function().zone(); }
 
@@ -248,13 +248,12 @@ class FlowGraphBuilder : public ValueObject {
   // A stack of enclosing nested statements.
   NestedStatement* nesting_stack_;
 
-  // The deopt id of the OSR entry or Isolate::kNoDeoptId if not compiling
+  // The deopt id of the OSR entry or Thread::kNoDeoptId if not compiling
   // for OSR.
   const intptr_t osr_id_;
 
   intptr_t jump_count_;
   ZoneGrowableArray<JoinEntryInstr*>* await_joins_;
-  ZoneGrowableArray<intptr_t>* await_levels_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };
@@ -465,21 +464,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildLetTempExpressions(LetNode* node);
 
-  void BuildSyncYieldJump(LocalVariable* old_context,
-                          LocalVariable* iterator_param,
-                          const intptr_t old_ctx_level,
-                          JoinEntryInstr* target);
-
-  void BuildAsyncJump(LocalVariable* old_context,
-                      LocalVariable* continuation_result,
-                      LocalVariable* continuation_error,
-                      LocalVariable* continuation_stack_trace,
-                      const intptr_t old_ctx_level,
-                      JoinEntryInstr* target);
-
   void BuildInstanceGetterConditional(InstanceGetterNode* node);
   void BuildInstanceCallConditional(InstanceCallNode* node);
 
+  Thread* thread() const { return owner()->thread(); }
   Isolate* isolate() const { return owner()->isolate(); }
   Zone* zone() const { return owner()->zone(); }
 

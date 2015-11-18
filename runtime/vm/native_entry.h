@@ -54,7 +54,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
       Thread* thread = arguments->thread();                                    \
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
-      StackZone zone(isolate);                                                 \
+      StackZone zone(thread);                                                  \
       SET_NATIVE_RETVAL(arguments,                                             \
                         DN_Helper##name(isolate,                               \
                                         thread,                                \
@@ -88,7 +88,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 #define GET_NATIVE_ARGUMENT(type, name, value)                                 \
   const Instance& __##name##_instance__ =                                      \
       Instance::CheckedHandle(zone, value);                                    \
-  type& name = type::Handle(isolate);                                          \
+  type& name = type::Handle(zone);                                             \
   if (!__##name##_instance__.IsNull()) {                                       \
     if (!__##name##_instance__.Is##type()) {                                   \
       const Array& __args__ = Array::Handle(Array::New(1));                    \
@@ -102,6 +102,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 // Helper class for resolving and handling native functions.
 class NativeEntry : public AllStatic {
  public:
+  static const intptr_t kNumArguments = 1;
   static const intptr_t kNumCallWrapperArguments = 2;
 
   // Resolve specified dart native function to the actual native entrypoint.
@@ -112,9 +113,13 @@ class NativeEntry : public AllStatic {
   static const uint8_t* ResolveSymbolInLibrary(const Library& library,
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
+
+  static uword NativeCallWrapperEntry();
   static void NativeCallWrapper(Dart_NativeArguments args,
                                 Dart_NativeFunction func);
-  static const ExternalLabel& NativeCallWrapperLabel();
+
+  static uword LinkNativeCallEntry();
+  static void LinkNativeCall(Dart_NativeArguments args);
 };
 
 }  // namespace dart

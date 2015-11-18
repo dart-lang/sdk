@@ -159,6 +159,7 @@ const char* VmService::error_msg_ = NULL;
 char VmService::server_ip_[kServerIpStringBufferSize];
 intptr_t VmService::server_port_ = 0;
 
+
 bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
@@ -173,7 +174,7 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   // Prepare for script loading by setting up the 'print' and 'timer'
   // closures and setting up 'package root' for URI resolution.
   result = DartUtils::PrepareForScriptLoading(
-      NULL, NULL, true, false, builtin_lib);
+      NULL, NULL, NULL, true, false, builtin_lib);
   SHUTDOWN_ON_ERROR(result);
 
   // Load main script.
@@ -203,7 +204,8 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
   SHUTDOWN_ON_ERROR(library);
 
   // Set HTTP server state.
-  DartUtils::SetStringField(library, "_ip", server_ip);
+  result = DartUtils::SetStringField(library, "_ip", server_ip);
+  SHUTDOWN_ON_ERROR(result);
   // If we have a port specified, start the server immediately.
   bool auto_start = server_port >= 0;
   if (server_port < 0) {
@@ -211,7 +213,8 @@ bool VmService::Setup(const char* server_ip, intptr_t server_port) {
     // port when the HTTP server is started.
     server_port = 0;
   }
-  DartUtils::SetIntegerField(library, "_port", server_port);
+  result = DartUtils::SetIntegerField(library, "_port", server_port);
+  SHUTDOWN_ON_ERROR(result);
   result = Dart_SetField(library,
                          DartUtils::NewString("_autoStart"),
                          Dart_NewBoolean(auto_start));
@@ -313,7 +316,7 @@ Dart_Handle VmService::LoadResource(Dart_Handle library,
   RETURN_ERROR_HANDLE(result);
   ASSERT(data_buffer_length == data_list_buffer_length);
   ASSERT(data_list_buffer != NULL);
-  ASSERT(type = Dart_TypedData_kUint8);
+  ASSERT(type == Dart_TypedData_kUint8);
   memmove(data_list_buffer, &data_buffer[0], data_buffer_length);
   result = Dart_TypedDataReleaseData(data_list);
   RETURN_ERROR_HANDLE(result);

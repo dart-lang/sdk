@@ -255,7 +255,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
  public:
   // We cannot use a GrowableObjectArray, since we must not trigger GC.
   RetainingPathVisitor(RawObject* obj, const Array& path)
-      : obj_(obj), path_(path), length_(0) {
+      : thread_(Thread::Current()), obj_(obj), path_(path), length_(0) {
     ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
@@ -281,7 +281,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
         return kProceed;
       }
     } else {
-      HANDLESCOPE(Isolate::Current());
+      HANDLESCOPE(thread_);
       Object& current = Object::Handle();
       Smi& offset_from_parent = Smi::Handle();
       do {
@@ -300,6 +300,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
   }
 
  private:
+  Thread* thread_;
   RawObject* obj_;
   const Array& path_;
   intptr_t length_;
@@ -441,9 +442,9 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();
-    Isolate* isolate = Isolate::Current();
-    REUSABLE_OBJECT_HANDLESCOPE(isolate);
-    Object& obj = isolate->ObjectHandle();
+    Thread* thread = Thread::Current();
+    REUSABLE_OBJECT_HANDLESCOPE(thread);
+    Object& obj = thread->ObjectHandle();
     obj = raw_obj;
     // Each object is a header + a zero-terminated list of its neighbors.
     WriteHeader(raw_obj, raw_obj->Size(), obj.GetClassId(), stream_);

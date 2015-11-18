@@ -10,6 +10,7 @@
 #include "vm/lockers.h"
 #include "vm/pages.h"
 #include "vm/thread_pool.h"
+#include "vm/thread_registry.h"
 
 namespace dart {
 
@@ -120,6 +121,7 @@ class SweeperTask : public ThreadPool::Task {
     HeapPage* prev_page = NULL;
 
     while (page != NULL) {
+      task_isolate_->thread_registry()->CheckSafepoint();
       HeapPage* next_page = page->next();
       ASSERT(page->type() == HeapPage::kData);
       bool page_in_use = sweeper.SweepPage(page, freelist_, false);

@@ -88,6 +88,10 @@ abstract class TypeInformation {
     users.add(user);
   }
 
+  void addUsersOf(TypeInformation other) {
+    users.addAll(other.users);
+  }
+
   void removeUser(TypeInformation user) {
     assert(!user.isConcrete);
     users.remove(user);
@@ -411,7 +415,8 @@ class MemberTypeInformation extends ElementTypeInformation
       } else {
         assert(element.isFunction ||
                element.isGetter ||
-               element.isSetter);
+               element.isSetter ||
+               element.isConstructor);
         TypedElement typedElement = element;
         var elementType = typedElement.type;
         if (elementType.kind != TypeKind.FUNCTION) {
@@ -524,6 +529,10 @@ class ParameterTypeInformation extends ElementTypeInformation {
   void tagAsTearOffClosureParameter(TypeGraphInferrerEngine inferrer) {
     assert(element.isParameter);
     isTearOffClosureParameter = true;
+    // We have to add a flow-edge for the default value (if it exists), as we
+    // might not see all call-sites and thus miss the use of it.
+    TypeInformation defaultType = inferrer.getDefaultTypeOfParameter(element);
+    if (defaultType != null) defaultType.addUser(this);
   }
 
   // TODO(herhut): Cleanup into one conditional.
@@ -540,8 +549,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // initializing formals.
     if (element.isInitializingFormal) return null;
 
-    FunctionElement function = element.functionDeclaration;
-    if ((isTearOffClosureParameter || function.isLocal) &&
+    if ((isTearOffClosureParameter || declaration.isLocal) &&
         disableInferenceForClosures) {
       // Do not infer types for parameters of closures. We do not
       // clear the assignments in case the closure is successfully
@@ -549,16 +557,20 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer, clearAssignments: false);
       return safeType(inferrer);
     }
-    if (function.isInstanceMember &&
-        (function.name == Compiler.NO_SUCH_METHOD ||
-        (function.name == Compiler.CALL_OPERATOR_NAME &&
+    if (declaration.isInstanceMember &&
+        (declaration.name == Identifiers.noSuchMethod_ ||
+        (declaration.name == Identifiers.call &&
          disableInferenceForClosures))) {
       // Do not infer types for parameters of [noSuchMethod] and
       // [call] instance methods.
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (function == inferrer.mainElement) {
+    if (inferrer.compiler.world.getMightBePassedToApply(declaration)) {
+      giveUp(inferrer);
+      return safeType(inferrer);
+    }
+    if (declaration == inferrer.mainElement) {
       // The implicit call to main is not seen by the inferrer,
       // therefore we explicitly set the type of its parameters as
       // dynamic.
@@ -767,7 +779,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     return targets.any((Element e) {
       return e is FunctionElement &&
              e.isInstanceMember &&
-             e.name == Compiler.NO_SUCH_METHOD &&
+             e.name == Identifiers.noSuchMethod_ &&
              inferrer.backend.isComplexNoSuchMethod(e);
     });
   }
@@ -917,10 +929,11 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return containerTypeMask.elementType;
       } else if (inferrer.returnsMapValueType(selector, typeMask)) {
         if (typeMask.isDictionary &&
-            arguments.positional[0].type.isValue) {
+            arguments.positional[0].type.isValue &&
+            arguments.positional[0].type.value.isString) {
           DictionaryTypeMask dictionaryTypeMask = typeMask;
           ValueTypeMask arg = arguments.positional[0].type;
-          String key = arg.value;
+          String key = arg.value.primitiveValue.slowToString();
           if (dictionaryTypeMask.typeMap.containsKey(key)) {
             if (_VERBOSE) {
               print("Dictionary lookup for $key yields "
@@ -1070,6 +1083,11 @@ class ConcreteTypeInformation extends TypeInformation {
     // needs to notify its users.
   }
 
+  void addUsersOf(TypeInformation other) {
+    // Nothing to do, a concrete type does not get updated so never
+    // needs to notify its users.
+  }
+
   void removeUser(TypeInformation user) {
   }
 
@@ -1100,7 +1118,7 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
   final ast.DartString value;
 
   StringLiteralTypeInformation(value, TypeMask mask)
-      : super(new ValueTypeMask(mask, value.slowToString())),
+      : super(new ValueTypeMask(mask, new StringConstantValue(value))),
         this.value = value;
 
   String asString() => value.slowToString();
@@ -1108,6 +1126,21 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStringLiteralTypeInformation(this);
+  }
+}
+
+class BoolLiteralTypeInformation extends ConcreteTypeInformation {
+  final ast.LiteralBool value;
+
+  BoolLiteralTypeInformation(value, TypeMask mask)
+      : super(new ValueTypeMask(mask,
+            value.value ? new TrueConstantValue() : new FalseConstantValue())),
+        this.value = value;
+
+  String toString() => 'Type $type value ${value.value}';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitBoolLiteralTypeInformation(this);
   }
 }
 
@@ -1569,6 +1602,7 @@ abstract class TypeInformationVisitor<T> {
   T visitMapTypeInformation(MapTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitStringLiteralTypeInformation(StringLiteralTypeInformation info);
+  T visitBoolLiteralTypeInformation(BoolLiteralTypeInformation info);
   T visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info);
   T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);
   T visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info);

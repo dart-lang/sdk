@@ -18,7 +18,6 @@ ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
 kill3_test: Pass, Fail    # Bad test: expects total message order
 
-message3_test/byteBuffer: Crash # Issue 21818
 message3_test/int32x4: Crash # Issue 21818
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
@@ -45,6 +44,7 @@ spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
+issue_24243_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
 error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
@@ -135,12 +135,9 @@ browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 
 [ $compiler != none || $runtime != vm ]
-package_root_test: SkipByDesign # Uses dart:io.
+package_root_test: SkipByDesign  # Uses Isolate.packageRoot
+package_map_test: SkipByDesign  # Uses Isolate.packageMap
 
 [ $compiler == dart2js && $cps_ir ]
-deferred_in_isolate2_test: Crash # (lib.f()): deferred access is not implemented
+deferred_in_isolate2_test: RuntimeError # A.loadLibrary is not a function
 isolate_current_test: RuntimeError # Please triage this failure.
-message3_test/byteBuffer: RuntimeError # Please triage this failure.
-message3_test/fun: RuntimeError # Please triage this failure.
-message3_test/int32x4: RuntimeError # Please triage this failure.
-message3_test/none: RuntimeError # Please triage this failure.

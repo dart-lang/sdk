@@ -7,14 +7,14 @@ patch bool debugger({bool when: true,
 
 patch Object inspect(Object object) native "Developer_inspect";
 
-patch log(String message,
-          {DateTime time,
-           int sequenceNumber,
-           int level: 0,
-           String name: '',
-           Zone zone,
-           Object error,
-           StackTrace stackTrace}) {
+patch void log(String message,
+               {DateTime time,
+                int sequenceNumber,
+                int level: 0,
+                String name: '',
+                Zone zone,
+                Object error,
+                StackTrace stackTrace}) {
   if (message is! String) {
     throw new ArgumentError(message, "message", "Must be a String");
   }
@@ -29,14 +29,14 @@ patch log(String message,
   } else {
     _nextSequenceNumber = sequenceNumber + 1;
   }
-  return _log(message,
-              time.millisecondsSinceEpoch,
-              sequenceNumber,
-              level,
-              name,
-              zone,
-              error,
-              stackTrace);
+  _log(message,
+       time.millisecondsSinceEpoch,
+       sequenceNumber,
+       level,
+       name,
+       zone,
+       error,
+       stackTrace);
 }
 
 int _nextSequenceNumber = 0;
@@ -49,3 +49,9 @@ _log(String message,
      Zone zone,
      Object error,
      StackTrace stackTrace) native "Developer_log";
+
+patch ServiceExtensionHandler _lookupExtension(String method)
+    native "Developer_lookupExtension";
+
+patch _registerExtension(String method, ServiceExtensionHandler handler)
+    native "Developer_registerExtension";

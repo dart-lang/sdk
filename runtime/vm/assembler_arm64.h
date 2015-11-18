@@ -838,6 +838,11 @@ class Assembler : public ValueObject {
     EmitExceptionGenOp(BRK, imm);
   }
 
+  static uword GetBreakInstructionFiller() {
+    const intptr_t encoding = ExceptionGenOpEncoding(BRK, 0);
+    return encoding << 32 | encoding;
+  }
+
   // Double floating point.
   bool fmovdi(VRegister vd, double immd) {
     int64_t imm64 = bit_cast<int64_t, double>(immd);
@@ -1152,11 +1157,11 @@ class Assembler : public ValueObject {
     add(TMP, PP, Operand(kHeapObjectTag));
     str(TMP, Address(SP, -1 * kWordSize, Address::PreIndex));
   }
-  void TagAndPushPPAndPcMarker(Register pc_marker_reg) {
-    ASSERT(pc_marker_reg != TMP2);
+  void TagAndPushPPAndPcMarker() {
+    COMPILE_ASSERT(CODE_REG != TMP2);
     // Add the heap object tag back to PP before putting it on the stack.
     add(TMP2, PP, Operand(kHeapObjectTag));
-    stp(TMP2, pc_marker_reg,
+    stp(TMP2, CODE_REG,
         Address(SP, -2 * kWordSize, Address::PairPreIndex));
   }
   void PopAndUntagPP() {
@@ -1198,36 +1203,13 @@ class Assembler : public ValueObject {
     LslImmediate(dst, src, kSmiTagSize);
   }
 
-  // Branching to ExternalLabels.
-  void Branch(const ExternalLabel* label) {
-    LoadExternalLabel(TMP, label);
-    br(TMP);
-  }
-
-  void Branch(const StubEntry& stub_entry);
-
-  // Fixed length branch to label.
-  void BranchPatchable(const ExternalLabel* label) {
-    // TODO(zra): Use LoadExternalLabelFixed if possible.
-    LoadImmediateFixed(TMP, label->address());
-    br(TMP);
-  }
-
+  void Branch(const StubEntry& stub_entry,
+              Register pp,
+              Patchability patchable = kNotPatchable);
   void BranchPatchable(const StubEntry& stub_entry);
 
-  void BranchLink(const ExternalLabel* label) {
-    LoadExternalLabel(TMP, label);
-    blr(TMP);
-  }
-
-  void BranchLink(const StubEntry& stub_entry);
-
-  // BranchLinkPatchable must be a fixed-length sequence so we can patch it
-  // with the debugger.
-  void BranchLinkPatchable(const ExternalLabel* label) {
-    LoadExternalLabelFixed(TMP, label, kPatchable);
-    blr(TMP);
-  }
+  void BranchLink(const StubEntry& stub_entry,
+                  Patchability patchable = kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
 
@@ -1306,14 +1288,9 @@ class Assembler : public ValueObject {
     constant_pool_allowed_ = b;
   }
 
-  void LoadWordFromPoolOffset(Register dst, uint32_t offset);
-  void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object) const;
-  void LoadExternalLabel(Register dst, const ExternalLabel* label);
-  void LoadExternalLabelFixed(Register dst,
-                              const ExternalLabel* label,
-                              Patchability patchable);
+  void LoadNativeEntry(Register dst, const ExternalLabel* label);
   void LoadFunctionFromCalleePool(Register dst,
                                   const Function& function,
                                   Register new_pp);
@@ -1362,10 +1339,12 @@ class Assembler : public ValueObject {
     sub(CSP, CSP, Operand(reserved_space));
   }
 
-  void EnterDartFrame(intptr_t frame_size);
-  void EnterDartFrameWithInfo(intptr_t frame_size, Register new_pp);
+  void CheckCodePointer();
+  void RestoreCodePointer();
+
+  void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void EnterOsrFrame(intptr_t extra_size, Register new_pp);
-  void LeaveDartFrame();
+  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
   void EnterCallRuntimeFrame(intptr_t frame_size);
   void LeaveCallRuntimeFrame();
@@ -1448,6 +1427,9 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   bool constant_pool_allowed_;
+
+  void LoadWordFromPoolOffset(Register dst, uint32_t offset, Register pp = PP);
+  void LoadWordFromPoolOffsetFixed(Register dst, uint32_t offset);
 
   void LoadObjectHelper(Register dst, const Object& obj, bool is_unique);
 
@@ -1553,7 +1535,7 @@ class Assembler : public ValueObject {
   int32_t EncodeImm19BranchOffset(int64_t imm, int32_t instr) {
     if (!CanEncodeImm19BranchOffset(imm)) {
       ASSERT(!use_far_branches());
-      Isolate::Current()->long_jump_base()->Jump(
+      Thread::Current()->long_jump_base()->Jump(
           1, Object::branch_offset_error());
     }
     const int32_t imm32 = static_cast<int32_t>(imm);
@@ -1711,10 +1693,12 @@ class Assembler : public ValueObject {
     Emit(encoding);
   }
 
+  static int32_t ExceptionGenOpEncoding(ExceptionGenOp op, uint16_t imm) {
+    return op | (static_cast<int32_t>(imm) << kImm16Shift);
+  }
+
   void EmitExceptionGenOp(ExceptionGenOp op, uint16_t imm) {
-    const int32_t encoding =
-        op | (static_cast<int32_t>(imm) << kImm16Shift);
-    Emit(encoding);
+    Emit(ExceptionGenOpEncoding(op, imm));
   }
 
   void EmitMoveWideOp(MoveWideOp op, Register rd, const Immediate& imm,

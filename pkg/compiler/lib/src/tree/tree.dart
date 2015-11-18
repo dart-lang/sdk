@@ -6,14 +6,25 @@ library tree;
 
 import 'dart:collection';
 
-import '../scanner/scannerlib.dart';
+import '../common.dart';
+import '../tokens/precedence_constants.dart' as Precedence show
+    FUNCTION_INFO;
+import '../tokens/token.dart' show
+    BeginGroupToken,
+    Token;
+import '../tokens/token_constants.dart' as Tokens show
+    IDENTIFIER_TOKEN,
+    KEYWORD_TOKEN,
+    PLUS_TOKEN;
 import '../util/util.dart';
 import '../util/characters.dart';
 
-import '../resolution/secret_tree_element.dart'
-    show StoredTreeElementMixin, NullTreeElementMixin;
+import '../resolution/secret_tree_element.dart' show
+    NullTreeElementMixin,
+    StoredTreeElementMixin;
 
-import '../elements/elements.dart' show MetadataAnnotation;
+import '../elements/elements.dart' show
+    MetadataAnnotation;
 
 part 'dartstring.dart';
 part 'nodes.dart';

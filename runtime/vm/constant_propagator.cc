@@ -431,7 +431,7 @@ void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
     ASSERT(value.IsBool());
     bool result = Bool::Cast(value).value();
     SetValue(instr,
-             Smi::Handle(I, Smi::New(
+             Smi::Handle(Z, Smi::New(
                  result ? instr->if_true() : instr->if_false())));
   }
 }
@@ -521,9 +521,9 @@ void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
         !left.IsBigint() && !right.IsBigint()) {
       const bool result = CompareIntegers(
           instr->kind(),
-          Integer::Handle(I, Integer::Cast(left).BitOp(Token::kBIT_AND,
+          Integer::Handle(Z, Integer::Cast(left).BitOp(Token::kBIT_AND,
                                                        Integer::Cast(right))),
-          Smi::Handle(I, Smi::New(0)));
+          Smi::Handle(Z, Smi::New(0)));
       SetValue(instr, result ? Bool::True() : Bool::False());
     } else {
       SetValue(instr, non_constant_);
@@ -662,14 +662,14 @@ void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
       if (array_obj.IsString()) {
         const String& str = String::Cast(array_obj);
         if (str.Length() > index) {
-          SetValue(instr, Smi::Handle(I,
+          SetValue(instr, Smi::Handle(Z,
               Smi::New(static_cast<intptr_t>(str.CharAt(index)))));
           return;
         }
       } else if (array_obj.IsArray()) {
         const Array& a = Array::Cast(array_obj);
         if ((a.Length() > index) && a.IsImmutable()) {
-          Instance& result = Instance::Handle(I);
+          Instance& result = Instance::Handle(Z);
           result ^= a.At(index);
           SetValue(instr, result);
           return;
@@ -706,7 +706,7 @@ void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
   const Field& field = instr->StaticField();
   ASSERT(field.is_static());
-  Instance& obj = Instance::Handle(I, field.value());
+  Instance& obj = Instance::Handle(Z, field.StaticValue());
   if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
       (obj.raw() != Object::transition_sentinel().raw())) {
     if (obj.IsSmi() || obj.IsOld()) {
@@ -761,7 +761,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       const Instance& instance = Instance::Cast(value);
       const AbstractType& checked_type = instr->type();
       if (instr->instantiator()->BindsToConstantNull() &&
-        instr->instantiator_type_arguments()->BindsToConstantNull()) {
+          instr->instantiator_type_arguments()->BindsToConstantNull()) {
         const TypeArguments& checked_type_arguments = TypeArguments::Handle();
         Error& bound_error = Error::Handle();
         bool is_instance = instance.IsInstanceOf(checked_type,
@@ -924,7 +924,7 @@ void ConstantPropagator::VisitBinaryIntegerOp(BinaryIntegerOpInstr* binary_op) {
       const Integer& left_int = Integer::Cast(left);
       const Integer& right_int = Integer::Cast(right);
       const Integer& result =
-          Integer::Handle(I, binary_op->Evaluate(left_int, right_int));
+          Integer::Handle(Z, binary_op->Evaluate(left_int, right_int));
       if (!result.IsNull()) {
         SetValue(binary_op, Integer::ZoneHandle(Z, result.raw()));
         return;
@@ -983,7 +983,7 @@ void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
   if (IsConstant(value) && value.IsInteger()) {
     const Integer& value_int = Integer::Cast(value);
     const Integer& result =
-        Integer::Handle(I, unary_op->Evaluate(value_int));
+        Integer::Handle(Z, unary_op->Evaluate(value_int));
     if (!result.IsNull()) {
       SetValue(unary_op, Integer::ZoneHandle(Z, result.raw()));
       return;
@@ -1018,9 +1018,9 @@ void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
 void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
-    SetValue(instr, Double::Handle(I,
+    SetValue(instr, Double::Handle(Z,
         Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
-  } else if (IsNonConstant(value)) {
+  } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
 }
@@ -1029,9 +1029,9 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
 void ConstantPropagator::VisitMintToDouble(MintToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
-    SetValue(instr, Double::Handle(I,
+    SetValue(instr, Double::Handle(Z,
         Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
-  } else if (IsNonConstant(value)) {
+  } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
 }
@@ -1040,9 +1040,9 @@ void ConstantPropagator::VisitMintToDouble(MintToDoubleInstr* instr) {
 void ConstantPropagator::VisitInt32ToDouble(Int32ToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
-    SetValue(instr, Double::Handle(I,
+    SetValue(instr, Double::Handle(Z,
         Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
-  } else if (IsNonConstant(value)) {
+  } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
 }

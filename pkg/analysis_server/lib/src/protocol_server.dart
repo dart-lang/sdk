@@ -4,7 +4,9 @@
 
 library protocol.server;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
 import 'package:analyzer/src/generated/ast.dart' as engine;
@@ -14,7 +16,8 @@ import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
-export 'package:analysis_server/src/protocol.dart';
+export 'package:analysis_server/plugin/protocol/protocol.dart';
+export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 
 /**
  * Returns a list of AnalysisErrors correponding to the given list of Engine
@@ -92,112 +95,9 @@ AnalysisError newAnalysisError_fromEngine(
   var type = new AnalysisErrorType(errorCode.type.name);
   String message = error.message;
   String correction = error.correction;
+  bool fix = hasFix(error.errorCode);
   return new AnalysisError(severity, type, location, message,
-      correction: correction);
-}
-
-/**
- * Construct based on a value from the analyzer engine.
- */
-Element newElement_fromEngine(engine.Element element) {
-  String name = element.displayName;
-  String elementTypeParameters = _getTypeParametersString(element);
-  String elementParameters = _getParametersString(element);
-  String elementReturnType = getReturnTypeString(element);
-  ElementKind kind = newElementKind_fromEngineElement(element);
-  return new Element(kind, name, Element.makeFlags(
-          isPrivate: element.isPrivate,
-          isDeprecated: element.isDeprecated,
-          isAbstract: _isAbstract(element),
-          isConst: _isConst(element),
-          isFinal: _isFinal(element),
-          isStatic: _isStatic(element)),
-      location: newLocation_fromElement(element),
-      typeParameters: elementTypeParameters,
-      parameters: elementParameters,
-      returnType: elementReturnType);
-}
-
-/**
- * Construct based on a value from the analyzer engine.
- * This does not take into account that
- * instances of ClassElement can be an enum and
- * instances of FieldElement can be an enum constant.
- * Use [newElementKind_fromEngineElement] where possible.
- */
-ElementKind newElementKind_fromEngine(engine.ElementKind kind) {
-  if (kind == engine.ElementKind.CLASS) {
-    return ElementKind.CLASS;
-  }
-  if (kind == engine.ElementKind.COMPILATION_UNIT) {
-    return ElementKind.COMPILATION_UNIT;
-  }
-  if (kind == engine.ElementKind.CONSTRUCTOR) {
-    return ElementKind.CONSTRUCTOR;
-  }
-  if (kind == engine.ElementKind.FIELD) {
-    return ElementKind.FIELD;
-  }
-  if (kind == engine.ElementKind.FUNCTION) {
-    return ElementKind.FUNCTION;
-  }
-  if (kind == engine.ElementKind.FUNCTION_TYPE_ALIAS) {
-    return ElementKind.FUNCTION_TYPE_ALIAS;
-  }
-  if (kind == engine.ElementKind.GETTER) {
-    return ElementKind.GETTER;
-  }
-  if (kind == engine.ElementKind.LABEL) {
-    return ElementKind.LABEL;
-  }
-  if (kind == engine.ElementKind.LIBRARY) {
-    return ElementKind.LIBRARY;
-  }
-  if (kind == engine.ElementKind.LOCAL_VARIABLE) {
-    return ElementKind.LOCAL_VARIABLE;
-  }
-  if (kind == engine.ElementKind.METHOD) {
-    return ElementKind.METHOD;
-  }
-  if (kind == engine.ElementKind.PARAMETER) {
-    return ElementKind.PARAMETER;
-  }
-  if (kind == engine.ElementKind.PREFIX) {
-    return ElementKind.PREFIX;
-  }
-  if (kind == engine.ElementKind.SETTER) {
-    return ElementKind.SETTER;
-  }
-  if (kind == engine.ElementKind.TOP_LEVEL_VARIABLE) {
-    return ElementKind.TOP_LEVEL_VARIABLE;
-  }
-  if (kind == engine.ElementKind.TYPE_PARAMETER) {
-    return ElementKind.TYPE_PARAMETER;
-  }
-  return ElementKind.UNKNOWN;
-}
-
-/**
- * Construct based on a value from the analyzer engine.
- */
-ElementKind newElementKind_fromEngineElement(engine.Element element) {
-  if (element is engine.ClassElement && element.isEnum) {
-    return ElementKind.ENUM;
-  }
-  if (element is engine.FieldElement && element.isEnumConstant &&
-      // MyEnum.values and MyEnum.one.index return isEnumConstant = true
-      // so these additional checks are necessary.
-      // TODO(danrubel) MyEnum.values is constant, but is a list
-      // so should it return isEnumConstant = true?
-      // MyEnum.one.index is final but *not* constant
-      // so should it return isEnumConstant = true?
-      // Or should we return ElementKind.ENUM_CONSTANT here
-      // in either or both of these cases?
-      element.type != null &&
-      element.type.element == element.enclosingElement) {
-    return ElementKind.ENUM_CONSTANT;
-  }
-  return newElementKind_fromEngine(element.kind);
+      correction: correction, hasFix: fix);
 }
 
 /**
@@ -209,9 +109,8 @@ Location newLocation_fromElement(engine.Element element) {
   if (context == null || source == null) {
     return null;
   }
-  String name = element.displayName;
   int offset = element.nameOffset;
-  int length = name != null ? name.length : 0;
+  int length = element.nameLength;
   if (element is engine.CompilationUnitElement) {
     offset = 0;
     length = 0;
@@ -253,21 +152,11 @@ Location newLocation_fromUnit(
   return _locationForArgs(context, source, range);
 }
 
-NavigationTarget newNavigationTarget_fromElement(
-    engine.Element element, int fileToIndex(String file)) {
-  ElementKind kind = newElementKind_fromEngine(element.kind);
-  Location location = newLocation_fromElement(element);
-  String file = location.file;
-  int fileIndex = fileToIndex(file);
-  return new NavigationTarget(kind, fileIndex, location.offset, location.length,
-      location.startLine, location.startColumn);
-}
-
 /**
  * Construct based on an element from the analyzer engine.
  */
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
-  Element element = newElement_fromEngine(member);
+  Element element = convertElement(member);
   String className = member.enclosingElement.displayName;
   return new OverriddenMember(element, className);
 }
@@ -318,7 +207,7 @@ SourceEdit newSourceEdit_range(engine.SourceRange range, String replacement,
 List<Element> _computePath(engine.Element element) {
   List<Element> path = <Element>[];
   while (element != null) {
-    path.add(newElement_fromEngine(element));
+    path.add(convertElement(element));
     // go up
     if (element is engine.PrefixElement) {
       // imports are library children, but they are physically in the unit
@@ -329,100 +218,6 @@ List<Element> _computePath(engine.Element element) {
     }
   }
   return path;
-}
-
-String _getParametersString(engine.Element element) {
-  // TODO(scheglov) expose the corresponding feature from ExecutableElement
-  List<engine.ParameterElement> parameters;
-  if (element is engine.ExecutableElement) {
-    // valid getters don't have parameters
-    if (element.kind == engine.ElementKind.GETTER &&
-        element.parameters.isEmpty) {
-      return null;
-    }
-    parameters = element.parameters;
-  } else if (element is engine.FunctionTypeAliasElement) {
-    parameters = element.parameters;
-  } else {
-    return null;
-  }
-  StringBuffer sb = new StringBuffer();
-  String closeOptionalString = '';
-  for (engine.ParameterElement parameter in parameters) {
-    if (sb.isNotEmpty) {
-      sb.write(', ');
-    }
-    if (closeOptionalString.isEmpty) {
-      if (parameter.kind == engine.ParameterKind.NAMED) {
-        sb.write('{');
-        closeOptionalString = '}';
-      }
-      if (parameter.kind == engine.ParameterKind.POSITIONAL) {
-        sb.write('[');
-        closeOptionalString = ']';
-      }
-    }
-    sb.write(parameter.toString());
-  }
-  sb.write(closeOptionalString);
-  return '(' + sb.toString() + ')';
-}
-
-String _getTypeParametersString(engine.Element element) {
-  List<engine.TypeParameterElement> typeParameters;
-  if (element is engine.ClassElement) {
-    typeParameters = element.typeParameters;
-  } else if (element is engine.FunctionTypeAliasElement) {
-    typeParameters = element.typeParameters;
-  }
-  if (typeParameters == null || typeParameters.isEmpty) {
-    return null;
-  }
-  return '<${typeParameters.join(', ')}>';
-}
-
-bool _isAbstract(engine.Element element) {
-  // TODO(scheglov) add isAbstract to Element API
-  if (element is engine.ClassElement) {
-    return element.isAbstract;
-  }
-  if (element is engine.MethodElement) {
-    return element.isAbstract;
-  }
-  if (element is engine.PropertyAccessorElement) {
-    return element.isAbstract;
-  }
-  return false;
-}
-
-bool _isConst(engine.Element element) {
-  // TODO(scheglov) add isConst to Element API
-  if (element is engine.ConstructorElement) {
-    return element.isConst;
-  }
-  if (element is engine.VariableElement) {
-    return element.isConst;
-  }
-  return false;
-}
-
-bool _isFinal(engine.Element element) {
-  // TODO(scheglov) add isFinal to Element API
-  if (element is engine.VariableElement) {
-    return element.isFinal;
-  }
-  return false;
-}
-
-bool _isStatic(engine.Element element) {
-  // TODO(scheglov) add isStatic to Element API
-  if (element is engine.ExecutableElement) {
-    return element.isStatic;
-  }
-  if (element is engine.PropertyInducingElement) {
-    return element.isStatic;
-  }
-  return false;
 }
 
 /**

@@ -6,12 +6,12 @@ library domain.completion;
 
 import 'dart:async';
 
-import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart'
+    show CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -57,12 +57,12 @@ class CompletionDomainHandler implements RequestHandler {
   StreamSubscription<SourcesChangedEvent> _sourcesChangedSubscription;
 
   /**
-   * Code completion peformance for the last completion operation.
+   * Code completion performance for the last completion operation.
    */
   CompletionPerformance performance;
 
   /**
-   * A list of code completion peformance measurements for the latest
+   * A list of code completion performance measurements for the latest
    * completion operation up to [performanceListMaxLength] measurements.
    */
   final List<CompletionPerformance> performanceList =
@@ -131,15 +131,22 @@ class CompletionDomainHandler implements RequestHandler {
     if (searchEngine == null) {
       return new Response.noIndexGenerated(request);
     }
-    try {
-      String requestName = request.method;
-      if (requestName == COMPLETION_GET_SUGGESTIONS) {
-        return processRequest(request);
+    return runZoned(() {
+      try {
+        String requestName = request.method;
+        if (requestName == COMPLETION_GET_SUGGESTIONS) {
+          return processRequest(request);
+        }
+      } on RequestFailure catch (exception) {
+        return exception.response;
       }
-    } on RequestFailure catch (exception) {
-      return exception.response;
-    }
-    return null;
+      return null;
+    }, onError: (exception, stackTrace) {
+      server.sendServerErrorNotification(
+          'Failed to handle completion domain request: ${request.toJson()}',
+          exception,
+          stackTrace);
+    });
   }
 
   /**
@@ -192,15 +199,16 @@ class CompletionDomainHandler implements RequestHandler {
     int notificationCount = 0;
     manager.results(completionRequest).listen((CompletionResult result) {
       ++notificationCount;
+      bool isLast = result is CompletionResultImpl ? result.isLast : true;
       performance.logElapseTime("notification $notificationCount send", () {
         sendCompletionNotification(completionId, result.replacementOffset,
-            result.replacementLength, result.suggestions, result.isLast);
+            result.replacementLength, result.suggestions, isLast);
       });
       if (notificationCount == 1) {
         performance.logFirstNotificationComplete('notification 1 complete');
         performance.suggestionCountFirst = result.suggestions.length;
       }
-      if (result.isLast) {
+      if (isLast) {
         performance.notificationCount = notificationCount;
         performance.suggestionCountLast = result.suggestions.length;
         performance.complete();
@@ -235,8 +243,11 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Send completion notification results.
    */
-  void sendCompletionNotification(String completionId, int replacementOffset,
-      int replacementLength, Iterable<CompletionSuggestion> results,
+  void sendCompletionNotification(
+      String completionId,
+      int replacementOffset,
+      int replacementLength,
+      Iterable<CompletionSuggestion> results,
       bool isLast) {
     server.sendNotification(new CompletionResultsParams(
             completionId, replacementOffset, replacementLength, results, isLast)

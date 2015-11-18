@@ -594,7 +594,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
     // maybe ends with "return" statement
     if (_selectionStatements != null) {
-      _ReturnTypeComputer returnTypeComputer = new _ReturnTypeComputer();
+      _ReturnTypeComputer returnTypeComputer = new _ReturnTypeComputer(context);
       _selectionStatements.forEach((statement) {
         statement.accept(returnTypeComputer);
       });
@@ -731,7 +731,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     names.clear();
     if (_selectionExpression != null) {
       names.addAll(getVariableNameSuggestionsForExpression(
-          _selectionExpression.staticType, _selectionExpression,
+          _selectionExpression.staticType,
+          _selectionExpression,
           _excludedNames));
     }
   }
@@ -817,8 +818,10 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   Object visitConstructorInitializer(ConstructorInitializer node) {
     super.visitConstructorInitializer(node);
     if (_isFirstSelectedNode(node)) {
-      invalidSelection('Cannot extract a constructor initializer. '
-          'Select expression part of initializer.', newLocation_fromNode(node));
+      invalidSelection(
+          'Cannot extract a constructor initializer. '
+          'Select expression part of initializer.',
+          newLocation_fromNode(node));
     }
     return null;
   }
@@ -870,8 +873,10 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     if (_isFirstSelectedNode(node)) {
-      invalidSelection('Cannot extract a variable declaration fragment. '
-          'Select whole declaration statement.', newLocation_fromNode(node));
+      invalidSelection(
+          'Cannot extract a variable declaration fragment. '
+          'Select whole declaration statement.',
+          newLocation_fromNode(node));
     }
     return null;
   }
@@ -1153,7 +1158,11 @@ class _Occurrence {
 }
 
 class _ReturnTypeComputer extends RecursiveAstVisitor {
+  final AnalysisContext context;
+
   DartType returnType;
+
+  _ReturnTypeComputer(this.context);
 
   @override
   visitBlockFunctionBody(BlockFunctionBody node) {}
@@ -1177,7 +1186,8 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
       if (returnType is InterfaceType && type is InterfaceType) {
         returnType = InterfaceType.getSmartLeastUpperBound(returnType, type);
       } else {
-        returnType = returnType.getLeastUpperBound(type);
+        returnType = context.typeSystem
+            .getLeastUpperBound(context.typeProvider, returnType, type);
       }
     }
   }

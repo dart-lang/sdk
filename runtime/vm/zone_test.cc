@@ -18,11 +18,11 @@ UNIT_TEST_CASE(AllocateZone) {
 #endif
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate->current_zone() == NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->zone() == NULL);
   {
-    StackZone stack_zone(isolate);
-    EXPECT(isolate->current_zone() != NULL);
+    StackZone stack_zone(thread);
+    EXPECT(thread->zone() != NULL);
     Zone* zone = stack_zone.GetZone();
     intptr_t allocated_size = 0;
 
@@ -69,7 +69,7 @@ UNIT_TEST_CASE(AllocateZone) {
     allocated_size += (kSegmentSize + kWordSize);
     EXPECT_LE(allocated_size, zone->SizeInBytes());
   }
-  EXPECT(isolate->current_zone() == NULL);
+  EXPECT(thread->zone() == NULL);
   Dart_ShutdownIsolate();
 }
 
@@ -80,11 +80,11 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
 #endif
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate->current_zone() == NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->zone() == NULL);
   {
-    StackZone zone(isolate);
-    EXPECT(isolate->current_zone() != NULL);
+    StackZone zone(thread);
+    EXPECT(thread->zone() != NULL);
     intptr_t allocated_size = 0;
 
     const intptr_t kNumElements = 1000;
@@ -92,7 +92,7 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
     allocated_size += sizeof(uint32_t) * kNumElements;
     EXPECT_LE(allocated_size, zone.SizeInBytes());
   }
-  EXPECT(isolate->current_zone() == NULL);
+  EXPECT(thread->zone() == NULL);
   Dart_ShutdownIsolate();
 }
 
@@ -104,11 +104,11 @@ UNIT_TEST_CASE(AllocGeneric_Overflow) {
 #endif
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate->current_zone() == NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->zone() == NULL);
   {
-    StackZone zone(isolate);
-    EXPECT(isolate->current_zone() != NULL);
+    StackZone zone(thread);
+    EXPECT(thread->zone() != NULL);
 
     const intptr_t kNumElements = (kIntptrMax / sizeof(uint32_t)) + 1;
     zone.GetZone()->Alloc<uint32_t>(kNumElements);
@@ -123,8 +123,8 @@ UNIT_TEST_CASE(ZoneAllocated) {
 #endif
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
-  Isolate* isolate = Isolate::Current();
-  EXPECT(isolate->current_zone() == NULL);
+  Thread* thread = Thread::Current();
+  EXPECT(thread->zone() == NULL);
   static int marker;
 
   class SimpleZoneObject : public ZoneAllocated {
@@ -140,7 +140,7 @@ UNIT_TEST_CASE(ZoneAllocated) {
 
   // Create a few zone allocated objects.
   {
-    StackZone zone(isolate);
+    StackZone zone(thread);
     EXPECT_EQ(0, zone.SizeInBytes());
     SimpleZoneObject* first = new SimpleZoneObject();
     EXPECT(first != NULL);
@@ -160,13 +160,13 @@ UNIT_TEST_CASE(ZoneAllocated) {
     EXPECT_EQ(42, first->slot);
     EXPECT_EQ(87, second->slot);
   }
-  EXPECT(isolate->current_zone() == NULL);
+  EXPECT(thread->zone() == NULL);
   Dart_ShutdownIsolate();
 }
 
 
 TEST_CASE(PrintToString) {
-  StackZone zone(Isolate::Current());
+  StackZone zone(Thread::Current());
   const char* result = zone.GetZone()->PrintToString("Hello %s!", "World");
   EXPECT_STREQ("Hello World!", result);
 }

@@ -18,54 +18,64 @@ namespace dart {
 
 // The expected pattern of a Dart unoptimized call (static and instance):
 //  mov ECX, ic-data
+//  mov EDI, target-code-object
 //  call target_address (stub)
 //  <- return address
 class UnoptimizedCall : public ValueObject {
  public:
   explicit UnoptimizedCall(uword return_address)
-      : start_(return_address - (kNumInstructions * kInstructionSize)) {
-    ASSERT(IsValid(return_address));
-    ASSERT(kInstructionSize == Assembler::kCallExternalLabelSize);
-  }
-
-  static bool IsValid(uword return_address) {
-    uint8_t* code_bytes =
-        reinterpret_cast<uint8_t*>(
-            return_address - (kNumInstructions * kInstructionSize));
-    return (code_bytes[0] == 0xB9) &&
-           (code_bytes[1 * kInstructionSize] == 0xE8);
-  }
-
-  uword target() const {
-    const uword offset = *reinterpret_cast<uword*>(call_address() + 1);
-    return return_address() + offset;
-  }
-
-  void set_target(uword target) const {
-    uword* target_addr = reinterpret_cast<uword*>(call_address() + 1);
-    uword offset = target - return_address();
-    *target_addr = offset;
-    CPU::FlushICache(call_address(), kInstructionSize);
+      : start_(return_address - kPatternSize) {
+    ASSERT(IsValid());
   }
 
   RawObject* ic_data() const {
     return *reinterpret_cast<RawObject**>(start_ + 1);
   }
 
-  static const int kNumInstructions = 2;
-  static const int kInstructionSize = 5;  // All instructions have same length.
+  static const int kMovInstructionSize = 5;
+  static const int kCallInstructionSize = 3;
+  static const int kPatternSize =
+      2 * kMovInstructionSize + kCallInstructionSize;
 
  private:
+  bool IsValid() {
+    uint8_t* code_bytes = reinterpret_cast<uint8_t*>(start_);
+    return (code_bytes[0] == 0xB9) &&
+           (code_bytes[2 * kMovInstructionSize] == 0xFF);
+  }
+
   uword return_address() const {
-    return start_ + kNumInstructions * kInstructionSize;
+    return start_ + kPatternSize;
   }
 
   uword call_address() const {
-    return start_ + 1 * kInstructionSize;
+    return start_ + 2 * kMovInstructionSize;
   }
 
+ protected:
   uword start_;
+
+ private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(UnoptimizedCall);
+};
+
+
+class NativeCall : public UnoptimizedCall {
+ public:
+  explicit NativeCall(uword return_address) : UnoptimizedCall(return_address) {
+  }
+
+  NativeFunction native_function() const {
+    return *reinterpret_cast<NativeFunction*>(start_ + 1);
+  }
+
+  void set_native_function(NativeFunction func) const {
+    WritableInstructionsScope writable(start_ + 1, sizeof(func));
+    *reinterpret_cast<NativeFunction*>(start_ + 1) = func;
+  }
+
+ private:
+  DISALLOW_IMPLICIT_CONSTRUCTORS(NativeCall);
 };
 
 
@@ -103,45 +113,43 @@ class UnoptimizedStaticCall : public UnoptimizedCall {
 
 // The expected pattern of a dart static call:
 //  mov EDX, arguments_descriptor_array (optional in polymorphic calls)
-//  call target_address
+//  mov EDI, Immediate(code_object)
+//  call [EDI + entry_point_offset]
 //  <- return address
 class StaticCall : public ValueObject {
  public:
   explicit StaticCall(uword return_address)
-      : start_(return_address - (kNumInstructions * kInstructionSize)) {
-    ASSERT(IsValid(return_address));
-    ASSERT(kInstructionSize == Assembler::kCallExternalLabelSize);
+      : start_(return_address - (kMovInstructionSize + kCallInstructionSize)) {
+    ASSERT(IsValid());
   }
 
-  static bool IsValid(uword return_address) {
-    uint8_t* code_bytes =
-        reinterpret_cast<uint8_t*>(
-            return_address - (kNumInstructions * kInstructionSize));
-    return (code_bytes[0] == 0xE8);
+  bool IsValid() {
+    uint8_t* code_bytes = reinterpret_cast<uint8_t*>(start_);
+    return (code_bytes[0] == 0xBF) && (code_bytes[5] == 0xFF);
   }
 
-  uword target() const {
-    const uword offset = *reinterpret_cast<uword*>(call_address() + 1);
-    return return_address() + offset;
+  RawCode* target() const {
+    const uword imm = *reinterpret_cast<uword*>(start_ + 1);
+    return reinterpret_cast<RawCode*>(imm);
   }
 
-  void set_target(uword target) const {
-    uword* target_addr = reinterpret_cast<uword*>(call_address() + 1);
-    uword offset = target - return_address();
-    *target_addr = offset;
-    CPU::FlushICache(call_address(), kInstructionSize);
+  void set_target(const Code& target) const {
+    uword* target_addr = reinterpret_cast<uword*>(start_ + 1);
+    uword imm = reinterpret_cast<uword>(target.raw());
+    *target_addr = imm;
+    CPU::FlushICache(start_ + 1, sizeof(imm));
   }
 
-  static const int kNumInstructions = 1;
-  static const int kInstructionSize = 5;  // All instructions have same length.
+  static const int kMovInstructionSize = 5;
+  static const int kCallInstructionSize = 3;
 
  private:
   uword return_address() const {
-    return start_ + kNumInstructions * kInstructionSize;
+    return start_ + kMovInstructionSize +  kCallInstructionSize;
   }
 
   uword call_address() const {
-    return start_;
+    return start_ + kMovInstructionSize;
   }
 
   uword start_;
@@ -150,8 +158,8 @@ class StaticCall : public ValueObject {
 };
 
 
-uword CodePatcher::GetStaticCallTargetAt(uword return_address,
-                                         const Code& code) {
+RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
+                                            const Code& code) {
   ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   return call.target();
@@ -160,40 +168,33 @@ uword CodePatcher::GetStaticCallTargetAt(uword return_address,
 
 void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
-                                    uword new_target) {
+                                    const Code& new_target) {
+  const Instructions& instrs = Instructions::Handle(code.instructions());
+  WritableInstructionsScope writable(instrs.EntryPoint(), instrs.size());
   ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   call.set_target(new_target);
 }
 
 
-void CodePatcher::PatchInstanceCallAt(uword return_address,
-                                      const Code& code,
-                                      uword new_target) {
-  ASSERT(code.ContainsInstructionAt(return_address));
-  InstanceCall call(return_address);
-  call.set_target(new_target);
-}
-
-
-void CodePatcher::InsertCallAt(uword start, uword target) {
+void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
   // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + CallPattern::InstructionLength() <= target);
+  ASSERT(start + CallPattern::pattern_length_in_bytes() <= target);
   *reinterpret_cast<uint8_t*>(start) = 0xE8;
   CallPattern call(start);
   call.SetTargetAddress(target);
-  CPU::FlushICache(start, CallPattern::InstructionLength());
+  CPU::FlushICache(start, CallPattern::pattern_length_in_bytes());
 }
 
 
-uword CodePatcher::GetInstanceCallAt(
+RawCode* CodePatcher::GetInstanceCallAt(
     uword return_address, const Code& code, ICData* ic_data) {
   ASSERT(code.ContainsInstructionAt(return_address));
   InstanceCall call(return_address);
   if (ic_data != NULL) {
     *ic_data ^= call.ic_data();
   }
-  return call.target();
+  return Code::null();
 }
 
 
@@ -210,37 +211,25 @@ RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
 }
 
 
-intptr_t CodePatcher::InstanceCallSizeInBytes() {
-  return InstanceCall::kNumInstructions * InstanceCall::kInstructionSize;
+void CodePatcher::PatchNativeCallAt(uword return_address,
+                                    const Code& code,
+                                    NativeFunction target,
+                                    const Code& trampoline) {
+  UNREACHABLE();
 }
 
 
-// The expected code pattern of an edge counter in unoptimized code:
-//  b8 imm32    mov EAX, immediate
-class EdgeCounter : public ValueObject {
- public:
-  EdgeCounter(uword pc, const Code& ignored)
-      : end_(pc - FlowGraphCompiler::EdgeCounterIncrementSizeInBytes()) {
-    ASSERT(IsValid(end_));
-  }
-
-  static bool IsValid(uword end) {
-    return (*reinterpret_cast<uint8_t*>(end - 5) == 0xb8);
-  }
-
-  RawObject* edge_counter() const {
-    return *reinterpret_cast<RawObject**>(end_ - 4);
-  }
-
- private:
-  uword end_;
-};
+RawCode* CodePatcher::GetNativeCallAt(uword return_address,
+                                      const Code& code,
+                                      NativeFunction* target) {
+  UNREACHABLE();
+  return NULL;
+}
 
 
-RawObject* CodePatcher::GetEdgeCounterAt(uword pc, const Code& code) {
-  ASSERT(code.ContainsInstructionAt(pc));
-  EdgeCounter counter(pc, code);
-  return counter.edge_counter();
+
+intptr_t CodePatcher::InstanceCallSizeInBytes() {
+  return InstanceCall::kPatternSize;
 }
 
 }  // namespace dart

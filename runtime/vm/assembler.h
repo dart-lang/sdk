@@ -287,15 +287,15 @@ enum Patchability {
 
 class ObjectPoolWrapper : public ValueObject {
  public:
-  intptr_t AddObject(const Object& obj);
+  intptr_t AddObject(const Object& obj,
+                     Patchability patchable = kNotPatchable);
   intptr_t AddImmediate(uword imm);
-  intptr_t AddExternalLabel(const ExternalLabel* label,
-                            Patchability patchable);
 
-  intptr_t FindObject(const Object& obj);
+  intptr_t FindObject(const Object& obj,
+                      Patchability patchable = kNotPatchable);
   intptr_t FindImmediate(uword imm);
-  intptr_t FindExternalLabel(const ExternalLabel* label,
-                             Patchability patchable);
+  intptr_t FindNativeEntry(const ExternalLabel* label,
+                           Patchability patchable);
 
   RawObjectPool* MakeObjectPool();
 
@@ -308,6 +308,12 @@ class ObjectPoolWrapper : public ValueObject {
 
   // Hashmap for fast lookup in object pool.
   DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;
+};
+
+
+enum RestorePP {
+  kRestoreCallerPP,
+  kKeepCalleePP
 };
 
 }  // namespace dart

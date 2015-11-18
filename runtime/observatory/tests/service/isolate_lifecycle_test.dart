@@ -1,9 +1,10 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
+// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:isolate' as I;
 
 import 'package:observatory/service_io.dart';
@@ -18,16 +19,14 @@ final isolates = [];
 void spawnEntry(int i) {
 }
 
-Future before() async {
+Future during() async {
+  debugger();
   // Spawn spawnCount long lived isolates.
   for (var i = 0; i < spawnCount; i++) {
     var isolate = await I.Isolate.spawn(spawnEntry, i);
     isolates.add(isolate);
   }
   print('spawned all isolates');
-}
-
-Future during() async {
 }
 
 int numPaused(vm) {
@@ -42,20 +41,33 @@ int numPaused(vm) {
 
 var tests = [
   (VM vm) async {
+    expect(vm.isolates.length, 1);
+    await hasStoppedAtBreakpoint(vm.isolates[0]);
+  },
+
+  (VM vm) async {
     Completer completer = new Completer();
     var stream = await vm.getEventStream(VM.kIsolateStream);
-    if (vm.isolates.length < spawnCount + 1) {
-      var subscription;
-      subscription = stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kIsolateStart) {
-          if (vm.isolates.length == (spawnCount + 1)) {
-            subscription.cancel();
-            completer.complete(null);
-          }
-        }
-      });
-      await completer.future;
-    }
+    var subscription;
+    int startCount = 0;
+    int runnableCount = 0;
+    subscription = stream.listen((ServiceEvent event) {
+      if (event.kind == ServiceEvent.kIsolateStart) {
+        startCount++;
+      }
+      if (event.kind == ServiceEvent.kIsolateRunnable) {
+        runnableCount++;
+      }
+      if (runnableCount == spawnCount) {
+        subscription.cancel();
+        completer.complete(null);
+      }
+    });
+    expect(vm.isolates.length, 1);
+    vm.isolates[0].resume();
+    await completer.future;
+    expect(startCount, spawnCount);
+    expect(runnableCount, spawnCount);
     expect(vm.isolates.length, spawnCount + 1);
   },
 
@@ -69,7 +81,7 @@ var tests = [
   (VM vm) async {
     Completer completer = new Completer();
     var stream = await vm.getEventStream(VM.kDebugStream);
-    if (numPaused(vm) < spawnCount) {
+    if (numPaused(vm) < (spawnCount + 1)) {
       var subscription;
       subscription = stream.listen((ServiceEvent event) {
         if (event.kind == ServiceEvent.kPauseExit) {
@@ -124,6 +136,5 @@ var tests = [
 ];
 
 main(args) async => runVMTests(args, tests,
-                               testeeBefore: before,
                                testeeConcurrent: during,
                                pause_on_exit: true);

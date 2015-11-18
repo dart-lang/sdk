@@ -27,7 +27,7 @@ TEST_CASE(FindCodeObject) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
 
-  StackZone zone(isolate);
+  StackZone zone(thread);
   String& url = String::Handle(String::New("dart-test:FindCodeObject"));
   String& source = String::Handle();
   Script& script = Script::Handle();

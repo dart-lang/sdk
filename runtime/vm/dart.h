@@ -22,6 +22,7 @@ class Dart : public AllStatic {
  public:
   static const char* InitOnce(
       const uint8_t* vm_isolate_snapshot,
+      const uint8_t* instructions_snapshot,
       Dart_IsolateCreateCallback create,
       Dart_IsolateInterruptCallback interrupt,
       Dart_IsolateUnhandledExceptionCallback unhandled,
@@ -53,11 +54,24 @@ class Dart : public AllStatic {
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
 
+  static const uint8_t* instructions_snapshot_buffer() {
+    return instructions_snapshot_buffer_;
+  }
+  static void set_instructions_snapshot_buffer(const uint8_t* buffer) {
+    instructions_snapshot_buffer_ = buffer;
+  }
+  static bool IsRunningPrecompiledCode() {
+    return instructions_snapshot_buffer_ != NULL;
+  }
+
  private:
+  static void WaitForIsolateShutdown();
+
   static Isolate* vm_isolate_;
   static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
+  static const uint8_t* instructions_snapshot_buffer_;
 };
 
 }  // namespace dart

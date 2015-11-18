@@ -37,6 +37,8 @@ DEFINE_FLAG(bool, two_args_smi_icd, true,
     "Generate special IC stubs for two args Smi operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
+DEFINE_FLAG(bool, fields_may_be_reset, false,
+            "Don't optimize away static field initialization");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -82,7 +84,7 @@ const ICData* Instruction::GetICData(
     const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for
   // computations added in the optimizing compiler.
-  ASSERT(deopt_id_ != Isolate::kNoDeoptId);
+  ASSERT(deopt_id_ != Thread::kNoDeoptId);
   if (deopt_id_ < ic_data_array.length()) {
     return ic_data_array[deopt_id_];
   }
@@ -383,9 +385,13 @@ bool LoadFieldInstr::AttributesEqual(Instruction* other) const {
 
 Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   const bool is_initialized =
-      (field_.value() != Object::sentinel().raw()) &&
-      (field_.value() != Object::transition_sentinel().raw());
-  return is_initialized ? NULL : this;
+      (field_.StaticValue() != Object::sentinel().raw()) &&
+      (field_.StaticValue() != Object::transition_sentinel().raw());
+  // When precompiling, the fact that a field is currently initialized does not
+  // make it safe to omit code that checks if the field needs initialization
+  // because the field will be reset so it starts uninitialized in the process
+  // running the precompiled code. We must be prepared to reinitialize fields.
+  return is_initialized && !FLAG_fields_may_be_reset ? NULL : this;
 }
 
 
@@ -398,8 +404,8 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
   LoadStaticFieldInstr* other_load = other->AsLoadStaticField();
   ASSERT(other_load != NULL);
   // Assert that the field is initialized.
-  ASSERT(StaticField().value() != Object::sentinel().raw());
-  ASSERT(StaticField().value() != Object::transition_sentinel().raw());
+  ASSERT(StaticField().StaticValue() != Object::sentinel().raw());
+  ASSERT(StaticField().StaticValue() != Object::transition_sentinel().raw());
   return StaticField().raw() == other_load->StaticField().raw();
 }
 
@@ -792,7 +798,7 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
                                           Definition* call,
                                           Definition* result) {
   ASSERT(call->env() != NULL);
-  deopt_id_ = Isolate::ToDeoptAfter(call->deopt_id_);
+  deopt_id_ = Thread::ToDeoptAfter(call->deopt_id_);
   call->env()->DeepCopyAfterTo(flow_graph->zone(),
                                this,
                                call->ArgumentCount(),
@@ -968,6 +974,7 @@ bool BlockEntryInstr::DiscoverBlock(
     last = it.Current();
   }
   set_last_instruction(last);
+  if (last->IsGoto()) last->AsGoto()->set_block(this);
 
   return true;
 }
@@ -1630,7 +1637,9 @@ RawInteger* UnaryIntegerOpInstr::Evaluate(const Integer& value) const {
 
   switch (op_kind()) {
     case Token::kNEGATE:
-      result = value.ArithmeticOp(Token::kMUL, Smi::Handle(Smi::New(-1)));
+      result = value.ArithmeticOp(Token::kMUL,
+                                  Smi::Handle(Smi::New(-1)),
+                                  Heap::kOld);
       break;
 
     case Token::kBIT_NOT:
@@ -1675,19 +1684,21 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL: {
-      result = left.ArithmeticOp(op_kind(), right);
+      result = left.ArithmeticOp(op_kind(), right, Heap::kOld);
       break;
     }
     case Token::kSHL:
     case Token::kSHR:
       if (left.IsSmi() && right.IsSmi() && (Smi::Cast(right).Value() >= 0)) {
-        result = Smi::Cast(left).ShiftOp(op_kind(), Smi::Cast(right));
+        result = Smi::Cast(left).ShiftOp(op_kind(),
+                                         Smi::Cast(right),
+                                         Heap::kOld);
       }
       break;
     case Token::kBIT_AND:
     case Token::kBIT_OR:
     case Token::kBIT_XOR: {
-      result = left.BitOp(op_kind(), right);
+      result = left.BitOp(op_kind(), right, Heap::kOld);
       break;
     }
     case Token::kDIV:
@@ -2022,7 +2033,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
         TypeArguments::Cast(constant_type_args->value());
     Error& bound_error = Error::Handle();
     const AbstractType& new_dst_type = AbstractType::Handle(
-        dst_type().InstantiateFrom(instantiator_type_args, &bound_error));
+        dst_type().InstantiateFrom(
+            instantiator_type_args, &bound_error, NULL, Heap::kOld));
     // If dst_type is instantiated to dynamic or Object, skip the test.
     if (!new_dst_type.IsMalformedOrMalbounded() && bound_error.IsNull() &&
         (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
@@ -2190,7 +2202,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
           representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
-              GetDeoptId() : Isolate::kNoDeoptId);
+              GetDeoptId() : Thread::kNoDeoptId);
       // TODO(vegorov): marking resulting converter as truncating when
       // unboxing can't deoptimize is a workaround for the missing
       // deoptimization environment when we insert converter after
@@ -2253,7 +2265,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
         box_defn->from(),
         representation(),
         box_defn->value()->CopyWithType(),
-        (to() == kUnboxedInt32) ? GetDeoptId() : Isolate::kNoDeoptId);
+        (to() == kUnboxedInt32) ? GetDeoptId() : Thread::kNoDeoptId);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
       converter->mark_truncating();
     }
@@ -2307,7 +2319,7 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 
 static bool MaybeNumber(CompileType* type) {
   ASSERT(Type::Handle(Type::Number()).IsMoreSpecificThan(
-         Type::Handle(Type::Number()), NULL));
+         Type::Handle(Type::Number()), NULL, Heap::kOld));
   return type->ToAbstractType()->IsDynamicType()
       || type->ToAbstractType()->IsObjectType()
       || type->ToAbstractType()->IsTypeParameter()
@@ -2715,7 +2727,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
     if (compiler->NeedsEdgeCounter(this)) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(preorder_number());
     }
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM and MIPS, where we can reuse pattern matching
@@ -2759,7 +2771,6 @@ void IndirectGotoInstr::ComputeOffsetTable() {
     }
 
     ASSERT(offset > 0);
-    offset -= Assembler::EntryPointToPcMarkerOffset();
     offsets_.SetInt32(i * element_size, offset);
   }
 }
@@ -2933,7 +2944,7 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
                       kind,
                       left,
                       right,
-                      Isolate::Current()->GetNextDeoptId()),
+                      Thread::Current()->GetNextDeoptId()),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }
@@ -3161,7 +3172,7 @@ Environment* Environment::From(Zone* zone,
   Environment* env =
       new(zone) Environment(definitions.length(),
                                fixed_parameter_count,
-                               Isolate::kNoDeoptId,
+                               Thread::kNoDeoptId,
                                parsed_function,
                                NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
@@ -3428,50 +3439,52 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
       !num_elements->BoundConstant().IsSmi()) {
     return this;
   }
-  intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
-  GrowableArray<ConstantInstr*> constants(length);
+  const intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, length);
   for (intptr_t i = 0; i < length; i++) {
-    constants.Add(NULL);
+    pieces.Add(Object::null_string());
   }
+
   for (Value::Iterator it(create_array->input_use_list());
        !it.Done();
        it.Advance()) {
     Instruction* curr = it.Current()->instruction();
-    if (curr != this) {
-      StoreIndexedInstr* store = curr->AsStoreIndexed();
-      ASSERT(store != NULL);
-      if (store->value()->definition()->IsConstant()) {
-        ASSERT(store->index()->BindsToConstant());
-        const Object& obj = store->value()->definition()->AsConstant()->value();
-        if (obj.IsNumber() || obj.IsString() || obj.IsBool() || obj.IsNull()) {
-          constants[Smi::Cast(store->index()->BoundConstant()).Value()] =
-              store->value()->definition()->AsConstant();
-        } else {
-          return this;
-        }
+    if (curr == this) continue;
+
+    StoreIndexedInstr* store = curr->AsStoreIndexed();
+    if (!store->index()->BindsToConstant() ||
+        !store->index()->BoundConstant().IsSmi()) {
+      return this;
+    }
+    intptr_t store_index = Smi::Cast(store->index()->BoundConstant()).Value();
+    ASSERT(store_index < length);
+    ASSERT(store != NULL);
+    if (store->value()->definition()->IsConstant()) {
+      ASSERT(store->index()->BindsToConstant());
+      const Object& obj = store->value()->definition()->AsConstant()->value();
+      // TODO(srdjan): Verify if any other types should be converted as well.
+      if (obj.IsString()) {
+        pieces.SetAt(store_index, String::Cast(obj));
+      } else if (obj.IsSmi()) {
+        const char* cstr = obj.ToCString();
+        pieces.SetAt(store_index, String::Handle(zone, Symbols::New(cstr)));
+      } else if (obj.IsBool()) {
+        pieces.SetAt(store_index,
+            Bool::Cast(obj).value() ? Symbols::True() : Symbols::False());
+      } else if (obj.IsNull()) {
+        pieces.SetAt(store_index, Symbols::Null());
       } else {
         return this;
       }
+    } else {
+      return this;
     }
   }
-  // Interpolate string at compile time.
-  const Array& array_argument =
-      Array::Handle(Array::New(length));
-  for (intptr_t i = 0; i < constants.length(); i++) {
-    array_argument.SetAt(i, constants[i]->value());
-  }
-  // Build argument array to pass to the interpolation function.
-  const Array& interpolate_arg = Array::Handle(Array::New(1));
-  interpolate_arg.SetAt(0, array_argument);
-  // Call interpolation function.
-  const Object& result = Object::Handle(
-      DartEntry::InvokeFunction(CallFunction(), interpolate_arg));
-  if (result.IsUnhandledException()) {
-    return this;
-  }
-  ASSERT(result.IsString());
-  const String& concatenated =
-      String::ZoneHandle(Symbols::New(String::Cast(result)));
+
+  ASSERT(pieces.length() == length);
+  const String& concatenated = String::ZoneHandle(zone,
+      Symbols::FromConcatAll(pieces));
   return flow_graph->GetConstant(concatenated);
 }
 
@@ -3518,71 +3531,71 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
 typedef double (*UnaryMathCFunction) (double x);
 typedef double (*BinaryMathCFunction) (double x, double y);
 
-extern const RuntimeEntry kPowRuntimeEntry(
-    "libc_pow", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&pow)), 2, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcPow, 2, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&pow)));
 
-extern const RuntimeEntry kModRuntimeEntry(
-    "DartModulo", reinterpret_cast<RuntimeFunction>(
-        static_cast<BinaryMathCFunction>(&DartModulo)), 2, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(DartModulo, 2, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&DartModulo)));
 
-extern const RuntimeEntry kFloorRuntimeEntry(
-    "libc_floor", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&floor)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcFloor, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&floor)));
 
-extern const RuntimeEntry kCeilRuntimeEntry(
-    "libc_ceil", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&ceil)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCeil, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&ceil)));
 
-extern const RuntimeEntry kTruncRuntimeEntry(
-    "libc_trunc", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&trunc)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcTrunc, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&trunc)));
 
-extern const RuntimeEntry kRoundRuntimeEntry(
-    "libc_round", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&round)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcRound, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&round)));
 
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   switch (recognized_kind_) {
     case MethodRecognizer::kDoubleTruncate:
-      return kTruncRuntimeEntry;
+      return kLibcTruncRuntimeEntry;
     case MethodRecognizer::kDoubleRound:
-      return kRoundRuntimeEntry;
+      return kLibcRoundRuntimeEntry;
     case MethodRecognizer::kDoubleFloor:
-      return kFloorRuntimeEntry;
+      return kLibcFloorRuntimeEntry;
     case MethodRecognizer::kDoubleCeil:
-      return kCeilRuntimeEntry;
+      return kLibcCeilRuntimeEntry;
     case MethodRecognizer::kMathDoublePow:
-      return kPowRuntimeEntry;
+      return kLibcPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
-      return kModRuntimeEntry;
+      return kDartModuloRuntimeEntry;
     default:
       UNREACHABLE();
   }
-  return kPowRuntimeEntry;
+  return kLibcPowRuntimeEntry;
 }
 
 
-extern const RuntimeEntry kCosRuntimeEntry(
-    "libc_cos", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&cos)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCos, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&cos)));
 
-extern const RuntimeEntry kSinRuntimeEntry(
-    "libc_sin", reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&sin)), 1, true, true);
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcSin, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&sin)));
 
 
 const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
   switch (kind()) {
     case MathUnaryInstr::kSin:
-      return kSinRuntimeEntry;
+      return kLibcSinRuntimeEntry;
     case MathUnaryInstr::kCos:
-      return kCosRuntimeEntry;
+      return kLibcCosRuntimeEntry;
     default:
       UNREACHABLE();
   }
-  return kSinRuntimeEntry;
+  return kLibcSinRuntimeEntry;
 }
 
 
@@ -3597,18 +3610,6 @@ const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   UNREACHABLE();
   return "";
 }
-
-typedef RawBool* (*CaseInsensitiveCompareUC16Function) (
-    RawString* string_raw,
-    RawSmi* lhs_index_raw,
-    RawSmi* rhs_index_raw,
-    RawSmi* length_raw);
-
-
-extern const RuntimeEntry kCaseInsensitiveCompareUC16RuntimeEntry(
-    "CaseInsensitiveCompareUC16", reinterpret_cast<RuntimeFunction>(
-        static_cast<CaseInsensitiveCompareUC16Function>(
-        &IRRegExpMacroAssembler::CaseInsensitiveCompareUC16)), 4, true, false);
 
 
 const RuntimeEntry& CaseInsensitiveCompareUC16Instr::TargetFunction() const {

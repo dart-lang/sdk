@@ -25,10 +25,16 @@ class ImportedReferenceContributor extends DartCompletionContributor {
   bool suggestionsComputed;
   _ImportedSuggestionBuilder builder;
 
-  ImportedReferenceContributor({this.shouldWaitForLowPrioritySuggestions: false});
+  ImportedReferenceContributor(
+      {this.shouldWaitForLowPrioritySuggestions: false});
 
   @override
   bool computeFast(DartCompletionRequest request) {
+    // Don't suggest in comments.
+    if (request.target.isCommentText) {
+      return true;
+    }
+
     OpType optype = request.optype;
     if (!optype.isPrefixed) {
       if (optype.includeReturnValueSuggestions ||
@@ -40,7 +46,8 @@ class ImportedReferenceContributor extends DartCompletionContributor {
             shouldWaitForLowPrioritySuggestions;
         // If target is an argument in an argument list
         // then suggestions may need to be adjusted
-        suggestionsComputed = builder.computeFast(request.target.containingNode);
+        suggestionsComputed =
+            builder.computeFast(request.target.containingNode);
         return suggestionsComputed && request.target.argIndex == null;
       }
     }
@@ -187,7 +194,7 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
    */
   void _addInheritedSuggestions(AstNode node) {
     var classDecl = node.getAncestor((p) => p is ClassDeclaration);
-    if (classDecl is ClassDeclaration) {
+    if (classDecl is ClassDeclaration && !optype.inStaticMethodBody) {
       // Build a list of inherited types that are imported
       // and include any inherited imported members
       List<String> inheritedTypes = new List<String>();

@@ -6,19 +6,23 @@ library test.analysis.notification.outline;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
+import '../utils.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(_AnalysisNotificationOutlineTest);
 }
 
 @reflectiveTest
 class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
+  FileKind fileKind;
+  String libraryName;
   Outline outline;
 
   Future prepareOutline() {
@@ -30,6 +34,8 @@ class _AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
     if (notification.event == ANALYSIS_OUTLINE) {
       var params = new AnalysisOutlineParams.fromNotification(notification);
       if (params.file == testFile) {
+        fileKind = params.kind;
+        libraryName = params.libraryName;
         outline = params.outline;
       }
     }
@@ -309,6 +315,43 @@ class A {
     });
   }
 
+  test_libraryName_hasLibraryDirective() async {
+    addTestFile('''
+library my.lib;
+''');
+    await prepareOutline();
+    expect(fileKind, FileKind.LIBRARY);
+    expect(libraryName, 'my.lib');
+  }
+
+  test_libraryName_hasLibraryPartOfDirectives() async {
+    addTestFile('''
+part of lib.in.part.of;
+library my.lib;
+''');
+    await prepareOutline();
+    expect(fileKind, FileKind.LIBRARY);
+    expect(libraryName, 'my.lib');
+  }
+
+  test_libraryName_hasPartOfDirective() async {
+    addTestFile('''
+part of my.lib;
+''');
+    await prepareOutline();
+    expect(fileKind, FileKind.PART);
+    expect(libraryName, 'my.lib');
+  }
+
+  test_libraryName_noDirectives() async {
+    addTestFile('''
+class A {}
+''');
+    await prepareOutline();
+    expect(fileKind, FileKind.LIBRARY);
+    expect(libraryName, isNull);
+  }
+
   test_localFunctions() {
     addTestFile('''
 class A {
@@ -575,6 +618,8 @@ class A { // leftA
 
   test_sourceRange_inUnit() {
     addTestFile('''
+library lib;
+/// My first class.
 class A {
 } // endA
 class B {
@@ -591,7 +636,7 @@ class B {
         expect(element.kind, ElementKind.CLASS);
         expect(element.name, "A");
         {
-          int offset = 0;
+          int offset = testCode.indexOf("/// My first class.");
           int end = testCode.indexOf(" // endA");
           expect(outline.offset, offset);
           expect(outline.length, end - offset);

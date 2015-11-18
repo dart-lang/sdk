@@ -6,7 +6,7 @@ library server.operation;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:logging/logging.dart';
 
 import 'driver.dart';
@@ -87,8 +87,8 @@ class RequestOperation extends Operation {
     void recordResult(bool success, result) {
       Duration elapsed = stopwatch.elapsed;
       driver.results.record(method, elapsed, success: success);
-      driver.logger.log(
-          Level.FINE, 'Response received: $method : $elapsed\n  $result');
+      driver.logger
+          .log(Level.FINE, 'Response received: $method : $elapsed\n  $result');
     }
 
     driver.send(method, json['params']).then((Map<String, dynamic> result) {

@@ -6,10 +6,10 @@ library test.services.completion.suggestion;
 
 import 'dart:async';
 
-import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart'
+    show CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -23,9 +23,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
 import '../../operation/operation_queue_test.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(DartCompletionManagerTest);
 }
 
@@ -89,31 +90,30 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     CompletionRequest completionRequest =
         new CompletionRequestImpl(server, context, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
+      bool isLast = r is CompletionResultImpl ? r.isLast : true;
       switch (++count) {
         case 1:
           contributor1.assertCalls(context, source, 0, searchEngine);
+          expect(contributor1.fastCount, equals(1));
+          expect(contributor1.fullCount, equals(0));
           contributor2.assertCalls(context, source, 0, searchEngine);
-          expect(r.isLast, isFalse);
-          expect(r.suggestions, hasLength(1));
-          expect(r.suggestions, contains(suggestion1));
-          resolveLibrary();
-          break;
-        case 2:
-          contributor1.assertFull(0);
-          contributor2.assertFull(1);
-          expect(r.isLast, isTrue);
+          expect(contributor2.fastCount, equals(1));
+          expect(contributor2.fullCount, equals(1));
+          expect(isLast, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));
           expect(r.suggestions, contains(suggestion2));
+          resolveLibrary();
           break;
         default:
           fail('unexpected');
       }
     }, onDone: () {
       done = true;
-      expect(count, equals(2));
+      // There is only one notification
+      expect(count, equals(1));
     });
-    return pumpEventQueue().then((_) {
+    return pumpEventQueue(150).then((_) {
       expect(done, isTrue);
     });
   }
@@ -128,11 +128,16 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     CompletionRequest completionRequest =
         new CompletionRequestImpl(server, context, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
+      bool isLast = r is CompletionResultImpl ? r.isLast : true;
       switch (++count) {
         case 1:
           contributor1.assertCalls(context, source, 0, searchEngine);
+          expect(contributor1.fastCount, equals(1));
+          expect(contributor1.fullCount, equals(0));
           contributor2.assertCalls(context, source, 0, searchEngine);
-          expect(r.isLast, isTrue);
+          expect(contributor2.fastCount, equals(1));
+          expect(contributor2.fullCount, equals(0));
+          expect(isLast, isTrue);
           expect(r.suggestions, hasLength(2));
           expect(r.suggestions, contains(suggestion1));
           expect(r.suggestions, contains(suggestion2));
@@ -173,8 +178,6 @@ class MockCompletionContributor extends DartCompletionContributor {
     expect(request.source, equals(source));
     expect(request.offset, equals(offset));
     expect(request.searchEngine, equals(searchEngine));
-    expect(this.fastCount, equals(1));
-    expect(this.fullCount, equals(0));
   }
 
   assertFull(int fullCount) {

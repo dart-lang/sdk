@@ -8,6 +8,7 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:collection";
 import "dart:convert";
+import "dart:developer";
 import "dart:math";
 import "dart:typed_data";
 import "dart:isolate";
@@ -28,6 +29,7 @@ part "../../../sdk/lib/io/http_date.dart";
 part "../../../sdk/lib/io/http_parser.dart";
 part "../../../sdk/lib/io/http_headers.dart";
 part "../../../sdk/lib/io/http_session.dart";
+part "../../../sdk/lib/io/io_resource_info.dart";
 part "../../../sdk/lib/io/io_service.dart";
 part "../../../sdk/lib/io/io_sink.dart";
 part "../../../sdk/lib/io/platform.dart";
@@ -35,6 +37,7 @@ part "../../../sdk/lib/io/platform_impl.dart";
 part "../../../sdk/lib/io/service_object.dart";
 part "../../../sdk/lib/io/secure_socket.dart";
 part "../../../sdk/lib/io/secure_server_socket.dart";
+part "../../../sdk/lib/io/security_context.dart";
 part "../../../sdk/lib/io/socket.dart";
 
 class HttpParserTest {

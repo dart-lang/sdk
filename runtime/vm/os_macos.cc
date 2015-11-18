@@ -15,9 +15,13 @@
 #include <sys/time.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+#if TARGET_OS_IOS
+#include <sys/sysctl.h>
+#endif
 
 #include "platform/utils.h"
 #include "vm/isolate.h"
+#include "vm/zone.h"
 
 namespace dart {
 
@@ -78,6 +82,43 @@ int64_t OS::GetCurrentTimeMicros() {
     return 0;
   }
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+}
+
+
+int64_t OS::GetCurrentTraceMicros() {
+#if TARGET_OS_IOS
+  // On iOS mach_absolute_time stops while the device is sleeping. Instead use
+  // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
+  // changes. KERN_BOOTTIME will be updated by the system whenever the system
+  // clock change.
+  struct timeval boottime;
+  int mib[2] = {CTL_KERN, KERN_BOOTTIME};
+  size_t size = sizeof(boottime);
+  int kr = sysctl(mib, sizeof(mib) / sizeof(mib[0]), &boottime, &size, NULL, 0);
+  ASSERT(KERN_SUCCESS == kr);
+  int64_t now = GetCurrentTimeMicros();
+  int64_t origin = boottime.tv_sec * kMicrosecondsPerSecond;
+  origin += boottime.tv_usec;
+  return now - origin;
+#else
+  static mach_timebase_info_data_t timebase_info;
+  if (timebase_info.denom == 0) {
+    // Zero-initialization of statics guarantees that denom will be 0 before
+    // calling mach_timebase_info.  mach_timebase_info will never set denom to
+    // 0 as that would be invalid, so the zero-check can be used to determine
+    // whether mach_timebase_info has already been called.  This is
+    // recommended by Apple's QA1398.
+    kern_return_t kr = mach_timebase_info(&timebase_info);
+    ASSERT(KERN_SUCCESS == kr);
+  }
+
+  // timebase_info converts absolute time tick units into nanoseconds.  Convert
+  // to microseconds.
+  int64_t result = mach_absolute_time() / kNanosecondsPerMicrosecond;
+  result *= timebase_info.numer;
+  result /= timebase_info.denom;
+  return result;
+#endif  // TARGET_OS_IOS
 }
 
 
@@ -211,6 +252,39 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
     FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
   }
   return retval;
+}
+
+
+char* OS::SCreate(Zone* zone, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  char* buffer = VSCreate(zone, format, args);
+  va_end(args);
+  return buffer;
+}
+
+
+char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
+  // Measure.
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  va_end(measure_args);
+
+  char* buffer;
+  if (zone) {
+    buffer = zone->Alloc<char>(len + 1);
+  } else {
+    buffer = reinterpret_cast<char*>(malloc(len + 1));
+  }
+  ASSERT(buffer != NULL);
+
+  // Print.
+  va_list print_args;
+  va_copy(print_args, args);
+  VSNPrint(buffer, len + 1, format, print_args);
+  va_end(print_args);
+  return buffer;
 }
 
 

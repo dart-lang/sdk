@@ -33,6 +33,7 @@ class Bootstrap : public AllStatic {
   static const char* profiler_source_paths_[];
   static const char* typed_data_source_paths_[];
   static const char* utf_source_paths_[];
+  static const char* _vmservice_source_paths_[];
 
   // Source path mapping for patch URI and 'parts'.
   static const char* async_patch_paths_[];
@@ -46,6 +47,7 @@ class Bootstrap : public AllStatic {
   static const char* mirrors_patch_paths_[];
   static const char* profiler_patch_paths_[];
   static const char* typed_data_patch_paths_[];
+  static const char* _vmservice_patch_paths_[];
 };
 
 }  // namespace dart

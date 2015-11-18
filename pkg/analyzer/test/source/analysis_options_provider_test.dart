@@ -9,8 +9,10 @@ import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
+import '../utils.dart';
+
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   group('AnalysisOptionsProvider', () {
     setUp(() {
       buildResourceProvider();
@@ -39,20 +41,63 @@ main() {
       expect(options.length, equals(0));
     });
   });
+  group('AnalysisOptionsProvider', () {
+    setUp(() {
+      buildResourceProvider(emptyAnalysisOptions: true);
+    });
+    tearDown(() {
+      clearResourceProvider();
+    });
+    test('test_empty', () {
+      var optionsProvider = new AnalysisOptionsProvider();
+      Map<String, YamlNode> options =
+          optionsProvider.getOptions(resourceProvider.getFolder('/'));
+      expect(options, isNotNull);
+    });
+  });
+  group('AnalysisOptionsProvider', () {
+    setUp(() {
+      buildResourceProvider(badAnalysisOptions: true);
+    });
+    tearDown(() {
+      clearResourceProvider();
+    });
+    test('test_invalid', () {
+      var optionsProvider = new AnalysisOptionsProvider();
+      bool exceptionCaught = false;
+      try {
+        Map<String, YamlNode> options =
+            optionsProvider.getOptions(resourceProvider.getFolder('/'));
+        expect(options, isNotNull);
+      } catch (e) {
+        exceptionCaught = true;
+      }
+      expect(exceptionCaught, isTrue);
+    });
+  });
 }
 
 MemoryResourceProvider resourceProvider;
 
-buildResourceProvider() {
+buildResourceProvider({bool emptyAnalysisOptions : false,
+                       bool badAnalysisOptions : false}) {
   resourceProvider = new MemoryResourceProvider();
   resourceProvider.newFolder('/empty');
   resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile('/.analysis_options', r'''
+  if (badAnalysisOptions) {
+    resourceProvider.newFile('/.analysis_options', r''':''');
+  } else if (emptyAnalysisOptions) {
+    resourceProvider.newFile('/.analysis_options', r'''#empty''');
+  } else {
+    resourceProvider.newFile(
+      '/.analysis_options',
+      r'''
 analyzer:
   ignore:
     - ignoreme.dart
     - 'sdk_ext/**'
 ''');
+  }
 }
 
 clearResourceProvider() {

@@ -6,17 +6,18 @@ library test.edit.sort_members;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(SortMembersTest);
 }
 

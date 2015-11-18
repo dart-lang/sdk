@@ -6,6 +6,7 @@
 #define VM_NATIVE_ENTRY_TEST_H_
 
 #include "include/dart_api.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
 

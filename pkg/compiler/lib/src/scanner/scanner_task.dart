@@ -2,7 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.scanner.task;
+
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
+import '../elements/elements.dart' show
+    CompilationUnitElement,
+    LibraryElement;
+import '../script.dart' show
+    Script;
+import '../tokens/token.dart' show
+    Token;
+
+import 'scanner.dart' show
+    Scanner;
+import 'string_scanner.dart' show
+    StringScanner;
 
 class ScannerTask extends CompilerTask {
   ScannerTask(Compiler compiler) : super(compiler);
@@ -13,9 +30,9 @@ class ScannerTask extends CompilerTask {
     String canonicalUri = library.canonicalUri.toString();
     String resolvedUri = compilationUnit.script.resourceUri.toString();
     if (canonicalUri == resolvedUri) {
-      compiler.log("Scanning library $canonicalUri");
+      reporter.log("Scanning library $canonicalUri");
     } else {
-      compiler.log("Scanning library $canonicalUri ($resolvedUri)");
+      reporter.log("Scanning library $canonicalUri ($resolvedUri)");
     }
     scan(compilationUnit);
   }
@@ -47,25 +64,6 @@ class ScannerTask extends CompilerTask {
     return measure(() {
       return new StringScanner.fromString(source, includeComments: false)
           .tokenize();
-    });
-  }
-}
-
-class DietParserTask extends CompilerTask {
-  DietParserTask(Compiler compiler) : super(compiler);
-  final String name = 'Diet Parser';
-
-  dietParse(CompilationUnitElement compilationUnit, Token tokens) {
-    measure(() {
-      Function idGenerator = compiler.getNextFreeClassId;
-      ElementListener listener =
-          new ElementListener(compiler, compilationUnit, idGenerator);
-      PartialParser parser = new PartialParser(listener);
-      try {
-        parser.parseUnit(tokens);
-      } on ParserError catch(_) {
-        assert(invariant(compilationUnit, compiler.compilationFailed));
-      }
     });
   }
 }

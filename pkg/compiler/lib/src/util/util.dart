@@ -63,42 +63,6 @@ class Hashing {
   }
 }
 
-/**
- * Tagging interface for classes from which source spans can be generated.
- */
-// TODO(johnniwinther): Find a better name.
-// TODO(ahe): How about "Bolt"?
-abstract class Spannable {}
-
-class _SpannableSentinel implements Spannable {
-  final String name;
-
-  const _SpannableSentinel(this.name);
-
-  String toString() => name;
-}
-
-/// Sentinel spannable used to mark that diagnostics should point to the
-/// current element. Note that the diagnostic reporting will fail if the current
-/// element is `null`.
-const Spannable CURRENT_ELEMENT_SPANNABLE =
-    const _SpannableSentinel("Current element");
-
-/// Sentinel spannable used to mark that there might be no location for the
-/// diagnostic. Use this only when it is not an error not to have a current
-/// element.
-const Spannable NO_LOCATION_SPANNABLE =
-    const _SpannableSentinel("No location");
-
-class SpannableAssertionFailure {
-  final Spannable node;
-  final String message;
-  SpannableAssertionFailure(this.node, this.message);
-
-  String toString() => 'Assertion failure'
-                       '${message != null ? ': $message' : ''}';
-}
-
 bool equalElements(List a, List b) {
   if (a.length != b.length) return false;
   for (int index = 0; index < a.length; index++) {

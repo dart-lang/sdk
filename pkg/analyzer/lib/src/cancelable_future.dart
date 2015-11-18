@@ -259,8 +259,8 @@ class _CancelableCompleterFuture<T> implements CancelableFuture<T> {
   Future timeout(Duration timeLimit, {onTimeout()}) {
     // TODO(paulberry): Implement this in such a way that a timeout cancels
     // the future.
-    return _completer._outerCompleter.future.timeout(timeLimit,
-        onTimeout: onTimeout);
+    return _completer._outerCompleter.future
+        .timeout(timeLimit, onTimeout: onTimeout);
   }
 
   @override

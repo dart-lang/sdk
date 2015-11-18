@@ -15,17 +15,16 @@
 /xcodebuild
 /.flaky.log
 /.debug.log
-/*.Makefile
-/*.opensdf
-/*.pyc
-/*.sdf
-/*.sln
-/*.suo
-/*.target.mk
+*.Makefile
+*.opensdf
+*.sdf
+*.sln
+*.suo
+*.target.mk
 *.host.mk
-/*.vcproj
-/*.vcxproj
-/*.vcxproj.filters
+*.vcproj
+*.vcxproj
+*.vcxproj.filters
 /*.vcxproj.user
 
 # End generated ignores. The following are hand-added because the svn:ignore
@@ -33,13 +32,16 @@
 
 # Gyp generated files
 *.xcodeproj
+*.intermediate
 
-# Dart Editor config files - also in all subdirectories.
+# Eclipse config files - also in all subdirectories.
 .children
 .project
+.settings
 
 # IntelliJ project files
 *.iml
+.idea
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt

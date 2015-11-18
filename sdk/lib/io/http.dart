@@ -93,23 +93,28 @@ abstract class HttpStatus {
  *
  * Use [bindSecure] to create an HTTPS server.
  *
- * The server presents a certificate to the client. In the following
- * example, the certificate is named `localhost_cert` and comes from
- * the database found in the `pkcert` directory.
+ * The server presents a certificate to the client. The certificate
+ * chain and the private key are set in the [SecurityContext]
+ * object that is passed to [bindSecure].
  *
  *     import 'dart:io';
  *     import "dart:isolate";
  *
  *     main() {
- *       var testPkcertDatabase = Platform.script.resolve('pkcert')
- *                                        .toFilePath();
- *       SecureSocket.initialize(database: testPkcertDatabase,
- *                               password: 'dartdart');
+ *       SecurityContext context = new SecurityContext();
+ *       var chain =
+ *           Platform.script.resolve('certificates/server_chain.pem')
+ *           .toFilePath();
+ *       var key =
+ *           Platform.script.resolve('certificates/server_key.pem')
+ *           .toFilePath();
+ *       context.useCertificateChain(chain);
+ *       context.usePrivateKey(key, password: 'dartdart');
  *
  *       HttpServer
  *           .bindSecure(InternetAddress.ANY_IP_V6,
  *                       443,
- *                       certificateName: 'localhost_cert')
+ *                       context)
  *           .then((server) {
  *             server.listen((HttpRequest request) {
  *               request.response.write('Hello, world!');
@@ -118,10 +123,8 @@ abstract class HttpStatus {
  *           });
  *     }
  *
- * The certificate database is managed using the Mozilla certutil tool (see
- * [NSS Tools certutil](https://developer.mozilla.org/en-US/docs/NSS/tools/NSS_Tools_certutil)).
- * Dart uses the NSS library to handle SSL, and the Mozilla certutil
- * must be used to manipulate the certificate database.
+ *  The certificates and keys are PEM files, which can be created and
+ *  managed with the tools in OpenSSL.
  *
  * ## Connect to a server socket
  *
@@ -234,13 +237,12 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of `HttpServer`s. One way of
-   * using this is to have number of isolates between which incoming
-   * connections are distributed.
+   * The optional argument [shared] specifies whether additional HttpServer
+   * objects can bind to the same combination of `address`, `port` and `v6Only`.
+   * If `shared` is `true` and more `HttpServer`s from this isolate or other
+   * isolates are bound to the port, then the incoming connections will be
+   * distributed among all the bound `HttpServer`s. Connections can be
+   * distributed over multiple isolates this way.
    */
   static Future<HttpServer> bind(address,
                                  int port,
@@ -275,32 +277,32 @@ abstract class HttpServer implements Stream<HttpRequest> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The certificate with nickname or distinguished name (DN) [certificateName]
-   * is looked up in the certificate database, and is used as the server
-   * certificate. If [requestClientCertificate] is true, the server will
+   * If [requestClientCertificate] is true, the server will
    * request clients to authenticate with a client certificate.
+   * The server will advertise the names of trusted issuers of client
+   * certificates, getting them from [context], where they have been
+   * set using [SecurityContext.setClientAuthorities].
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of `HttpServer`s. One way of
-   * using this is to have number of isolates between which incoming
-   * connections are distributed.
+   * The optional argument [shared] specifies whether additional HttpServer
+   * objects can bind to the same combination of `address`, `port` and `v6Only`.
+   * If `shared` is `true` and more `HttpServer`s from this isolate or other
+   * isolates are bound to the port, then the incoming connections will be
+   * distributed among all the bound `HttpServer`s. Connections can be
+   * distributed over multiple isolates this way.
    */
 
   static Future<HttpServer> bindSecure(address,
                                        int port,
+                                       SecurityContext context,
                                        {int backlog: 0,
                                         bool v6Only: false,
-                                        String certificateName,
                                         bool requestClientCertificate: false,
                                         bool shared: false})
       => _HttpServer.bindSecure(address,
                                 port,
+                                context,
                                 backlog,
                                 v6Only,
-                                certificateName,
                                 requestClientCertificate,
                                 shared);
 
@@ -958,7 +960,7 @@ abstract class HttpRequest implements Stream<List<int>> {
    * The URI for the request.
    *
    * This provides access to the
-   * path, query string, and fragment identifier for the request.
+   * path and query string for the request.
    */
   Uri get uri;
 
@@ -1239,6 +1241,19 @@ abstract class HttpResponse implements IOSink {
  * The future for [HttpClientRequest] is created by methods such as
  * [getUrl] and [open].
  *
+ * ## HTTPS connections
+ *
+ * An HttpClient can make HTTPS requests, connecting to a server using
+ * the TLS (SSL) secure networking protocol. Calling [getUrl] with an
+ * https: scheme will work automatically, if the server's certificate is
+ * signed by a root CA (certificate authority) on the default list of
+ * well-known trusted CAs, compiled by Mozilla.
+ *
+ * To add a custom trusted certificate authority, or to send a client
+ * certificate to servers that request one, pass a [SecurityContext] object
+ * as the optional [context] argument to the `HttpClient` constructor.
+ * The desired security options can be set on the [SecurityContext] object.
+ *
  * ## Headers
  *
  * All HttpClient requests set the following header by default:
@@ -1331,14 +1346,15 @@ abstract class HttpClient {
    */
   String userAgent;
 
-  factory HttpClient() => new _HttpClient();
+  factory HttpClient({SecurityContext context}) => new _HttpClient(context);
 
   /**
    * Opens a HTTP connection.
    *
    * The HTTP method to use is specified in [method], the server is
    * specified using [host] and [port], and the path (including
-   * possible fragment and query) is specified using [path].
+   * a possible query) is specified using [path].
+   * The path may also contain a URI fragment, which will be ignored.
    *
    * The `Host` header for the request will be set to the value
    * [host]:[port]. This can be overridden through the
@@ -1377,7 +1393,7 @@ abstract class HttpClient {
    * Opens a HTTP connection using the GET method.
    *
    * The server is specified using [host] and [port], and the path
-   * (including possible fragment and query) is specified using
+   * (including a possible query) is specified using
    * [path].
    *
    * See [open] for details.
@@ -1397,7 +1413,7 @@ abstract class HttpClient {
    * Opens a HTTP connection using the POST method.
    *
    * The server is specified using [host] and [port], and the path
-   * (including possible fragment and query) is specified using
+   * (including a possible query) is specified using
    * [path].
    *
    * See [open] for details.
@@ -1417,8 +1433,7 @@ abstract class HttpClient {
    * Opens a HTTP connection using the PUT method.
    *
    * The server is specified using [host] and [port], and the path
-   * (including possible fragment and query) is specified using
-   * [path].
+   * (including a possible query) is specified using [path].
    *
    * See [open] for details.
    */
@@ -1437,8 +1452,7 @@ abstract class HttpClient {
    * Opens a HTTP connection using the DELETE method.
    *
    * The server is specified using [host] and [port], and the path
-   * (including possible fragment and query) is specified using
-   * [path].
+   * (including s possible query) is specified using [path].
    *
    * See [open] for details.
    */
@@ -1457,8 +1471,7 @@ abstract class HttpClient {
    * Opens a HTTP connection using the PATCH method.
    *
    * The server is specified using [host] and [port], and the path
-   * (including possible fragment and query) is specified using
-   * [path].
+   * (including a possible query) is specified using [path].
    *
    * See [open] for details.
    */
@@ -1477,8 +1490,7 @@ abstract class HttpClient {
    * Opens a HTTP connection using the HEAD method.
    *
    * The server is specified using [host] and [port], and the path
-   * (including possible fragment and query) is specified using
-   * [path].
+   * (including a possible query) is specified using [path].
    *
    * See [open] for details.
    */

@@ -4,13 +4,15 @@
 
 library test.integration.analysis.navigation;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisNavigationTest);
 }
 
@@ -54,7 +56,9 @@ part of foo;
 ''';
     writeFile(pathname2, text2);
     standardAnalysisSetup();
-    sendAnalysisSetSubscriptions({AnalysisService.NAVIGATION: [pathname1]});
+    sendAnalysisSetSubscriptions({
+      AnalysisService.NAVIGATION: [pathname1]
+    });
     List<NavigationRegion> regions;
     List<NavigationTarget> targets;
     List<String> targetFiles;
@@ -101,10 +105,12 @@ part of foo;
       checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);
       checkRemote(
           "'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
-      checkLocal('Class<int>.constructor',
+      checkLocal(
+          'Class<int>.constructor',
           'constructor(); /* constructor declaration */',
           ElementKind.CONSTRUCTOR);
-      checkLocal('constructor(); // usage',
+      checkLocal(
+          'constructor(); // usage',
           'constructor(); /* constructor declaration */',
           ElementKind.CONSTRUCTOR);
       checkLocal('field;', 'field;', ElementKind.FIELD);

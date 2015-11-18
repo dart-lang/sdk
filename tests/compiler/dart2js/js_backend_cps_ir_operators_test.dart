@@ -11,7 +11,8 @@ import 'js_backend_cps_ir.dart';
 const List<TestEntry> tests = const [
   const TestEntry("main() { return true ? 42 : 'foo'; }"),
   const TestEntry("""
-foo() => foo();
+var x = 1;
+foo() => ++x > 10;
 main() {
   print(foo() ? "hello world" : "bad bad");
 }""","""
@@ -19,16 +20,17 @@ function() {
   P.print(V.foo() ? "hello world" : "bad bad");
 }"""),
   const TestEntry("""
-foo() => null;
+var x = 1;
+foo() => ++x > 10;
 main() {
   print(foo() ? "hello world" : "bad bad");
 }""","""
 function() {
-  V.foo();
-  P.print("bad bad");
+  P.print(V.foo() ? "hello world" : "bad bad");
 }"""),
   const TestEntry("""
-get foo => foo;
+var x = 1;
+get foo => ++x > 10;
 main() {
   print(foo ? "hello world" : "bad bad");
 }""","""
@@ -36,18 +38,27 @@ function() {
   P.print(V.foo() ? "hello world" : "bad bad");
 }"""),
   const TestEntry("""
-get foo => foo;
+var x = 1;
+get foo => ++x > 10;
 main() { print(foo && foo); }
 """, """
 function() {
-  P.print(V.foo() ? !!P.identical(V.foo(), true) : false);
+  P.print(V.foo() ? !!V.foo() : false);
 }"""),
   const TestEntry("""
+var x = 1;
+get foo => ++x > 10;
+main() { print(foo || foo); }
+""","""
+function() {
+  P.print(V.foo() ? true : !!V.foo());
+}"""),
+const TestEntry("""
 get foo => foo;
 main() { print(foo || foo); }
 ""","""
 function() {
-  P.print(V.foo() ? true : !!P.identical(V.foo(), true));
+  V.foo();
 }"""),
 
 // Needs interceptor calling convention
@@ -73,10 +84,8 @@ main() {
   print(list);
 }""", r"""
 function() {
-  var list = [1, 2, 3], v0 = 1;
-  if (v0 < 0 || v0 >= list.length)
-    H.ioore(list, v0);
-  list[v0] = 6;
+  var list = [1, 2, 3];
+  list[1] = 6;
   P.print(list);
 }"""),
 ];

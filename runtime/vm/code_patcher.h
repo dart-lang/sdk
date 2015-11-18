@@ -7,6 +7,7 @@
 #define VM_CODE_PATCHER_H_
 
 #include "vm/allocation.h"
+#include "vm/native_entry.h"
 
 namespace dart {
 
@@ -17,6 +18,7 @@ class ExternalLabel;
 class Function;
 class ICData;
 class RawArray;
+class RawCode;
 class RawFunction;
 class RawICData;
 class RawObject;
@@ -45,36 +47,18 @@ class CodePatcher : public AllStatic {
   // Patch static call before return_address in given code to the new target.
   static void PatchStaticCallAt(uword return_address,
                                 const Code& code,
-                                uword new_target_address);
-
-  // Patch instance call before return_address in given code to the new target.
-  static void PatchInstanceCallAt(uword return_address,
-                                  const Code& code,
-                                  uword new_target_address);
-
-  // Patch entry point with a jump as specified in the code's patch region.
-  static void PatchEntry(const Code& code);
-
-  // Restore entry point with original code (i.e., before patching).
-  static void RestoreEntry(const Code& code);
-
-  // Has the entry been patched?
-  static bool IsEntryPatched(const Code& code);
-
-  // Returns true if the code can be patched with a jump at beginning (checks
-  // that there are no conflicts with object pointers). Used in ASSERTs.
-  static bool CodeIsPatchable(const Code& code);
+                                const Code& new_target);
 
   // Return the target address of the static call before return_address
   // in given code.
-  static uword GetStaticCallTargetAt(uword return_address, const Code& code);
+  static RawCode* GetStaticCallTargetAt(uword return_address, const Code& code);
 
   // Get instance call information.  Returns the call target and sets each
   // of the output parameters ic_data and arguments_descriptor if they are
   // non-NULL.
-  static uword GetInstanceCallAt(uword return_address,
-                                 const Code& code,
-                                 ICData* ic_data);
+  static RawCode* GetInstanceCallAt(uword return_address,
+                                    const Code& code,
+                                    ICData* ic_data);
 
   // Return target of an unoptimized static call and its ICData object
   // (calls target via a stub).
@@ -84,15 +68,20 @@ class CodePatcher : public AllStatic {
 
   static intptr_t InstanceCallSizeInBytes();
 
-  static void InsertCallAt(uword start, uword target);
+  static void InsertDeoptimizationCallAt(uword start, uword target);
 
-  static RawObject* GetEdgeCounterAt(uword pc, const Code& code);
-
-  static int32_t GetPoolOffsetAt(uword return_address);
-  static void SetPoolOffsetAt(uword return_address, int32_t offset);
   static void PatchPoolPointerCallAt(uword return_address,
                                      const Code& code,
-                                     uword new_target);
+                                     const Code& new_target);
+
+  static RawCode* GetNativeCallAt(uword return_address,
+                                  const Code& code,
+                                  NativeFunction* target);
+
+  static void PatchNativeCallAt(uword return_address,
+                                const Code& code,
+                                NativeFunction target,
+                                const Code& trampoline);
 };
 
 }  // namespace dart

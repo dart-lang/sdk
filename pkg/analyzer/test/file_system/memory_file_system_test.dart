@@ -16,9 +16,10 @@ import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(FileSystemExceptionTest);
   runReflectiveTests(FileTest);
   runReflectiveTests(FolderTest);
@@ -336,6 +337,13 @@ class MemoryFileSourceExistingTest {
   void test_resolveRelative() {
     Uri relative = source.resolveRelativeUri(new Uri.file('bar/baz.dart'));
     expect(relative.path, '/foo/bar/baz.dart');
+  }
+
+  void test_resolveRelative_dart() {
+    File file = provider.newFile('/sdk/lib/core/core.dart', '');
+    Source source = file.createSource(Uri.parse('dart:core'));
+    Uri resolved = source.resolveRelativeUri(Uri.parse('int.dart'));
+    expect(resolved.toString(), 'dart:core/int.dart');
   }
 
   void test_shortName() {

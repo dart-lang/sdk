@@ -494,6 +494,7 @@ class HtmlDartInterfaceGenerator(object):
 
   def GenerateInterface(self):
     interface_name = self._interface_type_info.interface_name()
+
     implementation_name = self._interface_type_info.implementation_name()
     self._library_emitter.AddTypeEntry(self._library_name,
                                        self._interface.id, implementation_name)
@@ -559,15 +560,15 @@ class HtmlDartInterfaceGenerator(object):
 
     mixins = self._backend.Mixins()
 
-    # TODO(terry): Do we need a more generic solution other than handling NamedNodeMap
-    #              we can't call super on a mixin interface - yet.
-    if self._options.templates._conditions['DARTIUM'] and self._options.dart_js_interop and self._interface.id == 'NamedNodeMap':
-      mixins = None
     mixins_str = ''
     if mixins:
       mixins_str = ' with ' + ', '.join(mixins)
       if not base_class:
         base_class = 'Interceptor'
+      elif (base_class == 'NativeFieldWrapperClass2' and
+            self._options.dart_js_interop and
+            not(isinstance(self._backend, Dart2JSBackend))):
+        base_class = 'DartHtmlDomObject'
 
     annotations = self._metadata.GetFormattedMetadata(
         self._library_name, self._interface, None, '')
@@ -578,12 +579,20 @@ class HtmlDartInterfaceGenerator(object):
       # XMLHttpRequestProgressEvent can't be abstract we need to instantiate
       # for JsInterop.
       if (not(isinstance(self._backend, Dart2JSBackend)) and
-        self._interface.id == 'XMLHttpRequestProgressEvent'):
-        # Only suppress abstract for XMLHttpRequestProgressEvent for Dartium.
-        # Need to be able to instantiate the class; can't be abstract.
+        (self._interface.id == 'XMLHttpRequestProgressEvent' or
+         self._interface.id == 'DOMStringMap')):
+        # Suppress abstract for XMLHttpRequestProgressEvent and DOMStringMap
+        # for Dartium.  Need to be able to instantiate the class; can't be abstract.
         class_modifiers = ''
       else:
-        class_modifiers = 'abstract '
+        # For Dartium w/ JsInterop these suppressed interfaces are needed to
+        # instanciate the internal classes when wrap_jso is called for a JS object.
+        if (self._renamer.ShouldSuppressInterface(self._interface) and
+            not(isinstance(self._backend, Dart2JSBackend)) and
+            self._options.dart_js_interop):
+          class_modifiers = ''
+        else:
+          class_modifiers = 'abstract '
 
     native_spec = ''
     if not IsPureInterface(self._interface.id):
@@ -592,51 +601,57 @@ class HtmlDartInterfaceGenerator(object):
     class_name = self._interface_type_info.implementation_name()
 
     js_interop_equivalence_op = \
-      '  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);\n'
+      '  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);\n' \
+      + '  int get hashCode => unwrap_jso(this).hashCode;\n'
     # ClientRect overrides the equivalence operator.
     if interface_name == 'ClientRect' or interface_name == 'DomRectReadOnly':
         js_interop_equivalence_op = ''
 
     js_interop_wrapper = '''
 
+  @Deprecated("Internal Use Only")
   static {0} internalCreate{0}() {{
     return new {0}._internalWrap();
   }}
 
   factory {0}._internalWrap() {{
-    return new {0}._internal();
+    return new {0}.internal_();
   }}
 
-  {0}._internal() : super._internal();
+  @Deprecated("Internal Use Only")
+  {0}.internal_() : super.internal_();
 
 '''.format(class_name)
-    """
-    TODO(terry): Don't use Dart expando really don't need.
-      final Object expandoJsObject = new Object();
-      final Expando<JsObject> dartium_expando = new Expando<JsObject>("Expando_jsObject");
-    """
-    if base_class == 'NativeFieldWrapperClass2':
+    if base_class == 'NativeFieldWrapperClass2' or base_class == 'DartHtmlDomObject':
         js_interop_wrapper = '''
+  @Deprecated("Internal Use Only")
   static {0} internalCreate{0}() {{
     return new {0}._internalWrap();
   }}
 
-  JsObject blink_jsObject = null;
-
   factory {0}._internalWrap() {{
-    return new {0}._internal();
+    return new {0}.internal_();
   }}
 
-  {0}._internal() {{ }}
+  @Deprecated("Internal Use Only")
+  {0}.internal_() {{ }}
 
 {1}'''.format(class_name, js_interop_equivalence_op)
+        # Change to use the synthesized class so we can construct with a mixin
+        # classes prefixed with name of NativeFieldWrapperClass2 don't have a
+        # default constructor so classes with mixins can't be new'd.
+        if (self._options.templates._conditions['DARTIUM'] and
+            self._options.dart_js_interop and
+            (self._interface.id == 'NamedNodeMap' or
+             self._interface.id == 'CSSStyleDeclaration')):
+            base_class = 'DartHtmlDomObject'
 
     implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
         LIBRARYNAME='dart.dom.%s' % self._library_name,
         ANNOTATIONS=annotations,
         CLASS_MODIFIERS=class_modifiers,
-        CLASSNAME=self._interface_type_info.implementation_name(),
+        CLASSNAME=class_name,
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,
         MIXINS=mixins_str,
@@ -673,7 +688,8 @@ class HtmlDartInterfaceGenerator(object):
     # Write out the JsInterop code.
     if (implementation_members_emitter and
         self._options.templates._conditions['DARTIUM'] and
-        self._options.dart_js_interop):
+        self._options.dart_js_interop and
+        not IsPureInterface(self._interface.id)):
       implementation_members_emitter.Emit(js_interop_wrapper)
 
     if isElement and self._interface.id != 'Element':
@@ -980,7 +996,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       return self._AddConvertingSetter(attr, html_name, conversion)
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
-        '\n  void set $HTML_NAME($TYPE value) {'
+        '\n  set $HTML_NAME($TYPE value) {'
         '\n    JS("void", "#.$NAME = #", this, value);'
         '\n  }'
         '\n',
@@ -1007,10 +1023,10 @@ class Dart2JSBackend(HtmlDartGenerator):
   def _AddConvertingSetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
-        '\n  void set $HTML_NAME($INPUT_TYPE value) {'
+        '\n  set $HTML_NAME($INPUT_TYPE value) {'
         '\n    this._set_$HTML_NAME = $CONVERT(value);'
         '\n  }'
-        '\n  void set _set_$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
+        '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
         '\n    JS("void", "#.$NAME = #", this, value);'
         '\n  }'
         '\n',
@@ -1058,53 +1074,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         TYPE=self.SecureOutputType(info.type_name, False, True),
         NAME=html_name,
         PARAMS=info.ParametersAsDeclaration(self._NarrowInputType))
-
-  def _ConvertArgumentTypes(
-          self, stmts_emitter, arguments, argument_count, info):
-    temp_version = [0]
-    converted_arguments = []  
-    target_parameters = []
-    for position, arg in enumerate(arguments[:argument_count]):
-      conversion = self._InputConversion(arg.type.id, info.declared_name)
-      param_name = arguments[position].id
-      if conversion:
-        temp_version[0] += 1
-        temp_name = '%s_%s' % (param_name, temp_version[0])
-        temp_type = conversion.output_type
-        stmts_emitter.Emit(
-            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
-            TYPE=TypeOrVar(temp_type),
-            NAME=temp_name,
-            CONVERT=conversion.function_name,
-            ARG=info.param_infos[position].name)
-        converted_arguments.append(temp_name)
-        param_type = temp_type
-        verified_type = temp_type  # verified by assignment in checked mode.
-      else:
-        converted_arguments.append(info.param_infos[position].name)
-        param_type = self._NarrowInputType(arg.type.id)
-        # Verified by argument checking on entry to the dispatcher.
-
-        verified_type = self._InputType(
-            info.param_infos[position].type_id, info)
-        # The native method does not need an argument type if we know the type.
-        # But we do need the native methods to have correct function types, so
-        # be conservative.
-        if param_type == verified_type:
-          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
-            param_type = 'dynamic'
-
-      target_parameters.append(
-          '%s%s' % (TypeOrNothing(param_type), param_name))
-
-    return target_parameters, converted_arguments
-
-  def _InputType(self, type_name, info):
-    conversion = self._InputConversion(type_name, info.declared_name)
-    if conversion:
-      return conversion.input_type
-    else:
-      return self._NarrowInputType(type_name) if type_name else 'dynamic'
 
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
@@ -1346,10 +1315,14 @@ class DartLibrary():
       items = self._typeMap.items()
       items.sort()
       for (idl_name, dart_name) in items:
-        function_emitter.Emit(
-          "  '$IDL_NAME': () => $DART_NAME.internalCreate$DART_NAME,\n",
-          IDL_NAME=idl_name,
-          DART_NAME=dart_name)
+        # DOMStringMap is in the abstract list but is used as a concrete class
+        # in Dartium.
+        if not IsPureInterface(idl_name):
+          # Handle classes that are concrete (abstract can't be instantiated).
+          function_emitter.Emit(
+            "  '$IDL_NAME': () => $DART_NAME.internalCreate$DART_NAME,\n",
+            IDL_NAME=idl_name,
+            DART_NAME=dart_name)
       if self._dart_path.endswith('html_dartium.dart'):
         function_emitter.Emit("  'polymer-element': () => HtmlElement.internalCreateHtmlElement,\n")
 

@@ -10,13 +10,13 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
-import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_index.dart';
 import 'package:analysis_server/src/services/index/store/split_store.dart';
@@ -25,16 +25,23 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisContextImpl, AnalysisTask;
+    hide AnalysisCache, AnalysisContextImpl, AnalysisTask;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/driver.dart';
+import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/general.dart';
+import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
@@ -179,8 +186,8 @@ class GetHandler {
     if (analysisServer == null) {
       return null;
     }
-    return analysisServer.handlers.firstWhere(
-        (h) => h is CompletionDomainHandler, orElse: () => null);
+    return analysisServer.handlers
+        .firstWhere((h) => h is CompletionDomainHandler, orElse: () => null);
   }
 
   /**
@@ -223,7 +230,8 @@ class GetHandler {
    */
   Folder _findFolder(AnalysisServer analysisServer, String contextFilter) {
     return analysisServer.folderMap.keys.firstWhere(
-        (Folder folder) => folder.path == contextFilter, orElse: () => null);
+        (Folder folder) => folder.path == contextFilter,
+        orElse: () => null);
   }
 
   /**
@@ -254,7 +262,111 @@ class GetHandler {
     if (unit != null) {
       return unit;
     }
+    unit = entry.getValue(RESOLVED_UNIT6);
+    if (unit != null) {
+      return unit;
+    }
+    unit = entry.getValue(RESOLVED_UNIT7);
+    if (unit != null) {
+      return unit;
+    }
+    unit = entry.getValue(RESOLVED_UNIT8);
+    if (unit != null) {
+      return unit;
+    }
+    unit = entry.getValue(RESOLVED_UNIT9);
+    if (unit != null) {
+      return unit;
+    }
+    unit = entry.getValue(RESOLVED_UNIT10);
+    if (unit != null) {
+      return unit;
+    }
     return entry.getValue(RESOLVED_UNIT);
+  }
+
+  /**
+   * Return a list of the result descriptors whose state should be displayed for
+   * the given cache [entry].
+   */
+  List<ResultDescriptor> _getExpectedResults(CacheEntry entry) {
+    AnalysisTarget target = entry.target;
+    Set<ResultDescriptor> results = entry.nonInvalidResults.toSet();
+    if (target is Source) {
+      String name = target.shortName;
+      results.add(CONTENT);
+      results.add(LINE_INFO);
+      results.add(MODIFICATION_TIME);
+      if (AnalysisEngine.isDartFileName(name)) {
+        results.add(BUILD_DIRECTIVES_ERRORS);
+        results.add(BUILD_LIBRARY_ERRORS);
+        results.add(CONTAINING_LIBRARIES);
+        results.add(DART_ERRORS);
+        results.add(EXPLICITLY_IMPORTED_LIBRARIES);
+        results.add(EXPORT_SOURCE_CLOSURE);
+        results.add(EXPORTED_LIBRARIES);
+        results.add(IMPORTED_LIBRARIES);
+        results.add(INCLUDED_PARTS);
+        results.add(IS_LAUNCHABLE);
+        results.add(LIBRARY_ELEMENT1);
+        results.add(LIBRARY_ELEMENT2);
+        results.add(LIBRARY_ELEMENT3);
+        results.add(LIBRARY_ELEMENT4);
+        results.add(LIBRARY_ELEMENT5);
+        results.add(LIBRARY_ELEMENT);
+        results.add(LIBRARY_ERRORS_READY);
+        results.add(PARSE_ERRORS);
+        results.add(PARSED_UNIT);
+        results.add(REFERENCED_NAMES);
+        results.add(SCAN_ERRORS);
+        results.add(SOURCE_KIND);
+        results.add(TOKEN_STREAM);
+        results.add(UNITS);
+      } else if (AnalysisEngine.isHtmlFileName(name)) {
+        results.add(DART_SCRIPTS);
+        results.add(HTML_DOCUMENT);
+        results.add(HTML_DOCUMENT_ERRORS);
+        results.add(HTML_ERRORS);
+        results.add(REFERENCED_LIBRARIES);
+      } else if (AnalysisEngine.isAnalysisOptionsFileName(name)) {
+        results.add(ANALYSIS_OPTIONS_ERRORS);
+      }
+    } else if (target is LibrarySpecificUnit) {
+      results.add(COMPILATION_UNIT_CONSTANTS);
+      results.add(COMPILATION_UNIT_ELEMENT);
+      results.add(HINTS);
+      results.add(LINTS);
+      results.add(INFERABLE_STATIC_VARIABLES_IN_UNIT);
+      results.add(LIBRARY_UNIT_ERRORS);
+      results.add(RESOLVE_TYPE_NAMES_ERRORS);
+      results.add(RESOLVE_UNIT_ERRORS);
+      results.add(RESOLVED_UNIT1);
+      results.add(RESOLVED_UNIT2);
+      results.add(RESOLVED_UNIT3);
+      results.add(RESOLVED_UNIT4);
+      results.add(RESOLVED_UNIT5);
+      results.add(RESOLVED_UNIT6);
+      results.add(RESOLVED_UNIT7);
+      results.add(RESOLVED_UNIT8);
+      results.add(RESOLVED_UNIT9);
+      results.add(RESOLVED_UNIT10);
+      results.add(RESOLVED_UNIT);
+      results.add(STRONG_MODE_ERRORS);
+      results.add(USED_IMPORTED_ELEMENTS);
+      results.add(USED_LOCAL_ELEMENTS);
+      results.add(VARIABLE_REFERENCE_ERRORS);
+      results.add(VERIFY_ERRORS);
+    } else if (target is ConstantEvaluationTarget) {
+      results.add(CONSTANT_DEPENDENCIES);
+      results.add(CONSTANT_VALUE);
+      if (target is VariableElement) {
+        results.add(INFERABLE_STATIC_VARIABLE_DEPENDENCIES);
+        results.add(INFERRED_STATIC_VARIABLE);
+      }
+    } else if (target is AnalysisContextTarget) {
+      results.add(TYPE_PROVIDER);
+    }
+    return results.toList();
   }
 
   /**
@@ -265,7 +377,8 @@ class GetHandler {
     MapIterator<AnalysisTarget, CacheEntry> iterator =
         context.analysisCache.iterator();
     while (iterator.moveNext()) {
-      if (iterator.value.exception != null) {
+      CacheEntry entry = iterator.value;
+      if (entry == null || entry.exception != null) {
         return true;
       }
     }
@@ -298,68 +411,197 @@ class GetHandler {
       _writePage(buffer, 'Analysis Server - Analysis Performance', [],
           (StringBuffer buffer) {
         buffer.write('<h3>Analysis Performance</h3>');
-        //
-        // Write performance tags.
-        //
-        buffer.write('<p><b>Performance tag data</b></p>');
-        buffer.write(
-            '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-        _writeRow(buffer, ['Time (in ms)', 'Percent', 'Tag name'],
-            header: true);
-        // prepare sorted tags
-        List<PerformanceTag> tags = PerformanceTag.all.toList();
-        tags.remove(ServerPerformanceStatistics.idle);
-        tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
-        // prepare total time
-        int totalTagTime = 0;
-        tags.forEach((PerformanceTag tag) {
-          totalTagTime += tag.elapsedMs;
-        });
-        // write rows
-        void writeRow(PerformanceTag tag) {
-          double percent = (tag.elapsedMs * 100) / totalTagTime;
-          String percentStr = '${percent.toStringAsFixed(2)}%';
-          _writeRow(buffer, [tag.elapsedMs, percentStr, tag.label],
-              classes: ["right", "right", null]);
-        }
-        tags.forEach(writeRow);
-        buffer.write('</table>');
-        //
-        // Write task model timing information.
-        //
-        buffer.write('<p><b>Task performace data</b></p>');
-        buffer.write(
-            '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-        _writeRow(buffer, [
-          'Task Name',
-          'Count',
-          'Total Time (in ms)',
-          'Average Time (in ms)'
-        ], header: true);
-
-        Map<Type, int> countMap = AnalysisTask.countMap;
-        Map<Type, Stopwatch> stopwatchMap = AnalysisTask.stopwatchMap;
-        List<Type> taskClasses = stopwatchMap.keys.toList();
-        taskClasses.sort((Type first, Type second) =>
-            first.toString().compareTo(second.toString()));
-        int totalTaskTime = 0;
-        taskClasses.forEach((Type taskClass) {
-          int count = countMap[taskClass];
-          if (count == null) {
-            count = 0;
+        _writeTwoColumns(buffer, (StringBuffer buffer) {
+          //
+          // Write performance tags.
+          //
+          buffer.write('<p><b>Performance tag data</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(buffer, ['Time (in ms)', 'Percent', 'Tag name'],
+              header: true);
+          // prepare sorted tags
+          List<PerformanceTag> tags = PerformanceTag.all.toList();
+          tags.remove(ServerPerformanceStatistics.idle);
+          tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
+          // prepare total time
+          int totalTagTime = 0;
+          tags.forEach((PerformanceTag tag) {
+            totalTagTime += tag.elapsedMs;
+          });
+          // write rows
+          void writeRow(PerformanceTag tag) {
+            double percent = (tag.elapsedMs * 100) / totalTagTime;
+            String percentStr = '${percent.toStringAsFixed(2)}%';
+            _writeRow(buffer, [tag.elapsedMs, percentStr, tag.label],
+                classes: ["right", "right", null]);
           }
-          int taskTime = stopwatchMap[taskClass].elapsedMilliseconds;
-          totalTaskTime += taskTime;
-          _writeRow(buffer, [
-            taskClass.toString(),
-            count,
-            taskTime,
-            count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
-          ], classes: [null, "right", "right", "right"]);
+          tags.forEach(writeRow);
+          buffer.write('</table>');
+          //
+          // Write target counts.
+          //
+          void incrementCount(Map<String, int> counts, String key) {
+            int count = counts[key];
+            if (count == null) {
+              count = 1;
+            } else {
+              count++;
+            }
+            counts[key] = count;
+          }
+          Set<AnalysisTarget> countedTargets = new HashSet<AnalysisTarget>();
+          Map<String, int> sourceTypeCounts = new HashMap<String, int>();
+          Map<String, int> typeCounts = new HashMap<String, int>();
+          analysisServer.folderMap
+              .forEach((Folder folder, InternalAnalysisContext context) {
+            AnalysisCache cache = context.analysisCache;
+            MapIterator<AnalysisTarget, CacheEntry> iterator = cache.iterator();
+            while (iterator.moveNext()) {
+              AnalysisTarget target = iterator.key;
+              if (countedTargets.add(target)) {
+                if (target is Source) {
+                  String name = target.fullName;
+                  String sourceName;
+                  if (AnalysisEngine.isDartFileName(name)) {
+                    if (iterator.value.explicitlyAdded) {
+                      sourceName = 'Dart file (explicit)';
+                    } else {
+                      sourceName = 'Dart file (implicit)';
+                    }
+                  } else if (AnalysisEngine.isHtmlFileName(name)) {
+                    if (iterator.value.explicitlyAdded) {
+                      sourceName = 'Html file (explicit)';
+                    } else {
+                      sourceName = 'Html file (implicit)';
+                    }
+                  } else {
+                    if (iterator.value.explicitlyAdded) {
+                      sourceName = 'Unknown file (explicit)';
+                    } else {
+                      sourceName = 'Unknown file (implicit)';
+                    }
+                  }
+                  incrementCount(sourceTypeCounts, sourceName);
+                } else if (target is ConstantEvaluationTarget) {
+                  incrementCount(typeCounts, 'ConstantEvaluationTarget');
+                } else {
+                  String typeName = target.runtimeType.toString();
+                  incrementCount(typeCounts, typeName);
+                }
+              }
+            }
+          });
+          List<String> sourceTypeNames = sourceTypeCounts.keys.toList();
+          sourceTypeNames.sort();
+          List<String> typeNames = typeCounts.keys.toList();
+          typeNames.sort();
+
+          buffer.write('<p><b>Target counts</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(buffer, ['Target', 'Count'], header: true);
+          for (String sourceTypeName in sourceTypeNames) {
+            _writeRow(
+                buffer, [sourceTypeName, sourceTypeCounts[sourceTypeName]],
+                classes: [null, "right"]);
+          }
+          for (String typeName in typeNames) {
+            _writeRow(buffer, [typeName, typeCounts[typeName]],
+                classes: [null, "right"]);
+          }
+          buffer.write('</table>');
+        }, (StringBuffer buffer) {
+          //
+          // Write task model timing information.
+          //
+          buffer.write('<p><b>Task performace data</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(
+              buffer,
+              [
+                'Task Name',
+                'Count',
+                'Total Time (in ms)',
+                'Average Time (in ms)'
+              ],
+              header: true);
+
+          Map<Type, int> countMap = AnalysisTask.countMap;
+          Map<Type, Stopwatch> stopwatchMap = AnalysisTask.stopwatchMap;
+          List<Type> taskClasses = stopwatchMap.keys.toList();
+          taskClasses.sort((Type first, Type second) =>
+              first.toString().compareTo(second.toString()));
+          int totalTaskTime = 0;
+          taskClasses.forEach((Type taskClass) {
+            int count = countMap[taskClass];
+            if (count == null) {
+              count = 0;
+            }
+            int taskTime = stopwatchMap[taskClass].elapsedMilliseconds;
+            totalTaskTime += taskTime;
+            _writeRow(buffer, [
+              taskClass.toString(),
+              count,
+              taskTime,
+              count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
+            ], classes: [
+              null,
+              "right",
+              "right",
+              "right"
+            ]);
+          });
+          _writeRow(buffer, ['Total', '-', totalTaskTime, '-'],
+              classes: [null, "right", "right", "right"]);
+          buffer.write('</table>');
         });
-        _writeRow(buffer, ['Total', '-', totalTaskTime, '-'],
-            classes: [null, "right", "right", "right"]);
-        buffer.write('</table>');
+        //
+        // Write task model inputs timing information.
+        //
+        {
+          buffer.write('<p><b>Task inputs performace data</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(
+              buffer,
+              [
+                'Task Name',
+                'Count',
+                'Total Time (in ms)',
+                'Average Time (in ms)'
+              ],
+              header: true);
+
+          Map<TaskDescriptor, int> countMap = WorkItem.countMap;
+          Map<TaskDescriptor, Stopwatch> stopwatchMap = WorkItem.stopwatchMap;
+          List<TaskDescriptor> taskClasses = stopwatchMap.keys.toList();
+          taskClasses.sort((TaskDescriptor first, TaskDescriptor second) {
+            String firstName = first.name;
+            String secondName = second.name;
+            return firstName.compareTo(secondName);
+          });
+          taskClasses.forEach((TaskDescriptor descriptor) {
+            int count = countMap[descriptor];
+            if (count == null) {
+              count = 0;
+            }
+            int taskTime = stopwatchMap[descriptor].elapsedMilliseconds;
+            _writeRow(buffer, [
+              descriptor.name,
+              count,
+              taskTime,
+              count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
+            ], classes: [
+              null,
+              "right",
+              "right",
+              "right"
+            ]);
+          });
+          buffer.write('</table>');
+        }
       });
     });
   }
@@ -390,31 +632,34 @@ class GetHandler {
     InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - AST Structure', [
-        'Context: $contextFilter',
-        'File: $sourceUri'
-      ], (HttpResponse) {
+      _writePage(buffer, 'Analysis Server - AST Structure',
+          ['Context: $contextFilter', 'File: $sourceUri'], (HttpResponse) {
         Source source = context.sourceFactory.forUri(sourceUri);
         if (source == null) {
           buffer.write('<p>Not found.</p>');
           return;
         }
-        CacheEntry entry = context.analysisCache.get(source);
-        if (entry == null) {
-          buffer.write('<p>Not found.</p>');
-          return;
-        }
-        CompilationUnit ast = _getAnyAst(entry);
-        if (ast == null) {
-          buffer.write('<p>null</p>');
-          return;
-        }
-        AstWriter writer = new AstWriter(buffer);
-        ast.accept(writer);
-        if (writer.exceptions.isNotEmpty) {
-          buffer.write('<h3>Exceptions while creating page</h3>');
-          for (CaughtException exception in writer.exceptions) {
-            _writeException(buffer, exception);
+        List<Source> libraries = context.getLibrariesContaining(source);
+        for (Source library in libraries) {
+          AnalysisTarget target = new LibrarySpecificUnit(library, source);
+          CacheEntry entry = context.analysisCache.get(target);
+          buffer.write('<b>$target</b><br>');
+          if (entry == null) {
+            buffer.write('<p>Not found.</p>');
+            continue;
+          }
+          CompilationUnit ast = _getAnyAst(entry);
+          if (ast == null) {
+            buffer.write('<p>null</p>');
+            continue;
+          }
+          AstWriter writer = new AstWriter(buffer);
+          ast.accept(writer);
+          if (writer.exceptions.isNotEmpty) {
+            buffer.write('<h3>Exceptions while creating page</h3>');
+            for (CaughtException exception in writer.exceptions) {
+              _writeException(buffer, exception);
+            }
           }
         }
       });
@@ -474,10 +719,9 @@ class GetHandler {
     InternalAnalysisContext context = analysisServer.folderMap[folder];
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Cache Entry', [
-        'Context: $contextFilter',
-        'File: $sourceUri'
-      ], (HttpResponse) {
+      _writePage(buffer, 'Analysis Server - Cache Entry',
+          ['Context: $contextFilter', 'File: $sourceUri'], (HttpResponse) {
+        List<CacheEntry> entries = entryMap[folder];
         buffer.write('<h3>Analyzing Contexts</h3><p>');
         bool first = true;
         allContexts.forEach((Folder folder) {
@@ -491,20 +735,30 @@ class GetHandler {
           if (analyzingContext == context) {
             buffer.write(folder.path);
           } else {
-            buffer.write(makeLink(CACHE_ENTRY_PATH, {
-              CONTEXT_QUERY_PARAM: folder.path,
-              SOURCE_QUERY_PARAM: sourceUri
-            }, HTML_ESCAPE.convert(folder.path)));
+            buffer.write(makeLink(
+                CACHE_ENTRY_PATH,
+                {
+                  CONTEXT_QUERY_PARAM: folder.path,
+                  SOURCE_QUERY_PARAM: sourceUri
+                },
+                HTML_ESCAPE.convert(folder.path)));
           }
-          if (entryMap[folder][0].explicitlyAdded) {
-            buffer.write(' (explicit)');
+          if (entries == null) {
+            buffer.write(' (file does not exist)');
           } else {
-            buffer.write(' (implicit)');
+            CacheEntry sourceEntry = entries
+                .firstWhere((CacheEntry entry) => entry.target is Source);
+            if (sourceEntry == null) {
+              buffer.write(' (missing source entry)');
+            } else if (sourceEntry.explicitlyAdded) {
+              buffer.write(' (explicit)');
+            } else {
+              buffer.write(' (implicit)');
+            }
           }
         });
         buffer.write('</p>');
 
-        List<CacheEntry> entries = entryMap[folder];
         if (entries == null) {
           buffer.write('<p>Not being analyzed in this context.</p>');
           return;
@@ -514,35 +768,43 @@ class GetHandler {
             CONTEXT_QUERY_PARAM: folder.path,
             SOURCE_QUERY_PARAM: sourceUri
           };
-          List<ResultDescriptor> results = entry.nonInvalidResults;
+          List<ResultDescriptor> results = _getExpectedResults(entry);
           results.sort((ResultDescriptor first, ResultDescriptor second) =>
               first.toString().compareTo(second.toString()));
 
           buffer.write('<h3>');
           buffer.write(HTML_ESCAPE.convert(entry.target.toString()));
           buffer.write('</h3>');
-          buffer.write('<dl>');
-          buffer.write('<dt>time</dt><dd>');
+          buffer.write('<p>time</p><blockquote><p>Value</p><blockquote>');
           buffer.write(entry.modificationTime);
-          buffer.write('</dd></dl>');
+          buffer.write('</blockquote></blockquote>');
           for (ResultDescriptor result in results) {
             ResultData data = entry.getResultData(result);
+            CacheState state = entry.getState(result);
             String descriptorName = HTML_ESCAPE.convert(result.toString());
-            String descriptorState = HTML_ESCAPE.convert(data.state.toString());
-            buffer.write('<dt>$descriptorName ($descriptorState)</dt><dd>');
-            try {
-              _writeValueAsHtml(buffer, data.value, linkParameters);
-            } catch (exception) {
-              buffer.write('(${HTML_ESCAPE.convert(exception.toString())})');
+            String descriptorState = HTML_ESCAPE.convert(state.toString());
+            buffer
+                .write('<p>$descriptorName ($descriptorState)</p><blockquote>');
+            if (state == CacheState.VALID) {
+              buffer.write('<p>Value</p><blockquote>');
+              try {
+                _writeValueAsHtml(
+                    buffer, entry.getValue(result), linkParameters);
+              } catch (exception) {
+                buffer.write('(${HTML_ESCAPE.convert(exception.toString())})');
+              }
+              buffer.write('</blockquote>');
             }
-            buffer.write('</dd>');
+            _writeTargetedResults(buffer, 'Depends on', data.dependedOnResults);
+            _writeTargetedResults(
+                buffer, 'Depended on by', data.dependentResults);
+            buffer.write('</blockquote>');
           }
           if (entry.exception != null) {
             buffer.write('<dt>exception</dt><dd>');
             _writeException(buffer, entry.exception);
-            buffer.write('</dd></dl>');
+            buffer.write('</dd>');
           }
-          buffer.write('</dl>');
         }
       });
     });
@@ -737,21 +999,25 @@ class GetHandler {
         .map((Source source) => source.fullName)
         .toList();
     MapIterator<AnalysisTarget, CacheEntry> iterator =
-        context.analysisCache.iterator();
+        context.analysisCache.iterator(context: context);
     while (iterator.moveNext()) {
-      Source source = iterator.key.source;
-      if (source != null) {
+      AnalysisTarget target = iterator.key;
+      if (target is Source) {
         CacheEntry entry = iterator.value;
-        String sourceName = source.fullName;
+        String sourceName = target.fullName;
         if (!links.containsKey(sourceName)) {
           CaughtException exception = entry.exception;
           if (exception != null) {
             exceptions.add(exception);
           }
-          String link = makeLink(CACHE_ENTRY_PATH, {
-            CONTEXT_QUERY_PARAM: folder.path,
-            SOURCE_QUERY_PARAM: source.uri.toString()
-          }, sourceName, exception != null);
+          String link = makeLink(
+              CACHE_ENTRY_PATH,
+              {
+                CONTEXT_QUERY_PARAM: folder.path,
+                SOURCE_QUERY_PARAM: target.uri.toString()
+              },
+              sourceName,
+              exception != null);
           if (entry.explicitlyAdded) {
             explicitNames.add(sourceName);
           } else {
@@ -764,6 +1030,9 @@ class GetHandler {
     explicitNames.sort();
     implicitNames.sort();
 
+    AnalysisDriver driver = (context as AnalysisContextImpl).driver;
+    List<WorkItem> workItems = driver.currentWorkOrder?.workItems;
+
     _overlayContents.clear();
     context.visitContentCache((String fullName, int stamp, String contents) {
       _overlayContents[fullName] = contents;
@@ -775,7 +1044,7 @@ class GetHandler {
       if (fileNames == null || fileNames.isEmpty) {
         buffer.write('<p>None</p>');
       } else {
-        buffer.write('<table style="width: 100%">');
+        buffer.write('<p><table style="width: 100%">');
         for (String fileName in fileNames) {
           buffer.write('<tr><td>');
           buffer.write(links[fileName]);
@@ -786,33 +1055,34 @@ class GetHandler {
           }
           buffer.write('</td></tr>');
         }
-        buffer.write('</table>');
+        buffer.write('</table></p>');
       }
     }
 
     _writeResponse(request, (StringBuffer buffer) {
-      _writePage(buffer, 'Analysis Server - Context',
-          ['Context: $contextFilter'], (StringBuffer buffer) {
-        List headerRowText = ['Context'];
-        headerRowText.addAll(CacheState.values);
-        buffer.write('<h3>Summary</h3>');
-        buffer.write('<table>');
-        _writeRow(buffer, headerRowText, header: true);
-        AnalysisContextStatistics statistics = context.statistics;
-        statistics.cacheRows.forEach((AnalysisContextStatistics_CacheRow row) {
-          List rowText = [row.name];
-          for (CacheState state in CacheState.values) {
-            String text = row.getCount(state).toString();
-            Map<String, String> params = <String, String>{
-              STATE_QUERY_PARAM: state.toString(),
-              CONTEXT_QUERY_PARAM: folder.path,
-              DESCRIPTOR_QUERY_PARAM: row.name
-            };
-            rowText.add(makeLink(CACHE_STATE_PATH, params, text));
-          }
-          _writeRow(buffer, rowText, classes: [null, "right"]);
+      _writePage(
+          buffer, 'Analysis Server - Context', ['Context: $contextFilter'],
+          (StringBuffer buffer) {
+        buffer.write('<h3>Most Recently Perfomed Tasks</h3>');
+        AnalysisTask.LAST_TASKS.forEach((String description) {
+          buffer.write('<p>$description</p>');
         });
-        buffer.write('</table>');
+
+        String _describe(WorkItem item) {
+          if (item == null) {
+            return 'None';
+          }
+          return '${item.descriptor?.name} computing ${item.spawningResult?.name} for ${item.target?.toString()}';
+        }
+
+        buffer.write('<h3>Work Items</h3>');
+        buffer.write(
+            '<p><b>Current:</b> ${_describe(driver.currentWorkOrder?.current)}</p>');
+        if (workItems != null) {
+          buffer.writeAll(workItems.reversed
+              .map((item) => '<p>${_describe(item)}</p>')
+              ?.toList());
+        }
 
         _writeFiles(buffer, 'Priority Files', priorityNames);
         _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
@@ -916,8 +1186,8 @@ class GetHandler {
           buffer.write('<table border="1">');
           _writeRow(buffer, ['Element', 'Relationship', 'Location'],
               header: true);
-          relations.forEach((List<String> elementPath,
-              List<InspectLocation> relations) {
+          relations.forEach(
+              (List<String> elementPath, List<InspectLocation> relations) {
             String elementLocation = elementPath.join(' ');
             relations.forEach((InspectLocation location) {
               var relString = location.relationship.identifier;
@@ -1073,10 +1343,13 @@ class GetHandler {
           buffer.write('<br>');
         }
         String key = folder.shortName;
-        buffer.write(makeLink(CONTEXT_PATH, {
-          CONTEXT_QUERY_PARAM: folder.path
-        }, key, _hasException(folderMap[folder])));
+        buffer.write(makeLink(CONTEXT_PATH, {CONTEXT_QUERY_PARAM: folder.path},
+            key, _hasException(folderMap[folder])));
+        if (!folder.getChild('.packages').exists) {
+          buffer.write(' <b>[No .packages file]</b>');
+        }
       });
+      // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
       buffer.write('</p>');
 
       buffer.write('<p><b>Options</b></p>');
@@ -1086,6 +1359,7 @@ class GetHandler {
       _writeOption(buffer, 'Cache size', options.cacheSize);
       _writeOption(
           buffer, 'Enable strict call checks', options.enableStrictCallChecks);
+      _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
       _writeOption(buffer, 'Generate hints', options.hint);
       _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
       _writeOption(buffer, 'Generate errors in implicit files',
@@ -1161,24 +1435,26 @@ class GetHandler {
       return;
     }
     buffer.write('<table>');
-    _writeRow(buffer, [
-      'Start Time',
-      '',
-      'First (ms)',
-      '',
-      'Complete (ms)',
-      '',
-      '# Notifications',
-      '',
-      '# Suggestions',
-      '',
-      'Snippet'
-    ], header: true);
+    _writeRow(
+        buffer,
+        [
+          'Start Time',
+          '',
+          'First (ms)',
+          '',
+          'Complete (ms)',
+          '',
+          '# Notifications',
+          '',
+          '# Suggestions',
+          '',
+          'Snippet'
+        ],
+        header: true);
     int index = 0;
     for (CompletionPerformance performance in handler.performanceList) {
-      String link = makeLink(COMPLETION_PATH, {
-        'index': '$index'
-      }, '${performance.startTimeAndMs}');
+      String link = makeLink(COMPLETION_PATH, {'index': '$index'},
+          '${performance.startTimeAndMs}');
       _writeRow(buffer, [
         link,
         '&nbsp;&nbsp;',
@@ -1282,6 +1558,24 @@ class GetHandler {
     }
   }
 
+  void _writeListOfStrings(
+      StringBuffer buffer, String listName, Iterable<String> items) {
+    List<String> itemList = items.toList();
+    itemList.sort((String a, String b) {
+      a = a.toLowerCase();
+      b = b.toLowerCase();
+      return a.compareTo(b);
+    });
+    buffer.write('List "listName" containing ${itemList.length} entries:');
+    buffer.write('<ul>');
+    for (String member in itemList) {
+      buffer.write('<li>');
+      buffer.write(member);
+      buffer.write('</li>');
+    }
+    buffer.write('</ul>');
+  }
+
   /**
    * Write a representation of an analysis option with the given [name] and
    * [value] to the given [buffer]. The option should be separated from other
@@ -1367,9 +1661,9 @@ class GetHandler {
    */
   void _writePluginStatus(StringBuffer buffer) {
     void writePlugin(Plugin plugin) {
-      buffer.write(_server.serverPlugin.uniqueIdentifier);
+      buffer.write(plugin.uniqueIdentifier);
       buffer.write(' (');
-      buffer.write(_server.serverPlugin.runtimeType);
+      buffer.write(plugin.runtimeType);
       buffer.write(')<br>');
     }
     buffer.write('<h3>Plugin Status</h3><p>');
@@ -1573,6 +1867,39 @@ class GetHandler {
   }
 
   /**
+   * Write the targeted results returned by iterating over the [results] to the
+   * given [buffer]. The list will have the given [title] written before it.
+   */
+  void _writeTargetedResults(
+      StringBuffer buffer, String title, Iterable<TargetedResult> results) {
+    List<TargetedResult> sortedResults = results.toList();
+    sortedResults.sort((TargetedResult first, TargetedResult second) {
+      int nameOrder =
+          first.result.toString().compareTo(second.result.toString());
+      if (nameOrder != 0) {
+        return nameOrder;
+      }
+      return first.target.toString().compareTo(second.target.toString());
+    });
+
+    buffer.write('<p>');
+    buffer.write(title);
+    buffer.write('</p><blockquote>');
+    if (results.isEmpty) {
+      buffer.write('nothing');
+    } else {
+      for (TargetedResult result in sortedResults) {
+        buffer.write('<p>');
+        buffer.write(result.result.toString());
+        buffer.write(' of ');
+        buffer.write(result.target.toString());
+        buffer.write('<p>');
+      }
+    }
+    buffer.write('</blockquote>');
+  }
+
+  /**
    * Write two columns of information to the given [buffer], where the
    * [leftColumn] and [rightColumn] functions are used to generate the content
    * of those columns.
@@ -1615,6 +1942,22 @@ class GetHandler {
       String link =
           makeLink(ELEMENT_PATH, linkParameters, value.runtimeType.toString());
       buffer.write('<i>$link</i>');
+    } else if (value is UsedLocalElements) {
+      buffer.write('<ul>');
+      {
+        HashSet<Element> elements = value.elements;
+        buffer.write('List "elements" containing ${elements.length} entries');
+        buffer.write('<ul>');
+        for (Element element in elements) {
+          buffer.write('<li>');
+          buffer.write('<i>${element.runtimeType}</i>  $element');
+          buffer.write('</li>');
+        }
+        buffer.write('</ul>');
+      }
+      _writeListOfStrings(buffer, 'members', value.members);
+      _writeListOfStrings(buffer, 'readMembers', value.readMembers);
+      buffer.write('</ul>');
     } else {
       buffer.write(HTML_ESCAPE.convert(value.toString()));
       buffer.write(' <i>(${value.runtimeType.toString()})</i>');

@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.html;
 
 import 'dart:collection';
@@ -404,9 +401,14 @@ class HtmlParser extends XmlParser {
       new XmlAttributeNode(name, equals, value);
 
   @override
-  XmlTagNode createTagNode(Token nodeStart, Token tag,
-      List<XmlAttributeNode> attributes, Token attributeEnd,
-      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag,
+  XmlTagNode createTagNode(
+      Token nodeStart,
+      Token tag,
+      List<XmlAttributeNode> attributes,
+      Token attributeEnd,
+      List<XmlTagNode> tagNodes,
+      Token contentEnd,
+      Token closingTag,
       Token nodeEnd) {
     if (_isScriptNode(tag, attributes, tagNodes)) {
       HtmlScriptTagNode tagNode = new HtmlScriptTagNode(nodeStart, tag,
@@ -532,12 +534,17 @@ class HtmlScriptTagNode extends XmlTagNode {
    * @param closingTag the name of the tag that occurs in the closing tag
    * @param nodeEnd the last token in the tag
    */
-  HtmlScriptTagNode(Token nodeStart, Token tag,
-      List<XmlAttributeNode> attributes, Token attributeEnd,
-      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag,
+  HtmlScriptTagNode(
+      Token nodeStart,
+      Token tag,
+      List<XmlAttributeNode> attributes,
+      Token attributeEnd,
+      List<XmlTagNode> tagNodes,
+      Token contentEnd,
+      Token closingTag,
       Token nodeEnd)
       : super(nodeStart, tag, attributes, attributeEnd, tagNodes, contentEnd,
-          closingTag, nodeEnd);
+            closingTag, nodeEnd);
 
   /**
    * Return the AST structure representing the Dart code within this tag, or `null` if this
@@ -1424,11 +1431,17 @@ class XmlParser {
    * @param nodeEnd the last token in the tag
    * @return the node that was created
    */
-  XmlTagNode createTagNode(Token nodeStart, Token tag,
-      List<XmlAttributeNode> attributes, Token attributeEnd,
-      List<XmlTagNode> tagNodes, Token contentEnd, Token closingTag,
-      Token nodeEnd) => new XmlTagNode(nodeStart, tag, attributes, attributeEnd,
-      tagNodes, contentEnd, closingTag, nodeEnd);
+  XmlTagNode createTagNode(
+          Token nodeStart,
+          Token tag,
+          List<XmlAttributeNode> attributes,
+          Token attributeEnd,
+          List<XmlTagNode> tagNodes,
+          Token contentEnd,
+          Token closingTag,
+          Token nodeEnd) =>
+      new XmlTagNode(nodeStart, tag, attributes, attributeEnd, tagNodes,
+          contentEnd, closingTag, nodeEnd);
 
   /**
    * Answer `true` if the specified tag is self closing and thus should never have content or
@@ -1739,9 +1752,15 @@ class XmlTagNode extends XmlNode {
    * @param nodeEnd the ending [TokenType.GT] or [TokenType.SLASH_GT] token (not
    *          `null`)
    */
-  XmlTagNode(this.nodeStart, this._tag, List<XmlAttributeNode> attributes,
-      this.attributeEnd, List<XmlTagNode> tagNodes, this.contentEnd,
-      this.closingTag, this.nodeEnd) {
+  XmlTagNode(
+      this.nodeStart,
+      this._tag,
+      List<XmlAttributeNode> attributes,
+      this.attributeEnd,
+      List<XmlTagNode> tagNodes,
+      this.contentEnd,
+      this.closingTag,
+      this.nodeEnd) {
     this._attributes = becomeParentOfAll(attributes, ifEmpty: NO_ATTRIBUTES);
     this._tagNodes = becomeParentOfAll(tagNodes, ifEmpty: NO_TAG_NODES);
   }

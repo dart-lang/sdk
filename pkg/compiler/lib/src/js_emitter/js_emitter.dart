@@ -4,33 +4,50 @@
 
 library dart2js.js_emitter;
 
+import 'package:js_ast/src/precedence.dart' as js_precedence;
+import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
+
+
 import '../common.dart';
-
+import '../common/names.dart' show
+    Identifiers;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
 import '../constants/values.dart';
-
 import '../closure.dart' show
     ClosureClassElement,
     ClosureClassMap,
     ClosureFieldElement,
     CapturedVariable;
-
 import '../dart_types.dart' show
-    TypedefType;
-
+    DartType,
+    FunctionType,
+    InterfaceType,
+    TypedefType,
+    Types,
+    TypeVariableType;
+import '../deferred_load.dart' show
+    OutputUnit;
 import '../elements/elements.dart' show
+    ClassElement,
     ConstructorBodyElement,
+    Element,
+    Elements,
     ElementKind,
     FieldElement,
-    ParameterElement,
-    TypeVariableElement,
+    FunctionElement,
+    FunctionSignature,
+    MetadataAnnotation,
     MethodElement,
-    MemberElement;
-
+    MemberElement,
+    MixinApplicationElement,
+    ParameterElement,
+    TypeVariableElement;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
-
-import 'package:js_ast/src/precedence.dart' as js_precedence;
-
 import '../js_backend/js_backend.dart' show
     CheckedModeHelper,
     CompoundName,
@@ -41,34 +58,28 @@ import '../js_backend/js_backend.dart' show
     JavaScriptConstantCompiler,
     Namer,
     RuntimeTypes,
+    RuntimeTypesEncoder,
     SetterName,
     Substitution,
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
+import '../native/native.dart' as native;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/universe.dart' show
+    SelectorConstraints;
+import '../util/util.dart' show
+    Setlet;
 
-import 'model.dart';
-import 'program_builder/program_builder.dart';
 
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
+import 'model.dart';
+import 'program_builder/program_builder.dart';
 import 'startup_emitter/emitter.dart' as startup_js_emitter;
-
-import '../universe/universe.dart' show
-    TypeMaskSet,
-    TypedSelector;
-
-import '../util/util.dart' show
-    NO_LOCATION_SPANNABLE,
-    Setlet;
-
-import '../deferred_load.dart' show
-    OutputUnit;
-
-import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
-import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
-
-import '../native/native.dart' as native;
 
 part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';

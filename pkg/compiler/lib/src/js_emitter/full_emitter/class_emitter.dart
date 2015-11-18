@@ -49,7 +49,7 @@ class ClassEmitter extends CodeEmitterHelper {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       jsAst.Fun function = js('function() { return this; }');
-      jsAst.Name name = namer.getterForMember(Selector.CALL_NAME);
+      jsAst.Name name = namer.getterForMember(Names.call);
       builder.addProperty(name, function);
     }
 
@@ -156,7 +156,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
           int code = field.getterFlags + (field.setterFlags << 2);
           if (code == 0) {
-            compiler.internalError(fieldElement,
+            reporter.internalError(fieldElement,
                 'Field code is 0 ($fieldElement).');
           }
           fieldNameParts.add(
@@ -212,7 +212,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     for (Field field in cls.fields) {
       Element member = field.element;
-      compiler.withCurrentElement(member, () {
+      reporter.withCurrentElement(member, () {
         if (field.needsGetter) {
           emitGetterForCSP(member, field.name, field.accessorName, builder);
         }
@@ -341,7 +341,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
     String reflectionName = emitter.getReflectionName(classElement, className);
     if (reflectionName != null) {
-      if (!backend.isAccessibleByReflection(classElement)) {
+      if (!backend.isAccessibleByReflection(classElement) || cls.onlyForRti) {
         // TODO(herhut): Fix use of reflection name here.
         enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
       } else {
@@ -422,8 +422,10 @@ class ClassEmitter extends CodeEmitterHelper {
                                                     ClassBuilder builder,
                                                     {bool isGetter}) {
     Selector selector = isGetter
-        ? new Selector.getter(member.name, member.library)
-        : new Selector.setter(member.name, member.library);
+        ? new Selector.getter(
+            new Name(member.name, member.library))
+        : new Selector.setter(
+            new Name(member.name, member.library, isSetter: true));
     String reflectionName = emitter.getReflectionName(selector, name);
     if (reflectionName != null) {
       var reflectable =

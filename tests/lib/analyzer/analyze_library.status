@@ -24,3 +24,5 @@ lib/html/html_common/html_common: CompileTimeError # Issue 21647
 lib/indexed_db/dartium/indexed_db_dartium: CompileTimeError # Issue 21647
 lib/web_audio/dartium/web_audio_dartium: CompileTimeError # Issue 21647
 lib/svg/dartium/svg_dartium: CompileTimeError # Issue 21647
+lib/_blink/dartium/_blink_dartium: CompileTimeError # Dartium JsInterop roll (js.JsObjectImpl)
+lib/js/dartium/js_dartium: CompileTimeError # Dartium JsInterop roll (js.JsObjectImpl)

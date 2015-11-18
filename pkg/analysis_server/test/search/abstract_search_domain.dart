@@ -6,8 +6,8 @@ library test.search.abstract_search_domain;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -66,7 +66,13 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
 
   String getPathString(List<Element> path) {
     return path.map((Element element) {
-      return '${element.kind.name} ${element.name}';
+      String kindName = element.kind.name;
+      String name = element.name;
+      if (name.isEmpty) {
+        return kindName;
+      } else {
+        return '$kindName $name';
+      }
     }).join('\n');
   }
 

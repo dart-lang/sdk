@@ -6,17 +6,18 @@ library test.services.refactoring.extract_method;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ExtractMethodTest);
 }
 
@@ -872,7 +873,8 @@ main() {
     // check
     RefactoringStatus status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract closure as method, it references 1 external variable(s).');
+        expectedMessage:
+            'Cannot extract closure as method, it references 1 external variable(s).');
   }
 
   test_closure_bad_referencesParameter() async {
@@ -886,7 +888,8 @@ main(int k) {
     // check
     RefactoringStatus status = await refactoring.checkInitialConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract closure as method, it references 1 external variable(s).');
+        expectedMessage:
+            'Cannot extract closure as method, it references 1 external variable(s).');
   }
 
   test_fromTopLevelVariableInitializerClosure() {
@@ -1063,6 +1066,24 @@ main() {
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, 'int');
+  }
+
+  test_returnType_mixInterfaceFunction() async {
+    indexTestUnit('''
+main() {
+// start
+  if (true) {
+    return 1;
+  } else {
+    return () {};
+  }
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, 'Object');
   }
 
   test_returnType_statements() async {
@@ -2578,6 +2599,35 @@ int res() {
 ''');
   }
 
+  test_statements_return_multiple_interfaceFunction() {
+    indexTestUnit('''
+main(bool b) {
+// start
+  if (b) {
+    return 1;
+  }
+  return () {};
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(bool b) {
+// start
+  return res(b);
+// end
+}
+
+Object res(bool b) {
+  if (b) {
+    return 1;
+  }
+  return () {};
+}
+''');
+  }
+
   test_statements_return_multiple_sameElementDifferentTypeArgs() {
     indexTestUnit('''
 main(bool b) {
@@ -2668,7 +2718,9 @@ void res() {
   }
 
   void _addLibraryReturningAsync() {
-    addSource('/asyncLib.dart', r'''
+    addSource(
+        '/asyncLib.dart',
+        r'''
 library asyncLib;
 import 'dart:async';
 Future<int> newFuture() => null;

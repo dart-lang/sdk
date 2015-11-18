@@ -15,6 +15,7 @@ class ParameterStubGenerator {
 
   Emitter get emitter => backend.emitter.emitter;
   CodeEmitterTask get emitterTask => backend.emitter;
+  DiagnosticReporter get reporter => compiler.reporter;
 
   bool needsSuperGetter(FunctionElement element) =>
     compiler.codegenWorld.methodsNeedingSuperGetter.contains(element);
@@ -60,8 +61,8 @@ class ParameterStubGenerator {
     // If the method is intercepted, we need to also pass the actual receiver.
     int extraArgumentCount = isInterceptedMethod ? 1 : 0;
     // Use '$receiver' to avoid clashes with other parameter names. Using
-    // '$receiver' works because namer.safeVariableName used for getting parameter
-    // names never returns a name beginning with a single '$'.
+    // '$receiver' works because namer.safeVariableName used for getting
+    // parameter names never returns a name beginning with a single '$'.
     String receiverArgumentName = r'$receiver';
 
     // The parameters that this stub takes.
@@ -190,24 +191,24 @@ class ParameterStubGenerator {
     if (member.enclosingElement.isClosure) {
       ClosureClassElement cls = member.enclosingElement;
       if (cls.supertype.element == backend.boundClosureClass) {
-        compiler.internalError(cls.methodElement, 'Bound closure1.');
+        reporter.internalError(cls.methodElement, 'Bound closure1.');
       }
       if (cls.methodElement.isInstanceMember) {
-        compiler.internalError(cls.methodElement, 'Bound closure2.');
+        reporter.internalError(cls.methodElement, 'Bound closure2.');
       }
     }
 
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.
-    Map<Selector, TypeMaskSet> selectors;
+    Map<Selector, SelectorConstraints> selectors;
     // The set of selectors that apply to `member` if it's name was `call`.
     // This happens when a member is torn off. In that case calls to the
     // function use the name `call`, and we must be able to handle every
     // `call` invocation that matches the signature. For example, for
     // a member `foo(x, [y])` the following selectors would be possible
     // call-selectors: `call(x)`, and `call(x, y)`.
-    Map<Selector, TypeMaskSet> callSelectors;
+    Map<Selector, SelectorConstraints> callSelectors;
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
@@ -220,8 +221,9 @@ class ParameterStubGenerator {
     }
 
     assert(emptySelectorSet.isEmpty);
-    if (selectors == null) selectors = const <Selector, TypeMaskSet>{};
-    if (callSelectors == null) callSelectors = const <Selector, TypeMaskSet>{};
+    if (selectors == null) selectors = const <Selector, SelectorConstraints>{};
+    if (callSelectors == null) callSelectors =
+        const <Selector, SelectorConstraints>{};
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 
@@ -242,8 +244,7 @@ class ParameterStubGenerator {
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
     for (Selector selector in callSelectors.keys) {
-      Selector renamedSelector = new Selector(
-          SelectorKind.CALL,
+      Selector renamedSelector = new Selector.call(
           member.memberName,
           selector.callStructure);
       renamedCallSelectors.add(renamedSelector);

@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/dartutils.h"
+#include "bin/dbg_connection.h"
+#include "bin/eventhandler.h"
 #include "bin/io_buffer.h"
+#include "bin/log.h"
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/socket.h"
@@ -13,6 +16,10 @@
 
 namespace dart {
 namespace bin {
+
+// Global flag that is used to indicate that the VM should do a clean
+// shutdown.
+bool do_vm_shutdown = false;
 
 static const int kProcessIdNativeField = 0;
 
@@ -34,9 +41,15 @@ static char** ExtractCStringList(Dart_Handle strings,
   // Protect against user-defined list implementations that can have
   // arbitrary length.
   if (len < 0 || len > kMaxArgumentListLength) {
-    DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
-    DartUtils::SetStringField(
+    result = DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+    result = DartUtils::SetStringField(
         status_handle, "_errorMessage", "Max argument list length exceeded");
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
     return NULL;
   }
   *length = len;
@@ -48,9 +61,15 @@ static char** ExtractCStringList(Dart_Handle strings,
       Dart_PropagateError(arg);
     }
     if (!Dart_IsString(arg)) {
-      DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
-      DartUtils::SetStringField(
+      result = DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+      if (Dart_IsError(result)) {
+        Dart_PropagateError(result);
+      }
+      result = DartUtils::SetStringField(
           status_handle, "_errorMessage", error_msg);
+      if (Dart_IsError(result)) {
+        Dart_PropagateError(result);
+      }
       delete[] string_args;
       return NULL;
     }
@@ -65,15 +84,22 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   intptr_t process_stdout;
   intptr_t process_stderr;
   intptr_t exit_event;
+  Dart_Handle result;
   Dart_Handle status_handle = Dart_GetNativeArgument(args, 10);
   Dart_Handle path_handle = Dart_GetNativeArgument(args, 1);
   // The Dart code verifies that the path implements the String
   // interface. However, only builtin Strings are handled by
   // GetStringValue.
   if (!Dart_IsString(path_handle)) {
-    DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
-    DartUtils::SetStringField(
+    result = DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+    result = DartUtils::SetStringField(
         status_handle, "_errorMessage", "Path must be a builtin string");
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
     Dart_SetReturnValue(args, Dart_NewBoolean(false));
     return;
   }
@@ -96,10 +122,16 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     working_directory = DartUtils::GetStringValue(working_directory_handle);
   } else if (!Dart_IsNull(working_directory_handle)) {
     delete[] string_args;
-    DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
-    DartUtils::SetStringField(
+    result = DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+    result = DartUtils::SetStringField(
         status_handle, "_errorMessage",
         "WorkingDirectory must be a builtin string");
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
     Dart_SetReturnValue(args, Dart_NewBoolean(false));
     return;
   }
@@ -151,13 +183,19 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     }
     Process::SetProcessIdNativeField(process, pid);
   } else {
-    DartUtils::SetIntegerField(
+    result = DartUtils::SetIntegerField(
         status_handle, "_errorCode", error_code);
-    DartUtils::SetStringField(
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+    result = DartUtils::SetStringField(
         status_handle,
         "_errorMessage",
         os_error_message != NULL ? os_error_message
                                  : "Cannot get error message");
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
   }
   delete[] string_args;
   delete[] string_environment;
@@ -216,8 +254,25 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   int64_t status = 0;
   // Ignore result if passing invalid argument and just exit 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
-  Dart_ExitIsolate();
-  Dart_Cleanup();
+  Dart_ShutdownIsolate();
+  Process::TerminateExitCodeHandler();
+  char* error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
+  }
+  if (do_vm_shutdown) {
+#ifdef LEGACY_DEBUG_PROTOCOL_ENABLED
+    // Note that this dependency crosses logical project boundaries by making
+    // the dart:io implementation depend upon the standalone VM's legacy debug
+    // protocol. This breaks projects which want to use our dart:io
+    // implementation. Because the protocol is going away shortly, it's
+    // reasonable to leave it behind a #ifdef that is only enabled for the
+    // standalone VM for now.
+    DebuggerConnectionHandler::StopHandler();
+#endif
+    EventHandler::Stop();
+  }
   exit(static_cast<int>(status));
 }
 

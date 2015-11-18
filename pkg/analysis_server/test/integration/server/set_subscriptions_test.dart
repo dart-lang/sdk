@@ -6,13 +6,15 @@ library test.integration.server.set.subscriptions;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
+  initializeTestEnvironment();
   defineReflectiveTests(Test);
 }
 
@@ -31,7 +33,9 @@ class Test extends AbstractAnalysisServerIntegrationTest {
     });
     return sendServerSetSubscriptions([]).then((_) {
       String pathname = sourcePath('test.dart');
-      writeFile(pathname, '''
+      writeFile(
+          pathname,
+          '''
 main() {
   var x;
 }''');
@@ -42,7 +46,9 @@ main() {
         expect(statusReceived, isFalse);
         return sendServerSetSubscriptions([ServerService.STATUS]).then((_) {
           // Tickle test.dart just in case analysis has already completed.
-          writeFile(pathname, '''
+          writeFile(
+              pathname,
+              '''
 main() {
   var y;
 }''');

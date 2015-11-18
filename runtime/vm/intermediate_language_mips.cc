@@ -23,6 +23,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
@@ -272,13 +273,13 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // S5: Smi 0 (no IC data; the lazy-compile stub expects a GC-safe value).
   ASSERT(locs()->in(0).reg() == T0);
   __ LoadImmediate(S5, 0);
-  __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
-  __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
+  __ lw(T2, FieldAddress(T0, Function::entry_point_offset()));
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ jalr(T2);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
   }
@@ -989,31 +990,38 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
   // into the runtime system.
-  uword entry = reinterpret_cast<uword>(native_c_function());
+  uword entry;
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
     (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
-  const StubEntry* stub_entry = NULL;
-  if (is_bootstrap_native() || is_leaf_call) {
+  const StubEntry* stub_entry;
+  if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-#if defined(USING_SIMULATOR)
-    entry = Simulator::RedirectExternalReference(
-        entry, Simulator::kBootstrapNativeCall, function().NumParameters());
-#endif
+    entry = NativeEntry::LinkNativeCallEntry();
   } else {
-    // In the case of non bootstrap native methods the CallNativeCFunction
-    // stub generates the redirection address when running under the simulator
-    // and hence we do not change 'entry' here.
-    stub_entry = StubCode::CallNativeCFunction_entry();
+    entry = reinterpret_cast<uword>(native_c_function());
+    if (is_bootstrap_native() || is_leaf_call) {
+      stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
-    if (!function().IsNativeAutoSetupScope()) {
       entry = Simulator::RedirectExternalReference(
-          entry, Simulator::kBootstrapNativeCall, function().NumParameters());
-    }
+          entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
+    } else {
+      // In the case of non bootstrap native methods the CallNativeCFunction
+      // stub generates the redirection address when running under the simulator
+      // and hence we do not change 'entry' here.
+      stub_entry = StubCode::CallNativeCFunction_entry();
+#if defined(USING_SIMULATOR)
+      if (!function().IsNativeAutoSetupScope()) {
+        entry = Simulator::RedirectExternalReference(
+            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
+      }
+#endif
+    }
   }
-  __ LoadImmediate(T5, entry);
   __ LoadImmediate(A1, argc_tag);
+  ExternalLabel label(entry);
+  __ LoadNativeEntry(T5, &label, kNotPatchable);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
@@ -1040,8 +1048,7 @@ void StringFromCharCodeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ Comment("StringFromCharCodeInstr");
 
-  __ LoadImmediate(result,
-                   reinterpret_cast<uword>(Symbols::PredefinedAddress()));
+  __ lw(result, Address(THR, Thread::predefined_symbols_address_offset()));
   __ AddImmediate(result, Symbols::kNullCharCodeSymbolOffset * kWordSize);
   __ sll(TMP, char_code, 1);  // Char code is a smi.
   __ addu(TMP, TMP, result);
@@ -1728,7 +1735,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ LoadImmediate(TMP, kNullCid);
           __ subu(CMPRES1, value_cid_reg, TMP);
         } else {
-          __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
+          __ LoadObject(TMP, Object::null_object());
           __ subu(CMPRES1, value_reg, TMP);
         }
       }
@@ -1837,16 +1844,14 @@ class BoxAllocationSlowPath : public SlowPathCode {
         result_(result) { }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    Isolate* isolate = compiler->isolate();
-
     if (Assembler::EmittingComments()) {
       __ Comment("%s slow path allocation of %s",
                  instruction_->DebugName(),
                  String::Handle(cls_.PrettyName()).ToCString());
     }
     __ Bind(entry_label());
-    const Code& stub =
-        Code::Handle(isolate, StubCode::GetAllocationStubForClass(cls_));
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::GetAllocationStubForClass(cls_));
     const StubEntry stub_entry(stub);
 
     LocationSummary* locs = instruction_->locs();
@@ -2084,7 +2089,9 @@ void LoadStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("LoadStaticFieldInstr");
   Register field = locs()->in(0).reg();
   Register result = locs()->out(0).reg();
-  __ LoadFromOffset(result, field, Field::value_offset() - kHeapObjectTag);
+  __ LoadFromOffset(result,
+                    field,
+                    Field::static_value_offset() - kHeapObjectTag);
 }
 
 
@@ -2107,10 +2114,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadObject(temp, field());
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp,
-        FieldAddress(temp, Field::value_offset()), value, CanValueBeSmi());
+                       FieldAddress(temp, Field::static_value_offset()),
+                       value,
+                       CanValueBeSmi());
   } else {
     __ StoreIntoObjectNoBarrier(
-        temp, FieldAddress(temp, Field::value_offset()), value);
+        temp, FieldAddress(temp, Field::static_value_offset()), value);
   }
 }
 
@@ -2193,7 +2202,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // T7: null.
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(RawArray);
-    __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+    __ LoadObject(T7, Object::null_object());
     __ AddImmediate(T2, V0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
       intptr_t current_offset = 0;
@@ -2246,8 +2255,8 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ Bind(&slow_path);
-  const Code& stub = Code::Handle(compiler->isolate(),
-                                  StubCode::AllocateArray_entry()->code());
+  const Code& stub = Code::ZoneHandle(compiler->zone(),
+                                      StubCode::AllocateArray_entry()->code());
   compiler->AddStubCallTarget(stub);
   compiler->GenerateCall(token_pos(),
                          *StubCode::AllocateArray_entry(),
@@ -2498,8 +2507,8 @@ class AllocateContextSlowPath : public SlowPathCode {
     compiler->SaveLiveRegisters(locs);
 
     __ LoadImmediate(T1, instruction_->num_context_variables());
-    const Code& stub = Code::Handle(compiler->isolate(),
-                                    StubCode::AllocateContext_entry()->code());
+    const Code& stub = Code::ZoneHandle(
+        compiler->zone(), StubCode::AllocateContext_entry()->code());
     compiler->AddStubCallTarget(stub);
     compiler->GenerateCall(instruction_->token_pos(),
                            *StubCode::AllocateContext_entry(),
@@ -2584,7 +2593,7 @@ void InitStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label call_runtime, no_call;
   __ Comment("InitStaticFieldInstr");
 
-  __ lw(temp, FieldAddress(field, Field::value_offset()));
+  __ lw(temp, FieldAddress(field, Field::static_value_offset()));
   __ BranchEqual(temp, Object::sentinel(), &call_runtime);
   __ BranchNotEqual(temp, Object::transition_sentinel(), &no_call);
 
@@ -2654,11 +2663,8 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 catch_handler_types_,
                                 needs_stacktrace());
   // Restore pool pointer.
-  __ GetNextPC(CMPRES1, TMP);
-  const intptr_t object_pool_pc_dist =
-     Instructions::HeaderSize() - Instructions::object_pool_offset() +
-     compiler->assembler()->CodeSize() - 1 * Instr::kInstrSize;
-  __ LoadFromOffset(PP, CMPRES1, -object_pool_pc_dist);
+  __ RestoreCodePointer();
+  __ LoadPoolPointer();
 
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2704,6 +2710,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
+      ASSERT(FLAG_allow_absolute_addresses);
       __ LoadImmediate(TMP, flags_address);
       __ LoadImmediate(value, Isolate::kOsrRequest);
       __ sw(value, Address(TMP));
@@ -2749,7 +2756,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
     __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
     __ lw(CMPRES1, Address(TMP));
   } else {
@@ -4924,12 +4931,19 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ or_(out_lo, out_lo, TMP);
           __ sra(out_hi, left_hi, shift);
         } else {
-          __ sra(out_lo, left_hi, shift - 32);
+          if (shift == 32) {
+            __ mov(out_lo, left_hi);
+          } else if (shift < 64) {
+            __ sra(out_lo, left_hi, shift - 32);
+          } else {
+            __ sra(out_lo, left_hi, 31);
+          }
           __ sra(out_hi, left_hi, 31);
         }
         break;
       }
       case Token::kSHL: {
+        ASSERT(shift < 64);
         if (shift < 32) {
           __ srl(out_hi, left_lo, 32 - shift);
           __ sll(TMP, left_hi, shift);
@@ -5375,13 +5389,10 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("GotoInstr");
   if (!compiler->is_optimizing()) {
     if (FLAG_emit_edge_counters) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
-    // may be inserted before this instruction.  On MIPS this descriptor
-    // points after the edge counter code so that we can reuse the same
-    // pattern matching code as at call sites, which matches backwards from
-    // the end of the pattern.
+    // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);
@@ -5414,20 +5425,22 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
+  Register target_reg = locs()->temp_slot(0)->reg();
 
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ lw(target_address_reg, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  __ GetNextPC(target_reg, TMP);
+  const intptr_t entry_offset =
+     __ CodeSize() - 1 * Instr::kInstrSize;
+  __ AddImmediate(target_reg, target_reg, -entry_offset);
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
   if (offset()->definition()->representation() == kTagged) {
   __ SmiUntag(offset_reg);
   }
-  __ addu(target_address_reg, target_address_reg, offset_reg);
+  __ addu(target_reg, target_reg, offset_reg);
 
   // Jump to the absolute address.
-  __ jr(target_address_reg);
+  __ jr(target_reg);
 }
 
 
@@ -5545,9 +5558,8 @@ LocationSummary* AllocateObjectInstr::MakeLocationSummary(Zone* zone,
 
 void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("AllocateObjectInstr");
-  Isolate* isolate = compiler->isolate();
-  const Code& stub = Code::Handle(isolate,
-                                  StubCode::GetAllocationStubForClass(cls()));
+  const Code& stub = Code::ZoneHandle(
+      compiler->zone(), StubCode::GetAllocationStubForClass(cls()));
   const StubEntry stub_entry(stub);
   compiler->GenerateCall(token_pos(),
                          stub_entry,

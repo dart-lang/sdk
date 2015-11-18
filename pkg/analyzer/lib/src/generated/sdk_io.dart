@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.sdk.io;
 
 import 'dart:io';
@@ -342,8 +339,10 @@ class DirectoryBasedDartSdk implements DartSdk {
   JavaFile get pubExecutable {
     if (_pubExecutable == null) {
       _pubExecutable = _verifyExecutable(new JavaFile.relative(
-          new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME), OSUtilities
-              .isWindows() ? _PUB_EXECUTABLE_NAME_WIN : _PUB_EXECUTABLE_NAME));
+          new JavaFile.relative(_sdkDirectory, _BIN_DIRECTORY_NAME),
+          OSUtilities.isWindows()
+              ? _PUB_EXECUTABLE_NAME_WIN
+              : _PUB_EXECUTABLE_NAME));
     }
     return _pubExecutable;
   }
@@ -398,6 +397,22 @@ class DirectoryBasedDartSdk implements DartSdk {
           vmBinaryName));
     }
     return _vmExecutable;
+  }
+
+  /**
+   * Determine the search order for trying to locate the [_LIBRARIES_FILE].
+   */
+  Iterable<JavaFile> get _libraryMapLocations sync* {
+    yield new JavaFile.relative(
+        new JavaFile.relative(
+            new JavaFile.relative(
+                new JavaFile.relative(libraryDirectory, _INTERNAL_DIR),
+                _SDK_LIBRARY_METADATA_DIR),
+            _SDK_LIBRARY_METADATA_LIB_DIR),
+        _LIBRARIES_FILE);
+    yield new JavaFile.relative(
+        new JavaFile.relative(libraryDirectory, _INTERNAL_DIR),
+        _LIBRARIES_FILE);
   }
 
   @override
@@ -474,23 +489,24 @@ class DirectoryBasedDartSdk implements DartSdk {
    * is available. Return the initialized library map.
    */
   LibraryMap initialLibraryMap(bool useDart2jsPaths) {
-    JavaFile librariesFile = new JavaFile.relative(
-        new JavaFile.relative(
-          new JavaFile.relative(
-            new JavaFile.relative(libraryDirectory, _INTERNAL_DIR),
-            _SDK_LIBRARY_METADATA_DIR),
-          _SDK_LIBRARY_METADATA_LIB_DIR),
-        _LIBRARIES_FILE);
-    try {
-      String contents = librariesFile.readAsStringSync();
-      return new SdkLibrariesReader(useDart2jsPaths).readFromFile(
-          librariesFile, contents);
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          "Could not initialize the library map from ${librariesFile.getAbsolutePath()}",
-          new CaughtException(exception, stackTrace));
-      return new LibraryMap();
+    List<String> searchedPaths = <String>[];
+    var lastStackTrace = null;
+    var lastException = null;
+    for (JavaFile librariesFile in _libraryMapLocations) {
+      try {
+        String contents = librariesFile.readAsStringSync();
+        return new SdkLibrariesReader(useDart2jsPaths)
+            .readFromFile(librariesFile, contents);
+      } catch (exception, stackTrace) {
+        searchedPaths.add(librariesFile.getAbsolutePath());
+        lastException = exception;
+        lastStackTrace = stackTrace;
+      }
     }
+    AnalysisEngine.instance.logger.logError(
+        "Could not initialize the library map from $searchedPaths",
+        new CaughtException(lastException, lastStackTrace));
+    return new LibraryMap();
   }
 
   @override

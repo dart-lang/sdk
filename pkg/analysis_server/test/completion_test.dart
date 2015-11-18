@@ -10,17 +10,19 @@ import 'dart:collection';
 import 'package:unittest/unittest.dart';
 
 import 'completion_test_support.dart';
+import 'utils.dart';
+
+main() {
+  initializeTestEnvironment();
+  CompletionTestBuilder builder = new CompletionTestBuilder();
+  builder.buildAll();
+}
 
 /**
  * Assigning the name of a single test to this string causes just that test to
  * be run.  Assigning null to this string causes all tests to be run.
  */
 const String SOLO_TEST = null;
-
-main() {
-  CompletionTestBuilder builder = new CompletionTestBuilder();
-  builder.buildAll();
-}
 
 /**
  * Type of functions used to create tests.
@@ -53,193 +55,316 @@ class CompletionTestBuilder {
   }
 
   void buildCommentSnippetTests() {
-    buildTests('testCommentSnippets001', '''
+    buildTests(
+        'testCommentSnippets001',
+        '''
 class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}''',
         <String>["1+MAX", "2+xc", "3+MAX"]);
 
-    buildTests('testCommentSnippets002', '''
+    buildTests(
+        'testCommentSnippets002',
+        '''
 class Y {String x='hi';mth() {x.l!1ength;int n = 0;x!2.codeUnitAt(n!3);}}''',
         <String>["1+length", "2+x", "3+n"]);
 
-    buildTests('testCommentSnippets004', '''
+    buildTests(
+        'testCommentSnippets004',
+        '''
 class A {!1int x; !2mth() {!3int y = this.!5x!6;}}class B{}''',
         <String>["1+A", "2+B", "3+x", "3-y", "5+mth", "6+x"]);
 
-    buildTests('testCommentSnippets005', '''
+    buildTests(
+        'testCommentSnippets005',
+        '''
 class Date { static Date JUN, JUL;}class X { m() { return Da!1te.JU!2L; }}''',
         <String>["1+Date", "2+JUN", "2+JUL"]);
 
-    buildTests('testCommentSnippets007', '''
+    buildTests(
+        'testCommentSnippets007',
+        '''
 class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x;}}class int{}class Arrays{}''',
         <String>["1+bool", "2+bool", "3+int", "4+Arrays"]);
 
-    buildTests('testCommentSnippets008', '''
-class Date{}final num M = Dat!1''', <String>["1+Date"]);
+    buildTests(
+        'testCommentSnippets008',
+        '''
+class Date{}final num M = Dat!1''',
+        <String>["1+Date"]);
 
     // space, char, eol are important
-    buildTests('testCommentSnippets009', '''
-class Maps{}class x extends!5 !2M!3 !4implements!6 !1\n{}''', <String>[
-      "1+Map",
-      "2+Maps",
-      "3+Maps",
-      "4-Maps",
-      "4+implements",
-      "5-Maps",
-      "6-Map",
-      "6+implements"
-    ], failingTests: '46');
+    buildTests(
+        'testCommentSnippets009',
+        '''
+class Maps{}class x extends!5 !2M!3 !4implements!6 !1\n{}''',
+        <String>[
+          "1+Map",
+          "2+Maps",
+          "3+Maps",
+          "4-Maps",
+          "4+implements",
+          "5-Maps",
+          "6-Map",
+          "6+implements"
+        ],
+        failingTests: '46');
 
     // space, char, eol are important
-    buildTests('testCommentSnippets010', '''
-class x implements !1{}''', <String>["1+Map"]);
+    buildTests(
+        'testCommentSnippets010',
+        '''
+class x implements !1{}''',
+        <String>["1+Map"]);
 
     // space, char, eol are important
-    buildTests('testCommentSnippets011', '''
-class x implements M!1{}''', <String>["1+Map"]);
+    buildTests(
+        'testCommentSnippets011',
+        '''
+class x implements M!1{}''',
+        <String>["1+Map"]);
 
     // space, char, eol are important
-    buildTests('testCommentSnippets012', '''
-class x implements M!1\n{}''', <String>["1+Map"]);
+    buildTests(
+        'testCommentSnippets012',
+        '''
+class x implements M!1\n{}''',
+        <String>["1+Map"]);
 
-    buildTests('testCommentSnippets013', '''
-class x !2{!1}!3''', <String>["1+num", "2-num", "3+num"]);
+    buildTests(
+        'testCommentSnippets013',
+        '''
+class x !2{!1}!3''',
+        <String>["1+num", "2-num", "3+num"]);
 
     // trailing space is important
-    buildTests('testCommentSnippets014', '''
-typedef n!1 ;''', <String>["1+num"]);
+    buildTests(
+        'testCommentSnippets014',
+        '''
+typedef n!1 ;''',
+        <String>["1+num"]);
 
-    buildTests('testCommentSnippets015', '''
-class D {f(){} g(){f!1(f!2);}}''', <String>["1+f", "2+f"]);
+    buildTests(
+        'testCommentSnippets015',
+        '''
+class D {f(){} g(){f!1(f!2);}}''',
+        <String>["1+f", "2+f"]);
 
-    buildTests('testCommentSnippets016', '''
-class F {m() { m(); !1}}''', <String>["1+m"]);
+    buildTests(
+        'testCommentSnippets016',
+        '''
+class F {m() { m(); !1}}''',
+        <String>["1+m"]);
 
-    buildTests('testCommentSnippets017', '''
-class F {var x = !1false;}''', <String>["1+true"]);
+    buildTests(
+        'testCommentSnippets017',
+        '''
+class F {var x = !1false;}''',
+        <String>["1+true"]);
 
-    buildTests('testCommentSnippets018', '''
+    buildTests(
+        'testCommentSnippets018',
+        '''
 class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)''',
         <String>["1+Map", "1-void", "1-null", "2+Arrays", "2-void", "2-null"]);
 
-    buildTests('testCommentSnippets019', '''
-class A{m(){Object x;x.!1/**/clear()''', <String>["1+toString"]);
+    buildTests(
+        'testCommentSnippets019',
+        '''
+class A{m(){Object x;x.!1/**/clear()''',
+        <String>["1+toString"]);
 
-    buildTests('testCommentSnippets020', '''
+    buildTests(
+        'testCommentSnippets020',
+        '''
 classMap{}class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}''',
         <String>["1+newt", "1+newf", "1+newz", "1-Map"]);
 
-    buildTests('testCommentSnippets021', '''
+    buildTests(
+        'testCommentSnippets021',
+        '''
 class Map{}class tst {var newt;void newf(){}test() {var newz;new !1/**/;}}''',
         <String>["1+Map", "1-newt"]);
 
-    buildTests('testCommentSnippets022', '''
-class Map{}class F{m(){new !1;}}''', <String>["1+Map"]);
+    buildTests(
+        'testCommentSnippets022',
+        '''
+class Map{}class F{m(){new !1;}}''',
+        <String>["1+Map"]);
 
-    buildTests('testCommentSnippets022a', '''
-class Map{}class F{m(){new !1''', <String>["1+Map"]);
+    buildTests(
+        'testCommentSnippets022a',
+        '''
+class Map{}class F{m(){new !1''',
+        <String>["1+Map"]);
 
-    buildTests('testCommentSnippets022b', '''
+    buildTests(
+        'testCommentSnippets022b',
+        '''
 class Map{factory Map.qq(){return null;}}class F{m(){new Map.!1qq();}}''',
         <String>["1+qq"]);
 
-    buildTests('testCommentSnippets023', '''
+    buildTests(
+        'testCommentSnippets023',
+        '''
 class X {X c; X(this.!1c!3) : super() {c.!2}}''',
         <String>["1+c", "2+c", "3+c"]);
 
-    buildTests('testCommentSnippets024', '''
-class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}''', <String>["1+x", "2+x"]);
+    buildTests(
+        'testCommentSnippets024',
+        '''
+class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}''',
+        <String>["1+x", "2+x"]);
 
-    buildTests('testCommentSnippets025', '''
+    buildTests(
+        'testCommentSnippets025',
+        '''
 class q {num m() {var q; num x=!1 q!3 + !2/**/;}}''',
         <String>["1+q", "2+q", "3+q"]);
 
-    buildTests('testCommentSnippets026', '''
-class List{}class a implements !1{}''', <String>["1+List"]);
+    buildTests(
+        'testCommentSnippets026',
+        '''
+class List{}class a implements !1{}''',
+        <String>["1+List"]);
 
-    buildTests('testCommentSnippets027', '''
+    buildTests(
+        'testCommentSnippets027',
+        '''
 class String{}class List{}class test <X extends !1String!2> {}''',
         <String>["1+List", "2+String", "2-List"]);
 
-    buildTests('testCommentSnippets028', '''
+    buildTests(
+        'testCommentSnippets028',
+        '''
 class String{}class List{}class DateTime{}typedef T Y<T extends !1>(List input);''',
         <String>["1+DateTime", "1+String"]);
 
-    buildTests('testCommentSnippets029', '''
+    buildTests(
+        'testCommentSnippets029',
+        '''
 interface A<X> default B<X extends !1List!2> {}''',
         <String>["1+DateTime", "2+List"]);
 
-    buildTests('testCommentSnippets030', '''
+    buildTests(
+        'testCommentSnippets030',
+        '''
 class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}final T!6 f = null;}''',
         <String>["1+T", "2+T", "3+T", "4+T", "5+T", "6+T"],
         failingTests: '123456');
 
-    buildTests('testCommentSnippets031', '''
+    buildTests(
+        'testCommentSnippets031',
+        '''
 class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is!!!2)}}''',
-        <String>["1+Bar", "1+T", "2+T", "2+Bar"], failingTests: '12');
+        <String>["1+Bar", "1+T", "2+T", "2+Bar"],
+        failingTests: '12');
 
-    buildTests('testCommentSnippets032', '''
+    buildTests(
+        'testCommentSnippets032',
+        '''
 class Fit{}class Bar<T extends Fooa> {const !2F!1ara();}''',
-        <String>["1+Fit", "1+Fara", "1-Bar", "2+Fit"], failingTests: '1');
+        <String>["1+Fit", "1+Fara", "1-Bar", "2+Fit"],
+        failingTests: '1');
 
     // Type propagation
-    buildTests('testCommentSnippets033', '''
+    buildTests(
+        'testCommentSnippets033',
+        '''
 class List{add(){}length(){}}t1() {var x;if (x is List) {x.!1add(3);}}''',
         <String>["1+add", "1+length"]);
 
     // Type propagation
-    buildTests('testCommentSnippets035', '''
+    buildTests(
+        'testCommentSnippets035',
+        '''
 class List{clear(){}length(){}}t3() {var x=new List(), y=x.!1length();x.!2clear();}''',
         <String>["1+length", "2+clear"]);
 
-    buildTests('testCommentSnippets036', '''
-class List{}t3() {var x=new List!1}''', <String>["1+List"]);
+    buildTests(
+        'testCommentSnippets036',
+        '''
+class List{}t3() {var x=new List!1}''',
+        <String>["1+List"]);
 
-    buildTests('testCommentSnippets037', '''
+    buildTests(
+        'testCommentSnippets037',
+        '''
 class List{factory List.from(){}}t3() {var x=new List.!1}''',
         <String>["1+from"]);
 
-    buildTests('testCommentSnippets038', '''
-f(){int xa; String s = '\$x!1';}''', <String>["1+xa"]);
+    buildTests(
+        'testCommentSnippets038',
+        '''
+f(){int xa; String s = '\$x!1';}''',
+        <String>["1+xa"]);
 
-    buildTests('testCommentSnippets038a', '''
-int xa; String s = '\$x!1\'''', <String>["1+xa"]);
+    buildTests(
+        'testCommentSnippets038a',
+        '''
+int xa; String s = '\$x!1\'''',
+        <String>["1+xa"]);
 
-    buildTests('testCommentSnippets039', '''
-f(){int xa; String s = '\$!1';}''', <String>["1+xa"]);
+    buildTests(
+        'testCommentSnippets039',
+        '''
+f(){int xa; String s = '\$!1';}''',
+        <String>["1+xa"]);
 
-    buildTests('testCommentSnippets039a', '''
-int xa; String s = '\$!1\'''', <String>["1+xa"]);
+    buildTests(
+        'testCommentSnippets039a',
+        '''
+int xa; String s = '\$!1\'''',
+        <String>["1+xa"]);
 
-    buildTests('testCommentSnippets040', '''
+    buildTests(
+        'testCommentSnippets040',
+        '''
 class List{add(){}}class Map{}class X{m(){List list; list.!1 Map map;}}''',
         <String>["1+add"]);
 
-    buildTests('testCommentSnippets041', '''
+    buildTests(
+        'testCommentSnippets041',
+        '''
 class List{add(){}length(){}}class X{m(){List list; list.!1 zox();}}''',
         <String>["1+add"]);
 
-    buildTests('testCommentSnippets042', '''
+    buildTests(
+        'testCommentSnippets042',
+        '''
 class DateTime{static const int WED=3;int get day;}fd(){DateTime d=new DateTime.now();d.!1WED!2;}''',
         <String>["1+day", "2-WED"]);
 
-    buildTests('testCommentSnippets043', '''
-class L{var k;void.!1}''', <String>["1-k"]);
+    buildTests(
+        'testCommentSnippets043',
+        '''
+class L{var k;void.!1}''',
+        <String>["1-k"]);
 
-    buildTests('testCommentSnippets044', '''
+    buildTests(
+        'testCommentSnippets044',
+        '''
 class List{}class XXX {XXX.fisk();}main() {main(); new !1}}''',
         <String>["1+List", "1+XXX.fisk"]);
 
-    buildTests('testCommentSnippets047', '''
-f(){int x;int y=!1;}''', <String>["1+x"]);
+    buildTests(
+        'testCommentSnippets047',
+        '''
+f(){int x;int y=!1;}''',
+        <String>["1+x"]);
 
-    buildTests('testCommentSnippets048', '''
-import 'dart:convert' as json;f() {var x=new js!1}''', <String>["1+json"]);
+    buildTests(
+        'testCommentSnippets048',
+        '''
+import 'dart:convert' as json;f() {var x=new js!1}''',
+        <String>["1+json"]);
 
-    buildTests('testCommentSnippets049', '''
+    buildTests(
+        'testCommentSnippets049',
+        '''
 import 'dart:convert' as json;
 import 'dart:convert' as jxx;
 class JsonDecoderX{}
-f1() {var x=new !2j!1s!3}''', <String>[
+f1() {var x=new !2j!1s!3}''',
+        <String>[
       "1+json",
       "1+jxx",
       "2+json",
@@ -249,7 +374,9 @@ f1() {var x=new !2j!1s!3}''', <String>[
       "3-jxx"
     ]);
 
-    buildTests('testCommentSnippets050', '''
+    buildTests(
+        'testCommentSnippets050',
+        '''
 class xdr {
   xdr();
   const xdr.a(a,b,c);
@@ -260,7 +387,8 @@ class xa{}
 k() {
   new x!1dr().f();
   const x!2dr.!3a(1, 2, 3);
-}''', <String>[
+}''',
+        <String>[
       "1+xdr",
       "1+xa",
       "1+xdr.a",
@@ -274,7 +402,9 @@ k() {
     ]);
 
     // Type propagation.
-    buildTests('testCommentSnippets051', '''
+    buildTests(
+        'testCommentSnippets051',
+        '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   var v;
@@ -282,10 +412,13 @@ void r() {
     v.!1length;
     v.!2getKeys;
   }
-}''', <String>["1+length", "2-getKeys"]);
+}''',
+        <String>["1+length", "2-getKeys"]);
 
     // Type propagation.
-    buildTests('testCommentSnippets052', '''
+    buildTests(
+        'testCommentSnippets052',
+        '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   List<String> values = ['a','b','c'];
@@ -293,10 +426,13 @@ void r() {
     v.!1toUpperCase;
     v.!2getKeys;
   }
-}''', <String>["1+toUpperCase", "2-getKeys"]);
+}''',
+        <String>["1+toUpperCase", "2-getKeys"]);
 
     // Type propagation.
-    buildTests('testCommentSnippets053', '''
+    buildTests(
+        'testCommentSnippets053',
+        '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   var v;
@@ -304,9 +440,12 @@ void r() {
     v.!1toUpperCase;
     v.!2getKeys;
   }
-}''', <String>["1+toUpperCase", "2-getKeys"]);
+}''',
+        <String>["1+toUpperCase", "2-getKeys"]);
 
-    buildTests('testCommentSnippets054', '''
+    buildTests(
+        'testCommentSnippets054',
+        '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   var v;
@@ -314,48 +453,67 @@ void r() {
     v.!2toUpperCase;
     v.!3getKeys;
   }
-}''', <String>["1+isEmpty", "2+toUpperCase", "3-getKeys"]);
+}''',
+        <String>["1+isEmpty", "2+toUpperCase", "3-getKeys"]);
 
-    buildTests('testCommentSnippets055', '''
+    buildTests(
+        'testCommentSnippets055',
+        '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r() {
   String v;
   if (v is Object) {
     v.!1toUpperCase;
   }
-}''', <String>["1+toUpperCase"]);
+}''',
+        <String>["1+toUpperCase"]);
 
     // Type propagation.
-    buildTests('testCommentSnippets056', '''
+    buildTests(
+        'testCommentSnippets056',
+        '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void f(var v) {
   if (v is!! String) {
     return;
   }
   v.!1toUpperCase;
-}''', <String>["1+toUpperCase"]);
+}''',
+        <String>["1+toUpperCase"]);
 
     // Type propagation.
-    buildTests('testCommentSnippets057', '''
+    buildTests(
+        'testCommentSnippets057',
+        '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void f(var v) {
   if ((v as String).!2length == 0) {
     v.!1toUpperCase;
   }
-}''', <String>["1+toUpperCase", "2+length"]);
+}''',
+        <String>["1+toUpperCase", "2+length"]);
 
-    buildTests('testCommentSnippets058', '''
+    buildTests(
+        'testCommentSnippets058',
+        '''
 typedef vo!2id callback(int k);
 void x(callback q){}
 void r() {
   callback v;
   x(!1);
-}''', <String>["1+v", "2+void"], failingTests: '2');
+}''',
+        <String>["1+v", "2+void"],
+        failingTests: '2');
 
-    buildTests('testCommentSnippets059', '''
-f(){((int x) => x+4).!1call(1);}''', <String>["1-call"]);
+    buildTests(
+        'testCommentSnippets059',
+        '''
+f(){((int x) => x+4).!1call(1);}''',
+        <String>["1-call"]);
 
-    buildTests('testCommentSnippets060', '''
+    buildTests(
+        'testCommentSnippets060',
+        '''
 class Map{}
 abstract class MM extends Map{factory MM() => new Map();}
 class Z {
@@ -363,22 +521,30 @@ class Z {
   f() {
     x!1
   }
-}''', <String>["1+x", "1-x[]"]);
+}''',
+        <String>["1+x", "1-x[]"]);
 
-    buildTests('testCommentSnippets061', '''
+    buildTests(
+        'testCommentSnippets061',
+        '''
 class A{m(){!1f(3);!2}}n(){!3f(3);!4}f(x)=>x*3;''',
         <String>["1+f", "1+n", "2+f", "2+n", "3+f", "3+n", "4+f", "4+n"]);
 
     // Type propagation.
-    buildTests('testCommentSnippets063', '''
+    buildTests(
+        'testCommentSnippets063',
+        '''
 class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}
 void r(var v) {
   v.!1toUpperCase;
   assert(v is String);
   v.!2toUpperCase;
-}''', <String>["1-toUpperCase", "2+toUpperCase"]);
+}''',
+        <String>["1-toUpperCase", "2+toUpperCase"]);
 
-    buildTests('testCommentSnippets064', '''
+    buildTests(
+        'testCommentSnippets064',
+        '''
 class Spline {
   Line c;
   Spline a() {
@@ -401,7 +567,8 @@ class Line {
   Spline h() {
     return null;
   }
-}''', <String>[
+}''',
+        <String>[
       "1+a",
       "2+b",
       "1-g",
@@ -415,7 +582,9 @@ class Line {
       "9+h"
     ]);
 
-    buildTests('testCommentSnippets065', '''
+    buildTests(
+        'testCommentSnippets065',
+        '''
 class Spline {
   Line c;
   Spline a() {
@@ -437,9 +606,12 @@ class Line {
   Spline h() {
     return null;
   }
-}''', <String>["1+a"]);
+}''',
+        <String>["1+a"]);
 
-    buildTests('testCommentSnippets066', '''
+    buildTests(
+        'testCommentSnippets066',
+        '''
 class Spline {
   Line c;
   Spline a() {
@@ -461,9 +633,12 @@ class Line {
   Spline h() {
     return null;
   }
-}''', <String>["1+b"]);
+}''',
+        <String>["1+b"]);
 
-    buildTests('testCommentSnippets067', '''
+    buildTests(
+        'testCommentSnippets067',
+        '''
 class Spline {
   Line c;
   Spline a() {
@@ -485,9 +660,12 @@ class Line {
   Spline h() {
     return null;
   }
-}''', <String>["1+b"]);
+}''',
+        <String>["1+b"]);
 
-    buildTests('testCommentSnippets068', '''
+    buildTests(
+        'testCommentSnippets068',
+        '''
 class Spline {
   Line c;
   Spline a() {
@@ -509,9 +687,12 @@ class Line {
   Spline h() {
     return null;
   }
-}''', <String>["1+c"]);
+}''',
+        <String>["1+c"]);
 
-    buildTests('testCommentSnippets069', '''
+    buildTests(
+        'testCommentSnippets069',
+        '''
 class Spline {
   Line c;
   Spline a() {
@@ -533,9 +714,12 @@ class Line {
   Spline h() {
     return null;
   }
-}''', <String>["1+c"]);
+}''',
+        <String>["1+c"]);
 
-    buildTests('testCommentSnippets070', '''
+    buildTests(
+        'testCommentSnippets070',
+        '''
 class Spline {
   Line c;
   Spline a() {
@@ -557,9 +741,12 @@ class Line {
   Spline h() {
     return null;
   }
-}''', <String>["1+b"]);
+}''',
+        <String>["1+b"]);
 
-    buildTests('testCommentSnippets072', '''
+    buildTests(
+        'testCommentSnippets072',
+        '''
 class X {
   int _p;
   set p(int x) => _p = x;
@@ -567,9 +754,12 @@ class X {
 f() {
   X x = new X();
   x.!1p = 3;
-}''', <String>["1+p"]);
+}''',
+        <String>["1+p"]);
 
-    buildTests('testCommentSnippets073', '''
+    buildTests(
+        'testCommentSnippets073',
+        '''
 class X {
   m() {
     JSON.stri!1;
@@ -578,28 +768,41 @@ class X {
 }
 class JSON {
   static stringify() {}
-}''', <String>["1+stringify"]);
+}''',
+        <String>["1+stringify"]);
 
-    buildTests('testCommentSnippets074', '''
+    buildTests(
+        'testCommentSnippets074',
+        '''
 class X {
   m() {
     _x!1
   }
   _x1(){}
-}''', <String>["1+_x1"]);
+}''',
+        <String>["1+_x1"]);
 
-    buildTests('testCommentSnippets075', '''
-p(x)=>0;var E;f(q)=>!1p(!2E);''', <String>["1+p", "2+E"]);
+    buildTests(
+        'testCommentSnippets075',
+        '''
+p(x)=>0;var E;f(q)=>!1p(!2E);''',
+        <String>["1+p", "2+E"]);
 
-    buildTests('testCommentSnippets076', '''
+    buildTests(
+        'testCommentSnippets076',
+        '''
 class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3int>>();}''',
         <String>["1+List", "2+int", "3+int"]);
 
-    buildTests('testCommentSnippets076a', '''
+    buildTests(
+        'testCommentSnippets076a',
+        '''
 class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3>>();}''',
         <String>["1+List", "2+int", "3+int"]);
 
-    buildTests('testCommentSnippets077', '''
+    buildTests(
+        'testCommentSnippets077',
+        '''
 class FileMode {
   static const READ = const FileMode._internal(0);
   static const WRITE = const FileMode._internal(1);
@@ -613,7 +816,8 @@ class File {
   factory File(String path) => null;
   factory File.fromPath(Path path) => null;
 }
-f() => new Fil!1''', <String>[
+f() => new Fil!1''',
+        <String>[
       "1+File",
       "1+File.fromPath",
       "1+FileMode",
@@ -621,60 +825,91 @@ f() => new Fil!1''', <String>[
       "1+FileMode._internal"
     ]);
 
-    buildTests('testCommentSnippets078', '''
+    buildTests(
+        'testCommentSnippets078',
+        '''
 class Map{static from()=>null;clear(){}}void main() { Map.!1 }''',
         <String>["1+from", "1-clear"]); // static method, instance method
 
-    buildTests('testCommentSnippets079', '''
+    buildTests(
+        'testCommentSnippets079',
+        '''
 class Map{static from()=>null;clear(){}}void main() { Map s; s.!1 }''',
         <String>["1-from", "1+clear"]); // static method, instance method
 
-    buildTests('testCommentSnippets080', '''
+    buildTests(
+        'testCommentSnippets080',
+        '''
 class RuntimeError{var message;}void main() { RuntimeError.!1 }''',
         <String>["1-message"]); // field
 
-    buildTests('testCommentSnippets081', '''
-class Foo {this.!1}''', <String>["1-Object"], failingTests: '1');
+    buildTests(
+        'testCommentSnippets081',
+        '''
+class Foo {this.!1}''',
+        <String>["1-Object"],
+        failingTests: '1');
 
-    buildTests('testCommentSnippets082', '''
+    buildTests(
+        'testCommentSnippets082',
+        '''
         class HttpRequest {}
         class HttpResponse {}
         main() {
           var v = (HttpRequest req, HttpResp!1)
-        }''', <String>["1+HttpResponse"]);
+        }''',
+        <String>["1+HttpResponse"]);
 
-    buildTests('testCommentSnippets083', '''
-main() {(.!1)}''', <String>["1-toString"]);
+    buildTests(
+        'testCommentSnippets083',
+        '''
+main() {(.!1)}''',
+        <String>["1-toString"]);
 
-    buildTests('testCommentSnippets083a', '''
-main() { .!1 }''', <String>["1-toString"]);
+    buildTests(
+        'testCommentSnippets083a',
+        '''
+main() { .!1 }''',
+        <String>["1-toString"]);
 
-    buildTests('testCommentSnippets083b', '''
-main() { null.!1 }''', <String>["1+toString"], failingTests: '1');
+    buildTests(
+        'testCommentSnippets083b',
+        '''
+main() { null.!1 }''',
+        <String>["1+toString"],
+        failingTests: '1');
 
-    buildTests('testCommentSnippets084', '''
-class List{}class Map{}typedef X = !1Lis!2t with !3Ma!4p;''', <String>[
-      "1+Map",
-      "2+List",
-      "2-Map",
-      "3+List",
-      "4+Map",
-      "4-List"
-    ], failingTests: '1234');
+    buildTests(
+        'testCommentSnippets084',
+        '''
+class List{}class Map{}typedef X = !1Lis!2t with !3Ma!4p;''',
+        <String>["1+Map", "2+List", "2-Map", "3+List", "4+Map", "4-List"],
+        failingTests: '1234');
 
-    buildTests('testCommentSnippets085', '''
+    buildTests(
+        'testCommentSnippets085',
+        '''
 class List{}class Map{}class Z extends List with !1Ma!2p {}''',
-        <String>["1+List", "1+Map", "2+Map", "2-List"], failingTests: '12');
+        <String>["1+List", "1+Map", "2+Map", "2-List"],
+        failingTests: '12');
 
-    buildTests('testCommentSnippets086', '''
-class Q{f(){xy() {!2};x!1y();}}''', <String>["1+xy", "2+f", "2-xy"],
+    buildTests(
+        'testCommentSnippets086',
+        '''
+class Q{f(){xy() {!2};x!1y();}}''',
+        <String>["1+xy", "2+f", "2-xy"],
         failingTests: '2');
 
-    buildTests('testCommentSnippets087', '''
+    buildTests(
+        'testCommentSnippets087',
+        '''
 class Map{}class Q extends Object with !1Map {}''',
-        <String>["1+Map", "1-HashMap"], failingTests: '1');
+        <String>["1+Map", "1-HashMap"],
+        failingTests: '1');
 
-    buildTests('testCommentSnippets088', '''
+    buildTests(
+        'testCommentSnippets088',
+        '''
 class A {
   int f;
   B m(){}
@@ -686,9 +921,12 @@ class B extends A {
 class Z {
   B q;
   f() {q.!1}
-}''', <String>["1+f", "1+m"]); // f->num, m()->A
+}''',
+        <String>["1+f", "1+m"]); // f->num, m()->A
 
-    buildTests('testCommentSnippets089', '''
+    buildTests(
+        'testCommentSnippets089',
+        '''
 class Q {
   fqe() {
     xya() {
@@ -706,127 +944,170 @@ class Q {
   fqi() {
     !5
   }
-}''', <String>[
-      "1+fqe",
-      "1+fqi",
-      "1+Q",
-      "1-xya",
-      "1-xyb",
-      "1-xza",
-      "2+fqe",
-      "2+fqi",
-      "2+Q",
-      "2-xya",
-      "2-xyb",
-      "2-xza",
-      "3+fqe",
-      "3+fqi",
-      "3+Q",
-      "3-xya",
-      "3+xyb",
-      "3-xza",
-      "4+fqe",
-      "4+fqi",
-      "4+Q",
-      "4+xya",
-      "4-xyb",
-      "4+xza",
-      "5+fqe",
-      "5+fqi",
-      "5+Q",
-      "5-xya",
-      "5-xyb",
-      "5-xza"
-    ], failingTests: '123');
+}''',
+        <String>[
+          "1+fqe",
+          "1+fqi",
+          "1+Q",
+          "1-xya",
+          "1-xyb",
+          "1-xza",
+          "2+fqe",
+          "2+fqi",
+          "2+Q",
+          "2-xya",
+          "2-xyb",
+          "2-xza",
+          "3+fqe",
+          "3+fqi",
+          "3+Q",
+          "3-xya",
+          "3+xyb",
+          "3-xza",
+          "4+fqe",
+          "4+fqi",
+          "4+Q",
+          "4+xya",
+          "4-xyb",
+          "4+xza",
+          "5+fqe",
+          "5+fqi",
+          "5+Q",
+          "5-xya",
+          "5-xyb",
+          "5-xza"
+        ],
+        failingTests: '123');
 
-    buildTests('testCommentSnippets090', '''
-class X { f() { var a = 'x'; a.!1 }}''', <String>["1+length"]);
+    buildTests(
+        'testCommentSnippets090',
+        '''
+class X { f() { var a = 'x'; a.!1 }}''',
+        <String>["1+length"]);
   }
 
   void buildCompletionTests() {
-    buildTests('testCompletion_alias_field', '''
-typedef int fnint(int k); fn!1int x;''', <String>["1+fnint"]);
+    buildTests(
+        'testCompletion_alias_field',
+        '''
+typedef int fnint(int k); fn!1int x;''',
+        <String>["1+fnint"]);
 
-    buildTests('testCompletion_annotation_argumentList', '''
+    buildTests(
+        'testCompletion_annotation_argumentList',
+        '''
 class AAA {",
   const AAA({int aaa, int bbb});",
 }",
 ",
 @AAA(!1)
 main() {
-}''', <String>["1+AAA" /*":" + ProposalKind.ARGUMENT_LIST*/, "1+aaa", "1+bbb"],
+}''',
+        <String>[
+          "1+AAA" /*":" + ProposalKind.ARGUMENT_LIST*/,
+          "1+aaa",
+          "1+bbb"
+        ],
         failingTests: '1');
 
-    buildTests('testCompletion_annotation_topLevelVar', '''
+    buildTests(
+        'testCompletion_annotation_topLevelVar',
+        '''
 const fooConst = null;
 final fooNotConst = null;
 const bar = null;
 
 @foo!1
 main() {
-}''', <String>["1+fooConst", "1-fooNotConst", "1-bar"], failingTests: '1');
+}''',
+        <String>["1+fooConst", "1-fooNotConst", "1-bar"],
+        failingTests: '1');
 
-    buildTests('testCompletion_annotation_type', '''
+    buildTests(
+        'testCompletion_annotation_type',
+        '''
 class AAA {
   const AAA({int a, int b});
   const AAA.nnn(int c, int d);
 }
 @AAA!1
 main() {
-}''', <String>[
-      "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/,
-      "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/
-    ], failingTests: '1');
+}''',
+        <String>[
+          "1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/,
+          "1+AAA.nnn" /*":" + ProposalKind.CONSTRUCTOR*/
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_annotation_type_inClass_withoutMember', '''
+    buildTests(
+        'testCompletion_annotation_type_inClass_withoutMember',
+        '''
 class AAA {
   const AAA();
 }
 
 class C {
   @A!1
-}''', <String>["1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/]);
+}''',
+        <String>["1+AAA" /*":" + ProposalKind.CONSTRUCTOR*/]);
 
-    buildTests('testCompletion_argument_typeName', '''
+    buildTests(
+        'testCompletion_argument_typeName',
+        '''
 class Enum {
   static Enum FOO = new Enum();
 }
 f(Enum e) {}
 main() {
   f(En!1);
-}''', <String>["1+Enum"]);
+}''',
+        <String>["1+Enum"]);
 
-    buildTests('testCompletion_arguments_ignoreEmpty', '''
+    buildTests(
+        'testCompletion_arguments_ignoreEmpty',
+        '''
 class A {
   test() {}
 }
 main(A a) {
   a.test(!1);
-}''', <String>["1-test"]);
+}''',
+        <String>["1-test"]);
 
-    buildTests('testCompletion_as_asIdentifierPrefix', '''
+    buildTests(
+        'testCompletion_as_asIdentifierPrefix',
+        '''
 main(p) {
   var asVisible;
   var v = as!1;
-}''', <String>["1+asVisible"]);
+}''',
+        <String>["1+asVisible"]);
 
-    buildTests('testCompletion_as_asPrefixedIdentifierStart', '''
+    buildTests(
+        'testCompletion_as_asPrefixedIdentifierStart',
+        '''
 class A {
   var asVisible;
 }
 
 main(A p) {
   var v = p.as!1;
-}''', <String>["1+asVisible"]);
+}''',
+        <String>["1+asVisible"]);
 
-    buildTests('testCompletion_as_incompleteStatement', '''
+    buildTests(
+        'testCompletion_as_incompleteStatement',
+        '''
 class MyClass {}
 main(p) {
   var justSomeVar;
   var v = p as !1
-}''', <String>["1+MyClass", "1-justSomeVar"]);
+}''',
+        <String>["1+MyClass", "1-justSomeVar"]);
 
-    buildTests('testCompletion_cascade', '''
+    buildTests(
+        'testCompletion_cascade',
+        '''
 class A {
   aaa() {}
 }
@@ -834,61 +1115,91 @@ class A {
 
 main(A a) {
   a..!1 aaa();
-}''', <String>["1+aaa", "1-main"]);
+}''',
+        <String>["1+aaa", "1-main"]);
 
-    buildTests('testCompletion_combinator_afterComma', '''
+    buildTests(
+        'testCompletion_combinator_afterComma',
+        '''
 "import 'dart:math' show cos, !1;''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"], failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"],
+        failingTests: '1');
 
-    buildTests('testCompletion_combinator_ended', '''
+    buildTests(
+        'testCompletion_combinator_ended',
+        '''
 import 'dart:math' show !1;"''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
-    buildTests('testCompletion_combinator_export', '''
+    buildTests(
+        'testCompletion_combinator_export',
+        '''
 export 'dart:math' show !1;"''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
-    buildTests('testCompletion_combinator_hide', '''
+    buildTests(
+        'testCompletion_combinator_hide',
+        '''
 import 'dart:math' hide !1;"''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
-    buildTests('testCompletion_combinator_notEnded', '''
+    buildTests(
+        'testCompletion_combinator_notEnded',
+        '''
 import 'dart:math' show !1"''',
         <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
-    buildTests('testCompletion_combinator_usePrefix', '''
+    buildTests(
+        'testCompletion_combinator_usePrefix',
+        '''
 import 'dart:math' show s!1"''',
         <String>["1+sin", "1+sqrt", "1-cos", "1-String"]);
 
-    buildTests('testCompletion_constructor_field', '''
-class X { X(this.field); int f!1ield;}''', <String>["1+field"],
+    buildTests(
+        'testCompletion_constructor_field',
+        '''
+class X { X(this.field); int f!1ield;}''',
+        <String>["1+field"],
         failingTests: '1');
 
-    buildTests('testCompletion_constructorArguments_showOnlyCurrent', '''
+    buildTests(
+        'testCompletion_constructorArguments_showOnlyCurrent',
+        '''
 class A {
   A.first(int p);
   A.second(double p);
 }
 main() {
   new A.first(!1);
-}''', <String>["1+A.first", "1-A.second"], failingTests: '1');
+}''',
+        <String>["1+A.first", "1-A.second"],
+        failingTests: '1');
 
-    buildTests('testCompletion_constructorArguments_whenPrefixedType', '''
+    buildTests(
+        'testCompletion_constructorArguments_whenPrefixedType',
+        '''
 import 'dart:math' as m;
 main() {
   new m.Random(!1);
-}''', <String>["1+Random:ARGUMENT_LIST"], failingTests: '1');
+}''',
+        <String>["1+Random:ARGUMENT_LIST"],
+        failingTests: '1');
 
-    buildTests('testCompletion_dartDoc_reference_forClass', '''
+    buildTests(
+        'testCompletion_dartDoc_reference_forClass',
+        '''
 /**
  * [int!1]
  * [method!2]
  */
 class AAA {
   methodA() {}
-}''', <String>["1+int", "1-method", "2+methodA", "2-int"]);
+}''',
+        <String>["1+int", "1-method", "2+methodA", "2-int"]);
 
-    buildTests('testCompletion_dartDoc_reference_forConstructor', '''
+    buildTests(
+        'testCompletion_dartDoc_reference_forConstructor',
+        '''
 class A {
   /**
    * [aa!1]
@@ -897,43 +1208,54 @@ class A {
    */
   A.named(aaa, bbb) {}
   methodA() {}
-}''', <String>["1+aaa", "1-bbb", "2+int", "2-double", "3+methodA"]);
+}''',
+        <String>["1+aaa", "1-bbb", "2+int", "2-double", "3+methodA"]);
 
-    buildTests('testCompletion_dartDoc_reference_forFunction', '''
+    buildTests(
+        'testCompletion_dartDoc_reference_forFunction',
+        '''
 /**
  * [aa!1]
  * [int!2]
  * [function!3]
  */
 functionA(aaa, bbb) {}
-functionB() {}''', <String>[
-      "1+aaa",
-      "1-bbb",
-      "2+int",
-      "2-double",
-      "3+functionA",
-      "3+functionB",
-      "3-int"
-    ], failingTests: '1');
+functionB() {}''',
+        <String>[
+          "1+aaa",
+          "1-bbb",
+          "2+int",
+          "2-double",
+          "3+functionA",
+          "3+functionB",
+          "3-int"
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_dartDoc_reference_forFunctionTypeAlias', '''
+    buildTests(
+        'testCompletion_dartDoc_reference_forFunctionTypeAlias',
+        '''
 /**
  * [aa!1]
  * [int!2]
  * [Function!3]
  */
 typedef FunctionA(aaa, bbb) {}
-typedef FunctionB() {}''', <String>[
-      "1+aaa",
-      "1-bbb",
-      "2+int",
-      "2-double",
-      "3+FunctionA",
-      "3+FunctionB",
-      "3-int"
-    ], failingTests: '1');
+typedef FunctionB() {}''',
+        <String>[
+          "1+aaa",
+          "1-bbb",
+          "2+int",
+          "2-double",
+          "3+FunctionA",
+          "3+FunctionB",
+          "3-int"
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_dartDoc_reference_forMethod', '''
+    buildTests(
+        'testCompletion_dartDoc_reference_forMethod',
+        '''
 class A {
   /**
    * [aa!1]
@@ -942,7 +1264,8 @@ class A {
    */
   methodA(aaa, bbb) {}
   methodB() {}
-}''', <String>[
+}''',
+        <String>[
       "1+aaa",
       "1-bbb",
       "2+int",
@@ -952,7 +1275,9 @@ class A {
       "3-int"
     ]);
 
-    buildTests('testCompletion_dartDoc_reference_incomplete', '''
+    buildTests(
+        'testCompletion_dartDoc_reference_incomplete',
+        '''
 /**
  * [doubl!1 some text
  * other text
@@ -966,7 +1291,8 @@ class B {}
 /**
  * [!3] some text
  */
-class C {}''', <String>[
+class C {}''',
+        <String>[
       "1+double",
       "1-int",
       "2+int",
@@ -975,25 +1301,34 @@ class C {}''', <String>[
       "3+String"
     ]);
 
-    buildTests('testCompletion_double_inFractionPart', '''
+    buildTests(
+        'testCompletion_double_inFractionPart',
+        '''
 main() {
   1.0!1
-}''', <String>["1-abs", "1-main"]);
+}''',
+        <String>["1-abs", "1-main"]);
 
-    buildTests('testCompletion_enum', '''
+    buildTests(
+        'testCompletion_enum',
+        '''
 enum MyEnum {A, B, C}
 main() {
   MyEnum.!1;
-}''', <String>["1+values", "1+A", "1+B", "1+C"]);
+}''',
+        <String>["1+values", "1+A", "1+B", "1+C"]);
 
-    buildTests('testCompletion_exactPrefix_hasHigherRelevance', '''
+    buildTests(
+        'testCompletion_exactPrefix_hasHigherRelevance',
+        '''
 var STR;
 main(p) {
   var str;
   str!1;
   STR!2;
   Str!3;
-}''', <String>[
+}''',
+        <String>[
       "1+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1)*/,
       "1+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/,
       "2+STR" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 1)*/,
@@ -1003,68 +1338,115 @@ main(p) {
       "3+str" /*",rel=" + (CompletionProposal.RELEVANCE_DEFAULT + 0)*/
     ]);
 
-    buildTests('testCompletion_export_dart', '''
+    buildTests(
+        'testCompletion_export_dart',
+        '''
 import 'dart:math
 import 'dart:_chrome
 import 'dart:_collection.dev
-export 'dart:!1''', <String>[
-      "1+dart:core",
-      "1+dart:math",
-      "1-dart:_chrome",
-      "1-dart:_collection.dev"
-    ], failingTests: '1');
+export 'dart:!1''',
+        <String>[
+          "1+dart:core",
+          "1+dart:math",
+          "1-dart:_chrome",
+          "1-dart:_collection.dev"
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_export_noStringLiteral_noSemicolon', '''
+    buildTests(
+        'testCompletion_export_noStringLiteral_noSemicolon',
+        '''
 import !1
 
-class A {}''', <String>["1+'dart:!';", "1+'package:!';"], failingTests: '1');
+class A {}''',
+        <String>["1+'dart:!';", "1+'package:!';"],
+        failingTests: '1');
 
-    buildTests('testCompletion_forStmt_vars', '''
+    buildTests(
+        'testCompletion_forStmt_vars',
+        '''
 class int{}class Foo { mth() { for (in!1t i = 0; i!2 < 5; i!3++); }}''',
         <String>["1+int", "2+i", "3+i"]);
 
-    buildTests('testCompletion_function', '''
+    buildTests(
+        'testCompletion_function',
+        '''
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b)); }}''',
         <String>["1+String"]);
 
-    buildTests('testCompletion_function_partial', '''
+    buildTests(
+        'testCompletion_function_partial',
+        '''
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1)); }}''',
         <String>["1+String"]);
 
-    buildTests('testCompletion_functionTypeParameter_namedArgument', '''
+    buildTests(
+        'testCompletion_functionTypeParameter_namedArgument',
+        '''
 typedef FFF(a, b, {x1, x2, y});
 main(FFF fff) {
   fff(1, 2, !1)!2;
-}''', <String>["1+x1", "2-x2"], failingTests: '1');
+}''',
+        <String>["1+x1", "2-x2"],
+        failingTests: '1');
 
-    buildTests('testCompletion_ifStmt_field1', '''
-class Foo { int myField = 7; mth() { if (!1) {}}}''', <String>["1+myField"]);
+    buildTests(
+        'testCompletion_ifStmt_field1',
+        '''
+class Foo { int myField = 7; mth() { if (!1) {}}}''',
+        <String>["1+myField"]);
 
-    buildTests('testCompletion_ifStmt_field1a', '''
-class Foo { int myField = 7; mth() { if (!1) }}''', <String>["1+myField"]);
+    buildTests(
+        'testCompletion_ifStmt_field1a',
+        '''
+class Foo { int myField = 7; mth() { if (!1) }}''',
+        <String>["1+myField"]);
 
-    buildTests('testCompletion_ifStmt_field2', '''
-class Foo { int myField = 7; mth() { if (m!1) {}}}''', <String>["1+myField"]);
+    buildTests(
+        'testCompletion_ifStmt_field2',
+        '''
+class Foo { int myField = 7; mth() { if (m!1) {}}}''',
+        <String>["1+myField"]);
 
-    buildTests('testCompletion_ifStmt_field2a', '''
-class Foo { int myField = 7; mth() { if (m!1) }}''', <String>["1+myField"]);
+    buildTests(
+        'testCompletion_ifStmt_field2a',
+        '''
+class Foo { int myField = 7; mth() { if (m!1) }}''',
+        <String>["1+myField"]);
 
-    buildTests('testCompletion_ifStmt_field2b', '''
-class Foo { myField = 7; mth() { if (m!1) {}}}''', <String>["1+myField"]);
+    buildTests(
+        'testCompletion_ifStmt_field2b',
+        '''
+class Foo { myField = 7; mth() { if (m!1) {}}}''',
+        <String>["1+myField"]);
 
-    buildTests('testCompletion_ifStmt_localVar', '''
-class Foo { mth() { int value = 7; if (v!1) {}}}''', <String>["1+value"]);
+    buildTests(
+        'testCompletion_ifStmt_localVar',
+        '''
+class Foo { mth() { int value = 7; if (v!1) {}}}''',
+        <String>["1+value"]);
 
-    buildTests('testCompletion_ifStmt_localVara', '''
-class Foo { mth() { value = 7; if (v!1) {}}}''', <String>["1-value"]);
+    buildTests(
+        'testCompletion_ifStmt_localVara',
+        '''
+class Foo { mth() { value = 7; if (v!1) {}}}''',
+        <String>["1-value"]);
 
-    buildTests('testCompletion_ifStmt_topLevelVar', '''
-int topValue = 7; class Foo { mth() { if (t!1) {}}}''', <String>["1+topValue"]);
+    buildTests(
+        'testCompletion_ifStmt_topLevelVar',
+        '''
+int topValue = 7; class Foo { mth() { if (t!1) {}}}''',
+        <String>["1+topValue"]);
 
-    buildTests('testCompletion_ifStmt_topLevelVara', '''
-topValue = 7; class Foo { mth() { if (t!1) {}}}''', <String>["1+topValue"]);
+    buildTests(
+        'testCompletion_ifStmt_topLevelVara',
+        '''
+topValue = 7; class Foo { mth() { if (t!1) {}}}''',
+        <String>["1+topValue"]);
 
-    buildTests('testCompletion_ifStmt_unionType_nonStrict', '''
+    buildTests(
+        'testCompletion_ifStmt_unionType_nonStrict',
+        '''
 class A { a() => null; x() => null}
 class B { a() => null; y() => null}
 void main() {
@@ -1076,9 +1458,13 @@ void main() {
     x = new B();
   }
   x.!1;
-}''', <String>["1+a", "1+x", "1+y"], failingTests: '1');
+}''',
+        <String>["1+a", "1+x", "1+y"],
+        failingTests: '1');
 
-    buildTests('testCompletion_ifStmt_unionType_strict', '''
+    buildTests(
+        'testCompletion_ifStmt_unionType_strict',
+        '''
 class A { a() => null; x() => null}
 class B { a() => null; y() => null}
 void main() {
@@ -1090,74 +1476,116 @@ void main() {
     x = new B();
   }
   x.!1;
-}''', <String>["1+a", "1-x", "1-y"], failingTests: '1');
+}''',
+        <String>["1+a", "1-x", "1-y"],
+        failingTests: '1');
 
-    buildTests('testCompletion_import', '''
-import '!1';''', <String>["1+dart:!", "1+package:!"]);
+    buildTests(
+        'testCompletion_import',
+        '''
+import '!1';''',
+        <String>["1+dart:!", "1+package:!"]);
 
-    buildTests('testCompletion_import_dart', '''
+    buildTests(
+        'testCompletion_import_dart',
+        '''
 import 'dart:math
 import 'dart:_chrome
 import 'dart:_collection.dev
-import 'dart:!1''', <String>[
-      "1+dart:core",
-      "1+dart:math",
-      "1-dart:_chrome",
-      "1-dart:_collection.dev"
-    ], failingTests: '1');
+import 'dart:!1''',
+        <String>[
+          "1+dart:core",
+          "1+dart:math",
+          "1-dart:_chrome",
+          "1-dart:_collection.dev"
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_import_hasStringLiteral_noSemicolon', '''
+    buildTests(
+        'testCompletion_import_hasStringLiteral_noSemicolon',
+        '''
 import '!1'
 
-class A {}''', <String>["1+dart:!", "1+package:!"]);
+class A {}''',
+        <String>["1+dart:!", "1+package:!"]);
 
-    buildTests('testCompletion_import_noSpace', '''
-import!1''', <String>["1+ 'dart:!';", "1+ 'package:!';"], failingTests: '1');
+    buildTests(
+        'testCompletion_import_noSpace',
+        '''
+import!1''',
+        <String>["1+ 'dart:!';", "1+ 'package:!';"],
+        failingTests: '1');
 
-    buildTests('testCompletion_import_noStringLiteral', '''
-import !1;''', <String>["1+'dart:!'", "1+'package:!'"], failingTests: '1');
+    buildTests(
+        'testCompletion_import_noStringLiteral',
+        '''
+import !1;''',
+        <String>["1+'dart:!'", "1+'package:!'"],
+        failingTests: '1');
 
-    buildTests('testCompletion_import_noStringLiteral_noSemicolon', '''
+    buildTests(
+        'testCompletion_import_noStringLiteral_noSemicolon',
+        '''
 import !1
 
-class A {}''', <String>["1+'dart:!';", "1+'package:!';"], failingTests: '1');
+class A {}''',
+        <String>["1+'dart:!';", "1+'package:!';"],
+        failingTests: '1');
 
-    buildTests('testCompletion_incompleteClassMember', '''
+    buildTests(
+        'testCompletion_incompleteClassMember',
+        '''
 class A {
   Str!1
   final f = null;
-}''', <String>["1+String", "1-bool"]);
+}''',
+        <String>["1+String", "1-bool"]);
 
-    buildTests('testCompletion_incompleteClosure_parameterType', '''
+    buildTests(
+        'testCompletion_incompleteClosure_parameterType',
+        '''
 f1(cb(String s)) {}
 f2(String s) {}
 main() {
   f1((Str!1));
   f2((Str!2));
-}''', <String>["1+String", "1-bool", "2+String", "2-bool"]);
+}''',
+        <String>["1+String", "1-bool", "2+String", "2-bool"]);
 
-    buildTests('testCompletion_inPeriodPeriod', '''
+    buildTests(
+        'testCompletion_inPeriodPeriod',
+        '''
 main(String str) {
   1 < str.!1.length;
   1 + str.!2.length;
   1 + 2 * str.!3.length;
-}''', <String>["1+codeUnits", "2+codeUnits", "3+codeUnits"],
+}''',
+        <String>["1+codeUnits", "2+codeUnits", "3+codeUnits"],
         failingTests: '123');
 
     // no checks, but no exceptions
-    buildTests('testCompletion_instanceCreation_unresolved', '''
+    buildTests(
+        'testCompletion_instanceCreation_unresolved',
+        '''
 class A {
 }
 main() {
   new NoSuchClass(!1);
   new A.noSuchConstructor(!2);
-}''', <String>["1+int", "2+int"]);
+}''',
+        <String>["1+int", "2+int"]);
 
-    buildTests('testCompletion_import_lib', '''
-import '!1''', <String>["1+my_lib.dart"],
-        extraFiles: <String, String>{"/my_lib.dart": ""}, failingTests: '1');
+    buildTests(
+        'testCompletion_import_lib',
+        '''
+import '!1''',
+        <String>["1+my_lib.dart"],
+        extraFiles: <String, String>{"/my_lib.dart": ""},
+        failingTests: '1');
 
-    buildTests('testCompletion_is', '''
+    buildTests(
+        'testCompletion_is',
+        '''
 class MyClass {}
 main(p) {
   var isVariable;
@@ -1165,23 +1593,29 @@ main(p) {
   var v1 = p is MyCla!2;
   var v2 = p is !3;
   var v2 = p is!4;
-}''', <String>[
+}''',
+        <String>[
       "1+MyClass",
       "2+MyClass",
       "3+MyClass",
       "3-v1",
       "4+is",
       "4-isVariable"
-    ], failingTests: '4');
+    ]);
 
-    buildTests('testCompletion_is_asIdentifierStart', '''
+    buildTests(
+        'testCompletion_is_asIdentifierStart',
+        '''
 main(p) {
   var isVisible;
   var v1 = is!1;
   var v2 = is!2
-}''', <String>["1+isVisible", "2+isVisible"]);
+}''',
+        <String>["1+isVisible", "2+isVisible"]);
 
-    buildTests('testCompletion_is_asPrefixedIdentifierStart', '''
+    buildTests(
+        'testCompletion_is_asPrefixedIdentifierStart',
+        '''
 class A {
   var isVisible;
 }
@@ -1189,39 +1623,60 @@ class A {
 main(A p) {
   var v1 = p.is!1;
   var v2 = p.is!2
-}''', <String>["1+isVisible", "2+isVisible"]);
+}''',
+        <String>["1+isVisible", "2+isVisible"]);
 
-    buildTests('testCompletion_is_incompleteStatement1', '''
+    buildTests(
+        'testCompletion_is_incompleteStatement1',
+        '''
 class MyClass {}
 main(p) {
   var justSomeVar;
   var v = p is !1
-}''', <String>["1+MyClass", "1-justSomeVar"]);
+}''',
+        <String>["1+MyClass", "1-justSomeVar"]);
 
-    buildTests('testCompletion_is_incompleteStatement2', '''
+    buildTests(
+        'testCompletion_is_incompleteStatement2',
+        '''
 class MyClass {}
 main(p) {
   var isVariable;
   var v = p is!1
-}''', <String>["1+is", "1-isVariable"], failingTests: '1');
+}''',
+        <String>["1+is", "1-isVariable"]);
 
-    buildTests('testCompletion_keyword_in', '''
-class Foo { int input = 7; mth() { if (in!1) {}}}''', <String>["1+input"]);
+    buildTests(
+        'testCompletion_keyword_in',
+        '''
+class Foo { int input = 7; mth() { if (in!1) {}}}''',
+        <String>["1+input"]);
 
-    buildTests('testCompletion_keyword_syntheticIdentifier', '''
+    buildTests(
+        'testCompletion_keyword_syntheticIdentifier',
+        '''
 main() {
   var caseVar;
   var otherVar;
   var v = case!1
-}''', <String>["1+caseVar", "1-otherVar"]);
+}''',
+        <String>["1+caseVar", "1-otherVar"]);
 
-    buildTests('testCompletion_libraryIdentifier_atEOF', '''
-library int.!1''', <String>["1-parse", "1-bool"]);
+    buildTests(
+        'testCompletion_libraryIdentifier_atEOF',
+        '''
+library int.!1''',
+        <String>["1-parse", "1-bool"]);
 
-    buildTests('testCompletion_libraryIdentifier_notEOF', '''
-library int.!1''', <String>["1-parse", "1-bool"]);
+    buildTests(
+        'testCompletion_libraryIdentifier_notEOF',
+        '''
+library int.!1''',
+        <String>["1-parse", "1-bool"]);
 
-    buildTests('testCompletion_methodRef_asArg_incompatibleFunctionType', '''
+    buildTests(
+        'testCompletion_methodRef_asArg_incompatibleFunctionType',
+        '''
 foo( f(int p) ) {}
 class Functions {
   static myFuncInt(int p) {}
@@ -1230,12 +1685,16 @@ class Functions {
 bar(p) {}
 main(p) {
   foo( Functions.!1; );
-}''', <String>[
-      "1+myFuncInt" /*":" + ProposalKind.METHOD_NAME*/,
-      "1-myFuncDouble" /*":" + ProposalKind.METHOD_NAME*/
-    ], failingTests: '1');
+}''',
+        <String>[
+          "1+myFuncInt" /*":" + ProposalKind.METHOD_NAME*/,
+          "1-myFuncDouble" /*":" + ProposalKind.METHOD_NAME*/
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_methodRef_asArg_notFunctionType', '''
+    buildTests(
+        'testCompletion_methodRef_asArg_notFunctionType',
+        '''
 foo( f(int p) ) {}
 class Functions {
   static myFunc(int p) {}
@@ -1243,91 +1702,133 @@ class Functions {
 bar(p) {}
 main(p) {
   foo( (int p) => Functions.!1; );
-}''', <String>[
-      "1+myFunc" /*":" + ProposalKind.METHOD*/,
-      "1-myFunc" /*":" + ProposalKind.METHOD_NAME*/
-    ], failingTests: '1');
+}''',
+        <String>[
+          "1+myFunc" /*":" + ProposalKind.METHOD*/,
+          "1-myFunc" /*":" + ProposalKind.METHOD_NAME*/
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_methodRef_asArg_ofFunctionType', '''
+    buildTests(
+        'testCompletion_methodRef_asArg_ofFunctionType',
+        '''
 foo( f(int p) ) {}
 class Functions {
   static int myFunc(int p) {}
 }
 main(p) {
   foo(Functions.!1);
-}''', <String>[
+}''',
+        <String>[
       "1+myFunc" /*":" + ProposalKind.METHOD*/,
       "1+myFunc" /*":" + ProposalKind.METHOD_NAME*/
     ]);
 
-    buildTests('testCompletion_namedArgument_alreadyUsed', '''
-func({foo}) {} main() { func(foo: 0, fo!1); }''', <String>["1-foo"]);
+    buildTests(
+        'testCompletion_namedArgument_alreadyUsed',
+        '''
+func({foo}) {} main() { func(foo: 0, fo!1); }''',
+        <String>["1-foo"]);
 
-    buildTests('testCompletion_namedArgument_constructor', '''
+    buildTests(
+        'testCompletion_namedArgument_constructor',
+        '''
 class A {A({foo, bar}) {}} main() { new A(fo!1); }''',
-        <String>["1+foo", "1-bar"], failingTests: '1');
+        <String>["1+foo", "1-bar"],
+        failingTests: '1');
 
-    buildTests('testCompletion_namedArgument_empty', '''
-func({foo, bar}) {} main() { func(!1); }''', <String>[
-      "1+foo" /*":" + ProposalKind.NAMED_ARGUMENT*/,
-      "1-foo" /*":" + ProposalKind.OPTIONAL_ARGUMENT*/
-    ], failingTests: '1');
+    buildTests(
+        'testCompletion_namedArgument_empty',
+        '''
+func({foo, bar}) {} main() { func(!1); }''',
+        <String>[
+          "1+foo" /*":" + ProposalKind.NAMED_ARGUMENT*/,
+          "1-foo" /*":" + ProposalKind.OPTIONAL_ARGUMENT*/
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_namedArgument_function', '''
+    buildTests(
+        'testCompletion_namedArgument_function',
+        '''
 func({foo, bar}) {} main() { func(fo!1); }''',
-        <String>["1+foo", "1-bar"], failingTests: '1');
+        <String>["1+foo", "1-bar"],
+        failingTests: '1');
 
-    buildTests('testCompletion_namedArgument_notNamed', '''
-func([foo]) {} main() { func(fo!1); }''', <String>["1-foo"]);
+    buildTests(
+        'testCompletion_namedArgument_notNamed',
+        '''
+func([foo]) {} main() { func(fo!1); }''',
+        <String>["1-foo"]);
 
-    buildTests('testCompletion_namedArgument_unresolvedFunction', '''
-main() { func(fo!1); }''', <String>["1-foo"]);
+    buildTests(
+        'testCompletion_namedArgument_unresolvedFunction',
+        '''
+main() { func(fo!1); }''',
+        <String>["1-foo"]);
 
-    buildTests('testCompletion_newMemberType1', '''
+    buildTests(
+        'testCompletion_newMemberType1',
+        '''
 class Collection{}class List extends Collection{}class Foo { !1 }''',
         <String>["1+Collection", "1+List"]);
 
-    buildTests('testCompletion_newMemberType2', '''
+    buildTests(
+        'testCompletion_newMemberType2',
+        '''
 class Collection{}class List extends Collection{}class Foo {!1}''',
         <String>["1+Collection", "1+List"]);
 
-    buildTests('testCompletion_newMemberType3', '''
+    buildTests(
+        'testCompletion_newMemberType3',
+        '''
 class Collection{}class List extends Collection{}class Foo {L!1}''',
         <String>["1-Collection", "1+List"]);
 
-    buildTests('testCompletion_newMemberType4', '''
+    buildTests(
+        'testCompletion_newMemberType4',
+        '''
 class Collection{}class List extends Collection{}class Foo {C!1}''',
         <String>["1+Collection", "1-List"]);
 
-    buildTests('testCompletion_positionalArgument_constructor', '''
+    buildTests(
+        'testCompletion_positionalArgument_constructor',
+        '''
 class A {
   A([foo, bar]);
 }
 main() {
   new A(!1);
   new A(0, !2);
-}''', <String>[
-      "1+foo" /*":" + ProposalKind.OPTIONAL_ARGUMENT*/,
-      "1-bar",
-      "2-foo",
-      "2+bar" /*":"
+}''',
+        <String>[
+          "1+foo" /*":" + ProposalKind.OPTIONAL_ARGUMENT*/,
+          "1-bar",
+          "2-foo",
+          "2+bar" /*":"
         + ProposalKind.OPTIONAL_ARGUMENT*/
-    ], failingTests: '12');
+        ],
+        failingTests: '12');
 
-    buildTests('testCompletion_positionalArgument_function', '''
+    buildTests(
+        'testCompletion_positionalArgument_function',
+        '''
 func([foo, bar]) {}
 main() {
   func(!1);
   func(0, !2);
-}''', <String>[
-      "1+foo" /*":" + ProposalKind.OPTIONAL_ARGUMENT*/,
-      "1-bar",
-      "2-foo",
-      "2+bar" /*":"
+}''',
+        <String>[
+          "1+foo" /*":" + ProposalKind.OPTIONAL_ARGUMENT*/,
+          "1-bar",
+          "2-foo",
+          "2+bar" /*":"
         + ProposalKind.OPTIONAL_ARGUMENT*/
-    ], failingTests: '12');
+        ],
+        failingTests: '12');
 
-    buildTests('testCompletion_preferStaticType', '''
+    buildTests(
+        'testCompletion_preferStaticType',
+        '''
 class A {
   foo() {}
 }
@@ -1337,40 +1838,53 @@ class B extends A {
 main() {
   A v = new B();
   v.!1
-}''', <String>[
-      "1+foo",
-      "1-bar,potential=false,declaringType=B",
-      "1+bar,potential=true,declaringType=B"
-    ], failingTests: '1');
+}''',
+        <String>[
+          "1+foo",
+          "1-bar,potential=false,declaringType=B",
+          "1+bar,potential=true,declaringType=B"
+        ],
+        failingTests: '1');
 
-    buildTests('testCompletion_privateElement_sameLibrary_constructor', '''
+    buildTests(
+        'testCompletion_privateElement_sameLibrary_constructor',
+        '''
 class A {
   A._c();
   A.c();
 }
 main() {
   new A.!1
-}''', <String>["1+_c", "1+c"]);
+}''',
+        <String>["1+_c", "1+c"]);
 
-    buildTests('testCompletion_privateElement_sameLibrary_member', '''
+    buildTests(
+        'testCompletion_privateElement_sameLibrary_member',
+        '''
 class A {
   _m() {}
   m() {}
 }
 main(A a) {
   a.!1
-}''', <String>["1+_m", "1+m"]);
+}''',
+        <String>["1+_m", "1+m"]);
 
-    buildTests('testCompletion_propertyAccess_whenClassTarget', '''
+    buildTests(
+        'testCompletion_propertyAccess_whenClassTarget',
+        '''
 class A {
   static int FIELD;
   int field;
 }
 main() {
   A.!1
-}''', <String>["1+FIELD", "1-field"]);
+}''',
+        <String>["1+FIELD", "1-field"]);
 
-    buildTests('testCompletion_propertyAccess_whenClassTarget_excludeSuper', '''
+    buildTests(
+        'testCompletion_propertyAccess_whenClassTarget_excludeSuper',
+        '''
 class A {
   static int FIELD_A;
   static int methodA() {}
@@ -1381,10 +1895,13 @@ class B extends A {
 }
 main() {
   B.!1;
-}''', <String>["1+FIELD_B", "1-FIELD_A", "1+methodB", "1-methodA"],
+}''',
+        <String>["1+FIELD_B", "1-FIELD_A", "1+methodB", "1-methodA"],
         failingTests: '1');
 
-    buildTests('testCompletion_propertyAccess_whenInstanceTarget', '''
+    buildTests(
+        'testCompletion_propertyAccess_whenInstanceTarget',
+        '''
 class A {
   static int FIELD;
   int fieldA;
@@ -1398,19 +1915,30 @@ class C extends A {
 main(B b, C c) {
   b.a.!1;
   c.!2;
-}''', <String>["1-FIELD", "1+fieldA", "2+fieldC", "2+fieldA"]);
+}''',
+        <String>["1-FIELD", "1+fieldA", "2+fieldC", "2+fieldA"]);
 
-    buildTests('testCompletion_return_withIdentifierPrefix', '''
-f() { var vvv = 42; return v!1 }''', <String>["1+vvv"]);
+    buildTests(
+        'testCompletion_return_withIdentifierPrefix',
+        '''
+f() { var vvv = 42; return v!1 }''',
+        <String>["1+vvv"]);
 
-    buildTests('testCompletion_return_withoutExpression', '''
-f() { var vvv = 42; return !1 }''', <String>["1+vvv"]);
+    buildTests(
+        'testCompletion_return_withoutExpression',
+        '''
+f() { var vvv = 42; return !1 }''',
+        <String>["1+vvv"]);
 
-    buildTests('testCompletion_staticField1', '''
+    buildTests(
+        'testCompletion_staticField1',
+        '''
 class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}''',
         <String>["1+MAX_D", "X+xc", "Y+yc", "2+num", "3+num", "4+Sunflower"]);
 
-    buildTests('testCompletion_super_superType', '''
+    buildTests(
+        'testCompletion_super_superType',
+        '''
 class A {
   var fa;
   ma() {}
@@ -1421,9 +1949,12 @@ class B extends A {
   main() {
     super.!1
   }
-}''', <String>["1+fa", "1-fb", "1+ma", "1-mb"]);
+}''',
+        <String>["1+fa", "1-fb", "1+ma", "1-mb"]);
 
-    buildTests('testCompletion_superConstructorInvocation_noNamePrefix', '''
+    buildTests(
+        'testCompletion_superConstructorInvocation_noNamePrefix',
+        '''
 class A {
   A.fooA();
   A.fooB();
@@ -1431,9 +1962,13 @@ class A {
 }
 class B extends A {
   B() : super.!1
-}''', <String>["1+fooA", "1+fooB", "1+bar"], failingTests: '1');
+}''',
+        <String>["1+fooA", "1+fooB", "1+bar"],
+        failingTests: '1');
 
-    buildTests('testCompletion_superConstructorInvocation_withNamePrefix', '''
+    buildTests(
+        'testCompletion_superConstructorInvocation_withNamePrefix',
+        '''
 class A {
   A.fooA();
   A.fooB();
@@ -1441,44 +1976,71 @@ class A {
 }
 class B extends A {
   B() : super.f!1
-}''', <String>["1+fooA", "1+fooB", "1-bar"], failingTests: '1');
+}''',
+        <String>["1+fooA", "1+fooB", "1-bar"],
+        failingTests: '1');
 
-    buildTests('testCompletion_this_bad_inConstructorInitializer', '''
+    buildTests(
+        'testCompletion_this_bad_inConstructorInitializer',
+        '''
 class A {
   var f;
   A() : f = this.!1;
-}''', <String>["1-toString"], failingTests: '1');
+}''',
+        <String>["1-toString"],
+        failingTests: '1');
 
-    buildTests('testCompletion_this_bad_inFieldDeclaration', '''
+    buildTests(
+        'testCompletion_this_bad_inFieldDeclaration',
+        '''
 class A {
   var f = this.!1;
-}''', <String>["1-toString"], failingTests: '1');
+}''',
+        <String>["1-toString"],
+        failingTests: '1');
 
-    buildTests('testCompletion_this_bad_inStaticMethod', '''
+    buildTests(
+        'testCompletion_this_bad_inStaticMethod',
+        '''
 class A {
   static m() {
     this.!1;
   }
-}''', <String>["1-toString"], failingTests: '1');
+}''',
+        <String>["1-toString"],
+        failingTests: '1');
 
-    buildTests('testCompletion_this_bad_inTopLevelFunction', '''
+    buildTests(
+        'testCompletion_this_bad_inTopLevelFunction',
+        '''
 main() {
   this.!1;
-}''', <String>["1-toString"], failingTests: '1');
+}''',
+        <String>["1-toString"],
+        failingTests: '1');
 
-    buildTests('testCompletion_this_bad_inTopLevelVariableDeclaration', '''
-var v = this.!1;''', <String>["1-toString"], failingTests: '1');
+    buildTests(
+        'testCompletion_this_bad_inTopLevelVariableDeclaration',
+        '''
+var v = this.!1;''',
+        <String>["1-toString"],
+        failingTests: '1');
 
-    buildTests('testCompletion_this_OK_inConstructorBody', '''
+    buildTests(
+        'testCompletion_this_OK_inConstructorBody',
+        '''
 class A {
   var f;
   m() {}
   A() {
     this.!1;
   }
-}''', <String>["1+f", "1+m"]);
+}''',
+        <String>["1+f", "1+m"]);
 
-    buildTests('testCompletion_this_OK_localAndSuper', '''
+    buildTests(
+        'testCompletion_this_OK_localAndSuper',
+        '''
 class A {
   var fa;
   ma() {}
@@ -1489,49 +2051,70 @@ class B extends A {
   main() {
     this.!1
   }
-}''', <String>["1+fa", "1+fb", "1+ma", "1+mb"]);
+}''',
+        <String>["1+fa", "1+fb", "1+ma", "1+mb"]);
 
-    buildTests('testCompletion_topLevelField_init2', '''
+    buildTests(
+        'testCompletion_topLevelField_init2',
+        '''
 class DateTime{static var JUN;}final num M = Dat!1eTime.JUN;''',
         <String>["1+DateTime", "1-void"]);
 
-    buildTests('testCompletion_while', '''
-class Foo { int boo = 7; mth() { while (b!1) {} }}''', <String>["1+boo"]);
+    buildTests(
+        'testCompletion_while',
+        '''
+class Foo { int boo = 7; mth() { while (b!1) {} }}''',
+        <String>["1+boo"]);
   }
 
   void buildLibraryTests() {
     Map<String, String> sources = new HashMap<String, String>();
 
-    buildTests('test_export_ignoreIfThisLibraryExports', '''
+    buildTests(
+        'test_export_ignoreIfThisLibraryExports',
+        '''
 export 'dart:math';
 libFunction() {};
 main() {
   !1
-}''', <String>["1-cos", "1+libFunction"]);
+}''',
+        <String>["1-cos", "1+libFunction"]);
 
     sources.clear();
     sources["/lib.dart"] = '''
 library lib;
 export 'dart:math' hide sin;
 libFunction() {};''';
-    buildTests('test_export_showIfImportLibraryWithExport', '''
+    buildTests(
+        'test_export_showIfImportLibraryWithExport',
+        '''
 import 'lib.dart' as p;
 main() {
   p.!1
-}''', <String>["1+cos", "1-sin", "1+libFunction"],
-        extraFiles: sources, failingTests: '1');
+}''',
+        <String>["1+cos", "1-sin", "1+libFunction"],
+        extraFiles: sources,
+        failingTests: '1');
 
-    buildTests('test_importPrefix_hideCombinator', '''
+    buildTests(
+        'test_importPrefix_hideCombinator',
+        '''
 import 'dart:math' as math hide PI;
 main() {
   math.!1
-}''', <String>["1-PI", "1+LN10"], failingTests: '1');
+}''',
+        <String>["1-PI", "1+LN10"],
+        failingTests: '1');
 
-    buildTests('test_importPrefix_showCombinator', '''
+    buildTests(
+        'test_importPrefix_showCombinator',
+        '''
 import 'dart:math' as math show PI;
 main() {
   math.!1
-}''', <String>["1+PI", "1-LN10"], failingTests: '1');
+}''',
+        <String>["1+PI", "1-LN10"],
+        failingTests: '1');
 
     sources.clear();
     sources["/lib.dart"] = '''
@@ -1541,11 +2124,16 @@ class _A
 
 class A extends _A {
 }''';
-    buildTests('test_memberOfPrivateClass_otherLibrary', '''
+    buildTests(
+        'test_memberOfPrivateClass_otherLibrary',
+        '''
 import 'lib.dart';
 main(A a) {
   a.!1
-}''', <String>["1+foo"], extraFiles: sources, failingTests: '1');
+}''',
+        <String>["1+foo"],
+        extraFiles: sources,
+        failingTests: '1');
 
     sources.clear();
     sources["/lib.dart"] = '''
@@ -1554,11 +2142,15 @@ class A {
   A.c();
   A._c();
 }''';
-    buildTests('test_noPrivateElement_otherLibrary_constructor', '''
+    buildTests(
+        'test_noPrivateElement_otherLibrary_constructor',
+        '''
 import 'lib.dart';
 main() {
   new A.!1
-}''', <String>["1-_c", "1+c"], failingTests: '1');
+}''',
+        <String>["1-_c", "1+c"],
+        failingTests: '1');
 
     sources.clear();
     sources["/lib.dart"] = '''
@@ -1567,12 +2159,16 @@ class A {
   var f;
   var _f;
 }''';
-    buildTests('test_noPrivateElement_otherLibrary_member', '''
+    buildTests(
+        'test_noPrivateElement_otherLibrary_member',
+        '''
               import 'lib.dart';
               main(A a) {
                 a.!1
-              }''', <String>["1-_f", "1+f"],
-        extraFiles: sources, failingTests: '1');
+              }''',
+        <String>["1-_f", "1+f"],
+        extraFiles: sources,
+        failingTests: '1');
 
     sources.clear();
     sources["/firth.dart"] = '''
@@ -1580,34 +2176,41 @@ library firth;
 class SerializationException {
   const SerializationException();
 }''';
-    buildTests('testLibrary001', '''
+    buildTests(
+        'testLibrary001',
+        '''
 import 'firth.dart';
 main() {
-throw new Seria!1lizationException();}''', <String>["1+SerializationException"],
-        extraFiles: sources, failingTests: '1');
+throw new Seria!1lizationException();}''',
+        <String>["1+SerializationException"],
+        extraFiles: sources,
+        failingTests: '1');
 
     // Type propagation.
     // TODO Include corelib analysis (this works in the editor)
-    buildTests('testLibrary002',
+    buildTests(
+        'testLibrary002',
         '''t2() {var q=[0],z=q.!1length;q.!2clear();}''',
-        <String>["1+length", "1+isEmpty", "2+clear"], failingTests: '1');
+        <String>["1+length", "1+isEmpty", "2+clear"],
+        failingTests: '1');
 
     // TODO Include corelib analysis
-    buildTests('testLibrary003', '''class X{var q; f() {q.!1a!2}}''', <String>[
-      "1+end",
-      "2+abs",
-      "2-end"
-    ], failingTests: '12');
+    buildTests('testLibrary003', '''class X{var q; f() {q.!1a!2}}''',
+        <String>["1+end", "2+abs", "2-end"],
+        failingTests: '12');
 
     // TODO Include corelib analysis
     // Resolving dart:html takes between 2.5s and 30s; json, about 0.12s
-    buildTests('testLibrary004', '''
+    buildTests(
+        'testLibrary004',
+        '''
             library foo;
             import 'dart:convert' as json;
             class JsonDecoderX{}
             f1() {var x=new json.!1}
             f2() {var x=new json.JsonDe!2}
-            f3() {var x=new json.JsonDecoder!3}''', <String>[
+            f3() {var x=new json.JsonDecoder!3}''',
+        <String>[
       "1+JsonDecoder",
       "1-JsonDecoderX",
       "2+JsonDecoder",
@@ -1619,9 +2222,8 @@ throw new Seria!1lizationException();}''', <String>["1+SerializationException"],
     // TODO Enable after type propagation is implemented. Not yet.
     // TODO Include corelib analysis
     buildTests('testLibrary005',
-            '''var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}''', <String>[
-      "1+abs"
-    ], failingTests: '1');
+        '''var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}''', <String>["1+abs"],
+        failingTests: '1');
 
     // Exercise import and export handling.
     // Libraries are defined in partial order of increasing dependency.
@@ -1644,7 +2246,9 @@ i1() {}''';
 library imp2;
 export 'exp2a.dart';
 i2() {}''';
-    buildTests('testLibrary006', '''
+    buildTests(
+        'testLibrary006',
+        '''
 import 'imp1.dart';
 import 'imp2.dart';
 main() {!1
@@ -1653,8 +2257,10 @@ main() {!1
   e1a();
   e1b();
   e2a();
-}''', <String>["1+i1", "1+i2", "1+e1a", "1+e2a", "1+e1b"],
-        extraFiles: sources, failingTests: '1');
+}''',
+        <String>["1+i1", "1+i2", "1+e1a", "1+e2a", "1+e1b"],
+        extraFiles: sources,
+        failingTests: '1');
 
     // Exercise import and export handling.
     // Libraries are defined in partial order of increasing dependency.
@@ -1662,13 +2268,17 @@ main() {!1
     sources["/l1.dart"] = '''
 library l1;
 var _l1t; var l1t;''';
-    buildTests('testLibrary007', '''
+    buildTests(
+        'testLibrary007',
+        '''
 import 'l1.dart';
 main() {
   var x = l!1
   var y = _!2
-}''', <String>["1+l1t", "1-_l1t", "2-_l1t"],
-        extraFiles: sources, failingTests: '1');
+}''',
+        <String>["1+l1t", "1-_l1t", "2-_l1t"],
+        extraFiles: sources,
+        failingTests: '1');
 
     // Check private library exclusion
     sources.clear();
@@ -1685,7 +2295,9 @@ class Private extends NonPrivate {
   void privateMethod() {
   }
 }''';
-    buildTests('testLibrary008', '''
+    buildTests(
+        'testLibrary008',
+        '''
 import 'private.dart';
 import 'public.dart';
 class Test {
@@ -1693,8 +2305,10 @@ class Test {
     NonPrivate x = new NonPrivate();
     x.!1 //publicMethod but not privateMethod should appear
   }
-}''', <String>["1-privateMethod", "1+publicMethod"],
-        extraFiles: sources, failingTests: '1');
+}''',
+        <String>["1-privateMethod", "1+publicMethod"],
+        extraFiles: sources,
+        failingTests: '1');
 
     // Exercise library prefixes.
     sources.clear();
@@ -1703,7 +2317,9 @@ library lib;
 int X = 1;
 void m(){}
 class Y {}''';
-    buildTests('testLibrary009', '''
+    buildTests(
+        'testLibrary009',
+        '''
 import 'lib.dart' as Q;
 void a() {
   var x = Q.!1
@@ -1716,27 +2332,33 @@ void c() {
 }
 void d() {
   new Q.!4
-}''', <String>[
-      "1+X",
-      "1+m",
-      "1+Y",
-      "2+X",
-      "2+m",
-      "2+Y",
-      "3+X",
-      "3+m",
-      "3+Y",
-      "4+Y",
-      "4-m",
-      "4-X"
-    ], extraFiles: sources, failingTests: '1234');
+}''',
+        <String>[
+          "1+X",
+          "1+m",
+          "1+Y",
+          "2+X",
+          "2+m",
+          "2+Y",
+          "3+X",
+          "3+m",
+          "3+Y",
+          "4+Y",
+          "4-m",
+          "4-X"
+        ],
+        extraFiles: sources,
+        failingTests: '1234');
   }
 
   void buildNumberedTests() {
-    buildTests('test001', '''
+    buildTests(
+        'test001',
+        '''
 void r1(var v) {
   v.!1toString!2().!3hash!4Code
-}''', <String>[
+}''',
+        <String>[
       "1+toString",
       "1-==",
       "2+toString",
@@ -1746,160 +2368,199 @@ void r1(var v) {
       "4-toString"
     ]);
 
-    buildTests('test002', '''
+    buildTests(
+        'test002',
+        '''
 void r2(var vim) {
   v!1.toString()
-}''', <String>["1+vim"]);
+}''',
+        <String>["1+vim"]);
 
-    buildTests('test003', '''
+    buildTests(
+        'test003',
+        '''
 class A {
   int a() => 3;
   int b() => this.!1a();
-}''', <String>["1+a"]);
+}''',
+        <String>["1+a"]);
 
-    buildTests('test004', '''
+    buildTests(
+        'test004',
+        '''
 class A {
   int x;
   A() : this.!1x = 1;
   A.b() : this();
   A.c() : this.!2b();
   g() => new A.!3c();
-}''', <String>["1+x", "2+b", "3+c"], failingTests: '12');
+}''',
+        <String>["1+x", "2+b", "3+c"],
+        failingTests: '12');
 
-    buildTests('test005', '''
+    buildTests(
+        'test005',
+        '''
 class A {}
 void rr(var vim) {
   var !1vq = v!2.toString();
   var vf;
   v!3.toString();
-}''', <String>[
-      "1-A",
-      "1-vim",
-      "1+vq",
-      "1-vf",
-      "1-this",
-      "1-void",
-      "1-null",
-      "1-false",
-      "2-A",
-      "2+vim",
-      "2-vf",
-      "2-vq",
-      "2-this",
-      "2-void",
-      "2-null",
-      "2-false",
-      "3+vf",
-      "3+vq",
-      "3+vim",
-      "3-A"
-    ], failingTests: '1');
+}''',
+        <String>[
+          "1-A",
+          "1-vim",
+          "1+vq",
+          "1-vf",
+          "1-this",
+          "1-void",
+          "1-null",
+          "1-false",
+          "2-A",
+          "2+vim",
+          "2-vf",
+          "2-vq",
+          "2-this",
+          "2-void",
+          "2-null",
+          "2-false",
+          "3+vf",
+          "3+vq",
+          "3+vim",
+          "3-A"
+        ],
+        failingTests: '1');
 
-    buildTests('test006', '''
+    buildTests(
+        'test006',
+        '''
 void r2(var vim, {va: 2, b: 3}) {
   v!1.toString()
-}''', <String>["1+va", "1-b"]);
+}''',
+        <String>["1+va", "1-b"]);
 
-    buildTests('test007', '''
+    buildTests(
+        'test007',
+        '''
 void r2(var vim, [va: 2, b: 3]) {
   v!1.toString()
-}''', <String>["1+va", "1-b"]);
+}''',
+        <String>["1+va", "1-b"]);
 
     // keywords
-    buildTests('test008', '''
+    buildTests(
+        'test008',
+        '''
 !1class Aclass {}
 class Bclass !2extends!3 !4Aclass {}
 !5typedef Ctype = !6Bclass with !7Aclass;
 class Dclass extends !8Ctype {}
 !9abstract class Eclass implements Dclass,!C Ctype, Bclass {}
-class Fclass extends Bclass !Awith !B Eclass {}''', <String>[
-      "1+class",
-      "1-implements",
-      "1-extends",
-      "1-with",
-      "2+extends",
-      "3+extends",
-      "4+Aclass",
-      "4-Bclass",
-      "5+typedef",
-      "6+Bclass",
-      "6-Ctype",
-      "7+Aclass",
-      "7-Bclass",
-      "8+Ctype",
-      "9+abstract",
-      "A+with",
-      "B+Eclass",
-      "B-Dclass",
-      "B-Ctype",
-      "C+Bclass",
-      "C-Eclass"
-    ], failingTests: '23467ABC');
+class Fclass extends Bclass !Awith !B Eclass {}''',
+        <String>[
+          "1+class",
+          "1-implements",
+          "1-extends",
+          "1-with",
+          "2+extends",
+          "3+extends",
+          "4+Aclass",
+          "4-Bclass",
+          "5+typedef",
+          "6+Bclass",
+          "6-Ctype",
+          "7+Aclass",
+          "7-Bclass",
+          "8+Ctype",
+          "9+abstract",
+          "A+with",
+          "B+Eclass",
+          "B-Dclass",
+          "B-Ctype",
+          "C+Bclass",
+          "C-Eclass"
+        ],
+        failingTests: '23467ABC');
 
     // keywords
-    buildTests('test009', '''
+    buildTests(
+        'test009',
+        '''
 typedef !1dy!2namic TestFn1();
 typedef !3vo!4id TestFn2();
-typ!7edef !5n!6''', <String>[
-      "1+void",
-      "1+TestFn2",
-      "2+dynamic",
-      "2-void",
-      "3+dynamic",
-      "4+void",
-      "4-dynamic",
-      "5+TestFn2",
-      "6+num",
-      "7+typedef"
-    ], failingTests: '1234');
+typ!7edef !5n!6''',
+        <String>[
+          "1+void",
+          "1+TestFn2",
+          "2+dynamic",
+          "2-void",
+          "3+dynamic",
+          "4+void",
+          "4-dynamic",
+          "5+TestFn2",
+          "6+num",
+          "7+typedef"
+        ],
+        failingTests: '1234');
 
-    buildTests('test010', '''
+    buildTests(
+        'test010',
+        '''
 class test !8<!1t !2 !3extends String,!4 List,!5 !6>!7 {}
-class tezetst !9<!BString,!C !DList>!A {}''', <String>[
-      "1-String",
-      "1-List",
-      "1-test",
-      "2-String",
-      "2-test",
-      "3+extends",
-      "4-tezetst",
-      "4-test",
-      "5-String",
-      "6-List",
-      "7-List",
-      "8-List",
-      "9-String",
-      "A-String",
-      "B-String",
-      "C-List",
-      "C-tezetst",
-      "D-List",
-      "D-test"
-    ], failingTests: '23');
+class tezetst !9<!BString,!C !DList>!A {}''',
+        <String>[
+          "1-String",
+          "1-List",
+          "1-test",
+          "2-String",
+          "2-test",
+          "3+extends",
+          "4-tezetst",
+          "4-test",
+          "5-String",
+          "6-List",
+          "7-List",
+          "8-List",
+          "9-String",
+          "A-String",
+          "B-String",
+          "C-List",
+          "C-tezetst",
+          "D-List",
+          "D-test"
+        ],
+        failingTests: '23');
 
     // name generation with conflicts
     buildTests('test011', '''r2(var object, Object object1, Object !1);''',
-        <String>["1+object2"], failingTests: '1');
+        <String>["1+object2"],
+        failingTests: '1');
 
     // reserved words
-    buildTests('test012', '''
+    buildTests(
+        'test012',
+        '''
 class X {
   f() {
     g(!1var!2 z) {!3true.!4toString();};
   }
-}''', <String>[
-      "1+var",
-      "1+dynamic",
-      "1-f",
-      "2+var",
-      "2-dynamic",
-      "3+false",
-      "3+true",
-      "4+toString"
-    ], failingTests: '123');
+}''',
+        <String>[
+          "1+var",
+          "1+dynamic",
+          "1-f",
+          "2+var",
+          "2-dynamic",
+          "3+false",
+          "3+true",
+          "4+toString"
+        ],
+        failingTests: '123');
 
     // conditions & operators
-    buildTests('test013', '''
+    buildTests(
+        'test013',
+        '''
 class Q {
   bool x;
   List zs;
@@ -1914,22 +2575,26 @@ class Q {
     } on !5Object catch(a){}
     if (!7x !6) {} else {};
   }
-}''', <String>[
-      "1+x",
-      "2+x",
-      "3+zs",
-      "4+k",
-      "5+Q",
-      "5-a",
-      "6+==",
-      "7+x",
-      "8+==",
-      "9+==",
-      "0+k"
-    ], failingTests: '689');
+}''',
+        <String>[
+          "1+x",
+          "2+x",
+          "3+zs",
+          "4+k",
+          "5+Q",
+          "5-a",
+          "6+==",
+          "7+x",
+          "8+==",
+          "9+==",
+          "0+k"
+        ],
+        failingTests: '689');
 
     // keywords
-    buildTests('test014', '''
+    buildTests(
+        'test014',
+        '''
 class Q {
   bool x;
   List zs;
@@ -1947,64 +2612,74 @@ class Q {
     !Jif (x) {} !Kelse {};
     !Lreturn;
   }
-}''', <String>[
-      "1+while",
-      "2+do",
-      "3+while",
-      "4+for (!)",
-      "5+in",
-      "6+for (!)",
-      "7+switch",
-      "8+case",
-      "9+default",
-      "A+try",
-      "B+on",
-      "C+catch",
-      "D+var",
-      "E+void",
-      "F+assert",
-      "G+continue",
-      "H+break",
-      "J+if",
-      "K+else",
-      "L+return"
-    ], failingTests: '35BCHK');
+}''',
+        <String>[
+          "1+while",
+          "2+do",
+          "3+while",
+          "4+for",
+          "5+in",
+          "6+for",
+          "7+switch",
+          "8+case",
+          "9+default",
+          "A+try",
+          "B+on",
+          "C+catch",
+          "D+var",
+          "E+void",
+          "F+assert",
+          "G+continue",
+          "H+break",
+          "J+if",
+          "K+else",
+          "L+return"
+        ],
+        failingTests: '3BCK');
 
     // operators in function
     buildTests('test015', '''f(a,b,c) => a + b * c !1;''', <String>["1+=="],
         failingTests: '1');
 
     // operators in return
-    buildTests('test016',
-        '''class X {dynamic f(a,b,c) {return a + b * c !1;}}''', <String>[
-      "1+=="
-    ], failingTests: '1');
+    buildTests(
+        'test016',
+        '''class X {dynamic f(a,b,c) {return a + b * c !1;}}''',
+        <String>["1+=="],
+        failingTests: '1');
 
     // keywords
-    buildTests('test017', '''
+    buildTests(
+        'test017',
+        '''
 !1!2import 'x' !5as r;
 !3export '!8uri' !6hide Q !7show X;
-!4part 'x';''', <String>[
-      "1+library",
-      "2+import '!';",
-      "3+export",
-      "4+part",
-      "5+as",
-      "6+hide",
-      "7+show",
-      "8-null"
-    ], failingTests: '567');
+!4part 'x';''',
+        <String>[
+          "1+library",
+          "2+import",
+          "3+export",
+          "4+part",
+          "5+as",
+          "6+hide",
+          "7+show",
+          "8-null"
+        ],
+        failingTests: '567');
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
         failingTests: '2');
 
-    buildTests('test019', '''
+    buildTests(
+        'test019',
+        '''
 var truefalse = 0;
 var falsetrue = 1;
 main() {
   var foo = true!1
-}''', <String>["1+true", "1+truefalse", "1-falsetrue"]);
+}''',
+        <String>["1+true", "1+truefalse", "1-falsetrue"]);
 
     buildTests('test020', '''var x = null.!1''', <String>["1+toString"],
         failingTests: '1');
@@ -2013,7 +2688,9 @@ main() {
 
     buildTests('test022', '''var x = .!1;''', <String>["1-toString"]);
 
-    buildTests('test023', '''
+    buildTests(
+        'test023',
+        '''
 class Map{getKeys(){}}
 class X {
   static x1(Map m) {
@@ -2022,18 +2699,24 @@ class X {
   x2(Map m) {
     m.!2getKeys;
   }
-}''', <String>["1+getKeys", "2+getKeys"]);
+}''',
+        <String>["1+getKeys", "2+getKeys"]);
 
 // Note lack of semicolon following completion location
-    buildTests('test024', '''
+    buildTests(
+        'test024',
+        '''
 class List{factory List.from(Iterable other) {}}
 class F {
   f() {
     new List.!1
   }
-}''', <String>["1+from"]);
+}''',
+        <String>["1+from"]);
 
-    buildTests('test025', '''
+    buildTests(
+        'test025',
+        '''
 class R {
   static R _m;
   static R m;
@@ -2065,7 +2748,8 @@ class T {
     var g = R.!Em;
     var h = R.!Fg();
   }
-}''', <String>[
+}''',
+        <String>[
       "1+m",
       "2+_m",
       "3+g",
@@ -2094,11 +2778,14 @@ class T {
 
     buildTests('test030', '''n(){[1].forEach((x){!1});}''', <String>["1+x"]);
 
-    buildTests('test031',
+    buildTests(
+        'test031',
         '''class Caster {} m() {try {} on Cas!1ter catch (CastBlock) {!2}}''',
         <String>["1+Caster", "1-CastBlock", "2+Caster", "2+CastBlock"]);
 
-    buildTests('test032', '''
+    buildTests(
+        'test032',
+        '''
 const ONE = 1;
 const ICHI = 10;
 const UKSI = 100;
@@ -2112,7 +2799,8 @@ m() {
     case ONE!1: return;
     default: return;
   }
-}''', <String>[
+}''',
+        <String>[
       "1+ONE",
       "1-UKSI",
       "2+EIN",
@@ -2123,14 +2811,18 @@ m() {
       "3+ONE"
     ]);
 
-    buildTests('test033',
+    buildTests(
+        'test033',
         '''class A{}class B extends A{b(){}}class C implements A {c(){}}class X{x(){A f;f.!1}}''',
-        <String>["1+b", "1-c"], failingTests: '1');
+        <String>["1+b", "1-c"],
+        failingTests: '1');
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
     // test analysis of untyped fields and top-level vars
-    buildTests('test034', '''
+    buildTests(
+        'test034',
+        '''
 var topvar;
 class Top {top(){}}
 class Left extends Top {left(){}}
@@ -2153,16 +2845,20 @@ class A {
     topvar.!1top();
     field.!2top();
   }
-}''', <String>["1+top", "2+top"], failingTests: '12');
+}''',
+        <String>["1+top", "2+top"],
+        failingTests: '12');
 
     // test analysis of untyped fields and top-level vars
     buildTests('test035', '''class Y {final x='hi';mth() {x.!1length;}}''',
-        <String>["1+length"]);
+        <String>["1+length"], failingTests: '1');
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
     // test analysis of untyped fields and top-level vars
-    buildTests('test036', '''
+    buildTests(
+        'test036',
+        '''
 class A1 {
   var field;
   A1() : field = 0;
@@ -2174,16 +2870,24 @@ class A1 {
 main() {
   A1 a = new A1();
   a.field.!2
-}''', <String>["1+round", "2+round"], failingTests: '12');
+}''',
+        <String>["1+round", "2+round"],
+        failingTests: '12');
 
-    buildTests('test037', '''
+    buildTests(
+        'test037',
+        '''
 class HttpServer{}
 class HttpClient{}
 main() {
   new HtS!1
-}''', <String>["1+HttpServer", "1-HttpClient"], failingTests: '1');
+}''',
+        <String>["1+HttpServer", "1-HttpClient"],
+        failingTests: '1');
 
-    buildTests('test038', '''
+    buildTests(
+        'test038',
+        '''
 class X {
   x(){}
 }
@@ -2197,35 +2901,38 @@ class A<Z extends X> {
     ay.!1y;
     az.!2x;
   }
-}''', <String>["1+y", "1-x", "2+x", "2-y"], failingTests: '2');
+}''',
+        <String>["1+y", "1-x", "2+x", "2-y"],
+        failingTests: '2');
 
     // test analysis of untyped fields and top-level vars
-    buildTests('test039', '''class X{}var x = null as !1X;''', <String>[
-      "1+X",
-      "1-void"
-    ]);
+    buildTests('test039', '''class X{}var x = null as !1X;''',
+        <String>["1+X", "1-void"]);
 
     // test arg lists with named params
     buildTests('test040', '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1)!2;}''',
-        <String>["1+x1", "2-x2"], failingTests: '1');
+        <String>["1+x1", "2-x2"],
+        failingTests: '1');
 
     // test arg lists with named params
     buildTests('test041', '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1''',
-        <String>["1+x1", "1+x2", "1+y"], failingTests: '1');
+        <String>["1+x1", "1+x2", "1+y"],
+        failingTests: '1');
 
     // test arg lists with named params
     buildTests('test042', '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1;!2''',
-        <String>["1+x1", "1+x2", "2-y"], failingTests: '1');
+        <String>["1+x1", "1+x2", "2-y"],
+        failingTests: '1');
   }
 
   void buildOtherTests() {
     buildTests('test_classMembers_inGetter',
         '''class A { var fff; get z {ff!1}}''', <String>["1+fff"]);
 
-    buildTests('testSingle',
-        '''class A {int x; !2mth() {int y = this.x;}}class B{}''', <String>[
-      "2+B"
-    ]);
+    buildTests(
+        'testSingle',
+        '''class A {int x; !2mth() {int y = this.x;}}class B{}''',
+        <String>["2+B"]);
   }
 
   /**

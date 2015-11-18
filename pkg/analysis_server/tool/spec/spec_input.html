@@ -1,3 +1,4 @@
+<!doctype html>
 <html>
   <head>
     <meta charset="UTF-8"/>
@@ -5,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.9.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.12.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -136,6 +137,9 @@
       The specifications of the API’s refer to data structures beyond
       the standard JSON primitives. These data structures are
       documented in the section titled <a href="#types">Types</a>.
+    </p>
+    <p>
+      To get an overview of the API, you can consult the <a href="#index">index</a>.
     </p>
     <h3>Command-line Arguments</h3>
     <p>
@@ -875,6 +879,38 @@
           </field>
         </params>
       </notification>
+      <notification event="implemented">
+        <p>
+          Reports the classes that are implemented or extended and
+          class members that are implemented or overridden in a file.
+        </p>
+        <p>
+          This notification is not subscribed to by default. Clients
+          can subscribe by including the value <tt>"IMPLEMENTED"</tt> in
+          the list of services passed in an analysis.setSubscriptions
+          request.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The file with which the implementations are associated.
+            </p>
+          </field>
+          <field name="classes">
+            <list><ref>ImplementedClass</ref></list>
+            <p>
+              The classes defined in the file that are implemented or extended.
+            </p>
+          </field>
+          <field name="members">
+            <list><ref>ImplementedMember</ref></list>
+            <p>
+              The member defined in the file that are implemented or overridden.
+            </p>
+          </field>
+        </params>
+      </notification>
       <notification event="invalidate">
         <p>
           Reports that the navigation information associated with a region of a
@@ -1008,6 +1044,23 @@
               The file with which the outline is associated.
             </p>
           </field>
+          <field name="kind">
+            <ref>FileKind</ref>
+            <p>
+              The kind of the file.
+            </p>
+          </field>
+          <field name="libraryName" optional="true">
+            <ref>String</ref>
+            <p>
+              The name of the library defined by the file using a "library"
+              directive, or referenced by a "part of" directive. If both
+              "library" and "part of" directives are present, then the
+              "library" directive takes precedence.
+              This field will be omitted if the file has neither "library"
+              nor "part of" directives.
+            </p>
+          </field>
           <field name="outline">
             <ref>Outline</ref>
             <p>
@@ -1018,7 +1071,7 @@
       </notification>
       <notification event="overrides">
         <p>
-          Reports the overridding members in a file.
+          Reports the overriding members in a file.
         </p>
         <p>
           This notification is not subscribed to by default. Clients
@@ -1303,6 +1356,13 @@
             <ref>int</ref>
             <p>
               The offset of the name of the type within the file.
+            </p>
+          </field>
+          <field name="superOnly" optional="true">
+            <ref>bool</ref>
+            <p>
+              True if the client is only requesting superclasses and
+              interfaces hierarchy.
             </p>
           </field>
         </params>
@@ -1712,7 +1772,7 @@
           If directives of the Dart file cannot be organized, for example
           because it has scan or parse errors, or by other reasons,
           <tt>ORGANIZE_DIRECTIVES_ERROR</tt> will be generated. The message
-          will provide datails about the reason.
+          will provide details about the reason.
         </p>
         <params>
           <field name="file">
@@ -1967,6 +2027,21 @@
               message associated with the error code.
             </p>
           </field>
+          <field name="hasFix" optional="true">
+            <ref>bool</ref>
+            <p>
+              A hint to indicate to interested clients that this error has
+              an associated fix (or fixes).  The absence of this field implies
+              there are not known to be fixes.  Note that since the operation
+              to calculate whether fixes apply needs to be performant it is
+              possible that complicated tests will be skipped and a false
+              negative returned.  For this reason, this attribute should be
+              treated as a "hint".  Despite the possibility of false negatives,
+              no false positives should be returned.  If a client sees this
+              flag set they can proceed with the confidence that there are in
+              fact associated fixes.
+            </p>
+          </field>
         </object>
       </type>
       <type name="AnalysisErrorFixes">
@@ -2053,6 +2128,13 @@
               proposed "null aware operators" feature.
             </p>
           </field>
+          <field name="enableSuperMixins" optional="true">
+            <ref>bool</ref>
+            <p>
+              True if the client wants to enable support for the
+              proposed "less restricted mixins" proposal (DEP 34).
+            </p>
+          </field>
           <field name="generateDart2jsHints" optional="true">
             <ref>bool</ref>
             <p>
@@ -2084,6 +2166,7 @@
         <enum>
           <value><code>FOLDING</code></value>
           <value><code>HIGHLIGHTS</code></value>
+          <value><code>IMPLEMENTED</code></value>
           <value>
             <code>INVALIDATE</code>
             <p>
@@ -2438,6 +2521,7 @@
           <value><code>ENUM</code></value>
           <value><code>ENUM_CONSTANT</code></value>
           <value><code>FIELD</code></value>
+          <value><code>FILE</code></value>
           <value><code>FUNCTION</code></value>
           <value><code>FUNCTION_TYPE_ALIAS</code></value>
           <value><code>GETTER</code></value>
@@ -2498,6 +2582,15 @@
         </p>
         <enum>
           <value><code>LAUNCH_DATA</code></value>
+        </enum>
+      </type>
+      <type name="FileKind">
+        <p>
+          An enumeration of the kinds of files.
+        </p>
+        <enum>
+          <value><code>LIBRARY</code></value>
+          <value><code>PART</code></value>
         </enum>
       </type>
       <type name="FilePath">
@@ -2814,7 +2907,7 @@
           <field name="offset">
             <ref>int</ref>
             <p>
-              The offset of the range of characters that encompases the
+              The offset of the range of characters that encompasses the
               cursor position and has the same hover information as the
               cursor position.
             </p>
@@ -2822,7 +2915,7 @@
           <field name="length">
             <ref>int</ref>
             <p>
-              The length of the range of characters that encompases the
+              The length of the range of characters that encompasses the
               cursor position and has the same hover information as the
               cursor position.
             </p>
@@ -2904,6 +2997,44 @@
               The name of the static type of the expression. This data
               is omitted if the location does not correspond to an
               expression.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="ImplementedClass">
+        <p>
+          A description of a class that is implemented or extended.
+        </p>
+        <object>
+          <field name="offset">
+            <ref>int</ref>
+            <p>
+              The offset of the name of the implemented class.
+            </p>
+          </field>
+          <field name="length">
+            <ref>int</ref>
+            <p>
+              The length of the name of the implemented class.
+            </p>
+          </field>
+        </object>
+      </type>
+      <type name="ImplementedMember">
+        <p>
+          A description of a class member that is implemented or overridden.
+        </p>
+        <object>
+          <field name="offset">
+            <ref>int</ref>
+            <p>
+              The offset of the name of the implemented member.
+            </p>
+          </field>
+          <field name="length">
+            <ref>int</ref>
+            <p>
+              The length of the name of the implemented member.
             </p>
           </field>
         </object>
@@ -3037,7 +3168,7 @@
             <p>
               The indexes of the targets (in the enclosing navigation response)
               to which the given region is bound. By opening the target, clients
-              can implement one form of navigation.
+              can implement one form of navigation. This list cannot be empty.
             </p>
           </field>
         </object>
@@ -3563,7 +3694,7 @@
             <p>
               A request was received which the analysis server does
               not recognize, or cannot handle in its current
-              configuation.
+              configuration.
             </p>
           </value>
           <value>
@@ -3896,14 +4027,28 @@
       </refactoring>
       <refactoring kind="EXTRACT_LOCAL_VARIABLE">
         <p>
-          Create a local variable initialized by a specified
-          expression.
+          Create a local variable initialized by the expression that covers
+          the specified selection.
         </p>
         <p>
-          It is an error if the range contains anything other than a
-          complete expression (no partial expressions are allowed).
+          It is an error if the selection range is not covered by a
+          complete expression.
         </p>
         <feedback>
+          <field name="coveringExpressionOffsets">
+            <list><ref>int</ref></list>
+            <p>
+              The offsets of the expressions that cover the specified
+              selection, from the down most to the up most.
+            </p>
+          </field>
+          <field name="coveringExpressionLengths">
+            <list><ref>int</ref></list>
+            <p>
+              The lengths of the expressions that cover the specified
+              selection, from the down most to the up most.
+            </p>
+          </field>
           <field name="names">
             <list><ref>String</ref></list>
             <p>
@@ -4226,5 +4371,7 @@
     <p>
       TBD
     </p>
+    <h2 class="domain"><a name="index">Index</a></h2>
+    <index></index>
   </body>
 </html>

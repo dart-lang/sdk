@@ -11,6 +11,7 @@
 #endif
 
 #include "vm/constants_arm.h"
+#include "vm/native_entry.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -52,48 +53,48 @@ class CallPattern : public ValueObject {
   CallPattern(uword pc, const Code& code);
 
   RawICData* IcData();
-  RawArray* ClosureArgumentsDescriptor();
 
-  uword TargetAddress() const;
-  void SetTargetAddress(uword target_address) const;
+  RawCode* TargetCode() const;
+  void SetTargetCode(const Code& code) const;
 
   // This constant length is only valid for inserted call patterns used for
   // lazy deoptimization. Regular call pattern may vary in length.
-  static int LengthInBytes();
+  static int DeoptCallPatternLengthInBytes();
+  static int DeoptCallPatternLengthInInstructions();
 
-  static void InsertAt(uword pc, uword target_address);
+  static void InsertDeoptCallAt(uword pc, uword target_address);
 
  private:
   const ObjectPool& object_pool_;
 
   uword end_;
-  uword args_desc_load_end_;
   uword ic_data_load_end_;
 
-  intptr_t target_address_pool_index_;
-  Array& args_desc_;
+  intptr_t target_code_pool_index_;
   ICData& ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
 };
 
 
-class JumpPattern : public ValueObject {
+class NativeCallPattern : public ValueObject {
  public:
-  JumpPattern(uword pc, const Code& code);
+  NativeCallPattern(uword pc, const Code& code);
 
-  static const int kLengthInBytes = 3 * Instr::kInstrSize;
+  RawCode* target() const;
+  void set_target(const Code& target) const;
 
-  static int pattern_length_in_bytes();
-
-  bool IsValid() const;
-  uword TargetAddress() const;
-  void SetTargetAddress(uword target_address) const;
+  NativeFunction native_function() const;
+  void set_native_function(NativeFunction target) const;
 
  private:
-  const uword pc_;
+  const ObjectPool& object_pool_;
 
-  DISALLOW_COPY_AND_ASSIGN(JumpPattern);
+  uword end_;
+  intptr_t native_function_pool_index_;
+  intptr_t target_code_pool_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(NativeCallPattern);
 };
 
 

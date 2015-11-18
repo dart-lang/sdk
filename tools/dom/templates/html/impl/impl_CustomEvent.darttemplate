@@ -34,6 +34,11 @@ $endif
       e._initCustomEvent(type, canBubble, cancelable, null);
     }
 
+$if DARTIUM
+    // Need for identity.
+    js.setDartHtmlWrapperFor(e.blink_jsObject, e);
+
+$endif
     return e;
   }
 

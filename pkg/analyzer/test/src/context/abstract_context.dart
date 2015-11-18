@@ -28,6 +28,9 @@ class AbstractContextTest {
   AnalysisCache analysisCache;
   AnalysisDriver analysisDriver;
 
+  UriResolver sdkResolver;
+  UriResolver resourceResolver;
+
   AnalysisTask task;
   Map<ResultDescriptor<dynamic>, dynamic> oldOutputs;
   Map<ResultDescriptor<dynamic>, dynamic> outputs;
@@ -72,12 +75,20 @@ class AbstractContextTest {
   /**
    * Compute the given [result] for the given [target].
    */
-  void computeResult(AnalysisTarget target, ResultDescriptor result) {
+  void computeResult(AnalysisTarget target, ResultDescriptor result,
+      {isInstanceOf matcher: null}) {
     oldOutputs = outputs;
     task = analysisDriver.computeResult(target, result);
-    expect(task, isNotNull);
+    if (matcher == null) {
+      expect(task, isNotNull);
+    } else {
+      expect(task, matcher);
+    }
     expect(task.caughtException, isNull);
     outputs = task.outputs;
+    for (ResultDescriptor descriptor in task.descriptor.results) {
+      expect(outputs, contains(descriptor));
+    }
   }
 
   AnalysisContextImpl createAnalysisContext() {
@@ -98,16 +109,22 @@ class AbstractContextTest {
     return sources;
   }
 
-  void setUp() {
-    // prepare AnalysisContext
-    sourceFactory = new SourceFactory(<UriResolver>[
-      new DartUriResolver(sdk),
-      new ResourceUriResolver(resourceProvider)
-    ]);
+  void prepareAnalysisContext([AnalysisOptions options]) {
+    sdkResolver = new DartUriResolver(sdk);
+    resourceResolver = new ResourceUriResolver(resourceProvider);
+    sourceFactory =
+        new SourceFactory(<UriResolver>[sdkResolver, resourceResolver]);
     context = createAnalysisContext();
+    if (options != null) {
+      context.analysisOptions = options;
+    }
     context.sourceFactory = sourceFactory;
     analysisCache = context.analysisCache;
     analysisDriver = context.driver;
+  }
+
+  void setUp() {
+    prepareAnalysisContext();
   }
 
   void tearDown() {}

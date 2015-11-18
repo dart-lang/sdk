@@ -6,7 +6,7 @@ library test.services.refactoring.inline_method;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -14,10 +14,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(InlineMethodTest);
 }
 
@@ -116,7 +117,8 @@ main() {
     // final conditions
     status = await refactoring.checkFinalConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage: 'All references must be inlined to remove the source.');
+        expectedMessage:
+            'All references must be inlined to remove the source.');
   }
 
   test_bad_notExecutableElement() {

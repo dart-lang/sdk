@@ -64,10 +64,6 @@ namespace dart {
   V(Float32x4, Float32x4.fromFloat64x2, Float32x4FromFloat64x2, 1327692716)    \
   V(_Float32x4, shuffle, Float32x4Shuffle, 1636488139)                         \
   V(_Float32x4, shuffleMix, Float32x4ShuffleMix, 654814229)                    \
-  V(_Float32x4, get:x, Float32x4ShuffleX, 384969722)                           \
-  V(_Float32x4, get:y, Float32x4ShuffleY, 1398121942)                          \
-  V(_Float32x4, get:z, Float32x4ShuffleZ, 1178175605)                          \
-  V(_Float32x4, get:w, Float32x4ShuffleW, 480951003)                           \
   V(_Float32x4, get:signMask, Float32x4GetSignMask, 630880675)                 \
   V(_Float32x4, _cmpequal, Float32x4Equal, 571062952)                          \
   V(_Float32x4, _cmpgt, Float32x4GreaterThan, 1613543295)                      \
@@ -134,8 +130,6 @@ namespace dart {
   V(_Uint16Array, []=, Uint16ArraySetIndexed, 1594961463)                      \
   V(_Int32Array, [], Int32ArrayGetIndexed, 2052925823)                         \
   V(_Int32Array, []=, Int32ArraySetIndexed, 504626978)                         \
-  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1034114777)                       \
-  V(_Uint32Array, []=, Uint32ArraySetIndexed, 918159348)                       \
   V(_Int64Array, [], Int64ArrayGetIndexed, 297668331)                          \
   V(_Int64Array, []=, Int64ArraySetIndexed, 36465128)                          \
   V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 35821240)                   \
@@ -282,9 +276,18 @@ namespace dart {
   V(_Uint8Array, []=, Uint8ArraySetIndexed, 447309008)                         \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1293647140)         \
   V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 1593599192)        \
+  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1034114777)                       \
+  V(_Uint32Array, []=, Uint32ArraySetIndexed, 918159348)                       \
   V(_Float64Array, []=, Float64ArraySetIndexed, 887301703)                     \
   V(_Float64Array, [], Float64ArrayGetIndexed, 1959896670)                     \
   V(_TypedList, get:length, TypedDataLength, 522684521)                        \
+  V(_Float32x4, get:x, Float32x4ShuffleX, 384969722)                           \
+  V(_Float32x4, get:y, Float32x4ShuffleY, 1398121942)                          \
+  V(_Float32x4, get:z, Float32x4ShuffleZ, 1178175605)                          \
+  V(_Float32x4, get:w, Float32x4ShuffleW, 480951003)                           \
+  V(_Float32x4, _mul, Float32x4Mul, 1703784673)                                \
+  V(_Float32x4, _sub, Float32x4Sub, 1302598822)                                \
+  V(_Float32x4, _add, Float32x4Add, 182344215)                                 \
 
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_List, get:length, ObjectArrayLength, 1181471893)                          \

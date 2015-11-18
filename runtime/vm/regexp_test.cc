@@ -16,11 +16,8 @@ static RawArray* Match(const String& pat, const String& str) {
   Zone* zone = Thread::Current()->zone();
   const JSRegExp& regexp = JSRegExp::Handle(
       RegExpEngine::CreateJSRegExp(zone, pat, false, false));
-  const intptr_t cid = str.GetClassId();
-  const Function& fn = Function::Handle(regexp.function(cid));
-  EXPECT(!fn.IsNull());
   const Smi& idx = Smi::Handle(Smi::New(0));
-  return IRRegExpMacroAssembler::Execute(fn, str, idx, zone);
+  return IRRegExpMacroAssembler::Execute(regexp, str, idx, zone);
 }
 
 TEST_CASE(RegExp_OneByteString) {

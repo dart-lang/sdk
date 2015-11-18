@@ -37,7 +37,8 @@ const List<String> specialElements = const [
   'ref',
   'code',
   'version',
-  'union'
+  'union',
+  'index'
 ];
 
 /**
@@ -73,6 +74,9 @@ Api apiFromHtml(dom.Element html) {
     },
     'version': (dom.Element element) {
       versions.add(innerText(element));
+    },
+    'index': (dom.Element element) {
+      /* Ignore; generated dynamically. */
     }
   });
   if (versions.length != 1) {
@@ -119,6 +123,7 @@ void checkName(dom.Element element, String expectedName, [String context]) {
         '$context: Expected $expectedName, found ${element.localName}');
   }
 }
+
 /**
  * Create a [Domain] object from an HTML representation such as:
  *
@@ -288,7 +293,9 @@ Api readApi() {
   File htmlFile = new File('spec_input.html');
   String htmlContents = htmlFile.readAsStringSync();
   dom.Document document = parser.parse(htmlContents);
-  return apiFromHtml(document.firstChild);
+  dom.Element htmlElement = document.children
+      .singleWhere((element) => element.localName.toLowerCase() == 'html');
+  return apiFromHtml(htmlElement);
 }
 
 void recurse(dom.Element parent, String context,
@@ -415,6 +422,7 @@ TypeDefinition typeDefinitionFromHtml(dom.Element html) {
   TypeDecl type = processContentsAsType(html, context);
   return new TypeDefinition(name, type, html);
 }
+
 /**
  * Create a [TypeEnum] from an HTML description.
  */
@@ -476,8 +484,8 @@ TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
   checkName(html, 'field', context);
   String name = html.attributes['name'];
   context = '$context.${name != null ? name : 'field'}';
-  checkAttributes(
-      html, ['name'], context, optionalAttributes: ['optional', 'value']);
+  checkAttributes(html, ['name'], context,
+      optionalAttributes: ['optional', 'value']);
   bool optional = false;
   String optionalString = html.attributes['optional'];
   if (optionalString != null) {

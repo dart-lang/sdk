@@ -6,12 +6,16 @@ library search.domain;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
+import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index/indexable_file.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**
@@ -25,9 +29,14 @@ class SearchDomainHandler implements protocol.RequestHandler {
   final AnalysisServer server;
 
   /**
+   * The [Index] for this server.
+   */
+  final Index index;
+
+  /**
    * The [SearchEngine] for this server.
    */
-  SearchEngine searchEngine;
+  final SearchEngine searchEngine;
 
   /**
    * The next search response id.
@@ -37,9 +46,10 @@ class SearchDomainHandler implements protocol.RequestHandler {
   /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  SearchDomainHandler(this.server) {
-    searchEngine = server.searchEngine;
-  }
+  SearchDomainHandler(AnalysisServer server)
+      : server = server,
+        index = server.index,
+        searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
     var params =
@@ -62,8 +72,37 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }).where((Element element) {
       return element != null;
     }).toList();
-    // search
+    // prepare referenced file
+    String referencedFile = _getFileReferencedAt(params.file, params.offset);
+    // respond
     String searchId = (_nextSearchId++).toString();
+    var result = new protocol.SearchFindElementReferencesResult();
+    if (elements.isNotEmpty) {
+      result.id = searchId;
+      result.element = protocol.convertElement(elements.first);
+    } else if (referencedFile != null) {
+      result.id = searchId;
+      result.element =
+          new protocol.Element(protocol.ElementKind.FILE, referencedFile, 0);
+    }
+    _sendSearchResult(request, result);
+    // search for file
+    if (referencedFile != null) {
+      List<Location> locations = await index.getRelationships(
+          new IndexableFile(referencedFile), IndexConstants.IS_REFERENCED_BY);
+      List<protocol.SearchResult> results = <protocol.SearchResult>[];
+      for (Location location in locations) {
+        IndexableFile locationFile = location.indexable;
+        results.add(new protocol.SearchResult(
+            new protocol.Location(
+                locationFile.path, location.offset, location.length, -1, -1),
+            protocol.SearchResultKind.REFERENCE,
+            false,
+            []));
+      }
+      _sendSearchNotification(searchId, elements.isEmpty, results);
+    }
+    // search elements
     elements.forEach((Element element) async {
       var computer = new ElementReferencesComputer(searchEngine);
       List<protocol.SearchResult> results =
@@ -71,13 +110,6 @@ class SearchDomainHandler implements protocol.RequestHandler {
       bool isLast = identical(element, elements.last);
       _sendSearchNotification(searchId, isLast, results);
     });
-    // respond
-    var result = new protocol.SearchFindElementReferencesResult();
-    if (elements.isNotEmpty) {
-      result.id = searchId;
-      result.element = protocol.newElement_fromEngine(elements[0]);
-    }
-    _sendSearchResult(request, result);
   }
 
   Future findMemberDeclarations(protocol.Request request) async {
@@ -127,20 +159,34 @@ class SearchDomainHandler implements protocol.RequestHandler {
    */
   Future getTypeHierarchy(protocol.Request request) async {
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
-    await server.onAnalysisComplete;
+    String file = params.file;
+    // wait for analysis
+    if (params.superOnly == true) {
+      await server.onFileAnalysisComplete(file);
+    } else {
+      await server.onAnalysisComplete;
+    }
     // prepare element
-    List<Element> elements =
-        server.getElementsAtOffset(params.file, params.offset);
+    List<Element> elements = server.getElementsAtOffset(file, params.offset);
     if (elements.isEmpty) {
-      protocol.Response response =
-          new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
-      server.sendResponse(response);
+      _sendTypeHierarchyNull(request);
       return;
     }
     Element element = elements.first;
+    // maybe supertype hierarchy only
+    if (params.superOnly == true) {
+      TypeHierarchyComputer computer =
+          new TypeHierarchyComputer(searchEngine, element);
+      List<protocol.TypeHierarchyItem> items = computer.computeSuper();
+      protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
+          hierarchyItems: items).toResponse(request.id);
+      server.sendResponse(response);
+      return;
+    }
     // prepare type hierarchy
-    TypeHierarchyComputer computer = new TypeHierarchyComputer(searchEngine);
-    List<protocol.TypeHierarchyItem> items = await computer.compute(element);
+    TypeHierarchyComputer computer =
+        new TypeHierarchyComputer(searchEngine, element);
+    List<protocol.TypeHierarchyItem> items = await computer.compute();
     protocol.Response response = new protocol.SearchGetTypeHierarchyResult(
         hierarchyItems: items).toResponse(request.id);
     server.sendResponse(response);
@@ -175,6 +221,31 @@ class SearchDomainHandler implements protocol.RequestHandler {
     return null;
   }
 
+  /**
+   * Return the full path of the file referenced in the given [file] at the
+   * given [offset], maybe `null`.
+   */
+  String _getFileReferencedAt(String file, int offset) {
+    List<AstNode> nodes = server.getNodesAtOffset(file, offset);
+    if (nodes.length == 1) {
+      AstNode node = nodes.single;
+      if (node is SimpleIdentifier &&
+          node.parent is LibraryIdentifier &&
+          node.parent.parent is LibraryDirective) {
+        LibraryDirective libraryDirective = node.parent.parent;
+        return libraryDirective?.element?.source?.fullName;
+      }
+      if (node is StringLiteral && node.parent is UriBasedDirective) {
+        UriBasedDirective uriBasedDirective = node.parent;
+        return uriBasedDirective.source?.fullName;
+      }
+      if (node is UriBasedDirective) {
+        return node.source?.fullName;
+      }
+    }
+    return null;
+  }
+
   void _sendSearchNotification(
       String searchId, bool isLast, Iterable<protocol.SearchResult> results) {
     server.sendNotification(
@@ -187,6 +258,12 @@ class SearchDomainHandler implements protocol.RequestHandler {
    */
   void _sendSearchResult(protocol.Request request, result) {
     protocol.Response response = result.toResponse(request.id);
+    server.sendResponse(response);
+  }
+
+  void _sendTypeHierarchyNull(protocol.Request request) {
+    protocol.Response response =
+        new protocol.SearchGetTypeHierarchyResult().toResponse(request.id);
     server.sendResponse(response);
   }
 

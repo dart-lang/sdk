@@ -6,23 +6,31 @@
 
 import 'package:expect/expect.dart';
 import 'package:compiler/src/native/native.dart';
-import 'package:compiler/src/dart2jslib.dart'
-    show DiagnosticListener;
-import 'package:compiler/src/universe/universe.dart'
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
+import 'package:compiler/src/diagnostics/messages.dart';
+import 'package:compiler/src/universe/side_effects.dart'
     show SideEffects;
 
 const OBJECT = 'Object';
 const NULL = 'Null';
 
-class Listener implements DiagnosticListener {
+class Listener extends DiagnosticReporter {
   String errorMessage;
   internalError(spannable, message) {
     errorMessage = message;
     throw "error";
   }
-  reportError(spannable, kind, [arguments]) {
-    errorMessage = '$arguments';  // E.g.  "{text: Duplicate tag 'new'.}"
+  reportError(message, [infos]) {
+
+    errorMessage =
+        '${message.message.arguments}'; // E.g.  "{text: Duplicate tag 'new'.}"
     throw "error";
+  }
+
+  @override
+  DiagnosticMessage createMessage(spannable, messageKind, [arguments]) {
+    return new DiagnosticMessage(null, spannable,
+        MessageTemplate.TEMPLATES[messageKind].message(arguments));
   }
 
   noSuchMethod(_) => null;

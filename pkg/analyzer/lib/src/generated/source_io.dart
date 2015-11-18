@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This code was auto-generated, is not intended to be edited, and is subject to
-// significant change. Please see the README file for more information.
-
 library engine.source.io;
 
 import 'dart:collection';
@@ -286,10 +283,7 @@ class FileUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    if (source is FileBasedSource) {
-      return new Uri.file(source.fullName);
-    }
-    return null;
+    return new Uri.file(source.fullName);
   }
 
   /**
@@ -421,8 +415,10 @@ class PackageUriResolver extends UriResolver {
             new CaughtException(exception, stackTrace));
       }
     }
-    return new JavaFile.relative(pkgDir, relPath.replaceAll(
-        '/', new String.fromCharCode(JavaFile.separatorChar)));
+    return new JavaFile.relative(
+        pkgDir,
+        relPath.replaceAll(
+            '/', new String.fromCharCode(JavaFile.separatorChar)));
   }
 
   @override
@@ -471,15 +467,15 @@ class PackageUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    String sourcePath = source.fullName;
+    String sourceUri = _toFileUri(source.fullName);
     for (JavaFile packagesDirectory in _packagesDirectories) {
       List<JavaFile> pkgFolders = packagesDirectory.listFiles();
       if (pkgFolders != null) {
         for (JavaFile pkgFolder in pkgFolders) {
           try {
-            String pkgCanonicalPath = pkgFolder.getCanonicalPath();
-            if (sourcePath.startsWith(pkgCanonicalPath)) {
-              String relPath = sourcePath.substring(pkgCanonicalPath.length);
+            String pkgCanonicalUri = _toFileUri(pkgFolder.getCanonicalPath());
+            if (sourceUri.startsWith(pkgCanonicalUri)) {
+              String relPath = sourceUri.substring(pkgCanonicalUri.length);
               return parseUriWithException(
                   "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
@@ -503,6 +499,13 @@ class PackageUriResolver extends UriResolver {
     String filePath = file.getAbsolutePath();
     return filePath.startsWith("$rootPath/lib");
   }
+
+  /**
+   * Convert the given file path to a "file:" URI.  On Windows, this transforms
+   * backslashes to forward slashes.
+   */
+  String _toFileUri(String filePath) =>
+      JavaFile.pathContext.toUri(filePath).toString();
 
   /**
    * Return `true` if the given URI is a `package` URI.

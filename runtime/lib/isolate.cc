@@ -125,43 +125,6 @@ static void ThrowIsolateSpawnException(const String& message) {
 }
 
 
-static bool CanonicalizeUri(Isolate* isolate,
-                            const Library& library,
-                            const String& uri,
-                            char** canonical_uri,
-                            char** error) {
-  Zone* zone = isolate->current_zone();
-  bool retval = false;
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler != NULL) {
-    Dart_EnterScope();
-    Dart_Handle result = handler(Dart_kCanonicalizeUrl,
-                                 Api::NewHandle(isolate, library.raw()),
-                                 Api::NewHandle(isolate, uri.raw()));
-    const Object& obj = Object::Handle(Api::UnwrapHandle(result));
-    if (obj.IsString()) {
-      *canonical_uri = zone->MakeCopyOfString(String::Cast(obj).ToCString());
-      retval = true;
-    } else if (obj.IsError()) {
-      Error& error_obj = Error::Handle();
-      error_obj ^= obj.raw();
-      *error = zone->PrintToString("Unable to canonicalize uri '%s': %s",
-                                   uri.ToCString(), error_obj.ToErrorCString());
-    } else {
-      *error = zone->PrintToString("Unable to canonicalize uri '%s': "
-                                   "library tag handler returned wrong type",
-                                   uri.ToCString());
-    }
-    Dart_ExitScope();
-  } else {
-    *error = zone->PrintToString(
-        "Unable to canonicalize uri '%s': no library tag handler found.",
-        uri.ToCString());
-  }
-  return retval;
-}
-
-
 static bool CreateIsolate(Isolate* parent_isolate,
                           IsolateSpawnState* state,
                           char** error) {
@@ -179,6 +142,7 @@ static bool CreateIsolate(Isolate* parent_isolate,
       (callback)(state->script_url(),
                  state->function_name(),
                  state->package_root(),
+                 state->package_map(),
                  &api_flags,
                  init_data,
                  error));
@@ -259,50 +223,118 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 10) {
+static char* String2UTF8(const String& str) {
+  intptr_t len = Utf8::Length(str);
+  char* result = new char[len + 1];
+  str.ToUTF8(reinterpret_cast<uint8_t*>(result), len);
+  result[len] = 0;
+
+  return result;
+}
+
+
+static char* CanonicalizeUri(Isolate* isolate,
+                             const Library& library,
+                             const String& uri,
+                             char** error) {
+  char* result = NULL;
+  Zone* zone = isolate->current_zone();
+  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+  if (handler != NULL) {
+    Dart_EnterScope();
+    Dart_Handle handle = handler(Dart_kCanonicalizeUrl,
+                                 Api::NewHandle(isolate, library.raw()),
+                                 Api::NewHandle(isolate, uri.raw()));
+    const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+    if (obj.IsString()) {
+      result = String2UTF8(String::Cast(obj));
+    } else if (obj.IsError()) {
+      Error& error_obj = Error::Handle();
+      error_obj ^= obj.raw();
+      *error = zone->PrintToString("Unable to canonicalize uri '%s': %s",
+                                   uri.ToCString(), error_obj.ToErrorCString());
+    } else {
+      *error = zone->PrintToString("Unable to canonicalize uri '%s': "
+                                   "library tag handler returned wrong type",
+                                   uri.ToCString());
+    }
+    Dart_ExitScope();
+  } else {
+    *error = zone->PrintToString(
+        "Unable to canonicalize uri '%s': no library tag handler found.",
+        uri.ToCString());
+  }
+  return result;
+}
+
+
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
+
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
+
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
-  GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(5));
-  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(6));
+  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
+  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
+
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(7));
-  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(8));
-  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(9));
+  GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(8));
+
+  GET_NATIVE_ARGUMENT(Array, environment, arguments->NativeArgAt(9));
+
+  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(Array, packages, arguments->NativeArgAt(11));
+
 
   // Canonicalize the uri with respect to the current isolate.
-  char* error = NULL;
-  char* canonical_uri = NULL;
   const Library& root_lib =
       Library::Handle(isolate->object_store()->root_library());
-  if (!CanonicalizeUri(isolate, root_lib, uri,
-                       &canonical_uri, &error)) {
+  char* error = NULL;
+  char* canonical_uri = CanonicalizeUri(isolate, root_lib, uri, &error);
+  if (canonical_uri == NULL) {
     const String& msg = String::Handle(String::New(error));
     ThrowIsolateSpawnException(msg);
   }
 
-  char* utf8_package_root = NULL;
-  if (!package_root.IsNull()) {
-    const intptr_t len = Utf8::Length(package_root);
-    utf8_package_root = zone->Alloc<char>(len + 1);
-    package_root.ToUTF8(reinterpret_cast<uint8_t*>(utf8_package_root), len);
-    utf8_package_root[len] = '\0';
+  char* utf8_package_root =
+      package_root.IsNull() ? NULL : String2UTF8(package_root);
+
+  char** utf8_package_map = NULL;
+  if (!packages.IsNull()) {
+    intptr_t len = packages.Length();
+    utf8_package_map = new char*[len + 1];
+
+    Object& entry = Object::Handle();
+    for (intptr_t i = 0; i < len; i++) {
+      entry = packages.At(i);
+      if (!entry.IsString()) {
+        const String& msg = String::Handle(String::NewFormatted(
+            "Bad value in package map: %s", entry.ToCString()));
+        ThrowIsolateSpawnException(msg);
+      }
+      utf8_package_map[i] = String2UTF8(String::Cast(entry));
+    }
+    // NULL terminated array.
+    utf8_package_map[len] = NULL;
   }
 
   bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
   Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
   Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
 
-  IsolateSpawnState* state = new IsolateSpawnState(port.Id(),
-                                                   canonical_uri,
-                                                   utf8_package_root,
-                                                   args,
-                                                   message,
-                                                   paused.value(),
-                                                   fatal_errors,
-                                                   on_exit_port,
-                                                   on_error_port);
+  IsolateSpawnState* state = new IsolateSpawnState(
+      port.Id(),
+      canonical_uri,
+      utf8_package_root,
+      const_cast<const char**>(utf8_package_map),
+      args,
+      message,
+      paused.value(),
+      fatal_errors,
+      on_exit_port,
+      on_error_port);
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {

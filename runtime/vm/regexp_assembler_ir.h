@@ -37,15 +37,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
 
   virtual bool CanReadUnaligned();
 
-  // Compares two-byte strings case insensitively.
-  // Called from generated RegExp code.
-  static RawBool* CaseInsensitiveCompareUC16(
-      RawString* str_raw,
-      RawSmi* lhs_index_raw,
-      RawSmi* rhs_index_raw,
-      RawSmi* length_raw);
-
-  static RawArray* Execute(const Function& function,
+  static RawArray* Execute(const JSRegExp& regexp,
                            const String& input,
                            const Smi& start_offset,
                            Zone* zone);

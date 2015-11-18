@@ -52,7 +52,8 @@ const String cachedClassFieldNames = r'$cachedFieldNames';
 // The code relies on the fact that all Dart code is inside holders. As such
 // we can use "global" names however we want. As long as we don't shadow
 // JavaScript variables (like `Array`) we are free to chose whatever variable
-// names we want. Furthermore, the minifier reduces the names of the variables.
+// names we want. Furthermore, the pretty-printer minifies local variables, thus
+// reducing their size.
 const String mainBoilerplate = '''
 {
 // Declare deferred-initializer global, which is used to keep track of the
@@ -443,7 +444,7 @@ class FragmentEmitter {
         {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
          'typeNameProperty': js.string(ModelEmitter.typeNameProperty),
          'cyclicThrow': backend.emitter.staticFunctionAccess(
-                 backend.getCyclicThrowHelper()),
+                 backend.helpers.cyclicThrowHelper),
          'operatorIsPrefix': js.string(namer.operatorIsPrefix),
          'tearOffCode': new js.Block(buildTearOffCode(backend)),
          'embeddedTypes': generateEmbeddedGlobalAccess(TYPES),
@@ -776,14 +777,27 @@ class FragmentEmitter {
     List<js.Expression> inheritCalls = <js.Expression>[];
     List<js.Expression> mixinCalls = <js.Expression>[];
 
+    Set<Class> emittedClasses = new Set<Class>();
+
+    void emitInheritanceForClass(cls) {
+      if (cls == null || emittedClasses.contains(cls)) return;
+
+      Class superclass = cls.superclass;
+      emitInheritanceForClass(superclass);
+
+      js.Expression superclassReference = (superclass == null)
+          ? new js.LiteralNull()
+          : classReference(superclass);
+
+      inheritCalls.add(js.js('inherit(#, #)',
+          [classReference(cls), superclassReference]));
+
+      emittedClasses.add(cls);
+    }
+
     for (Library library in fragment.libraries) {
       for (Class cls in library.classes) {
-        js.Expression superclassReference = (cls.superclass == null)
-            ? new js.LiteralNull()
-            : classReference(cls.superclass);
-
-        inheritCalls.add(js.js('inherit(#, #)',
-            [classReference(cls), superclassReference]));
+        emitInheritanceForClass(cls);
 
         if (cls.isMixinApplication) {
           MixinApplication mixin = cls;

@@ -71,8 +71,7 @@ bool _traceLoading = false;
 SendPort _loadPort;
 // The receive port for a load request. Multiple sources can be fetched in
 // a single load request.
-RawReceivePort _receivePort;
-SendPort _sendPort;
+RawReceivePort _dataPort;
 // A request id valid only for the current load cycle (while the number of
 // outstanding load requests is greater than 0). Can be reset when loading is
 // completed.
@@ -125,17 +124,16 @@ class _LoadError extends Error {
 
 // Class collecting all of the information about a particular load request.
 class _LoadRequest {
-  final int _id;
+  final int _id = _reqId++;
   final int _tag;
   final String _uri;
   final Uri _resourceUri;
   final _context;
 
-  _LoadRequest(this._id,
-               this._tag,
-               this._uri,
-               this._resourceUri,
-               this._context);
+  _LoadRequest(this._tag, this._uri, this._resourceUri, this._context) {
+    assert(_reqMap[_id] == null);
+    _reqMap[_id] = this;
+  }
 
   toString() => "LoadRequest($_id, $_tag, $_uri, $_resourceUri, $_context)";
 }
@@ -320,13 +318,13 @@ void _finishLoadRequest(_LoadRequest req) {
     }
   }
 
-  if (!_pendingLoads()) {
+  if (!_pendingLoads() && (_dataPort != null)) {
+    // Close the _dataPort now that there are no more requests outstanding.
     if (_traceLoading) {
       _log("Closing loading port.");
     }
-    _receivePort.close();
-    _receivePort = null;
-    _sendPort = null;
+    _dataPort.close();
+    _dataPort = null;
     _reqId = 0;
     _signalDoneLoading();
   }
@@ -367,33 +365,26 @@ void _handleLoaderReply(msg) {
 
 
 void _startLoadRequest(int tag, String uri, Uri resourceUri, context) {
-  if (_receivePort == null) {
+  if (_dataPort == null) {
     if (_traceLoading) {
       _log("Initializing load port.");
     }
-    assert(_receivePort == null);
-    assert(_sendPort == null);
-    _receivePort = new RawReceivePort(_handleLoaderReply);
-    _sendPort = _receivePort.sendPort;
+    assert(_dataPort == null);
+    _dataPort = new RawReceivePort(_handleLoaderReply);
   }
   // Register the load request and send it to the VM service isolate.
-  var curId = _reqId++;
+  var req = new _LoadRequest(tag, uri, resourceUri, context);
 
-  assert(_reqMap[curId] == null);
-  _reqMap[curId] = new _LoadRequest(curId, tag, uri, resourceUri, context);
-
-  assert(_receivePort != null);
-  assert(_sendPort != null);
-
+  assert(_dataPort != null);
   var msg = new List(4);
-  msg[0] = _sendPort;
+  msg[0] = _dataPort.sendPort;
   msg[1] = _traceLoading;
-  msg[2] = curId;
+  msg[2] = req._id;
   msg[3] = resourceUri.toString();
   _loadPort.send(msg);
 
   if (_traceLoading) {
-    _log("Loading of $resourceUri for $uri started with id: $curId. "
+    _log("Loading of $resourceUri for $uri started with id: ${req._id}. "
          "${_reqMap.length} requests remaining, "
          "${_pendingPackageLoads.length} packages pending.");
   }
@@ -434,17 +425,10 @@ void _handlePackagesReply(msg) {
 
   // Resolve all pending package loads now that we know how to resolve them.
   while (_pendingPackageLoads.length > 0) {
+    // Order does not matter as we queue all of the requests up right now.
     var req = _pendingPackageLoads.removeLast();
-    if (req != null) {
-      if (_traceLoading) {
-        _log("Handling deferred load request: $req");
-      }
-      _loadPackage(req._tag, req._uri, req._resourceUri, req._context);
-    } else {
-      if (_traceLoading) {
-        _log("Skipping dummy deferred request.");
-      }
-    }
+    // Call the registered closure, to handle the delayed action.
+    req();
   }
   // Reset the pending package loads to empty. So that we eventually can
   // finish loading.
@@ -516,11 +500,45 @@ void _loadPackagesMap(String packagesParam) {
 
   // Signal that the resolution of the packages map has started. But in this
   // case it is not tied to a particular request.
-  _pendingPackageLoads.add(null);
+  _pendingPackageLoads.add(() {
+    // Nothing to be done beyond registering that there is pending package
+    // resolution requested by having an empty entry.
+    if (_traceLoading) {
+      _log("Skipping dummy deferred request.");
+    }
+  });
 
   if (_traceLoading) {
     _log("Requested packages map at '$packagesUri'.");
   }
+}
+
+
+// Embedder Entrypoint:
+// Add mapping from package name to URI.
+void _addPackageMapEntry(String key, String value) {
+  if (!_setupCompleted) {
+    _setupHooks();
+  }
+  if (_traceLoading) {
+    _log("Adding packages map entry: $key -> $value");
+  }
+  if (_packageRoot != null) {
+    if (_traceLoading) {
+      _log("_packageRoot already set: $_packageRoot");
+    }
+    throw "Cannot add package map entry to an exisiting package root.";
+  }
+  if (_packagesPort != null) {
+    if (_traceLoading) {
+      _log("Package map load request already pending.");
+    }
+    throw "Cannot add package map entry during package map resolution.";
+  }
+  if (_packageMap == null) {
+    _packageMap = new Map<String, Uri>();
+  }
+  _packageMap[key] = _workingDirectory.resolve(value);
 }
 
 
@@ -553,8 +571,10 @@ _loadDataFromLoadPort(int tag, String uri, Uri resourceUri, context) {
     }
     // Wrap inside a _LoadError unless we are already propagating a previously
     // seen _LoadError.
-    var error = (e is _LoadError) ? e : new _LoadError(e.toString());
-    _asyncLoadError(tag, uri, context, error, s);
+    var error = (e is _LoadError) ? e : new _LoadError(uri, e.toString());
+    // Register a dummy load request and fail to load it.
+    var req = new _LoadRequest(tag, uri, resourceUri, context);
+    _asyncLoadError(req, error, s);
   }
 }
 
@@ -570,8 +590,15 @@ _loadPackage(int tag, String uri, Uri resourceUri, context) {
       // request for package resolution & loading.
       _requestPackagesMap();
     }
-    var req = new _LoadRequest(-1, tag, uri, resourceUri, context);
-    _pendingPackageLoads.add(req);
+    // Register the action of loading this package once the package resolution
+    // is ready.
+    _pendingPackageLoads.add(() {
+      if (_traceLoading) {
+        _log("Handling deferred package request: "
+             "$tag, $uri, $resourceUri, $context");
+      }
+      _loadPackage(tag, uri, resourceUri, context);
+    });
     if (_traceLoading) {
       _log("Pending package load of '$uri': "
       "${_pendingPackageLoads.length} pending");
@@ -632,6 +659,48 @@ String _resolveUri(String base, String userString) {
     _log('Resolved $userString in $base to $result');
   }
   return result;
+}
+
+
+// Handling of access to the package root or package map from user code.
+_triggerPackageResolution(action) {
+  if (_packagesReady()) {
+    // Packages are ready. Execute the action now.
+    action();
+  } else {
+    if (_pendingPackageLoads.isEmpty) {
+      // Package resolution has not been setup yet, and this is the first
+      // request for package resolution & loading.
+      _requestPackagesMap();
+    }
+    // Register the action for when the package resolution is ready.
+    _pendingPackageLoads.add(action);
+  }
+}
+
+
+Future<Uri> _getPackageRoot() {
+  if (_traceLoading) {
+    _log("Request for package root from user code.");
+  }
+  var completer = new Completer<Uri>();
+  _triggerPackageResolution(() {
+    completer.complete(_packageRoot);
+  });
+  return completer.future;
+}
+
+
+Future<Map<String, Uri>> _getPackageMap() {
+  if (_traceLoading) {
+    _log("Request for package map from user code.");
+  }
+  var completer = new Completer<Map<String, Uri>>();
+  _triggerPackageResolution(() {
+    var result = (_packageMap != null) ? new Map.from(_packageMap) : {};
+    completer.complete(result);
+  });
+  return completer.future;
 }
 
 
@@ -762,4 +831,6 @@ _extensionPathFromUri(String userUri) {
 _setupHooks() {
   _setupCompleted = true;
   VMLibraryHooks.resourceReadAsBytes = _resourceReadAsBytes;
+  VMLibraryHooks.getPackageRoot = _getPackageRoot;
+  VMLibraryHooks.getPackageMap = _getPackageMap;
 }

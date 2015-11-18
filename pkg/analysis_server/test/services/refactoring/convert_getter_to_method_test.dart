@@ -6,17 +6,17 @@ library test.services.refactoring.convert_getter_to_method;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart' hide ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
+import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(ConvertGetterToMethodTest);
 }
 
@@ -89,7 +89,9 @@ main(A a, B b, C c, D d) {
   }
 
   test_change_multipleFiles() {
-    indexUnit('/other.dart', r'''
+    indexUnit(
+        '/other.dart',
+        r'''
 class A {
   int get test => 1;
 }

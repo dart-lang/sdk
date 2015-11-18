@@ -4,8 +4,18 @@
 
 library dart2js.serialization.task;
 
-import '../dart2jslib.dart';
+import '../common/resolution.dart' show
+    ResolutionWorkItem;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../common/work.dart' show
+    ItemCompilationContext;
+import '../compiler.dart' show
+    Compiler;
 import '../elements/elements.dart';
+import '../enqueue.dart' show
+    ResolutionEnqueuer,
+    WorldImpact;
 
 /// Task that supports deserialization of elements.
 class SerializationTask extends CompilerTask {
@@ -55,7 +65,7 @@ class DeserializedResolutionWorkItem implements ResolutionWorkItem {
   @override
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     _isAnalyzed = true;
-    world.registerResolvedElement(element);
+    world.registerProcessedElement(element);
     return worldImpact;
   }
 }

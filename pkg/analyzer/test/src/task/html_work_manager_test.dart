@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/error.dart'
     show AnalysisError, HtmlErrorCode;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/task/dart.dart';
@@ -29,9 +28,10 @@ import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(HtmlWorkManagerTest);
 }
 
@@ -116,10 +116,12 @@ class HtmlWorkManagerTest {
     manager.priorityResultQueue.add(new TargetedResult(source2, HTML_ERRORS));
     // -source1 +source3
     manager.applyPriorityTargets([source2, source3]);
-    expect(manager.priorityResultQueue, unorderedEquals([
-      new TargetedResult(source2, HTML_ERRORS),
-      new TargetedResult(source3, HTML_ERRORS)
-    ]));
+    expect(
+        manager.priorityResultQueue,
+        unorderedEquals([
+          new TargetedResult(source2, HTML_ERRORS),
+          new TargetedResult(source3, HTML_ERRORS)
+        ]));
     // get next request
     TargetedResult request = manager.getNextResult();
     expect(request.target, source2);
@@ -131,18 +133,15 @@ class HtmlWorkManagerTest {
         new AnalysisError(source1, 1, 0, HtmlErrorCode.PARSE_ERROR, ['']);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, HtmlErrorCode.PARSE_ERROR, ['']);
-    LineInfo lineInfo = new LineInfo([0]);
     entry1.setValue(HTML_DOCUMENT_ERRORS, <AnalysisError>[error1], []);
-    entry1.setValue(LINE_INFO, lineInfo, []);
 
     DartScript script = new DartScript(source1, []);
     entry1.setValue(DART_SCRIPTS, [script], []);
     CacheEntry scriptEntry = context.getCacheEntry(script);
     scriptEntry.setValue(DART_ERRORS, [error2], []);
 
-    AnalysisErrorInfo errorInfo = manager.getErrors(source1);
-    expect(errorInfo.errors, unorderedEquals([error1, error2]));
-    expect(errorInfo.lineInfo, lineInfo);
+    List<AnalysisError> errors = manager.getErrors(source1);
+    expect(errors, unorderedEquals([error1, error2]));
   }
 
   void test_getErrors_partialList() {
@@ -150,13 +149,10 @@ class HtmlWorkManagerTest {
         new AnalysisError(source1, 1, 0, HtmlErrorCode.PARSE_ERROR, ['']);
     AnalysisError error2 =
         new AnalysisError(source1, 2, 0, HtmlErrorCode.PARSE_ERROR, ['']);
-    LineInfo lineInfo = new LineInfo([0]);
     entry1.setValue(HTML_DOCUMENT_ERRORS, <AnalysisError>[error1, error2], []);
-    entry1.setValue(LINE_INFO, lineInfo, []);
 
-    AnalysisErrorInfo errorInfo = manager.getErrors(source1);
-    expect(errorInfo.errors, unorderedEquals([error1, error2]));
-    expect(errorInfo.lineInfo, lineInfo);
+    List<AnalysisError> errors = manager.getErrors(source1);
+    expect(errors, unorderedEquals([error1, error2]));
   }
 
   void test_getNextResult_hasNormal_firstIsError() {
@@ -204,19 +200,23 @@ class HtmlWorkManagerTest {
   void test_getNextResult_hasPriority() {
     manager.addPriorityResult(source1, HTML_ERRORS);
     manager.addPriorityResult(source2, HTML_ERRORS);
-    expect(manager.priorityResultQueue, unorderedEquals([
-      new TargetedResult(source1, HTML_ERRORS),
-      new TargetedResult(source2, HTML_ERRORS)
-    ]));
+    expect(
+        manager.priorityResultQueue,
+        unorderedEquals([
+          new TargetedResult(source1, HTML_ERRORS),
+          new TargetedResult(source2, HTML_ERRORS)
+        ]));
 
     TargetedResult request = manager.getNextResult();
     expect(request.target, source1);
     expect(request.result, HTML_ERRORS);
     // no changes until computed
-    expect(manager.priorityResultQueue, unorderedEquals([
-      new TargetedResult(source1, HTML_ERRORS),
-      new TargetedResult(source2, HTML_ERRORS)
-    ]));
+    expect(
+        manager.priorityResultQueue,
+        unorderedEquals([
+          new TargetedResult(source1, HTML_ERRORS),
+          new TargetedResult(source2, HTML_ERRORS)
+        ]));
   }
 
   void test_getNextResult_nothingToDo() {

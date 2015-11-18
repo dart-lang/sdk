@@ -15,6 +15,7 @@ namespace dart {
 
 class Array;
 class Breakpoint;
+class BreakpointLocation;
 class Field;
 class GrowableObjectArray;
 class Instance;
@@ -41,6 +42,8 @@ enum JSONRpcErrorCode {
   kMethodNotFound = -32601,
   kInvalidParams  = -32602,
   kInternalError  = -32603,
+
+  kExtensionError = -32000,
 
   kFeatureDisabled         = 100,
   kVMMustBePaused          = 101,
@@ -77,6 +80,8 @@ class JSONStream : ValueObject {
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
 
+  void Steal(const char** buffer, intptr_t* buffer_length);
+
   void set_reply_port(Dart_Port port);
 
   void SetParams(const char** param_keys, const char** param_values,
@@ -106,6 +111,7 @@ class JSONStream : ValueObject {
 
  private:
   void Clear();
+  void PostNullReply(Dart_Port port);
 
   void OpenObject(const char* property_name = NULL);
   void CloseObject();
@@ -117,6 +123,7 @@ class JSONStream : ValueObject {
   void PrintValue(intptr_t i);
   void PrintValue64(int64_t i);
   void PrintValueTimeMillis(int64_t millis);
+  void PrintValueTimeMicros(int64_t micros);
   void PrintValue(double d);
   void PrintValueBase64(const uint8_t* bytes, intptr_t length);
   void PrintValue(const char* s);
@@ -131,12 +138,14 @@ class JSONStream : ValueObject {
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t limit);
   void PrintValue(TimelineEvent* timeline_event);
+  void PrintValueVM(bool ref = true);
 
   void PrintServiceId(const Object& o);
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty64(const char* name, int64_t i);
   void PrintPropertyTimeMillis(const char* name, int64_t millis);
+  void PrintPropertyTimeMicros(const char* name, int64_t micros);
   void PrintProperty(const char* name, double d);
   void PrintPropertyBase64(const char* name,
                            const uint8_t* bytes,
@@ -154,6 +163,7 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
   void PrintProperty(const char* name, TimelineEvent* timeline_event);
+  void PrintPropertyVM(const char* name, bool ref = true);
   void PrintPropertyName(const char* name);
   void PrintCommaIfNeeded();
   bool NeedComma();
@@ -164,13 +174,16 @@ class JSONStream : ValueObject {
 
   intptr_t nesting_level() const { return open_objects_; }
 
+  // Debug only fatal assertion.
+  static void EnsureIntegerIsRepresentableInJavaScript(int64_t i);
+
   intptr_t open_objects_;
   TextBuffer buffer_;
   // Default service id zone.
   RingServiceIdZone default_id_zone_;
   ServiceIdZone* id_zone_;
   Dart_Port reply_port_;
-  Instance& seq_;
+  Instance* seq_;
   const char* method_;
   const char** param_keys_;
   const char** param_values_;
@@ -204,7 +217,11 @@ class JSONObject : public ValueObject {
 
   void AddLocation(const Script& script,
                    intptr_t token_pos,
-                   intptr_t end_token_pos = -1);
+                   intptr_t end_token_pos = -1) const;
+
+  void AddLocation(const BreakpointLocation* bpt_loc) const;
+
+  void AddUnresolvedLocation(const BreakpointLocation* bpt_loc) const;
 
   void AddProperty(const char* name, bool b) const {
     stream_->PrintPropertyBool(name, b);
@@ -217,6 +234,9 @@ class JSONObject : public ValueObject {
   }
   void AddPropertyTimeMillis(const char* name, int64_t millis) const {
     stream_->PrintPropertyTimeMillis(name, millis);
+  }
+  void AddPropertyTimeMicros(const char* name, int64_t micros) const {
+    stream_->PrintPropertyTimeMicros(name, micros);
   }
   void AddProperty(const char* name, double d) const {
     stream_->PrintProperty(name, d);
@@ -258,6 +278,9 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, TimelineEvent* timeline_event) const {
     stream_->PrintProperty(name, timeline_event);
   }
+  void AddPropertyVM(const char* name, bool ref = true) const {
+    stream_->PrintPropertyVM(name, ref);
+  }
   void AddPropertyF(const char* name, const char* format, ...) const
       PRINTF_ATTRIBUTE(3, 4);
 
@@ -292,6 +315,9 @@ class JSONArray : public ValueObject {
   void AddValueTimeMillis(int64_t millis) const {
     stream_->PrintValueTimeMillis(millis);
   }
+  void AddValueTimeMicros(int64_t micros) const {
+    stream_->PrintValueTimeMicros(micros);
+  }
   void AddValue(double d) const { stream_->PrintValue(d); }
   void AddValue(const char* s) const { stream_->PrintValue(s); }
   void AddValue(const Object& obj, bool ref = true) const {
@@ -314,6 +340,9 @@ class JSONArray : public ValueObject {
   }
   void AddValue(TimelineEvent* timeline_event) const {
     stream_->PrintValue(timeline_event);
+  }
+  void AddValueVM(bool ref = true) const {
+    stream_->PrintValueVM(ref);
   }
   void AddValueF(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 

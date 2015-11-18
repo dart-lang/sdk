@@ -2,7 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of scanner;
+library dart2js.scanner.utf8;
+
+import 'dart:convert' show
+    UNICODE_BOM_CHARACTER_RUNE,
+    UTF8;
+
+import '../io/source_file.dart' show
+    SourceFile;
+import '../tokens/precedence.dart' show
+    PrecedenceInfo;
+import '../tokens/token.dart' show
+    StringToken,
+    Token;
+
+import 'array_based_scanner.dart' show
+    ArrayBasedScanner;
 
 /**
  * Scanner that reads from a UTF-8 encoded list of bytes and creates tokens

@@ -6,13 +6,14 @@ library test.services.completion.util;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/protocol.dart' as protocol
+import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide Element, ElementKind;
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -52,7 +53,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   void addResolvedUnit(String file, String code) {
     Source source = addSource(file, code);
     CompilationUnit unit = resolveLibraryUnit(source);
-    index.indexUnit(context, unit);
+    index.index(context, unit);
   }
 
   void addTestSource(String content) {
@@ -95,7 +96,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
       return;
     }
     CompletionSuggestion suggestion = request.suggestions.firstWhere(
-        (CompletionSuggestion cs) => cs.kind == kind, orElse: () => null);
+        (CompletionSuggestion cs) => cs.kind == kind,
+        orElse: () => null);
     if (suggestion != null) {
       failedCompletion('did not expect completion: $completion\n  $suggestion');
     }
@@ -113,9 +115,13 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggest(String completion,
       {CompletionSuggestionKind csKind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, String importUri,
-      protocol.ElementKind elemKind: null, bool isDeprecated: false,
-      bool isPotential: false, String elemFile, int elemOffset}) {
+      int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
+      protocol.ElementKind elemKind: null,
+      bool isDeprecated: false,
+      bool isPotential: false,
+      String elemFile,
+      int elemOffset}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -151,9 +157,12 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestClass(String name,
-      {int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool isDeprecated: false, String elemFile, int elemOffset}) {
+      bool isDeprecated: false,
+      String elemFile,
+      int elemOffset}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
         relevance: relevance,
@@ -187,7 +196,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestConstructor(String name,
-      {int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
       int elemOffset}) {
     CompletionSuggestion cs = assertSuggest(name,
         relevance: relevance, importUri: importUri, elemOffset: elemOffset);
@@ -200,7 +210,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestField(String name, String type,
-      {int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(name,
@@ -224,7 +235,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestFunction(String name, String returnType,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool deprecated: false, int relevance: DART_RELEVANCE_DEFAULT,
+      bool deprecated: false,
+      int relevance: DART_RELEVANCE_DEFAULT,
       String importUri}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
@@ -276,7 +288,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestGetter(String name, String returnType,
-      {int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(name,
@@ -323,7 +336,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
 
   CompletionSuggestion assertSuggestMethod(
       String name, String declaringType, String returnType,
-      {int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false}) {
     CompletionSuggestion cs = assertSuggest(name,
@@ -347,7 +361,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestNamedConstructor(
-      String name, String returnType, [int relevance = DART_RELEVANCE_DEFAULT,
+      String name, String returnType,
+      [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     if (contributor is PrefixedElementContributor) {
       CompletionSuggestion cs =
@@ -374,7 +389,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestSetter(String name,
-      [int relevance = DART_RELEVANCE_DEFAULT, String importUri,
+      [int relevance = DART_RELEVANCE_DEFAULT,
+      String importUri,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
@@ -469,7 +485,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     fail(sb.toString());
   }
 
-  CompletionSuggestion getSuggest({String completion: null,
+  CompletionSuggestion getSuggest(
+      {String completion: null,
       CompletionSuggestionKind csKind: null,
       protocol.ElementKind elemKind: null}) {
     CompletionSuggestion cs;
@@ -497,25 +514,23 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   }
 
   void resolve(bool fullAnalysis) {
-
     // Index SDK
     for (Source librarySource in context.librarySources) {
       CompilationUnit unit =
           context.getResolvedCompilationUnit2(librarySource, librarySource);
       if (unit != null) {
-        index.indexUnit(context, unit);
+        index.index(context, unit);
       }
     }
 
     var result = context.performAnalysisTask();
     bool resolved = false;
     while (result.hasMoreWork) {
-
       // Update the index
       result.changeNotices.forEach((ChangeNotice notice) {
         CompilationUnit unit = notice.resolvedDartUnit;
         if (unit != null) {
-          index.indexUnit(context, unit);
+          index.index(context, unit);
         }
       });
 
@@ -561,7 +576,6 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
  * and `LocalContributorTest`.
  */
 abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
-
   /**
    * Assert that the ImportedReferenceContributor uses cached results
    * to produce identical suggestions to the original set of suggestions.
@@ -590,7 +604,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestImportedClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, String importUri,
+      int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
       String elemFile}) {
     return assertNotSuggested(name);
   }
@@ -608,13 +623,15 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestImportedFunction(
       String name, String returnType,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      bool deprecated: false, int relevance: DART_RELEVANCE_DEFAULT,
+      bool deprecated: false,
+      int relevance: DART_RELEVANCE_DEFAULT,
       String importUri}) {
     return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestImportedFunctionTypeAlias(
-      String name, String returnType, [bool isDeprecated = false,
+      String name, String returnType,
+      [bool isDeprecated = false,
       int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
     return assertNotSuggested(name);
@@ -638,7 +655,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestImportedTopLevelVar(
-      String name, String returnType, [int relevance = DART_RELEVANCE_DEFAULT,
+      String name, String returnType,
+      [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String importUri]) {
     return assertNotSuggested(name);
@@ -701,8 +719,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestLocalClass(String name,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-      int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false,
-      String elemFile, int elemOffset}) {
+      int relevance: DART_RELEVANCE_DEFAULT,
+      bool isDeprecated: false,
+      String elemFile,
+      int elemOffset}) {
     return assertNotSuggested(name);
   }
 
@@ -722,7 +742,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   CompletionSuggestion assertSuggestLocalFunction(
-      String name, String returnType, {bool deprecated: false,
+      String name, String returnType,
+      {bool deprecated: false,
       int relevance: DART_RELEVANCE_LOCAL_FUNCTION,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION}) {
     return assertNotSuggested(name);
@@ -776,7 +797,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ArgumentList() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');
@@ -803,7 +826,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ArgumentList_imported_function() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       bool hasLength(int expected) { }
       expect(arg) { }
@@ -831,7 +856,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ArgumentList_InstanceCreationExpression_functionalArg() {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       class A { A(f()) { } }
       bool hasLength(int expected) { }
@@ -866,7 +893,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ArgumentList_InstanceCreationExpression_typedefArg() {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       typedef Funct();
       class A { A(Funct f) { } }
@@ -902,7 +931,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ArgumentList_local_function() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');
@@ -930,7 +961,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ArgumentList_local_method() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       bool hasLength(int expected) { }
       void baz() { }''');
@@ -958,7 +991,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ArgumentList_MethodInvocation_functionalArg() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       class A { A(f()) { } }
       bool hasLength(int expected) { }
@@ -993,7 +1028,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ArgumentList_MethodInvocation_methodArg() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       class A { A(f()) { } }
       bool hasLength(int expected) { }
@@ -1026,7 +1063,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_ArgumentList_namedParam() {
     // SimpleIdentifier  NamedExpression  ArgumentList  MethodInvocation
     // ExpressionStatement
-    addSource('/libA.dart', '''
+    addSource(
+        '/libA.dart',
+        '''
       library A;
       bool hasLength(int expected) { }''');
     addTestSource('''
@@ -1225,21 +1264,29 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_Block() {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       export "dart:math" hide max;
       class A {int x;}
       @deprecated D1() {int x;}
       class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       String T1;
       var _T2;
       class C { }
       class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource(
+        '/testEEF.dart',
+        '''
       class EE { }
       class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource(
+        '/testH.dart',
+        '''
       class H { }
       int T3;
       var _T4;'''); // not imported
@@ -1311,7 +1358,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       //assertSuggestImportedTopLevelVar('T3', 'int', COMPLETION_RELEVANCE_LOW);
       assertNotSuggested('_T4');
       assertSuggestLocalTopLevelVar('T5', 'int');
-      assertSuggestLocalTopLevelVar('_T6', null);
+      assertSuggestLocalTopLevelVar('_T6', null,
+          relevance: DART_RELEVANCE_DEFAULT);
       assertNotSuggested('==');
       assertSuggestLocalGetter('T7', 'String');
       assertSuggestLocalSetter('T8');
@@ -1327,21 +1375,29 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_Block_final() {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       export "dart:math" hide max;
       class A {int x;}
       @deprecated D1() {int x;}
       class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       String T1;
       var _T2;
       class C { }
       class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource(
+        '/testEEF.dart',
+        '''
       class EE { }
       class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource(
+        '/testH.dart',
+        '''
       class H { }
       int T3;
       var _T4;'''); // not imported
@@ -1442,21 +1498,29 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_Block_final_final() {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       export "dart:math" hide max;
       class A {int x;}
       @deprecated D1() {int x;}
       class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       String T1;
       var _T2;
       class C { }
       class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource(
+        '/testEEF.dart',
+        '''
       class EE { }
       class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource(
+        '/testH.dart',
+        '''
       class H { }
       int T3;
       var _T4;'''); // not imported
@@ -1541,21 +1605,29 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_Block_final_var() {
     // Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       export "dart:math" hide max;
       class A {int x;}
       @deprecated D1() {int x;}
       class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       String T1;
       var _T2;
       class C { }
       class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource(
+        '/testEEF.dart',
+        '''
       class EE { }
       class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource(
+        '/testH.dart',
+        '''
       class H { }
       int T3;
       var _T4;'''); // not imported
@@ -1639,21 +1711,29 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   test_Block_identifier_partial() {
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       export "dart:math" hide max;
       class A {int x;}
       @deprecated D1() {int x;}
       class _B { }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       String T1;
       var _T2;
       class C { }
       class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource(
+        '/testEEF.dart',
+        '''
       class EE { }
       class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource(
+        '/testH.dart',
+        '''
       class H { }
       class D3 { }
       int T3;
@@ -1722,7 +1802,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_Block_inherited_imported() {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       class F { var f1; f2() { } get f3 => 0; set f4(fx) { } var _pf; }
       class E extends F { var e1; e2() { } }
@@ -1778,21 +1860,29 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   test_Block_local_function() {
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       export "dart:math" hide max;
       class A {int x;}
       @deprecated D1() {int x;}
       class _B {boo() { partBoo() {}} }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       String T1;
       var _T2;
       class C { }
       class D { }''');
-    addSource('/testEEF.dart', '''
+    addSource(
+        '/testEEF.dart',
+        '''
       class EE { }
       class F { }''');
     addSource('/testG.dart', 'class G { }');
-    addSource('/testH.dart', '''
+    addSource(
+        '/testH.dart',
+        '''
       class H { }
       int T3;
       var _T4;'''); // not imported
@@ -1851,7 +1941,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_CascadeExpression_selector1() {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       class B { }''');
     addTestSource('''
       import "/testB.dart";
@@ -1877,7 +1969,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_CascadeExpression_selector2() {
     // SimpleIdentifier  PropertyAccess  CascadeExpression  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       class B { }''');
     addTestSource('''
       import "/testB.dart";
@@ -1901,7 +1995,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_CascadeExpression_selector2_withTrailingReturn() {
     // PropertyAccess  CascadeExpression  ExpressionStatement  Block
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       class B { }''');
     addTestSource('''
       import "/testB.dart";
@@ -2002,7 +2098,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ClassDeclaration_body() {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       class B { }''');
     addTestSource('''
       import "testB.dart" as x;
@@ -2036,7 +2134,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ClassDeclaration_body_final() {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       class B { }''');
     addTestSource('''
       import "testB.dart" as x;
@@ -2055,9 +2155,57 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_ClassDeclaration_body_final_field() {
+    // ClassDeclaration  CompilationUnit
+    addSource(
+        '/testB.dart',
+        '''
+      class B { }''');
+    addTestSource('''
+      import "testB.dart" as x;
+      class A {final ^ A(){}}
+      class _B {}
+      A T;''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset);
+      expect(request.replacementLength, 0);
+      assertSuggestLocalClass('A');
+      assertSuggestLocalClass('_B');
+      assertSuggestImportedClass('String');
+      assertNotSuggested('T');
+      assertSuggestLibraryPrefix('x');
+    });
+  }
+
+  test_ClassDeclaration_body_final_field2() {
+    // ClassDeclaration  CompilationUnit
+    addSource(
+        '/testB.dart',
+        '''
+      class B { }''');
+    addTestSource('''
+      import "testB.dart" as Soo;
+      class A {final S^ A();}
+      class _B {}
+      A Sew;''');
+    computeFast();
+    return computeFull((bool result) {
+      expect(request.replacementOffset, completionOffset - 1);
+      expect(request.replacementLength, 1);
+      assertSuggestLocalClass('A');
+      assertSuggestLocalClass('_B');
+      assertSuggestImportedClass('String');
+      assertNotSuggested('Sew');
+      assertSuggestLibraryPrefix('Soo');
+    });
+  }
+
   test_ClassDeclaration_body_final_final() {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       class B { }''');
     addTestSource('''
       import "testB.dart" as x;
@@ -2078,7 +2226,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ClassDeclaration_body_final_var() {
     // ClassDeclaration  CompilationUnit
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       class B { }''');
     addTestSource('''
       import "testB.dart" as x;
@@ -2099,17 +2249,23 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_Combinator_hide() {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       library libAB;
       part '/partAB.dart';
       class A { }
       class B { }''');
-    addSource('/partAB.dart', '''
+    addSource(
+        '/partAB.dart',
+        '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       class C { }
       class D { }''');
     addTestSource('''
@@ -2124,19 +2280,25 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_Combinator_show() {
     // SimpleIdentifier  HideCombinator  ImportDirective
-    addSource('/testAB.dart', '''
+    addSource(
+        '/testAB.dart',
+        '''
       library libAB;
       part '/partAB.dart';
       class A { }
       class B { }''');
-    addSource('/partAB.dart', '''
+    addSource(
+        '/partAB.dart',
+        '''
       part of libAB;
       var T1;
       PB F1() => new PB();
       typedef PB2 F2(int blat);
       class Clz = Object with Object;
       class PB { }''');
-    addSource('/testCD.dart', '''
+    addSource(
+        '/testCD.dart',
+        '''
       class C { }
       class D { }''');
     addTestSource('''
@@ -2151,7 +2313,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ConditionalExpression_elseExpression() {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       class A {int x;}''');
@@ -2172,7 +2336,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ConditionalExpression_elseExpression_empty() {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       class A {int x;}''');
@@ -2199,7 +2365,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ConditionalExpression_partial_thenExpression() {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       class A {int x;}''');
@@ -2220,7 +2388,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ConditionalExpression_partial_thenExpression_empty() {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       class A {int x;}''');
@@ -2247,7 +2417,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ConditionalExpression_thenExpression() {
     // SimpleIdentifier  ConditionalExpression  ReturnStatement
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       class A {int x;}''');
@@ -2269,7 +2441,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_ConstructorName_importedClass() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       int T1;
       F1() { }
@@ -2294,7 +2468,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_ConstructorName_importedFactory() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName  ConstructorName
     // InstanceCreationExpression
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       int T1;
       F1() { }
@@ -2397,7 +2573,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ExpressionStatement_identifier() {
     // SimpleIdentifier  ExpressionStatement  Block
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       _B F1() { }
       class A {int x;}
       class _B { }''');
@@ -2425,7 +2603,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_ExpressionStatement_name() {
     // ExpressionStatement  Block  BlockFunctionBody  MethodDeclaration
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       B T1;
       class B{}''');
     addTestSource('''
@@ -2632,7 +2812,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_FunctionDeclaration_returnType_afterComment() {
     // ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -2663,7 +2845,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_FunctionDeclaration_returnType_afterComment2() {
     // FunctionDeclaration  ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -2694,7 +2878,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_FunctionDeclaration_returnType_afterComment3() {
     // FunctionDeclaration  ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -2820,7 +3006,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_IndexExpression() {
     // ExpressionStatement  Block
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       class A {int x;}''');
@@ -2847,7 +3035,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_IndexExpression2() {
     // SimpleIdentifier IndexExpression ExpressionStatement  Block
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       class A {int x;}''');
@@ -2868,7 +3058,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_InstanceCreationExpression_imported() {
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       class A {A(this.x) { } int x;}''');
@@ -2915,7 +3107,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_InterpolationExpression() {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -2950,7 +3144,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_InterpolationExpression_block() {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -3031,7 +3227,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_IsExpression() {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       foo() { }
       class X {X.c(); X._d(); z() {}}''');
@@ -3104,7 +3302,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   }
 
   test_keyword() {
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       int newT1;
       int T1;
@@ -3165,7 +3365,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MapLiteralEntry() {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -3199,7 +3401,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MapLiteralEntry1() {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -3226,7 +3430,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MapLiteralEntry2() {
     // SimpleIdentifier  MapLiteralEntry  MapLiteral  VariableDeclaration
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -3269,11 +3475,52 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(getterF.element.isDeprecated, isTrue);
         expect(getterF.element.isPrivate, isFalse);
       }
-      CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null);
+      CompletionSuggestion getterG = assertSuggestLocalGetter('_g', null,
+          relevance: DART_RELEVANCE_DEFAULT);
       if (getterG != null) {
         expect(getterG.element.isDeprecated, isFalse);
         expect(getterG.element.isPrivate, isTrue);
       }
+    });
+  }
+
+  test_MethodDeclaration_body_static() {
+    // Block  BlockFunctionBody  MethodDeclaration
+    addSource(
+        '/testC.dart',
+        '''
+      class C {
+        c1() {}
+        var c2;
+        static c3() {}
+        static var c4;}''');
+    addTestSource('''
+      import "/testC.dart";
+      class B extends C {
+        b1() {}
+        var b2;
+        static b3() {}
+        static var b4;}
+      class A extends B {
+        a1() {}
+        var a2;
+        static a3() {}
+        static var a4;
+        static a() {^}}''');
+    computeFast();
+    return computeFull((bool result) {
+      assertNotSuggested('a1');
+      assertNotSuggested('a2');
+      assertSuggestLocalMethod('a3', 'A', null);
+      assertSuggestLocalField('a4', null);
+      assertNotSuggested('b1');
+      assertNotSuggested('b2');
+      assertNotSuggested('b3');
+      assertNotSuggested('b4');
+      assertNotSuggested('c1');
+      assertNotSuggested('c2');
+      assertNotSuggested('c3');
+      assertNotSuggested('c4');
     });
   }
 
@@ -3284,7 +3531,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      CompletionSuggestion methodA = assertSuggestLocalMethod('_a', 'A', 'Z');
+      CompletionSuggestion methodA = assertSuggestLocalMethod('_a', 'A', 'Z',
+          relevance: DART_RELEVANCE_DEFAULT);
       if (methodA != null) {
         expect(methodA.element.isDeprecated, isFalse);
         expect(methodA.element.isPrivate, isTrue);
@@ -3348,7 +3596,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MethodDeclaration_returnType() {
     // ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -3378,7 +3628,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MethodDeclaration_returnType_afterComment() {
     // ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -3408,7 +3660,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MethodDeclaration_returnType_afterComment2() {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -3438,7 +3692,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_MethodDeclaration_returnType_afterComment3() {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       int T1;
       F1() { }
       typedef D1();
@@ -3515,14 +3771,26 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_parameterName_excludeTypes() {
+    addTestSource('m(int ^) {}');
+    return computeFull((bool result) {
+      assertNotSuggested('int');
+      assertNotSuggested('bool');
+    });
+  }
+
   test_partFile_TypeName() {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       int T1;
       F1() { }
       class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       library libA;
       import "/testB.dart";
       part "$testFile";
@@ -3551,12 +3819,16 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_partFile_TypeName2() {
     // SimpleIdentifier  TypeName  ConstructorName
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       int T1;
       F1() { }
       class X {X.c(); X._d(); z() {}}''');
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       part of libA;
       class B { }''');
     addTestSource('''
@@ -3585,7 +3857,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_PrefixedIdentifier_class_const() {
     // SimpleIdentifier PrefixedIdentifier ExpressionStatement Block
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       class I {
         static const scI = 'boo';
@@ -3632,7 +3906,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_PrefixedIdentifier_class_imported() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       class I {X get f => new A();get _g => new A();}
       class A implements I {
@@ -3714,7 +3990,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_PrefixedIdentifier_library() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       var T1;
       class X { }
@@ -3741,7 +4019,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_PrefixedIdentifier_library_typesOnly() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       var T1;
       class X { }
@@ -3768,7 +4048,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_PrefixedIdentifier_library_typesOnly2() {
     // SimpleIdentifier  PrefixedIdentifier  TypeName
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       var T1;
       class X { }
@@ -3795,7 +4077,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_PrefixedIdentifier_parameter() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       class _W {M y; var _z;}
       class X extends _W {}
@@ -3815,7 +4099,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_PrefixedIdentifier_prefix() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       class A {static int bar = 10;}
       _B() {}''');
     addTestSource('''
@@ -3938,6 +4224,14 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_localVariableDeclarationName() {
+    addTestSource('main() {String m^}');
+    return computeFull((bool result) {
+      assertNotSuggested('main');
+      assertNotSuggested('min');
+    });
+  }
+
   test_PrefixedIdentifier_trailingStmt_param2() {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('f(String g) {g.^ int y = 0;}');
@@ -4017,11 +4311,12 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_SwitchStatement_case() {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('class A {String g(int x) {switch(x) {case 0: ^}}}');
+    addTestSource('class A {String g(int x) {var t; switch(x) {case 0: ^}}}');
     computeFast();
     return computeFull((bool result) {
       assertSuggestLocalClass('A');
       assertSuggestLocalMethod('g', 'A', 'String');
+      assertSuggestLocalVariable('t', null);
       assertSuggestImportedClass('String');
     });
   }
@@ -4117,7 +4412,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       class A implements I {
         A(this.^) {}
         A.z() {}
-        var b; X _c;
+        var b; X _c; static sb;
         X get d => new A();get _e => new A();
         // no semicolon between completion point and next statement
         set s1(I x) {} set _s2(I x) {m(null);}
@@ -4131,6 +4426,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
           relevance: DART_RELEVANCE_LOCAL_FIELD);
       assertSuggestInvocationField('_c', 'X',
           relevance: DART_RELEVANCE_LOCAL_FIELD);
+      assertNotSuggested('sb');
       assertNotSuggested('d');
       assertNotSuggested('_e');
       assertNotSuggested('f');
@@ -4286,7 +4582,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_TypeArgumentList() {
     // SimpleIdentifier  BinaryExpression  ExpressionStatement
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       class C1 {int x;}
       F1() => 0;
       typedef String T1(int blat);''');
@@ -4313,7 +4611,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   test_TypeArgumentList2() {
     // TypeName  TypeArgumentList  TypeName
-    addSource('/testA.dart', '''
+    addSource(
+        '/testA.dart',
+        '''
       class C1 {int x;}
       F1() => 0;
       typedef String T1(int blat);''');
@@ -4336,7 +4636,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_VariableDeclaration_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       foo() { }
       class _B { }
@@ -4365,7 +4667,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_VariableDeclarationStatement_RHS() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       foo() { }
       class _B { }
@@ -4391,7 +4695,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   test_VariableDeclarationStatement_RHS_missing_semicolon() {
     // VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement
-    addSource('/testB.dart', '''
+    addSource(
+        '/testB.dart',
+        '''
       lib B;
       foo1() { }
       void bar1() { }

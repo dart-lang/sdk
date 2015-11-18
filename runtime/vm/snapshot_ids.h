@@ -6,6 +6,7 @@
 #define VM_SNAPSHOT_IDS_H_
 
 #include "vm/raw_object.h"
+#include "vm/dart_entry.h"
 
 namespace dart {
 
@@ -13,6 +14,7 @@ namespace dart {
 enum {
   kNullObject = 0,
   kSentinelObject,
+  kTransitionSentinelObject,
   kEmptyArrayObject,
   kZeroArrayObject,
   kTrueValue,
@@ -40,6 +42,18 @@ enum {
   kBoolType,
   kStringType,
   kArrayType,
+
+  kExtractorParameterTypes,
+  kExtractorParameterNames,
+  kEmptyContextScopeObject,
+  kImplicitClosureScopeObject,
+  kEmptyObjectPool,
+  kEmptyDescriptors,
+  kEmptyVarDescriptors,
+  kEmptyExceptionHandlers,
+  kCachedArgumentsDescriptor0,
+  kCachedArgumentsDescriptorN = (kCachedArgumentsDescriptor0 +
+      ArgumentsDescriptor::kCachedDescriptorCount - 1),
 
   kInstanceObjectId,
   kStaticImplicitClosureObjectId,

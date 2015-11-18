@@ -5,12 +5,30 @@
 library code_generator_dependencies;
 
 import '../js_backend.dart';
-import '../../dart2jslib.dart';
+
+import '../../common.dart';
+import '../../common/registry.dart' show
+    Registry;
+import '../../common/codegen.dart' show
+    CodegenRegistry;
+import '../../compiler.dart' show
+    Compiler;
+import '../../constants/values.dart';
+import '../../dart_types.dart' show
+    DartType,
+    TypeVariableType,
+    InterfaceType;
+import '../../enqueue.dart' show
+    CodegenEnqueuer;
+import '../../elements/elements.dart';
 import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
-import '../../constants/values.dart';
-import '../../elements/elements.dart';
-import '../../dart_types.dart' show DartType, TypeVariableType, InterfaceType;
+import '../../native/native.dart' show NativeBehavior;
+import '../../universe/selector.dart' show
+    Selector;
+import '../../world.dart' show
+    ClassWorld;
+
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -31,12 +49,20 @@ class Glue {
 
   Glue(this._compiler);
 
+  ClassWorld get classWorld => _compiler.world;
+
+  DiagnosticReporter get reporter => _compiler.reporter;
+
   js.Expression constantReference(ConstantValue value) {
     return _emitter.constantReference(value);
   }
 
   reportInternalError(String message) {
-    _compiler.internalError(_compiler.currentElement, message);
+    reporter.internalError(CURRENT_ELEMENT_SPANNABLE, message);
+  }
+
+  bool isUsedAsMixin(ClassElement classElement) {
+    return classWorld.isUsedAsMixin(classElement);
   }
 
   ConstantValue getConstantValueForVariable(VariableElement variable) {
@@ -84,7 +110,7 @@ class Glue {
   }
 
   FunctionElement get createInvocationMirrorMethod {
-    return _backend.getCreateInvocationMirror();
+    return _backend.helpers.createInvocationMirror;
   }
 
   void registerUseInterceptorInCodegen() {
@@ -99,8 +125,16 @@ class Glue {
     return _backend.isInterceptedMethod(element);
   }
 
+  bool isInterceptorClass(ClassElement element) {
+    return element.isSubclassOf(_backend.jsInterceptorClass);
+  }
+
   Set<ClassElement> getInterceptedClassesOn(Selector selector) {
     return _backend.getInterceptedClassesOn(selector.name);
+  }
+
+  Set<ClassElement> get interceptedClasses {
+    return _backend.interceptedClasses;
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
@@ -135,55 +169,55 @@ class Glue {
   }
 
   FunctionElement getWrapExceptionHelper() {
-    return _backend.getWrapExceptionHelper();
+    return _backend.helpers.wrapExceptionHelper;
   }
 
   FunctionElement getExceptionUnwrapper() {
-    return _backend.getExceptionUnwrapper();
+    return _backend.helpers.exceptionUnwrapper;
   }
 
   FunctionElement getTraceFromException() {
-    return _backend.getTraceFromException();
+    return _backend.helpers.traceFromException;
   }
 
   FunctionElement getCreateRuntimeType() {
-    return _backend.getCreateRuntimeType();
+    return _backend.helpers.createRuntimeType;
   }
 
   FunctionElement getRuntimeTypeToString() {
-    return _backend.getRuntimeTypeToString();
+    return _backend.helpers.runtimeTypeToString;
   }
 
   FunctionElement getRuntimeTypeArgument() {
-    return _backend.getGetRuntimeTypeArgument();
+    return _backend.helpers.getRuntimeTypeArgument;
   }
 
   FunctionElement getTypeArgumentByIndex() {
-    return _backend.getGetTypeArgumentByIndex();
+    return _backend.helpers.getTypeArgumentByIndex;
   }
 
   FunctionElement getAddRuntimeTypeInformation() {
-    return _backend.getSetRuntimeTypeInfo();
+    return _backend.helpers.setRuntimeTypeInfo;
   }
 
   /// checkSubtype(value, $isT, typeArgs, $asT)
   FunctionElement getCheckSubtype() {
-    return _backend.getCheckSubtype();
+    return _backend.helpers.checkSubtype;
   }
 
   /// subtypeCast(value, $isT, typeArgs, $asT)
   FunctionElement getSubtypeCast() {
-    return _backend.getSubtypeCast();
+    return _backend.helpers.subtypeCast;
   }
 
   /// checkSubtypeOfRuntime(value, runtimeType)
   FunctionElement getCheckSubtypeOfRuntimeType() {
-    return _backend.getCheckSubtypeOfRuntimeType();
+    return _backend.helpers.checkSubtypeOfRuntimeType;
   }
 
   /// subtypeOfRuntimeTypeCast(value, runtimeType)
   FunctionElement getSubtypeOfRuntimeTypeCast() {
-    return _backend.getSubtypeOfRuntimeTypeCast();
+    return _backend.helpers.subtypeOfRuntimeTypeCast;
   }
 
   js.Expression getRuntimeTypeName(ClassElement cls) {
@@ -191,7 +225,7 @@ class Glue {
   }
 
   int getTypeVariableIndex(TypeVariableType variable) {
-    return RuntimeTypes.getTypeVariableIndex(variable.element);
+    return variable.element.index;
   }
 
   bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
@@ -205,12 +239,15 @@ class Glue {
   }
 
   js.Expression generateTypeRepresentation(DartType dartType,
-                                           List<js.Expression> arguments) {
+                                           List<js.Expression> arguments,
+                                           CodegenRegistry registry) {
     int variableIndex = 0;
-    js.Expression representation = _backend.rti.getTypeRepresentation(
+    js.Expression representation = _backend.rtiEncoder.getTypeRepresentation(
         dartType,
         (_) => arguments[variableIndex++]);
     assert(variableIndex == arguments.length);
+    // Representation contains JavaScript Arrays.
+    registry.registerInstantiatedClass(_backend.jsArrayClass);
     return representation;
   }
 
@@ -235,6 +272,23 @@ class Glue {
     return _compiler.world.hasAnyStrictSubtype(element);
   }
 
+  ClassElement get jsFixedArrayClass => _backend.jsFixedArrayClass;
   ClassElement get jsExtendableArrayClass => _backend.jsExtendableArrayClass;
+  ClassElement get jsUnmodifiableArrayClass =>
+      _backend.jsUnmodifiableArrayClass;
   ClassElement get jsMutableArrayClass => _backend.jsMutableArrayClass;
+
+  bool isStringClass(ClassElement classElement) =>
+      classElement == _backend.jsStringClass ||
+      classElement == _compiler.stringClass;
+
+  bool isBoolClass(ClassElement classElement) =>
+      classElement == _backend.jsBoolClass ||
+      classElement == _compiler.boolClass;
+
+  // TODO(sra): Should this be part of CodegenRegistry?
+  void registerNativeBehavior(NativeBehavior nativeBehavior, node) {
+    if (nativeBehavior == null) return;
+    _enqueuer.nativeEnqueuer.registerNativeBehavior(nativeBehavior, node);
+  }
 }

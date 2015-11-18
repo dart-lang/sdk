@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
+import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/types/types.dart'
     show TypeMask;
 
 import 'compiler_helper.dart';
-import 'parser_helper.dart';
 import 'type_mask_test_helper.dart';
 
 void compileAndFind(String code,

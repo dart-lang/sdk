@@ -6,7 +6,7 @@ part of types;
 
 class ValueTypeMask extends ForwardingTypeMask {
   final TypeMask forwardTo;
-  final value;
+  final PrimitiveConstantValue value;
 
   ValueTypeMask(this.forwardTo, this.value);
 
@@ -44,6 +44,6 @@ class ValueTypeMask extends ForwardingTypeMask {
   }
 
   String toString() {
-    return 'Value mask: [$value] type: $forwardTo';
+    return 'Value mask: [${value.unparse()}] type: $forwardTo';
   }
 }

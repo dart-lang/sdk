@@ -17,7 +17,8 @@
 namespace dart {
 
 typedef pthread_key_t ThreadLocalKey;
-typedef pthread_t ThreadId;
+typedef pid_t ThreadId;
+typedef pthread_t ThreadJoinId;
 
 class ThreadInlineImpl {
  private:

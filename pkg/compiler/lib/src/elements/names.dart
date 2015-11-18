@@ -46,8 +46,15 @@ abstract class Name {
   /// privacy into account.
   bool isSimilarTo(Name other);
   int get similarHashCode;
-  
+
   LibraryElement get library;
+
+
+  /// Returns `true` when [s] is private if used as an identifier.
+  static bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
+
+  /// Returns `true` when [s] is public if used as an identifier.
+  static bool isPublicName(String s) => !isPrivateName(s);
 }
 
 class PublicName implements Name {
@@ -74,7 +81,7 @@ class PublicName implements Name {
   bool isSimilarTo(Name other) =>
       text == other.text && isSetter == other.isSetter;
   int get similarHashCode => text.hashCode + 11 * isSetter.hashCode;
-  
+
   LibraryElement get library => null;
 
   String toString() => isSetter ? '$text=' : text;
@@ -103,5 +110,5 @@ class PrivateName extends PublicName {
     return super==(other) && library == other.library;
   }
 
-  String toString() => '${library.getLibraryName()}#${super.toString()}';
+  String toString() => '${library.libraryName}#${super.toString()}';
 }

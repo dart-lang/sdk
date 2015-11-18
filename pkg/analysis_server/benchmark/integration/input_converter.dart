@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 

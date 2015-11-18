@@ -7,7 +7,7 @@ library test.timing.simple;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:path/path.dart';
 
 import '../timing_framework.dart';

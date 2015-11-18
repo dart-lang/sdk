@@ -44,12 +44,10 @@ class PerfCodeObserver : public CodeObserver {
     if (file_open == NULL) {
       return;
     }
-    const char* format = "/tmp/perf-%ld.map";
     intptr_t pid = getpid();
-    intptr_t len = OS::SNPrint(NULL, 0, format, pid);
-    char* filename = new char[len + 1];
-    OS::SNPrint(filename, len + 1, format, pid);
+    char* filename = OS::SCreate(NULL, "/tmp/perf-%" Pd ".map", pid);
     out_file_ = (*file_open)(filename, true);
+    free(filename);
   }
 
   ~PerfCodeObserver() {
@@ -73,12 +71,10 @@ class PerfCodeObserver : public CodeObserver {
     if ((file_write == NULL) || (out_file_ == NULL)) {
       return;
     }
-    const char* format = "%" Px " %" Px " %s%s\n";
     const char* marker = optimized ? "*" : "";
-    intptr_t len = OS::SNPrint(NULL, 0, format, base, size, marker, name);
-    char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
-    OS::SNPrint(buffer, len + 1, format, base, size, marker, name);
-    (*file_write)(buffer, len, out_file_);
+    char* buffer = OS::SCreate(Thread::Current()->zone(),
+        "%" Px " %" Px " %s%s\n", base, size, marker, name);
+    (*file_write)(buffer, strlen(buffer), out_file_);
   }
 
  private:
@@ -107,10 +103,8 @@ class GdbCodeObserver : public CodeObserver {
       // the prologue sequence is not the first instruction:
       // <name>_entry is used for code preceding the prologue sequence.
       // <name> for rest of the code (first instruction is prologue sequence).
-      const char* kFormat = "%s_%s";
-      intptr_t len = OS::SNPrint(NULL, 0, kFormat, name, "entry");
-      char* pname = Thread::Current()->zone()->Alloc<char>(len + 1);
-      OS::SNPrint(pname, (len + 1), kFormat, name, "entry");
+      char* pname = OS::SCreate(Thread::Current()->zone(),
+          "%s_%s", name, "entry");
       DebugInfo::RegisterSection(pname, base, size);
       DebugInfo::RegisterSection(name,
                                  (base + prologue_offset),
@@ -182,6 +176,20 @@ int64_t OS::GetCurrentTimeMicros() {
     return 0;
   }
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+}
+
+
+int64_t OS::GetCurrentTraceMicros() {
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+    UNREACHABLE();
+    return 0;
+  }
+  // Convert to microseconds.
+  int64_t result = ts.tv_sec;
+  result *= kMicrosecondsPerSecond;
+  result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
+  return result;
 }
 
 
@@ -351,6 +359,39 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
     FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
   }
   return retval;
+}
+
+
+char* OS::SCreate(Zone* zone, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  char* buffer = VSCreate(zone, format, args);
+  va_end(args);
+  return buffer;
+}
+
+
+char* OS::VSCreate(Zone* zone, const char* format, va_list args) {
+  // Measure.
+  va_list measure_args;
+  va_copy(measure_args, args);
+  intptr_t len = VSNPrint(NULL, 0, format, measure_args);
+  va_end(measure_args);
+
+  char* buffer;
+  if (zone) {
+    buffer = zone->Alloc<char>(len + 1);
+  } else {
+    buffer = reinterpret_cast<char*>(malloc(len + 1));
+  }
+  ASSERT(buffer != NULL);
+
+  // Print.
+  va_list print_args;
+  va_copy(print_args, args);
+  VSNPrint(buffer, len + 1, format, print_args);
+  va_end(print_args);
+  return buffer;
 }
 
 

@@ -242,8 +242,9 @@ const Code::Comments& Assembler::GetCodeComments() const {
 }
 
 
-intptr_t ObjectPoolWrapper::AddObject(const Object& obj) {
-  return AddObject(ObjectPool::Entry(&obj), kNotPatchable);
+intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
+                                      Patchability patchable) {
+  return AddObject(ObjectPool::Entry(&obj), patchable);
 }
 
 
@@ -264,14 +265,6 @@ intptr_t ObjectPoolWrapper::AddObject(ObjectPool::Entry entry,
 }
 
 
-intptr_t ObjectPoolWrapper::AddExternalLabel(const ExternalLabel* label,
-                                             Patchability patchable) {
-  return AddObject(ObjectPool::Entry(label->address(),
-                                     ObjectPool::kImmediate),
-                   patchable);
-}
-
-
 intptr_t ObjectPoolWrapper::FindObject(ObjectPool::Entry entry,
                                        Patchability patchable) {
   // If the object is not patchable, check if we've already got it in the
@@ -287,8 +280,9 @@ intptr_t ObjectPoolWrapper::FindObject(ObjectPool::Entry entry,
 }
 
 
-intptr_t ObjectPoolWrapper::FindObject(const Object& obj) {
-  return FindObject(ObjectPool::Entry(&obj), kNotPatchable);
+intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
+                                       Patchability patchable) {
+  return FindObject(ObjectPool::Entry(&obj), patchable);
 }
 
 
@@ -298,10 +292,10 @@ intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
 }
 
 
-intptr_t ObjectPoolWrapper::FindExternalLabel(const ExternalLabel* label,
-                                              Patchability patchable) {
+intptr_t ObjectPoolWrapper::FindNativeEntry(const ExternalLabel* label,
+                                            Patchability patchable) {
   return FindObject(ObjectPool::Entry(label->address(),
-                                      ObjectPool::kImmediate),
+                                      ObjectPool::kNativeEntry),
                     patchable);
 }
 

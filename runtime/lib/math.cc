@@ -110,9 +110,9 @@ DEFINE_NATIVE_ENTRY(Random_nextState, 1) {
 }
 
 
-RawTypedData* CreateRandomState(Isolate* isolate, uint64_t seed) {
+RawTypedData* CreateRandomState(Zone* zone, uint64_t seed) {
   const TypedData& result = TypedData::Handle(
-      isolate, TypedData::New(kTypedDataUint32ArrayCid, 2));
+      zone, TypedData::New(kTypedDataUint32ArrayCid, 2));
   result.SetUint32(0, static_cast<uint32_t>(seed));
   result.SetUint32(result.ElementSizeInBytes(),
                    static_cast<uint32_t>(seed >> 32));
@@ -187,7 +187,7 @@ DEFINE_NATIVE_ENTRY(Random_setupSeed, 1) {
   if (seed == 0) {
     seed = 0x5a17;
   }
-  return CreateRandomState(isolate, seed);
+  return CreateRandomState(zone, seed);
 }
 
 
@@ -195,7 +195,7 @@ DEFINE_NATIVE_ENTRY(Random_initialSeed, 0) {
   Random* rnd = isolate->random();
   uint64_t seed = rnd->NextUInt32();
   seed |= (static_cast<uint64_t>(rnd->NextUInt32()) << 32);
-  return CreateRandomState(isolate, seed);
+  return CreateRandomState(zone, seed);
 }
 
 }  // namespace dart

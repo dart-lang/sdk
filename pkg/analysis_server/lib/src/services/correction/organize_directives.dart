@@ -4,12 +4,12 @@
 
 library services.src.refactoring.organize_directives;
 
-import 'package:analysis_server/src/protocol.dart' hide AnalysisError, Element;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisError, Element;
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-import 'dart:math';
 
 /**
  * Organizer of directives in the [unit].
@@ -57,7 +57,8 @@ class DirectiveOrganizer {
 
   bool _isUnusedImport(UriBasedDirective directive) {
     for (AnalysisError error in errors) {
-      if (error.errorCode == HintCode.UNUSED_IMPORT &&
+      if ((error.errorCode == HintCode.DUPLICATE_IMPORT ||
+              error.errorCode == HintCode.UNUSED_IMPORT) &&
           directive.uri.offset == error.offset) {
         return true;
       }

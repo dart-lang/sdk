@@ -6,8 +6,8 @@ library services.src.correction.assist;
 
 import 'dart:collection';
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
-import 'package:analysis_server/edit/assist/assist_dart.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -331,30 +331,27 @@ class AssistProcessor {
 
   void _addProposal_assignToLocalVariable() {
     // prepare enclosing ExpressionStatement
-    Statement statement = node.getAncestor((node) => node is Statement);
-    if (statement is! ExpressionStatement) {
+    ExpressionStatement expressionStatement;
+    for (AstNode node = this.node; node != null; node = node.parent) {
+      if (node is ExpressionStatement) {
+        expressionStatement = node;
+        break;
+      }
+      if (node is ArgumentList ||
+          node is AssignmentExpression ||
+          node is Statement ||
+          node is ThrowExpression) {
+        _coverageMarker();
+        return;
+      }
+    }
+    if (expressionStatement == null) {
       _coverageMarker();
       return;
     }
-    ExpressionStatement expressionStatement = statement as ExpressionStatement;
     // prepare expression
     Expression expression = expressionStatement.expression;
     int offset = expression.offset;
-    // ignore if in arguments
-    if (node.getAncestor((node) => node is ArgumentList) != null) {
-      _coverageMarker();
-      return;
-    }
-    // ignore if already assignment
-    if (expression is AssignmentExpression) {
-      _coverageMarker();
-      return;
-    }
-    // ignore "throw"
-    if (expression is ThrowExpression) {
-      _coverageMarker();
-      return;
-    }
     // prepare expression type
     DartType type = expression.bestType;
     if (type.isVoid) {
@@ -394,7 +391,7 @@ class AssistProcessor {
   void _addProposal_convertToBlockFunctionBody() {
     FunctionBody body = getEnclosingFunctionBody();
     // prepare expression body
-    if (body is! ExpressionFunctionBody) {
+    if (body is! ExpressionFunctionBody || body.isGenerator) {
       _coverageMarker();
       return;
     }
@@ -405,10 +402,16 @@ class AssistProcessor {
     String prefix = utils.getNodePrefix(body.parent);
     String indent = utils.getIndent(1);
     // add change
-    String statementCode =
-        (returnValueType.isVoid ? '' : 'return ') + returnValueCode;
     SourceBuilder sb = new SourceBuilder(file, body.offset);
-    sb.append('{$eol$prefix$indent$statementCode;');
+    if (body.isAsynchronous) {
+      sb.append('async ');
+    }
+    sb.append('{$eol$prefix$indent');
+    if (!returnValueType.isVoid) {
+      sb.append('return ');
+    }
+    sb.append(returnValueCode);
+    sb.append(';');
     sb.setExitOffset();
     sb.append('$eol$prefix}');
     _insertBuilder(sb, body.length);
@@ -419,7 +422,7 @@ class AssistProcessor {
   void _addProposal_convertToExpressionFunctionBody() {
     // prepare current body
     FunctionBody body = getEnclosingFunctionBody();
-    if (body is! BlockFunctionBody) {
+    if (body is! BlockFunctionBody || body.isGenerator) {
       _coverageMarker();
       return;
     }
@@ -442,12 +445,17 @@ class AssistProcessor {
       return;
     }
     // add change
-    String newBodySource = '=> ${_getNodeText(returnExpression)}';
+    SourceBuilder sb = new SourceBuilder(file, body.offset);
+    if (body.isAsynchronous) {
+      sb.append('async ');
+    }
+    sb.append('=> ');
+    sb.append(_getNodeText(returnExpression));
     if (body.parent is! FunctionExpression ||
         body.parent.parent is FunctionDeclaration) {
-      newBodySource += ';';
+      sb.append(';');
     }
-    _addReplaceEdit(rangeNode(body), newBodySource);
+    _insertBuilder(sb, body.length);
     // add proposal
     _addAssist(DartAssistKind.CONVERT_INTO_EXPRESSION_BODY, []);
   }

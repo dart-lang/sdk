@@ -39,7 +39,7 @@ class Thread;
 //
 class AwaitTransformer : public AstNodeVisitor {
  public:
-  AwaitTransformer(SequenceNode* preamble, LocalScope* function_top);
+  AwaitTransformer(SequenceNode* preamble, LocalScope* async_temp_scope);
 
 #define DECLARE_VISIT(BaseName)                                                \
   virtual void Visit##BaseName##Node(BaseName##Node* node);
@@ -66,7 +66,7 @@ class AwaitTransformer : public AstNodeVisitor {
   SequenceNode* preamble_;
   int32_t temp_cnt_;
   AstNode* result_;
-  LocalScope* function_top_;
+  LocalScope* async_temp_scope_;
 
   Thread* thread_;
 

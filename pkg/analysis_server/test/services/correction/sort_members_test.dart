@@ -4,15 +4,16 @@
 
 library test.services.refactoring.sort_members;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(SortMembersTest);
 }
 
@@ -668,6 +669,24 @@ int b;
 ''');
     // validate change
     _assertSort(r'''
+int a;
+int b;
+int c;
+''');
+  }
+
+  void test_unitMembers_topLevelVariable_withConst() {
+    _parseTestUnit(r'''
+int c;
+int a;
+const B = 2;
+int b;
+const A = 1;
+''');
+    // validate change
+    _assertSort(r'''
+const A = 1;
+const B = 2;
 int a;
 int b;
 int c;
