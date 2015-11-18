@@ -10,6 +10,7 @@ library analysis_server.test.stress.utilities.git;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analyzer/src/util/glob.dart';
 import 'package:path/path.dart' as path;
 
 /**
@@ -126,23 +127,18 @@ class CommitDelta {
 
   /**
    * Remove any diffs for files that are either (a) outside the given
-   * [analysisRoots], or (b) are files that are not being analyzed by the server.
+   * [inclusionPaths], or (b) are files that do not match one of the given
+   * [globPatterns].
    */
-  void filterDiffs(List<String> analysisRoots) {
-    // TODO(brianwilkerson) Generalize this method by renaming the parameter and
-    // passing in the glob patterns. (Or just pass in glob patterns.)
+  void filterDiffs(List<String> inclusionPaths, List<Glob> globPatterns) {
     diffRecords.retainWhere((DiffRecord record) {
       String filePath = record.srcPath ?? record.dstPath;
-      for (String analysisRoot in analysisRoots) {
-        if (path.isWithin(analysisRoot, filePath)) {
-          // TODO(brianwilkerson) Generalize this by asking the server for the
-          // list of glob patterns of files to be analyzed (once there's an API
-          // for doing so).
-          if (filePath.endsWith('.dart') ||
-              filePath.endsWith('.html') ||
-              filePath.endsWith('.htm') ||
-              filePath.endsWith('.analysisOptions')) {
-            return true;
+      for (String inclusionPath in inclusionPaths) {
+        if (path.isWithin(inclusionPath, filePath)) {
+          for (Glob glob in globPatterns) {
+            if (glob.matches(filePath)) {
+              return true;
+            }
           }
         }
       }
@@ -233,88 +229,6 @@ class CommitDelta {
         new DiffRecord(repository, srcSha, dstSha, status, srcPath, dstPath));
     return endIndex + 1;
   }
-}
-
-/**
- * A representation of the history of a Git repository. This only represents a
- * single linear path in the history graph.
- */
-class LinearCommitHistory {
-  /**
-   * The repository whose history is being represented.
-   */
-  final GitRepository repository;
-
-  /**
-   * The id's (SHA's) of the commits in the repository, with the most recent
-   * commit being first and the oldest commit being last.
-   */
-  final List<String> commitIds;
-
-  /**
-   * Initialize a commit history for the given [repository] to have the given
-   * [commitIds].
-   */
-  LinearCommitHistory(this.repository, this.commitIds);
-
-  /**
-   * Return an iterator that can be used to iterate over this commit history.
-   */
-  LinearCommitHistoryIterator iterator() {
-    return new LinearCommitHistoryIterator(this);
-  }
-}
-
-/**
- * An iterator over the history of a Git repository.
- */
-class LinearCommitHistoryIterator {
-  /**
-   * The commit history being iterated over.
-   */
-  final LinearCommitHistory history;
-
-  /**
-   * The index of the current commit in the list of [commitIds].
-   */
-  int currentCommit;
-
-  /**
-   * Initialize a newly created iterator to iterate over the commits with the
-   * given [commitIds];
-   */
-  LinearCommitHistoryIterator(this.history) {
-    currentCommit = history.commitIds.length;
-  }
-
-  /**
-   * Return the SHA1 of the commit after the current commit (the 'dst' of the
-   * [next] diff).
-   */
-  String get dstCommit => history.commitIds[currentCommit - 1];
-
-  /**
-   * Return the SHA1 of the current commit (the 'src' of the [next] diff).
-   */
-  String get srcCommit => history.commitIds[currentCommit];
-
-  /**
-   * Advance to the next commit in the history. Return `true` if it is safe to
-   * ask for the [next] diff.
-   */
-  bool moveNext() {
-    if (currentCommit <= 1) {
-      return false;
-    }
-    currentCommit--;
-    return true;
-  }
-
-  /**
-   * Return the difference between the current commit and the commit that
-   * followed it.
-   */
-  CommitDelta next() => history.repository.getCommitDiff(srcCommit, dstCommit);
 }
 
 /**
@@ -500,7 +414,7 @@ class GitRepository {
    * running the command `git diff <blob> <blob>`.
    */
   BlobDiff getBlobDiff(String srcBlob, String dstBlob) {
-    ProcessResult result = _run(['diff', srcBlob, dstBlob]);
+    ProcessResult result = _run(['diff', '-U0', srcBlob, dstBlob]);
     List<String> diffResults = LineSplitter.split(result.stdout).toList();
     return new BlobDiff._(diffResults);
   }
@@ -513,8 +427,15 @@ class GitRepository {
   CommitDelta getCommitDiff(String srcCommit, String dstCommit) {
     // Consider --find-renames instead of --no-renames if rename information is
     // desired.
-    ProcessResult result = _run(['diff', '--raw', '--no-abbrev', '--no-renames',
-        '-z', srcCommit, dstCommit]);
+    ProcessResult result = _run([
+      'diff',
+      '--raw',
+      '--no-abbrev',
+      '--no-renames',
+      '-z',
+      srcCommit,
+      dstCommit
+    ]);
     return new CommitDelta._(this, result.stdout);
   }
 
@@ -536,4 +457,86 @@ class GitRepository {
     return Process.runSync('git', arguments,
         stderrEncoding: UTF8, stdoutEncoding: UTF8, workingDirectory: path);
   }
+}
+
+/**
+ * A representation of the history of a Git repository. This only represents a
+ * single linear path in the history graph.
+ */
+class LinearCommitHistory {
+  /**
+   * The repository whose history is being represented.
+   */
+  final GitRepository repository;
+
+  /**
+   * The id's (SHA's) of the commits in the repository, with the most recent
+   * commit being first and the oldest commit being last.
+   */
+  final List<String> commitIds;
+
+  /**
+   * Initialize a commit history for the given [repository] to have the given
+   * [commitIds].
+   */
+  LinearCommitHistory(this.repository, this.commitIds);
+
+  /**
+   * Return an iterator that can be used to iterate over this commit history.
+   */
+  LinearCommitHistoryIterator iterator() {
+    return new LinearCommitHistoryIterator(this);
+  }
+}
+
+/**
+ * An iterator over the history of a Git repository.
+ */
+class LinearCommitHistoryIterator {
+  /**
+   * The commit history being iterated over.
+   */
+  final LinearCommitHistory history;
+
+  /**
+   * The index of the current commit in the list of [commitIds].
+   */
+  int currentCommit;
+
+  /**
+   * Initialize a newly created iterator to iterate over the commits with the
+   * given [commitIds];
+   */
+  LinearCommitHistoryIterator(this.history) {
+    currentCommit = history.commitIds.length;
+  }
+
+  /**
+   * Return the SHA1 of the commit after the current commit (the 'dst' of the
+   * [next] diff).
+   */
+  String get dstCommit => history.commitIds[currentCommit - 1];
+
+  /**
+   * Return the SHA1 of the current commit (the 'src' of the [next] diff).
+   */
+  String get srcCommit => history.commitIds[currentCommit];
+
+  /**
+   * Advance to the next commit in the history. Return `true` if it is safe to
+   * ask for the [next] diff.
+   */
+  bool moveNext() {
+    if (currentCommit <= 1) {
+      return false;
+    }
+    currentCommit--;
+    return true;
+  }
+
+  /**
+   * Return the difference between the current commit and the commit that
+   * followed it.
+   */
+  CommitDelta next() => history.repository.getCommitDiff(srcCommit, dstCommit);
 }
