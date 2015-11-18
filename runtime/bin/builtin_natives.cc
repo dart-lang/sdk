@@ -13,6 +13,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/file.h"
 #include "bin/io_natives.h"
 #include "bin/platform.h"
 
@@ -79,9 +80,6 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
 }
 
 
-extern bool capture_stdout;
-
-
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
 void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
@@ -95,7 +93,7 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   fwrite(chars, 1, length, stdout);
   fputs("\n", stdout);
   fflush(stdout);
-  if (capture_stdout) {
+  if (File::capture_stdout()) {
     // For now we report print output on the Stdout stream.
     uint8_t newline[] = { '\n' };
     Dart_ServiceSendDataEvent("Stdout", "WriteEvent", chars, length);

@@ -1055,21 +1055,16 @@ static const char* ServiceGetIOHandler(
 }
 
 
-extern bool capture_stdio;
-extern bool capture_stdout;
-extern bool capture_stderr;
 static const char* kStdoutStreamId = "Stdout";
 static const char* kStderrStreamId = "Stderr";
 
 
 static bool ServiceStreamListenCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {
-    capture_stdio = true;
-    capture_stdout = true;
+    File::set_capture_stdout(true);
     return true;
   } else if (strcmp(stream_id, kStderrStreamId) == 0) {
-    capture_stdio = true;
-    capture_stderr = true;
+    File::set_capture_stderr(true);
     return true;
   }
   return false;
@@ -1078,11 +1073,10 @@ static bool ServiceStreamListenCallback(const char* stream_id) {
 
 static void ServiceStreamCancelCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {
-    capture_stdout = false;
+    File::set_capture_stdout(false);
   } else if (strcmp(stream_id, kStderrStreamId) == 0) {
-    capture_stderr = false;
+    File::set_capture_stderr(false);
   }
-  capture_stdio = (capture_stdout || capture_stderr);
 }
 
 

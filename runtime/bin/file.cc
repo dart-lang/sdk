@@ -17,14 +17,14 @@ namespace bin {
 
 static const int kMSPerSecond = 1000;
 
-// Are we capturing output from either stdout or stderr for the VM Service?
-bool capture_stdio = false;
-
 // Are we capturing output from stdout for the VM service?
-bool capture_stdout = false;
+bool File::capture_stdout_ = false;
 
 // Are we capturing output from stderr for the VM service?
-bool capture_stderr = false;
+bool File::capture_stderr_ = false;
+
+// Are we capturing output from either stdout or stderr for the VM Service?
+bool File::capture_any_ = false;
 
 
 // The file pointer has been passed into Dart as an intptr_t and it is safe
@@ -62,13 +62,13 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
     remaining -= bytes_written;  // Reduce the number of remaining bytes.
     current_buffer += bytes_written;  // Move the buffer forward.
   }
-  if (capture_stdio) {
+  if (capture_any_) {
     intptr_t fd = GetFD();
-    if (fd == STDOUT_FILENO && capture_stdout) {
+    if (fd == STDOUT_FILENO && capture_stdout_) {
       Dart_ServiceSendDataEvent("Stdout", "WriteEvent",
                                 reinterpret_cast<const uint8_t*>(buffer),
                                 num_bytes);
-    } else if (fd == STDERR_FILENO && capture_stderr) {
+    } else if (fd == STDERR_FILENO && capture_stderr_) {
       Dart_ServiceSendDataEvent("Stderr", "WriteEvent",
                                 reinterpret_cast<const uint8_t*>(buffer),
                                 num_bytes);
