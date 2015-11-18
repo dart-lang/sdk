@@ -35,6 +35,7 @@
 #include "vm/scanner.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/thread_registry.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -392,8 +393,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
 static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                                         ParsedFunction* parsed_function,
                                         bool optimized,
-                                        intptr_t osr_id,
-                                        BackgroundCompilationResult* result) {
+                                        intptr_t osr_id) {
   const Function& function = parsed_function->function();
   if (optimized && !function.IsOptimizable()) {
     return false;
@@ -404,6 +404,13 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   Isolate* const isolate = thread->isolate();
   CSTAT_TIMER_SCOPE(thread, codegen_timer);
   HANDLESCOPE(thread);
+
+  // Get current generation count so that we can check and ensure that the code
+  // was not invalidated while we were compiling in the background.
+  uint32_t cha_invalidation_gen_at_start = isolate->cha_invalidation_gen();
+  uint32_t field_invalidation_gen_at_start = isolate->field_invalidation_gen();
+  uint32_t prefix_invalidation_gen_at_start =
+      isolate->prefix_invalidation_gen();
 
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM and MIPS. In the else branch of the setjmp call,
@@ -752,6 +759,16 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         pipeline->FinalizeCompilation();
       }
       {
+        // This part of compilation must be at a safepoint.
+        if (!Thread::Current()->IsMutatorThread()) {
+          // Stop mutator thread before creating the instruction object and
+          // installing code.
+          // Mutator thread may not run code while we are creating the
+          // instruction object, since the creation of instruction object
+          // changes code page access permissions (makes them temporary not
+          // executable).
+          isolate->thread_registry()->SafepointThreads();
+        }
         CSTAT_TIMER_SCOPE(thread, codefinalizer_timer);
         // CreateDeoptInfo uses the object pool and needs to be done before
         // FinalizeCode.
@@ -759,6 +776,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
             Array::Handle(zone, graph_compiler.CreateDeoptInfo(&assembler));
         INC_STAT(thread, total_code_size,
                  deopt_info_array.Length() * sizeof(uword));
+        // Allocates instruction object. Since this occurs only at safepoint,
+        // there can be no concurrent access to the instruction page.
         const Code& code = Code::Handle(
             Code::FinalizeCode(function, &assembler, optimized));
         code.set_is_optimized(optimized);
@@ -790,63 +809,69 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         graph_compiler.FinalizeStaticCallTargetsTable(code);
 
         if (optimized) {
-          if (result != NULL) {
-            // Background compilation, store compilation result in 'result'.
-            ASSERT(!Thread::Current()->IsMutatorThread());
-            // Do not install code, but return it instead.
-            // Since code dependencies (CHA, fields) are defined eagerly,
-            // the code may be disabled before installing it.
-            code.set_owner(function);
-            result->set_result_code(code);
-            // Disable invalidation counters that are not relevant.
-            if (thread->cha()->leaf_classes().is_empty()) {
-              result->ClearCHAInvalidationGen();
-            }
-            if (flow_graph->guarded_fields()->is_empty()) {
-              result->ClearFieldInvalidationGen();
-            }
-            if (!parsed_function->HasDeferredPrefixes()) {
-              result->ClearPrefixInvalidationGen();
-            }
-          } else {
+          // Installs code while at safepoint.
+          if (thread->IsMutatorThread()) {
             const bool is_osr = osr_id != Compiler::kNoOSRDeoptId;
             function.InstallOptimizedCode(code, is_osr);
+          } else {
+            // Background compilation.
+            // Before installing code check generation counts if the code may
+            // have become invalid.
+            bool code_is_valid = true;
+            if (!thread->cha()->leaf_classes().is_empty()) {
+              if (cha_invalidation_gen_at_start !=
+                  isolate->cha_invalidation_gen()) {
+                code_is_valid = false;
+              }
+            }
+            if (!flow_graph->guarded_fields()->is_empty()) {
+              if (field_invalidation_gen_at_start !=
+                  isolate->field_invalidation_gen()) {
+                code_is_valid = false;
+              }
+            }
+            if (parsed_function->HasDeferredPrefixes()) {
+              if (prefix_invalidation_gen_at_start !=
+                  isolate->prefix_invalidation_gen()) {
+                code_is_valid = false;
+              }
+            }
+            if (code_is_valid) {
+              const bool is_osr = osr_id != Compiler::kNoOSRDeoptId;
+              ASSERT(!is_osr);  // OSR is compiled in background.
+              function.InstallOptimizedCode(code, is_osr);
+            }
+            if (function.usage_counter() < 0) {
+              // Reset to 0 so that it can be recompiled if needed.
+              function.set_usage_counter(0);
+            }
           }
 
           // Register code with the classes it depends on because of CHA and
           // fields it depends on because of store guards, unless we cannot
           // deopt.
           if (Compiler::allow_recompilation()) {
-            if (result != NULL) {
-              // Background compilation: delay registering code until we are
-              // in the MutatorThread.
-              result->SetLeafClasses(thread->cha()->leaf_classes());
-              result->SetGuardedFields(*flow_graph->guarded_fields());
-              result->SetDeoptimizeDependentFields(
-                  flow_graph->deoptimize_dependent_code());
-            } else {
-              // Deoptimize field dependent code first, before registering
-              // this yet uninstalled code as dependent on a field.
-              // TODO(srdjan): Debugging dart2js crashes;
-              // FlowGraphOptimizer::VisitStoreInstanceField populates
-              // deoptimize_dependent_code() list, currently disabled.
-              for (intptr_t i = 0;
-                   i < flow_graph->deoptimize_dependent_code().length();
-                   i++) {
-                const Field* field = flow_graph->deoptimize_dependent_code()[i];
-                field->DeoptimizeDependentCode();
-              }
-              for (intptr_t i = 0;
-                   i < thread->cha()->leaf_classes().length();
-                   ++i) {
-                thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
-              }
-              for (intptr_t i = 0;
-                   i < flow_graph->guarded_fields()->length();
-                   i++) {
-                const Field* field = (*flow_graph->guarded_fields())[i];
-                field->RegisterDependentCode(code);
-              }
+            // Deoptimize field dependent code first, before registering
+            // this yet uninstalled code as dependent on a field.
+            // TODO(srdjan): Debugging dart2js crashes;
+            // FlowGraphOptimizer::VisitStoreInstanceField populates
+            // deoptimize_dependent_code() list, currently disabled.
+            for (intptr_t i = 0;
+                 i < flow_graph->deoptimize_dependent_code().length();
+                 i++) {
+              const Field* field = flow_graph->deoptimize_dependent_code()[i];
+              field->DeoptimizeDependentCode();
+            }
+            for (intptr_t i = 0;
+                 i < thread->cha()->leaf_classes().length();
+                 ++i) {
+              thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
+            }
+            for (intptr_t i = 0;
+                 i < flow_graph->guarded_fields()->length();
+                 i++) {
+              const Field* field = (*flow_graph->guarded_fields())[i];
+              field->RegisterDependentCode(code);
             }
           }
         } else {  // not optimized.
@@ -866,6 +891,10 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           for (intptr_t i = 0; i < prefixes->length(); i++) {
             (*prefixes)[i]->RegisterDependentCode(code);
           }
+        }
+        if (!Thread::Current()->IsMutatorThread()) {
+          // Background compilation.
+          isolate->thread_registry()->ResumeAllThreads();
         }
       }
       // Mark that this isolate now has compiled code.
@@ -1092,8 +1121,7 @@ static void CheckInliningIntervals(const Function& function) {
 static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
-                                       intptr_t osr_id,
-                                       BackgroundCompilationResult* result) {
+                                       intptr_t osr_id) {
   // Check that we optimize if 'Compiler::always_optimize()' is set to true,
   // except if the function is marked as not optimizable.
   ASSERT(!function.IsOptimizable() ||
@@ -1135,8 +1163,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     const bool success = CompileParsedFunctionHelper(pipeline,
                                                      parsed_function,
                                                      optimized,
-                                                     osr_id,
-                                                     result);
+                                                     osr_id);
     if (!success) {
       if (optimized) {
         ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
@@ -1176,9 +1203,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized &&
                optimized &&
-               FlowGraphPrinter::ShouldPrint(function) &&
-               (result == NULL) /* no background compilation*/ ) {
-      // With background compilation, print when installing the code.
+               FlowGraphPrinter::ShouldPrint(function)) {
       // TODO(fschneider): Print unoptimized code along with the optimized code.
       THR_Print("*** BEGIN CODE\n");
       DisassembleCode(function, true);
@@ -1230,8 +1255,7 @@ RawError* Compiler::CompileFunction(Thread* thread,
   return CompileFunctionHelper(pipeline,
                                function,
                                optimized,
-                               kNoOSRDeoptId,  /* not OSR */
-                               NULL /* no result code */);
+                               kNoOSRDeoptId);
 }
 
 
@@ -1250,8 +1274,7 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
       CompileFunctionHelper(pipeline,
                             function,
                             false,  /* not optimized */
-                            kNoOSRDeoptId,  /* not OSR */
-                            NULL  /* no result code */));
+                            kNoOSRDeoptId));
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -1271,8 +1294,7 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
-                                             intptr_t osr_id,
-                                             BackgroundCompilationResult* res) {
+                                             intptr_t osr_id) {
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread,
                                          "OptimizedFunction", function);
@@ -1286,8 +1308,7 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
   return CompileFunctionHelper(pipeline,
                                function,
                                true,  /* optimized */
-                               osr_id,
-                               res);
+                               osr_id);
 }
 
 
@@ -1301,8 +1322,7 @@ RawError* Compiler::CompileParsedFunction(
     CompileParsedFunctionHelper(&pipeline,
                                 parsed_function,
                                 false,
-                                kNoOSRDeoptId,
-                                NULL /* no result code */);
+                                kNoOSRDeoptId);
     if (FLAG_disassemble) {
       DisassembleCode(parsed_function->function(), false);
     }
@@ -1408,8 +1428,7 @@ void Compiler::CompileStaticInitializer(const Field& field) {
   CompileParsedFunctionHelper(&pipeline,
                               parsed_function,
                               false,  // optimized
-                              kNoOSRDeoptId,
-                              NULL /* no result code */);
+                              kNoOSRDeoptId);
 
   const Function& initializer = parsed_function->function();
   field.SetPrecompiledInitializer(initializer);
@@ -1440,8 +1459,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       CompileParsedFunctionHelper(&pipeline,
                                   parsed_function,
                                   false,  // optimized
-                                  kNoOSRDeoptId,
-                                  NULL /* no result code */);
+                                  kNoOSRDeoptId);
       initializer = parsed_function->function().raw();
       Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
           Object::empty_var_descriptors());
@@ -1511,8 +1529,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     CompileParsedFunctionHelper(&pipeline,
                                 parsed_function,
                                 false,
-                                kNoOSRDeoptId,
-                                NULL /* no result code */);
+                                kNoOSRDeoptId);
     Code::Handle(func.unoptimized_code()).set_var_descriptors(
         Object::empty_var_descriptors());
 
@@ -1537,73 +1554,28 @@ class QueueElement {
  public:
   explicit QueueElement(const Function& function)
       : next_(NULL),
-        obj_(function.raw()),
-        leaf_classes_(Array::null()),
-        guarded_fields_(Array::null()),
-        deoptimize_dependent_fields_(Array::null()),
-        cha_invalidation_gen_(Isolate::kInvalidGen),
-        field_invalidation_gen_(Isolate::kInvalidGen),
-        prefix_invalidation_gen_(Isolate::kInvalidGen) {
+        function_(function.raw()) {
     ASSERT(Thread::Current()->IsMutatorThread());
   }
 
   ~QueueElement() {
-    ASSERT(Thread::Current()->IsMutatorThread());
-    obj_ = Object::null();
+    function_ = Function::null();
   }
 
-  RawFunction* Function() const { return Function::RawCast(obj_); }
-  RawCode* Code() const { return Code::RawCast(obj_); }
+  RawFunction* Function() const { return function_; }
 
-  RawArray* leaf_classes() const { return leaf_classes_; }
-  RawArray* guarded_fields() const { return guarded_fields_; }
-  RawArray* deoptimize_dependent_fields() const {
-    return deoptimize_dependent_fields_;
-  }
-
-  uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
-  uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
-  uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
 
   void set_next(QueueElement* elem) { next_ = elem; }
   QueueElement* next() const { return next_; }
 
-  RawObject* obj() const { return obj_; }
-  RawObject** obj_ptr() { return &obj_; }
-
-  RawObject** leaf_classses_ptr() {
-    return reinterpret_cast<RawObject**>(&leaf_classes_);
-  }
-
-  RawObject** guarded_fields_ptr() {
-    return reinterpret_cast<RawObject**>(&guarded_fields_);
-  }
-
-  RawObject** deoptimize_dependent_fields_ptr() {
-    return reinterpret_cast<RawObject**>(&deoptimize_dependent_fields_);
-  }
-
-  void SetFromResult(const BackgroundCompilationResult& value) {
-    ASSERT(!value.result_code().IsNull());
-    obj_ = value.result_code().raw();
-    leaf_classes_ = value.leaf_classes().raw();
-    guarded_fields_ = value.guarded_fields().raw();
-    deoptimize_dependent_fields_ = value.deoptimize_dependent_fields().raw();
-    cha_invalidation_gen_ = value.cha_invalidation_gen();
-    field_invalidation_gen_ = value.field_invalidation_gen();
-    prefix_invalidation_gen_ = value.prefix_invalidation_gen();
+  RawObject* function() const { return function_; }
+  RawObject** function_ptr() {
+    return reinterpret_cast<RawObject**>(&function_);
   }
 
  private:
   QueueElement* next_;
-
-  RawObject* obj_;  // Code or Function.
-  RawArray* leaf_classes_;
-  RawArray* guarded_fields_;
-  RawArray* deoptimize_dependent_fields_;
-  uint32_t cha_invalidation_gen_;
-  uint32_t field_invalidation_gen_;
-  uint32_t prefix_invalidation_gen_;
+  RawFunction* function_;
 
   DISALLOW_COPY_AND_ASSIGN(QueueElement);
 };
@@ -1626,10 +1598,7 @@ class BackgroundCompilationQueue {
     ASSERT(visitor != NULL);
     QueueElement* p = first_;
     while (p != NULL) {
-      visitor->VisitPointer(p->obj_ptr());
-      visitor->VisitPointer(p->leaf_classses_ptr());
-      visitor->VisitPointer(p->guarded_fields_ptr());
-      visitor->VisitPointer(p->deoptimize_dependent_fields_ptr());
+      visitor->VisitPointer(p->function_ptr());
       p = p->next();
     }
   }
@@ -1673,7 +1642,7 @@ class BackgroundCompilationQueue {
   bool ContainsObj(const Object& obj) const {
     QueueElement* p = first_;
     while (p != NULL) {
-      if (p->obj() == obj.raw()) {
+      if (p->function() == obj.raw()) {
         return true;
       }
       p = p->next();
@@ -1689,120 +1658,10 @@ class BackgroundCompilationQueue {
 };
 
 
-BackgroundCompilationResult::BackgroundCompilationResult()
-    : result_code_(Code::Handle()),
-      leaf_classes_(Array::Handle()),
-      guarded_fields_(Array::Handle()),
-      deoptimize_dependent_fields_(Array::Handle()),
-      cha_invalidation_gen_(Isolate::kInvalidGen),
-      field_invalidation_gen_(Isolate::kInvalidGen),
-      prefix_invalidation_gen_(Isolate::kInvalidGen) {
-}
-
-
-void BackgroundCompilationResult::Init() {
-  Isolate* i = Isolate::Current();
-  result_code_ = Code::null();
-  leaf_classes_ = Array::null();
-  guarded_fields_ = Array::null();
-  deoptimize_dependent_fields_ = Array::null();
-  cha_invalidation_gen_ = i->cha_invalidation_gen();
-  field_invalidation_gen_ = i->field_invalidation_gen();
-  prefix_invalidation_gen_ = i->prefix_invalidation_gen();
-}
-
-
-void BackgroundCompilationResult::SetFromQElement(QueueElement* value) {
-  ASSERT(value != NULL);
-  result_code_ = value->Code();
-  leaf_classes_ = value->leaf_classes();
-  guarded_fields_ = value->guarded_fields();
-  deoptimize_dependent_fields_ = value->deoptimize_dependent_fields();
-  cha_invalidation_gen_ = value->cha_invalidation_gen();
-  field_invalidation_gen_ = value->field_invalidation_gen();
-  prefix_invalidation_gen_ = value->prefix_invalidation_gen();
-}
-
-
-void BackgroundCompilationResult::SetLeafClasses(
-    const GrowableArray<Class*>& leaf_classes) {
-  const Array& a = Array::Handle(Array::New(leaf_classes.length(), Heap::kOld));
-  for (intptr_t i = 0; i < leaf_classes.length(); i++) {
-    a.SetAt(i, *leaf_classes[i]);
-  }
-  leaf_classes_ = a.raw();
-}
-
-
-void BackgroundCompilationResult::SetGuardedFields(
-    const ZoneGrowableArray<const Field*>& guarded_fields) {
-  const Array& a =
-      Array::Handle(Array::New(guarded_fields.length(), Heap::kOld));
-  for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-    a.SetAt(i, *guarded_fields[i]);
-  }
-  guarded_fields_ = a.raw();
-}
-
-
-void BackgroundCompilationResult::SetDeoptimizeDependentFields(
-    const GrowableArray<const Field*>& fields) {
-  const Array& a = Array::Handle(Array::New(fields.length(), Heap::kOld));
-  for (intptr_t i = 0; i < fields.length(); i++) {
-    a.SetAt(i, *fields[i]);
-  }
-  deoptimize_dependent_fields_ = a.raw();
-}
-
-
-bool BackgroundCompilationResult::IsValid() const {
-  if (result_code().IsNull() || result_code().IsDisabled()) {
-    return false;
-  }
-  Isolate* i = Isolate::Current();
-  if ((cha_invalidation_gen_ != Isolate::kInvalidGen) &&
-      (cha_invalidation_gen_ != i->cha_invalidation_gen())) {
-    return false;
-  }
-  if ((field_invalidation_gen_ != Isolate::kInvalidGen) &&
-      (field_invalidation_gen_ != i->field_invalidation_gen())) {
-    return false;
-  }
-  if ((prefix_invalidation_gen_ != Isolate::kInvalidGen) &&
-      (prefix_invalidation_gen_ != i->prefix_invalidation_gen())) {
-    return false;
-  }
-  return true;
-}
-
-
-void BackgroundCompilationResult::PrintValidity() const {
-  Object& o = Object::Handle(result_code().owner());
-  THR_Print("BackgroundCompilationResult: %s\n",
-      Function::Cast(o).ToQualifiedCString());
-  if (result_code().IsNull()) {
-    THR_Print(" result_code is NULL\n");
-    return;
-  }
-  if (result_code().IsDisabled()) {
-    THR_Print(" result_code is disabled\n");
-    return;
-  }
-  Isolate* i = Isolate::Current();
-  THR_Print("  cha_invalidation_gen: %u (current: %u)\n",
-      cha_invalidation_gen_, i->cha_invalidation_gen());
-  THR_Print("  field_invalidation_gen: %u (current: %u)\n",
-      field_invalidation_gen_, i->field_invalidation_gen());
-  THR_Print("  prefix_invalidation_gen: %u (current: %u)\n",
-      prefix_invalidation_gen_, i->prefix_invalidation_gen());
-}
-
-
 BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
     : isolate_(isolate), running_(true), done_(new bool()),
       queue_monitor_(new Monitor()), done_monitor_(new Monitor()),
-      function_queue_(new BackgroundCompilationQueue()),
-      result_queue_(new BackgroundCompilationQueue()) {
+      function_queue_(new BackgroundCompilationQueue()) {
   *done_ = false;
 }
 
@@ -1819,20 +1678,18 @@ void BackgroundCompiler::Run() {
       HANDLESCOPE(thread);
       Function& function = Function::Handle(zone);
       function = function_queue()->PeekFunction();
-      BackgroundCompilationResult result;
       while (running_ && !function.IsNull()) {
-        result.Init();
         const Error& error = Error::Handle(zone,
             Compiler::CompileOptimizedFunction(thread,
                                                function,
-                                               Compiler::kNoOSRDeoptId,
-                                               &result));
+                                               Compiler::kNoOSRDeoptId));
         // TODO(srdjan): We do not expect errors while compiling optimized
         // code, any errors should have been caught when compiling
         // unoptimized code. Any issues while optimizing are flagged by
         // making the result invalid.
         ASSERT(error.IsNull());
-        AddResult(result);
+        QueueElement* qelem = function_queue()->Remove();
+        delete qelem;
         function = function_queue()->PeekFunction();
       }
     }
@@ -1855,20 +1712,6 @@ void BackgroundCompiler::Run() {
 }
 
 
-// Use to first queue element to form the result element.
-void BackgroundCompiler::AddResult(const BackgroundCompilationResult& result) {
-  ASSERT(!Thread::Current()->IsMutatorThread());
-  MonitorLocker ml(queue_monitor_);
-  // Reuse the input QueueElement to return the result.
-  QueueElement* qelem = function_queue()->Remove();
-  // Always add result, even if it is invalid, since the queue element is
-  // deleted in the mutator thread and potential field based deoptimizations
-  // (carried in the result) still must be done.
-  qelem->SetFromResult(result);
-  result_queue()->Add(qelem);
-}
-
-
 void BackgroundCompiler::CompileOptimized(const Function& function) {
   ASSERT(Thread::Current()->IsMutatorThread());
   MonitorLocker ml(queue_monitor_);
@@ -1881,64 +1724,8 @@ void BackgroundCompiler::CompileOptimized(const Function& function) {
 }
 
 
-void BackgroundCompiler::InstallGeneratedCode() {
-  ASSERT(Thread::Current()->IsMutatorThread());
-  MonitorLocker ml(queue_monitor_);
-  Function& function = Function::Handle();
-  while (result_queue()->Peek() != NULL) {
-    BackgroundCompilationResult result;
-    QueueElement* qelem = result_queue()->Remove();
-    ASSERT(qelem != NULL);
-    result.SetFromQElement(qelem);
-    delete qelem;
-
-    const Code& code = result.result_code();
-    function ^= code.owner();
-    Field& field = Field::Handle();
-    // Always execute necessary deoptimizations, even if the result is invalid.
-    for (intptr_t i = 0; i < result.deoptimize_dependent_fields().Length();
-         i++) {
-      field ^= result.deoptimize_dependent_fields().At(i);
-      field.DeoptimizeDependentCode();
-    }
-    if (result.IsValid()) {
-      function.InstallOptimizedCode(result.result_code(), false /* not OSR */);
-      if (FLAG_trace_compiler) {
-        THR_Print("Installing optimized code for %s\n",
-            function.ToQualifiedCString());
-      }
-      // Install leaf classes and fields dependencies.
-      Class& cls = Class::Handle();
-      for (intptr_t i = 0; i < result.leaf_classes().Length(); i++) {
-        cls ^= result.leaf_classes().At(i);
-        cls.RegisterCHACode(code);
-      }
-      for (intptr_t i = 0; i < result.guarded_fields().Length(); i++) {
-        field ^= result.guarded_fields().At(i);
-        field.RegisterDependentCode(code);
-      }
-    } else if (FLAG_trace_compiler) {
-      THR_Print("Drop code generated in the background compiler:\n");
-      result.PrintValidity();
-    }
-    if (function.usage_counter() < 0) {
-      // Reset to 0 so that it can be recompiled if needed.
-      function.set_usage_counter(0);
-    }
-    if (result.IsValid() &&
-        FLAG_disassemble_optimized &&
-        FlowGraphPrinter::ShouldPrint(function)) {
-      THR_Print("*** BEGIN CODE\n");
-      DisassembleCode(function, true);
-      THR_Print("*** END CODE\n");
-    }
-  }
-}
-
-
 void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
   function_queue_->VisitObjectPointers(visitor);
-  result_queue_->VisitObjectPointers(visitor);
 }
 
 
@@ -1948,7 +1735,6 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
     return;
   }
   BackgroundCompilationQueue* function_queue = task->function_queue();
-  BackgroundCompilationQueue* result_queue = task->result_queue();
 
   Monitor* queue_monitor = task->queue_monitor_;
   Monitor* done_monitor = task->done_monitor_;
@@ -1965,14 +1751,15 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   {
     MonitorLocker ml_done(done_monitor);
     while (!(*task_done)) {
-      ml_done.Wait();
+      // In case that the compiler is waiting for safepoint.
+      Isolate::Current()->thread_registry()->CheckSafepoint();
+      ml_done.Wait(1);
     }
   }
   delete task_done;
   delete done_monitor;
   delete queue_monitor;
   delete function_queue;
-  delete result_queue;
   Isolate::Current()->set_background_compiler(NULL);
 }
 

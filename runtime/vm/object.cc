@@ -37,6 +37,7 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/thread_registry.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verified_memory.h"
@@ -2811,12 +2812,20 @@ class CHACodeArray : public WeakCodeReferences {
 };
 
 
+#if defined(DEBUG)
+static bool IsMutatorOrAtSafepoint() {
+  Thread* thread = Thread::Current();
+  return thread->IsMutatorThread() ||
+         thread->isolate()->thread_registry()->AtSafepoint();
+}
+#endif
+
 void Class::RegisterCHACode(const Code& code) {
   if (FLAG_trace_cha) {
     THR_Print("RegisterCHACode %s class %s\n",
         Function::Handle(code.function()).ToQualifiedCString(), ToCString());
   }
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(code.is_optimized());
   CHACodeArray a(*this);
   a.Register(code);
@@ -5283,7 +5292,7 @@ bool Function::HasBreakpoint() const {
 
 
 void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   // We may not have previous code if 'always_optimize' is set.
   if (!is_osr && HasCode()) {
     Code::Handle(CurrentCode()).DisableDartCode();
@@ -5293,7 +5302,7 @@ void Function::InstallOptimizedCode(const Code& code, bool is_osr) const {
 
 
 void Function::SetInstructions(const Code& value) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   SetInstructionsSafe(value);
 }
 
@@ -5305,7 +5314,7 @@ void Function::SetInstructionsSafe(const Code& value) const {
 
 
 void Function::AttachCode(const Code& value) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   // Finish setting up code before activating it.
   value.set_owner(*this);
   SetInstructions(value);
@@ -7750,7 +7759,7 @@ class FieldDependentArray : public WeakCodeReferences {
 
 
 void Field::RegisterDependentCode(const Code& code) const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(code.is_optimized());
   FieldDependentArray a(*this);
   a.Register(code);
@@ -13346,7 +13355,7 @@ RawCode* Code::FinalizeCode(const char* name,
     }
 
     // Hook up Code and Instructions objects.
-    code.set_active_instructions(instrs.raw());
+    code.SetActiveInstructions(instrs.raw());
     code.set_instructions(instrs.raw());
     code.set_is_alive(true);
 
@@ -13388,7 +13397,7 @@ RawCode* Code::FinalizeCode(const Function& function,
                         assembler,
                         optimized);
   } else {
-    return FinalizeCode("", assembler);
+    return FinalizeCode("", assembler, optimized);
   }
 }
 
@@ -13558,12 +13567,12 @@ bool Code::IsFunctionCode() const {
 
 
 void Code::DisableDartCode() const {
-  ASSERT(Thread::Current()->IsMutatorThread());
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
-  set_active_instructions(new_code.instructions());
+  SetActiveInstructions(new_code.instructions());
 }
 
 
@@ -13573,7 +13582,18 @@ void Code::DisableStubCode() const {
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
-  set_active_instructions(new_code.instructions());
+  SetActiveInstructions(new_code.instructions());
+}
+
+
+void Code::SetActiveInstructions(RawInstructions* instructions) const {
+  DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
+  // RawInstructions are never allocated in New space and hence a
+  // store buffer update is not needed here.
+  StorePointer(&raw_ptr()->active_instructions_, instructions);
+  StoreNonPointer(&raw_ptr()->entry_point_,
+                  reinterpret_cast<uword>(instructions->ptr()) +
+                  Instructions::HeaderSize());
 }
 
 

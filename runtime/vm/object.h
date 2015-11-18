@@ -4348,7 +4348,7 @@ class Code : public Object {
                                bool optimized = false);
   static RawCode* FinalizeCode(const char* name,
                                Assembler* assembler,
-                               bool optimized = false);
+                               bool optimized);
   static RawCode* LookupCode(uword pc);
   static RawCode* LookupCodeInVmIsolate(uword pc);
   static RawCode* FindCode(uword pc, int64_t timestamp);
@@ -4395,7 +4395,7 @@ class Code : public Object {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(instructions() != active_instructions());
-    set_active_instructions(instructions());
+    SetActiveInstructions(instructions());
   }
 
   bool IsDisabled() const {
@@ -4447,15 +4447,7 @@ class Code : public Object {
     StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);
   }
 
-  void set_active_instructions(RawInstructions* instructions) const {
-    ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
-    // RawInstructions are never allocated in New space and hence a
-    // store buffer update is not needed here.
-    StorePointer(&raw_ptr()->active_instructions_, instructions);
-    StoreNonPointer(&raw_ptr()->entry_point_,
-                    reinterpret_cast<uword>(instructions->ptr()) +
-                    Instructions::HeaderSize());
-  }
+  void SetActiveInstructions(RawInstructions* instructions) const;
 
   void set_instructions(RawInstructions* instructions) const {
     ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());

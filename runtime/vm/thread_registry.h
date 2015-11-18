@@ -48,6 +48,8 @@ class ThreadRegistry {
     CheckSafepointLocked();
   }
 
+  bool AtSafepoint() const { return in_rendezvous_; }
+
   bool RestoreStateTo(Thread* thread, Thread::State* state,
                       bool bypass_safepoint) {
     MonitorLocker ml(monitor_);

@@ -1499,8 +1499,6 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       BackgroundCompiler::EnsureInit(thread);
       ASSERT(isolate->background_compiler() != NULL);
       isolate->background_compiler()->CompileOptimized(function);
-      // Install all generated optimized code in the mutator thread (this one).
-      isolate->background_compiler()->InstallGeneratedCode();
       // Continue in the same code.
       arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
       return;

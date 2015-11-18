@@ -25,61 +25,6 @@ class RawInstance;
 class Script;
 class SequenceNode;
 
-// Carries result from background compilation: code and generation counters
-// that help check if the code may have become invalid during background
-// compilation.
-class BackgroundCompilationResult : public ValueObject {
- public:
-  BackgroundCompilationResult();
-
-  // Initializes with current isolate-stored generations
-  void Init();
-
-  void set_result_code(const Code& value) { result_code_ = value.raw(); }
-  const Code& result_code() const { return result_code_; }
-
-  uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
-  uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
-  uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
-
-  void SetFromQElement(QueueElement* value);
-
-  void SetLeafClasses(const GrowableArray<Class*>& leaf_classes);
-  void SetGuardedFields(const ZoneGrowableArray<const Field*>& guarded_fields);
-  void SetDeoptimizeDependentFields(const GrowableArray<const Field*>& fields);
-
-  const Array& leaf_classes() const { return leaf_classes_; }
-  const Array& guarded_fields() const { return guarded_fields_; }
-  const Array& deoptimize_dependent_fields() const {
-    return deoptimize_dependent_fields_;
-  }
-
-  // Returns true if all relevant gen-counts are current and code is valid.
-  bool IsValid() const;
-
-  // Remove gen-counts from validation check.
-  void ClearCHAInvalidationGen() {
-    cha_invalidation_gen_ = Isolate::kInvalidGen;
-  }
-  void ClearFieldInvalidationGen() {
-    field_invalidation_gen_ = Isolate::kInvalidGen;
-  }
-  void ClearPrefixInvalidationGen() {
-    prefix_invalidation_gen_ = Isolate::kInvalidGen;
-  }
-
-  void PrintValidity() const;
-
- private:
-  Code& result_code_;
-  Array& leaf_classes_;
-  Array& guarded_fields_;
-  Array& deoptimize_dependent_fields_;
-  uint32_t cha_invalidation_gen_;
-  uint32_t field_invalidation_gen_;
-  uint32_t prefix_invalidation_gen_;
-};
-
 
 class Compiler : public AllStatic {
  public:
@@ -116,8 +61,7 @@ class Compiler : public AllStatic {
   static RawError* CompileOptimizedFunction(
       Thread* thread,
       const Function& function,
-      intptr_t osr_id = kNoOSRDeoptId,
-      BackgroundCompilationResult* res = NULL);
+      intptr_t osr_id = kNoOSRDeoptId);
 
   // Generates code for given parsed function (without parsing it again) and
   // sets its code field.
@@ -182,21 +126,14 @@ class BackgroundCompiler : public ThreadPool::Task {
   // compilation queue.
   void CompileOptimized(const Function& function);
 
-  // Call to activate/install optimized code (must occur in the mutator thread).
-  void InstallGeneratedCode();
-
-
   void VisitPointers(ObjectPointerVisitor* visitor);
 
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
-  BackgroundCompilationQueue* result_queue() const { return result_queue_; }
 
  private:
   explicit BackgroundCompiler(Isolate* isolate);
 
   virtual void Run();
-
-  void AddResult(const BackgroundCompilationResult& value);
 
   Isolate* isolate_;
   bool running_;       // While true, will try to read queue and compile.
@@ -205,7 +142,6 @@ class BackgroundCompiler : public ThreadPool::Task {
   Monitor* done_monitor_;   // Notify/wait that the thread is done.
 
   BackgroundCompilationQueue* function_queue_;
-  BackgroundCompilationQueue* result_queue_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);
 };

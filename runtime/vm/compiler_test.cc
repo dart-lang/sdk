@@ -10,6 +10,7 @@
 #include "vm/object.h"
 #include "vm/symbols.h"
 #include "vm/thread_pool.h"
+#include "vm/thread_registry.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -105,7 +106,7 @@ TEST_CASE(CompileFunctionOnHelperThread) {
   Monitor* m = new Monitor();
   MonitorLocker ml(m);
   while (!func.HasOptimizedCode()) {
-    isolate->background_compiler()->InstallGeneratedCode();
+    Isolate::Current()->thread_registry()->CheckSafepoint();
     ml.Wait(1);
   }
   BackgroundCompiler::Stop(isolate->background_compiler());

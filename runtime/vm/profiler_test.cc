@@ -13,6 +13,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(int, max_profile_depth);
 
@@ -1150,6 +1151,8 @@ TEST_CASE(Profiler_FunctionInline) {
       "  B.boo(true);\n"
       "}\n";
 
+  const bool old_flag = FLAG_background_compilation;
+  FLAG_background_compilation = false;
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& root_library = Library::Handle();
@@ -1366,6 +1369,7 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
     EXPECT(!walker.Down());
   }
+  FLAG_background_compilation = old_flag;
 }
 
 
