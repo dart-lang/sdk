@@ -1,17 +1,18 @@
 ## 1.14.0
 
 ### Core library changes
-* `dart:math`
-  * `Random` added a `secure` constructor returning a cryptographically secure
-    random generator which reads from the entropy source provided by the
-    embedder for every generated random value.
+* `dart:convert`
+  * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
 
 * `dart:core`
   * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
     return type.
+  * Added `growable` parameter to `List.filled` constructor.
 
-* `dart:convert`
-  * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
+* `dart:math`
+  * `Random` added a `secure` constructor returning a cryptographically secure
+    random generator which reads from the entropy source provided by the
+    embedder for every generated random value.
 
 * `dart:io`
   * `Platform` added an `isiOS` getter and `Platform.operatingSystem` may now
