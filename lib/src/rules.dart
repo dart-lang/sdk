@@ -11,6 +11,7 @@ import 'package:linter/src/linter.dart';
 import 'package:linter/src/rules/always_declare_return_types.dart';
 import 'package:linter/src/rules/always_specify_types.dart';
 import 'package:linter/src/rules/avoid_as.dart';
+import 'package:linter/src/rules/avoid_empty_else.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
@@ -34,6 +35,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new AlwaysDeclareReturnTypes())
   ..register(new AlwaysSpecifyTypes())
   ..register(new AvoidAs())
+  ..register(new AvoidEmptyElse())
   ..register(new CamelCaseTypes())
   ..register(new ConstantIdentifierNames())
   ..register(new EmptyConstructorBodies())
