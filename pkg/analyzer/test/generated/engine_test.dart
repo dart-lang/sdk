@@ -5856,6 +5856,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   List<newContext.WorkManager> get workManagers {
     fail("Unexpected invocation of workManagers");
+    return null;
   }
 
   @override
@@ -5976,6 +5977,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   Object getConfigurationData(newContext.ResultDescriptor key) {
     fail("Unexpected invocation of getConfigurationData");
+    return null;
   }
 
   @override

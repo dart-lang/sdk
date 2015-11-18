@@ -4,11 +4,10 @@
 
 library services.src.linter;
 
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/analyzer.dart';
-import 'package:yaml/yaml.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/linter.dart';
+import 'package:yaml/yaml.dart';
 
 /**
  * An error code indicating an undefined lint rule.

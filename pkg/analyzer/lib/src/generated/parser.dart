@@ -6257,6 +6257,7 @@ class Parser {
         _injectGenericCommentTypeList()) {
       return parseTypeParameterList();
     }
+    return null;
   }
 
   /**

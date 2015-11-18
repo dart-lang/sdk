@@ -1036,7 +1036,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (propagatedElement is MethodElement) {
       propagatedType = propagatedElement.type;
     } else if (propagatedElement is PropertyAccessorElement) {
-      Expression realTarget = node.realTarget;
       propagatedType = _getTypeOfProperty(propagatedElement);
     } else {
       // TODO(brianwilkerson) Report this internal error.
