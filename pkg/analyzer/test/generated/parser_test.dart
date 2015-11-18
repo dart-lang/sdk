@@ -6954,6 +6954,14 @@ void''');
     expect(declaration.propertyKeyword, isNull);
   }
 
+  void test_parseCompilationUnitMember_function_withTypeParameters() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "void f<T>(T t) {}");
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
   void test_parseCompilationUnitMember_function_void() {
     FunctionDeclaration declaration = parse("parseCompilationUnitMember",
         <Object>[emptyCommentAndMetadata()], "void f() {}");
