@@ -650,7 +650,7 @@ class UnlinkedTypeRef {
    *     }
    *
    * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
-   * respectively.  TODO(paulberry): test this.
+   * respectively.
    *
    * If the type being referred to is not a type parameter, [paramReference] is
    * zero.

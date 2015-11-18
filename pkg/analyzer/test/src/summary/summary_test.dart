@@ -7,6 +7,7 @@ library test.src.serialization.elements_test;
 import 'dart:typed_data';
 
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/builder.dart';
@@ -62,6 +63,13 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
     serializeLibraryElement(library);
     expect(unlinked.imports.length, lib.importDependencies.length);
     expect(unlinked.references.length, lib.references.length);
+  }
+
+  @override
+  void setUp() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableGenericMethods = true;
+    resetWithOptions(options);
   }
 
   test_class_no_superclass() {
@@ -404,6 +412,17 @@ abstract class SummaryTest {
    * summary in [lib].
    */
   void serializeLibraryText(String text, {bool allowErrors: false});
+
+  /**
+   * Serialize the given method [text] and return the summary of the executable
+   * with the given [executableName].
+   */
+  UnlinkedExecutable serializeMethodText(String text,
+      [String executableName = 'f']) {
+    serializeLibraryText('class C { $text }');
+    return findExecutable(executableName,
+        cls: findClass('C', failIfAbsent: true), failIfAbsent: true);
+  }
 
   /**
    * Serialize the given library [text] and return the summary of the typedef
@@ -1240,6 +1259,34 @@ typedef F();
     expect(executable.isStatic, isTrue);
   }
 
+  test_executable_type_param_f_bound() {
+    // TODO(paulberry): also test top level executables.
+    UnlinkedExecutable ex =
+        serializeMethodText('void f<T, U extends List<T>>() {}');
+    UnlinkedTypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
+    checkParamTypeRef(typeArgument, 2);
+  }
+
+  test_executable_type_param_f_bound_self_ref() {
+    // TODO(paulberry): also test top level executables.
+    UnlinkedExecutable ex =
+        serializeMethodText('void f<T, U extends List<U>>() {}');
+    UnlinkedTypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
+    checkParamTypeRef(typeArgument, 1);
+  }
+
+  test_executable_type_param_in_parameter() {
+    // TODO(paulberry): also test top level executables.
+    UnlinkedExecutable ex = serializeMethodText('void f<T>(T t) {}');
+    checkParamTypeRef(ex.parameters[0].type, 1);
+  }
+
+  test_executable_type_param_in_return_type() {
+    // TODO(paulberry): also test top level executables.
+    UnlinkedExecutable ex = serializeMethodText('T f<T>() => null;');
+    checkParamTypeRef(ex.returnType, 1);
+  }
+
   test_export_hide_order() {
     serializeLibraryText('export "dart:async" hide Future, Stream;');
     expect(unlinked.exports, hasLength(1));
@@ -1292,6 +1339,16 @@ typedef F();
     UnlinkedVariable variable =
         serializeClassText('class C { int i; }').fields[0];
     expect(variable.isFinal, isFalse);
+  }
+
+  test_generic_method_in_generic_class() {
+    UnlinkedClass cls = serializeClassText(
+        'class C<T, U> { void m<V, W>(T t, U u, V v, W w) {} }');
+    List<UnlinkedParam> params = cls.executables[0].parameters;
+    checkParamTypeRef(params[0].type, 4);
+    checkParamTypeRef(params[1].type, 3);
+    checkParamTypeRef(params[2].type, 2);
+    checkParamTypeRef(params[3].type, 1);
   }
 
   test_import_deferred() {
@@ -1434,7 +1491,6 @@ a.Stream s;
   }
 
   test_import_show_order() {
-    // TODO(paulberry): test cascaded shows/hides.
     String libraryText =
         'import "dart:async" show Future, Stream; Future x; Stream y;';
     serializeLibraryText(libraryText);

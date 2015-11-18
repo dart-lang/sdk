@@ -216,25 +216,27 @@ class _LibrarySerializer {
    * Compute the appropriate De Bruijn index to represent the given type
    * parameter [type].
    */
-  int findTypeParameterIndex(TypeParameterType type) {
+  int findTypeParameterIndex(TypeParameterType type, Element context) {
     int index = 0;
-    Element enclosingElement = type.element.enclosingElement;
-    while (enclosingElement != null) {
+    while (context != null) {
       List<TypeParameterElement> typeParameters;
-      if (enclosingElement is ClassElement) {
-        typeParameters = enclosingElement.typeParameters;
-      } else if (enclosingElement is FunctionTypeAliasElement) {
-        // TODO(paulberry): test this.
-        typeParameters = enclosingElement.typeParameters;
+      if (context is ClassElement) {
+        typeParameters = context.typeParameters;
+      } else if (context is FunctionTypeAliasElement) {
+        typeParameters = context.typeParameters;
+      } else if (context is ExecutableElement) {
+        typeParameters = context.typeParameters;
       }
-      for (int i = 0; i < typeParameters.length; i++) {
-        TypeParameterElement param = typeParameters[i];
-        if (param == type.element) {
-          return index + typeParameters.length - i;
+      if (typeParameters != null) {
+        for (int i = 0; i < typeParameters.length; i++) {
+          TypeParameterElement param = typeParameters[i];
+          if (param == type.element) {
+            return index + typeParameters.length - i;
+          }
         }
+        index += typeParameters.length;
       }
-      index += typeParameters.length;
-      enclosingElement = enclosingElement.enclosingElement;
+      context = context.enclosingElement;
     }
     throw new StateError('Unbound type parameter $type');
   }
@@ -250,10 +252,14 @@ class _LibrarySerializer {
     b.typeParameters =
         classElement.typeParameters.map(serializeTypeParam).toList();
     if (classElement.supertype != null && !classElement.supertype.isObject) {
-      b.supertype = serializeTypeRef(classElement.supertype);
+      b.supertype = serializeTypeRef(classElement.supertype, classElement);
     }
-    b.mixins = classElement.mixins.map(serializeTypeRef).toList();
-    b.interfaces = classElement.interfaces.map(serializeTypeRef).toList();
+    b.mixins = classElement.mixins
+        .map((InterfaceType t) => serializeTypeRef(t, classElement))
+        .toList();
+    b.interfaces = classElement.interfaces
+        .map((InterfaceType t) => serializeTypeRef(t, classElement))
+        .toList();
     List<UnlinkedVariableBuilder> fields = <UnlinkedVariableBuilder>[];
     List<UnlinkedExecutableBuilder> executables = <UnlinkedExecutableBuilder>[];
     for (ConstructorElement executable in classElement.constructors) {
@@ -365,9 +371,11 @@ class _LibrarySerializer {
     b.name = executableElement.name;
     b.unit = unitNum;
     if (!executableElement.type.returnType.isVoid) {
-      b.returnType = serializeTypeRef(executableElement.type.returnType);
+      b.returnType = serializeTypeRef(
+          executableElement.type.returnType, executableElement);
     }
-    // TODO(paulberry): serialize type parameters.
+    b.typeParameters =
+        executableElement.typeParameters.map(serializeTypeParam).toList();
     b.parameters =
         executableElement.type.parameters.map(serializeParam).toList();
     if (executableElement is PropertyAccessorElement) {
@@ -483,11 +491,11 @@ class _LibrarySerializer {
     if (type is FunctionType) {
       b.isFunctionTyped = true;
       if (!type.returnType.isVoid) {
-        b.type = serializeTypeRef(type.returnType);
+        b.type = serializeTypeRef(type.returnType, parameter);
       }
       b.parameters = type.parameters.map(serializeParam).toList();
     } else {
-      b.type = serializeTypeRef(type);
+      b.type = serializeTypeRef(type, parameter);
     }
     return b;
   }
@@ -504,7 +512,8 @@ class _LibrarySerializer {
     b.typeParameters =
         typedefElement.typeParameters.map(serializeTypeParam).toList();
     if (!typedefElement.returnType.isVoid) {
-      b.returnType = serializeTypeRef(typedefElement.returnType);
+      b.returnType =
+          serializeTypeRef(typedefElement.returnType, typedefElement);
     }
     b.parameters = typedefElement.parameters.map(serializeParam).toList();
     return b;
@@ -518,7 +527,7 @@ class _LibrarySerializer {
     UnlinkedTypeParamBuilder b = new UnlinkedTypeParamBuilder(ctx);
     b.name = typeParameter.name;
     if (typeParameter.bound != null) {
-      b.bound = serializeTypeRef(typeParameter.bound);
+      b.bound = serializeTypeRef(typeParameter.bound, typeParameter);
     }
     return b;
   }
@@ -526,11 +535,11 @@ class _LibrarySerializer {
   /**
    * Serialize the given [type] into an [UnlinkedTypeRef].
    */
-  UnlinkedTypeRefBuilder serializeTypeRef(DartType type) {
+  UnlinkedTypeRefBuilder serializeTypeRef(DartType type, Element context) {
     UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder(ctx);
     if (type is TypeParameterType) {
       Element enclosingElement = type.element.enclosingElement;
-      b.paramReference = findTypeParameterIndex(type);
+      b.paramReference = findTypeParameterIndex(type, context);
     } else {
       Element element = type.element;
       CompilationUnitElement dependentCompilationUnit =
@@ -566,7 +575,9 @@ class _LibrarySerializer {
       }
       if (typeArguments != null &&
           typeArguments.any((DartType argument) => !argument.isDynamic)) {
-        b.typeArguments = typeArguments.map(serializeTypeRef).toList();
+        b.typeArguments = typeArguments
+            .map((DartType t) => serializeTypeRef(t, context))
+            .toList();
       }
     }
     return b;
@@ -605,7 +616,7 @@ class _LibrarySerializer {
     UnlinkedVariableBuilder b = new UnlinkedVariableBuilder(ctx);
     b.name = variable.name;
     b.unit = unitNum;
-    b.type = serializeTypeRef(variable.type);
+    b.type = serializeTypeRef(variable.type, variable);
     b.isStatic = variable.isStatic && variable.enclosingElement is ClassElement;
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;
