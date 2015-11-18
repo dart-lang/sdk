@@ -8,12 +8,18 @@
 
 import os
 import sys
+import utils
 
 from os.path import join
 from optparse import OptionParser
 
+HOST_OS = utils.GuessOS()
+
 
 def makeString(input_file):
+  # TODO(iposva): For now avoid creating overly long strings on Windows.
+  if HOST_OS == 'win32':
+    return 'NULL'
   result = '"'
   fileHandle = open(input_file, 'rb')
   lineCounter = 0
