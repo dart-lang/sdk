@@ -1677,6 +1677,119 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 }
 
 
+void GenerateSubstringMatchesSpecialization(Assembler* assembler,
+                                            intptr_t receiver_cid,
+                                            intptr_t other_cid,
+                                            Label* return_true,
+                                            Label* return_false) {
+  __ SmiUntag(R1);
+  __ ldr(R8, FieldAddress(R0, String::length_offset()));  // this.length
+  __ SmiUntag(R8);
+  __ ldr(R9, FieldAddress(R2, String::length_offset()));  // other.length
+  __ SmiUntag(R9);
+
+  // if (other.length == 0) return true;
+  __ cmp(R9, Operand(0));
+  __ b(return_true, EQ);
+
+  // if (start < 0) return false;
+  __ cmp(R1, Operand(0));
+  __ b(return_false, LT);
+
+  // if (start + other.length > this.length) return false;
+  __ add(R3, R1, Operand(R9));
+  __ cmp(R3, Operand(R8));
+  __ b(return_false, GT);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
+    __ add(R0, R0, Operand(R1));
+  } else {
+    ASSERT(receiver_cid == kTwoByteStringCid);
+    __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R1));
+  }
+  if (other_cid == kOneByteStringCid) {
+    __ AddImmediate(R2, R2, OneByteString::data_offset() - kHeapObjectTag);
+  } else {
+    ASSERT(other_cid == kTwoByteStringCid);
+    __ AddImmediate(R2, R2, TwoByteString::data_offset() - kHeapObjectTag);
+  }
+
+  // i = 0
+  __ LoadImmediate(R3, 0);
+
+  // do
+  Label loop;
+  __ Bind(&loop);
+
+  // this.codeUnitAt(i + start)
+  __ ldr(R10, Address(R0, 0),
+         receiver_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedHalfword);
+  // other.codeUnitAt(i)
+  __ ldr(R11, Address(R2, 0),
+         other_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedHalfword);
+  __ cmp(R10, Operand(R11));
+  __ b(return_false, NE);
+
+  // i++, while (i < len)
+  __ add(R3, R3, Operand(1));
+  __ add(R0, R0, Operand(receiver_cid == kOneByteStringCid ? 1 : 2));
+  __ add(R2, R2, Operand(other_cid == kOneByteStringCid ? 1 : 2));
+  __ cmp(R3, Operand(R9));
+  __ b(&loop, LT);
+
+  __ b(return_true);
+}
+
+
+// bool _substringMatches(int start, String other)
+// This intrinsic handles a OneByteString or TwoByteString receiver with a
+// OneByteString other.
+void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
+  Label fall_through, return_true, return_false, try_two_byte;
+  __ ldr(R0, Address(SP, 2 * kWordSize));  // this
+  __ ldr(R1, Address(SP, 1 * kWordSize));  // start
+  __ ldr(R2, Address(SP, 0 * kWordSize));  // other
+
+  __ tsti(R1, Immediate(kSmiTagMask));
+  __ b(&fall_through, NE);  // 'start' is not a Smi.
+
+  __ CompareClassId(R2, kOneByteStringCid);
+  __ b(&fall_through, NE);
+
+  __ CompareClassId(R0, kOneByteStringCid);
+  __ b(&fall_through, NE);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kOneByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&try_two_byte);
+  __ CompareClassId(R0, kTwoByteStringCid);
+  __ b(&fall_through, NE);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kTwoByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&return_true);
+  __ LoadObject(R0, Bool::True());
+  __ ret();
+
+  __ Bind(&return_false);
+  __ LoadObject(R0, Bool::False());
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
 

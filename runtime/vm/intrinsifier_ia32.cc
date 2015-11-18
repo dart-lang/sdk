@@ -1741,6 +1741,12 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 }
 
 
+// bool _substringMatches(int start, String other)
+void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
+  // For precompilation, not implemented on IA32.
+}
+
+
 void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
   __ movl(EBX, Address(ESP, + 1 * kWordSize));  // Index.
