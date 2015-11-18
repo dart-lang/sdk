@@ -87,12 +87,6 @@ Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 [ $runtime == vm && $arch == arm ]
 LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 24416
 
-[ $runtime == vm && $noopt ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
-LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
-LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
-
 [ $runtime == vm ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError # Please triage this failure
@@ -147,3 +141,13 @@ Language/Errors_and_Warnings/static_warning_t04: RuntimeError # Please triage th
 Language/Errors_and_Warnings/static_warning_t05: RuntimeError # Please triage this failure
 Language/Errors_and_Warnings/static_warning_t06: RuntimeError # Please triage this failure
 
+[ $runtime == vm && $noopt ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
+LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
+Language/Mixins/Mixin_Application/error_t01: Pass
+Language/Mixins/Mixin_Application/error_t02: Pass
+Language/Mixins/declaring_constructor_t01: Pass
+Language/Expressions/Property_Extraction/Named_Constructor_Extraction/deferred_type_t01: Pass
+Language/Metadata/*: Skip # Uses dart:mirrors
