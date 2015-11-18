@@ -13065,7 +13065,10 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
   const Instructions& instrs = Instructions::Handle(instructions());
   uword code_entry = instrs.EntryPoint();
   const Array& table = Array::Handle(deopt_info_array());
-  ASSERT(!table.IsNull());
+  if (table.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return TypedData::null();
+  }
   // Linear search for the PC offset matching the target PC.
   intptr_t length = DeoptTable::GetLength(table);
   Smi& offset = Smi::Handle();
