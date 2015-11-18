@@ -84,6 +84,8 @@ import 'library_loader.dart' show
     LoadedLibraries;
 import 'mirrors_used.dart' show
     MirrorUsageAnalyzerTask;
+import 'common/names.dart' show
+    Selectors;
 import 'null_compiler_output.dart' show
     NullCompilerOutput,
     NullSink;
@@ -841,6 +843,13 @@ abstract class Compiler {
     // suitably maintained static reference to the current compiler.
     StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
+
+    // The selector objects held in static fields must remain canonical.
+    for (Selector selector in Selectors.ALL) {
+      Selector.canonicalizedValues
+        .putIfAbsent(selector.hashCode, () => <Selector>[])
+        .add(selector);
+    }
 
     assert(uri != null || analyzeOnly || hasIncrementalSupport);
     return new Future.sync(() {
