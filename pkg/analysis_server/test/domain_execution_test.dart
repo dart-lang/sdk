@@ -93,8 +93,8 @@ main() {
     group('mapUri', () {
       String contextId;
 
-      void createExecutionContextIdForFile(String zzz) {
-        Request request = new ExecutionCreateContextParams(zzz).toRequest('0');
+      void createExecutionContextIdForFile(String path) {
+        Request request = new ExecutionCreateContextParams(path).toRequest('0');
         Response response = handler.handleRequest(request);
         expect(response, isResponseSuccess('0'));
         ExecutionCreateContextResult result =
@@ -137,17 +137,6 @@ main() {
           Response response = handler.handleRequest(request);
           expect(response, isResponseFailure('2'));
         });
-
-        test('valid', () {
-          Request request = new ExecutionMapUriParams(contextId,
-              file: '/a/b.dart').toRequest('2');
-          Response response = handler.handleRequest(request);
-          expect(response, isResponseSuccess('2'));
-          ExecutionMapUriResult result =
-              new ExecutionMapUriResult.fromResponse(response);
-          expect(result.file, isNull);
-          expect(result.uri, 'file:///a/b.dart');
-        });
       });
 
       group('URI to file', () {
@@ -156,17 +145,6 @@ main() {
               uri: 'foo:///a/b.dart').toRequest('2');
           Response response = handler.handleRequest(request);
           expect(response, isResponseFailure('2'));
-        });
-
-        test('valid', () {
-          Request request = new ExecutionMapUriParams(contextId,
-              uri: 'file:///a/b.dart').toRequest('2');
-          Response response = handler.handleRequest(request);
-          expect(response, isResponseSuccess('2'));
-          ExecutionMapUriResult result =
-              new ExecutionMapUriResult.fromResponse(response);
-          expect(result.file, '/a/b.dart');
-          expect(result.uri, isNull);
         });
       });
 
@@ -311,7 +289,16 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
     _disposeExecutionContext();
   }
 
-  void test_mapUri_file_dart() {
+  void test_mapUri_file() {
+    String path = '/a/b.dart';
+    resourceProvider.newFile(path, '');
+    // map the file
+    ExecutionMapUriResult result = _mapUri(file: path);
+    expect(result.file, isNull);
+    expect(result.uri, 'file:///a/b.dart');
+  }
+
+  void test_mapUri_file_dartUriKind() {
     String path = server.defaultSdk.mapDartUri('dart:async').fullName;
     // hack - pretend that the SDK file exists in the project FS
     resourceProvider.newFile(path, '// hack');
@@ -319,6 +306,15 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
     ExecutionMapUriResult result = _mapUri(file: path);
     expect(result.file, isNull);
     expect(result.uri, 'dart:async');
+  }
+
+  void test_mapUri_uri() {
+    String path = '/a/b.dart';
+    resourceProvider.newFile(path, '');
+    // map the uri
+    ExecutionMapUriResult result = _mapUri(uri: 'file://$path');
+    expect(result.file, '/a/b.dart');
+    expect(result.uri, isNull);
   }
 
   void _createExecutionContext(String path) {

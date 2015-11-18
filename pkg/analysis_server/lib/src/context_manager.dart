@@ -15,7 +15,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
@@ -227,6 +226,17 @@ abstract class ContextManager {
    * descendants).
    */
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot);
+
+  /**
+   * Return the [AnalysisContext] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no context contains the given path, `null` is returned.
+   */
+  AnalysisContext getContextFor(String path);
 
   /**
    * Return `true` if the given absolute [path] is in one of the current
@@ -443,6 +453,11 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return contexts;
+  }
+
+  @override
+  AnalysisContext getContextFor(String path) {
+    return _getInnermostContextInfoFor(path)?.context;
   }
 
   /**
@@ -1454,6 +1469,11 @@ class PackagesFileDisposition extends FolderDisposition {
   @override
   final Packages packages;
 
+  PackagesFileDisposition(this.packages) {}
+
+  @override
+  String get packageRoot => null;
+
   Map<String, List<Folder>> buildPackageMap(ResourceProvider resourceProvider) {
     Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
     if (packages == null) {
@@ -1468,18 +1488,12 @@ class PackagesFileDisposition extends FolderDisposition {
     return packageMap;
   }
 
-  PackagesFileDisposition(this.packages) {}
-
-  @override
-  String get packageRoot => null;
-
   @override
   Iterable<UriResolver> createPackageUriResolvers(
       ResourceProvider resourceProvider) {
     if (packages != null) {
       // Construct package map for the SdkExtUriResolver.
-      Map<String, List<Folder>> packageMap =
-          buildPackageMap(resourceProvider);
+      Map<String, List<Folder>> packageMap = buildPackageMap(resourceProvider);
       return <UriResolver>[new SdkExtUriResolver(packageMap)];
     } else {
       return const <UriResolver>[];

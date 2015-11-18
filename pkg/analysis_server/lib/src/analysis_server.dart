@@ -473,22 +473,16 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [AnalysisContext] that contains the given [path].
-   * Return `null` if no context contains the [path].
+   * Return the [AnalysisContext] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no context contains the given path, `null` is returned.
    */
   AnalysisContext getContainingContext(String path) {
-    Folder containingFolder = null;
-    AnalysisContext containingContext = null;
-    folderMap.forEach((Folder folder, AnalysisContext context) {
-      if (folder.isOrContains(path)) {
-        if (containingFolder == null ||
-            containingFolder.path.length < folder.path.length) {
-          containingFolder = folder;
-          containingContext = context;
-        }
-      }
-    });
-    return containingContext;
+    return contextManager.getContextFor(path);
   }
 
   /**
@@ -1539,25 +1533,12 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
   }
 
-  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
-  /// files.
-  void _locateEmbedderYamls(InternalAnalysisContext context,
-                            FolderDisposition disposition) {
-    Map<String, List<Folder>> packageMap;
-    if (disposition is PackageMapDisposition) {
-      packageMap = disposition.packageMap;
-    } else if (disposition is PackagesFileDisposition) {
-      packageMap = disposition.buildPackageMap(resourceProvider);
-    }
-    context.embedderYamlLocator.refresh(packageMap);
-  }
-
   /**
    * Set up a [SourceFactory] that resolves packages as appropriate for the
    * given [disposition].
    */
-  SourceFactory _createSourceFactory(InternalAnalysisContext context,
-                                     FolderDisposition disposition) {
+  SourceFactory _createSourceFactory(
+      InternalAnalysisContext context, FolderDisposition disposition) {
     List<UriResolver> resolvers = [];
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
@@ -1575,6 +1556,19 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     resolvers.addAll(packageUriResolvers);
     resolvers.add(new ResourceUriResolver(resourceProvider));
     return new SourceFactory(resolvers, disposition.packages);
+  }
+
+  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
+  /// files.
+  void _locateEmbedderYamls(
+      InternalAnalysisContext context, FolderDisposition disposition) {
+    Map<String, List<Folder>> packageMap;
+    if (disposition is PackageMapDisposition) {
+      packageMap = disposition.packageMap;
+    } else if (disposition is PackagesFileDisposition) {
+      packageMap = disposition.buildPackageMap(resourceProvider);
+    }
+    context.embedderYamlLocator.refresh(packageMap);
   }
 }
 
