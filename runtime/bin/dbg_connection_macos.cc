@@ -90,7 +90,7 @@ void DebuggerConnectionImpl::HandleEvent(struct kevent* event) {
     if (status == -1) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
-      Utils::StrError(errno, error_message, kBufferSize);
+      strerror_r(errno, error_message, kBufferSize);
       FATAL1("Failed adding debugger socket to kqueue: %s\n", error_message);
     }
     */
@@ -117,7 +117,7 @@ void DebuggerConnectionImpl::Handler(uword args) {
     if (result == -1) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
-      Utils::StrError(errno, error_message, kBufferSize);
+      strerror_r(errno, error_message, kBufferSize);
       FATAL1("kevent failed %s\n", error_message);
     } else {
       ASSERT(result <= kMaxEvents);
@@ -149,7 +149,7 @@ void DebuggerConnectionImpl::SetupPollQueue() {
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    Utils::StrError(errno, error_message, kBufferSize);
+    strerror_r(errno, error_message, kBufferSize);
     FATAL1("Failed adding wakeup pipe fd to kqueue: %s\n", error_message);
   }
 
@@ -160,7 +160,7 @@ void DebuggerConnectionImpl::SetupPollQueue() {
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    Utils::StrError(errno, error_message, kBufferSize);
+    strerror_r(errno, error_message, kBufferSize);
     FATAL1("Failed adding listener socket to kqueue: %s\n", error_message);
   }
 }

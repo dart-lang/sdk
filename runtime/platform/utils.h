@@ -214,20 +214,6 @@ class Utils {
     return true;
 #endif
   }
-
-  static char* StrError(int err, char* buffer, size_t bufsize) {
-#if !defined(__GLIBC__) ||                                              \
-  ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
-    // Use the standard version
-    if (strerror_r(err, buffer, bufsize) != 0) {
-      snprintf(buffer, bufsize, "%s", "strerror_r failed");
-    }
-    return buffer;
-#else
-    // Use the gnu specific version
-    return strerror_r(err, buffer, bufsize);
-#endif
-  }
 };
 
 }  // namespace dart

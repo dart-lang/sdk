@@ -20,7 +20,6 @@
 #include "bin/log.h"
 
 #include "platform/signal_blocker.h"
-#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -58,7 +57,7 @@ void File::Close() {
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
-      Utils::StrError(errno, error_message, kBufferSize);
+      strerror_r(errno, error_message, kBufferSize);
       Log::PrintErr("%s\n", error_message);
     }
   }
@@ -395,7 +394,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   if (result == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    Utils::StrError(errno, error_message, kBufferSize);
+    strerror_r(errno, error_message, kBufferSize);
     FATAL2("Failed stat on file descriptor %d: %s", fd, error_message);
   }
   if (S_ISCHR(buf.st_mode)) return kTerminal;

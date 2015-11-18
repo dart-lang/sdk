@@ -25,7 +25,6 @@
 #include "bin/thread.h"
 
 #include "platform/signal_blocker.h"
-#include "platform/utils.h"
 
 
 
@@ -661,7 +660,7 @@ class ProcessStarter {
   void SetChildOsErrorMessage() {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    Utils::StrError(errno, error_message, kBufferSize);
+    strerror_r(errno, error_message, kBufferSize);
     *os_error_message_ = strdup(error_message);
   }
 
@@ -672,7 +671,7 @@ class ProcessStarter {
     int child_errno = errno;
     const int kBufferSize = 1024;
     char os_error_message[kBufferSize];
-    Utils::StrError(errno, os_error_message, kBufferSize);
+    strerror_r(errno, os_error_message, kBufferSize);
     int bytes_written =
         FDUtils::WriteToBlocking(
             exec_control_[1], &child_errno, sizeof(child_errno));
