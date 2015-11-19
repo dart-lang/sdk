@@ -1212,12 +1212,12 @@ abstract class Stream<T> {
     StreamSubscription<T> subscription;
     Timer timer;
     Zone zone;
-    Function timeout;
+    Function timeout2;
 
     void onData(T event) {
       timer.cancel();
       controller.add(event);
-      timer = zone.createTimer(timeLimit, timeout);
+      timer = zone.createTimer(timeLimit, timeout2);
     }
     void onError(error, StackTrace stackTrace) {
       timer.cancel();
@@ -1225,7 +1225,7 @@ abstract class Stream<T> {
              controller is _BroadcastStreamController);
       var eventSink = controller as _EventSink<T>;
       eventSink._addError(error, stackTrace);  // Avoid Zone error replacement.
-      timer = zone.createTimer(timeLimit, timeout);
+      timer = zone.createTimer(timeLimit, timeout2);
     }
     void onDone() {
       timer.cancel();
@@ -1238,7 +1238,7 @@ abstract class Stream<T> {
       // callback.
       zone = Zone.current;
       if (onTimeout == null) {
-        timeout = () {
+        timeout2 = () {
           controller.addError(new TimeoutException("No stream event",
                                                    timeLimit), null);
         };
@@ -1246,7 +1246,7 @@ abstract class Stream<T> {
         onTimeout = zone.registerUnaryCallback(onTimeout);
         _ControllerEventSinkWrapper wrapper =
             new _ControllerEventSinkWrapper(null);
-        timeout = () {
+        timeout2 = () {
           wrapper._sink = controller;  // Only valid during call.
           zone.runUnaryGuarded(onTimeout, wrapper);
           wrapper._sink = null;
@@ -1254,7 +1254,7 @@ abstract class Stream<T> {
       }
 
       subscription = this.listen(onData, onError: onError, onDone: onDone);
-      timer = zone.createTimer(timeLimit, timeout);
+      timer = zone.createTimer(timeLimit, timeout2);
     }
     Future onCancel() {
       timer.cancel();
@@ -1273,7 +1273,7 @@ abstract class Stream<T> {
               },
               () {
                 subscription.resume();
-                timer = zone.createTimer(timeLimit, timeout);
+                timer = zone.createTimer(timeLimit, timeout2);
               },
               onCancel);
     return controller.stream;

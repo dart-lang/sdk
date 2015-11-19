@@ -268,10 +268,10 @@ abstract class Future<T> {
       remaining--;
       if (values != null) {
         if (cleanUp != null) {
-          for (var value in values) {
-            if (value != null) {
+          for (var value2 in values) {
+            if (value2 != null) {
               // Ensure errors from cleanUp are uncaught.
-              new Future.sync(() { cleanUp(value); });
+              new Future.sync(() { cleanUp(value2); });
             }
           }
         }
