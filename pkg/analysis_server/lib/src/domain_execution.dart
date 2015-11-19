@@ -117,7 +117,11 @@ class ExecutionDomainHandler implements RequestHandler {
       }
       ContextSourcePair contextSource = server.getContextSourcePair(file);
       Source source = contextSource.source;
-      uri = context.sourceFactory.restoreUri(source).toString();
+      if (source.uriKind != UriKind.FILE_URI) {
+        uri = source.uri.toString();
+      } else {
+        uri = context.sourceFactory.restoreUri(source).toString();
+      }
       return new ExecutionMapUriResult(uri: uri).toResponse(request.id);
     } else if (uri != null) {
       Source source = context.sourceFactory.forUri(uri);

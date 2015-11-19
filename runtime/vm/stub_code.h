@@ -35,6 +35,7 @@ class SnapshotWriter;
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
+  V(ICLookup)                                                                  \
   V(MegamorphicLookup)                                                         \
   V(FixAllocationStubTarget)                                                   \
   V(Deoptimize)                                                                \
@@ -60,7 +61,7 @@ class SnapshotWriter;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
-  V(CallClosureNoSuchMethod)
+  V(CallClosureNoSuchMethod)                                                   \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
@@ -109,6 +110,9 @@ class StubCode : public AllStatic {
 
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
+  // Returns true if stub code has been initialized.
+  static bool HasBeenInitialized();
+
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
@@ -136,8 +140,7 @@ class StubCode : public AllStatic {
 
   static const intptr_t kNoInstantiator = 0;
 
-  static void EmitMegamorphicLookup(
-      Assembler*, Register recv, Register cache, Register target);
+  static void EmitMegamorphicLookup(Assembler* assembler);
 
  private:
   friend class MegamorphicCacheTable;

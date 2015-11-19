@@ -14,17 +14,15 @@ abstract class _MinifiedFieldNamer implements Namer {
   // this could be because the field belongs to a mixin. In such a case this
   // will return `null` and a normal field name has to be used.
   jsAst.Name _minifiedInstanceFieldPropertyName(Element element) {
-    if (element.hasFixedBackendName) {
-      return new StringBackedName(element.fixedBackendName);
+    if (backend.hasFixedBackendName(element)) {
+      return new StringBackedName(backend.getFixedBackendName(element));
     }
 
     _FieldNamingScope names;
     if (element is BoxFieldElement) {
       names = new _FieldNamingScope.forBox(element.box, fieldRegistry);
     } else {
-      ClassElement cls = element is ClosureFieldElement
-          ? element.closureClass
-          : element.enclosingClass;
+      ClassElement cls = element.enclosingClass;
       names =
           new _FieldNamingScope.forClass(cls, compiler.world, fieldRegistry);
     }
@@ -77,7 +75,7 @@ class _FieldNamingRegistry {
         nameStore.add(
             new StringBackedName(MinifyNamer._reservedNativeProperties[index]));
       } else {
-        nameStore.add(namer.getFreshName(NamingScope.instance, "field$index"));
+        nameStore.add(namer.getFreshName(namer.instanceScope, "field$index"));
       }
     }
 

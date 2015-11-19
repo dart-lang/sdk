@@ -1,0 +1,21 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+
+<polymer-element name="timeline-page" extends="observatory-element">
+	<template>
+		<link rel="stylesheet" href="css/shared.css">
+		<style>
+		</style>
+		<nav-bar>
+			<top-nav-menu></top-nav-menu>
+			<nav-menu link="{{ makeLink('/timeline') }}" anchor="timeline" last="{{ true }}"></nav-menu>
+			<nav-refresh callback="{{ refresh }}"></nav-refresh>
+			<nav-refresh callback="{{ clear }}" label="Clear"></nav-refresh>
+			<nav-refresh callback="{{ recordOn }}" label="Start recording"></nav-refresh>
+			<nav-refresh callback="{{ recordOff }}" label="Stop recording"></nav-refresh>
+		</nav-bar>
+		<iframe id="root" frameborder="0" src="../../../../timeline.html"></iframe>
+	</template>
+</polymer-element>
+<script type="application/dart" src="timeline_page.dart"></script>

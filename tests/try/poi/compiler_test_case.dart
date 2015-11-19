@@ -78,7 +78,7 @@ abstract class CompilerTestCase {
   /// Returns a future for the mainApp after running the compiler.
   Future<LibraryElement> compile() {
     return loadMainApp().then((LibraryElement library) {
-      return compiler.runCompiler(scriptUri).then((_) => library);
+      return compiler.run(scriptUri).then((_) => library);
     });
   }
 

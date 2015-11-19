@@ -44,7 +44,8 @@ def PkgSteps(build_info):
     common_args.append('--builder-tag=%s' % build_info.builder_tag)
 
   # There are a number of big/integration tests in pkg, run with bigger timeout
-  common_args.append('--timeout=120')
+  timeout = 300 if build_info.mode == 'debug' else 120
+  common_args.append('--timeout=%s' % timeout)
   # We have some unreproducible vm crashes on these bots
   common_args.append('--copy-coredumps')
 
@@ -53,7 +54,7 @@ def PkgSteps(build_info):
   if build_info.system == 'windows':
     common_args.append('-j1')
 
-  bot.RunTest('pkg ', build_info,
+  bot.RunTest('pkg', build_info,
               common_args + ['pkg', 'docs'],
               swallow_error=True)
 

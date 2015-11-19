@@ -9,6 +9,7 @@ import 'dart:collection';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/task.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -80,6 +81,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * The set of analysis options controlling the behavior of this context.
    */
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
+
+  /// The embedder yaml locator for this context.
+  EmbedderYamlLocator _embedderYamlLocator = new EmbedderYamlLocator(null);
 
   /**
    * A flag indicating whether this context is disposed.
@@ -252,6 +256,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisOptions get analysisOptions => _options;
 
   @override
+  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
+
+  @override
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute = this._options.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
@@ -265,6 +272,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.strongMode != options.strongMode ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
+        this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -275,6 +283,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
+    this._options.enableGenericMethods = options.enableGenericMethods;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.hint = options.hint;
@@ -520,15 +529,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void applyChanges(ChangeSet changeSet) {
+  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty) {
-      return;
+      return new ApplyChangesStatus(false);
     }
     //
     // First, compute the list of sources that have been removed.
     //
-    List<Source> removedSources =
-        new List<Source>.from(changeSet.removedSources);
+    List<Source> removedSources = changeSet.removedSources.toList();
     for (SourceContainer container in changeSet.removedContainers) {
       _addSourcesInContainer(removedSources, container);
     }
@@ -538,13 +546,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source source in changeSet.addedSources) {
       _sourceAvailable(source);
     }
-    for (Source source in changeSet.changedSources) {
-      if (_contentCache.getContents(source) != null) {
-        // This source is overridden in the content cache, so the change will
-        // have no effect. Just ignore it to avoid wasting time doing
-        // re-analysis.
-        continue;
-      }
+    // Exclude sources that are overridden in the content cache, so the change
+    // will have no effect. Just ignore it to avoid wasting time doing
+    // re-analysis.
+    List<Source> changedSources = changeSet.changedSources
+        .where((s) => _contentCache.getContents(s) == null)
+        .toList();
+    for (Source source in changedSources) {
       _sourceChanged(source);
     }
     changeSet.changedContents.forEach((Source key, String value) {
@@ -563,9 +571,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     for (WorkManager workManager in workManagers) {
       workManager.applyChange(
-          changeSet.addedSources, changeSet.changedSources, removedSources);
+          changeSet.addedSources, changedSources, removedSources);
     }
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
+    return new ApplyChangesStatus(changeSet.addedSources.isNotEmpty ||
+        changeSet.changedContents.isNotEmpty ||
+        changeSet.deletedSources.isNotEmpty ||
+        changedSources.isNotEmpty ||
+        removedSources.isNotEmpty);
   }
 
   @override
@@ -765,7 +778,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object getConfigurationData(ResultDescriptor key) => _configurationData[key];
+  Object getConfigurationData(ResultDescriptor key) =>
+      _configurationData[key] ?? key?.defaultValue;
 
   @override
   TimestampedData<String> getContents(Source source) {
@@ -1024,10 +1038,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Invalidate analysis cache.
+   * Invalidate analysis cache and notify work managers that they have work
+   * to do.
    */
   void invalidateCachedResults() {
     _cache = createCacheFromSourceFactory(_sourceFactory);
+    for (WorkManager workManager in workManagers) {
+      workManager.onAnalysisOptionsChanged();
+    }
   }
 
   @override
@@ -1764,6 +1782,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (entry == null) {
       _createCacheEntry(source, true);
     } else {
+      entry.explicitlyAdded = true;
       entry.modificationTime = getModificationStamp(source);
       entry.setState(CONTENT, CacheState.INVALID);
     }

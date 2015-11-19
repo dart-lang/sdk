@@ -60,6 +60,9 @@ abstract class ElementCommon implements Element {
   bool get isGenerativeConstructorBody =>
       kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
 
+  bool get isFactoryConstructor =>
+      kind == ElementKind.FACTORY_CONSTRUCTOR;
+
   @override
   bool get isVariable => kind == ElementKind.VARIABLE;
 
@@ -76,10 +79,13 @@ abstract class ElementCommon implements Element {
   bool get isInitializingFormal => kind == ElementKind.INITIALIZING_FORMAL;
 
   @override
-  bool get isErroneous => kind == ElementKind.ERROR;
+  bool get isError => kind == ElementKind.ERROR;
 
   @override
   bool get isAmbiguous => kind == ElementKind.AMBIGUOUS;
+
+  @override
+  bool get isMalformed => false;
 
   @override
   bool get isWarnOnUse => kind == ElementKind.WARN_ON_USE;

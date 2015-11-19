@@ -20,14 +20,15 @@
         {
           'action_name': 'create_sdk_py',
           'inputs': [
-            # This is neccessary because we have all the pub test files inside
-            # the pub directory instead of in tests/pub. Xcode can only handle
-            # a certain amount of files in one list (also depending on the
-            # length of the path from where you run). This regexp excludes
-            # pub/test
+            # Xcode can only handle a certain amount of files in one list
+            # (also depending on the length of the path from where you run).
             '<!@(["python", "tools/list_files.py",'
-                '"^(?!.*pub/test).*dart$",'
+                '"dart$",'
                 '"sdk/lib"])',
+            'sdk/lib/dart2dart.platform',
+            'sdk/lib/dart_client.platform',
+            'sdk/lib/dart_server.platform',
+            'sdk/lib/dart_shared.platform',
             '<!@(["python", "tools/list_files.py", "", '
                 '"sdk/lib/_internal/js_runtime/lib/preambles"])',
             '<!@(["python", "tools/list_files.py", "", "sdk/bin"])',

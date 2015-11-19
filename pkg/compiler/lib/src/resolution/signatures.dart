@@ -18,6 +18,8 @@ import '../elements/modelx.dart' show
     InitializingFormalElementX,
     LocalParameterElementX;
 import '../tree/tree.dart';
+import '../universe/use.dart' show
+    TypeUse;
 import '../util/util.dart' show
     Link,
     LinkBuilder;
@@ -310,7 +312,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     int requiredParameterCount = 0;
     if (formalParameters == null) {
       if (!element.isGetter) {
-        if (element.isErroneous) {
+        if (element.isMalformed) {
           // If the element is erroneous, an error should already have been
           // reported. In the case of parse errors, it is possible that there
           // are formal parameters, but something else in the method failed to
@@ -341,7 +343,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       // Because there is no type annotation for the return type of
       // this element, we explicitly add one.
       if (compiler.enableTypeAssertions) {
-        registry.registerIsCheck(returnType);
+        registry.registerTypeUse(new TypeUse.checkedModeCheck(returnType));
       }
     } else {
       AsyncMarker asyncMarker = AsyncMarker.SYNC;

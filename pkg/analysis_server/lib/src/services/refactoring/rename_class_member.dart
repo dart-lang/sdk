@@ -102,7 +102,6 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       }
       // ignore references from SDK and pub cache
       if (isElementInSdkOrPubCache(reference.element)) {
-        print('ignore: $reference');
         continue;
       }
       // check the element being renamed is accessible

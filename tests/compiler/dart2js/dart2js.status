@@ -6,8 +6,6 @@ compile_with_empty_libraries_test: Fail # Issue 24223
 
 boolified_operator_test: Fail # Issue 8001
 
-async_await_js_transform_test/01: RuntimeError # Issue 23997
-
 # Don't mark these tests as failing. Instead, fix the errors/warnings that they
 # report or update the whitelist in the test-files to temporarily allow
 # digression.
@@ -37,6 +35,7 @@ mirrors/library_imports_shown_test: Fail
 patch_test/bug: RuntimeError # Issue 21132
 
 http_test: Pass, Slow
+inference_stats_test: Pass, Slow
 
 # These tests are for the now-deleted dart2dart variant of the CPS IR.
 # We want to adapt them to test the JS variant of the CPS IR instead,
@@ -57,6 +56,8 @@ js_backend_cps_ir_constructor_test: Pass, Slow
 exit_code_test: Skip # This tests requires checked mode.
 
 [ $checked ]
+analyze_dart2js_test: Pass, Slow
+analyze_unused_dart2js_test: Pass, Slow
 uri_retention_test: Pass, Slow
 deferred_mirrors_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow

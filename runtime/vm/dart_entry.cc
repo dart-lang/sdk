@@ -24,6 +24,7 @@ RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
   return InvokeFunction(function, arguments, arguments_descriptor);
@@ -84,7 +85,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate->MutatorThreadIsCurrentThread());
+  ASSERT(thread->IsMutatorThread());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(
         zone, Compiler::CompileFunction(thread, function));
@@ -251,12 +252,12 @@ ArgumentsDescriptor::ArgumentsDescriptor(const Array& array)
 
 
 intptr_t ArgumentsDescriptor::Count() const {
-  return Smi::CheckedHandle(array_.At(kCountIndex)).Value();
+  return Smi::Cast(Object::Handle(array_.At(kCountIndex))).Value();
 }
 
 
 intptr_t ArgumentsDescriptor::PositionalCount() const {
-  return Smi::CheckedHandle(array_.At(kPositionalCountIndex)).Value();
+  return Smi::Cast(Object::Handle(array_.At(kPositionalCountIndex))).Value();
 }
 
 

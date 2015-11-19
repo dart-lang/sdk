@@ -180,8 +180,12 @@ enum CompoundAccessKind {
   SUPER_GETTER_FIELD,
 
   /// Read from a superclass where the getter is unresolved.
+  // TODO(johnniwinther): Use [AccessKind.SUPER_GETTER] when the erroneous
+  // element is no longer needed.
   UNRESOLVED_SUPER_GETTER,
   /// Read from a superclass getter and write to an unresolved setter.
+  // TODO(johnniwinther): Use [AccessKind.SUPER_SETTER] when the erroneous
+  // element is no longer needed.
   UNRESOLVED_SUPER_SETTER,
 }
 
@@ -388,48 +392,30 @@ class CompoundAccessSemantics extends AccessSemantics {
 /// Enum representing the different kinds of destinations which a constructor
 /// invocation might refer to.
 enum ConstructorAccessKind {
-  /// An invocation of a generative constructor.
+  /// An invocation of a (redirecting) generative constructor.
   ///
   /// For instance
   ///     class C {
   ///       C();
+  ///       C.redirect() : this();
   ///     }
-  ///     m() => new C();
+  ///     m1() => new C();
+  ///     m2() => new C.redirect();
   ///
   GENERATIVE,
 
-  /// An invocation of a redirecting generative constructor.
-  ///
-  /// For instance
-  ///     class C {
-  ///       C() : this._();
-  ///       C._();
-  ///     }
-  ///     m() => new C();
-  ///
-  REDIRECTING_GENERATIVE,
-
-  /// An invocation of a factory constructor.
+  /// An invocation of a (redirecting) factory constructor.
   ///
   /// For instance
   ///     class C {
   ///       factory C() => new C._();
+  ///       factory C.redirect() => C._;
   ///       C._();
   ///     }
-  ///     m() => new C();
+  ///     m1() => new C();
+  ///     m2() => new C.redirect();
   ///
   FACTORY,
-
-  /// An invocation of a redirecting factory constructor.
-  ///
-  /// For instance
-  ///     class C {
-  ///       factory C() = C._;
-  ///       C._();
-  ///     }
-  ///     m() => new C();
-  ///
-  REDIRECTING_FACTORY,
 
   /// An invocation of a (redirecting) generative constructor of an abstract
   /// class.
@@ -469,17 +455,6 @@ enum ConstructorAccessKind {
   ///
   NON_CONSTANT_CONSTRUCTOR,
 
-  /// An invocation of an ill-defined redirecting factory constructor.
-  ///
-  /// For instance
-  ///     class C {
-  ///       factory C() = Unresolved;
-  ///     }
-  ///     m() => new C();
-  ///
-  ERRONEOUS_REDIRECTING_FACTORY,
-
-
   /// An invocation of a constructor with incompatible arguments.
   ///
   /// For instance
@@ -504,35 +479,5 @@ class ConstructorAccessSemantics {
 
   ConstructorAccessSemantics(this.kind, this.element, this.type);
 
-  /// The effect target of the access. Used to defined redirecting factory
-  /// constructor invocations.
-  ConstructorAccessSemantics get effectiveTargetSemantics => this;
-
-  /// `true` if this invocation is erroneous.
-  bool get isErroneous {
-    return kind == ConstructorAccessKind.ABSTRACT ||
-           kind == ConstructorAccessKind.UNRESOLVED_TYPE ||
-           kind == ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR ||
-           kind == ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR ||
-           kind == ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY ||
-           kind == ConstructorAccessKind.INCOMPATIBLE;
-  }
-
   String toString() => 'ConstructorAccessSemantics($kind, $element, $type)';
 }
-
-/// Data structure used to classify the semantics of a redirecting factory
-/// constructor invocation.
-class RedirectingFactoryConstructorAccessSemantics
-    extends ConstructorAccessSemantics {
-  final ConstructorAccessSemantics effectiveTargetSemantics;
-
-  RedirectingFactoryConstructorAccessSemantics(
-      ConstructorAccessKind kind,
-      Element element,
-      DartType type,
-      this.effectiveTargetSemantics)
-      : super(kind, element, type);
-}
-
-

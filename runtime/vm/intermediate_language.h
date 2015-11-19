@@ -337,8 +337,6 @@ class Value : public ZoneAllocated {
 
   const char* ToCString() const;
 
-  const char* DebugName() const { return "Value"; }
-
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
 
   // Returns true if this value binds to the constant: 0xFFFFFFFF.
@@ -1331,7 +1329,7 @@ class GraphEntryInstr : public BlockEntryInstr {
   }
   ConstantInstr* constant_null();
 
-  bool IsCompiledForOsr() const { return osr_id_ != Thread::kNoDeoptId; }
+  bool IsCompiledForOsr() const;
 
   intptr_t entry_count() const { return entry_count_; }
   void set_entry_count(intptr_t count) { entry_count_ = count; }
@@ -3395,7 +3393,9 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
 class NativeCallInstr : public TemplateDefinition<0, Throws> {
  public:
   explicit NativeCallInstr(NativeBodyNode* node)
-      : ast_node_(*node) {}
+      : ast_node_(*node),
+        native_c_function_(NULL),
+        is_bootstrap_native_(false) { }
 
   DECLARE_INSTRUCTION(NativeCall)
 
@@ -3408,11 +3408,11 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
   }
 
   NativeFunction native_c_function() const {
-    return ast_node_.native_c_function();
+    return native_c_function_;
   }
 
   bool is_bootstrap_native() const {
-    return ast_node_.is_bootstrap_native();
+    return is_bootstrap_native_;
   }
 
   bool link_lazily() const {
@@ -3425,8 +3425,18 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
+  void SetupNative();
+
  private:
+  void set_native_c_function(NativeFunction value) {
+    native_c_function_ = value;
+  }
+
+  void set_is_bootstrap_native(bool value) { is_bootstrap_native_ = value; }
+
   const NativeBodyNode& ast_node_;
+  NativeFunction native_c_function_;
+  bool is_bootstrap_native_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
 };
@@ -4366,7 +4376,8 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
         field_(NULL),
         token_pos_(token_pos) {
     ASSERT(offset_in_bytes >= 0);
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    // May be null if field is not an instance.
+    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instance);
   }
 
@@ -4382,7 +4393,8 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
         field_(field),
         token_pos_(token_pos) {
     ASSERT(field->IsZoneHandle());
-    ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
+    // May be null if field is not an instance.
+    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instance);
   }
 
@@ -4457,7 +4469,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
         token_pos_(token_pos),
         type_(type),
         instantiator_class_(instantiator_class) {
-    ASSERT(type.IsZoneHandle());
+    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     SetInputAt(0, instantiator);
   }
 

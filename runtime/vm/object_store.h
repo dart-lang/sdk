@@ -332,14 +332,18 @@ class ObjectStore {
     libraries_ = value.raw();
   }
 
+  RawGrowableObjectArray* closure_functions() const {
+    return closure_functions_;
+  }
+  void set_closure_functions(const GrowableObjectArray& value) {
+    ASSERT(!value.IsNull());
+    closure_functions_ = value.raw();
+  }
+
   RawGrowableObjectArray* pending_classes() const { return pending_classes_; }
   void set_pending_classes(const GrowableObjectArray& value) {
     ASSERT(!value.IsNull());
     pending_classes_ = value.raw();
-  }
-
-  RawGrowableObjectArray* pending_functions() const {
-    return pending_functions_;
   }
 
   RawGrowableObjectArray* pending_deferred_loads() const {
@@ -363,6 +367,8 @@ class ObjectStore {
 
   RawError* sticky_error() const { return sticky_error_; }
   void set_sticky_error(const Error& value) {
+    // TODO(asiva): Move sticky_error_ into thread specific area.
+    ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(!value.IsNull());
     sticky_error_ = value.raw();
   }
@@ -438,11 +444,28 @@ class ObjectStore {
     compile_time_constants_ = value.raw();
   }
 
+  RawGrowableObjectArray* token_objects() const {
+    return token_objects_;
+  }
+  void set_token_objects(const GrowableObjectArray& value) {
+    token_objects_ = value.raw();
+  }
+
+  RawArray* token_objects_map() const {
+    return token_objects_map_;
+  }
+  void set_token_objects_map(const Array& value) {
+    token_objects_map_ = value.raw();
+  }
+
   RawGrowableObjectArray* megamorphic_cache_table() const {
     return megamorphic_cache_table_;
   }
   void set_megamorphic_cache_table(const GrowableObjectArray& value) {
     megamorphic_cache_table_ = value.raw();
+  }
+  RawCode* megamorphic_miss_code() const {
+    return megamorphic_miss_code_;
   }
   RawFunction* megamorphic_miss_function() const {
     return megamorphic_miss_function_;
@@ -527,8 +550,8 @@ class ObjectStore {
   RawLibrary* typed_data_library_;
   RawLibrary* vmservice_library_;
   RawGrowableObjectArray* libraries_;
+  RawGrowableObjectArray* closure_functions_;
   RawGrowableObjectArray* pending_classes_;
-  RawGrowableObjectArray* pending_functions_;
   RawGrowableObjectArray* pending_deferred_loads_;
   RawGrowableObjectArray* resume_capabilities_;
   RawGrowableObjectArray* exit_listeners_;
@@ -547,6 +570,8 @@ class ObjectStore {
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&compile_time_constants_);
   }
+  RawGrowableObjectArray* token_objects_;
+  RawArray* token_objects_map_;
   RawGrowableObjectArray* megamorphic_cache_table_;
   RawCode* megamorphic_miss_code_;
   RawFunction* megamorphic_miss_function_;

@@ -9,21 +9,24 @@ class CheckedModeHelper {
 
   const CheckedModeHelper(String this.name);
 
-  Element getElement(Compiler compiler) {
+  StaticUse getStaticUse(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return backend.findHelper(name);
+    return new StaticUse.staticInvoke(
+        backend.helpers.findHelper(name), callStructure);
   }
+
+  CallStructure get callStructure => CallStructure.ONE_ARG;
 
   jsAst.Expression generateCall(SsaCodeGenerator codegen,
                                 HTypeConversion node) {
-    Element helperElement = getElement(codegen.compiler);
-    codegen.registry.registerStaticUse(helperElement);
+    StaticUse staticUse = getStaticUse(codegen.compiler);
+    codegen.registry.registerStaticUse(staticUse);
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
     codegen.use(node.checkedInput);
     arguments.add(codegen.pop());
     generateAdditionalArguments(codegen, node, arguments);
     jsAst.Expression helper =
-        codegen.backend.emitter.staticFunctionAccess(helperElement);
+        codegen.backend.emitter.staticFunctionAccess(staticUse.element);
     return new jsAst.Call(helper, arguments);
   }
 
@@ -73,6 +76,8 @@ class CheckedModeHelper {
 class MalformedCheckedModeHelper extends CheckedModeHelper {
   const MalformedCheckedModeHelper(String name) : super(name);
 
+  CallStructure get callStructure => CallStructure.TWO_ARGS;
+
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
@@ -83,6 +88,8 @@ class MalformedCheckedModeHelper extends CheckedModeHelper {
 
 class PropertyCheckedModeHelper extends CheckedModeHelper {
   const PropertyCheckedModeHelper(String name) : super(name);
+
+  CallStructure get callStructure => CallStructure.TWO_ARGS;
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
@@ -96,6 +103,8 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
 class TypeVariableCheckedModeHelper extends CheckedModeHelper {
   const TypeVariableCheckedModeHelper(String name) : super(name);
 
+  CallStructure get callStructure => CallStructure.TWO_ARGS;
+
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
@@ -107,6 +116,8 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
 
 class SubtypeCheckedModeHelper extends CheckedModeHelper {
   const SubtypeCheckedModeHelper(String name) : super(name);
+
+  CallStructure get callStructure => const CallStructure.unnamed(4);
 
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,

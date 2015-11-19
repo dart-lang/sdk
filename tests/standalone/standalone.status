@@ -62,6 +62,7 @@ oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
 verbose_gc_to_bmu_test: Skip
 precompilation_test: Skip # Standalone only test.
+precompilation_dart2js_test: Skip # Standalone only test.
 noopt_test: Skip # Standalone only test.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
@@ -106,14 +107,20 @@ javascript_compatibility_warnings_test: Skip
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 precompilation_test: Skip # Standalone only test.
+precompilation_dart2js_test: Skip # Standalone only test.
 noopt_test: Skip # Standalone only test.
 
 [ $runtime == vm && $arch == ia32]
 precompilation_test: Skip # Not expected to pass on ia32.
+precompilation_dart2js_test: Skip # Not expected to pass on ia32.
 noopt_test: Skip # Not expected to pass on ia32.
 
 [ $runtime == vm && $arch == arm]
 precompilation_test: Skip # Issue 24427
+precompilation_dart2js_test: Skip # Issue 24427
+
+[ $runtime == vm && $arch == mips]
+precompilation_dart2js_test: SkipSlow
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
@@ -157,7 +164,7 @@ assert_test: Fail # Issue 14651.
 javascript_int_overflow_literal_test/01: Fail # Issue 14651.
 javascript_int_overflow_test: Fail # Issue 14651.
 
-[ $compiler == none && $runtime == drt ]
+[ $compiler == none && $runtime == drt && $arch == x64 ]
 map_literal_oom_test: RuntimeError # Issue 24571
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
@@ -209,5 +216,7 @@ io/https_client_certificate_test: RuntimeError # Issue 24070
 io/secure_socket_renegotiate_test: RuntimeError
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
 
-[ $compiler == dart2js && $cps_ir ]
-priority_queue_stress_test: RuntimeError # Cannot read property 'length' of undefined
+[ $noopt ]
+map_literal_oom_test: Pass, Crash # Issue 24678
+javascript*: SkipByDesign # JS overflow flag unsupported
+io/web_socket_test: Pass, RuntimeError # Issue 24674

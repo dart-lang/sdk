@@ -948,7 +948,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // Sequence node has one return node, its input is load field node.
   __ Comment("Inlined Getter");
   __ LoadFromOffset(R0, SP, 0 * kWordSize);
-  __ LoadFromOffset(R0, R0, offset - kHeapObjectTag);
+  __ LoadFieldFromOffset(R0, R0, offset);
   __ ret();
 }
 
@@ -1255,20 +1255,57 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-  const Register receiverR = R0;
-  const Register cacheR = R1;
-  const Register targetR = R1;
-  __ LoadFromOffset(receiverR, SP, (argument_count - 1) * kWordSize);
-  __ LoadObject(cacheR, cache);
 
+  __ Comment("MegamorphicCall");
+  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  __ LoadObject(R5, cache);
   if (FLAG_use_megamorphic_stub) {
     __ BranchLink(*StubCode::MegamorphicLookup_entry());
   } else  {
-    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+    StubCode::EmitMegamorphicLookup(assembler());
   }
-  __ LoadObject(R5, ic_data);
-  __ LoadObject(R4, arguments_descriptor);
-  __ blr(targetR);
+  __ blr(R1);
+
+  AddCurrentDescriptor(RawPcDescriptors::kOther,
+      Thread::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
+  __ Drop(argument_count);
+}
+
+
+void FlowGraphCompiler::EmitSwitchableInstanceCall(
+    const ICData& ic_data,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  __ Comment("SwitchableCall");
+  __ LoadFromOffset(R0, SP, (argument_count - 1) * kWordSize);
+  if (ic_data.NumArgsTested() == 1) {
+    __ LoadUniqueObject(R5, ic_data);
+    __ BranchLinkPatchable(*StubCode::ICLookup_entry());
+  } else {
+    const String& name = String::Handle(zone(), ic_data.target_name());
+    const Array& arguments_descriptor =
+        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
+    ASSERT(!arguments_descriptor.IsNull() &&
+           (arguments_descriptor.Length() > 0));
+    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
+        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
+
+    __ LoadUniqueObject(R5, cache);
+    __ BranchLinkPatchable(*StubCode::MegamorphicLookup_entry());
+  }
+  __ blr(R1);
+
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);

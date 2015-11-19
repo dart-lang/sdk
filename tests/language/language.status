@@ -101,3 +101,40 @@ issue23244_test: Fail # Can't run spawnFunction on dartium.
 
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
+
+[ $noopt ]
+# Imports dart:mirrors
+const_evaluation_test: CompileTimeError
+deferred_constraints_constants_test: CompileTimeError
+enum_mirror_test: CompileTimeError
+field_increment_bailout_test: CompileTimeError
+instance_creation_in_function_annotation_test: CompileTimeError
+invocation_mirror2_test: CompileTimeError
+invocation_mirror_invoke_on2_test: CompileTimeError
+invocation_mirror_invoke_on_test: CompileTimeError
+issue21079_test: CompileTimeError
+many_overridden_no_such_method_test: CompileTimeError
+no_such_method_test: CompileTimeError
+null_test/none: CompileTimeError
+overridden_no_such_method_test: CompileTimeError
+regress_13462_0_test: CompileTimeError
+regress_13462_1_test: CompileTimeError
+regress_18535_test: CompileTimeError
+super_call4_test: CompileTimeError
+super_getter_setter_test: CompileTimeError
+vm/reflect_core_vm_test: CompileTimeError
+redirecting_factory_reflection_test: CompileTimeError
+
+# Deferred loading - Issue 24676
+deferred_load_constants_test: Skip
+deferred_constraints_constants_test: Skip
+deferred_global_test: Skip
+deferred_inheritance_constraints_test: Skip
+
+deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-alot
+tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
+vm/type_cast_vm_test: RuntimeError # Line number mismatch.
+regress_23408_test: RuntimeError
+issue21159_test: Pass, Crash, Timeout # Issue 24659 - missing stack overflow check
+
+stack_trace_test: Fail  # Issue 24783 - inlined frames missing

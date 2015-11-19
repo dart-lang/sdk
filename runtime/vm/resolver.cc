@@ -59,47 +59,6 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
 }
 
 
-// Method extractors are used to create implicit closures from methods.
-// When an expression obj.M is evaluated for the first time and receiver obj
-// does not have a getter called M but has a method called M then an extractor
-// is created and injected as a getter (under the name get:M) into the class
-// owning method M.
-static RawFunction* CreateMethodExtractor(const String& getter_name,
-                                          const Function& method) {
-  ASSERT(FLAG_lazy_dispatchers);
-  const Function& closure_function =
-      Function::Handle(method.ImplicitClosureFunction());
-
-  const Class& owner = Class::Handle(closure_function.Owner());
-  Function& extractor = Function::Handle(
-    Function::New(String::Handle(Symbols::New(getter_name)),
-                  RawFunction::kMethodExtractor,
-                  false,  // Not static.
-                  false,  // Not const.
-                  false,  // Not abstract.
-                  false,  // Not external.
-                  false,  // Not native.
-                  owner,
-                  0));  // No token position.
-
-  // Initialize signature: receiver is a single fixed parameter.
-  const intptr_t kNumParameters = 1;
-  extractor.set_num_fixed_parameters(kNumParameters);
-  extractor.SetNumOptionalParameters(0, 0);
-  extractor.set_parameter_types(Object::extractor_parameter_types());
-  extractor.set_parameter_names(Object::extractor_parameter_names());
-  extractor.set_result_type(Type::Handle(Type::DynamicType()));
-
-  extractor.set_extracted_method_closure(closure_function);
-  extractor.set_is_debuggable(false);
-  extractor.set_is_visible(false);
-
-  owner.AddFunction(extractor);
-
-  return extractor.raw();
-}
-
-
 RawFunction* Resolver::ResolveDynamicAnyArgs(
     const Class& receiver_class,
     const String& function_name) {
@@ -116,10 +75,6 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
     field_name ^= Field::NameFromGetter(function_name);
 
     if (field_name.CharAt(0) == '#') {
-      if (!FLAG_lazy_dispatchers) {
-        return Function::null();
-      }
-
       // Resolving a getter "get:#..." is a request to closurize an instance
       // property of the receiver object. It can be of the form:
       //  - get:#id, which closurizes a method or getter id
@@ -127,28 +82,28 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
       //  - get:#operator, eg. get:#<<, which closurizes an operator method.
       // If the property can be resolved, a method extractor function
       // "get:#..." is created and injected into the receiver's class.
-      String& property_name = String::Handle(String::SubString(field_name, 1));
-      ASSERT(!Field::IsGetterName(property_name));
+      field_name = String::SubString(field_name, 1);
+      ASSERT(!Field::IsGetterName(field_name));
 
       String& property_getter_name = String::Handle();
-      if (!Field::IsSetterName(property_name)) {
+      if (!Field::IsSetterName(field_name)) {
         // If this is not a setter, we need to look for both the regular
         // name and the getter name. (In the case of an operator, this
         // code will also try to resolve for example get:<< and will fail,
         // but that's harmless.)
-        property_getter_name = Field::GetterName(property_name);
+        property_getter_name = Field::GetterName(field_name);
       }
 
       Function& function = Function::Handle();
       while (!cls.IsNull()) {
-        function = cls.LookupDynamicFunction(property_name);
+        function = cls.LookupDynamicFunction(field_name);
         if (!function.IsNull()) {
-          return CreateMethodExtractor(function_name, function);
+          return function.GetMethodExtractor(function_name);
         }
         if (!property_getter_name.IsNull()) {
           function = cls.LookupDynamicFunction(property_getter_name);
           if (!function.IsNull()) {
-            return CreateMethodExtractor(function_name, function);
+            return function.GetMethodExtractor(function_name);
           }
         }
         cls = cls.SuperClass();
@@ -172,7 +127,9 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
         if (!function.IsNull()) {
           // We were looking for the getter but found a method with the same
           // name. Create a method extractor and return it.
-          function ^= CreateMethodExtractor(function_name, function);
+          // The extractor does not exist yet, so using GetMethodExtractor is
+          // not necessary here.
+          function ^= function.CreateMethodExtractor(function_name);
           return function.raw();
         }
       }

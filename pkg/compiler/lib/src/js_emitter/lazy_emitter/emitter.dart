@@ -150,7 +150,7 @@ class Emitter implements emitterTask.Emitter {
     switch (builtin) {
       case JsBuiltin.dartObjectConstructor:
         return js.js.expressionTemplateYielding(
-            typeAccess(_compiler.objectClass));
+            typeAccess(_compiler.coreClasses.objectClass));
 
       case JsBuiltin.isCheckPropertyToJsConstructorName:
         int isPrefixLength = namer.operatorIsPrefix.length;

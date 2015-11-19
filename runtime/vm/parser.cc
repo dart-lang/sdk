@@ -384,7 +384,7 @@ Parser::Parser(const Script& script,
 Parser::~Parser() {
   if (unregister_pending_function_) {
     const GrowableObjectArray& pending_functions =
-        GrowableObjectArray::Handle(I->object_store()->pending_functions());
+        GrowableObjectArray::Handle(T->pending_functions());
     ASSERT(pending_functions.Length() > 0);
     ASSERT(pending_functions.At(pending_functions.Length()-1) ==
         current_function().raw());
@@ -558,10 +558,9 @@ struct ParamList {
   }
 
   void EraseParameterTypes() {
-    const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
     const int num_parameters = parameters->length();
     for (int i = 0; i < num_parameters; i++) {
-      (*parameters)[i].type = &dynamic_type;
+      (*parameters)[i].type = &Object::dynamic_type();
     }
   }
 
@@ -1430,8 +1429,10 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   }
 
   if (func.HasOptionalNamedParameters()) {
+    // TODO(srdjan): Must allocate array in old space, since it
+    // runs in background compiler. Find a better way.
     const Array& arg_names =
-        Array::ZoneHandle(Array::New(func.NumOptionalParameters()));
+        Array::ZoneHandle(Array::New(func.NumOptionalParameters(), Heap::kOld));
     for (intptr_t i = 0; i < arg_names.Length(); ++i) {
       intptr_t index = func.num_fixed_parameters() + i;
       arg_names.SetAt(i, String::Handle(func.ParameterNameAt(index)));
@@ -1447,7 +1448,6 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
 
 SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
   TRACE_PARSER("ParseMethodExtractor");
-  ASSERT(FLAG_lazy_dispatchers);
 
   ParamList params;
 
@@ -2932,8 +2932,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 
 void Parser::CheckRecursiveInvocation() {
   const GrowableObjectArray& pending_functions =
-      GrowableObjectArray::Handle(Z,
-          I->object_store()->pending_functions());
+      GrowableObjectArray::Handle(Z, T->pending_functions());
   for (int i = 0; i < pending_functions.Length(); i++) {
     if (pending_functions.At(i) == current_function().raw()) {
       const String& fname =
@@ -3826,6 +3825,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   }
 
   intptr_t method_end_pos = TokenPos();
+  String* native_name = NULL;
   if ((CurrentToken() == Token::kLBRACE) ||
       (CurrentToken() == Token::kARROW)) {
     if (method->has_abstract) {
@@ -3881,7 +3881,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ReportError(method->name_pos,
                   "Constructor with redirection may not have a function body");
     }
-    ParseNativeDeclaration();
+    native_name = &ParseNativeDeclaration();
     method_end_pos = TokenPos();
     ExpectSemicolon();
     method->has_native = true;
@@ -3958,6 +3958,9 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   }
   if (method->metadata_pos > 0) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
+  }
+  if (method->has_native) {
+    func.set_native_name(*native_name);
   }
 
   // If this method is a redirecting factory, set the redirection information.
@@ -4048,8 +4051,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                              field->has_const,
                              is_reflectable,
                              current_class(),
+                             *field->type,
                              field->name_pos);
-    class_field.set_type(*field->type);
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
     field->field_ = &class_field;
@@ -4635,7 +4638,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     // The patched class must not be finalized yet.
     const Class& orig_class = Class::Cast(obj);
     ASSERT(!orig_class.is_finalized());
-    orig_class.set_patch_class(cls);
+    orig_class.SetPatchClass(cls);
     cls.set_is_patch();
   }
   pending_classes.Add(cls, Heap::kOld);
@@ -4717,21 +4720,20 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   SkipMetadata();
   ExpectToken(Token::kENUM);
 
-  const String& enum_name = String::Handle(Z, cls.Name());
+  const String& enum_name = String::Handle(Z, cls.PrettyName());
   ClassDesc enum_members(Z, cls, enum_name, false, cls.token_pos());
 
   // Add instance field 'final int index'.
   Field& index_field = Field::ZoneHandle(Z);
   const Type& int_type = Type::Handle(Z, Type::IntType());
-  const Type& dynamic_type = Type::Handle(Type::DynamicType());
   index_field = Field::New(Symbols::Index(),
                            false,  // Not static.
                            true,  // Field is final.
                            false,  // Not const.
                            true,  // Is reflectable.
                            cls,
+                           int_type,
                            cls.token_pos());
-  index_field.set_type(int_type);
   enum_members.AddField(index_field);
 
   // Add implicit getter for index field.
@@ -4750,7 +4752,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   getter.set_result_type(int_type);
   getter.set_is_debuggable(false);
   ParamList params;
-  params.AddReceiver(&dynamic_type, cls.token_pos());
+  params.AddReceiver(&Object::dynamic_type(), cls.token_pos());
   AddFormalParamsToFunction(&params, getter);
   enum_members.AddFunction(getter);
 
@@ -4802,8 +4804,8 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                             /* is_const = */ true,
                             /* is_reflectable = */ true,
                             cls,
+                            Object::dynamic_type(),
                             cls.token_pos());
-    enum_value.set_type(dynamic_type);
     enum_value.set_has_initializer(false);
     enum_members.AddField(enum_value);
     // Initialize the field with the ordinal value. It will be patched
@@ -4840,8 +4842,8 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                             /* is_const = */ true,
                             /* is_reflectable = */ true,
                             cls,
+                            Type::Handle(Z, Type::ArrayType()),
                             cls.token_pos());
-  values_field.set_type(Type::Handle(Z, Type::ArrayType()));
   enum_members.AddField(values_field);
 
   // Allocate the immutable array containing the enumeration values.
@@ -5449,8 +5451,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     const bool is_reflectable =
         !(library_.is_dart_scheme() && library_.IsPrivate(var_name));
     field = Field::New(var_name, is_static, is_final, is_const, is_reflectable,
-                       current_class(), name_pos);
-    field.set_type(type);
+                       current_class(), type, name_pos);
     field.SetStaticValue(Object::null_instance(), true);
     top_level->AddField(field);
     library_.AddObject(field, var_name);
@@ -5587,6 +5588,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 
   intptr_t function_end_pos = function_pos;
   bool is_native = false;
+  String* native_name = NULL;
   if (is_external) {
     function_end_pos = TokenPos();
     ExpectSemicolon();
@@ -5606,7 +5608,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     function_end_pos = TokenPos();
     ExpectSemicolon();
   } else if (IsSymbol(Symbols::Native())) {
-    ParseNativeDeclaration();
+    native_name = &ParseNativeDeclaration();
     function_end_pos = TokenPos();
     ExpectSemicolon();
     is_native = true;
@@ -5628,6 +5630,9 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   func.set_modifier(func_modifier);
   if (library_.is_dart_scheme() && library_.IsPrivate(func_name)) {
     func.set_is_reflectable(false);
+  }
+  if (is_native) {
+    func.set_native_name(*native_name);
   }
   AddFormalParamsToFunction(&params, func);
   top_level->AddFunction(func);
@@ -5737,6 +5742,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
 
   intptr_t accessor_end_pos = accessor_pos;
   bool is_native = false;
+  String* native_name = NULL;
   if (is_external) {
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
@@ -5756,7 +5762,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
   } else if (IsSymbol(Symbols::Native())) {
-    ParseNativeDeclaration();
+    native_name = &ParseNativeDeclaration();
     accessor_end_pos = TokenPos();
     ExpectSemicolon();
     is_native = true;
@@ -5779,6 +5785,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   func.set_modifier(func_modifier);
   if (is_native) {
     func.set_is_debuggable(false);
+    func.set_native_name(*native_name);
   }
   if (library_.is_dart_scheme() && library_.IsPrivate(accessor_name)) {
     func.set_is_reflectable(false);
@@ -5812,7 +5819,7 @@ RawObject* Parser::CallLibraryTagHandler(Dart_LibraryTag tag,
   // Block class finalization attempts when calling into the library
   // tag handler.
   I->BlockClassFinalization();
-  Api::Scope api_scope(I);
+  Api::Scope api_scope(T);
   Dart_Handle result = handler(tag,
                                Api::NewHandle(I, library_.raw()),
                                Api::NewHandle(I, url.raw()));
@@ -6239,15 +6246,13 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
   OpenBlock();  // Catch block.
 
   // Add the exception and stack trace parameters to the scope.
-  const AbstractType& dynamic_type =
-      AbstractType::ZoneHandle(Z, Type::DynamicType());
   CatchParamDesc exception_param;
   CatchParamDesc stack_trace_param;
   exception_param.token_pos = Scanner::kNoSourcePos;
-  exception_param.type = &dynamic_type;
+  exception_param.type = &Object::dynamic_type();
   exception_param.name = &Symbols::ExceptionParameter();
   stack_trace_param.token_pos = Scanner::kNoSourcePos;
-  stack_trace_param.type = &dynamic_type;
+  stack_trace_param.type = &Object::dynamic_type();
   stack_trace_param.name = &Symbols::StackTraceParameter();
 
   AddCatchParamsToScope(
@@ -6369,7 +6374,8 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
 
   const GrowableObjectArray& handler_types =
       GrowableObjectArray::Handle(Z, GrowableObjectArray::New(Heap::kOld));
-  handler_types.Add(dynamic_type);  // Catch block handles all exceptions.
+  // Catch block handles all exceptions.
+  handler_types.Add(Object::dynamic_type());
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(
       Scanner::kNoSourcePos,
@@ -6408,15 +6414,13 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
 
   OpenBlock();  // Catch handler list.
   OpenBlock();  // Catch block.
-  const AbstractType& dynamic_type =
-      AbstractType::ZoneHandle(Z, Type::DynamicType());
   CatchParamDesc exception_param;
   CatchParamDesc stack_trace_param;
   exception_param.token_pos = Scanner::kNoSourcePos;
-  exception_param.type = &dynamic_type;
+  exception_param.type = &Object::dynamic_type();
   exception_param.name = &Symbols::ExceptionParameter();
   stack_trace_param.token_pos = Scanner::kNoSourcePos;
-  stack_trace_param.type = &dynamic_type;
+  stack_trace_param.type = &Object::dynamic_type();
   stack_trace_param.name = &Symbols::StackTraceParameter();
 
   AddCatchParamsToScope(
@@ -6546,14 +6550,14 @@ void Parser::AddSyncGenClosureParameters(ParamList* params) {
   // Create the parameter list for the body closure of a sync generator:
   // 1) Implicit closure parameter;
   // 2) Iterator
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   // Add implicit closure parameter if not already present.
   if (params->parameters->length() == 0) {
-    params->AddFinalParameter(0, &Symbols::ClosureParameter(), &dynamic_type);
+    params->AddFinalParameter(
+        0, &Symbols::ClosureParameter(), &Object::dynamic_type());
   }
   ParamDesc iterator_param;
   iterator_param.name = &Symbols::IteratorParameter();
-  iterator_param.type = &dynamic_type;
+  iterator_param.type = &Object::dynamic_type();
   params->parameters->Add(iterator_param);
   params->num_fixed_parameters++;
 }
@@ -6577,11 +6581,8 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
   // function has already been created by a previous
   // compilation.
   const Function& found_func = Function::Handle(
-      Z, current_class().LookupClosureFunction(func_pos));
-  if (!found_func.IsNull() &&
-      (found_func.token_pos() == func_pos) &&
-      (found_func.script() == innermost_function().script()) &&
-      (found_func.parent_function() == innermost_function().raw())) {
+      Z, I->LookupClosureFunction(innermost_function(), func_pos));
+  if (!found_func.IsNull()) {
     ASSERT(found_func.IsSyncGenClosure());
     body = found_func.raw();
     body_closure_name = body.name();
@@ -6589,7 +6590,7 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
     // Create the closure containing the body of this generator function.
     String& generator_name = String::Handle(Z, innermost_function().name());
     body_closure_name =
-        String::NewFormatted("<%s_sync_body>", generator_name.ToCString());
+        Symbols::NewFormatted("<%s_sync_body>", generator_name.ToCString());
     body_closure_name = Symbols::New(body_closure_name);
     body = Function::NewClosureFunction(body_closure_name,
                                         innermost_function(),
@@ -6681,26 +6682,26 @@ void Parser::AddAsyncClosureParameters(ParamList* params) {
   // * A continuation result.
   // * A continuation error.
   // * A continuation stack trace.
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   ASSERT(params->parameters->length() <= 1);
   // Add implicit closure parameter if not yet present.
   if (params->parameters->length() == 0) {
-    params->AddFinalParameter(0, &Symbols::ClosureParameter(), &dynamic_type);
+    params->AddFinalParameter(
+        0, &Symbols::ClosureParameter(), &Object::dynamic_type());
   }
   ParamDesc result_param;
   result_param.name = &Symbols::AsyncOperationParam();
   result_param.default_value = &Object::null_instance();
-  result_param.type = &dynamic_type;
+  result_param.type = &Object::dynamic_type();
   params->parameters->Add(result_param);
   ParamDesc error_param;
   error_param.name = &Symbols::AsyncOperationErrorParam();
   error_param.default_value = &Object::null_instance();
-  error_param.type = &dynamic_type;
+  error_param.type = &Object::dynamic_type();
   params->parameters->Add(error_param);
   ParamDesc stack_trace_param;
   stack_trace_param.name = &Symbols::AsyncOperationStackTraceParam();
   stack_trace_param.default_value = &Object::null_instance();
-  stack_trace_param.type = &dynamic_type;
+  stack_trace_param.type = &Object::dynamic_type();
   params->parameters->Add(stack_trace_param);
   params->has_optional_positional_parameters = true;
   params->num_optional_parameters += 3;
@@ -6718,11 +6719,8 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
   // this async function has already been created by a previous
   // compilation of this function.
   const Function& found_func = Function::Handle(
-      Z, current_class().LookupClosureFunction(async_func_pos));
-  if (!found_func.IsNull() &&
-      (found_func.token_pos() == async_func_pos) &&
-      (found_func.script() == innermost_function().script()) &&
-      (found_func.parent_function() == innermost_function().raw())) {
+      Z, I->LookupClosureFunction(innermost_function(), async_func_pos));
+  if (!found_func.IsNull()) {
     ASSERT(found_func.IsAsyncClosure());
     closure = found_func.raw();
   } else {
@@ -6774,12 +6772,13 @@ void Parser::AddContinuationVariables() {
   // Add to current block's scope:
   //   var :await_jump_var;
   //   var :await_ctx_var;
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* await_jump_var = new (Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), dynamic_type);
+      Scanner::kNoSourcePos, Symbols::AwaitJumpVar(), Object::dynamic_type());
   current_block_->scope->AddVariable(await_jump_var);
   LocalVariable* await_ctx_var = new (Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AwaitContextVar(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AwaitContextVar(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(await_ctx_var);
 }
 
@@ -6790,18 +6789,23 @@ void Parser::AddAsyncClosureVariables() {
   //   var :async_then_callback;
   //   var :async_catch_error_callback;
   //   var :async_completer;
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* async_op_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
+      Scanner::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncThenCallback(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncCatchErrorCallback(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
   LocalVariable* async_completer = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncCompleter(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncCompleter(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_completer);
 }
 
@@ -6817,18 +6821,21 @@ void Parser::AddAsyncGeneratorVariables() {
   //   var :async_catch_error_callback;
   // These variables are used to store the async generator closure containing
   // the body of the async* function. They are used by the await operator.
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* controller_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::Controller(), dynamic_type);
+      Scanner::kNoSourcePos, Symbols::Controller(), Object::dynamic_type());
   current_block_->scope->AddVariable(controller_var);
   LocalVariable* async_op_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncOperation(), dynamic_type);
+      Scanner::kNoSourcePos, Symbols::AsyncOperation(), Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncThenCallback(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncThenCallback(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
-      Scanner::kNoSourcePos, Symbols::AsyncCatchErrorCallback(), dynamic_type);
+      Scanner::kNoSourcePos,
+      Symbols::AsyncCatchErrorCallback(),
+      Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
 }
 
@@ -6845,11 +6852,8 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
   // this async generator has already been created by a previous
   // compilation of this function.
   const Function& found_func = Function::Handle(
-      Z, current_class().LookupClosureFunction(async_func_pos));
-  if (!found_func.IsNull() &&
-      (found_func.token_pos() == async_func_pos) &&
-      (found_func.script() == innermost_function().script()) &&
-      (found_func.parent_function() == innermost_function().raw())) {
+      Z, I->LookupClosureFunction(innermost_function(), async_func_pos));
+  if (!found_func.IsNull()) {
     ASSERT(found_func.IsAsyncGenClosure());
     closure = found_func.raw();
   } else {
@@ -6857,8 +6861,8 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
     const String& async_generator_name =
         String::Handle(Z, innermost_function().name());
     String& closure_name = String::Handle(Z,
-        String::NewFormatted("<%s_async_gen_body>",
-                             async_generator_name.ToCString()));
+        Symbols::NewFormatted("<%s_async_gen_body>",
+                              async_generator_name.ToCString()));
     closure = Function::NewClosureFunction(
         String::Handle(Z, Symbols::New(closure_name)),
         innermost_function(),
@@ -7335,39 +7339,20 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
 void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                       const Function& func) {
   ASSERT(func.is_native());
-  TRACE_PARSER("ParseNativeFunctionBlock");
-  const Class& cls = Class::Handle(Z, func.Owner());
-  const Library& library = Library::Handle(Z, cls.library());
   ASSERT(func.NumParameters() == params->parameters->length());
+  TRACE_PARSER("ParseNativeFunctionBlock");
 
   // Parse the function name out.
-  const intptr_t native_pos = TokenPos();
   const String& native_name = ParseNativeDeclaration();
 
-  // Now resolve the native function to the corresponding native entrypoint.
-  const int num_params = NativeArguments::ParameterCountForResolution(func);
-  bool auto_setup_scope = true;
-  NativeFunction native_function = NativeEntry::ResolveNative(
-      library, native_name, num_params, &auto_setup_scope);
-  if (native_function == NULL) {
-    ReportError(native_pos,
-                "native function '%s' (%" Pd " arguments) cannot be found",
-                native_name.ToCString(), func.NumParameters());
-  }
-  func.SetIsNativeAutoSetupScope(auto_setup_scope);
-
   // Now add the NativeBodyNode and return statement.
-  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
-  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
   current_block_->statements->Add(new(Z) ReturnNode(
       TokenPos(),
       new(Z) NativeBodyNode(
           TokenPos(),
           Function::ZoneHandle(Z, func.raw()),
           native_name,
-          native_function,
           current_block_->scope,
-          is_bootstrap_native,
           FLAG_link_natives_lazily)));
 }
 
@@ -7635,9 +7620,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // TODO(hausner): There could be two different closures at the given
   // function_pos, one enclosed in a closurized function and one enclosed in the
   // non-closurized version of this same function.
-  function = current_class().LookupClosureFunction(function_pos);
-  if (function.IsNull() || (function.token_pos() != function_pos) ||
-      (function.parent_function() != innermost_function().raw())) {
+  function = I->LookupClosureFunction(innermost_function(), function_pos);
+  if (function.IsNull()) {
     // The function will be registered in the lookup table by the
     // EffectGraphVisitor::VisitClosureNode when the newly allocated closure
     // function has been properly setup.
@@ -8863,9 +8847,9 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   // Create the try-statement and add to the current sequence, which is
   // the block around the loop statement.
 
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   const Array& handler_types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
-  handler_types.SetAt(0, dynamic_type);  // Catch block handles all exceptions.
+  // Catch block handles all exceptions.
+  handler_types.SetAt(0, Object::dynamic_type());
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(await_for_pos,
       catch_block,
@@ -9586,14 +9570,13 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
                                      LocalVariable** stack_trace_var,
                                      LocalVariable** saved_exception_var,
                                      LocalVariable** saved_stack_trace_var) {
-  const Type& dynamic_type = Type::ZoneHandle(Z, Type::DynamicType());
   // Consecutive try statements share the same set of variables.
   *context_var = try_scope->LocalLookupVariable(Symbols::SavedTryContextVar());
   if (*context_var == NULL) {
     *context_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::SavedTryContextVar(),
-        dynamic_type);
+        Object::dynamic_type());
     try_scope->AddVariable(*context_var);
   }
   *exception_var = try_scope->LocalLookupVariable(Symbols::ExceptionVar());
@@ -9601,7 +9584,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
     *exception_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::ExceptionVar(),
-        dynamic_type);
+        Object::dynamic_type());
     try_scope->AddVariable(*exception_var);
   }
   *stack_trace_var = try_scope->LocalLookupVariable(Symbols::StackTraceVar());
@@ -9609,7 +9592,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
     *stack_trace_var = new(Z) LocalVariable(
         TokenPos(),
         Symbols::StackTraceVar(),
-        dynamic_type);
+        Object::dynamic_type());
     try_scope->AddVariable(*stack_trace_var);
   }
   if (is_async) {
@@ -9619,7 +9602,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
       *saved_exception_var = new(Z) LocalVariable(
           TokenPos(),
           Symbols::SavedExceptionVar(),
-          dynamic_type);
+          Object::dynamic_type());
       try_scope->AddVariable(*saved_exception_var);
     }
     *saved_stack_trace_var = try_scope->LocalLookupVariable(
@@ -9628,7 +9611,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
       *saved_stack_trace_var = new(Z) LocalVariable(
           TokenPos(),
           Symbols::SavedStackTraceVar(),
-          dynamic_type);
+          Object::dynamic_type());
       try_scope->AddVariable(*saved_stack_trace_var);
     }
   }
@@ -10565,6 +10548,25 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
       }
     }
   }
+  if (binary_op == Token::kIFNULL) {
+    // Handle a ?? b.
+    LetNode* result = new(Z) LetNode(op_pos);
+    LocalVariable* left_temp = result->AddInitializer(lhs);
+    const intptr_t no_pos = Scanner::kNoSourcePos;
+    LiteralNode* null_operand =
+        new(Z) LiteralNode(no_pos, Instance::ZoneHandle(Z));
+    LoadLocalNode* load_left_temp = new(Z) LoadLocalNode(no_pos, left_temp);
+    ComparisonNode* null_compare =
+        new(Z) ComparisonNode(no_pos,
+                              Token::kNE_STRICT,
+                              load_left_temp,
+                              null_operand);
+    result->AddNode(new(Z) ConditionalExprNode(op_pos,
+                                               null_compare,
+                                               load_left_temp,
+                                               rhs));
+    return result;
+  }
   return new(Z) BinaryOpNode(op_pos, binary_op, lhs, rhs);
 }
 
@@ -10736,10 +10738,10 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
                              ifnull->right(),
                              left_ident,
                              left_pos);
-    result = new(Z) BinaryOpNode(rhs->token_pos(),
-                                 Token::kIFNULL,
-                                 ifnull->left(),
-                                 modified_assign);
+    result = OptimizeBinaryOpNode(ifnull->token_pos(),
+                                  ifnull->kind(),
+                                  ifnull->left(),
+                                  modified_assign);
   }
   return result;
 }
@@ -11251,7 +11253,8 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
     // NoSuchMethodError to be thrown.
     // In an instance method, we convert this into a getter call
     // for a field (which may be defined in a subclass.)
-    String& name = String::CheckedZoneHandle(primary->primary().raw());
+    const String& name =
+        String::Cast(Object::ZoneHandle(primary->primary().raw()));
     if (current_function().is_static() ||
         current_function().IsInFactoryScope()) {
       StaticGetterNode* getter = new(Z) StaticGetterNode(
@@ -11273,7 +11276,7 @@ AstNode* Parser::LoadFieldIfUnresolved(AstNode* node) {
 AstNode* Parser::LoadClosure(PrimaryNode* primary) {
   ASSERT(primary->primary().IsFunction());
   const Function& func =
-      Function::CheckedZoneHandle(primary->primary().raw());
+      Function::Cast(Object::ZoneHandle(primary->primary().raw()));
   const String& funcname = String::ZoneHandle(Z, func.name());
   if (func.is_static()) {
     // Static function access.
@@ -11462,8 +11465,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           if (primary_node->IsSuper()) {
             ReportError(primary_pos, "illegal use of super");
           }
-          String& name =
-              String::CheckedZoneHandle(primary_node->primary().raw());
+          const String& name =
+              String::Cast(Object::ZoneHandle(primary_node->primary().raw()));
           if (current_function().is_static()) {
             // The static call will be converted to throwing a NSM error.
             selector = ParseStaticCall(current_class(), name, primary_pos);
@@ -11906,30 +11909,65 @@ bool Parser::IsInstantiatorRequired() const {
   return current_class().NumTypeParameters() > 0;
 }
 
+// We cache computed compile-time constants in a map so we can look them
+// up when the same code gets compiled again. The map key is a pair
+// (script url, token position) which is encoded in an array with 2
+// elements:
+// - key[0] contains the canonicalized url of the script.
+// - key[1] contains the token position of the constant in the script.
+
+// ConstantPosKey allows us to look up a constant in the map without
+// allocating a key pair (array).
+struct ConstantPosKey : ValueObject {
+  ConstantPosKey(const String& url, intptr_t pos)
+      : script_url(url), token_pos(pos) { }
+  const String& script_url;
+  intptr_t token_pos;
+};
+
 
 class ConstMapKeyEqualsTraits {
  public:
   static bool IsMatch(const Object& a, const Object& b) {
-    return String::Cast(a).Equals(String::Cast(b));
+    const Array& key1 = Array::Cast(a);
+    const Array& key2 = Array::Cast(b);
+    // Compare raw strings of script url symbol and raw smi of token positon.
+    return (key1.At(0) == key2.At(0)) && (key1.At(1) == key2.At(1));
   }
-  static bool IsMatch(const char* key, const Object& b) {
-    return String::Cast(b).Equals(key);
+  static bool IsMatch(const ConstantPosKey& key1, const Object& b) {
+    const Array& key2 = Array::Cast(b);
+    // Compare raw strings of script url symbol and token positon.
+    return (key1.script_url.raw() == key2.At(0))
+        && (key1.token_pos == Smi::Value(Smi::RawCast(key2.At(1))));
   }
   static uword Hash(const Object& obj) {
-    return String::Cast(obj).Hash();
+    const Array& key = Array::Cast(obj);
+    intptr_t url_hash = String::HashRawSymbol(String::RawCast(key.At(0)));
+    intptr_t pos = Smi::Value(Smi::RawCast(key.At(1)));
+    return HashValue(url_hash, pos);
   }
-  static uword Hash(const char* key) {
-    return String::Hash(key, strlen(key));
+  static uword Hash(const ConstantPosKey& key) {
+    return HashValue(String::HashRawSymbol(key.script_url.raw()),
+                     key.token_pos);
+  }
+  // Used by CachConstantValue if a new constant is added to the map.
+  static RawObject* NewKey(const ConstantPosKey& key) {
+    const Array& key_obj = Array::Handle(Array::New(2));
+    key_obj.SetAt(0, key.script_url);
+    key_obj.SetAt(1, Smi::Handle(Smi::New(key.token_pos)));
+    return key_obj.raw();;
+  }
+
+ private:
+  static uword HashValue(intptr_t url_hash, intptr_t pos) {
+    return url_hash * pos % (Smi::kMaxValue - 13);
   }
 };
 typedef UnorderedHashMap<ConstMapKeyEqualsTraits> ConstantsMap;
 
 
 void Parser::CacheConstantValue(intptr_t token_pos, const Instance& value) {
-  String& key = String::Handle(Z, script_.url());
-  String& suffix =
-      String::Handle(Z, String::NewFormatted("_%" Pd "", token_pos));
-  key = Symbols::FromConcat(key, suffix);
+  ConstantPosKey key(String::Handle(Z, script_.url()), token_pos);
   if (isolate()->object_store()->compile_time_constants() == Array::null()) {
     const intptr_t kInitialConstMapSize = 16;
     isolate()->object_store()->set_compile_time_constants(
@@ -11937,7 +11975,7 @@ void Parser::CacheConstantValue(intptr_t token_pos, const Instance& value) {
                                                        Heap::kNew)));
   }
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
-  constants.UpdateOrInsert(key, value);
+  constants.InsertNewOrGetValue(key, value);
   if (FLAG_compiler_stats) {
     isolate_->compiler_stats()->num_cached_consts = constants.NumOccupied();
   }
@@ -11949,17 +11987,7 @@ bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
   if (isolate()->object_store()->compile_time_constants() == Array::null()) {
     return false;
   }
-  // We don't want to allocate anything in the heap here since this code
-  // is called from the optimizing compiler in the background thread. Allocate
-  // the key value in the zone instead.
-  // const char* key = Z->PrintToString("%s_%" Pd "",
-  //     String::Handle(Z, script_.url()).ToCString(),
-  //    token_pos);
-
-  const String& key = String::Handle(Z,
-      Symbols::NewFormatted("%s_%" Pd "",
-          String::Handle(Z, script_.url()).ToCString(),
-          token_pos));
+  ConstantPosKey key(String::Handle(Z, script_.url()), token_pos);
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
   bool is_present = false;
   *value ^= constants.GetOrNull(key, &is_present);
@@ -13093,7 +13121,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
                                                      intptr_t token_pos) {
   ASSERT(ctr.kind() == RawFunction::kConstructor);
   Function& closure = Function::Handle(Z);
-  closure = current_class().LookupClosureFunction(token_pos);
+  closure = I->LookupClosureFunction(innermost_function(), token_pos);
   if (!closure.IsNull()) {
     ASSERT(closure.IsConstructorClosureFunction());
     return closure.raw();

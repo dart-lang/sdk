@@ -3719,6 +3719,21 @@ f(bool pb, pd) {
     verify([source]);
   }
 
+  void test_nonBoolNegationExpression_dynamic() {
+    Source source = addSource(r'''
+f1(bool dynamic) {
+  !dynamic;
+}
+f2() {
+  bool dynamic = true;
+  !dynamic;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonBoolOperand_and_bool() {
     Source source = addSource(r'''
 bool f(bool left, bool right) {

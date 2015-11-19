@@ -33,7 +33,7 @@ main() {
     }
   }
 
-  Compiler compiler = new Compiler(
+  CompilerImpl compiler = new CompilerImpl(
       new LegacyCompilerInput(provider.readStringFromUri),
       new LegacyCompilerOutput(),
       new LegacyCompilerDiagnostics(diagnosticHandler),

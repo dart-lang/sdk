@@ -145,7 +145,7 @@ static Register LookupCpuRegisterByName(const char* name) {
       R8,  R9,  R10, R11,
       R12, R13, R14, R15,
       PC,  LR,  SP,  IP,
-      FP,  R10, R9
+      FP,  PP,  CTX
   };
   ASSERT(ARRAY_SIZE(kNames) == ARRAY_SIZE(kRegisters));
   for (unsigned i = 0; i < ARRAY_SIZE(kNames); i++) {
@@ -1996,6 +1996,7 @@ void Simulator::DecodeType01(Instr* instr) {
         HandleIllegalAccess(addr, instr);
       } else {
         if (write_back) {
+          ASSERT(rd != rn);  // Unpredictable.
           set_register(rn, rn_val);
         }
         if (!instr->HasSign()) {
@@ -2312,6 +2313,7 @@ void Simulator::DecodeType2(Instr* instr) {
     HandleIllegalAccess(addr, instr);
   } else {
     if (write_back) {
+      ASSERT(rd != rn);  // Unpredictable.
       set_register(rn, rn_val);
     }
     if (instr->HasB()) {
@@ -2424,6 +2426,7 @@ void Simulator::DecodeType3(Instr* instr) {
     HandleIllegalAccess(addr, instr);
   } else {
     if (write_back) {
+      ASSERT(rd != rn);  // Unpredictable.
       set_register(rn, rn_val);
     }
     if (instr->HasB()) {
@@ -3735,7 +3738,9 @@ int64_t Simulator::Call(int32_t entry,
   int32_t r6_val = get_register(R6);
   int32_t r7_val = get_register(R7);
   int32_t r8_val = get_register(R8);
+#if !defined(TARGET_OS_MACOS)
   int32_t r9_val = get_register(R9);
+#endif
   int32_t r10_val = get_register(R10);
   int32_t r11_val = get_register(R11);
 
@@ -3767,7 +3772,9 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, callee_saved_value);
   set_register(R7, callee_saved_value);
   set_register(R8, callee_saved_value);
+#if !defined(TARGET_OS_MACOS)
   set_register(R9, callee_saved_value);
+#endif
   set_register(R10, callee_saved_value);
   set_register(R11, callee_saved_value);
 
@@ -3793,7 +3800,9 @@ int64_t Simulator::Call(int32_t entry,
   ASSERT(callee_saved_value == get_register(R6));
   ASSERT(callee_saved_value == get_register(R7));
   ASSERT(callee_saved_value == get_register(R8));
+#if !defined(TARGET_OS_MACOS)
   ASSERT(callee_saved_value == get_register(R9));
+#endif
   ASSERT(callee_saved_value == get_register(R10));
   ASSERT(callee_saved_value == get_register(R11));
 
@@ -3814,7 +3823,9 @@ int64_t Simulator::Call(int32_t entry,
   set_register(R6, r6_val);
   set_register(R7, r7_val);
   set_register(R8, r8_val);
+#if !defined(TARGET_OS_MACOS)
   set_register(R9, r9_val);
+#endif
   set_register(R10, r10_val);
   set_register(R11, r11_val);
 
@@ -3859,7 +3870,6 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
-  Isolate* isolate = thread->isolate();
   StackResource::Unwind(thread);
 
   // Unwind the C++ stack and continue simulation in the target frame.
@@ -3870,7 +3880,7 @@ void Simulator::Longjmp(uword pc,
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
-  isolate->set_top_exit_frame_info(0);
+  thread->set_top_exit_frame_info(0);
 
   ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));

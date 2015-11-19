@@ -112,7 +112,7 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       new(zone) GraphEntryInstr(
         *parsed_function_,
         new(zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex),
-        Thread::kNoDeoptId);
+        Compiler::kNoOSRDeoptId);
   start_block_ =
       new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   success_block_ =

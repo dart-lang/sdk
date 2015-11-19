@@ -17,17 +17,22 @@ void main() {
       options: ['--analyze-all']);
 
     List<String> diagnostics = <String>[];
-    collector.messages.forEach((DiagnosticMessage message) {
+    collector.messages.forEach((CollectedMessage message) {
       if (message.kind == Diagnostic.VERBOSE_INFO) return;
       diagnostics.add(message.toString());
     });
     diagnostics.sort();
     var expected = [
-        "memory:exporter.dart:43:47:'hest' is defined here.:info",
-        "memory:library.dart:41:45:'hest' is defined here.:info",
-        "memory:main.dart:0:22:'hest' is imported here.:info",
-        "memory:main.dart:23:46:'hest' is imported here.:info",
-        "memory:main.dart:86:92:Duplicate import of 'hest'.:warning",
+        "MessageKind.AMBIGUOUS_LOCATION:"
+            "memory:exporter.dart:43:47:'hest' is defined here.:info",
+        "MessageKind.AMBIGUOUS_LOCATION:"
+            "memory:library.dart:41:45:'hest' is defined here.:info",
+        "MessageKind.DUPLICATE_IMPORT:"
+            "memory:main.dart:86:92:Duplicate import of 'hest'.:warning",
+        "MessageKind.IMPORTED_HERE:"
+            "memory:main.dart:0:22:'hest' is imported here.:info",
+        "MessageKind.IMPORTED_HERE:"
+            "memory:main.dart:23:46:'hest' is imported here.:info",
     ];
     Expect.listEquals(expected, diagnostics);
     Expect.isTrue(result.isSuccess);

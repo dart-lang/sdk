@@ -39,7 +39,6 @@ class OSThread {
   // the thread failed to start.
   static int Start(ThreadStartFunction function, uword parameters);
 
-  // NOTE: Destructor currently ignored on Windows (issue 23474).
   static ThreadLocalKey CreateThreadLocal(ThreadDestructor destructor = NULL);
   static void DeleteThreadLocal(ThreadLocalKey key);
   static uword GetThreadLocal(ThreadLocalKey key) {
@@ -114,8 +113,22 @@ class Monitor {
   void Notify();
   void NotifyAll();
 
+#if defined(DEBUG)
+  bool IsOwnedByCurrentThread() const {
+    return owner_ == OSThread::GetCurrentThreadId();
+  }
+#else
+  bool IsOwnedByCurrentThread() const {
+    UNREACHABLE();
+    return false;
+  }
+#endif
+
  private:
   MonitorData data_;  // OS-specific data.
+#if defined(DEBUG)
+  ThreadId owner_;
+#endif  // defined(DEBUG)
 
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };

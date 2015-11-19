@@ -558,7 +558,9 @@ class _RefactoringManager {
       if (units.isNotEmpty) {
         refactoring = new ExtractLocalRefactoring(units[0], offset, length);
         feedback = new ExtractLocalVariableFeedback(
-            <int>[], <int>[], <String>[], <int>[], <int>[]);
+            <String>[], <int>[], <int>[],
+            coveringExpressionOffsets: <int>[],
+            coveringExpressionLengths: <int>[]);
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
@@ -626,6 +628,10 @@ class _RefactoringManager {
       feedback.names = refactoring.names;
       feedback.offsets = refactoring.offsets;
       feedback.lengths = refactoring.lengths;
+      feedback.coveringExpressionOffsets =
+          refactoring.coveringExpressionOffsets;
+      feedback.coveringExpressionLengths =
+          refactoring.coveringExpressionLengths;
     }
     if (refactoring is ExtractMethodRefactoring) {
       ExtractMethodRefactoring refactoring = this.refactoring;

@@ -112,7 +112,7 @@ class Api : AllStatic {
   // Create on the stack to provide a new throw-safe api scope.
   class Scope : public StackResource {
    public:
-    explicit Scope(Isolate* isolate) : StackResource(isolate) {
+    explicit Scope(Thread* thread) : StackResource(thread) {
       Dart_EnterScope();
     }
     ~Scope() {
@@ -269,7 +269,7 @@ class Api : AllStatic {
   static void SetWeakHandleReturnValue(NativeArguments* args,
                                        Dart_WeakPersistentHandle retval);
 
-  static RawString* CallEnvironmentCallback(Isolate* isolate,
+  static RawString* CallEnvironmentCallback(Thread* thread,
                                             const String& name);
 
  private:

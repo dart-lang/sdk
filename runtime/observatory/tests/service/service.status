@@ -20,3 +20,6 @@ developer_extension_test: SkipByDesign
 
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
+
+[ $noopt ]
+*: Skip # Issue 24651

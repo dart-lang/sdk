@@ -35,6 +35,7 @@ class PcDescriptors;
 class RawBool;
 class RawObject;
 class RawCode;
+class RawGrowableObjectArray;
 class RawString;
 class RuntimeEntry;
 class StackResource;
@@ -90,26 +91,6 @@ class Zone;
   CACHED_VM_OBJECTS_LIST(V)                                                    \
   CACHED_ADDRESSES_LIST(V)                                                     \
 
-struct InterruptedThreadState {
-  ThreadId tid;
-  uintptr_t pc;
-  uintptr_t csp;
-  uintptr_t dsp;
-  uintptr_t fp;
-  uintptr_t lr;
-};
-
-// When a thread is interrupted the thread specific interrupt callback will be
-// invoked. Each callback is given an InterruptedThreadState and the user data
-// pointer. When inside a thread interrupt callback doing any of the following
-// is forbidden:
-//   * Accessing TLS -- Because on Windows the callback will be running in a
-//                      different thread.
-//   * Allocating memory -- Because this takes locks which may already be held,
-//                          resulting in a dead lock.
-//   * Taking a lock -- See above.
-typedef void (*ThreadInterruptCallback)(const InterruptedThreadState& state,
-                                        void* data);
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
@@ -144,11 +125,6 @@ class Thread {
   // TODO(koda): Always run GC in separate thread.
   static void PrepareForGC();
 
-#if defined(TARGET_OS_WINDOWS)
-  // Clears the state of the current thread and frees the allocation.
-  static void CleanUp();
-#endif
-
   // Called at VM startup.
   static void InitOnceBeforeIsolate();
   static void InitOnceAfterObjectAndStubCode();
@@ -165,6 +141,13 @@ class Thread {
   static intptr_t isolate_offset() {
     return OFFSET_OF(Thread, isolate_);
   }
+  bool IsMutatorThread() const;
+
+  // Is |this| executing Dart code?
+  bool IsExecutingDartCode() const;
+
+  // Has |this| exited Dart code?
+  bool HasExitedDartCode() const;
 
   // The (topmost) CHA for the compilation in this thread.
   CHA* cha() const;
@@ -277,7 +260,6 @@ class Thread {
     Zone* zone;
     uword top_exit_frame_info;
     StackResource* top_resource;
-    TimelineEventBlock* timeline_block;
     LongJumpScope* long_jump_base;
 #if defined(DEBUG)
     HandleScope* top_handle_scope;
@@ -309,6 +291,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
+  static bool ObjectAtOffset(intptr_t offset, Object* object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
 
   Mutex* timeline_block_lock() {
@@ -317,12 +300,12 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   // Only safe to access when holding |timeline_block_lock_|.
   TimelineEventBlock* timeline_block() const {
-    return state_.timeline_block;
+    return timeline_block_;
   }
 
   // Only safe to access when holding |timeline_block_lock_|.
   void set_timeline_block(TimelineEventBlock* block) {
-    state_.timeline_block = block;
+    timeline_block_ = block;
   }
 
   class Log* log() const;
@@ -376,10 +359,30 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     return id_;
   }
 
-  void SetThreadInterrupter(ThreadInterruptCallback callback, void* data);
+  ThreadId join_id() const {
+    ASSERT(join_id_ != OSThread::kInvalidThreadJoinId);
+    return join_id_;
+  }
 
-  bool IsThreadInterrupterEnabled(ThreadInterruptCallback* callback,
-                                  void** data) const;
+  ThreadId trace_id() const {
+    ASSERT(trace_id_ != OSThread::kInvalidThreadJoinId);
+    return trace_id_;
+  }
+
+  const char* name() const {
+    return name_;
+  }
+
+  void set_name(const char* name) {
+    ASSERT(Thread::Current() == this);
+    ASSERT(name_ == NULL);
+    name_ = name;
+  }
+
+  // Used to temporarily disable or enable thread interrupts.
+  void DisableThreadInterrupts();
+  void EnableThreadInterrupts();
+  bool ThreadInterruptsEnabled();
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -410,7 +413,11 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
 #undef REUSABLE_HANDLE
 
+  RawGrowableObjectArray* pending_functions();
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  static bool IsThreadInList(ThreadId join_id);
 
  private:
   template<class T> T* AllocateReusableHandle();
@@ -418,16 +425,16 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   static ThreadLocalKey thread_key_;
 
   const ThreadId id_;
-  ThreadInterruptCallback thread_interrupt_callback_;
-  void* thread_interrupt_data_;
+  const ThreadId join_id_;
+  const ThreadId trace_id_;
+  uintptr_t thread_interrupt_disabled_;
   Isolate* isolate_;
   Heap* heap_;
   State state_;
   Mutex timeline_block_lock_;
+  TimelineEventBlock* timeline_block_;
   StoreBufferBlock* store_buffer_block_;
   class Log* log_;
-  intptr_t deopt_id_;  // Compilation specific counter.
-  uword vm_tag_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
 CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
@@ -458,11 +465,19 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   VMHandles reusable_handles_;
 
+  // Compiler state:
   CHA* cha_;
+  intptr_t deopt_id_;  // Compilation specific counter.
+  uword vm_tag_;
+  RawGrowableObjectArray* pending_functions_;
+
   int32_t no_callback_scope_depth_;
 
   // All |Thread|s are registered in the thread list.
   Thread* thread_list_next_;
+
+  // A name for this thread.
+  const char* name_;
 
   static Thread* thread_list_head_;
   static Mutex* thread_list_lock_;
@@ -474,9 +489,7 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   void InitVMConstants();
 
-  void ClearState() {
-    memset(&state_, 0, sizeof(state_));
-  }
+  void ClearState();
 
   void StoreBufferRelease(
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
@@ -502,6 +515,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 
   friend class ApiZone;
   friend class Isolate;
+  friend class Simulator;
   friend class StackZone;
   friend class ThreadIterator;
   friend class ThreadIteratorTestHelper;
@@ -526,6 +540,19 @@ class ThreadIterator : public ValueObject {
 
  private:
   Thread* next_;
+};
+
+#if defined(TARGET_OS_WINDOWS)
+// Clears the state of the current thread and frees the allocation.
+void WindowsThreadCleanUp();
+#endif
+
+
+// Disable thread interrupts.
+class DisableThreadInterruptsScope : public StackResource {
+ public:
+  explicit DisableThreadInterruptsScope(Thread* thread);
+  ~DisableThreadInterruptsScope();
 };
 
 }  // namespace dart

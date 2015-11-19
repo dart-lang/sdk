@@ -86,6 +86,11 @@ _injectJs() {
       return this.str.charCodeAt(index);
     }
   };
+  function getCanvasContext() {
+    return document.createElement('canvas').getContext('2d');
+  }
+  window.windowProperty = 42;
+  document.documentProperty = 45;
 """);
 }
 
@@ -175,6 +180,15 @@ class StringWrapper {
 // Defeat JS type inference by calling through JavaScript interop.
 @JS()
 external confuse(obj);
+
+@JS()
+external CanvasRenderingContext2D getCanvasContext();
+
+@JS('window.window.document.documentProperty')
+external num get propertyOnDocument;
+
+@JS('window.self.window.window.windowProperty')
+external num get propertyOnWindow;
 
 main() {
   _injectJs();
@@ -372,6 +386,15 @@ main() {
     test('dart interfaces', () {
       expect(foo is Function, isFalse);
       expect(selection is List, isTrue);
+    });
+  });
+  group('html', () {
+    test('return html type', () {
+      expect(getCanvasContext() is CanvasRenderingContext2D, isTrue);
+    });
+    test('js path contains html types', () {
+      expect(propertyOnWindow, equals(42));
+      expect(propertyOnDocument, equals(45));
     });
   });
 }

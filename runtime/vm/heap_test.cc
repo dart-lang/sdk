@@ -280,9 +280,9 @@ TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
   Heap* heap = Thread::Current()->isolate()->heap();
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
-  heap->WriteProtect(true);
+  heap->WriteProtect(true, true /* include_code_pages */);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
-  heap->WriteProtect(false);
+  heap->WriteProtect(false, true /* include_code_pages */);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
 }
 

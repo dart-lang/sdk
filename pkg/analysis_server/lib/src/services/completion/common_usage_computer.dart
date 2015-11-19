@@ -13,6 +13,10 @@ import 'package:analysis_server/src/services/completion/dart_completion_manager.
     show DART_RELEVANCE_COMMON_USAGE;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
+import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/src/task/dart.dart';
 
 part 'common_usage_generated.dart';
 
@@ -33,9 +37,28 @@ class CommonUsageComputer implements ContributionSorter {
   CommonUsageComputer([this.selectorRelevance = defaultSelectorRelevance]);
 
   @override
-  void sort(DartCompletionRequest request,
-      Iterable<CompletionSuggestion> suggestions) {
+  AnalysisRequest sort(
+      CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
     _update(request, suggestions);
+    return null;
+  }
+
+  CompletionTarget _getCompletionTarget(CompletionRequest request) {
+    // TODO (danrubel) get cached completion target
+    var libSrcs = request.context.getLibrariesContaining(request.source);
+    if (libSrcs.length == 0) {
+      return null;
+    }
+    var libElem = request.context.getResult(libSrcs[0], LIBRARY_ELEMENT1);
+    if (libElem is LibraryElement) {
+      var unit = request.context.getResult(
+          new LibrarySpecificUnit(libElem.source, request.source),
+          RESOLVED_UNIT3);
+      if (unit is CompilationUnit) {
+        return new CompletionTarget.forOffset(unit, request.offset);
+      }
+    }
+    return null;
   }
 
   /**
@@ -43,16 +66,19 @@ class CommonUsageComputer implements ContributionSorter {
    * The compilation unit and completion node
    * in the given completion context may not be resolved.
    */
-  void _update(DartCompletionRequest request,
-      Iterable<CompletionSuggestion> suggestions) {
-    var visitor = new _BestTypeVisitor(request.target.entity);
-    DartType type = request.target.containingNode.accept(visitor);
-    if (type != null) {
-      Element typeElem = type.element;
-      if (typeElem != null) {
-        LibraryElement libElem = typeElem.library;
-        if (libElem != null) {
-          _updateInvocationRelevance(request, type, libElem, suggestions);
+  void _update(
+      CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
+    var target = _getCompletionTarget(request);
+    if (target != null) {
+      var visitor = new _BestTypeVisitor(target.entity);
+      DartType type = target.containingNode.accept(visitor);
+      if (type != null) {
+        Element typeElem = type.element;
+        if (typeElem != null) {
+          LibraryElement libElem = typeElem.library;
+          if (libElem != null) {
+            _updateInvocationRelevance(type, libElem, suggestions);
+          }
         }
       }
     }
@@ -62,8 +88,8 @@ class CommonUsageComputer implements ContributionSorter {
    * Adjusts the relevance of all method suggestions based upon the given
    * target type and library.
    */
-  void _updateInvocationRelevance(DartCompletionRequest request, DartType type,
-      LibraryElement libElem, Iterable<CompletionSuggestion> suggestions) {
+  void _updateInvocationRelevance(DartType type, LibraryElement libElem,
+      Iterable<CompletionSuggestion> suggestions) {
     String typeName = type.name;
     List<String> selectors = selectorRelevance['${libElem.name}.${typeName}'];
     if (selectors != null) {

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correctness of side effects tracking used by load to load forwarding.
 
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr --enable-inlining-annotations
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --enable-inlining-annotations --no-background-compilation
 
 // Tests correct handling of redefinitions in aliasing computation.
 

@@ -657,13 +657,15 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
 }
 
 
-void PageSpace::WriteProtect(bool read_only) {
+void PageSpace::WriteProtect(bool read_only, bool include_code_pages) {
   if (read_only) {
     // Avoid MakeIterable trying to write to the heap.
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    it.page()->WriteProtect(read_only);
+    if ((it.page()->type() != HeapPage::kExecutable) || include_code_pages) {
+      it.page()->WriteProtect(read_only);
+    }
   }
 }
 

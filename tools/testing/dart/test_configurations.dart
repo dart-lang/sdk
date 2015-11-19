@@ -99,6 +99,7 @@ void testConfigurations(List<Map> configurations) {
       List settings = ['compiler', 'runtime', 'mode', 'arch']
           .map((name) => conf[name]).toList();
       if (conf['checked']) settings.add('checked');
+      if (conf['noopt']) settings.add('noopt');
       output_words.add(settings.join('_'));
     }
     print(output_words.join(' '));

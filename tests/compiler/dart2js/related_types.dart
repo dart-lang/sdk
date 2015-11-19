@@ -78,6 +78,8 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   ClassWorld get world => compiler.world;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   CoreTypes get coreTypes => compiler.coreTypes;
 
   DiagnosticReporter get reporter => compiler.reporter;
@@ -167,7 +169,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `Iterable`, if any.
   InterfaceType findIterableType(DartType receiver) {
-    return findClassType(receiver, compiler.iterableClass);
+    return findClassType(receiver, coreClasses.iterableClass);
   }
 
   /// Returns the element type of the supertype of [receiver] that implements
@@ -179,7 +181,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `Map`, if any.
   InterfaceType findMapType(DartType receiver) {
-    return findClassType(receiver, compiler.mapClass);
+    return findClassType(receiver, coreClasses.mapClass);
   }
 
   /// Returns the key type of the supertype of [receiver] that implements
@@ -198,7 +200,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `List`, if any.
   InterfaceType findListType(DartType receiver) {
-    return findClassType(receiver, compiler.listClass);
+    return findClassType(receiver, coreClasses.listClass);
   }
 
   /// Returns the element type of the supertype of [receiver] that implements

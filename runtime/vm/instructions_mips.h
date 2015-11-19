@@ -97,6 +97,27 @@ class NativeCallPattern : public ValueObject {
 };
 
 
+// Instance call that can switch from an IC call to a megamorphic call
+//   load ICData             load MegamorphicCache
+//   call ICLookup stub  ->  call MegamorphicLookup stub
+//   call target             call target
+class SwitchableCallPattern : public ValueObject {
+ public:
+  SwitchableCallPattern(uword pc, const Code& code);
+
+  RawObject* cache() const;
+  void SetCache(const MegamorphicCache& cache) const;
+  void SetLookupStub(const Code& stub) const;
+
+ private:
+  const ObjectPool& object_pool_;
+  intptr_t cache_pool_index_;
+  intptr_t stub_pool_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(SwitchableCallPattern);
+};
+
+
 class ReturnPattern : public ValueObject {
  public:
   explicit ReturnPattern(uword pc);

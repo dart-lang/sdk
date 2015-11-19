@@ -7350,7 +7350,9 @@ zap: baz
     SourceSpan span = new SourceFile(src).span(offset, offset + length);
 
     reporter.reportErrorForSpan(
-        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION, span, ['test', 'zap']);
+        AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
+        span,
+        ['test', 'zip', 'zap']);
     expect(listener.errors, hasLength(1));
     expect(listener.errors.first.offset, offset);
     expect(listener.errors.first.length, length);

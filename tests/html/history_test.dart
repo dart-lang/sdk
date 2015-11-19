@@ -34,6 +34,17 @@ main() {
       }, expectation);
     });
 
+    test('pushState with data', () {
+      expect(() {
+        window.history.pushState({'one' : 1}, document.title, '?dummy');
+        expect(window.history.state, equals({'one' : 1}));
+        window.history.pushState(null, document.title, '?foo=bar');
+
+        expect(window.location.href.endsWith('foo=bar'), isTrue);
+
+      }, expectation);
+    });
+
     test('back', () {
       expect(() {
         window.history.pushState(null, document.title, '?dummy1');

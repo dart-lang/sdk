@@ -377,8 +377,8 @@ class ObjectGraph {
     _addrToId = null;
     _chunks = null;
 
-    statusReporter.add("Finding post order...");
-    await new Future(() => _buildPostOrder());
+    statusReporter.add("Finding depth-first order...");
+    await new Future(() => _dfs());
 
     statusReporter.add("Finding predecessors...");
     await new Future(() => _buildPredecessors());
@@ -388,12 +388,14 @@ class ObjectGraph {
 
     _firstPreds = null;
     _preds = null;
-    _postOrderIndices = null;
+
+    _semi = null;
+    _parent = null;
 
     statusReporter.add("Finding retained sizes...");
     await new Future(() => _calculateRetainedSizes());
 
-    _postOrderOrdinals = null;
+    _vertex = null;
 
     statusReporter.add("Loaded");
     return this;
@@ -417,8 +419,9 @@ class ObjectGraph {
 
   // Intermediates.
   AddressMapper _addrToId;
-  Uint32List _postOrderOrdinals; // post-order index -> id
-  Uint32List _postOrderIndices; // id -> post-order index
+  Uint32List _vertex;
+  Uint32List _parent;
+  Uint32List _semi;
   Uint32List _firstPreds; // Offset into preds.
   Uint32List _preds;
 
@@ -514,56 +517,70 @@ class ObjectGraph {
     _succs = succs;
   }
 
-  void _buildPostOrder() {
+  void _dfs() {
     var N = _N;
     var E = _E;
     var firstSuccs = _firstSuccs;
     var succs = _succs;
 
-    var postOrderOrdinals = new Uint32List(N);
-    var postOrderIndices = new Uint32List(N + 1);
     var stackNodes = new Uint32List(N);
     var stackCurrentEdgePos = new Uint32List(N);
 
-    var visited = new Uint8List(N + 1);
-    var postOrderIndex = 0;
+    var vertex = new Uint32List(N + 1);
+    var semi = new Uint32List(N + 1);
+    var parent = new Uint32List(N + 1);
+    var dfsNumber = 0;
+
+    var dfsCount = 0;
     var stackTop = 0;
     var root = 1;
 
+    // Push root.
     stackNodes[0] = root;
     stackCurrentEdgePos[0] = firstSuccs[root];
-    visited[root] = 1;
 
     while (stackTop >= 0) {
-      var n = stackNodes[stackTop];
+      var v = stackNodes[stackTop];
       var edgePos = stackCurrentEdgePos[stackTop];
 
-      if (edgePos < firstSuccs[n + 1]) {
+      if (semi[v] == 0) {
+        // First visit.
+        dfsNumber++;
+        semi[v] = dfsNumber;
+        vertex[dfsNumber] = v;
+      }
+
+      if (edgePos < firstSuccs[v + 1]) {
         var childId = succs[edgePos];
         edgePos++;
         stackCurrentEdgePos[stackTop] = edgePos;
-        if (visited[childId] == 1) continue;
 
-        // Push child.
-        stackTop++;
-        stackNodes[stackTop] = childId;
-        edgePos = firstSuccs[childId];
-        stackCurrentEdgePos[stackTop] = edgePos;
-        visited[childId] = 1;
+        if (semi[childId] == 0) {
+          parent[childId] = v;
+
+          // Push child.
+          stackTop++;
+          stackNodes[stackTop] = childId;
+          stackCurrentEdgePos[stackTop] = firstSuccs[childId];
+        }
       } else {
         // Done with all children.
-        postOrderIndices[n] = postOrderIndex;
-        postOrderOrdinals[postOrderIndex++] = n;
         stackTop--;
       }
     }
 
-    assert(postOrderIndex == N);
-    assert(postOrderOrdinals[N - 1] == root);
+    assert(dfsNumber == N);
+    for (var i = 1; i <= N; i++) {
+      assert(semi[i] != 0);
+    }
+    assert(parent[1] == 0);
+    for (var i = 2; i <= N; i++) {
+      assert(parent[i] != 0);
+    }
 
-    _postOrderOrdinals = postOrderOrdinals;
-    _postOrderIndices = postOrderIndices;
-    _E = E;
+    _vertex = vertex;
+    _semi = semi;
+    _parent = parent;
   }
 
   void _buildPredecessors() {
@@ -616,86 +633,166 @@ class ObjectGraph {
     _preds = preds;
   }
 
-  // "A Simple, Fast Dominance Algorithm"
-  // Keith D. Cooper, Timothy J. Harvey, and Ken Kennedy
+  static int _eval(int v,
+                   Uint32List ancestor,
+                   Uint32List semi,
+                   Uint32List label,
+                   Uint32List stackNode,
+                   Uint8List stackState) {
+    if (ancestor[v] == 0) {
+      return label[v];
+    } else {
+      {
+        // Inlined 'compress' with an explicit stack to prevent JS stack
+        // overflow.
+        var top = 0;
+        stackNode[top] = v;
+        stackState[top] = 0;
+        while (top >= 0) {
+          var v = stackNode[top];
+          var state = stackState[top];
+          if (state == 0) {
+            assert(ancestor[v] != 0);
+            if (ancestor[ancestor[v]] != 0) {
+              stackState[top] = 1;
+              // Recurse with ancestor[v]
+              top++;
+              stackNode[top] = ancestor[v];
+              stackState[top] = 0;
+            } else {
+              top--;
+            }
+          } else {
+            assert(state == 1);
+            if (semi[label[ancestor[v]]] < semi[label[v]]) {
+              label[v] = label[ancestor[v]];
+            }
+            ancestor[v] = ancestor[ancestor[v]];
+            top--;
+          }
+        }
+      }
+
+      if (semi[label[ancestor[v]]] >= semi[label[v]]) {
+        return label[v];
+      } else {
+        return label[ancestor[v]];
+      }
+    }
+  }
+
+  // Note the version in the main text of Lengauer & Tarjan incorrectly
+  // uses parent instead of ancestor. The correct version is in Appendix B.
+  static void _link(int v,
+                    int w,
+                    Uint32List size,
+                    Uint32List label,
+                    Uint32List semi,
+                    Uint32List child,
+                    Uint32List ancestor) {
+    assert(size[0] == 0);
+    assert(label[0] == 0);
+    assert(semi[0] == 0);
+    var s = w;
+    while (semi[label[w]] < semi[label[child[s]]]) {
+      if (size[s] + size[child[child[s]]] >= 2 * size[child[s]]) {
+        ancestor[child[s]] = s;
+        child[s] = child[child[s]];
+      } else {
+        size[child[s]] = size[s];
+        s = ancestor[s] = child[s];
+      }
+    }
+    label[s] = label[w];
+    size[v] = size[v] + size[w];
+    if (size[v] < 2 * size[w]) {
+      var tmp = s;
+      s = child[v];
+      child[v] = tmp;
+    }
+    while (s != 0) {
+      ancestor[s] = v;
+      s = child[s];
+    }
+  }
+
+  // T. Lengauer and R. E. Tarjan. "A Fast Algorithm for Finding Dominators
+  // in a Flowgraph."
   void _buildDominators() {
     var N = _N;
 
-    var postOrder = _postOrderOrdinals;
-    var postOrderIndex = _postOrderIndices;
+    var vertex = _vertex;
+    var semi = _semi;
+    var parent = _parent;
     var firstPreds = _firstPreds;
     var preds = _preds;
 
     var root = 1;
-    var rootPostOrderIndex = postOrderIndex[root];
-    var domByPOI = new Uint32List(N + 1);
+    var dom = new Uint32List(N + 1);
 
-    domByPOI[rootPostOrderIndex] = rootPostOrderIndex;
+    var ancestor = new Uint32List(N + 1);
+    var label = new Uint32List(N + 1);
+    for (var i = 1; i <= N; i++) {
+      label[i] = i;
+    }
+    var buckets = new List(N + 1);
+    var child = new Uint32List(N + 1);
+    var size = new Uint32List(N + 1);
+    for (var i = 1; i <= N; i++) {
+      size[i] = 1;
+    }
+    var stackNode = new Uint32List(N + 1);
+    var stackState = new Uint8List(N + 1);
 
-    var iteration = 0;
-    var changed = true;
-    while (changed) {
-      changed = false;
-      Logger.root.info("Find dominators iteration $iteration");
-      iteration++; // dart2js heaps typically converge in 10 iterations.
+    for (var i = N; i > 1; i--) {
+      var w = vertex[i];
+      assert(w != root);
 
-      // Visit the nodes, except the root, in reverse post order (top down).
-      for (var curPostOrderIndex = rootPostOrderIndex - 1;
-           curPostOrderIndex > 1;
-           curPostOrderIndex--) {
-        if (domByPOI[curPostOrderIndex] == rootPostOrderIndex)
-          continue;
-
-        var nodeOrdinal = postOrder[curPostOrderIndex];
-        var newDomIndex = 0; // 0 = undefined
-
-        // Intersect the DOM sets of the node's precedessors.
-        var beginPredIndex = firstPreds[nodeOrdinal];
-        var endPredIndex = firstPreds[nodeOrdinal + 1];
-        for (var predIndex = beginPredIndex;
-             predIndex < endPredIndex;
-             predIndex++) {
-          var predOrdinal = preds[predIndex];
-          var predPostOrderIndex = postOrderIndex[predOrdinal];
-          if (domByPOI[predPostOrderIndex] != 0) {
-            if (newDomIndex == 0) {
-              newDomIndex = predPostOrderIndex;
-            } else {
-              // Note this two finger algorithm to find the DOM intersection
-              // relies on comparing nodes by their post order index.
-              while (predPostOrderIndex != newDomIndex) {
-                while(predPostOrderIndex < newDomIndex)
-                  predPostOrderIndex = domByPOI[predPostOrderIndex];
-                while (newDomIndex < predPostOrderIndex)
-                  newDomIndex = domByPOI[newDomIndex];
-              }
-            }
-            if (newDomIndex == rootPostOrderIndex) {
-              break;
-            }
-          }
+      // Lengauer & Tarjan Step 2.
+      var startPred = firstPreds[w];
+      var limitPred = firstPreds[w + 1];
+      for (var predIndex = startPred;
+           predIndex < limitPred;
+           predIndex++) {
+        var v = preds[predIndex];
+        var u = _eval(v, ancestor, semi, label, stackNode, stackState);
+        if (semi[u] < semi[w]) {
+          semi[w] = semi[u];
         }
-        if (newDomIndex != 0 && domByPOI[curPostOrderIndex] != newDomIndex) {
-          domByPOI[curPostOrderIndex] = newDomIndex;
-          changed = true;
+      }
+
+      // w.semi.bucket.add(w);
+      var tmp = vertex[semi[w]];
+      if (buckets[tmp] == null) {
+        buckets[tmp] = new List();
+      }
+      buckets[tmp].add(w);
+
+      _link(parent[w], w, size, label, semi, child, ancestor);
+
+      // Lengauer & Tarjan Step 3.
+      tmp = parent[w];
+      var bucket = buckets[tmp];
+      buckets[tmp] = null;
+      if (bucket != null) {
+        for (var v in bucket) {
+          var u = _eval(v, ancestor, semi, label, stackNode, stackState);
+          dom[v] = semi[u] < semi[v] ? u : parent[w];
         }
       }
     }
-
-    Logger.root.info("Start remap dominators");
-
-    // Reindex doms by id instead of post order index so we can throw away
-    // the post order arrays.
-    var domById = new Uint32List(N + 1);
-    for (var id = 1; id <= N; id++) {
-      domById[id] = postOrder[domByPOI[postOrderIndex[id]]];
+    for (var i = 1; i <= N; i++) {
+      assert(buckets[i] == null);
+    }
+    // Lengauer & Tarjan Step 4.
+    for (var i = 2; i <= N; i++) {
+      var w = vertex[i];
+      if (dom[w] != vertex[semi[w]]) {
+        dom[w] = dom[dom[w]];
+      }
     }
 
-    Logger.root.info("End remap dominators");
-
-    domById[root] = 0;
-
-    _doms = domById;
+    _doms = dom;
   }
 
   void _calculateRetainedSizes() {
@@ -703,7 +800,7 @@ class ObjectGraph {
 
     var size = 0;
     var shallowSizes = _shallowSizes;
-    var postOrderOrdinals = _postOrderOrdinals;
+    var vertex = _vertex;
     var doms = _doms;
 
     // Sum shallow sizes.
@@ -716,9 +813,9 @@ class ObjectGraph {
 
     // In post order (bottom up), add retained size to dominator's retained
     // size, skipping root.
-    for (var o = 0; o < (N - 1); o++) {
-      var i = postOrderOrdinals[o];
-      assert(i != 1);
+    for (var i = N; i > 1; i--) {
+      var v = vertex[i];
+      assert(v != 1);
       retainedSizes[doms[i]] += retainedSizes[i];
     }
 

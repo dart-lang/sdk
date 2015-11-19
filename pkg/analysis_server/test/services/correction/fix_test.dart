@@ -335,35 +335,34 @@ main() {
 ''');
     List<AnalysisError> errors = context.computeErrors(testSource);
     expect(errors, hasLength(2));
-    // ParserError: Expected to find ';'
-    {
-      AnalysisError error = errors[0];
-      expect(error.message, "Expected to find ';'");
-      List<Fix> fixes = _computeFixes(error);
-      expect(fixes, isEmpty);
-    }
-    // Undefined name 'await'
-    {
-      AnalysisError error = errors[1];
-      expect(error.message, "Undefined name 'await'");
-      List<Fix> fixes = _computeFixes(error);
-      // has exactly one fix
-      expect(fixes, hasLength(1));
-      Fix fix = fixes[0];
-      expect(fix.kind, DartFixKind.ADD_ASYNC);
-      // apply to "file"
-      List<SourceFileEdit> fileEdits = fix.change.edits;
-      expect(fileEdits, hasLength(1));
-      resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
-      // verify
-      expect(
-          resultCode,
-          '''
+    String message1 = "Expected to find ';'";
+    String message2 = "Undefined name 'await'";
+    expect(errors.map((e) => e.message), unorderedEquals([message1, message2]));
+    for (AnalysisError error in errors) {
+      if (error.message == message1) {
+        List<Fix> fixes = _computeFixes(error);
+        expect(fixes, isEmpty);
+      }
+      if (error.message == message2) {
+        List<Fix> fixes = _computeFixes(error);
+        // has exactly one fix
+        expect(fixes, hasLength(1));
+        Fix fix = fixes[0];
+        expect(fix.kind, DartFixKind.ADD_ASYNC);
+        // apply to "file"
+        List<SourceFileEdit> fileEdits = fix.change.edits;
+        expect(fileEdits, hasLength(1));
+        resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
+        // verify
+        expect(
+            resultCode,
+            '''
 foo() {}
 main() async {
   await foo();
 }
 ''');
+      }
     }
   }
 
@@ -394,6 +393,51 @@ main() {
         '''
 main() {
   bool v;
+}
+''');
+  }
+
+  void test_canBeNullAfterNullAware_chain() {
+    resolveTestUnit('''
+main(x) {
+  x?.a.b.c;
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a?.b?.c;
+}
+''');
+  }
+
+  void test_canBeNullAfterNullAware_methodInvocation() {
+    resolveTestUnit('''
+main(x) {
+  x?.a.b();
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a?.b();
+}
+''');
+  }
+
+  void test_canBeNullAfterNullAware_propertyAccess() {
+    resolveTestUnit('''
+main(x) {
+  x?.a().b;
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a()?.b;
 }
 ''');
   }
@@ -3253,7 +3297,7 @@ main(Object p) {
 }
 ''');
     assertHasFix(
-        DartFixKind.REMOVE_UNNECASSARY_CAST,
+        DartFixKind.REMOVE_UNNECESSARY_CAST,
         '''
 main(Object p) {
   if (p is String) {

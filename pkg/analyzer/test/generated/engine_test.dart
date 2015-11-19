@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/generated/ast.dart';
@@ -2351,6 +2352,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzeFunctionBodies = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
+      options.enableGenericMethods = booleanValue;
       options.enableStrictCallChecks = booleanValue;
       options.enableSuperMixins = booleanValue;
       options.generateImplicitErrors = booleanValue;
@@ -2394,6 +2396,13 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
+  }
+
+  void test_enableGenericMethods() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.enableGenericMethods;
+    options.enableGenericMethods = value;
+    expect(options.enableGenericMethods, value);
   }
 
   void test_enableSuperMixins() {
@@ -5683,6 +5692,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  EmbedderYamlLocator get embedderYamlLocator {
+    fail("Unexpected invocation of get embedderYamlLocator");
+    return null;
+  }
+
+  @override
   void set analysisOptions(AnalysisOptions options) {
     fail("Unexpected invocation of setAnalysisOptions");
   }
@@ -5841,6 +5856,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   List<newContext.WorkManager> get workManagers {
     fail("Unexpected invocation of workManagers");
+    return null;
   }
 
   @override
@@ -5854,8 +5870,9 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  void applyChanges(ChangeSet changeSet) {
+  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
     fail("Unexpected invocation of applyChanges");
+    return null;
   }
 
   @override
@@ -5960,6 +5977,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   Object getConfigurationData(newContext.ResultDescriptor key) {
     fail("Unexpected invocation of getConfigurationData");
+    return null;
   }
 
   @override
@@ -6223,8 +6241,9 @@ class TestAnalysisContext_test_applyChanges extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_applyChanges();
   @override
-  void applyChanges(ChangeSet changeSet) {
+  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
     invoked = true;
+    return new ApplyChangesStatus(false);
   }
 }
 

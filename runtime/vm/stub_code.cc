@@ -79,7 +79,16 @@ void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+bool StubCode::HasBeenInitialized() {
+  // Use JumpToExceptionHandler and InvokeDart as canaries.
+  const StubEntry* entry_1 = StubCode::JumpToExceptionHandler_entry();
+  const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
+  return (entry_1 != NULL) && (entry_2 != NULL);
+}
+
+
 bool StubCode::InInvocationStub(uword pc) {
+  ASSERT(HasBeenInitialized());
   uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
@@ -87,6 +96,7 @@ bool StubCode::InInvocationStub(uword pc) {
 
 
 bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
+  ASSERT(HasBeenInitialized());
   uword entry = StubCode::JumpToExceptionHandler_entry()->EntryPoint();
   uword size = StubCode::JumpToExceptionHandlerSize();
   return (pc >= entry) && (pc < (entry + size));
@@ -106,7 +116,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     Assembler assembler;
     const char* name = cls.ToCString();
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
-    stub ^= Code::FinalizeCode(name, &assembler);
+    stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
@@ -143,7 +153,8 @@ RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler;
   GenerateStub(&assembler);
-  const Code& code = Code::Handle(Code::FinalizeCode(name, &assembler));
+  const Code& code = Code::Handle(
+      Code::FinalizeCode(name, &assembler, false /* optimized */));
   if (FLAG_disassemble_stubs) {
     LogBlock lb;
     THR_Print("Code for stub '%s': {\n", name);

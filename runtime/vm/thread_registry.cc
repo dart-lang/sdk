@@ -10,7 +10,6 @@
 namespace dart {
 
 ThreadRegistry::~ThreadRegistry() {
-  ReclaimTimelineBlocks();
   // Delete monitor.
   delete monitor_;
 }
@@ -34,7 +33,7 @@ void ThreadRegistry::SafepointThreads() {
   // TODO(koda): Rename Thread::PrepareForGC and call it here?
   --remaining_;  // Exclude this thread from the count.
   // Ensure the main mutator will reach a safepoint (could be running Dart).
-  if (!isolate->MutatorThreadIsCurrentThread()) {
+  if (!Thread::Current()->IsMutatorThread()) {
     isolate->ScheduleInterrupts(Isolate::kVMInterrupt);
   }
   while (remaining_ > 0) {
@@ -67,54 +66,7 @@ void ThreadRegistry::PruneThread(Thread* thread) {
   if (found_index < 0) {
     return;
   }
-  {
-    TimelineEventRecorder* recorder = Timeline::recorder();
-    if (recorder != NULL) {
-      // Cleanup entry.
-      Entry& entry_to_remove = entries_[found_index];
-      ReclaimTimelineBlockLocked(&entry_to_remove);
-    }
-  }
-  if (found_index != (length - 1)) {
-    // Swap with last entry.
-    entries_.Swap(found_index, length - 1);
-  }
-  entries_.RemoveLast();
-}
-
-
-void ThreadRegistry::ReclaimTimelineBlocks() {
-  // Each thread that is scheduled in this isolate may have a cached timeline
-  // block. Mark these timeline blocks as finished.
-  MonitorLocker ml(monitor_);
-  TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder != NULL) {
-    for (intptr_t i = 0; i < entries_.length(); i++) {
-      // NOTE: It is only safe to access |entry.state| here.
-      Entry& entry = entries_[i];
-      ReclaimTimelineBlockLocked(&entry);
-    }
-  }
-}
-
-
-void ThreadRegistry::ReclaimTimelineBlockLocked(Entry* entry) {
-  if (entry == NULL) {
-    return;
-  }
-  TimelineEventRecorder* recorder = Timeline::recorder();
-  if (!entry->scheduled && (entry->state.timeline_block != NULL)) {
-    // Currently unscheduled thread.
-    recorder->FinishBlock(entry->state.timeline_block);
-    entry->state.timeline_block = NULL;
-  } else if (entry->scheduled) {
-    // Currently scheduled thread.
-    Thread* thread = entry->thread;
-    // Take |Thread| lock.
-    MutexLocker thread_lock(thread->timeline_block_lock());
-    recorder->FinishBlock(thread->timeline_block());
-    thread->set_timeline_block(NULL);
-  }
+  entries_.RemoveAt(found_index);
 }
 
 

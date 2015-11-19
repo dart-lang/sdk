@@ -53,7 +53,9 @@ static void unmap(void* address, intptr_t size) {
 
 
 VirtualMemory::~VirtualMemory() {
-  unmap(address(), reserved_size_);
+  if (!embedder_allocated()) {
+    unmap(address(), reserved_size_);
+  }
 }
 
 

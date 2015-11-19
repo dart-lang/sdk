@@ -984,18 +984,18 @@ class ProfileBuilder : public ValueObject {
     kNumProfileInfoKind,
   };
 
-  ProfileBuilder(Isolate* isolate,
+  ProfileBuilder(Thread* thread,
                  SampleFilter* filter,
                  Profile::TagOrder tag_order,
                  intptr_t extra_tags,
                  Profile* profile)
-      : isolate_(isolate),
+      : thread_(thread),
         vm_isolate_(Dart::vm_isolate()),
         filter_(filter),
         tag_order_(tag_order),
         extra_tags_(extra_tags),
         profile_(profile),
-        deoptimized_code_(new DeoptimizedCodeSet(isolate)),
+        deoptimized_code_(new DeoptimizedCodeSet(thread->isolate())),
         null_code_(Code::ZoneHandle()),
         null_function_(Function::ZoneHandle()),
         tick_functions_(false),
@@ -1051,12 +1051,7 @@ class ProfileBuilder : public ValueObject {
 
   void FilterSamples() {
     ScopeTimer sw("ProfileBuilder::FilterSamples", FLAG_trace_profiler);
-    MutexLocker profiler_data_lock(isolate_->profiler_data_mutex());
-    IsolateProfilerData* profiler_data = isolate_->profiler_data();
-    if (profiler_data == NULL) {
-      return;
-    }
-    SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+    SampleBuffer* sample_buffer = Profiler::sample_buffer();
     if (sample_buffer == NULL) {
       return;
     }
@@ -1080,6 +1075,27 @@ class ProfileBuilder : public ValueObject {
 
   void BuildCodeTable() {
     ScopeTimer sw("ProfileBuilder::BuildCodeTable", FLAG_trace_profiler);
+
+    Isolate* isolate = thread_->isolate();
+    ASSERT(isolate != NULL);
+
+    // Build the live code table eagerly by populating it with code objects
+    // from the processed sample buffer.
+    const CodeLookupTable& code_lookup_table = samples_->code_lookup_table();
+    for (intptr_t i = 0; i < code_lookup_table.length(); i++) {
+      const CodeDescriptor* descriptor = code_lookup_table.At(i);
+      ASSERT(descriptor != NULL);
+      const Code& code = Code::Handle(descriptor->code());
+      ASSERT(!code.IsNull());
+      RegisterLiveProfileCode(
+          new ProfileCode(ProfileCode::kDartCode,
+                          code.EntryPoint(),
+                          code.EntryPoint() + code.Size(),
+                          code.compile_timestamp(),
+                          code));
+    }
+
+    // Iterate over samples.
     for (intptr_t sample_index = 0;
          sample_index < samples_->length();
          sample_index++) {
@@ -1107,7 +1123,7 @@ class ProfileBuilder : public ValueObject {
            frame_index++) {
         const uword pc = sample->At(frame_index);
         ASSERT(pc != 0);
-        ProfileCode* code = RegisterProfileCode(pc, timestamp);
+        ProfileCode* code = FindOrRegisterProfileCode(pc, timestamp);
         ASSERT(code != NULL);
         code->Tick(pc, IsExecutingFrame(sample, frame_index), sample_index);
       }
@@ -1842,105 +1858,86 @@ class ProfileBuilder : public ValueObject {
     return code;
   }
 
-  ProfileCode* CreateProfileCode(uword pc) {
-    const intptr_t kDartCodeAlignment = OS::PreferredCodeAlignment();
-    const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
-    Code& code = Code::Handle(isolate_->current_zone());
+  bool IsPCInDartHeap(uword pc) {
+    return vm_isolate_->heap()->CodeContains(pc) ||
+           thread_->isolate()->heap()->CodeContains(pc);
+  }
 
-    // Check current isolate for pc.
-    if (isolate_->heap()->CodeContains(pc)) {
-      code ^= Code::LookupCode(pc);
-      if (!code.IsNull()) {
-        deoptimized_code_->Add(code);
-        return new ProfileCode(ProfileCode::kDartCode,
-                              code.EntryPoint(),
-                              code.EntryPoint() + code.Size(),
-                              code.compile_timestamp(),
-                              code);
-      }
-      return new ProfileCode(ProfileCode::kCollectedCode,
-                            pc,
-                            (pc & kDartCodeAlignmentMask) + kDartCodeAlignment,
-                            0,
-                            code);
+
+  ProfileCode* FindOrRegisterNativeProfileCode(uword pc) {
+    // Check if |pc| is already known in the live code table.
+    ProfileCodeTable* live_table = profile_->live_code_;
+    ProfileCode* profile_code = live_table->FindCodeForPC(pc);
+    if (profile_code != NULL) {
+      return profile_code;
     }
 
-    // Check VM isolate for pc.
-    if (vm_isolate_->heap()->CodeContains(pc)) {
-      code ^= Code::LookupCodeInVmIsolate(pc);
-      if (!code.IsNull()) {
-        return new ProfileCode(ProfileCode::kDartCode,
-                              code.EntryPoint(),
-                              code.EntryPoint() + code.Size(),
-                              code.compile_timestamp(),
-                              code);
-      }
-      return new ProfileCode(ProfileCode::kCollectedCode,
-                            pc,
-                            (pc & kDartCodeAlignmentMask) + kDartCodeAlignment,
-                            0,
-                            code);
-    }
+    // We haven't seen this pc yet.
+    Code& code = Code::Handle(thread_->zone());
 
     // Check NativeSymbolResolver for pc.
     uintptr_t native_start = 0;
     char* native_name = NativeSymbolResolver::LookupSymbolName(pc,
                                                                &native_start);
     if (native_name == NULL) {
-      // No native name found.
-      return new ProfileCode(ProfileCode::kNativeCode,
-                            pc,
-                            pc + 1,
-                            0,
-                            code);
+      // Failed to find a native symbol for pc.
+      native_start = pc;
     }
+
+#if defined(HOST_ARCH_ARM)
+    // The symbol for a Thumb function will be xxx1, but we may have samples
+    // at function entry which will have pc xxx0.
+    native_start &= ~1;
+#endif
+
     ASSERT(pc >= native_start);
-    ProfileCode* profile_code =
-        new ProfileCode(ProfileCode::kNativeCode,
-                       native_start,
-                       pc + 1,
-                       0,
-                       code);
-    profile_code->SetName(native_name);
-    free(native_name);
+    profile_code = new ProfileCode(ProfileCode::kNativeCode,
+                                   native_start,
+                                   pc + 1,
+                                   0,
+                                   code);
+    if (native_name != NULL) {
+      profile_code->SetName(native_name);
+      NativeSymbolResolver::FreeSymbolName(native_name);
+    }
+
+    RegisterLiveProfileCode(profile_code);
     return profile_code;
   }
 
-  ProfileCode* RegisterProfileCode(uword pc, int64_t timestamp) {
+  void RegisterLiveProfileCode(ProfileCode* code) {
     ProfileCodeTable* live_table = profile_->live_code_;
+    intptr_t index = live_table->InsertCode(code);
+    ASSERT(index >= 0);
+  }
+
+  ProfileCode* FindOrRegisterDeadProfileCode(uword pc) {
     ProfileCodeTable* dead_table = profile_->dead_code_;
 
-    ProfileCode* code = live_table->FindCodeForPC(pc);
-    if (code == NULL) {
-      // Code not found.
-      intptr_t index = live_table->InsertCode(CreateProfileCode(pc));
-      ASSERT(index >= 0);
-      code = live_table->At(index);
-      if (code->compile_timestamp() <= timestamp) {
-        // Code was compiled before sample was taken.
-        return code;
-      }
-      // Code was compiled after the sample was taken. Insert code object into
-      // the dead code table.
-      index = dead_table->InsertCode(CreateProfileCodeReused(pc));
-      ASSERT(index >= 0);
-      return dead_table->At(index);
-    }
-    // Existing code found.
-    if (code->compile_timestamp() <= timestamp) {
-      // Code was compiled before sample was taken.
-      return code;
-    }
-    // Code was compiled after the sample was taken. Check if we have an entry
-    // in the dead code table.
-    code = dead_table->FindCodeForPC(pc);
+    ProfileCode* code = dead_table->FindCodeForPC(pc);
     if (code != NULL) {
       return code;
     }
+
     // Create a new dead code entry.
     intptr_t index = dead_table->InsertCode(CreateProfileCodeReused(pc));
     ASSERT(index >= 0);
     return dead_table->At(index);
+  }
+
+  ProfileCode* FindOrRegisterProfileCode(uword pc, int64_t timestamp) {
+    ProfileCodeTable* live_table = profile_->live_code_;
+    ProfileCode* code = live_table->FindCodeForPC(pc);
+    if ((code != NULL) && (code->compile_timestamp() <= timestamp)) {
+      // Code was compiled before sample was taken.
+      return code;
+    }
+    if ((code == NULL) && !IsPCInDartHeap(pc)) {
+      // Not a PC from Dart code. Check with native code.
+      return FindOrRegisterNativeProfileCode(pc);
+    }
+    // We either didn't find the code or it was compiled after the sample.
+    return FindOrRegisterDeadProfileCode(pc);
   }
 
   Profile::TagOrder tag_order() const {
@@ -1957,7 +1954,7 @@ class ProfileBuilder : public ValueObject {
     return (extra_tags_ & extra_tags_bits) != 0;
   }
 
-  Isolate* isolate_;
+  Thread* thread_;
   Isolate* vm_isolate_;
   SampleFilter* filter_;
   Profile::TagOrder tag_order_;
@@ -1971,7 +1968,7 @@ class ProfileBuilder : public ValueObject {
 
   ProcessedSampleBuffer* samples_;
   ProfileInfoKind info_kind_;
-};
+};  // ProfileBuilder.
 
 
 Profile::Profile(Isolate* isolate)
@@ -1991,10 +1988,11 @@ Profile::Profile(Isolate* isolate)
 }
 
 
-void Profile::Build(SampleFilter* filter,
+void Profile::Build(Thread* thread,
+                    SampleFilter* filter,
                     TagOrder tag_order,
                     intptr_t extra_tags) {
-  ProfileBuilder builder(isolate_, filter, tag_order, extra_tags, this);
+  ProfileBuilder builder(thread, filter, tag_order, extra_tags, this);
   builder.Build();
 }
 
@@ -2200,28 +2198,22 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
                                     intptr_t extra_tags,
                                     SampleFilter* filter) {
   Isolate* isolate = thread->isolate();
-  // Disable profile interrupts while processing the buffer.
-  Profiler::EndExecution(isolate);
+  // Disable thread interrupts while processing the buffer.
+  DisableThreadInterruptsScope dtis(thread);
 
-  {
-    MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
-    IsolateProfilerData* profiler_data = isolate->profiler_data();
-    if (profiler_data == NULL) {
-      stream->PrintError(kFeatureDisabled, NULL);
-      return;
-    }
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  if (sample_buffer == NULL) {
+    stream->PrintError(kFeatureDisabled, NULL);
+    return;
   }
 
   {
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    profile.Build(filter, tag_order, extra_tags);
+    profile.Build(thread, filter, tag_order, extra_tags);
     profile.PrintJSON(stream);
   }
-
-  // Enable profile interrupts.
-  Profiler::BeginExecution(isolate);
 }
 
 
@@ -2276,24 +2268,19 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
 
 
 void ProfilerService::ClearSamples() {
-  Isolate* isolate = Isolate::Current();
-
-  // Disable profile interrupts while processing the buffer.
-  Profiler::EndExecution(isolate);
-
-  MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
-  IsolateProfilerData* profiler_data = isolate->profiler_data();
-  if (profiler_data == NULL) {
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  if (sample_buffer == NULL) {
     return;
   }
-  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
-  ASSERT(sample_buffer != NULL);
+
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+
+  // Disable thread interrupts while processing the buffer.
+  DisableThreadInterruptsScope dtis(thread);
 
   ClearProfileVisitor clear_profile(isolate);
   sample_buffer->VisitSamples(&clear_profile);
-
-  // Enable profile interrupts.
-  Profiler::BeginExecution(isolate);
 }
 
 }  // namespace dart

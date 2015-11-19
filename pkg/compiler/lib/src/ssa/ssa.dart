@@ -24,6 +24,8 @@ import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show
     Message,
@@ -44,8 +46,6 @@ import '../js_emitter/js_emitter.dart' show
 import '../native/native.dart' as native;
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
-import '../resolution/send_resolver.dart' show
-    SendResolverMixin;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../tree/tree.dart' as ast;
@@ -58,8 +58,10 @@ import '../universe/selector.dart' show
     Selector;
 import '../universe/side_effects.dart' show
     SideEffects;
-import '../universe/universe.dart' show
-    UniverseSelector;
+import '../universe/use.dart' show
+    DynamicUse,
+    StaticUse,
+    TypeUse;
 import '../util/util.dart';
 import '../world.dart' show
     ClassWorld,

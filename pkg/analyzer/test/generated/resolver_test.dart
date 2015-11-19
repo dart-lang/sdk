@@ -201,28 +201,23 @@ class AnalysisContextFactory {
       ElementFactory.positionalParameter2("value", provider.dynamicType)
     ];
     futureConstructor.factory = true;
-    (futureConstructor.type as FunctionTypeImpl).typeArguments =
-        futureElement.type.typeArguments;
     futureElement.constructors = <ConstructorElement>[futureConstructor];
     //   Future then(onValue(T value), { Function onError });
     List<ParameterElement> parameters = <ParameterElement>[
       ElementFactory.requiredParameter2(
           "value", futureElement.typeParameters[0].type)
     ];
-    FunctionTypeAliasElementImpl aliasElement =
-        new FunctionTypeAliasElementImpl.forNode(null);
-    aliasElement.synthetic = true;
-    aliasElement.parameters = parameters;
-    aliasElement.returnType = provider.dynamicType;
-    aliasElement.enclosingElement = asyncUnit;
-    FunctionTypeImpl aliasType = new FunctionTypeImpl.forTypedef(aliasElement);
-    aliasElement.shareTypeParameters(futureElement.typeParameters);
-    aliasType.typeArguments = futureElement.type.typeArguments;
+    FunctionElementImpl onValueFunction = new FunctionElementImpl.forNode(null);
+    onValueFunction.synthetic = true;
+    onValueFunction.parameters = parameters;
+    onValueFunction.returnType = provider.dynamicType;
+    onValueFunction.enclosingElement = futureElement;
+    onValueFunction.type = new FunctionTypeImpl(onValueFunction);
     DartType futureDynamicType =
         futureElement.type.substitute4([provider.dynamicType]);
     MethodElement thenMethod = ElementFactory.methodElementWithParameters(
-        "then", futureElement.type.typeArguments, futureDynamicType, [
-      ElementFactory.requiredParameter2("onValue", aliasType),
+        futureElement, "then", futureDynamicType, [
+      ElementFactory.requiredParameter2("onValue", onValueFunction.type),
       ElementFactory.namedParameter2("onError", provider.functionType)
     ]);
     futureElement.methods = <MethodElement>[thenMethod];
@@ -231,8 +226,6 @@ class AnalysisContextFactory {
         ElementFactory.classElement2("Completer", ["T"]);
     ConstructorElementImpl completerConstructor =
         ElementFactory.constructorElement2(completerElement, null);
-    (completerConstructor.type as FunctionTypeImpl).typeArguments =
-        completerElement.type.typeArguments;
     completerElement.constructors = <ConstructorElement>[completerConstructor];
     // StreamSubscription
     ClassElementImpl streamSubscriptionElement =
@@ -255,6 +248,13 @@ class AnalysisContextFactory {
     MethodElementImpl listenMethod =
         ElementFactory.methodElement('listen', returnType, parameterTypes);
     streamElement.methods = <MethodElement>[listenMethod];
+    listenMethod.type = new FunctionTypeImpl(listenMethod);
+
+    FunctionElementImpl listenParamFunction = parameterTypes[0].element;
+    listenParamFunction.enclosingElement = listenMethod;
+    listenParamFunction.type = new FunctionTypeImpl(listenParamFunction);
+    ParameterElementImpl listenParam = listenMethod.parameters[0];
+    listenParam.type = listenParamFunction.type;
 
     asyncUnit.types = <ClassElement>[
       completerElement,
@@ -2358,6 +2358,61 @@ n(int i) {}''');
     verify([source]);
   }
 
+  void test_canBeNullAfterNullAware_false_methodInvocation() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a()?.b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_false_propertyAccess() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a?.b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_methodInvocation() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a.b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_parenthesized() {
+    Source source = addSource(r'''
+m(x) {
+  (x?.a).b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_propertyAccess() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a.b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse() {
     Source source = addSource(r'''
 f() {
@@ -2762,10 +2817,10 @@ f(A a) {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_Deprecated() {
+  void test_deprecatedAnnotationUse_deprecated() {
     Source source = addSource(r'''
 class A {
-  @Deprecated('0.9')
+  @deprecated
   m() {}
   n() {m();}
 }''');
@@ -2774,10 +2829,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_deprecated() {
+  void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
-  @deprecated
+  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -3150,6 +3205,160 @@ class A {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_assert() {
+    Source source = addSource(r'''
+m(x) {
+  assert (x?.a);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_conditionalExpression() {
+    Source source = addSource(r'''
+m(x) {
+  return x?.a ? 0 : 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_do() {
+    Source source = addSource(r'''
+m(x) {
+  do {} while (x?.a);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_for() {
+    Source source = addSource(r'''
+m(x) {
+  for (var v = x; v?.a; v = v.next) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_first() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a && x.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_second() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a && x?.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_third() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a && x.b && x?.c) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_first() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a || x.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_second() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a || x?.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_third() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a || x.b || x?.c) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_not() {
+    Source source = addSource(r'''
+m(x) {
+  if (!x?.a) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_parenthesized() {
+    Source source = addSource(r'''
+m(x) {
+  if ((x?.a)) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_while() {
+    Source source = addSource(r'''
+m(x) {
+  while (x?.a) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -6895,6 +7104,28 @@ abstract class A {
 
   void test_missingReturn_voidReturnType() {
     Source source = addSource("void f() {}");
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_for_noCondition() {
+    Source source = addSource(r'''
+m(x) {
+  for (var v = x; ; v++) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_notTopLevel() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.y == null) {}
+}
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -11938,6 +12169,82 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_genericFunction() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    // TODO(jmesserly): we're missing a case in the parser for the return type,
+    // so "dynamic" must be used to workaround this.
+    _resolveTestUnit(r'''
+dynamic/*=T*/ f/*<T>*/(/*=T*/ x) => null;
+''');
+    SimpleIdentifier f = _findIdentifier('f');
+    FunctionElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.typeParameters.toString(), '[T]');
+    expect(e.type.typeParameters[0].type, e.type.typeArguments[0]);
+    expect(e.type.toString(), '(T) → T');
+
+    // Substitute for T
+    DartType t = e.typeParameters[0].type;
+    FunctionType ft = e.type.substitute2([typeProvider.stringType], [t]);
+    expect(ft.toString(), '(String) → String');
+  }
+
+  void test_genericMethod() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    _resolveTestUnit(r'''
+class C<E> {
+  List/*<T>*/ f/*<T>*/(E e) => null;
+}
+main() {
+  C<String> cOfString;
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f');
+    MethodElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.typeParameters.toString(), '[T, E]');
+    expect(e.type.typeArguments.toString(), '[T, E]');
+    expect(e.type.toString(), '(E) → List<T>');
+
+    SimpleIdentifier c = _findIdentifier('cOfString');
+    FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
+    expect(ft.toString(), '(String) → List<T>');
+    DartType t = e.typeParameters[0].type;
+    ft = ft.substitute2([typeProvider.intType], [t]);
+    expect(ft.toString(), '(String) → List<int>');
+  }
+
+  void test_genericMethod_functionTypedParameter() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    _resolveTestUnit(r'''
+class C<E> {
+  List/*<T>*/ f/*<T>*/(/*=T*/ f(E e)) => null;
+}
+main() {
+  C<String> cOfString;
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f');
+    MethodElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.typeParameters.toString(), '[T, E]');
+    expect(e.type.typeArguments.toString(), '[T, E]');
+    expect(e.type.toString(), '((E) → T) → List<T>');
+
+    SimpleIdentifier c = _findIdentifier('cOfString');
+    FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
+    expect(ft.toString(), '((String) → T) → List<T>');
+    DartType t = e.typeParameters[0].type;
+    ft = ft.substitute2([typeProvider.intType], [t]);
+    expect(ft.toString(), '((String) → int) → List<int>');
+  }
+
   void test_pseudoGeneric_max_doubleDouble() {
     String code = r'''
 import 'dart:math';
@@ -12933,6 +13240,39 @@ f(Stream<String> stream) async {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "e;", (node) => node is SimpleIdentifier);
       expect(identifier.propagatedType, same(stringType));
+    }
+  }
+
+  void test_forEach_async_inheritedStream() {
+    // From https://github.com/dart-lang/sdk/issues/24191, this ensures that
+    // `await for` works for types where the generic parameter doesn't
+    // correspond to the type of the Stream's data.
+    String code = r'''
+import 'dart:async';
+abstract class MyCustomStream<T> implements Stream<List<T>> {}
+f(MyCustomStream<String> stream) async {
+  await for (var e in stream) {
+    e;
+  }
+}''';
+    Source source = addSource(code);
+    LibraryElement library = resolve2(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    InterfaceType listOfStringType =
+        typeProvider.listType.substitute4([typeProvider.stringType]);
+    // in the declaration
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e in", (node) => node is SimpleIdentifier);
+      expect(identifier.propagatedType, equals(listOfStringType));
+    }
+    // in the loop body
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e;", (node) => node is SimpleIdentifier);
+      expect(identifier.propagatedType, equals(listOfStringType));
     }
   }
 

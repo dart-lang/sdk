@@ -48,6 +48,8 @@ class ThreadRegistry {
     CheckSafepointLocked();
   }
 
+  bool AtSafepoint() const { return in_rendezvous_; }
+
   bool RestoreStateTo(Thread* thread, Thread::State* state,
                       bool bypass_safepoint) {
     MonitorLocker ml(monitor_);
@@ -187,9 +189,6 @@ class ThreadRegistry {
     }
     return NULL;
   }
-
-  // NOTE: Lock should be taken before this function is called.
-  void ReclaimTimelineBlockLocked(Entry* entry);
 
   // Note: Lock should be taken before this function is called.
   void CheckSafepointLocked();

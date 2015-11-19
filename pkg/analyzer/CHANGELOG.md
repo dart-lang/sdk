@@ -1,3 +1,9 @@
+## 0.26.2
+* Add code generation utilities for use in both analyzer and analysis server.
+
+## 0.26.1+17
+* (Internal) Introduced context configuration logic (`configureContext()` extracted from server).
+
 ## 0.26.1+16
 * (Internal) Options validation plugin API update.
 

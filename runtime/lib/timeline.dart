@@ -8,6 +8,8 @@ patch int _getTraceClock() native "Timeline_getTraceClock";
 
 patch int _getNextAsyncId() native "Timeline_getNextAsyncId";
 
+patch int _getIsolateNum() native "Timeline_getIsolateNum";
+
 patch void _reportTaskEvent(
     int start,
     int taskId,
@@ -22,3 +24,9 @@ patch void _reportCompleteEvent(
     String category,
     String name,
     String argumentsAsJson) native "Timeline_reportCompleteEvent";
+
+patch void _reportInstantEvent(
+    int start,
+    String category,
+    String name,
+    String argumentsAsJson) native "Timeline_reportInstantEvent";

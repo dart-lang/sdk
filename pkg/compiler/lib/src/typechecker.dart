@@ -756,7 +756,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           // This is an access the implicit 'call' method of a function type.
           return new FunctionCallAccess(receiverElement, unaliasedBound);
         }
-        if (types.isSubtype(interface, compiler.functionClass.rawType)) {
+        if (types.isSubtype(interface, coreTypes.functionType)) {
           // This is an access of the special 'call' method implicitly defined
           // on 'Function'. This method can be called with any arguments, which
           // we ensure by giving it the type 'dynamic'.
@@ -1023,8 +1023,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   ElementAccess computeAccess(Send node, String name, Element element,
                               MemberKind memberKind,
                               {bool lookupClassMember: false}) {
-    if (element != null && element.isErroneous) {
-      // An error has already been reported for this node.
+    if (Elements.isMalformed(element)) {
       return const DynamicAccess();
     }
     if (node.receiver != null) {
@@ -1063,7 +1062,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     if (element == null) {
       // foo() where foo is unresolved.
       return lookupMember(node, thisType, name, memberKind, null);
-    } else if (element.isErroneous) {
+    } else if (element.isMalformed) {
       // foo() where foo is erroneous.
       return const DynamicAccess();
     } else if (element.impliesType) {
@@ -1199,14 +1198,21 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     Identifier selector = node.selector.asIdentifier();
     if (Elements.isClosureSend(node, element)) {
       if (element != null) {
-        // foo() where foo is a local or a parameter.
-        return analyzeInvocation(node, createPromotedAccess(element));
+        if (element.isError) {
+          // foo() where foo is erroneous
+          return analyzeInvocation(node, const DynamicAccess());
+        } else {
+          assert(invariant(node, element.isLocal,
+              message: "Unexpected element $element in closure send."));
+          // foo() where foo is a local or a parameter.
+          return analyzeInvocation(node, createPromotedAccess(element));
+        }
       } else {
         // exp() where exp is some complex expression like (o) or foo().
         DartType type = analyze(node.selector);
         return analyzeInvocation(node, new TypeAccess(type));
       }
-    } else if (Elements.isErroneous(element) && selector == null) {
+    } else if (Elements.isMalformed(element) && selector == null) {
       // exp() where exp is an erroneous construct like `new Unresolved()`.
       DartType type = analyze(node.selector);
       return analyzeInvocation(node, new TypeAccess(type));
@@ -1335,15 +1341,15 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       LinkBuilder<DartType> argumentTypesBuilder = new LinkBuilder<DartType>();
       DartType resultType =
           analyzeInvocation(node, access, argumentTypesBuilder);
-      if (identical(receiverType.element, compiler.intClass)) {
+      if (receiverType == intType) {
         if (identical(name, '+') ||
             identical(operatorName, '-') ||
             identical(name, '*') ||
             identical(name, '%')) {
           DartType argumentType = argumentTypesBuilder.toLink().head;
-          if (identical(argumentType.element, compiler.intClass)) {
+          if (argumentType == intType) {
             return intType;
-          } else if (identical(argumentType.element, compiler.doubleClass)) {
+          } else if (argumentType == doubleType) {
             return doubleType;
           }
         }
@@ -1590,7 +1596,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   }
 
   DartType visitLiteralSymbol(LiteralSymbol node) {
-    return compiler.symbolClass.rawType;
+    return coreTypes.symbolType;
   }
 
   DartType computeConstructorType(ConstructorElement constructor,
@@ -1829,8 +1835,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   visitAsyncForIn(AsyncForIn node) {
     DartType elementType = computeForInElementType(node);
     DartType expressionType = analyze(node.expression);
-    // TODO(johnniwinther): Move this to _CompilerCoreTypes.
-    compiler.streamClass.ensureResolved(resolution);
     DartType streamOfDynamic = coreTypes.streamType();
     if (!types.isAssignable(expressionType, streamOfDynamic)) {
       reportMessage(node.expression,
@@ -1842,7 +1846,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           Types.computeInterfaceType(resolution, expressionType);
       if (interfaceType != null) {
         InterfaceType streamType =
-            interfaceType.asInstanceOf(compiler.streamClass);
+            interfaceType.asInstanceOf(streamOfDynamic.element);
         if (streamType != null) {
           DartType streamElementType = streamType.typeArguments.first;
           if (!types.isAssignable(streamElementType, elementType)) {

@@ -71,8 +71,9 @@ analyze(String text, [expectedWarnings]) {
                     ''';
     Uri uri = Uri.parse('src:public');
     compiler.registerSource(uri, source);
-    return compiler.runCompiler(uri).then((_) {
-      compareWarningKinds(text, expectedWarnings, compiler.warnings);
+    return compiler.run(uri).then((_) {
+      DiagnosticCollector collector = compiler.diagnosticCollector;
+      compareWarningKinds(text, expectedWarnings, collector.warnings);
     });
   };
 }

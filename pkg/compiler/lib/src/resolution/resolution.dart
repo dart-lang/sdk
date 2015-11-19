@@ -10,6 +10,7 @@ import '../common.dart';
 import '../common/names.dart' show
     Identifiers;
 import '../common/resolution.dart' show
+    Feature,
     Parsing,
     Resolution,
     ResolutionImpact;
@@ -22,6 +23,9 @@ import '../compile_time_constants.dart' show
     ConstantCompiler;
 import '../constants/values.dart' show
     ConstantValue;
+import '../core_types.dart' show
+    CoreClasses,
+    CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
@@ -36,8 +40,6 @@ import '../elements/modelx.dart' show
     ParameterMetadataAnnotation,
     SetterElementX,
     TypedefElementX;
-import '../enqueue.dart' show
-    WorldImpact;
 import '../tokens/token.dart' show
     isBinaryOperator,
     isMinusOperator,
@@ -45,6 +47,13 @@ import '../tokens/token.dart' show
     isUnaryOperator,
     isUserDefinableOperator;
 import '../tree/tree.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/use.dart' show
+    StaticUse,
+    TypeUse;
+import '../universe/world_impact.dart' show
+    WorldImpact;
 import '../util/util.dart' show
     Link,
     LinkBuilder,
@@ -70,9 +79,13 @@ class ResolverTask extends CompilerTask {
 
   Parsing get parsing => compiler.parsing;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  CoreTypes get coreTypes => compiler.coreTypes;
+
   ResolutionImpact resolve(Element element) {
     return measure(() {
-      if (Elements.isErroneous(element)) {
+      if (Elements.isMalformed(element)) {
         // TODO(johnniwinther): Add a predicate for this.
         assert(invariant(element, element is! ErroneousElement,
             message: "Element $element expected to have parse errors."));
@@ -87,15 +100,14 @@ class ResolverTask extends CompilerTask {
         return result;
       }
 
-      ElementKind kind = element.kind;
-      if (identical(kind, ElementKind.GENERATIVE_CONSTRUCTOR) ||
-          identical(kind, ElementKind.FUNCTION) ||
-          identical(kind, ElementKind.GETTER) ||
-          identical(kind, ElementKind.SETTER)) {
+      if (element.isConstructor ||
+          element.isFunction ||
+          element.isGetter ||
+          element.isSetter) {
         return processMetadata(resolveMethodElement(element));
       }
 
-      if (identical(kind, ElementKind.FIELD)) {
+      if (element.isField) {
         return processMetadata(resolveField(element));
       }
       if (element.isClass) {
@@ -123,6 +135,9 @@ class ResolverTask extends CompilerTask {
     while (redirection != null) {
       // Ensure that we follow redirections through implementation elements.
       redirection = redirection.implementation;
+      if (redirection.isError) {
+        break;
+      }
       if (seen.contains(redirection)) {
         reporter.reportErrorMessage(
             node, MessageKind.REDIRECTING_CONSTRUCTOR_CYCLE);
@@ -138,6 +153,7 @@ class ResolverTask extends CompilerTask {
                                  ResolutionRegistry registry) {
     DiagnosticReporter reporter = compiler.reporter;
     Resolution resolution = compiler.resolution;
+    CoreClasses coreClasses = compiler.coreClasses;
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
@@ -174,16 +190,18 @@ class ResolverTask extends CompilerTask {
               {'modifier': element.asyncMarker});
         }
       }
-      registry.registerAsyncMarker(element);
       switch (element.asyncMarker) {
       case AsyncMarker.ASYNC:
-        compiler.futureClass.ensureResolved(resolution);
+        registry.registerFeature(Feature.ASYNC);
+        coreClasses.futureClass.ensureResolved(resolution);
         break;
       case AsyncMarker.ASYNC_STAR:
-        compiler.streamClass.ensureResolved(resolution);
+        registry.registerFeature(Feature.ASYNC_STAR);
+        coreClasses.streamClass.ensureResolved(resolution);
         break;
       case AsyncMarker.SYNC_STAR:
-        compiler.iterableClass.ensureResolved(resolution);
+        registry.registerFeature(Feature.SYNC_STAR);
+        coreClasses.iterableClass.ensureResolved(resolution);
         break;
       }
     }
@@ -192,7 +210,7 @@ class ResolverTask extends CompilerTask {
   bool _isNativeClassOrExtendsNativeClass(ClassElement classElement) {
     assert(classElement != null);
     while (classElement != null) {
-      if (classElement.isNative) return true;
+      if (compiler.backend.isNative(classElement)) return true;
       classElement = classElement.superclass;
     }
     return false;
@@ -264,7 +282,8 @@ class ResolverTask extends CompilerTask {
       }
 
       // TODO(9631): support noSuchMethod on native classes.
-      if (Elements.isInstanceMethod(element) &&
+      if (element.isFunction &&
+          element.isInstanceMember &&
           element.name == Identifiers.noSuchMethod_ &&
           _isNativeClassOrExtendsNativeClass(enclosingClass)) {
         reporter.reportErrorMessage(
@@ -297,13 +316,14 @@ class ResolverTask extends CompilerTask {
           // resolved. This is the only place where the resolver is
           // seeing this element.
           element.computeType(resolution);
-          if (!target.isErroneous) {
-            registry.registerStaticUse(target);
-            registry.registerImplicitSuperCall(target);
+          if (!target.isMalformed) {
+            registry.registerStaticUse(
+                new StaticUse.superConstructorInvoke(
+                    target, CallStructure.NO_ARGS));
           }
           return registry.worldImpact;
         } else {
-          assert(element.isDeferredLoaderGetter || element.isErroneous);
+          assert(element.isDeferredLoaderGetter || element.isMalformed);
           _ensureTreeElements(element);
           return const ResolutionImpact();
         }
@@ -365,7 +385,8 @@ class ResolverTask extends CompilerTask {
       reporter.reportErrorMessage(
           element, MessageKind.FINAL_WITHOUT_INITIALIZER);
     } else {
-      registry.registerInstantiatedClass(compiler.nullClass);
+      // TODO(johnniwinther): Register a feature instead.
+      registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
     }
 
     if (Elements.isStaticOrTopLevelField(element)) {
@@ -380,7 +401,7 @@ class ResolverTask extends CompilerTask {
         if (!element.modifiers.isConst) {
           // TODO(johnniwinther): Determine the const-ness eagerly to avoid
           // unnecessary registrations.
-          registry.registerLazyField();
+          registry.registerFeature(Feature.LAZY_FIELD);
         }
       }
     }
@@ -415,15 +436,16 @@ class ResolverTask extends CompilerTask {
     ConstructorElementX target = constructor;
     InterfaceType targetType;
     List<Element> seen = new List<Element>();
+    bool isMalformed = false;
     // Follow the chain of redirections and check for cycles.
     while (target.isRedirectingFactory || target.isPatched) {
-      if (target.internalEffectiveTarget != null) {
+      if (target.effectiveTargetInternal != null) {
         // We found a constructor that already has been processed.
         targetType = target.effectiveTargetType;
         assert(invariant(target, targetType != null,
             message: 'Redirection target type has not been computed for '
                      '$target'));
-        target = target.internalEffectiveTarget;
+        target = target.effectiveTargetInternal;
         break;
       }
 
@@ -438,10 +460,18 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(
             node, MessageKind.CYCLIC_REDIRECTING_FACTORY);
         targetType = target.enclosingClass.thisType;
+        isMalformed = true;
         break;
       }
       seen.add(target);
       target = nextTarget;
+    }
+
+    if (target.isGenerativeConstructor && target.enclosingClass.isAbstract) {
+      isMalformed = true;
+    }
+    if (target.isMalformed) {
+      isMalformed = true;
     }
 
     if (targetType == null) {
@@ -456,24 +486,18 @@ class ResolverTask extends CompilerTask {
     // substitution of the target type with respect to the factory type.
     while (!seen.isEmpty) {
       ConstructorElementX factory = seen.removeLast();
-
-      // [factory] must already be analyzed but the [TreeElements] might not
-      // have been stored in the enqueuer cache yet.
-      // TODO(johnniwinther): Store [TreeElements] in the cache before
-      // resolution of the element.
       TreeElements treeElements = factory.treeElements;
       assert(invariant(node, treeElements != null,
           message: 'No TreeElements cached for $factory.'));
       if (!factory.isPatched) {
-        FunctionExpression functionNode = factory.parseNode(parsing);
+        FunctionExpression functionNode = factory.node;
         RedirectingFactoryBody redirectionNode = functionNode.body;
         DartType factoryType = treeElements.getType(redirectionNode);
         if (!factoryType.isDynamic) {
           targetType = targetType.substByContext(factoryType);
         }
       }
-      factory.effectiveTarget = target;
-      factory.effectiveTargetType = targetType;
+      factory.setEffectiveTarget(target, targetType, isMalformed: isMalformed);
     }
   }
 
@@ -494,7 +518,7 @@ class ResolverTask extends CompilerTask {
         cls.supertypeLoadState = STATE_DONE;
         cls.hasIncompleteHierarchy = true;
         cls.allSupertypesAndSelf =
-            compiler.objectClass.allSupertypesAndSelf.extendClass(
+            coreClasses.objectClass.allSupertypesAndSelf.extendClass(
                 cls.computeType(resolution));
         cls.supertype = cls.allSupertypes.head;
         assert(invariant(from, cls.supertype != null,
@@ -539,7 +563,8 @@ class ResolverTask extends CompilerTask {
         if (previousResolvedTypeDeclaration == null) {
           do {
             while (!pendingClassesToBeResolved.isEmpty) {
-              pendingClassesToBeResolved.removeFirst().ensureResolved(resolution);
+              pendingClassesToBeResolved.removeFirst()
+                  .ensureResolved(resolution);
             }
             while (!pendingClassesToBePostProcessed.isEmpty) {
               _postProcessClassElement(
@@ -832,7 +857,7 @@ class ResolverTask extends CompilerTask {
       reporter.internalError(member,
           "No abstract field for accessor");
     } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
-      if (lookupElement.isErroneous || lookupElement.isAmbiguous) return;
+      if (lookupElement.isMalformed || lookupElement.isAmbiguous) return;
       reporter.internalError(member,
           "Inaccessible abstract field for accessor");
     }

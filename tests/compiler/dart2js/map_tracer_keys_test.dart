@@ -54,7 +54,7 @@ void doTest({String key: "'d'", String value: "5.5", bool bail: false,
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(key, value, initial), uri,
       expectedErrors: 0, expectedWarnings: 0);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var aDoubleType =

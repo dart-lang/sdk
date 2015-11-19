@@ -75,8 +75,8 @@ Future test(Uri entryPoint,
   print('==================================================================');
 }
 
-void checkUriSchemes(Iterable<DiagnosticMessage> messages) {
-  for (DiagnosticMessage message in messages) {
+void checkUriSchemes(Iterable<CollectedMessage> messages) {
+  for (CollectedMessage message in messages) {
     if (message.uri != null) {
       Expect.notEquals('package', message.uri.scheme,
           "Unexpected package uri `${message.uri}` in message: $message");

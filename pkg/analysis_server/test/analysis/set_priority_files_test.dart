@@ -6,6 +6,9 @@ library test.analysis.set_priority_files;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show InternalAnalysisContext;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -35,15 +38,30 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
 
   test_fileInAnalysisRoot() async {
     addTestFile('');
+    // wait for analysis to ensure that the file is known to the context
+    await server.onAnalysisComplete;
+    // set priority files
     Response response = await _setPriorityFile(testFile);
     expect(response, isResponseSuccess('0'));
+    // verify
+    InternalAnalysisContext context = server.getContainingContext(testFile);
+    List<Source> prioritySources = context.prioritySources;
+    expect(prioritySources, hasLength(1));
+    expect(prioritySources.first.fullName, testFile);
   }
 
   test_fileInSdk() async {
     addTestFile('');
     await server.onAnalysisComplete;
-    Response response = await _setPriorityFile('/lib/convert/convert.dart');
+    // set priority files
+    String filePath = '/lib/convert/convert.dart';
+    Response response = await _setPriorityFile(filePath);
     expect(response, isResponseSuccess('0'));
+    // verify
+    InternalAnalysisContext sdkContext = server.defaultSdk.context;
+    List<Source> prioritySources = sdkContext.prioritySources;
+    expect(prioritySources, hasLength(1));
+    expect(prioritySources.first.fullName, filePath);
   }
 
   test_fileNotInAnalysisRoot() async {

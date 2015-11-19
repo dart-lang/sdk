@@ -28,6 +28,18 @@
 
       <div class="memberList">
         <div class="memberItem">
+          <div class="memberName">selector</div>
+          <div class="memberValue">
+            {{ megamorphicCache.selector }}
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">argumentsDescriptor</div>
+          <div class="memberValue">
+            <any-service-ref ref="{{ megamorphicCache.argumentsDescriptor }}"></any-service-ref>
+          </div>
+        </div>
+        <div class="memberItem">
           <div class="memberName">mask</div>
           <div class="memberValue"> 
             {{ megamorphicCache.mask }}

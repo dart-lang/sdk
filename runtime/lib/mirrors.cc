@@ -1229,7 +1229,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   // arguments have been provided, or all arguments are dynamic. Return a list
   // of typemirrors on dynamic in this case.
   if (args.IsNull()) {
-    arg_type ^= Object::dynamic_type();
+    arg_type ^= Object::dynamic_type().raw();
     type_mirror ^= CreateTypeMirror(arg_type);
     for (intptr_t i = 0; i < num_params; i++) {
       result.SetAt(i, type_mirror);

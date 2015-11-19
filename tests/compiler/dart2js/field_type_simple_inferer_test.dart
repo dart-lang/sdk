@@ -17,7 +17,7 @@ void compileAndFind(String code,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     compiler.disableInlining = disableInlining;
     var cls = findElement(compiler, className);
     var member = cls.lookupMember(memberName);
@@ -531,7 +531,7 @@ void test() {
   runTest(TEST_14, {'f': (types) => types.uint31Type});
   runTest(TEST_15, {'f': (types) {
                             ClassElement cls =
-                                types.compiler.backend.jsIndexableClass;
+                                types.compiler.backend.helpers.jsIndexableClass;
                             return new TypeMask.nonNullSubtype(cls,
                                 types.compiler.world);
                          }});

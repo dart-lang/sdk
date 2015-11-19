@@ -1629,6 +1629,23 @@ abstract class IntegrationTestMixin {
   StreamController<ExecutionLaunchDataParams> _onExecutionLaunchData;
 
   /**
+   * Return server diagnostics.
+   *
+   * Returns
+   *
+   * contexts ( List<ContextData> )
+   *
+   *   The list of analysis contexts.
+   */
+  Future<DiagnosticGetDiagnosticsResult> sendDiagnosticGetDiagnostics() {
+    return server.send("diagnostic.getDiagnostics", null)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new DiagnosticGetDiagnosticsResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
    * Initialize the fields in InttestMixin, and ensure that notifications will
    * be handled.
    */

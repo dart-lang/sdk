@@ -130,8 +130,6 @@ class _RawReceivePortImpl implements RawReceivePort {
     return sendPort.hashCode;
   }
 
-  Uri get remotePortUri => new Uri.https('localhost', '55');
-
   /**** Internal implementation details ****/
   _get_id() native "RawReceivePortImpl_get_id";
   _get_sendport() native "RawReceivePortImpl_get_sendport";
@@ -286,18 +284,7 @@ patch class Isolate {
       readyPort = new RawReceivePort();
       _spawnFunction(readyPort.sendPort, entryPoint, message,
                      paused, errorsAreFatal, onExit, onError);
-      Completer completer = new Completer<Isolate>.sync();
-      readyPort.handler = (readyMessage) {
-        readyPort.close();
-        assert(readyMessage is List);
-        assert(readyMessage.length == 2);
-        SendPort controlPort = readyMessage[0];
-        List capabilities = readyMessage[1];
-        completer.complete(new Isolate(controlPort,
-                                       pauseCapability: capabilities[0],
-                                       terminateCapability: capabilities[1]));
-      };
-      return completer.future;
+      return _spawnCommon(readyPort);
     } catch (e, st) {
       if (readyPort != null) {
         readyPort.close();
@@ -330,24 +317,36 @@ patch class Isolate {
                 errorsAreFatal, checked,
                 null, /* environment */
                 packageRootString, packagesList);
-      Completer completer = new Completer<Isolate>.sync();
-      readyPort.handler = (readyMessage) {
-        readyPort.close();
-        assert(readyMessage is List);
-        assert(readyMessage.length == 2);
-        SendPort controlPort = readyMessage[0];
-        List capabilities = readyMessage[1];
-        completer.complete(new Isolate(controlPort,
-                                       pauseCapability: capabilities[0],
-                                       terminateCapability: capabilities[1]));
-      };
-      return completer.future;
+      return _spawnCommon(readyPort);
     } catch (e, st) {
       if (readyPort != null) {
         readyPort.close();
       }
       return new Future<Isolate>.error(e, st);
     }
+  }
+
+  static Future<Isolate> _spawnCommon(RawReceivePort readyPort) {
+    Completer completer = new Completer<Isolate>.sync();
+    readyPort.handler = (readyMessage) {
+      readyPort.close();
+      if (readyMessage is List && readyMessage.length == 2) {
+        SendPort controlPort = readyMessage[0];
+        List capabilities = readyMessage[1];
+        completer.complete(new Isolate(controlPort,
+                                       pauseCapability: capabilities[0],
+                                       terminateCapability: capabilities[1]));
+      } else if (readyMessage is String) {
+        // We encountered an error while starting the new isolate.
+        completer.completeError(new IsolateSpawnException(
+            'Unable to spawn isolate: ${readyMessage}'));
+      } else {
+        // This shouldn't happen.
+        completer.completeError(new IsolateSpawnException(
+            "Internal error: unexpected format for ready message: "
+            "'${readyMessage}'"));
+      }
+    };
     return completer.future;
   }
 

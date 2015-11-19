@@ -144,6 +144,7 @@ namespace dart {
   V(Random_nextState, 1)                                                       \
   V(Random_setupSeed, 1)                                                       \
   V(Random_initialSeed, 0)                                                     \
+  V(SecureRandom_getBytes, 1)                                                  \
   V(DateNatives_currentTimeMillis, 0)                                          \
   V(DateNatives_timeZoneName, 1)                                               \
   V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
@@ -155,9 +156,11 @@ namespace dart {
   V(AbstractClassInstantiationError_throwNew, 2)                               \
   V(Stopwatch_now, 0)                                                          \
   V(Stopwatch_frequency, 0)                                                    \
+  V(Timeline_getIsolateNum, 0)                                                 \
   V(Timeline_getNextAsyncId, 0)                                                \
   V(Timeline_getTraceClock, 0)                                                 \
   V(Timeline_reportCompleteEvent, 5)                                           \
+  V(Timeline_reportInstantEvent, 4)                                            \
   V(Timeline_reportTaskEvent, 6)                                               \
   V(TypedData_Int8Array_new, 1)                                                \
   V(TypedData_Uint8Array_new, 1)                                               \
@@ -402,6 +405,7 @@ namespace dart {
   V(VMService_OnExit, 0)                                                       \
   V(VMService_ListenStream, 1)                                                 \
   V(VMService_CancelStream, 1)                                                 \
+  V(VMService_RequestAssets, 0)                                                \
 
 class BootstrapNatives : public AllStatic {
  public:

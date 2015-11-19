@@ -15,9 +15,10 @@ import 'element.dart';
 import 'engine.dart' show AnalysisEngine, RecordingErrorListener;
 import 'error.dart';
 import 'java_core.dart';
-import 'resolver.dart' show TypeProvider, TypeSystem, TypeSystemImpl;
+import 'resolver.dart' show TypeProvider;
 import 'scanner.dart' show Token, TokenType;
 import 'source.dart' show Source;
+import 'type_system.dart' show TypeSystem, TypeSystemImpl;
 import 'utilities_collection.dart';
 import 'utilities_dart.dart' show ParameterKind;
 

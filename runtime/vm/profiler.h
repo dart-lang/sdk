@@ -10,6 +10,7 @@
 #include "vm/code_observers.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
 
@@ -33,55 +34,30 @@ class Profiler : public AllStatic {
   static void SetSampleDepth(intptr_t depth);
   static void SetSamplePeriod(intptr_t period);
 
-  static void InitProfilingForIsolate(Isolate* isolate,
-                                      bool shared_buffer = true);
-  static void ShutdownProfilingForIsolate(Isolate* isolate);
-
-  static void BeginExecution(Isolate* isolate);
-  static void EndExecution(Isolate* isolate);
-
   static SampleBuffer* sample_buffer() {
     return sample_buffer_;
   }
 
-  static void RecordAllocation(Thread* thread, intptr_t cid);
+  static void SampleAllocation(Thread* thread, intptr_t cid);
+
+  // SampleThread is called from inside the signal handler and hence it is very
+  // critical that the implementation of SampleThread does not do any of the
+  // following:
+  //   * Accessing TLS -- Because on Windows the callback will be running in a
+  //                      different thread.
+  //   * Allocating memory -- Because this takes locks which may already be
+  //                          held, resulting in a dead lock.
+  //   * Taking a lock -- See above.
+  static void SampleThread(Thread* thread,
+                           const InterruptedThreadState& state);
 
  private:
   static bool initialized_;
   static Monitor* monitor_;
 
-  static void RecordSampleInterruptCallback(const InterruptedThreadState& state,
-                                            void* data);
-
   static SampleBuffer* sample_buffer_;
-};
 
-
-class IsolateProfilerData {
- public:
-  IsolateProfilerData(SampleBuffer* sample_buffer, bool own_sample_buffer);
-  ~IsolateProfilerData();
-
-  SampleBuffer* sample_buffer() const { return sample_buffer_; }
-
-  void set_sample_buffer(SampleBuffer* sample_buffer) {
-    sample_buffer_ = sample_buffer;
-  }
-
-  bool blocked() const {
-    return block_count_ > 0;
-  }
-
-  void Block();
-
-  void Unblock();
-
- private:
-  SampleBuffer* sample_buffer_;
-  bool own_sample_buffer_;
-  intptr_t block_count_;
-
-  DISALLOW_COPY_AND_ASSIGN(IsolateProfilerData);
+  friend class Thread;
 };
 
 
@@ -380,6 +356,84 @@ class Sample {
 };
 
 
+// A Code object descriptor.
+class CodeDescriptor : public ZoneAllocated {
+ public:
+  explicit CodeDescriptor(const Code& code);
+
+  uword Entry() const;
+
+  uword Size() const;
+
+  int64_t CompileTimestamp() const;
+
+  RawCode* code() const {
+    return code_.raw();
+  }
+
+  const char* Name() const {
+    const String& name = String::Handle(code_.Name());
+    return name.ToCString();
+  }
+
+  bool Contains(uword pc) const {
+    uword end = Entry() + Size();
+    return (pc >= Entry()) && (pc < end);
+  }
+
+  static int Compare(CodeDescriptor* const* a,
+                     CodeDescriptor* const* b) {
+    ASSERT(a != NULL);
+    ASSERT(b != NULL);
+
+    uword a_entry = (*a)->Entry();
+    uword b_entry = (*b)->Entry();
+
+    if (a_entry < b_entry) {
+      return -1;
+    } else if (a_entry > b_entry) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+
+ private:
+  const Code& code_;
+
+  DISALLOW_COPY_AND_ASSIGN(CodeDescriptor);
+};
+
+
+// Fast lookup of Dart code objects.
+class CodeLookupTable : public ZoneAllocated {
+ public:
+  explicit CodeLookupTable(Thread* thread);
+
+  intptr_t length() const {
+    return code_objects_.length();
+  }
+
+  const CodeDescriptor* At(intptr_t index) const {
+    return code_objects_.At(index);
+  }
+
+  const CodeDescriptor* FindCode(uword pc) const;
+
+ private:
+  void Build(Thread* thread);
+
+  void Add(const Code& code);
+
+  // Code objects sorted by entry.
+  ZoneGrowableArray<CodeDescriptor*> code_objects_;
+
+  friend class CodeLookupTableBuilder;
+
+  DISALLOW_COPY_AND_ASSIGN(CodeLookupTable);
+};
+
+
 // Ring buffer of Samples that is (usually) shared by many isolates.
 class SampleBuffer {
  public:
@@ -436,7 +490,8 @@ class SampleBuffer {
   ProcessedSampleBuffer* BuildProcessedSampleBuffer(SampleFilter* filter);
 
  private:
-  ProcessedSample* BuildProcessedSample(Sample* sample);
+  ProcessedSample* BuildProcessedSample(Sample* sample,
+                                        const CodeLookupTable& clt);
   Sample* Next(Sample* sample);
 
   Sample* samples_;
@@ -505,24 +560,14 @@ class ProcessedSample : public ZoneAllocated {
   }
 
  private:
-  void FixupCaller(Thread* thread,
-                   Isolate* vm_isolate,
+  void FixupCaller(const CodeLookupTable& clt,
                    uword pc_marker,
                    uword* stack_buffer);
 
-  void CheckForMissingDartFrame(Isolate* isolate,
-                                Isolate* vm_isolate,
-                                const Code& code,
+  void CheckForMissingDartFrame(const CodeLookupTable& clt,
+                                const CodeDescriptor* code,
                                 uword pc_marker,
                                 uword* stack_buffer);
-
-  static RawCode* FindCodeForPC(Isolate* isolate,
-                                Isolate* vm_isolate,
-                                uword pc);
-
-  static bool ContainedInDartCodeHeaps(Isolate* isolate,
-                                       Isolate* vm_isolate,
-                                       uword pc);
 
   ZoneGrowableArray<uword> pcs_;
   int64_t timestamp_;
@@ -554,8 +599,13 @@ class ProcessedSampleBuffer : public ZoneAllocated {
     return samples_.At(index);
   }
 
+  const CodeLookupTable& code_lookup_table() const {
+    return *code_lookup_table_;
+  }
+
  private:
   ZoneGrowableArray<ProcessedSample*> samples_;
+  CodeLookupTable* code_lookup_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ProcessedSampleBuffer);
 };

@@ -293,6 +293,7 @@ class _SyntheticAccessor implements MethodMirror {
   bool get isConstConstructor => false;
   bool get isGenerativeConstructor => false;
   bool get isFactoryConstructor => false;
+  bool get isExternal => false;
   bool get isRedirectingConstructor => false;
   bool get isAbstract => false;
 

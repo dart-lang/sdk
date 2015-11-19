@@ -194,7 +194,7 @@ SnapshotReader::SnapshotReader(
       library_(Library::Handle(zone_)),
       type_(AbstractType::Handle(zone_)),
       type_arguments_(TypeArguments::Handle(zone_)),
-      tokens_(Array::Handle(zone_)),
+      tokens_(GrowableObjectArray::Handle(zone_)),
       stream_(TokenStream::Handle(zone_)),
       data_(ExternalTypedData::Handle(zone_)),
       typed_data_(TypedData::Handle(zone_)),
@@ -398,60 +398,25 @@ RawObject* SnapshotReader::ReadObjectImpl(intptr_t header_value,
                                           intptr_t patch_offset) {
   if (IsVMIsolateObject(header_value)) {
     return ReadVMIsolateObject(header_value);
-  } else {
-    if (SerializedHeaderTag::decode(header_value) == kObjectId) {
-      return ReadIndexedObject(SerializedHeaderData::decode(header_value),
-                               patch_object_id,
-                               patch_offset);
-    }
-    ASSERT(SerializedHeaderTag::decode(header_value) == kInlined);
-    intptr_t object_id = SerializedHeaderData::decode(header_value);
-    if (object_id == kOmittedObjectId) {
-      object_id = NextAvailableObjectId();
-    }
-
-    // Read the class header information.
-    intptr_t class_header = Read<int32_t>();
-    intptr_t tags = ReadTags();
-    if (as_reference && !RawObject::IsCanonical(tags)) {
-      return ReadObjectRef(object_id,
-                           class_header,
-                           tags,
-                           patch_object_id,
-                           patch_offset);
-    }
-    return ReadInlinedObject(object_id,
-                             class_header,
-                             tags,
+  }
+  if (SerializedHeaderTag::decode(header_value) == kObjectId) {
+    return ReadIndexedObject(SerializedHeaderData::decode(header_value),
                              patch_object_id,
                              patch_offset);
   }
-}
+  ASSERT(SerializedHeaderTag::decode(header_value) == kInlined);
+  intptr_t object_id = SerializedHeaderData::decode(header_value);
+  if (object_id == kOmittedObjectId) {
+    object_id = NextAvailableObjectId();
+  }
 
-
-RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
-                                         intptr_t class_header,
-                                         intptr_t tags,
-                                         intptr_t patch_object_id,
-                                         intptr_t patch_offset) {
-  // Since we are only reading an object reference, If it is an instance kind
-  // then we only need to figure out the class of the object and allocate an
-  // instance of it. The individual fields will be read later.
+  // Read the class header information.
+  intptr_t class_header = Read<int32_t>();
+  intptr_t tags = ReadTags();
+  bool read_as_reference = as_reference && !RawObject::IsCanonical(tags);
   intptr_t header_id = SerializedHeaderData::decode(class_header);
   if (header_id == kInstanceObjectId) {
-    Instance& result = Instance::ZoneHandle(zone(), Instance::null());
-    AddBackRef(object_id, &result, kIsNotDeserialized);
-
-    cls_ ^= ReadObjectImpl(kAsInlinedObject);  // Read class information.
-    ASSERT(!cls_.IsNull());
-    intptr_t instance_size = cls_.instance_size();
-    ASSERT(instance_size > 0);
-    if (kind_ == Snapshot::kFull) {
-      result ^= AllocateUninitialized(cls_.id(), instance_size);
-    } else {
-      result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
-    }
-    return result.raw();
+    return ReadInstance(object_id, tags, read_as_reference);
   } else if (header_id == kStaticImplicitClosureObjectId) {
     // We skip the tags that have been written as the implicit static
     // closure is going to be created in this isolate or the canonical
@@ -460,57 +425,22 @@ RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
   }
   ASSERT((class_header & kSmiTagMask) != kSmiTag);
 
-  // Similarly Array and ImmutableArray objects are also similarly only
-  // allocated here, the individual array elements are read later.
   intptr_t class_id = LookupInternalClass(class_header);
-  if (class_id == kArrayCid) {
-    // Read the length and allocate an object based on the len.
-    intptr_t len = ReadSmiValue();
-    Array& array = Array::ZoneHandle(
-        zone(),
-        ((kind_ == Snapshot::kFull) ?
-         NewArray(len) : Array::New(len, HEAP_SPACE(kind_))));
-    AddBackRef(object_id, &array, kIsNotDeserialized);
-
-    return array.raw();
-  }
-  if (class_id == kImmutableArrayCid) {
-    // Read the length and allocate an object based on the len.
-    intptr_t len = ReadSmiValue();
-    Array& array = Array::ZoneHandle(
-        zone(),
-        (kind_ == Snapshot::kFull) ?
-        NewImmutableArray(len) : ImmutableArray::New(len, HEAP_SPACE(kind_)));
-    AddBackRef(object_id, &array, kIsNotDeserialized);
-
-    return array.raw();
-  }
-  if (class_id == kObjectPoolCid) {
-    ASSERT(kind_ == Snapshot::kFull);
-    // Read the length and allocate an object based on the len.
-    intptr_t len = Read<intptr_t>();
-    ObjectPool& pool = ObjectPool::ZoneHandle(zone(),
-                                              NewObjectPool(len));
-    AddBackRef(object_id, &pool, kIsNotDeserialized);
-
-    return pool.raw();
-  }
-
-  // For all other internal VM classes we read the object inline.
   switch (class_id) {
 #define SNAPSHOT_READ(clazz)                                                   \
     case clazz::kClassId: {                                                    \
-      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_, true);             \
+      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_, read_as_reference);\
       break;                                                                   \
     }
     CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
 #undef SNAPSHOT_READ
 #define SNAPSHOT_READ(clazz)                                                   \
-    case kTypedData##clazz##Cid:                                               \
+        case kTypedData##clazz##Cid:                                           \
 
     CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
       tags = RawObject::ClassIdTag::update(class_id, tags);
-      pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_, true);
+      pobj_ = TypedData::ReadFrom(
+          this, object_id, tags, kind_, read_as_reference);
       break;
     }
 #undef SNAPSHOT_READ
@@ -525,53 +455,58 @@ RawObject* SnapshotReader::ReadObjectRef(intptr_t object_id,
 #undef SNAPSHOT_READ
     default: UNREACHABLE(); break;
   }
+  if (!read_as_reference) {
+    AddPatchRecord(object_id, patch_object_id, patch_offset);
+  }
   return pobj_.raw();
 }
 
 
-RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id,
-                                             intptr_t class_header,
-                                             intptr_t tags,
-                                             intptr_t patch_object_id,
-                                             intptr_t patch_offset) {
-  // Lookup the class based on the class header information.
-  intptr_t header_id = SerializedHeaderData::decode(class_header);
-  if (header_id == kInstanceObjectId) {
-    // Object is regular dart instance.
-    Instance* result = reinterpret_cast<Instance*>(GetBackRef(object_id));
-    intptr_t instance_size = 0;
-    if (result == NULL) {
-      result = &(Instance::ZoneHandle(zone(), Instance::null()));
-      AddBackRef(object_id, result, kIsDeserialized);
-      cls_ ^= ReadObjectImpl(kAsInlinedObject);
-      ASSERT(!cls_.IsNull());
-      instance_size = cls_.instance_size();
-      ASSERT(instance_size > 0);
-      // Allocate the instance and read in all the fields for the object.
-      if (kind_ == Snapshot::kFull) {
-        *result ^= AllocateUninitialized(cls_.id(), instance_size);
-      } else {
-        *result ^= Object::Allocate(cls_.id(),
-                                    instance_size,
-                                    HEAP_SPACE(kind_));
-      }
+RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
+                                        intptr_t tags,
+                                        bool as_reference) {
+  // Object is regular dart instance.
+  intptr_t instance_size = 0;
+  Instance* result = NULL;
+  DeserializeState state;
+  if (!as_reference) {
+    result = reinterpret_cast<Instance*>(GetBackRef(object_id));
+    state = kIsDeserialized;
+  } else {
+    state = kIsNotDeserialized;
+  }
+  if (result == NULL) {
+    result = &(Instance::ZoneHandle(zone(), Instance::null()));
+    AddBackRef(object_id, result, state);
+    cls_ ^= ReadObjectImpl(kAsInlinedObject);
+    ASSERT(!cls_.IsNull());
+    instance_size = cls_.instance_size();
+    ASSERT(instance_size > 0);
+    // Allocate the instance and read in all the fields for the object.
+    if (kind_ == Snapshot::kFull) {
+      *result ^= AllocateUninitialized(cls_.id(), instance_size);
     } else {
-      cls_ ^= ReadObjectImpl(kAsInlinedObject);
-      ASSERT(!cls_.IsNull());
-      instance_size = cls_.instance_size();
+      *result ^= Object::Allocate(cls_.id(), instance_size, HEAP_SPACE(kind_));
     }
+  } else {
+    cls_ ^= ReadObjectImpl(kAsInlinedObject);
+    ASSERT(!cls_.IsNull());
+    instance_size = cls_.instance_size();
+  }
+  if (!as_reference) {
+    // Read all the individual fields for inlined objects.
     intptr_t next_field_offset = Class::IsSignatureClass(cls_.raw())
-      ? Closure::InstanceSize() : cls_.next_field_offset();
+        ? Closure::InstanceSize() : cls_.next_field_offset();
 
     intptr_t type_argument_field_offset = cls_.type_arguments_field_offset();
     ASSERT(next_field_offset > 0);
     // Instance::NextFieldOffset() returns the offset of the first field in
     // a Dart object.
-    bool as_reference = RawObject::IsCanonical(tags) ? false : true;
+    bool read_as_reference = RawObject::IsCanonical(tags) ? false : true;
     intptr_t offset = Instance::NextFieldOffset();
     intptr_t result_cid = result->GetClassId();
     while (offset < next_field_offset) {
-      pobj_ = ReadObjectImpl(as_reference);
+      pobj_ = ReadObjectImpl(read_as_reference);
       result->SetFieldAtOffset(offset, pobj_);
       if ((offset != type_argument_field_offset) &&
           (kind_ == Snapshot::kMessage)) {
@@ -606,45 +541,8 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id,
         ASSERT(!result->IsNull());
       }
     }
-    return result->raw();
-  } else if (header_id == kStaticImplicitClosureObjectId) {
-    // We do not use the tags as the implicit static closure
-    // is going to be created in this isolate or the canonical
-    // version already created in the isolate will be used.
-    return ReadStaticImplicitClosure(object_id, class_header);
   }
-  ASSERT((class_header & kSmiTagMask) != kSmiTag);
-  intptr_t class_id = LookupInternalClass(class_header);
-  switch (class_id) {
-#define SNAPSHOT_READ(clazz)                                                   \
-    case clazz::kClassId: {                                                    \
-      pobj_ = clazz::ReadFrom(this, object_id, tags, kind_, false);            \
-      break;                                                                   \
-    }
-    CLASS_LIST_NO_OBJECT(SNAPSHOT_READ)
-#undef SNAPSHOT_READ
-#define SNAPSHOT_READ(clazz)                                                   \
-    case kTypedData##clazz##Cid:                                               \
-
-    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
-      tags = RawObject::ClassIdTag::update(class_id, tags);
-      pobj_ = TypedData::ReadFrom(this, object_id, tags, kind_, false);
-      break;
-    }
-#undef SNAPSHOT_READ
-#define SNAPSHOT_READ(clazz)                                                   \
-    case kExternalTypedData##clazz##Cid:                                       \
-
-    CLASS_LIST_TYPED_DATA(SNAPSHOT_READ) {
-      tags = RawObject::ClassIdTag::update(class_id, tags);
-      pobj_ = ExternalTypedData::ReadFrom(this, object_id, tags, kind_, false);
-      break;
-    }
-#undef SNAPSHOT_READ
-    default: UNREACHABLE(); break;
-  }
-  AddPatchRecord(object_id, patch_object_id, patch_offset);
-  return pobj_.raw();
+  return result->raw();
 }
 
 
@@ -675,8 +573,8 @@ Object* SnapshotReader::GetBackRef(intptr_t id) {
 
 class HeapLocker : public StackResource {
  public:
-  HeapLocker(Isolate* isolate, PageSpace* page_space)
-      : StackResource(isolate), page_space_(page_space) {
+  HeapLocker(Thread* thread, PageSpace* page_space)
+      : StackResource(thread), page_space_(page_space) {
         page_space_->AcquireDataLock();
   }
   ~HeapLocker() {
@@ -690,7 +588,8 @@ class HeapLocker : public StackResource {
 
 RawApiError* SnapshotReader::ReadFullSnapshot() {
   ASSERT(kind_ == Snapshot::kFull);
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ObjectStore* object_store = isolate->object_store();
   ASSERT(object_store != NULL);
@@ -707,7 +606,7 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
   // size for the full snapshot being read.
   {
     NoSafepointScope no_safepoint;
-    HeapLocker hl(isolate, old_space());
+    HeapLocker hl(thread, old_space());
 
     // Read in all the objects stored in the object store.
     RawObject** toobj = snapshot_code() ? object_store->to()
@@ -964,7 +863,7 @@ RawInstance* SnapshotReader::NewInstance() {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT_NO_SAFEPOINT_SCOPE();
   RawInstance* obj = reinterpret_cast<RawInstance*>(
-      AllocateUninitialized(kObjectCid, Instance::InstanceSize()));
+      AllocateUninitialized(kInstanceCid, Instance::InstanceSize()));
   return obj;
 }
 
@@ -1114,6 +1013,16 @@ RawLiteralToken* SnapshotReader::NewLiteralToken() {
 
 RawGrowableObjectArray* SnapshotReader::NewGrowableObjectArray() {
   ALLOC_NEW_OBJECT(GrowableObjectArray);
+}
+
+
+RawWeakProperty* SnapshotReader::NewWeakProperty() {
+  ALLOC_NEW_OBJECT(WeakProperty);
+}
+
+
+RawJSRegExp* SnapshotReader::NewJSRegExp() {
+  ALLOC_NEW_OBJECT(JSRegExp);
 }
 
 
@@ -1393,8 +1302,8 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
                         Object::transition_sentinel().raw());
   READ_VM_SINGLETON_OBJ(kEmptyArrayObject, Object::empty_array().raw());
   READ_VM_SINGLETON_OBJ(kZeroArrayObject, Object::zero_array().raw());
-  READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type());
-  READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type());
+  READ_VM_SINGLETON_OBJ(kDynamicType, Object::dynamic_type().raw());
+  READ_VM_SINGLETON_OBJ(kVoidType, Object::void_type().raw());
   READ_VM_SINGLETON_OBJ(kTrueValue, Bool::True().raw());
   READ_VM_SINGLETON_OBJ(kFalseValue, Bool::False().raw());
   READ_VM_SINGLETON_OBJ(kExtractorParameterTypes,
@@ -1426,6 +1335,13 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     if (object_id == (kCachedArgumentsDescriptor0 + i)) {
       return ArgumentsDescriptor::cached_args_descriptors_[i];
+    }
+  }
+
+  // Check if it is a singleton ICData array object.
+  for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
+    if (object_id == (kCachedICDataArray0 + i)) {
+      return ICData::cached_icdata_arrays_[i];
     }
   }
 
@@ -1569,7 +1485,8 @@ VmIsolateSnapshotReader::~VmIsolateSnapshotReader() {
 
 RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
   ASSERT(kind() == Snapshot::kFull);
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ASSERT(isolate == Dart::vm_isolate());
   ObjectStore* object_store = isolate->object_store();
@@ -1585,7 +1502,7 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
 
   {
     NoSafepointScope no_safepoint;
-    HeapLocker hl(isolate, old_space());
+    HeapLocker hl(thread, old_space());
 
     // Read in the symbol table.
     object_store->symbol_table_ = reinterpret_cast<RawArray*>(ReadObject());
@@ -1732,8 +1649,8 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
                          kTransitionSentinelObject);
   WRITE_VM_SINGLETON_OBJ(Object::empty_array().raw(), kEmptyArrayObject);
   WRITE_VM_SINGLETON_OBJ(Object::zero_array().raw(), kZeroArrayObject);
-  WRITE_VM_SINGLETON_OBJ(Object::dynamic_type(), kDynamicType);
-  WRITE_VM_SINGLETON_OBJ(Object::void_type(), kVoidType);
+  WRITE_VM_SINGLETON_OBJ(Object::dynamic_type().raw(), kDynamicType);
+  WRITE_VM_SINGLETON_OBJ(Object::void_type().raw(), kVoidType);
   WRITE_VM_SINGLETON_OBJ(Bool::True().raw(), kTrueValue);
   WRITE_VM_SINGLETON_OBJ(Bool::False().raw(), kFalseValue);
   WRITE_VM_SINGLETON_OBJ(Object::extractor_parameter_types().raw(),
@@ -1766,6 +1683,14 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
     if (rawobj == ArgumentsDescriptor::cached_args_descriptors_[i]) {
       WriteVMIsolateObject(kCachedArgumentsDescriptor0 + i);
+      return true;
+    }
+  }
+
+  // Check if it is a singleton ICData array object.
+  for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
+    if (rawobj == ICData::cached_icdata_arrays_[i]) {
+      WriteVMIsolateObject(kCachedICDataArray0 + i);
       return true;
     }
   }
@@ -1826,15 +1751,15 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
 // objects and their accompanying token streams.
 class ScriptVisitor : public ObjectVisitor {
  public:
-  explicit ScriptVisitor(Isolate* isolate) :
-      ObjectVisitor(isolate),
-      objHandle_(Object::Handle(isolate->current_zone())),
+  explicit ScriptVisitor(Thread* thread) :
+      ObjectVisitor(thread->isolate()),
+      objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(NULL) {}
 
-  ScriptVisitor(Isolate* isolate, const Array* scripts) :
-      ObjectVisitor(isolate),
-      objHandle_(Object::Handle(isolate->current_zone())),
+  ScriptVisitor(Thread* thread, const Array* scripts) :
+      ObjectVisitor(thread->isolate()),
+      objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(scripts) {}
 
@@ -1894,11 +1819,11 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
   // into an array so that we can write it out as part of the VM isolate
   // snapshot. We first count the number of script objects, allocate an array
   // and then fill it up with the script objects.
-  ScriptVisitor scripts_counter(isolate());
+  ScriptVisitor scripts_counter(thread());
   heap()->IterateOldObjects(&scripts_counter);
   intptr_t count = scripts_counter.count();
   scripts_ = Array::New(count, Heap::kOld);
-  ScriptVisitor script_visitor(isolate(), &scripts_);
+  ScriptVisitor script_visitor(thread(), &scripts_);
   heap()->IterateOldObjects(&script_visitor);
 
   // Stash the symbol table away for writing and reading into the vm isolate,
@@ -2031,6 +1956,15 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   if (snapshot_code_) {
     instructions_writer_->WriteAssembly();
     instructions_snapshot_size_ = instructions_writer_->BytesWritten();
+
+    OS::Print("VMIsolate(CodeSize): %" Pd "\n", VmIsolateSnapshotSize());
+    OS::Print("Isolate(CodeSize): %" Pd "\n", IsolateSnapshotSize());
+    OS::Print("Instructions(CodeSize): %" Pd "\n",
+              instructions_writer_->binary_size());
+    intptr_t total = VmIsolateSnapshotSize() +
+                     IsolateSnapshotSize() +
+                     instructions_writer_->binary_size();
+    OS::Print("Total(CodeSize): %" Pd "\n", total);
   }
 }
 

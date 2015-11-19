@@ -5,9 +5,10 @@
 
 library get_object_rpc_test;
 
+import 'dart:typed_data';
+import 'dart:convert' show BASE64;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
-
 import 'test_helper.dart';
 
 class _DummyClass {
@@ -32,6 +33,9 @@ eval(Isolate isolate, String expression) async {
   };
   return await isolate.invokeRpcNoUpgrade('evaluate', params);
 }
+
+var uint8List = new Uint8List.fromList([3, 2, 1]);
+var uint64List = new Uint64List.fromList([3, 2, 1]);
 
 var tests = [
   // null object.
@@ -99,16 +103,108 @@ var tests = [
     expect(result['class']['name'], equals('_GrowableList'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], isNull);
     expect(result['elements'].length, equals(3));
     expect(result['elements'][0]['type'], equals('@Instance'));
     expect(result['elements'][0]['kind'], equals('Int'));
     expect(result['elements'][0]['valueAsString'], equals('3'));
+    expect(result['elements'][1]['type'], equals('@Instance'));
+    expect(result['elements'][1]['kind'], equals('Int'));
+    expect(result['elements'][1]['valueAsString'], equals('2'));
+    expect(result['elements'][2]['type'], equals('@Instance'));
+    expect(result['elements'][2]['kind'], equals('Int'));
+    expect(result['elements'][2]['valueAsString'], equals('1'));
+  },
+
+  // List prefix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, '[3, 2, 1]');
+    var params = {
+      'objectId': evalResult['id'],
+      'count': 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('List'));
+    expect(result['_vmType'], equals('GrowableObjectArray'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_GrowableList'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], equals(2));
+    expect(result['elements'].length, equals(2));
+    expect(result['elements'][0]['type'], equals('@Instance'));
+    expect(result['elements'][0]['kind'], equals('Int'));
+    expect(result['elements'][0]['valueAsString'], equals('3'));
+    expect(result['elements'][1]['type'], equals('@Instance'));
+    expect(result['elements'][1]['kind'], equals('Int'));
+    expect(result['elements'][1]['valueAsString'], equals('2'));
+  },
+
+  // List suffix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, '[3, 2, 1]');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset': 2,
+      'count': 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('List'));
+    expect(result['_vmType'], equals('GrowableObjectArray'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_GrowableList'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], equals(2));
+    expect(result['count'], equals(1));
+    expect(result['elements'].length, equals(1));
+    expect(result['elements'][0]['type'], equals('@Instance'));
+    expect(result['elements'][0]['kind'], equals('Int'));
+    expect(result['elements'][0]['valueAsString'], equals('1'));
+  },
+
+  // List with wacky offset.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, '[3, 2, 1]');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset': 100,
+      'count': 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('List'));
+    expect(result['_vmType'], equals('GrowableObjectArray'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_GrowableList'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], equals(3));
+    expect(result['count'], equals(0));
+    expect(result['elements'], isEmpty);
   },
 
   // A built-in Map.
   (Isolate isolate) async {
     // Call eval to get a Dart map.
-    var evalResult = await eval(isolate, '{"x": 3, "y": 4}');
+    var evalResult = await eval(isolate, '{"x": 3, "y": 4, "z": 5}');
     var params = {
       'objectId': evalResult['id'],
     };
@@ -122,6 +218,51 @@ var tests = [
     expect(result['class']['name'], equals('_InternalLinkedHashMap'));
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], isNull);
+    expect(result['associations'].length, equals(3));
+    expect(result['associations'][0]['key']['type'], equals('@Instance'));
+    expect(result['associations'][0]['key']['kind'], equals('String'));
+    expect(result['associations'][0]['key']['valueAsString'], equals('x'));
+    expect(result['associations'][0]['value']['type'], equals('@Instance'));
+    expect(result['associations'][0]['value']['kind'], equals('Int'));
+    expect(result['associations'][0]['value']['valueAsString'], equals('3'));
+    expect(result['associations'][1]['key']['type'], equals('@Instance'));
+    expect(result['associations'][1]['key']['kind'], equals('String'));
+    expect(result['associations'][1]['key']['valueAsString'], equals('y'));
+    expect(result['associations'][1]['value']['type'], equals('@Instance'));
+    expect(result['associations'][1]['value']['kind'], equals('Int'));
+    expect(result['associations'][1]['value']['valueAsString'], equals('4'));
+    expect(result['associations'][2]['key']['type'], equals('@Instance'));
+    expect(result['associations'][2]['key']['kind'], equals('String'));
+    expect(result['associations'][2]['key']['valueAsString'], equals('z'));
+    expect(result['associations'][2]['value']['type'], equals('@Instance'));
+    expect(result['associations'][2]['value']['kind'], equals('Int'));
+    expect(result['associations'][2]['value']['valueAsString'], equals('5'));
+  },
+
+  // Map prefix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart map.
+    var evalResult = await eval(isolate, '{"x": 3, "y": 4, "z": 5}');
+    var params = {
+      'objectId': evalResult['id'],
+      'count': 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Map'));
+    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], equals(2));
     expect(result['associations'].length, equals(2));
     expect(result['associations'][0]['key']['type'], equals('@Instance'));
     expect(result['associations'][0]['key']['kind'], equals('String'));
@@ -135,6 +276,268 @@ var tests = [
     expect(result['associations'][1]['value']['type'], equals('@Instance'));
     expect(result['associations'][1]['value']['kind'], equals('Int'));
     expect(result['associations'][1]['value']['valueAsString'], equals('4'));
+  },
+
+  // Map suffix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart map.
+    var evalResult = await eval(isolate, '{"x": 3, "y": 4, "z": 5}');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset': 2,
+      'count': 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Map'));
+    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], equals(2));
+    expect(result['count'], equals(1));
+    expect(result['associations'].length, equals(1));
+    expect(result['associations'][0]['key']['type'], equals('@Instance'));
+    expect(result['associations'][0]['key']['kind'], equals('String'));
+    expect(result['associations'][0]['key']['valueAsString'], equals('z'));
+    expect(result['associations'][0]['value']['type'], equals('@Instance'));
+    expect(result['associations'][0]['value']['kind'], equals('Int'));
+    expect(result['associations'][0]['value']['valueAsString'], equals('5'));
+  },
+
+  // Map with wacky offset
+  (Isolate isolate) async {
+    // Call eval to get a Dart map.
+    var evalResult = await eval(isolate, '{"x": 3, "y": 4, "z": 5}');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset': 100,
+      'count': 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Map'));
+    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], equals(3));
+    expect(result['count'], equals(0));
+    expect(result['associations'], isEmpty);
+  },
+
+  // Uint8List.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, 'uint8List');
+    var params = {
+      'objectId': evalResult['id'],
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Uint8List'));
+    expect(result['_vmType'], equals('TypedData'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Uint8Array'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], isNull);
+    expect(result['bytes'], equals('AwIB'));
+    var bytes = BASE64.decode(result['bytes']);
+    expect(bytes.buffer.asUint8List().toString(), equals('[3, 2, 1]'));
+  },
+
+  // Uint8List prefix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, 'uint8List');
+    var params = {
+      'objectId': evalResult['id'],
+      'count' : 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Uint8List'));
+    expect(result['_vmType'], equals('TypedData'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Uint8Array'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], equals(2));
+    expect(result['bytes'], equals('AwI='));
+    var bytes = BASE64.decode(result['bytes']);
+    expect(bytes.buffer.asUint8List().toString(), equals('[3, 2]'));
+  },
+
+  // Uint8List suffix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, 'uint8List');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset' : 2,
+      'count' : 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Uint8List'));
+    expect(result['_vmType'], equals('TypedData'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Uint8Array'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], equals(2));
+    expect(result['count'], equals(1));
+    expect(result['bytes'], equals('AQ=='));
+    var bytes = BASE64.decode(result['bytes']);
+    expect(bytes.buffer.asUint8List().toString(), equals('[1]'));
+  },
+
+  // Uint8List with wacky offset.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, 'uint8List');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset' : 100,
+      'count' : 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Uint8List'));
+    expect(result['_vmType'], equals('TypedData'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Uint8Array'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], equals(3));
+    expect(result['count'], equals(0));
+    expect(result['bytes'], equals(''));
+  },
+
+  // Uint64List.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, 'uint64List');
+    var params = {
+      'objectId': evalResult['id'],
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Uint64List'));
+    expect(result['_vmType'], equals('TypedData'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Uint64Array'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], isNull);
+    expect(result['bytes'], equals('AwAAAAAAAAACAAAAAAAAAAEAAAAAAAAA'));
+    var bytes = BASE64.decode(result['bytes']);
+    expect(bytes.buffer.asUint64List().toString(), equals('[3, 2, 1]'));
+  },
+
+  // Uint64List prefix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, 'uint64List');
+    var params = {
+      'objectId': evalResult['id'],
+      'count' : 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Uint64List'));
+    expect(result['_vmType'], equals('TypedData'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Uint64Array'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], isNull);
+    expect(result['count'], equals(2));
+    expect(result['bytes'], equals('AwAAAAAAAAACAAAAAAAAAA=='));
+    var bytes = BASE64.decode(result['bytes']);
+    expect(bytes.buffer.asUint64List().toString(), equals('[3, 2]'));
+  },
+
+  // Uint64List suffix.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, 'uint64List');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset' : 2,
+      'count' : 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Uint64List'));
+    expect(result['_vmType'], equals('TypedData'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Uint64Array'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], equals(2));
+    expect(result['count'], equals(1));
+    expect(result['bytes'], equals('AQAAAAAAAAA='));
+    var bytes = BASE64.decode(result['bytes']);
+    expect(bytes.buffer.asUint64List().toString(), equals('[1]'));
+  },
+
+  // Uint64List with wacky offset.
+  (Isolate isolate) async {
+    // Call eval to get a Dart list.
+    var evalResult = await eval(isolate, 'uint64List');
+    var params = {
+      'objectId': evalResult['id'],
+      'offset' : 100,
+      'count' : 2,
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Uint64List'));
+    expect(result['_vmType'], equals('TypedData'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_Uint64Array'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['length'], equals(3));
+    expect(result['offset'], equals(3));
+    expect(result['count'], equals(0));
+    expect(result['bytes'], equals(''));
   },
 
   // An expired object.

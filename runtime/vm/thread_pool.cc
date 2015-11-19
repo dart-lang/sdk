@@ -418,6 +418,8 @@ void ThreadPool::Worker::Shutdown() {
 // static
 void ThreadPool::Worker::Main(uword args) {
   Thread::EnsureInit();
+  Thread* thread = Thread::Current();
+  thread->set_name("Dart ThreadPool Worker");
   Worker* worker = reinterpret_cast<Worker*>(args);
   ThreadId id = OSThread::GetCurrentThreadId();
   ThreadJoinId join_id = OSThread::GetCurrentThreadJoinId();
@@ -471,9 +473,6 @@ void ThreadPool::Worker::Main(uword args) {
     // wait for the thread to exit by joining on it in Shutdown().
     delete worker;
   }
-#if defined(TARGET_OS_WINDOWS)
-  Thread::CleanUp();
-#endif
 }
 
 }  // namespace dart

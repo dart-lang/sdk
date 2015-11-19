@@ -6,13 +6,30 @@ library engine.error;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/ast.dart' show AstNode;
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/generated/scanner.dart'
+    show ScannerErrorCode, Token;
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/model.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 
-import 'ast.dart' show AstNode;
-import 'element.dart';
-import 'java_core.dart';
-import 'scanner.dart' show Token;
-import 'source.dart';
+/**
+ * The descriptor used to associate error filters with analysis contexts in
+ * configuration data.
+ */
+final ListResultDescriptor<List<ErrorFilter>> CONFIGURED_ERROR_FILTERS =
+    new ListResultDescriptorImpl('configured.errors', const <ErrorFilter>[]);
+
+/**
+ * A predicate used to potentially filter an [error].
+ *
+ * Returns `true` if this error should be filtered from analysis results.
+ */
+typedef bool ErrorFilter(AnalysisError error);
 
 /**
  * An error discovered during the analysis of some Dart code.
@@ -334,15 +351,53 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 class AnalysisOptionsWarningCode extends ErrorCode {
   /**
    * An error code indicating that a plugin is being configured with an
-   * unsupported option.
+   * unsupported option and legal options are provided.
    *
    * Parameters:
    * 0: the plugin name
    * 1: the unsupported option key
+   * 2: legal values
    */
-  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION =
-      const AnalysisOptionsWarningCode('UNSUPPORTED_OPTION_ERROR',
-          "The option '{1}' is not supported by {0}");
+  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUES =
+      const AnalysisOptionsWarningCode('UNSUPPORTED_OPTION_WITH_LEGAL_VALUES',
+          "The option '{1}' is not supported by {0}, supported values are {2}");
+
+  /**
+   * An error code indicating that a plugin is being configured with an
+   * unsupported option where there is just one legal value.
+   *
+   * Parameters:
+   * 0: the plugin name
+   * 1: the unsupported option key
+   * 2: the legal value
+   */
+  static const AnalysisOptionsWarningCode UNSUPPORTED_OPTION_WITH_LEGAL_VALUE =
+      const AnalysisOptionsWarningCode('UNSUPPORTED_OPTION_WITH_LEGAL_VALUE',
+          "The option '{1}' is not supported by {0}, did you mean {2}?");
+
+  /**
+   * An error code indicating that an option entry is being configured with an
+   * unsupported value.
+   *
+   * Parameters:
+   * 0: the option name
+   * 1: the unsupported value
+   * 2: legal values
+   */
+  static const AnalysisOptionsWarningCode UNSUPPORTED_VALUE =
+      const AnalysisOptionsWarningCode('UNSUPPORTED_VALUE',
+          "The value '{1}' is not supported by {0}, legal values are {2}");
+
+  /**
+   * An error code indicating that an unrecognized error code is being used to
+   * specify an error filter.
+   *
+   * Parameters:
+   * 0: the unrecognized error code
+   */
+  static const AnalysisOptionsWarningCode UNRECOGNIZED_ERROR_CODE =
+      const AnalysisOptionsWarningCode(
+          'UNRECOGNIZED_ERROR_CODE', "'{0}' is not a recognized error code");
 
   /**
    * Initialize a newly created warning code to have the given [name].
@@ -540,6 +595,26 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode AMBIGUOUS_EXPORT =
       const CompileTimeErrorCode('AMBIGUOUS_EXPORT',
           "The name '{0}' is defined in the libraries '{1}' and '{2}'");
+
+  /**
+   * 15 Metadata: The constant expression given in an annotation is type checked
+   * and evaluated in the scope surrounding the declaration being annotated.
+   *
+   * 12.11.2 Const: It is a compile-time error if <i>T</i> is not a class
+   * accessible in the current scope, optionally followed by type arguments.
+   *
+   * 12.11.2 Const: If <i>e</i> is of the form <i>const T.id(a<sub>1</sub>,
+   * &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
+   * x<sub>n+k</sub>: a<sub>n+k</sub>)</i> it is a compile-time error if
+   * <i>T</i> is not a class accessible in the current scope, optionally
+   * followed by type arguments.
+   *
+   * Parameters:
+   * 0: the name of the non-type element
+   */
+  static const CompileTimeErrorCode ANNOTATION_WITH_NON_CLASS =
+      const CompileTimeErrorCode(
+          'ANNOTATION_WITH_NON_CLASS', "The name '{0}' is not a class");
 
   /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does
@@ -2421,62 +2496,6 @@ class CompileTimeErrorCode extends ErrorCode {
 }
 
 /**
- * An error listener that can be enabled or disabled while executing a function.
- */
-class DisablableErrorListener implements AnalysisErrorListener {
-  /**
-   * The listener to which errors will be reported if this listener is enabled.
-   */
-  final AnalysisErrorListener baseListener;
-
-  /**
-   * A flag indicating whether this listener is currently enabled.
-   */
-  bool enabled = true;
-
-  /**
-   * Initialize a newly created listener to report errors to the given
-   * [baseListener].
-   */
-  DisablableErrorListener(this.baseListener);
-
-  /**
-   * Disable the processing of errors while evaluating the given [function].
-   * Return the value returned by the function.
-   */
-  dynamic disableWhile(dynamic function()) {
-    bool wasEnabled = enabled;
-    try {
-      enabled = false;
-      return function();
-    } finally {
-      enabled = wasEnabled;
-    }
-  }
-
-  /**
-   * Disable the processing of errors while evaluating the given [function].
-   * Return the value returned by the function.
-   */
-  dynamic enableWhile(dynamic function()) {
-    bool wasEnabled = enabled;
-    try {
-      enabled = true;
-      return function();
-    } finally {
-      enabled = wasEnabled;
-    }
-  }
-
-  @override
-  void onError(AnalysisError error) {
-    if (enabled) {
-      baseListener.onError(error);
-    }
-  }
-}
-
-/**
  * An error code associated with an [AnalysisError].
  *
  * Generally, we want to provide messages that consist of three sentences. From
@@ -2488,6 +2507,535 @@ class DisablableErrorListener implements AnalysisErrorListener {
  * [correction].
  */
 abstract class ErrorCode {
+  /**
+   * Engine error code values.
+   */
+  static const List<ErrorCode> values = const [
+    //
+    // Manually generated.  FWIW, this get's you most of the way there:
+    //
+    // > grep 'static const .*Code' (error.dart|parser|scanner.dart)
+    //     | awk '{print $3"."$4","}'
+    //
+    // error.dart:
+    //
+    AnalysisOptionsErrorCode.PARSE_ERROR,
+    AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
+    AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
+    CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+    CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+    CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+    CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+    CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+    CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+    CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+    CompileTimeErrorCode.ACCESS_PRIVATE_ENUM_FIELD,
+    CompileTimeErrorCode.AMBIGUOUS_EXPORT,
+    CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS,
+    CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
+    CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
+    CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+    CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+    CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME,
+    CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME,
+    CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME,
+    CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+    CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION,
+    CompileTimeErrorCode.CONFLICTING_GETTER_AND_METHOD,
+    CompileTimeErrorCode.CONFLICTING_METHOD_AND_GETTER,
+    CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
+    CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
+    CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS,
+    CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER,
+    CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION,
+    CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+    CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN,
+    CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER,
+    CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+    CompileTimeErrorCode.CONST_DEFERRED_CLASS,
+    CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
+    CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+    CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode.CONST_INSTANCE_FIELD,
+    CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+    CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+    CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
+    CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING,
+    CompileTimeErrorCode.CONST_EVAL_TYPE_INT,
+    CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
+    CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+    CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
+    CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS,
+    CompileTimeErrorCode.CONST_WITH_NON_CONST,
+    CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+    CompileTimeErrorCode.CONST_WITH_NON_TYPE,
+    CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS,
+    CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+    CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+    CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS,
+    CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPED_PARAMETER,
+    CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+    CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
+    CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+    CompileTimeErrorCode.DUPLICATE_DEFINITION,
+    CompileTimeErrorCode.DUPLICATE_DEFINITION_INHERITANCE,
+    CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
+    CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY,
+    CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+    CompileTimeErrorCode.EXTENDS_ENUM,
+    CompileTimeErrorCode.EXTENDS_NON_CLASS,
+    CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
+    CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,
+    CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
+    CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+    CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+    CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+    CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR,
+    CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+    CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
+    CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME,
+    CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS,
+    CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS,
+    CompileTimeErrorCode.IMPLEMENTS_DYNAMIC,
+    CompileTimeErrorCode.IMPLEMENTS_ENUM,
+    CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
+    CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+    CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS,
+    CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
+    CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY,
+    CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+    CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+    CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD,
+    CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD,
+    CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+    CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+    CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY,
+    CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC,
+    CompileTimeErrorCode.INSTANTIATE_ENUM,
+    CompileTimeErrorCode.INVALID_ANNOTATION,
+    CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode.INVALID_IDENTIFIER_IN_ASYNC,
+    CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR,
+    CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+    CompileTimeErrorCode.INVALID_CONSTANT,
+    CompileTimeErrorCode.INVALID_CONSTRUCTOR_NAME,
+    CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
+    CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS,
+    CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+    CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP,
+    CompileTimeErrorCode.INVALID_URI,
+    CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
+    CompileTimeErrorCode.LABEL_UNDEFINED,
+    CompileTimeErrorCode.MEMBER_WITH_CLASS_NAME,
+    CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
+    CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
+    CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
+    CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+    CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
+    CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
+    CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
+    CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+    CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS,
+    CompileTimeErrorCode.MIXIN_OF_ENUM,
+    CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+    CompileTimeErrorCode.MIXIN_REFERENCES_SUPER,
+    CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS,
+    CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS,
+    CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS,
+    CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS,
+    CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT,
+    CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
+    CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
+    CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+    CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE,
+    CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+    CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode.NON_CONSTANT_MAP_KEY,
+    CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
+    CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR,
+    CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
+    CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+    CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
+    CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS,
+    CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR,
+    CompileTimeErrorCode.PART_OF_NON_PART,
+    CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+    CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+    CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER,
+    CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+    CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+    CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT,
+    CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+    CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS,
+    CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS,
+    CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH,
+    CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
+    CompileTimeErrorCode.REDIRECT_TO_NON_CLASS,
+    CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
+    CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR,
+    CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
+    CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+    CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH,
+    CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+    CompileTimeErrorCode.RETURN_IN_GENERATOR,
+    CompileTimeErrorCode.SHARED_DEFERRED_PREFIX,
+    CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
+    CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+    CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT,
+    CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+    CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
+    CompileTimeErrorCode.UNDEFINED_CLASS,
+    CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER,
+    CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT,
+    CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER,
+    CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+    CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+    CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR,
+    CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS,
+    CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+    CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
+    CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
+    HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    HintCode.DEAD_CODE,
+    HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
+    HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
+    HintCode.DEPRECATED_MEMBER_USE,
+    HintCode.DUPLICATE_IMPORT,
+    HintCode.DIVISION_OPTIMIZATION,
+    HintCode.IS_DOUBLE,
+    HintCode.IS_INT,
+    HintCode.IS_NOT_DOUBLE,
+    HintCode.IS_NOT_INT,
+    HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
+    HintCode.INVALID_ASSIGNMENT,
+    HintCode.MISSING_RETURN,
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
+    HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
+    HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
+    HintCode.TYPE_CHECK_IS_NOT_NULL,
+    HintCode.TYPE_CHECK_IS_NULL,
+    HintCode.UNDEFINED_GETTER,
+    HintCode.UNDEFINED_METHOD,
+    HintCode.UNDEFINED_OPERATOR,
+    HintCode.UNDEFINED_SETTER,
+    HintCode.UNNECESSARY_CAST,
+    HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
+    HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
+    HintCode.UNUSED_ELEMENT,
+    HintCode.UNUSED_FIELD,
+    HintCode.UNUSED_IMPORT,
+    HintCode.UNUSED_CATCH_CLAUSE,
+    HintCode.UNUSED_CATCH_STACK,
+    HintCode.UNUSED_LOCAL_VARIABLE,
+    HintCode.USE_OF_VOID_RESULT,
+    HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
+    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
+    HintCode.NULL_AWARE_IN_CONDITION,
+    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT,
+    HtmlErrorCode.PARSE_ERROR,
+    HtmlWarningCode.INVALID_URI,
+    HtmlWarningCode.URI_DOES_NOT_EXIST,
+    StaticTypeWarningCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS,
+    StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS,
+    StaticTypeWarningCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+    StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE,
+    StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+    StaticTypeWarningCode.INACCESSIBLE_SETTER,
+    StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE,
+    StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
+    StaticTypeWarningCode.INVALID_ASSIGNMENT,
+    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
+    StaticTypeWarningCode.NON_BOOL_CONDITION,
+    StaticTypeWarningCode.NON_BOOL_EXPRESSION,
+    StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION,
+    StaticTypeWarningCode.NON_BOOL_OPERAND,
+    StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
+    StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+    StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+    StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
+    StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT,
+    StaticTypeWarningCode.UNDEFINED_FUNCTION,
+    StaticTypeWarningCode.UNDEFINED_GETTER,
+    StaticTypeWarningCode.UNDEFINED_METHOD,
+    StaticTypeWarningCode.UNDEFINED_OPERATOR,
+    StaticTypeWarningCode.UNDEFINED_SETTER,
+    StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
+    StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
+    StaticTypeWarningCode.UNDEFINED_SUPER_OPERATOR,
+    StaticTypeWarningCode.UNDEFINED_SUPER_SETTER,
+    StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
+    StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+    StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+    StaticWarningCode.AMBIGUOUS_IMPORT,
+    StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    StaticWarningCode.ASSIGNMENT_TO_CONST,
+    StaticWarningCode.ASSIGNMENT_TO_FINAL,
+    StaticWarningCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+    StaticWarningCode.ASSIGNMENT_TO_FUNCTION,
+    StaticWarningCode.ASSIGNMENT_TO_METHOD,
+    StaticWarningCode.ASSIGNMENT_TO_TYPE,
+    StaticWarningCode.CASE_BLOCK_NOT_TERMINATED,
+    StaticWarningCode.CAST_TO_NON_TYPE,
+    StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+    StaticWarningCode.CONFLICTING_DART_IMPORT,
+    StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
+    StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER,
+    StaticWarningCode.CONFLICTING_INSTANCE_METHOD_SETTER2,
+    StaticWarningCode.CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER,
+    StaticWarningCode.CONFLICTING_STATIC_GETTER_AND_INSTANCE_SETTER,
+    StaticWarningCode.CONFLICTING_STATIC_SETTER_AND_INSTANCE_MEMBER,
+    StaticWarningCode.CONST_WITH_ABSTRACT_CLASS,
+    StaticWarningCode.EQUAL_KEYS_IN_MAP,
+    StaticWarningCode.EXPORT_DUPLICATED_LIBRARY_NAMED,
+    StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS,
+    StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+    StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+    StaticWarningCode.FIELD_INITIALIZER_NOT_ASSIGNABLE,
+    StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+    StaticWarningCode.FINAL_NOT_INITIALIZED,
+    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
+    StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+    StaticWarningCode.FUNCTION_WITHOUT_CALL,
+    StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
+    StaticWarningCode.IMPORT_OF_NON_LIBRARY,
+    StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+    StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
+    StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
+    StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
+    StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE,
+    StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
+    StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE,
+    StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
+    StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+    StaticWarningCode.INVALID_OVERRIDE_NAMED,
+    StaticWarningCode.INVALID_OVERRIDE_POSITIONAL,
+    StaticWarningCode.INVALID_OVERRIDE_REQUIRED,
+    StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE,
+    StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+    StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
+    StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
+    StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
+    StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE,
+    StaticWarningCode.MIXED_RETURN_TYPES,
+    StaticWarningCode.NEW_WITH_ABSTRACT_CLASS,
+    StaticWarningCode.NEW_WITH_INVALID_TYPE_PARAMETERS,
+    StaticWarningCode.NEW_WITH_NON_TYPE,
+    StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR,
+    StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
+    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR,
+    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE,
+    StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO,
+    StaticWarningCode.NON_TYPE_IN_CATCH_CLAUSE,
+    StaticWarningCode.NON_VOID_RETURN_FOR_OPERATOR,
+    StaticWarningCode.NON_VOID_RETURN_FOR_SETTER,
+    StaticWarningCode.NOT_A_TYPE,
+    StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
+    StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+    StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
+    StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
+    StaticWarningCode.REDIRECT_TO_MISSING_CONSTRUCTOR,
+    StaticWarningCode.REDIRECT_TO_NON_CLASS,
+    StaticWarningCode.RETURN_WITHOUT_VALUE,
+    StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+    StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
+    StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS,
+    StaticWarningCode.TYPE_TEST_WITH_NON_TYPE,
+    StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME,
+    StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC,
+    StaticWarningCode.UNDEFINED_CLASS,
+    StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
+    StaticWarningCode.UNDEFINED_GETTER,
+    StaticWarningCode.UNDEFINED_IDENTIFIER,
+    StaticWarningCode.UNDEFINED_NAMED_PARAMETER,
+    StaticWarningCode.UNDEFINED_SETTER,
+    StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER,
+    StaticWarningCode.UNDEFINED_SUPER_GETTER,
+    StaticWarningCode.UNDEFINED_SUPER_SETTER,
+    StaticWarningCode.VOID_RETURN_FOR_GETTER,
+    TodoCode.TODO,
+
+    //
+    // parser.dart:
+    //
+    ParserErrorCode.ABSTRACT_CLASS_MEMBER,
+    ParserErrorCode.ABSTRACT_ENUM,
+    ParserErrorCode.ABSTRACT_STATIC_METHOD,
+    ParserErrorCode.ABSTRACT_TOP_LEVEL_FUNCTION,
+    ParserErrorCode.ABSTRACT_TOP_LEVEL_VARIABLE,
+    ParserErrorCode.ABSTRACT_TYPEDEF,
+    ParserErrorCode.ANNOTATION_ON_ENUM_CONSTANT,
+    ParserErrorCode.ASSERT_DOES_NOT_TAKE_ASSIGNMENT,
+    ParserErrorCode.ASSERT_DOES_NOT_TAKE_CASCADE,
+    ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW,
+    ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW,
+    ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+    ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
+    ParserErrorCode.CLASS_IN_CLASS,
+    ParserErrorCode.COLON_IN_PLACE_OF_IN,
+    ParserErrorCode.CONST_AND_FINAL,
+    ParserErrorCode.CONST_AND_VAR,
+    ParserErrorCode.CONST_CLASS,
+    ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY,
+    ParserErrorCode.CONST_ENUM,
+    ParserErrorCode.CONST_FACTORY,
+    ParserErrorCode.CONST_METHOD,
+    ParserErrorCode.CONST_TYPEDEF,
+    ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE,
+    ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP,
+    ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE,
+    ParserErrorCode.DEPRECATED_CLASS_TYPE_ALIAS,
+    ParserErrorCode.DIRECTIVE_AFTER_DECLARATION,
+    ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT,
+    ParserErrorCode.DUPLICATED_MODIFIER,
+    ParserErrorCode.EMPTY_ENUM_BODY,
+    ParserErrorCode.ENUM_IN_CLASS,
+    ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND,
+    ParserErrorCode.EXPECTED_CASE_OR_DEFAULT,
+    ParserErrorCode.EXPECTED_CLASS_MEMBER,
+    ParserErrorCode.EXPECTED_EXECUTABLE,
+    ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL,
+    ParserErrorCode.EXPECTED_STRING_LITERAL,
+    ParserErrorCode.EXPECTED_TOKEN,
+    ParserErrorCode.EXPECTED_TYPE_NAME,
+    ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+    ParserErrorCode.EXTERNAL_AFTER_CONST,
+    ParserErrorCode.EXTERNAL_AFTER_FACTORY,
+    ParserErrorCode.EXTERNAL_AFTER_STATIC,
+    ParserErrorCode.EXTERNAL_CLASS,
+    ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY,
+    ParserErrorCode.EXTERNAL_ENUM,
+    ParserErrorCode.EXTERNAL_FIELD,
+    ParserErrorCode.EXTERNAL_GETTER_WITH_BODY,
+    ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
+    ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY,
+    ParserErrorCode.EXTERNAL_SETTER_WITH_BODY,
+    ParserErrorCode.EXTERNAL_TYPEDEF,
+    ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION,
+    ParserErrorCode.FACTORY_WITH_INITIALIZERS,
+    ParserErrorCode.FACTORY_WITHOUT_BODY,
+    ParserErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR,
+    ParserErrorCode.FINAL_AND_VAR,
+    ParserErrorCode.FINAL_CLASS,
+    ParserErrorCode.FINAL_CONSTRUCTOR,
+    ParserErrorCode.FINAL_ENUM,
+    ParserErrorCode.FINAL_METHOD,
+    ParserErrorCode.FINAL_TYPEDEF,
+    ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR,
+    ParserErrorCode.GETTER_IN_FUNCTION,
+    ParserErrorCode.GETTER_WITH_PARAMETERS,
+    ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE,
+    ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS,
+    ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
+    ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE,
+    ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH,
+    ParserErrorCode.INVALID_AWAIT_IN_FOR,
+    ParserErrorCode.INVALID_CODE_POINT,
+    ParserErrorCode.INVALID_COMMENT_REFERENCE,
+    ParserErrorCode.INVALID_HEX_ESCAPE,
+    ParserErrorCode.INVALID_OPERATOR,
+    ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
+    ParserErrorCode.INVALID_STAR_AFTER_ASYNC,
+    ParserErrorCode.INVALID_SYNC,
+    ParserErrorCode.INVALID_UNICODE_ESCAPE,
+    ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST,
+    ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER,
+    ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+    ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER,
+    ParserErrorCode.MISSING_CATCH_OR_FINALLY,
+    ParserErrorCode.MISSING_CLASS_BODY,
+    ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
+    ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE,
+    ParserErrorCode.MISSING_ENUM_BODY,
+    ParserErrorCode.MISSING_EXPRESSION_IN_INITIALIZER,
+    ParserErrorCode.MISSING_EXPRESSION_IN_THROW,
+    ParserErrorCode.MISSING_FUNCTION_BODY,
+    ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+    ParserErrorCode.MISSING_METHOD_PARAMETERS,
+    ParserErrorCode.MISSING_GET,
+    ParserErrorCode.MISSING_IDENTIFIER,
+    ParserErrorCode.MISSING_INITIALIZER,
+    ParserErrorCode.MISSING_KEYWORD_OPERATOR,
+    ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE,
+    ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE,
+    ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT,
+    ParserErrorCode.MISSING_STAR_AFTER_SYNC,
+    ParserErrorCode.MISSING_STATEMENT,
+    ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP,
+    ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+    ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH,
+    ParserErrorCode.MIXED_PARAMETER_GROUPS,
+    ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES,
+    ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES,
+    ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES,
+    ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS,
+    ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES,
+    ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS,
+    ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH,
+    ParserErrorCode.MULTIPLE_WITH_CLAUSES,
+    ParserErrorCode.NAMED_FUNCTION_EXPRESSION,
+    ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP,
+    ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE,
+    ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE,
+    ParserErrorCode.NON_CONSTRUCTOR_FACTORY,
+    ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME,
+    ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
+    ParserErrorCode.NON_STRING_LITERAL_AS_URI,
+    ParserErrorCode.NON_USER_DEFINABLE_OPERATOR,
+    ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS,
+    ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT,
+    ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP,
+    ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
+    ParserErrorCode.SETTER_IN_FUNCTION,
+    ParserErrorCode.STATIC_AFTER_CONST,
+    ParserErrorCode.STATIC_AFTER_FINAL,
+    ParserErrorCode.STATIC_AFTER_VAR,
+    ParserErrorCode.STATIC_CONSTRUCTOR,
+    ParserErrorCode.STATIC_GETTER_WITHOUT_BODY,
+    ParserErrorCode.STATIC_OPERATOR,
+    ParserErrorCode.STATIC_SETTER_WITHOUT_BODY,
+    ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION,
+    ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE,
+    ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
+    ParserErrorCode.TOP_LEVEL_OPERATOR,
+    ParserErrorCode.TYPEDEF_IN_CLASS,
+    ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
+    ParserErrorCode.UNEXPECTED_TOKEN,
+    ParserErrorCode.WITH_BEFORE_EXTENDS,
+    ParserErrorCode.WITH_WITHOUT_EXTENDS,
+    ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER,
+    ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
+    ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+    ParserErrorCode.VAR_AND_TYPE,
+    ParserErrorCode.VAR_AS_TYPE_NAME,
+    ParserErrorCode.VAR_CLASS,
+    ParserErrorCode.VAR_ENUM,
+    ParserErrorCode.VAR_RETURN_TYPE,
+    ParserErrorCode.VAR_TYPEDEF,
+    ParserErrorCode.VOID_PARAMETER,
+    ParserErrorCode.VOID_VARIABLE,
+
+    //
+    // scanner.dart:
+    //
+    ScannerErrorCode.ILLEGAL_CHARACTER,
+    ScannerErrorCode.MISSING_DIGIT,
+    ScannerErrorCode.MISSING_HEX_DIGIT,
+    ScannerErrorCode.MISSING_QUOTE,
+    ScannerErrorCode.UNABLE_GET_CONTENT,
+    ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+    ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+  ];
+
   /**
    * An empty list of error codes.
    */
@@ -2916,6 +3464,15 @@ class HintCode extends ErrorCode {
       "The argument type '{0}' cannot be assigned to the parameter type '{1}'");
 
   /**
+   * When the target expression uses '?.' operator, it can be `null`, so all the
+   * subsequent invocations should also use '?.' operator.
+   */
+  static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = const HintCode(
+      'CAN_BE_NULL_AFTER_NULL_AWARE',
+      "The expression uses '?.', so can be 'null'",
+      "Replace the '.' with a '?.' in the invocation");
+
+  /**
    * Dead code is code that is never reached, this can happen for instance if a
    * statement follows a return statement.
    */
@@ -3021,6 +3578,15 @@ class HintCode extends ErrorCode {
       'MISSING_RETURN',
       "This function declares a return type of '{0}', but does not end with a return statement",
       "Either add a return statement or change the return type to 'void'");
+
+  /**
+   * A condition in a control flow statement could evaluate to `null` because it
+   * uses the null-aware '?.' operator.
+   */
+  static const HintCode NULL_AWARE_IN_CONDITION = const HintCode(
+      'NULL_AWARE_IN_CONDITION',
+      "The value of the '?.' operator can be 'null', which is not appropriate in a condition",
+      "Replace the '?.' with a '.', testing the left-hand side for null if necessary");
 
   /**
    * A getter with the override annotation does not override an existing getter.
@@ -3666,6 +4232,21 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode UNDEFINED_METHOD =
       const StaticTypeWarningCode('UNDEFINED_METHOD',
           "The method '{0}' is not defined for the class '{1}'");
+
+  /**
+   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance member named <i>m</i>.
+   *
+   * Parameters:
+   * 0: the name of the method that is undefined
+   * 1: the resolved type name that the method lookup is happening on
+   */
+  static const StaticTypeWarningCode UNDEFINED_METHOD_WITH_CONSTRUCTOR =
+      const StaticTypeWarningCode(
+          'UNDEFINED_METHOD_WITH_CONSTRUCTOR',
+          "The method '{0}' is not defined for the class '{1}', but a constructor with that name is defined",
+          "Add 'new' or 'const' to invoke the constuctor, or change the method name.");
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form

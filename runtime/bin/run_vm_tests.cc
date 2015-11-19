@@ -5,15 +5,19 @@
 #include <stdio.h>
 
 #include "bin/file.h"
+#include "bin/dartutils.h"
+#include "bin/platform.h"
 
 #include "vm/benchmark_test.h"
 #include "vm/dart.h"
-#include "bin/dartutils.h"
 #include "vm/unit_test.h"
 
 
 // TODO(iposva, asiva): This is a placeholder for the real unittest framework.
 namespace dart {
+
+// Defined in vm/os_thread_win.cc
+extern bool private_flag_windows_run_tls_destructors;
 
 // vm_isolate_snapshot_buffer points to a snapshot for the vm isolate if we
 // link in a snapshot otherwise it is initialized to NULL.
@@ -108,6 +112,7 @@ static int Main(int argc, const char** argv) {
                                        dart::bin::DartUtils::ReadFile,
                                        dart::bin::DartUtils::WriteFile,
                                        dart::bin::DartUtils::CloseFile,
+                                       NULL,
                                        NULL);
   ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.
@@ -119,6 +124,11 @@ static int Main(int argc, const char** argv) {
     err_msg = Dart::Cleanup();
     ASSERT(err_msg == NULL);
   }
+
+#if defined(TARGET_OS_WINDOWS)
+  // TODO(zra): Remove once VM shuts down cleanly.
+  private_flag_windows_run_tls_destructors = false;
+#endif
 
   // Print a warning message if no tests or benchmarks were matched.
   if (run_matches == 0) {

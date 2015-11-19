@@ -40,6 +40,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   String name;
   bool extractAll = true;
+  final List<int> coveringExpressionOffsets = <int>[];
+  final List<int> coveringExpressionLengths = <int>[];
   final List<String> names = <String>[];
   final List<int> offsets = <int>[];
   final List<int> lengths = <int>[];
@@ -178,19 +180,58 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   /**
    * Checks if [selectionRange] selects [Expression] which can be extracted, and
-   * location of this [DartExpression] in AST allows extracting.
+   * location of this [Expression] in AST allows extracting.
    */
   RefactoringStatus _checkSelection() {
-    _ExtractExpressionAnalyzer _selectionAnalyzer =
-        new _ExtractExpressionAnalyzer(selectionRange);
-    unit.accept(_selectionAnalyzer);
-    AstNode coveringNode = _selectionAnalyzer.coveringNode;
-    // may be fatal error
+    String selectionStr;
+    // exclude whitespaces
     {
-      RefactoringStatus status = _selectionAnalyzer.status;
-      if (status.hasFatalError) {
-        return status;
+      selectionStr = utils.getRangeText(selectionRange);
+      int numLeading = countLeadingWhitespaces(selectionStr);
+      int numTrailing = countTrailingWhitespaces(selectionStr);
+      int offset = selectionRange.offset + numLeading;
+      int end = selectionRange.end - numTrailing;
+      selectionRange = new SourceRange(offset, end - offset);
+    }
+    // get covering node
+    AstNode coveringNode = new NodeLocator(
+        selectionRange.offset, selectionRange.end).searchWithin(unit);
+    // compute covering expressions
+    for (AstNode node = coveringNode; node is Expression; node = node.parent) {
+      AstNode parent = node.parent;
+      // cannot extract the name part of a property access
+      if (parent is PrefixedIdentifier && parent.identifier == node ||
+          parent is PropertyAccess && parent.propertyName == node) {
+        continue;
       }
+      // fatal selection problems
+      if (coveringExpressionOffsets.isEmpty) {
+        if (node is SimpleIdentifier) {
+          Element element = node.bestElement;
+          if (element is FunctionElement || element is MethodElement) {
+            return new RefactoringStatus.fatal(
+                'Cannot extract a single method name.',
+                newLocation_fromNode(node));
+          }
+          if (node.inDeclarationContext()) {
+            return new RefactoringStatus.fatal(
+                'Cannot extract the name part of a declaration.',
+                newLocation_fromNode(node));
+          }
+        }
+        if (parent is AssignmentExpression && parent.leftHandSide == node) {
+          return new RefactoringStatus.fatal(
+              'Cannot extract the left-hand side of an assignment.',
+              newLocation_fromNode(node));
+        }
+      }
+      // set selected expression
+      if (coveringExpressionOffsets.isEmpty) {
+        rootExpression = node;
+      }
+      // add the expression range
+      coveringExpressionOffsets.add(node.offset);
+      coveringExpressionLengths.add(node.length);
     }
     // we need enclosing block to add variable declaration statement
     if (coveringNode == null ||
@@ -201,38 +242,18 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
     // part of string literal
     if (coveringNode is StringLiteral) {
-      stringLiteralPart = utils.getRangeText(selectionRange);
-      if (stringLiteralPart.startsWith("'") ||
-          stringLiteralPart.startsWith('"') ||
-          stringLiteralPart.endsWith("'") ||
-          stringLiteralPart.endsWith('"')) {
-        return new RefactoringStatus.fatal(
-            'Cannot extract only leading or trailing quote of string literal.');
+      if (selectionRange.offset > coveringNode.offset &&
+          selectionRange.end < coveringNode.end) {
+        stringLiteralPart = selectionStr;
+        return new RefactoringStatus();
       }
-      return new RefactoringStatus();
     }
     // single node selected
-    if (_selectionAnalyzer.selectedNodes.length == 1 &&
-        !utils.selectionIncludesNonWhitespaceOutsideNode(
-            selectionRange, _selectionAnalyzer.firstSelectedNode)) {
-      AstNode selectedNode = _selectionAnalyzer.firstSelectedNode;
-      if (selectedNode is Expression) {
-        rootExpression = selectedNode;
-        singleExpression = rootExpression;
-        wholeStatementExpression =
-            singleExpression.parent is ExpressionStatement;
-        return new RefactoringStatus();
-      }
-    }
-    // fragment of binary expression selected
-    if (coveringNode is BinaryExpression) {
-      BinaryExpression binaryExpression = coveringNode;
-      if (utils.validateBinaryExpressionRange(
-          binaryExpression, selectionRange)) {
-        rootExpression = binaryExpression;
-        singleExpression = null;
-        return new RefactoringStatus();
-      }
+    if (rootExpression != null) {
+      singleExpression = rootExpression;
+      selectionRange = rangeNode(singleExpression);
+      wholeStatementExpression = singleExpression.parent is ExpressionStatement;
+      return new RefactoringStatus();
     }
     // invalid selection
     return new RefactoringStatus.fatal(
@@ -259,7 +280,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
    * Returns an [Element]-sensitive encoding of [tokens].
    * Each [Token] with a [LocalVariableElement] has a suffix of the element id.
    *
-   * So, we can distingush different local variables with the same name, if
+   * So, we can distinguish different local variables with the same name, if
    * there are multiple variables with the same name are declared in the
    * function we are searching occurrences in.
    */
@@ -475,7 +496,7 @@ class _ExtractExpressionAnalyzer extends SelectionAnalyzer {
   }
 
   /**
-   * Records fatal error with given message and [Locatiom].
+   * Records fatal error with given [message] and [location].
    */
   void _invalidSelection(String message, Location location) {
     status.addFatalError(message, location);
@@ -523,7 +544,7 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
   @override
   Object visitStringLiteral(StringLiteral node) {
     if (ref.stringLiteralPart != null) {
-      int occuLength = ref.stringLiteralPart.length;
+      int length = ref.stringLiteralPart.length;
       String value = ref.utils.getNodeText(node);
       int lastIndex = 0;
       while (true) {
@@ -531,10 +552,10 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
         if (index == -1) {
           break;
         }
-        lastIndex = index + occuLength;
-        int occuStart = node.offset + index;
-        SourceRange occuRange = rangeStartLength(occuStart, occuLength);
-        occurrences.add(occuRange);
+        lastIndex = index + length;
+        int start = node.offset + index;
+        SourceRange range = rangeStartLength(start, length);
+        occurrences.add(range);
       }
       return null;
     }
@@ -560,8 +581,8 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
     List<Token> nodeTokens = TokenUtils.getTokens(nodeSource);
     nodeSource = ref._encodeExpressionTokens(node, nodeTokens);
     if (nodeSource == selectionSource) {
-      SourceRange occuRange = rangeNode(node);
-      _addOccurrence(occuRange);
+      SourceRange range = rangeNode(node);
+      _addOccurrence(range);
     }
   }
 
@@ -587,10 +608,10 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<Object> {
       Token startToken = nodeTokens[startTokenIndex];
       Token endToken = nodeTokens[endTokenIndex];
       // add occurrence range
-      int occuStart = nodeOffset + startToken.offset;
-      int occuEnd = nodeOffset + endToken.end;
-      SourceRange occuRange = rangeStartEnd(occuStart, occuEnd);
-      _addOccurrence(occuRange);
+      int start = nodeOffset + startToken.offset;
+      int end = nodeOffset + endToken.end;
+      SourceRange range = rangeStartEnd(start, end);
+      _addOccurrence(range);
     }
   }
 }

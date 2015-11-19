@@ -630,10 +630,11 @@ class _HeaderValue implements HeaderValue {
 
   static _HeaderValue parse(String value,
                             {parameterSeparator: ";",
+                             valueSeparator: null,
                              preserveBackslash: false}) {
     // Parse the string.
     var result = new _HeaderValue();
-    result._parse(value, parameterSeparator, preserveBackslash);
+    result._parse(value, parameterSeparator, valueSeparator, preserveBackslash);
     return result;
   }
 
@@ -664,7 +665,10 @@ class _HeaderValue implements HeaderValue {
     return sb.toString();
   }
 
-  void _parse(String s, String parameterSeparator, bool preserveBackslash) {
+  void _parse(String s,
+        String parameterSeparator,
+        String valueSeparator,
+        bool preserveBackslash) {
     int index = 0;
 
     bool done() => index == s.length;
@@ -681,6 +685,7 @@ class _HeaderValue implements HeaderValue {
       while (!done()) {
         if (s[index] == " " ||
             s[index] == "\t" ||
+            s[index] == valueSeparator ||
             s[index] == parameterSeparator) break;
         index++;
       }
@@ -705,14 +710,17 @@ class _HeaderValue implements HeaderValue {
       String parseParameterName() {
         int start = index;
         while (!done()) {
-          if (s[index] == " " || s[index] == "\t" || s[index] == "=") break;
+          if (s[index] == " " ||
+              s[index] == "\t" ||
+              s[index] == "=" ||
+              s[index] == valueSeparator) break;
           index++;
         }
         return s.substring(start, index).toLowerCase();
       }
 
       String parseParameterValue() {
-        if (s[index] == "\"") {
+        if (!done() && s[index] == "\"") {
           // Parse quoted value.
           StringBuffer sb = new StringBuffer();
           index++;
@@ -735,7 +743,8 @@ class _HeaderValue implements HeaderValue {
           return sb.toString();
         } else {
           // Parse non-quoted value.
-          return parseValue();
+          var val = parseValue();
+          return val == "" ? null : val;
         }
       }
 
@@ -744,8 +753,16 @@ class _HeaderValue implements HeaderValue {
         if (done()) return;
         String name = parseParameterName();
         skipWS();
-        expect("=");
+        if (done()) {
+          parameters[name] = null;
+          return;
+        }
+        maybeExpect("=");
         skipWS();
+        if(done()) {
+          parameters[name] = null;
+          return;
+        }
         String value = parseParameterValue();
         if (name == 'charset' && this is _ContentType) {
           // Charset parameter of ContentTypes are always lower-case.
@@ -754,6 +771,8 @@ class _HeaderValue implements HeaderValue {
         parameters[name] = value;
         skipWS();
         if (done()) return;
+        // TODO: Implement support for multi-valued parameters.
+        if(s[index] == valueSeparator) return;
         expect(parameterSeparator);
       }
     }
@@ -800,7 +819,7 @@ class _ContentType extends _HeaderValue implements ContentType {
 
   static _ContentType parse(String value) {
     var result = new _ContentType._();
-    result._parse(value, ";", false);
+    result._parse(value, ";", null, false);
     int index = result._value.indexOf("/");
     if (index == -1 || index == (result._value.length - 1)) {
       result._primaryType = result._value.trim().toLowerCase();

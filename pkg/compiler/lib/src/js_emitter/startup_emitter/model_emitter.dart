@@ -35,6 +35,8 @@ import '../../constants/values.dart' show
     FunctionConstantValue;
 import '../../compiler.dart' show
     Compiler;
+import '../../core_types.dart' show
+    CoreClasses;
 import '../../elements/elements.dart' show
     ClassElement,
     FunctionElement;

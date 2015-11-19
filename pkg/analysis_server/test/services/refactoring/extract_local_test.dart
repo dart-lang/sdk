@@ -82,33 +82,6 @@ main() {
         expectedMessage: 'Cannot extract a single method name.');
   }
 
-  test_checkInitialConditions_nameOfProperty_prefixedIdentifier() async {
-    indexTestUnit('''
-main(p) {
-  p.value; // marker
-}
-''');
-    _createRefactoringWithSuffix('value', '; // marker');
-    // check conditions
-    RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract name part of a property access.');
-  }
-
-  test_checkInitialConditions_nameOfProperty_propertyAccess() async {
-    indexTestUnit('''
-main() {
-  foo().length; // marker
-}
-String foo() => '';
-''');
-    _createRefactoringWithSuffix('length', '; // marker');
-    // check conditions
-    RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract name part of a property access.');
-  }
-
   test_checkInitialConditions_namePartOfDeclaration_variable() async {
     indexTestUnit('''
 main() {
@@ -120,6 +93,17 @@ main() {
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage: 'Cannot extract the name part of a declaration.');
+  }
+
+  test_checkInitialConditions_noExpression() async {
+    indexTestUnit('''
+main() {
+  // abc
+}
+''');
+    _createRefactoringForString('abc');
+    // check conditions
+    _assertInitialConditions_fatal_selection();
   }
 
   test_checkInitialConditions_notPartOfFunction() async {
@@ -141,11 +125,13 @@ main() {
 }
 ''');
     _createRefactoringForString("'a");
-    // check conditions
-    RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Cannot extract only leading or trailing quote of string literal.');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 'abc';
+  var vvv = res;
+}
+''');
   }
 
   test_checkInitialConditions_stringSelection_trailingQuote() async {
@@ -155,11 +141,13 @@ main() {
 }
 ''');
     _createRefactoringForString("c'");
-    // check conditions
-    RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage:
-            'Cannot extract only leading or trailing quote of string literal.');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 'abc';
+  var vvv = res;
+}
+''');
   }
 
   test_checkLocalName() {
@@ -334,6 +322,27 @@ main() {
 ''');
   }
 
+  test_coveringExpressions() async {
+    indexTestUnit('''
+main() {
+  int aaa = 1;
+  int bbb = 2;
+  var c = aaa + bbb * 2 + 3;
+}
+''');
+    _createRefactoring(testCode.indexOf('bb * 2'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = <String>[];
+    for (int i = 0; i < refactoring.coveringExpressionOffsets.length; i++) {
+      int offset = refactoring.coveringExpressionOffsets[i];
+      int length = refactoring.coveringExpressionLengths[i];
+      subExpressions.add(testCode.substring(offset, offset + length));
+    }
+    expect(subExpressions,
+        ['bbb', 'bbb * 2', 'aaa + bbb * 2', 'aaa + bbb * 2 + 3']);
+  }
+
   test_fragmentExpression() {
     indexTestUnit('''
 main() {
@@ -344,8 +353,8 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 main() {
-  var res = 2 + 3;
-  int a = 1 + res + 4;
+  var res = 1 + 2 + 3;
+  int a = res + 4;
 }
 ''');
   }
@@ -357,8 +366,13 @@ main() {
 }
 ''');
     _createRefactoringForString('+ 2');
-    // check conditions
-    return _assertInitialConditions_fatal_selection();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 1 + 2;
+  int a = res + 3 + 4;
+}
+''');
   }
 
   test_fragmentExpression_leadingPartialSelection() {
@@ -368,8 +382,13 @@ main() {
 }
 ''');
     _createRefactoringForString('11 + 2');
-    // check conditions
-    return _assertInitialConditions_fatal_selection();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 111 + 2;
+  int a = res + 3 + 4;
+}
+''');
   }
 
   test_fragmentExpression_leadingWhitespace() {
@@ -382,8 +401,8 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 main() {
-  var res =  2 + 3;
-  int a = 1 +res + 4;
+  var res = 1 + 2 + 3;
+  int a = res + 4;
 }
 ''');
   }
@@ -395,8 +414,13 @@ main() {
 }
 ''');
     _createRefactoringForString('2 - 3');
-    // check conditions
-    return _assertInitialConditions_fatal_selection();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 1 - 2 - 3;
+  int a = res - 4;
+}
+''');
   }
 
   test_fragmentExpression_trailingNotWhitespace() {
@@ -405,20 +429,30 @@ main() {
   int a = 1 + 2 + 3 + 4;
 }
 ''');
-    _createRefactoringForString('2 + 3 +');
-    // check conditions
-    return _assertInitialConditions_fatal_selection();
+    _createRefactoringForString('1 + 2 +');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 1 + 2 + 3;
+  int a = res + 4;
+}
+''');
   }
 
   test_fragmentExpression_trailingPartialSelection() {
     indexTestUnit('''
 main() {
-  int a = 1 + 2 + 3 + 444;
+  int a = 1 + 2 + 333 + 4;
 }
 ''');
-    _createRefactoringForString('2 + 3 + 44');
-    // check conditions
-    return _assertInitialConditions_fatal_selection();
+    _createRefactoringForString('2 + 33');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 1 + 2 + 333;
+  int a = res + 4;
+}
+''');
   }
 
   test_fragmentExpression_trailingWhitespace() {
@@ -431,8 +465,8 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 main() {
-  var res = 2 + 3 ;
-  int a = 1 + res+ 4;
+  var res = 1 + 2 + 3;
+  int a = res + 4;
 }
 ''');
   }
@@ -446,7 +480,7 @@ main() {
     _createRefactoringForString('222 + 333');
     // check guesses
     await refactoring.checkInitialConditions();
-    expect(refactoring.names, isEmpty);
+    expect(refactoring.names, unorderedEquals(['i']));
   }
 
   test_guessNames_singleExpression() async {
@@ -477,7 +511,7 @@ main() {
     expect(refactoring.names, unorderedEquals(['helloBob', 'bob']));
   }
 
-  test_occurences_differentVariable() {
+  test_occurrences_differentVariable() {
     indexTestUnit('''
 main() {
   {
@@ -509,7 +543,7 @@ main() {
 ''');
   }
 
-  test_occurences_disableOccurences() {
+  test_occurrences_disableOccurrences() {
     indexTestUnit('''
 int foo() => 42;
 main() {
@@ -530,7 +564,7 @@ main() {
 ''');
   }
 
-  test_occurences_ignore_assignmentLeftHandSize() {
+  test_occurrences_ignore_assignmentLeftHandSize() {
     indexTestUnit('''
 main() {
   int v = 1;
@@ -554,7 +588,7 @@ main() {
 ''');
   }
 
-  test_occurences_ignore_nameOfVariableDeclariton() {
+  test_occurrences_ignore_nameOfVariableDeclaration() {
     indexTestUnit('''
 main() {
   int v = 1;
@@ -572,7 +606,7 @@ main() {
 ''');
   }
 
-  test_occurences_singleExpression() {
+  test_occurrences_singleExpression() {
     indexTestUnit('''
 int foo() => 42;
 main() {
@@ -592,7 +626,7 @@ main() {
 ''');
   }
 
-  test_occurences_useDominator() {
+  test_occurrences_useDominator() {
     indexTestUnit('''
 main() {
   if (true) {
@@ -616,7 +650,7 @@ main() {
 ''');
   }
 
-  test_occurences_whenComment() {
+  test_occurrences_whenComment() {
     indexTestUnit('''
 int foo() => 42;
 main() {
@@ -636,7 +670,7 @@ main() {
 ''');
   }
 
-  test_occurences_withSpace() {
+  test_occurrences_withSpace() {
     indexTestUnit('''
 int foo(String s) => 42;
 main() {
@@ -800,23 +834,62 @@ main() {
 }
 ''');
     _createRefactoringForString('+ 345');
-    // check conditions
-    return _assertInitialConditions_fatal_selection();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 12 + 345;
+  int a = res;
+}
+''');
   }
 
   test_singleExpression_leadingWhitespace() {
     indexTestUnit('''
 main() {
-  int a = 12 /*abc*/ + 345;
+  int a = 1 /*abc*/ + 2 + 345;
 }
 ''');
-    _createRefactoringForString('12 /*abc*/');
+    _createRefactoringForString('1 /*abc*/');
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 main() {
-  var res = 12 /*abc*/;
+  var res = 1 /*abc*/ + 2;
   int a = res + 345;
 }
+''');
+  }
+
+  test_singleExpression_nameOfProperty_prefixedIdentifier() async {
+    indexTestUnit('''
+main(p) {
+  var v = p.value; // marker
+}
+''');
+    _createRefactoringWithSuffix('value', '; // marker');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(p) {
+  var res = p.value;
+  var v = res; // marker
+}
+''');
+  }
+
+  test_singleExpression_nameOfProperty_propertyAccess() async {
+    indexTestUnit('''
+main() {
+  var v = foo().length; // marker
+}
+String foo() => '';
+''');
+    _createRefactoringWithSuffix('length', '; // marker');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = foo().length;
+  var v = res; // marker
+}
+String foo() => '';
 ''');
   }
 
@@ -841,22 +914,6 @@ main() {
 ''');
   }
 
-  test_singleExpression_trailingComment() {
-    indexTestUnit('''
-main() {
-  int a =  1 + 2;
-}
-''');
-    _createRefactoringForString(' 1 + 2');
-    // apply refactoring
-    return _assertSuccessfulRefactoring('''
-main() {
-  var res =  1 + 2;
-  int a = res;
-}
-''');
-  }
-
   test_singleExpression_trailingNotWhitespace() {
     indexTestUnit('''
 main() {
@@ -864,8 +921,13 @@ main() {
 }
 ''');
     _createRefactoringForString('12 +');
-    // check conditions
-    return _assertInitialConditions_fatal_selection();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = 12 + 345;
+  int a = res;
+}
+''');
   }
 
   test_singleExpression_trailingWhitespace() {
@@ -878,8 +940,8 @@ main() {
     // apply refactoring
     return _assertSuccessfulRefactoring('''
 main() {
-  var res = 1 + 2 ;
-  int a = res;
+  var res = 1 + 2;
+  int a = res ;
 }
 ''');
   }
@@ -944,8 +1006,8 @@ main() {
   }
 
   /**
-   * Checks that all conditions are OK and the result of applying the [Change]
-   * to [testUnit] is [expectedCode].
+   * Checks that all conditions are OK and the result of applying the
+   * [SourceChange] to [testUnit] is [expectedCode].
    */
   Future _assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();

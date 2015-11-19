@@ -15,8 +15,8 @@ import 'package:compiler/src/dart_backend/dart_backend.dart' show
 import 'package:compiler/src/diagnostics/messages.dart' show
     MessageKind,
     MessageTemplate;
-import 'package:compiler/src/old_to_new_api.dart' show
-    LegacyCompilerDiagnostics;
+import 'package:compiler/compiler_new.dart' show
+    Diagnostic;
 
 import 'memory_compiler.dart';
 
@@ -33,6 +33,7 @@ final Set<MessageKind> kindsWithExtraMessages = new Set<MessageKind>.from([
     MessageKind.CANNOT_IMPLEMENT_MALFORMED,
     MessageKind.CANNOT_MIXIN,
     MessageKind.CANNOT_MIXIN_MALFORMED,
+    MessageKind.CANNOT_INSTANTIATE_ENUM,
     MessageKind.CYCLIC_TYPEDEF_ONE,
     MessageKind.EQUAL_MAP_ENTRY_KEY,
     MessageKind.FINAL_FUNCTION_TYPE_PARAMETER,
@@ -68,13 +69,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
       Expect.isTrue(example.containsKey('main.dart'),
                     "Example map must contain a 'main.dart' entry.");
     }
-    List<String> messages = <String>[];
-    void collect(Uri uri, int begin, int end, String message, kind) {
-      if (kind.name == 'verbose info' || kind.name == 'info') {
-        return;
-      }
-      messages.add(message);
-    }
+    DiagnosticCollector collector = new DiagnosticCollector();
 
     bool oldBackendIsDart;
     if (cachedCompiler != null) {
@@ -84,7 +79,7 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
 
     Compiler compiler = compilerFor(
         memorySourceFiles: example,
-        diagnosticHandler: new LegacyCompilerDiagnostics(collect),
+        diagnosticHandler: collector,
         options: [Flags.analyzeOnly,
                   Flags.enableExperimentalMirrors]..addAll(template.options),
         cachedCompiler:
@@ -93,6 +88,11 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
              oldBackendIsDart == newBackendIsDart ? cachedCompiler : null);
 
     return compiler.run(Uri.parse('memory:main.dart')).then((_) {
+      Iterable<CollectedMessage> messages = collector.filterMessagesByKinds(
+          [Diagnostic.ERROR,
+           Diagnostic.WARNING,
+           Diagnostic.HINT,
+           Diagnostic.CRASH]);
 
       Expect.isFalse(messages.isEmpty, 'No messages in """$example"""');
 
@@ -102,21 +102,31 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
           new RegExp(ESCAPE_REGEXP), (m) => '\\${m[0]}');
       pattern = pattern.replaceAll(new RegExp(r'#\\\{[^}]*\\\}'), '.*');
 
+      bool checkMessage(CollectedMessage message) {
+        if (message.message.kind != MessageKind.GENERIC) {
+          return message.message.kind == template.kind;
+        } else {
+          return new RegExp('^$pattern\$').hasMatch(message.text);
+        }
+      }
+
       // TODO(johnniwinther): Extend MessageKind to contain information on
       // where info messages are expected.
       bool messageFound = false;
       List unexpectedMessages = [];
-      for (String message in messages) {
-        if (!messageFound && new RegExp('^$pattern\$').hasMatch(message)) {
+      for (CollectedMessage message in messages) {
+        if (!messageFound && checkMessage(message)) {
           messageFound = true;
         } else {
           unexpectedMessages.add(message);
         }
       }
-      Expect.isTrue(messageFound, '"$pattern" does not match any in $messages');
+      Expect.isTrue(messageFound,
+          '${template.kind}} does not match any in\n '
+          '${messages.join('\n ')}');
       Expect.isFalse(compiler.reporter.hasCrashed);
       if (!unexpectedMessages.isEmpty) {
-        for (String message in unexpectedMessages) {
+        for (CollectedMessage message in unexpectedMessages) {
           print("Unexpected message: $message");
         }
         if (!kindsWithExtraMessages.contains(template.kind)) {

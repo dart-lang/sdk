@@ -14,38 +14,61 @@ import 'warnings_checker.dart';
 /// the warnings of each category.
 const Map<String, dynamic> TESTS = const {
   // Instance methods.
-    'co19/src/Language/07_Classes/1_Instance_Methods_A01_t01.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A01_t02.dart': null,
-
     'language/check_method_override_test.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A06_t01.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A06_t02.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_more_parameters_t01.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_more_parameters_t02.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_fewer_parameters_t01.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_fewer_parameters_t02.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_named_parameters_t01.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_named_parameters_t02.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_named_parameters_t03.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_named_parameters_t04.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_named_parameters_t05.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_named_parameters_t06.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_subtype_t01.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_subtype_t02.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_subtype_t03.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_subtype_t04.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_subtype_t05.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'override_subtype_t06.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'same_name_static_member_in_superclass_t01.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'same_name_static_member_in_superclass_t02.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'same_name_static_member_in_superclass_t04.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'same_name_static_member_in_superclass_t05.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'same_name_static_member_in_superclass_t06.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'same_name_static_member_in_superclass_t07.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'same_name_static_member_in_superclass_t08.dart': null,
+    'co19/src/Language/Classes/Instance_Methods/'
+        'same_name_static_member_in_superclass_t09.dart': null,
 
-    'co19/src/Language/07_Classes/1_Instance_Methods_A02_t01.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A02_t02.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A02_t03.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A02_t04.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A02_t05.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A02_t06.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A03_t01.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A03_t02.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A03_t03.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A03_t04.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A03_t05.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A03_t06.dart': null,
-
-    'co19/src/Language/07_Classes/1_Instance_Methods_A05_t01.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A05_t02.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A05_t04.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A05_t05.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A05_t06.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A05_t07.dart': null,
-    'co19/src/Language/07_Classes/1_Instance_Methods_A05_t08.dart': null,
   // Getters.
-    'co19/src/Language/07_Classes/2_Getters_A05_t01.dart': null,
-    'co19/src/Language/07_Classes/2_Getters_A05_t02.dart': null,
-    'co19/src/Language/07_Classes/2_Getters_A05_t03.dart': null,
-    'co19/src/Language/07_Classes/2_Getters_A05_t04.dart': null,
+    'co19/src/Language/Classes/Getters/override_t01.dart': null,
+    'co19/src/Language/Classes/Getters/override_t02.dart': null,
+    'co19/src/Language/Classes/Getters/override_t03.dart': null,
+    'co19/src/Language/Classes/Getters/override_t04.dart': null,
 };
 
 void main() {

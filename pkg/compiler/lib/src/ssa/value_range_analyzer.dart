@@ -693,7 +693,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       return visitInstruction(fieldGet);
     }
     JavaScriptBackend backend = compiler.backend;
-    assert(fieldGet.element == backend.jsIndexableLength);
+    assert(fieldGet.element == backend.helpers.jsIndexableLength);
     PositiveValue value = info.newPositiveValue(fieldGet);
     // We know this range is above zero. To simplify the analysis, we
     // put the zero value as the lower bound of this range. This

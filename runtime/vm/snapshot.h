@@ -54,6 +54,7 @@ class RawICData;
 class RawImmutableArray;
 class RawInstructions;
 class RawInt32x4;
+class RawJSRegExp;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
@@ -87,6 +88,7 @@ class RawTypeParameter;
 class RawTypeRef;
 class RawUnhandledException;
 class RawUnresolvedClass;
+class RawWeakProperty;
 class String;
 class TokenStream;
 class TypeArguments;
@@ -361,7 +363,7 @@ class SnapshotReader : public BaseReader {
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   TypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
-  Array* TokensHandle() { return &tokens_; }
+  GrowableObjectArray* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
@@ -444,6 +446,8 @@ class SnapshotReader : public BaseReader {
   RawUnhandledException* NewUnhandledException();
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
+  RawWeakProperty* NewWeakProperty();
+  RawJSRegExp* NewJSRegExp();
 
   RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags) {
     return instructions_reader_->GetInstructionsAt(offset, expected_tags);
@@ -483,19 +487,10 @@ class SnapshotReader : public BaseReader {
                             intptr_t patch_object_id,
                             intptr_t patch_offset);
 
-  // Read an object reference from the stream.
-  RawObject* ReadObjectRef(intptr_t object_id,
-                           intptr_t class_header,
-                           intptr_t tags,
-                           intptr_t patch_object_id = kInvalidPatchIndex,
-                           intptr_t patch_offset = 0);
-
-  // Read an inlined object from the stream.
-  RawObject* ReadInlinedObject(intptr_t object_id,
-                               intptr_t class_header,
-                               intptr_t tags,
-                               intptr_t patch_object_id,
-                               intptr_t patch_offset);
+  // Read a Dart Instance object.
+  RawObject* ReadInstance(intptr_t object_id,
+                          intptr_t tags,
+                          bool as_reference);
 
   // Read a VM isolate object that was serialized as an Id.
   RawObject* ReadVMIsolateObject(intptr_t object_id);
@@ -546,7 +541,7 @@ class SnapshotReader : public BaseReader {
   Library& library_;  // Temporary library handle.
   AbstractType& type_;  // Temporary type handle.
   TypeArguments& type_arguments_;  // Temporary type argument handle.
-  Array& tokens_;  // Temporary tokens handle.
+  GrowableObjectArray& tokens_;  // Temporary tokens handle.
   TokenStream& stream_;  // Temporary token stream handle.
   ExternalTypedData& data_;  // Temporary stream data handle.
   TypedData& typed_data_;  // Temporary typed data handle.
@@ -723,7 +718,7 @@ class BaseWriter : public StackResource {
   BaseWriter(uint8_t** buffer,
              ReAlloc alloc,
              intptr_t initial_size)
-      : StackResource(Isolate::Current()),
+      : StackResource(Thread::Current()),
         stream_(buffer, alloc, initial_size) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
@@ -811,13 +806,16 @@ class InstructionsWriter : public ZoneAllocated {
                      intptr_t initial_size)
     : stream_(buffer, alloc, initial_size),
       next_offset_(InstructionsSnapshot::kHeaderSize),
+      binary_size_(0),
       instructions_() {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
 
-  // Size of the snapshot.
+  // Size of the snapshot (assembly code).
   intptr_t BytesWritten() const { return stream_.bytes_written(); }
+
+  intptr_t binary_size() { return binary_size_; }
 
   int32_t GetOffsetFor(RawInstructions* instructions);
 
@@ -855,10 +853,12 @@ class InstructionsWriter : public ZoneAllocated {
 #else
     stream_.Print(".long 0x%0.8" Px "\n", value);
 #endif
+    binary_size_ += sizeof(value);
   }
 
   WriteStream stream_;
   intptr_t next_offset_;
+  intptr_t binary_size_;
   GrowableArray<InstructionsData> instructions_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);

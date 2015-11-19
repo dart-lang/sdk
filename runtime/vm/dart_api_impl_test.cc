@@ -4253,7 +4253,7 @@ TEST_CASE(FieldAccess) {
   Dart_Handle url = NewString("library_url");
   Dart_Handle source = NewString(kImportedScriptChars);
   Dart_Handle imported_lib = Dart_LoadLibrary(url, source, 0, 0);
-  Dart_Handle prefix = NewString("");
+  Dart_Handle prefix = Dart_EmptyString();
   EXPECT_VALID(imported_lib);
   Dart_Handle result = Dart_LibraryImportLibrary(lib, imported_lib, prefix);
   EXPECT_VALID(result);
@@ -5126,7 +5126,7 @@ TEST_CASE(New) {
   Dart_Handle bad_args[1];
   bad_args[0] = Dart_NewApiError("myerror");
 
-  // Invoke the unnamed constructor.
+  // Allocate and Invoke the unnamed constructor passing in Dart_Null.
   Dart_Handle result = Dart_New(type, Dart_Null(), 0, NULL);
   EXPECT_VALID(result);
   bool instanceof = false;
@@ -5146,8 +5146,8 @@ TEST_CASE(New) {
   foo = Dart_GetField(obj, NewString("foo"));
   EXPECT(Dart_IsNull(foo));
 
-  // Invoke the unnamed constructor with an empty string.
-  result = Dart_New(type, NewString(""), 0, NULL);
+  // Allocate and Invoke the unnamed constructor passing in an empty string.
+  result = Dart_New(type, Dart_EmptyString(), 0, NULL);
   EXPECT_VALID(result);
   instanceof = false;
   EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceof));
@@ -5163,7 +5163,15 @@ TEST_CASE(New) {
   instanceof = false;
   EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceof));
   EXPECT(instanceof);
-  result = Dart_InvokeConstructor(obj, NewString(""), 0, NULL);
+  // Use the empty string to invoke the unnamed constructor.
+  result = Dart_InvokeConstructor(obj, Dart_EmptyString(), 0, NULL);
+  EXPECT_VALID(result);
+  int_value = 0;
+  foo = Dart_GetField(result, NewString("foo"));
+  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
+  EXPECT_EQ(7, int_value);
+  // use Dart_Null to invoke the unnamed constructor.
+  result = Dart_InvokeConstructor(obj, Dart_Null(), 0, NULL);
   EXPECT_VALID(result);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
@@ -6240,6 +6248,26 @@ TEST_CASE(RootLibrary) {
   const char* uri_cstr = "";
   EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
   EXPECT_STREQ(TestCase::url(), uri_cstr);
+
+
+  Dart_Handle core_uri = Dart_NewStringFromCString("dart:core");
+  Dart_Handle core_lib = Dart_LookupLibrary(core_uri);
+  EXPECT_VALID(core_lib);
+  EXPECT(Dart_IsLibrary(core_lib));
+
+  Dart_Handle result = Dart_SetRootLibrary(core_uri);  // Not a library.
+  EXPECT(Dart_IsError(result));
+  root_lib = Dart_RootLibrary();
+  lib_uri = Dart_LibraryUrl(root_lib);
+  EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
+  EXPECT_STREQ(TestCase::url(), uri_cstr);  // Root library didn't change.
+
+  result = Dart_SetRootLibrary(core_lib);
+  EXPECT_VALID(result);
+  root_lib = Dart_RootLibrary();
+  lib_uri = Dart_LibraryUrl(root_lib);
+  EXPECT_VALID(Dart_StringToCString(lib_uri, &uri_cstr));
+  EXPECT_STREQ("dart:core", uri_cstr);  // Root library did change.
 }
 
 
@@ -9418,9 +9446,9 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   Dart_TimelineDuration("testDurationEvent", 0, 1);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
 }
@@ -9435,9 +9463,9 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   Dart_TimelineInstant("testInstantEvent");
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
 }
@@ -9457,7 +9485,7 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
   Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   TimelineEventFilter filter;
   recorder->PrintJSON(&js, &filter);
@@ -9480,9 +9508,9 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
-  Timeline::ReclaimIsolateBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
+  IsolateTimelineEventFilter filter(isolate->main_port());
   recorder->PrintJSON(&js, &filter);
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
@@ -9554,6 +9582,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTrace) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
@@ -9601,6 +9635,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceOnlyDartEvents) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Dart\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"DART_NAME\"", buffer);
@@ -9646,6 +9686,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceWithDartEvents) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
@@ -9688,6 +9734,12 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceGlobalOverride) {
   buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
+
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
 
   // Heartbeat test.
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
@@ -9737,6 +9789,12 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
 
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
   // Heartbeat test.
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
   EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
@@ -9771,6 +9829,11 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
   EXPECT(buffer != NULL);
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
 
   // Heartbeat test for old events.
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);

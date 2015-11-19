@@ -119,6 +119,7 @@ class DartUtils {
   static void CloseFile(void* stream);
   static bool EntropySource(uint8_t* buffer, intptr_t length);
   static Dart_Handle ReadStringFromFile(const char* filename);
+  static Dart_Handle MakeUint8Array(const uint8_t* buffer, intptr_t length);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
                                        Dart_Handle url);
@@ -580,11 +581,11 @@ class CObjectExternalUint8Array : public CObject {
 class ScopedBlockingCall {
  public:
   ScopedBlockingCall() {
-    Dart_IsolateBlocked();
+    Dart_ThreadDisableProfiling();
   }
 
   ~ScopedBlockingCall() {
-    Dart_IsolateUnblocked();
+    Dart_ThreadEnableProfiling();
   }
 };
 

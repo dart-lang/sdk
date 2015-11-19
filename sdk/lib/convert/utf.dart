@@ -335,7 +335,7 @@ class Utf8Decoder extends Converter<List<int>, String> {
     // of codeUnits.
     String result = _convertIntercepted(_allowMalformed, codeUnits, start, end);
     if (result != null) {
-      return null;
+      return result;
     }
 
     int length = codeUnits.length;

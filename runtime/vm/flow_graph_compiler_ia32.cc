@@ -1285,21 +1285,17 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-  const Register receiverR = ECX;
-  const Register cacheR = EBX;
-  const Register targetR = EBX;
-  __ movl(receiverR, Address(ESP, (argument_count - 1) * kWordSize));
-  __ LoadObject(cacheR, cache);
 
+  __ Comment("MegamorphicCall");
+  __ movl(EBX, Address(ESP, (argument_count - 1) * kWordSize));
+  __ LoadObject(ECX, cache);
   if (FLAG_use_megamorphic_stub) {
     __ Call(*StubCode::MegamorphicLookup_entry());
   } else  {
-    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+    StubCode::EmitMegamorphicLookup(assembler());
   }
+  __ call(EBX);
 
-  __ LoadObject(ECX, ic_data);
-  __ LoadObject(EDX, arguments_descriptor);
-  __ call(targetR);
   AddCurrentDescriptor(RawPcDescriptors::kOther,
       Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
@@ -1312,6 +1308,17 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
   __ Drop(argument_count);
+}
+
+
+void FlowGraphCompiler::EmitSwitchableInstanceCall(
+    const ICData& ic_data,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  // Only generated with precompilation.
+  UNREACHABLE();
 }
 
 

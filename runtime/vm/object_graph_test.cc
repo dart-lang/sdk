@@ -65,7 +65,7 @@ TEST_CASE(ObjectGraph) {
     b = Array::null();
     c = Array::null();
     d = Array::null();
-    ObjectGraph graph(isolate);
+    ObjectGraph graph(thread);
     {
       // Compare count and size when 'b' is/isn't skipped.
       CounterVisitor with(Object::null(), Object::null());
@@ -96,7 +96,7 @@ TEST_CASE(ObjectGraph) {
     b ^= a.At(10);
     c ^= b.At(0);
     b = Array::null();
-    ObjectGraph graph(isolate);
+    ObjectGraph graph(thread);
     // A retaining path should end like this: c <- b <- a <- ...
     {
       HANDLESCOPE(thread);

@@ -7,6 +7,7 @@ library tree_ir.optimization.statement_rewriter;
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 import '../../io/source_information.dart';
+import '../../elements/elements.dart';
 
 /**
  * Translates to direct-style.
@@ -277,6 +278,11 @@ class StatementRewriter extends Transformer implements Pass {
     // it means we are looking at the first use.
     assert(unseenUses[node.variable] < node.variable.readCount);
     assert(unseenUses[node.variable] >= 0);
+
+    // We cannot reliably find the first dynamic use of a variable that is
+    // accessed from a JS function in a foreign code fragment.
+    if (node.variable.isCaptured) return node;
+
     bool isFirstUse = unseenUses[node.variable] == 0;
 
     // Propagate constant to use site.
@@ -513,7 +519,19 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     _rewriteList(node.arguments);
-    node.receiver = visitExpression(node.receiver);
+    // The target function might not exist before the enclosing class has been
+    // instantitated for the first time.  If the receiver might be the first
+    // instantiation of its class, we cannot propgate it into the receiver
+    // expression, because the target function is evaluated before the receiver.
+    // Calls to constructor bodies are compiled so that the receiver is
+    // evaluated first, so they are safe.
+    if (node.target is! ConstructorBodyElement) {
+      inEmptyEnvironment(() {
+        node.receiver = visitExpression(node.receiver);
+      });
+    } else {
+      node.receiver = visitExpression(node.receiver);
+    }
     return node;
   }
 
@@ -1126,15 +1144,25 @@ class StatementRewriter extends Transformer implements Pass {
     return polarity ? node.thenStatement : node.elseStatement;
   }
 
+  void handleForeignCode(ForeignCode node) {
+    // Arguments will get inserted in a JS code template.  The arguments will
+    // not always be evaluated (e.g. if the template is '# && #').
+    // TODO(asgerf): We could analyze the JS AST to see if arguments are
+    //               definitely evaluated left-to-right.
+    inEmptyEnvironment(() {
+      _rewriteList(node.arguments);
+    });
+  }
+
   @override
   Expression visitForeignExpression(ForeignExpression node) {
-    _rewriteList(node.arguments);
+    handleForeignCode(node);
     return node;
   }
 
   @override
   Statement visitForeignStatement(ForeignStatement node) {
-    _rewriteList(node.arguments);
+    handleForeignCode(node);
     return node;
   }
 

@@ -19,6 +19,7 @@ import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/resolution/tree_elements.dart' show
     TreeElements,
     TreeElementMapping;
+import 'package:compiler/src/parser/element_listener.dart';
 import 'package:compiler/src/tree/tree.dart';
 import 'package:compiler/src/typechecker.dart';
 import 'package:compiler/src/script.dart';
@@ -75,11 +76,10 @@ testSimpleTypes(MockCompiler compiler) {
     Expect.equals(type, analyzeType(compiler, code));
   }
 
-  checkType(compiler.intClass.computeType(compiler.resolution), "3");
-  checkType(compiler.boolClass.computeType(compiler.resolution), "false");
-  checkType(compiler.boolClass.computeType(compiler.resolution), "true");
-  checkType(
-      compiler.stringClass.computeType(compiler.resolution), "'hestfisk'");
+  checkType(compiler.coreTypes.intType, "3");
+  checkType(compiler.coreTypes.boolType, "false");
+  checkType(compiler.coreTypes.boolType, "true");
+  checkType(compiler.coreTypes.stringType, "'hestfisk'");
 }
 
 Future testReturn(MockCompiler compiler) {
@@ -2524,9 +2524,10 @@ analyzeTopLevel(String text, [expectedWarnings]) {
     // Type check last class declaration or member.
     TypeCheckerVisitor checker =
         new TypeCheckerVisitor(compiler, mapping, compiler.types);
-    compiler.clearMessages();
+    DiagnosticCollector collector = compiler.diagnosticCollector;
+    collector.clear();
     checker.analyze(node);
-    compareWarningKinds(text, expectedWarnings, compiler.warnings);
+    compareWarningKinds(text, expectedWarnings, collector.warnings);
 
     compiler.diagnosticHandler = null;
   });
@@ -2550,7 +2551,8 @@ analyze(MockCompiler compiler,
   compiler.diagnosticHandler = createHandler(compiler, text);
 
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler.reporter, null);
+  NodeListener listener = new NodeListener(
+      const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
@@ -2561,25 +2563,23 @@ analyze(MockCompiler compiler,
   compiler.enqueuer.resolution.emptyDeferredTaskQueue();
   TypeCheckerVisitor checker = new TypeCheckerVisitor(
       compiler, elements, compiler.types);
-  compiler.clearMessages();
+  DiagnosticCollector collector = compiler.diagnosticCollector;
+  collector.clear();
   checker.analyze(node);
   if (flushDeferred) {
     compiler.enqueuer.resolution.emptyDeferredTaskQueue();
   }
-  compareWarningKinds(text, warnings, compiler.warnings);
-  compareWarningKinds(text, errors, compiler.errors);
-  if (hints != null) compareWarningKinds(text, hints, compiler.hints);
-  if (infos != null) compareWarningKinds(text, infos, compiler.infos);
+  compareWarningKinds(text, warnings, collector.warnings);
+  compareWarningKinds(text, errors, collector.errors);
+  if (hints != null) compareWarningKinds(text, hints, collector.hints);
+  if (infos != null) compareWarningKinds(text, infos, collector.infos);
   compiler.diagnosticHandler = null;
 }
 
 void generateOutput(MockCompiler compiler, String text) {
-  for (WarningMessage message in compiler.warnings) {
-    Node node = message.node;
-    var beginToken = node.getBeginToken();
-    var endToken = node.getEndToken();
-    int begin = beginToken.charOffset;
-    int end = endToken.charOffset + endToken.charCount;
+  for (CollectedMessage message in compiler.diagnosticCollector.warnings) {
+    int begin = message.begin;
+    int end = message.end;
     SourceFile sourceFile = new StringSourceFile.fromName('analysis', text);
     print(sourceFile.getLocationMessage(message.message.toString(),
                                         begin, end));
@@ -2597,7 +2597,8 @@ analyzeIn(MockCompiler compiler,
 
   compiler.resolver.resolve(element);
   Token tokens = scan(text);
-  NodeListener listener = new NodeListener(compiler.reporter, null);
+  NodeListener listener = new NodeListener(
+      const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener,
       yieldIsKeyword: element.asyncMarker.isYielding,
       awaitIsKeyword: element.asyncMarker.isAsync);
@@ -2606,9 +2607,10 @@ analyzeIn(MockCompiler compiler,
   TreeElements elements = compiler.resolveNodeStatement(node, element);
   TypeCheckerVisitor checker = new TypeCheckerVisitor(
       compiler, elements, compiler.types);
-  compiler.clearMessages();
+  DiagnosticCollector collector = compiler.diagnosticCollector;
+  collector.clear();
   checker.analyze(node);
   generateOutput(compiler, text);
-  compareWarningKinds(text, warnings, compiler.warnings);
-  compareWarningKinds(text, hints, compiler.hints);
+  compareWarningKinds(text, warnings, collector.warnings);
+  compareWarningKinds(text, hints, collector.hints);
 }

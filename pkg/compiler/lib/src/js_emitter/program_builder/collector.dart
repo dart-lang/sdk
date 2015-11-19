@@ -42,6 +42,10 @@ class Collector {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  BackendHelpers get helpers => backend.helpers;
+
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   Collector(this.compiler, this.namer, this.rtiNeededClasses, this.emitter);
 
   Set<ClassElement> computeInterceptorsReferencedFromConstants() {
@@ -67,7 +71,7 @@ class Collector {
     Set<ClassElement> unneededClasses = new Set<ClassElement>();
     // The [Bool] class is not marked as abstract, but has a factory
     // constructor that always throws. We never need to emit it.
-    unneededClasses.add(compiler.boolClass);
+    unneededClasses.add(coreClasses.boolClass);
 
     // Go over specialized interceptors and then constants to know which
     // interceptors are needed.
@@ -84,18 +88,18 @@ class Collector {
     // Add unneeded interceptors to the [unneededClasses] set.
     for (ClassElement interceptor in backend.interceptedClasses) {
       if (!needed.contains(interceptor)
-          && interceptor != compiler.objectClass) {
+          && interceptor != coreClasses.objectClass) {
         unneededClasses.add(interceptor);
       }
     }
 
     // These classes are just helpers for the backend's type system.
-    unneededClasses.add(backend.jsMutableArrayClass);
-    unneededClasses.add(backend.jsFixedArrayClass);
-    unneededClasses.add(backend.jsExtendableArrayClass);
-    unneededClasses.add(backend.jsUInt32Class);
-    unneededClasses.add(backend.jsUInt31Class);
-    unneededClasses.add(backend.jsPositiveIntClass);
+    unneededClasses.add(helpers.jsMutableArrayClass);
+    unneededClasses.add(helpers.jsFixedArrayClass);
+    unneededClasses.add(helpers.jsExtendableArrayClass);
+    unneededClasses.add(helpers.jsUInt32Class);
+    unneededClasses.add(helpers.jsUInt31Class);
+    unneededClasses.add(helpers.jsPositiveIntClass);
 
     return (ClassElement cls) => !unneededClasses.contains(cls);
   }
@@ -213,30 +217,30 @@ class Collector {
     neededClasses.addAll(classesOnlyNeededForRti);
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
-    if (neededClasses.contains(backend.jsIntClass)) {
-      neededClasses.add(compiler.intClass);
+    if (neededClasses.contains(helpers.jsIntClass)) {
+      neededClasses.add(coreClasses.intClass);
     }
-    if (neededClasses.contains(backend.jsDoubleClass)) {
-      neededClasses.add(compiler.doubleClass);
+    if (neededClasses.contains(helpers.jsDoubleClass)) {
+      neededClasses.add(coreClasses.doubleClass);
     }
-    if (neededClasses.contains(backend.jsNumberClass)) {
-      neededClasses.add(compiler.numClass);
+    if (neededClasses.contains(helpers.jsNumberClass)) {
+      neededClasses.add(coreClasses.numClass);
     }
-    if (neededClasses.contains(backend.jsStringClass)) {
-      neededClasses.add(compiler.stringClass);
+    if (neededClasses.contains(helpers.jsStringClass)) {
+      neededClasses.add(coreClasses.stringClass);
     }
-    if (neededClasses.contains(backend.jsBoolClass)) {
-      neededClasses.add(compiler.boolClass);
+    if (neededClasses.contains(helpers.jsBoolClass)) {
+      neededClasses.add(coreClasses.boolClass);
     }
-    if (neededClasses.contains(backend.jsArrayClass)) {
-      neededClasses.add(compiler.listClass);
+    if (neededClasses.contains(helpers.jsArrayClass)) {
+      neededClasses.add(coreClasses.listClass);
     }
 
     // 4. Finally, sort the classes.
     List<ClassElement> sortedClasses = Elements.sortedByPosition(neededClasses);
 
     for (ClassElement element in sortedClasses) {
-      if (Elements.isNativeOrExtendsNative(element) &&
+      if (backend.isNativeOrExtendsNative(element) &&
           !classesOnlyNeededForRti.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(element);

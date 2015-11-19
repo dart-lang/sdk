@@ -259,6 +259,34 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj) {
+  ASSERT(code.ContainsInstructionAt(pc));
+
+  Instr* instr = Instr::At(pc);
+  if (instr->IsLoadStoreRegOp() && (instr->Bit(22) == 1) &&
+      (instr->Bits(30, 2) == 3) && instr->Bit(24) == 1) {
+    intptr_t offset = (instr->Imm12Field() << 3);
+    if (instr->RnField() == PP) {
+      // PP is untagged on ARM64.
+      ASSERT(Utils::IsAligned(offset, 8));
+      intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
+      const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+      if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+        *obj = pool.ObjectAt(index);
+        return true;
+      }
+    } else if (instr->RnField() == THR) {
+      return Thread::ObjectAtOffset(offset, obj);
+    }
+  }
+  // TODO(rmacnak): Loads with offsets beyond 12 bits.
+
+  return false;
+}
+
+
 // Encodes a load sequence ending at 'end'. Encodes a fixed length two
 // instruction load from the pool pointer in PP using the destination
 // register reg as a temporary for the base address.
@@ -326,6 +354,45 @@ void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
 
   ASSERT(kDeoptCallLengthInBytes == 5 * Instr::kInstrSize);
   CPU::FlushICache(pc, kDeoptCallLengthInBytes);
+}
+
+
+SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+      cache_pool_index_(-1),
+      stub_pool_index_(-1) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: blr r1.
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0020);
+
+  Register reg;
+  uword stub_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(pc - 3 * Instr::kInstrSize,
+                                                 &reg,
+                                                 &stub_pool_index_);
+  ASSERT(reg == CODE_REG);
+  InstructionPattern::DecodeLoadWordFromPool(stub_load_end,
+                                             &reg,
+                                             &cache_pool_index_);
+  ASSERT(reg == R5);
+}
+
+
+RawObject* SwitchableCallPattern::cache() const {
+  return reinterpret_cast<RawCode*>(
+      object_pool_.ObjectAt(cache_pool_index_));
+}
+
+
+void SwitchableCallPattern::SetCache(const MegamorphicCache& cache) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(cache_pool_index_)).IsICData());
+  object_pool_.SetObjectAt(cache_pool_index_, cache);
+}
+
+
+void SwitchableCallPattern::SetLookupStub(const Code& lookup_stub) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(stub_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(stub_pool_index_, lookup_stub);
 }
 
 

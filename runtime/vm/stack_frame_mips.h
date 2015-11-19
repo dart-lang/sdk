@@ -42,6 +42,8 @@ static const int kCallerSpSlotFromFp = 2;
 
 // Entry and exit frame layout.
 static const int kExitLinkSlotFromEntryFp = -24;
+COMPILE_ASSERT(kAbiPreservedCpuRegCount == 8);
+COMPILE_ASSERT(kAbiPreservedFpuRegCount == 12);
 
 }  // namespace dart
 

@@ -15,6 +15,9 @@ import '../compiler.dart' show
 import '../constants/values.dart' show
     ConstantValue,
     IntConstantValue;
+import '../core_types.dart' show
+    CoreClasses,
+    CoreTypes;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show
     Node;
 import '../dart_types.dart' show
@@ -62,7 +65,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
                       DartType annotation,
                       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
-    if (annotation.element == compiler.objectClass) return type;
+    if (annotation.isObject) return type;
     TypeMask otherType;
     if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType;
@@ -117,6 +120,9 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get constMapType => compiler.typesTask.constMapType;
   TypeMask get stringType => compiler.typesTask.stringType;
   TypeMask get typeType => compiler.typesTask.typeType;
+  TypeMask get syncStarIterableType => compiler.typesTask.syncStarIterableType;
+  TypeMask get asyncFutureType => compiler.typesTask.asyncFutureType;
+  TypeMask get asyncStarStreamType => compiler.typesTask.asyncStarStreamType;
   bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
 
   TypeMask stringLiteralType(ast.DartString value) => stringType;
@@ -206,6 +212,10 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   InferrerEngine(Compiler compiler, this.types)
       : this.compiler = compiler,
         this.classWorld = compiler.world;
+
+  CoreClasses get coreClasses => compiler.coreClasses;
+
+  CoreTypes get coreTypes => compiler.coreTypes;
 
   /**
    * Records the default type of parameter [parameter].
@@ -388,20 +398,20 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     for (var type in typesReturned) {
       T mappedType;
       if (type == native.SpecialType.JsObject) {
-        mappedType = types.nonNullExact(compiler.objectClass);
-      } else if (type.element == compiler.stringClass) {
+        mappedType = types.nonNullExact(coreClasses.objectClass);
+      } else if (type == coreTypes.stringType) {
         mappedType = types.stringType;
-      } else if (type.element == compiler.intClass) {
+      } else if (type == coreTypes.intType) {
         mappedType = types.intType;
-      } else if (type.element == compiler.numClass ||
-                 type.element == compiler.doubleClass) {
+      } else if (type == coreTypes.numType ||
+                 type == coreTypes.doubleType) {
         // Note: the backend double class is specifically for non-integer
         // doubles, and a native behavior returning 'double' does not guarantee
         // a non-integer return type, so we return the number type for those.
         mappedType = types.numType;
-      } else if (type.element == compiler.boolClass) {
+      } else if (type == coreTypes.boolType) {
         mappedType = types.boolType;
-      } else if (type.element == compiler.nullClass) {
+      } else if (type == coreTypes.nullType) {
         mappedType = types.nullType;
       } else if (type.isVoid) {
         mappedType = types.nullType;
@@ -451,9 +461,9 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 
   bool isNativeElement(Element element) {
-    if (element.isNative) return true;
+    if (compiler.backend.isNative(element)) return true;
     return element.isClassMember
-        && element.enclosingClass.isNative
+        && compiler.backend.isNative(element.enclosingClass)
         && element.isField;
   }
 
@@ -555,7 +565,7 @@ class SimpleTypeInferrerVisitor<T>
       inferrer.setDefaultTypeOfParameter(element, type);
     });
 
-    if (analyzedElement.isNative) {
+    if (compiler.backend.isNative(analyzedElement)) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic.
       return types.dynamicType;
@@ -637,27 +647,55 @@ class SimpleTypeInferrerVisitor<T>
           }
         });
       }
-      returnType = types.nonNullExact(cls);
+      if (analyzedElement.isGenerativeConstructor && cls.isAbstract) {
+        if (compiler.world.isDirectlyInstantiated(cls)) {
+          returnType = types.nonNullExact(cls);
+        } else if (compiler.world.isIndirectlyInstantiated(cls)) {
+          returnType = types.nonNullSubclass(cls);
+        } else  {
+          // TODO(johnniwinther): Avoid analyzing [analyzedElement] in this
+          // case; it's never called.
+          returnType = types.nonNullEmpty();
+        }
+      } else {
+        returnType = types.nonNullExact(cls);
+      }
     } else {
       signature.forEachParameter((LocalParameterElement element) {
         locals.update(element, inferrer.typeOfElement(element), node);
       });
       visit(node.body);
-      if (function.asyncMarker != AsyncMarker.SYNC) {
-        // TODO(herhut): Should be type Future/Iterable/Stream instead of
-        // dynamic.
-        returnType = inferrer.addReturnTypeFor(
-            analyzedElement, returnType, types.dynamicType);
-      } else if (returnType == null) {
-        // No return in the body.
-        returnType = locals.seenReturnOrThrow
-            ? types.nonNullEmpty()  // Body always throws.
-            : types.nullType;
-      } else if (!locals.seenReturnOrThrow) {
-        // We haven't seen returns on all branches. So the method may
-        // also return null.
-        returnType = inferrer.addReturnTypeFor(
-            analyzedElement, returnType, types.nullType);
+      switch (function.asyncMarker) {
+        case AsyncMarker.SYNC:
+          if (returnType == null) {
+            // No return in the body.
+            returnType = locals.seenReturnOrThrow
+                ? types.nonNullEmpty()  // Body always throws.
+                : types.nullType;
+          } else if (!locals.seenReturnOrThrow) {
+            // We haven't seen returns on all branches. So the method may
+            // also return null.
+            returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.nullType);
+          }
+          break;
+
+        case AsyncMarker.SYNC_STAR:
+          // TODO(asgerf): Maybe make a ContainerTypeMask for these? The type
+          //               contained is the method body's return type.
+          returnType = inferrer.addReturnTypeFor(
+              analyzedElement, returnType, types.syncStarIterableType);
+          break;
+
+        case AsyncMarker.ASYNC:
+          returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.asyncFutureType);
+          break;
+
+        case AsyncMarker.ASYNC_STAR:
+          returnType = inferrer.addReturnTypeFor(
+                analyzedElement, returnType, types.asyncStarStreamType);
+          break;
       }
     }
 
@@ -901,7 +939,7 @@ class SimpleTypeInferrerVisitor<T>
       T getterType;
       T newType;
 
-      if (Elements.isErroneous(element)) return types.dynamicType;
+      if (Elements.isMalformed(element)) return types.dynamicType;
 
       if (Elements.isStaticOrTopLevelField(element)) {
         Element getterElement = elements[node.selector];
@@ -1260,7 +1298,7 @@ class SimpleTypeInferrerVisitor<T>
                           T rhsType,
                           ast.Node rhs) {
     ArgumentsTypes arguments = new ArgumentsTypes<T>([rhsType], null);
-    if (Elements.isErroneous(element)) {
+    if (Elements.isMalformed(element)) {
       // Code will always throw.
     } else if (Elements.isStaticOrTopLevelField(element)) {
       handleStaticSend(node, setterSelector, setterMask, element, arguments);
@@ -2211,7 +2249,7 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
     Element element = elements.getRedirectingTargetConstructor(node);
-    if (Elements.isErroneous(element)) {
+    if (Elements.isMalformed(element)) {
       recordReturnType(types.dynamicType);
     } else {
       // We don't create a selector for redirecting factories, and
@@ -2276,9 +2314,9 @@ class SimpleTypeInferrerVisitor<T>
   T visitAsyncForIn(ast.AsyncForIn node) {
     T expressionType = visit(node.expression);
 
-    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector currentSelector = Selectors.current;
     TypeMask currentMask = elements.getCurrentTypeMask(node);
-    Selector moveNextSelector = elements.getMoveNextSelector(node);
+    Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
 
     js.JavaScriptBackend backend = compiler.backend;
@@ -2295,11 +2333,11 @@ class SimpleTypeInferrerVisitor<T>
 
   T visitSyncForIn(ast.SyncForIn node) {
     T expressionType = visit(node.expression);
-    Selector iteratorSelector = elements.getIteratorSelector(node);
+    Selector iteratorSelector = Selectors.iterator;
     TypeMask iteratorMask = elements.getIteratorTypeMask(node);
-    Selector currentSelector = elements.getCurrentSelector(node);
+    Selector currentSelector = Selectors.current;
     TypeMask currentMask = elements.getCurrentTypeMask(node);
-    Selector moveNextSelector = elements.getMoveNextSelector(node);
+    Selector moveNextSelector = Selectors.moveNext;
     TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
 
     T iteratorType = handleDynamicSend(

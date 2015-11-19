@@ -868,6 +868,18 @@ typedef void (*Dart_FileCloseCallback)(void* stream);
 typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
 
 /**
+ * Callback provided by the embedder that is used by the vmservice isolate
+ * to request the asset archive. The asset archive must be an uncompressed tar
+ * archive that is stored in a Uint8List.
+ *
+ * If the embedder has no vmservice isolate assets, the callback can be NULL.
+ *
+ * \return The embedder must return a handle to a Uint8List containing an
+ *   uncompressed tar archive or null.
+ */
+typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
+
+/**
  * Initializes the VM.
  *
  * \param vm_isolate_snapshot A buffer containing a snapshot of the VM isolate
@@ -883,6 +895,10 @@ typedef bool (*Dart_EntropySource)(uint8_t* buffer, intptr_t length);
  * \param shutdown A function to be called when an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
  *
+ * \param get_service_assets A function to be called by the service isolate when
+ *    it requires the vmservice assets archive.
+ *    See Dart_GetVMServiceAssetsArchive.
+ *
  * \return NULL if initialization is successful. Returns an error message
  *   otherwise. The caller is responsible for freeing the error message.
  */
@@ -897,7 +913,8 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
     Dart_FileCloseCallback file_close,
-    Dart_EntropySource entropy_source);
+    Dart_EntropySource entropy_source,
+    Dart_GetVMServiceAssetsArchive get_service_assets);
 
 /**
  * Cleanup state in the VM before process termination.
@@ -1010,14 +1027,25 @@ DART_EXPORT Dart_Handle Dart_DebugName();
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate);
 
 /**
- * Notifies the VM that the current isolate is about to make a blocking call.
+ * Notifies the VM that the current thread should not be profiled until a
+ * matching call to Dart_ThreadEnableProfiling is made.
+ *
+ * NOTE: By default, if a thread has entered an isolate it will be profiled.
+ * This function should be used when an embedder knows a thread is about
+ * to make a blocking call and wants to avoid unnecessary interrupts by
+ * the profiler.
  */
-DART_EXPORT void Dart_IsolateBlocked();
+DART_EXPORT void Dart_ThreadDisableProfiling();
 
 /**
- * Notifies the VM that the current isolate is no longer blocked.
+ * Notifies the VM that the current thread should be profiled.
+ *
+ * NOTE: It is only legal to call this function *after* calling
+ *   Dart_ThreadDisableProfiling.
+ *
+ * NOTE: By default, if a thread has entered an isolate it will be profiled.
  */
-DART_EXPORT void Dart_IsolateUnblocked();
+DART_EXPORT void Dart_ThreadEnableProfiling();
 
 /**
  * Exits an isolate. After this call, Dart_CurrentIsolate will
@@ -2103,8 +2131,8 @@ DART_EXPORT Dart_Handle Dart_GetDataFromByteBuffer(Dart_Handle byte_buffer);
  *
  * \param type Type of object to be constructed.
  * \param constructor_name The name of the constructor to invoke.  Use
- *   Dart_Null() to invoke the unnamed constructor.  This name should
- *   not include the name of the class.
+ *   Dart_Null() or Dart_EmptyString() to invoke the unnamed constructor.
+ *   This name should not include the name of the class.
  * \param number_of_arguments Size of the arguments array.
  * \param arguments An array of arguments to the constructor.
  *
@@ -2197,6 +2225,7 @@ DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
  *
  * \param target An object.
  * \param name The name of the constructor to invoke.
+ *   Use Dart_Null() or Dart_EmptyString() to invoke the unnamed constructor.
  * \param number_of_arguments Size of the arguments array.
  * \param arguments An array of arguments to the function.
  *
@@ -2696,6 +2725,15 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
  * \return Returns the root Library for the current isolate or Dart_Null().
  */
 DART_EXPORT Dart_Handle Dart_RootLibrary();
+
+
+/**
+ * Sets the root library for the current isolate.
+ *
+ * \return Returns an error handle if `library` is not a library handle.
+ */
+DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library);
+
 
 /**
  * Lookup or instantiate a type by name and type arguments from a Library.

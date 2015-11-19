@@ -6,10 +6,9 @@ import "package:expect/expect.dart";
 
 // Regression test for issue 17483.
 
-confuse(x) {
-  if (new DateTime.now().millisecondsSinceEpoch == 42) return confuse(x);
-  return x;
-}
+
+@AssumeDynamic() @NoInline()
+confuse(x) => x;
 
 foo(trace) {
   trace.add("foo");

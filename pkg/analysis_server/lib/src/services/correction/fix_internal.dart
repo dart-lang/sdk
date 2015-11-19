@@ -159,6 +159,9 @@ class FixProcessor {
       _addFix_createPartUri();
       _addFix_replaceImportUri();
     }
+    if (errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE) {
+      _addFix_canBeNullAfterNullAware();
+    }
     if (errorCode == HintCode.DEAD_CODE) {
       _addFix_removeDeadCode();
     }
@@ -443,6 +446,25 @@ class FixProcessor {
     SourceRange range = rf.rangeError(error);
     _addReplaceEdit(range, 'bool');
     _addFix(DartFixKind.REPLACE_BOOLEAN_WITH_BOOL, []);
+  }
+
+  void _addFix_canBeNullAfterNullAware() {
+    AstNode node = coveredNode;
+    if (node is Expression) {
+      AstNode parent = node.parent;
+      while (parent != null) {
+        if (parent is MethodInvocation && parent.target == node) {
+          _addReplaceEdit(rf.rangeToken(parent.operator), '?.');
+        } else if (parent is PropertyAccess && parent.target == node) {
+          _addReplaceEdit(rf.rangeToken(parent.operator), '?.');
+        } else {
+          break;
+        }
+        node = parent;
+        parent = node.parent;
+      }
+      _addFix(DartFixKind.REPLACE_WITH_NULL_AWARE, []);
+    }
   }
 
   void _addFix_createClass() {
@@ -1595,7 +1617,7 @@ class FixProcessor {
     _addRemoveEdit(rf.rangeEndEnd(expression, asExpression));
     _removeEnclosingParentheses(asExpression, expressionPrecedence);
     // done
-    _addFix(DartFixKind.REMOVE_UNNECASSARY_CAST, []);
+    _addFix(DartFixKind.REMOVE_UNNECESSARY_CAST, []);
   }
 
   void _addFix_removeUnusedCatchClause() {

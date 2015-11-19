@@ -107,6 +107,7 @@ enum MessageKind {
   CANNOT_EXTEND_ENUM,
   CANNOT_EXTEND_MALFORMED,
   CANNOT_FIND_CONSTRUCTOR,
+  CANNOT_FIND_UNNAMED_CONSTRUCTOR,
   CANNOT_IMPLEMENT,
   CANNOT_IMPLEMENT_ENUM,
   CANNOT_IMPLEMENT_MALFORMED,
@@ -237,6 +238,7 @@ enum MessageKind {
   INHERITED_EXPLICIT_GETTER,
   INHERITED_IMPLICIT_GETTER,
   INHERITED_METHOD,
+  INJECTED_PUBLIC_MEMBER,
   INIT_STATIC_FIELD,
   INITIALIZING_FORMAL_NOT_ALLOWED,
   INSTANCE_STATIC_SAME_NAME,
@@ -279,6 +281,7 @@ enum MessageKind {
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+  JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
@@ -402,12 +405,14 @@ enum MessageKind {
   SETTER_NOT_FOUND_IN_SUPER,
   STATIC_FUNCTION_BLOAT,
   STRING_EXPECTED,
+  SUPER_CALL_TO_FACTORY,
   SUPER_INITIALIZER_IN_OBJECT,
   SWITCH_CASE_FORBIDDEN,
   SWITCH_CASE_TYPES_NOT_EQUAL,
   SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
   SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
   TERNARY_OPERATOR_BAD_ARITY,
+  THIS_CALL_TO_FACTORY,
   THIS_IS_THE_DECLARATION,
   THIS_IS_THE_METHOD,
   THIS_IS_THE_PART_OF_TAG,
@@ -895,7 +900,13 @@ main() {}"""},
 
       MessageKind.CANNOT_FIND_CONSTRUCTOR:
         const MessageTemplate(MessageKind.CANNOT_FIND_CONSTRUCTOR,
-          "Cannot find constructor '#{constructorName}'."),
+          "Cannot find constructor '#{constructorName}' in class "
+          "'#{className}'."),
+
+      MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR,
+          "Cannot find unnamed constructor in class "
+          "'#{className}'."),
 
       MessageKind.CYCLIC_CLASS_HIERARCHY:
         const MessageTemplate(MessageKind.CYCLIC_CLASS_HIERARCHY,
@@ -976,6 +987,62 @@ main() => new C();"""]),
       MessageKind.DUPLICATE_SUPER_INITIALIZER:
         const MessageTemplate(MessageKind.DUPLICATE_SUPER_INITIALIZER,
           "Cannot have more than one super initializer."),
+
+      MessageKind.SUPER_CALL_TO_FACTORY:
+        const MessageTemplate(MessageKind.SUPER_CALL_TO_FACTORY,
+          "The target of the superinitializer must be a generative "
+          "constructor.",
+          howToFix: "Try calling another constructor on the superclass.",
+          examples: const ["""
+class Super {
+  factory Super() => null;
+}
+class Class extends Super {}
+main() => new Class();
+""", """
+class Super {
+  factory Super() => null;
+}
+class Class extends Super {
+  Class();
+}
+main() => new Class();
+""", """
+class Super {
+  factory Super() => null;
+}
+class Class extends Super {
+  Class() : super();
+}
+main() => new Class();
+""", """
+class Super {
+  factory Super.foo() => null;
+}
+class Class extends Super {
+  Class() : super.foo();
+}
+main() => new Class();
+"""]),
+
+      MessageKind.THIS_CALL_TO_FACTORY:
+        const MessageTemplate(MessageKind.THIS_CALL_TO_FACTORY,
+          "The target of the redirection clause must be a generative "
+          "constructor",
+        howToFix: "Try redirecting to another constructor.",
+        examples: const ["""
+class Class {
+  factory Class() => null;
+  Class.foo() : this();
+}
+main() => new Class.foo();
+""", """
+class Class {
+  factory Class.foo() => null;
+  Class() : this.foo();
+}
+main() => new Class();
+"""]),
 
       MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS:
         const MessageTemplate(MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS,
@@ -2502,6 +2569,14 @@ main() {}
               "Try adding '@MirrorsUsed(...)' as described at "
               "https://goo.gl/Akrrog."),
 
+      MessageKind.JS_PLACEHOLDER_CAPTURE:
+        const MessageTemplate(
+            MessageKind.JS_PLACEHOLDER_CAPTURE,
+            "JS code must not use '#' placeholders inside functions.",
+            howToFix:
+            "Use an immediately called JavaScript function to capture the"
+            " the placeholder values as JavaScript function parameters."),
+
       MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT:
         const MessageTemplate(
           MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
@@ -3375,6 +3450,10 @@ part of test.main;
         const MessageTemplate(MessageKind.PATCH_NON_FUNCTION,
           "Cannot patch non-function with function patch "
           "'#{functionName}'."),
+
+      MessageKind.INJECTED_PUBLIC_MEMBER:
+        const MessageTemplate(MessageKind.INJECTED_PUBLIC_MEMBER,
+            "Non-patch members in patch libraries must be private."),
 
       MessageKind.EXTERNAL_WITH_BODY:
         const MessageTemplate(MessageKind.EXTERNAL_WITH_BODY,

@@ -1639,6 +1639,21 @@ ASSEMBLER_TEST_RUN(Movd, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Negd, assembler) {
+  __ LoadImmediate(D1, 1.0);
+  __ negd(D0, D1);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Negd, test) {
+  typedef double (*SimpleCode)() DART_UNUSED;
+  EXPECT(test != NULL);
+  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
+  EXPECT_FLOAT_EQ(-1.0, res, 0.001);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Sdc1Ldc1, assembler) {
   __ mov(T0, SP);
   __ AddImmediate(SP, -3 * kWordSize);

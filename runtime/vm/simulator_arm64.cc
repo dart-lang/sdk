@@ -900,6 +900,7 @@ void Simulator::set_register(
     Instr* instr, Register reg, int64_t value, R31Type r31t) {
   // Register is in range.
   ASSERT((reg >= 0) && (reg < kNumberOfCpuRegisters));
+  ASSERT(instr == NULL || reg != R18);  // R18 is globally reserved on iOS.
   if ((reg != R31) || (r31t != R31IsZR)) {
     registers_[reg] = value;
     // If we're setting CSP, make sure it is 16-byte aligned. In truth, CSP
@@ -1650,24 +1651,24 @@ void Simulator::DoRedirectedCall(Instr* instr) {
 
     // Zap caller-saved registers, since the actual runtime call could have
     // used them.
-    set_register(instr, R2, icount_);
-    set_register(instr, R3, icount_);
-    set_register(instr, R4, icount_);
-    set_register(instr, R5, icount_);
-    set_register(instr, R6, icount_);
-    set_register(instr, R7, icount_);
-    set_register(instr, R8, icount_);
-    set_register(instr, R9, icount_);
-    set_register(instr, R10, icount_);
-    set_register(instr, R11, icount_);
-    set_register(instr, R12, icount_);
-    set_register(instr, R13, icount_);
-    set_register(instr, R14, icount_);
-    set_register(instr, R15, icount_);
-    set_register(instr, IP0, icount_);
-    set_register(instr, IP1, icount_);
-    set_register(instr, R18, icount_);
-    set_register(instr, LR, icount_);
+    set_register(NULL, R2, icount_);
+    set_register(NULL, R3, icount_);
+    set_register(NULL, R4, icount_);
+    set_register(NULL, R5, icount_);
+    set_register(NULL, R6, icount_);
+    set_register(NULL, R7, icount_);
+    set_register(NULL, R8, icount_);
+    set_register(NULL, R9, icount_);
+    set_register(NULL, R10, icount_);
+    set_register(NULL, R11, icount_);
+    set_register(NULL, R12, icount_);
+    set_register(NULL, R13, icount_);
+    set_register(NULL, R14, icount_);
+    set_register(NULL, R15, icount_);
+    set_register(NULL, IP0, icount_);
+    set_register(NULL, IP1, icount_);
+    set_register(NULL, R18, icount_);
+    set_register(NULL, LR, icount_);
 
     // TODO(zra): Zap caller-saved fpu registers.
 
@@ -3519,7 +3520,6 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
-  Isolate* isolate = thread->isolate();
   StackResource::Unwind(thread);
 
   // Unwind the C++ stack and continue simulation in the target frame.
@@ -3530,7 +3530,7 @@ void Simulator::Longjmp(uword pc,
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
-  isolate->set_top_exit_frame_info(0);
+  thread->set_top_exit_frame_info(0);
 
   ASSERT(raw_exception != Object::null());
   set_register(NULL, kExceptionObjectReg, bit_cast<int64_t>(raw_exception));

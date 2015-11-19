@@ -84,7 +84,7 @@ class Platform {
   static String get pathSeparator => _pathSeparator;
 
   /**
-   * Get a string (`linux`, `macos`, `windows` or `android`)
+   * Get a string (`linux`, `macos`, `windows`, `android`, or `ios`)
    * representing the operating system.
    */
   static String get operatingSystem => _operatingSystem;
@@ -113,6 +113,11 @@ class Platform {
    * Returns true if the operating system is Android.
    */
   static final bool isAndroid = (_operatingSystem == "android");
+
+  /**
+   * Returns true if the operating system is iOS.
+   */
+  static final bool isiOS = (_operatingSystem == "ios");
 
   /**
    * Get the environment for this process.

@@ -1600,6 +1600,19 @@ f() => A?.toString();
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
+  void test_undefinedMethodWithConstructor() {
+    Source source = addSource(r'''
+class C {
+  C.m();
+}
+f() {
+  C c = C.m();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR]);
+  }
+
   void test_undefinedOperator_indexBoth() {
     Source source = addSource(r'''
 class A {}

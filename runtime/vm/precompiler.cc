@@ -17,6 +17,7 @@
 namespace dart {
 
 
+#define T (thread())
 #define I (isolate())
 #define Z (zone())
 
@@ -59,31 +60,55 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     libraries_(GrowableObjectArray::Handle(Z, I->object_store()->libraries())),
     pending_functions_(
         GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
-    collected_closures_(
-        GrowableObjectArray::Handle(Z, GrowableObjectArray::New())),
     sent_selectors_(),
+    enqueued_functions_(),
     error_(Error::Handle(Z)) {
-  I->set_collected_closures(collected_closures_);
 }
 
 
 void Precompiler::DoCompileAll(
     Dart_QualifiedFunctionName embedder_entry_points[]) {
-  // Drop all existing code so we can use the presence of code as an indicator
-  // that we have already looked for the function's callees.
-  ClearAllCode();
+  ASSERT(I->compilation_allowed());
 
-  // Start with the allocations and invocations that happen from C++.
-  AddRoots(embedder_entry_points);
+  // Make sure class hierarchy is stable before compilation so that CHA
+  // can be used. Also ensures lookup of entry points won't miss functions
+  // because their class hasn't been finalized yet.
+  FinalizeAllClasses();
 
-  // TODO(rmacnak): Eagerly add field-invocation functions to all signature
-  // classes so closure calls don't go through the runtime.
+  const intptr_t kPrecompilerRounds = 1;
+  for (intptr_t round = 0; round < kPrecompilerRounds; round++) {
+    if (FLAG_trace_precompiler) {
+      OS::Print("Precompiler round %" Pd "\n", round);
+    }
 
-  // Compile newly found targets and add their callees until we reach a fixed
-  // point.
-  Iterate();
+    if (round > 0) {
+      ResetPrecompilerState();
+    }
 
-  CleanUp();
+    // TODO(rmacnak): We should be able to do a more thorough job and drop some
+    //  - implicit static closures
+    //  - field initializers
+    //  - invoke-field-dispatchers
+    //  - method-extractors
+    // that are needed in early iterations but optimized away in later
+    // iterations.
+    ClearAllCode();
+
+    // Start with the allocations and invocations that happen from C++.
+    AddRoots(embedder_entry_points);
+
+    // Compile newly found targets and add their callees until we reach a fixed
+    // point.
+    Iterate();
+  }
+
+  DropUncompiledFunctions();
+
+  // TODO(rmacnak): DropEmptyClasses();
+
+  BindStaticCalls();
+
+  DedupStackmaps();
 
   if (FLAG_trace_precompiler) {
     THR_Print("Precompiled %" Pd " functions, %" Pd " dynamic types,"
@@ -142,13 +167,19 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     kTypedDataUint16ArrayCid,
     kTypedDataUint32ArrayCid,
     kTypedDataUint64ArrayCid,
-
     kTypedDataInt8ArrayCid,
     kTypedDataInt16ArrayCid,
     kTypedDataInt32ArrayCid,
     kTypedDataInt64ArrayCid,
 
     kExternalTypedDataUint8ArrayCid,
+    kExternalTypedDataUint16ArrayCid,
+    kExternalTypedDataUint32ArrayCid,
+    kExternalTypedDataUint64ArrayCid,
+    kExternalTypedDataInt8ArrayCid,
+    kExternalTypedDataInt16ArrayCid,
+    kExternalTypedDataInt32ArrayCid,
+    kExternalTypedDataInt64ArrayCid,
 
     kTypedDataFloat32ArrayCid,
     kTypedDataFloat64ArrayCid,
@@ -181,11 +212,12 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   Class& cls = Class::Handle(Z);
   for (intptr_t i = 0; kExternallyAllocatedCids[i] != kIllegalCid; i++) {
     cls = isolate()->class_table()->At(kExternallyAllocatedCids[i]);
-    AddClass(cls);
+    AddInstantiatedClass(cls);
   }
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
     { "dart:async", "::", "_setScheduleImmediateClosure" },
+    { "dart:core", "::", "_completeDeferredLoads"},
     { "dart:core", "AbstractClassInstantiationError",
                    "AbstractClassInstantiationError._create" },
     { "dart:core", "ArgumentError", "ArgumentError." },
@@ -217,8 +249,13 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:isolate", "::", "_startMainIsolate" },
     { "dart:isolate", "_RawReceivePortImpl", "_handleMessage" },
     { "dart:isolate", "_RawReceivePortImpl", "_lookupHandler" },
-    { "dart:vmservice", "::", "_registerIsolate" },
-    { "dart:vmservice", "::", "boot" },
+    { "dart:isolate", "_SendPortImpl", "send" },
+    { "dart:typed_data", "ByteData", "ByteData." },
+    { "dart:typed_data", "ByteData", "ByteData._view" },
+    { "dart:typed_data", "_ByteBuffer", "_ByteBuffer._New" },
+    { "dart:_vmservice", "::", "_registerIsolate" },
+    { "dart:_vmservice", "::", "boot" },
+    { "dart:developer", "Metrics", "_printMetrics" },
     { NULL, NULL, NULL }  // Must be terminated with NULL entries.
   };
 
@@ -276,6 +313,13 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
     }
 
     AddFunction(func);
+    if (func.IsGenerativeConstructor()) {
+      // Allocation stubs are referenced from the call site of the constructor,
+      // not in the constructor itself. So compiling the constructor isn't
+      // enough for us to discover the class is instantiated if the class isn't
+      // otherwise instantiated from Dart code and only instantiated from C++.
+      AddInstantiatedClass(cls);
+    }
   }
 }
 
@@ -292,27 +336,7 @@ void Precompiler::Iterate() {
     }
 
     CheckForNewDynamicFunctions();
-
-    // Drain collected_closures last because additions to this list come from
-    // outside the Precompiler and so do not flip our changed_ flag.
-    while (collected_closures_.Length() > 0) {
-      function ^= collected_closures_.RemoveLast();
-      ProcessFunction(function);
-    }
   }
-}
-
-
-void Precompiler::CleanUp() {
-  I->set_collected_closures(GrowableObjectArray::Handle(Z));
-
-  DropUncompiledFunctions();
-
-  // TODO(rmacnak): DropEmptyClasses();
-
-  BindStaticCalls();
-
-  DedupStackmaps();
 }
 
 
@@ -334,6 +358,15 @@ void Precompiler::ProcessFunction(const Function& function) {
     error_ = Compiler::CompileFunction(thread_, function);
     if (!error_.IsNull()) {
       Jump(error_);
+    }
+  } else {
+    if (FLAG_trace_precompiler) {
+      // This function was compiled from somewhere other than Precompiler,
+      // such as const constructors compiled by the parser.
+      THR_Print("Already has code: %s (%" Pd ", %s)\n",
+                function.ToLibNamePrefixedQualifiedCString(),
+                function.token_pos(),
+                Function::KindToCString(function.kind()));
     }
   }
 
@@ -364,9 +397,12 @@ void Precompiler::AddCalleesOf(const Function& function) {
 
   const ObjectPool& pool = ObjectPool::Handle(Z, code.GetObjectPool());
   ICData& call_site = ICData::Handle(Z);
+  MegamorphicCache& cache = MegamorphicCache::Handle(Z);
   String& selector = String::Handle(Z);
   Field& field = Field::Handle(Z);
   Class& cls = Class::Handle(Z);
+  Instance& instance = Instance::Handle(Z);
+  Code& target_code = Code::Handle(Z);
   for (intptr_t i = 0; i < pool.Length(); i++) {
     if (pool.InfoAt(i) == ObjectPool::kTaggedObject) {
       entry = pool.ObjectAt(i);
@@ -391,17 +427,78 @@ void Precompiler::AddCalleesOf(const Function& function) {
             AddClosureCall(call_site);
           }
         }
+      } else if (entry.IsMegamorphicCache()) {
+        // A dynamic call.
+        cache ^= entry.raw();
+        selector = cache.target_name();
+        AddSelector(selector);
       } else if (entry.IsField()) {
         // Potential need for field initializer.
         field ^= entry.raw();
         AddField(field);
       } else if (entry.IsInstance()) {
-        // Potential const object.
-        cls = entry.clazz();
-        AddClass(cls);
+        // Const object, literal or args descriptor.
+        instance ^= entry.raw();
+        AddConstObject(instance);
+      } else if (entry.IsFunction()) {
+        // Local closure function.
+        target ^= entry.raw();
+        AddFunction(target);
+      } else if (entry.IsCode()) {
+        target_code ^= entry.raw();
+        if (target_code.IsAllocationStubCode()) {
+          cls ^= target_code.owner();
+          AddInstantiatedClass(cls);
+        }
       }
     }
   }
+}
+
+
+void Precompiler::AddConstObject(const Instance& instance) {
+  const Class& cls = Class::Handle(Z, instance.clazz());
+  AddInstantiatedClass(cls);
+
+  if (instance.IsClosure()) {
+    // An implicit static closure.
+    const Function& func = Function::Handle(Z, Closure::function(instance));
+    ASSERT(func.is_static());
+    AddFunction(func);
+    return;
+  }
+
+  // Can't ask immediate objects if they're canoncial.
+  if (instance.IsSmi()) return;
+
+  // Some Instances in the ObjectPool aren't const objects, such as
+  // argument descriptors.
+  if (!instance.IsCanonical()) return;
+
+  class ConstObjectVisitor : public ObjectPointerVisitor {
+   public:
+    ConstObjectVisitor(Precompiler* precompiler, Isolate* isolate) :
+        ObjectPointerVisitor(isolate),
+        precompiler_(precompiler),
+        subinstance_(Object::Handle()) {}
+
+    virtual void VisitPointers(RawObject** first, RawObject** last) {
+      for (RawObject** current = first; current <= last; current++) {
+        subinstance_ = *current;
+        if (subinstance_.IsInstance()) {
+          precompiler_->AddConstObject(Instance::Cast(subinstance_));
+        }
+      }
+      subinstance_ = Object::null();
+    }
+
+   private:
+    Precompiler* precompiler_;
+    Object& subinstance_;
+  };
+
+  ConstObjectVisitor visitor(this, I);
+  instance.raw()->VisitPointers(&visitor);
 }
 
 
@@ -423,11 +520,10 @@ void Precompiler::AddClosureCall(const ICData& call_site) {
 
 void Precompiler::AddField(const Field& field) {
   if (field.is_static()) {
-    // Potential const object. Uninitialized field will harmlessly do a
-    // redundant add of the Null class.
     const Object& value = Object::Handle(Z, field.StaticValue());
-    const Class& cls = Class::Handle(Z, value.clazz());
-    AddClass(cls);
+    if (value.IsInstance()) {
+      AddConstObject(Instance::Cast(value));
+    }
 
     if (field.has_initializer()) {
       // Should not be in the middle of initialization while precompiling.
@@ -436,14 +532,14 @@ void Precompiler::AddField(const Field& field) {
       const bool is_initialized = value.raw() != Object::sentinel().raw();
       if (is_initialized && !reset_fields_) return;
 
-      if (field.HasPrecompiledInitializer()) return;
-
-      if (FLAG_trace_precompiler) {
-        THR_Print("Precompiling initializer for %s\n", field.ToCString());
+      if (!field.HasPrecompiledInitializer()) {
+        if (FLAG_trace_precompiler) {
+          THR_Print("Precompiling initializer for %s\n", field.ToCString());
+        }
+        ASSERT(!Dart::IsRunningPrecompiledCode());
+        field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
+        Compiler::CompileStaticInitializer(field);
       }
-      ASSERT(!Dart::IsRunningPrecompiledCode());
-      field.SetStaticValue(Instance::Handle(field.SavedInitialStaticValue()));
-      Compiler::CompileStaticInitializer(field);
 
       const Function& function =
           Function::Handle(Z, field.PrecompiledInitializer());
@@ -454,8 +550,9 @@ void Precompiler::AddField(const Field& field) {
 
 
 void Precompiler::AddFunction(const Function& function) {
-  if (function.HasCode()) return;
+  if (enqueued_functions_.Lookup(&function) != NULL) return;
 
+  enqueued_functions_.Insert(&Function::ZoneHandle(Z, function.raw()));
   pending_functions_.Add(function);
   changed_ = true;
 }
@@ -486,11 +583,11 @@ void Precompiler::AddSelector(const String& selector) {
 }
 
 
-void Precompiler::AddClass(const Class& cls) {
+void Precompiler::AddInstantiatedClass(const Class& cls) {
   if (cls.is_allocated()) return;
 
   class_count_++;
-  cls.set_is_allocated();
+  cls.set_is_allocated(true);
   changed_ = true;
 
   if (FLAG_trace_precompiler) {
@@ -499,7 +596,7 @@ void Precompiler::AddClass(const Class& cls) {
 
   const Class& superclass = Class::Handle(cls.SuperClass());
   if (!superclass.IsNull()) {
-    AddClass(superclass);
+    AddInstantiatedClass(superclass);
   }
 }
 
@@ -520,43 +617,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
     while (it.HasNext()) {
       cls = it.GetNextClass();
 
-      if (!cls.is_allocated()) {
-        bool has_compiled_constructor = false;
-        if (cls.allocation_stub() != Code::null()) {
-          // Regular objects.
-          has_compiled_constructor = true;
-        } else if (cls.is_synthesized_class()) {
-          // Enums.
-          has_compiled_constructor = true;
-        } else {
-          // Objects only allocated via const constructors, and not stored in a
-          // static field or code.
-          // E.g. A in
-          //   class A {
-          //     const A();
-          //     toString() => "Don't drop me!";
-          //   }
-          //   class B {
-          //     const a = const A();
-          //     const B();
-          //     static const theB = const B();
-          //   }
-          //   main() => print(B.theB.a);
-          functions = cls.functions();
-          for (intptr_t k = 0; k < functions.Length(); k++) {
-            function ^= functions.At(k);
-            if (function.IsGenerativeConstructor() &&
-                function.HasCode()) {
-              has_compiled_constructor = true;
-              break;
-            }
-          }
-        }
-        if (!has_compiled_constructor) {
-          continue;
-        }
-        AddClass(cls);
-      }
+      if (!cls.is_allocated()) continue;
 
       functions = cls.functions();
       for (intptr_t k = 0; k < functions.Length(); k++) {
@@ -591,6 +652,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
+
+            // Add corresponding method extractor get:#foo.
+            function2 = function.GetMethodExtractor(selector3);
+            AddFunction(function2);
           }
         } else if (Field::IsSetterName(selector)) {
           selector2 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
@@ -602,6 +667,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
+
+            // Add corresponding method extractor get:#set:foo.
+            function2 = function.GetMethodExtractor(selector2);
+            AddFunction(function2);
           }
         } else if (function.kind() == RawFunction::kRegularFunction) {
           selector2 = Field::LookupGetterSymbol(selector);
@@ -610,6 +679,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
             // Function is foo and somewhere get:foo is called.
             function2 = function.ImplicitClosureFunction();
             AddFunction(function2);
+
+            // Add corresponding method extractor.
+            function2 = function.GetMethodExtractor(selector2);
+            AddFunction(function2);
           }
           selector2 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
                                                 selector);
@@ -617,6 +690,10 @@ void Precompiler::CheckForNewDynamicFunctions() {
             // Hash-closurization.
             // Function is foo and somewhere get:#foo is called.
             function2 = function.ImplicitClosureFunction();
+            AddFunction(function2);
+
+            // Add corresponding method extractor get:#foo
+            function2 = function.GetMethodExtractor(selector2);
             AddFunction(function2);
           }
         }
@@ -649,6 +726,7 @@ void Precompiler::DropUncompiledFunctions() {
         function ^= functions.At(j);
         if (function.HasCode()) {
           retained_functions.Add(function);
+          function.DropUncompiledImplicitClosureFunction();
         } else {
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
@@ -664,26 +742,24 @@ void Precompiler::DropUncompiledFunctions() {
         functions.SetAt(j, function);
       }
       cls.SetFunctions(functions);
+    }
+  }
 
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        retained_functions = GrowableObjectArray::New();
-        for (intptr_t j = 0; j < closures.Length(); j++) {
-          function ^= closures.At(j);
-          if (function.HasCode()) {
-            retained_functions.Add(function);
-          } else {
-            dropped_function_count_++;
-            if (FLAG_trace_precompiler) {
-              THR_Print("Precompilation dropping %s\n",
-                        function.ToLibNamePrefixedQualifiedCString());
-            }
-          }
-        }
-        cls.set_closures(retained_functions);
+  closures = isolate()->object_store()->closure_functions();
+  retained_functions = GrowableObjectArray::New();
+  for (intptr_t j = 0; j < closures.Length(); j++) {
+    function ^= closures.At(j);
+    if (function.HasCode()) {
+      retained_functions.Add(function);
+    } else {
+      dropped_function_count_++;
+      if (FLAG_trace_precompiler) {
+        THR_Print("Precompilation dropping %s\n",
+                  function.ToLibNamePrefixedQualifiedCString());
       }
     }
   }
+  isolate()->object_store()->set_closure_functions(retained_functions);
 }
 
 
@@ -811,15 +887,70 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
         visitor->VisitFunction(function);
-      }
-
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        for (intptr_t j = 0; j < closures.Length(); j++) {
-          function ^= closures.At(j);
+        if (function.HasImplicitClosureFunction()) {
+          function = function.ImplicitClosureFunction();
           visitor->VisitFunction(function);
         }
       }
+    }
+  }
+  closures = isolate()->object_store()->closure_functions();
+  for (intptr_t j = 0; j < closures.Length(); j++) {
+    function ^= closures.At(j);
+    visitor->VisitFunction(function);
+  }
+}
+
+
+void Precompiler::FinalizeAllClasses() {
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    if (!lib.Loaded()) {
+      String& uri = String::Handle(Z, lib.url());
+      String& msg = String::Handle(Z, String::NewFormatted(
+          "Library '%s' is not loaded. "
+          "Did you forget to call Dart_FinalizeLoading?", uri.ToCString()));
+      Jump(Error::Handle(Z, ApiError::New(msg)));
+    }
+
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      cls.EnsureIsFinalized(T);
+    }
+  }
+  I->set_all_classes_finalized(true);
+}
+
+
+void Precompiler::ResetPrecompilerState() {
+  changed_ = false;
+  function_count_ = 0;
+  class_count_ = 0;
+  selector_count_ = 0;
+  dropped_function_count_ = 0;
+  ASSERT(pending_functions_.Length() == 0);
+  sent_selectors_.Clear();
+  enqueued_functions_.Clear();
+
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      cls.set_is_allocated(false);
     }
   }
 }

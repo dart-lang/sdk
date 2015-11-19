@@ -11,12 +11,12 @@ library to.html;
 
 import 'dart:convert';
 
+import 'package:analyzer/src/codegen/html.dart';
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
-import 'codegen_tools.dart';
 import 'from_html.dart';
-import 'html_tools.dart';
 
 /**
  * Embedded stylesheet
@@ -81,8 +81,9 @@ dt.typeDefinition {
 }
 '''.trim();
 
-final GeneratedFile target = new GeneratedFile('../../doc/api.html', () {
-  ToHtmlVisitor visitor = new ToHtmlVisitor(readApi());
+final GeneratedFile target =
+    new GeneratedFile('doc/api.html', (String pkgPath) {
+  ToHtmlVisitor visitor = new ToHtmlVisitor(readApi(pkgPath));
   dom.Document document = new dom.Document();
   document.append(new dom.DocumentType('html', null, null));
   for (dom.Node node in visitor.collectHtml(visitor.visitApi)) {
@@ -90,13 +91,6 @@ final GeneratedFile target = new GeneratedFile('../../doc/api.html', () {
   }
   return document.outerHtml;
 });
-
-/**
- * Translate spec_input.html into api.html.
- */
-main() {
-  target.generate();
-}
 
 /**
  * Visitor that records the mapping from HTML elements to various kinds of API
@@ -204,6 +198,106 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     }
   }
 
+  void generateDomainIndex(Domain domain) {
+    h4(() {
+      write(domain.name);
+      write(' (');
+      link('domain_${domain.name}', () => write('\u2191'));
+      write(')');
+    });
+    if (domain.requests.length > 0) {
+      element('div', {'class': 'subindex'}, () {
+        generateRequestsIndex(domain.requests);
+        if (domain.notifications.length > 0) {
+          generateNotificationsIndex(domain.notifications);
+        }
+      });
+    } else if (domain.notifications.length > 0) {
+      element('div', {'class': 'subindex'}, () {
+        generateNotificationsIndex(domain.notifications);
+      });
+    }
+  }
+
+  void generateIndex() {
+    h3(() => write('Domains'));
+    for (var domain in api.domains) {
+      if (domain.experimental ||
+          (domain.requests.length == 0 && domain.notifications == 0)) {
+        continue;
+      }
+      generateDomainIndex(domain);
+    }
+
+    generateTypesIndex(definedTypes);
+    generateRefactoringsIndex(api.refactorings);
+  }
+
+  void generateNotificationsIndex(Iterable<Notification> notifications) {
+    h5(() => write("Notifications"));
+    element('div', {'class': 'subindex'}, () {
+      element('ul', {}, () {
+        for (var notification in notifications) {
+          element(
+              'li',
+              {},
+              () => link('notification_${notification.longEvent}',
+                  () => write(notification.event)));
+        }
+      });
+    });
+  }
+
+  void generateRefactoringsIndex(Iterable<Refactoring> refactorings) {
+    h3(() {
+      write("Refactorings");
+      write(' (');
+      link('refactorings', () => write('\u2191'));
+      write(')');
+    });
+    // TODO: Individual refactorings are not yet hyperlinked.
+    element('div', {'class': 'subindex'}, () {
+      element('ul', {}, () {
+        for (var refactoring in refactorings) {
+          element(
+              'li',
+              {},
+              () => link('refactoring_${refactoring.kind}',
+                  () => write(refactoring.kind)));
+        }
+      });
+    });
+  }
+
+  void generateRequestsIndex(Iterable<Request> requests) {
+    h5(() => write("Requests"));
+    element('ul', {}, () {
+      for (var request in requests) {
+        element(
+            'li',
+            {},
+            () => link(
+                'request_${request.longMethod}', () => write(request.method)));
+      }
+    });
+  }
+
+  void generateTypesIndex(Set<String> types) {
+    h3(() {
+      write("Types");
+      write(' (');
+      link('types', () => write('\u2191'));
+      write(')');
+    });
+    element('div', {'class': 'subindex'}, () {
+      element('ul', {}, () {
+        for (var type in types) {
+          element('li', {}, () => link('type_$type', () => write(type)));
+        }
+      });
+    });
+  }
+
   void javadocParams(TypeObject typeObject) {
     if (typeObject != null) {
       for (TypeObjectField field in typeObject.fields) {
@@ -294,7 +388,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitApi() {
-    definedTypes = api.types.keys.toSet();
+    Iterable<TypeDefinition> apiTypes =
+        api.types.where((TypeDefinition td) => !td.experimental);
+    definedTypes = apiTypes.map((TypeDefinition td) => td.name).toSet();
 
     html(() {
       translateHtml(api.html);
@@ -303,6 +399,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitDomain(Domain domain) {
+    if (domain.experimental) {
+      return;
+    }
     h2('domain', () {
       anchor('domain_${domain.name}', () {
         write('Domain: ${domain.name}');
@@ -394,6 +493,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   @override
   void visitTypeDefinition(TypeDefinition typeDefinition) {
+    if (typeDefinition.experimental) {
+      return;
+    }
     dt('typeDefinition', () {
       anchor('type_${typeDefinition.name}', () {
         write('${typeDefinition.name}: ');
@@ -491,103 +593,6 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     translateHtml(types.html);
     dl(() {
       super.visitTypes(types);
-    });
-  }
-
-  void generateIndex() {
-    h3(() => write('Domains'));
-    for (var domain in api.domains) {
-      if (domain.requests.length == 0 && domain.notifications == 0) continue;
-      generateDomainIndex(domain);
-    }
-
-    generateTypesIndex(definedTypes);
-    generateRefactoringsIndex(api.refactorings);
-  }
-
-  void generateDomainIndex(Domain domain) {
-    h4(() {
-      write(domain.name);
-      write(' (');
-      link('domain_${domain.name}', () => write('\u2191'));
-      write(')');
-    });
-    if (domain.requests.length > 0) {
-      element('div', {'class': 'subindex'}, () {
-        generateRequestsIndex(domain.requests);
-        if (domain.notifications.length > 0) {
-          generateNotificationsIndex(domain.notifications);
-        }
-      });
-    } else if (domain.notifications.length > 0) {
-      element('div', {'class': 'subindex'}, () {
-        generateNotificationsIndex(domain.notifications);
-      });
-    }
-  }
-
-  void generateRequestsIndex(Iterable<Request> requests) {
-    h5(() => write("Requests"));
-    element('ul', {}, () {
-      for (var request in requests) {
-        element(
-            'li',
-            {},
-            () => link(
-                'request_${request.longMethod}', () => write(request.method)));
-      }
-    });
-  }
-
-  void generateNotificationsIndex(Iterable<Notification> notifications) {
-    h5(() => write("Notifications"));
-    element('div', {'class': 'subindex'}, () {
-      element('ul', {}, () {
-        for (var notification in notifications) {
-          element(
-              'li',
-              {},
-              () => link('notification_${notification.longEvent}',
-                  () => write(notification.event)));
-        }
-      });
-    });
-  }
-
-  void generateTypesIndex(Set<String> types) {
-    h3(() {
-      write("Types");
-      write(' (');
-      link('types', () => write('\u2191'));
-      write(')');
-    });
-    element('div', {'class': 'subindex'}, () {
-      element('ul', {}, () {
-        for (var type in types) {
-          element('li', {}, () => link('type_$type', () => write(type)));
-        }
-      });
-    });
-  }
-
-  void generateRefactoringsIndex(Iterable<Refactoring> refactorings) {
-    h3(() {
-      write("Refactorings");
-      write(' (');
-      link('refactorings', () => write('\u2191'));
-      write(')');
-    });
-    // TODO: Individual refactorings are not yet hyperlinked.
-    element('div', {'class': 'subindex'}, () {
-      element('ul', {}, () {
-        for (var refactoring in refactorings) {
-          element(
-              'li',
-              {},
-              () => link('refactoring_${refactoring.kind}',
-                  () => write(refactoring.kind)));
-        }
-      });
     });
   }
 }

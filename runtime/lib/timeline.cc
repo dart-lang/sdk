@@ -14,8 +14,11 @@
 namespace dart {
 
 // Native implementations for the dart:developer library.
-DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0) {
-  return Integer::New(OS::GetCurrentTraceMicros(), Heap::kNew, true);
+
+DEFINE_NATIVE_ENTRY(Timeline_getIsolateNum, 0) {
+  return Integer::New(static_cast<int64_t>(isolate->main_port()),
+                      Heap::kOld,
+                      true);
 }
 
 
@@ -25,6 +28,11 @@ DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
     return Integer::New(0);
   }
   return Integer::New(recorder->GetNextAsyncId());
+}
+
+
+DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0) {
+  return Integer::New(OS::GetCurrentTraceMicros(), Heap::kNew, true);
 }
 
 
@@ -46,11 +54,10 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
     return Object::null();
   }
 
-
   int64_t pid = OS::ProcessId();
   int64_t tid = OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
 
-  char* event = OS::SCreate(zone,
+  char* json = OS::SCreate(zone,
       "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
       "\"ts\":%" Pd64 ",\"ph\":\"%s\",\"id\":%" Pd64 ", \"args\":%s}",
       name.ToCString(),
@@ -62,8 +69,14 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
       id.AsInt64Value(),
       args.ToCString());
 
-  // event was allocated in the zone and will be copied by AppendDartEvent.
-  recorder->AppendDartEvent(isolate, event);
+  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  if (event == NULL) {
+    // Stream was turned off.
+    return Object::null();
+  }
+  // json was allocated in the zone and a copy will be stored in event.
+  event->SerializedJSON(json);
+  event->Complete();
 
   return Object::null();
 }
@@ -90,7 +103,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
   int64_t pid = OS::ProcessId();
   int64_t tid = OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
 
-  char* event = OS::SCreate(zone,
+  char* json = OS::SCreate(zone,
       "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
       "\"ts\":%" Pd64 ",\"ph\":\"X\",\"dur\":%" Pd64 ",\"args\":%s}",
       name.ToCString(),
@@ -101,8 +114,56 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
       duration,
       args.ToCString());
 
-  // event was allocated in the zone and will be copied by AppendDartEvent.
-  recorder->AppendDartEvent(isolate, event);
+  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  if (event == NULL) {
+    // Stream was turned off.
+    return Object::null();
+  }
+  // json was allocated in the zone and a copy will be stored in event.
+  event->SerializedJSON(json);
+  event->Complete();
+
+  return Object::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, start, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, category, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, args, arguments->NativeArgAt(3));
+
+  TimelineEventRecorder* recorder = Timeline::recorder();
+  if (recorder == NULL) {
+    return Object::null();
+  }
+
+  if (!isolate->GetDartStream()->Enabled()) {
+    // Dart stream is not enabled for this isolate, do nothing.
+    return Object::null();
+  }
+
+  int64_t pid = OS::ProcessId();
+  int64_t tid = OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
+
+  char* json = OS::SCreate(zone,
+      "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
+      "\"ts\":%" Pd64 ",\"ph\":\"I\",\"args\":%s}",
+      name.ToCString(),
+      category.ToCString(),
+      tid,
+      pid,
+      start.AsInt64Value(),
+      args.ToCString());
+
+  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  if (event == NULL) {
+    // Stream was turned off.
+    return Object::null();
+  }
+  // json was allocated in the zone and a copy will be stored in event.
+  event->SerializedJSON(json);
+  event->Complete();
 
   return Object::null();
 }

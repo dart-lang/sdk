@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
@@ -65,30 +66,39 @@ main(List<String> arguments) {
 
 jsonify(MirrorSystem mirrors) {
   var map = <String, String>{};
+  List<Future> futures = <Future>[];
+
+  Future mapUri(Uri uri) {
+    String filename = relativize(sdkRoot, uri, false);
+    return handler.provider.readStringFromUri(uri).then((contents) {
+      map['sdk:/$filename'] = contents;
+    });
+  }
 
   mirrors.libraries.forEach((_, LibraryMirror library) {
     BackDoor.compilationUnitsOf(library).forEach((compilationUnit) {
-      Uri uri = compilationUnit.uri;
-      String filename = relativize(sdkRoot, uri, false);
-      SourceFile file = handler.provider.sourceFiles[uri];
-      map['sdk:/$filename'] = file.slowText();
+      futures.add(mapUri(compilationUnit.uri));
     });
   });
 
   libraries.forEach((name, info) {
     var patch = info.dart2jsPatchPath;
     if (patch != null) {
-      Uri uri = sdkRoot.resolve('sdk/lib/$patch');
-      String filename = relativize(sdkRoot, uri, false);
-      SourceFile file = handler.provider.sourceFiles[uri];
-      map['sdk:/$filename'] = file.slowText();
+      futures.add(mapUri(sdkRoot.resolve('sdk/lib/$patch')));
     }
   });
 
-  if (outputJson) {
-    output.writeStringSync(JSON.encode(map));
-  } else {
-    output.writeStringSync('''
+  for (String filename in ["dart_client.platform",
+                           "dart_server.platform",
+                           "dart_shared.platform"]) {
+    futures.add(mapUri(sdkRoot.resolve('sdk/lib/$filename')));
+  }
+
+  Future.wait(futures).then((_) {
+    if (outputJson) {
+      output.writeStringSync(JSON.encode(map));
+    } else {
+      output.writeStringSync('''
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -99,8 +109,9 @@ jsonify(MirrorSystem mirrors) {
 library dart.sdk_sources;
 
 const Map<String, String> SDK_SOURCES = const <String, String>''');
-    output.writeStringSync(JSON.encode(map).replaceAll(r'$', r'\$'));
-    output.writeStringSync(';\n');
-  }
-  output.closeSync();
+      output.writeStringSync(JSON.encode(map).replaceAll(r'$', r'\$'));
+      output.writeStringSync(';\n');
+    }
+    output.closeSync();
+  });
 }

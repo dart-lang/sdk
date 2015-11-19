@@ -1813,6 +1813,12 @@ void Simulator::DecodeCop1(Instr* instr) {
         set_fregister_double(instr->FdField(), fs_val);
         break;
       }
+      case COP1_NEG: {
+        // Format(instr, "neg.'fmt 'fd, 'fs");
+        ASSERT(instr->FormatField() == FMT_D);
+        set_fregister_double(instr->FdField(), -fs_val);
+        break;
+      }
       case COP1_C_F: {
         ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
         ASSERT(instr->FdField() == F0);
@@ -2467,7 +2473,6 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
-  Isolate* isolate = thread->isolate();
   StackResource::Unwind(thread);
 
   // Unwind the C++ stack and continue simulation in the target frame.
@@ -2478,7 +2483,7 @@ void Simulator::Longjmp(uword pc,
   // Set the tag.
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
-  isolate->set_top_exit_frame_info(0);
+  thread->set_top_exit_frame_info(0);
 
   ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));

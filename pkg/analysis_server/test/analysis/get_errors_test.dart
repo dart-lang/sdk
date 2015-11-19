@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -100,10 +99,7 @@ main() {
     Request request = _createGetErrorsRequest();
     server.handleRequest(request);
     // remove context, causes sending an "invalid file" error
-    {
-      Folder projectFolder = resourceProvider.getResource(projectPath);
-      server.contextManager.callbacks.removeContext(projectFolder, <String>[]);
-    }
+    resourceProvider.deleteFolder(projectPath);
     // wait for an error response
     return serverChannel.waitForResponse(request).then((Response response) {
       expect(response.error, isNotNull);

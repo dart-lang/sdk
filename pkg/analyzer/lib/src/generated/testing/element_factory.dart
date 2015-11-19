@@ -42,6 +42,7 @@ class ElementFactory {
       String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element = new ClassElementImpl(typeName, 0);
+    element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl(element);
     element.type = type;
@@ -120,8 +121,8 @@ class ElementFactory {
       constructor.parameters = <ParameterElement>[];
     }
     constructor.returnType = type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructor.type = constructorType;
+    constructor.enclosingElement = definingClass;
+    constructor.type = new FunctionTypeImpl(constructor);
     return constructor;
   }
 
@@ -476,16 +477,15 @@ class ElementFactory {
   }
 
   static MethodElementImpl methodElementWithParameters(
+      ClassElement enclosingElement,
       String methodName,
-      List<DartType> typeArguments,
       DartType returnType,
       List<ParameterElement> parameters) {
     MethodElementImpl method = new MethodElementImpl(methodName, 0);
+    method.enclosingElement = enclosingElement;
     method.parameters = parameters;
     method.returnType = returnType;
-    FunctionTypeImpl methodType = new FunctionTypeImpl(method);
-    methodType.typeArguments = typeArguments;
-    method.type = methodType;
+    method.type = new FunctionTypeImpl(method);
     return method;
   }
 
@@ -578,7 +578,8 @@ class ElementFactory {
     }
     variable.const3 = isConst;
     variable.final2 = isFinal;
-    variable.synthetic = true;
+    variable.synthetic = false;
+    variable.type = type;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl.forVariable(variable);
     getter.getter = true;

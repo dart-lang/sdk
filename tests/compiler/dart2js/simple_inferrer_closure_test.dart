@@ -118,7 +118,7 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var typesInferrer = compiler.typesTask.typesInferrer;
 
     checkReturn(String name, type) {

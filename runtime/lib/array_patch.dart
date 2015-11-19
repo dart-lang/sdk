@@ -20,10 +20,10 @@ patch class List<E> {
     return new _List<E>(length);
   }
 
-  /* patch */ factory List.filled(int length, E fill) {
+  /* patch */ factory List.filled(int length, E fill, {bool growable: false}) {
     // All error handling on the length parameter is done at the implementation
     // of new _List.
-    var result = new _List<E>(length);
+    var result = growable ? new _GrowableList<E>(length) : new _List<E>(length);
     if (fill != null) {
       for (int i = 0; i < length; i++) {
         result[i] = fill;

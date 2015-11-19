@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisOptions,
         AnalysisOptionsImpl,
         AnalysisResult,
+        ApplyChangesStatus,
         CacheState,
         ChangeNotice,
         ChangeSet,
@@ -150,6 +151,19 @@ class AnalysisContextImplTest extends AbstractContextTest {
       listener.assertEvent(wereSourcesAdded: true);
       listener.assertNoMoreEvents();
     });
+  }
+
+  void test_applyChanges_add_makesExplicit() {
+    Source source = newSource('/test.dart');
+    // get the entry, it's not explicit
+    CacheEntry entry = context.getCacheEntry(source);
+    expect(entry.explicitlyAdded, isFalse);
+    // add the source
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(source);
+    context.applyChanges(changeSet);
+    // now the entry is explicit
+    expect(entry.explicitlyAdded, isTrue);
   }
 
   Future test_applyChanges_change() {
@@ -283,8 +297,9 @@ int b = aa;''';
   }
 
   void test_applyChanges_overriddenSource() {
-    // Note: addSource adds the source to the contentCache.
-    Source source = addSource("/test.dart", "library test;");
+    String content = "library test;";
+    Source source = addSource("/test.dart", content);
+    context.setContents(source, content);
     context.computeErrors(source);
     while (!context.sourcesNeedingProcessing.isEmpty) {
       context.performAnalysisTask();
@@ -293,7 +308,8 @@ int b = aa;''';
     // it is already overridden in the content cache.
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
-    context.applyChanges(changeSet);
+    ApplyChangesStatus changesStatus = context.applyChanges(changeSet);
+    expect(changesStatus.hasChanges, isFalse);
     expect(context.sourcesNeedingProcessing, hasLength(0));
   }
 
@@ -708,12 +724,12 @@ main() {}''');
   }
 
   void test_configurationData() {
-    var key = new ResultDescriptor('test_key', '');
+    var key = new ResultDescriptor('test_key', 'TEST_DEFAULT');
     var testData = ['test', 'data'];
     context.setConfigurationData(key, testData);
     expect(context.getConfigurationData(key), testData);
-    var unusedKey = new ResultDescriptor('unused_key', '');
-    expect(context.getConfigurationData(unusedKey), null);
+    var unusedKey = new ResultDescriptor('unused_key', 'UNUSED_DEFAULT');
+    expect(context.getConfigurationData(unusedKey), 'UNUSED_DEFAULT');
   }
 
   void test_dispose() {

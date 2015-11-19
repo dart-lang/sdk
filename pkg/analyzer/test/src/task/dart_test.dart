@@ -46,6 +46,7 @@ main() {
   runReflectiveTests(ComputeLibraryCycleTaskTest);
   runReflectiveTests(ContainingLibrariesTaskTest);
   runReflectiveTests(DartErrorsTaskTest);
+  runReflectiveTests(ErrorFilterTest);
   runReflectiveTests(EvaluateUnitConstantsTaskTest);
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
@@ -1645,7 +1646,7 @@ import 'dart:core';
     List<CompilationUnitElement> dep3 = results[3][LIBRARY_CYCLE_DEPENDENCIES];
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
-    expect(dep3, hasLength(3)); // dart:core, a.dart, b.dart
+    expect(dep2, hasLength(3)); // dart:core, a.dart, b.dart
     expect(dep3, hasLength(3)); // dart:core, a.dart, b.dart
   }
 
@@ -2236,6 +2237,30 @@ f(A a) {
     _fillErrorListener(HINTS);
     errorListener.assertErrorsWithCodes(
         <ErrorCode>[HintCode.UNUSED_ELEMENT, HintCode.UNUSED_ELEMENT]);
+  }
+}
+
+@reflectiveTest
+class ErrorFilterTest extends _AbstractDartTaskTest {
+  @override
+  setUp() {
+    super.setUp();
+    context.setConfigurationData(CONFIGURED_ERROR_FILTERS, [
+      (AnalysisError error) => error.errorCode.name == 'INVALID_ASSIGNMENT'
+    ]);
+  }
+
+  test_error_filters() {
+    AnalysisTarget library = newSource('/test.dart', '''
+main() {
+  int x = ""; // INVALID_ASSIGNMENT (suppressed)
+  // UNUSED_LOCAL_VARIABLE
+}''');
+    computeResult(library, DART_ERRORS, matcher: isDartErrorsTask);
+    expect(outputs, hasLength(1));
+    List<AnalysisError> errors = outputs[DART_ERRORS];
+    expect(errors, hasLength(1));
+    expect(errors.first.errorCode, HintCode.UNUSED_LOCAL_VARIABLE);
   }
 }
 
@@ -3008,7 +3033,6 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
 
     computeResult(
         new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT7);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT7];
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
@@ -3042,7 +3066,6 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
           }
     '''
     });
-    InterfaceType intType = context.typeProvider.intType;
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
@@ -3055,7 +3078,6 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
 
     computeResult(
         new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT7);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT7];
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
@@ -3117,7 +3139,6 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
 
     computeResult(
         new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT7);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT7];
 
     assertVariableDeclarationTypes(
         getFieldInClass(unit0, "A", "a1"), intType, intType);
@@ -3169,7 +3190,6 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
 
     computeResult(
         new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT7);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT7];
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
@@ -3653,7 +3673,6 @@ var tau = piFirst ? pi * 2 : 6.28;
     List<dynamic> units =
         computeLibraryResults(sources, RESOLVED_UNIT9).toList();
     CompilationUnit unit0 = units[0];
-    CompilationUnit unit1 = units[1];
     CompilationUnit unit2 = units[2];
 
     InterfaceType intType = context.typeProvider.intType;

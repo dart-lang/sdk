@@ -21,15 +21,17 @@ import '../util/util.dart' show
     Link;
 
 import 'element_listener.dart' show
-    ElementListener;
+    ElementListener,
+    ScannerOptions;
 import 'partial_elements.dart' show
     PartialFunctionElement;
 
 class NodeListener extends ElementListener {
   NodeListener(
+      ScannerOptions scannerOptions,
       DiagnosticReporter reporter,
       CompilationUnitElement element)
-    : super(reporter, element, null);
+    : super(scannerOptions, reporter, element, null);
 
   void addLibraryTag(LibraryTag tag) {
     pushNode(tag);

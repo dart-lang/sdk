@@ -24,17 +24,16 @@ abstract class TreeElements {
   AnalyzableElement get analyzedElement;
   Iterable<Node> get superUses;
 
-  /// The set of types that this TreeElement depends on.
-  /// This includes instantiated types, types in is-checks and as-expressions
-  /// and in checked mode the types of all type-annotations.
-  Iterable<DartType> get requiredTypes;
-
   void forEachConstantNode(f(Node n, ConstantExpression c));
 
   Element operator[](Node node);
   Map<Node, DartType> get typesCache;
 
-  SendStructure getSendStructure(Send send);
+  /// Returns the [SendStructure] that describes the semantics of [node].
+  SendStructure getSendStructure(Send node);
+
+  /// Returns the [NewStructure] that describes the semantics of [node].
+  NewStructure getNewStructure(NewExpression node);
 
   // TODO(johnniwinther): Investigate whether [Node] could be a [Send].
   Selector getSelector(Node node);
@@ -50,9 +49,6 @@ abstract class TreeElements {
 
   /// Returns the for-in loop variable for [node].
   Element getForInVariable(ForIn node);
-  Selector getIteratorSelector(ForIn node);
-  Selector getMoveNextSelector(ForIn node);
-  Selector getCurrentSelector(ForIn node);
   TypeMask getIteratorTypeMask(ForIn node);
   TypeMask getMoveNextTypeMask(ForIn node);
   TypeMask getCurrentTypeMask(ForIn node);
@@ -79,9 +75,6 @@ abstract class TreeElements {
 
   /// Returns the type that the type literal [node] refers to.
   DartType getTypeLiteralType(Send node);
-
-  /// Register a dependency on [type].
-  void addRequiredType(DartType type);
 
   /// Returns a list of nodes that potentially mutate [element] anywhere in its
   /// scope.
@@ -125,7 +118,7 @@ class TreeElementMapping extends TreeElements {
   Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
   Map<Node, Map<VariableElement, List<Node>>> _accessedByClosureIn;
   Maplet<Send, SendStructure> _sendStructureMap;
-  Setlet<DartType> _requiredTypes;
+  Maplet<NewExpression, NewStructure> _newStructureMap;
   bool containsTryStatement = false;
 
   /// Map from nodes to the targets they define.
@@ -149,7 +142,7 @@ class TreeElementMapping extends TreeElements {
     // TODO(johnniwinther): Simplify this invariant to use only declarations in
     // [TreeElements].
     assert(invariant(node, () {
-      if (!element.isErroneous && analyzedElement != null && element.isPatch) {
+      if (!element.isMalformed && analyzedElement != null && element.isPatch) {
         return analyzedElement.implementationLibrary.isPatch;
       }
       return true;
@@ -165,16 +158,28 @@ class TreeElementMapping extends TreeElements {
 
   operator [](Node node) => getTreeElement(node);
 
-  SendStructure getSendStructure(Send send) {
+  SendStructure getSendStructure(Send node) {
     if (_sendStructureMap == null) return null;
-    return _sendStructureMap[send];
+    return _sendStructureMap[node];
   }
 
-  void setSendStructure(Send send, SendStructure sendStructure) {
+  void setSendStructure(Send node, SendStructure sendStructure) {
     if (_sendStructureMap == null) {
       _sendStructureMap = new Maplet<Send, SendStructure>();
     }
-    _sendStructureMap[send] = sendStructure;
+    _sendStructureMap[node] = sendStructure;
+  }
+
+  NewStructure getNewStructure(NewExpression node) {
+    if (_newStructureMap == null) return null;
+    return _newStructureMap[node];
+  }
+
+  void setNewStructure(NewExpression node, NewStructure newStructure) {
+    if (_newStructureMap == null) {
+      _newStructureMap = new Maplet<NewExpression, NewStructure>();
+    }
+    _newStructureMap[node] = newStructure;
   }
 
   void setType(Node node, DartType type) {
@@ -185,19 +190,6 @@ class TreeElementMapping extends TreeElements {
   }
 
   DartType getType(Node node) => _types != null ? _types[node] : null;
-
-  void addRequiredType(DartType type) {
-    if (_requiredTypes == null) _requiredTypes = new Setlet<DartType>();
-    _requiredTypes.add(type);
-  }
-
-  Iterable<DartType> get requiredTypes {
-    if (_requiredTypes == null) {
-      return const <DartType>[];
-    } else {
-      return _requiredTypes;
-    }
-  }
 
   Iterable<Node> get superUses {
     return _superUses != null ? _superUses : const <Node>[];
@@ -243,34 +235,6 @@ class TreeElementMapping extends TreeElements {
 
   Selector getOperatorSelectorInComplexSendSet(SendSet node) {
     return _getSelector(node.assignmentOperator);
-  }
-
-  // The following methods set selectors on the "for in" node. Since
-  // we're using three selectors, we need to use children of the node,
-  // and we arbitrarily choose which ones.
-
-  void setIteratorSelector(ForIn node, Selector selector) {
-    _setSelector(node, selector);
-  }
-
-  Selector getIteratorSelector(ForIn node) {
-    return _getSelector(node);
-  }
-
-  void setMoveNextSelector(ForIn node, Selector selector) {
-    _setSelector(node.forToken, selector);
-  }
-
-  Selector getMoveNextSelector(ForIn node) {
-    return _getSelector(node.forToken);
-  }
-
-  void setCurrentSelector(ForIn node, Selector selector) {
-    _setSelector(node.inToken, selector);
-  }
-
-  Selector getCurrentSelector(ForIn node) {
-    return _getSelector(node.inToken);
   }
 
   Element getForInVariable(ForIn node) {

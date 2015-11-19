@@ -481,7 +481,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
       EBP, EDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
   __ pushl(raw_null);  // Setup space on stack for result.
   __ pushl(EAX);  // Receiver.
-  __ pushl(ECX);
+  __ pushl(ECX);  // ICData/MegamorphicCache.
   __ pushl(EDX);  // Arguments descriptor array.
   __ movl(EDX, EDI);
   // EDX: Smi-tagged arguments array length.
@@ -2022,19 +2022,18 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(
-    Assembler* assembler, Register receiver, Register cache, Register target) {
-  ASSERT((cache != EAX) && (cache != EDI));
-  __ LoadTaggedClassIdMayBeSmi(EAX, receiver);
-
+void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
+  __ LoadTaggedClassIdMayBeSmi(EAX, EBX);
   // EAX: class ID of the receiver (smi).
-  __ movl(EDI, FieldAddress(cache, MegamorphicCache::buckets_offset()));
-  __ movl(EBX, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  __ movl(EDI, FieldAddress(ECX, MegamorphicCache::buckets_offset()));
+  __ movl(EBX, FieldAddress(ECX, MegamorphicCache::mask_offset()));
   // EDI: cache buckets array.
   // EBX: mask.
+  __ pushl(ECX);  // Spill MegamorphicCache.
   __ movl(ECX, EAX);
+  // ECX: probe.
 
-  Label loop, update, call_target_function;
+  Label loop, update, load_target_function;
   __ jmp(&loop);
 
   __ Bind(&update);
@@ -2047,30 +2046,44 @@ void StubCode::EmitMegamorphicLookup(
 
   ASSERT(kIllegalCid == 0);
   __ testl(EDX, EDX);
-  __ j(ZERO, &call_target_function, Assembler::kNearJump);
+  __ j(ZERO, &load_target_function, Assembler::kNearJump);
   __ cmpl(EDX, EAX);
   __ j(NOT_EQUAL, &update, Assembler::kNearJump);
 
-  __ Bind(&call_target_function);
+  __ Bind(&load_target_function);
   // Call the target found in the cache.  For a class id match, this is a
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movl(EAX, FieldAddress(EDI, ECX, TIMES_4, base + kWordSize));
-  __ movl(target, FieldAddress(EAX, Function::entry_point_offset()));
+  __ popl(ECX);  // Restore MegamorphicCache.
+  __ movl(EDX,
+          FieldAddress(ECX, MegamorphicCache::arguments_descriptor_offset()));
+  __ movl(EBX, FieldAddress(EAX, Function::entry_point_offset()));
 }
 
 
 // Called from megamorphic calls.
-//  ECX: receiver.
-//  EBX: lookup cache.
+//  EBX: receiver
+//  ECX: MegamorphicCache (preserved)
 // Result:
-//  EBX: entry point.
+//  EBX: target entry point
+//  EDX: argument descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler, ECX, EBX, EBX);
+  EmitMegamorphicLookup(assembler);
   __ ret();
 }
 
+
+// Called from switchable IC calls.
+//  EBX: receiver
+//  ECX: ICData (preserved)
+// Result:
+//  EBX: target entry point
+//  EDX: arguments descriptor
+void StubCode::GenerateICLookupStub(Assembler* assembler) {
+  __ int3();
+}
 
 }  // namespace dart
 

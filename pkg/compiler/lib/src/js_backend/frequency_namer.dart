@@ -26,7 +26,7 @@ class FrequencyBasedNamer extends Namer with _MinifiedFieldNamer,
   }
 
   TokenScope newScopeFor(NamingScope scope) {
-    if (scope == NamingScope.instance) {
+    if (scope == instanceScope) {
       Set<String> illegalNames = new Set<String>.from(jsReserved);
       for (String illegal in MinifyNamer._reservedNativeProperties) {
         illegalNames.add(illegal);
@@ -50,8 +50,7 @@ class FrequencyBasedNamer extends Namer with _MinifiedFieldNamer,
 
     // Get the name the normal namer would use as a key.
     String proposed = _generateFreshStringForName(proposedName,
-                                                  getUsedNames(scope),
-                                                  getSuggestedNames(scope),
+                                                  scope,
                                                   sanitizeForNatives:
                                                   sanitizeForNatives,
                                                   sanitizeForAnnotations:

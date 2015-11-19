@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' as cache;
 import 'package:analyzer/src/context/context.dart' as newContext;
@@ -452,7 +453,7 @@ abstract class AnalysisContext {
    * analysis results that have been invalidated by these changes will be
    * removed.
    */
-  void applyChanges(ChangeSet changeSet);
+  ApplyChangesStatus applyChanges(ChangeSet changeSet);
 
   /**
    * Return the documentation comment for the given [element] as it appears in
@@ -591,8 +592,8 @@ abstract class AnalysisContext {
       Source unitSource, Source librarySource);
 
   /**
-   * Return configuration data associated with the given key or `null` if no
-   * state has been associated with the given [key].
+   * Return configuration data associated with the given key or the [key]'s
+   * default value if no state has been associated.
    *
    * See [setConfigurationData].
    */
@@ -964,6 +965,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   AnalysisOptionsImpl _options = new AnalysisOptionsImpl();
 
+  /// The embedder yaml locator for this context.
+  EmbedderYamlLocator _embedderYamlLocator = new EmbedderYamlLocator(null);
+
   /**
    * A flag indicating whether errors related to implicitly analyzed sources
    * should be generated and reported.
@@ -1154,6 +1158,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisOptions get analysisOptions => _options;
+
+  @override
+  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 
   @override
   void set analysisOptions(AnalysisOptions options) {
@@ -1616,9 +1623,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  void applyChanges(ChangeSet changeSet) {
+  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty) {
-      return;
+      return new ApplyChangesStatus(false);
     }
     //
     // First, compute the list of sources that have been removed.
@@ -1658,6 +1665,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _sourceRemoved(source);
     }
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
+    return new ApplyChangesStatus(true);
   }
 
   @override
@@ -6469,6 +6477,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableStrictCallChecks = options.enableStrictCallChecks;
+    enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
@@ -6490,6 +6499,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableStrictCallChecks = options.enableStrictCallChecks;
+    enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
@@ -6797,6 +6807,18 @@ abstract class AnalysisTaskVisitor<E> {
    * throw an AnalysisException if the visitor throws an exception.
    */
   E visitScanDartTask(ScanDartTask task);
+}
+
+/**
+ * The result of applying a [ChangeSet] to a [AnalysisContext].
+ */
+class ApplyChangesStatus {
+  /**
+   * Is `true` if the given [ChangeSet] caused any changes in the context.
+   */
+  final bool hasChanges;
+
+  ApplyChangesStatus(this.hasChanges);
 }
 
 /**
@@ -9427,6 +9449,9 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   dynamic get privateAnalysisCachePartition;
 
+  /// Get the [EmbedderYamlLocator] for this context.
+  EmbedderYamlLocator get embedderYamlLocator;
+  
   /**
    * A factory to override how [ResolverVisitor] is created.
    */

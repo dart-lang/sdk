@@ -72,6 +72,7 @@ bool hasFix(ErrorCode errorCode) => errorCode ==
     errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT ||
     errorCode == CompileTimeErrorCode.URI_DOES_NOT_EXIST ||
+    errorCode == HintCode.CAN_BE_NULL_AFTER_NULL_AWARE ||
     errorCode == HintCode.DEAD_CODE ||
     errorCode == HintCode.DIVISION_OPTIMIZATION ||
     errorCode == HintCode.TYPE_CHECK_IS_NOT_NULL ||
@@ -169,8 +170,8 @@ class DartFixKind {
       'REMOVE_PARENTHESIS_IN_GETTER_INVOCATION',
       50,
       "Remove parentheses in getter invocation");
-  static const REMOVE_UNNECASSARY_CAST =
-      const FixKind('REMOVE_UNNECASSARY_CAST', 50, "Remove unnecessary cast");
+  static const REMOVE_UNNECESSARY_CAST =
+      const FixKind('REMOVE_UNNECESSARY_CAST', 50, "Remove unnecessary cast");
   static const REMOVE_UNUSED_CATCH_CLAUSE =
       const FixKind('REMOVE_UNUSED_CATCH', 50, "Remove unused 'catch' clause");
   static const REMOVE_UNUSED_CATCH_STACK = const FixKind(
@@ -187,6 +188,10 @@ class DartFixKind {
       'REPLACE_RETURN_TYPE_FUTURE',
       50,
       "Return 'Future' from 'async' function");
+  static const REPLACE_WITH_NULL_AWARE = const FixKind(
+      'REPLACE_WITH_NULL_AWARE',
+      50,
+      "Replace the '.' with a '?.' in the invocation");
   static const USE_CONST = const FixKind('USE_CONST', 50, "Change to constant");
   static const USE_EFFECTIVE_INTEGER_DIVISION = const FixKind(
       'USE_EFFECTIVE_INTEGER_DIVISION',

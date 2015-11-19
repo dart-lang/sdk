@@ -13,8 +13,8 @@ vars.update({
   "dartium_chromium_branch": "master",
   "dartium_chromium_commit": "62a7524d4f71c9e0858d24b0aa1bbff3a2d09bff",
   "chromium_base_revision": "297060",
-  "dartium_webkit_branch": "/blink/branches/dart/2171_4",
-  "dartium_webkit_revision": "202698",
+  "dartium_webkit_branch": "/blink/branches/dart/dartium",
+  "dartium_webkit_revision": "202699",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -36,7 +36,7 @@ vars.update({
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dart2js_info_rev" : "@c4ad464717e3a304fb0d44a6937c25ff2049b863",
+  "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
@@ -56,6 +56,7 @@ vars.update({
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
   "pub_rev": "@9d707158fedc86fc2b02f62cdfe804902b098d9d",
   "pub_semver_tag": "@1.2.0",
+  "quiver_tag": "@0.21.4",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
@@ -69,7 +70,7 @@ vars.update({
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
 
-  "co19_rev": "@ead3698f33d2cd41e75b6ce5d4a1203767cedd50",
+  "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
   "fake_async_rev": "@38614",
 })
 
@@ -156,6 +157,10 @@ deps.update({
       (Var("github_mirror") % "pub") + Var("pub_rev"),
   "src/dart/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
+  "src/dart/third_party/pkg/quiver":
+      Var("chromium_git")
+      + "/external/github.com/google/quiver-dart.git"
+      + Var("quiver_tag"),
   "src/dart/third_party/pkg/shelf":
       (Var("github_mirror") % "shelf") + Var("shelf_rev"),
   "src/dart/third_party/pkg/shelf_web_socket":

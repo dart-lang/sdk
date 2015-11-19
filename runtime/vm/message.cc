@@ -196,8 +196,8 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
                          current->Id());
     message.AddProperty("size", current->len());
     message.AddProperty("index", depth++);
-    message.AddProperty("_destinationPort",
-        static_cast<intptr_t>(current->dest_port()));
+    message.AddPropertyF("_destinationPort", "%" Pd64 "",
+        static_cast<int64_t>(current->dest_port()));
     message.AddProperty("_priority",
         Message::PriorityAsString(current->priority()));
     // TODO(johnmccutchan): Move port -> handler map out of Dart and into the

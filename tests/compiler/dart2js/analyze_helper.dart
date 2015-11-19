@@ -131,7 +131,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   }
 }
 
-typedef bool CheckResults(Compiler compiler,
+typedef bool CheckResults(CompilerImpl compiler,
                           CollectingDiagnosticHandler handler);
 
 Future analyze(List<Uri> uriList,
@@ -161,7 +161,7 @@ Future analyze(List<Uri> uriList,
       Flags.showPackageWarnings];
   if (analyzeAll) options.add(Flags.analyzeAll);
   if (analyzeMain) options.add(Flags.analyzeMain);
-  var compiler = new Compiler(
+  var compiler = new CompilerImpl(
       provider,
       null,
       handler,

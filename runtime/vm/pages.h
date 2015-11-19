@@ -284,7 +284,7 @@ class PageSpace {
 
   // Note: Code pages are made executable/non-executable when 'read_only' is
   // true/false, respectively.
-  void WriteProtect(bool read_only);
+  void WriteProtect(bool read_only, bool include_code_pages);
   void WriteProtectCode(bool read_only);
 
   void AddGCTime(int64_t micros) {

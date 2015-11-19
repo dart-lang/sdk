@@ -172,6 +172,23 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
     assertNoResult('A');
   }
 
+  test_PrefixedIdentifier_field_inPart() async {
+    // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
+    addFile('/project/bin/myLib.dart',
+        'library L; part "$testFile"; class A {static int s2;}');
+    addTestFile('part of L; foo() {A.^}');
+    await getSuggestions({
+      'L.A': ['s2']
+    });
+    expect(replacementOffset, equals(completionOffset));
+    expect(replacementLength, equals(0));
+    assertHasResult(
+        CompletionSuggestionKind.INVOCATION, 's2', DART_RELEVANCE_COMMON_USAGE);
+    assertNoResult('Future');
+    assertNoResult('Object');
+    assertNoResult('A');
+  }
+
   test_PrefixedIdentifier_getter() async {
     // SimpleIdentifier  PrefixedIdentifeir  ExpressionStatement
     addTestFile('class A {int get g1 => 1; int get g2 => 2; x() {new A().^}}');

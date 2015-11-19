@@ -19,17 +19,13 @@ runTest(String source, String categories, int expectedErrors) async {
 
 void main() {
   asyncTest(() async {
-    await runTest("import 'dart:async'; main() {}", "Embedded", 1);
     await runTest("import 'dart:async'; main() {}", "Client", 0);
     await runTest("import 'dart:async'; main() {}", "Server", 0);
-    await runTest("import 'dart:html'; main() {}", "Embedded", 1);
     await runTest("import 'dart:html'; main() {}", "Client", 0);
     await runTest("import 'dart:html'; main() {}", "Server", 1);
-    await runTest("import 'dart:io'; main() {}", "Embedded", 1);
     await runTest("import 'dart:io'; main() {}", "Client", 1);
     await runTest("import 'dart:io'; main() {}", "Server", 0);
-    await runTest("import 'dart:_internal'; main() {}", "Embedded", 2);
-    await runTest("import 'dart:_internal'; main() {}", "Client", 2);
-    await runTest("import 'dart:_internal'; main() {}", "Server", 2);
+    await runTest("import 'dart:_internal'; main() {}", "Client", 1);
+    await runTest("import 'dart:_internal'; main() {}", "Server", 1);
   });
 }

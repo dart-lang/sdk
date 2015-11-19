@@ -281,6 +281,9 @@ class FlowGraphCompiler : public ValueObject {
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
 
+  static bool IsUnboxedField(const Field& field);
+  static bool IsPotentialUnboxedField(const Field& field);
+
   // Accessors.
   Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }
@@ -417,6 +420,12 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t token_pos,
                                    LocationSummary* locs);
 
+  void EmitSwitchableInstanceCall(const ICData& ic_data,
+                                  intptr_t argument_count,
+                                  intptr_t deopt_id,
+                                  intptr_t token_pos,
+                                  LocationSummary* locs);
+
   void EmitTestAndCall(const ICData& ic_data,
                        intptr_t arg_count,
                        const Array& arg_names,
@@ -526,7 +535,7 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return isolate_; }
+  Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return zone_; }
 
   void AddStubCallTarget(const Code& code);
@@ -683,7 +692,6 @@ class FlowGraphCompiler : public ValueObject {
   };
 
   Thread* thread_;
-  Isolate* isolate_;
   Zone* zone_;
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;

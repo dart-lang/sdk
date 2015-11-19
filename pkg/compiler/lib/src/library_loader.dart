@@ -31,7 +31,6 @@ import 'elements/modelx.dart' show
     PrefixElementX,
     SyntheticImportElement;
 
-import 'native/native.dart' as native;
 import 'script.dart';
 import 'tree/tree.dart';
 import 'util/util.dart' show
@@ -631,7 +630,6 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         handler.registerNewLibrary(element);
         libraryCanonicalUriMap[resolvedUri] = element;
       }
-      native.maybeEnableNative(compiler, element);
       compiler.scanner.scanLibrary(element);
       return element;
     });
@@ -975,7 +973,7 @@ class LibraryDependencyNode {
 
     Element existingElement = exportScope[name];
     if (existingElement != null && existingElement != element) {
-      if (existingElement.isErroneous) {
+      if (existingElement.isMalformed) {
         createDuplicateExportMessage(element, exports);
         createDuplicateExportDeclMessage(element, exports);
         element = existingElement;

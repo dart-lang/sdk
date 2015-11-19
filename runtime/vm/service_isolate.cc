@@ -255,7 +255,6 @@ void ServiceIsolate::MaybeMakeServiceIsolate(Isolate* I) {
 void ServiceIsolate::ConstructExitMessageAndCache(Isolate* I) {
   // Construct and cache exit message here so we can send it without needing an
   // isolate.
-  StartIsolateScope iso_scope(I);
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
@@ -319,16 +318,17 @@ class RunServiceTask : public ThreadPool::Task {
                                                    &error));
     if (isolate == NULL) {
       OS::PrintErr("vm-service: Isolate creation error: %s\n", error);
+      ServiceIsolate::SetServiceIsolate(NULL);
       ServiceIsolate::FinishedInitializing();
       return;
     }
 
-
-    Thread::ExitIsolate();
-
-    ServiceIsolate::ConstructExitMessageAndCache(isolate);
-
-    RunMain(isolate);
+    {
+      ASSERT(Isolate::Current() == NULL);
+      StartIsolateScope start_scope(isolate);
+      ServiceIsolate::ConstructExitMessageAndCache(isolate);
+      RunMain(isolate);
+    }
 
     ServiceIsolate::FinishedInitializing();
 
@@ -347,6 +347,7 @@ class RunServiceTask : public ThreadPool::Task {
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
+      ASSERT(Isolate::Current() == NULL);
       StartIsolateScope start_scope(I);
       Thread* T = Thread::Current();
       ASSERT(I == T->isolate());
@@ -359,11 +360,8 @@ class RunServiceTask : public ThreadPool::Task {
       }
       Dart::RunShutdownCallback();
     }
-    {
-      // Shut the isolate down.
-      SwitchIsolateScope switch_scope(I);
-      Dart::ShutdownIsolate();
-    }
+    // Shut the isolate down.
+    Dart::ShutdownIsolate(I);
     if (FLAG_trace_service) {
       OS::Print("vm-service: Shutdown.\n");
     }
@@ -371,7 +369,6 @@ class RunServiceTask : public ThreadPool::Task {
   }
 
   void RunMain(Isolate* I) {
-    StartIsolateScope iso_scope(I);
     Thread* T = Thread::Current();
     ASSERT(I == T->isolate());
     StackZone zone(T);

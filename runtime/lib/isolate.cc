@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
@@ -125,60 +126,70 @@ static void ThrowIsolateSpawnException(const String& message) {
 }
 
 
-static bool CreateIsolate(Isolate* parent_isolate,
-                          IsolateSpawnState* state,
-                          char** error) {
-  Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
-  if (callback == NULL) {
-    *error = strdup("Null callback specified for isolate creation\n");
-    return false;
+class SpawnIsolateTask : public ThreadPool::Task {
+ public:
+  explicit SpawnIsolateTask(IsolateSpawnState* state) : state_(state) {}
+
+  virtual void Run() {
+    // Create a new isolate.
+    char* error = NULL;
+    Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
+    if (callback == NULL) {
+      ReportError(
+          "Isolate spawn is not supported by this Dart implementation\n");
+      delete state_;
+      state_ = NULL;
+      return;
+    }
+
+    Dart_IsolateFlags api_flags;
+    state_->isolate_flags()->CopyTo(&api_flags);
+
+    Isolate* isolate = reinterpret_cast<Isolate*>(
+        (callback)(state_->script_url(),
+                   state_->function_name(),
+                   state_->package_root(),
+                   state_->package_map(),
+                   &api_flags,
+                   state_->init_data(),
+                   &error));
+    if (isolate == NULL) {
+      ReportError(error);
+      delete state_;
+      state_ = NULL;
+      free(error);
+      return;
+    }
+
+    if (state_->origin_id() != ILLEGAL_PORT) {
+      // For isolates spawned using spawnFunction we set the origin_id
+      // to the origin_id of the parent isolate.
+      isolate->set_origin_id(state_->origin_id());
+    }
+    MutexLocker ml(isolate->mutex());
+    state_->set_isolate(reinterpret_cast<Isolate*>(isolate));
+    isolate->set_spawn_state(state_);
+    state_ = NULL;
+    if (isolate->is_runnable()) {
+      isolate->Run();
+    }
   }
 
-  Dart_IsolateFlags api_flags;
-  state->isolate_flags()->CopyTo(&api_flags);
+ private:
+  void ReportError(const char* error) {
+    Dart_CObject error_cobj;
+    error_cobj.type = Dart_CObject_kString;
+    error_cobj.value.as_string = const_cast<char*>(error);
+    if (!Dart_PostCObject(state_->parent_port(), &error_cobj)) {
+      // Perhaps the parent isolate died or closed the port before we
+      // could report the error.  Ignore.
+    }
+  }
 
-  void* init_data = parent_isolate->init_callback_data();
-  Isolate* child_isolate = reinterpret_cast<Isolate*>(
-      (callback)(state->script_url(),
-                 state->function_name(),
-                 state->package_root(),
-                 state->package_map(),
-                 &api_flags,
-                 init_data,
-                 error));
-  if (child_isolate == NULL) {
-    return false;
-  }
-  if (!state->is_spawn_uri()) {
-    // For isolates spawned using the spawn semantics we set
-    // the origin_id to the origin_id of the parent isolate.
-    child_isolate->set_origin_id(parent_isolate->origin_id());
-  }
-  state->set_isolate(reinterpret_cast<Isolate*>(child_isolate));
-  return true;
-}
+  IsolateSpawnState* state_;
 
-
-static void Spawn(Isolate* parent_isolate, IsolateSpawnState* state) {
-  Thread::ExitIsolate();
-  // Create a new isolate.
-  char* error = NULL;
-  if (!CreateIsolate(parent_isolate, state, &error)) {
-    Thread::EnterIsolate(parent_isolate);
-    delete state;
-    const String& msg = String::Handle(String::New(error));
-    free(error);
-    ThrowIsolateSpawnException(msg);
-  }
-  Thread::EnterIsolate(parent_isolate);
-  // Start the new isolate if it is already marked as runnable.
-  Isolate* spawned_isolate = state->isolate();
-  MutexLocker ml(spawned_isolate->mutex());
-  spawned_isolate->set_spawn_state(state);
-  if (spawned_isolate->is_runnable()) {
-    spawned_isolate->Run();
-  }
-}
+  DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
+};
 
 
 DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
@@ -206,13 +217,16 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
       Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
       Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
 
-      Spawn(isolate, new IsolateSpawnState(port.Id(),
-                                           func,
-                                           message,
-                                           paused.value(),
-                                           fatal_errors,
-                                           on_exit_port,
-                                           on_error_port));
+      Dart::thread_pool()->Run(new SpawnIsolateTask(
+          new IsolateSpawnState(port.Id(),
+                                isolate->origin_id(),
+                                isolate->init_callback_data(),
+                                func,
+                                message,
+                                paused.value(),
+                                fatal_errors,
+                                on_exit_port,
+                                on_error_port)));
       return Object::null();
     }
   }
@@ -233,12 +247,13 @@ static char* String2UTF8(const String& str) {
 }
 
 
-static char* CanonicalizeUri(Isolate* isolate,
+static char* CanonicalizeUri(Thread* thread,
                              const Library& library,
                              const String& uri,
                              char** error) {
   char* result = NULL;
-  Zone* zone = isolate->current_zone();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler != NULL) {
     Dart_EnterScope();
@@ -292,7 +307,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   const Library& root_lib =
       Library::Handle(isolate->object_store()->root_library());
   char* error = NULL;
-  char* canonical_uri = CanonicalizeUri(isolate, root_lib, uri, &error);
+  char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
   if (canonical_uri == NULL) {
     const String& msg = String::Handle(String::New(error));
     ThrowIsolateSpawnException(msg);
@@ -326,6 +341,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
 
   IsolateSpawnState* state = new IsolateSpawnState(
       port.Id(),
+      isolate->init_callback_data(),
       canonical_uri,
       utf8_package_root,
       const_cast<const char**>(utf8_package_map),
@@ -341,7 +357,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
     state->isolate_flags()->set_checked(checked.value());
   }
 
-  Spawn(isolate, state);
+  Dart::thread_pool()->Run(new SpawnIsolateTask(state));
   return Object::null();
 }
 

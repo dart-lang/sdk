@@ -68,6 +68,9 @@ import 'package:pub_semver/pub_semver.dart';
 // ClassElement of a type to refer to keys we need to discover).
 // TODO(sigmund): detect uses of mirrors
 class LookupMapAnalysis {
+  static final Uri PACKAGE_LOOKUP_MAP =
+      new Uri(scheme: 'package', path: 'lookup_map/lookup_map.dart');
+
   /// Reference to [JavaScriptBackend] to be able to enqueue work when we
   /// discover that a key in a map is potentially used.
   final JavaScriptBackend backend;
@@ -205,8 +208,7 @@ class LookupMapAnalysis {
     if (key is ConstructedConstantValue) {
       ClassElement element = key.type.element;
       return _typesWithEquals.putIfAbsent(element, () =>
-          element.lookupMember('==').enclosingClass !=
-          backend.compiler.objectClass);
+          !element.lookupMember('==').enclosingClass.isObject);
     }
     return false;
   }
@@ -411,8 +413,7 @@ class _LookupMapInfo {
     ConstantValue constant = unusedEntries.remove(key);
     usedEntries[key] = constant;
     analysis.backend.registerCompileTimeConstant(constant,
-        analysis.backend.compiler.globalDependencies,
-        addForEmission: false);
+        analysis.backend.compiler.globalDependencies);
   }
 
   /// Restores [original] to contain all of the entries marked as possibly used.

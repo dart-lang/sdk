@@ -15,7 +15,7 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
+    show AnalysisRequest, CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
     as newApi;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
@@ -30,6 +30,9 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -617,6 +620,28 @@ class B extends A {m() {^}}
     });
   }
 
+  test_relevancy_sorter_analysis() {
+    var originalSorter = DartCompletionManager.defaultContributionSorter;
+
+    // Setup the mock sorter to request additional analysis
+    var mockSorter = new MockRelevancySorter();
+    mockSorter.addTask(PARSED_UNIT);
+    mockSorter.addTask(LIBRARY_ELEMENT1);
+    mockSorter.addTask(RESOLVED_UNIT3);
+    mockSorter.addTask(RESOLVED_UNIT3);
+
+    DartCompletionManager.defaultContributionSorter = mockSorter;
+    addTestFile('main() {Map m; m.^}');
+
+    return getSuggestions().then((_) {
+      DartCompletionManager.defaultContributionSorter = originalSorter;
+      mockSorter.enabled = false;
+
+      // Assert that the analysis requests were processed
+      mockSorter.assertAnalysisRequestsProcessed();
+    });
+  }
+
   test_simple() {
     addTestFile('''
       void main() {
@@ -724,13 +749,36 @@ class MockContext implements AnalysisContext {
 
 class MockRelevancySorter implements ContributionSorter {
   bool enabled = true;
+  List<ResultDescriptor> descriptors = <ResultDescriptor>[];
+
+  void addTask(ResultDescriptor descriptor) {
+    descriptors.add(descriptor);
+  }
+
+  void assertAnalysisRequestsProcessed() {
+    expect(descriptors, hasLength(0));
+  }
 
   @override
-  void sort(newApi.DartCompletionRequest request,
-      List<CompletionSuggestion> suggestions) {
+  AnalysisRequest sort(
+      CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
     if (!enabled) {
       throw 'unexpected sort';
     }
+    return _nextAnalysisRequest(request);
+  }
+
+  AnalysisRequest _callback(CompletionRequest request, var value) {
+    expect(value, isNotNull);
+    return _nextAnalysisRequest(request);
+  }
+
+  AnalysisRequest _nextAnalysisRequest(CompletionRequest request) {
+    if (descriptors.length == 0) {
+      return null;
+    }
+    return new AnalysisRequest(
+        request.source, descriptors.removeAt(0), _callback);
   }
 }
 

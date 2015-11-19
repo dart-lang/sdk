@@ -128,7 +128,8 @@ class CircularTypeImpl extends DynamicTypeImpl {
 /**
  * An element that represents a class.
  */
-abstract class ClassElement implements TypeDefiningElement {
+abstract class ClassElement
+    implements TypeDefiningElement, TypeParameterizedElement {
   /**
    * An empty list of class elements.
    */
@@ -267,12 +268,6 @@ abstract class ClassElement implements TypeDefiningElement {
 
   @override
   InterfaceType get type;
-
-  /**
-   * Return a list containing all of the type parameters declared for this
-   * class.
-   */
-  List<TypeParameterElement> get typeParameters;
 
   /**
    * Return the unnamed constructor declared in this class, or `null` if this
@@ -1142,11 +1137,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         }
         implicitConstructor.parameters = implicitParameters;
       }
-      FunctionTypeImpl constructorType =
-          new FunctionTypeImpl(implicitConstructor);
-      constructorType.typeArguments = type.typeArguments;
-      implicitConstructor.type = constructorType;
       implicitConstructor.enclosingElement = this;
+      implicitConstructor.type = new FunctionTypeImpl(implicitConstructor);
       return implicitConstructor;
     }).toList();
   }
@@ -3582,7 +3574,7 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl
  * An element representing an executable object, including functions, methods,
  * constructors, getters, and setters.
  */
-abstract class ExecutableElement implements Element {
+abstract class ExecutableElement implements TypeParameterizedElement {
   /**
    * An empty list of executable elements.
    */
@@ -3676,12 +3668,6 @@ abstract class ExecutableElement implements Element {
    * Return the type of function defined by this executable element.
    */
   FunctionType get type;
-
-  /**
-   * Return a list containing all of the type parameters defined for this
-   * executable element.
-   */
-  List<TypeParameterElement> get typeParameters;
 }
 
 /**
@@ -4528,6 +4514,15 @@ class FunctionElementImpl extends ExecutableElementImpl
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
+
+  /**
+   * Set the parameters defined by this type alias to the given [parameters]
+   * without becoming the parent of the parameters. This should only be used by
+   * the [TypeResolverVisitor] when creating a synthetic type alias.
+   */
+  void shareParameters(List<ParameterElement> parameters) {
+    this._parameters = parameters;
+  }
 }
 
 /**
@@ -4658,7 +4653,8 @@ abstract class FunctionType implements ParameterizedType {
 /**
  * A function type alias (`typedef`).
  */
-abstract class FunctionTypeAliasElement implements TypeDefiningElement {
+abstract class FunctionTypeAliasElement
+    implements TypeDefiningElement, TypeParameterizedElement {
   /**
    * An empty array of type alias elements.
    */
@@ -4683,11 +4679,6 @@ abstract class FunctionTypeAliasElement implements TypeDefiningElement {
 
   @override
   FunctionType get type;
-
-  /**
-   * Return a list containing all of the type parameters defined for this type.
-   */
-  List<TypeParameterElement> get typeParameters;
 
   /**
    * Return the resolved function type alias node that declares this element.
@@ -4838,24 +4829,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
     return null;
   }
 
-  /**
-   * Set the parameters defined by this type alias to the given [parameters]
-   * without becoming the parent of the parameters. This should only be used by
-   * the [TypeResolverVisitor] when creating a synthetic type alias.
-   */
-  void shareParameters(List<ParameterElement> parameters) {
-    this._parameters = parameters;
-  }
-
-  /**
-   * Set the type parameters defined for this type to the given [typeParameters]
-   * without becoming the parent of the parameters. This should only be used by
-   * the [TypeResolverVisitor] when creating a synthetic type alias.
-   */
-  void shareTypeParameters(List<TypeParameterElement> typeParameters) {
-    this._typeParameters = typeParameters;
-  }
-
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
@@ -4869,9 +4842,9 @@ class FunctionTypeAliasElementImpl extends ElementImpl
  */
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
-   * A list containing the actual types of the type arguments.
+   * The list of [typeArguments].
    */
-  List<DartType> typeArguments = DartType.EMPTY_LIST;
+  List<DartType> _typeArguments = DartType.EMPTY_LIST;
 
   /**
    * The set of typedefs which should not be expanded when exploring this type,
@@ -4881,19 +4854,19 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   /**
    * Initialize a newly created function type to be declared by the given
-   * [element].
+   * [element], and also initialize [typeArguments] to match the
+   * [typeParameters], which permits later substitution.
    */
-  FunctionTypeImpl(ExecutableElement element, [this.prunedTypedefs])
-      : super(element, null);
+  FunctionTypeImpl(ExecutableElement element,
+      [List<FunctionTypeAliasElement> prunedTypedefs])
+      : this._(element, null, prunedTypedefs, null);
 
   /**
    * Initialize a newly created function type to be declared by the given
    * [element].
    */
   @deprecated // Use new FunctionTypeImpl(element)
-  FunctionTypeImpl.con1(ExecutableElement element)
-      : prunedTypedefs = null,
-        super(element, null);
+  FunctionTypeImpl.con1(ExecutableElement element) : this(element);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -4901,22 +4874,38 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   @deprecated // Use new FunctionTypeImpl.forTypedef(element)
   FunctionTypeImpl.con2(FunctionTypeAliasElement element)
-      : prunedTypedefs = null,
-        super(element, element == null ? null : element.name);
+      : this.forTypedef(element);
 
   /**
    * Initialize a newly created function type to be declared by the given
    * [element].
    */
   FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
-      [this.prunedTypedefs])
-      : super(element, element == null ? null : element.name);
+      [List<FunctionTypeAliasElement> prunedTypedefs])
+      : this._(element, element?.name, prunedTypedefs, null);
 
   /**
    * Private constructor.
    */
-  FunctionTypeImpl._(Element element, String name, this.prunedTypedefs)
-      : super(element, name);
+  FunctionTypeImpl._(Element element, String name, this.prunedTypedefs,
+      List<DartType> typeArguments)
+      : super(element, name) {
+    if (typeArguments != null) {
+      _typeArguments = typeArguments;
+    } else {
+      List<TypeParameterElement> typeParameters = this.typeParameters;
+      // TODO(jmesserly): reuse TypeParameterTypeImpl.getTypes once we can
+      // make it generic, which will allow it to return List<DartType> instead
+      // of List<TypeParameterType>.
+      if (typeParameters.isEmpty) {
+        _typeArguments = DartType.EMPTY_LIST;
+      } else {
+        _typeArguments = new List<DartType>.from(
+            typeParameters.map((t) => t.type),
+            growable: false);
+      }
+    }
+  }
 
   /**
    * Return the base parameter elements of this function element.
@@ -5168,18 +5157,23 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         TypeParameterTypeImpl.getTypes(typeParameters), newPrune);
   }
 
+  /**
+   * A list containing the actual types of the type arguments.
+   */
+  List<DartType> get typeArguments => _typeArguments;
+
   @override
   List<TypeParameterElement> get typeParameters {
-    Element element = this.element;
-    if (element is FunctionTypeAliasElement) {
-      return element.typeParameters;
+    // Combine the generic type arguments from all enclosing contexts.
+    // For example, this could be a generic method in a class, or a local
+    // function within another function.
+    List<TypeParameterElement> typeParams = <TypeParameterElement>[];
+    for (Element e = element; e != null; e = e.enclosingElement) {
+      if (e is TypeParameterizedElement) {
+        typeParams.addAll(e.typeParameters);
+      }
     }
-    ClassElement definingClass =
-        element.getAncestor((element) => element is ClassElement);
-    if (definingClass != null) {
-      return definingClass.typeParameters;
-    }
-    return TypeParameterElement.EMPTY_LIST;
+    return typeParams;
   }
 
   @override
@@ -5505,10 +5499,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // alias, and function type aliases are always expanded by starting with
       // base types.
       assert(this.prunedTypedefs == null);
-      FunctionTypeImpl result = new FunctionTypeImpl._(element, name, prune);
-      result.typeArguments =
-          typeArguments.map((TypeImpl t) => t.pruned(prune)).toList();
-      return result;
+      List<DartType> typeArgs = typeArguments
+          .map((TypeImpl t) => t.pruned(prune))
+          .toList(growable: false);
+      return new FunctionTypeImpl._(element, name, prune, typeArgs);
     }
   }
 
@@ -5516,7 +5510,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
-    // Pruned types should only ever result from peforming type variable
+    // Pruned types should only ever result from performing type variable
     // substitution, and it doesn't make sense to substitute again after
     // substituting once.
     assert(this.prunedTypedefs == null);
@@ -5532,13 +5526,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (argumentTypes.length == 0) {
       return this.pruned(prune);
     }
-    FunctionTypeImpl newType = (element is ExecutableElement)
-        ? new FunctionTypeImpl(element, prune)
-        : new FunctionTypeImpl.forTypedef(
-            element as FunctionTypeAliasElement, prune);
-    newType.typeArguments =
+    List<DartType> typeArgs =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
-    return newType;
+    return new FunctionTypeImpl._(element, name, prune, typeArgs);
   }
 
   @override
@@ -6235,6 +6225,62 @@ abstract class InterfaceType implements ParameterizedType {
       String name, LibraryElement library);
 
   /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  PropertyAccessorElement lookUpInheritedGetter(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, starting from this type. If the search fails,
+   * search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  ExecutableElement lookUpInheritedGetterOrMethod(String name,
+      {LibraryElement library});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  MethodElement lookUpInheritedMethod(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  PropertyAccessorElement lookUpInheritedSetter(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
    * Return the element representing the method that results from looking up the
    * method with the given [name] in this class with respect to the given
    * [library], or `null` if the look up fails. The behavior of this method is
@@ -6842,6 +6888,71 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  PropertyAccessorElement lookUpInheritedGetter(String name,
+      {LibraryElement library, bool thisType: true}) {
+    PropertyAccessorElement result;
+    if (thisType) {
+      result = lookUpGetter(name, library);
+    } else {
+      result = lookUpGetterInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (InterfaceType t) => t.getGetter(name));
+  }
+
+  @override
+  ExecutableElement lookUpInheritedGetterOrMethod(String name,
+      {LibraryElement library}) {
+    ExecutableElement result =
+        lookUpGetter(name, library) ?? lookUpMethod(name, library);
+
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(
+        this,
+        false,
+        library,
+        new HashSet<ClassElement>(),
+        (InterfaceType t) => t.getGetter(name) ?? t.getMethod(name));
+  }
+
+  @override
+  MethodElement lookUpInheritedMethod(String name,
+      {LibraryElement library, bool thisType: true}) {
+    MethodElement result;
+    if (thisType) {
+      result = lookUpMethod(name, library);
+    } else {
+      result = lookUpMethodInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (InterfaceType t) => t.getMethod(name));
+  }
+
+  @override
+  PropertyAccessorElement lookUpInheritedSetter(String name,
+      {LibraryElement library, bool thisType: true}) {
+    PropertyAccessorElement result;
+    if (thisType) {
+      result = lookUpSetter(name, library);
+    } else {
+      result = lookUpSetterInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (t) => t.getSetter(name));
+  }
+
+  @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) {
     MethodElement element = getMethod(methodName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -7114,6 +7225,58 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     Set<InterfaceType> result = new HashSet<InterfaceType>.from(first);
     result.retainAll(second);
     return new List.from(result);
+  }
+
+  /**
+   * Look up the getter with the given [name] in the interfaces
+   * implemented by the given [targetType], either directly or indirectly.
+   * Return the element representing the getter that was found, or `null` if
+   * there is no getter with the given name. The flag [includeTargetType] should
+   * be `true` if the search should include the target type. The
+   * [visitedInterfaces] is a set containing all of the interfaces that have
+   * been examined, used to prevent infinite recursion and to optimize the
+   * search.
+   */
+  static ExecutableElement _lookUpMemberInInterfaces(
+      InterfaceType targetType,
+      bool includeTargetType,
+      LibraryElement library,
+      HashSet<ClassElement> visitedInterfaces,
+      ExecutableElement getMember(InterfaceType type)) {
+    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
+    // specification (titled "Inheritance and Overriding" under "Interfaces")
+    // describes a much more complex scheme for finding the inherited member.
+    // We need to follow that scheme. The code below should cover the 80% case.
+    ClassElement targetClass = targetType.element;
+    if (!visitedInterfaces.add(targetClass)) {
+      return null;
+    }
+    if (includeTargetType) {
+      ExecutableElement member = getMember(targetType);
+      if (member != null && member.isAccessibleIn(library)) {
+        return member;
+      }
+    }
+    for (InterfaceType interfaceType in targetType.interfaces) {
+      ExecutableElement member = _lookUpMemberInInterfaces(
+          interfaceType, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
+    for (InterfaceType mixinType in targetType.mixins.reversed) {
+      ExecutableElement member = _lookUpMemberInInterfaces(
+          mixinType, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
+    InterfaceType superclass = targetType.superclass;
+    if (superclass == null) {
+      return null;
+    }
+    return _lookUpMemberInInterfaces(
+        superclass, true, library, visitedInterfaces, getMember);
   }
 }
 
@@ -7517,57 +7680,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     this._imports = imports;
   }
 
-  /** Given an update to this library which may have added or deleted edges
-   * in the import/export graph originating from this node only, remove any
-   * cached library cycles in the element model which may have been invalidated.
-   */
-  void invalidateLibraryCycles() {
-    if (_libraryCycle == null) {
-      // We have already invalidated this node, or we have never computed
-      // library cycle information for it.  In the former case, we're done. In
-      // the latter case, this node cannot be reachable from any node for which
-      // we have computed library cycle information.  Therefore, any edges added
-      // or deleted in the update causing this invalidation can only be edges to
-      // nodes which either have no library cycle information (and hence do not
-      // need invalidation), or which do not reach this node by any path.
-      // In either case, no further invalidation is needed.
-      return;
-    }
-    // If we have pre-computed library cycle information, then we must
-    // invalidate the information both on this element, and on certain
-    // other elements.  Edges originating at this node may have been
-    // added or deleted.  A deleted edge that points outside of this cycle
-    // cannot change the cycle information for anything outside of this cycle,
-    // and so it is sufficient to delete the cached library information on this
-    // cycle.  An added edge which points to another node within the cycle
-    // only invalidates the cycle.  An added edge which points to a node earlier
-    // in the topological sort of cycles induces no invalidation (since there
-    // are by definition no back edges from earlier cycles in the topological
-    // order, and hence no possible cycle can have been introduced.  The only
-    // remaining case is that we have added an edge to a node which is later
-    // in the topological sort of cycles.  This can induce cycles, since it
-    // represents a new back edge.  It would be sufficient to invalidate the
-    // cycle information for all nodes that are between the target and the
-    // node in the topological order.  For simplicity, we simply invalidate
-    // all nodes which are reachable from the the source node.
-    // Note that in the invalidation phase, we do not cut off when we encounter
-    // a node with no library cycle information, since we do not know whether
-    // we are in the case where invalidation has already been performed, or we
-    // are in the case where library cycles have simply never been computed from
-    // a newly reachable node.
-    Set<LibraryElementImpl> active = new HashSet();
-    void invalidate(LibraryElementImpl library) {
-      if (!active.add(library)) return;
-      if (library._libraryCycle != null) {
-        library._libraryCycle.forEach(invalidate);
-        library._libraryCycle = null;
-      }
-      library.exportedLibraries.forEach(invalidate);
-      library.importedLibraries.forEach(invalidate);
-    }
-    invalidate(this);
-  }
-
   @override
   bool get isBrowserApplication =>
       entryPoint != null && isOrImportsBrowserLibrary;
@@ -7803,6 +7915,57 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return null;
+  }
+
+  /** Given an update to this library which may have added or deleted edges
+   * in the import/export graph originating from this node only, remove any
+   * cached library cycles in the element model which may have been invalidated.
+   */
+  void invalidateLibraryCycles() {
+    if (_libraryCycle == null) {
+      // We have already invalidated this node, or we have never computed
+      // library cycle information for it.  In the former case, we're done. In
+      // the latter case, this node cannot be reachable from any node for which
+      // we have computed library cycle information.  Therefore, any edges added
+      // or deleted in the update causing this invalidation can only be edges to
+      // nodes which either have no library cycle information (and hence do not
+      // need invalidation), or which do not reach this node by any path.
+      // In either case, no further invalidation is needed.
+      return;
+    }
+    // If we have pre-computed library cycle information, then we must
+    // invalidate the information both on this element, and on certain
+    // other elements.  Edges originating at this node may have been
+    // added or deleted.  A deleted edge that points outside of this cycle
+    // cannot change the cycle information for anything outside of this cycle,
+    // and so it is sufficient to delete the cached library information on this
+    // cycle.  An added edge which points to another node within the cycle
+    // only invalidates the cycle.  An added edge which points to a node earlier
+    // in the topological sort of cycles induces no invalidation (since there
+    // are by definition no back edges from earlier cycles in the topological
+    // order, and hence no possible cycle can have been introduced.  The only
+    // remaining case is that we have added an edge to a node which is later
+    // in the topological sort of cycles.  This can induce cycles, since it
+    // represents a new back edge.  It would be sufficient to invalidate the
+    // cycle information for all nodes that are between the target and the
+    // node in the topological order.  For simplicity, we simply invalidate
+    // all nodes which are reachable from the the source node.
+    // Note that in the invalidation phase, we do not cut off when we encounter
+    // a node with no library cycle information, since we do not know whether
+    // we are in the case where invalidation has already been performed, or we
+    // are in the case where library cycles have simply never been computed from
+    // a newly reachable node.
+    Set<LibraryElementImpl> active = new HashSet();
+    void invalidate(LibraryElementImpl library) {
+      if (!active.add(library)) return;
+      if (library._libraryCycle != null) {
+        library._libraryCycle.forEach(invalidate);
+        library._libraryCycle = null;
+      }
+      library.exportedLibraries.forEach(invalidate);
+      library.importedLibraries.forEach(invalidate);
+    }
+    invalidate(this);
   }
 
   @override
@@ -8180,6 +8343,7 @@ abstract class Member implements Element {
    * Return the list of types that results from replacing the type parameters in
    * the given [types] with the type arguments associated with this member.
    */
+  @deprecated
   List<InterfaceType> substituteFor2(List<InterfaceType> types) {
     int count = types.length;
     List<InterfaceType> substitutedTypes = new List<InterfaceType>(count);
@@ -10364,6 +10528,20 @@ class TypeParameterElementImpl extends ElementImpl
 }
 
 /**
+ * An element that has type parameters.
+ *
+ * For example, a class or a typedef. This also includes functions and methods
+ * if support for generic methods is enabled.
+ */
+abstract class TypeParameterizedElement implements Element {
+  /**
+   * Return a list containing all of the type parameters declared for this
+   * class.
+   */
+  List<TypeParameterElement> get typeParameters;
+}
+
+/**
  * The type introduced by a type parameter.
  */
 abstract class TypeParameterType implements DartType {
@@ -10745,9 +10923,6 @@ abstract class VariableElementImpl extends ElementImpl
     setModifier(Modifier.CONST, isConst);
   }
 
-  @override
-  DartObject get constantValue => null;
-
   /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
@@ -10758,6 +10933,9 @@ abstract class VariableElementImpl extends ElementImpl
    * initializers.
    */
   Expression get constantInitializer => null;
+
+  @override
+  DartObject get constantValue => null;
 
   /**
    * Return the result of evaluating this variable's initializer as a

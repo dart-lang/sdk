@@ -598,19 +598,15 @@ class TestTypeProvider implements TypeProvider {
    * defined for the class.
    */
   void _propagateTypeArguments(ClassElementImpl classElement) {
-    List<DartType> typeArguments =
-        TypeParameterTypeImpl.getTypes(classElement.typeParameters);
     for (PropertyAccessorElement accessor in classElement.accessors) {
-      FunctionTypeImpl functionType = accessor.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
+      (accessor as ExecutableElementImpl).type = new FunctionTypeImpl(accessor);
     }
     for (MethodElement method in classElement.methods) {
-      FunctionTypeImpl functionType = method.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
+      (method as ExecutableElementImpl).type = new FunctionTypeImpl(method);
     }
     for (ConstructorElement constructor in classElement.constructors) {
-      FunctionTypeImpl functionType = constructor.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
+      (constructor as ExecutableElementImpl).type =
+          new FunctionTypeImpl(constructor);
     }
   }
 

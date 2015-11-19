@@ -186,8 +186,8 @@ class CallStructure {
       ConstructorElement callee,
       /*T*/ compileArgument(ParameterElement element),
       /*T*/ compileConstant(ParameterElement element)) {
-    assert(invariant(caller, !callee.isErroneous,
-        message: "Cannot compute arguments to erroneous constructor: "
+    assert(invariant(caller, !callee.isMalformed,
+        message: "Cannot compute arguments to malformed constructor: "
                  "$caller calling $callee."));
 
     FunctionSignature signature = caller.functionSignature;

@@ -1,10 +1,39 @@
-## 1.13.0
+## 1.14.0
+
+### Core library changes
+* `dart:convert`
+  * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
+
+* `dart:core`
+  * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
+    return type.
+  * Added `growable` parameter to `List.filled` constructor.
+
+* `dart:math`
+  * `Random` added a `secure` constructor returning a cryptographically secure
+    random generator which reads from the entropy source provided by the
+    embedder for every generated random value.
+
+* `dart:io`
+  * `Platform` added an `isiOS` getter and `Platform.operatingSystem` may now
+    return `ios`.
+
+## 1.13.0 - 2015-11-18
 
 ### Core library changes
 * `dart:async`
+  * `StreamController` added getters for `onListen`, `onPause`, and `onResume`
+    with the corresponding new `typedef void ControllerCallback()`.
+  * `StreamController` added a getter for `onCancel` with the corresponding
+    new `typedef ControllerCancelCallback()`;
   * `StreamTransformer` instances created with `fromHandlers` with no
     `handleError` callback now forward stack traces along with errors to the
     resulting streams.
+
+* `dart:convert`
+  * Added support for Base-64 encoding and decoding.
+    * Added new classes `Base64Codec`, `Base64Encoder`, and `Base64Decoder`.
+    * Added new top-level `const Base64Codec BASE64`.
 
 * `dart:core`
   * `Uri` added `removeFragment` method.
@@ -15,7 +44,18 @@
 * `dart:developer`
   * Added `Timeline` class for interacting with Observatory's timeline feature.
   * Added `ServiceExtensionHandler`, `ServiceExtensionResponse`, and `registerExtension` which enable developers to provide their own VM service protocol extensions.
-  
+
+* `dart:html`, `dart:indexed_db`, `dart:svg`, `dart:web_audio`, `dart:web_gl`, `dart:web_sql`
+  * The return type of some APIs changed from `double` to `num`. Dartium is now
+    using
+    JS interop for most operations. JS does not distinguish between numeric
+    types, and will return a number as an int if it fits in an int. This will
+    mostly cause an error if you assign to something typed `double` in
+    checked mode. You may
+    need to insert a `toDouble()` call or accept `num`. Examples of APIs that
+    are affected include `Element.getBoundingClientRect` and
+    `TextMetrics.width`.
+
 * `dart:io`
   * **Breaking:** Secure networking has changed, replacing the NSS library
     with the BoringSSL library. `SecureSocket`, `SecureServerSocket`,
@@ -33,16 +73,23 @@
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
-  * Removed server socket references. The use of server socket references
-    was deprecated back in 1.9. Use the `shared` flag when creating listening
-    sockets and `HttpServer` to distribute accepted sockets between isolates.
+  * To allow connections to be accepted on the same port across different
+    isolates, set the `shared` argument to `true` when creating server socket
+    and `HttpServer` instances.
+    * The deprecated `ServerSocketReference` and `RawServerSocketReference`
+      classes have been removed.
+    * The corresponding `reference` properties on `ServerSocket` and
+      `RawServerSocket` have been removed.
 
 * `dart:isolate`
   * `spawnUri` added an `environment` named argument.
 
 ### Tool changes
 
-* `docgen` and 'dartdocgen' no longer ship in the sdk. The `docgen` sources have
+* `dart2js` and Dartium now support improved Javascript Interoperability via the
+  [js package](https://pub.dartlang.org/packages/js).
+
+* `docgen` and `dartdocgen` no longer ship in the SDK. The `docgen` sources have
    been removed from the repository.
 
 * This is the last release to ship the VM's "legacy debug protocol".
@@ -51,6 +98,17 @@
 * The VM's Service Protocol has been updated to version 3.0 to take care
   of a number of issues uncovered by the first few non-observatory
   clients.  This is a potentially breaking change for clients.
+
+* Dartium has been substantially changed. Rather than using C++ calls into
+  Chromium internals for DOM operations it now uses JS interop.
+  The DOM objects in `dart:html` and related libraries now wrap
+  a JavaScript object and delegate operations to it. This should be
+  mostly transparent to users. However, performance and memory characteristics
+  may be different from previous versions. There may be some changes in which
+  DOM objects are wrapped as Dart objects. For example, if you get a reference
+  to a Window object, even through JS interop, you will always see it as a
+  Dart Window, even when used cross-frame. We expect the change to using
+  JS interop will make it much simpler to update to new Chrome versions.
 
 ## 1.12.2 - 2015-10-21
 
@@ -83,10 +141,14 @@
 ### Language changes
 
 * Null-aware operators
-    * `??`: if null operator. `expr1 ?? expr2` evaluates to `expr1` if not `null`, otherwise `expr2`.
-    * `??=`: null-aware assignment. `v ??= expr` causes `v` to be assigned `expr` only if `v` is `null`.
-    * `x?.p`: null-aware access. `x?.p` evaluates to `x.p` if `x` is not `null`, otherwise evaluates to `null`.
-    * `x?.m()`: null-aware method invocation. `x?.m()` invokes `m` only if `x` is not `null`.
+    * `??`: if null operator. `expr1 ?? expr2` evaluates to `expr1` if
+      not `null`, otherwise `expr2`.
+    * `??=`: null-aware assignment. `v ??= expr` causes `v` to be assigned
+      `expr` only if `v` is `null`.
+    * `x?.p`: null-aware access. `x?.p` evaluates to `x.p` if `x` is not
+      `null`, otherwise evaluates to `null`.
+    * `x?.m()`: null-aware method invocation. `x?.m()` invokes `m` only
+      if `x` is not `null`.
 
 ### Core library changes
 

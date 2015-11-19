@@ -1007,6 +1007,23 @@ final Matcher isExecutionLaunchDataParams = new LazyMatcher(() => new MatchesJso
   }));
 
 /**
+ * diagnostic.getDiagnostics params
+ */
+final Matcher isDiagnosticGetDiagnosticsParams = isNull;
+
+/**
+ * diagnostic.getDiagnostics result
+ *
+ * {
+ *   "contexts": List<ContextData>
+ * }
+ */
+final Matcher isDiagnosticGetDiagnosticsResult = new LazyMatcher(() => new MatchesJsonObject(
+  "diagnostic.getDiagnostics result", {
+    "contexts": isListOf(isContextData)
+  }));
+
+/**
  * AddContentOverlay
  *
  * {
@@ -1257,6 +1274,26 @@ final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestion
   "OPTIONAL_ARGUMENT",
   "PARAMETER"
 ]);
+
+/**
+ * ContextData
+ *
+ * {
+ *   "name": String
+ *   "explicitFileCount": int
+ *   "implicitFileCount": int
+ *   "workItemQueueLength": int
+ *   "cacheEntryExceptions": List<String>
+ * }
+ */
+final Matcher isContextData = new LazyMatcher(() => new MatchesJsonObject(
+  "ContextData", {
+    "name": isString,
+    "explicitFileCount": isInt,
+    "implicitFileCount": isInt,
+    "workItemQueueLength": isInt,
+    "cacheEntryExceptions": isListOf(isString)
+  }));
 
 /**
  * Element
@@ -2243,8 +2280,8 @@ final Matcher isConvertMethodToGetterOptions = isNull;
  * extractLocalVariable feedback
  *
  * {
- *   "coveringExpressionOffsets": List<int>
- *   "coveringExpressionLengths": List<int>
+ *   "coveringExpressionOffsets": optional List<int>
+ *   "coveringExpressionLengths": optional List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
@@ -2252,11 +2289,12 @@ final Matcher isConvertMethodToGetterOptions = isNull;
  */
 final Matcher isExtractLocalVariableFeedback = new LazyMatcher(() => new MatchesJsonObject(
   "extractLocalVariable feedback", {
-    "coveringExpressionOffsets": isListOf(isInt),
-    "coveringExpressionLengths": isListOf(isInt),
     "names": isListOf(isString),
     "offsets": isListOf(isInt),
     "lengths": isListOf(isInt)
+  }, optionalFields: {
+    "coveringExpressionOffsets": isListOf(isInt),
+    "coveringExpressionLengths": isListOf(isInt)
   }));
 
 /**

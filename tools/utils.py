@@ -58,12 +58,12 @@ def GuessArchitecture():
     return 'arm64'
   elif os_id.startswith('mips'):
     return 'mips'
+  elif '64' in os_id:
+    return 'x64'
   elif (not os_id) or (not re.match('(x|i[3-6])86', os_id) is None):
     return 'ia32'
   elif os_id == 'i86pc':
     return 'ia32'
-  elif '64' in os_id:
-    return 'x64'
   else:
     guess_os = GuessOS()
     print "Warning: Guessing architecture %s based on os %s\n"\

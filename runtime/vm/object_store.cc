@@ -73,8 +73,8 @@ ObjectStore::ObjectStore()
     typed_data_library_(Library::null()),
     vmservice_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
+    closure_functions_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
-    pending_functions_(GrowableObjectArray::null()),
     pending_deferred_loads_(GrowableObjectArray::null()),
     resume_capabilities_(GrowableObjectArray::null()),
     exit_listeners_(GrowableObjectArray::null()),
@@ -90,6 +90,8 @@ ObjectStore::ObjectStore()
     handle_message_function_(Function::null()),
     library_load_error_table_(Array::null()),
     compile_time_constants_(Array::null()),
+    token_objects_(GrowableObjectArray::null()),
+    token_objects_map_(Array::null()),
     megamorphic_cache_table_(GrowableObjectArray::null()),
     megamorphic_miss_code_(Code::null()),
     megamorphic_miss_function_(Function::null()) {
@@ -130,10 +132,9 @@ bool ObjectStore::PreallocateObjects() {
   ASSERT(this->out_of_memory() == Instance::null());
   ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
 
-  ASSERT(this->pending_functions() == GrowableObjectArray::null());
-  this->pending_functions_ = GrowableObjectArray::New();
   this->pending_deferred_loads_ = GrowableObjectArray::New();
 
+  this->closure_functions_ = GrowableObjectArray::New();
   this->resume_capabilities_ = GrowableObjectArray::New();
   this->exit_listeners_ = GrowableObjectArray::New();
   this->error_listeners_ = GrowableObjectArray::New();

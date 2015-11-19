@@ -4,13 +4,19 @@
 
 library dart2js.constant_system.js;
 
-import '../compiler.dart' show Compiler;
+import '../compiler.dart' show
+    Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../constant_system_dart.dart';
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart';
-import '../elements/elements.dart' show ClassElement;
-import '../tree/tree.dart' show DartString, LiteralDartString;
+import '../elements/elements.dart' show
+    ClassElement;
+import '../tree/tree.dart' show
+    DartString,
+    LiteralDartString;
 import 'js_backend.dart';
 
 const JAVA_SCRIPT_CONSTANT_SYSTEM = const JavaScriptConstantSystem();
@@ -291,6 +297,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
                              List<ConstantValue> keys,
                              List<ConstantValue> values) {
     JavaScriptBackend backend = compiler.backend;
+    CoreTypes coreTypes = compiler.coreTypes;
 
     bool onlyStringKeys = true;
     ConstantValue protoValue = null;
@@ -311,17 +318,16 @@ class JavaScriptConstantSystem extends ConstantSystem {
     bool hasProtoKey = (protoValue != null);
     DartType keysType;
     if (sourceType.treatAsRaw) {
-      keysType = compiler.listClass.rawType;
+      keysType = coreTypes.listType();
     } else {
-      List<DartType> arguments = <DartType>[sourceType.typeArguments.first];
-      keysType = new InterfaceType(compiler.listClass, arguments);
+      keysType = coreTypes.listType(sourceType.typeArguments.first);
     }
     ListConstantValue keysList = new ListConstantValue(keysType, keys);
     String className = onlyStringKeys
         ? (hasProtoKey ? JavaScriptMapConstant.DART_PROTO_CLASS
                        : JavaScriptMapConstant.DART_STRING_CLASS)
         : JavaScriptMapConstant.DART_GENERAL_CLASS;
-    ClassElement classElement = backend.jsHelperLibrary.find(className);
+    ClassElement classElement = backend.helpers.jsHelperLibrary.find(className);
     classElement.ensureResolved(compiler.resolution);
     List<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type;

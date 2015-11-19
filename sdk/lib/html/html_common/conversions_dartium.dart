@@ -121,7 +121,7 @@ wrap_jso(jsObject) {
 
     var wrapper = js.getDartHtmlWrapperFor(jsObject);
     // if we have a wrapper return the Dart instance.
-    if (wrapper != null && wrapper is! js.JsObject) {
+    if (wrapper != null) {
       return wrapper;
     }
 
@@ -236,6 +236,13 @@ wrap_jso_no_SerializedScriptvalue(jsObject) {
       return wrapper;
     }
 
+    // TODO(jacobr): auomatically wrapping JsArray here is fundamentally broken
+    // as it hijacks adding custom methods on JS Array classes as part of the
+    // new typed DartJsInterop.
+    // To make this work we really need to make DartHtmlWrappingList extend
+    // JsArrayImpl. Fixing this issue needs to be part of a broader refactor
+    // that allows calling custom typed JS interop methods on all dart:html
+    // classes.
     if (jsObject is js.JsArray) {
       var wrappingList = new DartHtmlWrappingList(jsObject);
       js.setDartHtmlWrapperFor(jsObject, wrappingList);
@@ -380,7 +387,7 @@ class DartHtmlWrappingList extends ListBase implements NativeFieldWrapperClass2 
 
   final js.JsArray blink_jsObject;
 
-  operator [](int index) => wrap_jso(js.JsNative.getArrayIndex(blink_jsObject, index));
+  operator [](int index) => wrap_jso_no_SerializedScriptvalue(js.JsNative.getArrayIndex(blink_jsObject, index));
 
   operator []=(int index, value) => blink_jsObject[index] = value;
 

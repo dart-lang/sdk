@@ -217,7 +217,7 @@ const char* IsolateMessageHandler::name() const {
 // [ OOB dispatch, Isolate library dispatch, <message specific data> ]
 RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
   if (message.Length() < 2) return Error::null();
-  Zone* zone = I->current_zone();
+  Zone* zone = T->zone();
   const Object& type = Object::Handle(zone, message.At(1));
   if (!type.IsSmi()) return Error::null();
   const intptr_t msg_type = Smi::Cast(type).Value();
@@ -640,10 +640,10 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   }
 
   // Generate the error and stacktrace strings for the error message.
-  String& exc_str = String::Handle(I->current_zone());
-  String& stacktrace_str = String::Handle(I->current_zone());
+  String& exc_str = String::Handle(T->zone());
+  String& stacktrace_str = String::Handle(T->zone());
   if (result.IsUnhandledException()) {
-    Zone* zone = I->current_zone();
+    Zone* zone = T->zone();
     const UnhandledException& uhe = UnhandledException::Cast(result);
     const Instance& exception = Instance::Handle(zone, uhe.exception());
     Object& tmp = Object::Handle(zone);
@@ -718,7 +718,7 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
 
 void BaseIsolate::AssertCurrentThreadIsMutator() const {
   ASSERT(Isolate::Current() == this);
-  ASSERT(Isolate::Current()->MutatorThreadIsCurrentThread());
+  ASSERT(Thread::Current()->IsMutatorThread());
 }
 #endif  // defined(DEBUG)
 
@@ -736,7 +736,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   :   stack_limit_(0),
       store_buffer_(new StoreBuffer()),
       heap_(NULL),
-      vm_tag_(0),
       user_tag_(0),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
@@ -777,7 +776,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
-      background_compiler_(NULL),
       compiler_stats_(NULL),
       is_service_isolate_(false),
       stacktrace_(NULL),
@@ -786,17 +784,19 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
-      profiler_data_(NULL),
       tag_table_(GrowableObjectArray::null()),
-      collected_closures_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
-      background_compilation_queue_(GrowableObjectArray::null()),
+      background_compiler_(NULL),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
       metrics_list_head_(NULL),
       compilation_allowed_(true),
+      all_classes_finalized_(false),
       next_(NULL),
-      pause_loop_monitor_(NULL) {
+      pause_loop_monitor_(NULL),
+      cha_invalidation_gen_(kInvalidGen),
+      field_invalidation_gen_(kInvalidGen),
+      prefix_invalidation_gen_(kInvalidGen) {
   flags_.CopyFrom(api_flags);
   Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
@@ -864,7 +864,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   // Initialize Timeline streams.
 #define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
   result->stream_##name##_.Init(#name,                                         \
-                                Timeline::EnableStreamByDefault(#name) ||      \
                                 enabled_by_default,                            \
                                 Timeline::Stream##name##EnabledFlag());
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
@@ -891,11 +890,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   ASSERT(state != NULL);
   result->set_api_state(state);
 
-  // Initialize stack limit (wait until later for the VM isolate, since the
-  // needed GetStackPointer stub has not yet been generated in that case).
-  if (!is_vm_isolate) {
-    result->InitializeStackLimit();
-  }
   result->set_main_port(PortMap::CreatePort(result->message_handler()));
 #if defined(DEBUG)
   // Verify that we are never reusing a live origin id.
@@ -932,11 +926,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   }
 
   return result;
-}
-
-
-void Isolate::InitializeStackLimit() {
-  SetStackLimitFromStackBase(Isolate::GetCurrentStackPointer());
 }
 
 
@@ -1076,6 +1065,7 @@ void Isolate::DoneLoading() {
       lib.SetLoaded();
     }
   }
+  TokenStream::CloseSharedTokenList(this);
 }
 
 
@@ -1453,11 +1443,8 @@ static void ShutdownIsolate(uword parameter) {
     }
     Dart::RunShutdownCallback();
   }
-  {
-    // Shut the isolate down.
-    SwitchIsolateScope switch_scope(isolate);
-    Dart::ShutdownIsolate();
-  }
+  // Shut the isolate down.
+  Dart::ShutdownIsolate(isolate);
 }
 
 
@@ -1527,6 +1514,62 @@ static int MostUsedFunctionFirst(const Function* const* a,
   } else {
     return 0;
   }
+}
+
+
+void Isolate::AddClosureFunction(const Function& function) const {
+  GrowableObjectArray& closures =
+      GrowableObjectArray::Handle(object_store()->closure_functions());
+  ASSERT(!closures.IsNull());
+  ASSERT(function.IsNonImplicitClosureFunction());
+  closures.Add(function, Heap::kOld);
+}
+
+
+// If the linear lookup turns out to be too expensive, the list
+// of closures could be maintained in a hash map, with the key
+// being the token position of the closure. There are almost no
+// collisions with this simple hash value. However, iterating over
+// all closure functions becomes more difficult, especially when
+// the list/map changes while iterating over it.
+RawFunction* Isolate::LookupClosureFunction(const Function& parent,
+                                            intptr_t token_pos) const {
+  const GrowableObjectArray& closures =
+      GrowableObjectArray::Handle(object_store()->closure_functions());
+  ASSERT(!closures.IsNull());
+  Function& closure = Function::Handle();
+  intptr_t num_closures = closures.Length();
+  for (intptr_t i = 0; i < num_closures; i++) {
+    closure ^= closures.At(i);
+    if ((closure.token_pos() == token_pos) &&
+        (closure.parent_function() == parent.raw())) {
+      return closure.raw();
+    }
+  }
+  return Function::null();
+}
+
+
+intptr_t Isolate::FindClosureIndex(const Function& needle) const {
+  const GrowableObjectArray& closures_array =
+      GrowableObjectArray::Handle(object_store()->closure_functions());
+  intptr_t num_closures = closures_array.Length();
+  for (intptr_t i = 0; i < num_closures; i++) {
+    if (closures_array.At(i) == needle.raw()) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+
+RawFunction* Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
+  const GrowableObjectArray& closures_array =
+      GrowableObjectArray::Handle(object_store()->closure_functions());
+  if ((idx < 0) || (idx >= closures_array.Length())) {
+    return Function::null();
+  }
+  return Function::RawCast(closures_array.At(idx));
 }
 
 
@@ -1616,7 +1659,7 @@ void Isolate::LowLevelShutdown() {
   set_message_handler(NULL);
 
   // Before analyzing the isolate's timeline blocks- reclaim all cached blocks.
-  ReclaimTimelineBlocks();
+  Timeline::ReclaimCachedBlocksFromThreads();
 
   // Dump all timing data for the isolate.
   if (FLAG_timing) {
@@ -1651,7 +1694,9 @@ void Isolate::LowLevelShutdown() {
 
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
-  ASSERT(top_resource() == NULL);
+  // Wait until all background compilation has finished.
+  BackgroundCompiler::Stop(background_compiler_);
+
 #if defined(DEBUG)
   if (heap_ != NULL) {
     // The VM isolate keeps all objects marked.
@@ -1660,6 +1705,9 @@ void Isolate::Shutdown() {
 #endif  // DEBUG
 
   Thread* thread = Thread::Current();
+
+  // Don't allow anymore dart code to execution on this isolate.
+  ClearStackLimit();
 
   // First, perform higher-level cleanup that may need to allocate.
   {
@@ -1707,23 +1755,11 @@ void Isolate::Shutdown() {
   }
 #endif
 
-  BackgroundCompiler::Stop(background_compiler_);
-
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
   // All threads should have exited by now.
   thread_registry()->CheckNotScheduled(this);
-  Profiler::ShutdownProfilingForIsolate(this);
-}
-
-
-void Isolate::ReclaimTimelineBlocks() {
-  TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == NULL) {
-    return;
-  }
-  thread_registry_->ReclaimTimelineBlocks();
 }
 
 
@@ -1778,11 +1814,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the tag table which is stored in the isolate.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&tag_table_));
 
-  // Visit array of closures pending precompilation.
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&collected_closures_));
-
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(
-      &background_compilation_queue_));
+  if (background_compiler() != NULL) {
+    background_compiler()->VisitPointers(visitor);
+  }
 
   // Visit the deoptimized code array which is stored in the isolate.
   visitor->VisitPointer(
@@ -1842,17 +1876,17 @@ static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
-  jsobj.AddFixedServiceId("isolates/%" Pd "",
-                          static_cast<intptr_t>(main_port()));
+  jsobj.AddFixedServiceId("isolates/%" Pd64 "",
+                          static_cast<int64_t>(main_port()));
 
   jsobj.AddProperty("name", debugger_name());
-  jsobj.AddPropertyF("number", "%" Pd "",
-                     static_cast<intptr_t>(main_port()));
+  jsobj.AddPropertyF("number", "%" Pd64 "",
+                     static_cast<int64_t>(main_port()));
   if (ref) {
     return;
   }
-  jsobj.AddPropertyF("_originNumber", "%" Pd "",
-                     static_cast<intptr_t>(origin_id()));
+  jsobj.AddPropertyF("_originNumber", "%" Pd64 "",
+                     static_cast<int64_t>(origin_id()));
   int64_t start_time_millis = start_time() / kMicrosecondsPerMillisecond;
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   {
@@ -1900,8 +1934,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
   if (object_store()->sticky_error() != Object::null()) {
-    Error& error = Error::Handle(current_zone(),
-        object_store()->sticky_error());
+    Error& error = Error::Handle(object_store()->sticky_error());
     ASSERT(!error.IsNull());
     jsobj.AddProperty("error", error, false);
   }
@@ -1931,62 +1964,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 }
 
 
-intptr_t Isolate::ProfileInterrupt() {
-  // Other threads might be modifying these fields. Save them in locals so that
-  // we can at least trust the NULL check.
-  IsolateProfilerData* prof_data = profiler_data();
-  if (prof_data == NULL) {
-    // Profiler not setup for isolate.
-    return 0;
-  }
-  if (prof_data->blocked()) {
-    // Profiler blocked for this isolate.
-    return 0;
-  }
-  Debugger* debug = debugger();
-  if ((debug != NULL) && debug->IsPaused()) {
-    // Paused at breakpoint. Don't tick.
-    return 0;
-  }
-  MessageHandler* msg_handler = message_handler();
-  if ((msg_handler != NULL) &&
-      (msg_handler->paused_on_start() ||
-       msg_handler->paused_on_exit())) {
-    // Paused at start / exit . Don't tick.
-    return 0;
-  }
-  // Make sure that the isolate's mutator thread does not change behind our
-  // backs. Otherwise we find the entry in the registry and end up reading
-  // the field again. Only by that time it has been reset to NULL because the
-  // thread was in process of exiting the isolate.
-  Thread* mutator = mutator_thread_;
-  if (mutator == NULL) {
-    // No active mutator.
-    ProfileIdle();
-    return 1;
-  }
-
-  // TODO(johnmccutchan): Sample all threads, not just the mutator thread.
-  // TODO(johnmccutchan): Keep a global list of threads and use that
-  // instead of Isolate.
-  ThreadRegistry::EntryIterator it(thread_registry());
-  while (it.HasNext()) {
-    const ThreadRegistry::Entry& entry = it.Next();
-    if (entry.thread == mutator) {
-      ThreadInterrupter::InterruptThread(mutator);
-      break;
-    }
-  }
-  return 1;
-}
-
-
-void Isolate::ProfileIdle() {
-  // Currently we are only sampling the mutator thread.
-  vm_tag_counters_.Increment(VMTag::kIdleTagId);
-}
-
-
 void Isolate::set_tag_table(const GrowableObjectArray& value) {
   tag_table_ = value.raw();
 }
@@ -2004,20 +1981,14 @@ void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.raw();
 }
 
-
-void Isolate::set_collected_closures(const GrowableObjectArray& value) {
-  collected_closures_ = value.raw();
+void Isolate::set_ic_miss_code(const Code& code) {
+  ic_miss_code_ = code.raw();
 }
 
 
 void Isolate::set_deoptimized_code_array(const GrowableObjectArray& value) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   deoptimized_code_array_ = value.raw();
-}
-
-
-void Isolate::set_background_compilation_queue(
-    const GrowableObjectArray& value) {
-  background_compilation_queue_ = value.raw();
 }
 
 
@@ -2436,6 +2407,8 @@ static const char* NewConstChar(const char* chars) {
 
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     Dart_Port origin_id,
+                                     void* init_data,
                                      const Function& func,
                                      const Instance& message,
                                      bool paused,
@@ -2444,6 +2417,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      origin_id_(origin_id),
+      init_data_(init_data),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(NULL),
@@ -2481,6 +2456,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
 
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
+                                     void* init_data,
                                      const char* script_url,
                                      const char* package_root,
                                      const char** package_map,
@@ -2492,6 +2468,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      Dart_Port on_error_port)
     : isolate_(NULL),
       parent_port_(parent_port),
+      origin_id_(ILLEGAL_PORT),
+      init_data_(init_data),
       on_exit_port_(on_exit_port),
       on_error_port_(on_error_port),
       script_url_(script_url),
@@ -2620,10 +2598,5 @@ RawInstance* IsolateSpawnState::BuildMessage(Thread* thread) {
                            serialized_message_, serialized_message_len_);
 }
 
-
-void IsolateSpawnState::Cleanup() {
-  SwitchIsolateScope switch_scope(I);
-  Dart::ShutdownIsolate();
-}
 
 }  // namespace dart

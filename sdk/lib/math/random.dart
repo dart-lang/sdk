@@ -9,23 +9,34 @@ part of dart.math;
  *
  * The default implementation supplies a stream of
  * pseudo-random bits that are not suitable for cryptographic purposes.
+ *
+ * Use the Random.secure() constructor for cryptographic
+ * purposes.
  */
 abstract class Random {
   /**
    * Creates a random number generator.
    *
-   * The optional parameter [seed] is used
-   * to initialize the internal state of the generator. The implementation of
-   * the random stream can change between releases of the library.
+   * The optional parameter [seed] is used to initialize the
+   * internal state of the generator. The implementation of the
+   * random stream can change between releases of the library.
    */
   external factory Random([int seed]);
+
+  /**
+   * Creates a cryptographically secure random number generator.
+   *
+   * If the program cannot provide a cryptographically secure
+   * source of random numbers, it throws an [UnsupportedError].
+   */
+  external factory Random.secure();
 
   /**
    * Generates a non-negative random integer uniformly distributed in the range
    * from 0, inclusive, to [max], exclusive.
    *
    * Implementation note: The default implementation supports [max] values
-   * between 1 and ((1<<32) - 1) inclusive.
+   * between 1 and (1<<32) inclusive.
    */
   int nextInt(int max);
 

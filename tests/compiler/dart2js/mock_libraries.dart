@@ -6,6 +6,15 @@
 
 library mock_libraries;
 
+const DEFAULT_PLATFORM_CONFIG = """
+[libraries]
+core:core/core.dart
+async:async/async.dart
+_js_helper:_internal/js_runtime/lib/js_helper.dart
+_interceptors:_internal/js_runtime/lib/interceptors.dart
+_isolate_helper:_internal/js_runtime/lib/isolate_helper.dart
+""";
+
 String buildLibrarySource(
     Map<String, String> elementMap,
     [Map<String, String> additionalElementMap = const <String, String>{}]) {
@@ -54,7 +63,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
           E get current => null;
       }''',
   'LinkedHashMap': r'''
-      class LinkedHashMap {
+      class LinkedHashMap<K, V> implements Map<K, V> {
         factory LinkedHashMap._empty() => null;
         factory LinkedHashMap._literal(elements) => null;
         static _makeEmpty() => null;

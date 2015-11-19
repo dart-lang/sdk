@@ -160,7 +160,7 @@ class Debugger {
         });
     } else {
       var matchNames = matches.map((handler) => handler.name);
-      cmdo.print("Ambigous command '$command' : ${matchNames.toList()}");
+      cmdo.print("Ambiguous command '$command' : ${matchNames.toList()}");
       cmdo.show();
     }
   }

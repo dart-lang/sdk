@@ -103,7 +103,7 @@ abstract class CapturedVariable implements Element {}
 // TODO(ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class ClosureFieldElement extends ElementX
-    implements FieldElement, CapturedVariable {
+    implements FieldElement, CapturedVariable, PrivatelyNamedJSEntity {
   /// The [BoxLocal] or [LocalElement] being accessed through the field.
   final Local local;
 
@@ -119,6 +119,11 @@ class ClosureFieldElement extends ElementX
   ClosureClassElement get closureClass => super.enclosingElement;
 
   MemberElement get memberContext => closureClass.methodElement.memberContext;
+
+  @override
+  Entity get declaredEntity => local;
+  @override
+  Entity get rootOfScope => closureClass;
 
   bool get hasNode => false;
 
@@ -196,8 +201,8 @@ class ClosureClassElement extends ClassElementX {
               STATE_DONE) {
     JavaScriptBackend backend = compiler.backend;
     ClassElement superclass = methodElement.isInstanceMember
-        ? backend.boundClosureClass
-        : backend.closureClass;
+        ? backend.helpers.boundClosureClass
+        : backend.helpers.closureClass;
     superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<DartType>();
@@ -246,16 +251,23 @@ class BoxLocal extends Local {
 // TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class BoxFieldElement extends ElementX
-    implements TypedElement, CapturedVariable, FieldElement {
+    implements TypedElement, CapturedVariable, FieldElement,
+        PrivatelyNamedJSEntity {
   final BoxLocal box;
 
-  BoxFieldElement(String name, this.variableElement, BoxLocal box)
+  BoxFieldElement(String name, this.variableElement,
+      BoxLocal box)
       : this.box = box,
         super(name, ElementKind.FIELD, box.executableContext);
 
   DartType computeType(Resolution resolution) => type;
 
   DartType get type => variableElement.type;
+
+  @override
+  Entity get declaredEntity => variableElement;
+  @override
+  Entity get rootOfScope => box;
 
   final VariableElement variableElement;
 
@@ -519,6 +531,8 @@ class ClosureTranslator extends Visitor {
   ///
   /// Also, the names should be distinct from real field names to prevent
   /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
   String getClosureVariableName(String name, int id) {
     return "_captured_${name}_$id";
   }
@@ -532,6 +546,8 @@ class ClosureTranslator extends Visitor {
   ///
   /// Also, the names should be distinct from real field names to prevent
   /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
   String getBoxFieldName(int id) {
     return "_box_$id";
   }
@@ -906,6 +922,7 @@ class ClosureTranslator extends Visitor {
   }
 
   visitFor(For node) {
+    List<LocalVariableElement> boxedLoopVariables = <LocalVariableElement>[];
     inNewScope(node, () {
       // First visit initializer and update so we can easily check if a loop
       // variable was captured in one of these subexpressions.
@@ -929,24 +946,27 @@ class ClosureTranslator extends Visitor {
       // condition or body are indeed flagged as mutated.
       if (node.conditionStatement != null) visit(node.conditionStatement);
       if (node.body != null) visit(node.body);
+
+      // See if we have declared loop variables that need to be boxed.
+      if (node.initializer == null) return;
+      VariableDefinitions definitions =
+          node.initializer.asVariableDefinitions();
+      if (definitions == null) return;
+      for (Link<Node> link = definitions.definitions.nodes;
+           !link.isEmpty;
+           link = link.tail) {
+        Node definition = link.head;
+        LocalVariableElement element = elements[definition];
+        // Non-mutated variables should not be boxed.  The mutatedVariables set
+        // gets cleared when 'inNewScope' returns, so check it here.
+        if (isCapturedVariable(element) && mutatedVariables.contains(element)) {
+          boxedLoopVariables.add(element);
+        }
+      }
     });
-    // See if we have declared loop variables that need to be boxed.
-    if (node.initializer == null) return;
-    VariableDefinitions definitions = node.initializer.asVariableDefinitions();
-    if (definitions == null) return;
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
-    List<LocalVariableElement> result = <LocalVariableElement>[];
-    for (Link<Node> link = definitions.definitions.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      Node definition = link.head;
-      LocalVariableElement element = elements[definition];
-      if (isCapturedVariable(element)) {
-        result.add(element);
-      }
-    }
-    scopeData.boxedLoopVariables = result;
+    scopeData.boxedLoopVariables = boxedLoopVariables;
   }
 
   /** Returns a non-unique name for the given closure element. */
@@ -994,6 +1014,9 @@ class ClosureTranslator extends Visitor {
     String closureName = computeClosureName(element);
     ClosureClassElement globalizedElement = new ClosureClassElement(
         node, closureName, compiler, element);
+    // Extend [globalizedElement] as an instantiated class in the closed world.
+    compiler.world.registerClass(
+        globalizedElement, isDirectlyInstantiated: true);
     FunctionElement callElement =
         new SynthesizedCallMethodElementX(Identifiers.call,
                                           element,
@@ -1129,4 +1152,15 @@ class TypeVariableLocal implements Local {
     if (other is! TypeVariableLocal) return false;
     return typeVariable == other.typeVariable;
   }
+}
+
+///
+/// Move the below classes to a JS model eventually.
+///
+abstract class JSEntity implements Entity {
+  Entity get declaredEntity;
+}
+
+abstract class PrivatelyNamedJSEntity implements JSEntity {
+  Entity get rootOfScope;
 }

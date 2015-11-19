@@ -82,9 +82,14 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    *     new List<int>.filled(3, 0); // [0, 0, 0]
    *
-   * The [length] must not be negative or null.
+   * The [length] must be a non-negative integer.
+   *
+   * If the list is growable, changing its length will not initialize new
+   * entries with [fill]. After being created and filled, the list is
+   * no different from any other growable or fixed-length list
+   * created using [List].
    */
-  external factory List.filled(int length, E fill);
+  external factory List.filled(int length, E fill, {bool growable: false});
 
   /**
    * Creates a list containing all [elements].

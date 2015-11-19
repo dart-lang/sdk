@@ -8,6 +8,24 @@ import 'dart:collection';
 import 'dart:developer' show UserTag;
 
 /**
+ * Test if the given [value] is `true` or the string "true" (case-insensitive).
+ */
+bool isTrue(Object value) =>
+    value is bool ? value : toLowerCase(value) == 'true';
+
+/**
+ * Safely convert this [value] to lower case, returning `null` if [value] is
+ * null.
+ */
+String toLowerCase(Object value) => value?.toString()?.toLowerCase();
+
+/**
+ * Safely convert this [value] to upper case, returning `null` if [value] is
+ * null.
+ */
+String toUpperCase(Object value) => value?.toString()?.toUpperCase();
+
+/**
  * Jenkins hash function, optimized for small integers.
  * Borrowed from sdk/lib/math/jenkins_smi_hash.dart.
  */

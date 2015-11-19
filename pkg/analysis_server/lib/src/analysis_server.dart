@@ -23,6 +23,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -33,7 +34,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:glob/glob.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -472,22 +473,16 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [AnalysisContext] that contains the given [path].
-   * Return `null` if no context contains the [path].
+   * Return the [AnalysisContext] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no context contains the given path, `null` is returned.
    */
   AnalysisContext getContainingContext(String path) {
-    Folder containingFolder = null;
-    AnalysisContext containingContext = null;
-    folderMap.forEach((Folder folder, AnalysisContext context) {
-      if (folder.isOrContains(path)) {
-        if (containingFolder == null ||
-            containingFolder.path.length < folder.path.length) {
-          containingFolder = folder;
-          containingContext = context;
-        }
-      }
-    });
-    return containingContext;
+    return contextManager.getContextFor(path);
   }
 
   /**
@@ -756,6 +751,10 @@ class AnalysisServer {
     AnalysisContext context = getAnalysisContext(file);
     if (context == null) {
       return null;
+    }
+    // done if everything is already analyzed
+    if (isAnalysisComplete()) {
+      return new Future.value(AnalysisDoneReason.COMPLETE);
     }
     // schedule context analysis
     schedulePerformAnalysisOperation(context);
@@ -1094,7 +1093,8 @@ class AnalysisServer {
         contextFound = true;
       }
       for (AnalysisContext context in folderMap.values) {
-        if (context.getKindOf(source) != SourceKind.UNKNOWN) {
+        if (context != preferredContext &&
+            context.getKindOf(source) != SourceKind.UNKNOWN) {
           sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
           contextFound = true;
         }
@@ -1430,7 +1430,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       for (String pattern in patterns) {
         try {
           _analyzedFilesGlobs
-              .add(new Glob(pattern, context: JavaFile.pathContext));
+              .add(new Glob(JavaFile.pathContext.separator, pattern));
         } catch (exception, stackTrace) {
           AnalysisEngine.instance.logger.logError(
               'Invalid glob pattern: "$pattern"',
@@ -1447,7 +1447,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
-    context.sourceFactory = _createSourceFactory(disposition);
+    _locateEmbedderYamls(context, disposition);
+    context.sourceFactory = _createSourceFactory(context, disposition);
     context.analysisOptions =
         new AnalysisOptionsImpl.from(analysisServer.defaultContextOptions);
     analysisServer._onContextsChangedController
@@ -1460,8 +1461,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
     if (context != null) {
-      context.applyChanges(changeSet);
-      analysisServer.schedulePerformAnalysisOperation(context);
+      ApplyChangesStatus changesStatus = context.applyChanges(changeSet);
+      if (changesStatus.hasChanges) {
+        analysisServer.schedulePerformAnalysisOperation(context);
+      }
       List<String> flushedFiles = new List<String>();
       for (Source source in changeSet.removedSources) {
         flushedFiles.add(source.fullName);
@@ -1516,7 +1519,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   void updateContextPackageUriResolver(
       Folder contextFolder, FolderDisposition disposition) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(disposition);
+    context.sourceFactory = _createSourceFactory(context, disposition);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1534,14 +1537,38 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
    * Set up a [SourceFactory] that resolves packages as appropriate for the
    * given [disposition].
    */
-  SourceFactory _createSourceFactory(FolderDisposition disposition) {
-    UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
-    UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
+  SourceFactory _createSourceFactory(
+      InternalAnalysisContext context, FolderDisposition disposition) {
     List<UriResolver> resolvers = [];
-    resolvers.add(dartResolver);
-    resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
-    resolvers.add(resourceResolver);
+    List<UriResolver> packageUriResolvers =
+        disposition.createPackageUriResolvers(resourceProvider);
+    EmbedderUriResolver embedderUriResolver =
+        new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
+    if (embedderUriResolver.length == 0) {
+      // The embedder uri resolver has no mappings. Use the default Dart SDK
+      // uri resolver.
+      resolvers.add(new DartUriResolver(analysisServer.defaultSdk));
+    } else {
+      // The embedder uri resolver has mappings, use it instead of the default
+      // Dart SDK uri resolver.
+      resolvers.add(embedderUriResolver);
+    }
+    resolvers.addAll(packageUriResolvers);
+    resolvers.add(new ResourceUriResolver(resourceProvider));
     return new SourceFactory(resolvers, disposition.packages);
+  }
+
+  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
+  /// files.
+  void _locateEmbedderYamls(
+      InternalAnalysisContext context, FolderDisposition disposition) {
+    Map<String, List<Folder>> packageMap;
+    if (disposition is PackageMapDisposition) {
+      packageMap = disposition.packageMap;
+    } else if (disposition is PackagesFileDisposition) {
+      packageMap = disposition.buildPackageMap(resourceProvider);
+    }
+    context.embedderYamlLocator.refresh(packageMap);
   }
 }
 

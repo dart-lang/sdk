@@ -7421,6 +7421,109 @@ class ExecutionLaunchDataParams implements HasToJson {
     return JenkinsSmiHash.finish(hash);
   }
 }
+/**
+ * diagnostic.getDiagnostics params
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DiagnosticGetDiagnosticsParams {
+  Request toRequest(String id) {
+    return new Request(id, "diagnostic.getDiagnostics", null);
+  }
+
+  @override
+  bool operator==(other) {
+    if (other is DiagnosticGetDiagnosticsParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 587526202;
+  }
+}
+
+/**
+ * diagnostic.getDiagnostics result
+ *
+ * {
+ *   "contexts": List<ContextData>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DiagnosticGetDiagnosticsResult implements HasToJson {
+  List<ContextData> _contexts;
+
+  /**
+   * The list of analysis contexts.
+   */
+  List<ContextData> get contexts => _contexts;
+
+  /**
+   * The list of analysis contexts.
+   */
+  void set contexts(List<ContextData> value) {
+    assert(value != null);
+    this._contexts = value;
+  }
+
+  DiagnosticGetDiagnosticsResult(List<ContextData> contexts) {
+    this.contexts = contexts;
+  }
+
+  factory DiagnosticGetDiagnosticsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<ContextData> contexts;
+      if (json.containsKey("contexts")) {
+        contexts = jsonDecoder.decodeList(jsonPath + ".contexts", json["contexts"], (String jsonPath, Object json) => new ContextData.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "contexts");
+      }
+      return new DiagnosticGetDiagnosticsResult(contexts);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "diagnostic.getDiagnostics result", json);
+    }
+  }
+
+  factory DiagnosticGetDiagnosticsResult.fromResponse(Response response) {
+    return new DiagnosticGetDiagnosticsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["contexts"] = contexts.map((ContextData value) => value.toJson()).toList();
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is DiagnosticGetDiagnosticsResult) {
+      return listEqual(contexts, other.contexts, (ContextData a, ContextData b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, contexts.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
 
 /**
  * AddContentOverlay
@@ -9164,6 +9267,181 @@ class CompletionSuggestionKind implements Enum {
   String toString() => "CompletionSuggestionKind.$name";
 
   String toJson() => name;
+}
+
+/**
+ * ContextData
+ *
+ * {
+ *   "name": String
+ *   "explicitFileCount": int
+ *   "implicitFileCount": int
+ *   "workItemQueueLength": int
+ *   "cacheEntryExceptions": List<String>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ContextData implements HasToJson {
+  String _name;
+
+  int _explicitFileCount;
+
+  int _implicitFileCount;
+
+  int _workItemQueueLength;
+
+  List<String> _cacheEntryExceptions;
+
+  /**
+   * The name of the context.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the context.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * Explicitly analyzed files.
+   */
+  int get explicitFileCount => _explicitFileCount;
+
+  /**
+   * Explicitly analyzed files.
+   */
+  void set explicitFileCount(int value) {
+    assert(value != null);
+    this._explicitFileCount = value;
+  }
+
+  /**
+   * Implicitly analyzed files.
+   */
+  int get implicitFileCount => _implicitFileCount;
+
+  /**
+   * Implicitly analyzed files.
+   */
+  void set implicitFileCount(int value) {
+    assert(value != null);
+    this._implicitFileCount = value;
+  }
+
+  /**
+   * The number of work items in the queue.
+   */
+  int get workItemQueueLength => _workItemQueueLength;
+
+  /**
+   * The number of work items in the queue.
+   */
+  void set workItemQueueLength(int value) {
+    assert(value != null);
+    this._workItemQueueLength = value;
+  }
+
+  /**
+   * Exceptions associated with cache entries.
+   */
+  List<String> get cacheEntryExceptions => _cacheEntryExceptions;
+
+  /**
+   * Exceptions associated with cache entries.
+   */
+  void set cacheEntryExceptions(List<String> value) {
+    assert(value != null);
+    this._cacheEntryExceptions = value;
+  }
+
+  ContextData(String name, int explicitFileCount, int implicitFileCount, int workItemQueueLength, List<String> cacheEntryExceptions) {
+    this.name = name;
+    this.explicitFileCount = explicitFileCount;
+    this.implicitFileCount = implicitFileCount;
+    this.workItemQueueLength = workItemQueueLength;
+    this.cacheEntryExceptions = cacheEntryExceptions;
+  }
+
+  factory ContextData.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "name");
+      }
+      int explicitFileCount;
+      if (json.containsKey("explicitFileCount")) {
+        explicitFileCount = jsonDecoder.decodeInt(jsonPath + ".explicitFileCount", json["explicitFileCount"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "explicitFileCount");
+      }
+      int implicitFileCount;
+      if (json.containsKey("implicitFileCount")) {
+        implicitFileCount = jsonDecoder.decodeInt(jsonPath + ".implicitFileCount", json["implicitFileCount"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "implicitFileCount");
+      }
+      int workItemQueueLength;
+      if (json.containsKey("workItemQueueLength")) {
+        workItemQueueLength = jsonDecoder.decodeInt(jsonPath + ".workItemQueueLength", json["workItemQueueLength"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "workItemQueueLength");
+      }
+      List<String> cacheEntryExceptions;
+      if (json.containsKey("cacheEntryExceptions")) {
+        cacheEntryExceptions = jsonDecoder.decodeList(jsonPath + ".cacheEntryExceptions", json["cacheEntryExceptions"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "cacheEntryExceptions");
+      }
+      return new ContextData(name, explicitFileCount, implicitFileCount, workItemQueueLength, cacheEntryExceptions);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ContextData", json);
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["explicitFileCount"] = explicitFileCount;
+    result["implicitFileCount"] = implicitFileCount;
+    result["workItemQueueLength"] = workItemQueueLength;
+    result["cacheEntryExceptions"] = cacheEntryExceptions;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is ContextData) {
+      return name == other.name &&
+          explicitFileCount == other.explicitFileCount &&
+          implicitFileCount == other.implicitFileCount &&
+          workItemQueueLength == other.workItemQueueLength &&
+          listEqual(cacheEntryExceptions, other.cacheEntryExceptions, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, explicitFileCount.hashCode);
+    hash = JenkinsSmiHash.combine(hash, implicitFileCount.hashCode);
+    hash = JenkinsSmiHash.combine(hash, workItemQueueLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, cacheEntryExceptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
 }
 
 /**
@@ -15000,8 +15278,8 @@ class ConvertMethodToGetterOptions {
  * extractLocalVariable feedback
  *
  * {
- *   "coveringExpressionOffsets": List<int>
- *   "coveringExpressionLengths": List<int>
+ *   "coveringExpressionOffsets": optional List<int>
+ *   "coveringExpressionLengths": optional List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
@@ -15031,7 +15309,6 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
    * the down most to the up most.
    */
   void set coveringExpressionOffsets(List<int> value) {
-    assert(value != null);
     this._coveringExpressionOffsets = value;
   }
 
@@ -15046,7 +15323,6 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
    * the down most to the up most.
    */
   void set coveringExpressionLengths(List<int> value) {
-    assert(value != null);
     this._coveringExpressionLengths = value;
   }
 
@@ -15097,7 +15373,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
     this._lengths = value;
   }
 
-  ExtractLocalVariableFeedback(List<int> coveringExpressionOffsets, List<int> coveringExpressionLengths, List<String> names, List<int> offsets, List<int> lengths) {
+  ExtractLocalVariableFeedback(List<String> names, List<int> offsets, List<int> lengths, {List<int> coveringExpressionOffsets, List<int> coveringExpressionLengths}) {
     this.coveringExpressionOffsets = coveringExpressionOffsets;
     this.coveringExpressionLengths = coveringExpressionLengths;
     this.names = names;
@@ -15113,14 +15389,10 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       List<int> coveringExpressionOffsets;
       if (json.containsKey("coveringExpressionOffsets")) {
         coveringExpressionOffsets = jsonDecoder.decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder.decodeInt);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "coveringExpressionOffsets");
       }
       List<int> coveringExpressionLengths;
       if (json.containsKey("coveringExpressionLengths")) {
         coveringExpressionLengths = jsonDecoder.decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder.decodeInt);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "coveringExpressionLengths");
       }
       List<String> names;
       if (json.containsKey("names")) {
@@ -15140,7 +15412,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
-      return new ExtractLocalVariableFeedback(coveringExpressionOffsets, coveringExpressionLengths, names, offsets, lengths);
+      return new ExtractLocalVariableFeedback(names, offsets, lengths, coveringExpressionOffsets: coveringExpressionOffsets, coveringExpressionLengths: coveringExpressionLengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback", json);
     }
@@ -15148,8 +15420,12 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["coveringExpressionOffsets"] = coveringExpressionOffsets;
-    result["coveringExpressionLengths"] = coveringExpressionLengths;
+    if (coveringExpressionOffsets != null) {
+      result["coveringExpressionOffsets"] = coveringExpressionOffsets;
+    }
+    if (coveringExpressionLengths != null) {
+      result["coveringExpressionLengths"] = coveringExpressionLengths;
+    }
     result["names"] = names;
     result["offsets"] = offsets;
     result["lengths"] = lengths;

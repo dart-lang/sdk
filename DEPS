@@ -32,13 +32,13 @@ vars = {
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@ead3698f33d2cd41e75b6ce5d4a1203767cedd50",
+  "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "https://chromium.googlesource.com",
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@c7a22746baaa8ee6b3e6b0378f9ad9de6e486186",
+  "analyzer_cli_rev" : "@c93a3d2d1c7715a6c7a067ebdbc9ba716b865226",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
   "barback_tag" : "@0.15.2+7",
@@ -50,7 +50,7 @@ vars = {
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dart2js_info_rev" : "@c4ad464717e3a304fb0d44a6937c25ff2049b863",
+  "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
   "dartdoc_rev" : "@18f85ff0b389c417550e541055a84b04273f2b38",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.0",
@@ -68,7 +68,7 @@ vars = {
   "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
-  "linter_rev": "@99e2607faf0e9bc522f2f12a24ba50f2954dbbff",
+  "linter_rev": "@74e5478c3693a9dcf05cc99b0dc5d53f0f776375",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",

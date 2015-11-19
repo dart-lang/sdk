@@ -101,6 +101,23 @@ void Thread::RemoveThreadFromList(Thread* thread) {
 }
 
 
+bool Thread::IsThreadInList(ThreadId join_id) {
+  if (join_id == OSThread::kInvalidThreadJoinId) {
+    return false;
+  }
+  ThreadIterator it;
+  while (it.HasNext()) {
+    Thread* t = it.Next();
+    // An address test is not sufficient because the allocator may recycle
+    // the address for another Thread. Test against the thread's join id.
+    if (t->join_id() == join_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 static void DeleteThread(void* thread) {
   delete reinterpret_cast<Thread*>(thread);
 }
@@ -108,6 +125,24 @@ static void DeleteThread(void* thread) {
 
 void Thread::Shutdown() {
   if (thread_list_lock_ != NULL) {
+    // Delete the current thread.
+    Thread* thread = Current();
+    ASSERT(thread != NULL);
+    delete thread;
+    thread = NULL;
+    SetCurrent(NULL);
+
+    // Check that there are no more threads, then delete the lock.
+    {
+      MutexLocker ml(thread_list_lock_);
+      ASSERT(thread_list_head_ == NULL);
+    }
+
+    // Clean up TLS.
+    OSThread::DeleteThreadLocal(thread_key_);
+    thread_key_ = OSThread::kUnsetThreadLocalKey;
+
+    // Delete the thread list lock.
     delete thread_list_lock_;
     thread_list_lock_ = NULL;
   }
@@ -165,16 +200,6 @@ void Thread::EnsureInit() {
 }
 
 
-#if defined(TARGET_OS_WINDOWS)
-void Thread::CleanUp() {
-  Thread* current = Current();
-  if (current != NULL) {
-    SetCurrent(NULL);
-    delete current;
-  }
-}
-#endif
-
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
   reusable_##object##_handle_scope_active_(false),
@@ -188,20 +213,24 @@ void Thread::CleanUp() {
 
 Thread::Thread(bool init_vm_constants)
     : id_(OSThread::GetCurrentThreadId()),
-      thread_interrupt_callback_(NULL),
-      thread_interrupt_data_(NULL),
+      join_id_(OSThread::GetCurrentThreadJoinId()),
+      trace_id_(OSThread::GetCurrentThreadTraceId()),
+      thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
       isolate_(NULL),
       heap_(NULL),
+      timeline_block_(NULL),
       store_buffer_block_(NULL),
       log_(new class Log()),
-      deopt_id_(0),
-      vm_tag_(0),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_(),
       cha_(NULL),
+      deopt_id_(0),
+      vm_tag_(0),
+      pending_functions_(GrowableObjectArray::null()),
       no_callback_scope_depth_(0),
-      thread_list_next_(NULL) {
+      thread_list_next_(NULL),
+      name_(NULL) {
   ClearState();
 
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
@@ -259,6 +288,20 @@ LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
 }
 
 
+void Thread::ClearState() {
+  memset(&state_, 0, sizeof(state_));
+  pending_functions_ = GrowableObjectArray::null();
+}
+
+
+RawGrowableObjectArray* Thread::pending_functions() {
+  if (pending_functions_ == GrowableObjectArray::null()) {
+    pending_functions_ = GrowableObjectArray::New(Heap::kOld);
+  }
+  return pending_functions_;
+}
+
+
 void Thread::Schedule(Isolate* isolate, bool bypass_safepoint) {
   State st;
   if (isolate->thread_registry()->RestoreStateTo(this, &st, bypass_safepoint)) {
@@ -289,8 +332,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
   thread->Schedule(isolate);
-  // TODO(koda): Migrate profiler interface to use Thread.
-  Profiler::BeginExecution(isolate);
+  thread->EnableThreadInterrupts();
 }
 
 
@@ -301,10 +343,10 @@ void Thread::ExitIsolate() {
 #if defined(DEBUG)
   ASSERT(!thread->IsAnyReusableHandleScopeActive());
 #endif  // DEBUG
+  thread->DisableThreadInterrupts();
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
   Isolate* isolate = thread->isolate();
-  Profiler::EndExecution(isolate);
   thread->Unschedule();
   // TODO(koda): Move store_buffer_block_ into State.
   thread->StoreBufferRelease();
@@ -331,17 +373,17 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
       thread->isolate()->store_buffer()->PopEmptyBlock();
   ASSERT(isolate->heap() != NULL);
   thread->heap_ = isolate->heap();
-  ASSERT(thread->thread_interrupt_callback_ == NULL);
-  ASSERT(thread->thread_interrupt_data_ == NULL);
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
-  ASSERT(!isolate->MutatorThreadIsCurrentThread());
+  ASSERT(!thread->IsMutatorThread());
   thread->Schedule(isolate, bypass_safepoint);
+  thread->EnableThreadInterrupts();
 }
 
 
 void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
+  thread->DisableThreadInterrupts();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   thread->Unschedule(bypass_safepoint);
@@ -349,7 +391,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   thread->StoreBufferRelease();
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
-  ASSERT(!isolate->MutatorThreadIsCurrentThread());
+  ASSERT(!thread->IsMutatorThread());
 }
 
 
@@ -400,6 +442,23 @@ void Thread::StoreBufferAcquire() {
 }
 
 
+bool Thread::IsMutatorThread() const {
+  return ((isolate_ != NULL) && (isolate_->mutator_thread() == this));
+}
+
+
+bool Thread::IsExecutingDartCode() const {
+  return (top_exit_frame_info() == 0) &&
+         (vm_tag() == VMTag::kDartTagId);
+}
+
+
+bool Thread::HasExitedDartCode() const {
+  return (top_exit_frame_info() != 0) &&
+         (vm_tag() != VMTag::kDartTagId);
+}
+
+
 CHA* Thread::cha() const {
   ASSERT(isolate_ != NULL);
   return cha_;
@@ -438,32 +497,39 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
+
+  if (pending_functions_ != GrowableObjectArray::null()) {
+    visitor->VisitPointer(
+        reinterpret_cast<RawObject**>(&pending_functions_));
+  }
 }
 
 
-void Thread::SetThreadInterrupter(ThreadInterruptCallback callback,
-                                  void* data) {
+void Thread::DisableThreadInterrupts() {
   ASSERT(Thread::Current() == this);
-  thread_interrupt_callback_ = callback;
-  thread_interrupt_data_ = data;
+  AtomicOperations::FetchAndIncrement(&thread_interrupt_disabled_);
 }
 
 
-bool Thread::IsThreadInterrupterEnabled(ThreadInterruptCallback* callback,
-                                        void** data) const {
-#if defined(TARGET_OS_WINDOWS)
-  // On Windows we expect this to be called from the thread interrupter thread.
-  ASSERT(id() != OSThread::GetCurrentThreadId());
-#else
-  // On posix platforms, we expect this to be called from signal handler.
-  ASSERT(id() == OSThread::GetCurrentThreadId());
-#endif
-  ASSERT(callback != NULL);
-  ASSERT(data != NULL);
-  *callback = thread_interrupt_callback_;
-  *data = thread_interrupt_data_;
-  return (*callback != NULL) &&
-         (*data != NULL);
+void Thread::EnableThreadInterrupts() {
+  ASSERT(Thread::Current() == this);
+  uintptr_t old =
+      AtomicOperations::FetchAndDecrement(&thread_interrupt_disabled_);
+  if (old == 1) {
+    // We just decremented from 1 to 0.
+    // Make sure the thread interrupter is awake.
+    ThreadInterrupter::WakeUp();
+  }
+  if (old == 0) {
+    // We just decremented from 0, this means we've got a mismatched pair
+    // of calls to EnableThreadInterrupts and DisableThreadInterrupts.
+    FATAL("Invalid call to Thread::EnableThreadInterrupts()");
+  }
+}
+
+
+bool Thread::ThreadInterruptsEnabled() {
+  return AtomicOperations::LoadRelaxed(&thread_interrupt_disabled_) == 0;
 }
 
 
@@ -484,6 +550,18 @@ CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
   UNREACHABLE();
   return -1;
+}
+
+
+bool Thread::ObjectAtOffset(intptr_t offset, Object* object) {
+#define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
+  if (Thread::member_name##offset() == offset) {                               \
+    *object = expr;                                                            \
+    return true;                                                               \
+  }
+CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
+#undef COMPUTE_OFFSET
+  return false;
 }
 
 
@@ -537,5 +615,19 @@ Thread* ThreadIterator::Next() {
   return current;
 }
 
+
+DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
+    : StackResource(thread) {
+  if (thread != NULL) {
+    thread->DisableThreadInterrupts();
+  }
+}
+
+
+DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
+  if (thread() != NULL) {
+    thread()->EnableThreadInterrupts();
+  }
+}
 
 }  // namespace dart

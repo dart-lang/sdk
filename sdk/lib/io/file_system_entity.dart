@@ -197,19 +197,19 @@ FileStat: type $type
  *
  * ## Other resources
  *
- * [Dart by Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
- * provides additional task-oriented code samples that show how to use
- * various API from the [Directory] class and the [File] class,
- * both subclasses of FileSystemEntity.
+ * * [Dart by
+ *   Example](https://www.dartlang.org/dart-by-example/#files-directories-and-symlinks)
+ *   provides additional task-oriented code samples that show how to use various
+ *   API from the [Directory] class and the [File] class, both subclasses of
+ *   FileSystemEntity.
  *
- * * [I/O for Command-Line Apps](https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartio---file-and-socket-io-for-command-line-apps)
- * a section from _A Tour of the Dart Libraries_
- * covers files and directories.
+ * * [I/O for Command-Line
+ *   Apps](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps),
+ *   a section from _A Tour of the Dart Libraries_ covers files and directories.
  *
  * * [Write Command-Line Apps](https://www.dartlang.org/docs/tutorials/cmdline/),
- * a tutorial about writing command-line apps, includes information
- * about files and directories.
-
+ *   a tutorial about writing command-line apps, includes information about
+ *   files and directories.
  */
 abstract class FileSystemEntity {
   String get path;

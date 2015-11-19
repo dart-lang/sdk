@@ -107,7 +107,7 @@ class TestOptionsParser {
               ['-a', '--arch'],
               ['all', 'ia32', 'x64', 'arm', 'armv5te', 'arm64', 'mips',
                'simarm', 'simarmv5te', 'simarm64', 'simmips'],
-              'ia32'),
+              'x64'),
           new _TestOptionSpecification(
               'system',
               'The operating system to run tests on',
@@ -146,6 +146,13 @@ class TestOptionsParser {
               'cps_ir',
               'Run the compiler with the cps based backend',
               ['--cps-ir'],
+              [],
+              false,
+              type: 'bool'),
+          new _TestOptionSpecification(
+              'noopt',
+              'Run an in-place precompilation',
+              ['--noopt'],
               [],
               false,
               type: 'bool'),
@@ -875,7 +882,7 @@ Note: currently only implemented for dart2js.''',
    */
   _TestOptionSpecification _getSpecification(String name) {
     for (var option in _options) {
-      if (option.keys.any((key) => key == name)) {
+      if (option.keys.contains(name)) {
         return option;
       }
     }

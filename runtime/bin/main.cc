@@ -38,6 +38,7 @@ extern const uint8_t* isolate_snapshot_buffer;
 
 // Global state that stores a pointer to the application script snapshot.
 static bool generate_script_snapshot = false;
+static bool generate_script_snapshot_after_run = false;
 static const char* snapshot_filename = NULL;
 
 
@@ -117,7 +118,10 @@ static const int kErrorExitCode = 255;
 // Exit code indicating a vm restart request.  Never returned to the user.
 static const int kRestartRequestExitCode = 1000;
 
-extern bool do_vm_shutdown;  // Defined in bin/process.cc
+// Global flag that is used to indicate that the VM should do a clean
+// shutdown.
+static bool do_vm_shutdown = false;
+
 static void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
@@ -141,7 +145,7 @@ static void ErrorExit(int exit_code, const char* format, ...) {
     DebuggerConnectionHandler::StopHandler();
     EventHandler::Stop();
   }
-  exit(exit_code);
+  Platform::Exit(exit_code);
 }
 
 
@@ -381,9 +385,10 @@ static bool ProcessDebugOption(const char* option_value,
 }
 
 
-static bool ProcessGenScriptSnapshotOption(const char* filename,
-                                           CommandLineOptions* vm_options) {
-  if (filename != NULL && strlen(filename) != 0) {
+static bool ProcessScriptSnapshotOptionHelper(const char* filename,
+                                              bool* snapshot_option) {
+  *snapshot_option = false;
+  if ((filename != NULL) && (strlen(filename) != 0)) {
     // Ensure that we are already running using a full snapshot.
     if (isolate_snapshot_buffer == NULL) {
       Log::PrintErr("Script snapshots cannot be generated in this version of"
@@ -391,10 +396,28 @@ static bool ProcessGenScriptSnapshotOption(const char* filename,
       return false;
     }
     snapshot_filename = filename;
-    generate_script_snapshot = true;
+    *snapshot_option = true;
+    if (generate_script_snapshot && generate_script_snapshot_after_run) {
+      Log::PrintErr("--snapshot and --snapshot-after-run options"
+                    " cannot be specified at the same time\n");
+      return false;
+    }
     return true;
   }
   return false;
+}
+
+
+static bool ProcessScriptSnapshotOption(const char* filename,
+                                        CommandLineOptions* vm_options) {
+  return ProcessScriptSnapshotOptionHelper(filename, &generate_script_snapshot);
+}
+
+
+static bool ProcessScriptSnapshotAfterRunOption(
+    const char* filename, CommandLineOptions* vm_options) {
+  return ProcessScriptSnapshotOptionHelper(filename,
+                                           &generate_script_snapshot_after_run);
 }
 
 
@@ -508,7 +531,8 @@ static struct {
   { "--observe", ProcessObserveOption },
   { "--run-precompiled-snapshot", ProcessRunPrecompiledSnapshotOption },
   { "--shutdown", ProcessShutdownOption },
-  { "--snapshot=", ProcessGenScriptSnapshotOption },
+  { "--snapshot=", ProcessScriptSnapshotOption },
+  { "--snapshot-after-run=", ProcessScriptSnapshotAfterRunOption },
   { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
   { "--trace-loading", ProcessTraceLoadingOption },
   { NULL, NULL }
@@ -743,7 +767,9 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
   if (Dart_IsServiceIsolate(isolate)) {
     // If this is the service isolate, load embedder specific bits and return.
-    if (!VmService::Setup(vm_service_server_ip, vm_service_server_port)) {
+    if (!VmService::Setup(vm_service_server_ip,
+                          vm_service_server_port,
+                          has_run_precompiled_snapshot)) {
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
@@ -1029,21 +1055,16 @@ static const char* ServiceGetIOHandler(
 }
 
 
-extern bool capture_stdio;
-extern bool capture_stdout;
-extern bool capture_stderr;
 static const char* kStdoutStreamId = "Stdout";
 static const char* kStderrStreamId = "Stderr";
 
 
 static bool ServiceStreamListenCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {
-    capture_stdio = true;
-    capture_stdout = true;
+    File::set_capture_stdout(true);
     return true;
   } else if (strcmp(stream_id, kStderrStreamId) == 0) {
-    capture_stdio = true;
-    capture_stderr = true;
+    File::set_capture_stderr(true);
     return true;
   }
   return false;
@@ -1052,11 +1073,10 @@ static bool ServiceStreamListenCallback(const char* stream_id) {
 
 static void ServiceStreamCancelCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {
-    capture_stdout = false;
+    File::set_capture_stdout(false);
   } else if (strcmp(stream_id, kStderrStreamId) == 0) {
-    capture_stderr = false;
+    File::set_capture_stderr(false);
   }
-  capture_stdio = (capture_stdout || capture_stderr);
 }
 
 
@@ -1095,14 +1115,42 @@ static void* LoadLibrarySymbol(const char* libname, const char* symname) {
   void* library = Extensions::LoadExtensionLibrary(libname);
   if (library == NULL) {
     Log::PrintErr("Error: Failed to load library '%s'\n", libname);
-    exit(kErrorExitCode);
+    Platform::Exit(kErrorExitCode);
   }
   void* symbol = Extensions::ResolveSymbol(library, symname);
   if (symbol == NULL) {
     Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
-    exit(kErrorExitCode);
+    Platform::Exit(kErrorExitCode);
   }
   return symbol;
+}
+
+
+static void GenerateScriptSnapshot() {
+  // First create a snapshot.
+  uint8_t* buffer = NULL;
+  intptr_t size = 0;
+  Dart_Handle result = Dart_CreateScriptSnapshot(&buffer, &size);
+  if (Dart_IsError(result)) {
+    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
+  }
+
+  // Open the snapshot file.
+  File* snapshot_file = File::Open(snapshot_filename, File::kWriteTruncate);
+  if (snapshot_file == NULL) {
+    ErrorExit(kErrorExitCode,
+              "Unable to open file %s for writing the snapshot\n",
+              snapshot_filename);
+  }
+
+  // Write the magic number to indicate file is a script snapshot.
+  DartUtils::WriteMagicNumber(snapshot_file);
+
+  // Now write the snapshot out to specified file.
+  bool bytes_written = snapshot_file->WriteFully(buffer, size);
+  ASSERT(bytes_written);
+  delete snapshot_file;
+  snapshot_file = NULL;
 }
 
 
@@ -1117,6 +1165,7 @@ static void* LoadLibrarySymbol(const char* libname, const char* symname) {
         kCompilationErrorExitCode : kErrorExitCode;                            \
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
+
 
 bool RunMainIsolate(const char* script_name,
                     CommandLineOptions* dart_options) {
@@ -1152,7 +1201,7 @@ bool RunMainIsolate(const char* script_name,
       DebuggerConnectionHandler::StopHandler();
       EventHandler::Stop();
     }
-    exit((exit_code != 0) ? exit_code : kErrorExitCode);
+    Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
 
@@ -1164,29 +1213,7 @@ bool RunMainIsolate(const char* script_name,
   Dart_EnterScope();
 
   if (generate_script_snapshot) {
-    // First create a snapshot.
-    Dart_Handle result;
-    uint8_t* buffer = NULL;
-    intptr_t size = 0;
-    result = Dart_CreateScriptSnapshot(&buffer, &size);
-    CHECK_RESULT(result);
-
-    // Open the snapshot file.
-    File* snapshot_file = File::Open(snapshot_filename, File::kWriteTruncate);
-    if (snapshot_file == NULL) {
-      ErrorExit(kErrorExitCode,
-                "Unable to open file %s for writing the snapshot\n",
-                snapshot_filename);
-    }
-
-    // Write the magic number to indicate file is a script snapshot.
-    DartUtils::WriteMagicNumber(snapshot_file);
-
-    // Now write the snapshot out to specified file.
-    bool bytes_written = snapshot_file->WriteFully(buffer, size);
-    ASSERT(bytes_written);
-    delete snapshot_file;
-    snapshot_file = NULL;
+    GenerateScriptSnapshot();
   } else {
     // Lookup the library of the root script.
     Dart_Handle root_lib = Dart_RootLibrary();
@@ -1197,6 +1224,18 @@ bool RunMainIsolate(const char* script_name,
     ASSERT(!Dart_IsError(builtin_lib));
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
+    if (has_gen_precompiled_snapshot) {
+      // Load the embedder's portion of the VM service's Dart code so it will
+      // be included in the precompiled snapshot.
+      if (!VmService::LoadForGenPrecompiled()) {
+        fprintf(stderr,
+                "VM service loading failed: %s\n",
+                VmService::GetErrorMessage());
+        fflush(stderr);
+        exit(kErrorExitCode);
+      }
+    }
+
     if (has_noopt || has_gen_precompiled_snapshot) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
         { "dart:_builtin", "::", "_getMainClosure" },
@@ -1204,14 +1243,19 @@ bool RunMainIsolate(const char* script_name,
         { "dart:_builtin", "::", "_getUriBaseClosure" },
         { "dart:_builtin", "::", "_resolveUri" },
         { "dart:_builtin", "::", "_setWorkingDirectory" },
+        { "dart:_builtin", "::", "_setPackageRoot" },
+        { "dart:_builtin", "::", "_addPackageMapEntry" },
+        { "dart:_builtin", "::", "_loadPackagesMap" },
         { "dart:_builtin", "::", "_loadDataAsync" },
         { "dart:io", "::", "_makeUint8ListView" },
         { "dart:io", "::", "_makeDatagram" },
         { "dart:io", "::", "_setupHooks" },
+        { "dart:io", "::", "_getWatchSignalInternal" },
         { "dart:io", "CertificateException", "CertificateException." },
         { "dart:io", "HandshakeException", "HandshakeException." },
+        { "dart:io", "OSError", "OSError." },
         { "dart:io", "TlsException", "TlsException." },
-        { "dart:io", "X509Certificate", "X509Certificate." },
+        { "dart:io", "X509Certificate", "X509Certificate._" },
         { "dart:io", "_ExternalBuffer", "set:data" },
         { "dart:io", "_Platform", "set:_nativeScript" },
         { "dart:io", "_ProcessStartStatus", "set:_errorCode" },
@@ -1220,6 +1264,7 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "_SecureFilterImpl", "get:SIZE" },
         { "dart:vmservice_io", "::", "_addResource" },
         { "dart:vmservice_io", "::", "main" },
+        { "dart:vmservice_io", "::", "boot" },
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
       };
 
@@ -1299,6 +1344,11 @@ bool RunMainIsolate(const char* script_name,
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       CHECK_RESULT(result);
+
+      // Generate a script snapshot after execution if specified.
+      if (generate_script_snapshot_after_run) {
+        GenerateScriptSnapshot();
+      }
     }
   }
 
@@ -1311,6 +1361,15 @@ bool RunMainIsolate(const char* script_name,
 }
 
 #undef CHECK_RESULT
+
+extern unsigned int observatory_assets_archive_len;
+extern const uint8_t* observatory_assets_archive;
+
+Dart_Handle GetVMServiceAssetsArchiveCallback() {
+  return DartUtils::MakeUint8Array(
+      observatory_assets_archive,
+      observatory_assets_archive_len);
+}
 
 
 void main(int argc, char** argv) {
@@ -1341,18 +1400,18 @@ void main(int argc, char** argv) {
                      &verbose_debug_seen) < 0) {
     if (has_help_option) {
       PrintUsage();
-      exit(0);
+      Platform::Exit(0);
     } else if (has_version_option) {
       PrintVersion();
-      exit(0);
+      Platform::Exit(0);
     } else if (print_flags_seen) {
       // Will set the VM flags, print them out and then we exit as no
       // script was specified on the command line.
       Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
-      exit(0);
+      Platform::Exit(0);
     } else {
       PrintUsage();
-      exit(kErrorExitCode);
+      Platform::Exit(kErrorExitCode);
     }
   }
 
@@ -1362,7 +1421,7 @@ void main(int argc, char** argv) {
     OSError err;
     fprintf(stderr, "Error determining current directory: %s\n", err.message());
     fflush(stderr);
-    exit(kErrorExitCode);
+    Platform::Exit(kErrorExitCode);
   }
 
   if (generate_script_snapshot) {
@@ -1402,7 +1461,8 @@ void main(int argc, char** argv) {
       DartUtils::ReadFile,
       DartUtils::WriteFile,
       DartUtils::CloseFile,
-      DartUtils::EntropySource);
+      DartUtils::EntropySource,
+      GetVMServiceAssetsArchiveCallback);
   if (error != NULL) {
     if (do_vm_shutdown) {
       DebuggerConnectionHandler::StopHandler();
@@ -1411,7 +1471,7 @@ void main(int argc, char** argv) {
     fprintf(stderr, "VM initialization failed: %s\n", error);
     fflush(stderr);
     free(error);
-    exit(kErrorExitCode);
+    Platform::Exit(kErrorExitCode);
   }
 
   Dart_RegisterIsolateServiceRequestCallback(
@@ -1453,7 +1513,7 @@ void main(int argc, char** argv) {
     delete environment;
   }
 
-  exit(Process::GlobalExitCode());
+  Platform::Exit(Process::GlobalExitCode());
 }
 
 }  // namespace bin

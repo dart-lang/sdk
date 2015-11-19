@@ -11,6 +11,8 @@ class MainCallStubGenerator {
 
   MainCallStubGenerator(this.compiler, this.backend, this.emitterTask);
 
+  BackendHelpers get helpers => backend.helpers;
+
   /// Returns the code equivalent to:
   ///   `function(args) { $.startRootIsolate(X.main$closure(), args); }`
   jsAst.Expression _buildIsolateSetupClosure(Element appMain,
@@ -23,13 +25,12 @@ class MainCallStubGenerator {
         [emitterTask.staticFunctionAccess(isolateMain), mainAccess]);
   }
 
-
   jsAst.Statement generateInvokeMain() {
     Element main = compiler.mainFunction;
     jsAst.Expression mainCallClosure = null;
     if (compiler.hasIsolateSupport) {
       Element isolateMain =
-        backend.isolateHelperLibrary.find(JavaScriptBackend.START_ROOT_ISOLATE);
+        helpers.isolateHelperLibrary.find(BackendHelpers.START_ROOT_ISOLATE);
       mainCallClosure = _buildIsolateSetupClosure(main, isolateMain);
     } else if (compiler.hasIncrementalSupport) {
       mainCallClosure = js(

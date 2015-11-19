@@ -541,7 +541,8 @@ intptr_t CompileType::ToNullableCid() {
       cid_ = kNullCid;
     } else if (type_->HasResolvedTypeClass()) {
       const Class& type_class = Class::Handle(type_->type_class());
-      CHA* cha = Thread::Current()->cha();
+      Thread* thread = Thread::Current();
+      CHA* cha = thread->cha();
       // Don't infer a cid from an abstract type for signature classes since
       // there can be multiple compatible classes with different cids.
       if (!type_class.IsSignatureClass() &&
@@ -550,12 +551,15 @@ intptr_t CompileType::ToNullableCid() {
         if (type_class.IsPrivate()) {
           // Type of a private class cannot change through later loaded libs.
           cid_ = type_class.id();
-        } else if (FLAG_use_cha_deopt) {
+        } else if (FLAG_use_cha_deopt ||
+                   thread->isolate()->all_classes_finalized()) {
           if (FLAG_trace_cha) {
             THR_Print("  **(CHA) Compile type not subclassed: %s\n",
                 type_class.ToCString());
           }
-          cha->AddToLeafClasses(type_class);
+          if (FLAG_use_cha_deopt) {
+            cha->AddToLeafClasses(type_class);
+          }
           cid_ = type_class.id();
         } else {
           cid_ = kDynamicCid;
@@ -584,7 +588,11 @@ bool CompileType::IsNull() {
 
 const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
-    ASSERT(cid_ != kIllegalCid);
+    // Type propagation has not run. Return dynamic-type.
+    if (cid_ == kIllegalCid) {
+      type_ = &Type::ZoneHandle(Type::DynamicType());
+      return type_;
+    }
 
     // VM-internal objects don't have a compile-type. Return dynamic-type
     // in this case.
@@ -793,13 +801,16 @@ CompileType ParameterInstr::ComputeType() const {
           // Private classes can never be subclassed by later loaded libs.
           cid = type_class.id();
         } else {
-          if (FLAG_use_cha_deopt) {
+          if (FLAG_use_cha_deopt ||
+              thread->isolate()->all_classes_finalized()) {
             if (FLAG_trace_cha) {
-              THR_Print("  **(CHA) Computing exact type of parameters, "
+              THR_Print("  **(CHA) Computing exact type of receiver, "
                   "no subclasses: %s\n",
                   type_class.ToCString());
             }
-            thread->cha()->AddToLeafClasses(type_class);
+            if (FLAG_use_cha_deopt) {
+              thread->cha()->AddToLeafClasses(type_class);
+            }
             cid = type_class.id();
           }
         }

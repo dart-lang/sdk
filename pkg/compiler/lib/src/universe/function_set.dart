@@ -19,6 +19,8 @@ import '../world.dart' show
 
 import 'selector.dart' show
     Selector;
+import 'universe.dart' show
+    ReceiverConstraint;
 
 // TODO(kasperl): This actually holds getters and setters just fine
 // too and stricly they aren't functions. Maybe this needs a better
@@ -64,36 +66,37 @@ class FunctionSet {
 
   /// Returns an object that allows iterating over all the functions
   /// that may be invoked with the given [selector].
-  Iterable<Element> filter(Selector selector, TypeMask mask) {
-    return query(selector, mask).functions;
+  Iterable<Element> filter(Selector selector, ReceiverConstraint constraint) {
+    return query(selector, constraint).functions;
   }
 
   /// Returns the mask for the potential receivers of a dynamic call to
-  /// [selector] on [mask].
+  /// [selector] on [constraint].
   ///
-  /// This will reduce the set of classes in [mask] to a [TypeMask] of the set
-  /// of classes that actually implement the selected member or implement the
-  /// handling 'noSuchMethod' where the selected member is unimplemented.
-  TypeMask receiverType(Selector selector, TypeMask mask) {
-    return query(selector, mask).computeMask(classWorld);
+  /// This will narrow the constraints of [constraint] to a [TypeMask] of the
+  /// set of classes that actually implement the selected member or implement
+  /// the handling 'noSuchMethod' where the selected member is unimplemented.
+  TypeMask receiverType(Selector selector, ReceiverConstraint constraint) {
+    return query(selector, constraint).computeMask(classWorld);
   }
 
   SelectorMask _createSelectorMask(
-      Selector selector, TypeMask mask, ClassWorld classWorld) {
-    return mask != null
-        ? new SelectorMask(selector, mask)
+      Selector selector, ReceiverConstraint constraint, ClassWorld classWorld) {
+    return constraint != null
+        ? new SelectorMask(selector, constraint)
         : new SelectorMask(selector,
             new TypeMask.subclass(classWorld.objectClass, classWorld));
   }
 
   /// Returns the set of functions that can be the target of a call to
-  /// [selector] on a receiver of type [mask] including 'noSuchMethod' methods
-  /// where applicable.
-  FunctionSetQuery query(Selector selector, TypeMask mask) {
+  /// [selector] on a receiver constrained by [constraint] including
+  /// 'noSuchMethod' methods where applicable.
+  FunctionSetQuery query(Selector selector, ReceiverConstraint constraint) {
     String name = selector.name;
-    SelectorMask selectorMask = _createSelectorMask(selector, mask, classWorld);
+    SelectorMask selectorMask =
+        _createSelectorMask(selector, constraint, classWorld);
     SelectorMask noSuchMethodMask =
-        new SelectorMask(Selectors.noSuchMethod_, selectorMask.mask);
+        new SelectorMask(Selectors.noSuchMethod_, selectorMask.constraint);
     FunctionSetNode node = nodes[name];
     FunctionSetNode noSuchMethods = nodes[Identifiers.noSuchMethod_];
     if (node != null) {
@@ -115,38 +118,38 @@ class FunctionSet {
   }
 }
 
-/// A selector/mask pair representing the dynamic invocation of [selector] on
-/// a receiver of type [mask].
+/// A selector/constraint pair representing the dynamic invocation of [selector]
+/// on a receiver constrained by [constraint].
 class SelectorMask {
   final Selector selector;
-  final TypeMask mask;
+  final ReceiverConstraint constraint;
   final int hashCode;
 
-  SelectorMask(Selector selector, TypeMask mask)
+  SelectorMask(Selector selector, ReceiverConstraint constraint)
       : this.selector = selector,
-        this.mask = mask,
+        this.constraint = constraint,
         this.hashCode =
-            Hashing.mixHashCodeBits(selector.hashCode, mask.hashCode) {
-    assert(mask != null);
+            Hashing.mixHashCodeBits(selector.hashCode, constraint.hashCode) {
+    assert(constraint != null);
   }
 
   String get name => selector.name;
 
   bool applies(Element element, ClassWorld classWorld) {
     if (!selector.appliesUnnamed(element, classWorld)) return false;
-    return mask.canHit(element, selector, classWorld);
+    return constraint.canHit(element, selector, classWorld);
   }
 
   bool needsNoSuchMethodHandling(ClassWorld classWorld) {
-    return mask.needsNoSuchMethodHandling(selector, classWorld);
+    return constraint.needsNoSuchMethodHandling(selector, classWorld);
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    return selector == other.selector && mask == other.mask;
+    return selector == other.selector && constraint == other.constraint;
   }
 
-  String toString() => '($selector,$mask)';
+  String toString() => '($selector,$constraint)';
 }
 
 /// A node in the [FunctionSet] caching all [FunctionSetQuery] object for
@@ -298,8 +301,11 @@ class FullFunctionSetQuery implements FunctionSetQuery {
         .map((cls) {
           if (classWorld.backend.isNullImplementation(cls)) {
             return const TypeMask.empty();
-          } else {
+          } else if (classWorld.isInstantiated(cls.declaration)) {
             return new TypeMask.nonNullSubclass(cls.declaration, classWorld);
+          } else {
+            // TODO(johnniwinther): Avoid the need for this case.
+            return const TypeMask.empty();
           }
         }),
         classWorld);

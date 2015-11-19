@@ -186,13 +186,11 @@
  *
  * ## Other resources
  *
- * For an introduction to I/O in Dart, see the
- * [dart:io section of the library tour]
- * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartio---file-and-socket-io-for-command-line-apps).
+ * For an introduction to I/O in Dart, see the [dart:io section of the library
+ * tour](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps).
  *
- * To learn more about I/O in Dart, refer to the
- * [tutorial about writing command-line apps]
- * (https://www.dartlang.org/docs/tutorials/io/).
+ * To learn more about I/O in Dart, refer to the [tutorial about writing
+ * command-line apps](https://www.dartlang.org/docs/tutorials/io/).
  */
 library dart.io;
 

@@ -14,7 +14,11 @@ namespace bin {
 
 class VmService {
  public:
-  static bool Setup(const char* server_ip, intptr_t server_port);
+  static bool LoadForGenPrecompiled();
+
+  static bool Setup(const char* server_ip,
+                    intptr_t server_port,
+                    bool running_precompiled);
 
   // Error message if startup failed.
   static const char* GetErrorMessage();
@@ -37,6 +41,7 @@ class VmService {
   static void SetServerIPAndPort(const char* ip, intptr_t port);
   static Dart_Handle GetSource(const char* name);
   static Dart_Handle LoadScript(const char* name);
+  static Dart_Handle LoadLibrary(const char* name);
   static Dart_Handle LoadSource(Dart_Handle library, const char* name);
   static Dart_Handle LoadResources(Dart_Handle library);
   static Dart_Handle LoadResource(Dart_Handle library, const char* name);

@@ -66,7 +66,7 @@ abstract class PartialElement implements DeclarationSite {
 
   bool hasParseError = false;
 
-  bool get isErroneous => hasParseError;
+  bool get isMalformed => hasParseError;
 
   DeclarationSite get declarationSite => this;
 }
@@ -237,6 +237,8 @@ class PartialSetterElement extends SetterElementX
   }
 }
 
+// TODO(johnniwinther): Create [PartialGenerativeConstructor] and
+// [PartialFactoryConstructor] subclasses and make this abstract.
 class PartialConstructorElement extends ConstructorElementX
     with PartialElement, PartialFunctionMixin {
   PartialConstructorElement(String name,
@@ -342,7 +344,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
 
   PartialMetadataAnnotation(this.beginToken, this.tokenAfterEndToken);
 
-  bool get isErroneous => hasParseError;
+  bool get isMalformed => hasParseError;
 
   DeclarationSite get declarationSite => this;
 
@@ -421,7 +423,8 @@ class PartialClassElement extends ClassElementX with PartialElement {
     DiagnosticReporter reporter = parsing.reporter;
     reporter.withCurrentElement(this, () {
       parsing.measure(() {
-        MemberListener listener = new MemberListener(reporter, this);
+        MemberListener listener = new MemberListener(
+            parsing.getScannerOptionsFor(this), reporter, this);
         Parser parser = new ClassElementParser(listener);
         try {
           Token token = parser.parseTopLevelDeclaration(beginToken);
@@ -479,7 +482,8 @@ Node parse(
   return parsing.measure(() {
     return reporter.withCurrentElement(element, () {
       CompilationUnitElement unit = element.compilationUnit;
-      NodeListener listener = new NodeListener(reporter, unit);
+      NodeListener listener = new NodeListener(
+          parsing.getScannerOptionsFor(element), reporter, unit);
       listener.memberErrors = listener.memberErrors.prepend(false);
       try {
         if (partial.hasParseError) {

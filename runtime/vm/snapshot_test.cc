@@ -869,7 +869,9 @@ static void GenerateSourceAndCheck(const Script& script) {
   const String& private_key = String::Handle(expected_tokens.PrivateKey());
   Scanner scanner(str, private_key);
   const TokenStream& reconstructed_tokens =
-      TokenStream::Handle(TokenStream::New(scanner.GetStream(), private_key));
+      TokenStream::Handle(TokenStream::New(scanner.GetStream(),
+                                           private_key,
+                                           false));
   expected_iterator.SetCurrentPosition(0);
   TokenStream::Iterator reconstructed_iterator(
       reconstructed_tokens, 0, TokenStream::Iterator::kAllTokens);

@@ -246,6 +246,7 @@ class CommentToken extends StringToken {
   CommentToken copy() => new CommentToken(type, _value, offset);
 }
 
+
 /**
  * A documentation comment token.
  */
@@ -723,6 +724,12 @@ class Scanner {
   bool _hasUnmatchedGroups = false;
 
   /**
+   * A flag indicating whether to parse generic method comments, of the form
+   * `/*=T*/` and `/*<T>*/`.
+   */
+  bool scanGenericMethodComments = false;
+
+  /**
    * Initialize a newly created scanner to scan characters from the given
    * [source]. The given character [_reader] will be used to read the characters
    * in the source. The given [_errorListener] will be informed of any errors
@@ -1012,16 +1019,20 @@ class Scanner {
   }
 
   void _appendCommentToken(TokenType type, String value) {
-    // Ignore comment tokens if client specified that it doesn't need them.
-    if (!_preserveComments) {
+    CommentToken token = null;
+    TokenType genericComment = _matchGenericMethodCommentType(value);
+    if (genericComment != null) {
+      token = new CommentToken(genericComment, value, _tokenStart);
+    } else if (!_preserveComments) {
+      // Ignore comment tokens if client specified that it doesn't need them.
       return;
-    }
-    // OK, remember comment tokens.
-    CommentToken token;
-    if (_isDocumentationComment(value)) {
-      token = new DocumentationCommentToken(type, value, _tokenStart);
     } else {
-      token = new CommentToken(type, value, _tokenStart);
+      // OK, remember comment tokens.
+      if (_isDocumentationComment(value)) {
+        token = new DocumentationCommentToken(type, value, _tokenStart);
+      } else {
+        token = new CommentToken(type, value, _tokenStart);
+      }
     }
     if (_firstComment == null) {
       _firstComment = token;
@@ -1148,6 +1159,27 @@ class Scanner {
     // interpolation expression unless we had previously found the start of the
     // expression.
     //
+    return null;
+  }
+
+  /**
+   * Checks if [value] is the start of a generic method type annotation comment.
+   *
+   * This can either be of the form `/*<T>*/` or `/*=T*/`. The token type is
+   * returned, or null if it was not a generic method comment.
+   */
+  TokenType _matchGenericMethodCommentType(String value) {
+    if (scanGenericMethodComments) {
+      // Match /*< and >*/
+      if (StringUtilities.startsWith3(value, 0, 0x2F, 0x2A, 0x3C) &&
+          StringUtilities.endsWith3(value, 0x3E, 0x2A, 0x2F)) {
+        return TokenType.GENERIC_METHOD_TYPE_LIST;
+      }
+      // Match /*=
+      if (StringUtilities.startsWith3(value, 0, 0x2F, 0x2A, 0x3D)) {
+        return TokenType.GENERIC_METHOD_TYPE_ASSIGN;
+      }
+    }
     return null;
   }
 
@@ -2057,9 +2089,9 @@ class Token {
    * comments can be reached by following the token stream using [next] until
    * `null` is returned.
    *
-   * For example, if the original contents were "/* one */ /* two */ id", then
-   * the first preceding comment token will have a lexeme of "/* one */" and
-   * the next comment token will have a lexeme of "/* two */".
+   * For example, if the original contents were `/* one */ /* two */ id`, then
+   * the first preceding comment token will have a lexeme of `/* one */` and
+   * the next comment token will have a lexeme of `/* two */`.
    */
   CommentToken get precedingComments => null;
 
@@ -2500,6 +2532,12 @@ class TokenType {
 
   static const TokenType PERIOD_PERIOD_PERIOD =
       const TokenType('PERIOD_PERIOD_PERIOD', TokenClass.NO_CLASS, "...");
+
+  static const TokenType GENERIC_METHOD_TYPE_LIST =
+      const TokenType('GENERIC_METHOD_TYPE_LIST');
+
+  static const TokenType GENERIC_METHOD_TYPE_ASSIGN =
+      const TokenType('GENERIC_METHOD_TYPE_ASSIGN');
 
   /**
    * The class of the token.

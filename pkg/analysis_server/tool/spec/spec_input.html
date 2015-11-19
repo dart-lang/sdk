@@ -1959,6 +1959,25 @@
         </params>
       </notification>
     </domain>
+    <domain name="diagnostic" experimental="true">
+      <p>
+        The diagnostic domain contains experimental server diagnostics APIs. Note
+        that as an experimental API, docs are not generated for this domain and it
+        is subject subject to change without notice.
+        Because this experimental domain is not part of the analysis server's API,
+        the version number of the API will not be updated when changes are made.
+        Caveat emptor!
+      </p>
+      <request method="getDiagnostics">
+        <p>Return server diagnostics.</p>
+        <result>
+          <field name="contexts">
+            <list><ref>ContextData</ref></list>
+            <p>The list of analysis contexts.</p>
+          </field>
+        </result>
+      </request>
+    </domain>
     <types>
       <h2 class="domain"><a name="types">Types</a></h2>
       <p>
@@ -2440,6 +2459,43 @@
           <value><code>OPTIONAL_ARGUMENT</code></value>
           <value><code>PARAMETER</code></value>
         </enum>
+      </type>
+      <type name="ContextData" experimental="true">
+        <p>
+          Information about an analysis context.
+        </p>
+        <object>
+          <field name="name">
+            <ref>String</ref>
+            <p>
+              The name of the context.
+            </p>
+          </field>
+          <field name="explicitFileCount">
+            <ref>int</ref>
+            <p>
+              Explicitly analyzed files.
+            </p>
+          </field>
+          <field name="implicitFileCount">
+            <ref>int</ref>
+            <p>
+              Implicitly analyzed files.
+            </p>
+          </field>
+          <field name="workItemQueueLength">
+            <ref>int</ref>
+            <p>
+              The number of work items in the queue.
+            </p>
+          </field>
+          <field name="cacheEntryExceptions">
+            <list><ref>String</ref></list>
+            <p>
+              Exceptions associated with cache entries.
+            </p>
+          </field>
+        </object>
       </type>
       <type name="Element">
         <p>
@@ -4035,14 +4091,14 @@
           complete expression.
         </p>
         <feedback>
-          <field name="coveringExpressionOffsets">
+          <field name="coveringExpressionOffsets" optional="true">
             <list><ref>int</ref></list>
             <p>
               The offsets of the expressions that cover the specified
               selection, from the down most to the up most.
             </p>
           </field>
-          <field name="coveringExpressionLengths">
+          <field name="coveringExpressionLengths" optional="true">
             <list><ref>int</ref></list>
             <p>
               The lengths of the expressions that cover the specified

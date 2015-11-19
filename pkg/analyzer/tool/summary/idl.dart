@@ -57,6 +57,12 @@ const informative = null;
 const private = null;
 
 /**
+ * Annotation describing a class which can be the top level object in an
+ * encoded summary.
+ */
+const topLevel = null;
+
+/**
  * Information about a dependency that exists between one library and another
  * due to an "import" declaration.
  */
@@ -70,6 +76,7 @@ class PrelinkedDependency {
 /**
  * Pre-linked summary of a library.
  */
+@topLevel
 class PrelinkedLibrary {
   /**
    * The unlinked library summary.
@@ -104,6 +111,23 @@ class PrelinkedLibrary {
 }
 
 /**
+ * Information about the resolution of an [UnlinkedReference].
+ */
+class PrelinkedReference {
+  /**
+   * Index into [UnlinkedLibrary.dependencies] indicating which imported library
+   * declares the entity being referred to.
+   */
+  int dependency;
+
+  /**
+   * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
+   * the kind if [PrelinkedReferenceKind.classOrEnum].
+   */
+  PrelinkedReferenceKind kind;
+}
+
+/**
  * Enum used to indicate the kind of entity referred to by a
  * [PrelinkedReference].
  */
@@ -127,22 +151,6 @@ enum PrelinkedReferenceKind {
    * The entity being referred to does not exist.
    */
   unresolved
-}
-
-/**
- * Information about the resolution of an [UnlinkedReference].
- */
-class PrelinkedReference {
-  /**
-   * Index into [UnlinkedLibrary.dependencies] indicating which imported library
-   * declares the entity being referred to.
-   */
-  int dependency;
-
-  /**
-   * The kind of the entity being referred to.
-   */
-  PrelinkedReferenceKind kind;
 }
 
 /**
@@ -212,12 +220,23 @@ class UnlinkedCombinator {
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
    */
-  List<String> shows;
+  List<UnlinkedCombinatorName> shows;
 
   /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
-  List<String> hides;
+  List<UnlinkedCombinatorName> hides;
+}
+
+/**
+ * Unlinked summary information about a single name in a `show` or `hide`
+ * combinator.
+ */
+class UnlinkedCombinatorName {
+  /**
+   * The name itself.
+   */
+  String name;
 }
 
 /**
@@ -251,31 +270,6 @@ class UnlinkedEnumValue {
    * Name of the enumerated value.
    */
   String name;
-}
-
-/**
- * Enum used to indicate the kind of an executable.
- */
-enum UnlinkedExecutableKind {
-  /**
-   * Executable is a function or method.
-   */
-  functionOrMethod,
-
-  /**
-   * Executable is a getter.
-   */
-  getter,
-
-  /**
-   * Executable is a setter.
-   */
-  setter,
-
-  /**
-   * Executable is a constructor.
-   */
-  constructor
 }
 
 /**
@@ -347,6 +341,31 @@ class UnlinkedExecutable {
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   bool isFactory;
+}
+
+/**
+ * Enum used to indicate the kind of an executable.
+ */
+enum UnlinkedExecutableKind {
+  /**
+   * Executable is a function or method.
+   */
+  functionOrMethod,
+
+  /**
+   * Executable is a getter.
+   */
+  getter,
+
+  /**
+   * Executable is a setter.
+   */
+  setter,
+
+  /**
+   * Executable is a constructor.
+   */
+  constructor
 }
 
 /**
@@ -468,26 +487,6 @@ class UnlinkedLibrary {
 }
 
 /**
- * Enum used to indicate the kind of a parameter.
- */
-enum UnlinkedParamKind {
-  /**
-   * Parameter is required.
-   */
-  required,
-
-  /**
-   * Parameter is positional optional (enclosed in `[]`)
-   */
-  positional,
-
-  /**
-   * Parameter is named optional (enclosed in `{}`)
-   */
-  named
-}
-
-/**
  * Unlinked summary information about a function parameter.
  */
 class UnlinkedParam {
@@ -527,6 +526,26 @@ class UnlinkedParam {
   bool isInitializingFormal;
 }
 
+/**
+ * Enum used to indicate the kind of a parameter.
+ */
+enum UnlinkedParamKind {
+  /**
+   * Parameter is required.
+   */
+  required,
+
+  /**
+   * Parameter is positional optional (enclosed in `[]`)
+   */
+  positional,
+
+  /**
+   * Parameter is named optional (enclosed in `{}`)
+   */
+  named
+}
+
 class UnlinkedPrefix {
   /**
    * The name of the prefix, or the empty string in the case of the
@@ -541,7 +560,8 @@ class UnlinkedPrefix {
  */
 class UnlinkedReference {
   /**
-   * Name of the entity being referred to.
+   * Name of the entity being referred to.  The empty string refers to the
+   * pseudo-type `dynamic`.
    */
   String name;
 
@@ -607,21 +627,33 @@ class UnlinkedTypeRef {
   /**
    * Index into [UnlinkedLibrary.references] for the type being referred to, or
    * zero if this is a reference to a type parameter.
+   *
+   * Note that since zero is also a valid index into
+   * [UnlinkedLibrary.references], we cannot distinguish between references to
+   * type parameters and references to types by checking [reference] against
+   * zero.  To distinguish between references to type parameters and references
+   * to types, check whether [paramReference] is zero.
    */
   int reference;
 
   /**
-   * If this is a reference to a type parameter, one-based index into
-   * [UnlinkedClass.typeParameters] or [UnlinkedTypedef.typeParameters] for the
-   * parameter being referenced.  Otherwise zero.
+   * If this is a reference to a type parameter, one-based index into the list
+   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
+   * Bruijn index conventions; that is, innermost parameters come first, and
+   * if a class or method has multiple parameters, they are indexed from right
+   * to left.  So for instance, if the enclosing declaration is
    *
-   * If generic method syntax is enabled, this may also be a one-based index
-   * into [UnlinkedExecutable.typeParameters].  Note that this creates an
-   * ambiguity since it allows executables with type parameters to be nested
-   * inside other declarations with type parameters (which might themselves be
-   * executables).  The ambiguity is resolved by considering this to be a
-   * one-based index into a list that concatenates all type parameters that are
-   * in scope, listing the outermost type parameters first.
+   *     class C<T,U> {
+   *       m<V,W> {
+   *         ...
+   *       }
+   *     }
+   *
+   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
+   * respectively.
+   *
+   * If the type being referred to is not a type parameter, [paramReference] is
+   * zero.
    */
   int paramReference;
 

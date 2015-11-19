@@ -16,8 +16,6 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
-import '../resolution/send_resolver.dart' show
-    SendResolverMixin;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../tree/tree.dart';
@@ -55,6 +53,9 @@ abstract class TypeSystem<T> {
   T get constMapType;
   T get stringType;
   T get typeType;
+  T get syncStarIterableType;
+  T get asyncFutureType; // Subtype of Future returned by async methods.
+  T get asyncStarStreamType;
 
   T stringLiteralType(DartString value);
   T boolLiteralType(LiteralBool value);
@@ -603,25 +604,33 @@ class LocalsHandler<T> {
   void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
                         {bool keepOwnLocals: true}) {
     Node level = locals.block;
+    // Use a separate locals handler to perform the merge in, so that Phi
+    // creation does not invalidate previous type knowledge while we might
+    // still look it up.
+    LocalsHandler merged = new LocalsHandler.from(this, level);
     Set<Local> seenLocals = new Setlet<Local>();
-    // If we want to keep the locals, we first merge [this] into itself to
-    // create the required Phi nodes.
-    if (keepOwnLocals && !seenReturnOrThrow) {
-      mergeHandler(this, seenLocals);
-    }
     bool allBranchesAbort = true;
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {
       allBranchesAbort = allBranchesAbort && handler.seenReturnOrThrow;
-      mergeHandler(handler, seenLocals);
+      merged.mergeHandler(handler, seenLocals);
     }
-    // Clean up Phi nodes with single input.
-    locals.forEachLocal((Local variable, T type) {
-      if (!seenLocals.contains(variable)) return;
-      T newType = types.simplifyPhi(level, variable, type);
-      if (newType != type) {
-        locals[variable] = newType;
+    // If we want to keep own locals, we merge [seenLocals] from [this] into
+    // [merged] to update the Phi nodes with original values.
+    if (keepOwnLocals && !seenReturnOrThrow) {
+      for (Local variable in seenLocals) {
+        T originalType = locals[variable];
+        if (originalType != null) {
+          merged.locals[variable] = types.addPhiInput(variable,
+                                                      merged.locals[variable],
+                                                      originalType);
+        }
       }
+    }
+    // Clean up Phi nodes with single input and store back result into
+    // actual locals handler.
+    merged.locals.forEachOwnLocal((Local variable, T type) {
+      locals[variable] = types.simplifyPhi(level, variable, type);
     });
     seenReturnOrThrow = allBranchesAbort &&
                         (!keepOwnLocals || seenReturnOrThrow);
@@ -692,8 +701,7 @@ class LocalsHandler<T> {
 
 abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     extends Visitor<T>
-    with SendResolverMixin,
-         SemanticSendResolvedMixin<T, dynamic>,
+    with SemanticSendResolvedMixin<T, dynamic>,
          CompoundBulkMixin<T, dynamic>,
          SetIfNullBulkMixin<T, dynamic>,
          PrefixBulkMixin<T, dynamic>,
@@ -871,7 +879,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     // TODO(kasperl): We should be able to tell that the type of a literal
     // symbol is always a non-null exact symbol implementation -- not just
     // any non-null subtype of the symbol interface.
-    return types.nonNullSubtype(compiler.symbolClass);
+    return types.nonNullSubtype(compiler.coreClasses.symbolClass);
   }
 
   @override
@@ -1066,7 +1074,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
           }
         } else {
           // Narrow the elements to a non-null type.
-          DartType objectType = compiler.objectClass.rawType;
+          DartType objectType = compiler.coreTypes.objectType;
           if (Elements.isLocal(receiverElement)) {
             narrow(receiverElement, objectType, node);
           }

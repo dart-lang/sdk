@@ -7,6 +7,7 @@ library file_system;
 import 'dart:async';
 
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
@@ -133,6 +134,11 @@ abstract class Resource {
  * [Resource]s.
  */
 abstract class ResourceProvider {
+  /**
+   * Get the absolute path context used by this resource provider.
+   */
+  AbsolutePathContext get absolutePathContext;
+
   /**
    * Get the path context used by this resource provider.
    */

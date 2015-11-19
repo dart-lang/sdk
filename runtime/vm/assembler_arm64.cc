@@ -14,7 +14,8 @@
 #include "vm/stub_code.h"
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
-#if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID)
+#if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) && \
+    !TARGET_OS_IOS
 #error ARM64 cross-compile only supported on Linux
 #endif
 
@@ -1076,6 +1077,7 @@ void Assembler::RestoreCodePointer() {
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   Push(R0);
   CompareClassId(CODE_REG, kCodeCid);
@@ -1162,6 +1164,7 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_size) {
+  Comment("EnterCallRuntimeFrame");
   EnterStubFrame();
 
   // Store fpu registers with the lowest register number at the lowest

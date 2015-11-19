@@ -233,6 +233,27 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
         getConcreteTypeFor(compiler.typesTask.dynamicType);
   }
 
+  TypeInformation asyncFutureTypeCache;
+  TypeInformation get asyncFutureType {
+    if (asyncFutureTypeCache != null) return asyncFutureTypeCache;
+    return asyncFutureTypeCache =
+        getConcreteTypeFor(compiler.typesTask.asyncFutureType);
+  }
+
+  TypeInformation syncStarIterableTypeCache;
+  TypeInformation get syncStarIterableType {
+    if (syncStarIterableTypeCache != null) return syncStarIterableTypeCache;
+    return syncStarIterableTypeCache =
+        getConcreteTypeFor(compiler.typesTask.syncStarIterableType);
+  }
+
+  TypeInformation asyncStarStreamTypeCache;
+  TypeInformation get asyncStarStreamType {
+    if (asyncStarStreamTypeCache != null) return asyncStarStreamTypeCache;
+    return asyncStarStreamTypeCache =
+        getConcreteTypeFor(compiler.typesTask.asyncStarStreamType);
+  }
+
   TypeInformation nonNullEmptyType;
 
   TypeInformation stringLiteralType(ast.DartString value) {
@@ -1226,7 +1247,7 @@ class TypeGraphInferrerEngine
         assert(invariant(element,
             element.isField ||
             element.isFunction ||
-            element.isGenerativeConstructor ||
+            element.isConstructor ||
             element.isGetter ||
             element.isSetter,
             message: 'Unexpected element kind: ${element.kind}'));

@@ -4,10 +4,10 @@
 
 library source.path_filter;
 
-import 'package:glob/glob.dart' as glob;
+import 'package:analyzer/src/util/glob.dart';
 import 'package:path/path.dart' as path;
 
-/// Filter paths against a set of [ignorePatterns] relative to a [root]
+/// Filter paths against a set of [_ignorePatterns] relative to a [root]
 /// directory. Paths outside of [root] are also ignored.
 class PathFilter {
   /// The path context to use when manipulating paths.
@@ -17,7 +17,7 @@ class PathFilter {
   final String root;
 
   /// List of ignore patterns that paths are tested against.
-  final List<glob.Glob> _ignorePatterns = new List<glob.Glob>();
+  final List<Glob> _ignorePatterns = new List<Glob>();
 
   /// Construct a new path filter rooted at [root] with [ignorePatterns].
   /// If [pathContext] is not specified, then the system path context is used.
@@ -39,9 +39,18 @@ class PathFilter {
     _ignorePatterns.clear();
     if (ignorePatterns != null) {
       for (var ignorePattern in ignorePatterns) {
-        _ignorePatterns.add(new glob.Glob(ignorePattern));
+        _ignorePatterns.add(new Glob(pathContext.separator, ignorePattern));
       }
     }
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    for (Glob pattern in _ignorePatterns) {
+      sb.write('$pattern ');
+    }
+    sb.writeln('');
+    return sb.toString();
   }
 
   /// Returns the absolute path of [path], relative to [root].
@@ -54,7 +63,7 @@ class PathFilter {
   /// Returns true if [path] matches any ignore patterns.
   bool _match(String path) {
     path = _relative(path);
-    for (var glob in _ignorePatterns) {
+    for (Glob glob in _ignorePatterns) {
       if (glob.matches(path)) {
         return true;
       }
@@ -64,13 +73,4 @@ class PathFilter {
 
   /// Returns the relative portion of [path] from [root].
   String _relative(String path) => pathContext.relative(path, from: root);
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    for (var pattern in _ignorePatterns) {
-      sb.write('$pattern ');
-    }
-    sb.writeln('');
-    return sb.toString();
-  }
 }

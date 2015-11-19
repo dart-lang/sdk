@@ -227,7 +227,7 @@ class SyntheticMember extends AbstractSyntheticMember {
 
   bool get isMethod => member.isMethod;
 
-  bool get isErroneous => false;
+  bool get isMalformed => false;
 
   String toString() => '${type.getStringAsDeclared('$name')} synthesized '
                        'from ${inheritedMembers}';
@@ -248,7 +248,7 @@ class ErroneousMember extends AbstractSyntheticMember {
 
   bool get isMethod => false;
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 
   String toString() => "erroneous member '$name' synthesized "
                        "from ${inheritedMembers}";

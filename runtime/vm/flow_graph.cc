@@ -44,6 +44,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
     guarded_fields_(parsed_function.guarded_fields()),
+    deoptimize_dependent_code_(),
     deferred_prefixes_(parsed_function.deferred_prefixes()),
     captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
     inlining_id_(-1) {

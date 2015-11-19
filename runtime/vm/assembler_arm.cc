@@ -14,7 +14,8 @@
 #include "vm/stub_code.h"
 
 // An extra check since we are assuming the existence of /proc/cpuinfo below.
-#if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID)
+#if !defined(USING_SIMULATOR) && !defined(__linux__) && !defined(ANDROID) && \
+    !TARGET_OS_IOS
 #error ARM cross-compile only supported on Linux
 #endif
 
@@ -104,6 +105,8 @@ void Assembler::EmitMemOp(Condition cond,
                           Address ad) {
   ASSERT(rd != kNoRegister);
   ASSERT(cond != kNoCondition);
+  ASSERT(!ad.has_writeback() || (ad.rn() != rd));  // Unpredictable.
+
   int32_t encoding = (static_cast<int32_t>(cond) << kConditionShift) |
                      B26 | (ad.kind() == Address::Immediate ? 0 : B25) |
                      (load ? L : 0) |
@@ -493,10 +496,11 @@ void Assembler::ldrsh(Register rd, Address ad, Condition cond) {
 }
 
 
-void Assembler::ldrd(Register rd, Register rn, int32_t offset, Condition cond) {
+void Assembler::ldrd(Register rd, Register rd2, Register rn, int32_t offset,
+                     Condition cond) {
   ASSERT((rd % 2) == 0);
+  ASSERT(rd2 == rd + 1);
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-    const Register rd2 = static_cast<Register>(static_cast<int32_t>(rd) + 1);
     ldr(rd, Address(rn, offset), cond);
     ldr(rd2, Address(rn, offset + kWordSize), cond);
   } else {
@@ -505,10 +509,11 @@ void Assembler::ldrd(Register rd, Register rn, int32_t offset, Condition cond) {
 }
 
 
-void Assembler::strd(Register rd, Register rn, int32_t offset, Condition cond) {
+void Assembler::strd(Register rd, Register rd2, Register rn, int32_t offset,
+                     Condition cond) {
   ASSERT((rd % 2) == 0);
+  ASSERT(rd2 == rd + 1);
   if (TargetCPUFeatures::arm_version() == ARMv5TE) {
-    const Register rd2 = static_cast<Register>(static_cast<int32_t>(rd) + 1);
     str(rd, Address(rn, offset), cond);
     str(rd2, Address(rn, offset + kWordSize), cond);
   } else {
@@ -1513,6 +1518,7 @@ void Assembler::LoadWordFromPoolOffset(Register rd,
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   Push(R0);
   Push(IP);
@@ -1707,20 +1713,23 @@ void Assembler::WriteShadowedFieldPair(Register base,
                                        Register value_odd,
                                        Condition cond) {
   ASSERT(value_odd == value_even + 1);
+  ASSERT(value_even % 2 == 0);
   if (VerifiedMemory::enabled()) {
     ASSERT(base != value_even);
     ASSERT(base != value_odd);
     Operand shadow(GetVerifiedMemoryShadow());
     add(base, base, shadow, cond);
-    strd(value_even, base, offset, cond);
+    strd(value_even, value_odd, base, offset, cond);
     sub(base, base, shadow, cond);
   }
-  strd(value_even, base, offset, cond);
+  strd(value_even, value_odd, base, offset, cond);
 }
 
 
 Register UseRegister(Register reg, RegList* used) {
+  ASSERT(reg != THR);
   ASSERT(reg != SP);
+  ASSERT(reg != FP);
   ASSERT(reg != PC);
   ASSERT((*used & (1 << reg)) == 0);
   *used |= (1 << reg);
@@ -1736,7 +1745,8 @@ Register AllocateRegister(RegList* used) {
 }
 
 
-void Assembler::VerifiedWrite(const Address& address,
+void Assembler::VerifiedWrite(Register object,
+                              const Address& address,
                               Register new_value,
                               FieldContent old_content) {
 #if defined(DEBUG)
@@ -1746,6 +1756,9 @@ void Assembler::VerifiedWrite(const Address& address,
   RegList used = 0;
   UseRegister(new_value, &used);
   Register base = UseRegister(address.rn(), &used);
+  if ((object != base) && (object != kNoRegister)) {
+    UseRegister(object, &used);
+  }
   if (address.rm() != kNoRegister) {
     UseRegister(address.rm(), &used);
   }
@@ -1814,7 +1827,7 @@ void Assembler::StoreIntoObject(Register object,
                                 Register value,
                                 bool can_value_be_smi) {
   ASSERT(object != value);
-  VerifiedWrite(dest, value, kHeapObjectOrSmi);
+  VerifiedWrite(object, dest, value, kHeapObjectOrSmi);
   Label done;
   if (can_value_be_smi) {
     StoreIntoObjectFilter(object, value, &done);
@@ -1857,7 +1870,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          Register value,
                                          FieldContent old_content) {
-  VerifiedWrite(dest, value, old_content);
+  VerifiedWrite(object, dest, value, old_content);
 #if defined(DEBUG)
   Label done;
   StoreIntoObjectFilter(object, value, &done);
@@ -1891,7 +1904,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
   LoadObject(IP, value);
-  VerifiedWrite(dest, IP, old_content);
+  VerifiedWrite(object, dest, IP, old_content);
 }
 
 
@@ -1904,8 +1917,11 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
                              old_content);
   } else {
-    AddImmediate(IP, object, offset - kHeapObjectTag);
-    StoreIntoObjectNoBarrier(object, Address(IP), value, old_content);
+    Register base = object == R9 ? R8 : R9;
+    Push(base);
+    AddImmediate(base, object, offset - kHeapObjectTag);
+    StoreIntoObjectNoBarrier(object, Address(base), value, old_content);
+    Pop(base);
   }
 }
 
@@ -1969,7 +1985,7 @@ void Assembler::StoreIntoSmiField(const Address& dest, Register value) {
   Stop("New value must be Smi.");
   Bind(&done);
 #endif  // defined(DEBUG)
-  VerifiedWrite(dest, value, kOnlySmi);
+  VerifiedWrite(kNoRegister, dest, value, kOnlySmi);
 }
 
 
@@ -2831,6 +2847,7 @@ void Assembler::LoadFromOffset(OperandSize size,
                                Register base,
                                int32_t offset,
                                Condition cond) {
+  ASSERT(size != kWordPair);
   int32_t offset_mask = 0;
   if (!Address::CanHoldLoadOffset(size, offset, &offset_mask)) {
     ASSERT(base != IP);
@@ -2854,9 +2871,6 @@ void Assembler::LoadFromOffset(OperandSize size,
     case kWord:
       ldr(reg, Address(base, offset), cond);
       break;
-    case kWordPair:
-      ldrd(reg, base, offset, cond);
-      break;
     default:
       UNREACHABLE();
   }
@@ -2868,6 +2882,7 @@ void Assembler::StoreToOffset(OperandSize size,
                               Register base,
                               int32_t offset,
                               Condition cond) {
+  ASSERT(size != kWordPair);
   int32_t offset_mask = 0;
   if (!Address::CanHoldStoreOffset(size, offset, &offset_mask)) {
     ASSERT(reg != IP);
@@ -2885,9 +2900,6 @@ void Assembler::StoreToOffset(OperandSize size,
       break;
     case kWord:
       str(reg, Address(base, offset), cond);
-      break;
-    case kWordPair:
-      strd(reg, base, offset, cond);
       break;
     default:
       UNREACHABLE();
@@ -3243,6 +3255,7 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  Comment("EnterCallRuntimeFrame");
   // Preserve volatile CPU registers and PP.
   EnterFrame(kDartVolatileCpuRegs | (1 << PP) | (1 << FP), 0);
   COMPILE_ASSERT((kDartVolatileCpuRegs & (1 << PP)) == 0);
@@ -3309,7 +3322,10 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   ASSERT(!constant_pool_allowed());
 
-  // Registers are pushed in descending order: R9 | R10 | R11 | R14.
+  // Registers are pushed in descending order: R5 | R6 | R7/R11 | R14.
+  COMPILE_ASSERT(PP < CODE_REG);
+  COMPILE_ASSERT(CODE_REG < FP);
+  COMPILE_ASSERT(FP < LR);
   EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << LR), 0);
 
   // Setup pool pointer for this dart function.

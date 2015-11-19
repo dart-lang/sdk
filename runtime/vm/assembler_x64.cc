@@ -1343,13 +1343,6 @@ void Assembler::fstpl(const Address& dst) {
 }
 
 
-void Assembler::fildl(const Address& src) {
-  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0xDF);
-  EmitOperand(5, src);
-}
-
-
 void Assembler::fincstp() {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xD9);
@@ -3331,6 +3324,7 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  Comment("EnterCallRuntimeFrame");
   EnterStubFrame();
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
@@ -3420,6 +3414,7 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   pushq(RAX);
   LoadClassId(RAX, CODE_REG);

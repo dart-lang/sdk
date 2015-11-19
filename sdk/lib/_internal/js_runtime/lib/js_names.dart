@@ -165,9 +165,14 @@ String unmangleGlobalNameIfPreservedAnyways(String name) {
 }
 
 String unmangleAllIdentifiersIfPreservedAnyways(String str) {
-  return JS("String",
-            r"(#).replace(/[^<,> ]+/g,"
-            r"function(m) { return #[m] || m; })",
-            str,
-            JS_EMBEDDED_GLOBAL('', MANGLED_GLOBAL_NAMES));
+  return JS(
+      'String',
+      r'''
+        (function(str, names) {
+          return str.replace(
+              /[^<,> ]+/g,
+              function(m) { return names[m] || m; });
+        })(#, #)''',
+      str,
+      JS_EMBEDDED_GLOBAL('', MANGLED_GLOBAL_NAMES));
 }

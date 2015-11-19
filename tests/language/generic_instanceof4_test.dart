@@ -6,9 +6,8 @@
 import "package:expect/expect.dart";
 
 class A<T> {
+  @NoInline()
   foo(x) {
-    // Don't inline.
-    if (new DateTime.now().millisecondsSinceEpoch == 42) return foo(x);
     return x is T;
   }
 }
@@ -16,9 +15,8 @@ class A<T> {
 class BB {}
 
 class B<T> implements BB {
+  @NoInline()
   foo() {
-    // Don't inline.
-    if (new DateTime.now().millisecondsSinceEpoch == 42) return foo();
     return new A<T>().foo(new B());
   }
 }

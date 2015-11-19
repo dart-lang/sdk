@@ -147,6 +147,7 @@ async/stream_periodic2_test: RuntimeError # Timer interface not supported; Issue
 async/stream_periodic3_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic4_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/stream_periodic5_test: RuntimeError # Timer interface not supported; Issue 7728.
+async/stream_periodic6_test: RuntimeError # Timer interface not supported; Issue 7728.
 async/run_zoned7_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/catch_errors22_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7728.
@@ -319,6 +320,7 @@ mirrors/mirrors_reader_test: Pass, Slow
 
 [ $compiler == dart2js ]
 developer/metrics_num_test: Skip # Because of a int / double type test.
+developer/timeline_test: Skip # Not supported
 
 [ $arch == simarm64 ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
@@ -329,6 +331,9 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification OOM.
 [ $runtime == vm && $mode == debug && $arch == x64 && $system == windows ]
 convert/streamed_conversion_json_utf8_decode_test: Pass, Slow
 
+[ $runtime == vm && $mode == release && $arch == ia32 && $system == windows ]
+convert/json_test: RuntimeError # Issue 24908
+
 [ $mode == debug && $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te ]
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Verification not yet implemented.
 
@@ -338,10 +343,7 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
 async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+= x;}): await for
-async/stream_empty_test: RuntimeError # $async$temp1.runTest_unreachable is not a function
 async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
-convert/json_pretty_test: RuntimeError # Please triage this failure.
-convert/line_splitter_test: RuntimeError # Please triage this failure.
 mirrors/deferred_mirrors_metadata_test: RuntimeError # U.loadLibrary is not a function
 mirrors/deferred_mirrors_metatarget_test: RuntimeError # X.loadLibrary is not a function
 mirrors/deferred_mirrors_update_test: RuntimeError # U.loadLibrary is not a function
@@ -356,3 +358,11 @@ mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constan
 mirrors/mirrors_used_typedef_declaration_test/01: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
 mirrors/mirrors_used_typedef_declaration_test/none: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
 mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been checked for cycles.
+
+[ $compiler != dart2js ]
+async/dart2js_uncaught_error_test: Skip  # JS-integration only test
+
+[ $noopt ]
+mirrors/*: SkipByDesign
+convert/chunked_conversion_utf88_test: Pass, Timeout
+convert/utf85_test: Pass, Timeout

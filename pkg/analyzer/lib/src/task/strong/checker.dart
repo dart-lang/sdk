@@ -51,9 +51,10 @@ class _OverrideChecker {
       var errorLocation = node.withClause.mixinTypes[i];
       for (int j = i - 1; j >= 0; j--) {
         _checkIndividualOverridesFromType(
-            current, mixins[j], errorLocation, seen);
+            current, mixins[j], errorLocation, seen, true);
       }
-      _checkIndividualOverridesFromType(current, parent, errorLocation, seen);
+      _checkIndividualOverridesFromType(
+          current, parent, errorLocation, seen, true);
     }
   }
 
@@ -85,9 +86,9 @@ class _OverrideChecker {
     var visited = new Set<InterfaceType>();
     do {
       visited.add(current);
-      current.mixins.reversed
-          .forEach((m) => _checkIndividualOverridesFromClass(node, m, seen));
-      _checkIndividualOverridesFromClass(node, current.superclass, seen);
+      current.mixins.reversed.forEach(
+          (m) => _checkIndividualOverridesFromClass(node, m, seen, true));
+      _checkIndividualOverridesFromClass(node, current.superclass, seen, true);
       current = current.superclass;
     } while (!current.isObject && !visited.contains(current));
   }
@@ -171,10 +172,10 @@ class _OverrideChecker {
     // Check direct overrides on [type]
     for (var interfaceType in interfaces) {
       if (node != null) {
-        _checkIndividualOverridesFromClass(node, interfaceType, seen);
+        _checkIndividualOverridesFromClass(node, interfaceType, seen, false);
       } else {
         _checkIndividualOverridesFromType(
-            type, interfaceType, errorLocation, seen);
+            type, interfaceType, errorLocation, seen, false);
       }
     }
 
@@ -186,7 +187,7 @@ class _OverrideChecker {
         // We copy [seen] so we can report separately if more than one mixin or
         // the base class have an invalid override.
         _checkIndividualOverridesFromType(
-            type.mixins[i], interfaceType, loc, new Set.from(seen));
+            type.mixins[i], interfaceType, loc, new Set.from(seen), false);
       }
     }
 
@@ -212,12 +213,16 @@ class _OverrideChecker {
   /// is used when invoking this function multiple times when checking several
   /// types in a class hierarchy. Errors are reported only the first time an
   /// invalid override involving a specific member is encountered.
-  _checkIndividualOverridesFromType(InterfaceType subType,
-      InterfaceType baseType, AstNode errorLocation, Set<String> seen) {
+  _checkIndividualOverridesFromType(
+      InterfaceType subType,
+      InterfaceType baseType,
+      AstNode errorLocation,
+      Set<String> seen,
+      bool isSubclass) {
     void checkHelper(ExecutableElement e) {
       if (e.isStatic) return;
       if (seen.contains(e.name)) return;
-      if (_checkSingleOverride(e, baseType, null, errorLocation)) {
+      if (_checkSingleOverride(e, baseType, null, errorLocation, isSubclass)) {
         seen.add(e.name);
       }
     }
@@ -230,8 +235,8 @@ class _OverrideChecker {
   ///
   /// The [errorLocation] node indicates where errors are reported, see
   /// [_checkSingleOverride] for more details.
-  _checkIndividualOverridesFromClass(
-      ClassDeclaration node, InterfaceType baseType, Set<String> seen) {
+  _checkIndividualOverridesFromClass(ClassDeclaration node,
+      InterfaceType baseType, Set<String> seen, bool isSubclass) {
     for (var member in node.members) {
       if (member is ConstructorDeclaration) continue;
       if (member is FieldDeclaration) {
@@ -242,10 +247,12 @@ class _OverrideChecker {
           if (seen.contains(name)) continue;
           var getter = element.getter;
           var setter = element.setter;
-          bool found = _checkSingleOverride(getter, baseType, variable, member);
+          bool found = _checkSingleOverride(
+              getter, baseType, variable, member, isSubclass);
           if (!variable.isFinal &&
               !variable.isConst &&
-              _checkSingleOverride(setter, baseType, variable, member)) {
+              _checkSingleOverride(
+                  setter, baseType, variable, member, isSubclass)) {
             found = true;
           }
           if (found) seen.add(name);
@@ -254,7 +261,8 @@ class _OverrideChecker {
         if ((member as MethodDeclaration).isStatic) continue;
         var method = (member as MethodDeclaration).element;
         if (seen.contains(method.name)) continue;
-        if (_checkSingleOverride(method, baseType, member, member)) {
+        if (_checkSingleOverride(
+            method, baseType, member, member, isSubclass)) {
           seen.add(method.name);
         }
       }
@@ -288,14 +296,23 @@ class _OverrideChecker {
   /// the AST node that defines [element]. This is used to determine whether the
   /// type of the element could be inferred from the types in the super classes.
   bool _checkSingleOverride(ExecutableElement element, InterfaceType type,
-      AstNode node, AstNode errorLocation) {
+      AstNode node, AstNode errorLocation, bool isSubclass) {
     assert(!element.isStatic);
 
     FunctionType subType = _rules.elementType(element);
     // TODO(vsm): Test for generic
     FunctionType baseType = _getMemberType(type, element);
-
     if (baseType == null) return false;
+
+    if (isSubclass && element is PropertyAccessorElement) {
+      // Disallow any overriding if the base class defines this member
+      // as a field.  We effectively treat fields as final / non-virtual.
+      PropertyInducingElement field = _getMemberField(type, element);
+      if (field != null) {
+        _recordMessage(new InvalidFieldOverride(
+            errorLocation, element, type, subType, baseType));
+      }
+    }
     if (!_rules.isAssignable(subType, baseType)) {
       // See whether non-assignable cases fit one of our common patterns:
       //
@@ -602,24 +619,22 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    var target = node.realTarget;
-    if (rules.isDynamicTarget(target) &&
-        !_isObjectProperty(target, node.propertyName)) {
+  void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
+    if ((rules.isDynamicTarget(target) || field.staticElement == null) &&
+        !_isObjectProperty(target, field)) {
       _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
   }
 
   @override
+  void visitPropertyAccess(PropertyAccess node) {
+    _checkFieldAccess(node, node.realTarget, node.propertyName);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    final target = node.prefix;
-    if (rules.isDynamicTarget(target) &&
-        !_isObjectProperty(target, node.identifier)) {
-      _recordDynamicInvoke(node, target);
-    }
-    node.visitChildren(this);
+    _checkFieldAccess(node, node.prefix, node.identifier);
   }
 
   @override
@@ -950,6 +965,33 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 }
 
+// Return the field on type corresponding to member, or null if none
+// exists or the "field" is actually a getter/setter.
+PropertyInducingElement _getMemberField(
+    InterfaceType type, PropertyAccessorElement member) {
+  String memberName = member.name;
+  PropertyInducingElement field;
+  if (member.isGetter) {
+    // The subclass member is an explicit getter or a field
+    // - lookup the getter on the superclass.
+    var getter = type.getGetter(memberName);
+    if (getter == null || getter.isStatic) return null;
+    field = getter.variable;
+  } else if (!member.isSynthetic) {
+    // The subclass member is an explicit setter
+    // - lookup the setter on the superclass.
+    // Note: an implicit (synthetic) setter would have already been flagged on
+    // the getter above.
+    var setter = type.getSetter(memberName);
+    if (setter == null || setter.isStatic) return null;
+    field = setter.variable;
+  } else {
+    return null;
+  }
+  if (field.isSynthetic) return null;
+  return field;
+}
+
 /// Looks up the declaration that matches [member] in [type] and returns it's
 /// declared type.
 FunctionType _getMemberType(InterfaceType type, ExecutableElement member) =>
@@ -964,6 +1006,15 @@ _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
 
   FunctionType f(InterfaceType type) {
     ExecutableElement baseMethod;
+
+    if (member.isPrivate) {
+      var subtypeLibrary = member.library;
+      var baseLibrary = type.element.library;
+      if (baseLibrary != subtypeLibrary) {
+        return null;
+      }
+    }
+
     try {
       if (isGetter) {
         assert(!isSetter);

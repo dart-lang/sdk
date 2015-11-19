@@ -51,9 +51,6 @@ Link toLink(Iterable iterable) {
 }
 
 abstract class ElementZ extends Element with ElementCommon {
-  @override
-  bool get isFactoryConstructor => false;
-
   String toString() {
     if (enclosingElement == null || isTopLevel) return 'Z$kind($name)';
     return 'Z$kind(${enclosingElement.name}#$name)';
@@ -1006,10 +1003,7 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
       : super(decoder);
 
   @override
-  ElementKind get kind => ElementKind.FUNCTION;
-
-  @override
-  bool get isFactoryConstructor => true;
+  ElementKind get kind => ElementKind.FACTORY_CONSTRUCTOR;
 }
 
 abstract class MemberElementMixin

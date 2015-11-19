@@ -46,6 +46,8 @@ class ServiceTestMessageHandler : public MessageHandler {
 
   const char* msg() const { return _msg; }
 
+  virtual Isolate* isolate() const { return Isolate::Current(); }
+
  private:
   char* _msg;
 };

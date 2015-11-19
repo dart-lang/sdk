@@ -135,7 +135,7 @@ class PlaceholderRenamer {
 
   String _renameGlobal(Entity entity) {
     assert(entity is! Element ||
-           Elements.isErroneous(entity) ||
+           Elements.isMalformed(entity) ||
            Elements.isStaticOrTopLevel(entity) ||
            entity is TypeVariableElement);
     // TODO(smok): We may want to reuse class static field and method names.

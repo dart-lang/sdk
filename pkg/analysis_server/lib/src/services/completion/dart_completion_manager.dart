@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionRequest;
+    show AnalysisRequest, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
     as newApi;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
@@ -27,10 +27,14 @@ import 'package:analysis_server/src/services/completion/prefixed_element_contrib
 import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/cancelable_future.dart';
+import 'package:analyzer/src/context/context.dart'
+    show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/task/model.dart';
 
 const int DART_RELEVANCE_COMMON_USAGE = 1200;
 const int DART_RELEVANCE_DEFAULT = 1000;
@@ -181,9 +185,11 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
-      contributionSorter.sort(
-          new OldRequestWrapper(request), request.suggestions);
-
+      _processAnalysisRequest(request,
+          contributionSorter.sort(request, request.suggestions));
+      // TODO (danrubel) if request is obsolete
+      // (processAnalysisRequest returns false)
+      // then send empty results
       if (todo.isEmpty) {
         sendResults(request, todo.isEmpty);
       }
@@ -223,8 +229,11 @@ class DartCompletionManager extends CompletionManager {
               performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
-                contributionSorter.sort(
-                    new OldRequestWrapper(request), request.suggestions);
+                _processAnalysisRequest(request,
+                    contributionSorter.sort(request, request.suggestions));
+                // TODO (danrubel) if request is obsolete
+                // (processAnalysisRequest returns false)
+                // then send empty results
                 sendResults(request, last);
               }
             });
@@ -281,6 +290,38 @@ class DartCompletionManager extends CompletionManager {
       // compilation unit is never going to get computed.
       return null;
     }, test: (e) => e is AnalysisNotScheduledError);
+  }
+
+  /**
+   * Process the analysis [analysis] and any subsequent requests.
+   * Return a [Future] that returns `true`
+   * once all analysis requests have been processed
+   * or `false` if the original completion request is obsolete
+   * and processing requests was terminated before finished.
+   */
+  Future<bool> _processAnalysisRequest(
+      CompletionRequest request, AnalysisRequest analysis) {
+    // Return if no additional analysis is necessary
+    if (analysis == null) {
+      return new Future.value(true);
+    }
+
+    // Check to see if the result is already cached
+    var cachedValue = context.getResult(analysis.target, analysis.descriptor);
+    if (cachedValue != null) {
+      return _processAnalysisRequest(
+          request, analysis.callback(request, cachedValue));
+    }
+
+    // TODO (danrubel) determine when completion request is obsolete
+    // and analysis should be terminated before requesting additional analysis
+
+    // Request additional analysis
+    return new AnalysisFutureHelper((context as AnalysisContextImpl),
+        analysis.target, analysis.descriptor).computeAsync().then((value) {
+      return _processAnalysisRequest(
+          request, analysis.callback(request, cachedValue));
+    });
   }
 }
 

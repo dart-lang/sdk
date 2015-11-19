@@ -224,7 +224,7 @@ abstract class TestSuite {
   String get jsShellFileName {
     var executableSuffix = getExecutableSuffix('jsshell');
     var executable = 'jsshell$executableSuffix';
-    var jsshellDir = '${TestUtils.dartDir}/tools/testing/bin';
+    var jsshellDir = '${TestUtils.dartDir.toNativePath()}/tools/testing/bin';
     return '$jsshellDir/$executable';
   }
 

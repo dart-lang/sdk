@@ -407,7 +407,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 
 // Uses SubtypeTestCache to store instance class and result.
 // R0: instance to test.
-// Clobbers R1-R5.
+// Clobbers R1-R4,R9.
 // Immediate class test already done.
 // TODO(srdjan): Implement a quicker subtype check, as type test
 // arrays can grow too high, but they may be useful when optimizing
@@ -756,44 +756,44 @@ void FlowGraphCompiler::CopyParameters() {
   const int min_num_pos_args = num_fixed_params;
   const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
-  __ ldr(R10, FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
+  __ ldr(R6, FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
-  __ CompareImmediate(R10, Smi::RawValue(min_num_pos_args));
+  __ CompareImmediate(R6, Smi::RawValue(min_num_pos_args));
   __ b(&wrong_num_arguments, LT);
   // Check that num_pos_args <= max_num_pos_args.
-  __ CompareImmediate(R10, Smi::RawValue(max_num_pos_args));
+  __ CompareImmediate(R6, Smi::RawValue(max_num_pos_args));
   __ b(&wrong_num_arguments, GT);
 
   // Copy positional arguments.
   // Argument i passed at fp[kParamEndSlotFromFp + num_args - i] is copied
   // to fp[kFirstLocalSlotFromFp - i].
 
-  __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  // Since R7 and R10 are Smi, use LSL 1 instead of LSL 2.
-  // Let R7 point to the last passed positional argument, i.e. to
+  __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  // Since NOTFP and R6 are Smi, use LSL 1 instead of LSL 2.
+  // Let NOTFP point to the last passed positional argument, i.e. to
   // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
-  __ sub(R7, R7, Operand(R10));
-  __ add(R7, FP, Operand(R7, LSL, 1));
-  __ add(R7, R7, Operand((kParamEndSlotFromFp + 1) * kWordSize));
+  __ sub(NOTFP, NOTFP, Operand(R6));
+  __ add(NOTFP, FP, Operand(NOTFP, LSL, 1));
+  __ add(NOTFP, NOTFP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
 
-  // Let R6 point to the last copied positional argument, i.e. to
+  // Let R8 point to the last copied positional argument, i.e. to
   // fp[kFirstLocalSlotFromFp - (num_pos_args - 1)].
-  __ AddImmediate(R6, FP, (kFirstLocalSlotFromFp + 1) * kWordSize);
-  __ sub(R6, R6, Operand(R10, LSL, 1));  // R10 is a Smi.
-  __ SmiUntag(R10);
+  __ AddImmediate(R8, FP, (kFirstLocalSlotFromFp + 1) * kWordSize);
+  __ sub(R8, R8, Operand(R6, LSL, 1));  // R6 is a Smi.
+  __ SmiUntag(R6);
   Label loop, loop_condition;
   __ b(&loop_condition);
   // We do not use the final allocation index of the variable here, i.e.
   // scope->VariableAt(i)->index(), because captured variables still need
   // to be copied to the context that is not yet allocated.
-  const Address argument_addr(R7, R10, LSL, 2);
-  const Address copy_addr(R6, R10, LSL, 2);
+  const Address argument_addr(NOTFP, R6, LSL, 2);
+  const Address copy_addr(R8, R6, LSL, 2);
   __ Bind(&loop);
   __ ldr(IP, argument_addr);
   __ str(IP, copy_addr);
   __ Bind(&loop_condition);
-  __ subs(R10, R10, Operand(1));
+  __ subs(R6, R6, Operand(1));
   __ b(&loop, PL);
 
   // Copy or initialize optional named arguments.
@@ -823,89 +823,89 @@ void FlowGraphCompiler::CopyParameters() {
       opt_param_position[i + 1] = pos;
     }
     // Generate code handling each optional parameter in alphabetical order.
-    __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-    __ ldr(R10,
+    __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+    __ ldr(R6,
            FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(R10);
-    // Let R7 point to the first passed argument, i.e. to
-    // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
-    __ add(R7, FP, Operand(R7, LSL, 1));
-    __ AddImmediate(R7, R7, kParamEndSlotFromFp * kWordSize);
-    // Let R6 point to the entry of the first named argument.
-    __ add(R6, R4, Operand(
+    __ SmiUntag(R6);
+    // Let NOTFP point to the first passed argument, i.e. to
+    // fp[kParamEndSlotFromFp + num_args - 0]; num_args (NOTFP) is Smi.
+    __ add(NOTFP, FP, Operand(NOTFP, LSL, 1));
+    __ AddImmediate(NOTFP, NOTFP, kParamEndSlotFromFp * kWordSize);
+    // Let R8 point to the entry of the first named argument.
+    __ add(R8, R4, Operand(
         ArgumentsDescriptor::first_named_entry_offset() - kHeapObjectTag));
     for (int i = 0; i < num_opt_named_params; i++) {
       Label load_default_value, assign_optional_parameter;
       const int param_pos = opt_param_position[i];
       // Check if this named parameter was passed in.
-      // Load R5 with the name of the argument.
-      __ ldr(R5, Address(R6, ArgumentsDescriptor::name_offset()));
+      // Load R9 with the name of the argument.
+      __ ldr(R9, Address(R8, ArgumentsDescriptor::name_offset()));
       ASSERT(opt_param[i]->name().IsSymbol());
-      __ CompareObject(R5, opt_param[i]->name());
+      __ CompareObject(R9, opt_param[i]->name());
       __ b(&load_default_value, NE);
-      // Load R5 with passed-in argument at provided arg_pos, i.e. at
+      // Load R9 with passed-in argument at provided arg_pos, i.e. at
       // fp[kParamEndSlotFromFp + num_args - arg_pos].
-      __ ldr(R5, Address(R6, ArgumentsDescriptor::position_offset()));
-      // R5 is arg_pos as Smi.
+      __ ldr(R9, Address(R8, ArgumentsDescriptor::position_offset()));
+      // R9 is arg_pos as Smi.
       // Point to next named entry.
-      __ add(R6, R6, Operand(ArgumentsDescriptor::named_entry_size()));
-      __ rsb(R5, R5, Operand(0));
-      Address argument_addr(R7, R5, LSL, 1);  // R5 is a negative Smi.
-      __ ldr(R5, argument_addr);
+      __ add(R8, R8, Operand(ArgumentsDescriptor::named_entry_size()));
+      __ rsb(R9, R9, Operand(0));
+      Address argument_addr(NOTFP, R9, LSL, 1);  // R9 is a negative Smi.
+      __ ldr(R9, argument_addr);
       __ b(&assign_optional_parameter);
       __ Bind(&load_default_value);
-      // Load R5 with default argument.
+      // Load R9 with default argument.
       const Instance& value = parsed_function().DefaultParameterValueAt(
           param_pos - num_fixed_params);
-      __ LoadObject(R5, value);
+      __ LoadObject(R9, value);
       __ Bind(&assign_optional_parameter);
-      // Assign R5 to fp[kFirstLocalSlotFromFp - param_pos].
+      // Assign R9 to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
       const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
       const Address param_addr(FP, computed_param_pos * kWordSize);
-      __ str(R5, param_addr);
+      __ str(R9, param_addr);
     }
     delete[] opt_param;
     delete[] opt_param_position;
     if (check_correct_named_args) {
-      // Check that R6 now points to the null terminator in the arguments
+      // Check that R8 now points to the null terminator in the arguments
       // descriptor.
-      __ ldr(R5, Address(R6, 0));
-      __ CompareObject(R5, Object::null_object());
+      __ ldr(R9, Address(R8, 0));
+      __ CompareObject(R9, Object::null_object());
       __ b(&all_arguments_processed, EQ);
     }
   } else {
     ASSERT(num_opt_pos_params > 0);
-    __ ldr(R10,
+    __ ldr(R6,
            FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(R10);
+    __ SmiUntag(R6);
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
       // Handle this optional positional parameter only if k or fewer positional
       // arguments have been passed, where k is param_pos, the position of this
       // optional parameter in the formal parameter list.
       const int param_pos = num_fixed_params + i;
-      __ CompareImmediate(R10, param_pos);
+      __ CompareImmediate(R6, param_pos);
       __ b(&next_parameter, GT);
-      // Load R5 with default argument.
+      // Load R9 with default argument.
       const Object& value = parsed_function().DefaultParameterValueAt(i);
-      __ LoadObject(R5, value);
-      // Assign R5 to fp[kFirstLocalSlotFromFp - param_pos].
+      __ LoadObject(R9, value);
+      // Assign R9 to fp[kFirstLocalSlotFromFp - param_pos].
       // We do not use the final allocation index of the variable here, i.e.
       // scope->VariableAt(i)->index(), because captured variables still need
       // to be copied to the context that is not yet allocated.
       const intptr_t computed_param_pos = kFirstLocalSlotFromFp - param_pos;
       const Address param_addr(FP, computed_param_pos * kWordSize);
-      __ str(R5, param_addr);
+      __ str(R9, param_addr);
       __ Bind(&next_parameter);
     }
     if (check_correct_named_args) {
-      __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-      __ SmiUntag(R7);
-      // Check that R10 equals R7, i.e. no named arguments passed.
-      __ cmp(R10, Operand(R7));
+      __ ldr(NOTFP, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+      __ SmiUntag(NOTFP);
+      // Check that R6 equals NOTFP, i.e. no named arguments passed.
+      __ cmp(R6, Operand(NOTFP));
       __ b(&all_arguments_processed, EQ);
     }
   }
@@ -927,17 +927,17 @@ void FlowGraphCompiler::CopyParameters() {
   // an issue anymore.
 
   // R4 : arguments descriptor array.
-  __ ldr(R10, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R10);
-  __ add(R7, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
-  const Address original_argument_addr(R7, R10, LSL, 2);
+  __ ldr(R6, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(R6);
+  __ add(NOTFP, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
+  const Address original_argument_addr(NOTFP, R6, LSL, 2);
   __ LoadObject(IP, Object::null_object());
   Label null_args_loop, null_args_loop_condition;
   __ b(&null_args_loop_condition);
   __ Bind(&null_args_loop);
   __ str(IP, original_argument_addr);
   __ Bind(&null_args_loop_condition);
-  __ subs(R10, R10, Operand(1));
+  __ subs(R6, R6, Operand(1));
   __ b(&null_args_loop, PL);
 }
 
@@ -948,7 +948,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // Sequence node has one return node, its input is load field node.
   __ Comment("Inlined Getter");
   __ ldr(R0, Address(SP, 0 * kWordSize));
-  __ LoadFromOffset(kWord, R0, R0, offset - kHeapObjectTag);
+  __ LoadFieldFromOffset(kWord, R0, R0, offset);
   __ Ret();
 }
 
@@ -967,7 +967,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
-static const Register new_pp = R7;
+static const Register new_pp = NOTFP;
 
 
 void FlowGraphCompiler::EmitFrameEntry() {
@@ -975,7 +975,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   if (CanOptimizeFunction() &&
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
-    const Register function_reg = R6;
+    const Register function_reg = R8;
 
     // The pool pointer is not setup before entering the Dart frame.
     // Temporarily setup pool pointer for this dart function.
@@ -993,7 +993,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
                               Function::usage_counter_offset()));
     }
     __ CompareImmediate(R3, GetOptimizationThreshold());
-    ASSERT(function_reg == R6);
+    ASSERT(function_reg == R8);
     __ Branch(*StubCode::OptimizeFunction_entry(), kNotPatchable, new_pp, GE);
   }
   __ Comment("Enter frame");
@@ -1015,7 +1015,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
 //   SP: address of last argument.
 //   FP: caller's frame pointer.
 //   PP: caller's pool pointer.
-//   R5: ic-data.
+//   R9: ic-data.
 //   R4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
@@ -1225,8 +1225,8 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // reoptimized and which counter needs to be incremented.
   // Pass the function explicitly, it is used in IC stub.
 
-  __ LoadObject(R6, parsed_function().function());
-  __ LoadUniqueObject(R5, ic_data);
+  __ LoadObject(R8, parsed_function().function());
+  __ LoadUniqueObject(R9, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
                    stub_entry,
@@ -1243,7 +1243,7 @@ void FlowGraphCompiler::EmitInstanceCall(const StubEntry& stub_entry,
                                          intptr_t token_pos,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
-  __ LoadUniqueObject(R5, ic_data);
+  __ LoadUniqueObject(R9, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
                    stub_entry,
@@ -1265,20 +1265,57 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
       MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-  const Register receiverR = R0;
-  const Register cacheR = R1;
-  const Register targetR = R1;
-  __ LoadFromOffset(kWord, receiverR, SP, (argument_count - 1) * kWordSize);
-  __ LoadObject(cacheR, cache);
 
+  __ Comment("MegamorphicCall");
+  __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
+  __ LoadObject(R9, cache);
   if (FLAG_use_megamorphic_stub) {
     __ BranchLink(*StubCode::MegamorphicLookup_entry());
-  } else  {
-    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+  } else {
+    StubCode::EmitMegamorphicLookup(assembler());
   }
-  __ LoadObject(R5, ic_data);
-  __ LoadObject(R4, arguments_descriptor);
-  __ blx(targetR);
+  __ blx(R1);
+
+  AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+        deopt_id_after, token_pos);
+  }
+  __ Drop(argument_count);
+}
+
+
+void FlowGraphCompiler::EmitSwitchableInstanceCall(
+    const ICData& ic_data,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  __ Comment("SwitchableCall");
+  __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
+  if (ic_data.NumArgsTested() == 1) {
+    __ LoadUniqueObject(R9, ic_data);
+    __ BranchLinkPatchable(*StubCode::ICLookup_entry());
+  } else {
+    const String& name = String::Handle(zone(), ic_data.target_name());
+    const Array& arguments_descriptor =
+        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
+    ASSERT(!arguments_descriptor.IsNull() &&
+           (arguments_descriptor.Length() > 0));
+    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
+        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
+
+    __ LoadUniqueObject(R9, cache);
+    __ BranchLinkPatchable(*StubCode::MegamorphicLookup_entry());
+  }
+  __ blx(R1);
+
   AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
@@ -1302,7 +1339,7 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
     const ICData& ic_data) {
   const StubEntry* stub_entry =
       StubCode::UnoptimizedStaticCallEntry(ic_data.NumArgsTested());
-  __ LoadObject(R5, ic_data);
+  __ LoadObject(R9, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
                    *stub_entry,

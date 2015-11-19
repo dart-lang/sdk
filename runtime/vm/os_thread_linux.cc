@@ -16,12 +16,24 @@
 
 namespace dart {
 
+static char* strerror_helper(int err, char* buffer, size_t bufsize) {
+#if !defined(__GLIBC__) || \
+    ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && !_GNU_SOURCE)
+  // Use the standard version
+  return strerror_r(err, buffer, bufsize) == 0 ?
+    buffer : const_cast<char*>("strerror_r failed");
+#else
+  // Use the gnu specific version
+  return strerror_r(err, buffer, bufsize);
+#endif
+}
+
 #define VALIDATE_PTHREAD_RESULT(result) \
   if (result != 0) { \
     const int kBufferSize = 1024; \
     char error_buf[kBufferSize]; \
     FATAL2("pthread error: %d (%s)", result, \
-           strerror_r(result, error_buf, kBufferSize)); \
+           strerror_helper(result, error_buf, kBufferSize)); \
   }
 
 
@@ -40,7 +52,7 @@ namespace dart {
     char error_buf[kBufferSize]; \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
             __FILE__, __LINE__, result, \
-            strerror_r(result, error_buf, kBufferSize)); \
+            strerror_helper(result, error_buf, kBufferSize)); \
     return result; \
   }
 #else
@@ -218,8 +230,8 @@ Mutex::Mutex() {
   result = pthread_mutexattr_destroy(&attr);
   VALIDATE_PTHREAD_RESULT(result);
 
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
 }
@@ -230,8 +242,8 @@ Mutex::~Mutex() {
   // Verify that the pthread_mutex was destroyed.
   VALIDATE_PTHREAD_RESULT(result);
 
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
   ASSERT(owner_ == OSThread::kInvalidThreadId);
 #endif  // defined(DEBUG)
 }
@@ -242,8 +254,8 @@ void Mutex::Lock() {
   // Specifically check for dead lock to help debugging.
   ASSERT(result != EDEADLK);
   ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
   owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
 }
@@ -256,8 +268,8 @@ bool Mutex::TryLock() {
     return false;
   }
   ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
   owner_ = OSThread::GetCurrentThreadId();
 #endif  // defined(DEBUG)
   return true;
@@ -265,8 +277,8 @@ bool Mutex::TryLock() {
 
 
 void Mutex::Unlock() {
-  // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
   ASSERT(IsOwnedByCurrentThread());
   owner_ = OSThread::kInvalidThreadId;
 #endif  // defined(DEBUG)
@@ -305,10 +317,20 @@ Monitor::Monitor() {
 
   result = pthread_condattr_destroy(&cond_attr);
   VALIDATE_PTHREAD_RESULT(result);
+
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  owner_ = OSThread::kInvalidThreadId;
+#endif  // defined(DEBUG)
 }
 
 
 Monitor::~Monitor() {
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+#endif  // defined(DEBUG)
+
   int result = pthread_mutex_destroy(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
 
@@ -320,24 +342,41 @@ Monitor::~Monitor() {
 void Monitor::Enter() {
   int result = pthread_mutex_lock(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
-  // TODO(iposva): Do we need to track lock owners?
+
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+  owner_ = OSThread::GetCurrentThreadId();
+#endif  // defined(DEBUG)
 }
 
 
 void Monitor::Exit() {
-  // TODO(iposva): Do we need to track lock owners?
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(IsOwnedByCurrentThread());
+  owner_ = OSThread::kInvalidThreadId;
+#endif  // defined(DEBUG)
+
   int result = pthread_mutex_unlock(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
 }
 
 
 Monitor::WaitResult Monitor::Wait(int64_t millis) {
-  return WaitMicros(millis * kMicrosecondsPerMillisecond);
+  Monitor::WaitResult retval = WaitMicros(millis * kMicrosecondsPerMillisecond);
+  return retval;
 }
 
 
 Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
-  // TODO(iposva): Do we need to track lock owners?
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(IsOwnedByCurrentThread());
+  ThreadId saved_owner = owner_;
+  owner_ = OSThread::kInvalidThreadId;
+#endif  // defined(DEBUG)
+
   Monitor::WaitResult retval = kNotified;
   if (micros == kNoTimeout) {
     // Wait forever.
@@ -352,19 +391,28 @@ Monitor::WaitResult Monitor::WaitMicros(int64_t micros) {
       retval = kTimedOut;
     }
   }
+
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+  owner_ = OSThread::GetCurrentThreadId();
+  ASSERT(owner_ == saved_owner);
+#endif  // defined(DEBUG)
   return retval;
 }
 
 
 void Monitor::Notify() {
-  // TODO(iposva): Do we need to track lock owners?
+  // When running with assertions enabled we track the owner.
+  ASSERT(IsOwnedByCurrentThread());
   int result = pthread_cond_signal(data_.cond());
   VALIDATE_PTHREAD_RESULT(result);
 }
 
 
 void Monitor::NotifyAll() {
-  // TODO(iposva): Do we need to track lock owners?
+  // When running with assertions enabled we track the owner.
+  ASSERT(IsOwnedByCurrentThread());
   int result = pthread_cond_broadcast(data_.cond());
   VALIDATE_PTHREAD_RESULT(result);
 }

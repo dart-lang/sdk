@@ -87,10 +87,11 @@ main(List<String> arguments) {
   // Prepend "dart:" to the names.
   uris.addAll(names.map((String name) => Uri.parse('dart:$name')));
 
-  Uri libraryRoot = myLocation.resolve(SDK_ROOT);
+  Uri platformConfigUri = myLocation.resolve(SDK_ROOT)
+      .resolve("lib/dart2js_shared_sdk");
   Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
 
-  analyze(uris, libraryRoot, packageRoot, handler.provider, handler)
+  analyze(uris, platformConfigUri, packageRoot, handler.provider, handler)
       .then(processMirrors);
 }
 

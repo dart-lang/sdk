@@ -34,7 +34,7 @@ class LocalVariable : public ZoneAllocated {
       is_invisible_(false),
       is_captured_parameter_(false),
       index_(LocalVariable::kUninitializedIndex) {
-    ASSERT(type.IsZoneHandle());
+    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
   }

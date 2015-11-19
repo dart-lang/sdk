@@ -68,11 +68,6 @@ regress_22976_test/02: CompileTimeError # Issue 23132
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 
-if_null_assignment_behavior_test/29: Crash # Issue 23611
-prefix_assignment_test/01: Crash # Issue 23611
-prefix_assignment_test/02: Crash # Issue 23611
-prefix_identifier_reference_test/05: Crash # Issue 23611
-
 const_error_multiply_initialized_test/02: CompileTimeError # Issue 23618
 const_error_multiply_initialized_test/04: CompileTimeError # Issue 23618
 
@@ -175,8 +170,6 @@ const_switch_test/04: RuntimeError # Issue 17960
 const_dynamic_type_literal_test/02: CompileTimeError # Issue 23009
 const_dynamic_type_literal_test/03: CompileTimeError # Issue 23009
 
-generic_field_mixin4_test: Crash # Issue 18651
-
 # Compilation errors.
 method_override5_test: RuntimeError # Issue 12809
 external_test/10: CompileTimeError # Issue 12887
@@ -227,6 +220,7 @@ cha_deopt*: Pass,RuntimeError # Issue 17458
 regress_22443_test: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $cps_ir == false ]
+generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
 
@@ -272,7 +266,6 @@ async_star_regression_fisk_test: Crash # (fisk()async*{res.ad...  cannot handle 
 async_star_stream_take_test: Crash # (Stream makeStream(i...  cannot handle sync*/async* functions
 async_star_take_reyield_test: Crash # (fivePartialSums(Str...  cannot handle sync*/async* functions
 async_star_test: Crash # (f()async*{}): cannot handle sync*/async* functions
-async_this_bound_test: RuntimeError # Cannot read property 'set$f' of undefined
 asyncstar_concat_test: Crash # (concat(a,b)async*{yield* a;yield* b;}): cannot handle sync*/async* functions
 asyncstar_throw_in_catch_test: Crash # (foo4(Tracer tracer)...  cannot handle sync*/async* functions
 asyncstar_yield_test: Crash # (Stream<int> foo4()a...  cannot handle sync*/async* functions
@@ -280,10 +273,6 @@ asyncstar_yieldstar_test: Crash # (foo2(Stream subStream)async*{yield* subStream
 await_for_cancel_test: Crash # (await for(var x in controller.stream){for(int j=0;j<10;j++ ){if(j==5)continue outer;}}): await for
 await_for_test: Crash # (await for(var x in infiniteStream()){i++ ;if(i>10)break;t4.record(x);}): await for
 await_for_use_local_test: Crash # (await for(var v in s){accum+= v;}): await for
-await_future_test: RuntimeError # Cannot read property '_await_future_test$_box_0' of undefined
-await_postfix_expr_test: RuntimeError # Please triage this failure.
-await_regression_test: RuntimeError # "Obelix".then$1 is not a function
-await_test: RuntimeError # Cannot read property '$add' of undefined
 cha_deopt1_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt2_test: Crash # (d.make_u()): deferred access is not implemented
 cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
@@ -291,7 +280,6 @@ closure_in_constructor_test: RuntimeError # Please triage this failure.
 closures_initializer_test: RuntimeError # Please triage this failure.
 constructor12_test: RuntimeError # Please triage this failure.
 crash_6725_test/01: Crash # unsupported operation on erroneous element
-cyclic_default_values_test: RuntimeError # Z.cyclic_default_values_test__foo$closure is not a function
 deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
 deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
 deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function
@@ -338,12 +326,10 @@ deferred_type_dependency_test/none: Crash # (lib2.getInstance()): deferred acces
 deferred_type_dependency_test/type_annotation: Crash # (lib1.fooAnnotation("string")): deferred access is not implemented
 field3a_negative_test: Fail # Bogus result from type inference in case of invalid program.
 first_class_types_test: RuntimeError # Please triage this failure.
-for2_test: Crash # The null object does not have a getter 'field'.
-for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
 generic2_test: RuntimeError # Please triage this failure.
-generic_field_mixin3_test: RuntimeError # Please triage this failure.
 generic_instanceof_test: RuntimeError # Please triage this failure.
 generic_native_test: RuntimeError # Please triage this failure.
+gc_test: Crash # Internal Error: Pending statics (see above).
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
@@ -360,11 +346,8 @@ overridden_no_such_method_test: RuntimeError # Please triage this failure.
 regress_22443_test: RuntimeError # M.loadLibrary is not a function
 regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for
-super_bound_closure_test/01: RuntimeError # Cannot read property 'call' of undefined
-super_bound_closure_test/none: RuntimeError # Cannot read property 'call' of undefined
 super_call4_test: RuntimeError # Please triage this failure.
 super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
-super_implicit_closure_test: RuntimeError # Cannot read property 'call' of undefined
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
@@ -373,13 +356,6 @@ super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSe
 switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
 switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
 switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
-sync_generator1_test/01: RuntimeError # Expect.equals(expected: <(1, 2, 3, 5, [6])>, actual: <(1)>) fails.
-sync_generator1_test/none: RuntimeError # Expect.equals(expected: <(1, 2, 3, 5, [6])>, actual: <(1)>) fails.
-sync_generator3_test/test1: RuntimeError # Please triage this failure.
-sync_generator3_test/test2: RuntimeError # Please triage this failure.
-syncstar_yield_test/copyParameters: RuntimeError # Please triage this failure.
-syncstar_yield_test/none: RuntimeError # Please triage this failure.
-syncstar_yieldstar_test: RuntimeError # Please triage this failure.
 type_variable_closure2_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
 type_variable_field_initializer_test: RuntimeError # Please triage this failure.

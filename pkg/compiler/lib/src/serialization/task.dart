@@ -14,7 +14,8 @@ import '../compiler.dart' show
     Compiler;
 import '../elements/elements.dart';
 import '../enqueue.dart' show
-    ResolutionEnqueuer,
+    ResolutionEnqueuer;
+import '../universe/world_impact.dart' show
     WorldImpact;
 
 /// Task that supports deserialization of elements.

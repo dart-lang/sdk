@@ -23,7 +23,11 @@ class RemoveRefinements extends TrampolineRecursiveVisitor implements Pass {
     Expression next = node.body;
     if (node.primitive is Refinement) {
       Refinement refinement = node.primitive;
-      refinement.value.definition.substituteFor(refinement);
+      Primitive value = refinement.value.definition;
+      if (refinement.hint != null && value.hint == null) {
+        value.hint = refinement.hint;
+      }
+      value.substituteFor(refinement);
       refinement.destroy();
       node.remove();
     }

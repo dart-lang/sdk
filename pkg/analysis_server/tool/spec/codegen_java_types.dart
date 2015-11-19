@@ -7,68 +7,13 @@
  */
 library java.generator.types;
 
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
 
 import 'api.dart';
 import 'codegen_java.dart';
-import 'codegen_tools.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
-
-final String pathToGenTypes = 'generated/java/types/';
-
-final GeneratedDirectory targetDir = new GeneratedDirectory(pathToGenTypes, () {
-  Api api = readApi();
-  Map<String, ImpliedType> impliedTypes = computeImpliedTypes(api);
-  Map<String, FileContentsComputer> map =
-      new Map<String, FileContentsComputer>();
-  for (ImpliedType impliedType in impliedTypes.values) {
-    String typeNameInSpec = capitalize(impliedType.camelName);
-    bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
-    bool isRefactoringOption = impliedType.kind == 'refactoringOptions';
-    if (impliedType.kind == 'typeDefinition' ||
-        isRefactoringFeedback ||
-        isRefactoringOption) {
-      TypeDecl type = impliedType.type;
-      if (type is TypeObject || type is TypeEnum) {
-        // This is for situations such as 'Override' where the name in the spec
-        // doesn't match the java object that we generate:
-        String typeNameInJava = typeNameInSpec;
-        if (_typeRenames.containsKey(typeNameInSpec)) {
-          typeNameInJava = _typeRenames[typeNameInSpec];
-        }
-        map['${typeNameInJava}.java'] = () {
-          String superclassName = null;
-          if (isRefactoringFeedback) {
-            superclassName = 'RefactoringFeedback';
-          }
-          if (isRefactoringOption) {
-            superclassName = 'RefactoringOptions';
-          }
-          // configure accessors
-          bool generateGetters = true;
-          bool generateSetters = false;
-          if (isRefactoringOption ||
-              typeNameInSpec == 'Outline' ||
-              typeNameInSpec == 'RefactoringMethodParameter') {
-            generateSetters = true;
-          }
-          // create the visitor
-          CodegenJavaType visitor = new CodegenJavaType(api, typeNameInJava,
-              superclassName, generateGetters, generateSetters);
-          return visitor.collectCode(() {
-            dom.Element doc = type.html;
-            if (impliedType.apiNode is TypeDefinition) {
-              doc = (impliedType.apiNode as TypeDefinition).html;
-            }
-            visitor.emitType(type, doc);
-          });
-        };
-      }
-    }
-  }
-  return map;
-});
 
 /**
  * A map between the field names and values for the Element object such as:
@@ -105,12 +50,62 @@ const Map<String, String> _extraMethodsOnElement = const {
  */
 const Map<String, String> _typeRenames = const {'Override': 'OverrideMember',};
 
-/**
- * Translate spec_input.html into AnalysisServer.java.
- */
-main() {
-  targetDir.generate();
-}
+final String pathToGenTypes = 'tool/spec/generated/java/types';
+
+final GeneratedDirectory targetDir =
+    new GeneratedDirectory(pathToGenTypes, (String pkgPath) {
+  Api api = readApi(pkgPath);
+  Map<String, ImpliedType> impliedTypes = computeImpliedTypes(api);
+  Map<String, FileContentsComputer> map =
+      new Map<String, FileContentsComputer>();
+  for (ImpliedType impliedType in impliedTypes.values) {
+    String typeNameInSpec = capitalize(impliedType.camelName);
+    bool isRefactoringFeedback = impliedType.kind == 'refactoringFeedback';
+    bool isRefactoringOption = impliedType.kind == 'refactoringOptions';
+    if (impliedType.kind == 'typeDefinition' ||
+        isRefactoringFeedback ||
+        isRefactoringOption) {
+      TypeDecl type = impliedType.type;
+      if (type is TypeObject || type is TypeEnum) {
+        // This is for situations such as 'Override' where the name in the spec
+        // doesn't match the java object that we generate:
+        String typeNameInJava = typeNameInSpec;
+        if (_typeRenames.containsKey(typeNameInSpec)) {
+          typeNameInJava = _typeRenames[typeNameInSpec];
+        }
+        map['${typeNameInJava}.java'] = (String pkgPath) {
+          String superclassName = null;
+          if (isRefactoringFeedback) {
+            superclassName = 'RefactoringFeedback';
+          }
+          if (isRefactoringOption) {
+            superclassName = 'RefactoringOptions';
+          }
+          // configure accessors
+          bool generateGetters = true;
+          bool generateSetters = false;
+          if (isRefactoringOption ||
+              typeNameInSpec == 'Outline' ||
+              typeNameInSpec == 'RefactoringMethodParameter') {
+            generateSetters = true;
+          }
+          // create the visitor
+          CodegenJavaType visitor = new CodegenJavaType(api, typeNameInJava,
+              superclassName, generateGetters, generateSetters);
+          return visitor.collectCode(() {
+            dom.Element doc = type.html;
+            if (impliedType.apiNode is TypeDefinition) {
+              doc = (impliedType.apiNode as TypeDefinition).html;
+            }
+            visitor.emitType(type, doc);
+          });
+        };
+      }
+    }
+  }
+  print(map.keys);
+  return map;
+});
 
 class CodegenJavaType extends CodegenJavaVisitor {
   final String className;

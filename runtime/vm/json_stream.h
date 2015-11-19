@@ -109,6 +109,23 @@ class JSONStream : ValueObject {
   const char** param_keys() const { return param_keys_; }
   const char** param_values() const { return param_values_; }
 
+  void set_offset(intptr_t value) {
+    ASSERT(value > 0);
+    offset_ = value;
+  }
+
+  void set_count(intptr_t value) {
+    ASSERT(value > 0);
+    count_ = value;
+  }
+
+  void ComputeOffsetAndCount(intptr_t length,
+                             intptr_t* offset,
+                             intptr_t* count);
+
+  // Append |serialized_object| to the stream.
+  void AppendSerializedObject(const char* serialized_object);
+
  private:
   void Clear();
   void PostNullReply(Dart_Port port);
@@ -119,6 +136,7 @@ class JSONStream : ValueObject {
   void OpenArray(const char* property_name = NULL);
   void CloseArray();
 
+  void PrintValueNull();
   void PrintValueBool(bool b);
   void PrintValue(intptr_t i);
   void PrintValue64(int64_t i);
@@ -188,6 +206,8 @@ class JSONStream : ValueObject {
   const char** param_keys_;
   const char** param_values_;
   intptr_t num_params_;
+  intptr_t offset_;
+  intptr_t count_;
   int64_t setup_time_micros_;
 
   friend class JSONObject;
@@ -309,6 +329,7 @@ class JSONArray : public ValueObject {
     stream_->CloseArray();
   }
 
+  void AddValueNull() const { stream_->PrintValueNull(); }
   void AddValue(bool b) const { stream_->PrintValueBool(b); }
   void AddValue(intptr_t i) const { stream_->PrintValue(i); }
   void AddValue64(int64_t i) const { stream_->PrintValue64(i); }

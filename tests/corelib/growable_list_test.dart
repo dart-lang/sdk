@@ -88,8 +88,10 @@ void testConstructor() {
   }
   testFixedLength(new List<int>(0));
   testFixedLength(new List<int>(5));
+  testFixedLength(new List<int>.filled(5, null));  // default growable: false.
   testGrowable(new List<int>());
   testGrowable(new List<int>()..length = 5);
+  testGrowable(new List<int>.filled(5, null, growable: true));
   Expect.throws(() => new List<int>(-1), (e) => e is ArgumentError, "-1");
   // There must be limits. Fix this test if we ever allow 10^30 elements.
   Expect.throws(() => new List<int>(0x1000000000000000000000000000000),

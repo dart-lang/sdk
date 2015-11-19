@@ -11,6 +11,8 @@ class CodeEmitterHelper {
 
   JavaScriptBackend get backend => emitter.backend;
 
+  BackendHelpers get helpers => backend.helpers;
+
   CodeEmitterTask get task => emitter.task;
 
   Compiler get compiler => emitter.compiler;

@@ -208,6 +208,17 @@ class LineInfo {
     }
   }
 
+//  /**
+//   * Return the offset of the first character on the line with the given
+//   * [lineNumber].
+//   */
+//  int getLineOffset(int lineNumber) {
+//    if (lineNumber < 0 || lineNumber >= _lineStarts.length) {
+//      throw new ArgumentError('Invalid line number: $lineNumber');
+//    }
+//    return _lineStarts[lineNumber];
+//  }
+
   /**
    * Return the location information for the character at the given offset.
    *
@@ -743,7 +754,7 @@ class SourceFactory {
     } catch (exception, stackTrace) {
       String containingFullName =
           containingSource != null ? containingSource.fullName : '<null>';
-      AnalysisEngine.instance.logger.logError(
+      AnalysisEngine.instance.logger.logInformation(
           "Could not resolve URI ($containedUri) relative to source ($containingFullName)",
           new CaughtException(exception, stackTrace));
       return null;

@@ -22,7 +22,7 @@ void main() {
          '-o${tmpDir.path}/out.js',
          '--library-root=sdk']);
       return result.then((CompilationResult result) {
-        Compiler compiler = result.compiler;
+        CompilerImpl compiler = result.compiler;
         Uri mainUri = new Uri.file('${tmpDir.path}/out.js',
                                    windows: Platform.isWindows);
         Uri deferredUri = new Uri.file('${tmpDir.path}/out.js_1.part.js',

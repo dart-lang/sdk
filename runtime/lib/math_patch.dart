@@ -90,14 +90,18 @@ patch class Random {
                                         .._nextState()
                                         .._nextState();
   }
+
+  /*patch*/ factory Random.secure() {
+    return new _SecureRandom();
+  }
 }
 
 
 class _Random implements Random {
   // Internal state of the random number generator.
   final _state;
-  static const kSTATE_LO = 0;
-  static const kSTATE_HI = 1;
+  static const _kSTATE_LO = 0;
+  static const _kSTATE_HI = 1;  // Unused in Dart code.
 
   _Random._withState(Uint32List this._state);
 
@@ -106,32 +110,33 @@ class _Random implements Random {
   // The constant A is selected from "Numerical Recipes 3rd Edition" p.348 B1.
 
   // Implements:
-  //   var state = ((_A * (_state[kSTATE_LO])) + _state[kSTATE_HI]) & _MASK_64;
-  //   _state[kSTATE_LO] = state & _MASK_32;
-  //   _state[kSTATE_HI] = state >> 32;
+  //   var state =
+  //       ((_A * (_state[_kSTATE_LO])) + _state[_kSTATE_HI]) & ((1 << 64) - 1);
+  //   _state[_kSTATE_LO] = state & ((1 << 32) - 1);
+  //   _state[_kSTATE_HI] = state >> 32;
   // This is a native to prevent 64-bit operations in Dart, which
   // fail with --throw_on_javascript_int_overflow.
   void _nextState() native "Random_nextState";
 
   int nextInt(int max) {
     const limit = 0x3FFFFFFF;
-    if (max <= 0 || ((max > limit) && (max > _POW2_32))) {
-      throw new ArgumentError("max must be positive and < 2^32:"
-                                         " $max");
+    if ((max <= 0) || ((max > limit) && (max > _POW2_32))) {
+      throw new RangeError.range(max, 1, _POW2_32, "max",
+                                 "Must be positive and <= 2^32");
     }
     if ((max & -max) == max) {
       // Fast case for powers of two.
       _nextState();
-      return _state[kSTATE_LO] & (max - 1);
+      return _state[_kSTATE_LO] & (max - 1);
     }
 
     var rnd32;
     var result;
     do {
       _nextState();
-      rnd32 = _state[kSTATE_LO];
+      rnd32 = _state[_kSTATE_LO];
       result = rnd32 % max;
-    } while ((rnd32 - result + max) >= _POW2_32);
+    } while ((rnd32 - result + max) > _POW2_32);
     return result;
   }
 
@@ -143,9 +148,7 @@ class _Random implements Random {
     return nextInt(2) == 0;
   }
 
-  // Constants used by the algorithm or masking.
-  static const _MASK_32 = (1 << 32) - 1;
-  static const _MASK_64 = (1 << 64) - 1;
+  // Constants used by the algorithm.
   static const _POW2_32 = 1 << 32;
   static const _POW2_53_D = 1.0 * (1 << 53);
   static const _POW2_27_D = 1.0 * (1 << 27);
@@ -164,6 +167,46 @@ class _Random implements Random {
   static int _nextSeed() {
     // Trigger the PRNG once to change the internal state.
     _prng._nextState();
-    return _prng._state[kSTATE_LO];
+    return _prng._state[_kSTATE_LO];
   }
 }
+
+
+class _SecureRandom implements Random {
+  _SecureRandom() {
+    // Throw early in constructor if entropy source is not hooked up.
+    _getBytes(1);
+  }
+
+  // Return count bytes of entropy as a positive integer; count <= 8.
+  static int _getBytes(int count) native "SecureRandom_getBytes";
+
+  int nextInt(int max) {
+    RangeError.checkValueInInterval(
+        max, 1, _POW2_32, "max", "Must be positive and <= 2^32");
+    final byteCount = ((max - 1).bitLength + 7) >> 3;
+    if (byteCount == 0) {
+      return 0;  // Not random if max == 1.
+    }
+    var rnd;
+    var result;
+    do {
+      rnd = _getBytes(byteCount);
+      result = rnd % max;
+    } while ((rnd - result + max) > (1 << (byteCount << 3)));
+    return result;
+  }
+
+  double nextDouble() {
+    return (_getBytes(7) >> 3) / _POW2_53_D;
+  }
+
+  bool nextBool() {
+    return _getBytes(1).isEven;
+  }
+
+  // Constants used by the algorithm.
+  static const _POW2_32 = 1 << 32;
+  static const _POW2_53_D = 1.0 * (1 << 53);
+}
+

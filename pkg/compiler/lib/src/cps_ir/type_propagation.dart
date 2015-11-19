@@ -19,6 +19,8 @@ import '../dart_types.dart' as types;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show
     SourceInformation;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart' show
     JavaScriptBackend;
 import '../js_backend/codegen/task.dart' show
@@ -142,30 +144,30 @@ class ConstantPropagationLattice {
         typeSystem.isDefinitelyUint(value.type, allowNull: allowNull);
   }
 
-  bool isDefinitelyNativeList(AbstractValue value,
+  bool isDefinitelyArray(AbstractValue value,
                               {bool allowNull: false}) {
     return value.isNothing ||
-        typeSystem.isDefinitelyNativeList(value.type, allowNull: allowNull);
+        typeSystem.isDefinitelyArray(value.type, allowNull: allowNull);
   }
 
-  bool isDefinitelyMutableNativeList(AbstractValue value,
+  bool isDefinitelyMutableArray(AbstractValue value,
                                      {bool allowNull: false}) {
     return value.isNothing ||
-         typeSystem.isDefinitelyMutableNativeList(value.type,
+         typeSystem.isDefinitelyMutableArray(value.type,
                                                   allowNull: allowNull);
   }
 
-  bool isDefinitelyFixedNativeList(AbstractValue value,
+  bool isDefinitelyFixedArray(AbstractValue value,
                                    {bool allowNull: false}) {
     return value.isNothing ||
-        typeSystem.isDefinitelyFixedNativeList(value.type,
+        typeSystem.isDefinitelyFixedArray(value.type,
                                                allowNull: allowNull);
   }
 
-  bool isDefinitelyExtendableNativeList(AbstractValue value,
+  bool isDefinitelyExtendableArray(AbstractValue value,
                                         {bool allowNull: false}) {
     return value.isNothing ||
-        typeSystem.isDefinitelyExtendableNativeList(value.type,
+        typeSystem.isDefinitelyExtendableArray(value.type,
                                                     allowNull: allowNull);
   }
 
@@ -243,8 +245,15 @@ class ConstantPropagationLattice {
   ///
   /// This method returns `null` if a good result could not be found. In that
   /// case, it is best to fall back on interprocedural type information.
-  AbstractValue unaryOp(UnaryOperator operator,
-                        AbstractValue value) {
+  AbstractValue unaryOp(UnaryOperator operator, AbstractValue value) {
+    switch (operator.kind) {
+      case UnaryOperatorKind.COMPLEMENT:
+        return bitNotSpecial(value);
+      case UnaryOperatorKind.NEGATE:
+        return negateSpecial(value);
+      default:
+        break;
+    }
     // TODO(asgerf): Also return information about whether this can throw?
     if (value.isNothing) {
       return nothing;
@@ -333,6 +342,27 @@ class ConstantPropagationLattice {
     }
     return null; // The caller will use return type from type inference.
   }
+
+  AbstractValue foldUnary(UnaryOperation operation, AbstractValue value) {
+    if (value.isNothing) return nothing;
+    if (value.isConstant) {
+      ConstantValue result = operation.fold(value.constant);
+      if (result != null) return constant(result);
+    }
+    return null;
+  }
+
+  AbstractValue bitNotSpecial(AbstractValue value) {
+    return foldUnary(constantSystem.bitNot, value);
+  }
+
+  AbstractValue negateSpecial(AbstractValue value) {
+    AbstractValue folded = foldUnary(constantSystem.negate, value);
+    if (folded != null) return folded;
+    if (isDefinitelyInt(value)) return nonConstant(typeSystem.intType);
+    return null;
+  }
+
 
   AbstractValue foldBinary(BinaryOperation operation,
       AbstractValue left, AbstractValue right) {
@@ -492,7 +522,6 @@ class ConstantPropagationLattice {
     return foldBinary(constantSystem.greaterEqual, left, right);
   }
 
-
   AbstractValue stringConstant(String value) {
     return constant(new StringConstantValue(new ast.DartString.literal(value)));
   }
@@ -637,8 +666,10 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   final CpsFunctionCompiler functionCompiler;
 
   JavaScriptBackend get backend => compiler.backend;
+  BackendHelpers get helpers => backend.helpers;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
+  World get classWorld => typeSystem.classWorld;
   Map<Variable, ConstantValue> get values => analyzer.values;
 
   final InternalErrorFunction internalError;
@@ -938,17 +969,26 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Returns `true` if the node was replaced.
   bool specializeOperatorCall(InvokeMethod node) {
     Continuation cont = node.continuation.definition;
-    bool replaceWithBinary(BuiltinOperator operator,
-                           Primitive left,
-                           Primitive right) {
-      Primitive prim =
-          new ApplyBuiltinOperator(operator, <Primitive>[left, right],
-                                   node.sourceInformation);
+    bool replaceWithPrimitive(Primitive prim) {
       LetPrim let = makeLetPrimInvoke(prim, cont);
       replaceSubtree(node, let);
       push(let);
       return true; // So returning early is more convenient.
     }
+    bool replaceWithBinary(BuiltinOperator operator,
+                           Primitive left,
+                           Primitive right) {
+      return replaceWithPrimitive(
+          new ApplyBuiltinOperator(
+              operator, <Primitive>[left, right], node.sourceInformation));
+    }
+    bool replaceWithUnary(BuiltinOperator operator, Primitive argument) {
+      return replaceWithPrimitive(
+          new ApplyBuiltinOperator(
+              operator, <Primitive>[argument], node.sourceInformation));
+    }
+
+    bool trustPrimitives = compiler.trustPrimitives;
 
     if (node.selector.isOperator && node.arguments.length == 2) {
       Primitive leftArg = getDartReceiver(node);
@@ -971,8 +1011,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         for (Element target in getAllTargets(left.type, node.selector)) {
           ClassElement clazz = target.enclosingClass.declaration;
           if (clazz != compiler.world.objectClass &&
-              clazz != backend.jsInterceptorClass &&
-              clazz != backend.jsNullClass) {
+              clazz != helpers.jsInterceptorClass &&
+              clazz != helpers.jsNullClass) {
             behavesLikeIdentical = false;
             break;
           }
@@ -982,8 +1022,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                                    leftArg, rightArg);
         }
       } else {
-        if (lattice.isDefinitelyNum(left, allowNull: false) &&
-            lattice.isDefinitelyNum(right, allowNull: false)) {
+        if (lattice.isDefinitelyNum(left, allowNull: trustPrimitives) &&
+            lattice.isDefinitelyNum(right, allowNull: trustPrimitives)) {
           // Try to insert a numeric operator.
           BuiltinOperator operator = NumBinaryBuiltins[opname];
           if (operator != null) {
@@ -994,7 +1034,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           // shift count.
           // Try to insert a shift-left operator.
           if (opname == '<<' &&
-              lattice.isDefinitelyInt(left) &&
+              lattice.isDefinitelyInt(left, allowNull: trustPrimitives) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
             return replaceWithBinary(BuiltinOperator.NumShl, leftArg, rightArg);
           }
@@ -1002,14 +1042,14 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           // consistent with Dart's only for left operands in the unsigned
           // 32-bit range.
           if (opname == '>>' &&
-              lattice.isDefinitelyUint32(left) &&
+              lattice.isDefinitelyUint32(left, allowNull: trustPrimitives) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
             return replaceWithBinary(BuiltinOperator.NumShr, leftArg, rightArg);
           }
           // Try to use remainder for '%'. Both operands must be non-negative
           // and the divisor must be non-zero.
           if (opname == '%' &&
-              lattice.isDefinitelyUint(left) &&
+              lattice.isDefinitelyUint(left, allowNull: trustPrimitives) &&
               lattice.isDefinitelyUint(right) &&
               lattice.isDefinitelyIntInRange(right, min: 1)) {
             return replaceWithBinary(
@@ -1017,18 +1057,32 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           }
 
           if (opname == '~/' &&
-              lattice.isDefinitelyUint32(left) &&
+              lattice.isDefinitelyUint32(left, allowNull: trustPrimitives) &&
               lattice.isDefinitelyIntInRange(right, min: 2)) {
             return replaceWithBinary(
                 BuiltinOperator.NumTruncatingDivideToSigned32,
                 leftArg, rightArg);
           }
         }
-        if (lattice.isDefinitelyString(left, allowNull: false) &&
-            lattice.isDefinitelyString(right, allowNull: false) &&
+        if (lattice.isDefinitelyString(left, allowNull: trustPrimitives) &&
+            lattice.isDefinitelyString(right, allowNull: trustPrimitives) &&
             opname == '+') {
           return replaceWithBinary(BuiltinOperator.StringConcatenate,
                                    leftArg, rightArg);
+        }
+      }
+    }
+    if (node.selector.isOperator && node.arguments.length == 1) {
+      Primitive argument = getDartReceiver(node);
+      AbstractValue value = getValue(argument);
+
+      if (lattice.isDefinitelyNum(value, allowNull: false)) {
+        String opname = node.selector.name;
+        if (opname == '~') {
+          return replaceWithUnary(BuiltinOperator.NumBitNot, argument);
+        }
+        if (opname == 'unary-') {
+          return replaceWithUnary(BuiltinOperator.NumNegate, argument);
         }
       }
     }
@@ -1092,7 +1146,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     if (target is! FieldElement) return false;
     // TODO(asgerf): Inlining native fields will make some tests pass for the
     // wrong reason, so for testing reasons avoid inlining them.
-    if (target.isNative || target.isJsInterop) return false;
+    if (backend.isNative(target) || backend.isJsInterop(target)) {
+      return false;
+    }
     Continuation cont = node.continuation.definition;
     if (node.selector.isGetter) {
       GetField get = new GetField(getDartReceiver(node), target);
@@ -1125,6 +1181,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                               Primitive index,
                               SourceInformation sourceInfo) {
     CpsFragment cps = new CpsFragment(sourceInfo);
+    if (compiler.trustPrimitives) {
+      return cps;
+    }
     Continuation fail = cps.letCont();
     Primitive isTooSmall = cps.applyBuiltin(
         BuiltinOperator.NumLt,
@@ -1135,7 +1194,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         <Primitive>[index, cps.letPrim(new GetLength(list))]);
     cps.ifTruthy(isTooLarge).invokeContinuation(fail);
     cps.insideContinuation(fail).invokeStaticThrower(
-        backend.helpers.throwIndexOutOfBoundsError,
+        helpers.throwIndexOutOfBoundsError,
         <Primitive>[list, index]);
     return cps;
   }
@@ -1153,7 +1212,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         BuiltinOperator.StrictNeq,
         <Primitive>[originalLength, cps.letPrim(new GetLength(list))]);
     cps.ifTruthy(lengthChanged).invokeStaticThrower(
-        backend.helpers.throwConcurrentModificationError,
+        helpers.throwConcurrentModificationError,
         <Primitive>[list]);
     return cps;
   }
@@ -1190,8 +1249,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return true;
 
       case '[]=':
-        if (receiverValue.isNullable) return false;
-        if (!typeSystem.isDefinitelyMutableIndexable(receiverValue.type)) {
+        if (!typeSystem.isDefinitelyMutableIndexable(receiverValue.type,
+                allowNull: true)) {
           return false;
         }
         Primitive index = getDartArgument(node, 0);
@@ -1218,15 +1277,15 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     Primitive list = getDartReceiver(node);
     AbstractValue listValue = getValue(list);
     // Ensure that the object is a native list or null.
-    if (!lattice.isDefinitelyNativeList(listValue, allowNull: true)) {
+    if (!lattice.isDefinitelyArray(listValue, allowNull: true)) {
       return false;
     }
     bool isFixedLength =
-        lattice.isDefinitelyFixedNativeList(listValue, allowNull: true);
+        lattice.isDefinitelyFixedArray(listValue, allowNull: true);
     bool isMutable =
-        lattice.isDefinitelyMutableNativeList(listValue, allowNull: true);
+        lattice.isDefinitelyMutableArray(listValue, allowNull: true);
     bool isExtendable =
-        lattice.isDefinitelyExtendableNativeList(listValue, allowNull: true);
+        lattice.isDefinitelyExtendableArray(listValue, allowNull: true);
     SourceInformation sourceInfo = node.sourceInformation;
     Continuation cont = node.continuation.definition;
     switch (node.selector.name) {
@@ -1260,7 +1319,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             [length, cps.makeZero()]);
         CpsFragment fail = cps.ifTruthy(isEmpty);
         fail.invokeStaticThrower(
-            backend.helpers.throwIndexOutOfBoundsError,
+            helpers.throwIndexOutOfBoundsError,
             [list, fail.makeConstant(new IntConstantValue(-1))]);
         Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
             list,
@@ -1718,6 +1777,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     if (specializeSingleUseClosureCall(node)) return;
     if (specializeClosureCall(node)) return;
 
+    node.mask =
+      typeSystem.intersection(node.mask, getValue(getDartReceiver(node)).type);
+
     AbstractValue receiver = getValue(node.receiver.definition);
 
     if (node.receiverIsIntercepted &&
@@ -1827,6 +1889,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   bool inlineInvokeStatic(InvokeStatic node) {
     // The target might not have an AST, for example if it deferred.
     if (!node.target.hasNode) return false;
+
+    if (node.target.asyncMarker != AsyncMarker.SYNC) {
+      // Inlining of async/sync*/async* methods is currently not supported.
+      return false;
+    }
 
     // True if an expression is non-expansive, in the sense defined by this
     // predicate.
@@ -2147,37 +2214,154 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
   Primitive visitInterceptor(Interceptor node) {
     AbstractValue value = getValue(node.input.definition);
-    // If the exact class of the input is known, replace with a constant
-    // or the input itself.
-    ClassElement singleClass;
-    if (lattice.isDefinitelyInt(value)) {
-      // Classes like JSUInt31 and JSUInt32 do not exist at runtime, so ensure
-      // all the int classes get mapped tor their runtime class.
-      singleClass = backend.jsIntClass;
-    } else if (lattice.isDefinitelyNativeList(value)) {
-      // Ensure all the array subclasses get mapped to the array class.
-      singleClass = backend.jsArrayClass;
-    } else {
-      singleClass = typeSystem.singleClass(value.type);
-    }
-    if (singleClass != null &&
-        singleClass.isSubclassOf(backend.jsInterceptorClass)) {
-      node.constantValue = new InterceptorConstantValue(singleClass.rawType);
-    }
-    // Filter out intercepted classes that do not match the input type.
-    node.interceptedClasses.retainWhere((ClassElement clazz) {
-      if (clazz == typeSystem.jsNullClass) {
-        return value.isNullable;
-      } else {
-        TypeMask classMask = typeSystem.nonNullSubclass(clazz);
-        return !typeSystem.areDisjoint(value.type, classMask);
+    TypeMask interceptedInputs = value.type.intersection(
+        typeSystem.interceptorType.nullable(), classWorld);
+    bool interceptNull =
+        node.interceptedClasses.contains(helpers.jsNullClass) ||
+        node.interceptedClasses.contains(helpers.jsInterceptorClass);
+
+    void filterInterceptedClasses() {
+      if (lattice.isDefinitelyInt(value, allowNull: !interceptNull)) {
+        node.interceptedClasses..clear()..add(helpers.jsIntClass);
+        return;
       }
-    });
+      if (lattice.isDefinitelyNum(value, allowNull: !interceptNull) &&
+                  jsNumberClassSuffices(node)) {
+        node.interceptedClasses..clear()..add(helpers.jsNumberClass);
+        return;
+      }
+      TypeMask interceptedClassesType = new TypeMask.unionOf(
+          node.interceptedClasses.map(typeSystem.getInterceptorSubtypes),
+          classWorld);
+      TypeMask interceptedAndCaught =
+          interceptedInputs.intersection(interceptedClassesType, classWorld);
+      ClassElement single = interceptedAndCaught.singleClass(classWorld);
+      if (single != null) {
+        node.interceptedClasses..clear()..add(backend.getRuntimeClass(single));
+        return;
+      }
+
+      // Filter out intercepted classes that do not match the input type.
+      node.interceptedClasses.retainWhere((ClassElement clazz) {
+        return !typeSystem.areDisjoint(
+            value.type,
+            typeSystem.getInterceptorSubtypes(clazz));
+      });
+
+      // The interceptor root class will usually not be filtered out because all
+      // intercepted values are subtypes of it.  But it can be "shadowed" by a
+      // more specific interceptor classes if all possible intercepted values
+      // will hit one of the more specific classes.
+      //
+      // For example, if all classes can respond to a given call, but we know
+      // the input is a string or an unknown JavaScript object, we want to
+      // use a specialized interceptor:
+      //
+      //   getInterceptor(x).get$hashCode(x);
+      //     ==>
+      //   getInterceptor$su(x).get$hashCode(x)
+      //
+      // In this case, the intercepted classes that were not filtered out above
+      // are {UnknownJavaScriptObject, JSString, Interceptor}, but there is no
+      // need to include the Interceptor class.
+      //
+      // We only do this optimization if the resulting interceptor call is
+      // sufficiently specialized to be worth it (#classes <= 2).
+      // TODO(asgerf): Reconsider when TypeTest interceptors don't intercept
+      //               ALL interceptor classes.
+      if (node.interceptedClasses.length > 1 &&
+          node.interceptedClasses.length < 4 &&
+          node.interceptedClasses.contains(helpers.jsInterceptorClass)) {
+        TypeMask specificInterceptors = new TypeMask.unionOf(
+            node.interceptedClasses
+              .where((cl) => cl != helpers.jsInterceptorClass)
+              .map(typeSystem.getInterceptorSubtypes),
+            classWorld);
+        if (specificInterceptors.containsMask(interceptedInputs, classWorld)) {
+          // All possible inputs are caught by an Interceptor subclass (or are
+          // self-interceptors), so there is no need to have the check for
+          // the Interceptor root class (which is expensive).
+          node.interceptedClasses.remove(helpers.jsInterceptorClass);
+        }
+      }
+    }
+
+    filterInterceptedClasses();
+
     // Remove the interceptor call if it can only return its input.
     if (node.interceptedClasses.isEmpty) {
       node.input.definition.substituteFor(node);
+      return null;
+    }
+
+    node.flags = Interceptor.ALL_FLAGS;
+
+    // If there is only one caught interceptor class, determine more precisely
+    // how this might resolve at runtime.  Later optimizations depend on this,
+    // but do not have refined type information available.
+    if (node.interceptedClasses.length == 1) {
+      ClassElement class_ = node.interceptedClasses.single;
+      if (value.isDefinitelyNotNull) {
+        node.clearFlag(Interceptor.NULL);
+      } else if (interceptNull) {
+        node.clearFlag(Interceptor.NULL_BYPASS);
+        if (class_ == helpers.jsNullClass) {
+          node.clearFlag(Interceptor.NULL_INTERCEPT_SUBCLASS);
+        } else {
+          node.clearFlag(Interceptor.NULL_INTERCEPT_EXACT);
+        }
+      } else {
+        node.clearFlag(Interceptor.NULL_INTERCEPT);
+      }
+      if (typeSystem.isDefinitelyIntercepted(value.type, allowNull: true)) {
+        node.clearFlag(Interceptor.SELF_INTERCEPT);
+      }
+      TypeMask interceptedInputsNonNullable = interceptedInputs.nonNullable();
+      TypeMask interceptedType = typeSystem.getInterceptorSubtypes(class_);
+      if (interceptedType.containsMask(interceptedInputsNonNullable,
+              classWorld)) {
+        node.clearFlag(Interceptor.NON_NULL_BYPASS);
+      }
+      if (class_ == helpers.jsNumberClass) {
+        // See [jsNumberClassSuffices].  We know that JSInt and JSDouble are
+        // not intercepted classes so JSNumber is sufficient.
+        node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
+      } else if (class_ == helpers.jsArrayClass) {
+        // JSArray has compile-time subclasses like JSFixedArray, but should
+        // still be considered "exact" if the input is any subclass of JSArray.
+        if (typeSystem.isDefinitelyArray(interceptedInputsNonNullable)) {
+          node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
+        }
+      } else {
+        TypeMask exactInterceptedType = typeSystem.nonNullExact(class_);
+        if (exactInterceptedType.containsMask(interceptedInputsNonNullable,
+                classWorld)) {
+          node.clearFlag(Interceptor.NON_NULL_INTERCEPT_SUBCLASS);
+        }
+      }
     }
     return null;
+  }
+
+  bool jsNumberClassSuffices(Interceptor node) {
+    // No methods on JSNumber call 'down' to methods on JSInt or JSDouble.  If
+    // all uses of the interceptor are for methods is defined only on JSNumber
+    // then JSNumber will suffice in place of choosing between JSInt or
+    // JSDouble.
+    for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
+      if (ref.parent is InvokeMethod) {
+        InvokeMethod invoke = ref.parent;
+        if (invoke.receiver != ref) return false;
+        var interceptedClasses =
+            functionCompiler.glue.getInterceptedClassesOn(invoke.selector);
+        if (interceptedClasses.contains(helpers.jsDoubleClass)) return false;
+        if (interceptedClasses.contains(helpers.jsIntClass)) return false;
+        continue;
+      }
+      // Other uses need full distinction.
+      return false;
+    }
+    return true;
   }
 }
 
@@ -2209,6 +2393,8 @@ class TypePropagationVisitor implements Visitor {
   TypeMaskSystem get typeSystem => lattice.typeSystem;
 
   JavaScriptBackend get backend => typeSystem.backend;
+
+  dart2js.Compiler get compiler => backend.compiler;
 
   World get classWorld => typeSystem.classWorld;
 
@@ -2447,6 +2633,19 @@ class TypePropagationVisitor implements Visitor {
     if (receiver.isNothing) {
       return;  // And come back later.
     }
+
+    // Constant fold known length of containers.
+    if (node.selector == Selectors.length) {
+      AbstractValue object = getValue(getDartReceiver(node));
+      if (typeSystem.isDefinitelyIndexable(object.type, allowNull: true)) {
+        int length = typeSystem.getContainerLength(object.type.nonNullable());
+        if (length != null) {
+          setResult(node, constantValue(new IntConstantValue(length)),
+              canReplace: !object.isNullable);
+        }
+      }
+    }
+
     if (!node.selector.isOperator) {
       // TODO(jgruber): Handle known methods on constants such as String.length.
       setResult(node, lattice.getInvokeReturnType(node.selector, node.mask));
@@ -2482,6 +2681,12 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+
+    void unaryOp(AbstractValue operation(AbstractValue argument),
+                 TypeMask defaultType) {
+      AbstractValue value = getValue(node.arguments[0].definition);
+      setValue(node, operation(value) ?? nonConstant(defaultType));
+    }
 
     void binaryOp(
         AbstractValue operation(AbstractValue left, AbstractValue right),
@@ -2624,6 +2829,14 @@ class TypePropagationVisitor implements Visitor {
         binaryBoolOp(lattice.greaterEqualSpecial);
         break;
 
+      case BuiltinOperator.NumBitNot:
+        unaryOp(lattice.bitNotSpecial, typeSystem.uint32Type);
+        break;
+
+      case BuiltinOperator.NumNegate:
+        unaryOp(lattice.negateSpecial, typeSystem.numType);
+        break;
+
       case BuiltinOperator.StrictNeq:
       case BuiltinOperator.LooseNeq:
       case BuiltinOperator.IsFalsy:
@@ -2659,7 +2872,11 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeConstructor(InvokeConstructor node) {
-    setResult(node, nonConstant(typeSystem.getReturnType(node.target)));
+    if (node.allocationSiteType != null) {
+      setResult(node, nonConstant(node.allocationSiteType));
+    } else {
+      setResult(node, nonConstant(typeSystem.getReturnType(node.target)));
+    }
   }
 
   void visitThrow(Throw node) {
@@ -2744,7 +2961,7 @@ class TypePropagationVisitor implements Visitor {
         setReachable(cont);
         // Narrow type of output to those that survive the cast.
         TypeMask type = input.type.intersection(
-            typeSystem.subtypesOf(node.dartType),
+            typeSystem.subtypesOf(node.dartType).nullable(),
             classWorld);
         setValue(cont.parameters.single, nonConstant(type));
         break;
@@ -2756,9 +2973,11 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitLiteralList(LiteralList node) {
-    // Constant lists are translated into (Constant ListConstant(...)) IR nodes,
-    // and thus LiteralList nodes are NonConst.
-    setValue(node, nonConstant(typeSystem.extendableNativeListType));
+    if (node.allocationSiteType != null) {
+      setValue(node, nonConstant(node.allocationSiteType));
+    } else {
+      setValue(node, nonConstant(typeSystem.extendableArrayType));
+    }
   }
 
   void visitLiteralMap(LiteralMap node) {
@@ -2819,7 +3038,7 @@ class TypePropagationVisitor implements Visitor {
     if (value.isNothing) {
       setValue(node, nothing);
     } else if (value.isNullable &&
-        !node.interceptedClasses.contains(backend.jsNullClass)) {
+        !node.interceptedClasses.contains(backend.helpers.jsNullClass)) {
       // If the input is null and null is not mapped to an interceptor then
       // null gets returned.
       // TODO(asgerf): Add the NullInterceptor when it enables us to
@@ -2832,7 +3051,7 @@ class TypePropagationVisitor implements Visitor {
 
   void visitGetField(GetField node) {
     node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
-    setValue(node, nonConstant(typeSystem.getFieldType(node.field)));
+    setValue(node, lattice.fromMask(typeSystem.getFieldType(node.field)));
   }
 
   void visitSetField(SetField node) {}
@@ -2884,7 +3103,7 @@ class TypePropagationVisitor implements Visitor {
       // own bounds-check elimination?
       setValue(node, constantValue(new IntConstantValue(length)));
     } else {
-      setValue(node, nonConstant(typeSystem.intType));
+      setValue(node, nonConstant(typeSystem.uint32Type));
     }
   }
 
@@ -2969,6 +3188,7 @@ class AbstractValue {
   bool get isNonConst => (kind == NONCONST);
   bool get isNullConstant => kind == CONSTANT && constant.isNull;
   bool get isTrueConstant => kind == CONSTANT && constant.isTrue;
+  bool get isFalseConstant => kind == CONSTANT && constant.isFalse;
 
   bool get isNullable => kind != NOTHING && type.isNullable;
   bool get isDefinitelyNotNull => kind == NOTHING || !type.isNullable;

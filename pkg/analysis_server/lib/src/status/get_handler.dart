@@ -515,7 +515,7 @@ class GetHandler {
           //
           // Write task model timing information.
           //
-          buffer.write('<p><b>Task performace data</b></p>');
+          buffer.write('<p><b>Task performance data</b></p>');
           buffer.write(
               '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
           _writeRow(
@@ -557,51 +557,6 @@ class GetHandler {
               classes: [null, "right", "right", "right"]);
           buffer.write('</table>');
         });
-        //
-        // Write task model inputs timing information.
-        //
-        {
-          buffer.write('<p><b>Task inputs performace data</b></p>');
-          buffer.write(
-              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-          _writeRow(
-              buffer,
-              [
-                'Task Name',
-                'Count',
-                'Total Time (in ms)',
-                'Average Time (in ms)'
-              ],
-              header: true);
-
-          Map<TaskDescriptor, int> countMap = WorkItem.countMap;
-          Map<TaskDescriptor, Stopwatch> stopwatchMap = WorkItem.stopwatchMap;
-          List<TaskDescriptor> taskClasses = stopwatchMap.keys.toList();
-          taskClasses.sort((TaskDescriptor first, TaskDescriptor second) {
-            String firstName = first.name;
-            String secondName = second.name;
-            return firstName.compareTo(secondName);
-          });
-          taskClasses.forEach((TaskDescriptor descriptor) {
-            int count = countMap[descriptor];
-            if (count == null) {
-              count = 0;
-            }
-            int taskTime = stopwatchMap[descriptor].elapsedMilliseconds;
-            _writeRow(buffer, [
-              descriptor.name,
-              count,
-              taskTime,
-              count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
-            ], classes: [
-              null,
-              "right",
-              "right",
-              "right"
-            ]);
-          });
-          buffer.write('</table>');
-        }
       });
     });
   }
@@ -1558,6 +1513,12 @@ class GetHandler {
     }
   }
 
+  void _writeListItem(StringBuffer buffer, writer()) {
+    buffer.write('<li>');
+    writer();
+    buffer.write('</li>');
+  }
+
   void _writeListOfStrings(
       StringBuffer buffer, String listName, Iterable<String> items) {
     List<String> itemList = items.toList();
@@ -1566,12 +1527,12 @@ class GetHandler {
       b = b.toLowerCase();
       return a.compareTo(b);
     });
-    buffer.write('List "listName" containing ${itemList.length} entries:');
+    buffer.write('List "$listName" containing ${itemList.length} entries:');
     buffer.write('<ul>');
     for (String member in itemList) {
-      buffer.write('<li>');
-      buffer.write(member);
-      buffer.write('</li>');
+      _writeListItem(buffer, () {
+        buffer.write(member);
+      });
     }
     buffer.write('</ul>');
   }
@@ -1769,6 +1730,9 @@ class GetHandler {
       buffer.write('<br>');
       buffer.write('Version: ');
       buffer.write(AnalysisServer.VERSION);
+      buffer.write('<br>');
+      buffer.write('Process ID: ');
+      buffer.write(pid);
       buffer.write('</p>');
 
       buffer.write('<p><b>Performance Data</b></p>');
@@ -1929,9 +1893,9 @@ class GetHandler {
       buffer.write('List containing ${value.length} entries');
       buffer.write('<ul>');
       for (var entry in value) {
-        buffer.write('<li>');
-        _writeValueAsHtml(buffer, entry, linkParameters);
-        buffer.write('</li>');
+        _writeListItem(buffer, () {
+          _writeValueAsHtml(buffer, entry, linkParameters);
+        });
       }
       buffer.write('</ul>');
     } else if (value is AstNode) {
@@ -1944,19 +1908,24 @@ class GetHandler {
       buffer.write('<i>$link</i>');
     } else if (value is UsedLocalElements) {
       buffer.write('<ul>');
-      {
+      _writeListItem(buffer, () {
         HashSet<Element> elements = value.elements;
         buffer.write('List "elements" containing ${elements.length} entries');
         buffer.write('<ul>');
         for (Element element in elements) {
-          buffer.write('<li>');
-          buffer.write('<i>${element.runtimeType}</i>  $element');
-          buffer.write('</li>');
+          _writeListItem(buffer, () {
+            String elementStr = HTML_ESCAPE.convert(element.toString());
+            buffer.write('<i>${element.runtimeType}</i>  $elementStr');
+          });
         }
         buffer.write('</ul>');
-      }
-      _writeListOfStrings(buffer, 'members', value.members);
-      _writeListOfStrings(buffer, 'readMembers', value.readMembers);
+      });
+      _writeListItem(buffer, () {
+        _writeListOfStrings(buffer, 'members', value.members);
+      });
+      _writeListItem(buffer, () {
+        _writeListOfStrings(buffer, 'readMembers', value.readMembers);
+      });
       buffer.write('</ul>');
     } else {
       buffer.write(HTML_ESCAPE.convert(value.toString()));

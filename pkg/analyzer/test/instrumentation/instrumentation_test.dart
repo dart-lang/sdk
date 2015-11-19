@@ -4,6 +4,8 @@
 
 library test.instrumentation;
 
+import 'dart:async';
+
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:unittest/unittest.dart';
 
@@ -174,7 +176,7 @@ class TestInstrumentationServer implements InstrumentationServer {
   }
 
   @override
-  void shutdown() {
+  Future shutdown() async {
     // Ignored
   }
 }

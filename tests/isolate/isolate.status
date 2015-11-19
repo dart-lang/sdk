@@ -18,7 +18,7 @@ ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
 kill3_test: Pass, Fail    # Bad test: expects total message order
 
-message3_test/int32x4: Crash # Issue 21818
+message3_test/int32x4: Crash, Timeout # Issue 21818
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 *: Skip # Isolate tests are timing out flakily on Android content_shell.  Issue 19795
@@ -93,6 +93,9 @@ nested_spawn2_test: Skip # Issue 19127: This test is timing out.
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 
+[ $compiler == none && $runtime == dartium && $arch == x64 ]
+isolate/spawn_uri_multi_test/01: Skip # Times out. Issue 24795
+
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 typed_message_test: Crash, Fail # Issue 13921, 14400
 message_enum_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
@@ -141,3 +144,25 @@ package_map_test: SkipByDesign  # Uses Isolate.packageMap
 [ $compiler == dart2js && $cps_ir ]
 deferred_in_isolate2_test: RuntimeError # A.loadLibrary is not a function
 isolate_current_test: RuntimeError # Please triage this failure.
+
+[ $noopt ]
+# Imports dart:mirrors
+count_test: CompileTimeError
+cross_isolate_message_test: CompileTimeError
+illegal_msg_function_test: CompileTimeError
+illegal_msg_mirror_test: CompileTimeError
+isolate_complex_messages_test: CompileTimeError
+mandel_isolate_test: CompileTimeError
+message2_test: CompileTimeError
+message_test: CompileTimeError
+mint_maker_test: CompileTimeError
+nested_spawn2_test: CompileTimeError
+nested_spawn_test: CompileTimeError
+raw_port_test: CompileTimeError
+request_reply_test: CompileTimeError
+spawn_function_custom_class_test: CompileTimeError
+spawn_function_test: CompileTimeError
+stacktrace_message_test: CompileTimeError
+stacktrace_message_test: CompileTimeError
+static_function_test: CompileTimeError
+unresolved_ports_test: CompileTimeError

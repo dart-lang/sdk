@@ -63,8 +63,8 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     args.SetAt(0, port_int);
     args.SetAt(1, send_port);
     args.SetAt(2, name);
-    Object& r = Object::Handle(service_isolate_->current_zone());
-    r = DartEntry::InvokeFunction(register_function_, args);
+    const Object& r = Object::Handle(
+        DartEntry::InvokeFunction(register_function_, args));
     if (FLAG_trace_service) {
       OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
                 name.ToCString(),
@@ -144,6 +144,11 @@ DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
   Service::CancelStream(stream_id.ToCString());
   return Object::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0) {
+  return Service::RequestAssets();
 }
 
 }  // namespace dart

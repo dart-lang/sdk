@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:compiler/src/parser/element_listener.dart";
 import "package:compiler/src/parser/node_listener.dart";
 import "package:compiler/src/parser/parser.dart";
 import "package:compiler/src/scanner/string_scanner.dart";
@@ -91,7 +92,8 @@ String doUnparse(String source) {
   CompilationUnitElement element = new CompilationUnitElementX(script, lib);
   StringScanner scanner = new StringScanner.fromString(source);
   Token beginToken = scanner.tokenize();
-  NodeListener listener = new NodeListener(diagnosticListener, element);
+  NodeListener listener = new NodeListener(
+      const ScannerOptions(), diagnosticListener, element);
   Parser parser = new Parser(listener);
   parser.parseUnit(beginToken);
   Node node = listener.popNode();

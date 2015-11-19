@@ -34,7 +34,9 @@ wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant
 
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
-js_typed_interop_test: Pass, Fail # Issue 24822
+
+[ $compiler == dart2js && $checked && $browser ]
+js_typed_interop_test/method: Fail # Issue 24822
 
 [ $compiler == dart2js && $csp && $browser ]
 custom/js_custom_test: Fail # Issue 14643
@@ -370,6 +372,10 @@ shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 websql_test/supported: Fail
+
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+mediasource_test/supported: Pass
+mediasource_test/functional: RuntimeError # Issue 24838
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.

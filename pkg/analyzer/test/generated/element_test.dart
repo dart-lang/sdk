@@ -1889,14 +1889,13 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
-  void test_setTypeArguments() {
+  void test_withTypeArguments() {
     ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
     MethodElementImpl methodElement =
         new MethodElementImpl.forNode(AstFactory.identifier3("m"));
     enclosingClass.methods = <MethodElement>[methodElement];
     FunctionTypeImpl type = new FunctionTypeImpl(methodElement);
     DartType expectedType = enclosingClass.typeParameters[0].type;
-    type.typeArguments = <DartType>[expectedType];
     List<DartType> arguments = type.typeArguments;
     expect(arguments, hasLength(1));
     expect(arguments[0], expectedType);
@@ -1916,7 +1915,6 @@ class FunctionTypeImplTest extends EngineTestCase {
     functionElement.returnType = parameterType;
     definingClass.methods = <MethodElement>[functionElement];
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
-    functionType.typeArguments = <DartType>[parameterType];
     InterfaceTypeImpl argumentType = new InterfaceTypeImpl(
         new ClassElementImpl.forNode(AstFactory.identifier3("D")));
     FunctionType result = functionType.substitute2(
@@ -2426,11 +2424,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
     DartType typeE = classA.type.typeArguments[0];
     String getterName = "g";
-    PropertyAccessorElement getterG =
+    PropertyAccessorElementImpl getterG =
         ElementFactory.getterElement(getterName, false, typeE);
     classA.accessors = <PropertyAccessorElement>[getterG];
-    (getterG.type as FunctionTypeImpl).typeArguments =
-        classA.type.typeArguments;
+    getterG.type = new FunctionTypeImpl(getterG);
     //
     // A<I>
     //
@@ -2753,8 +2750,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
     classA.methods = <MethodElement>[methodM];
-    (methodM.type as FunctionTypeImpl).typeArguments =
-        classA.type.typeArguments;
+    methodM.type = new FunctionTypeImpl(methodM);
     //
     // A<I>
     //
@@ -2858,11 +2854,10 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
     DartType typeE = classA.type.typeArguments[0];
     String setterName = "s";
-    PropertyAccessorElement setterS =
+    PropertyAccessorElementImpl setterS =
         ElementFactory.setterElement(setterName, false, typeE);
     classA.accessors = <PropertyAccessorElement>[setterS];
-    (setterS.type as FunctionTypeImpl).typeArguments =
-        classA.type.typeArguments;
+    setterS.type = new FunctionTypeImpl(setterS);
     //
     // A<I>
     //
@@ -3523,8 +3518,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElementImpl methodM =
         ElementFactory.methodElement(methodName, typeE, [typeE]);
     classA.methods = <MethodElement>[methodM];
-    (methodM.type as FunctionTypeImpl).typeArguments =
-        classA.type.typeArguments;
+    methodM.type = new FunctionTypeImpl(methodM);
     ClassElementImpl classB = ElementFactory.classElement2("B", ["F"]);
     InterfaceType typeB = classB.type;
     InterfaceTypeImpl typeAF = new InterfaceTypeImpl(classA);

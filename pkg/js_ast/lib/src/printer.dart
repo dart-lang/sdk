@@ -933,7 +933,10 @@ class Printer implements NodeVisitor {
       LiteralString selectorString = selector;
       String fieldWithQuotes = selectorString.value;
       if (isValidJavaScriptId(fieldWithQuotes)) {
-        if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
+        if (access.receiver is LiteralNumber &&
+            lastCharCode != charCodes.$CLOSE_PAREN) {
+          out(" ", isWhitespace: true);
+        }
         out(".");
         startNode(selector);
         out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
@@ -941,7 +944,10 @@ class Printer implements NodeVisitor {
         return;
       }
     } else if (selector is Name) {
-      if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
+      if (access.receiver is LiteralNumber &&
+          lastCharCode != charCodes.$CLOSE_PAREN) {
+        out(" ", isWhitespace: true);
+      }
       out(".");
       startNode(selector);
       selector.accept(this);

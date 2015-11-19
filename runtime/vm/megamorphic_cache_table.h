@@ -30,14 +30,6 @@ class MegamorphicCacheTable : public AllStatic {
                                      const Array& descriptor);
 
   static void PrintSizes(Isolate* isolate);
-
- private:
-  enum {
-    kEntryNameOffset = 0,
-    kEntryDescriptorOffset,
-    kEntryCacheOffset,
-    kEntrySize
-  };
 };
 
 }  // namespace dart

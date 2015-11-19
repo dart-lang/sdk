@@ -9,7 +9,6 @@
 #include "vm/flags.h"
 #include "vm/handles_impl.h"
 #include "vm/heap.h"
-#include "vm/isolate.h"
 #include "vm/os.h"
 
 namespace dart {

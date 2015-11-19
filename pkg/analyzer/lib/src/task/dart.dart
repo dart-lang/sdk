@@ -2144,11 +2144,19 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
       String inputName = result.name + '_input';
       errorLists.add(getRequiredInput(inputName));
     }
+
+    //
+    // Gather error filters.
+    //
+    List<ErrorFilter> filters =
+        context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
     for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
       String inputName = result.name + '_input';
       Map<Source, List<AnalysisError>> errorMap = getRequiredInput(inputName);
       for (List<AnalysisError> errors in errorMap.values) {
-        errorLists.add(errors);
+        errorLists.add(errors.where((AnalysisError error) {
+          return !filters.any((ErrorFilter filter) => filter(error));
+        }).toList());
       }
     }
     //
@@ -3251,6 +3259,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     AnalysisOptions options = context.analysisOptions;
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     parser.parseGenericMethods = options.enableGenericMethods;
+    parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 
@@ -4429,6 +4438,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
           errorListener);
       scanner.setSourceStart(fragment.line, fragment.column);
       scanner.preserveComments = context.analysisOptions.preserveComments;
+      scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
       outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
@@ -4439,6 +4449,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       Scanner scanner =
           new Scanner(source, new CharSequenceReader(content), errorListener);
       scanner.preserveComments = context.analysisOptions.preserveComments;
+      scanner.scanGenericMethodComments = context.analysisOptions.strongMode;
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
       outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);

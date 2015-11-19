@@ -8,9 +8,29 @@
 
 import os
 import sys
+import utils
 
 from os.path import join
 from optparse import OptionParser
+
+HOST_OS = utils.GuessOS()
+
+
+def makeString(input_file):
+  # TODO(iposva): For now avoid creating overly long strings on Windows.
+  if HOST_OS == 'win32':
+    return 'NULL'
+  result = '"'
+  fileHandle = open(input_file, 'rb')
+  lineCounter = 0
+  for byte in fileHandle.read():
+    result += '\\x%02x' % ord(byte)
+    lineCounter += 1
+    if lineCounter == 19:
+      result += '"\n "'
+      lineCounter = 0
+  result += '"'
+  return result
 
 
 def makeFile(output_file, input_cc_file, include, var_name, lib_name, in_files):
@@ -29,15 +49,17 @@ def makeFile(output_file, input_cc_file, include, var_name, lib_name, in_files):
             main_file_found = True
             bootstrap_cc_text = bootstrap_cc_text.replace(
                  "{{LIBRARY_SOURCE_MAP}}",
-                 ' "' + lib_name + '", "' +
-                 os.path.abspath(string_file).replace('\\', '\\\\') + '", \n')
+                 ' "' + lib_name + '",\n "' +
+                 os.path.abspath(string_file).replace('\\', '\\\\') + '",\n' +
+                 ' ' + makeString(string_file) + ',\n')
         inpt.close()
         if (main_file_found):
           continue
       part_index.append(' "' +
-          os.path.basename(string_file).replace('\\', '\\\\') + '", ')
-      part_index.append('"' +
-          os.path.abspath(string_file).replace('\\', '\\\\') + '", \n')
+          os.path.basename(string_file).replace('\\', '\\\\') + '",\n')
+      part_index.append(' "' +
+          os.path.abspath(string_file).replace('\\', '\\\\') + '",\n')
+      part_index.append(' ' + makeString(string_file) + ',\n\n')
   bootstrap_cc_text = bootstrap_cc_text.replace("{{LIBRARY_SOURCE_MAP}}", '')
   bootstrap_cc_text = bootstrap_cc_text.replace("{{PART_SOURCE_MAP}}",
                                                 ''.join(part_index))

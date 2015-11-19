@@ -119,10 +119,8 @@ class Variable extends Node {
   /// - catch parameter in a [Try]
   int writeCount = 0;
 
-  /// True if a nested function reads or writes this variable.
-  ///
-  /// Always false in JS-mode because closure conversion eliminated nested
-  /// functions.
+  /// True if an inner JS function might access this variable through a
+  /// [ForeignCode] node.
   bool isCaptured = false;
 
   Variable(this.host, this.element) {
@@ -235,6 +233,8 @@ class InvokeMethodDirectly extends Expression implements Invoke {
 
   InvokeMethodDirectly(this.receiver, this.target, this.selector,
       this.arguments, this.sourceInformation);
+
+  bool get isTearOff => selector.isGetter && !target.isGetter;
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeMethodDirectly(this);
   accept1(ExpressionVisitor1 visitor, arg) {

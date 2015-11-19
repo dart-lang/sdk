@@ -17,11 +17,22 @@ const char* kPrecompiledLibraryName = "precompiled.dll";
 const char* kPrecompiledSymbolName = "_kInstructionsSnapshot";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
+  SetLastError(0);
   return LoadLibraryW(StringUtilsWin::Utf8ToWide(library_file));
 }
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
+  SetLastError(0);
   return GetProcAddress(reinterpret_cast<HMODULE>(lib_handle), symbol);
+}
+
+Dart_Handle Extensions::GetError() {
+  int last_error = GetLastError();
+  if (last_error != 0) {
+    OSError err;
+    return Dart_NewApiError(err.message());
+  }
+  return Dart_Null();
 }
 
 }  // namespace bin

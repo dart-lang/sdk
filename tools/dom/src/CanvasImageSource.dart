@@ -33,11 +33,10 @@ part of html;
  *
  * ## Other resources
  *
- * * [Image sources for 2D rendering contexts]
- * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
- * from WHATWG.
- * * [Drawing images]
- * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
- * from WHATWG.
+ * * [Image sources for 2D rendering
+ *   contexts](https://html.spec.whatwg.org/multipage/scripting.html#image-sources-for-2d-rendering-contexts)
+ *   from WHATWG.
+ * * [Drawing images](https://html.spec.whatwg.org/multipage/scripting.html#dom-context-2d-drawimage)
+ *   from WHATWG.
  */
 abstract class CanvasImageSource {}

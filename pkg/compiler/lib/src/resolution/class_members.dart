@@ -314,20 +314,21 @@ abstract class MembersCreator {
   void checkImplementsFunctionWithCall() {
     assert(!cls.isAbstract);
 
-    if (cls.asInstanceOf(compiler.functionClass) == null) return;
+    ClassElement functionClass = compiler.coreClasses.functionClass;
+    if (cls.asInstanceOf(functionClass) == null) return;
     if (cls.lookupMember(Identifiers.call) != null) return;
     // TODO(johnniwinther): Make separate methods for backend exceptions.
     // Avoid warnings on backend implementation classes for closures.
     if (compiler.backend.isBackendLibrary(cls.library)) return;
 
-    reportMessage(compiler.functionClass, MessageKind.UNIMPLEMENTED_METHOD, () {
+    reportMessage(functionClass, MessageKind.UNIMPLEMENTED_METHOD, () {
       reporter.reportWarningMessage(
           cls,
           MessageKind.UNIMPLEMENTED_METHOD_ONE,
           {'class': cls.name,
            'name': Identifiers.call,
            'method': Identifiers.call,
-           'declarer': compiler.functionClass.name});
+           'declarer': functionClass.name});
     });
   }
 

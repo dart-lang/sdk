@@ -34,8 +34,10 @@ class NativeEmitter {
 
   JavaScriptBackend get backend => compiler.backend;
 
+  BackendHelpers get helpers => backend.helpers;
+
   jsAst.Expression get defPropFunction {
-    Element element = backend.findHelper('defineProperty');
+    Element element = helpers.defineProperty;
     return emitterTask.staticFunctionAccess(element);
   }
 
@@ -86,11 +88,11 @@ class NativeEmitter {
     Class jsInterceptorClass = null;
 
     void walk(Class cls) {
-      if (cls.element == compiler.objectClass) {
+      if (cls.element == compiler.coreClasses.objectClass) {
         objectClass = cls;
         return;
       }
-      if (cls.element == backend.jsInterceptorClass) {
+      if (cls.element == helpers.jsInterceptorClass) {
         jsInterceptorClass = cls;
         return;
       }
@@ -134,9 +136,10 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(cls)) {
         needed = true;
       }
-      if (classElement.isJsInterop) {
+      if (backend.isJsInterop(classElement)) {
         needed = true;  // TODO(jacobr): we don't need all interop classes.
-      } else if (cls.isNative && native.nativeTagsForcedNonLeaf(classElement)) {
+      } else if (cls.isNative &&
+                 backend.hasNativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonLeafClasses.add(cls);
       }
@@ -155,8 +158,8 @@ class NativeEmitter {
 
     for (Class cls in classes) {
       if (!cls.isNative) continue;
-      if (cls.element.isJsInterop) continue;
-      List<String> nativeTags = native.nativeTagsOfClass(cls.element);
+      if (backend.isJsInterop(cls.element)) continue;
+      List<String> nativeTags = backend.getNativeTagsOfClass(cls.element);
 
       if (nonLeafClasses.contains(cls) ||
           extensionPoints.containsKey(cls)) {
@@ -261,7 +264,7 @@ class NativeEmitter {
       FunctionElement member,
       List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.functionSignature;
-    Element converter = backend.findHelper('convertDartClosureToJS');
+    Element converter = helpers.closureConverter;
     jsAst.Expression closureConverter =
         emitterTask.staticFunctionAccess(converter);
     parameters.forEachParameter((ParameterElement parameter) {
@@ -312,7 +315,7 @@ class NativeEmitter {
     assert(invariant(member, nativeMethods.contains(member)));
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
-    target = member.fixedBackendName;
+    target = backend.getFixedBackendName(member);
 
     if (isInterceptedMethod) {
       receiver = argumentsBuffer[0];
@@ -323,7 +326,7 @@ class NativeEmitter {
       assert(invariant(member, member.isStatic));
       arguments = argumentsBuffer.sublist(0,
           indexOfLastOptionalArgumentInParameters + 1);
-      if (member.isJsInterop) {
+      if (backend.isJsInterop(member)) {
         // fixedBackendPath is allowed to have the form foo.bar.baz for
         // interop. This template is uncached to avoid possibly running out of
         // memory when Dart2Js is run in server mode. In reality the risk of
@@ -359,7 +362,7 @@ class NativeEmitter {
     // is whether the receiver can be native, not the type of the test.
     if (element == null || !element.isClass) return false;
     ClassElement cls = element;
-    if (Elements.isNativeOrExtendsNative(cls)) return true;
+    if (backend.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);
   }
 }

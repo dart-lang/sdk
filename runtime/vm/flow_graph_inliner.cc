@@ -618,13 +618,20 @@ class CallSiteInliner : public ValueObject {
                              function.ToCString(),
                              function.deoptimization_counter()));
 
-    // Make a handle for the unoptimized code so that it is not disconnected
-    // from the function while we are trying to inline it.
-    const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     // Abort if the inlinable bit on the function is low.
     if (!function.CanBeInlined()) {
       TRACE_INLINING(THR_Print("     Bailout: not inlinable\n"));
       PRINT_INLINING_TREE("Not inlinable",
+          &call_data->caller, &function, call_data->call);
+      return false;
+    }
+
+    // Function has no type feedback. With precompilation we don't rely on
+    // type feedback.
+    if (!Compiler::always_optimize() &&
+        function.ic_data_array() == Object::null()) {
+      TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
+      PRINT_INLINING_TREE("Not compiled",
           &call_data->caller, &function, call_data->call);
       return false;
     }
@@ -693,7 +700,8 @@ class CallSiteInliner : public ValueObject {
       // Load IC data for the callee.
       ZoneGrowableArray<const ICData*>* ic_data_array =
             new(Z) ZoneGrowableArray<const ICData*>();
-      function.RestoreICDataMap(ic_data_array);
+      const bool clone_descriptors = Compiler::IsBackgroundCompilation();
+      function.RestoreICDataMap(ic_data_array, clone_descriptors);
 
       // Build the callee graph.
       InlineExitCollector* exit_collector =
@@ -701,7 +709,7 @@ class CallSiteInliner : public ValueObject {
       FlowGraphBuilder builder(*parsed_function,
                                *ic_data_array,
                                exit_collector,
-                               Thread::kNoDeoptId);
+                               Compiler::kNoOSRDeoptId);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
@@ -862,9 +870,6 @@ class CallSiteInliner : public ValueObject {
       FlowGraphInliner::SetInliningId(callee_graph,
           inliner_->NextInlineId(callee_graph->function(),
                                  call_data->caller_inlining_id_));
-      // We allocate a ZoneHandle for the unoptimized code so that it cannot be
-      // disconnected from its function during the rest of compilation.
-      Code::ZoneHandle(unoptimized_code.raw());
       TRACE_INLINING(THR_Print("     Success\n"));
       PRINT_INLINING_TREE(NULL,
           &call_data->caller, &function, call);
@@ -1128,7 +1133,12 @@ class CallSiteInliner : public ValueObject {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
         // PolymorphicInliner introduces deoptimization paths.
-        if (!FLAG_polymorphic_with_deopt) return;
+        if (!FLAG_polymorphic_with_deopt) {
+          TRACE_INLINING(THR_Print(
+              "  => %s\n     Bailout: call with checks\n",
+              call->instance_call()->function_name().ToCString()));
+          continue;
+        }
         const Function& cl = call_info[call_idx].caller();
         intptr_t caller_inlining_id =
             call_info[call_idx].caller_graph->inlining_id();
@@ -1497,7 +1507,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     GraphEntryInstr* graph_entry =
         new(Z) GraphEntryInstr(*temp_parsed_function,
                                entry,
-                               Thread::kNoDeoptId);  // No OSR id.
+                               Compiler::kNoOSRDeoptId);
     // Update polymorphic inliner state.
     inlined_entries_.Add(graph_entry);
     exit_collector_->Union(exit_collector);

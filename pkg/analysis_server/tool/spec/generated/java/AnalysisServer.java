@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -271,6 +271,13 @@ public interface AnalysisServer {
    * @param offset The offset within the file at which suggestions are to be made.
    */
   public void completion_getSuggestions(String file, int offset, GetSuggestionsConsumer consumer);
+
+  /**
+   * {@code diagnostic.getDiagnostics}
+   *
+   * Return server diagnostics.
+   */
+  public void diagnostic_getDiagnostics(GetDiagnosticsConsumer consumer);
 
   /**
    * {@code edit.format}

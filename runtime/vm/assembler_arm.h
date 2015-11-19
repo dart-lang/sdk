@@ -321,6 +321,11 @@ class Address : public ValueObject {
 
   Mode mode() const { return static_cast<Mode>(encoding() & kModeMask); }
 
+  bool has_writeback() const {
+    return (mode() == PreIndex) || (mode() == PostIndex) ||
+           (mode() == NegPreIndex) || (mode() == NegPostIndex);
+  }
+
   uint32_t encoding() const { return encoding_; }
 
   // Encoding for addressing mode 3.
@@ -513,8 +518,11 @@ class Assembler : public ValueObject {
   // ldrd and strd actually support the full range of addressing modes, but
   // we don't use them, and we need to split them up into two instructions for
   // ARMv5TE, so we only support the base + offset mode.
-  void ldrd(Register rd, Register rn, int32_t offset, Condition cond = AL);
-  void strd(Register rd, Register rn, int32_t offset, Condition cond = AL);
+  // rd must be an even register and rd2 must be rd + 1.
+  void ldrd(Register rd, Register rd2, Register rn, int32_t offset,
+            Condition cond = AL);
+  void strd(Register rd, Register rd2, Register rn, int32_t offset,
+            Condition cond = AL);
 
   void ldm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);
@@ -1197,7 +1205,8 @@ class Assembler : public ValueObject {
                               Condition cond = AL);
   // Writes new_value to address and its shadow location, if enabled, after
   // verifying that its old value matches its shadow.
-  void VerifiedWrite(const Address& address,
+  void VerifiedWrite(Register object,
+                     const Address& address,
                      Register new_value,
                      FieldContent old_content);
 

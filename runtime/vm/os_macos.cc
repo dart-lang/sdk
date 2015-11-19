@@ -16,7 +16,8 @@
 #include <sys/resource.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 #if TARGET_OS_IOS
-#include <sys/sysctl.h>
+#include <sys/sysctl.h>  // NOLINT
+#include <syslog.h>  // NOLINT
 #endif
 
 #include "platform/utils.h"
@@ -26,7 +27,11 @@
 namespace dart {
 
 const char* OS::Name() {
+#if TARGET_OS_IOS
+  return "ios";
+#else
   return "macos";
+#endif
 }
 
 
@@ -141,9 +146,25 @@ void OS::AlignedFree(void* ptr) {
 
 
 intptr_t OS::ActivationFrameAlignment() {
+#if TARGET_OS_IOS
+#if TARGET_ARCH_ARM
+  // Even if we generate code that maintains a stronger alignment, we cannot
+  // assert the stronger stack alignment because C++ code will not maintain it.
+  return 8;
+#elif TARGET_ARCH_ARM64
+  return 16;
+#elif TARGET_ARCH_IA32
+  return 16;  // iOS simulator
+#elif TARGET_ARCH_X64
+  return 16;  // iOS simulator
+#else
+#error Unimplemented
+#endif
+#else  // TARGET_OS_IOS
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
   // Function Call Guide".
   return 16;
+#endif  // TARGET_OS_IOS
 }
 
 
@@ -224,10 +245,17 @@ char* OS::StrNDup(const char* s, intptr_t n) {
 
 
 void OS::Print(const char* format, ...) {
+#if TARGET_OS_IOS
+  va_list args;
+  va_start(args, format);
+  vsyslog(LOG_INFO, format, args);
+  va_end(args);
+#else
   va_list args;
   va_start(args, format);
   VFPrint(stdout, format, args);
   va_end(args);
+#endif
 }
 
 
@@ -312,10 +340,17 @@ void OS::RegisterCodeObservers() {
 
 
 void OS::PrintErr(const char* format, ...) {
+#if TARGET_OS_IOS
+  va_list args;
+  va_start(args, format);
+  vsyslog(LOG_ERR, format, args);
+  va_end(args);
+#else
   va_list args;
   va_start(args, format);
   VFPrint(stderr, format, args);
   va_end(args);
+#endif
 }
 
 

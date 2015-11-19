@@ -626,6 +626,7 @@ class RawObject {
   friend class WeakProperty;  // StorePointer
   friend class Instance;  // StorePointer
   friend class StackFrame;  // GetCodeObject assertion.
+  friend class CodeLookupTableBuilder;  // profiler
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -650,7 +651,6 @@ class RawClass : public RawObject {
   RawArray* functions_hash_table_;
   RawArray* fields_;
   RawArray* offset_in_words_to_field_;
-  RawGrowableObjectArray* closure_functions_;  // Local functions and literals.
   RawArray* interfaces_;  // Array of AbstractType.
   RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawScript* script_;
@@ -658,7 +658,6 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
-  RawClass* patch_class_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawObject* canonical_types_;  // An array of canonicalized types of this class
@@ -919,7 +918,7 @@ class RawTokenStream : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->private_key_);
   }
   RawString* private_key_;  // Key used for private identifiers.
-  RawArray* token_objects_;
+  RawGrowableObjectArray* token_objects_;
   RawExternalTypedData* stream_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->stream_);
@@ -944,6 +943,9 @@ class RawScript : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
   RawString* url_;
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->url_);
+  }
   RawTokenStream* tokens_;
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->tokens_);
@@ -976,6 +978,7 @@ class RawLibrary : public RawObject {
   RawArray* dictionary_;         // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
   RawArray* anonymous_classes_;  // Classes containing top-level elements.
+  RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
   RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
@@ -1045,9 +1048,12 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawArray* stackmaps_;
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
+  }
   RawArray* deopt_info_array_;
   RawArray* static_calls_target_table_;  // (code-offset, function, code).
-  RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
   RawArray* inlined_metadata_;
   RawArray* comments_;
@@ -1108,14 +1114,6 @@ class RawObjectPool : public RawObject {
 
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_);
-  }
-  RawCode* code_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_);
-  }
 
   int32_t size_;
 
@@ -1421,8 +1419,10 @@ class RawMegamorphicCache : public RawObject {
   }
   RawArray* buckets_;
   RawSmi* mask_;
+  RawString* target_name_;     // Name of target function.
+  RawArray* args_descriptor_;  // Arguments descriptor.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->mask_);
+    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
   }
 
   int32_t filled_entry_count_;

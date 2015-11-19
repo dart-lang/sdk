@@ -176,7 +176,7 @@ void testLibraryTags() {
         ..registerSource(partUri, partSource)
         ..registerSource(libUri, libSource);
 
-    asyncTest(() => compiler.runCompiler(uri).then((_) {
+    asyncTest(() => compiler.run(uri).then((_) {
       compiler.enqueuer.resolution.queueIsClosed = false;
       LibraryElement element = compiler.libraryLoader.lookupLibrary(uri);
       Expect.isNotNull(element, 'Cannot find $uri');

@@ -310,8 +310,24 @@ String _getDeclarationName(mirrors.DeclarationMirror declaration) {
 final _JS_LIBRARY_PREFIX = "js_library";
 final _UNDEFINED_VAR = "_UNDEFINED_JS_CONST";
 
-String _accessJsPath(String path) =>
-    "${_JS_LIBRARY_PREFIX}.context${path.split(".").map((p) => "['$p']").join('')}";
+String _accessJsPath(String path) => _accessJsPathHelper(path.split("."));
+
+String _accessJsPathHelper(Iterable<String> parts) {
+  var sb = new StringBuffer();
+  sb
+    ..write('${_JS_LIBRARY_PREFIX}.JsNative.getProperty(' * parts.length)
+    ..write("${_JS_LIBRARY_PREFIX}.context");
+  for (var p in parts) {
+    sb.write(", '$p')");
+  }
+  return sb.toString();
+}
+
+String _accessJsPathSetter(String path) {
+  var parts = path.split(".");
+  return "${_JS_LIBRARY_PREFIX}.JsNative.setProperty(${_accessJsPathHelper(parts.getRange(0, parts.length - 1))
+      }, '${parts.last}', v)";
+}
 
 @Deprecated("Internal Use Only")
 void addMemberHelper(
@@ -331,9 +347,9 @@ void addMemberHelper(
   }
   sb.write(" ");
   if (declaration.isGetter) {
-    sb.write("get $name => ${_accessJsPath(path)};");
+    sb.write("get $name => ${_JS_LIBRARY_PREFIX}.maybeWrapTypedInterop(${_accessJsPath(path)});");
   } else if (declaration.isSetter) {
-    sb.write("set $name(v) => ${_accessJsPath(path)} = v;");
+    sb.write("set $name(v) => ${_JS_LIBRARY_PREFIX}.maybeWrapTypedInterop(${_accessJsPathSetter(path)});");
   } else {
     sb.write("$name(");
     bool hasOptional = false;
@@ -362,6 +378,7 @@ void addMemberHelper(
     }
     // TODO(jacobr):
     sb.write(") => ");
+    sb.write('${_JS_LIBRARY_PREFIX}.maybeWrapTypedInterop(');
     if (declaration.isConstructor) {
       sb.write("new ${_JS_LIBRARY_PREFIX}.JsObject(");
     }
@@ -373,18 +390,17 @@ void addMemberHelper(
     if (hasOptional) {
       sb.write(".takeWhile((i) => i != ${_UNDEFINED_VAR}).toList()");
     }
-    sb.write(");");
+    sb.write("));");
   }
   sb.write("\n");
 }
 
-// TODO(jacobr): make this check more robust.
-bool _isExternal(mirrors.Mirror mirror) {
-  /*
-  var source = mirror.source;
-  return source != null && source.startsWith("external ");
-  */
-  return mirror.isExternal;
+bool _isExternal(mirrors.MethodMirror mirror) {
+  // This try-catch block is a workaround for BUG:24834.
+  try {
+    return mirror.isExternal;
+  } catch (e) { }
+  return false;
 }
 
 List<String> _generateExternalMethods() {
@@ -853,6 +869,10 @@ JsObject get context {
   return _cachedContext;
 }
 
+@Deprecated("Internal Use Only")
+maybeWrapTypedInterop(o) =>
+    html_common.wrap_jso_no_SerializedScriptvalue(o);
+
 _maybeWrap(o) {
   var wrapped = html_common.wrap_jso_no_SerializedScriptvalue(o);
   if (identical(wrapped, o)) return o;
@@ -1102,7 +1122,7 @@ class JsObject extends NativeFieldWrapperClass2 {
         throwError();
       } else {
         // TODO(jacobr): should we throw if the JavaScript object doesn't have the property?
-        return this[name];
+        return maybeWrapTypedInterop(this._operator_getter(name));
       }
     } else if (invocation.isSetter) {
       if (CHECK_JS_INVOCATIONS) {
@@ -1112,7 +1132,8 @@ class JsObject extends NativeFieldWrapperClass2 {
       }
       assert(name.endsWith("="));
       name = name.substring(0, name.length - 1);
-      return this[name] = invocation.positionalArguments.first;
+      return maybeWrapTypedInterop(_operator_setter(
+          name, invocation.positionalArguments.first));
     } else {
       // TODO(jacobr): also allow calling getters that look like functions.
       var matches;
@@ -1121,7 +1142,7 @@ class JsObject extends NativeFieldWrapperClass2 {
         if (matches == null ||
             !matches.checkInvocation(invocation)) throwError();
       }
-      var ret = this.callMethod(name, _buildArgs(invocation));
+      var ret = maybeWrapTypedInterop(this._callMethod(name, _buildArgs(invocation)));
       if (CHECK_JS_INVOCATIONS) {
         if (!matches._checkReturnType(ret)) throwError();
       }
@@ -1136,12 +1157,17 @@ class JsObject extends NativeFieldWrapperClass2 {
 // Warning: this API is not exposed to dart:js.
 @Deprecated("Internal Use Only")
 class JsNative {
-  static getProperty(JsObject o, name) {
-    return o._operator_getter(name);
+  static getProperty(o, name) {
+    o = unwrap_jso(o);
+    return o != null ? o._operator_getter(name) : null;
   }
 
-  static callMethod(JsObject o, String method, List args) {
-    return o._callMethod(method, args);
+  static setProperty(o, name, value) {
+    return unwrap_jso(o)._operator_setter(name, value);
+  }
+
+  static callMethod(o, String method, List args) {
+    return unwrap_jso(o)._callMethod(method, args);
   }
 
   static getArrayIndex(JsArray array, int index) {

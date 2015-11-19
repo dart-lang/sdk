@@ -582,6 +582,10 @@ final coreImports = [
   {
     "name": "Uri",
     "kind": "class"
+  },
+  {
+    "name": "UriData",
+    "kind": "class"
   }
 ];
 

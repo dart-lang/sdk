@@ -161,6 +161,7 @@ uword Heap::AllocatePretenured(intptr_t size) {
 void Heap::AllocateExternal(intptr_t size, Space space) {
   ASSERT(Thread::Current()->no_safepoint_scope_depth() == 0);
   if (space == kNew) {
+    isolate()->AssertCurrentThreadIsMutator();
     new_space_.AllocateExternal(size);
     if (new_space_.ExternalInWords() > (FLAG_new_gen_ext_limit * MBInWords)) {
       // Attempt to free some external allocation by a scavenge. (If the total
@@ -473,10 +474,10 @@ bool Heap::GrowthControlState() {
 }
 
 
-void Heap::WriteProtect(bool read_only) {
+void Heap::WriteProtect(bool read_only, bool include_code_pages) {
   read_only_ = read_only;
   new_space_.WriteProtect(read_only);
-  old_space_.WriteProtect(read_only);
+  old_space_.WriteProtect(read_only, include_code_pages);
 }
 
 
@@ -787,7 +788,7 @@ void Heap::PrintStats() {
 
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
-    : StackResource(Isolate::Current()) {
+    : StackResource(Thread::Current()) {
     Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
     current_growth_controller_state_ = heap->GrowthControlState();
     heap->DisableGrowthControl();
@@ -800,15 +801,16 @@ NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
 }
 
 
-WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread)
-    : StackResource(thread) {
-  Dart::vm_isolate()->heap()->WriteProtect(false);
+WritableVMIsolateScope::WritableVMIsolateScope(Thread* thread,
+                                               bool include_code_pages)
+    : StackResource(thread), include_code_pages_(include_code_pages) {
+  Dart::vm_isolate()->heap()->WriteProtect(false, include_code_pages_);
 }
 
 
 WritableVMIsolateScope::~WritableVMIsolateScope() {
   ASSERT(Dart::vm_isolate()->heap()->UsedInWords(Heap::kNew) == 0);
-  Dart::vm_isolate()->heap()->WriteProtect(true);
+  Dart::vm_isolate()->heap()->WriteProtect(true, include_code_pages_);
 }
 
 }  // namespace dart
