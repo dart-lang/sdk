@@ -27,6 +27,18 @@ All files in the project must start with the following header.
     // for details. All rights reserved. Use of this source code is governed by a
     // BSD-style license that can be found in the LICENSE file.
 
+### Mechanics
+Contributing code is easy.
+
+  1. Get the source: `git clone https://github.com/dart-lang/linter.git`.
+  2. Create a topic branch: `git checkout -B my_lint_contribution`.
+  3. (Hack; commit changes.)
+  4. Upload your CL for review: `git cl upload`.
+  5. Add a reviewer.
+  6. Once accepted, land your change: `git cl land`.
+
+Alternatively, you can create a pull request.
+
 ### The small print
 Contributions made by corporations are covered by a different agreement than the
 one above, the
