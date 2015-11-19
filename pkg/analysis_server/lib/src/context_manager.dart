@@ -241,6 +241,12 @@ abstract class ContextManager {
   AnalysisContext getContextFor(String path);
 
   /**
+   * Return `true` if the given [path] is ignored by a [ContextInfo] whose
+   * folder contains it.
+   */
+  bool isIgnored(String path);
+
+  /**
    * Return `true` if the given absolute [path] is in one of the current
    * root folders and is not excluded.
    */
@@ -471,6 +477,20 @@ class ContextManagerImpl implements ContextManager {
       return info;
     }
     return null;
+  }
+
+  @override
+  bool isIgnored(String path) {
+    ContextInfo info = _rootInfo;
+    do {
+      info = info.findChildInfoFor(path);
+      if (info == null) {
+        return false;
+      }
+      if (info.ignored(path)) {
+        return true;
+      }
+    } while (true);
   }
 
   @override

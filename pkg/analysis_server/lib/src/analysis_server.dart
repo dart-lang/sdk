@@ -977,8 +977,11 @@ class AnalysisServer {
       Set<String> todoFiles =
           oldFiles != null ? newFiles.difference(oldFiles) : newFiles;
       for (String file in todoFiles) {
-        ContextSourcePair contextSource = getContextSourcePair(file);
+        if (contextManager.isIgnored(file)) {
+          continue;
+        }
         // prepare context
+        ContextSourcePair contextSource = getContextSourcePair(file);
         AnalysisContext context = contextSource.context;
         if (context == null) {
           continue;
@@ -1066,6 +1069,11 @@ class AnalysisServer {
     List<String> unanalyzed = new List<String>();
     Source firstSource = null;
     files.forEach((String file) {
+      if (contextManager.isIgnored(file)) {
+        unanalyzed.add(file);
+        return;
+      }
+      // Prepare the context/source pair.
       ContextSourcePair contextSource = getContextSourcePair(file);
       AnalysisContext preferredContext = contextSource.context;
       Source source = contextSource.source;
