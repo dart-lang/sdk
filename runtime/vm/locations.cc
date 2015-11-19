@@ -6,8 +6,6 @@
 
 #include "vm/assembler.h"
 #include "vm/il_printer.h"
-#include "vm/intermediate_language.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/log.h"
 #include "vm/stack_frame.h"
 

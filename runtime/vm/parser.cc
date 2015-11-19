@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/parser.h"
+#include "vm/flags.h"
+
+#ifndef DART_PRECOMPILED
 
 #include "lib/invocation_mirror.h"
 #include "platform/utils.h"
@@ -13,7 +16,6 @@
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
-#include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
@@ -14339,3 +14341,90 @@ void Parser::SkipQualIdent() {
 }
 
 }  // namespace dart
+
+
+#else  // DART_PRECOMPILED
+
+
+namespace dart {
+
+DEFINE_FLAG(bool, enable_mirrors, true,
+    "Disable to make importing dart:mirrors an error.");
+DEFINE_FLAG(bool, load_deferred_eagerly, false,
+    "Load deferred libraries eagerly.");
+DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
+
+LocalVariable* ParsedFunction::EnsureExpressionTemp() {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
+  UNREACHABLE();
+}
+
+
+void ParsedFunction::SetRegExpCompileData(
+    RegExpCompileData* regexp_compile_data) {
+  UNREACHABLE();
+}
+
+
+void ParsedFunction::AllocateVariables() {
+  UNREACHABLE();
+}
+
+
+void ParsedFunction::AllocateIrregexpVariables(intptr_t num_stack_locals) {
+  UNREACHABLE();
+}
+
+
+void Parser::ParseCompilationUnit(const Library& library,
+                                  const Script& script) {
+  UNREACHABLE();
+}
+
+
+void Parser::ParseClass(const Class& cls) {
+  UNREACHABLE();
+}
+
+
+RawObject* Parser::ParseFunctionParameters(const Function& func) {
+  UNREACHABLE();
+  return Object::null();
+}
+
+
+void Parser::ParseFunction(ParsedFunction* parsed_function) {
+  UNREACHABLE();
+}
+
+
+RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
+  UNREACHABLE();
+  return Object::null();
+}
+
+
+ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+ArgumentListNode* Parser::BuildNoSuchMethodArguments(
+    intptr_t call_pos,
+    const String& function_name,
+    const ArgumentListNode& function_args,
+    const LocalVariable* temp_for_last_arg,
+    bool is_super_invocation) {
+  UNREACHABLE();
+  return NULL;
+}
+
+}  // namespace dart
+
+#endif  // DART_PRECOMPILED

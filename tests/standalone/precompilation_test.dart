@@ -86,7 +86,7 @@ main(List args) {
     ld_library_path = "${ld_library_path}:${tmp.path}";
 
     result = Process.runSync(
-       "${dart_executable}",
+       "${dart_executable}_precompiled",
        ["--run-precompiled-snapshot", "ignored_script", "--hello"],
        workingDirectory: tmp.path,
        environment: {"LD_LIBRARY_PATH": ld_library_path});

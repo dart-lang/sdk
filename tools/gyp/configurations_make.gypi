@@ -236,6 +236,11 @@
         ],
         'cflags': [
           '-O3',
+          '-fdata-sections',
+          '-ffunction-sections',
+        ],
+        'ldflags': [
+          '-Wl,--gc-sections',
         ],
       },
     },

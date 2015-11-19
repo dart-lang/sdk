@@ -588,6 +588,7 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
   class_count_++;
   cls.set_is_allocated(true);
+  cls.EnsureIsFinalized(T);
   changed_ = true;
 
   if (FLAG_trace_precompiler) {

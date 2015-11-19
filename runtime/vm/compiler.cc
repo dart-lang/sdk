@@ -77,6 +77,7 @@ DECLARE_FLAG(bool, trace_irregexp);
 bool Compiler::always_optimize_ = false;
 bool Compiler::allow_recompilation_ = true;
 
+#ifndef DART_PRECOMPILED
 
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
 // separate helpers functions & `optimizing` args.
@@ -1731,9 +1732,7 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 
 void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   ASSERT(Isolate::Current()->background_compiler() == task);
-  if (task == NULL) {
-    return;
-  }
+  ASSERT(task != NULL);
   BackgroundCompilationQueue* function_queue = task->function_queue();
 
   Monitor* queue_monitor = task->queue_monitor_;
@@ -1791,5 +1790,113 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
     Dart::thread_pool()->Run(isolate->background_compiler());
   }
 }
+
+
+#else  // DART_PRECOMPILED
+
+
+DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
+  UNREACHABLE();
+}
+
+
+bool Compiler::IsBackgroundCompilation() {
+  UNREACHABLE();
+  return false;
+}
+
+
+RawError* Compiler::Compile(const Library& library, const Script& script) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::CompileClass(const Class& cls) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::CompileFunction(Thread* thread,
+                                    const Function& function) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
+                                          const Function& function) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::CompileOptimizedFunction(Thread* thread,
+                                             const Function& function,
+                                             intptr_t osr_id) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::CompileParsedFunction(
+    ParsedFunction* parsed_function) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+void Compiler::ComputeLocalVarDescriptors(const Code& code) {
+  UNREACHABLE();
+}
+
+
+RawError* Compiler::CompileAllFunctions(const Class& cls) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+void Compiler::CompileStaticInitializer(const Field& field) {
+  UNREACHABLE();
+}
+
+
+RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
+  ASSERT(field.HasPrecompiledInitializer());
+  const Function& initializer =
+      Function::Handle(field.PrecompiledInitializer());
+  return DartEntry::InvokeFunction(initializer, Object::empty_array());
+}
+
+
+
+RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
+  UNREACHABLE();
+  return Object::null();
+}
+
+
+void BackgroundCompiler::CompileOptimized(const Function& function) {
+  UNREACHABLE();
+}
+
+
+void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
+  UNREACHABLE();
+}
+
+
+void BackgroundCompiler::Stop(BackgroundCompiler* task) {
+  UNREACHABLE();
+}
+
+
+void BackgroundCompiler::EnsureInit(Thread* thread) {
+  UNREACHABLE();
+}
+
+#endif  // DART_PRECOMPILED
 
 }  // namespace dart

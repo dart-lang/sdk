@@ -96,6 +96,69 @@
         }]],
     },
     {
+      'target_name': 'libdart_vm_precompiled',
+      'type': 'static_library',
+      'toolsets':['host', 'target'],
+      'includes': [
+        'vm_sources.gypi',
+        '../platform/platform_headers.gypi',
+        '../platform/platform_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all _test.[cc|h] files.
+        ['exclude', '_test\\.(cc|h)$'],
+      ],
+      'include_dirs': [
+        '..',
+      ],
+      'defines': [
+        'DART_PRECOMPILED',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+              '-ldl',
+            ],
+          },
+        }],
+        ['OS=="android" and _toolset=="host"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+              '-ldl',
+            ],
+          },
+        }],
+        ['OS=="win"', {
+          'sources/' : [
+            ['exclude', 'gdbjit.cc'],
+          ],
+       }],
+       ['dart_vtune_support==0', {
+          'sources/' : [
+            ['exclude', 'vtune\\.(cc|h)$'],
+          ],
+       }],
+       ['dart_vtune_support==1', {
+          'include_dirs': ['<(dart_vtune_root)/include'],
+          'defines': ['DART_VTUNE_SUPPORT'],
+          'link_settings': {
+            'conditions': [
+              ['OS=="linux"', {
+                 'libraries': ['-ljitprofiling'],
+              }],
+              ['OS=="win"', {
+                 'libraries': ['-ljitprofiling.lib'],
+              }],
+            ],
+          },
+        }]],
+    },
+    {
       'target_name': 'libdart_vm_nosnapshot',
       'type': 'static_library',
       'toolsets':['host', 'target'],
