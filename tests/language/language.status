@@ -63,7 +63,7 @@ vm/type_vm_test: Fail # Issue 14651.
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 issue13474_test: Pass, Fail # Issue 14651.
-vm/optimized_guarded_field_isolates_test: Fail # Issue 13921.
+vm/optimized_guarded_field_isolates_test: Skip # Passes mysteriously, issues 24990, 13921.
 main_test/01: Fail # Issue 20028
 main_test/02: Fail # Issue 20028
 main_test/04: Fail # Issue 20028
@@ -97,7 +97,7 @@ gc_test: SkipSlow # Times out flakily. Issue 20956
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
-issue23244_test: Fail # Can't run spawnFunction on dartium.
+issue23244_test: Skip # Issue 24990
 
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
