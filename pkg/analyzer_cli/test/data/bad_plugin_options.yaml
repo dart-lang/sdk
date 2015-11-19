@@ -1,6 +1,0 @@
-analyzer:
-  plugins:
-    - lists
-    - are
-    - not
-    - supported
