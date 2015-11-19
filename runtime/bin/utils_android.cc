@@ -12,6 +12,7 @@
 
 #include "bin/utils.h"
 #include "platform/assert.h"
+#include "platform/utils.h"
 
 
 namespace dart {
@@ -22,7 +23,7 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   set_code(errno);
   const int kBufferSize = 1024;
   char error_message[kBufferSize];
-  strerror_r(errno, error_message, kBufferSize);
+  Utils::StrError(errno, error_message, kBufferSize);
   SetMessage(error_message);
 }
 
@@ -33,7 +34,7 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   if (sub_system == kSystem) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    strerror_r(code, error_message, kBufferSize);
+    Utils::StrError(code, error_message, kBufferSize);
     SetMessage(error_message);
   } else if (sub_system == kGetAddressInfo) {
     SetMessage(gai_strerror(code));
