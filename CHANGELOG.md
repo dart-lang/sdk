@@ -18,7 +18,7 @@
   * `Platform` added an `isiOS` getter and `Platform.operatingSystem` may now
     return `ios`.
 
-## 1.13.0
+## 1.13.0 - 2015-11-18
 
 ### Core library changes
 * `dart:async`
@@ -141,10 +141,14 @@
 ### Language changes
 
 * Null-aware operators
-    * `??`: if null operator. `expr1 ?? expr2` evaluates to `expr1` if not `null`, otherwise `expr2`.
-    * `??=`: null-aware assignment. `v ??= expr` causes `v` to be assigned `expr` only if `v` is `null`.
-    * `x?.p`: null-aware access. `x?.p` evaluates to `x.p` if `x` is not `null`, otherwise evaluates to `null`.
-    * `x?.m()`: null-aware method invocation. `x?.m()` invokes `m` only if `x` is not `null`.
+    * `??`: if null operator. `expr1 ?? expr2` evaluates to `expr1` if
+      not `null`, otherwise `expr2`.
+    * `??=`: null-aware assignment. `v ??= expr` causes `v` to be assigned
+      `expr` only if `v` is `null`.
+    * `x?.p`: null-aware access. `x?.p` evaluates to `x.p` if `x` is not
+      `null`, otherwise evaluates to `null`.
+    * `x?.m()`: null-aware method invocation. `x?.m()` invokes `m` only
+      if `x` is not `null`.
 
 ### Core library changes
 
