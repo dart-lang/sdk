@@ -103,8 +103,8 @@ static void PrecompilationModeHandler(bool value) {
     // loading, deoptimization, ...). Noopt mode simulates behavior
     // of precompiled code, therefore do not allow recompilation.
     Compiler::set_allow_recompilation(false);
-    // TODO(srdjan): Enable CHA deoptimization when eager class finalization is
-    // implemented, either with precompilation or as a special pass.
+    // Precompilation finalizes all classes and thus allows CHA optimizations.
+    // Do not require CHA triggered deoptimization.
     FLAG_use_cha_deopt = false;
     // Calling the PrintStopMessage stub is not supported in precompiled code
     // since it is done at places where no pool pointer is loaded.
@@ -544,11 +544,6 @@ void FlowGraphCompiler::VisitBlocks() {
 #if defined(DEBUG)
     ASSERT(is_optimizing() || FrameStateIsSafeToCall());
 #endif
-  }
-
-  if (inline_id_to_function_.length() > max_inlining_id + 1) {
-    // TODO(srdjan): Some inlined function can disappear,
-    // truncate 'inline_id_to_function_'.
   }
 
   if (is_optimizing()) {

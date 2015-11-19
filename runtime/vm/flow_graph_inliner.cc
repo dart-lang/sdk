@@ -1819,7 +1819,7 @@ void FlowGraphInliner::SetInliningId(FlowGraph* flow_graph,
 
 
 // Use function name to determine if inlineable operator.
-// TODO(srdjan): add names as necessary
+// Add names as necessary.
 static bool IsInlineableOperator(const Function& function) {
   return (function.name() == Symbols::IndexToken().raw()) ||
          (function.name() == Symbols::AssignIndexToken().raw()) ||

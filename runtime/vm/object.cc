@@ -12286,8 +12286,7 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     GrowableArray<intptr_t> class_ids;
-    Function& target = Function::Handle();
-    GetCheckAt(i, &class_ids, &target);
+    GetClassIdsAt(i, &class_ids);
     bool matches = true;
     for (intptr_t k = 0; k < class_ids.length(); k++) {
       if (class_ids[k] != cids[k]) {
@@ -12446,6 +12445,19 @@ void ICData::GetCheckAt(intptr_t index,
 }
 
 
+void ICData::GetClassIdsAt(intptr_t index,
+                           GrowableArray<intptr_t>* class_ids) const {
+  ASSERT(index < NumberOfChecks());
+  ASSERT(class_ids != NULL);
+  class_ids->Clear();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < NumArgsTested(); i++) {
+    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
+  }
+}
+
+
 void ICData::GetOneClassCheckAt(intptr_t index,
                                 intptr_t* class_id,
                                 Function* target) const {
@@ -12469,8 +12481,7 @@ intptr_t ICData::GetCidAt(intptr_t index) const {
 
 intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
   GrowableArray<intptr_t> class_ids;
-  Function& target = Function::Handle();
-  GetCheckAt(index, &class_ids, &target);
+  GetClassIdsAt(index, &class_ids);
   return class_ids[arg_nr];
 }
 
@@ -12646,12 +12657,11 @@ void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
   ASSERT(NumArgsTested() == 2);
   first->Clear();
   second->Clear();
-  Function& target = Function::Handle();
   GrowableArray<intptr_t> class_ids;
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (GetCountAt(i) > 0) {
-      GetCheckAt(i, &class_ids, &target);
+      GetClassIdsAt(i, &class_ids);
       ASSERT(class_ids.length() == 2);
       first->Add(class_ids[0]);
       second->Add(class_ids[1]);
@@ -12894,13 +12904,12 @@ bool ICData::HasRangeFeedback() const {
   }
 
   bool initialized = false;
-  Function& t = Function::Handle();
   const intptr_t len = NumberOfChecks();
   GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
     if (IsUsedAt(i)) {
       initialized = true;
-      GetCheckAt(i, &class_ids, &t);
+      GetClassIdsAt(i, &class_ids);
       for (intptr_t j = 0; j < class_ids.length(); j++) {
         const intptr_t cid = class_ids[j];
         if ((cid != kSmiCid) && (cid != kMintCid)) {
@@ -17299,8 +17308,13 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
         break;
       }
       case Token::kSUB: {
-        // TODO(srdjan): Investigate why XCode 7 produces wrong code
-        // if the comparison is inlined as in above (Token::kADD).
+        // TODO(srdjan): XCode 7 produces different code in -O0 than in -O2 for
+        // following code when 'left_value - right_value' overflows into a
+        // positive number (left negative, right positive):
+        //   if (((left_value < 0) == (right_value < 0)) ||
+        //       ((left_value - right_value) < 0) == (left_value < 0)) {
+        //
+        // Restructuring code using temporary variables is a workaround.
         const bool both_same_sign = (left_value < 0) == (right_value < 0);
         const bool result_same_sign_as_left =
             ((left_value - right_value) < 0) == (left_value < 0);

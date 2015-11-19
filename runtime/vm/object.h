@@ -1872,10 +1872,11 @@ class ICData : public Object {
 
   // Retrieving checks.
 
-  // TODO(srdjan): GetCheckAt without target.
   void GetCheckAt(intptr_t index,
                   GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
+  void GetClassIdsAt(intptr_t index, GrowableArray<intptr_t>* class_ids) const;
+
   // Only for 'num_args_checked == 1'.
   void GetOneClassCheckAt(intptr_t index,
                           intptr_t* class_id,

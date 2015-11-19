@@ -959,12 +959,11 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
   if (ic_data.NumArgsTested() != 2) {
     return false;
   }
-  Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
     if (ic_data.IsUsedAt(i)) {
-      ic_data.GetCheckAt(i, &class_ids, &target);
+      ic_data.GetClassIdsAt(i, &class_ids);
       ASSERT(class_ids.length() == 2);
       if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
           !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
@@ -982,12 +981,11 @@ static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
   if (ic_data.NumArgsTested() != 2) {
     return false;
   }
-  Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (ic_data.IsUsedAt(i)) {
       GrowableArray<intptr_t> class_ids;
-      ic_data.GetCheckAt(i, &class_ids, &target);
+      ic_data.GetClassIdsAt(i, &class_ids);
       ASSERT(class_ids.length() == 2);
       if ((class_ids[0] == receiver_class_id) &&
           (class_ids[1] == argument_class_id)) {
@@ -2358,9 +2356,8 @@ bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.HasOneTarget());
-  Function& target = Function::Handle(Z);
   GrowableArray<intptr_t> class_ids;
-  ic_data.GetCheckAt(0, &class_ids, &target);
+  ic_data.GetClassIdsAt(0, &class_ids);
   ASSERT(class_ids.length() == 1);
   // Inline implicit instance getter.
   const String& field_name =
