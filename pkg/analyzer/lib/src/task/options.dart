@@ -227,28 +227,6 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       new GenerateOptionsErrorsTask(context, target);
 }
 
-/// Validates `analyzer` strong-mode value configuration options.
-class StrongModeOptionValueValidator extends OptionsValidator {
-  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
-
-  @override
-  void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
-    var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is! YamlMap) {
-      return;
-    }
-
-    var v = analyzer.nodes[AnalyzerOptions.strong_mode];
-    if (v is YamlScalar) {
-      var value = toLowerCase(v.value);
-      if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-        trueOrFalseBuilder.reportError(
-            reporter, AnalyzerOptions.strong_mode, v);
-      }
-    }
-  }
-}
-
 /// Validates `analyzer` language configuration options.
 class LanguageOptionValidator extends OptionsValidator {
   ErrorBuilder builder = new ErrorBuilder(AnalyzerOptions.languageOptions);
@@ -313,6 +291,28 @@ class OptionsFileValidator {
   }
 }
 
+/// Validates `analyzer` strong-mode value configuration options.
+class StrongModeOptionValueValidator extends OptionsValidator {
+  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+
+  @override
+  void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
+    var analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! YamlMap) {
+      return;
+    }
+
+    var v = analyzer.nodes[AnalyzerOptions.strong_mode];
+    if (v is YamlScalar) {
+      var value = toLowerCase(v.value);
+      if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+        trueOrFalseBuilder.reportError(
+            reporter, AnalyzerOptions.strong_mode, v);
+      }
+    }
+  }
+}
+
 /// Validates `analyzer` top-level options.
 class TopLevelAnalyzerOptionsValidator extends TopLevelOptionValidator {
   TopLevelAnalyzerOptionsValidator()
@@ -372,7 +372,7 @@ class _OptionsProcessor {
     }
 
     var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is! YamlMap) {
+    if (analyzer is! Map) {
       return;
     }
 
@@ -409,30 +409,36 @@ class _OptionsProcessor {
     context.setConfigurationData(CONFIGURED_ERROR_FILTERS, filters);
   }
 
+  void setLanguageOption(
+      AnalysisContext context, Object feature, Object value) {
+    if (feature == AnalyzerOptions.enableSuperMixins) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableSuperMixins = true;
+        context.analysisOptions = options;
+      }
+    }
+    if (feature == AnalyzerOptions.enableGenericMethods) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableGenericMethods = true;
+        context.analysisOptions = options;
+      }
+    }
+  }
+
   void setLanguageOptions(AnalysisContext context, Object configs) {
     if (configs is YamlMap) {
       configs.nodes.forEach((k, v) {
-        String feature;
         if (k is YamlScalar && v is YamlScalar) {
-          feature = k.value?.toString();
-          if (feature == AnalyzerOptions.enableSuperMixins) {
-            if (isTrue(v.value)) {
-              AnalysisOptionsImpl options =
-                  new AnalysisOptionsImpl.from(context.analysisOptions);
-              options.enableSuperMixins = true;
-              context.analysisOptions = options;
-            }
-          }
-          if (feature == AnalyzerOptions.enableGenericMethods) {
-            if (isTrue(v.value)) {
-              AnalysisOptionsImpl options =
-                  new AnalysisOptionsImpl.from(context.analysisOptions);
-              options.enableGenericMethods = true;
-              context.analysisOptions = options;
-            }
-          }
+          String feature = k.value?.toString();
+          setLanguageOption(context, feature, v.value);
         }
       });
+    } else if (configs is Map) {
+      configs.forEach((k, v) => setLanguageOption(context, k, v));
     }
   }
 

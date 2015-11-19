@@ -28,6 +28,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -515,15 +516,28 @@ class ContextManagerImpl implements ContextManager {
       }
     });
 
-    // In case options files are removed, revert to default options.
+    // In case options files are removed, revert to defaults.
     if (optionsRemoved) {
+      // Start with defaults.
       info.context.analysisOptions = new AnalysisOptionsImpl();
+
+      // Apply inherited options.
+      YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
+      if (embeddedOptions != null) {
+        configureContextOptions(info.context, embeddedOptions);
+      }
       return;
+    }
+
+    // Check for embedded options.
+    YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
+    if (embeddedOptions != null) {
+      options = new Merger().merge(embeddedOptions, options);
     }
 
     // Analysis options are processed 'in-line'.
     var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is! YamlMap) {
+    if (analyzer is! Map) {
       // No options for analyzer.
       return;
     }
@@ -1021,6 +1035,20 @@ class ContextManagerImpl implements ContextManager {
       packageSpec = folder.getChild(PUBSPEC_NAME);
     }
     return packageSpec;
+  }
+
+  /// Get analysis options associated with an `_embedder.yaml`. If there is
+  /// more than one `_embedder.yaml` associated with the given context, `null`
+  /// is returned.
+  YamlMap _getEmbeddedOptions(AnalysisContext context) {
+    if (context is InternalAnalysisContext) {
+      EmbedderYamlLocator locator = context.embedderYamlLocator;
+      Iterable<YamlMap> maps = locator.embedderYamls.values;
+      if (maps.length == 1) {
+        return maps.first;
+      }
+    }
+    return null;
   }
 
   /**

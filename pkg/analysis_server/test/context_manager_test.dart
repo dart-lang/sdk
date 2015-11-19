@@ -93,6 +93,80 @@ class AbstractContextManagerTest {
     resourceProvider.newFolder(projPath);
   }
 
+  test_embedder_options() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([projPath, 'test', 'test.dart']);
+    newFile([sdkExtPath, 'entry.dart']);
+    // Setup _embedder.yaml.
+    newFile(
+        [libPath, '_embedder.yaml'],
+        r'''
+embedder_libs:
+  "dart:foobar": "../sdk_ext/entry.dart"
+analyzer:
+  strong-mode: true
+  language:
+    enableSuperMixins: true
+''');
+    // Setup .packages file
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+
+    // Setup .analysis_options
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+analyzer:
+  exclude:
+    - 'test/**'
+  language:
+    enableGenericMethods: true
+  errors:
+    unused_local_variable: false
+''');
+
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    // Confirm that one context was created.
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+    var context = contexts[0];
+
+    // Verify options.
+    //   * from `_embedder.yaml`:
+    expect(context.analysisOptions.strongMode, isTrue);
+    expect(context.analysisOptions.enableSuperMixins, isTrue);
+    //   * from `.analysis_options`:
+    expect(context.analysisOptions.enableGenericMethods, isTrue);
+    //     verify tests are excluded
+    expect(callbacks.currentContextFilePaths[projPath].keys,
+        ['/my/proj/sdk_ext/entry.dart']);
+
+    // Verify filter setup.
+    List<ErrorFilter> filters =
+        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+    expect(filters, hasLength(1));
+    expect(
+        filters.first(new AnalysisError(
+            new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+          ['x']
+        ])),
+        isTrue);
+
+    // Sanity check embedder libs.
+    var source = context.sourceFactory.forUri('dart:foobar');
+    expect(source, isNotNull);
+    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
+  }
+
   test_analysis_options_parse_failure() async {
     // Create files.
     String libPath = newFolder([projPath, LIB_NAME]);
@@ -136,6 +210,49 @@ class AbstractContextManagerTest {
     expect(contexts, hasLength(2));
     expect(contexts, contains(projContextInfo.context));
     expect(contexts, contains(subProjContextInfo.context));
+  }
+
+  test_embedder_packagespec() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'nope.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Setup _embedder.yaml.
+    newFile(
+        [libPath, '_embedder.yaml'],
+        r'''
+embedder_libs:
+  "dart:foobar": "../sdk_ext/entry.dart"
+  "dart:typed_data": "../sdk_ext/src/part"
+  ''');
+    // Setup .packages file
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+    // Setup context.
+
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+    // Confirm that one context was created.
+    var contexts =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contexts, isNotNull);
+    expect(contexts.length, equals(1));
+    var context = contexts[0];
+    var source = context.sourceFactory.forUri('dart:foobar');
+    expect(source, isNotNull);
+    expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
+    // We can't find dart:core because we didn't list it in our
+    // embedder_libs map.
+    expect(context.sourceFactory.forUri('dart:core'), isNull);
+    // We can find dart:typed_data because we listed it in our
+    // embedder_libs map.
+    expect(context.sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 
   test_error_filter_analysis_option() async {
@@ -566,49 +683,6 @@ analyzer:
         expect(callbacks.currentContextTimestamps[proj2Path], callbacks.now);
       });
     });
-  }
-
-  test_embedder_packagespec() async {
-    // Create files.
-    String libPath = newFolder([projPath, LIB_NAME]);
-    newFile([libPath, 'main.dart']);
-    newFile([libPath, 'nope.dart']);
-    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
-    newFile([sdkExtPath, 'entry.dart']);
-    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
-    newFile([sdkExtSrcPath, 'part.dart']);
-    // Setup _embedder.yaml.
-    newFile(
-        [libPath, '_embedder.yaml'],
-        r'''
-embedder_libs:
-  "dart:foobar": "../sdk_ext/entry.dart"
-  "dart:typed_data": "../sdk_ext/src/part"
-  ''');
-    // Setup .packages file
-    newFile(
-        [projPath, '.packages'],
-        r'''
-test_pack:lib/''');
-    // Setup context.
-
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    await pumpEventQueue();
-    // Confirm that one context was created.
-    var contexts =
-        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
-    expect(contexts, isNotNull);
-    expect(contexts.length, equals(1));
-    var context = contexts[0];
-    var source = context.sourceFactory.forUri('dart:foobar');
-    expect(source, isNotNull);
-    expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
-    // We can't find dart:core because we didn't list it in our
-    // embedder_libs map.
-    expect(context.sourceFactory.forUri('dart:core'), isNull);
-    // We can find dart:typed_data because we listed it in our
-    // embedder_libs map.
-    expect(context.sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 
   test_sdk_ext_packagespec() async {
@@ -1943,19 +2017,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    */
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
-  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
-  /// files.
-  void _locateEmbedderYamls(InternalAnalysisContext context,
-                            FolderDisposition disposition) {
-    Map<String, List<Folder>> packageMap;
-    if (disposition is PackageMapDisposition) {
-      packageMap = disposition.packageMap;
-    } else if (disposition is PackagesFileDisposition) {
-      packageMap = disposition.buildPackageMap(resourceProvider);
-    }
-    context.embedderYamlLocator.refresh(packageMap);
-  }
-
   @override
   AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
     String path = folder.path;
@@ -2045,6 +2106,19 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   void updateContextPackageUriResolver(
       Folder contextFolder, FolderDisposition disposition) {
     currentContextDispositions[contextFolder.path] = disposition;
+  }
+
+  /// If [disposition] has a package map, attempt to locate `_embedder.yaml`
+  /// files.
+  void _locateEmbedderYamls(
+      InternalAnalysisContext context, FolderDisposition disposition) {
+    Map<String, List<Folder>> packageMap;
+    if (disposition is PackageMapDisposition) {
+      packageMap = disposition.packageMap;
+    } else if (disposition is PackagesFileDisposition) {
+      packageMap = disposition.buildPackageMap(resourceProvider);
+    }
+    context.embedderYamlLocator.refresh(packageMap);
   }
 }
 
