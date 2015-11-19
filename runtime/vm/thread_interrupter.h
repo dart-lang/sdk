@@ -35,7 +35,7 @@ class ThreadInterrupter : public AllStatic {
   static void WakeUp();
 
   // Interrupt a thread.
-  static void InterruptThread(Thread* thread);
+  static void InterruptThread(OSThread* thread);
 
  private:
   static const intptr_t kMaxThreads = 4096;

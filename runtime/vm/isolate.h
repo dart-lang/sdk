@@ -254,8 +254,6 @@ class Isolate : public BaseIsolate {
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
-  uword stack_base() const { return stack_base_; }
-
   // Stack overflow flags
   enum {
     kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
@@ -273,13 +271,6 @@ class Isolate : public BaseIsolate {
   // the generated code before the slow path runtime routine for a
   // stack overflow is called.
   uword GetAndClearStackOverflowFlags();
-
-  // Retrieve the stack address bounds for profiler.
-  bool GetProfilerStackBounds(uword* lower, uword* upper) const;
-
-  static uword GetSpecifiedStackSize();
-
-  static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
 
   // Interrupt bits.
   enum {
@@ -742,6 +733,8 @@ class Isolate : public BaseIsolate {
   }
 
   // Accessed from generated code:
+  // TODO(asiva): Need to consider moving the stack_limit_ from isolate to
+  // being thread specific.
   uword stack_limit_;
   StoreBuffer* store_buffer_;
   Heap* heap_;
@@ -777,7 +770,6 @@ class Isolate : public BaseIsolate {
   Simulator* simulator_;
   Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
   uword saved_stack_limit_;
-  uword stack_base_;
   uword stack_overflow_flags_;
   int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
@@ -914,7 +906,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
       // Ensure this is not a nested 'isolate enter' with prior state.
-      ASSERT(new_isolate_->stack_base() == 0);
+      ASSERT(new_isolate_->saved_stack_limit() == 0);
       Thread::EnterIsolate(new_isolate_);
     }
   }
@@ -928,7 +920,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(saved_isolate_ == NULL);
       // ASSERT that we have bottomed out of all Dart invocations.
-      ASSERT(new_isolate_->stack_base() == 0);
+      ASSERT(new_isolate_->saved_stack_limit() == 0);
       Thread::ExitIsolate();
     }
   }

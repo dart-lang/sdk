@@ -286,23 +286,6 @@ class Api : AllStatic {
   friend class ApiNativeScope;
 };
 
-class IsolateSaver {
- public:
-  explicit IsolateSaver(Isolate* current_isolate)
-      : saved_isolate_(current_isolate) {
-  }
-  ~IsolateSaver() {
-    // TODO(koda): Audit users; they should know whether they're in an isolate.
-    if (saved_isolate_ != NULL) {
-      Thread::EnterIsolate(saved_isolate_);
-    }
-  }
- private:
-  Isolate* saved_isolate_;
-
-  DISALLOW_COPY_AND_ASSIGN(IsolateSaver);
-};
-
 // Start a scope in which no Dart API call backs are allowed.
 #define START_NO_CALLBACK_SCOPE(thread)                                        \
   thread->IncrementNoCallbackScopeDepth()

@@ -38,7 +38,7 @@ UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
-  Thread* thread = Thread::Current();
+  OSThread* thread = OSThread::Current();
   // Thread interrupter interferes with this test, disable interrupts.
   thread->DisableThreadInterrupts();
   Monitor* monitor = new Monitor();
@@ -410,18 +410,18 @@ TEST_CASE(ThreadIterator_Count) {
   intptr_t thread_count_1 = 0;
 
   {
-    ThreadIterator ti;
+    OSThreadIterator ti;
     while (ti.HasNext()) {
-      Thread* thread = ti.Next();
+      OSThread* thread = ti.Next();
       EXPECT(thread != NULL);
       thread_count_0++;
     }
   }
 
   {
-    ThreadIterator ti;
+    OSThreadIterator ti;
     while (ti.HasNext()) {
-      Thread* thread = ti.Next();
+      OSThread* thread = ti.Next();
       EXPECT(thread != NULL);
       thread_count_1++;
     }
@@ -434,8 +434,8 @@ TEST_CASE(ThreadIterator_Count) {
 
 
 TEST_CASE(ThreadIterator_FindSelf) {
-  Thread* current = Thread::Current();
-  EXPECT(Thread::IsThreadInList(current->join_id()));
+  OSThread* current = OSThread::Current();
+  EXPECT(OSThread::IsThreadInList(current->join_id()));
 }
 
 
@@ -446,16 +446,15 @@ struct ThreadIteratorTestParams {
 
 
 void ThreadIteratorTestMain(uword parameter) {
-  Thread::EnsureInit();
   ThreadIteratorTestParams* params =
       reinterpret_cast<ThreadIteratorTestParams*>(parameter);
-  Thread* thread = Thread::Current();
+  OSThread* thread = OSThread::Current();
   EXPECT(thread != NULL);
 
   MonitorLocker ml(params->monitor);
   params->spawned_thread_join_id = thread->join_id();
   EXPECT(params->spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
-  EXPECT(Thread::IsThreadInList(thread->join_id()));
+  EXPECT(OSThread::IsThreadInList(thread->join_id()));
   ml.Notify();
 }
 
@@ -471,7 +470,9 @@ TEST_CASE(ThreadIterator_AddFindRemove) {
     MonitorLocker ml(params.monitor);
     EXPECT(params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId);
     // Spawn thread and wait to receive the thread join id.
-    OSThread::Start(ThreadIteratorTestMain, reinterpret_cast<uword>(&params));
+    OSThread::Start("ThreadIteratorTest",
+                    ThreadIteratorTestMain,
+                    reinterpret_cast<uword>(&params));
     while (params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId) {
       ml.Wait();
     }
@@ -480,7 +481,7 @@ TEST_CASE(ThreadIterator_AddFindRemove) {
     OSThread::Join(params.spawned_thread_join_id);
   }
 
-  EXPECT(!Thread::IsThreadInList(params.spawned_thread_join_id))
+  EXPECT(!OSThread::IsThreadInList(params.spawned_thread_join_id))
 
   delete params.monitor;
 }

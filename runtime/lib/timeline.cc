@@ -55,7 +55,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
   }
 
   int64_t pid = OS::ProcessId();
-  int64_t tid = OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
 
   char* json = OS::SCreate(zone,
       "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
@@ -101,7 +103,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
 
   int64_t duration = end.AsInt64Value() - start.AsInt64Value();
   int64_t pid = OS::ProcessId();
-  int64_t tid = OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
 
   char* json = OS::SCreate(zone,
       "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
@@ -144,7 +148,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
   }
 
   int64_t pid = OS::ProcessId();
-  int64_t tid = OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadTraceId());
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
 
   char* json = OS::SCreate(zone,
       "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","

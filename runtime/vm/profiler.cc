@@ -747,17 +747,19 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
                                              uword* stack_lower,
                                              uword* stack_upper) {
   ASSERT(thread != NULL);
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
 #if defined(USING_SIMULATOR)
   const bool in_dart_code = thread->IsExecutingDartCode();
   if (in_dart_code) {
+    Isolate* isolate = thread->isolate();
+    ASSERT(isolate != NULL);
     Simulator* simulator = isolate->simulator();
     *stack_lower = simulator->StackBase();
     *stack_upper = simulator->StackTop();
-  } else if (!isolate->GetProfilerStackBounds(stack_lower, stack_upper)) {
+  } else if (!os_thread->GetProfilerStackBounds(stack_lower, stack_upper)) {
     // Could not get stack boundary.
     return false;
   }
@@ -765,7 +767,7 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
     return false;
   }
 #else
-  if (!isolate->GetProfilerStackBounds(stack_lower, stack_upper) ||
+  if (!os_thread->GetProfilerStackBounds(stack_lower, stack_upper) ||
       (*stack_lower == 0) || (*stack_upper == 0)) {
     // Could not get stack boundary.
     return false;
@@ -782,12 +784,12 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
   }
 
   if ((sp < *stack_lower) || (sp >= *stack_upper)) {
-    // Stack pointer is outside isolate stack boundary.
+    // Stack pointer is outside thread's stack boundary.
     return false;
   }
 
   if ((fp < *stack_lower) || (fp >= *stack_upper)) {
-    // Frame pointer is outside isolate stack boundary.
+    // Frame pointer is outside threads's stack boundary.
     return false;
   }
 
@@ -859,6 +861,8 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 
 void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   ASSERT(thread != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
   if (!CheckIsolate(isolate)) {
     return;
@@ -895,9 +899,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
       return;
     }
 
-    Sample* sample = SetupSample(thread,
-                                 sample_buffer,
-                                 OSThread::GetCurrentThreadId());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
     sample->SetAllocationCid(cid);
     ProfilerNativeStackWalker native_stack_walker(isolate,
                                                   sample,
@@ -909,9 +911,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
                                                   sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
-    Sample* sample = SetupSample(thread,
-                                 sample_buffer,
-                                 OSThread::GetCurrentThreadId());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
     sample->SetAllocationCid(cid);
     ProfilerDartExitStackWalker dart_exit_stack_walker(thread,
                                                        isolate,
@@ -921,9 +921,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   } else {
     // Fall back.
     uintptr_t pc = GetProgramCounter();
-    Sample* sample = SetupSample(thread,
-                                 sample_buffer,
-                                 OSThread::GetCurrentThreadId());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
     sample->SetAllocationCid(cid);
     sample->set_vm_tag(VMTag::kEmbedderTagId);
     sample->SetAt(0, pc);
@@ -934,6 +932,8 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
 
   if (StubCode::HasBeenInitialized() &&
@@ -1002,9 +1002,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   // Setup sample.
-  Sample* sample = SetupSample(thread,
-                               sample_buffer,
-                               OSThread::GetCurrentThreadId());
+  Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);

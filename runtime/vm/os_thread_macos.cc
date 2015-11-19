@@ -57,14 +57,17 @@ namespace dart {
 
 class ThreadStartData {
  public:
-  ThreadStartData(OSThread::ThreadStartFunction function,
+  ThreadStartData(const char* name,
+                  OSThread::ThreadStartFunction function,
                   uword parameter)
-      : function_(function), parameter_(parameter) {}
+      : name_(name), function_(function), parameter_(parameter) {}
 
+  const char* name() const { return name_; }
   OSThread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
 
  private:
+  const char* name_;
   OSThread::ThreadStartFunction function_;
   uword parameter_;
 
@@ -78,9 +81,15 @@ class ThreadStartData {
 static void* ThreadStart(void* data_ptr) {
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
+  const char* name = data->name();
   OSThread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
+
+  // Create new OSThread object and set as TLS for new thread.
+  OSThread* thread = new OSThread();
+  OSThread::SetCurrent(thread);
+  thread->set_name(name);
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
@@ -89,7 +98,9 @@ static void* ThreadStart(void* data_ptr) {
 }
 
 
-int OSThread::Start(ThreadStartFunction function, uword parameter) {
+int OSThread::Start(const char* name,
+                    ThreadStartFunction function,
+                    uword parameter) {
   pthread_attr_t attr;
   int result = pthread_attr_init(&attr);
   RETURN_ON_PTHREAD_FAILURE(result);
@@ -97,7 +108,7 @@ int OSThread::Start(ThreadStartFunction function, uword parameter) {
   result = pthread_attr_setstacksize(&attr, OSThread::GetMaxStackSize());
   RETURN_ON_PTHREAD_FAILURE(result);
 
-  ThreadStartData* data = new ThreadStartData(function, parameter);
+  ThreadStartData* data = new ThreadStartData(name, function, parameter);
 
   pthread_t tid;
   result = pthread_create(&tid, &attr, ThreadStart, data);

@@ -44,7 +44,7 @@ class ThreadInterrupterAndroid : public AllStatic {
 };
 
 
-void ThreadInterrupter::InterruptThread(Thread* thread) {
+void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter interrupting %p\n",
               reinterpret_cast<void*>(thread->id()));

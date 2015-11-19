@@ -20,13 +20,17 @@ bool private_flag_windows_run_tls_destructors = true;
 
 class ThreadStartData {
  public:
-  ThreadStartData(OSThread::ThreadStartFunction function, uword parameter)
-      : function_(function), parameter_(parameter) {}
+  ThreadStartData(const char* name,
+                  OSThread::ThreadStartFunction function,
+                  uword parameter)
+      : name_(name), function_(function), parameter_(parameter) {}
 
+  const char* name() const { return name_; }
   OSThread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
 
  private:
+  const char* name_;
   OSThread::ThreadStartFunction function_;
   uword parameter_;
 
@@ -40,11 +44,17 @@ class ThreadStartData {
 static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
+  const char* name = data->name();
   OSThread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
 
   MonitorData::GetMonitorWaitDataForThread();
+
+  // Create new OSThread object and set as TLS for new thread.
+  OSThread* thread = new OSThread();
+  OSThread::SetCurrent(thread);
+  thread->set_name(name);
 
   // Call the supplied thread start function handing it its parameters.
   function(parameter);
@@ -56,8 +66,10 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
 }
 
 
-int OSThread::Start(ThreadStartFunction function, uword parameter) {
-  ThreadStartData* start_data = new ThreadStartData(function, parameter);
+int OSThread::Start(const char* name,
+                    ThreadStartFunction function,
+                    uword parameter) {
+  ThreadStartData* start_data = new ThreadStartData(name, function, parameter);
   uint32_t tid;
   uintptr_t thread = _beginthreadex(NULL, OSThread::GetMaxStackSize(),
                                     ThreadEntry, start_data, 0, &tid);
@@ -115,6 +127,8 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId() {
+  // TODO(zra): Use the thread handle as the join id in order to have a more
+  // reliable join on windows.
   return ::GetCurrentThreadId();
 }
 

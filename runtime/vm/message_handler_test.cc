@@ -399,7 +399,7 @@ UNIT_TEST_CASE(MessageHandler_Run) {
   info.handler = &handler;
   info.ports = ports;
   info.count = 10;
-  OSThread::Start(SendMessages, reinterpret_cast<uword>(&info));
+  OSThread::Start("SendMessages", SendMessages, reinterpret_cast<uword>(&info));
   while (sleep < kMaxSleep && handler.message_count() < 11) {
     OS::Sleep(10);
     sleep += 10;

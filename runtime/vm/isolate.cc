@@ -766,7 +766,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       simulator_(NULL),
       mutex_(new Mutex()),
       saved_stack_limit_(0),
-      stack_base_(0),
       stack_overflow_flags_(0),
       stack_overflow_count_(0),
       message_handler_(NULL),
@@ -798,7 +797,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       field_invalidation_gen_(kInvalidGen),
       prefix_invalidation_gen_(kInvalidGen) {
   flags_.CopyFrom(api_flags);
-  Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
+  // TODO(asiva): A Thread is not available here, need to figure out
+  // how the vm_tag (kEmbedderTagId) can be set, these tags need to
+  // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
 }
 
@@ -987,19 +988,7 @@ void Isolate::BuildName(const char* name_prefix) {
 }
 
 
-// TODO(5411455): Use flag to override default value and Validate the
-// stack size by querying OS.
-uword Isolate::GetSpecifiedStackSize() {
-  ASSERT(Isolate::kStackSizeBuffer < OSThread::GetMaxStackSize());
-  uword stack_size = OSThread::GetMaxStackSize() - Isolate::kStackSizeBuffer;
-  return stack_size;
-}
-
-
 void Isolate::SetStackLimitFromStackBase(uword stack_base) {
-  // Set stack base.
-  stack_base_ = stack_base;
-
   // Set stack limit.
 #if defined(USING_SIMULATOR)
   // Ignore passed-in native stack top and use Simulator stack top.
@@ -1008,7 +997,7 @@ void Isolate::SetStackLimitFromStackBase(uword stack_base) {
   stack_base = sim->StackTop();
   // The overflow area is accounted for by the simulator.
 #endif
-  SetStackLimit(stack_base - GetSpecifiedStackSize());
+  SetStackLimit(stack_base - OSThread::GetSpecifiedStackSize());
 }
 
 
@@ -1026,19 +1015,6 @@ void Isolate::SetStackLimit(uword limit) {
 
 void Isolate::ClearStackLimit() {
   SetStackLimit(~static_cast<uword>(0));
-  stack_base_ = 0;
-}
-
-
-bool Isolate::GetProfilerStackBounds(uword* lower, uword* upper) const {
-  uword stack_upper = stack_base_;
-  if (stack_upper == 0) {
-    return false;
-  }
-  uword stack_lower = stack_upper - GetSpecifiedStackSize();
-  *lower = stack_lower;
-  *upper = stack_upper;
-  return true;
 }
 
 
@@ -1322,7 +1298,6 @@ bool Isolate::NotifyErrorListeners(const String& msg,
 static MessageHandler::MessageStatus RunIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   IsolateSpawnState* state = NULL;
-  Thread* thread = Thread::Current();
   {
     // TODO(turnidge): Is this locking required here at all anymore?
     MutexLocker ml(isolate->mutex());
@@ -1330,6 +1305,7 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
   }
   {
     StartIsolateScope start_scope(isolate);
+    Thread* thread = Thread::Current();
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
@@ -1432,8 +1408,8 @@ static void ShutdownIsolate(uword parameter) {
   {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
-    Thread* thread = Thread::Current();
     StartIsolateScope start_scope(isolate);
+    Thread* thread = Thread::Current();
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
@@ -1760,8 +1736,6 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
-  // All threads should have exited by now.
-  thread_registry()->CheckNotScheduled(this);
 }
 
 

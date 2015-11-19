@@ -10,6 +10,24 @@
 namespace dart {
 
 ThreadRegistry::~ThreadRegistry() {
+  // Go over the free thread list and delete the thread objects.
+  {
+    MonitorLocker ml(monitor_);
+    // At this point the mutator thread should be the only thread
+    // in the active list, delete it.
+    ASSERT(active_list_->next_ == NULL);
+    ASSERT(active_list_ == mutator_thread_);
+    delete mutator_thread_;
+    active_list_ = NULL;
+    mutator_thread_ = NULL;
+    // Now delete all the threads in the free list.
+    while (free_list_ != NULL) {
+      Thread* thread = free_list_;
+      free_list_ = thread->next_;
+      delete thread;
+    }
+  }
+
   // Delete monitor.
   delete monitor_;
 }
@@ -50,67 +68,123 @@ void ThreadRegistry::ResumeAllThreads() {
 }
 
 
-void ThreadRegistry::PruneThread(Thread* thread) {
+Thread* ThreadRegistry::Schedule(Isolate* isolate,
+                                 bool is_mutator,
+                                 bool bypass_safepoint) {
   MonitorLocker ml(monitor_);
-  intptr_t length = entries_.length();
-  if (length == 0) {
-    return;
+  // Wait for any rendezvous in progress.
+  while (!bypass_safepoint && in_rendezvous_) {
+    ml.Wait(Monitor::kNoTimeout);
   }
-  intptr_t found_index = -1;
-  for (intptr_t index = 0; index < length; index++) {
-    if (entries_.At(index).thread == thread) {
-      found_index = index;
-      break;
+  Thread* thread = NULL;
+  OSThread* os_thread = OSThread::Current();
+  ASSERT(os_thread != NULL);
+  ASSERT(isolate->heap() != NULL);
+  if (is_mutator) {
+    if (mutator_thread_ == NULL) {
+      mutator_thread_ = GetThreadFromFreelist(isolate);
+    }
+    thread = mutator_thread_;
+  } else {
+    thread = GetThreadFromFreelist(isolate);
+  }
+  thread->isolate_ = isolate;
+  thread->heap_ = isolate->heap();
+  thread->set_os_thread(os_thread);
+  os_thread->set_thread(thread);
+  Thread::SetCurrent(thread);
+  os_thread->EnableThreadInterrupts();
+  return thread;
+}
+
+
+void ThreadRegistry::Unschedule(Thread* thread,
+                                bool is_mutator,
+                                bool bypass_safepoint) {
+  MonitorLocker ml(monitor_);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  os_thread->DisableThreadInterrupts();
+  thread->isolate_ = NULL;
+  thread->heap_ = NULL;
+  thread->set_os_thread(NULL);
+  os_thread->set_thread(NULL);
+  OSThread::SetCurrent(os_thread);
+  if (!is_mutator) {
+    ReturnThreadToFreelist(thread);
+  }
+  if (!bypass_safepoint && in_rendezvous_) {
+    // Don't wait for this thread.
+    ASSERT(remaining_ > 0);
+    if (--remaining_ == 0) {
+      ml.NotifyAll();
     }
   }
-  if (found_index < 0) {
-    return;
-  }
-  entries_.RemoveAt(found_index);
 }
 
 
-ThreadRegistry::EntryIterator::EntryIterator(ThreadRegistry* registry)
-    : index_(0),
-      registry_(NULL) {
-  Reset(registry);
-}
-
-
-ThreadRegistry::EntryIterator::~EntryIterator() {
-  Reset(NULL);
-}
-
-
-void ThreadRegistry::EntryIterator::Reset(ThreadRegistry* registry) {
-  // Reset index.
-  index_ = 0;
-
-  // Unlock old registry.
-  if (registry_ != NULL) {
-    registry_->monitor_->Exit();
-  }
-
-  registry_ = registry;
-
-  // Lock new registry.
-  if (registry_ != NULL) {
-    registry_->monitor_->Enter();
+void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
+                                         bool validate_frames) {
+  MonitorLocker ml(monitor_);
+  Thread* thread = active_list_;
+  while (thread != NULL) {
+    if (thread->zone() != NULL) {
+      thread->zone()->VisitObjectPointers(visitor);
+    }
+    thread->VisitObjectPointers(visitor);
+    // Iterate over all the stack frames and visit objects on the stack.
+    StackFrameIterator frames_iterator(thread->top_exit_frame_info(),
+                                       validate_frames);
+    StackFrame* frame = frames_iterator.NextFrame();
+    while (frame != NULL) {
+      frame->VisitObjectPointers(visitor);
+      frame = frames_iterator.NextFrame();
+    }
+    thread = thread->next_;
   }
 }
 
 
-bool ThreadRegistry::EntryIterator::HasNext() const {
-  if (registry_ == NULL) {
-    return false;
+Thread* ThreadRegistry::GetThreadFromFreelist(Isolate* isolate) {
+  ASSERT(monitor_->IsOwnedByCurrentThread());
+  Thread* thread = NULL;
+  // Get thread structure from free list or create a new one.
+  if (free_list_ == NULL) {
+    thread = new Thread(isolate);
+  } else {
+    thread = free_list_;
+    free_list_ = thread->next_;
   }
-  return index_ < registry_->entries_.length();
+  // Add thread to active list.
+  thread->next_ = active_list_;
+  active_list_ = thread;
+  return thread;
 }
 
-
-const ThreadRegistry::Entry& ThreadRegistry::EntryIterator::Next() {
-  ASSERT(HasNext());
-  return registry_->entries_.At(index_++);
+void ThreadRegistry::ReturnThreadToFreelist(Thread* thread) {
+  ASSERT(thread != NULL);
+  ASSERT(thread->os_thread_ == NULL);
+  ASSERT(thread->isolate_ == NULL);
+  ASSERT(thread->heap_ == NULL);
+  ASSERT(monitor_->IsOwnedByCurrentThread());
+  // First remove the thread from the active list.
+  Thread* prev = NULL;
+  Thread* current = active_list_;
+  while (current != NULL) {
+    if (current == thread) {
+      if (prev == NULL) {
+        active_list_ = current->next_;
+      } else {
+        prev->next_ = current->next_;
+      }
+      break;
+    }
+    prev = current;
+    current = current->next_;
+  }
+  // Now add thread to the free list.
+  thread->next_ = free_list_;
+  free_list_ = thread;
 }
 
 
@@ -142,11 +216,10 @@ void ThreadRegistry::CheckSafepointLocked() {
 
 intptr_t ThreadRegistry::CountScheduledLocked() {
   intptr_t count = 0;
-  for (int i = 0; i < entries_.length(); ++i) {
-    const Entry& entry = entries_[i];
-    if (entry.scheduled) {
-      ++count;
-    }
+  Thread* current = active_list_;
+  while (current != NULL) {
+    ++count;
+    current = current->next_;
   }
   return count;
 }

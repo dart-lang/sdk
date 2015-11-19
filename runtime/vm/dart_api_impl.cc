@@ -1365,7 +1365,6 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             char** error) {
   CHECK_NO_ISOLATE(Isolate::Current());
   char* isolate_name = BuildIsolateName(script_uri, main);
-  Thread::EnsureInit();
 
   // Setup default flags in case none were passed.
   Dart_IsolateFlags api_flags;
@@ -1459,26 +1458,25 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   if (iso->HasMutatorThread()) {
     FATAL("Multiple mutators within one isolate is not supported.");
   }
-  Thread::EnsureInit();
   Thread::EnterIsolate(iso);
 }
 
 
 DART_EXPORT void Dart_ThreadDisableProfiling() {
-  Thread* T = Thread::Current();
-  if (T == NULL) {
+  OSThread* os_thread = OSThread::Current();
+  if (os_thread == NULL) {
     return;
   }
-  T->DisableThreadInterrupts();
+  os_thread->DisableThreadInterrupts();
 }
 
 
 DART_EXPORT void Dart_ThreadEnableProfiling() {
-  Thread* T = Thread::Current();
-  if (T == NULL) {
+  OSThread* os_thread = OSThread::Current();
+  if (os_thread == NULL) {
     return;
   }
-  T->EnableThreadInterrupts();
+  os_thread->EnableThreadInterrupts();
 }
 
 
