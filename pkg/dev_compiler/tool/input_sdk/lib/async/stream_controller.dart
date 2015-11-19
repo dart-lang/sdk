@@ -772,12 +772,12 @@ class _AddStreamState<T> {
    * Return a future if the cancel takes time, otherwise return `null`.
    */
   Future cancel() {
-    var cancel = addSubscription.cancel();
-    if (cancel == null) {
+    var cancel2 = addSubscription.cancel();
+    if (cancel2 == null) {
       addStreamFuture._asyncComplete(null);
       return null;
     }
-    return cancel.whenComplete(() { addStreamFuture._asyncComplete(null); });
+    return cancel2.whenComplete(() { addStreamFuture._asyncComplete(null); });
   }
 
   void complete() {
