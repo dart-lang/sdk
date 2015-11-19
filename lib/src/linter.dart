@@ -425,6 +425,10 @@ class _LineInfo implements LineInfo {
   @override
   LineInfo_Location getLocation(int offset) => new LineInfo_Location(
       node.span.start.line + 1, node.span.start.column + 1);
+
+  int getOffsetOfLine(int lineNumber) {
+    throw new UnsupportedError('Cannot get line offset from a yaml node');
+  }
 }
 
 class _LintCode extends LintCode {
