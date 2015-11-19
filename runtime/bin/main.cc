@@ -13,6 +13,7 @@
 #include "bin/dartutils.h"
 #include "bin/dbg_connection.h"
 #include "bin/directory.h"
+#include "bin/embedded_dart_io.h"
 #include "bin/eventhandler.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
@@ -1061,10 +1062,10 @@ static const char* kStderrStreamId = "Stderr";
 
 static bool ServiceStreamListenCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {
-    File::set_capture_stdout(true);
+    SetCaptureStdout(true);
     return true;
   } else if (strcmp(stream_id, kStderrStreamId) == 0) {
-    File::set_capture_stderr(true);
+    SetCaptureStderr(true);
     return true;
   }
   return false;
@@ -1073,9 +1074,9 @@ static bool ServiceStreamListenCallback(const char* stream_id) {
 
 static void ServiceStreamCancelCallback(const char* stream_id) {
   if (strcmp(stream_id, kStdoutStreamId) == 0) {
-    File::set_capture_stdout(false);
+    SetCaptureStdout(false);
   } else if (strcmp(stream_id, kStderrStreamId) == 0) {
-    File::set_capture_stderr(false);
+    SetCaptureStderr(false);
   }
 }
 

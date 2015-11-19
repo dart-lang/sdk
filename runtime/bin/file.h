@@ -187,18 +187,6 @@ class File {
   static CObject* StatRequest(const CObjectArray& request);
   static CObject* LockRequest(const CObjectArray& request);
 
-  static void set_capture_stdout(bool value) {
-    capture_stdout_ = value;
-    capture_any_ = (capture_stdout_ || capture_stderr_);
-  }
-  static bool capture_stdout() { return capture_stdout_; }
-
-  static void set_capture_stderr(bool value) {
-    capture_stderr_ = value;
-    capture_any_ = (capture_stdout_ || capture_stderr_);
-  }
-  static bool capture_stderr() { return capture_stderr_; }
-
  private:
   explicit File(FileHandle* handle) : handle_(handle) { }
   void Close();
@@ -207,10 +195,6 @@ class File {
 
   // FileHandle is an OS specific class which stores data about the file.
   FileHandle* handle_;  // OS specific handle for the file.
-
-  static bool capture_stdout_;
-  static bool capture_stderr_;
-  static bool capture_any_;
 
   DISALLOW_COPY_AND_ASSIGN(File);
 };

@@ -13,6 +13,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/embedded_dart_io.h"
 #include "bin/file.h"
 #include "bin/io_natives.h"
 #include "bin/platform.h"
@@ -93,7 +94,7 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   fwrite(chars, 1, length, stdout);
   fputs("\n", stdout);
   fflush(stdout);
-  if (File::capture_stdout()) {
+  if (ShouldCaptureStdout()) {
     // For now we report print output on the Stdout stream.
     uint8_t newline[] = { '\n' };
     Dart_ServiceSendDataEvent("Stdout", "WriteEvent", chars, length);
