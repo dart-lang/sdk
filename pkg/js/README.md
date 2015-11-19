@@ -64,7 +64,7 @@ printOptions({responsive: true});
 ```
 
 If you want to use `printOptions` from Dart, you cannot simply pass a Dart `Map`
-object – they are are "opaque" in JavaScript.
+object – they are "opaque" in JavaScript.
 
 
 Instead, create a Dart class with both the `@JS()` and
