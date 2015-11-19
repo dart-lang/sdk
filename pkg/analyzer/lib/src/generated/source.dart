@@ -208,17 +208,6 @@ class LineInfo {
     }
   }
 
-//  /**
-//   * Return the offset of the first character on the line with the given
-//   * [lineNumber].
-//   */
-//  int getLineOffset(int lineNumber) {
-//    if (lineNumber < 0 || lineNumber >= _lineStarts.length) {
-//      throw new ArgumentError('Invalid line number: $lineNumber');
-//    }
-//    return _lineStarts[lineNumber];
-//  }
-
   /**
    * Return the location information for the character at the given offset.
    *
@@ -257,6 +246,17 @@ class LineInfo {
     _previousLine = min;
 
     return new LineInfo_Location(min + 1, offset - _lineStarts[min] + 1);
+  }
+
+  /**
+   * Return the offset of the first character on the line with the given
+   * [lineNumber].
+   */
+  int getOffsetOfLine(int lineNumber) {
+    if (lineNumber < 0 || lineNumber >= _lineStarts.length) {
+      throw new ArgumentError('Invalid line number: $lineNumber');
+    }
+    return _lineStarts[lineNumber];
   }
 }
 
