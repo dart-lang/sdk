@@ -1,0 +1,5 @@
+analyzer:
+  errors:
+    unused_local_variable: ignore
+  language:
+    enableSuperMixins: true
