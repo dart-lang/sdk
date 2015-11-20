@@ -1688,6 +1688,13 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('evaluateInFrame', params);
   }
 
+  Future<ServiceObject> getReachableSize(ServiceObject target) {
+    Map params = {
+      'targetId': target.id,
+    };
+    return invokeRpc('_getReachableSize', params);
+  }
+
   Future<ServiceObject> getRetainedSize(ServiceObject target) {
     Map params = {
       'targetId': target.id,

@@ -1764,16 +1764,14 @@ static bool GetRetainingPath(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* get_retained_size_params[] = {
   ISOLATE_PARAMETER,
+  new IdParameter("targetId", true),
   NULL,
 };
 
 
 static bool GetRetainedSize(Thread* thread, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
-  if (target_id == NULL) {
-    PrintMissingParamError(js, "targetId");
-    return true;
-  }
+  ASSERT(target_id != NULL);
   ObjectIdRing::LookupResult lookup_result;
   Object& obj = Object::Handle(LookupHeapObject(thread, target_id,
                                                 &lookup_result));
@@ -1800,6 +1798,48 @@ static bool GetRetainedSize(Thread* thread, JSONStream* js) {
 
   ObjectGraph graph(thread);
   intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+  const Object& result = Object::Handle(Integer::New(retained_size));
+  result.PrintJSON(js, true);
+  return true;
+}
+
+
+static const MethodParameter* get_reachable_size_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("targetId", true),
+  NULL,
+};
+
+
+static bool GetReachableSize(Thread* thread, JSONStream* js) {
+  const char* target_id = js->LookupParam("targetId");
+  ASSERT(target_id != NULL);
+  ObjectIdRing::LookupResult lookup_result;
+  Object& obj = Object::Handle(LookupHeapObject(thread, target_id,
+                                                &lookup_result));
+  if (obj.raw() == Object::sentinel().raw()) {
+    if (lookup_result == ObjectIdRing::kCollected) {
+      PrintSentinel(js, kCollectedSentinel);
+    } else if (lookup_result == ObjectIdRing::kExpired) {
+      PrintSentinel(js, kExpiredSentinel);
+    } else {
+      PrintInvalidParamError(js, "targetId");
+    }
+    return true;
+  }
+  // TODO(rmacnak): There is no way to get the size retained by a class object.
+  // SizeRetainedByClass should be a separate RPC.
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    ObjectGraph graph(thread);
+    intptr_t retained_size = graph.SizeReachableByClass(cls.id());
+    const Object& result = Object::Handle(Integer::New(retained_size));
+    result.PrintJSON(js, true);
+    return true;
+  }
+
+  ObjectGraph graph(thread);
+  intptr_t retained_size = graph.SizeReachableByInstance(obj);
   const Object& result = Object::Handle(Integer::New(retained_size));
   result.PrintJSON(js, true);
   return true;
@@ -3455,6 +3495,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_object_by_address_params },
   { "_getPorts", GetPorts,
     get_ports_params },
+  { "_getReachableSize", GetReachableSize,
+    get_reachable_size_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,

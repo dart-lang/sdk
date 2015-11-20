@@ -614,6 +614,7 @@ class RawObject {
   friend class Scavenger;
   friend class ScavengerVisitor;
   friend class SizeExcludingClassVisitor;  // GetClassId
+  friend class InstanceAccumulator;  // GetClassId
   friend class RetainingPathVisitor;  // GetClassId
   friend class SkippedCodeFunctions;  // StorePointer
   friend class InstructionsReader;  // tags_ check
