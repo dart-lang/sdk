@@ -877,14 +877,13 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class ConstantFinderTest extends EngineTestCase {
+class ConstantFinderTest {
   AstNode _node;
   TypeProvider _typeProvider;
   AnalysisContext _context;
   Source _source;
 
   void setUp() {
-    super.setUp();
     _typeProvider = new TestTypeProvider();
     _context = new TestAnalysisContext_ConstantFinderTest();
     _source = new TestSource();
@@ -8649,17 +8648,15 @@ class HtmlTagInfoBuilderTest extends HtmlParserTest {
 }
 
 @reflectiveTest
-class HtmlUnitBuilderTest extends EngineTestCase {
+class HtmlUnitBuilderTest {
   InternalAnalysisContext _context;
-  @override
+
   void setUp() {
     _context = AnalysisContextFactory.contextWithCore();
   }
 
-  @override
   void tearDown() {
     _context = null;
-    super.tearDown();
   }
 
   void test_embedded_script() {
@@ -8794,7 +8791,7 @@ class HtmlUnitBuilderTest_ExpectedVariable {
  * Instances of the class `HtmlWarningCodeTest` test the generation of HTML warning codes.
  */
 @reflectiveTest
-class HtmlWarningCodeTest extends EngineTestCase {
+class HtmlWarningCodeTest {
   /**
    * The analysis context used to resolve the HTML files.
    */
@@ -8809,17 +8806,15 @@ class HtmlWarningCodeTest extends EngineTestCase {
    * The list of reported errors.
    */
   List<AnalysisError> _errors;
-  @override
+
   void setUp() {
     _context = AnalysisContextFactory.contextWithCore();
   }
 
-  @override
   void tearDown() {
     _context = null;
     _contents = null;
     _errors = null;
-    super.tearDown();
   }
 
   void test_invalidUri() {
@@ -8896,11 +8891,11 @@ class MockDartSdk implements DartSdk {
 }
 
 @reflectiveTest
-class ReferenceFinderTest extends EngineTestCase {
+class ReferenceFinderTest {
   DirectedGraph<ConstantEvaluationTarget> _referenceGraph;
   VariableElement _head;
   Element _tail;
-  @override
+
   void setUp() {
     _referenceGraph = new DirectedGraph<ConstantEvaluationTarget>();
     _head = ElementFactory.topLevelVariableElement2("v1");

@@ -1297,6 +1297,7 @@ class ElementResolverTest extends EngineTestCase {
 
   @override
   void setUp() {
+    super.setUp();
     _listener = new GatheringErrorListener();
     _typeProvider = new TestTypeProvider();
     _resolver = _createResolver();
@@ -4835,7 +4836,7 @@ class A {
 }
 
 @reflectiveTest
-class InheritanceManagerTest extends EngineTestCase {
+class InheritanceManagerTest {
   /**
    * The type provider used to access the types.
    */
@@ -4856,7 +4857,6 @@ class InheritanceManagerTest extends EngineTestCase {
    */
   int _numOfMembersInObject = 0;
 
-  @override
   void setUp() {
     _typeProvider = new TestTypeProvider();
     _inheritanceManager = _createInheritanceManager();
@@ -6060,7 +6060,7 @@ class InheritanceManagerTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LibraryElementBuilderTest extends EngineTestCase {
+class LibraryElementBuilderTest {
   /**
    * The analysis context used to analyze sources.
    */
@@ -6079,15 +6079,12 @@ class LibraryElementBuilderTest extends EngineTestCase {
     return source;
   }
 
-  @override
   void setUp() {
     _context = AnalysisContextFactory.contextWithCore();
   }
 
-  @override
   void tearDown() {
     _context = null;
-    super.tearDown();
   }
 
   void test_accessorsAcrossFiles() {
@@ -6585,7 +6582,7 @@ class LibraryScopeTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class LibraryTest extends EngineTestCase {
+class LibraryTest {
   /**
    * The error listener to which all errors will be reported.
    */
@@ -6601,19 +6598,16 @@ class LibraryTest extends EngineTestCase {
    */
   Library _library;
 
-  @override
   void setUp() {
     _analysisContext = AnalysisContextFactory.contextWithCore();
     _errorListener = new GatheringErrorListener();
     _library = _createLibrary("/lib.dart");
   }
 
-  @override
   void tearDown() {
     _errorListener = null;
     _analysisContext = null;
     _library = null;
-    super.tearDown();
   }
 
   void test_getExplicitlyImportsCore() {
@@ -8421,6 +8415,7 @@ class ResolverTestCase extends EngineTestCase {
 
   @override
   void setUp() {
+    super.setUp();
     reset();
   }
 
@@ -10357,6 +10352,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   @override
   void setUp() {
+    super.setUp();
     _listener = new GatheringErrorListener();
     _typeProvider = new TestTypeProvider();
     _analyzer = _createAnalyzer();
@@ -12627,7 +12623,7 @@ int x = 3;
 }
 
 @reflectiveTest
-class SubtypeManagerTest extends EngineTestCase {
+class SubtypeManagerTest {
   /**
    * The inheritance manager being tested.
    */
@@ -12638,9 +12634,7 @@ class SubtypeManagerTest extends EngineTestCase {
    */
   CompilationUnitElementImpl _definingCompilationUnit;
 
-  @override
   void setUp() {
-    super.setUp();
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
         new FileBasedSource(FileUtilities2.createFile("/test.dart"));
@@ -14493,7 +14487,7 @@ class TypeProviderImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class TypeResolverVisitorTest extends EngineTestCase {
+class TypeResolverVisitorTest {
   /**
    * The error listener to which errors will be reported.
    */
@@ -14535,7 +14529,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  @override
   void setUp() {
     _listener = new GatheringErrorListener();
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();

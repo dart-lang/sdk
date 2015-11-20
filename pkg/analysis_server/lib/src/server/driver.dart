@@ -26,6 +26,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
+import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -405,16 +406,14 @@ class Driver implements ServerStarter {
     //
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
     plugins.add(serverPlugin);
-    plugins.addAll(_userDefinedPlugins);
     plugins.add(linterPlugin);
     plugins.add(linterServerPlugin);
+    plugins.addAll(_userDefinedPlugins);
 
-    // Defer to the extension manager in AE for plugin registration.
-    AnalysisEngine.instance.userDefinedPlugins = plugins;
-    // Force registration.
-    AnalysisEngine.instance.taskManager;
-
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
     //
     // Create the sockets and start listening for requests.
     //

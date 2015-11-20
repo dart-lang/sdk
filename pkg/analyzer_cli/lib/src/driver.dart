@@ -35,6 +35,7 @@ import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as path;
+import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:yaml/yaml.dart';
 
@@ -500,12 +501,12 @@ class Driver {
 
   void _processPlugins() {
     List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
     plugins.add(linterPlugin);
     plugins.addAll(_userDefinedPlugins);
-    AnalysisEngine.instance.userDefinedPlugins = plugins;
 
-    // This ensures that AE extension manager processes plugins.
-    AnalysisEngine.instance.taskManager;
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
   }
 
   /// Analyze a single source.

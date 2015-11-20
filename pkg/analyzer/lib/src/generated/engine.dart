@@ -5925,11 +5925,6 @@ class AnalysisEngine {
       InstrumentationService.NULL_SERVICE;
 
   /**
-   * The list of supported plugins for processing by clients.
-   */
-  List<Plugin> _supportedPlugins;
-
-  /**
    * The partition manager being used to manage the shared partitions.
    */
   final PartitionManager partitionManager = new PartitionManager();
@@ -5951,11 +5946,6 @@ class AnalysisEngine {
    * invalidation after a change.
    */
   bool limitInvalidationInTaskModel = false;
-
-  /**
-   * The plugins that are defined outside the `analyzer` package.
-   */
-  List<Plugin> _userDefinedPlugins = <Plugin>[];
 
   /**
    * The task manager used to manage the tasks used to analyze code.
@@ -5999,24 +5989,18 @@ class AnalysisEngine {
   /**
    * Return the list of supported plugins for processing by clients.
    */
-  List<Plugin> get supportedPlugins {
-    if (_supportedPlugins == null) {
-      _supportedPlugins = <Plugin>[
-        enginePlugin,
-        commandLinePlugin,
-        optionsPlugin
-      ];
-      _supportedPlugins.addAll(_userDefinedPlugins);
-    }
-    return _supportedPlugins;
-  }
+  List<Plugin> get supportedPlugins =>
+      <Plugin>[enginePlugin, commandLinePlugin, optionsPlugin];
 
   /**
    * Return the task manager used to manage the tasks used to analyze code.
    */
   TaskManager get taskManager {
     if (_taskManager == null) {
-      new ExtensionManager().processPlugins(supportedPlugins);
+      if (enginePlugin.taskExtensionPoint == null) {
+        throw new IllegalStateException(
+            'The analysis engine plugin has not been registered');
+      }
       _taskManager = new TaskManager();
       _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
       // TODO(brianwilkerson) Create a way to associate different results with
@@ -6024,18 +6008,6 @@ class AnalysisEngine {
       _taskManager.addGeneralResult(DART_ERRORS);
     }
     return _taskManager;
-  }
-
-  /**
-   * Set plugins that are defined outside the `analyzer` package.
-   */
-  void set userDefinedPlugins(List<Plugin> plugins) {
-    if (plugins == null) {
-      plugins = <Plugin>[];
-    }
-    _userDefinedPlugins = plugins;
-    _supportedPlugins = null;
-    _taskManager = null;
   }
 
   /**
@@ -9451,7 +9423,7 @@ abstract class InternalAnalysisContext implements AnalysisContext {
 
   /// Get the [EmbedderYamlLocator] for this context.
   EmbedderYamlLocator get embedderYamlLocator;
-  
+
   /**
    * A factory to override how [ResolverVisitor] is created.
    */
