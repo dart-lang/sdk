@@ -4,42 +4,109 @@
 
 library analysis_server.plugin.edit.assist.assist_dart;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
- * An [AssistContributor] that can be used to contribute assists for Dart
- * files.
+ * An object used to provide context information for [DartAssistContributor]s.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class DartAssistContext {
+  /**
+   * The [AnalysisContext] to get assists in.
+   */
+  AnalysisContext get analysisContext;
+
+  /**
+   * The length of the selection.
+   */
+  int get selectionLength;
+
+  /**
+   * The start of the selection.
+   */
+  int get selectionOffset;
+
+  /**
+   * The source to get assists in.
+   */
+  Source get source;
+
+  /**
+   * The [CompilationUnit] to compute assists in.
+   */
+  CompilationUnit get unit;
+}
+
+/**
+ * An [AssistContributor] that can be used to contribute assists for Dart files.
  *
  * Clients may extend this class when implementing plugins.
  */
 abstract class DartAssistContributor implements AssistContributor {
   @override
-  List<Assist> computeAssists(
-      AnalysisContext context, Source source, int offset, int length) {
+  Future<List<Assist>> computeAssists(AssistContext context) async {
+    AnalysisContext analysisContext = context.analysisContext;
+    Source source = context.source;
     if (!AnalysisEngine.isDartFileName(source.fullName)) {
       return Assist.EMPTY_LIST;
     }
-    List<Source> libraries = context.getLibrariesContaining(source);
+    List<Source> libraries = analysisContext.getLibrariesContaining(source);
     if (libraries.isEmpty) {
       return Assist.EMPTY_LIST;
     }
     CompilationUnit unit =
-        context.resolveCompilationUnit2(source, libraries[0]);
+        analysisContext.resolveCompilationUnit2(source, libraries[0]);
     if (unit == null) {
       return Assist.EMPTY_LIST;
     }
-    return internalComputeAssists(unit, offset, length);
+    DartAssistContext dartContext = new _DartAssistContextImpl(context, unit);
+    return internalComputeAssists(dartContext);
   }
 
   /**
-   * Return a list of assists for a location in the given [source]. The location
-   * is specified by the [offset] and [length] of the selected region. The
-   * [context] can be used to get additional information that is useful for
-   * computing assists.
+   * Completes with a list of assists for the given [context].
    */
-  List<Assist> internalComputeAssists(
-      CompilationUnit unit, int offset, int length);
+  Future<List<Assist>> internalComputeAssists(DartAssistContext context);
+}
+
+/**
+ * The implementation of [DartAssistContext].
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class _DartAssistContextImpl implements DartAssistContext {
+  final AssistContext _context;
+
+  /**
+   * The [CompilationUnit] to compute assists in.
+   */
+  final CompilationUnit unit;
+
+  _DartAssistContextImpl(this._context, this.unit);
+
+  /**
+   * The [AnalysisContext] to get assists in.
+   */
+  AnalysisContext get analysisContext => _context.analysisContext;
+
+  /**
+   * The length of the selection.
+   */
+  int get selectionLength => _context.selectionLength;
+
+  /**
+   * The start of the selection.
+   */
+  int get selectionOffset => _context.selectionOffset;
+
+  /**
+   * The source to get assists in.
+   */
+  Source get source => _context.source;
 }

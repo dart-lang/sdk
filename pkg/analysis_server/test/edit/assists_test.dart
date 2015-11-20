@@ -4,8 +4,6 @@
 
 library test.edit.assists;
 
-import 'dart:async';
-
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:plugin/manager.dart';
@@ -24,15 +22,15 @@ main() {
 class AssistsTest extends AbstractAnalysisTest {
   List<SourceChange> changes;
 
-  void prepareAssists(String search, [int length = 0]) {
+  prepareAssists(String search, [int length = 0]) async {
     int offset = findOffset(search);
-    prepareAssistsAt(offset, length);
+    await prepareAssistsAt(offset, length);
   }
 
-  void prepareAssistsAt(int offset, int length) {
+  prepareAssistsAt(int offset, int length) async {
     Request request =
         new EditGetAssistsParams(testFile, offset, length).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    Response response = await waitResponse(request);
     var result = new EditGetAssistsResult.fromResponse(response);
     changes = result.assists;
   }
@@ -46,14 +44,14 @@ class AssistsTest extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server);
   }
 
-  Future test_removeTypeAnnotation() async {
+  test_removeTypeAnnotation() async {
     addTestFile('''
 main() {
   int v = 1;
 }
 ''');
     await waitForTasksFinished();
-    prepareAssists('v =');
+    await prepareAssists('v =');
     _assertHasChange(
         'Remove type annotation',
         '''
@@ -63,14 +61,14 @@ main() {
 ''');
   }
 
-  Future test_splitVariableDeclaration() async {
+  test_splitVariableDeclaration() async {
     addTestFile('''
 main() {
   int v = 1;
 }
 ''');
     await waitForTasksFinished();
-    prepareAssists('v =');
+    await prepareAssists('v =');
     _assertHasChange(
         'Split variable declaration',
         '''
@@ -81,7 +79,7 @@ main() {
 ''');
   }
 
-  Future test_surroundWithIf() async {
+  test_surroundWithIf() async {
     addTestFile('''
 main() {
   print(1);
@@ -91,7 +89,7 @@ main() {
     await waitForTasksFinished();
     int offset = findOffset('  print(1)');
     int length = findOffset('}') - offset;
-    prepareAssistsAt(offset, length);
+    await prepareAssistsAt(offset, length);
     _assertHasChange(
         "Surround with 'if'",
         '''

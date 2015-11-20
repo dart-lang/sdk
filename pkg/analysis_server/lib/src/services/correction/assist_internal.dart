@@ -4,6 +4,7 @@
 
 library services.src.correction.assist;
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
@@ -30,38 +31,49 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
+  AnalysisContext analysisContext;
+
   Source source;
   String file;
   int fileStamp;
-  final CompilationUnit unit;
-  final int selectionOffset;
-  final int selectionLength;
-  AnalysisContext context;
+
+  CompilationUnit unit;
   CompilationUnitElement unitElement;
+
   LibraryElement unitLibraryElement;
   String unitLibraryFile;
   String unitLibraryFolder;
+
+  int selectionOffset;
+  int selectionLength;
+  int selectionEnd;
 
   final List<Assist> assists = <Assist>[];
   final Map<String, LinkedEditGroup> linkedPositionGroups =
       <String, LinkedEditGroup>{};
   Position exitPosition = null;
 
-  int selectionEnd;
   CorrectionUtils utils;
   AstNode node;
 
   SourceChange change = new SourceChange('<message>');
 
-  AssistProcessor(this.unit, this.selectionOffset, this.selectionLength) {
-    source = unit.element.source;
-    file = source.fullName;
-    unitElement = unit.element;
-    context = unitElement.context;
-    unitLibraryElement = unitElement.library;
+  AssistProcessor(DartAssistContext dartContext) {
+    analysisContext = dartContext.analysisContext;
+    // source
+    source = dartContext.source;
+    file = dartContext.source.fullName;
+    fileStamp = analysisContext.getModificationStamp(source);
+    // unit
+    unit = dartContext.unit;
+    unitElement = dartContext.unit.element;
+    // library
+    unitLibraryElement = dartContext.unit.element.library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
-    fileStamp = unitElement.context.getModificationStamp(source);
+    // selection
+    selectionOffset = dartContext.selectionOffset;
+    selectionLength = dartContext.selectionLength;
     selectionEnd = selectionOffset + selectionLength;
   }
 
@@ -70,7 +82,7 @@ class AssistProcessor {
    */
   String get eol => utils.endOfLine;
 
-  List<Assist> compute() {
+  Future<List<Assist>> compute() async {
     utils = new CorrectionUtils(unit);
     node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
     if (node == null) {
@@ -606,7 +618,7 @@ class AssistProcessor {
     // iterable should be List
     {
       DartType iterableType = iterable.bestType;
-      InterfaceType listType = context.typeProvider.listType;
+      InterfaceType listType = analysisContext.typeProvider.listType;
       if (iterableType is! InterfaceType ||
           iterableType.element != listType.element) {
         _coverageMarker();
@@ -2074,9 +2086,8 @@ class AssistProcessor {
  */
 class DefaultAssistContributor extends DartAssistContributor {
   @override
-  List<Assist> internalComputeAssists(
-      CompilationUnit unit, int offset, int length) {
-    AssistProcessor processor = new AssistProcessor(unit, offset, length);
+  Future<List<Assist>> internalComputeAssists(DartAssistContext context) {
+    AssistProcessor processor = new AssistProcessor(context);
     return processor.compute();
   }
 }

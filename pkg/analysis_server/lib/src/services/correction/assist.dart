@@ -9,21 +9,28 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'dart:async';
 
 /**
  * Compute and return the assists available at the given selection (described by
  * the [offset] and [length]) in the given [source]. The source was analyzed in
- * the given [context]. The [plugin] is used to get the list of assist
+ * the given [analysisContext]. The [plugin] is used to get the list of assist
  * contributors.
  */
-List<Assist> computeAssists(ServerPlugin plugin, AnalysisContext context,
-    Source source, int offset, int length) {
+Future<List<Assist>> computeAssists(
+    ServerPlugin plugin,
+    AnalysisContext analysisContext,
+    Source source,
+    int offset,
+    int length) async {
   List<Assist> assists = <Assist>[];
   List<AssistContributor> contributors = plugin.assistContributors;
+  AssistContextImpl assistContext =
+      new AssistContextImpl(analysisContext, source, offset, length);
   for (AssistContributor contributor in contributors) {
     try {
       List<Assist> contributedAssists =
-          contributor.computeAssists(context, source, offset, length);
+          await contributor.computeAssists(assistContext);
       if (contributedAssists != null) {
         assists.addAll(contributedAssists);
       }
@@ -35,6 +42,26 @@ List<Assist> computeAssists(ServerPlugin plugin, AnalysisContext context,
   }
   assists.sort(Assist.SORT_BY_RELEVANCE);
   return assists;
+}
+
+/**
+ * The implementation of [AssistContext].
+ */
+class AssistContextImpl implements AssistContext {
+  @override
+  final AnalysisContext analysisContext;
+
+  @override
+  final Source source;
+
+  @override
+  final int selectionOffset;
+
+  @override
+  final int selectionLength;
+
+  AssistContextImpl(this.analysisContext, this.source, this.selectionOffset,
+      this.selectionLength);
 }
 
 /**

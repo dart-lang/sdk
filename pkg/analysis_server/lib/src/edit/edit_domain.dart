@@ -130,20 +130,22 @@ class EditDomainHandler implements RequestHandler {
         .toResponse(request.id);
   }
 
-  Response getAssists(Request request) {
+  Future getAssists(Request request) async {
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
     ContextSourcePair pair = server.getContextSourcePair(params.file);
     engine.AnalysisContext context = pair.context;
     Source source = pair.source;
     List<SourceChange> changes = <SourceChange>[];
     if (context != null && source != null) {
-      List<Assist> assists = computeAssists(
+      List<Assist> assists = await computeAssists(
           server.serverPlugin, context, source, params.offset, params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });
     }
-    return new EditGetAssistsResult(changes).toResponse(request.id);
+    Response response =
+        new EditGetAssistsResult(changes).toResponse(request.id);
+    server.sendResponse(response);
   }
 
   Response getFixes(Request request) {
@@ -188,7 +190,8 @@ class EditDomainHandler implements RequestHandler {
       if (requestName == EDIT_FORMAT) {
         return format(request);
       } else if (requestName == EDIT_GET_ASSISTS) {
-        return getAssists(request);
+        getAssists(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
         return _getAvailableRefactorings(request);
       } else if (requestName == EDIT_GET_FIXES) {
