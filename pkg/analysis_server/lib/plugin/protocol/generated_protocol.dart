@@ -9277,6 +9277,7 @@ class CompletionSuggestionKind implements Enum {
  *   "explicitFileCount": int
  *   "implicitFileCount": int
  *   "workItemQueueLength": int
+ *   "workItemQueueLengthAverage": String
  *   "cacheEntryExceptions": List<String>
  * }
  *
@@ -9290,6 +9291,8 @@ class ContextData implements HasToJson {
   int _implicitFileCount;
 
   int _workItemQueueLength;
+
+  String _workItemQueueLengthAverage;
 
   List<String> _cacheEntryExceptions;
 
@@ -9346,6 +9349,21 @@ class ContextData implements HasToJson {
   }
 
   /**
+   * A rolling average of work items in the queue. (A double encoded as a
+   * String.)
+   */
+  String get workItemQueueLengthAverage => _workItemQueueLengthAverage;
+
+  /**
+   * A rolling average of work items in the queue. (A double encoded as a
+   * String.)
+   */
+  void set workItemQueueLengthAverage(String value) {
+    assert(value != null);
+    this._workItemQueueLengthAverage = value;
+  }
+
+  /**
    * Exceptions associated with cache entries.
    */
   List<String> get cacheEntryExceptions => _cacheEntryExceptions;
@@ -9358,11 +9376,12 @@ class ContextData implements HasToJson {
     this._cacheEntryExceptions = value;
   }
 
-  ContextData(String name, int explicitFileCount, int implicitFileCount, int workItemQueueLength, List<String> cacheEntryExceptions) {
+  ContextData(String name, int explicitFileCount, int implicitFileCount, int workItemQueueLength, String workItemQueueLengthAverage, List<String> cacheEntryExceptions) {
     this.name = name;
     this.explicitFileCount = explicitFileCount;
     this.implicitFileCount = implicitFileCount;
     this.workItemQueueLength = workItemQueueLength;
+    this.workItemQueueLengthAverage = workItemQueueLengthAverage;
     this.cacheEntryExceptions = cacheEntryExceptions;
   }
 
@@ -9395,13 +9414,19 @@ class ContextData implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "workItemQueueLength");
       }
+      String workItemQueueLengthAverage;
+      if (json.containsKey("workItemQueueLengthAverage")) {
+        workItemQueueLengthAverage = jsonDecoder.decodeString(jsonPath + ".workItemQueueLengthAverage", json["workItemQueueLengthAverage"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "workItemQueueLengthAverage");
+      }
       List<String> cacheEntryExceptions;
       if (json.containsKey("cacheEntryExceptions")) {
         cacheEntryExceptions = jsonDecoder.decodeList(jsonPath + ".cacheEntryExceptions", json["cacheEntryExceptions"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "cacheEntryExceptions");
       }
-      return new ContextData(name, explicitFileCount, implicitFileCount, workItemQueueLength, cacheEntryExceptions);
+      return new ContextData(name, explicitFileCount, implicitFileCount, workItemQueueLength, workItemQueueLengthAverage, cacheEntryExceptions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ContextData", json);
     }
@@ -9413,6 +9438,7 @@ class ContextData implements HasToJson {
     result["explicitFileCount"] = explicitFileCount;
     result["implicitFileCount"] = implicitFileCount;
     result["workItemQueueLength"] = workItemQueueLength;
+    result["workItemQueueLengthAverage"] = workItemQueueLengthAverage;
     result["cacheEntryExceptions"] = cacheEntryExceptions;
     return result;
   }
@@ -9427,6 +9453,7 @@ class ContextData implements HasToJson {
           explicitFileCount == other.explicitFileCount &&
           implicitFileCount == other.implicitFileCount &&
           workItemQueueLength == other.workItemQueueLength &&
+          workItemQueueLengthAverage == other.workItemQueueLengthAverage &&
           listEqual(cacheEntryExceptions, other.cacheEntryExceptions, (String a, String b) => a == b);
     }
     return false;
@@ -9439,6 +9466,7 @@ class ContextData implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, explicitFileCount.hashCode);
     hash = JenkinsSmiHash.combine(hash, implicitFileCount.hashCode);
     hash = JenkinsSmiHash.combine(hash, workItemQueueLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, workItemQueueLengthAverage.hashCode);
     hash = JenkinsSmiHash.combine(hash, cacheEntryExceptions.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
