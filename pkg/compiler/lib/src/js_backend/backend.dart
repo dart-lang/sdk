@@ -1602,10 +1602,7 @@ class JavaScriptBackend extends Backend {
     }
 
     generatedCode[element] = functionCompiler.compile(work);
-    WorldImpact worldImpact =
-        impactTransformer.transformCodegenImpact(work.registry.worldImpact);
-    compiler.dumpInfoTask.registerImpact(element, worldImpact);
-    return worldImpact;
+    return impactTransformer.transformCodegenImpact(work.registry.worldImpact);
   }
 
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
@@ -2614,17 +2611,6 @@ class JavaScriptBackend extends Backend {
     if (patchLocation == null) return null;
     return platformConfigUri.resolve(patchLocation);
   }
-
-  @override
-  ImpactStrategy createImpactStrategy(
-      {bool supportDeferredLoad: true,
-       bool supportDumpInfo: true}) {
-    return new JavaScriptImpactStrategy(
-        resolution,
-        compiler.dumpInfoTask,
-        supportDeferredLoad: supportDeferredLoad,
-        supportDumpInfo: supportDumpInfo);
-  }
 }
 
 /// Handling of special annotations for tests.
@@ -3092,40 +3078,4 @@ class Dependency {
   final Element annotatedElement;
 
   const Dependency(this.constant, this.annotatedElement);
-}
-
-class JavaScriptImpactStrategy extends ImpactStrategy {
-  final Resolution resolution;
-  final DumpInfoTask dumpInfoTask;
-  final bool supportDeferredLoad;
-  final bool supportDumpInfo;
-
-  JavaScriptImpactStrategy(this.resolution,
-                           this.dumpInfoTask,
-                           {this.supportDeferredLoad,
-                            this.supportDumpInfo});
-
-  @override
-  void visitImpact(Element element,
-                   WorldImpact impact,
-                   WorldImpactVisitor visitor,
-                   ImpactUseCase impactUse) {
-    // TODO(johnniwinther): Compute the application strategy once for each use.
-    if (impactUse == ResolutionEnqueuer.IMPACT_USE) {
-      if (supportDeferredLoad) {
-        impact.apply(visitor);
-      } else {
-        impact.apply(visitor);
-        resolution.uncacheWorldImpact(element);
-      }
-    } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
-      impact.apply(visitor);
-      resolution.uncacheWorldImpact(element);
-    } else if (impactUse == DumpInfoTask.IMPACT_USE) {
-      impact.apply(visitor);
-      dumpInfoTask.unregisterImpact(element);
-    } else {
-      impact.apply(visitor);
-    }
-  }
 }

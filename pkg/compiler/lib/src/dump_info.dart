@@ -4,41 +4,25 @@
 
 library dump_info;
 
-import 'dart:convert' show
-    ChunkedConversionSink,
-    HtmlEscape,
-    JsonEncoder,
-    StringConversionSink;
+import 'dart:convert'
+    show HtmlEscape, JsonEncoder, StringConversionSink, ChunkedConversionSink;
 
 import 'package:dart2js_info/info.dart';
 
 import 'common.dart';
-import 'common/tasks.dart' show
-    CompilerTask;
-import 'constants/values.dart' show
-    ConstantValue,
-    InterceptorConstantValue;
-import 'compiler.dart' show
-    Compiler;
-import 'deferred_load.dart' show
-    OutputUnit;
+import 'common/tasks.dart' show CompilerTask;
+import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
+import 'compiler.dart' show Compiler;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'info/send_info.dart' show
-    collectSendMeasurements;
-import 'js_backend/js_backend.dart' show
-    JavaScriptBackend;
-import 'js_emitter/full_emitter/emitter.dart' as full show
-    Emitter;
+import 'types/types.dart' show TypeMask;
+import 'deferred_load.dart' show OutputUnit;
+import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
-import 'types/types.dart' show
-    TypeMask;
-import 'universe/universe.dart' show
-    ReceiverConstraint;
-import 'universe/world_impact.dart' show
-    ImpactUseCase,
-    WorldImpact,
-    WorldImpactVisitorImpl;
+import 'universe/universe.dart' show ReceiverConstraint;
+import 'universe/world_impact.dart' show WorldImpact;
+import 'info/send_info.dart' show collectSendMeasurements;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final Compiler compiler;
@@ -382,8 +366,6 @@ abstract class InfoReporter {
 }
 
 class DumpInfoTask extends CompilerTask implements InfoReporter {
-  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Dump info');
-
   DumpInfoTask(Compiler compiler) : super(compiler);
 
   String get name => "Dump Info";
@@ -436,34 +418,23 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     }
   }
 
-  void unregisterImpact(Element element) {
-    impacts.remove(element);
-  }
-
   /**
    * Returns an iterable of [Selection]s that are used by
    * [element].  Each [Selection] contains an element that is
    * used and the selector that selected the element.
    */
   Iterable<Selection> getRetaining(Element element) {
-    WorldImpact impact = impacts[element];
+    var impact = impacts[element];
     if (impact == null) return const <Selection>[];
 
     var selections = <Selection>[];
-    compiler.impactStrategy.visitImpact(
-        element,
-        impact,
-        new WorldImpactVisitorImpl(
-            visitDynamicUse: (dynamicUse) {
-              selections.addAll(compiler.world.allFunctions
-                        .filter(dynamicUse.selector, dynamicUse.mask)
-                        .map((e) => new Selection(e, dynamicUse.mask)));
-            },
-            visitStaticUse: (staticUse) {
-              selections.add(new Selection(staticUse.element, null));
-            }
-        ),
-        IMPACT_USE);
+    selections.addAll(impact.dynamicUses.expand((dynamicUse) {
+      return compiler.world.allFunctions
+          .filter(dynamicUse.selector, dynamicUse.mask)
+          .map((e) => new Selection(e, dynamicUse.mask));
+    }));
+    selections.addAll(impact.staticUses
+        .map((staticUse) => new Selection(staticUse.element, null)));
     return selections;
   }
 
