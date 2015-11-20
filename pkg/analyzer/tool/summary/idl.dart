@@ -125,6 +125,14 @@ class PrelinkedReference {
    * the kind if [PrelinkedReferenceKind.classOrEnum].
    */
   PrelinkedReferenceKind kind;
+
+  /**
+   * Integer index indicating which unit in the imported library contains the
+   * definition of the entity.  As with indices into [UnlinkedLibrary.units],
+   * zero represents the defining compilation unit, and nonzero values
+   * represent parts in the order of the corresponding `part` declarations.
+   */
+  int unit;
 }
 
 /**
@@ -434,7 +442,8 @@ class UnlinkedLibrary {
 
   /**
    * Information about the units constituting this library.  The first unit
-   * listed is always the defining compilation unit.
+   * listed is always the defining compilation unit.  The remaining units are
+   * listed in the order of their corresponding `part` declarations.
    */
   List<UnlinkedUnit> units;
 
