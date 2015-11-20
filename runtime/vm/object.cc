@@ -74,9 +74,9 @@ DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, write_protect_code);
 
 
-static const char* kGetterPrefix = "get:";
+static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
-static const char* kSetterPrefix = "set:";
+static const char* const kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.

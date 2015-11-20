@@ -31,8 +31,9 @@ namespace bin {
   }
 
 #define kLibrarySourceNamePrefix "/vmservice"
-static const char* kVMServiceIOLibraryUri = "dart:vmservice_io";
-static const char* kVMServiceIOLibraryScriptResourceName = "vmservice_io.dart";
+static const char* const kVMServiceIOLibraryUri = "dart:vmservice_io";
+static const char* const kVMServiceIOLibraryScriptResourceName =
+    "vmservice_io.dart";
 
 struct ResourcesEntry {
   const char* path_;
