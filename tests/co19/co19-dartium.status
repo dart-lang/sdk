@@ -838,13 +838,13 @@ LibTest/isolate/ReceivePort/asBroadcastStream_A01_t03: RuntimeError # Issue 1392
 LibTest/isolate/ReceivePort/asBroadcastStream_A01_t04: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Skip # Passes mysteriously, issues 24990, 13921
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t02: RuntimeError # Issue 13921
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t03: RuntimeError # Issue 13921
+LibTest/isolate/ReceivePort/asBroadcastStream_A03_t02: Skip # Passes mysteriously, issues 24990, 13921
+LibTest/isolate/ReceivePort/asBroadcastStream_A03_t03: Skip # Passes mysteriously, issues 24990, 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t01: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t02: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: RuntimeError # Issue 13921
-LibTest/isolate/ReceivePort/close_A01_t01: RuntimeError # Issue 13921
-LibTest/isolate/ReceivePort/close_A02_t01: RuntimeError # Issue 13921
+LibTest/isolate/ReceivePort/close_A01_t01: Skip # Passes mysteriously, issues 24990, 13921
+LibTest/isolate/ReceivePort/close_A02_t01: Skip # Passes mysteriously, issues 24990, 13921
 LibTest/isolate/ReceivePort/contains_A01_t01: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/distinct_A01_t01: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/distinct_A01_t02: RuntimeError # Issue 13921

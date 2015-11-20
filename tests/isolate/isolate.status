@@ -87,13 +87,15 @@ spawn_uri_multi_test/none: RuntimeError # Issue 13544
 [ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 pause_test: Fail         # Not implemented yet
 issue_21398_parent_isolate_test: Skip # Issue 24990
-isolate/message2_test: Skip # Issue 24990
-isolate/message_enum_test: Skip # Issue 24990
-isolate/nested_spawn2_test: Skip # Issue 24990
-isolate/isolate_import_test: Skip # Issue 24990
-isolate/spawn_uri_test: Skip # Issue 24990
+message2_test: Skip # Issue 24990
+message_enum_test: Skip # Issue 24990
+nested_spawn2_test: Skip # Issue 24990
+isolate_import_test: Skip # Issue 24990
+spawn_uri_test: Skip # Issue 24990
+spawn_uri_vm_test: Skip # Issue 24990
 issue_21398_parent_isolate2_test/01: Skip # Issue 24990
-isolate/spawn_uri_multi_test/none: Skip # Issue 24990
+spawn_uri_multi_test/none: Skip # Issue 24990
+raw_port_test: Skip # Issue 24990
 
 [ $compiler == none && $runtime == ContentShellOnAndroid ]
 nested_spawn2_test: Skip # Issue 19127: This test is timing out.
