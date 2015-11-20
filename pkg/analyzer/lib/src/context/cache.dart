@@ -495,7 +495,7 @@ class CacheEntry {
 //      }
 //      valueStr = valueStr.replaceAll('\n', '\\n');
 //      print(
-//          'setValue $descriptor for $target value=$valueStr deps=$dependedOn');
+//          'setValue $descriptor for $target value=$valueStr $dependedOn=$dependedOn');
 //    }
     _validateStateChange(descriptor, CacheState.VALID);
     TargetedResult thisResult = new TargetedResult(target, descriptor);
@@ -509,14 +509,16 @@ class CacheEntry {
   }
 
   /**
-   * Set the value of the result represented by the given [descriptor] to the
-   * given [value], keep its dependency, invalidate all the dependent result.
+   * If the result represented by the given [descriptor] is valid, set
+   * it to the given [value], keep its dependency, and if [invalidateDependent]
+   * invalidate all the dependent result.
    */
   void setValueIncremental(
       ResultDescriptor descriptor, dynamic value, bool invalidateDependent) {
     ResultData data = getResultData(descriptor);
-    data.state = CacheState.VALID;
-    data.value = value;
+    if (data.state == CacheState.VALID || data.state == CacheState.FLUSHED) {
+      data.value = value;
+    }
     if (invalidateDependent) {
       _invalidateDependentResults(nextInvalidateId++, data, null, 0);
     }
