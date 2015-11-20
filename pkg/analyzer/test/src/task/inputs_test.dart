@@ -37,7 +37,6 @@ class ConstantTaskInputBuilderTest extends EngineTestCase {
   ConstantTaskInputBuilder builder;
 
   void setUp() {
-    super.setUp();
     builder = new ConstantTaskInputBuilder(input);
   }
 
@@ -556,7 +555,7 @@ class ListToMapTaskInputTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class ObjectToListTaskInputBuilderTest {
+class ObjectToListTaskInputBuilderTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);
@@ -706,7 +705,7 @@ class ObjectToListTaskInputTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class SimpleTaskInputBuilderTest {
+class SimpleTaskInputBuilderTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);

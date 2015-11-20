@@ -228,7 +228,6 @@ class AnalysisContextImplTest extends EngineTestCase {
 
   @override
   void setUp() {
-    super.setUp();
     _context = new AnalysisContextImpl();
     _sourceFactory = new SourceFactory([
       new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),

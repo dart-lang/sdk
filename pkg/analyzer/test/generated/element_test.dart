@@ -2025,7 +2025,6 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   @override
   void setUp() {
-    super.setUp();
     _typeProvider = new TestTypeProvider();
   }
 
