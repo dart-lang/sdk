@@ -843,6 +843,64 @@ void f() {}
     assertNoAssistAt('f();', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
+  void test_convertIntoBlockDocumentationComment_BAD_alreadyBlock() {
+    resolveTestUnit('''
+/**
+ * AAAAAAA
+ */
+class A {}
+''');
+    assertNoAssistAt('AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK);
+  }
+
+  void test_convertIntoBlockDocumentationComment_BAD_notDocumentation() {
+    resolveTestUnit('''
+// AAAA
+class A {}
+''');
+    assertNoAssistAt('AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK);
+  }
+
+  void test_convertIntoBlockDocumentationComment_OK_onReference() {
+    resolveTestUnit('''
+/// AAAAAAA [int] AAAAAAA
+class A {}
+''');
+    assertHasAssistAt(
+        'nt]',
+        DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK,
+        '''
+/**
+ * AAAAAAA [int] AAAAAAA
+ */
+class A {}
+''');
+  }
+
+  void test_convertIntoBlockDocumentationComment_OK_onText() {
+    resolveTestUnit('''
+class A {
+  /// AAAAAAA [int] AAAAAAA
+  /// BBBBBBBB BBBB BBBB
+  /// CCC [A] CCCCCCCCCCC
+  mmm() {}
+}
+''');
+    assertHasAssistAt(
+        'AAA [',
+        DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK,
+        '''
+class A {
+  /**
+   * AAAAAAA [int] AAAAAAA
+   * BBBBBBBB BBBB BBBB
+   * CCC [A] CCCCCCCCCCC
+   */
+  mmm() {}
+}
+''');
+  }
+
   void test_convertToBlockBody_OK_async() {
     resolveTestUnit('''
 class A {
@@ -3259,7 +3317,7 @@ main() {
     assertNoAssistAt('print', DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
   }
 
-  void test_replaceIfElseWithConditional_wrong_notSingleStatememt() {
+  void test_replaceIfElseWithConditional_wrong_notSingleStatement() {
     resolveTestUnit('''
 main() {
   int vvv;

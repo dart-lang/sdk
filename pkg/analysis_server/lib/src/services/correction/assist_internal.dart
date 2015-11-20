@@ -81,6 +81,7 @@ class AssistProcessor {
     _addProposal_addTypeAnnotation_SimpleFormalParameter();
     _addProposal_addTypeAnnotation_VariableDeclaration();
     _addProposal_assignToLocalVariable();
+    _addProposal_convertIntoBlockDocumentationComment();
     _addProposal_convertToBlockFunctionBody();
     _addProposal_convertToExpressionFunctionBody();
     _addProposal_convertToForIndexLoop();
@@ -386,6 +387,32 @@ class AssistProcessor {
     // add proposal
     _insertBuilder(builder);
     _addAssist(DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE, []);
+  }
+
+  void _addProposal_convertIntoBlockDocumentationComment() {
+    Comment comment = node.getAncestor((n) => n is Comment);
+    if (comment != null && comment.isDocumentation) {
+      String prefix = utils.getNodePrefix(comment);
+      SourceBuilder sb = new SourceBuilder(file, comment.offset);
+      sb.append('/**');
+      sb.append(eol);
+      for (Token token in comment.tokens) {
+        if (token is DocumentationCommentToken &&
+            token.type == TokenType.SINGLE_LINE_COMMENT) {
+          sb.append(prefix);
+          sb.append(' * ');
+          sb.append(token.lexeme.substring('/// '.length));
+          sb.append(eol);
+        } else {
+          return;
+        }
+      }
+      sb.append(prefix);
+      sb.append(' */');
+      _insertBuilder(sb, comment.length);
+    }
+    // add proposal
+    _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK, []);
   }
 
   void _addProposal_convertToBlockFunctionBody() {
@@ -811,19 +838,19 @@ class AssistProcessor {
 
   void _addProposal_encapsulateField() {
     // find FieldDeclaration
-    FieldDeclaration fieldDeclaraton =
+    FieldDeclaration fieldDeclaration =
         node.getAncestor((x) => x is FieldDeclaration);
-    if (fieldDeclaraton == null) {
+    if (fieldDeclaration == null) {
       _coverageMarker();
       return;
     }
     // not interesting for static
-    if (fieldDeclaraton.isStatic) {
+    if (fieldDeclaration.isStatic) {
       _coverageMarker();
       return;
     }
     // has a parse error
-    VariableDeclarationList variableList = fieldDeclaraton.fields;
+    VariableDeclarationList variableList = fieldDeclaration.fields;
     if (variableList.keyword == null && variableList.type == null) {
       _coverageMarker();
       return;
@@ -856,7 +883,7 @@ class AssistProcessor {
     // rename field
     _addReplaceEdit(rangeNode(nameNode), '_$name');
     // update references in constructors
-    ClassDeclaration classDeclaration = fieldDeclaraton.parent;
+    ClassDeclaration classDeclaration = fieldDeclaration.parent;
     for (ClassMember member in classDeclaration.members) {
       if (member is ConstructorDeclaration) {
         for (FormalParameter parameter in member.parameters.parameters) {
@@ -877,7 +904,7 @@ class AssistProcessor {
         '  void set $name(${typeNameCode}$name) {$eol'
         '    _$name = $name;$eol'
         '  }';
-    _addInsertEdit(fieldDeclaraton.end, getterCode + setterCode);
+    _addInsertEdit(fieldDeclaration.end, getterCode + setterCode);
     // add proposal
     _addAssist(DartAssistKind.ENCAPSULATE_FIELD, []);
   }

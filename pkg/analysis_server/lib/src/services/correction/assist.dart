@@ -47,6 +47,10 @@ class DartAssistKind {
       const AssistKind('ADD_TYPE_ANNOTATION', 30, "Add type annotation");
   static const ASSIGN_TO_LOCAL_VARIABLE = const AssistKind(
       'ASSIGN_TO_LOCAL_VARIABLE', 30, "Assign value to new local variable");
+  static const CONVERT_DOCUMENTATION_INTO_BLOCK = const AssistKind(
+      'CONVERT_DOCUMENTATION_INTO_BLOCK',
+      30,
+      "Convert into block documentation comment");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'CONVERT_INTO_BLOCK_BODY', 30, "Convert into block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(
