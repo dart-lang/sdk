@@ -80,7 +80,7 @@ dart/spawn_shutdown_test: Skip  # VM Shutdown test
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Skip  # Timeout.
 
-[ $runtime == vm && $builder_tag == asan ]
+[ $runtime == vm && $builder_tag == asan && $arch == x64]
 cc/TestObjectCompare : Crash # Issue 25002
 
 [ $noopt ]
