@@ -12,12 +12,14 @@ import 'strong_mode_test.dart' as strong_mode;
 import 'super_mixin_test.dart' as super_mixin;
 
 main() {
-  driver.main();
+  // TODO(pq): fix tests to run safely on the bots
+  // https://github.com/dart-lang/sdk/issues/25001
+  //driver.main();
+  //sdk_ext.main();
+  //strong_mode.main();
   error.main();
   options.main();
   plugin_manager.main();
   reporter.main();
-  sdk_ext.main();
-  strong_mode.main();
   super_mixin.main();
 }
