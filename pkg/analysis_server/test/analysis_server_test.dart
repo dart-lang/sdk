@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
@@ -125,7 +126,9 @@ import "../foo/foo.dart";
     packageMapProvider = new MockPackageMapProvider();
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
+    List<Plugin> plugins = [serverPlugin];
+    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
+    manager.processPlugins(plugins);
     server = new AnalysisServer(
         channel,
         resourceProvider,

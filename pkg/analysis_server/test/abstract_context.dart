@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:plugin/manager.dart';
 
 import 'mock_sdk.dart';
 
@@ -83,6 +84,8 @@ class AbstractContextTest {
   }
 
   void setUp() {
+    ExtensionManager extensionManager = new ExtensionManager();
+    extensionManager.processPlugins(AnalysisEngine.instance.supportedPlugins);
     setupResourceProvider();
     resourceResolver = new ResourceUriResolver(provider);
     packageMap = new Map<String, List<Folder>>();

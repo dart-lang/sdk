@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
+import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -84,6 +85,8 @@ class AbstractContextManagerTest {
   }
 
   void setUp() {
+    ExtensionManager extensionManager = new ExtensionManager();
+    extensionManager.processPlugins(AnalysisEngine.instance.supportedPlugins);
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
     manager = new ContextManagerImpl(resourceProvider, providePackageResolver,
@@ -91,6 +94,51 @@ class AbstractContextManagerTest {
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
+  }
+
+  test_analysis_options_parse_failure() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Setup analysis options file with ignore list.
+    newFile(
+        [projPath, '.analysis_options'],
+        r'''
+;
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    // No error means success.
+  }
+
+  void test_contextsInAnalysisRoot_nestedContext() {
+    String subProjPath = posix.join(projPath, 'subproj');
+    Folder subProjFolder = resourceProvider.newFolder(subProjPath);
+    resourceProvider.newFile(
+        posix.join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = posix.join(subProjPath, 'file.dart');
+    resourceProvider.newFile(subProjFilePath, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    // Make sure that there really are contexts for both the main project and
+    // the subproject.
+    Folder projFolder = resourceProvider.getFolder(projPath);
+    ContextInfo projContextInfo = manager.getContextInfoFor(projFolder);
+    expect(projContextInfo, isNotNull);
+    expect(projContextInfo.folder, projFolder);
+    ContextInfo subProjContextInfo = manager.getContextInfoFor(subProjFolder);
+    expect(subProjContextInfo, isNotNull);
+    expect(subProjContextInfo.folder, subProjFolder);
+    expect(projContextInfo.context != subProjContextInfo.context, isTrue);
+    // Check that contextsInAnalysisRoot() works.
+    List<AnalysisContext> contexts = manager.contextsInAnalysisRoot(projFolder);
+    expect(contexts, hasLength(2));
+    expect(contexts, contains(projContextInfo.context));
+    expect(contexts, contains(subProjContextInfo.context));
   }
 
   test_embedder_options() async {
@@ -165,51 +213,6 @@ analyzer:
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
     expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
-  }
-
-  test_analysis_options_parse_failure() async {
-    // Create files.
-    String libPath = newFolder([projPath, LIB_NAME]);
-    newFile([libPath, 'main.dart']);
-    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
-    newFile([sdkExtPath, 'entry.dart']);
-    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
-    newFile([sdkExtSrcPath, 'part.dart']);
-    // Setup analysis options file with ignore list.
-    newFile(
-        [projPath, '.analysis_options'],
-        r'''
-;
-''');
-    // Setup context.
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-
-    // No error means success.
-  }
-
-  void test_contextsInAnalysisRoot_nestedContext() {
-    String subProjPath = posix.join(projPath, 'subproj');
-    Folder subProjFolder = resourceProvider.newFolder(subProjPath);
-    resourceProvider.newFile(
-        posix.join(subProjPath, 'pubspec.yaml'), 'contents');
-    String subProjFilePath = posix.join(subProjPath, 'file.dart');
-    resourceProvider.newFile(subProjFilePath, 'contents');
-    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    // Make sure that there really are contexts for both the main project and
-    // the subproject.
-    Folder projFolder = resourceProvider.getFolder(projPath);
-    ContextInfo projContextInfo = manager.getContextInfoFor(projFolder);
-    expect(projContextInfo, isNotNull);
-    expect(projContextInfo.folder, projFolder);
-    ContextInfo subProjContextInfo = manager.getContextInfoFor(subProjFolder);
-    expect(subProjContextInfo, isNotNull);
-    expect(subProjContextInfo.folder, subProjFolder);
-    expect(projContextInfo.context != subProjContextInfo.context, isTrue);
-    // Check that contextsInAnalysisRoot() works.
-    List<AnalysisContext> contexts = manager.contextsInAnalysisRoot(projFolder);
-    expect(contexts, hasLength(2));
-    expect(contexts, contains(projContextInfo.context));
-    expect(contexts, contains(subProjContextInfo.context));
   }
 
   test_embedder_packagespec() async {

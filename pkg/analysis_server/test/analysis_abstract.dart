@@ -191,6 +191,11 @@ class AbstractAnalysisTest {
   }
 
   void setUp() {
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin serverPlugin = new ServerPlugin();
+    List<Plugin> plugins = [serverPlugin];
+    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
+    manager.processPlugins(plugins);
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
