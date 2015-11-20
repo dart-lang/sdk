@@ -4,6 +4,7 @@
 
 library analysis_server.src.services.correction.fix_internal;
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:core' hide Resource;
 
@@ -42,13 +43,26 @@ import 'package:path/path.dart';
 typedef bool ElementPredicate(Element argument);
 
 /**
+ * The implementation of [DartFixContext].
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DartFixContextImpl extends FixContextImpl implements DartFixContext {
+  /**
+   * The [CompilationUnit] to compute fixes in.
+   */
+  final CompilationUnit unit;
+
+  DartFixContextImpl(FixContext fixContext, this.unit) : super.from(fixContext);
+}
+
+/**
  * A [FixContributor] that provides the default set of fixes.
  */
 class DefaultFixContributor extends DartFixContributor {
   @override
-  List<Fix> internalComputeFixes(ResourceProvider resourceProvider,
-      CompilationUnit unit, AnalysisError error) {
-    FixProcessor processor = new FixProcessor(resourceProvider, unit, error);
+  Future<List<Fix>> internalComputeFixes(DartFixContext context) {
+    FixProcessor processor = new FixProcessor(context);
     return processor.compute();
   }
 }
@@ -59,9 +73,9 @@ class DefaultFixContributor extends DartFixContributor {
 class FixProcessor {
   static const int MAX_LEVENSHTEIN_DISTANCE = 3;
 
-  final ResourceProvider resourceProvider;
-  final CompilationUnit unit;
-  final AnalysisError error;
+  ResourceProvider resourceProvider;
+  CompilationUnit unit;
+  AnalysisError error;
   AnalysisContext context;
   String file;
   int fileStamp;
@@ -87,15 +101,22 @@ class FixProcessor {
   AstNode node;
   AstNode coveredNode;
 
-  FixProcessor(this.resourceProvider, this.unit, this.error) {
+  FixProcessor(DartFixContext dartContext) {
+    resourceProvider = dartContext.resourceProvider;
+    context = dartContext.analysisContext;
+    // unit
+    unit = dartContext.unit;
     unitElement = unit.element;
-    context = unitElement.context;
     unitSource = unitElement.source;
+    // file
     file = unitSource.fullName;
     fileStamp = context.getModificationStamp(unitSource);
+    // library
     unitLibraryElement = unitElement.library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
+    // error
+    error = dartContext.error;
   }
 
   DartType get coreTypeBool => _getCoreType('bool');
@@ -105,7 +126,7 @@ class FixProcessor {
    */
   String get eol => utils.endOfLine;
 
-  List<Fix> compute() {
+  Future<List<Fix>> compute() async {
     utils = new CorrectionUtils(unit);
     errorOffset = error.offset;
     errorLength = error.length;

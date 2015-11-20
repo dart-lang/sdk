@@ -148,7 +148,7 @@ class EditDomainHandler implements RequestHandler {
     server.sendResponse(response);
   }
 
-  Response getFixes(Request request) {
+  getFixes(Request request) async {
     var params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -163,7 +163,7 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes = computeFixes(server.serverPlugin,
+            List<Fix> fixes = await computeFixes(server.serverPlugin,
                 server.resourceProvider, unit.element.context, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
@@ -180,7 +180,8 @@ class EditDomainHandler implements RequestHandler {
       }
     }
     // respond
-    return new EditGetFixesResult(errorFixesList).toResponse(request.id);
+    return server.sendResponse(
+        new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 
   @override
@@ -195,7 +196,8 @@ class EditDomainHandler implements RequestHandler {
       } else if (requestName == EDIT_GET_AVAILABLE_REFACTORINGS) {
         return _getAvailableRefactorings(request);
       } else if (requestName == EDIT_GET_FIXES) {
-        return getFixes(request);
+        getFixes(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_GET_REFACTORING) {
         return _getRefactoring(request);
       } else if (requestName == EDIT_ORGANIZE_DIRECTIVES) {
