@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn("vm")
 library analyzer_cli.test.driver;
 
 import 'dart:io';
@@ -19,7 +18,7 @@ import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/plugin.dart';
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 import 'package:yaml/src/yaml_node.dart';
 
 // TODO(pq): fix tests to run safely on the bots

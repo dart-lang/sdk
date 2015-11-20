@@ -15,4 +15,4 @@ dependencies:
   yaml: ^2.1.2
 dev_dependencies:
   typed_mock: '>=0.0.4 <1.0.0'
-  test: ^0.12.0
+  unittest: '>=0.9.0 <0.12.0'

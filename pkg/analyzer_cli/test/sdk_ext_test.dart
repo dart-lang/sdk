@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@TestOn("vm")
 
 /// Test that sdk extensions are properly detected in various scenarios.
 library analyzer_cli.test.sdk_ext;
@@ -11,7 +10,7 @@ import 'dart:io';
 
 import 'package:analyzer_cli/src/driver.dart' show Driver, errorSink, outSink;
 import 'package:path/path.dart' as path;
-import 'package:test/test.dart';
+import 'package:unittest/unittest.dart';
 
 import 'utils.dart';
 
