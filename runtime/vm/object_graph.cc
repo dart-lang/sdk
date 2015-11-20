@@ -173,7 +173,7 @@ ObjectGraph::~ObjectGraph() {
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
-  isolate()->IterateObjectPointers(&stack, false, false);
+  isolate()->IterateObjectPointers(&stack, false);
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
@@ -521,7 +521,7 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream) {
   stream->WriteUnsigned(0);
   {
     WritePointerVisitor ptr_writer(isolate(), stream);
-    isolate()->IterateObjectPointers(&ptr_writer, false, false);
+    isolate()->IterateObjectPointers(&ptr_writer, false);
   }
   stream->WriteUnsigned(0);
   IterateObjects(&visitor);

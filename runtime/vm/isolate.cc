@@ -1646,7 +1646,6 @@ void Isolate::LowLevelShutdown() {
   // Finalize any weak persistent handles with a non-null referent.
   FinalizeWeakPersistentHandlesVisitor visitor;
   api_state()->weak_persistent_handles().VisitHandles(&visitor);
-  api_state()->prologue_weak_persistent_handles().VisitHandles(&visitor);
 
   if (FLAG_trace_isolates) {
     heap()->PrintSizes();
@@ -1755,15 +1754,13 @@ Isolate* Isolate::isolates_list_head_ = NULL;
 bool Isolate::creation_enabled_ = false;
 
 void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
-                                    bool visit_prologue_weak_handles,
                                     bool validate_frames) {
   HeapIterationScope heap_iteration_scope;
-  VisitObjectPointers(visitor, visit_prologue_weak_handles, validate_frames);
+  VisitObjectPointers(visitor, validate_frames);
 }
 
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
-                                  bool visit_prologue_weak_handles,
                                   bool validate_frames) {
   ASSERT(visitor != NULL);
 
@@ -1778,7 +1775,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
-    api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);
+    api_state()->VisitObjectPointers(visitor);
   }
 
   // Visit the current tag which is stored in the isolate.
@@ -1819,17 +1816,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 
-void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
-                                         bool visit_prologue_weak_handles) {
+void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != NULL) {
-    api_state()->VisitWeakHandles(visitor, visit_prologue_weak_handles);
-  }
-}
-
-
-void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
-  if (api_state() != NULL) {
-    api_state()->VisitPrologueWeakHandles(visitor);
+    api_state()->VisitWeakHandles(visitor);
   }
 }
 

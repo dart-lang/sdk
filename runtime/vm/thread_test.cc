@@ -134,7 +134,6 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         // Ensure that our particular zone is visited.
         isolate_->IterateObjectPointers(
             &counter,
-            /* visit_prologue_weak_handles = */ true,
             StackFrameIterator::kValidateFrames);
         EXPECT_EQ(1, counter.count());
       }
@@ -152,7 +151,6 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
         // Ensure that our particular zone is visited.
         isolate_->IterateObjectPointers(
             &str_counter,
-            /* visit_prologue_weak_handles = */ true,
             StackFrameIterator::kValidateFrames);
         // We should visit the string object exactly once.
         EXPECT_EQ(1, str_counter.count());
@@ -279,7 +277,6 @@ class SafepointTestTask : public ThreadPool::Task {
         ObjectCounter counter(isolate_, &smi);
         isolate_->IterateObjectPointers(
             &counter,
-            /* visit_prologue_weak_handles = */ true,
             StackFrameIterator::kValidateFrames);
         {
           MutexLocker ml(mutex_);

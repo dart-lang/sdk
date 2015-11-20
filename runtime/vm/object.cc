@@ -19379,11 +19379,9 @@ static FinalizablePersistentHandle* AddFinalizer(
     Dart_WeakPersistentHandleFinalizer callback) {
   ASSERT((callback != NULL && peer != NULL) ||
          (callback == NULL && peer == NULL));
-  const bool is_prologue = false;
   // TODO(19482): Make API consistent for external size of strings/typed data.
   const intptr_t external_size = 0;
   return FinalizablePersistentHandle::New(Isolate::Current(),
-                                          is_prologue,
                                           referent,
                                           peer,
                                           callback,

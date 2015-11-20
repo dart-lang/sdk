@@ -121,13 +121,10 @@ class Isolate : public BaseIsolate {
 
   // Visit all object pointers.
   void IterateObjectPointers(ObjectPointerVisitor* visitor,
-                             bool visit_prologue_weak_persistent_handles,
                              bool validate_frames);
 
   // Visits weak object pointers.
-  void VisitWeakPersistentHandles(HandleVisitor* visitor,
-                                  bool visit_prologue_weak_persistent_handles);
-  void VisitPrologueWeakPersistentHandles(HandleVisitor* visitor);
+  void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   StoreBuffer* store_buffer() { return store_buffer_; }
 
@@ -694,9 +691,7 @@ class Isolate : public BaseIsolate {
 
   // Visit all object pointers. Caller must ensure concurrent sweeper is not
   // running, and the visitor must not allocate.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor,
-                           bool visit_prologue_weak_persistent_handles,
-                           bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
   void set_user_tag(uword tag) {
     user_tag_ = tag;

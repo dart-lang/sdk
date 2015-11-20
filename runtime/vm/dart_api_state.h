@@ -203,7 +203,6 @@ class FinalizablePersistentHandle {
  public:
   static FinalizablePersistentHandle* New(
       Isolate* isolate,
-      bool is_prologue,
       const Object& object,
       void* peer,
       Dart_WeakPersistentHandleFinalizer callback,
@@ -251,22 +250,13 @@ class FinalizablePersistentHandle {
     set_external_size(0);
   }
 
-  bool IsPrologueWeakPersistent() {
-    return PrologueWeakBit::decode(external_data_);
-  }
-
-  void SetPrologueWeakPersistent(bool value) {
-    external_data_ = PrologueWeakBit::update(value, external_data_);
-  }
-
   static FinalizablePersistentHandle* Cast(Dart_WeakPersistentHandle handle);
 
  private:
   enum {
     kExternalNewSpaceBit = 0,
-    kPrologueWeakBit = 1,
-    kExternalSizeBits = 2,
-    kExternalSizeBitsSize = (kBitsPerWord - 2),
+    kExternalSizeBits = 1,
+    kExternalSizeBitsSize = (kBitsPerWord - 1),
   };
 
   // This part of external_data_ is the number of externally allocated bytes.
@@ -277,8 +267,6 @@ class FinalizablePersistentHandle {
   // This bit of external_data_ is true if the referent was created in new
   // space and UpdateRelocated has not yet detected any promotion.
   class ExternalNewSpaceBit : public BitField<bool, kExternalNewSpaceBit, 1> {};
-  // This bit is used to indicate that it is a prologue weak persistent handle.
-  class PrologueWeakBit : public BitField<bool, kPrologueWeakBit, 1> {};
 
   friend class FinalizablePersistentHandles;
 
@@ -673,11 +661,6 @@ class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
 };
 
 
-// Forward declarations.
-class WeakReferenceSetBuilder;
-class WeakReferenceSet;
-
-
 // Implementation of the API State used in dart api for maintaining
 // local scopes, persistent handles etc. These are setup on a per isolate
 // basis and destroyed when the isolate is shutdown.
@@ -685,10 +668,8 @@ class ApiState {
  public:
   ApiState() : persistent_handles_(),
                weak_persistent_handles_(),
-               prologue_weak_persistent_handles_(),
                reusable_scope_(NULL),
                top_scope_(NULL),
-               delayed_weak_reference_sets_(NULL),
                null_(NULL),
                true_(NULL),
                false_(NULL),
@@ -732,17 +713,6 @@ class ApiState {
     return weak_persistent_handles_;
   }
 
-  FinalizablePersistentHandles& prologue_weak_persistent_handles() {
-    return prologue_weak_persistent_handles_;
-  }
-
-  WeakReferenceSet* delayed_weak_reference_sets() {
-    return delayed_weak_reference_sets_;
-  }
-  void set_delayed_weak_reference_sets(WeakReferenceSet* reference_set) {
-    delayed_weak_reference_sets_ = reference_set;
-  }
-
   void UnwindScopes(uword stack_marker) {
     // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
     // under the same top_exit_frame_info.
@@ -755,29 +725,17 @@ class ApiState {
     }
   }
 
-  void VisitObjectPointers(ObjectPointerVisitor* visitor,
-                           bool visit_prologue_weak_handles) {
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
     ApiLocalScope* scope = top_scope_;
     while (scope != NULL) {
       scope->local_handles()->VisitObjectPointers(visitor);
       scope = scope->previous();
     }
     persistent_handles().VisitObjectPointers(visitor);
-    if (visit_prologue_weak_handles) {
-      prologue_weak_persistent_handles().VisitObjectPointers(visitor);
-    }
   }
 
-  void VisitWeakHandles(HandleVisitor* visitor,
-                        bool visit_prologue_weak_handles) {
+  void VisitWeakHandles(HandleVisitor* visitor) {
     weak_persistent_handles().VisitHandles(visitor);
-    if (visit_prologue_weak_handles) {
-      prologue_weak_persistent_handles().VisitHandles(visitor);
-    }
-  }
-
-  void VisitPrologueWeakHandles(HandleVisitor* visitor) {
-    prologue_weak_persistent_handles().VisitHandles(visitor);
   }
 
   bool IsValidLocalHandle(Dart_Handle object) const {
@@ -797,11 +755,6 @@ class ApiState {
 
   bool IsValidWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
     return weak_persistent_handles_.IsValidHandle(object);
-  }
-
-  bool IsValidPrologueWeakPersistentHandle(
-      Dart_WeakPersistentHandle object) const {
-    return prologue_weak_persistent_handles_.IsValidHandle(object);
   }
 
   bool IsProtectedHandle(PersistentHandle* object) const {
@@ -845,19 +798,13 @@ class ApiState {
     return acquired_error_;
   }
 
-  WeakReferenceSetBuilder* NewWeakReferenceSetBuilder();
-
-  void DelayWeakReferenceSet(WeakReferenceSet* reference_set);
-
   WeakTable* acquired_table() { return &acquired_table_; }
 
  private:
   PersistentHandles persistent_handles_;
   FinalizablePersistentHandles weak_persistent_handles_;
-  FinalizablePersistentHandles prologue_weak_persistent_handles_;
   ApiLocalScope* reusable_scope_;
   ApiLocalScope* top_scope_;
-  WeakReferenceSet* delayed_weak_reference_sets_;
   WeakTable acquired_table_;
 
   // Persistent handles to important objects.
@@ -870,123 +817,16 @@ class ApiState {
 };
 
 
-class WeakReferenceSet {
- public:
-  explicit WeakReferenceSet(Zone* zone)
-      : next_(NULL),
-        keys_(1, zone),
-        values_(1, zone) {
-  }
-  ~WeakReferenceSet() {}
-
-  WeakReferenceSet* next() const { return next_; }
-
-  intptr_t num_keys() const { return keys_.length(); }
-  RawObject** get_key(intptr_t i) {
-    ASSERT(i >= 0);
-    ASSERT(i < num_keys());
-    FinalizablePersistentHandle* ref =
-        FinalizablePersistentHandle::Cast(keys_[i]);
-    return ref->raw_addr();
-  }
-
-  intptr_t num_values() const { return values_.length(); }
-  RawObject** get_value(intptr_t i) {
-    ASSERT(i >= 0);
-    ASSERT(i < num_values());
-    FinalizablePersistentHandle* ref =
-        FinalizablePersistentHandle::Cast(values_[i]);
-    return ref->raw_addr();
-  }
-
-  bool SingletonKeyEqualsValue() const {
-    ASSERT((num_keys() == 1) && (num_values() == 1));
-    return (keys_[0] == values_[0]);
-  }
-
-  void Append(Dart_WeakPersistentHandle key, Dart_WeakPersistentHandle value) {
-    keys_.Add(key);
-    values_.Add(value);
-  }
-
-  void AppendKey(Dart_WeakPersistentHandle key) {
-    keys_.Add(key);
-  }
-
-  void AppendValue(Dart_WeakPersistentHandle value) {
-    values_.Add(value);
-  }
-
-  static WeakReferenceSet* Pop(WeakReferenceSet** queue) {
-    ASSERT(queue != NULL);
-    WeakReferenceSet* head = *queue;
-    if (head != NULL) {
-      *queue = head->next();
-      head->next_ = NULL;
-    }
-    return head;
-  }
-
-  static void Push(WeakReferenceSet* reference_set, WeakReferenceSet** queue) {
-    ASSERT(reference_set != NULL);
-    ASSERT(queue != NULL);
-    reference_set->next_ = *queue;
-    *queue = reference_set;
-  }
-
-  void* operator new(uword size, Zone* zone) {
-    return reinterpret_cast<void*>(zone->AllocUnsafe(size));
-  }
-
-  // Disallow explicit deallocation of WeakReferenceSet.
-  void operator delete(void* pointer) { UNREACHABLE(); }
-
- private:
-  WeakReferenceSet* next_;
-  ApiGrowableArray<Dart_WeakPersistentHandle> keys_;
-  ApiGrowableArray<Dart_WeakPersistentHandle> values_;
-
-  DISALLOW_COPY_AND_ASSIGN(WeakReferenceSet);
-};
-
-
-class WeakReferenceSetBuilder {
- public:
-  ApiState* api_state() const {
-    return api_state_;
-  }
-
-  WeakReferenceSet* NewWeakReferenceSet() {
-    return new (zone_) WeakReferenceSet(zone_);
-  }
-
- private:
-  explicit WeakReferenceSetBuilder(ApiState* api_state)
-      : api_state_(api_state),
-        zone_(api_state->top_scope()->zone()) {
-  }
-
-  ApiState* api_state_;
-  Zone* zone_;
-
-  friend class ApiState;
-  DISALLOW_IMPLICIT_CONSTRUCTORS(WeakReferenceSetBuilder);
-};
-
-
 inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
     Isolate* isolate,
-    bool is_prologue,
     const Object& object,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback,
     intptr_t external_size) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  FinalizablePersistentHandle* ref = is_prologue ?
-      state->prologue_weak_persistent_handles().AllocateHandle() :
+  FinalizablePersistentHandle* ref =
       state->weak_persistent_handles().AllocateHandle();
-  ref->SetPrologueWeakPersistent(is_prologue);
   ref->set_raw(object);
   ref->set_peer(peer);
   ref->set_callback(callback);
