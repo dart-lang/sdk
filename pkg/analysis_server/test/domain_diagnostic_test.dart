@@ -10,9 +10,7 @@ import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/manager.dart';
-import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -31,9 +29,7 @@ main() {
     resourceProvider = new MemoryResourceProvider();
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = [serverPlugin];
-    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
-    manager.processPlugins(plugins);
+    manager.processPlugins([serverPlugin]);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,

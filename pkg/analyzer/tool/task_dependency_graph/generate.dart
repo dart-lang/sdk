@@ -34,7 +34,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as path;
 import 'package:path/path.dart';
-import 'package:plugin/manager.dart';
 
 /**
  * Generate the target .dot file.
@@ -121,9 +120,6 @@ class Driver {
    * Generate the task dependency graph and return it as a [String].
    */
   String generateFileContents() {
-    ExtensionManager extensionManager = new ExtensionManager();
-    extensionManager.processPlugins(AnalysisEngine.instance.supportedPlugins);
-
     List<String> lines = <String>[];
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;

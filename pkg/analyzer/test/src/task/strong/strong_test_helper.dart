@@ -20,7 +20,6 @@ import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:logging/logging.dart'; // TODO(jmesserly): remove
 import 'package:source_span/source_span.dart'; // TODO(jmesserly): remove
 import 'package:unittest/unittest.dart';
-import 'package:plugin/manager.dart';
 
 /// Run the checker on a program with files contents as indicated in
 /// [testFiles].
@@ -48,9 +47,6 @@ import 'package:plugin/manager.dart';
 ///
 void testChecker(String name, Map<String, String> testFiles) {
   test(name, () {
-    ExtensionManager extensionManager = new ExtensionManager();
-    extensionManager.processPlugins(AnalysisEngine.instance.supportedPlugins);
-
     expect(testFiles.containsKey('/main.dart'), isTrue,
         reason: '`/main.dart` is missing in testFiles');
 
