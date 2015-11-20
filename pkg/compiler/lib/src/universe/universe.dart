@@ -282,8 +282,7 @@ class Universe {
   }
 
   bool hasInvokedSetter(Element member, World world) {
-    return _hasMatchingSelector(_invokedSetters[member.name], member, world) ||
-        fieldSetters.contains(member);
+    return _hasMatchingSelector(_invokedSetters[member.name], member, world);
   }
 
   bool registerDynamicUse(DynamicUse dynamicUse) {
@@ -306,9 +305,7 @@ class Universe {
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
     UniverseSelectorConstraints constraints = selectors.putIfAbsent(
-        selector, () {
-      return selectorConstraintsStrategy.createSelectorConstraints(selector);
-    });
+        selector, () => selectorConstraintsStrategy.createSelectorConstraints(selector));
     return constraints.addReceiverConstraint(mask);
   }
 
@@ -367,7 +364,6 @@ class Universe {
       case StaticUseKind.FIELD_GET:
         fieldGetters.add(element);
         break;
-      case StaticUseKind.SUPER_FIELD_SET:
       case StaticUseKind.FIELD_SET:
         fieldSetters.add(element);
         break;
