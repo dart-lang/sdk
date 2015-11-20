@@ -1,5 +1,9 @@
 # dev_compiler changelog
 
+## 0.1.12
+- fixes for babel
+- fixes toward new js interop
+
 ## 0.1.11
 - moved js runtime files to lib/runtime/dart (`dart_runtime.js` -> `dart/_runtime.js`)
 - bug fix to source maps
