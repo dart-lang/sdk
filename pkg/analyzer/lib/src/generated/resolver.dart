@@ -9725,18 +9725,18 @@ class OverrideVerifier extends RecursiveAstVisitor<Object> {
  */
 class PartialResolverVisitor extends ResolverVisitor {
   /**
-   * A flag indicating whether the resolver is being run in strong mode.
-   */
-  final bool strongMode;
-
-  /**
    * The static variables and fields that have an initializer. These are the
    * variables that need to be re-resolved after static variables have their
    * types inferred. A subset of these variables are those whose types should
-   * be inferred. The list will be empty unless the resolver is being run in
-   * strong mode.
+   * be inferred.
    */
-  final List<VariableElement> variablesAndFields = <VariableElement>[];
+  final List<VariableElement> staticVariables = <VariableElement>[];
+
+  /**
+   * The static and instance variables and fields that have an initializer.
+   * These are the variables whose types might be propagated.
+   */
+  final List<VariableElement> propagableVariables = <VariableElement>[];
 
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
@@ -9760,8 +9760,7 @@ class PartialResolverVisitor extends ResolverVisitor {
       {Scope nameScope,
       InheritanceManager inheritanceManager,
       StaticTypeAnalyzerFactory typeAnalyzerFactory})
-      : strongMode = definingLibrary.context.analysisOptions.strongMode,
-        super(definingLibrary, source, typeProvider, errorListener);
+      : super(definingLibrary, source, typeProvider, errorListener);
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
@@ -9781,8 +9780,9 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitFieldDeclaration(FieldDeclaration node) {
-    if (strongMode && node.isStatic) {
-      _addVariables(node.fields.variables);
+    _addPropagableVariables(node.fields.variables);
+    if (node.isStatic) {
+      _addStaticVariables(node.fields.variables);
     }
     return super.visitFieldDeclaration(node);
   }
@@ -9794,10 +9794,23 @@ class PartialResolverVisitor extends ResolverVisitor {
 
   @override
   Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (strongMode) {
-      _addVariables(node.variables.variables);
-    }
+    _addPropagableVariables(node.variables.variables);
+    _addStaticVariables(node.variables.variables);
     return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  /**
+   * Add all of the [variables] with initializers to [propagableVariables].
+   */
+  void _addPropagableVariables(List<VariableDeclaration> variables) {
+    for (VariableDeclaration variable in variables) {
+      if (variable.initializer != null) {
+        VariableElement element = variable.element;
+        if (element.isConst || element.isFinal) {
+          propagableVariables.add(element);
+        }
+      }
+    }
   }
 
   /**
@@ -9807,10 +9820,10 @@ class PartialResolverVisitor extends ResolverVisitor {
    * potentially need to be re-resolved after inference because they might
    * refer to a field whose type was inferred.
    */
-  void _addVariables(NodeList<VariableDeclaration> variables) {
+  void _addStaticVariables(List<VariableDeclaration> variables) {
     for (VariableDeclaration variable in variables) {
       if (variable.initializer != null) {
-        variablesAndFields.add(variable.element);
+        staticVariables.add(variable.element);
       }
     }
   }
