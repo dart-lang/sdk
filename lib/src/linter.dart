@@ -262,11 +262,15 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   AstVisitor getVisitor() => null;
 
   void reportLint(AstNode node) {
-    reporter.reportErrorForNode(new _LintCode(name, description), node, []);
+    if (node != null) {
+      reporter.reportErrorForNode(new _LintCode(name, description), node, []);
+    }
   }
 
   void reportLintForToken(Token token) {
-    reporter.reportErrorForToken(new _LintCode(name, description), token, []);
+    if (token != null) {
+      reporter.reportErrorForToken(new _LintCode(name, description), token, []);
+    }
   }
 
   void reportPubLint(PSNode node) {
