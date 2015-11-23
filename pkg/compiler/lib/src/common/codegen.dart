@@ -28,7 +28,8 @@ import '../universe/use.dart' show
     TypeUse;
 import '../universe/world_impact.dart' show
     WorldImpact,
-    WorldImpactBuilder;
+    WorldImpactBuilder,
+    WorldImpactVisitor;
 import '../util/util.dart' show
     Pair,
     Setlet;
@@ -77,6 +78,12 @@ class _CodegenImpact extends WorldImpactBuilder implements CodegenImpact {
   Setlet<FunctionElement> _asyncMarkers;
 
   _CodegenImpact(this.registry);
+
+  void apply(WorldImpactVisitor visitor) {
+    staticUses.forEach(visitor.visitStaticUse);
+    dynamicUses.forEach(visitor.visitDynamicUse);
+    typeUses.forEach(visitor.visitTypeUse);
+  }
 
   void registerCompileTimeConstant(ConstantValue constant) {
     if (_compileTimeConstants == null) {
@@ -262,8 +269,6 @@ class CodegenWorkItem extends WorkItem {
     if (world.isProcessed(element)) return const WorldImpact();
 
     registry = new CodegenRegistry(compiler, element);
-    var impact = compiler.codegen(this, world);
-    compiler.dumpInfoTask.registerImpact(element, impact);
-    return impact;
+    return compiler.codegen(this, world);
   }
 }

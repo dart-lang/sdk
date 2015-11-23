@@ -58,7 +58,9 @@ import 'universe/use.dart' show
     TypeUse,
     TypeUseKind;
 import 'universe/world_impact.dart' show
-    WorldImpact;
+    ImpactUseCase,
+    WorldImpact,
+    WorldImpactVisitor;
 import 'util/util.dart' show
     Link,
     Setlet;
@@ -117,10 +119,14 @@ abstract class Enqueuer {
   bool hasEnqueuedReflectiveElements = false;
   bool hasEnqueuedReflectiveStaticFields = false;
 
+  WorldImpactVisitor impactVisitor;
+
   Enqueuer(this.name,
            this.compiler,
            this.itemCompilationContextCreator,
-           this.strategy);
+           this.strategy) {
+    impactVisitor = new _EnqueuerImpactVisitor(this);
+  }
 
   // TODO(johnniwinther): Move this to [ResolutionEnqueuer].
   Resolution get resolution => compiler.resolution;
@@ -141,6 +147,8 @@ abstract class Enqueuer {
   bool isClassProcessed(ClassElement cls) => _processedClasses.contains(cls);
 
   Iterable<ClassElement> get processedClasses => _processedClasses;
+
+  ImpactUseCase get impactUse;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -166,10 +174,8 @@ abstract class Enqueuer {
 
   /// Apply the [worldImpact] of processing [element] to this enqueuer.
   void applyImpact(Element element, WorldImpact worldImpact) {
-    // TODO(johnniwinther): Optimize the application of the world impact.
-    worldImpact.dynamicUses.forEach(registerDynamicUse);
-    worldImpact.staticUses.forEach(registerStaticUse);
-    worldImpact.typeUses.forEach(registerTypeUse);
+    compiler.impactStrategy.visitImpact(
+        element, worldImpact, impactVisitor, impactUse);
   }
 
   void registerInstantiatedType(InterfaceType type,
@@ -741,6 +747,10 @@ class ResolutionEnqueuer extends Enqueuer {
    */
   final Queue<DeferredTask> deferredTaskQueue;
 
+  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('ResolutionEnqueuer');
+
+  ImpactUseCase get impactUse => IMPACT_USE;
+
   ResolutionEnqueuer(Compiler compiler,
                      ItemCompilationContext itemCompilationContextCreator(),
                      EnqueuerStrategy strategy)
@@ -896,6 +906,10 @@ class CodegenEnqueuer extends Enqueuer {
 
   bool enabledNoSuchMethod = false;
 
+  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('CodegenEnqueuer');
+
+  ImpactUseCase get impactUse => IMPACT_USE;
+
   CodegenEnqueuer(Compiler compiler,
                   ItemCompilationContext itemCompilationContextCreator(),
                   EnqueuerStrategy strategy)
@@ -1037,5 +1051,26 @@ class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
   @override
   void processDynamicUse(Enqueuer enqueuer, DynamicUse dynamicUse) {
     enqueuer.handleUnseenSelectorInternal(dynamicUse);
+  }
+}
+
+class _EnqueuerImpactVisitor implements WorldImpactVisitor {
+  final Enqueuer enqueuer;
+
+  _EnqueuerImpactVisitor(this.enqueuer);
+
+  @override
+  void visitDynamicUse(DynamicUse dynamicUse) {
+    enqueuer.registerDynamicUse(dynamicUse);
+  }
+
+  @override
+  void visitStaticUse(StaticUse staticUse) {
+    enqueuer.registerStaticUse(staticUse);
+  }
+
+  @override
+  void visitTypeUse(TypeUse typeUse) {
+    enqueuer.registerTypeUse(typeUse);
   }
 }

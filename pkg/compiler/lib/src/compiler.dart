@@ -137,6 +137,7 @@ import 'universe/universe.dart' show
 import 'universe/use.dart' show
     StaticUse;
 import 'universe/world_impact.dart' show
+    ImpactStrategy,
     WorldImpact;
 import 'util/util.dart' show
     Link,
@@ -156,6 +157,8 @@ abstract class Compiler {
   _CompilerParsing _parsing;
 
   final CacheStrategy cacheStrategy;
+
+  ImpactStrategy impactStrategy = const ImpactStrategy();
 
   /**
    * Map from token to the first preceding comment token.
@@ -975,6 +978,9 @@ abstract class Compiler {
     // something to the resolution queue.  So we cannot wait with
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(this);
+    impactStrategy = backend.createImpactStrategy(
+        supportDeferredLoad: deferredLoadTask.isProgramSplit,
+        supportDumpInfo: dumpInfo);
 
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
@@ -1130,6 +1136,9 @@ abstract class Compiler {
     }
     emptyQueue(world);
     world.queueIsClosed = true;
+    // Notify the impact strategy impacts are no longer needed for this
+    // enqueuer.
+    impactStrategy.onImpactUsed(world.impactUse);
     backend.onQueueClosed();
     assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
   }
@@ -2016,6 +2025,20 @@ class _CompilerResolution implements Resolution {
               resolutionImpact);
       return worldImpact;
     });
+  }
+
+  @override
+  void uncacheWorldImpact(Element element) {
+    assert(invariant(element, _worldImpactCache[element] != null,
+        message: "WorldImpact not computed for $element."));
+    _worldImpactCache[element] = const WorldImpact();
+  }
+
+  @override
+  void emptyCache() {
+    for (Element element in _worldImpactCache.keys) {
+      _worldImpactCache[element] = const WorldImpact();
+    }
   }
 
   @override
