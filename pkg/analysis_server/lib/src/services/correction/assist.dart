@@ -78,6 +78,10 @@ class DartAssistKind {
       'CONVERT_DOCUMENTATION_INTO_BLOCK',
       30,
       "Convert into block documentation comment");
+  static const CONVERT_DOCUMENTATION_INTO_LINE = const AssistKind(
+      'CONVERT_DOCUMENTATION_INTO_LINE',
+      30,
+      "Convert into line documentation comment");
   static const CONVERT_INTO_BLOCK_BODY = const AssistKind(
       'CONVERT_INTO_BLOCK_BODY', 30, "Convert into block body");
   static const CONVERT_INTO_EXPRESSION_BODY = const AssistKind(

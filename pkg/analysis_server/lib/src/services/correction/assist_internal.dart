@@ -93,7 +93,8 @@ class AssistProcessor {
     _addProposal_addTypeAnnotation_SimpleFormalParameter();
     _addProposal_addTypeAnnotation_VariableDeclaration();
     _addProposal_assignToLocalVariable();
-    _addProposal_convertIntoBlockDocumentationComment();
+    _addProposal_convertDocumentationIntoBlock();
+    _addProposal_convertDocumentationIntoLine();
     _addProposal_convertToBlockFunctionBody();
     _addProposal_convertToExpressionFunctionBody();
     _addProposal_convertToForIndexLoop();
@@ -401,7 +402,7 @@ class AssistProcessor {
     _addAssist(DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE, []);
   }
 
-  void _addProposal_convertIntoBlockDocumentationComment() {
+  void _addProposal_convertDocumentationIntoBlock() {
     Comment comment = node.getAncestor((n) => n is Comment);
     if (comment != null && comment.isDocumentation) {
       String prefix = utils.getNodePrefix(comment);
@@ -425,6 +426,54 @@ class AssistProcessor {
     }
     // add proposal
     _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK, []);
+  }
+
+  void _addProposal_convertDocumentationIntoLine() {
+    Comment comment = node.getAncestor((n) => n is Comment);
+    if (comment != null && comment.isDocumentation) {
+      if (comment.tokens.length == 1) {
+        Token token = comment.tokens.first;
+        if (token.type == TokenType.MULTI_LINE_COMMENT) {
+          String text = token.lexeme;
+          List<String> lines = text.split('\n');
+          String prefix = utils.getNodePrefix(comment);
+          SourceBuilder sb = new SourceBuilder(file, comment.offset);
+          bool firstLine = true;
+          String linePrefix = '';
+          for (String line in lines) {
+            if (firstLine) {
+              firstLine = false;
+              String expectedPrefix = '/**';
+              if (!line.startsWith(expectedPrefix)) {
+                return;
+              }
+              line = line.substring(expectedPrefix.length).trim();
+              if (line.isNotEmpty) {
+                sb.append('/// ');
+                sb.append(line);
+                linePrefix = eol + prefix;
+              }
+            } else {
+              if (line.startsWith(prefix + ' */')) {
+                break;
+              }
+              String expectedPrefix = prefix + ' * ';
+              if (!line.startsWith(expectedPrefix)) {
+                return;
+              }
+              line = line.substring(expectedPrefix.length).trim();
+              sb.append(linePrefix);
+              sb.append('/// ');
+              sb.append(line);
+              linePrefix = eol + prefix;
+            }
+          }
+          _insertBuilder(sb, comment.length);
+        }
+      }
+    }
+    // add proposal
+    _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE, []);
   }
 
   void _addProposal_convertToBlockFunctionBody() {

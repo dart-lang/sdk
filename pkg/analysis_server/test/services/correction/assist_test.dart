@@ -845,7 +845,7 @@ void f() {}
     await assertNoAssistAt('f();', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
   }
 
-  test_convertIntoBlockDocumentationComment_BAD_alreadyBlock() async {
+  test_convertDocumentationIntoBlock_BAD_alreadyBlock() async {
     resolveTestUnit('''
 /**
  * AAAAAAA
@@ -856,7 +856,7 @@ class A {}
         'AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK);
   }
 
-  test_convertIntoBlockDocumentationComment_BAD_notDocumentation() async {
+  test_convertDocumentationIntoBlock_BAD_notDocumentation() async {
     resolveTestUnit('''
 // AAAA
 class A {}
@@ -865,7 +865,7 @@ class A {}
         'AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK);
   }
 
-  test_convertIntoBlockDocumentationComment_OK_onReference() async {
+  test_convertDocumentationIntoBlock_OK_onReference() async {
     resolveTestUnit('''
 /// AAAAAAA [int] AAAAAAA
 class A {}
@@ -881,7 +881,7 @@ class A {}
 ''');
   }
 
-  test_convertIntoBlockDocumentationComment_OK_onText() async {
+  test_convertDocumentationIntoBlock_OK_onText() async {
     resolveTestUnit('''
 class A {
   /// AAAAAAA [int] AAAAAAA
@@ -900,6 +900,87 @@ class A {
    * BBBBBBBB BBBB BBBB
    * CCC [A] CCCCCCCCCCC
    */
+  mmm() {}
+}
+''');
+  }
+
+  test_convertDocumentationIntoLine_BAD_alreadyLine() async {
+    resolveTestUnit('''
+/// AAAAAAA
+class A {}
+''');
+    await assertNoAssistAt(
+        'AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE);
+  }
+
+  test_convertDocumentationIntoLine_BAD_notDocumentation() async {
+    resolveTestUnit('''
+/* AAAA */
+class A {}
+''');
+    await assertNoAssistAt(
+        'AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE);
+  }
+
+  test_convertDocumentationIntoLine_OK_onReference() async {
+    resolveTestUnit('''
+/**
+ * AAAAAAA [int] AAAAAAA
+ */
+class A {}
+''');
+    await assertHasAssistAt(
+        'nt]',
+        DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE,
+        '''
+/// AAAAAAA [int] AAAAAAA
+class A {}
+''');
+  }
+
+  test_convertDocumentationIntoLine_OK_onText() async {
+    resolveTestUnit('''
+class A {
+  /**
+   * AAAAAAA [int] AAAAAAA
+   * BBBBBBBB BBBB BBBB
+   * CCC [A] CCCCCCCCCCC
+   */
+  mmm() {}
+}
+''');
+    await assertHasAssistAt(
+        'AAA [',
+        DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE,
+        '''
+class A {
+  /// AAAAAAA [int] AAAAAAA
+  /// BBBBBBBB BBBB BBBB
+  /// CCC [A] CCCCCCCCCCC
+  mmm() {}
+}
+''');
+  }
+
+  test_convertDocumentationIntoLine_OK_onText_hasFirstLine() async {
+    resolveTestUnit('''
+class A {
+  /** AAAAAAA [int] AAAAAAA
+   * BBBBBBBB BBBB BBBB
+   * CCC [A] CCCCCCCCCCC
+   */
+  mmm() {}
+}
+''');
+    await assertHasAssistAt(
+        'AAA [',
+        DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE,
+        '''
+class A {
+  /// AAAAAAA [int] AAAAAAA
+  /// BBBBBBBB BBBB BBBB
+  /// CCC [A] CCCCCCCCCCC
   mmm() {}
 }
 ''');
