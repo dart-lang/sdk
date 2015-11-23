@@ -286,6 +286,28 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * [LIBRARY_ELEMENT5] plus propagated types for propagable variables.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT6 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT6', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
+
+/**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * [LIBRARY_ELEMENT6] for the library and its import/export closure.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT7 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT7', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
+
+/**
  * The flag specifying whether all analysis errors are computed in a specific
  * library.
  *
@@ -384,6 +406,15 @@ final ResultDescriptor<bool> READY_LIBRARY_ELEMENT2 =
  */
 final ResultDescriptor<bool> READY_LIBRARY_ELEMENT5 =
     new ResultDescriptor<bool>('READY_LIBRARY_ELEMENT5', false);
+
+/**
+ * The flag specifying that [LIBRARY_ELEMENT6] is ready for a library and its
+ * import/export closure.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<bool> READY_LIBRARY_ELEMENT6 =
+    new ResultDescriptor<bool>('READY_LIBRARY_ELEMENT6', false);
 
 /**
  * The flag specifying that [RESOLVED_UNIT] is ready for all of the units of a
@@ -3625,6 +3656,118 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
 }
 
 /**
+ * An artificial task that does nothing except to force propagated types for
+ * all propagable variables in the import/export closure a library.
+ */
+class PropagateVariableTypesInLibraryClosureTask
+    extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [LIBRARY_ELEMENT6] input.
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'PropagateVariableTypesInLibraryClosureTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[LIBRARY_ELEMENT7]);
+
+  PropagateVariableTypesInLibraryClosureTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
+    outputs[LIBRARY_ELEMENT7] = library;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      'readyForClosure': READY_LIBRARY_ELEMENT6.of(source),
+      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(source),
+    };
+  }
+
+  /**
+   * Create a [PropagateVariableTypesInLibraryClosureTask] based on the given
+   * [target] in the given [context].
+   */
+  static PropagateVariableTypesInLibraryClosureTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new PropagateVariableTypesInLibraryClosureTask(context, target);
+  }
+}
+
+/**
+ * An artificial task that does nothing except to force propagated types for
+ * all propagable variables in the defining and part units of a library.
+ */
+class PropagateVariableTypesInLibraryTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [LIBRARY_ELEMENT5] input.
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'PropagateVariableTypesInLibraryTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[LIBRARY_ELEMENT6]);
+
+  PropagateVariableTypesInLibraryTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
+    outputs[LIBRARY_ELEMENT6] = library;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      'propagatedVariableTypesInUnits':
+          LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT6),
+      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(source),
+    };
+  }
+
+  /**
+   * Create a [PropagateVariableTypesInLibraryTask] based on the given [target]
+   * in the given [context].
+   */
+  static PropagateVariableTypesInLibraryTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new PropagateVariableTypesInLibraryTask(context, target);
+  }
+}
+
+/**
  * A task that ensures that all of the propagable variables in a compilation
  * unit have had their type propagated.
  */
@@ -3913,6 +4056,49 @@ class ReadyLibraryElement5Task extends SourceBasedAnalysisTask {
   static ReadyLibraryElement5Task createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ReadyLibraryElement5Task(context, target);
+  }
+}
+
+/**
+ * A task that ensures that [LIBRARY_ELEMENT6] is ready for the target library
+ * source and its import/export closure.
+ */
+class ReadyLibraryElement6Task extends SourceBasedAnalysisTask {
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ReadyLibraryElement6Task',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[READY_LIBRARY_ELEMENT6]);
+
+  ReadyLibraryElement6Task(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  bool get handlesDependencyCycles => true;
+
+  @override
+  void internalPerform() {
+    outputs[READY_LIBRARY_ELEMENT6] = true;
+  }
+
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      'thisLibraryElementReady': LIBRARY_ELEMENT6.of(source),
+      'directlyImportedLibrariesReady':
+          IMPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT6),
+      'directlyExportedLibrariesReady':
+          EXPORTED_LIBRARIES.of(source).toListOf(READY_LIBRARY_ELEMENT6),
+    };
+  }
+
+  static ReadyLibraryElement6Task createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ReadyLibraryElement6Task(context, target);
   }
 }
 
@@ -4414,7 +4600,7 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
  */
 class ResolveUnitTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the input whose value is the defining [LIBRARY_ELEMENT5].
+   * The name of the input whose value is the defining [LIBRARY_ELEMENT7].
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -4476,7 +4662,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(unit.library),
+      LIBRARY_INPUT: LIBRARY_ELEMENT7.of(unit.library),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
       UNIT_INPUT: RESOLVED_UNIT9.of(unit),
       // In strong mode, add additional dependencies to enforce inference

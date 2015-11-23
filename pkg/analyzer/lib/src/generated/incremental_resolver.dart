@@ -908,6 +908,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(DartErrorsTask.DESCRIPTOR) ||
         isByTask(ReadyLibraryElement2Task.DESCRIPTOR) ||
         isByTask(ReadyLibraryElement5Task.DESCRIPTOR) ||
+        isByTask(ReadyLibraryElement6Task.DESCRIPTOR) ||
         isByTask(ReadyResolvedUnitTask.DESCRIPTOR) ||
         isByTask(ReadyResolvedUnit10Task.DESCRIPTOR) ||
         isByTask(ReadyResolvedUnit11Task.DESCRIPTOR) ||
@@ -919,6 +920,8 @@ class IncrementalBodyDelta extends Delta {
         isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
         isByTask(PartiallyResolveUnitReferencesTask.DESCRIPTOR) ||
+        isByTask(PropagateVariableTypesInLibraryClosureTask.DESCRIPTOR) ||
+        isByTask(PropagateVariableTypesInLibraryTask.DESCRIPTOR) ||
         isByTask(PropagateVariableTypesInUnitTask.DESCRIPTOR) ||
         isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||

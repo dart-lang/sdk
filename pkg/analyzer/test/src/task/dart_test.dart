@@ -3537,6 +3537,33 @@ class C {
     expect(outputs[RESOLVE_UNIT_ERRORS], hasLength(0));
   }
 
+  void test_perform_ensurePropagatedVariableTypes() {
+    newSource(
+        '/lib.dart',
+        '''
+class A {
+  final v = 1;
+}
+''');
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+import 'lib.dart';
+main(A a) {
+  a.v.isEven;
+}
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10,
+        matcher: isResolveUnitTask);
+    expect(outputs[RESOLVE_UNIT_ERRORS], hasLength(0));
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    FunctionDeclaration main = unit.declarations[0];
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement statement = body.block.statements.single;
+    Expression expression = statement.expression;
+    expect(expression.bestType, context.typeProvider.boolType);
+  }
+
   void _assertResolved(FunctionBody body) {
     ResolutionVerifier verifier = new ResolutionVerifier();
     body.accept(verifier);

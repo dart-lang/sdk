@@ -12801,96 +12801,6 @@ class TypeOverrideManagerTest extends EngineTestCase {
 
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
-  void fail_finalPropertyInducingVariable_classMember_instance() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f(A a) {
-  return a.v; // marker
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_instance_inherited() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-class B extends A {
-  m() {
-    return v; // marker
-  }
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f(p) {
-  if (p is A) {
-    return p.v; // marker
-  }
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_classMember_static() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  static final V = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f() {
-  return A.V; // marker
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_topLevelVaraible_prefixed() {
-    addNamedSource("/lib.dart", "final V = 0;");
-    String code = r'''
-import 'lib.dart' as p;
-f() {
-  var v2 = p.V; // marker prefixed
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void fail_finalPropertyInducingVariable_topLevelVaraible_simple() {
-    addNamedSource("/lib.dart", "final V = 0;");
-    String code = r'''
-import 'lib.dart';
-f() {
-  return V; // marker simple
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(
@@ -13175,13 +13085,117 @@ main(CanvasElement canvas) {
     expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
   }
 
+  void test_finalPropertyInducingVariable_classMember_instance() {
+    // TODO(scheglov) remove after switching to the task model
+    if (!AnalysisEngine.instance.useTaskModel) return;
+    addNamedSource(
+        "/lib.dart",
+        r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+f(A a) {
+  return a.v; // marker
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance_inherited() {
+    // TODO(scheglov) remove after switching to the task model
+    if (!AnalysisEngine.instance.useTaskModel) return;
+    addNamedSource(
+        "/lib.dart",
+        r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+class B extends A {
+  m() {
+    return v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
+    // TODO(scheglov) remove after switching to the task model
+    if (!AnalysisEngine.instance.useTaskModel) return;
+    addNamedSource(
+        "/lib.dart",
+        r'''
+class A {
+  final v = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+f(p) {
+  if (p is A) {
+    return p.v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
   void test_finalPropertyInducingVariable_classMember_instance_unprefixed() {
+    // TODO(scheglov) remove after switching to the task model
+    if (!AnalysisEngine.instance.useTaskModel) return;
     String code = r'''
 class A {
   final v = 0;
   m() {
     v; // marker
   }
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_finalPropertyInducingVariable_classMember_static() {
+    // TODO(scheglov) remove after switching to the task model
+    if (!AnalysisEngine.instance.useTaskModel) return;
+    addNamedSource(
+        "/lib.dart",
+        r'''
+class A {
+  static final V = 0;
+}''');
+    String code = r'''
+import 'lib.dart';
+f() {
+  return A.V; // marker
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_finalPropertyInducingVariable_topLevelVariable_prefixed() {
+    // TODO(scheglov) remove after switching to the task model
+    if (!AnalysisEngine.instance.useTaskModel) return;
+    addNamedSource("/lib.dart", "final V = 0;");
+    String code = r'''
+import 'lib.dart' as p;
+f() {
+  var v2 = p.V; // marker prefixed
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
+  void test_finalPropertyInducingVariable_topLevelVariable_simple() {
+    // TODO(scheglov) remove after switching to the task model
+    if (!AnalysisEngine.instance.useTaskModel) return;
+    addNamedSource("/lib.dart", "final V = 0;");
+    String code = r'''
+import 'lib.dart';
+f() {
+  return V; // marker simple
 }''';
     _assertTypeOfMarkedExpression(
         code, typeProvider.dynamicType, typeProvider.intType);
