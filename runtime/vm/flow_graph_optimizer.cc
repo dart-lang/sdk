@@ -4836,6 +4836,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
          instr_it.Advance()) {
       BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
       if ((smi_op != NULL) &&
+          smi_op->HasSSATemp() &&
           BenefitsFromWidening(smi_op) &&
           CanBeWidened(smi_op)) {
         candidates.Add(smi_op);
