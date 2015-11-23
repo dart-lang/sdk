@@ -17,8 +17,8 @@ cc/Sleep: Pass, Fail
 cc/CorelibIsolateStartup: Skip
 # Negative tests of VerifiedMemory should crash iff in DEBUG mode.
 # TODO(koda): Improve support for negative tests.
-cc/VerifyImplicit_Crash: Crash
-cc/VerifyExplicit_Crash: Crash
+cc/VerifyImplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
+cc/VerifyExplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
 
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
