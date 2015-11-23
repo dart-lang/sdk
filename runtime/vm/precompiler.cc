@@ -124,12 +124,12 @@ void Precompiler::DoCompileAll(
 
 
 void Precompiler::ClearAllCode() {
-  class CodeCodeFunctionVisitor : public FunctionVisitor {
+  class ClearCodeFunctionVisitor : public FunctionVisitor {
     void VisitFunction(const Function& function) {
       function.ClearCode();
     }
   };
-  CodeCodeFunctionVisitor visitor;
+  ClearCodeFunctionVisitor visitor;
   VisitFunctions(&visitor);
 }
 
@@ -588,7 +588,11 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
   class_count_++;
   cls.set_is_allocated(true);
-  cls.EnsureIsFinalized(T);
+  error_ = cls.EnsureIsFinalized(T);
+  if (!error_.IsNull()) {
+    Jump(error_);
+  }
+
   changed_ = true;
 
   if (FLAG_trace_precompiler) {
@@ -923,7 +927,10 @@ void Precompiler::FinalizeAllClasses() {
       if (cls.IsDynamicClass()) {
         continue;  // class 'dynamic' is in the read-only VM isolate.
       }
-      cls.EnsureIsFinalized(T);
+      error_ = cls.EnsureIsFinalized(T);
+      if (!error_.IsNull()) {
+        Jump(error_);
+      }
     }
   }
   I->set_all_classes_finalized(true);
