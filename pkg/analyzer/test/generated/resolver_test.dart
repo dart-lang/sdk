@@ -12853,18 +12853,6 @@ f(p) {
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void fail_finalPropertyInducingVariable_classMember_instance_unprefixed() {
-    String code = r'''
-class A {
-  final v = 0;
-  m() {
-    v; // marker
-  }
-}''';
-    _assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
   void fail_finalPropertyInducingVariable_classMember_static() {
     addNamedSource(
         "/lib.dart",
@@ -13185,6 +13173,18 @@ main(CanvasElement canvas) {
     SimpleIdentifier identifier = EngineTestCase.findNode(
         unit, code, "context", (node) => node is SimpleIdentifier);
     expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
+  }
+
+  void test_finalPropertyInducingVariable_classMember_instance_unprefixed() {
+    String code = r'''
+class A {
+  final v = 0;
+  m() {
+    v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_forEach() {
