@@ -123,35 +123,19 @@ class CpsFragment {
     return letPrim(apply);
   }
 
-  /// Inserts an invocation. binds its continuation, and returns the
-  /// continuation parameter (i.e. the return value of the invocation).
-  ///
-  /// The continuation body becomes the new hole.
-  Parameter invokeMethod(Primitive receiver,
+  /// Inserts an invocation and returns a primitive holding the returned value.
+  Primitive invokeMethod(Primitive receiver,
                          Selector selector,
                          TypeMask mask,
                          List<Primitive> arguments) {
-    Continuation cont = new Continuation(<Parameter>[new Parameter(null)]);
-    InvokeMethod invoke =
-      new InvokeMethod(receiver, selector, mask, arguments, cont,
-                       sourceInformation);
-    put(new LetCont(cont, invoke));
-    context = cont;
-    return cont.parameters.single;
+    return letPrim(new InvokeMethod(receiver, selector, mask, arguments,
+        sourceInformation));
   }
 
-  /// Inserts an invocation. binds its continuation, and returns the
-  /// continuation parameter (i.e. the return value of the invocation).
-  ///
-  /// The continuation body becomes the new hole.
-  Parameter invokeStatic(FunctionElement target, List<Primitive> arguments) {
-    Continuation cont = new Continuation(<Parameter>[new Parameter(null)]);
-    InvokeStatic invoke =
-      new InvokeStatic(target, new Selector.fromElement(target), arguments,
-                       cont, sourceInformation);
-    put(new LetCont(cont, invoke));
-    context = cont;
-    return cont.parameters.single;
+  /// Inserts an invocation and returns a primitive holding the returned value.
+  Primitive invokeStatic(FunctionElement target, List<Primitive> arguments) {
+    return letPrim(new InvokeStatic(target, new Selector.fromElement(target),
+        arguments, sourceInformation));
   }
 
   /// Inserts an invocation to a static function that throws an error.
@@ -253,10 +237,45 @@ class CpsFragment {
   Continuation letCont([List<Parameter> parameters]) {
     if (parameters == null) parameters = <Parameter>[];
     Continuation cont = new Continuation(parameters);
+    bindContinuation(cont);
+    return cont;
+  }
+
+  /// Binds an existing continuation at this position.
+  ///
+  /// The LetCont body becomes the new hole.
+  void bindContinuation(Continuation cont) {
     LetCont let = new LetCont(cont, null);
     put(let);
     context = let;
-    return cont;
+  }
+
+  /// Inlines [target] at the current position, substituting the provided
+  /// arguments.
+  ///
+  /// Returns a primitive containing the function's return value.
+  ///
+  /// The new hole is the the point after [target] has returned. The fragment
+  /// remains open, even if [target] never returns.
+  ///
+  /// The [target] function is destroyed and should not be reused.
+  Primitive inlineFunction(FunctionDefinition target,
+                           Primitive thisArgument,
+                           List<Primitive> arguments,
+                           {Entity hint}) {
+    if (thisArgument != null) {
+      target.thisParameter.replaceUsesWith(thisArgument);
+    }
+    for (int i = 0; i < arguments.length; ++i) {
+      target.parameters[i].replaceUsesWith(arguments[i]);
+    }
+    Continuation returnCont = target.returnContinuation;
+    bindContinuation(returnCont);
+    put(target.body);
+    Parameter returnValue = returnCont.parameters.single;
+    returnValue.hint = hint;
+    context = returnCont;
+    return returnValue;
   }
 
   /// Returns a fragment whose context is the body of the given continuation.

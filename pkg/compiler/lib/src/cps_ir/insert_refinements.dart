@@ -75,11 +75,15 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     return prim is Interceptor ? prim.input.definition : prim;
   }
 
-  /// Enqueues [cont] for processing in a context where [refined] is the
-  /// current refinement for its value.
-  void pushRefinement(Continuation cont, Refinement refined) {
+  /// Sets [refined] to be the current refinement for its value, and pushes an
+  /// action that will restore the original scope again.
+  ///
+  /// The refinement is inserted as the child of [insertionParent] if it has
+  /// at least one use after its scope has been processed.
+  void applyRefinement(InteriorNode insertionParent, Refinement refined) {
     Primitive value = refined.effectiveDefinition;
     Primitive currentRefinement = refinementFor[value];
+    refinementFor[value] = refined;
     pushAction(() {
       refinementFor[value] = currentRefinement;
       if (refined.hasNoUses) {
@@ -87,18 +91,21 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
         refined.destroy();
       } else {
         LetPrim let = new LetPrim(refined);
-        let.insertBelow(cont);
+        let.insertBelow(insertionParent);
       }
     });
-    push(cont);
+  }
+
+  /// Enqueues [cont] for processing in a context where [refined] is the
+  /// current refinement for its value.
+  void pushRefinement(Continuation cont, Refinement refined) {
     pushAction(() {
-      refinementFor[value] = refined;
+      applyRefinement(cont, refined);
+      push(cont);
     });
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    Continuation cont = node.continuation.definition;
-
     // Update references to their current refined values.
     processReference(node.receiver);
     node.arguments.forEach(processReference);
@@ -107,34 +114,28 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     // not the interceptor.
     Primitive receiver = unfoldInterceptor(node.receiver.definition);
 
-    // Sink the continuation to the call to ensure everything in scope
-    // here is also in scope inside the continuations.
-    sinkContinuationToUse(cont, node);
-
-    if (node.selector.isClosureCall) {
-      // Do not try to refine the receiver of closure calls; the class world
-      // does not know about closure classes.
-      push(cont);
-    } else {
+    // Do not try to refine the receiver of closure calls; the class world
+    // does not know about closure classes.
+    if (!node.selector.isClosureCall) {
       // Filter away receivers that throw on this selector.
       TypeMask type = types.receiverTypeFor(node.selector, node.mask);
       Refinement refinement = new Refinement(receiver, type);
-      pushRefinement(cont, refinement);
+      LetPrim letPrim = node.parent;
+      applyRefinement(letPrim, refinement);
     }
   }
 
   void visitTypeCast(TypeCast node) {
-    Continuation cont = node.continuation.definition;
     Primitive value = node.value.definition;
 
     processReference(node.value);
     node.typeArguments.forEach(processReference);
 
     // Refine the type of the input.
-    sinkContinuationToUse(cont, node);
     TypeMask type = types.subtypesOf(node.dartType).nullable();
     Refinement refinement = new Refinement(value, type);
-    pushRefinement(cont, refinement);
+    LetPrim letPrim = node.parent;
+    applyRefinement(letPrim, refinement);
   }
 
   void visitRefinement(Refinement node) {
@@ -151,16 +152,6 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     });
   }
 
-  CallExpression getCallWithResult(Primitive prim) {
-    if (prim is Parameter && prim.parent is Continuation) {
-      Continuation cont = prim.parent;
-      if (cont.hasExactlyOneUse && cont.firstRef.parent is CallExpression) {
-        return cont.firstRef.parent;
-      }
-    }
-    return null;
-  }
-
   bool isTrue(Primitive prim) {
     return prim is Constant && prim.value.isTrue;
   }
@@ -168,7 +159,6 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
   void visitBranch(Branch node) {
     processReference(node.condition);
     Primitive condition = node.condition.definition;
-    CallExpression call = getCallWithResult(condition);
 
     Continuation trueCont = node.trueContinuation.definition;
     Continuation falseCont = node.falseContinuation.definition;
@@ -212,9 +202,9 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
       }
     }
 
-    if (call is InvokeMethod && call.selector == Selectors.equals) {
-      refineEquality(call.arguments[0].definition,
-                     call.arguments[1].definition,
+    if (condition is InvokeMethod && condition.selector == Selectors.equals) {
+      refineEquality(condition.dartReceiver,
+                     condition.dartArgument(0),
                      trueCont,
                      falseCont);
       return;
@@ -236,13 +226,8 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
   @override
   Expression traverseLetCont(LetCont node) {
     for (Continuation cont in node.continuations) {
-      if (cont.hasExactlyOneUse &&
-          (cont.firstRef.parent is InvokeMethod ||
-           cont.firstRef.parent is TypeCast ||
-           cont.firstRef.parent is Branch)) {
-        // Do not push the continuation here.
-        // visitInvokeMethod, visitBranch, and visitTypeCast will do that.
-      } else {
+      // Do not push the branch continuations here. visitBranch will do that.
+      if (!(cont.hasExactlyOneUse && cont.firstRef.parent is Branch)) {
         push(cont);
       }
     }

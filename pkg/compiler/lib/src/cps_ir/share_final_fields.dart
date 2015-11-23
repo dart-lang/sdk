@@ -105,8 +105,7 @@ class ShareFinalFields extends TrampolineRecursiveVisitor implements Pass {
     var map = fieldValues.putIfAbsent(field, () => <Primitive,Primitive>{});
     Primitive existing = map[receiver];
     if (existing != null) {
-      existing.substituteFor(primitive);
-      primitive.destroy();
+      primitive..replaceUsesWith(existing)..destroy();
       node.remove();
       return next;
     }

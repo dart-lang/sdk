@@ -9,6 +9,7 @@ import '../../js_backend/codegen/glue.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../cps_ir/cps_ir_builder.dart' show ThisParameterLocal;
 import '../../cps_ir/cps_fragment.dart';
+import '../../common/names.dart';
 
 class ExplicitReceiverParameterEntity implements Local {
   String get name => 'receiver';
@@ -77,7 +78,7 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     }
 
     if (inInterceptedMethod && methodUsesReceiverArgument(function.element)) {
-      explicitReceiverParameter.substituteFor(thisParameter);
+      thisParameter.replaceUsesWith(explicitReceiverParameter);
     }
 
     visit(function);
@@ -93,11 +94,6 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
 
   Constant get nullConstant {
     return new Constant(new NullConstantValue());
-  }
-
-  void insertLetPrim(Primitive primitive, Expression node) {
-    LetPrim let = new LetPrim(primitive);
-    let.insertAbove(node);
   }
 
   void insertEqNullCheck(FunctionDefinition function) {
@@ -122,30 +118,15 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     cps.insertAbove(function.body);
   }
 
-  /// Insert a static call to [function] at the point of [node] with result
-  /// [result].
-  ///
-  /// Rewrite [node] to
-  ///
-  /// let cont continuation(result) = node
-  /// in invoke function arguments continuation
-  void insertStaticCall(FunctionElement function, List<Primitive> arguments,
-      Parameter result, Expression node) {
-    InteriorNode parent = node.parent;
-    Continuation continuation = new Continuation([result]);
-
-    Selector selector = new Selector.fromElement(function);
+  /// Insert a static call to [function] immediately above [node].
+  Primitive insertStaticCallAbove(FunctionElement function,
+      List<Primitive> arguments, Expression node) {
     // TODO(johnniwinther): Come up with an implementation of SourceInformation
     // for calls such as this one that don't appear in the original source.
     InvokeStatic invoke = new InvokeStatic(
-        function, selector, arguments, continuation, null);
-
-    LetCont letCont = new LetCont(continuation, invoke);
-
-    parent.body = letCont;
-    letCont.parent = parent;
-    continuation.body = node;
-    node.parent = continuation;
+        function, new Selector.fromElement(function), arguments, null);
+    new LetPrim(invoke).insertAbove(node);
+    return invoke;
   }
 
   @override
@@ -161,16 +142,22 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     Expression body = node.handler.body;
     if (_exceptionParameter.hasAtLeastOneUse ||
         stackTraceParameter.hasAtLeastOneUse) {
-      Parameter exceptionValue = new Parameter(null);
-      exceptionValue.substituteFor(_exceptionParameter);
-      insertStaticCall(_glue.getExceptionUnwrapper(), [_exceptionParameter],
-          exceptionValue, body);
+      InvokeStatic unwrapped = insertStaticCallAbove(
+          _glue.getExceptionUnwrapper(),
+          [new Parameter(null)], // Dummy argument, see below.
+          body);
+      _exceptionParameter.replaceUsesWith(unwrapped);
+
+      // Replace the dummy with the exception parameter.  It must be set after
+      // replacing all uses of [_exceptionParameter].
+      unwrapped.arguments[0].changeTo(_exceptionParameter);
 
       if (stackTraceParameter.hasAtLeastOneUse) {
-        Parameter stackTraceValue = new Parameter(null);
-        stackTraceValue.substituteFor(stackTraceParameter);
-        insertStaticCall(_glue.getTraceFromException(), [_exceptionParameter],
-            stackTraceValue, body);
+        InvokeStatic stackTraceValue = insertStaticCallAbove(
+            _glue.getTraceFromException(),
+            [_exceptionParameter],
+            body);
+        stackTraceParameter.replaceUsesWith(stackTraceValue);
       }
     }
 
@@ -185,9 +172,10 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
 
   processThrow(Throw node) {
     // The subexpression of throw is wrapped in the JavaScript output.
-    Parameter wrappedException = new Parameter(null);
-    insertStaticCall(_glue.getWrapExceptionHelper(), [node.value.definition],
-        wrappedException, node);
+    Primitive wrappedException = insertStaticCallAbove(
+        _glue.getWrapExceptionHelper(),
+        [node.value.definition],
+        node);
     node.value.changeTo(wrappedException);
   }
 
@@ -209,14 +197,30 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     Primitive receiver = node.value.definition;
     Primitive interceptor = new Interceptor(receiver, node.sourceInformation)
         ..interceptedClasses.addAll(_glue.interceptedClasses);
-    insertLetPrim(interceptor, node.parent);
+    new LetPrim(interceptor).insertAbove(node.parent);
     node.interceptor = new Reference<Primitive>(interceptor);
     node.interceptor.parent = node;
+  }
+
+  bool isNullConstant(Primitive prim) {
+    return prim is Constant && prim.value.isNull;
   }
 
   processInvokeMethod(InvokeMethod node) {
     Selector selector = node.selector;
     if (!_glue.isInterceptedSelector(selector)) return;
+
+    // Some platform libraries will compare non-interceptable objects against
+    // null using the Dart == operator.  These must be translated directly.
+    if (node.selector == Selectors.equals &&
+        node.arguments.length == 1 &&
+        isNullConstant(node.arguments[0].definition)) {
+      node.replaceWith(new ApplyBuiltinOperator(
+          BuiltinOperator.Identical,
+          [node.receiver.definition, node.arguments[0].definition],
+          node.sourceInformation));
+      return;
+    }
 
     Primitive receiver = node.receiver.definition;
     Primitive newReceiver;
@@ -227,17 +231,16 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
       //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
       newReceiver = thisParameter;
     } else {
-      LetCont contBinding = node.parent;
       newReceiver = new Interceptor(receiver, node.sourceInformation)
           ..interceptedClasses.addAll(_glue.getInterceptedClassesOn(selector));
       if (receiver.hint != null) {
         newReceiver.hint = new InterceptorEntity(receiver.hint);
       }
-      insertLetPrim(newReceiver, contBinding);
+      new LetPrim(newReceiver).insertAbove(node.parent);
     }
     node.arguments.insert(0, node.receiver);
     node.receiver = new Reference<Primitive>(newReceiver)..parent = node;
-    node.receiverIsIntercepted = true;
+    node.callingConvention = CallingConvention.Intercepted;
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {
@@ -253,16 +256,16 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
       //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
       newReceiver = thisParameter;
     } else {
-      LetCont contBinding = node.parent;
       newReceiver = new Interceptor(receiver, node.sourceInformation)
         ..interceptedClasses.addAll(_glue.getInterceptedClassesOn(selector));
       if (receiver.hint != null) {
         newReceiver.hint = new InterceptorEntity(receiver.hint);
       }
-      insertLetPrim(newReceiver, contBinding);
+      new LetPrim(newReceiver).insertAbove(node.parent);
     }
     node.arguments.insert(0, node.receiver);
     node.receiver = new Reference<Primitive>(newReceiver)..parent = node;
+    node.callingConvention = CallingConvention.Intercepted;
   }
 
   processInterceptor(Interceptor node) {

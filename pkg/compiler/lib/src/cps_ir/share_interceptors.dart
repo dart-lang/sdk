@@ -142,8 +142,7 @@ class ShareInterceptors extends TrampolineRecursiveVisitor implements Pass {
           type: interceptor.type,
           sourceInformation: interceptor.sourceInformation);
       constantPrim.useElementAsHint(interceptor.hint);
-      constantPrim.substituteFor(interceptor);
-      interceptor.destroy();
+      interceptor..replaceUsesWith(constantPrim)..destroy();
       let.remove();
     } else if (interceptor.isAlwaysNullOrIntercepted) {
       Primitive input = interceptor.input.definition;
@@ -167,8 +166,7 @@ class ShareInterceptors extends TrampolineRecursiveVisitor implements Pass {
       cps.invokeContinuation(cont, [constantPrim]);
       cps.context = cont;
       cps.insertAbove(let);
-      param.substituteFor(interceptor);
-      interceptor.destroy();
+      interceptor..replaceUsesWith(param)..destroy();
       let.remove();
     }
   }
@@ -188,8 +186,7 @@ class ShareInterceptors extends TrampolineRecursiveVisitor implements Pass {
     if (existing != null) {
       existing.interceptedClasses.addAll(interceptor.interceptedClasses);
       existing.flags |= interceptor.flags;
-      existing.substituteFor(interceptor);
-      interceptor.destroy();
+      interceptor..replaceUsesWith(existing)..destroy();
       node.remove();
       return next;
     }
@@ -257,9 +254,8 @@ class ShareConstants extends TrampolineRecursiveVisitor {
       Constant prim = node.primitive;
       Constant existing = sharedConstantFor[prim.value];
       if (existing != null) {
-        existing.substituteFor(prim);
         existing.useElementAsHint(prim.hint);
-        prim.destroy();
+        prim..replaceUsesWith(existing)..destroy();
         node.remove();
         return next;
       }

@@ -154,6 +154,9 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
     if (inScope[def] == ScopeType.NotInScope) {
       error('Referenced out of scope: $def', ref);
     }
+    if (ref.previous == ref) {
+      error('Shared Reference object to $def', ref);
+    }
     if (ref.previous == null && def.firstRef != ref ||
         ref.previous != null && ref.previous.next != ref) {
       error('Broken .previous link in reference to $def', def);

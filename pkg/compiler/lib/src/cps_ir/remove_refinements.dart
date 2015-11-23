@@ -27,8 +27,7 @@ class RemoveRefinements extends TrampolineRecursiveVisitor implements Pass {
       if (refinement.hint != null && value.hint == null) {
         value.hint = refinement.hint;
       }
-      value.substituteFor(refinement);
-      refinement.destroy();
+      refinement..replaceUsesWith(value)..destroy();
       node.remove();
     }
     return next;

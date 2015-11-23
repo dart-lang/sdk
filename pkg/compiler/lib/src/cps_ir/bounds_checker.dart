@@ -398,7 +398,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         Monotonicity mono = monotonicity[param];
         if (mono == null) {
           // Value never changes. This is extremely uncommon.
-          initialValue.substituteFor(param);
+          param.replaceUsesWith(initialValue);
         } else if (mono == Monotonicity.Increasing) {
           makeGreaterThanOrEqual(getValue(param), initialVariable);
         } else if (mono == Monotonicity.Decreasing) {
@@ -468,7 +468,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     }
   }
 
-  // ---------------- CALL EXPRESSIONS --------------------
+  // ---------------- PRIMITIVES --------------------
 
   @override
   void visitInvokeMethod(InvokeMethod node) {
@@ -478,7 +478,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         .changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
@@ -486,7 +485,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     if (world.getSideEffectsOfElement(node.target).changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
@@ -499,7 +497,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     if (world.getSideEffectsOfElement(target).changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
@@ -507,19 +504,16 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     if (world.getSideEffectsOfElement(node.target).changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
   void visitTypeCast(TypeCast node) {
-    push(node.continuation.definition);
   }
 
   @override
   void visitGetLazyStatic(GetLazyStatic node) {
     // TODO(asgerf): How do we get the side effects of a lazy field initializer?
     currentEffectNumber = makeNewEffect();
-    push(node.continuation.definition);
   }
 
   @override
@@ -527,22 +521,17 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     if (node.nativeBehavior.sideEffects.changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
   void visitAwait(Await node) {
     currentEffectNumber = makeNewEffect();
-    push(node.continuation.definition);
   }
 
   @override
   void visitYield(Yield node) {
     currentEffectNumber = makeNewEffect();
-    push(node.continuation.definition);
   }
-
-  // ---------------- PRIMITIVES --------------------
 
   @override
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {

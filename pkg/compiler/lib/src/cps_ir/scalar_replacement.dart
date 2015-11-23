@@ -142,12 +142,12 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
           GetMutable getter = new GetMutable(variable);
           getter.type = getField.type;
           getter.variable.parent = getter;
-          getter.substituteFor(getField);
+          getField.replaceUsesWith(getter);
           replacePrimitive(getField, getter);
           deletePrimitive(getField);
         } else {
           Primitive value = fieldInitialValues[getField.field];
-          value.substituteFor(getField);
+          getField.replaceUsesWith(value);
           deleteLetPrimOf(getField);
         }
       } else if (use is SetField && use.object == ref) {
@@ -158,7 +158,7 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
         SetMutable setter = new SetMutable(variable, value);
         setter.variable.parent = setter;
         setter.value.parent = setter;
-        setter.substituteFor(setField);
+        setField.replaceUsesWith(setter);
         replacePrimitive(setField, setter);
         deletePrimitive(setField);
       } else {
