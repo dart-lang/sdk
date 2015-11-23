@@ -14,7 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 // import '../../../utils.dart';
-import 'dart_completion_contributor_test.dart';
+import 'completion_contributor_util.dart';
 
 main() {
   // Revisit this contributor and these tests
