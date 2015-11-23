@@ -4,11 +4,19 @@
 
 library analysis_server.src.provisional.completion.completion_core;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
+
+/**
+ * An empty list returned by [CompletionContributor]s
+ * when they have no suggestions to contribute.
+ */
+const EMPTY_LIST = const <CompletionSuggestion>[];
 
 /**
  * A method or function called when the requested analysis has been performed.
@@ -41,14 +49,15 @@ class AnalysisRequest<V> {
 /**
  * An object used to produce completions at a specific location within a file.
  *
- * Clients may extend this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class CompletionContributor {
   /**
-   * Compute a list of completion suggestions based on the given completion
-   * [request]. Return the suggestions that were computed.
+   * Return a [Future] that completes with a list of suggestions
+   * for the given completion [request].
    */
-  List<CompletionSuggestion> computeSuggestions(CompletionRequest request);
+  Future<List<CompletionSuggestion>> computeSuggestions(
+      CompletionRequest request);
 }
 
 /**

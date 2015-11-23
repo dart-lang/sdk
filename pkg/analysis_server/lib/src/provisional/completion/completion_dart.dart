@@ -4,55 +4,25 @@
 
 library analysis_server.src.provisional.completion.completion_dart;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
- * An object used to produce completions for a specific error within a Dart
- * file. Completion contributors are long-lived objects and must not retain any
- * state between invocations of [computeSuggestions].
+ * An object used to produce completions
+ * at a specific location within a Dart file.
  *
- * Clients may extend this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
-abstract class DartCompletionContributor implements CompletionContributor {
-  @override
-  List<CompletionSuggestion> computeSuggestions(CompletionRequest request) {
-    if (request is DartCompletionRequest) {
-      return internalComputeSuggestions(request);
-    }
-    AnalysisContext context = request.context;
-    Source source = request.source;
-    List<Source> libraries = context.getLibrariesContaining(source);
-    if (libraries.length < 1) {
-      return null;
-    }
-//    CompilationUnit unit =
-//        context.getResolvedCompilationUnit2(source, libraries[0]);
-//    bool isResolved = true;
-//    if (unit == null) {
-//      // TODO(brianwilkerson) Implement a method for getting a parsed
-//      // compilation unit without parsing the unit if it hasn't been parsed.
-//      unit = context.getParsedCompilationUnit(source);
-//      if (unit == null) {
-//        return null;
-//      }
-//      isResolved = false;
-//    }
-//    DartCompletionRequest dartRequest =
-//        new DartCompletionRequestImpl(request, unit, isResolved);
-//    return internalComputeSuggestions(dartRequest);
-    return null;
-  }
-
+abstract class DartCompletionContributor {
   /**
-   * Compute a list of completion suggestions based on the given completion
-   * [request]. Return the suggestions that were computed.
+   * Return a [Future] that completes with a list of suggestions
+   * for the given completion [request].
    */
-  List<CompletionSuggestion> internalComputeSuggestions(
+  Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request);
 }
 
@@ -63,28 +33,18 @@ abstract class DartCompletionContributor implements CompletionContributor {
  */
 abstract class DartCompletionRequest extends CompletionRequest {
   /**
-   * Return `true` if the compilation [unit] is resolved.
-   */
-  bool get isResolved;
-
-  /**
    * Return the completion target.  This determines what part of the parse tree
    * will receive the newly inserted text.
    */
   CompletionTarget get target;
 
   /**
-   * Cached information from a prior code completion operation.
+   * Return a [Future] that completes with a compilation unit in which
+   * all declarations in all scopes containing [target] have been resolved.
+   * The [Future] may return `null` if the unit cannot be resolved
+   * (e.g. unlinked part file).
+   * Any information obtained from [target] prior to calling this method
+   * should be discarded as it may have changed.
    */
-  //DartCompletionCache get cache;
-
-  /**
-   * Return the compilation unit in which the completion was requested.
-   */
-  CompilationUnit get unit;
-
-  /**
-   * Information about the types of suggestions that should be included.
-   */
-  //OpType get _optype;
+  Future<CompilationUnit> resolveDeclarationsInScope();
 }

@@ -10,8 +10,6 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionRequest;
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
-    as newApi;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
@@ -26,15 +24,12 @@ import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/model.dart';
 
 const int DART_RELEVANCE_COMMON_USAGE = 1200;
 const int DART_RELEVANCE_DEFAULT = 1000;
@@ -458,83 +453,4 @@ class DartCompletionRequest extends CompletionRequestImpl {
       }
     }
   }
-}
-
-/**
- * A wrapper around a new dart completion contributor that makes it usable where
- * an old dart completion contributor is expected.
- */
-class NewCompletionWrapper implements DartCompletionContributor {
-  /**
-   * The new-style contributor that is being wrapped.
-   */
-  final newApi.DartCompletionContributor contributor;
-
-  /**
-   * Initialize a newly created wrapper for the given [contributor].
-   */
-  NewCompletionWrapper(this.contributor);
-
-  @override
-  bool computeFast(DartCompletionRequest request) {
-    List<CompletionSuggestion> suggestions =
-        contributor.computeSuggestions(new OldRequestWrapper(request));
-    if (suggestions == null) {
-      return false;
-    }
-    for (CompletionSuggestion suggestion in suggestions) {
-      request.addSuggestion(suggestion);
-    }
-    return true;
-  }
-
-  @override
-  Future<bool> computeFull(DartCompletionRequest request) async {
-    List<CompletionSuggestion> suggestions =
-        contributor.computeSuggestions(new OldRequestWrapper(request));
-    if (suggestions != null) {
-      for (CompletionSuggestion suggestion in suggestions) {
-        request.addSuggestion(suggestion);
-      }
-      return true;
-    }
-    return false;
-  }
-
-  @override
-  String toString() => 'wrapped $contributor';
-}
-
-/**
- * A wrapper around an old dart completion request that makes it usable where a
- * new dart completion request is expected.
- */
-class OldRequestWrapper implements newApi.DartCompletionRequest {
-  final DartCompletionRequest request;
-
-  OldRequestWrapper(this.request);
-
-  @override
-  AnalysisContext get context => request.context;
-
-  @override
-  bool get isResolved => request.unit.element != null;
-
-  @override
-  int get offset => request.offset;
-
-  @override
-  ResourceProvider get resourceProvider => request.resourceProvider;
-
-  @override
-  Source get source => request.source;
-
-  @override
-  CompletionTarget get target => request.target;
-
-  @override
-  CompilationUnit get unit => request.unit;
-
-  @override
-  String toString() => 'wrapped $request';
 }
