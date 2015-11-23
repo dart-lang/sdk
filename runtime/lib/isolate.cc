@@ -24,6 +24,9 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, i_like_slow_isolate_spawn, false,
+            "Block the parent thread when loading spawned isolates.");
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -217,16 +220,28 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
       Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
       Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
 
-      Dart::thread_pool()->Run(new SpawnIsolateTask(
-          new IsolateSpawnState(port.Id(),
-                                isolate->origin_id(),
-                                isolate->init_callback_data(),
-                                func,
-                                message,
-                                paused.value(),
-                                fatal_errors,
-                                on_exit_port,
-                                on_error_port)));
+      ThreadPool::Task* spawn_task =
+          new SpawnIsolateTask(
+              new IsolateSpawnState(port.Id(),
+                                    isolate->origin_id(),
+                                    isolate->init_callback_data(),
+                                    func,
+                                    message,
+                                    paused.value(),
+                                    fatal_errors,
+                                    on_exit_port,
+                                    on_error_port));
+      if (FLAG_i_like_slow_isolate_spawn) {
+        // We block the parent isolate while the child isolate loads.
+        Isolate* saved = Isolate::Current();
+        Thread::ExitIsolate();
+        spawn_task->Run();
+        delete spawn_task;
+        spawn_task = NULL;
+        Thread::EnterIsolate(saved);
+      } else {
+        Dart::thread_pool()->Run(spawn_task);
+      }
       return Object::null();
     }
   }
@@ -339,25 +354,38 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
   Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
 
-  IsolateSpawnState* state = new IsolateSpawnState(
-      port.Id(),
-      isolate->init_callback_data(),
-      canonical_uri,
-      utf8_package_root,
-      const_cast<const char**>(utf8_package_map),
-      args,
-      message,
-      paused.value(),
-      fatal_errors,
-      on_exit_port,
-      on_error_port);
+  IsolateSpawnState* state =
+      new IsolateSpawnState(
+          port.Id(),
+          isolate->init_callback_data(),
+          canonical_uri,
+          utf8_package_root,
+          const_cast<const char**>(utf8_package_map),
+          args,
+          message,
+          paused.value(),
+          fatal_errors,
+          on_exit_port,
+          on_error_port);
+
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
     state->isolate_flags()->set_checked(checked.value());
   }
 
-  Dart::thread_pool()->Run(new SpawnIsolateTask(state));
+  ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+  if (FLAG_i_like_slow_isolate_spawn) {
+    // We block the parent isolate while the child isolate loads.
+    Isolate* saved = Isolate::Current();
+    Thread::ExitIsolate();
+    spawn_task->Run();
+    delete spawn_task;
+    spawn_task = NULL;
+    Thread::EnterIsolate(saved);
+  } else {
+    Dart::thread_pool()->Run(spawn_task);
+  }
   return Object::null();
 }
 
