@@ -7,16 +7,15 @@ library services.completion.computer.dart.relevance;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     show DART_RELEVANCE_COMMON_USAGE;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/task/dart.dart';
 
 part 'common_usage_generated.dart';
 
@@ -37,8 +36,8 @@ class CommonUsageComputer implements ContributionSorter {
   CommonUsageComputer([this.selectorRelevance = defaultSelectorRelevance]);
 
   @override
-  AnalysisRequest sort(
-      CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
+  AnalysisRequest sort(CompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions) {
     _update(request, suggestions);
     return null;
   }

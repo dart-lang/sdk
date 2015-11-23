@@ -5,7 +5,6 @@
 library services.completion.sorter;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 
 /**

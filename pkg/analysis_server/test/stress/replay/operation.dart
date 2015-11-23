@@ -7,8 +7,6 @@
  */
 library analysis_server.test.stress.replay.replay;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart';
-
 import '../utilities/server.dart';
 
 /**
