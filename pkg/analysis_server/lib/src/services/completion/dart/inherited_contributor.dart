@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-// import 'package:analysis_server/plugin/edit/utilities/change_builder_dart.dart';
+// import 'package:analysis_server/plugin/src/provisional/utilities/change_builder_dart.dart';
 // import 'package:analyzer/src/generated/engine.dart';
 
 /**

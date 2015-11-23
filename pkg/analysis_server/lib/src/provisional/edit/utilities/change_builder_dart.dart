@@ -4,7 +4,7 @@
 
 library analysis_server.plugin.edit.utilities.change_builder_dart;
 
-import 'package:analysis_server/plugin/edit/utilities/change_builder_core.dart';
+import 'package:analysis_server/src/provisional/edit/utilities/change_builder_core.dart';
 import 'package:analysis_server/src/utilities/change_builder_dart.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
