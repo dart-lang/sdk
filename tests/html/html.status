@@ -63,7 +63,6 @@ async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
 fileapi_test/getFile: Pass, Fail # Issue 20488
-async_spawnuri_test: Skip # Issue 24990
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
