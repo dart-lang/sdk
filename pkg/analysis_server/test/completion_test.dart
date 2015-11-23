@@ -2119,7 +2119,7 @@ main() {
     sources.clear();
     sources["/lib.dart"] = '''
 library lib
-class _A 
+class _A
   foo() {}
 
 class A extends _A {
@@ -2851,7 +2851,7 @@ class A {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test035', '''class Y {final x='hi';mth() {x.!1length;}}''',
-        <String>["1+length"], failingTests: '1');
+        <String>["1+length"]);
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
