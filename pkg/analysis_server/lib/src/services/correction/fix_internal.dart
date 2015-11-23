@@ -390,12 +390,16 @@ class FixProcessor {
         if (targetElement is ExecutableElement) {
           List<ParameterElement> parameters = targetElement.parameters;
           int numParameters = parameters.length;
-          Expression argument = arguments[numParameters];
+          Iterable<ParameterElement> requiredParameters = parameters
+              .takeWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
+          Iterable<ParameterElement> optionalParameters = parameters
+              .skipWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
+          int numRequired = requiredParameters.length;
+          Expression argument = arguments[numRequired];
           // prepare target
           int targetOffset;
-          if (numParameters != 0) {
-            ParameterElement parameterElement = parameters.last;
-            AstNode parameterNode = parameterElement.computeNode();
+          if (numRequired != 0) {
+            AstNode parameterNode = requiredParameters.last.computeNode();
             targetOffset = parameterNode.end;
           } else {
             AstNode targetNode = targetElement.computeNode();
@@ -413,23 +417,26 @@ class FixProcessor {
           {
             SourceBuilder sb = new SourceBuilder(targetFile, targetOffset);
             // append source
-            if (numParameters != 0) {
+            if (numRequired != 0) {
               sb.append(', ');
             }
-            _appendParameterForArgument(sb, numParameters, argument);
+            _appendParameterForArgument(sb, numRequired, argument);
+            if (numRequired != numParameters) {
+              sb.append(', ');
+            }
             // add proposal
             _insertBuilder(sb, targetElement);
             _addFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, []);
           }
           // optional positional
-          {
+          if (optionalParameters.isEmpty) {
             SourceBuilder sb = new SourceBuilder(targetFile, targetOffset);
             // append source
-            if (numParameters != 0) {
+            if (numRequired != 0) {
               sb.append(', ');
             }
             sb.append('[');
-            _appendParameterForArgument(sb, numParameters, argument);
+            _appendParameterForArgument(sb, numRequired, argument);
             sb.append(']');
             // add proposal
             _insertBuilder(sb, targetElement);

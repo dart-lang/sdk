@@ -175,6 +175,16 @@ class Test {
 ''');
   }
 
+  test_addMissingParameter_function_positional_hasNamed() async {
+    resolveTestUnit('''
+test({int a}) {}
+main() {
+  test(1);
+}
+''');
+    await assertNoFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL);
+  }
+
   test_addMissingParameter_function_positional_hasZero() async {
     resolveTestUnit('''
 test() {}
@@ -186,6 +196,23 @@ main() {
         DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL,
         '''
 test([int i]) {}
+main() {
+  test(1);
+}
+''');
+  }
+
+  test_addMissingParameter_function_required_hasNamed() async {
+    resolveTestUnit('''
+test({int a}) {}
+main() {
+  test(1);
+}
+''');
+    await assertHasFix(
+        DartFixKind.ADD_MISSING_PARAMETER_REQUIRED,
+        '''
+test(int i, {int a}) {}
 main() {
   test(1);
 }
