@@ -53,7 +53,7 @@ $if DART2JS
     List storeNames_1 = convertDartToNative_StringArray(storeNames);
     return _transaction(storeNames_1, mode);
   }
-  
+
   Transaction transactionStores(DomStringList storeNames, String mode) {
     if (mode != 'readonly' && mode != 'readwrite') {
       throw new ArgumentError(mode);
@@ -63,6 +63,28 @@ $if DART2JS
 
   @JSName('transaction')
   Transaction _transaction(stores, mode) native;
+$else
+  Transaction transaction(storeName_OR_storeNames, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new ArgumentError("Invalid transaction mode $mode");
+    }
+    var names;
+    if (storeName_OR_storeNames == null) {
+      throw new ArgumentError("stores may not be null in transaction");
+    } else if (storeName_OR_storeNames is String || storeName_OR_storeNames is DomStringList) {
+      names = unwrap_jso(storeName_OR_storeNames);
+    } else if (storeName_OR_storeNames is List<String>) {
+      names = convertDartToNative_List(storeName_OR_storeNames);
+    } else {
+      throw new ArgumentError("Invalid store(s) $store_Name_OR_storeNames");
+    }
+
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), names, mode));
+  }
+
+  Transaction transactionList(List<String> storeNames, String mode) => transaction(storeNames, mode);
+  Transaction transactionStores(List<String> storeNames, String mode) => transaction(storeNames, mode);
+  Transaction transactionStore(String storeName, String mode) => transaction(storeName, mode);
 $endif
 
 $!MEMBERS}

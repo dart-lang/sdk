@@ -40454,10 +40454,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.moveTo]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo) from MDN.
-   * * [Window.moveTo]
-   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveto) from W3C.
+   * * [Window.moveTo](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo)
+   *   from MDN.
+   * * [Window.moveTo](http://dev.w3.org/csswg/cssom-view/#dom-window-moveto)
+   *   from W3C.
    */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);

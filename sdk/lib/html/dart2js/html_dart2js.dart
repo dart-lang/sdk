@@ -31921,9 +31921,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Loading web pages]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
-   * from WHATWG.
+   * * [Loading web
+   *   pages](https://html.spec.whatwg.org/multipage/browsers.html)
+   *   from WHATWG.
    */
   Document get document => JS('Document', '#.document', this);
 
@@ -31937,10 +31937,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.open]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.open) from MDN.
-   * * [Window open]
-   * (http://docs.webplatform.org/wiki/dom/methods/open) from WebPlatform.org.
+   * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
+   *   from MDN.
+   * * [Window open](http://docs.webplatform.org/wiki/dom/methods/open)
+   *   from WebPlatform.org.
    */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {
@@ -32002,8 +32002,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.cancelAnimationFrame]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame) from MDN.
+   * * [Window.cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame)
+   *   from MDN.
    */
   void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
@@ -33772,10 +33772,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.moveTo]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo) from MDN.
-   * * [Window.moveTo]
-   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveto) from W3C.
+   * * [Window.moveTo](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo)
+   *   from MDN.
+   * * [Window.moveTo](http://dev.w3.org/csswg/cssom-view/#dom-window-moveto)
+   *   from W3C.
    */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);
@@ -33794,10 +33794,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollX]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
+   *   from MDN.
    */
   @DomName('Window.scrollX')
   @DocsEditable()
@@ -33810,10 +33810,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollY]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
+   *   from MDN.
    */
   @DomName('Window.scrollY')
   @DocsEditable()

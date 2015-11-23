@@ -380,7 +380,7 @@ class Database extends EventTarget {
     List storeNames_1 = convertDartToNative_StringArray(storeNames);
     return _transaction(storeNames_1, mode);
   }
-  
+
   Transaction transactionStores(DomStringList storeNames, String mode) {
     if (mode != 'readonly' && mode != 'readwrite') {
       throw new ArgumentError(mode);
