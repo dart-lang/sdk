@@ -243,6 +243,19 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    Element element = node.staticElement;
+    if (element != null && element.isSynthetic) {
+      element = element.enclosingElement;
+    }
+    // add region
+    computer._addRegionForToken(node.thisKeyword, element);
+    computer._addRegionForNode(node.constructorName, element);
+    // process arguments
+    _safelyVisit(node.argumentList);
+  }
+
+  @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ConstructorDeclaration) {
       return;
@@ -258,12 +271,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
       element = element.enclosingElement;
     }
     // add region
-    SimpleIdentifier name = node.constructorName;
-    if (name != null) {
-      computer._addRegion_nodeStart_nodeEnd(node, name, element);
-    } else {
-      computer._addRegionForToken(node.superKeyword, element);
-    }
+    computer._addRegionForToken(node.superKeyword, element);
+    computer._addRegionForNode(node.constructorName, element);
     // process arguments
     _safelyVisit(node.argumentList);
   }

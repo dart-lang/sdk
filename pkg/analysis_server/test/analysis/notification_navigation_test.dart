@@ -797,6 +797,30 @@ main() {
     });
   }
 
+  test_redirectingConstructorInvocation() {
+    addTestFile('''
+class A {
+  A() {}
+  A.foo() : this();
+  A.bar() : this.foo();
+}
+''');
+    return prepareNavigation().then((_) {
+      {
+        assertHasRegion('this();');
+        assertHasTarget('A() {}', 0);
+      }
+      {
+        assertHasRegion('this.foo');
+        assertHasTarget('foo() :');
+      }
+      {
+        assertHasRegion('foo();');
+        assertHasTarget('foo() :');
+      }
+    });
+  }
+
   test_string_export() {
     var libCode = 'library lib;';
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
@@ -878,7 +902,11 @@ class B extends A {
         assertHasTarget('A() {}', 0);
       }
       {
-        assertHasRegionString('super.named');
+        assertHasRegion('super.named');
+        assertHasTarget('named() {}');
+      }
+      {
+        assertHasRegion('named();');
         assertHasTarget('named() {}');
       }
     });
