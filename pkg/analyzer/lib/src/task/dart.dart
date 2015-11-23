@@ -2036,7 +2036,8 @@ class ComputePropagableVariableDependenciesTask
    * propagated.
    */
   bool _isPropagable(VariableElement variable) =>
-      (variable.isConst || variable.isFinal) &&
+      variable is PropertyInducingElement &&
+          (variable.isConst || variable.isFinal) &&
           variable.hasImplicitType &&
           variable.initializer != null;
 

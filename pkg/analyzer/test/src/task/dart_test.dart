@@ -1833,6 +1833,32 @@ var   d4 = 4;
           getTopLevelVariableElement(unit, 'd2')
         ]));
   }
+
+  test_perform_topLevel_ignoreLocal() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+final a = () {
+  const b = 2;
+  const c = 3;
+  return b + c;
+}() + d;
+final d = 4;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement elementA = getTopLevelVariableElement(unit, 'a');
+    // compute
+    computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
+        matcher: isComputePropagableVariableDependenciesTask);
+    // verify
+    expect(outputs, hasLength(1));
+    List<VariableElement> dependencies =
+        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+    expect(
+        dependencies, unorderedEquals([getTopLevelVariableElement(unit, 'd')]));
+  }
 }
 
 @reflectiveTest
