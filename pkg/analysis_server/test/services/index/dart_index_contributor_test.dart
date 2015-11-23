@@ -4,7 +4,7 @@
 
 library test.services.src.index.dart_index_contributor;
 
-import 'package:analysis_server/plugin/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
@@ -92,27 +92,6 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
         .thenInvoke((Element element) {
       recordedTopElements.add(element);
     });
-  }
-
-  void test_isReferencedBy_PrefixElement() {
-    _indexTestUnit('''
-import 'dart:async' as ppp;
-main() {
-  ppp.Future a;
-  ppp.Stream b;
-}
-''');
-    // prepare elements
-    PrefixElement element = findNodeElementAtString('ppp;');
-    Element elementA = findElement('a');
-    Element elementB = findElement('b');
-    IndexableElement indexable = new IndexableElement(element);
-    // verify
-    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(elementA, 'ppp.Future'));
-    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
-        _expectedLocation(elementB, 'ppp.Stream'));
-    _assertNoRecordedRelation(indexable, null, _expectedLocation(null, 'ppp;'));
   }
 
   void test_bad_unresolvedFieldFormalParameter() {
@@ -1421,6 +1400,27 @@ main() {
     // verify
     _assertRecordedRelationForElement(element, IndexConstants.IS_REFERENCED_BY,
         _expectedLocation(mainElement, 'p: 1'));
+  }
+
+  void test_isReferencedBy_PrefixElement() {
+    _indexTestUnit('''
+import 'dart:async' as ppp;
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    // prepare elements
+    PrefixElement element = findNodeElementAtString('ppp;');
+    Element elementA = findElement('a');
+    Element elementB = findElement('b');
+    IndexableElement indexable = new IndexableElement(element);
+    // verify
+    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(elementA, 'ppp.Future'));
+    _assertRecordedRelation(indexable, IndexConstants.IS_REFERENCED_BY,
+        _expectedLocation(elementB, 'ppp.Stream'));
+    _assertNoRecordedRelation(indexable, null, _expectedLocation(null, 'ppp;'));
   }
 
   void test_isReferencedBy_TopLevelVariableElement() {

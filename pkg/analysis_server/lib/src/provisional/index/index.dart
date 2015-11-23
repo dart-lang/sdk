@@ -30,8 +30,8 @@
  */
 library analysis_server.plugin.index.index;
 
-import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:plugin/plugin.dart';
 
 /**

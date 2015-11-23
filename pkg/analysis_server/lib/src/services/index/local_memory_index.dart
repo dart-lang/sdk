@@ -4,7 +4,7 @@
 
 library services.index.memory_file_index;
 
-import 'package:analysis_server/plugin/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analysis_server/src/services/index/local_index.dart';

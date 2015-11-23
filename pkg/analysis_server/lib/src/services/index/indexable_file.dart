@@ -4,7 +4,7 @@
 
 library services.index.indexable_file;
 
-import 'package:analysis_server/plugin/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 /**
