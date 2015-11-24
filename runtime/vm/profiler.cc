@@ -712,7 +712,6 @@ static void CollectSample(Isolate* isolate,
     // We are executing Dart code. We have frame pointers.
     dart_stack_walker->walk();
   } else {
-    sample->set_vm_tag(VMTag::kEmbedderTagId);
     sample->SetAt(0, pc);
   }
 
@@ -923,7 +922,6 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
     uintptr_t pc = GetProgramCounter();
     Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
     sample->SetAllocationCid(cid);
-    sample->set_vm_tag(VMTag::kEmbedderTagId);
     sample->SetAt(0, pc);
   }
 }
