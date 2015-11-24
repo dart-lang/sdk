@@ -11,10 +11,9 @@ import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show AnalysisRequest, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/completion_dart.dart'
+import 'package:analysis_server/src/services/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     show DART_RELEVANCE_DEFAULT, DART_RELEVANCE_LOW;
@@ -25,7 +24,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../abstract_context.dart';
-import 'package:analysis_server/src/services/completion/completion_core.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -40,7 +38,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   Source testSource;
   int completionOffset;
   DartCompletionContributor contributor;
-  CompletionRequest request;
+  DartCompletionRequest request;
   List<CompletionSuggestion> suggestions;
 
   void addTestSource(String content) {

@@ -9,16 +9,17 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show AnalysisRequest, CompletionRequest;
+    show AnalysisRequest, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
+    as newImpl;
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
-import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
@@ -29,22 +30,24 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-const int DART_RELEVANCE_COMMON_USAGE = 1200;
-const int DART_RELEVANCE_DEFAULT = 1000;
-const int DART_RELEVANCE_HIGH = 2000;
-const int DART_RELEVANCE_INHERITED_ACCESSOR = 1057;
-const int DART_RELEVANCE_INHERITED_FIELD = 1058;
-const int DART_RELEVANCE_INHERITED_METHOD = 1057;
-const int DART_RELEVANCE_KEYWORD = 1055;
-const int DART_RELEVANCE_LOCAL_ACCESSOR = 1057;
-const int DART_RELEVANCE_LOCAL_FIELD = 1058;
-const int DART_RELEVANCE_LOCAL_FUNCTION = 1056;
-const int DART_RELEVANCE_LOCAL_METHOD = 1057;
-const int DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE = 1056;
-const int DART_RELEVANCE_LOCAL_VARIABLE = 1059;
-const int DART_RELEVANCE_LOW = 500;
-const int DART_RELEVANCE_NAMED_PARAMETER = 1060;
-const int DART_RELEVANCE_PARAMETER = 1059;
+export 'package:analysis_server/src/provisional/completion/completion_dart.dart'
+    show
+        DART_RELEVANCE_COMMON_USAGE,
+        DART_RELEVANCE_DEFAULT,
+        DART_RELEVANCE_HIGH,
+        DART_RELEVANCE_INHERITED_ACCESSOR,
+        DART_RELEVANCE_INHERITED_FIELD,
+        DART_RELEVANCE_INHERITED_METHOD,
+        DART_RELEVANCE_KEYWORD,
+        DART_RELEVANCE_LOCAL_ACCESSOR,
+        DART_RELEVANCE_LOCAL_FIELD,
+        DART_RELEVANCE_LOCAL_FUNCTION,
+        DART_RELEVANCE_LOCAL_METHOD,
+        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE,
+        DART_RELEVANCE_LOCAL_VARIABLE,
+        DART_RELEVANCE_LOW,
+        DART_RELEVANCE_NAMED_PARAMETER,
+        DART_RELEVANCE_PARAMETER;
 
 /**
  * The base class for contributing code completion suggestions.
@@ -83,11 +86,12 @@ class DartCompletionManager extends CompletionManager {
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
   List<DartCompletionContributor> contributors;
+  List<CompletionContributor> newContributors;
   DartContributionSorter contributionSorter;
 
   DartCompletionManager(
       AnalysisContext context, this.searchEngine, Source source, this.cache,
-      [this.contributors, this.contributionSorter])
+      [this.contributors, this.newContributors, this.contributionSorter])
       : super(context, source) {
     if (contributors == null) {
       contributors = [
@@ -96,7 +100,7 @@ class DartCompletionManager extends CompletionManager {
         // and can hide other suggestions with the same name
         new LocalReferenceContributor(),
         new ImportedReferenceContributor(),
-        new KeywordContributor(),
+        //new KeywordContributor(),
         new ArgListContributor(),
         new CombinatorContributor(),
         new PrefixedElementContributor(),
@@ -104,6 +108,12 @@ class DartCompletionManager extends CompletionManager {
         // TODO(brianwilkerson) Use the completion contributor extension point
         // to add the contributor below (and eventually, all the contributors).
 //        new NewCompletionWrapper(new InheritedContributor())
+      ];
+    }
+    if (newContributors == null) {
+      newContributors = <CompletionContributor>[
+        // TODO(danrubel) initialize using plugin API
+        new newImpl.DartCompletionManager(),
       ];
     }
     if (contributionSorter == null) {
@@ -178,17 +188,6 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
-      // TODO(danrubel) current sorter requires no additional analysis,
-      // but need to handle the returned future the same way that futures
-      // returned from contributors are handled once this method is refactored
-      // to be async.
-      /* await */ contributionSorter.sort(request, request.suggestions);
-      // TODO (danrubel) if request is obsolete
-      // (processAnalysisRequest returns false)
-      // then send empty results
-      if (todo.isEmpty) {
-        sendResults(request, todo.isEmpty);
-      }
       return todo;
     });
   }
@@ -198,9 +197,40 @@ class DartCompletionManager extends CompletionManager {
    * resolved and request that each remaining contributor finish their work.
    * Return a [Future] that completes when the last notification has been sent.
    */
-  Future computeFull(DartCompletionRequest request,
-      CompletionPerformance performance, List<DartCompletionContributor> todo) {
+  Future computeFull(
+      DartCompletionRequest request,
+      CompletionPerformance performance,
+      List<DartCompletionContributor> todo) async {
+
+    // Compute suggestions using the new API
+    performance.logStartTime('computeSuggestions');
+    for (CompletionContributor contributor in newContributors) {
+      String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
+      performance.logStartTime(contributorTag);
+      List<CompletionSuggestion> newSuggestions =
+          await contributor.computeSuggestions(request);
+      for (CompletionSuggestion suggestion in newSuggestions) {
+        request.addSuggestion(suggestion);
+      }
+      performance.logElapseTime(contributorTag);
+    }
+    performance.logElapseTime('computeSuggestions');
     performance.logStartTime('waitForAnalysis');
+
+    if (todo.isEmpty) {
+      // TODO(danrubel) current sorter requires no additional analysis,
+      // but need to handle the returned future the same way that futures
+      // returned from contributors are handled once this method is refactored
+      // to be async.
+      /* await */ contributionSorter.sort(
+          request, request.suggestions);
+      // TODO (danrubel) if request is obsolete
+      // (processAnalysisRequest returns false)
+      // then send empty results
+      sendResults(request, true);
+    }
+
+    // Compute the other suggestions
     return waitForAnalysis().then((CompilationUnit unit) {
       if (controller.isClosed) {
         return;
@@ -229,7 +259,8 @@ class DartCompletionManager extends CompletionManager {
                 // but need to handle the returned future the same way that futures
                 // returned from contributors are handled once this method is refactored
                 // to be async.
-                /* await */ contributionSorter.sort(request, request.suggestions);
+                /* await */ contributionSorter.sort(
+                    request, request.suggestions);
                 // TODO (danrubel) if request is obsolete
                 // (processAnalysisRequest returns false)
                 // then send empty results
@@ -249,9 +280,7 @@ class DartCompletionManager extends CompletionManager {
     CompletionPerformance performance = new CompletionPerformance();
     performance.logElapseTime('compute', () {
       List<DartCompletionContributor> todo = computeFast(request, performance);
-      if (!todo.isEmpty) {
-        computeFull(request, performance, todo);
-      }
+      computeFull(request, performance, todo);
     });
   }
 

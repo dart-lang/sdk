@@ -3,12 +3,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.contributor.dart.keyword;
+library services.completion.dart.keyword;
 
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -21,16 +21,15 @@ const AWAIT = 'await';
  */
 class KeywordContributor extends DartCompletionContributor {
   @override
-  bool computeFast(DartCompletionRequest request) {
-    if (!request.target.isCommentText) {
-      request.target.containingNode.accept(new _KeywordVisitor(request));
+  Future<List<CompletionSuggestion>> computeSuggestions(
+      DartCompletionRequest request) async {
+    if (request.target.isCommentText) {
+      return EMPTY_LIST;
     }
-    return true;
-  }
-
-  @override
-  Future<bool> computeFull(DartCompletionRequest request) {
-    return new Future.value(false);
+    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+    request.target.containingNode
+        .accept(new _KeywordVisitor(request, suggestions));
+    return suggestions;
   }
 }
 
@@ -40,8 +39,9 @@ class KeywordContributor extends DartCompletionContributor {
 class _KeywordVisitor extends GeneralizingAstVisitor {
   final DartCompletionRequest request;
   final Object entity;
+  final List<CompletionSuggestion> suggestions;
 
-  _KeywordVisitor(DartCompletionRequest request)
+  _KeywordVisitor(DartCompletionRequest request, this.suggestions)
       : this.request = request,
         this.entity = request.target.entity;
 
@@ -468,7 +468,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (offset == null) {
       offset = completion.length;
     }
-    request.addSuggestion(new CompletionSuggestion(
+    suggestions.add(new CompletionSuggestion(
         CompletionSuggestionKind.KEYWORD,
         relevance,
         completion,

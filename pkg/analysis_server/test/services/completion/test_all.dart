@@ -14,7 +14,6 @@ import 'completion_manager_test.dart' as completion_manager_test;
 import 'completion_target_test.dart' as completion_target_test;
 import 'dart/test_all.dart' as dart_contributor_tests;
 import 'imported_reference_contributor_test.dart' as imported_test;
-import 'keyword_contributor_test.dart' as keyword_test;
 import 'local_declaration_visitor_test.dart' as local_declaration_visitor_test;
 import 'local_reference_contributor_test.dart'
     as local_reference_contributor_test;
@@ -34,7 +33,6 @@ main() {
     dart_contributor_tests.main();
     imported_test.main();
     invocation_test.main();
-    keyword_test.main();
     local_declaration_visitor_test.main();
     local_reference_contributor_test.main();
     optype_test.main();

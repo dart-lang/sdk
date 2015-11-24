@@ -2,15 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.services.completion.completion_dart;
+library services.completion.dart.manager;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionRequest;
+    show CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
@@ -19,6 +21,40 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+
+/**
+ * [DartCompletionManager] determines if a completion request is Dart specific
+ * and forwards those requests to all [DartCompletionContributor]s.
+ */
+class DartCompletionManager implements CompletionContributor {
+  // TODO(danrubel) initialize using plugin API
+  List<DartCompletionContributor> contributors = <DartCompletionContributor>[
+    new KeywordContributor(),
+  ];
+
+  @override
+  Future<List<CompletionSuggestion>> computeSuggestions(
+      CompletionRequest request) {
+    if (AnalysisEngine.isDartFileName(request.source.shortName)) {
+      return _computeDartSuggestions(
+          new DartCompletionRequestImpl.forRequest(request));
+    }
+    return new Future.value();
+  }
+
+  /**
+   * Return a [Future] that completes with a list of suggestions
+   * for the given completion [request].
+   */
+  Future<List<CompletionSuggestion>> _computeDartSuggestions(
+      DartCompletionRequest request) async {
+    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+    for (DartCompletionContributor contributor in contributors) {
+      suggestions.addAll(await contributor.computeSuggestions(request));
+    }
+    return suggestions;
+  }
+}
 
 /**
  * The information about a requested list of completions within a Dart file.

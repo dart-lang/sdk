@@ -84,6 +84,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     contributor1 = new MockCompletionContributor(suggestion1, null);
     contributor2 = new MockCompletionContributor(null, suggestion2);
     manager.contributors = [contributor1, contributor2];
+    manager.newContributors = [];
     int count = 0;
     bool done = false;
     AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
@@ -122,6 +123,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     contributor1 = new MockCompletionContributor(suggestion1, null);
     contributor2 = new MockCompletionContributor(suggestion2, null);
     manager.contributors = [contributor1, contributor2];
+    manager.newContributors = [];
     int count = 0;
     bool done = false;
     AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);

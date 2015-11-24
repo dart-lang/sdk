@@ -11,6 +11,26 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 
+export 'package:analysis_server/src/provisional/completion/completion_core.dart'
+    show EMPTY_LIST;
+
+const int DART_RELEVANCE_COMMON_USAGE = 1200;
+const int DART_RELEVANCE_DEFAULT = 1000;
+const int DART_RELEVANCE_HIGH = 2000;
+const int DART_RELEVANCE_INHERITED_ACCESSOR = 1057;
+const int DART_RELEVANCE_INHERITED_FIELD = 1058;
+const int DART_RELEVANCE_INHERITED_METHOD = 1057;
+const int DART_RELEVANCE_KEYWORD = 1055;
+const int DART_RELEVANCE_LOCAL_ACCESSOR = 1057;
+const int DART_RELEVANCE_LOCAL_FIELD = 1058;
+const int DART_RELEVANCE_LOCAL_FUNCTION = 1056;
+const int DART_RELEVANCE_LOCAL_METHOD = 1057;
+const int DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE = 1056;
+const int DART_RELEVANCE_LOCAL_VARIABLE = 1059;
+const int DART_RELEVANCE_LOW = 500;
+const int DART_RELEVANCE_NAMED_PARAMETER = 1060;
+const int DART_RELEVANCE_PARAMETER = 1059;
+
 /**
  * An object used to produce completions
  * at a specific location within a Dart file.

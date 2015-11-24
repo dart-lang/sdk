@@ -5,14 +5,14 @@
 library test.services.completion.dart.keyword;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
-import 'completion_test_util.dart';
+import '../../../utils.dart';
+import 'completion_contributor_util.dart';
 
 main() {
   initializeTestEnvironment();
@@ -20,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class KeywordContributorTest extends AbstractCompletionTest {
+class KeywordContributorTest extends DartCompletionContributorTest {
   static const List<Keyword> CLASS_BODY_KEYWORDS = const [
     Keyword.CONST,
     Keyword.DYNAMIC,
@@ -221,7 +221,7 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Set<String> actualCompletions = new Set<String>();
     expectedCompletions.addAll(expectedKeywords.map((k) => k.syntax));
     expectedCompletions.addAll(pseudoKeywords);
-    for (CompletionSuggestion s in request.suggestions) {
+    for (CompletionSuggestion s in suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
         Keyword k = Keyword.keywords[s.completion];
         if (k == null && !expectedCompletions.contains(s.completion)) {
@@ -241,7 +241,7 @@ class KeywordContributorTest extends AbstractCompletionTest {
       _appendCompletions(msg, actualCompletions, expectedCompletions);
       fail(msg.toString());
     }
-    for (CompletionSuggestion s in request.suggestions) {
+    for (CompletionSuggestion s in suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
         if (s.completion.startsWith(Keyword.IMPORT.syntax)) {
           int importRelevance = relevance;
@@ -269,420 +269,420 @@ class KeywordContributorTest extends AbstractCompletionTest {
     }
   }
 
-  fail_import_partial() {
+  fail_import_partial() async {
     addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertNotSuggested('class');
   }
 
-  fail_import_partial4() {
+  fail_import_partial4() async {
     addTestSource('^ imp import "package:foo/foo.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertNotSuggested('class');
   }
 
-  fail_import_partial5() {
+  fail_import_partial5() async {
     addTestSource('library libA; imp^ import "package:foo/foo.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertNotSuggested('class');
   }
 
-  fail_import_partial6() {
+  fail_import_partial6() async {
     addTestSource(
         'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertNotSuggested('class');
   }
 
   @override
-  void setUpContributor() {
-    contributor = new KeywordContributor();
+  DartCompletionContributor createContributor() {
+    return new KeywordContributor();
   }
 
-  test_after_class() {
+  test_after_class() async {
     addTestSource('class A {} ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS, relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_after_class2() {
+  test_after_class2() async {
     addTestSource('class A {} c^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS, relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_after_import() {
+  test_after_import() async {
     addTestSource('import "foo"; ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_after_import2() {
+  test_after_import2() async {
     addTestSource('import "foo"; c^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_anonymous_function_async() {
+  test_anonymous_function_async() async {
     addTestSource('main() {foo(() ^ {}}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([],
         pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_anonymous_function_async2() {
+  test_anonymous_function_async2() async {
     addTestSource('main() {foo(() a^ {}}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['async']);
   }
 
-  test_anonymous_function_async3() {
+  test_anonymous_function_async3() async {
     addTestSource('main() {foo(() async ^ {}}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_argument() {
+  test_argument() async {
     addTestSource('main() {foo(^);}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_argument2() {
+  test_argument2() async {
     addTestSource('main() {foo(n^);}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_argument_literal() {
+  test_argument_literal() async {
     addTestSource('main() {foo("^");}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_argument_named() {
+  test_argument_named() async {
     addTestSource('main() {foo(bar: ^);}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_argument_named2() {
+  test_argument_named2() async {
     addTestSource('main() {foo(bar: n^);}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_argument_named_literal() {
+  test_argument_named_literal() async {
     addTestSource('main() {foo(bar: "^");}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_assignment_field() {
+  test_assignment_field() async {
     addTestSource('class A {var foo = ^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_assignment_field2() {
+  test_assignment_field2() async {
     addTestSource('class A {var foo = n^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_assignment_local() {
+  test_assignment_local() async {
     addTestSource('main() {var foo = ^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_assignment_local2() {
+  test_assignment_local2() async {
     addTestSource('main() {var foo = n^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_assignment_local2_async() {
+  test_assignment_local2_async() async {
     addTestSource('main() async {var foo = n^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
         pseudoKeywords: ['await']);
   }
 
-  test_assignment_local_async() {
+  test_assignment_local_async() async {
     addTestSource('main() async {var foo = ^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
         pseudoKeywords: ['await']);
   }
 
-  test_before_import() {
+  test_before_import() async {
     addTestSource('^ import foo;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(
         [Keyword.EXPORT, Keyword.IMPORT, Keyword.LIBRARY, Keyword.PART],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_catch() {
+  test_catch() async {
     addTestSource('main() {try {} catch (e) {^}}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     var keywords = <Keyword>[];
     keywords.addAll(STMT_START_OUTSIDE_CLASS);
     keywords.add(Keyword.RETHROW);
     assertSuggestKeywords(keywords, relevance: DART_RELEVANCE_KEYWORD);
   }
 
-  test_class() {
+  test_class() async {
     addTestSource('class A e^ { }');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_body() {
+  test_class_body() async {
     addTestSource('class A {^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS);
   }
 
-  test_class_body_beginning() {
+  test_class_body_beginning() async {
     addTestSource('class A {^ var foo;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS);
   }
 
-  test_class_body_between() {
+  test_class_body_between() async {
     addTestSource('class A {var bar; ^ var foo;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS);
   }
 
-  test_class_body_end() {
+  test_class_body_end() async {
     addTestSource('class A {var foo; ^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS);
   }
 
-  test_class_extends() {
+  test_class_extends() async {
     addTestSource('class A extends foo ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IMPLEMENTS, Keyword.WITH],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_extends2() {
+  test_class_extends2() async {
     addTestSource('class A extends foo i^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IMPLEMENTS, Keyword.WITH],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_extends3() {
+  test_class_extends3() async {
     addTestSource('class A extends foo i^ { }');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IMPLEMENTS, Keyword.WITH],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_extends_name() {
+  test_class_extends_name() async {
     addTestSource('class A extends ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_class_implements() {
+  test_class_implements() async {
     addTestSource('class A ^ implements foo');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.EXTENDS], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_implements2() {
+  test_class_implements2() async {
     addTestSource('class A e^ implements foo');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO (danrubel) refinement: don't suggest implements
     assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_implements3() {
+  test_class_implements3() async {
     addTestSource('class A e^ implements foo { }');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO (danrubel) refinement: don't suggest implements
     assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_implements_name() {
+  test_class_implements_name() async {
     addTestSource('class A implements ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_class_name() {
+  test_class_name() async {
     addTestSource('class ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_class_noBody() {
+  test_class_noBody() async {
     addTestSource('class A ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_noBody2() {
+  test_class_noBody2() async {
     addTestSource('class A e^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_noBody3() {
+  test_class_noBody3() async {
     addTestSource('class A e^ String foo;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.EXTENDS, Keyword.IMPLEMENTS],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_with() {
+  test_class_with() async {
     addTestSource('class A extends foo with bar ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IMPLEMENTS], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_with2() {
+  test_class_with2() async {
     addTestSource('class A extends foo with bar i^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IMPLEMENTS], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_with3() {
+  test_class_with3() async {
     addTestSource('class A extends foo with bar i^ { }');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IMPLEMENTS], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_class_with_name() {
+  test_class_with_name() async {
     addTestSource('class A extends foo with ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_constructor_param() {
+  test_constructor_param() async {
     addTestSource('class A { A(^) {});}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.THIS]);
   }
 
-  test_constructor_param2() {
+  test_constructor_param2() async {
     addTestSource('class A { A(t^) {});}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.THIS]);
   }
 
-  test_do_break_continue() {
+  test_do_break_continue() async {
     addTestSource('main() {do {^} while (true);}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_LOOP_OUTSIDE_CLASS,
         relevance: DART_RELEVANCE_KEYWORD);
   }
 
-  test_do_break_continue2() {
+  test_do_break_continue2() async {
     addTestSource('class A {foo() {do {^} while (true);}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_LOOP_IN_CLASS,
         relevance: DART_RELEVANCE_KEYWORD);
   }
 
-  test_empty() {
+  test_empty() async {
     addTestSource('^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_for_break_continue() {
+  test_for_break_continue() async {
     addTestSource('main() {for (int x in myList) {^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_LOOP_OUTSIDE_CLASS,
         relevance: DART_RELEVANCE_KEYWORD);
   }
 
-  test_for_break_continue2() {
+  test_for_break_continue2() async {
     addTestSource('class A {foo() {for (int x in myList) {^}}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_LOOP_IN_CLASS,
         relevance: DART_RELEVANCE_KEYWORD);
   }
 
-  test_for_expression_in() {
+  test_for_expression_in() async {
     addTestSource('main() {for (int x i^)}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IN], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_for_expression_in2() {
+  test_for_expression_in2() async {
     addTestSource('main() {for (int x in^)}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IN], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_for_expression_init() {
+  test_for_expression_init() async {
     addTestSource('main() {for (int x = i^)}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_for_expression_init2() {
+  test_for_expression_init2() async {
     addTestSource('main() {for (int x = in^)}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_function_async() {
+  test_function_async() async {
     addTestSource('main()^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS,
         pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_function_async2() {
+  test_function_async2() async {
     addTestSource('main()^{}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([],
         pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_function_async3() {
+  test_function_async3() async {
     addTestSource('main()a^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS,
         pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_function_async4() {
+  test_function_async4() async {
     addTestSource('main()a^{}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS,
         pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_function_async5() {
+  test_function_async5() async {
     addTestSource('main()a^ Foo foo;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS,
         pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_function_body_inClass_constructorInitializer() {
+  test_function_body_inClass_constructorInitializer() async {
     addTestSource(r'''
 foo(p) {}
 class A {
@@ -690,11 +690,11 @@ class A {
   A() : f = foo(() {^});
 }
 ''');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
-  test_function_body_inClass_constructorInitializer_async() {
+  test_function_body_inClass_constructorInitializer_async() async {
     addTestSource(r'''
 foo(p) {}
 class A {
@@ -702,21 +702,21 @@ class A {
   A() : f = foo(() async {^});
 }
 ''');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
   }
 
-  test_function_body_inClass_field() {
+  test_function_body_inClass_field() async {
     addTestSource(r'''
 class A {
   var f = () {^};
 }
 ''');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
-  test_function_body_inClass_methodBody() {
+  test_function_body_inClass_methodBody() async {
     addTestSource(r'''
 class A {
   m() {
@@ -724,11 +724,11 @@ class A {
   }
 }
 ''');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
-  test_function_body_inClass_methodBody_inFunction() {
+  test_function_body_inClass_methodBody_inFunction() async {
     addTestSource(r'''
 class A {
   m() {
@@ -738,11 +738,11 @@ class A {
   }
 }
 ''');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
-  test_function_body_inClass_methodBody_inFunction_async() {
+  test_function_body_inClass_methodBody_inFunction_async() async {
     addTestSource(r'''
 class A {
   m() {
@@ -752,657 +752,639 @@ class A {
   }
 }
 ''');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
   }
 
-  test_function_body_inUnit() {
+  test_function_body_inUnit() async {
     addTestSource('main() {^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
-  test_function_body_inUnit_afterBlock() {
+  test_function_body_inUnit_afterBlock() async {
     addTestSource('main() {{}^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
-  test_function_body_inUnit_async() {
+  test_function_body_inUnit_async() async {
     addTestSource('main() async {^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
   }
 
-  test_if_expression_in_class() {
+  test_if_expression_in_class() async {
     addTestSource('class A {foo() {if (^) }}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
-  test_if_expression_in_class2() {
+  test_if_expression_in_class2() async {
     addTestSource('class A {foo() {if (n^) }}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
-  test_if_expression_in_function() {
+  test_if_expression_in_function() async {
     addTestSource('foo() {if (^) }');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_if_expression_in_function2() {
+  test_if_expression_in_function2() async {
     addTestSource('foo() {if (n^) }');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_if_in_class() {
+  test_if_in_class() async {
     addTestSource('class A {foo() {if (true) ^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
-  test_if_in_class2() {
+  test_if_in_class2() async {
     addTestSource('class A {foo() {if (true) ^;}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
-  test_if_in_class3() {
+  test_if_in_class3() async {
     addTestSource('class A {foo() {if (true) r^;}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
-  test_if_in_class4() {
+  test_if_in_class4() async {
     addTestSource('class A {foo() {if (true) ^ go();}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
-  test_if_outside_class() {
+  test_if_outside_class() async {
     addTestSource('foo() {if (true) ^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
-  test_if_outside_class2() {
+  test_if_outside_class2() async {
     addTestSource('foo() {if (true) ^;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
-  test_if_outside_class3() {
+  test_if_outside_class3() async {
     addTestSource('foo() {if (true) r^;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
-  test_if_outside_class4() {
+  test_if_outside_class4() async {
     addTestSource('foo() {if (true) ^ go();}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS);
   }
 
-  test_import() {
+  test_import() async {
     addTestSource('import "foo" deferred as foo ^;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([],
         pseudoKeywords: ['show', 'hide'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_as() {
+  test_import_as() async {
     addTestSource('import "foo" deferred ^;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_as2() {
+  test_import_as2() async {
     addTestSource('import "foo" deferred a^;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_as3() {
+  test_import_as3() async {
     addTestSource('import "foo" deferred a^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred() {
+  test_import_deferred() async {
     addTestSource('import "foo" ^ as foo;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.DEFERRED], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred2() {
+  test_import_deferred2() async {
     addTestSource('import "foo" d^ as foo;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.DEFERRED], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred3() {
+  test_import_deferred3() async {
     addTestSource('import "foo" d^ show foo;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred4() {
+  test_import_deferred4() async {
     addTestSource('import "foo" d^ hide foo;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred5() {
+  test_import_deferred5() async {
     addTestSource('import "foo" d^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as', 'show', 'hide'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred6() {
+  test_import_deferred6() async {
     addTestSource('import "foo" d^ import');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as', 'show', 'hide'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred_as() {
+  test_import_deferred_as() async {
     addTestSource('import "foo" ^;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as', 'show', 'hide'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred_as2() {
+  test_import_deferred_as2() async {
     addTestSource('import "foo" d^;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as', 'show', 'hide'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred_as3() {
+  test_import_deferred_as3() async {
     addTestSource('import "foo" ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as', 'show', 'hide'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred_as4() {
+  test_import_deferred_as4() async {
     addTestSource('import "foo" d^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as', 'show', 'hide'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred_as5() {
+  test_import_deferred_as5() async {
     addTestSource('import "foo" sh^ import "bar"; import "baz";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.AS],
         pseudoKeywords: ['deferred as', 'show', 'hide'],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred_not() {
+  test_import_deferred_not() async {
     addTestSource('import "foo" as foo ^;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([],
         pseudoKeywords: ['show', 'hide'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_import_deferred_partial() {
+  test_import_deferred_partial() async {
     addTestSource('import "package:foo/foo.dart" def^ as foo;');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.DEFERRED], relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 30);
-    expect(request.replacementLength, 3);
+    expect(suggestions[0].selectionOffset, 8);
+    expect(suggestions[0].selectionLength, 0);
   }
 
-  test_import_incomplete() {
+  test_import_incomplete() async {
     addTestSource('import "^"');
-    expect(computeFast(), isTrue);
-    assertNoSuggestions();
+    await computeSuggestions();
+    expect(suggestions, isEmpty);
   }
 
-  test_import_partial() {
+  test_import_partial() async {
     addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 0);
-    expect(request.replacementLength, 3);
   }
 
-  test_import_partial2() {
+  test_import_partial2() async {
     addTestSource('^imp import "package:foo/foo.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 0);
-    expect(request.replacementLength, 3);
   }
 
-  test_import_partial3() {
+  test_import_partial3() async {
     addTestSource(' ^imp import "package:foo/foo.dart"; import "bar.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 1);
-    expect(request.replacementLength, 3);
   }
 
-  test_import_partial4() {
+  test_import_partial4() async {
     addTestSource('^ imp import "package:foo/foo.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 0);
-    expect(request.replacementLength, 0);
   }
 
-  test_import_partial5() {
+  test_import_partial5() async {
     addTestSource('library libA; imp^ import "package:foo/foo.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 14);
-    expect(request.replacementLength, 3);
   }
 
-  test_import_partial6() {
+  test_import_partial6() async {
     addTestSource(
         'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 32);
-    expect(request.replacementLength, 3);
   }
 
-  test_inComment_block() {
+  test_inComment_block() async {
     addTestSource('''
 main() {
   /* text ^ */
   print(42);
 }
 ''');
-    expect(computeFast(), isTrue);
-    assertNoSuggestions();
+    await computeSuggestions();
+    expect(suggestions, isEmpty);
   }
 
-  test_inComment_endOfLine() {
+  test_inComment_endOfLine() async {
     addTestSource('''
 main() {
   // text ^
 }
 ''');
-    expect(computeFast(), isTrue);
-    assertNoSuggestions();
+    await computeSuggestions();
+    expect(suggestions, isEmpty);
   }
 
-  test_is_expression() {
+  test_is_expression() async {
     addTestSource('main() {if (x is^)}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.IS], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_library() {
+  test_library() async {
     addTestSource('library foo;^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_library_declaration() {
+  test_library_declaration() async {
     addTestSource('library ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_library_declaration2() {
+  test_library_declaration2() async {
     addTestSource('library a^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_library_declaration3() {
+  test_library_declaration3() async {
     addTestSource('library a.^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_library_name() {
+  test_library_name() async {
     addTestSource('library ^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_method_async() {
+  test_method_async() async {
     addTestSource('class A { foo() ^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
   }
 
-  test_method_async2() {
+  test_method_async2() async {
     addTestSource('class A { foo() ^{}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([],
         pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_method_async3() {
+  test_method_async3() async {
     addTestSource('class A { foo() a^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
   }
 
-  test_method_async4() {
+  test_method_async4() async {
     addTestSource('class A { foo() a^{}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
   }
 
-  test_method_async5() {
+  test_method_async5() async {
     addTestSource('class A { foo() ^ Foo foo;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
   }
 
-  test_method_async6() {
+  test_method_async6() async {
     addTestSource('class A { foo() a^ Foo foo;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
   }
 
-  test_method_async7() {
+  test_method_async7() async {
     addTestSource('class A { foo() ^ => Foo foo;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([],
         pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_method_async8() {
+  test_method_async8() async {
     addTestSource('class A { foo() a^ Foo foo;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
   }
 
-  test_method_body() {
+  test_method_body() async {
     addTestSource('class A { foo() {^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS);
   }
 
-  test_method_body2() {
+  test_method_body2() async {
     addTestSource('class A { foo() => ^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
-  test_method_body3() {
+  test_method_body3() async {
     addTestSource('class A { foo() => ^ Foo foo;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
-  test_method_body4() {
+  test_method_body4() async {
     addTestSource('class A { foo() => ^;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
-  test_method_body_async() {
+  test_method_body_async() async {
     addTestSource('class A { foo() async {^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
   }
 
-  test_method_body_async2() {
+  test_method_body_async2() async {
     addTestSource('class A { foo() async => ^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
   }
 
-  test_method_body_async3() {
+  test_method_body_async3() async {
     addTestSource('class A { foo() async => ^ Foo foo;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
   }
 
-  test_method_body_async4() {
+  test_method_body_async4() async {
     addTestSource('class A { foo() async => ^;}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
   }
 
-  test_method_body_expression1() {
+  test_method_body_expression1() async {
     addTestSource('class A { foo() {return b == true ? ^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
-  test_method_body_expression2() {
+  test_method_body_expression2() async {
     addTestSource('class A { foo() {return b == true ? 1 : ^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
-  test_method_body_return() {
+  test_method_body_return() async {
     addTestSource('class A { foo() {return ^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE);
   }
 
-  test_method_param() {
+  test_method_param() async {
     addTestSource('class A { foo(^) {});}');
-    expect(computeFast(), isTrue);
-    assertNoSuggestions();
+    await computeSuggestions();
+    expect(suggestions, isEmpty);
   }
 
-  test_method_param2() {
+  test_method_param2() async {
     addTestSource('class A { foo(t^) {});}');
-    expect(computeFast(), isTrue);
-    assertNoSuggestions();
+    await computeSuggestions();
+    expect(suggestions, isEmpty);
   }
 
-  test_named_constructor_invocation() {
+  test_named_constructor_invocation() async {
     addTestSource('void main() {new Future.^}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_newInstance() {
+  test_newInstance() async {
     addTestSource('class A { foo() {new ^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_newInstance2() {
+  test_newInstance2() async {
     addTestSource('class A { foo() {new ^ print("foo");}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_newInstance_prefixed() {
+  test_newInstance_prefixed() async {
     addTestSource('class A { foo() {new A.^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_newInstance_prefixed2() {
+  test_newInstance_prefixed2() async {
     addTestSource('class A { foo() {new A.^ print("foo");}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_part_of() {
+  test_part_of() async {
     addTestSource('part of foo;^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_partial_class() {
+  test_partial_class() async {
     addTestSource('cl^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_partial_class2() {
+  test_partial_class2() async {
     addTestSource('library a; cl^');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_prefixed_field() {
+  test_prefixed_field() async {
     addTestSource('class A { int x; foo() {x.^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_prefixed_field2() {
+  test_prefixed_field2() async {
     addTestSource('class A { int x; foo() {x.^ print("foo");}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_prefixed_library() {
+  test_prefixed_library() async {
     addTestSource('import "b" as b; class A { foo() {b.^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_prefixed_local() {
+  test_prefixed_local() async {
     addTestSource('class A { foo() {int x; x.^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_prefixed_local2() {
+  test_prefixed_local2() async {
     addTestSource('class A { foo() {int x; x.^ print("foo");}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_property_access() {
+  test_property_access() async {
     addTestSource('class A { get x => 7; foo() {new A().^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([]);
   }
 
-  test_switch_expression() {
+  test_switch_expression() async {
     addTestSource('main() {switch(^) {}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_switch_expression2() {
+  test_switch_expression2() async {
     addTestSource('main() {switch(n^) {}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_switch_expression3() {
+  test_switch_expression3() async {
     addTestSource('main() {switch(n^)}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
   }
 
-  test_switch_start() {
+  test_switch_start() async {
     addTestSource('main() {switch(1) {^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_switch_start2() {
+  test_switch_start2() async {
     addTestSource('main() {switch(1) {^ case 1:}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_switch_start3() {
+  test_switch_start3() async {
     addTestSource('main() {switch(1) {^default:}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_switch_start4() {
+  test_switch_start4() async {
     addTestSource('main() {switch(1) {^ default:}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_switch_start5() {
+  test_switch_start5() async {
     addTestSource('main() {switch(1) {c^ default:}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 19);
-    expect(request.replacementLength, 1);
   }
 
-  test_switch_start6() {
+  test_switch_start6() async {
     addTestSource('main() {switch(1) {c^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 19);
-    expect(request.replacementLength, 1);
   }
 
-  test_switch_start7() {
+  test_switch_start7() async {
     addTestSource('main() {switch(1) { c^ }}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
-    expect(request.replacementOffset, 20);
-    expect(request.replacementLength, 1);
   }
 
-  test_switch_statement() {
+  test_switch_statement() async {
     addTestSource('main() {switch(1) {case 1:^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_SWITCH_OUTSIDE_CLASS);
   }
 
-  test_switch_statement2() {
+  test_switch_statement2() async {
     addTestSource('class A{foo() {switch(1) {case 1:^}}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_SWITCH_IN_CLASS);
   }
 
-  test_while_break_continue() {
+  test_while_break_continue() async {
     addTestSource('main() {while (true) {^}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_LOOP_OUTSIDE_CLASS,
         relevance: DART_RELEVANCE_KEYWORD);
   }
 
-  test_while_break_continue2() {
+  test_while_break_continue2() async {
     addTestSource('class A {foo() {while (true) {^}}}');
-    expect(computeFast(), isTrue);
+    await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_LOOP_IN_CLASS,
         relevance: DART_RELEVANCE_KEYWORD);
   }

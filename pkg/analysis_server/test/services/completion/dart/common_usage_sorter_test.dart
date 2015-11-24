@@ -107,6 +107,7 @@ class CommonUsageSorterTest extends AbstractAnalysisTest {
         source,
         new DartCompletionCache(context, source),
         null,
+        null,
         new CommonUsageSorter(selectorRelevance));
 
     Response response =

@@ -441,7 +441,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   bool computeFast() {
     expect(computeFastResult, isNull);
     _completionManager = new DartCompletionManager(context, searchEngine,
-        testSource, cache, [contributor], new CommonUsageSorter({}));
+        testSource, cache, [contributor], [], new CommonUsageSorter({}));
     var result =
         _completionManager.computeFast(request, new CompletionPerformance());
     expect(request.replacementOffset, isNotNull);
