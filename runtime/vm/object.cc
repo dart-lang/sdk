@@ -2218,29 +2218,6 @@ void Class::RemoveFunction(const Function& function) const {
 }
 
 
-intptr_t Class::FindFunctionIndex(const Function& needle) const {
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return -1;
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  Array& funcs = thread->ArrayHandle();
-  Function& function = thread->FunctionHandle();
-  funcs ^= functions();
-  ASSERT(!funcs.IsNull());
-  const intptr_t len = funcs.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    function ^= funcs.At(i);
-    if (function.raw() == needle.raw()) {
-      return i;
-    }
-  }
-  // No function found.
-  return -1;
-}
-
-
 RawFunction* Class::FunctionFromIndex(intptr_t idx) const {
   const Array& funcs = Array::Handle(functions());
   if ((idx < 0) || (idx >= funcs.Length())) {

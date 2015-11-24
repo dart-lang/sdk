@@ -1163,7 +1163,6 @@ class Class : public Object {
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
   void RemoveFunction(const Function& function) const;
-  intptr_t FindFunctionIndex(const Function& function) const;
   RawFunction* FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   RawFunction* ImplicitClosureFunctionFromIndex(intptr_t idx) const;

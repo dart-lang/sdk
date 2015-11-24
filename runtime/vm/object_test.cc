@@ -3817,66 +3817,6 @@ TEST_CASE(FindFieldIndex) {
 }
 
 
-TEST_CASE(FindFunctionIndex) {
-  // Tests both FindFunctionIndex and FindImplicitClosureFunctionIndex.
-  const char* kScriptChars =
-      "class A {\n"
-      "  void a() {}\n"
-      "  Function b() { return a; }\n"
-      "}\n"
-      "class B {\n"
-      "  dynamic d() {}\n"
-      "}\n"
-      "var x;\n"
-      "test() {\n"
-      "  x = new A().b();\n"
-      "  x();\n"
-      "  new B();\n"
-      "  return x;\n"
-      "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("test"), 0, NULL);
-  EXPECT_VALID(result);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  const Class& class_a = Class::Handle(GetClass(lib, "A"));
-  const Class& class_b = Class::Handle(GetClass(lib, "B"));
-  const Function& func_a = Function::Handle(GetFunction(class_a, "a"));
-  const Function& func_b = Function::Handle(GetFunction(class_a, "b"));
-  const Function& func_d = Function::Handle(GetFunction(class_b, "d"));
-  EXPECT(func_a.HasImplicitClosureFunction());
-  const Function& func_x = Function::Handle(func_a.ImplicitClosureFunction());
-  intptr_t func_a_index = class_a.FindFunctionIndex(func_a);
-  intptr_t func_b_index = class_a.FindFunctionIndex(func_b);
-  intptr_t func_d_index = class_a.FindFunctionIndex(func_d);
-  intptr_t func_x_index = class_a.FindImplicitClosureFunctionIndex(func_x);
-  // Valid index.
-  EXPECT_GE(func_a_index, 0);
-  // Valid index.
-  EXPECT_GE(func_b_index, 0);
-  // Invalid index.
-  EXPECT_EQ(func_d_index, -1);
-  // Valid index.
-  EXPECT_GE(func_x_index, 0);
-  Function& func_a_from_index = Function::Handle();
-  func_a_from_index ^= class_a.FunctionFromIndex(func_a_index);
-  EXPECT(!func_a_from_index.IsNull());
-  // Same function.
-  EXPECT_EQ(func_a.raw(), func_a_from_index.raw());
-  Function& func_b_from_index = Function::Handle();
-  func_b_from_index ^= class_a.FunctionFromIndex(func_b_index);
-  EXPECT(!func_b_from_index.IsNull());
-  // Same function.
-  EXPECT_EQ(func_b.raw(), func_b_from_index.raw());
-  // Retrieve implicit closure function.
-  Function& func_x_from_index = Function::Handle();
-  func_x_from_index ^= class_a.ImplicitClosureFunctionFromIndex(func_x_index);
-  EXPECT_EQ(func_x.raw(), func_x_from_index.raw());
-}
-
-
 TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New("MyClass"));
