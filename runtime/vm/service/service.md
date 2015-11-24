@@ -1134,6 +1134,11 @@ class Event extends Response {
   //
   // This is provided for the WriteEvent event.
   string bytes [optional];
+
+  // The argument passed to dart:developer.inspect.
+  //
+  // This is provided for the Inspect event.
+  @Instance inspectee [optional];
 }
 ```
 
@@ -1196,7 +1201,10 @@ enum EventKind {
   GC,
 
   // Notification of bytes written, for example, to stdout/stderr.
-  WriteEvent
+  WriteEvent,
+
+  // Notification from dart:developer.inspect.
+  Inspect
 }
 ```
 
