@@ -4215,6 +4215,50 @@ class A {
     _assertLinkedGroup(change.linkedEditGroups[index++], ['s)']);
   }
 
+  test_undefinedMethod_createUnqualified_parameters_named() async {
+    resolveTestUnit('''
+class A {
+  main() {
+    myUndefinedMethod(0, bbb: 1.0, ccc: '2');
+  }
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_METHOD,
+        '''
+class A {
+  main() {
+    myUndefinedMethod(0, bbb: 1.0, ccc: '2');
+  }
+
+  void myUndefinedMethod(int i, {double bbb, String ccc}) {
+  }
+}
+''');
+    // linked positions
+    int index = 0;
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++], ['void myUndefinedMethod(']);
+    _assertLinkedGroup(change.linkedEditGroups[index++],
+        ['myUndefinedMethod(0', 'myUndefinedMethod(int']);
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++],
+        ['int i'],
+        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
+            ['int', 'num', 'Object', 'Comparable']));
+    _assertLinkedGroup(change.linkedEditGroups[index++], ['i,']);
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++],
+        ['double bbb'],
+        expectedSuggestions(LinkedEditSuggestionKind.TYPE,
+            ['double', 'num', 'Object', 'Comparable']));
+    _assertLinkedGroup(
+        change.linkedEditGroups[index++],
+        ['String ccc'],
+        expectedSuggestions(
+            LinkedEditSuggestionKind.TYPE, ['String', 'Object', 'Comparable']));
+  }
+
   test_undefinedMethod_createUnqualified_returnType() async {
     resolveTestUnit('''
 class A {

@@ -1979,6 +1979,7 @@ class FixProcessor {
     // append parameters
     sb.append('(');
     List<Expression> arguments = argumentList.arguments;
+    bool hasNamedParameters = false;
     for (int i = 0; i < arguments.length; i++) {
       Expression argument = arguments[i];
       // append separator
@@ -1986,7 +1987,14 @@ class FixProcessor {
         sb.append(', ');
       }
       // append parameter
+      if (argument is NamedExpression && !hasNamedParameters) {
+        hasNamedParameters = true;
+        sb.append('{');
+      }
       _appendParameterForArgument(sb, i, argument);
+    }
+    if (hasNamedParameters) {
+      sb.append('}');
     }
   }
 
@@ -2281,7 +2289,9 @@ class FixProcessor {
       sb.append(' ');
     }
     // append parameter name
-    {
+    if (argument is NamedExpression) {
+      sb.append(argument.name.label.name);
+    } else {
       Set<String> excluded = new Set<String>();
       List<String> suggestions =
           _getArgumentNameSuggestions(excluded, type, argument, index);
