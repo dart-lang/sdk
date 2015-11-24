@@ -256,9 +256,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisOptions get analysisOptions => _options;
 
   @override
-  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
-
-  @override
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute = this._options.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
@@ -327,6 +324,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
+
+  @override
+  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 
   @override
   List<AnalysisTarget> get explicitTargets {

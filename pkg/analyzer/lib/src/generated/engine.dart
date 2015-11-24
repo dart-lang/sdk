@@ -1160,9 +1160,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisOptions get analysisOptions => _options;
 
   @override
-  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
-
-  @override
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute = this._options.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
@@ -1256,6 +1253,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
+
+  @override
+  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 
   @override
   List<AnalysisTarget> get explicitTargets {
@@ -9420,6 +9420,9 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   set contentCache(ContentCache value);
 
+  /// Get the [EmbedderYamlLocator] for this context.
+  EmbedderYamlLocator get embedderYamlLocator;
+
   /**
    * Return a list of the explicit targets being analyzed by this context.
    */
@@ -9449,9 +9452,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   dynamic get privateAnalysisCachePartition;
 
-  /// Get the [EmbedderYamlLocator] for this context.
-  EmbedderYamlLocator get embedderYamlLocator;
-  
   /**
    * A factory to override how [ResolverVisitor] is created.
    */
