@@ -30,17 +30,15 @@ class GetErrorsTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_afterAnalysisComplete() {
+  test_afterAnalysisComplete() async {
     addTestFile('''
 main() {
   print(42)
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      return _getErrors(testFile).then((List<AnalysisError> errors) {
-        expect(errors, hasLength(1));
-      });
-    });
+    await waitForTasksFinished();
+    List<AnalysisError> errors = await _getErrors(testFile);
+    expect(errors, hasLength(1));
   }
 
   test_errorInPart() async {
@@ -87,36 +85,34 @@ main() {
     return _checkInvalid(file);
   }
 
-  test_hasErrors() {
+  test_hasErrors() async {
     addTestFile('''
 main() {
   print(42)
 }
 ''');
-    return _getErrors(testFile).then((List<AnalysisError> errors) {
-      expect(errors, hasLength(1));
-      {
-        AnalysisError error = errors[0];
-        expect(error.severity, AnalysisErrorSeverity.ERROR);
-        expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
-        expect(error.location.file, testFile);
-        expect(error.location.startLine, 2);
-      }
-    });
+    List<AnalysisError> errors = await _getErrors(testFile);
+    expect(errors, hasLength(1));
+    {
+      AnalysisError error = errors[0];
+      expect(error.severity, AnalysisErrorSeverity.ERROR);
+      expect(error.type, AnalysisErrorType.SYNTACTIC_ERROR);
+      expect(error.location.file, testFile);
+      expect(error.location.startLine, 2);
+    }
   }
 
-  test_noErrors() {
+  test_noErrors() async {
     addTestFile('''
 main() {
   print(42);
 }
 ''');
-    return _getErrors(testFile).then((List<AnalysisError> errors) {
-      expect(errors, isEmpty);
-    });
+    List<AnalysisError> errors = await _getErrors(testFile);
+    expect(errors, isEmpty);
   }
 
-  test_removeContextAfterRequest() {
+  test_removeContextAfterRequest() async {
     addTestFile('''
 main() {
   print(42)
@@ -128,28 +124,25 @@ main() {
     // remove context, causes sending an "invalid file" error
     resourceProvider.deleteFolder(projectPath);
     // wait for an error response
-    return serverChannel.waitForResponse(request).then((Response response) {
-      expect(response.error, isNotNull);
-      expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
-    });
+    Response response = await serverChannel.waitForResponse(request);
+    expect(response.error, isNotNull);
+    expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
   }
 
-  Future _checkInvalid(String file) {
+  Future _checkInvalid(String file) async {
     Request request = _createGetErrorsRequest(file);
-    return serverChannel.sendRequest(request).then((Response response) {
-      expect(response.error, isNotNull);
-      expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
-    });
+    Response response = await serverChannel.sendRequest(request);
+    expect(response.error, isNotNull);
+    expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
   }
 
   Request _createGetErrorsRequest(String file) {
     return new AnalysisGetErrorsParams(file).toRequest(requestId);
   }
 
-  Future<List<AnalysisError>> _getErrors(String file) {
+  Future<List<AnalysisError>> _getErrors(String file) async {
     Request request = _createGetErrorsRequest(file);
-    return serverChannel.sendRequest(request).then((Response response) {
-      return new AnalysisGetErrorsResult.fromResponse(response).errors;
-    });
+    Response response = await serverChannel.sendRequest(request);
+    return new AnalysisGetErrorsResult.fromResponse(response).errors;
   }
 }
