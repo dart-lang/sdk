@@ -12219,6 +12219,22 @@ main() {
     expect(ft.toString(), '(String) → List<int>');
   }
 
+  void fail_genericMethod_nested() {
+    // TODO(jmesserly): this test currently fails because we incorrectly capture
+    // S in FunctionTypeImpl.substitute. We should probably rename free
+    // variables during substitution to avoid it.
+    _resolveTestUnit(r'''
+class C<T> {
+  /*=T*/ f/*<S>*/(/*=S*/ x) {
+    new C<S>().f/*<int>*/(3);
+    return null;
+  }
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f/*<int>*/(3);');
+    expect(f.staticType.toString(), '(int) → S');
+  }
+
   void test_genericMethod_functionTypedParameter() {
     if (!AnalysisEngine.instance.useTaskModel) {
       return;
