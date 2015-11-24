@@ -13,9 +13,9 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
-import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
@@ -24,8 +24,6 @@ import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/context/context.dart'
-    show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/scanner.dart';
@@ -79,13 +77,13 @@ class DartCompletionManager extends CompletionManager {
    * The [defaultContributionSorter] is a long-lived object that isn't allowed
    * to maintain state between calls to [ContributionSorter#sort(...)].
    */
-  static ContributionSorter defaultContributionSorter =
-      new CommonUsageComputer();
+  static DartContributionSorter defaultContributionSorter =
+      new CommonUsageSorter();
 
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
   List<DartCompletionContributor> contributors;
-  ContributionSorter contributionSorter;
+  DartContributionSorter contributionSorter;
 
   DartCompletionManager(
       AnalysisContext context, this.searchEngine, Source source, this.cache,
@@ -180,8 +178,11 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
-      _processAnalysisRequest(request,
-          contributionSorter.sort(request, request.suggestions));
+      // TODO(danrubel) current sorter requires no additional analysis,
+      // but need to handle the returned future the same way that futures
+      // returned from contributors are handled once this method is refactored
+      // to be async.
+      /* await */ contributionSorter.sort(request, request.suggestions);
       // TODO (danrubel) if request is obsolete
       // (processAnalysisRequest returns false)
       // then send empty results
@@ -224,8 +225,11 @@ class DartCompletionManager extends CompletionManager {
               performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
-                _processAnalysisRequest(request,
-                    contributionSorter.sort(request, request.suggestions));
+                // TODO(danrubel) current sorter requires no additional analysis,
+                // but need to handle the returned future the same way that futures
+                // returned from contributors are handled once this method is refactored
+                // to be async.
+                /* await */ contributionSorter.sort(request, request.suggestions);
                 // TODO (danrubel) if request is obsolete
                 // (processAnalysisRequest returns false)
                 // then send empty results
@@ -285,38 +289,6 @@ class DartCompletionManager extends CompletionManager {
       // compilation unit is never going to get computed.
       return null;
     }, test: (e) => e is AnalysisNotScheduledError);
-  }
-
-  /**
-   * Process the analysis [analysis] and any subsequent requests.
-   * Return a [Future] that returns `true`
-   * once all analysis requests have been processed
-   * or `false` if the original completion request is obsolete
-   * and processing requests was terminated before finished.
-   */
-  Future<bool> _processAnalysisRequest(
-      CompletionRequest request, AnalysisRequest analysis) {
-    // Return if no additional analysis is necessary
-    if (analysis == null) {
-      return new Future.value(true);
-    }
-
-    // Check to see if the result is already cached
-    var cachedValue = context.getResult(analysis.target, analysis.descriptor);
-    if (cachedValue != null) {
-      return _processAnalysisRequest(
-          request, analysis.callback(request, cachedValue));
-    }
-
-    // TODO (danrubel) determine when completion request is obsolete
-    // and analysis should be terminated before requesting additional analysis
-
-    // Request additional analysis
-    return new AnalysisFutureHelper((context as AnalysisContextImpl),
-        analysis.target, analysis.descriptor).computeAsync().then((value) {
-      return _processAnalysisRequest(
-          request, analysis.callback(request, cachedValue));
-    });
   }
 }
 

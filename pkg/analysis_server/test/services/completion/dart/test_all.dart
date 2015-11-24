@@ -6,6 +6,7 @@ library test.services.completion.dart;
 
 import 'package:unittest/unittest.dart';
 import 'inherited_contributor_test.dart' as inherited_contributor_test;
+import 'common_usage_sorter_test.dart' as common_usage_test;
 
 import '../../../utils.dart';
 
@@ -13,6 +14,7 @@ import '../../../utils.dart';
 main() {
   initializeTestEnvironment();
   group('dart/completion', () {
+    common_usage_test.main();
     inherited_contributor_test.main();
   });
 }

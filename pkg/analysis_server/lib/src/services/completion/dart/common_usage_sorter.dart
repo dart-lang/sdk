@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completion.computer.dart.relevance;
+library services.completion.dart.sorter.common;
+
+import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     show DART_RELEVANCE_COMMON_USAGE;
 import 'package:analyzer/src/generated/ast.dart';
@@ -17,14 +19,14 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 
-part 'common_usage_generated.dart';
+part 'common_usage_sorter.g.dart';
 
 /**
  * A computer for adjusting the relevance of completions computed by others
  * based upon common Dart usage patterns. This is a long-lived object
  * that should not maintain state between calls to it's [sort] method.
  */
-class CommonUsageComputer implements ContributionSorter {
+class CommonUsageSorter implements DartContributionSorter {
   /**
    * A map of <library>.<classname> to an ordered list of method names,
    * field names, getter names, and named constructors.
@@ -33,13 +35,13 @@ class CommonUsageComputer implements ContributionSorter {
    */
   Map<String, List<String>> selectorRelevance;
 
-  CommonUsageComputer([this.selectorRelevance = defaultSelectorRelevance]);
+  CommonUsageSorter([this.selectorRelevance = defaultSelectorRelevance]);
 
   @override
-  AnalysisRequest sort(CompletionRequest request,
+  Future sort(CompletionRequest request,
       Iterable<CompletionSuggestion> suggestions) {
     _update(request, suggestions);
-    return null;
+    return new Future.value();
   }
 
   CompletionTarget _getCompletionTarget(CompletionRequest request) {

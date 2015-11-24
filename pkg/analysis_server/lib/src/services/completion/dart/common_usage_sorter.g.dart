@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of services.completion.computer.dart.relevance;
+part of services.completion.dart.sorter.common;
 
 // Auto-generated, please do not edit.
 

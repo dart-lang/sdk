@@ -10,41 +10,12 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/model.dart';
 
 /**
  * An empty list returned by [CompletionContributor]s
  * when they have no suggestions to contribute.
  */
 const EMPTY_LIST = const <CompletionSuggestion>[];
-
-/**
- * A method or function called when the requested analysis has been performed.
- */
-typedef AnalysisRequest AnalysisCallback<V>(
-    CompletionRequest request, V computedValue);
-
-/**
- * A request from a contributor for additional analysis.
- */
-class AnalysisRequest<V> {
-  /**
-   * An object with which an analysis result can be associated.
-   */
-  AnalysisTarget target;
-
-  /**
-   * A description of an analysis result that can be computed by an [AnalysisTask].
-   */
-  ResultDescriptor<V> descriptor;
-
-  /**
-   * A method or function called when the requested analysis has been performed.
-   */
-  AnalysisCallback<V> callback;
-
-  AnalysisRequest(this.target, this.descriptor, this.callback);
-}
 
 /**
  * An object used to produce completions at a specific location within a file.

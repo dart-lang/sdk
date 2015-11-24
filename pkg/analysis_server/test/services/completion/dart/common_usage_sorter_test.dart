@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.computer.dart.relevance;
+library test.services.completion.dart.sorter.common;
 
 import 'dart:async';
 
@@ -11,7 +11,7 @@ import 'package:analysis_server/src/analysis_server.dart'
     show ContextSourcePair;
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
+import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -21,17 +21,17 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../analysis_abstract.dart';
-import '../../mocks.dart';
-import '../../utils.dart';
+import '../../../analysis_abstract.dart';
+import '../../../mocks.dart';
+import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(CommonUsageComputerTest);
+  defineReflectiveTests(CommonUsageSorterTest);
 }
 
 @reflectiveTest
-class CommonUsageComputerTest extends AbstractAnalysisTest {
+class CommonUsageSorterTest extends AbstractAnalysisTest {
   String completionId;
   int completionOffset;
   int replacementOffset;
@@ -107,7 +107,7 @@ class CommonUsageComputerTest extends AbstractAnalysisTest {
         source,
         new DartCompletionCache(context, source),
         null,
-        new CommonUsageComputer(selectorRelevance));
+        new CommonUsageSorter(selectorRelevance));
 
     Response response =
         domainHandler.processRequest(request, completionManager);

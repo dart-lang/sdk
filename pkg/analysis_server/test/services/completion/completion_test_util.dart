@@ -12,8 +12,8 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -441,7 +441,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   bool computeFast() {
     expect(computeFastResult, isNull);
     _completionManager = new DartCompletionManager(context, searchEngine,
-        testSource, cache, [contributor], new CommonUsageComputer({}));
+        testSource, cache, [contributor], new CommonUsageSorter({}));
     var result =
         _completionManager.computeFast(request, new CompletionPerformance());
     expect(request.replacementOffset, isNotNull);
