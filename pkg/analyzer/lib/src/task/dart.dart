@@ -677,10 +677,20 @@ final ListResultDescriptor<AnalysisError> VERIFY_ERRORS =
         'VERIFY_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * Return a list of unique errors for the [Source] of the given [target].
+ */
+List<AnalysisError> getTargetSourceErrors(
+    RecordingErrorListener listener, AnalysisTarget target) {
+  Source source = target.source;
+  List<AnalysisError> errors = listener.getErrorsForSource(source);
+  return getUniqueErrors(errors);
+}
+
+/**
  * Return a list of errors containing the errors from the given [errors] list
  * but with duplications removed.
  */
-List<AnalysisError> removeDuplicateErrors(List<AnalysisError> errors) {
+List<AnalysisError> getUniqueErrors(List<AnalysisError> errors) {
   if (errors.isEmpty) {
     return errors;
   }
@@ -3476,8 +3486,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     List<Source> exportedSources = exportedSourceSet.toList();
     List<Source> importedSources = importedSourceSet.toList();
     List<Source> includedSources = includedSourceSet.toList();
-    List<AnalysisError> parseErrors =
-        removeDuplicateErrors(errorListener.errors);
+    List<AnalysisError> parseErrors = getUniqueErrors(errorListener.errors);
     List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
     List<LibrarySpecificUnit> librarySpecificUnits =
         unitSources.map((s) => new LibrarySpecificUnit(source, s)).toList();
@@ -4650,7 +4659,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     // AST's for constructor initializers into it) but does not produce an
     // updated version of the element model.
     //
-    outputs[RESOLVE_UNIT_ERRORS] = errorListener.errors;
+    outputs[RESOLVE_UNIT_ERRORS] = getTargetSourceErrors(errorListener, target);
     outputs[RESOLVED_UNIT10] = unit;
   }
 
@@ -4741,7 +4750,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[RESOLVE_TYPE_NAMES_ERRORS] =
-        removeDuplicateErrors(errorListener.errors);
+        getTargetSourceErrors(errorListener, target);
     outputs[RESOLVED_UNIT3] = unit;
   }
 
@@ -4832,7 +4841,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     //
     outputs[RESOLVED_UNIT4] = unit;
     outputs[VARIABLE_REFERENCE_ERRORS] =
-        removeDuplicateErrors(errorListener.errors);
+        getTargetSourceErrors(errorListener, target);
   }
 
   /**
@@ -4929,7 +4938,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
       outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
-      outputs[SCAN_ERRORS] = removeDuplicateErrors(errorListener.errors);
+      outputs[SCAN_ERRORS] = getUniqueErrors(errorListener.errors);
     } else if (target is Source) {
       String content = getRequiredInput(CONTENT_INPUT_NAME);
 
@@ -4940,7 +4949,7 @@ class ScanDartTask extends SourceBasedAnalysisTask {
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
       outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
-      outputs[SCAN_ERRORS] = removeDuplicateErrors(errorListener.errors);
+      outputs[SCAN_ERRORS] = getUniqueErrors(errorListener.errors);
     } else {
       throw new AnalysisException(
           'Cannot scan Dart code from a ${target.runtimeType}');
@@ -5020,7 +5029,7 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[STRONG_MODE_ERRORS] = removeDuplicateErrors(errorListener.errors);
+    outputs[STRONG_MODE_ERRORS] = getUniqueErrors(errorListener.errors);
     outputs[RESOLVED_UNIT] = unit;
   }
 
@@ -5115,7 +5124,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[VERIFY_ERRORS] = removeDuplicateErrors(errorListener.errors);
+    outputs[VERIFY_ERRORS] = getUniqueErrors(errorListener.errors);
   }
 
   /**

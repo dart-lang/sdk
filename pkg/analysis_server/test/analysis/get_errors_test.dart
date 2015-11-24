@@ -43,6 +43,33 @@ main() {
     });
   }
 
+  test_errorInPart() async {
+    String libPath = '$testFolder/main.dart';
+    String partPath = '$testFolder/main_part.dart';
+    addFile(
+        libPath,
+        r'''
+library main;
+part 'main_part.dart';
+class A {}
+''');
+    addFile(
+        partPath,
+        r'''
+part of main;
+class A {}
+''');
+    await waitForTasksFinished();
+    {
+      List<AnalysisError> libErrors = await _getErrors(libPath);
+      expect(libErrors, isEmpty);
+    }
+    {
+      List<AnalysisError> partErrors = await _getErrors(partPath);
+      expect(partErrors, hasLength(1));
+    }
+  }
+
   test_fileDoesNotExist() {
     String file = '$projectPath/doesNotExist.dart';
     return _checkInvalid(file);
@@ -96,7 +123,7 @@ main() {
 }
 ''');
     // handle the request synchronously
-    Request request = _createGetErrorsRequest();
+    Request request = _createGetErrorsRequest(testFile);
     server.handleRequest(request);
     // remove context, causes sending an "invalid file" error
     resourceProvider.deleteFolder(projectPath);
@@ -108,19 +135,19 @@ main() {
   }
 
   Future _checkInvalid(String file) {
-    Request request = _createGetErrorsRequest();
+    Request request = _createGetErrorsRequest(file);
     return serverChannel.sendRequest(request).then((Response response) {
       expect(response.error, isNotNull);
       expect(response.error.code, RequestErrorCode.GET_ERRORS_INVALID_FILE);
     });
   }
 
-  Request _createGetErrorsRequest() {
-    return new AnalysisGetErrorsParams(testFile).toRequest(requestId);
+  Request _createGetErrorsRequest(String file) {
+    return new AnalysisGetErrorsParams(file).toRequest(requestId);
   }
 
   Future<List<AnalysisError>> _getErrors(String file) {
-    Request request = _createGetErrorsRequest();
+    Request request = _createGetErrorsRequest(file);
     return serverChannel.sendRequest(request).then((Response response) {
       return new AnalysisGetErrorsResult.fromResponse(response).errors;
     });
