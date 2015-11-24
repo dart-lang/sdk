@@ -15,9 +15,10 @@ export 'shrinking_reductions.dart' show ShrinkingReducer;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
 export 'insert_refinements.dart' show InsertRefinements;
 export 'remove_refinements.dart' show RemoveRefinements;
-export 'share_final_fields.dart' show ShareFinalFields;
-export 'share_interceptors.dart' show ShareInterceptors;
+export 'redundant_refinement.dart' show RedundantRefinementEliminator;
+export 'optimize_interceptors.dart' show OptimizeInterceptors;
 export 'bounds_checker.dart' show BoundsChecker;
+export 'gvn.dart' show GVN;
 export 'parent_visitor.dart' show ParentVisitor;
 
 /// An optimization pass over the CPS IR.

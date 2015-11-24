@@ -347,8 +347,12 @@ class TypeMaskSystem {
   }
 
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
-    TypeMask intersection = leftType.intersection(rightType, classWorld);
-    return intersection.isEmpty && !intersection.isNullable;
+    TypeMask intersected = intersection(leftType, rightType);
+    return intersected.isEmpty && !intersected.isNullable;
+  }
+
+  bool isMorePreciseOrEqual(TypeMask t1, TypeMask t2) {
+    return t2.containsMask(t1, classWorld);
   }
 
   AbstractBool isSubtypeOf(TypeMask value,

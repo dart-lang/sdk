@@ -2972,6 +2972,7 @@ class TypePropagationVisitor implements Visitor {
   @override
   void visitGetIndex(GetIndex node) {
     AbstractValue input = getValue(node.object.definition);
+    node.objectIsNotNull = input.isDefinitelyNotNull;
     setValue(node, nonConstant(typeSystem.elementTypeOfIndexable(input.type)));
   }
 
