@@ -5,21 +5,22 @@
 // Patch file for dart:core classes.
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
-import 'dart:_js_helper' show patch,
+import 'dart:_js_helper' show checkInt,
+                              Closure,
+                              ConstantMap,
+                              getRuntimeType,
+                              JsLinkedHashMap;
+                              jsonEncodeNative,
+                              JSSyntaxRegExp,
+                              NoInline,
+                              objectHashCode,
+                              patch,
                               patch_full,
                               patch_lazy,
                               patch_startup,
-                              checkInt,
-                              getRuntimeType,
-                              jsonEncodeNative,
-                              JSSyntaxRegExp,
                               Primitives,
-                              ConstantMap,
-                              stringJoinUnchecked,
-                              objectHashCode,
-                              Closure,
                               readHttp,
-                              JsLinkedHashMap;
+                              stringJoinUnchecked,
 
 import 'dart:_foreign_helper' show JS;
 
@@ -669,5 +670,26 @@ class _Resource implements Resource {
       throw new StateError(
           "Unable to read Resource, data could not be decoded");
     });
+  }
+}
+
+@patch
+class StackTrace {
+  @patch
+  @NoInline()
+  static StackTrace get current {
+    var error = JS('', 'new Error()');
+    var stack = JS('String|Null', '#.stack', error);
+    if (stack is String) return new StackTrace.fromString(stack);
+    if (JS('', 'Error.captureStackTrace') != null) {
+      JS('void', 'Error.captureStackTrace(#)', error);
+      var stack = JS('String|Null', '#.stack', error);
+      if (stack is String) return new StackTrace.fromString(stack);
+    }
+    try {
+      throw 0;
+    } catch (_, stackTrace) {
+      return stackTrace;
+    }
   }
 }

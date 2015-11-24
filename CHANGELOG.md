@@ -5,6 +5,7 @@
   * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
 
 * `dart:core`
+  * Added `current` getter to `StackTrace` class.
   * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
     return type.
   * Added `growable` parameter to `List.filled` constructor.
