@@ -1689,16 +1689,41 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
-   * Given a method invocation [node], attempt to infer a better
-   * type for the result using an ad-hoc list of psuedo-generic methods.
+   * Given a generic method invocation [node], attempt to infer the method's
+   * type variables, using the actual types of the arguments.
    */
   bool _inferMethodInvocationGeneric(MethodInvocation node) {
-    DartType inferredType = _matchGeneric(node);
-    // TODO(vsm): If the inferred type is not a subtype,
-    // should we use a GLB instead?
-    if (inferredType != null &&
-        _typeSystem.isSubtypeOf(inferredType, node.staticType)) {
-      _recordStaticType(node, inferredType);
+    Element element = node.methodName.staticElement;
+    DartType fnType = node.methodName.staticType;
+    TypeSystem ts = _typeSystem;
+    // TODO(jmesserly): once we allow explicitly passed typeArguments, we need
+    // to only do this if node.typeArguments == null.
+    if (element is ExecutableElement &&
+        fnType is FunctionTypeImpl &&
+        ts is StrongTypeSystemImpl) {
+      List<Expression> arguments = node.argumentList.arguments;
+      List<DartType> argTypes = arguments.map((e) => e.staticType).toList();
+      List<DartType> paramTypes =
+          arguments.map((e) => e.staticParameterElement.type).toList();
+
+      FunctionType inferred = ts.inferCallFromArguments(
+          _typeProvider, fnType, paramTypes, argTypes);
+      if (inferred != fnType) {
+        // TODO(jmesserly): inference should be happening earlier, which would
+        // allow these parameters to be correct from the get-go.
+
+        List<ParameterElement> inferredParameters = inferred.parameters;
+        List<ParameterElement> correspondingParams =
+            new List<ParameterElement>();
+        for (Expression arg in arguments) {
+          int i = element.parameters.indexOf(arg.staticParameterElement);
+          correspondingParams.add(inferredParameters[i]);
+        }
+        node.argumentList.correspondingStaticParameters = correspondingParams;
+
+        _recordStaticType(node.methodName, inferred);
+        _recordStaticType(node, inferred.returnType);
+      }
       return true;
     }
     return false;
@@ -1859,91 +1884,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         (parent is MethodInvocation &&
             identical(node, parent.target) &&
             parent.operator.type == TokenType.PERIOD);
-  }
-
-  /**
-   * Return a more specialized type for a method invocation based on
-   * an ad-hoc list of pseudo-generic methods.
-   */
-  DartType _matchGeneric(MethodInvocation node) {
-    Element e = node.methodName.staticElement;
-
-    if (e == null || e.name == null) {
-      return null;
-    }
-
-    List<DartType> arguments =
-        node.argumentList.arguments.map((arg) => arg.staticType).toList();
-
-    bool matchInvocation(DartType t, int c) {
-      return (node.realTarget != null) &&
-          node.realTarget.staticType.isSubtypeOf(t) &&
-          arguments.length == c;
-    }
-
-    switch (e.name) {
-      case 'max':
-      case 'min':
-        if (e.library.source.uri.toString() == 'dart:math' &&
-            arguments.length == 2) {
-          DartType tx = arguments[0];
-          DartType ty = arguments[1];
-          if (tx == ty &&
-              (tx == _typeProvider.intType || tx == _typeProvider.doubleType)) {
-            return tx;
-          }
-        }
-        return null;
-      case 'wait':
-        if (matchInvocation(_typeProvider.futureType, 1)) {
-          DartType tx = arguments[0];
-          // Iterable<Future<T>> -> Future<List<T>>
-          DartType futureType =
-              _findIteratedType(tx, _typeProvider.iterableType);
-          if (futureType.element != _typeProvider.futureType.element) {
-            return null;
-          }
-          List<DartType> typeArguments =
-              (futureType as InterfaceType).typeArguments;
-          if (typeArguments.length != 1) {
-            return null;
-          }
-          DartType baseType = typeArguments[0];
-          if (baseType.isDynamic) {
-            return null;
-          }
-          return _typeProvider.futureType.substitute4([
-            _typeProvider.listType.substitute4([baseType])
-          ]);
-        }
-        return null;
-      case 'map':
-        if (matchInvocation(_typeProvider.iterableDynamicType, 1)) {
-          DartType tx = arguments[0];
-          return (tx is FunctionType)
-              ? _typeProvider.iterableType.substitute4([tx.returnType])
-              : null;
-        }
-        return null;
-      case 'fold':
-        if (matchInvocation(_typeProvider.iterableDynamicType, 2)) {
-          DartType tx = arguments[0];
-          DartType ty = arguments[1];
-          // TODO(vsm): LUB?
-          return (ty is FunctionType && tx == ty.returnType) ? tx : null;
-        }
-        return null;
-      case 'then':
-        if (matchInvocation(_typeProvider.futureDynamicType, 1)) {
-          DartType tx = arguments[0];
-          return (tx is FunctionType)
-              ? _typeProvider.futureType.substitute4([tx.returnType])
-              : null;
-        }
-        return null;
-      default:
-        return null;
-    }
   }
 
   /**

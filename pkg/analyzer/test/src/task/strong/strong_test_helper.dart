@@ -370,6 +370,7 @@ class _MockSdkSource implements Source {
       throw new UnsupportedError('not expecting relative urls in dart: mocks');
 }
 
+// TODO(jmesserly): can we reuse the same mock SDK as Analyzer tests?
 /// Sample mock SDK sources.
 final Map<String, String> mockSdkSources = {
   // The list of types below is derived from:
@@ -419,8 +420,10 @@ final Map<String, String> mockSdkSources = {
         const Object proxy = const _Proxy();
 
         class Iterable<E> {
-          fold(initialValue, combine(previousValue, E element)) {}
-          Iterable map(f(E element)) {}
+          Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
+
+          /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+              /*=R*/ combine(/*=R*/ previousValue, E element));
         }
         class List<E> implements Iterable<E> {
           List([int length]);
@@ -434,8 +437,9 @@ final Map<String, String> mockSdkSources = {
         class Future<T> {
           Future(computation()) {}
           Future.value(T t) {}
-          Future then(onValue(T value)) {}
-          static Future<List> wait(Iterable<Future> futures) {}
+          static Future<List/*<T>*/> wait/*<T>*/(
+              Iterable<Future/*<T>*/> futures) => null;
+          Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
         }
         class Stream<T> {}
   ''',
@@ -448,8 +452,8 @@ final Map<String, String> mockSdkSources = {
         class Random {
           bool nextBool() {}
         }
-        num min(num x, num y) {}
-        num max(num x, num y) {}
+        num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
+        num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
         ''',
 };
 

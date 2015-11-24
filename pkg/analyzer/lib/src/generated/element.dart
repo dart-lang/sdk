@@ -9284,6 +9284,9 @@ class ParameterMember extends VariableMember
   Element get enclosingElement => baseElement.enclosingElement;
 
   @override
+  int get hashCode => baseElement.hashCode;
+
+  @override
   bool get isInitializingFormal => baseElement.isInitializingFormal;
 
   @override
@@ -9310,6 +9313,10 @@ class ParameterMember extends VariableMember
 
   @override
   SourceRange get visibleRange => baseElement.visibleRange;
+
+  @override
+  bool operator ==(Object object) =>
+      object is ParameterMember && baseElement == object.baseElement;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);

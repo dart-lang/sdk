@@ -203,23 +203,27 @@ class AnalysisContextFactory {
     futureConstructor.factory = true;
     futureElement.constructors = <ConstructorElement>[futureConstructor];
     //   Future then(onValue(T value), { Function onError });
-    List<ParameterElement> parameters = <ParameterElement>[
-      ElementFactory.requiredParameter2(
-          "value", futureElement.typeParameters[0].type)
-    ];
-    FunctionElementImpl onValueFunction = new FunctionElementImpl.forNode(null);
-    onValueFunction.synthetic = true;
-    onValueFunction.parameters = parameters;
-    onValueFunction.returnType = provider.dynamicType;
-    onValueFunction.enclosingElement = futureElement;
-    onValueFunction.type = new FunctionTypeImpl(onValueFunction);
-    DartType futureDynamicType =
-        futureElement.type.substitute4([provider.dynamicType]);
-    MethodElement thenMethod = ElementFactory.methodElementWithParameters(
-        futureElement, "then", futureDynamicType, [
-      ElementFactory.requiredParameter2("onValue", onValueFunction.type),
+    TypeDefiningElement futureThenR = DynamicElementImpl.instance;
+    if (context.analysisOptions.strongMode) {
+      futureThenR = ElementFactory.typeParameterWithType('R');
+    }
+    FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
+        'onValue', futureThenR, [futureElement.typeParameters[0]], null);
+
+    DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
+    MethodElementImpl thenMethod = ElementFactory.methodElementWithParameters(
+        futureElement, "then", futureRType, [
+      ElementFactory.requiredParameter2("onValue", thenOnValue.type),
       ElementFactory.namedParameter2("onError", provider.functionType)
     ]);
+    if (!futureThenR.type.isDynamic) {
+      thenMethod.typeParameters = [futureThenR];
+    }
+    thenOnValue.enclosingElement = thenMethod;
+    thenOnValue.type = new FunctionTypeImpl(thenOnValue);
+    (thenMethod.parameters[0] as ParameterElementImpl).type = thenOnValue.type;
+    thenMethod.type = new FunctionTypeImpl(thenMethod);
+
     futureElement.methods = <MethodElement>[thenMethod];
     // Completer
     ClassElementImpl completerElement =
@@ -340,11 +344,12 @@ class AnalysisContextFactory {
         ClassElement.EMPTY_LIST);
     TopLevelVariableElement ln10Element = ElementFactory
         .topLevelVariableElement3("LN10", true, false, provider.doubleType);
-    FunctionElement maxElement = ElementFactory.functionElement3(
-        "max",
-        provider.numType.element,
-        <ClassElement>[provider.numType.element, provider.numType.element],
-        ClassElement.EMPTY_LIST);
+    TypeParameterElement maxT =
+        ElementFactory.typeParameterWithType('T', provider.numType);
+    FunctionElementImpl maxElement = ElementFactory.functionElement3(
+        "max", maxT, [maxT, maxT], ClassElement.EMPTY_LIST);
+    maxElement.typeParameters = [maxT];
+    maxElement.type = new FunctionTypeImpl(maxElement);
     TopLevelVariableElement piElement = ElementFactory.topLevelVariableElement3(
         "PI", true, false, provider.doubleType);
     ClassElementImpl randomElement = ElementFactory.classElement2("Random");
