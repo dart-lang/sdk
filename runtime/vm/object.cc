@@ -3074,46 +3074,6 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
 }
 
 
-intptr_t Class::FindFieldIndex(const Field& needle) const {
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return -1;
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FIELD_HANDLESCOPE(thread);
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  Array& fields_array = thread->ArrayHandle();
-  Field& field = thread->FieldHandle();
-  String& field_name = thread->StringHandle();
-  fields_array ^= fields();
-  ASSERT(!fields_array.IsNull());
-  String& needle_name = String::Handle(thread->zone());
-  needle_name ^= needle.name();
-  const intptr_t len = fields_array.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    field ^= fields_array.At(i);
-    field_name ^= field.name();
-    if (field_name.Equals(needle_name)) {
-      return i;
-    }
-  }
-  // No field found.
-  return -1;
-}
-
-
-RawField* Class::FieldFromIndex(intptr_t idx) const {
-  const Array& flds = Array::Handle(fields());
-  if ((idx < 0) || (idx >= flds.Length())) {
-    return Field::null();
-  }
-  Field& field = Field::Handle();
-  field ^= flds.At(idx);
-  ASSERT(!field.IsNull());
-  return field.raw();
-}
-
-
 template <class FakeInstance>
 RawClass* Class::New(intptr_t index) {
   ASSERT(Object::class_class() != Class::null());
@@ -7561,14 +7521,17 @@ const char* Field::ToCString() const {
       "Field <%s.%s>:%s%s%s", cls_name, field_name, kF0, kF1, kF2);
 }
 
+
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(owner());
-  intptr_t id = cls.FindFieldIndex(*this);
-  ASSERT(id >= 0);
-  intptr_t cid = cls.id();
+  String& field_name = String::Handle(name());
+  ASSERT(cls.LookupField(field_name) == this->raw());
+  field_name = String::EncodeIRI(field_name);
   AddCommonObjectProperties(&jsobj, "Field", ref);
-  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%" Pd "", cid, id);
+  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s",
+                          cls.id(), field_name.ToCString());
+
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
   AddNameProperties(&jsobj, user_name, vm_name);

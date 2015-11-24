@@ -1271,22 +1271,24 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
     return func.raw();
 
   } else if (strcmp(parts[2], "fields") == 0) {
-    // Field ids look like: "classes/17/fields/11"
+    // Field ids look like: "classes/17/fields/name"
     if (num_parts != 4) {
       return Object::sentinel().raw();
     }
-    intptr_t id;
-    if (!GetIntegerId(parts[3], &id)) {
+    const char* encoded_id = parts[3];
+    String& id = String::Handle(zone, String::New(encoded_id));
+    id = String::DecodeIRI(id);
+    if (id.IsNull()) {
       return Object::sentinel().raw();
     }
-    Field& field = Field::Handle(zone, cls.FieldFromIndex(id));
+    Field& field = Field::Handle(zone, cls.LookupField(id));
     if (field.IsNull()) {
       return Object::sentinel().raw();
     }
     return field.raw();
 
   } else if (strcmp(parts[2], "functions") == 0) {
-    // Function ids look like: "classes/17/functions/11"
+    // Function ids look like: "classes/17/functions/name"
     if (num_parts != 4) {
       return Object::sentinel().raw();
     }

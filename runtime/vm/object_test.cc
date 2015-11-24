@@ -3769,54 +3769,6 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
-TEST_CASE(FindFieldIndex) {
-  const char* kScriptChars =
-      "class A {\n"
-      "  var a;\n"
-      "  var b;\n"
-      "}\n"
-      "class B {\n"
-      "  var d;\n"
-      "}\n"
-      "test() {\n"
-      "  new A();\n"
-      "  new B();\n"
-      "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("test"), 0, NULL);
-  EXPECT_VALID(result);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  const Class& class_a = Class::Handle(GetClass(lib, "A"));
-  const Array& class_a_fields = Array::Handle(class_a.fields());
-  const Class& class_b = Class::Handle(GetClass(lib, "B"));
-  const Field& field_a = Field::Handle(GetField(class_a, "a"));
-  const Field& field_b = Field::Handle(GetField(class_a, "b"));
-  const Field& field_d = Field::Handle(GetField(class_b, "d"));
-  intptr_t field_a_index = class_a.FindFieldIndex(field_a);
-  intptr_t field_b_index = class_a.FindFieldIndex(field_b);
-  intptr_t field_d_index = class_a.FindFieldIndex(field_d);
-  // Valid index.
-  EXPECT_GE(field_a_index, 0);
-  // Valid index.
-  EXPECT_GE(field_b_index, 0);
-  // Invalid index.
-  EXPECT_EQ(field_d_index, -1);
-  Field& field_a_from_index = Field::Handle();
-  field_a_from_index ^= class_a_fields.At(field_a_index);
-  ASSERT(!field_a_from_index.IsNull());
-  // Same field.
-  EXPECT_EQ(field_a.raw(), field_a_from_index.raw());
-  Field& field_b_from_index = Field::Handle();
-  field_b_from_index ^= class_a_fields.At(field_b_index);
-  ASSERT(!field_b_from_index.IsNull());
-  // Same field.
-  EXPECT_EQ(field_b.raw(), field_b_from_index.raw());
-}
-
-
 TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New("MyClass"));

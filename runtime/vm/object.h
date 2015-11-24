@@ -1148,8 +1148,6 @@ class Class : public Object {
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
-  intptr_t FindFieldIndex(const Field& field) const;
-  RawField* FieldFromIndex(intptr_t idx) const;
 
   // Returns an array of all fields of this class and its superclasses indexed
   // by offset in words.
