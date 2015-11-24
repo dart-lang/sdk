@@ -46,11 +46,14 @@ class AstFactory {
       new AsExpression(
           expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
 
-  static AssertStatement assertStatement(Expression condition) =>
+  static AssertStatement assertStatement(Expression condition,
+          [Expression message]) =>
       new AssertStatement(
           TokenFactory.tokenFromKeyword(Keyword.ASSERT),
           TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
           condition,
+          message == null ? null : TokenFactory.tokenFromType(TokenType.COMMA),
+          message,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 

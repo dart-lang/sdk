@@ -1389,7 +1389,8 @@ class IncrementalResolver {
           _definingLibrary,
           _typeProvider,
           new InheritanceManager(_definingLibrary),
-          _context.analysisOptions.enableSuperMixins);
+          _context.analysisOptions.enableSuperMixins,
+          _context.analysisOptions.enableAssertMessage);
       if (_resolutionContext.enclosingClassDeclaration != null) {
         errorVerifier.visitClassDeclarationIncrementally(
             _resolutionContext.enclosingClassDeclaration);

@@ -262,6 +262,82 @@ f(A a) {
     verify([source]);
   }
 
+  void test_assert_with_message_await() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+import 'dart:async';
+f() async {
+  assert(false, await g());
+}
+Future<String> g() => null;
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_dynamic() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  assert(false, g());
+}
+g() => null;
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_non_string() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  assert(false, 3);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_null() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  assert(false, null);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_string() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  assert(false, 'message');
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assert_with_message_suppresses_unused_var_hint() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+f() {
+  String message = 'msg';
+  assert(true, message);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_assignability_function_expr_rettype_from_typedef_cls() {
     // In the code below, the type of (() => f()) has a return type which is
     // a class, and that class is inferred from the return type of the typedef

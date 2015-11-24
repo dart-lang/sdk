@@ -656,6 +656,17 @@ class AssertStatement extends Statement {
   Expression _condition;
 
   /**
+   * The comma, if a message expression was supplied.  Otherwise `null`.
+   */
+  Token comma;
+
+  /**
+   * The message to report if the assertion fails.  `null` if no message was
+   * supplied.
+   */
+  Expression _message;
+
+  /**
    * The right parenthesis.
    */
   Token rightParenthesis;
@@ -668,9 +679,16 @@ class AssertStatement extends Statement {
   /**
    * Initialize a newly created assert statement.
    */
-  AssertStatement(this.assertKeyword, this.leftParenthesis,
-      Expression condition, this.rightParenthesis, this.semicolon) {
+  AssertStatement(
+      this.assertKeyword,
+      this.leftParenthesis,
+      Expression condition,
+      this.comma,
+      Expression message,
+      this.rightParenthesis,
+      this.semicolon) {
     _condition = _becomeParentOf(condition);
+    _message = _becomeParentOf(message);
   }
 
   @override
@@ -681,6 +699,8 @@ class AssertStatement extends Statement {
     ..add(assertKeyword)
     ..add(leftParenthesis)
     ..add(_condition)
+    ..add(comma)
+    ..add(_message)
     ..add(rightParenthesis)
     ..add(semicolon);
 
@@ -714,12 +734,26 @@ class AssertStatement extends Statement {
     assertKeyword = token;
   }
 
+  /**
+   * Return the message to report if the assertion fails.
+   */
+  Expression get message => _message;
+
+  /**
+   * Set the message to report if the assertion fails to the given
+   * [expression].
+   */
+  void set message(Expression expression) {
+    _message = _becomeParentOf(expression);
+  }
+
   @override
   accept(AstVisitor visitor) => visitor.visitAssertStatement(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
     _safelyVisitChild(_condition, visitor);
+    _safelyVisitChild(message, visitor);
   }
 }
 
@@ -1037,6 +1071,8 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.assertKeyword),
       cloneToken(node.leftParenthesis),
       cloneNode(node.condition),
+      cloneToken(node.comma),
+      cloneNode(node.message),
       cloneToken(node.rightParenthesis),
       cloneToken(node.semicolon));
 
@@ -1893,6 +1929,8 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokens(node.assertKeyword, other.assertKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.condition, other.condition) &&
+        isEqualTokens(node.comma, other.comma) &&
+        isEqualNodes(node.message, other.message) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -9795,6 +9833,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _mapToken(node.assertKeyword),
       _mapToken(node.leftParenthesis),
       _cloneNode(node.condition),
+      _mapToken(node.comma),
+      _cloneNode(node.message),
       _mapToken(node.rightParenthesis),
       _mapToken(node.semicolon));
 
@@ -13028,6 +13068,10 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitAssertStatement(AssertStatement node) {
     if (identical(node.condition, _oldNode)) {
       node.condition = _newNode as Expression;
+      return true;
+    }
+    if (identical(node._message, _oldNode)) {
+      node.message = _newNode as Expression;
       return true;
     }
     return visitNode(node);
@@ -18037,6 +18081,10 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitAssertStatement(AssertStatement node) {
     _writer.print("assert (");
     _visitNode(node.condition);
+    if (node.message != null) {
+      _writer.print(', ');
+      _visitNode(node.message);
+    }
     _writer.print(");");
     return null;
   }

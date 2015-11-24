@@ -1170,6 +1170,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.hint && !options.hint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
+        this._options.enableAssertMessage != options.enableAssertMessage ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableSuperMixins != options.enableSuperMixins;
@@ -1197,6 +1198,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
+    this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.hint = options.hint;
@@ -6262,6 +6264,11 @@ abstract class AnalysisOptions {
   bool get dart2jsHint;
 
   /**
+   * Return `true` to enable custom assert messages (DEP 37).
+   */
+  bool get enableAssertMessage;
+
+  /**
    * Return `true` if analysis is to include the new async support.
    */
   @deprecated // Always true
@@ -6395,6 +6402,12 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool dart2jsHint = false;
 
   /**
+   * A flag indicating whether custom assert messages are to be supported (DEP
+   * 37).
+   */
+  bool enableAssertMessage = false;
+
+  /**
    * A flag indicating whether generic methods are to be supported (DEP 22).
    */
   bool enableGenericMethods = false;
@@ -6476,6 +6489,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableAssertMessage = options.enableAssertMessage;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
@@ -6498,6 +6512,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableAssertMessage = options.enableAssertMessage;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
@@ -8569,7 +8584,8 @@ class GenerateDartErrorsTask extends AnalysisTask {
           libraryElement,
           typeProvider,
           new InheritanceManager(libraryElement),
-          context.analysisOptions.enableSuperMixins);
+          context.analysisOptions.enableSuperMixins,
+          context.analysisOptions.enableAssertMessage);
       _unit.accept(errorVerifier);
       _errors = errorListener.getErrorsForSource(source);
     });
@@ -11049,7 +11065,8 @@ class ResolveDartUnitTask extends AnalysisTask {
           _libraryElement,
           typeProvider,
           inheritanceManager,
-          context.analysisOptions.enableSuperMixins);
+          context.analysisOptions.enableSuperMixins,
+          context.analysisOptions.enableAssertMessage);
       unit.accept(errorVerifier);
       // TODO(paulberry): as a temporary workaround for issue 21572,
       // ConstantVerifier is being run right after ConstantValueComputer, so we

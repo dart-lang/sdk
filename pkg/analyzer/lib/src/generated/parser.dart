@@ -574,6 +574,9 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
     }
+    if (identical(_oldNode, node.message)) {
+      return _parser.parseExpression2();
+    }
     return _notAChild(node);
   }
 
@@ -4378,10 +4381,16 @@ class Parser {
       _reportErrorForNode(
           ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression);
     }
+    Token comma;
+    Expression message;
+    if (_matches(TokenType.COMMA)) {
+      comma = getAndAdvance();
+      message = parseExpression2();
+    }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
     Token semicolon = _expect(TokenType.SEMICOLON);
     return new AssertStatement(
-        keyword, leftParen, expression, rightParen, semicolon);
+        keyword, leftParen, expression, comma, message, rightParen, semicolon);
   }
 
   /**
@@ -9862,6 +9871,8 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.assertKeyword, toNode.assertKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.comma, toNode.comma),
+        _isEqualNodes(node.message, toNode.message),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
         _isEqualTokens(node.semicolon, toNode.semicolon));
   }

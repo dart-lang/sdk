@@ -266,10 +266,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   final bool enableSuperMixins;
 
   /**
+   * If `true`, asserts are allowed to take a second argument representing the
+   * assertion failure message (see DEP 37).
+   */
+  final bool enableAssertMessage;
+
+  /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.enableSuperMixins) {
+  ErrorVerifier(
+      this._errorReporter,
+      this._currentLibrary,
+      this._typeProvider,
+      this._inheritanceManager,
+      this.enableSuperMixins,
+      this.enableAssertMessage) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -306,6 +317,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
+    _checkAssertMessage(node);
     return super.visitAssertStatement(node);
   }
 
@@ -1114,6 +1126,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(errorCode, node);
     }
     return super.visitYieldStatement(node);
+  }
+
+  /**
+   * If the given assert [statement] specifies a message, verify that support
+   * for assertions with messages is enabled.
+   */
+  void _checkAssertMessage(AssertStatement statement) {
+    Expression expression = statement.message;
+    if (expression != null && !enableAssertMessage) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT, expression);
+      return;
+    }
   }
 
   /**

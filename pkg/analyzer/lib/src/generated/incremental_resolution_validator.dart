@@ -63,6 +63,7 @@ class _SameResolutionValidator implements AstVisitor {
   visitAssertStatement(AssertStatement node) {
     AssertStatement other = this.other;
     _visitNode(node.condition, other.condition);
+    _visitNode(node.message, other.message);
   }
 
   @override

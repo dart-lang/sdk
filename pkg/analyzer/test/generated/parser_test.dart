@@ -5158,6 +5158,36 @@ class SimpleParserTest extends ParserTestCase {
     expect(statement.assertKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
+    expect(statement.comma, isNull);
+    expect(statement.message, isNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_messageLowPrecedence() {
+    // Using a throw expression as an assert message would be silly in
+    // practice, but it's the lowest precedence expression type, so verifying
+    // that it works should give us high confidence that other expression types
+    // will work as well.
+    AssertStatement statement =
+        parse4('parseAssertStatement', 'assert (x, throw "foo");');
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNotNull);
+    expect(statement.message, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_messageString() {
+    AssertStatement statement =
+        parse4('parseAssertStatement', 'assert (x, "foo");');
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNotNull);
+    expect(statement.message, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.semicolon, isNotNull);
   }

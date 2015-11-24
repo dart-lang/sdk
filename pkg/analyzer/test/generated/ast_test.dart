@@ -1688,6 +1688,13 @@ class ToSourceVisitorTest extends EngineTestCase {
         "assert (a);", AstFactory.assertStatement(AstFactory.identifier3("a")));
   }
 
+  void test_visitAssertStatement_withMessage() {
+    _assertSource(
+        "assert (a, b);",
+        AstFactory.assertStatement(
+            AstFactory.identifier3("a"), AstFactory.identifier3('b')));
+  }
+
   void test_visitAssignmentExpression() {
     _assertSource(
         "a = b",

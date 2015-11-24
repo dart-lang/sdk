@@ -2109,6 +2109,12 @@ class Getter_NodeReplacerTest_test_assertStatement
   Expression get(AssertStatement node) => node.condition;
 }
 
+class Getter_NodeReplacerTest_test_assertStatement_2
+    implements NodeReplacerTest_Getter {
+  @override
+  Expression get(AssertStatement node) => node.message;
+}
+
 class Getter_NodeReplacerTest_test_assignmentExpression
     implements NodeReplacerTest_Getter {
   @override
@@ -3460,9 +3466,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_assertStatement() {
-    AssertStatement node =
-        AstFactory.assertStatement(AstFactory.booleanLiteral(true));
+    AssertStatement node = AstFactory.assertStatement(
+        AstFactory.booleanLiteral(true), AstFactory.string2('foo'));
     _assertReplace(node, new Getter_NodeReplacerTest_test_assertStatement());
+    _assertReplace(node, new Getter_NodeReplacerTest_test_assertStatement_2());
   }
 
   void test_assignmentExpression() {
