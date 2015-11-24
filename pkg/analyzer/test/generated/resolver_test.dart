@@ -12178,11 +12178,7 @@ main() {
     if (!AnalysisEngine.instance.useTaskModel) {
       return;
     }
-    // TODO(jmesserly): we're missing a case in the parser for the return type,
-    // so "dynamic" must be used to workaround this.
-    _resolveTestUnit(r'''
-dynamic/*=T*/ f/*<T>*/(/*=T*/ x) => null;
-''');
+    _resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
     SimpleIdentifier f = _findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');

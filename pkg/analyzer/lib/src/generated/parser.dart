@@ -5189,9 +5189,10 @@ class Parser {
       _reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
       return null;
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+      TypeName returnType = _parseOptionalTypeNameComment();
       _validateModifiersForTopLevelFunction(modifiers);
       return _parseFunctionDeclaration(
-          commentAndMetadata, modifiers.externalKeyword, null);
+          commentAndMetadata, modifiers.externalKeyword, returnType);
     } else if (_peek()
         .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null &&
