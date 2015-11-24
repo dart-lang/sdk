@@ -5,7 +5,7 @@
 library test.services.completion.dart.keyword;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';

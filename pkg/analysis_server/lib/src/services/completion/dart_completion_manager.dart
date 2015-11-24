@@ -30,7 +30,7 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-export 'package:analysis_server/src/provisional/completion/completion_dart.dart'
+export 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart'
     show
         DART_RELEVANCE_COMMON_USAGE,
         DART_RELEVANCE_DEFAULT,

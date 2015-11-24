@@ -11,16 +11,12 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
-    show DART_RELEVANCE_HIGH;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-// import 'package:analysis_server/plugin/src/provisional/utilities/change_builder_dart.dart';
-// import 'package:analyzer/src/generated/engine.dart';
 
 /**
  * A completion contributor used to suggest replacing partial identifiers inside

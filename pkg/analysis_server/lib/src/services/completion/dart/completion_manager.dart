@@ -7,9 +7,10 @@ library services.completion.dart.manager;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
@@ -23,15 +24,18 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 
 /**
+ * A factory for constructing the default set of [DartCompletionContributor]s.
+ * Do not call this function directly...
+ *    use ServerPlugin.dartCompletionContributorFactories
+ */
+List<DartCompletionContributor> defaultDartCompletionContributorFactory() =>
+    [new KeywordContributor(),];
+
+/**
  * [DartCompletionManager] determines if a completion request is Dart specific
  * and forwards those requests to all [DartCompletionContributor]s.
  */
 class DartCompletionManager implements CompletionContributor {
-  // TODO(danrubel) initialize using plugin API
-  List<DartCompletionContributor> contributors = <DartCompletionContributor>[
-    new KeywordContributor(),
-  ];
-
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request) {
@@ -48,6 +52,15 @@ class DartCompletionManager implements CompletionContributor {
    */
   Future<List<CompletionSuggestion>> _computeDartSuggestions(
       DartCompletionRequest request) async {
+    // Build the Dart specific completion contributors
+    List<DartCompletionContributor> contributors =
+        <DartCompletionContributor>[];
+    for (DartCompletionContributorFactory contributorFactory
+        in request.serverPlugin.dartCompletionContributorFactories) {
+      contributors.addAll(contributorFactory());
+    }
+
+    // Request Dart specific completions from each contributor
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (DartCompletionContributor contributor in contributors) {
       suggestions.addAll(await contributor.computeSuggestions(request));
@@ -76,13 +89,13 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
    * Initialize a newly created completion request based on the given request.
    */
   factory DartCompletionRequestImpl.forRequest(CompletionRequest request) {
-    return new DartCompletionRequestImpl._(request.context,
+    return new DartCompletionRequestImpl._(request.server, request.context,
         request.resourceProvider, request.source, request.offset);
   }
 
-  DartCompletionRequestImpl._(AnalysisContext context,
+  DartCompletionRequestImpl._(AnalysisServer server, AnalysisContext context,
       ResourceProvider resourceProvider, Source source, int offset)
-      : super(context, resourceProvider, source, offset);
+      : super(server, context, resourceProvider, source, offset);
 
   @override
   Future<CompilationUnit> resolveDeclarationsInScope() async {

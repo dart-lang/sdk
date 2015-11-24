@@ -7,6 +7,8 @@ library analysis_server.src.provisional.completion.completion_core;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
@@ -37,6 +39,16 @@ abstract class CompletionContributor {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class CompletionRequest {
+  /**
+   * Return the underlying analysis server for this completion request.
+   */
+  AnalysisServer get server;
+
+  /**
+   * Return the [AnalysisServer]'s [ServerPlugin] for obtaining extensions
+   */
+  ServerPlugin get serverPlugin;
+
   /**
    * Return the analysis context in which the completion is being requested.
    */
