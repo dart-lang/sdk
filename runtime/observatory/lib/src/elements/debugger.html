@@ -267,16 +267,13 @@
               </source-inset>
             </div>
             <div class="flex-item-vars">
-              <div style="padding:10px;" class="memberList">
-                <template repeat="{{ v in frame.variables }}">
-                  <div class="memberItem">
-                    <div class="memberName">{{ v['name']}}</div>
-                    <div class="memberValue">
-                      <any-service-ref ref="{{ v['value'] }}"
-                                       expandKey="{{ makeExpandKey(v['name']) }}">
-                      </any-service-ref>
-                    </div>
-                  </div>
+              <div style="padding-left:2em;" class="memberList">
+                <template repeat="{{ v in properLocals }}">
+                  {{ v['name']}}&nbsp;:&nbsp;
+                  <any-service-ref ref="{{ v['value'] }}"
+                                   expandKey="{{ makeExpandKey(v['name']) }}"
+                                   asValue="{{ true }}">
+                  </any-service-ref><br>
                 </template>
               </div>
             </div>

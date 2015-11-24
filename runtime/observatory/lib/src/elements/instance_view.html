@@ -154,7 +154,7 @@
         </template>
 
         <template if="{{ instance.elements.isNotEmpty }}">
-          elements ({{ instance.elements.length }})
+          elements ({{ instance.length }})
           <curly-block expand="{{ instance.elements.length <= 100 }}">
             <div class="memberList">
               <template repeat="{{ index in instance.elements.asMap().keys }}">
@@ -166,12 +166,20 @@
                   </div>
                 </div>
               </template>
+	      <template if="{{ instance.length != instance.elements.length }}">
+                <div class="memberItem">
+                  <div class="memberName">...</div>
+                  <div class="memberValue">
+                    <em>{{ instance.length - instance.elements.length }} omitted elements</em>
+                  </div>
+                </div>
+              </template>
             </div>
           </curly-block><br><br>
         </template>
 
         <template if="{{ instance.associations.isNotEmpty }}">
-          associations ({{ instance.elements.length }})
+          associations ({{ instance.length }})
           <curly-block expand="{{ instance.associations.length <= 100 }}">
             <div class="memberList">
               <template repeat="{{ association in instance.associations }}">
@@ -184,18 +192,34 @@
                   </div>
                 </div>
               </template>
+	      <template if="{{ instance.length != instance.associations.length }}">
+                <div class="memberItem">
+                  <div class="memberName">...</div>
+                  <div class="memberValue">
+                    <em>{{ instance.length - instance.associations.length }} omitted associations</em>
+                  </div>
+                </div>
+              </template>
             </div>
           </curly-block><br><br>
         </template>
 
         <template if="{{ instance.typedElements.isNotEmpty }}">
-          elements ({{ instance.typedElements.length }})
+          elements ({{ instance.length }})
           <curly-block expand="{{ instance.typedElements.length <= 100 }}">
             <div class="memberList">
               <template repeat="{{ index in instance.typedElements.asMap().keys }}">
                 <div class="memberItem">
                   <div class="memberName">[{{ index }}]</div>
                   <div class="memberValue">{{ instance.typedElements[index].toString() }}</div>
+                </div>
+              </template>
+	      <template if="{{ instance.length != instance.typedElements.length }}">
+                <div class="memberItem">
+                  <div class="memberName">...</div>
+                  <div class="memberValue">
+                    <em>{{ instance.length - instance.elements.length }} omitted elements</em>
+                  </div>
                 </div>
               </template>
             </div>

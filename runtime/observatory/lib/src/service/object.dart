@@ -4,6 +4,11 @@
 
 part of service;
 
+// Some value smaller than the object ring, so requesting a large array
+// doesn't result in an expired ref because the elements lapped it in the
+// object ring.
+const int kDefaultFieldLimit = 100;
+
 /// Helper function for canceling a Future<StreamSubscription>.
 Future cancelFutureSubscription(
     Future<StreamSubscription> subscriptionFuture) async {
@@ -284,6 +289,7 @@ abstract class ServiceObject extends Observable {
   Future<ObservableMap> _fetchDirect() {
     Map params = {
       'objectId': id,
+      'count': kDefaultFieldLimit,
     };
     return isolate.invokeRpcNoUpgrade('getObject', params);
   }
@@ -1288,6 +1294,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
     Map params = {
       'objectId': objectId,
+      'count': kDefaultFieldLimit,
     };
     return isolate.invokeRpc('getObject', params);
   }
@@ -2638,6 +2645,14 @@ class ServiceFunction extends HeapObject with Coverage {
     usageCounter = map['_usageCounter'];
     icDataArray = map['_icDataArray'];
     field = map['_field'];
+  }
+
+  ServiceFunction get homeMethod {
+    var m = this;
+    while (m.dartOwner is ServiceFunction) {
+      m = m.dartOwner;
+    }
+    return m;
   }
 }
 

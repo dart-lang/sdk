@@ -1120,6 +1120,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
       if (var_name.raw() != Symbols::AsyncOperation().raw()) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
+        var_name = String::IdentifierPrettyName(var_name);
         jsvar.AddProperty("name", var_name.ToCString());
         jsvar.AddProperty("value", var_value, !full);
         // TODO(turnidge): Do we really want to provide this on every
