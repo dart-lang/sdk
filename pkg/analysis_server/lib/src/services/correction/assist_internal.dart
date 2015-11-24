@@ -1251,6 +1251,10 @@ class AssistProcessor {
     // prepare outer "if" statement
     AstNode parent = targetIfStatement.parent;
     if (parent is Block) {
+      if ((parent as Block).statements.length != 1) {
+        _coverageMarker();
+        return;
+      }
       parent = parent.parent;
     }
     if (parent is! IfStatement) {

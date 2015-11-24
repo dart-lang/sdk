@@ -2684,6 +2684,34 @@ main() {
     await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
   }
 
+  test_joinIfStatementInner_wrong_statementAfterInner() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(2);
+    }
+    print(1);
+  }
+}
+''');
+    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  test_joinIfStatementInner_wrong_statementBeforeInner() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    print(1);
+    if (2 == 2) {
+      print(2);
+    }
+  }
+}
+''');
+    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+  }
+
   test_joinIfStatementInner_wrong_targetNotIf() async {
     resolveTestUnit('''
 main() {
@@ -2908,6 +2936,34 @@ main() {
     }
   } else {
     print(1);
+  }
+}
+''');
+    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  test_joinIfStatementOuter_wrong_statementAfterInner() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(2);
+    }
+    print(1);
+  }
+}
+''');
+    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  test_joinIfStatementOuter_wrong_statementBeforeInner() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    print(1);
+    if (2 == 2) {
+      print(2);
+    }
   }
 }
 ''');
