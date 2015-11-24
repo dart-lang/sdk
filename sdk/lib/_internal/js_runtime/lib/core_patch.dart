@@ -9,7 +9,7 @@ import 'dart:_js_helper' show checkInt,
                               Closure,
                               ConstantMap,
                               getRuntimeType,
-                              JsLinkedHashMap;
+                              JsLinkedHashMap,
                               jsonEncodeNative,
                               JSSyntaxRegExp,
                               NoInline,
@@ -20,7 +20,7 @@ import 'dart:_js_helper' show checkInt,
                               patch_startup,
                               Primitives,
                               readHttp,
-                              stringJoinUnchecked,
+                              stringJoinUnchecked;
 
 import 'dart:_foreign_helper' show JS;
 
