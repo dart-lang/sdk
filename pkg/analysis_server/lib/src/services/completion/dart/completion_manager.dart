@@ -95,7 +95,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
 
   DartCompletionRequestImpl._(AnalysisServer server, AnalysisContext context,
       ResourceProvider resourceProvider, Source source, int offset)
-      : super(server, context, resourceProvider, source, offset);
+      : super(server, context, source, offset);
 
   @override
   Future<CompilationUnit> resolveDeclarationsInScope() async {

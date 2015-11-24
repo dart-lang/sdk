@@ -22,20 +22,19 @@ class CompletionRequestImpl implements CompletionRequest {
   final AnalysisContext context;
 
   @override
-  final ResourceProvider resourceProvider;
-
-  @override
   final Source source;
 
   @override
   final int offset;
 
-  @override
-  ServerPlugin get serverPlugin => server.serverPlugin;
-
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
-  CompletionRequestImpl(this.server, this.context, this.resourceProvider,
-      this.source, this.offset);
+  CompletionRequestImpl(this.server, this.context, this.source, this.offset);
+
+  @override
+  ResourceProvider get resourceProvider => server.resourceProvider;
+
+  @override
+  ServerPlugin get serverPlugin => server.serverPlugin;
 }

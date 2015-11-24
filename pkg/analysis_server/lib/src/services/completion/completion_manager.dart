@@ -7,13 +7,10 @@ library services.completion.manager;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -215,33 +212,6 @@ class CompletionPerformance {
     String suffix = contents.substring(offset, end);
     return '$prefix^$suffix';
   }
-}
-
-/**
- * Encapsulates information specific to a particular completion request.
- */
-class CompletionRequestImpl implements CompletionRequest {
-  /**
-   * The underlying analysis server for this completion request.
-   */
-  final AnalysisServer server;
-
-  @override
-  final AnalysisContext context;
-
-  @override
-  final Source source;
-
-  @override
-  final int offset;
-
-  CompletionRequestImpl(this.server, this.context, this.source, this.offset);
-
-  @override
-  ResourceProvider get resourceProvider => server.resourceProvider;
-
-  @override
-  ServerPlugin get serverPlugin => server.serverPlugin;
 }
 
 /**

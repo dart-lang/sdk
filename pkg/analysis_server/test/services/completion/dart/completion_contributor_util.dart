@@ -136,7 +136,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     AnalysisServer server = new AnalysisServerMock(
         searchEngine: searchEngine, resourceProvider: provider);
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        server, context, provider, testSource, completionOffset);
+        server, context, testSource, completionOffset);
     request = new DartCompletionRequestImpl.forRequest(baseRequest);
     Completer<List<CompletionSuggestion>> completer =
         new Completer<List<CompletionSuggestion>>();
