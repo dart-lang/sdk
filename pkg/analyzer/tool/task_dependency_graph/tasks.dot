@@ -101,7 +101,7 @@ digraph G {
   LIBRARY_CYCLE_UNITS -> ResolveInstanceFieldsInUnitTask
   LIBRARY_CYCLE_UNITS -> ResolveUnitTask
   LIBRARY_CYCLE_UNITS [shape=box]
-  LIBRARY_ELEMENT -> LibraryErrorsReadyTask
+  LIBRARY_ELEMENT -> EvaluateUnitConstantsTask
   LIBRARY_ELEMENT [shape=box]
   LIBRARY_ELEMENT1 -> BuildDirectiveElementsTask
   LIBRARY_ELEMENT1 -> ResolveVariableReferencesTask
@@ -121,16 +121,13 @@ digraph G {
   LIBRARY_ELEMENT5 -> PropagateVariableTypesInLibraryTask
   LIBRARY_ELEMENT5 -> ReadyLibraryElement5Task
   LIBRARY_ELEMENT5 -> ResolveInstanceFieldsInUnitTask
+  LIBRARY_ELEMENT5 -> ResolveLibraryReferencesTask
   LIBRARY_ELEMENT5 [shape=box]
   LIBRARY_ELEMENT6 -> PropagateVariableTypesInLibraryClosureTask
   LIBRARY_ELEMENT6 -> ReadyLibraryElement6Task
   LIBRARY_ELEMENT6 [shape=box]
-  LIBRARY_ELEMENT7 -> ResolveLibraryReferencesTask
   LIBRARY_ELEMENT7 -> ResolveUnitTask
   LIBRARY_ELEMENT7 [shape=box]
-  LIBRARY_ELEMENT8 -> EvaluateUnitConstantsTask
-  LIBRARY_ELEMENT8 -> ResolveLibraryTask
-  LIBRARY_ELEMENT8 [shape=box]
   LIBRARY_ERRORS_READY [shape=box]
   LIBRARY_SPECIFIC_UNITS -> GenerateHintsTask
   LIBRARY_SPECIFIC_UNITS -> PropagateVariableTypesInLibraryTask
@@ -187,7 +184,6 @@ digraph G {
   READY_LIBRARY_ELEMENT6 -> ReadyLibraryElement6Task
   READY_LIBRARY_ELEMENT6 [shape=box]
   READY_RESOLVED_UNIT -> ReadyResolvedUnitTask
-  READY_RESOLVED_UNIT -> ResolveLibraryTask
   READY_RESOLVED_UNIT -> VerifyUnitTask
   READY_RESOLVED_UNIT [shape=box]
   READY_RESOLVED_UNIT10 -> ReadyResolvedUnit10Task
@@ -253,9 +249,8 @@ digraph G {
   ReadyResolvedUnit11Task -> READY_RESOLVED_UNIT11
   ReadyResolvedUnitTask -> READY_RESOLVED_UNIT
   ResolveInstanceFieldsInUnitTask -> RESOLVED_UNIT8
-  ResolveLibraryReferencesTask -> LIBRARY_ELEMENT8
+  ResolveLibraryReferencesTask -> LIBRARY_ELEMENT
   ResolveLibraryReferencesTask -> REFERENCED_NAMES
-  ResolveLibraryTask -> LIBRARY_ELEMENT
   ResolveLibraryTypeNamesTask -> LIBRARY_ELEMENT5
   ResolveUnitTask -> RESOLVED_UNIT10
   ResolveUnitTask -> RESOLVE_UNIT_ERRORS
