@@ -5,6 +5,7 @@
 // SharedOptions=--enable-enum
 
 import 'package:expect/expect.dart';
+import 'package:async_helper/async_helper.dart';
 import "dart:isolate";
 
 enum Foo { BAR, BAZ }
@@ -18,7 +19,8 @@ main() {
     Expect.equals(42, map[key]);
     p.close();
   });
-  Isolate.spawn(sendIt, p.sendPort);
+  asyncStart();
+  Isolate.spawn(sendIt, p.sendPort).whenComplete(asyncEnd);
 }
 
 void sendIt(port) {

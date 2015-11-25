@@ -9,6 +9,7 @@
 import 'dart:isolate';
 import 'dart:async';
 import "package:expect/expect.dart";
+import 'package:async_helper/async_helper.dart';
 
 import "deferred_loaded_lib.dart" deferred as lib;
 
@@ -27,6 +28,7 @@ funcChild(args) {
 
 void helperFunction() {
   var receivePort = new ReceivePort();
+  asyncStart();
 
   // Spawn an isolate using spawnFunction.
   Isolate.spawn(funcChild, [receivePort.sendPort]).then(
@@ -36,12 +38,14 @@ void helperFunction() {
           // We don't expect to receive any valid messages.
           Expect.fail("We don't expect to receive any valid messages");
           receivePort.close();
+          asyncEnd();
         },
         onError: (e) {
           // We don't expect to receive any error messages, per spec listen
           // does not receive an error object.
           Expect.fail("We don't expect to receive any error messages");
           receivePort.close();
+          asyncEnd();
         }
       );
     }
