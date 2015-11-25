@@ -109,13 +109,16 @@ class Selectors {
 
   static final Selector length = new Selector.getter(Names.length);
 
+  static final Selector codeUnitAt =
+      new Selector.call(const PublicName('codeUnitAt'), CallStructure.ONE_ARG);
+
   /// List of all the selectors held in static fields.
   ///
   /// These objects are shared between different runs in batch-mode and must
   /// thus remain in the [Selector.canonicalizedValues] map.
   static final List<Selector> ALL = <Selector>[
       cancel, current, iterator, moveNext, noSuchMethod_, toString_,
-      hashCode_, compareTo, equals, length];
+      hashCode_, compareTo, equals, length, codeUnitAt];
 }
 
 /// [Uri]s commonly used.

@@ -145,9 +145,9 @@ abstract class TypeMask implements ReceiverConstraint {
   }
 
   factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
-    assert(invariant(base, classWorld.isInstantiated(base),
-        message: () => "Cannot create subclass type mask for uninstantiated "
-                       "class $base.\n${classWorld.dump(base)}"));
+    //assert(invariant(base, classWorld.isInstantiated(base),
+    //    message: () => "Cannot create subclass type mask for uninstantiated "
+    //                   "class $base.\n${classWorld.dump(base)}"));
     ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
