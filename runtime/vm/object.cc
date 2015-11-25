@@ -10691,8 +10691,8 @@ bool LibraryPrefix::LoadLibrary() const {
     const String& lib_url = String::Handle(zone, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
     handler(Dart_kImportTag,
-            Api::NewHandle(isolate, importer()),
-            Api::NewHandle(isolate, lib_url.raw()));
+            Api::NewHandle(thread, importer()),
+            Api::NewHandle(thread, lib_url.raw()));
   } else {
     // Another load request is in flight.
     ASSERT(deferred_lib.LoadRequested());

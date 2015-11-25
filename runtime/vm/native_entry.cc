@@ -36,7 +36,7 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
   Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
   Dart_NativeFunction native_function =
-      resolver(Api::NewHandle(Isolate::Current(), function_name.raw()),
+      resolver(Api::NewHandle(Thread::Current(), function_name.raw()),
                number_of_arguments, auto_setup_scope);
   Dart_ExitScope();  // Exit the Dart API scope.
   return reinterpret_cast<NativeFunction>(native_function);
@@ -98,8 +98,8 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
 
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ApiLocalScope* current_top_scope = state->top_scope();
-  ApiLocalScope* scope = state->reusable_scope();
+  ApiLocalScope* current_top_scope = thread->api_top_scope();
+  ApiLocalScope* scope = thread->api_reusable_scope();
   TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
   if (scope == NULL) {
     scope = new ApiLocalScope(current_top_scope,
@@ -109,19 +109,19 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
     scope->Reinit(thread,
                   current_top_scope,
                   thread->top_exit_frame_info());
-    state->set_reusable_scope(NULL);
+    thread->set_api_reusable_scope(NULL);
   }
-  state->set_top_scope(scope);  // New scope is now the top scope.
+  thread->set_api_top_scope(scope);  // New scope is now the top scope.
 
   func(args);
 
   ASSERT(current_top_scope == scope->previous());
-  state->set_top_scope(current_top_scope);  // Reset top scope to previous.
-  if (state->reusable_scope() == NULL) {
+  thread->set_api_top_scope(current_top_scope);  // Reset top scope to previous.
+  if (thread->api_reusable_scope() == NULL) {
     scope->Reset(thread);  // Reset the old scope which we just exited.
-    state->set_reusable_scope(scope);
+    thread->set_api_reusable_scope(scope);
   } else {
-    ASSERT(state->reusable_scope() != scope);
+    ASSERT(thread->api_reusable_scope() != scope);
     delete scope;
   }
   DEOPTIMIZE_ALOT;

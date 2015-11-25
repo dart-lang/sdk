@@ -668,18 +668,11 @@ class ApiState {
  public:
   ApiState() : persistent_handles_(),
                weak_persistent_handles_(),
-               reusable_scope_(NULL),
-               top_scope_(NULL),
                null_(NULL),
                true_(NULL),
                false_(NULL),
                acquired_error_(NULL) {}
   ~ApiState() {
-    while (top_scope_ != NULL) {
-      ApiLocalScope* scope = top_scope_;
-      top_scope_ = top_scope_->previous();
-      delete scope;
-    }
     if (null_ != NULL) {
       persistent_handles().FreeHandle(null_);
       null_ = NULL;
@@ -699,54 +692,18 @@ class ApiState {
   }
 
   // Accessors.
-  ApiLocalScope* reusable_scope() const { return reusable_scope_; }
-  void set_reusable_scope(ApiLocalScope* value) {
-    ASSERT(value == NULL || reusable_scope_ == NULL);
-    reusable_scope_ = value;
-  }
-  ApiLocalScope* top_scope() const { return top_scope_; }
-  void set_top_scope(ApiLocalScope* value) { top_scope_ = value; }
-
   PersistentHandles& persistent_handles() { return persistent_handles_; }
 
   FinalizablePersistentHandles& weak_persistent_handles() {
     return weak_persistent_handles_;
   }
 
-  void UnwindScopes(uword stack_marker) {
-    // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
-    // under the same top_exit_frame_info.
-    while (top_scope_ != NULL &&
-           top_scope_->stack_marker() != 0 &&
-           top_scope_->stack_marker() == stack_marker) {
-      ApiLocalScope* scope = top_scope_;
-      top_scope_ = top_scope_->previous();
-      delete scope;
-    }
-  }
-
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
-    ApiLocalScope* scope = top_scope_;
-    while (scope != NULL) {
-      scope->local_handles()->VisitObjectPointers(visitor);
-      scope = scope->previous();
-    }
     persistent_handles().VisitObjectPointers(visitor);
   }
 
   void VisitWeakHandles(HandleVisitor* visitor) {
     weak_persistent_handles().VisitHandles(visitor);
-  }
-
-  bool IsValidLocalHandle(Dart_Handle object) const {
-    ApiLocalScope* scope = top_scope_;
-    while (scope != NULL) {
-      if (scope->local_handles()->IsValidHandle(object)) {
-        return true;
-      }
-      scope = scope->previous();
-    }
-    return false;
   }
 
   bool IsValidPersistentHandle(Dart_PersistentHandle object) const {
@@ -762,26 +719,8 @@ class ApiState {
     return object == null_ || object == true_ || object == false_;
   }
 
-  int CountLocalHandles() const {
-    int total = 0;
-    ApiLocalScope* scope = top_scope_;
-    while (scope != NULL) {
-      total += scope->local_handles()->CountHandles();
-      scope = scope->previous();
-    }
-    return total;
-  }
   int CountPersistentHandles() const {
     return persistent_handles_.CountHandles();
-  }
-  int ZoneSizeInBytes() const {
-    int total = 0;
-    ApiLocalScope* scope = top_scope_;
-    while (scope != NULL) {
-      total += scope->zone()->SizeInBytes();
-      scope = scope->previous();
-    }
-    return total;
   }
 
   void SetupAcquiredError() {
@@ -803,8 +742,6 @@ class ApiState {
  private:
   PersistentHandles persistent_handles_;
   FinalizablePersistentHandles weak_persistent_handles_;
-  ApiLocalScope* reusable_scope_;
-  ApiLocalScope* top_scope_;
   WeakTable acquired_table_;
 
   // Persistent handles to important objects.

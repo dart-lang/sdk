@@ -87,6 +87,7 @@ Thread* ThreadRegistry::Schedule(Isolate* isolate,
     thread = mutator_thread_;
   } else {
     thread = GetThreadFromFreelist(isolate);
+    ASSERT(thread->api_top_scope() == NULL);
   }
   thread->isolate_ = isolate;
   thread->heap_ = isolate->heap();
@@ -111,6 +112,7 @@ void ThreadRegistry::Unschedule(Thread* thread,
   os_thread->set_thread(NULL);
   OSThread::SetCurrent(os_thread);
   if (!is_mutator) {
+    ASSERT(thread->api_top_scope() == NULL);
     ReturnThreadToFreelist(thread);
   }
   if (!bypass_safepoint && in_rendezvous_) {
