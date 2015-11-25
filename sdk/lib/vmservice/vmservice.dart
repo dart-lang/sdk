@@ -5,6 +5,7 @@
 library dart._vmservice;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:isolate';
 import 'dart:typed_data';

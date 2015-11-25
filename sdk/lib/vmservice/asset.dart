@@ -38,8 +38,8 @@ class Asset {
   }
 
   /// Call to request assets from the embedder.
-  static Map<String, Asset> request() {
-    Map<String, Asset> assets = new Map<String, Asset>();
+  static HashMap<String, Asset> request() {
+    HashMap<String, Asset> assets = new HashMap<String, Asset>();
     Uint8List tarBytes = _requestAssets();
     if (tarBytes == null) {
       return assets;
