@@ -522,6 +522,26 @@ class ConstantPropagationLattice {
     return foldBinary(constantSystem.greaterEqual, left, right);
   }
 
+  AbstractValue intConstant(int value) {
+    return constant(new IntConstantValue(value));
+  }
+
+  AbstractValue lengthSpecial(AbstractValue input) {
+    if (input.isConstant) {
+      ConstantValue constant = input.constant;
+      if (constant is StringConstantValue) {
+        return intConstant(constant.length);
+      } else if (constant is ListConstantValue) {
+        return intConstant(constant.length);
+      }
+    }
+    int length = typeSystem.getContainerLength(input.type);
+    if (length != null) {
+      return intConstant(length);
+    }
+    return null;  // The caller will use return type from type inference.
+  }
+
   AbstractValue stringConstant(String value) {
     return constant(new StringConstantValue(new ast.DartString.literal(value)));
   }
@@ -2502,16 +2522,14 @@ class TypePropagationVisitor implements Visitor {
     if (node.selector == Selectors.length) {
       AbstractValue object = getValue(node.dartReceiver);
       if (typeSystem.isDefinitelyIndexable(object.type, allowNull: true)) {
-        int length = typeSystem.getContainerLength(object.type.nonNullable());
+        AbstractValue length = lattice.lengthSpecial(object);
         if (length != null) {
-          setResult(node, constantValue(new IntConstantValue(length)),
-              canReplace: !object.isNullable);
+          setResult(node, length, canReplace: !object.isNullable);
         }
       }
     }
 
     if (!node.selector.isOperator) {
-      // TODO(jgruber): Handle known methods on constants such as String.length.
       setResult(node, lattice.getInvokeReturnType(node.selector, node.mask));
       return;
     }
@@ -2959,11 +2977,11 @@ class TypePropagationVisitor implements Visitor {
   void visitGetLength(GetLength node) {
     AbstractValue input = getValue(node.object.definition);
     node.objectIsNotNull = input.isDefinitelyNotNull;
-    int length = typeSystem.getContainerLength(input.type);
+    AbstractValue length = lattice.lengthSpecial(input);
     if (length != null) {
       // TODO(asgerf): Constant-folding the length might degrade the VM's
       // own bounds-check elimination?
-      setValue(node, constantValue(new IntConstantValue(length)));
+      setValue(node, length);
     } else {
       setValue(node, nonConstant(typeSystem.uint32Type));
     }
