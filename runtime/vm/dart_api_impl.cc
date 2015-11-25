@@ -1533,8 +1533,7 @@ DART_EXPORT Dart_Handle Dart_HandleMessage() {
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
   if (I->message_handler()->HandleNextMessage() != MessageHandler::kOK) {
-    Dart_Handle error = Api::NewHandle(T,
-                                       I->object_store()->sticky_error());
+    Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());
     I->object_store()->clear_sticky_error();
     return error;
   }
@@ -2224,12 +2223,11 @@ DART_EXPORT Dart_Handle Dart_NewExternalLatin1String(
   }
   CHECK_LENGTH(length, String::kMaxElements);
   CHECK_CALLBACK_STATE(T);
-  return Api::NewHandle(T,
-                        String::NewExternal(latin1_array,
-                                            length,
-                                            peer,
-                                            cback,
-                                            SpaceForExternal(T, length)));
+  return Api::NewHandle(T, String::NewExternal(latin1_array,
+                                               length,
+                                               peer,
+                                               cback,
+                                               SpaceForExternal(T, length)));
 }
 
 
@@ -2244,12 +2242,11 @@ DART_EXPORT Dart_Handle Dart_NewExternalUTF16String(const uint16_t* utf16_array,
   CHECK_LENGTH(length, String::kMaxElements);
   CHECK_CALLBACK_STATE(T);
   intptr_t bytes = length * sizeof(*utf16_array);
-  return Api::NewHandle(T,
-                        String::NewExternal(utf16_array,
-                                            length,
-                                            peer,
-                                            cback,
-                                            SpaceForExternal(T, bytes)));
+  return Api::NewHandle(T, String::NewExternal(utf16_array,
+                                               length,
+                                               peer,
+                                               cback,
+                                               SpaceForExternal(T, bytes)));
 }
 
 
@@ -2603,8 +2600,8 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
         for (intptr_t i = 0; i < length; ++i) {
           index = Integer::New(i);
           args.SetAt(1, index);
-          Dart_Handle value = Api::NewHandle(T,
-              DartEntry::InvokeFunction(function, args));
+          Dart_Handle value = Api::NewHandle(
+              T, DartEntry::InvokeFunction(function, args));
           if (::Dart_IsError(value))
             return value;
           result[i] = value;
@@ -2753,8 +2750,8 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
     for (int i = 0; i < length; i++) {                                         \
       element = array.At(offset + i);                                          \
       if (!element.IsInteger()) {                                              \
-        return Api::NewHandle(T,                                               \
-            ThrowArgumentError("List contains non-int elements"));             \
+        return Api::NewHandle(                                                 \
+            T, ThrowArgumentError("List contains non-int elements"));          \
                                                                                \
       }                                                                        \
       const Integer& integer = Integer::Cast(element);                         \
@@ -2969,8 +2966,8 @@ DART_EXPORT Dart_Handle Dart_MapGetAt(Dart_Handle map, Dart_Handle key) {
     if (!(key_obj.IsInstance() || key_obj.IsNull())) {
       return Api::NewError("Key is not an instance");
     }
-    return Api::NewHandle(T,
-        Send1Arg(instance, Symbols::IndexToken(), Instance::Cast(key_obj)));
+    return Api::NewHandle(
+        T, Send1Arg(instance, Symbols::IndexToken(), Instance::Cast(key_obj)));
   }
   return Api::NewError("Object does not implement the 'Map' interface");
 }
@@ -3276,41 +3273,41 @@ DART_EXPORT Dart_Handle Dart_NewExternalTypedData(
     case Dart_TypedData_kByteData:
       return NewExternalByteData(T, data, length);
     case Dart_TypedData_kInt8:
-      return NewExternalTypedData(T,
-          kExternalTypedDataInt8ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataInt8ArrayCid, data, length);
     case Dart_TypedData_kUint8:
-      return NewExternalTypedData(T,
-          kExternalTypedDataUint8ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataUint8ArrayCid, data, length);
     case Dart_TypedData_kUint8Clamped:
-      return NewExternalTypedData(T,
-          kExternalTypedDataUint8ClampedArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataUint8ClampedArrayCid, data, length);
     case Dart_TypedData_kInt16:
-      return NewExternalTypedData(T,
-          kExternalTypedDataInt16ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataInt16ArrayCid, data, length);
     case Dart_TypedData_kUint16:
-      return NewExternalTypedData(T,
-          kExternalTypedDataUint16ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataUint16ArrayCid, data, length);
     case Dart_TypedData_kInt32:
-      return NewExternalTypedData(T,
-          kExternalTypedDataInt32ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataInt32ArrayCid, data, length);
     case Dart_TypedData_kUint32:
-      return NewExternalTypedData(T,
-          kExternalTypedDataUint32ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataUint32ArrayCid, data, length);
     case Dart_TypedData_kInt64:
-      return NewExternalTypedData(T,
-          kExternalTypedDataInt64ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataInt64ArrayCid, data, length);
     case Dart_TypedData_kUint64:
-      return NewExternalTypedData(T,
-          kExternalTypedDataUint64ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataUint64ArrayCid, data, length);
     case Dart_TypedData_kFloat32:
-      return NewExternalTypedData(T,
-          kExternalTypedDataFloat32ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataFloat32ArrayCid, data, length);
     case Dart_TypedData_kFloat64:
-      return NewExternalTypedData(T,
-          kExternalTypedDataFloat64ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataFloat64ArrayCid, data, length);
     case Dart_TypedData_kFloat32x4:
-      return NewExternalTypedData(T,
-          kExternalTypedDataFloat32x4ArrayCid, data, length);
+      return NewExternalTypedData(
+          T, kExternalTypedDataFloat32x4ArrayCid, data, length);
     default:
       return Api::NewError("%s expects argument 'type' to be of"
                            " 'external TypedData'", CURRENT_FUNC);
@@ -3906,8 +3903,8 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
     }
     Dart_Handle result;
     Array& args = Array::Handle(Z);
-    result = SetupArguments(T,
-        number_of_arguments, arguments, extra_args, &args);
+    result = SetupArguments(
+        T, number_of_arguments, arguments, extra_args, &args);
     if (!::Dart_IsError(result)) {
       args.SetAt(0, instance);
       args.SetAt(1, Smi::Handle(Z, Smi::New(Function::kCtorPhaseAll)));
@@ -4119,8 +4116,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
 
     if (!getter.IsNull()) {
       // Invoke the getter and return the result.
-      return Api::NewHandle(T,
-          DartEntry::InvokeFunction(getter, Object::empty_array()));
+      return Api::NewHandle(
+          T, DartEntry::InvokeFunction(getter, Object::empty_array()));
     } else if (!field.IsNull()) {
       return Api::NewHandle(T, field.StaticValue());
     } else {
@@ -4150,11 +4147,10 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     if (getter.IsNull()) {
       const Array& args_descriptor =
           Array::Handle(Z, ArgumentsDescriptor::New(args.Length()));
-      return Api::NewHandle(T,
-                            DartEntry::InvokeNoSuchMethod(instance,
-                                                          getter_name,
-                                                          args,
-                                                          args_descriptor));
+      return Api::NewHandle(T, DartEntry::InvokeNoSuchMethod(instance,
+                                                             getter_name,
+                                                             args,
+                                                             args_descriptor));
     }
     return Api::NewHandle(T, DartEntry::InvokeFunction(getter, args));
 
@@ -4185,8 +4181,8 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
 
     if (!getter.IsNull()) {
       // Invoke the getter and return the result.
-      return Api::NewHandle(T,
-          DartEntry::InvokeFunction(getter, Object::empty_array()));
+      return Api::NewHandle(
+          T, DartEntry::InvokeFunction(getter, Object::empty_array()));
     }
     if (!field.IsNull()) {
       return Api::NewHandle(T, field.StaticValue());
