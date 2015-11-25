@@ -1,3 +1,8 @@
+# 0.1.8
+
+* Fix to protect against errors in linting invalid source (dart-lang/sdk#24910).
+* Added `avoid_empty_else` lint rule (dart-lang/sdk#224936).
+
 # 0.1.7
 
 * Fix to `package_api_docs` (dart-lang/sdk#24947; #154).
