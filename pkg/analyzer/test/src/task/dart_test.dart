@@ -63,6 +63,7 @@ main() {
   runReflectiveTests(PropagateVariableTypesInUnitTaskTest);
   runReflectiveTests(PropagateVariableTypeTaskTest);
   runReflectiveTests(ResolveInstanceFieldsInUnitTaskTest);
+  runReflectiveTests(ResolveLibraryTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
   runReflectiveTests(ResolveUnitTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
@@ -125,6 +126,7 @@ isInstanceOf isPropagateVariableTypesInUnitTask =
     new isInstanceOf<PropagateVariableTypesInUnitTask>();
 isInstanceOf isPropagateVariableTypeTask =
     new isInstanceOf<PropagateVariableTypeTask>();
+isInstanceOf isResolveLibraryTask = new isInstanceOf<ResolveLibraryTask>();
 isInstanceOf isResolveLibraryTypeNamesTask =
     new isInstanceOf<ResolveLibraryTypeNamesTask>();
 isInstanceOf isResolveUnitTask = new isInstanceOf<ResolveUnitTask>();
@@ -3444,6 +3446,32 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     // B.b2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
         getFieldInClass(unit0, "B", "b2"), intType, intType);
+  }
+}
+
+@reflectiveTest
+class ResolveLibraryTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source sourceLib = newSource(
+        '/my_lib.dart',
+        '''
+library my_lib;
+const a = new A();
+class A {
+  const A();
+}
+@a
+class C {}
+''');
+    computeResult(sourceLib, LIBRARY_ELEMENT, matcher: isResolveLibraryTask);
+    // validate
+    LibraryElement library = outputs[LIBRARY_ELEMENT];
+    ClassElement classC = library.getType('C');
+    List<ElementAnnotation> metadata = classC.metadata;
+    expect(metadata, hasLength(1));
+    ElementAnnotation annotation = metadata[0];
+    expect(annotation, isNotNull);
+    expect((annotation as ElementAnnotationImpl).evaluationResult, isNotNull);
   }
 }
 
