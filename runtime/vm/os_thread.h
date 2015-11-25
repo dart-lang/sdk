@@ -75,7 +75,8 @@ class OSThread : public BaseThread {
   void set_name(const char* name) {
     ASSERT(OSThread::Current() == this);
     ASSERT(name_ == NULL);
-    name_ = name;
+    ASSERT(name != NULL);
+    name_ = strdup(name);
   }
 
   Mutex* timeline_block_lock() const {
@@ -202,7 +203,7 @@ class OSThread : public BaseThread {
   const ThreadId id_;
   const ThreadId join_id_;
   const ThreadId trace_id_;  // Used to interface with tracing tools.
-  const char* name_;  // A name for this thread.
+  char* name_;  // A name for this thread.
 
   Mutex* timeline_block_lock_;
   TimelineEventBlock* timeline_block_;
