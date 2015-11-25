@@ -64,10 +64,6 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
       }''',
   'LinkedHashMap': r'''
       class LinkedHashMap<K, V> implements Map<K, V> {
-        factory LinkedHashMap._empty() => null;
-        factory LinkedHashMap._literal(elements) => null;
-        static _makeEmpty() => null;
-        static _makeLiteral(elements) => null;
       }''',
   'List': r'''
       class List<E> extends Iterable<E> {
@@ -113,6 +109,14 @@ import 'dart:_js_helper';
 import 'dart:_interceptors';
 import 'dart:_isolate_helper';
 import 'dart:async';
+
+@patch
+class LinkedHashMap<K, V> {
+  factory LinkedHashMap._empty() => null;
+  factory LinkedHashMap._literal(elements) => null;
+  static _makeEmpty() => null;
+  static _makeLiteral(elements) => null;
+}
 ''';
 
 const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{

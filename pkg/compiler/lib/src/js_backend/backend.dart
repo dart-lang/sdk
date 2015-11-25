@@ -581,6 +581,52 @@ class JavaScriptBackend extends Backend {
         new Namer(compiler);
   }
 
+  /// The backend must *always* call this method when enqueuing an
+  /// element. Calls done by the backend are not seen by global
+  /// optimizations, so they would make these optimizations unsound.
+  /// Therefore we need to collect the list of helpers the backend may
+  /// use.
+  // TODO(johnniwinther): Replace this with a more precise modelling; type
+  // inference of these elements is disabled.
+  Element registerBackendUse(Element element) {
+    if (element != null) {
+      bool registerUse = false;
+      if (element == helpers.streamIteratorConstructor ||
+          element == helpers.compiler.symbolConstructor ||
+          element == helpers.compiler.symbolValidatedConstructor ||
+          element == helpers.syncCompleterConstructor ||
+          element == coreClasses.symbolClass ||
+          element == helpers.objectNoSuchMethod) {
+        // TODO(johnniwinther): These are valid but we could be more precise.
+        registerUse = true;
+      } else if (element.implementationLibrary.isPatch ||
+                 element.library == helpers.jsHelperLibrary ||
+                 element.library == helpers.interceptorsLibrary ||
+                 element.library == helpers.isolateHelperLibrary) {
+        // TODO(johnniwinther): We should be more precise about these.
+        registerUse = true;
+      } else if (element == coreClasses.listClass ||
+                 element == helpers.mapLiteralClass ||
+                 element == coreClasses.functionClass ||
+                 element == coreClasses.stringClass) {
+        // TODO(johnniwinther): Avoid these.
+        registerUse = true;
+      }
+      if (!registerUse) {
+        assert(invariant(element, false,
+            message: "Backend use of $element is not allowed."));
+        return element;
+      }
+      helpersUsed.add(element.declaration);
+      if (element.isClass && element.isPatched) {
+        // Both declaration and implementation may declare fields, so we
+        // add both to the list of helpers.
+        helpersUsed.add(element.implementation);
+      }
+    }
+    return element;
+  }
+
   bool usedByBackend(Element element) {
     if (element.isParameter
         || element.isInitializingFormal
@@ -1477,23 +1523,6 @@ class JavaScriptBackend extends Backend {
   bool methodNeedsRti(FunctionElement function) {
     return rti.methodsNeedingRti.contains(function) ||
            compiler.enabledRuntimeType;
-  }
-
-  /// The backend must *always* call this method when enqueuing an
-  /// element. Calls done by the backend are not seen by global
-  /// optimizations, so they would make these optimizations unsound.
-  /// Therefore we need to collect the list of helpers the backend may
-  /// use.
-  Element registerBackendUse(Element element) {
-    if (element != null) {
-      helpersUsed.add(element.declaration);
-      if (element.isClass && element.isPatched) {
-        // Both declaration and implementation may declare fields, so we
-        // add both to the list of helpers.
-        helpersUsed.add(element.implementation);
-      }
-    }
-    return element;
   }
 
   /// Enqueue [e] in [enqueuer].

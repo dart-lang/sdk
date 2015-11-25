@@ -6,6 +6,7 @@ library dart2js.js_backend.helpers;
 
 import '../common.dart';
 import '../common/names.dart' show
+    Identifiers,
     Uris;
 import '../common/resolution.dart' show
     Resolution;
@@ -678,5 +679,19 @@ class BackendHelpers {
 
   Element get convertRtiToRuntimeType {
     return findHelper('convertRtiToRuntimeType');
+  }
+
+  ClassElement get stackTraceClass {
+    return findHelper('_StackTrace');
+  }
+
+  MethodElement _objectNoSuchMethod;
+
+  MethodElement get objectNoSuchMethod {
+    if (_objectNoSuchMethod == null) {
+      _objectNoSuchMethod =
+          coreClasses.objectClass.lookupLocalMember(Identifiers.noSuchMethod_);
+    }
+    return _objectNoSuchMethod;
   }
 }
