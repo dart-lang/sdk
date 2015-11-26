@@ -949,8 +949,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.StringConcatenate:
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
-      case BuiltinOperator.CharCodeAt:
-        return js.js('#.charCodeAt(#)', args);
       case BuiltinOperator.Identical:
         registry.registerStaticUse(new StaticUse.staticInvoke(
             glue.identicalFunction, new CallStructure.unnamed(args.length)));

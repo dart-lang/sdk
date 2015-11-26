@@ -452,10 +452,6 @@ class ConstantPropagationLattice {
     return folded ?? closedOnUint(left, right) ?? closedOnInt(left, right);
   }
 
-  AbstractValue codeUnitAtSpecial(AbstractValue left, AbstractValue right) {
-    return foldBinary(constantSystem.codeUnitAt, left, right);
-  }
-
   AbstractValue equalSpecial(AbstractValue left, AbstractValue right) {
     AbstractValue folded = foldBinary(constantSystem.equal, left, right);
     if (folded != null) return folded;
@@ -1143,21 +1139,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               isIntNotZero(argValue)) {
             return
                 replaceWithBinary(BuiltinOperator.NumRemainder, receiver, arg);
-          }
-        }
-      } else if (name == 'codeUnitAt') {
-        if (node.arguments.length == 2) {
-          Primitive index = node.dartArgument(0);
-          if (lattice.isDefinitelyString(receiverValue) &&
-              lattice.isDefinitelyInt(getValue(index))) {
-            SourceInformation sourceInfo = node.sourceInformation;
-            CpsFragment cps = makeBoundsCheck(receiver, index, sourceInfo);
-            ApplyBuiltinOperator get =
-                cps.applyBuiltin(BuiltinOperator.CharCodeAt,
-                                 <Primitive>[receiver, index]);
-            node.replaceUsesWith(get);
-            get.hint = node.hint;
-            return cps;
           }
         }
       }
@@ -2537,34 +2518,15 @@ class TypePropagationVisitor implements Visitor {
       return;  // And come back later.
     }
 
-    if (node.selector.isGetter) {
-      // Constant fold known length of containers.
-      if (node.selector == Selectors.length) {
-        AbstractValue object = getValue(node.dartReceiver);
-        if (typeSystem.isDefinitelyIndexable(object.type, allowNull: true)) {
-          AbstractValue length = lattice.lengthSpecial(object);
-          if (length != null) {
-            setResult(node, length, canReplace: !object.isNullable);
-          }
+    // Constant fold known length of containers.
+    if (node.selector == Selectors.length) {
+      AbstractValue object = getValue(node.dartReceiver);
+      if (typeSystem.isDefinitelyIndexable(object.type, allowNull: true)) {
+        AbstractValue length = lattice.lengthSpecial(object);
+        if (length != null) {
+          setResult(node, length, canReplace: !object.isNullable);
         }
       }
-      setResult(node, lattice.getInvokeReturnType(node.selector, node.mask));
-      return;
-    }
-
-    if (node.selector.isCall) {
-      AbstractValue result;
-      if (node.selector == Selectors.codeUnitAt) {
-        AbstractValue object = getValue(node.dartReceiver);
-        AbstractValue right = getValue(node.dartArgument(0));
-        result = lattice.codeUnitAtSpecial(object, right);
-      }
-      if (result == null) {
-        setResult(node, lattice.getInvokeReturnType(node.selector, node.mask));
-      } else {
-        setResult(node, result, canReplace: true);
-      }
-      return;
     }
 
     if (!node.selector.isOperator) {
@@ -2655,10 +2617,6 @@ class TypePropagationVisitor implements Visitor {
         } else {
           setValue(node, constantValue(new StringConstantValue(stringValue)));
         }
-        break;
-
-      case BuiltinOperator.CharCodeAt:
-        binaryOp(lattice.codeUnitAtSpecial, typeSystem.uint31Type);
         break;
 
       case BuiltinOperator.Identical:
