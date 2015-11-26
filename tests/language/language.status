@@ -96,8 +96,8 @@ gc_test: SkipSlow # Times out flakily. Issue 20956
 [ $compiler == none && $runtime == vm && ( $arch == simarm || $arch == arm || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
 
-[ $compiler == none && ( $runtime == dartium || $runtime == drt ) ]
-issue23244_test: Fail # Can't run spawnFunction on dartium.
+[ $compiler == none && $runtime == dartium ]
+issue23244_test: Fail # Issue 23244
 
 [ $compiler == none && ($runtime == vm || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
