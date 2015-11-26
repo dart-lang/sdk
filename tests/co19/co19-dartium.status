@@ -833,7 +833,7 @@ LibTest/isolate/RawReceivePort/sendPort_A01_t01: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/any_A01_t01: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/any_A01_t02: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A01_t01: RuntimeError # Issue 13921
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t02: Pass # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
+LibTest/isolate/ReceivePort/asBroadcastStream_A01_t02: Pass, RuntimeError # Issue 13921, co19 issue for false pass https://github.com/dart-lang/co19/issues/13
 LibTest/isolate/ReceivePort/asBroadcastStream_A01_t03: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A01_t04: RuntimeError # Issue 13921
 LibTest/isolate/ReceivePort/asBroadcastStream_A02_t01: RuntimeError # Issue 13921
