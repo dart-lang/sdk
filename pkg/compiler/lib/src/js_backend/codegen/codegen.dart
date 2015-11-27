@@ -272,6 +272,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
     Selector selector = node.selector;
     TypeMask mask = node.mask;
+    mask = glue.extendMaskIfReachesAll(selector, mask);
     if (selector.isGetter) {
       registry.registerDynamicUse(new DynamicUse(selector, mask));
     } else if (selector.isSetter) {

@@ -23,7 +23,6 @@ compute_this_script_test: Skip # Issue 17458
 [ $compiler == dart2js && $cps_ir ]
 native_exception_test: RuntimeError # Issue 24421
 native_method_inlining_test: RuntimeError # Please triage this failure.
-native_no_such_method_exception3_frog_test: RuntimeError # Please triage this failure.
 optimization_hints_test: RuntimeError # Please triage this failure.
 subclassing_constructor_1_test: RuntimeError # Please triage this failure.
 subclassing_constructor_2_test: RuntimeError # Please triage this failure.

@@ -333,16 +333,12 @@ gc_test: Crash # Internal Error: Pending statics (see above).
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instanceof2_test: RuntimeError # Please triage this failure.
 instanceof4_test/01: RuntimeError # Please triage this failure.
-invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 list_is_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
 many_generic_instanceof_test: RuntimeError # Please triage this failure.
-many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
 nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
-no_such_method_test: RuntimeError # Please triage this failure.
-overridden_no_such_method_test: RuntimeError # Please triage this failure.
 regress_22443_test: RuntimeError # M.loadLibrary is not a function
 regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23500_test/01: Crash # (await for(var c in new Stream.fromIterable([] )){}): await for

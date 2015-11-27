@@ -30,7 +30,7 @@ import '../../universe/selector.dart' show
     Selector;
 import '../../world.dart' show
     ClassWorld;
-
+import '../../types/types.dart';
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -285,6 +285,10 @@ class Glue {
 
   ConstantValue getDefaultParameterValue(ParameterElement elem) {
     return _backend.constants.getConstantValueForVariable(elem);
+  }
+
+  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
+    return _compiler.world.extendMaskIfReachesAll(selector, mask);
   }
 
   FunctionElement get closureFromTearOff => _backend.helpers.closureFromTearOff;
