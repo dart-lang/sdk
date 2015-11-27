@@ -61,7 +61,7 @@ analyze_unused_dart2js_test: Pass, Slow
 uri_retention_test: Pass, Slow
 deferred_mirrors_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow
-check_elements_invariants_test: Slow, Pass
+check_elements_invariants_test: Slow, Pass, Timeout
 import_mirrors_test: Slow, Pass
 exit_code_test: Pass, Slow
 value_range_test: Pass, Slow

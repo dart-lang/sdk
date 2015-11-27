@@ -6,14 +6,13 @@ library test.services.completion.dart.inherited_computer_test;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/inherited_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     hide DartCompletionContributor;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-// import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
@@ -70,9 +69,9 @@ class A {
   B suggested2(String y) => null;
 }
 ''');
-  addSource(
-      '/otherPart.dart',
-      '''
+    addSource(
+        '/otherPart.dart',
+        '''
 part of myLib;
 class B extends A {
   B suggested2(String y) => null;

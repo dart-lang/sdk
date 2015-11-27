@@ -273,8 +273,8 @@ static char* CanonicalizeUri(Thread* thread,
   if (handler != NULL) {
     Dart_EnterScope();
     Dart_Handle handle = handler(Dart_kCanonicalizeUrl,
-                                 Api::NewHandle(isolate, library.raw()),
-                                 Api::NewHandle(isolate, uri.raw()));
+                                 Api::NewHandle(thread, library.raw()),
+                                 Api::NewHandle(thread, uri.raw()));
     const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
     if (obj.IsString()) {
       result = String2UTF8(String::Cast(obj));

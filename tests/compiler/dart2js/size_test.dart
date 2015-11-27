@@ -9,9 +9,9 @@ import "compiler_helper.dart";
 const String TEST = "main() => [];";
 
 const Map<String, String> DEFAULT_CORELIB_WITH_LIST = const <String, String>{
-  'Object': 'class Object { Object(); }',
+  'Object': 'class Object { const Object(); }',
   'bool': 'class bool {}',
-  'List': 'abstract class List {}',
+  'List': 'abstract class List<E> {}',
   'num': 'class num {}',
   'int': 'class int {}',
   'double': 'class double {}',

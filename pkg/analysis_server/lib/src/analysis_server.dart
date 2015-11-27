@@ -892,35 +892,28 @@ class AnalysisServer {
   /**
    * Sends a `server.error` notification.
    */
-  void sendServerErrorNotification(String msg, exception, stackTrace,
+  void sendServerErrorNotification(String message, exception, stackTrace,
       {bool fatal: false}) {
-    // prepare exception.toString()
-    String exceptionString;
+    StringBuffer buffer = new StringBuffer();
     if (exception != null) {
-      exceptionString = exception.toString();
+      buffer.write(exception);
     } else {
-      exceptionString = 'null exception';
+      buffer.write('null exception');
     }
-    // prepare message
-    String message = msg != null ? '$msg\n$exceptionString' : exceptionString;
-    // prepare stackTrace.toString()
-    String stackTraceString;
     if (stackTrace != null) {
-      stackTraceString = stackTrace.toString();
-    } else {
+      buffer.writeln();
+      buffer.write(stackTrace);
+    } else if (exception is! CaughtException) {
       try {
         throw 'ignored';
       } catch (ignored, stackTrace) {
-        stackTraceString = stackTrace.toString();
-      }
-      if (stackTraceString == null) {
-        // This code should be unreachable.
-        stackTraceString = 'null stackTrace';
+        buffer.writeln();
+        buffer.write(stackTrace);
       }
     }
     // send the notification
     channel.sendNotification(
-        new ServerErrorParams(fatal, message, stackTraceString)
+        new ServerErrorParams(fatal, message, buffer.toString())
             .toNotification());
   }
 

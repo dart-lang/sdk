@@ -622,13 +622,17 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
       ClassElementImpl typeReference = getTypeReference(target);
       if (typeReference != null) {
-        staticElement =
-            propagatedElement = _resolveElement(typeReference, methodName);
+        staticElement = _resolveElement(typeReference, methodName);
       } else {
         staticElement = _resolveInvokedElementWithTarget(
             target, staticType, methodName, isConditional);
-        propagatedElement = _resolveInvokedElementWithTarget(
-            target, propagatedType, methodName, isConditional);
+        // If we have propagated type information use it (since it should
+        // not be redundant with the staticType).  Otherwise, don't produce
+        // a propagatedElement which duplicates the staticElement.
+        if (propagatedType is InterfaceType) {
+          propagatedElement = _resolveInvokedElementWithTarget(
+              target, propagatedType, methodName, isConditional);
+        }
       }
     }
     staticElement = _convertSetterToGetter(staticElement);

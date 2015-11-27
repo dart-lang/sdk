@@ -634,7 +634,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
   // Invoke the isolate's unhandled exception callback if there is one.
   if (Isolate::UnhandledExceptionCallback() != NULL) {
     Dart_EnterScope();
-    Dart_Handle error = Api::NewHandle(I, result.raw());
+    Dart_Handle error = Api::NewHandle(T, result.raw());
     (Isolate::UnhandledExceptionCallback())(error);
     Dart_ExitScope();
   }

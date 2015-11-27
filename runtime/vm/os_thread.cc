@@ -44,6 +44,7 @@ OSThread::~OSThread() {
   }
   timeline_block_ = NULL;
   delete timeline_block_lock_;
+  free(name_);
 }
 
 

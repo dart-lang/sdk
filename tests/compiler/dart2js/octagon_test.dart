@@ -233,15 +233,33 @@ contradict2() {
 }
 
 lower_bounds_check() {
+  setup();
   SignedVariable w = octagon.makeVariable(0, 1000);
   pushConstraint(w, w, -1);
   Expect.isTrue(octagon.isUnsolvable, 'Value in range 0..1000 is not <= -1');
 }
 
 upper_bounds_check() {
+  setup();
   SignedVariable w = octagon.makeVariable(0, 1000);
   pushConstraint(w.negated, w.negated, -5000);
   Expect.isTrue(octagon.isUnsolvable, 'Value in range 0..1000 is not >= 5000');
+}
+
+diamond_graph() {
+  setup();
+  pushConstraint(v1, v2.negated, 10);
+  pushConstraint(v1, v3.negated, 1);
+  pushConstraint(v2, v3.negated, 1);
+  pushConstraint(v2, v4.negated, 2);
+  pushConstraint(v3, v2.negated, 0);
+  pushConstraint(v3, v4.negated, 100);
+  Expect.isTrue(octagon.isSolvable, 'v1 <= v4 + 3');
+  var c = pushConstraint(v4, v1.negated, -4);
+  Expect.isTrue(octagon.isUnsolvable, 'v4 <= v1 - 4 should be a contradiction');
+  popConstraint(c);
+  pushConstraint(v1.negated, v4, -4); // Check converse constraint.
+  Expect.isTrue(octagon.isUnsolvable, 'v4 <= v1 - 4 should be a contradiction');
 }
 
 void main() {
@@ -261,4 +279,5 @@ void main() {
   contradict2();
   lower_bounds_check();
   upper_bounds_check();
+  diamond_graph();
 }

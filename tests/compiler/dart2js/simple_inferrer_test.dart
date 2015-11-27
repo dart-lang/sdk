@@ -778,7 +778,7 @@ void main() {
     checkReturn('testIsCheck17', intType);
     checkReturn('testIsCheck18', typesTask.dynamicType);
     checkReturn('testIsCheck19', typesTask.dynamicType);
-    checkReturn('testIsCheck20', typesTask.dynamicType.nonNullable());
+    checkReturn('testIsCheck20', interceptorType);
     checkReturn('testIsCheck21', typesTask.dynamicType);
     checkReturn('testIsCheck22', typesTask.dynamicType);
     checkReturn('testIsCheck23', intType);

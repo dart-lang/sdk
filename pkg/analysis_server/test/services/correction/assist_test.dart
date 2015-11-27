@@ -343,6 +343,53 @@ main(List<String> items) {
 ''');
   }
 
+  test_addTypeAnnotation_local_BAD_hasTypeAnnotation() async {
+    resolveTestUnit('''
+main() {
+  int v = 42;
+}
+''');
+    await assertNoAssistAt(' = 42', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  test_addTypeAnnotation_local_BAD_multiple() async {
+    resolveTestUnit('''
+main() {
+  var a = 1, b = '';
+}
+''');
+    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  test_addTypeAnnotation_local_BAD_noValue() async {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+main() {
+  var v;
+}
+''');
+    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  test_addTypeAnnotation_local_BAD_null() async {
+    resolveTestUnit('''
+main() {
+  var v = null;
+}
+''');
+    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  test_addTypeAnnotation_local_BAD_unknown() async {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+main() {
+  var v = unknownVar;
+}
+''');
+    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
   test_addTypeAnnotation_local_generic_OK_literal() async {
     resolveTestUnit('''
 class A {
@@ -630,53 +677,6 @@ main() {
 ''');
   }
 
-  test_addTypeAnnotation_local_wrong_hasTypeAnnotation() async {
-    resolveTestUnit('''
-main() {
-  int v = 42;
-}
-''');
-    await assertNoAssistAt(' = 42', DartAssistKind.ADD_TYPE_ANNOTATION);
-  }
-
-  test_addTypeAnnotation_local_wrong_multiple() async {
-    resolveTestUnit('''
-main() {
-  var a = 1, b = '';
-}
-''');
-    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
-  }
-
-  test_addTypeAnnotation_local_wrong_noValue() async {
-    verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
-main() {
-  var v;
-}
-''');
-    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
-  }
-
-  test_addTypeAnnotation_local_wrong_null() async {
-    resolveTestUnit('''
-main() {
-  var v = null;
-}
-''');
-    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
-  }
-
-  test_addTypeAnnotation_local_wrong_unknown() async {
-    verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
-main() {
-  var v = unknownVar;
-}
-''');
-    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
-  }
-
   test_addTypeAnnotation_OK_privateType_sameLibrary() async {
     resolveTestUnit('''
 class _A {}
@@ -735,6 +735,20 @@ main() {
 ''');
   }
 
+  test_addTypeAnnotation_topLevelField_BAD_multiple() async {
+    resolveTestUnit('''
+var A = 1, V = '';
+''');
+    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
+  test_addTypeAnnotation_topLevelField_BAD_noValue() async {
+    resolveTestUnit('''
+var V;
+''');
+    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
   test_addTypeAnnotation_topLevelField_OK_int() async {
     resolveTestUnit('''
 var V = 0;
@@ -745,20 +759,6 @@ var V = 0;
         '''
 int V = 0;
 ''');
-  }
-
-  test_addTypeAnnotation_topLevelField_wrong_multiple() async {
-    resolveTestUnit('''
-var A = 1, V = '';
-''');
-    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
-  }
-
-  test_addTypeAnnotation_topLevelField_wrong_noValue() async {
-    resolveTestUnit('''
-var V;
-''');
-    await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
   }
 
   test_assignToLocalVariable() async {
@@ -986,6 +986,22 @@ class A {
 ''');
   }
 
+  test_convertToBlockBody_BAD_noEnclosingFunction() async {
+    resolveTestUnit('''
+var v = 123;
+''');
+    await assertNoAssistAt('v =', DartAssistKind.CONVERT_INTO_BLOCK_BODY);
+  }
+
+  test_convertToBlockBody_BAD_notExpressionBlock() async {
+    resolveTestUnit('''
+fff() {
+  return 123;
+}
+''');
+    await assertNoAssistAt('fff() {', DartAssistKind.CONVERT_INTO_BLOCK_BODY);
+  }
+
   test_convertToBlockBody_OK_async() async {
     resolveTestUnit('''
 class A {
@@ -1120,20 +1136,50 @@ fff() {
 ''');
   }
 
-  test_convertToBlockBody_wrong_noEnclosingFunction() async {
+  test_convertToExpressionBody_BAD_already() async {
     resolveTestUnit('''
-var v = 123;
+fff() => 42;
 ''');
-    await assertNoAssistAt('v =', DartAssistKind.CONVERT_INTO_BLOCK_BODY);
+    await assertNoAssistAt(
+        'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
-  test_convertToBlockBody_wrong_notExpressionBlock() async {
+  test_convertToExpressionBody_BAD_moreThanOneStatement() async {
     resolveTestUnit('''
 fff() {
-  return 123;
+  var v = 42;
+  return v;
 }
 ''');
-    await assertNoAssistAt('fff() {', DartAssistKind.CONVERT_INTO_BLOCK_BODY);
+    await assertNoAssistAt(
+        'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  test_convertToExpressionBody_BAD_noEnclosingFunction() async {
+    resolveTestUnit('''
+var V = 42;
+''');
+    await assertNoAssistAt('V = ', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  test_convertToExpressionBody_BAD_noReturn() async {
+    resolveTestUnit('''
+fff() {
+  var v = 42;
+}
+''');
+    await assertNoAssistAt(
+        'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
+  }
+
+  test_convertToExpressionBody_BAD_noReturnValue() async {
+    resolveTestUnit('''
+fff() {
+  return;
+}
+''');
+    await assertNoAssistAt(
+        'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
   test_convertToExpressionBody_OK_async() async {
@@ -1270,52 +1316,6 @@ fff() {
         '''
 fff() => 42;
 ''');
-  }
-
-  test_convertToExpressionBody_wrong_already() async {
-    resolveTestUnit('''
-fff() => 42;
-''');
-    await assertNoAssistAt(
-        'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
-  }
-
-  test_convertToExpressionBody_wrong_moreThanOneStatement() async {
-    resolveTestUnit('''
-fff() {
-  var v = 42;
-  return v;
-}
-''');
-    await assertNoAssistAt(
-        'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
-  }
-
-  test_convertToExpressionBody_wrong_noEnclosingFunction() async {
-    resolveTestUnit('''
-var V = 42;
-''');
-    await assertNoAssistAt('V = ', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
-  }
-
-  test_convertToExpressionBody_wrong_noReturn() async {
-    resolveTestUnit('''
-fff() {
-  var v = 42;
-}
-''');
-    await assertNoAssistAt(
-        'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
-  }
-
-  test_convertToExpressionBody_wrong_noReturnValue() async {
-    resolveTestUnit('''
-fff() {
-  return;
-}
-''');
-    await assertNoAssistAt(
-        'fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
   test_convertToFieldParameter_BAD_additionalUse() async {
@@ -1585,6 +1585,89 @@ main(List<String> items) {
 ''');
   }
 
+  test_convertToIsNot_BAD_is_alreadyIsNot() async {
+    resolveTestUnit('''
+main(p) {
+  p is! String;
+}
+''');
+    await assertNoAssistAt('is!', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  test_convertToIsNot_BAD_is_noEnclosingParenthesis() async {
+    resolveTestUnit('''
+main(p) {
+  p is String;
+}
+''');
+    await assertNoAssistAt('is String', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  test_convertToIsNot_BAD_is_noPrefix() async {
+    resolveTestUnit('''
+main(p) {
+  (p is String);
+}
+''');
+    await assertNoAssistAt('is String', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  test_convertToIsNot_BAD_is_notIsExpression() async {
+    resolveTestUnit('''
+main(p) {
+  123 + 456;
+}
+''');
+    await assertNoAssistAt('123 +', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  test_convertToIsNot_BAD_is_notTheNotOperator() async {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+main(p) {
+  ++(p is String);
+}
+''');
+    await assertNoAssistAt('is String', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  test_convertToIsNot_BAD_not_alreadyIsNot() async {
+    resolveTestUnit('''
+main(p) {
+  !(p is! String);
+}
+''');
+    await assertNoAssistAt('!(p', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  test_convertToIsNot_BAD_not_noEnclosingParenthesis() async {
+    resolveTestUnit('''
+main(p) {
+  !p;
+}
+''');
+    await assertNoAssistAt('!p', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  test_convertToIsNot_BAD_not_notIsExpression() async {
+    resolveTestUnit('''
+main(p) {
+  !(p == null);
+}
+''');
+    await assertNoAssistAt('!(p', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
+  test_convertToIsNot_BAD_not_notTheNotOperator() async {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+main(p) {
+  ++(p is String);
+}
+''');
+    await assertNoAssistAt('++(', DartAssistKind.CONVERT_INTO_IS_NOT);
+  }
+
   test_convertToIsNot_OK_childOfIs_left() async {
     resolveTestUnit('''
 main(p) {
@@ -1697,87 +1780,47 @@ main(p) {
 ''');
   }
 
-  test_convertToIsNot_wrong_is_alreadyIsNot() async {
-    resolveTestUnit('''
-main(p) {
-  p is! String;
-}
-''');
-    await assertNoAssistAt('is!', DartAssistKind.CONVERT_INTO_IS_NOT);
-  }
-
-  test_convertToIsNot_wrong_is_noEnclosingParenthesis() async {
-    resolveTestUnit('''
-main(p) {
-  p is String;
-}
-''');
-    await assertNoAssistAt('is String', DartAssistKind.CONVERT_INTO_IS_NOT);
-  }
-
-  test_convertToIsNot_wrong_is_noPrefix() async {
-    resolveTestUnit('''
-main(p) {
-  (p is String);
-}
-''');
-    await assertNoAssistAt('is String', DartAssistKind.CONVERT_INTO_IS_NOT);
-  }
-
-  test_convertToIsNot_wrong_is_notIsExpression() async {
-    resolveTestUnit('''
-main(p) {
-  123 + 456;
-}
-''');
-    await assertNoAssistAt('123 +', DartAssistKind.CONVERT_INTO_IS_NOT);
-  }
-
-  test_convertToIsNot_wrong_is_notTheNotOperator() async {
+  test_convertToIsNotEmpty_BAD_noBang() async {
     verifyNoTestUnitErrors = false;
     resolveTestUnit('''
-main(p) {
-  ++(p is String);
+main(String str) {
+  ~str.isEmpty;
 }
 ''');
-    await assertNoAssistAt('is String', DartAssistKind.CONVERT_INTO_IS_NOT);
+    await assertNoAssistAt(
+        'isEmpty;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
-  test_convertToIsNot_wrong_not_alreadyIsNot() async {
+  test_convertToIsNotEmpty_BAD_noIsNotEmpty() async {
     resolveTestUnit('''
-main(p) {
-  !(p is! String);
+class A {
+  bool get isEmpty => false;
+}
+main(A a) {
+  !a.isEmpty;
 }
 ''');
-    await assertNoAssistAt('!(p', DartAssistKind.CONVERT_INTO_IS_NOT);
+    await assertNoAssistAt(
+        'isEmpty;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
-  test_convertToIsNot_wrong_not_noEnclosingParenthesis() async {
+  test_convertToIsNotEmpty_BAD_notInPrefixExpression() async {
     resolveTestUnit('''
-main(p) {
-  !p;
+main(String str) {
+  str.isEmpty;
 }
 ''');
-    await assertNoAssistAt('!p', DartAssistKind.CONVERT_INTO_IS_NOT);
+    await assertNoAssistAt(
+        'isEmpty;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
-  test_convertToIsNot_wrong_not_notIsExpression() async {
+  test_convertToIsNotEmpty_BAD_notIsEmpty() async {
     resolveTestUnit('''
-main(p) {
-  !(p == null);
+main(int p) {
+  !p.isEven;
 }
 ''');
-    await assertNoAssistAt('!(p', DartAssistKind.CONVERT_INTO_IS_NOT);
-  }
-
-  test_convertToIsNot_wrong_not_notTheNotOperator() async {
-    verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
-main(p) {
-  ++(p is String);
-}
-''');
-    await assertNoAssistAt('++(', DartAssistKind.CONVERT_INTO_IS_NOT);
+    await assertNoAssistAt('isEven;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
   test_convertToIsNotEmpty_OK_on_isEmpty() async {
@@ -1826,49 +1869,6 @@ main(String str) {
   'text'.isNotEmpty;
 }
 ''');
-  }
-
-  test_convertToIsNotEmpty_wrong_noBang() async {
-    verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
-main(String str) {
-  ~str.isEmpty;
-}
-''');
-    await assertNoAssistAt(
-        'isEmpty;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
-  }
-
-  test_convertToIsNotEmpty_wrong_noIsNotEmpty() async {
-    resolveTestUnit('''
-class A {
-  bool get isEmpty => false;
-}
-main(A a) {
-  !a.isEmpty;
-}
-''');
-    await assertNoAssistAt(
-        'isEmpty;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
-  }
-
-  test_convertToIsNotEmpty_wrong_notInPrefixExpression() async {
-    resolveTestUnit('''
-main(String str) {
-  str.isEmpty;
-}
-''');
-    await assertNoAssistAt(
-        'isEmpty;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
-  }
-
-  test_convertToIsNotEmpty_wrong_notIsEmpty() async {
-    resolveTestUnit('''
-main(int p) {
-  !p.isEven;
-}
-''');
-    await assertNoAssistAt('isEven;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
   }
 
   test_convertToNormalParameter_OK_dynamic() async {
@@ -2053,6 +2053,36 @@ main(A a) {
 ''');
   }
 
+  test_exchangeBinaryExpressionArguments_BAD_extraLength() async {
+    resolveTestUnit('''
+main() {
+  111 + 222;
+}
+''');
+    length = 3;
+    await assertNoAssistAt('+ 222', DartAssistKind.EXCHANGE_OPERANDS);
+  }
+
+  test_exchangeBinaryExpressionArguments_BAD_onOperand() async {
+    resolveTestUnit('''
+main() {
+  111 + 222;
+}
+''');
+    length = 3;
+    await assertNoAssistAt('11 +', DartAssistKind.EXCHANGE_OPERANDS);
+  }
+
+  test_exchangeBinaryExpressionArguments_BAD_selectionWithBinary() async {
+    resolveTestUnit('''
+main() {
+  1 + 2 + 3;
+}
+''');
+    length = '1 + 2 + 3'.length;
+    await assertNoAssistAt('1 + 2 + 3', DartAssistKind.EXCHANGE_OPERANDS);
+  }
+
   test_exchangeBinaryExpressionArguments_OK_compare() async {
     const initialOperators = const ['<', '<=', '>', '>='];
     const resultOperators = const ['>', '>=', '<', '<='];
@@ -2203,36 +2233,6 @@ main() {
   2 + 1;
 }
 ''');
-  }
-
-  test_exchangeBinaryExpressionArguments_wrong_extraLength() async {
-    resolveTestUnit('''
-main() {
-  111 + 222;
-}
-''');
-    length = 3;
-    await assertNoAssistAt('+ 222', DartAssistKind.EXCHANGE_OPERANDS);
-  }
-
-  test_exchangeBinaryExpressionArguments_wrong_onOperand() async {
-    resolveTestUnit('''
-main() {
-  111 + 222;
-}
-''');
-    length = 3;
-    await assertNoAssistAt('11 +', DartAssistKind.EXCHANGE_OPERANDS);
-  }
-
-  test_exchangeBinaryExpressionArguments_wrong_selectionWithBinary() async {
-    resolveTestUnit('''
-main() {
-  1 + 2 + 3;
-}
-''');
-    length = '1 + 2 + 3'.length;
-    await assertNoAssistAt('1 + 2 + 3', DartAssistKind.EXCHANGE_OPERANDS);
   }
 
   test_importAddShow_BAD_hasShow() async {
@@ -2478,6 +2478,84 @@ main() {
 ''');
   }
 
+  test_joinIfStatementInner_BAD_innerNotIf() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    print(0);
+  }
+}
+''');
+    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  test_joinIfStatementInner_BAD_innerWithElse() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    } else {
+      print(1);
+    }
+  }
+}
+''');
+    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  test_joinIfStatementInner_BAD_statementAfterInner() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(2);
+    }
+    print(1);
+  }
+}
+''');
+    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  test_joinIfStatementInner_BAD_statementBeforeInner() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    print(1);
+    if (2 == 2) {
+      print(2);
+    }
+  }
+}
+''');
+    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  test_joinIfStatementInner_BAD_targetNotIf() async {
+    resolveTestUnit('''
+main() {
+  print(0);
+}
+''');
+    await assertNoAssistAt('print', DartAssistKind.JOIN_IF_WITH_INNER);
+  }
+
+  test_joinIfStatementInner_BAD_targetWithElse() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    }
+  } else {
+    print(1);
+  }
+}
+''');
+    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+  }
+
   test_joinIfStatementInner_OK_conditionAndOr() async {
     resolveTestUnit('''
 main() {
@@ -2658,7 +2736,7 @@ main() {
 ''');
   }
 
-  test_joinIfStatementInner_wrong_innerNotIf() async {
+  test_joinIfStatementOuter_BAD_outerNotIf() async {
     resolveTestUnit('''
 main() {
   if (1 == 1) {
@@ -2666,62 +2744,10 @@ main() {
   }
 }
 ''');
-    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+    await assertNoAssistAt('if (1 == 1', DartAssistKind.JOIN_IF_WITH_OUTER);
   }
 
-  test_joinIfStatementInner_wrong_innerWithElse() async {
-    resolveTestUnit('''
-main() {
-  if (1 == 1) {
-    if (2 == 2) {
-      print(0);
-    } else {
-      print(1);
-    }
-  }
-}
-''');
-    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
-  }
-
-  test_joinIfStatementInner_wrong_statementAfterInner() async {
-    resolveTestUnit('''
-main() {
-  if (1 == 1) {
-    if (2 == 2) {
-      print(2);
-    }
-    print(1);
-  }
-}
-''');
-    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
-  }
-
-  test_joinIfStatementInner_wrong_statementBeforeInner() async {
-    resolveTestUnit('''
-main() {
-  if (1 == 1) {
-    print(1);
-    if (2 == 2) {
-      print(2);
-    }
-  }
-}
-''');
-    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
-  }
-
-  test_joinIfStatementInner_wrong_targetNotIf() async {
-    resolveTestUnit('''
-main() {
-  print(0);
-}
-''');
-    await assertNoAssistAt('print', DartAssistKind.JOIN_IF_WITH_INNER);
-  }
-
-  test_joinIfStatementInner_wrong_targetWithElse() async {
+  test_joinIfStatementOuter_BAD_outerWithElse() async {
     resolveTestUnit('''
 main() {
   if (1 == 1) {
@@ -2733,7 +2759,59 @@ main() {
   }
 }
 ''');
-    await assertNoAssistAt('if (1 ==', DartAssistKind.JOIN_IF_WITH_INNER);
+    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  test_joinIfStatementOuter_BAD_statementAfterInner() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(2);
+    }
+    print(1);
+  }
+}
+''');
+    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  test_joinIfStatementOuter_BAD_statementBeforeInner() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    print(1);
+    if (2 == 2) {
+      print(2);
+    }
+  }
+}
+''');
+    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  test_joinIfStatementOuter_BAD_targetNotIf() async {
+    resolveTestUnit('''
+main() {
+  print(0);
+}
+''');
+    await assertNoAssistAt('print', DartAssistKind.JOIN_IF_WITH_OUTER);
+  }
+
+  test_joinIfStatementOuter_BAD_targetWithElse() async {
+    resolveTestUnit('''
+main() {
+  if (1 == 1) {
+    if (2 == 2) {
+      print(0);
+    } else {
+      print(1);
+    }
+  }
+}
+''');
+    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
   }
 
   test_joinIfStatementOuter_OK_conditionAndOr() async {
@@ -2916,82 +2994,88 @@ main() {
 ''');
   }
 
-  test_joinIfStatementOuter_wrong_outerNotIf() async {
+  test_joinVariableDeclaration_onAssignment_BAD_hasInitializer() async {
     resolveTestUnit('''
 main() {
-  if (1 == 1) {
-    print(0);
-  }
+  var v = 1;
+  v = 2;
 }
 ''');
-    await assertNoAssistAt('if (1 == 1', DartAssistKind.JOIN_IF_WITH_OUTER);
+    await assertNoAssistAt('v = 2', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  test_joinIfStatementOuter_wrong_outerWithElse() async {
+  test_joinVariableDeclaration_onAssignment_BAD_notAdjacent() async {
     resolveTestUnit('''
 main() {
-  if (1 == 1) {
-    if (2 == 2) {
-      print(0);
-    }
-  } else {
-    print(1);
-  }
+  var v;
+  var bar;
+  v = 1;
 }
 ''');
-    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+    await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  test_joinIfStatementOuter_wrong_statementAfterInner() async {
+  test_joinVariableDeclaration_onAssignment_BAD_notAssignment() async {
     resolveTestUnit('''
 main() {
-  if (1 == 1) {
-    if (2 == 2) {
-      print(2);
-    }
-    print(1);
-  }
+  var v;
+  v += 1;
 }
 ''');
-    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+    await assertNoAssistAt('v += 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  test_joinIfStatementOuter_wrong_statementBeforeInner() async {
+  test_joinVariableDeclaration_onAssignment_BAD_notDeclaration() async {
     resolveTestUnit('''
-main() {
-  if (1 == 1) {
-    print(1);
-    if (2 == 2) {
-      print(2);
-    }
-  }
+main(var v) {
+  v = 1;
 }
 ''');
-    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+    await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  test_joinIfStatementOuter_wrong_targetNotIf() async {
+  test_joinVariableDeclaration_onAssignment_BAD_notLeftArgument() async {
     resolveTestUnit('''
 main() {
-  print(0);
+  var v;
+  1 + v; // marker
 }
 ''');
-    await assertNoAssistAt('print', DartAssistKind.JOIN_IF_WITH_OUTER);
+    await assertNoAssistAt(
+        'v; // marker', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  test_joinIfStatementOuter_wrong_targetWithElse() async {
+  test_joinVariableDeclaration_onAssignment_BAD_notOneVariable() async {
     resolveTestUnit('''
 main() {
-  if (1 == 1) {
-    if (2 == 2) {
-      print(0);
-    } else {
-      print(1);
-    }
+  var v, v2;
+  v = 1;
+}
+''');
+    await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  test_joinVariableDeclaration_onAssignment_BAD_notResolved() async {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+main() {
+  var v;
+  x = 1;
+}
+''');
+    await assertNoAssistAt('x = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  test_joinVariableDeclaration_onAssignment_BAD_notSameBlock() async {
+    resolveTestUnit('''
+main() {
+  var v;
+  {
+    v = 1;
   }
 }
 ''');
-    await assertNoAssistAt('if (2 == 2', DartAssistKind.JOIN_IF_WITH_OUTER);
+    await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
   test_joinVariableDeclaration_onAssignment_OK() async {
@@ -3011,88 +3095,64 @@ main() {
 ''');
   }
 
-  test_joinVariableDeclaration_onAssignment_wrong_hasInitializer() async {
+  test_joinVariableDeclaration_onDeclaration_BAD_hasInitializer() async {
     resolveTestUnit('''
 main() {
   var v = 1;
   v = 2;
 }
 ''');
-    await assertNoAssistAt('v = 2', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onAssignment_wrong_notAdjacent() async {
-    resolveTestUnit('''
-main() {
-  var v;
-  var bar;
-  v = 1;
-}
-''');
     await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  test_joinVariableDeclaration_onAssignment_wrong_notAssignment() async {
+  test_joinVariableDeclaration_onDeclaration_BAD_lastStatement() async {
+    resolveTestUnit('''
+main() {
+  if (true)
+    var v;
+}
+''');
+    await assertNoAssistAt('v;', DartAssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  test_joinVariableDeclaration_onDeclaration_BAD_nextNotAssignmentExpression() async {
+    resolveTestUnit('''
+main() {
+  var v;
+  42;
+}
+''');
+    await assertNoAssistAt('v;', DartAssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  test_joinVariableDeclaration_onDeclaration_BAD_nextNotExpressionStatement() async {
+    resolveTestUnit('''
+main() {
+  var v;
+  if (true) return;
+}
+''');
+    await assertNoAssistAt('v;', DartAssistKind.JOIN_VARIABLE_DECLARATION);
+  }
+
+  test_joinVariableDeclaration_onDeclaration_BAD_nextNotPureAssignment() async {
     resolveTestUnit('''
 main() {
   var v;
   v += 1;
 }
 ''');
-    await assertNoAssistAt('v += 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
+    await assertNoAssistAt('v;', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
-  test_joinVariableDeclaration_onAssignment_wrong_notDeclaration() async {
-    resolveTestUnit('''
-main(var v) {
-  v = 1;
-}
-''');
-    await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onAssignment_wrong_notLeftArgument() async {
-    resolveTestUnit('''
-main() {
-  var v;
-  1 + v; // marker
-}
-''');
-    await assertNoAssistAt(
-        'v; // marker', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onAssignment_wrong_notOneVariable() async {
+  test_joinVariableDeclaration_onDeclaration_BAD_notOneVariable() async {
     resolveTestUnit('''
 main() {
   var v, v2;
   v = 1;
 }
 ''');
-    await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onAssignment_wrong_notResolved() async {
-    verifyNoTestUnitErrors = false;
-    resolveTestUnit('''
-main() {
-  var v;
-  x = 1;
-}
-''');
-    await assertNoAssistAt('x = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onAssignment_wrong_notSameBlock() async {
-    resolveTestUnit('''
-main() {
-  var v;
-  {
-    v = 1;
-  }
-}
-''');
-    await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
+    await assertNoAssistAt('v, ', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
   test_joinVariableDeclaration_onDeclaration_OK_onName() async {
@@ -3144,66 +3204,6 @@ main() {
   var v = 1;
 }
 ''');
-  }
-
-  test_joinVariableDeclaration_onDeclaration_wrong_hasInitializer() async {
-    resolveTestUnit('''
-main() {
-  var v = 1;
-  v = 2;
-}
-''');
-    await assertNoAssistAt('v = 1', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onDeclaration_wrong_lastStatement() async {
-    resolveTestUnit('''
-main() {
-  if (true)
-    var v;
-}
-''');
-    await assertNoAssistAt('v;', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onDeclaration_wrong_nextNotAssignmentExpression() async {
-    resolveTestUnit('''
-main() {
-  var v;
-  42;
-}
-''');
-    await assertNoAssistAt('v;', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onDeclaration_wrong_nextNotExpressionStatement() async {
-    resolveTestUnit('''
-main() {
-  var v;
-  if (true) return;
-}
-''');
-    await assertNoAssistAt('v;', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onDeclaration_wrong_nextNotPureAssignment() async {
-    resolveTestUnit('''
-main() {
-  var v;
-  v += 1;
-}
-''');
-    await assertNoAssistAt('v;', DartAssistKind.JOIN_VARIABLE_DECLARATION);
-  }
-
-  test_joinVariableDeclaration_onDeclaration_wrong_notOneVariable() async {
-    resolveTestUnit('''
-main() {
-  var v, v2;
-  v = 1;
-}
-''');
-    await assertNoAssistAt('v, ', DartAssistKind.JOIN_VARIABLE_DECLARATION);
   }
 
   test_removeTypeAnnotation_classField_OK() async {
@@ -3310,6 +3310,24 @@ final V = 1;
 ''');
   }
 
+  test_replaceConditionalWithIfElse_BAD_noEnclosingStatement() async {
+    resolveTestUnit('''
+var v = true ? 111 : 222;
+''');
+    await assertNoAssistAt(
+        '? 111', DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE);
+  }
+
+  test_replaceConditionalWithIfElse_BAD_notConditional() async {
+    resolveTestUnit('''
+main() {
+  var v = 42;
+}
+''');
+    await assertNoAssistAt(
+        'v = 42', DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE);
+  }
+
   test_replaceConditionalWithIfElse_OK_assignment() async {
     resolveTestUnit('''
 main() {
@@ -3388,22 +3406,45 @@ main() {
 ''');
   }
 
-  test_replaceConditionalWithIfElse_wrong_noEnclosingStatement() async {
-    resolveTestUnit('''
-var v = true ? 111 : 222;
-''');
-    await assertNoAssistAt(
-        '? 111', DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE);
-  }
-
-  test_replaceConditionalWithIfElse_wrong_notConditional() async {
+  test_replaceIfElseWithConditional_BAD_expressionVsReturn() async {
     resolveTestUnit('''
 main() {
-  var v = 42;
+  if (true) {
+    print(42);
+  } else {
+    return;
+  }
 }
 ''');
     await assertNoAssistAt(
-        'v = 42', DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE);
+        'else', DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
+  }
+
+  test_replaceIfElseWithConditional_BAD_notIfStatement() async {
+    resolveTestUnit('''
+main() {
+  print(0);
+}
+''');
+    await assertNoAssistAt(
+        'print', DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
+  }
+
+  test_replaceIfElseWithConditional_BAD_notSingleStatement() async {
+    resolveTestUnit('''
+main() {
+  int vvv;
+  if (true) {
+    print(0);
+    vvv = 111;
+  } else {
+    print(0);
+    vvv = 222;
+  }
+}
+''');
+    await assertNoAssistAt(
+        'if (true)', DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
   }
 
   test_replaceIfElseWithConditional_OK_assignment() async {
@@ -3448,45 +3489,52 @@ main() {
 ''');
   }
 
-  test_replaceIfElseWithConditional_wrong_expressionVsReturn() async {
+  test_splitAndCondition_BAD_hasElse() async {
     resolveTestUnit('''
 main() {
-  if (true) {
-    print(42);
+  if (1 == 1 && 2 == 2) {
+    print(1);
   } else {
-    return;
+    print(2);
   }
 }
 ''');
-    await assertNoAssistAt(
-        'else', DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
+    await assertNoAssistAt('&& 2', DartAssistKind.SPLIT_AND_CONDITION);
   }
 
-  test_replaceIfElseWithConditional_wrong_notIfStatement() async {
+  test_splitAndCondition_BAD_notAnd() async {
     resolveTestUnit('''
 main() {
-  print(0);
+  if (1 == 1 || 2 == 2) {
+    print(0);
+  }
 }
 ''');
-    await assertNoAssistAt(
-        'print', DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
+    await assertNoAssistAt('|| 2', DartAssistKind.SPLIT_AND_CONDITION);
   }
 
-  test_replaceIfElseWithConditional_wrong_notSingleStatement() async {
+  test_splitAndCondition_BAD_notPartOfIf() async {
     resolveTestUnit('''
 main() {
-  int vvv;
-  if (true) {
+  print(1 == 1 && 2 == 2);
+}
+''');
+    await assertNoAssistAt('&& 2', DartAssistKind.SPLIT_AND_CONDITION);
+  }
+
+  test_splitAndCondition_BAD_notTopLevelAnd() async {
+    resolveTestUnit('''
+main() {
+  if (true || (1 == 1 && 2 == 2)) {
     print(0);
-    vvv = 111;
-  } else {
+  }
+  if (true && (3 == 3 && 4 == 4)) {
     print(0);
-    vvv = 222;
   }
 }
 ''');
-    await assertNoAssistAt(
-        'if (true)', DartAssistKind.REPLACE_IF_ELSE_WITH_CONDITIONAL);
+    await assertNoAssistAt('&& 2', DartAssistKind.SPLIT_AND_CONDITION);
+    await assertNoAssistAt('&& 4', DartAssistKind.SPLIT_AND_CONDITION);
   }
 
   test_splitAndCondition_OK_innerAndExpression() async {
@@ -3576,52 +3624,13 @@ main() {
     }
   }
 
-  test_splitAndCondition_wrong_hasElse() async {
+  test_splitVariableDeclaration_BAD_notOneVariable() async {
     resolveTestUnit('''
 main() {
-  if (1 == 1 && 2 == 2) {
-    print(1);
-  } else {
-    print(2);
-  }
+  var v = 1, v2;
 }
 ''');
-    await assertNoAssistAt('&& 2', DartAssistKind.SPLIT_AND_CONDITION);
-  }
-
-  test_splitAndCondition_wrong_notAnd() async {
-    resolveTestUnit('''
-main() {
-  if (1 == 1 || 2 == 2) {
-    print(0);
-  }
-}
-''');
-    await assertNoAssistAt('|| 2', DartAssistKind.SPLIT_AND_CONDITION);
-  }
-
-  test_splitAndCondition_wrong_notPartOfIf() async {
-    resolveTestUnit('''
-main() {
-  print(1 == 1 && 2 == 2);
-}
-''');
-    await assertNoAssistAt('&& 2', DartAssistKind.SPLIT_AND_CONDITION);
-  }
-
-  test_splitAndCondition_wrong_notTopLevelAnd() async {
-    resolveTestUnit('''
-main() {
-  if (true || (1 == 1 && 2 == 2)) {
-    print(0);
-  }
-  if (true && (3 == 3 && 4 == 4)) {
-    print(0);
-  }
-}
-''');
-    await assertNoAssistAt('&& 2', DartAssistKind.SPLIT_AND_CONDITION);
-    await assertNoAssistAt('&& 4', DartAssistKind.SPLIT_AND_CONDITION);
+    await assertNoAssistAt('v = 1', DartAssistKind.SPLIT_VARIABLE_DECLARATION);
   }
 
   test_splitVariableDeclaration_OK_onName() async {
@@ -3673,15 +3682,6 @@ main() {
   v = 1;
 }
 ''');
-  }
-
-  test_splitVariableDeclaration_wrong_notOneVariable() async {
-    resolveTestUnit('''
-main() {
-  var v = 1, v2;
-}
-''');
-    await assertNoAssistAt('v = 1', DartAssistKind.SPLIT_VARIABLE_DECLARATION);
   }
 
   test_surroundWith_block() async {

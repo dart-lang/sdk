@@ -5,6 +5,7 @@
 #ifndef VM_THREAD_H_
 #define VM_THREAD_H_
 
+#include "include/dart_api.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/os_thread.h"
@@ -14,6 +15,7 @@
 namespace dart {
 
 class AbstractType;
+class ApiLocalScope;
 class Array;
 class CHA;
 class Class;
@@ -136,6 +138,18 @@ class Thread : public BaseThread {
   // The topmost zone used for allocation in this thread.
   Zone* zone() const { return zone_; }
 
+  // The reusable api local scope for this thread.
+  ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
+  void set_api_reusable_scope(ApiLocalScope* value) {
+    ASSERT(value == NULL || api_reusable_scope_ == NULL);
+    api_reusable_scope_ = value;
+  }
+
+  // The api local scope for this thread, this where all local handles
+  // are allocated.
+  ApiLocalScope* api_top_scope() const { return api_top_scope_; }
+  void set_api_top_scope(ApiLocalScope* value) { api_top_scope_ = value; }
+
   // The isolate that this thread is operating on, or NULL if none.
   Isolate* isolate() const { return isolate_; }
   static intptr_t isolate_offset() {
@@ -199,6 +213,8 @@ class Thread : public BaseThread {
     return OFFSET_OF(Thread, top_resource_);
   }
 
+  // Heap of the isolate that this thread is operating on.
+  Heap* heap() const { return heap_; }
   static intptr_t heap_offset() {
     return OFFSET_OF(Thread, heap_);
   }
@@ -362,7 +378,14 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   RawGrowableObjectArray* pending_functions();
 
+  // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  bool IsValidLocalHandle(Dart_Handle object) const;
+  int CountLocalHandles() const;
+  int ZoneSizeInBytes() const;
+  void UnwindScopes(uword stack_marker);
+
   void InitVMConstants();
 
  private:
@@ -372,6 +395,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Isolate* isolate_;
   Heap* heap_;
   Zone* zone_;
+  ApiLocalScope* api_reusable_scope_;
+  ApiLocalScope* api_top_scope_;
   uword top_exit_frame_info_;
   StackResource* top_resource_;
   LongJumpScope* long_jump_base_;

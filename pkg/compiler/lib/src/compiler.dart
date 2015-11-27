@@ -325,6 +325,7 @@ abstract class Compiler {
   ClassElement symbolImplementationClass;
 
   // Initialized when symbolImplementationClass has been resolved.
+  // TODO(johnniwinther): Move this to [BackendHelpers].
   FunctionElement symbolValidatedConstructor;
 
   // Initialized when mirrorsUsedClass has been resolved.

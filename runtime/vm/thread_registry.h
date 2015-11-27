@@ -73,11 +73,17 @@ class ThreadRegistry {
   Thread* free_list_;  // Free list of Thread objects that can be reused.
   // TODO(asiva): Currently we treat a mutator thread as a special thread
   // and always schedule execution of Dart code on the same mutator thread
-  // object. This is because ApiState is still an object associated with
-  // the isolate and switching execution to another thread causes problems.
-  // Once ApiState is made a per Thread object it should be possible to
-  // free a mutator thread like all other threads and continue running on
-  // a different thread.
+  // object. The ApiLocalScope has been made thread specific but we still
+  // have scenarios where we do a temporary exit of an Isolate with live
+  // zones/handles in the the API scope :
+  // - Dart_RunLoop()
+  // - IsolateSaver in Dart_NewNativePort
+  // - Isolate spawn (function/uri) under FLAG_i_like_slow_isolate_spawn
+  // We probably need a mechanism to return to the specific thread only
+  // for these specific cases. We should also determine if the embedder
+  // should allow exiting an isolate with live state in zones/handles in
+  // which case a new API for returning to the specific thread needs to be
+  // added.
   Thread* mutator_thread_;
 
   // Safepoint rendezvous state.

@@ -12136,6 +12136,22 @@ int f() {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
+  void fail_genericMethod_nested() {
+    // TODO(jmesserly): this test currently fails because we incorrectly capture
+    // S in FunctionTypeImpl.substitute. We should probably rename free
+    // variables during substitution to avoid it.
+    _resolveTestUnit(r'''
+class C<T> {
+  /*=T*/ f/*<S>*/(/*=S*/ x) {
+    new C<S>().f/*<int>*/(3);
+    return null;
+  }
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f/*<int>*/(3);');
+    expect(f.staticType.toString(), '(int) → S');
+  }
+
   void setUp() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
@@ -12262,6 +12278,22 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_pseudoGeneric_max_doubleDouble_prefixed() {
+    String code = r'''
+import 'dart:math' as math;
+main() {
+  var foo = math.max(1.0, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'double');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
   void test_pseudoGeneric_max_doubleInt() {
     String code = r'''
 import 'dart:math';
@@ -12316,6 +12348,25 @@ import 'dart:async';
 String toString(int x) => x.toString();
 main() {
   Future<int> bar = null;
+  var foo = bar.then(toString);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+
+    expect(declaration.initializer.staticType.toString(), "Future<String>");
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_pseudoGeneric_then_prefixed() {
+    String code = r'''
+import 'dart:async' as async;
+String toString(int x) => x.toString();
+main() {
+  async.Future<int> bar = null;
   var foo = bar.then(toString);
 }
 ''';
@@ -12802,6 +12853,25 @@ class TypeOverrideManagerTest extends EngineTestCase {
 
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
+  void test_invocation_target_prefixed() {
+    addNamedSource(
+        '/helper.dart',
+        '''
+library helper;
+int max(int x, int y) => 0;
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.max(10, 10); // marker
+}''';
+    SimpleIdentifier methodName =
+        _findMarkedIdentifier(code, "(10, 10); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodInvoke.methodName.staticElement, isNotNull);
+    expect(methodInvoke.methodName.propagatedElement, isNull);
+  }
+
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(

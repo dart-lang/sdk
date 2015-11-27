@@ -30,7 +30,7 @@ DART_EXPORT Dart_Handle Dart_TypeName(Dart_Handle object) {
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
   if (obj.IsType()) {
     const Class& cls = Class::Handle(Type::Cast(obj).type_class());
-    return Api::NewHandle(I, cls.UserVisibleName());
+    return Api::NewHandle(T, cls.UserVisibleName());
   } else {
     RETURN_TYPE_ERROR(Z, object, Class/Type);
   }
@@ -48,7 +48,7 @@ DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
       RETURN_NULL_ERROR(str);
     }
     CHECK_CALLBACK_STATE(T);
-    return Api::NewHandle(I, String::New(str));
+    return Api::NewHandle(T, String::New(str));
   } else {
     RETURN_TYPE_ERROR(Z, object, Class/Type);
   }
@@ -85,7 +85,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
     const Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
     const Error& error = Error::Handle(Z, cls.EnsureIsFinalized(T));
     if (!error.IsNull()) {
-      return Api::NewHandle(I, error.raw());
+      return Api::NewHandle(T, error.raw());
     }
     const Array& func_array = Array::Handle(Z, cls.functions());
 
@@ -124,7 +124,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
         "%s expects argument 'target' to be a class or library.",
         CURRENT_FUNC);
   }
-  return Api::NewHandle(I, Array::MakeArray(names));
+  return Api::NewHandle(T, Array::MakeArray(names));
 }
 
 
@@ -205,7 +205,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
            func_kind == RawFunction::kConstructor);
   }
 #endif
-  return Api::NewHandle(I, func.raw());
+  return Api::NewHandle(T, func.raw());
 }
 
 
@@ -215,7 +215,7 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(Z, function, Function);
   }
-  return Api::NewHandle(I, func.UserVisibleName());
+  return Api::NewHandle(T, func.UserVisibleName());
 }
 
 
@@ -227,7 +227,7 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
   }
   if (func.IsNonImplicitClosureFunction()) {
     RawFunction* parent_function = func.parent_function();
-    return Api::NewHandle(I, parent_function);
+    return Api::NewHandle(T, parent_function);
   }
   const Class& owner = Class::Handle(Z, func.Owner());
   ASSERT(!owner.IsNull());
@@ -240,9 +240,9 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
       ASSERT(owner.IsDynamicClass() || owner.IsVoidClass());
     }
 #endif
-    return Api::NewHandle(I, owner.library());
+    return Api::NewHandle(T, owner.library());
   } else {
-    return Api::NewHandle(I, owner.RareType());
+    return Api::NewHandle(T, owner.RareType());
   }
 }
 
@@ -317,7 +317,7 @@ DART_EXPORT Dart_Handle Dart_LibraryName(Dart_Handle library) {
   }
   const String& name = String::Handle(Z, lib.name());
   ASSERT(!name.IsNull());
-  return Api::NewHandle(I, name.raw());
+  return Api::NewHandle(T, name.raw());
 }
 
 DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
@@ -347,7 +347,7 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
       names.Add(name);
     }
   }
-  return Api::NewHandle(I, Array::MakeArray(names));
+  return Api::NewHandle(T, Array::MakeArray(names));
 }
 
 
@@ -363,7 +363,7 @@ DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
   ASSERT(ClassFinalizer::AllClassesFinalized());
 
   RawFunction* rf = Closure::function(closure_obj);
-  return Api::NewHandle(I, rf);
+  return Api::NewHandle(T, rf);
 }
 
 }  // namespace dart

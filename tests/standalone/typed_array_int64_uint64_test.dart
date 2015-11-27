@@ -7,12 +7,19 @@
 // Library tag to be able to run in html test framework.
 library TypedArray;
 import "package:expect/expect.dart";
+import 'package:async_helper/async_helper.dart';
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
-void main() {
-  int64_receiver();
-  uint64_receiver();
+main() {
+  test(int64_receiver);
+  test(uint64_receiver);
+}
+
+test(f) {
+  asyncStart();
+  return f().whenComplete(asyncEnd);
 }
 
 // Int64 array.
@@ -24,15 +31,17 @@ Int64List initInt64() {
 }
 Int64List int64 = initInt64();
 
-void int64_receiver() {
+int64_receiver() {
   var response = new ReceivePort();
   var remote = Isolate.spawn(int64_sender, [int64.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(int64.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(int64[i], a[i]);
     }
     print("int64_receiver");
+    asyncEnd();
   });
 }
 
@@ -57,15 +66,17 @@ Uint64List initUint64() {
 }
 Uint64List uint64 = initUint64();
 
-void uint64_receiver() {
+uint64_receiver() {
   var response = new ReceivePort();
   var remote = Isolate.spawn(uint64_sender, [uint64.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(uint64.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(uint64[i], a[i]);
     }
     print("uint64_receiver");
+    asyncEnd();
   });
 }
 

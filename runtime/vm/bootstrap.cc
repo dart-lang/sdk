@@ -181,7 +181,6 @@ static Dart_Handle LoadPartSource(Thread* thread,
                                   const Library& lib,
                                   const String& uri) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   const String& part_source = String::Handle(
       zone, GetLibrarySource(lib, uri, false));
   const String& lib_uri = String::Handle(zone, lib.url());
@@ -201,7 +200,7 @@ static Dart_Handle LoadPartSource(Thread* thread,
   const Script& part_script = Script::Handle(
       zone, Script::New(part_uri, part_source, RawScript::kSourceTag));
   const Error& error = Error::Handle(zone, Compile(lib, part_script));
-  return Api::NewHandle(isolate, error.raw());
+  return Api::NewHandle(thread, error.raw());
 }
 
 

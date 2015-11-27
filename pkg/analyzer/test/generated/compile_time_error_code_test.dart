@@ -1648,7 +1648,26 @@ part of lib;
 class A {}''');
     computeLibrarySourceErrors(librarySource);
     assertErrors(sourceB, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertNoErrors(librarySource);
     verify([librarySource, sourceA, sourceB]);
+  }
+
+  void test_duplicateDefinition_inPart() {
+    Source librarySource = addNamedSource(
+        "/lib.dart",
+        r'''
+library test;
+part 'a.dart';
+class A {}''');
+    Source sourceA = addNamedSource(
+        "/a.dart",
+        r'''
+part of test;
+class A {}''');
+    computeLibrarySourceErrors(librarySource);
+    assertErrors(sourceA, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertNoErrors(librarySource);
+    verify([librarySource, sourceA]);
   }
 
   void test_duplicateDefinition_catch() {

@@ -8,7 +8,7 @@ library services.completion.dart.keyword;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -468,14 +468,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     if (offset == null) {
       offset = completion.length;
     }
-    suggestions.add(new CompletionSuggestion(
-        CompletionSuggestionKind.KEYWORD,
-        relevance,
-        completion,
-        offset,
-        0,
-        false,
-        false));
+    suggestions.add(new CompletionSuggestion(CompletionSuggestionKind.KEYWORD,
+        relevance, completion, offset, 0, false, false));
   }
 
   void _addSuggestions(List<Keyword> keywords,

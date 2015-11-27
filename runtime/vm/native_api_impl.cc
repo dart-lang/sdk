@@ -94,14 +94,14 @@ static void CompileAll(Thread* thread, Dart_Handle* result) {
   if (error.IsNull()) {
     *result = Api::Success();
   } else {
-    *result = Api::NewHandle(thread->isolate(), error.raw());
+    *result = Api::NewHandle(thread, error.raw());
   }
 }
 
 
 DART_EXPORT Dart_Handle Dart_CompileAll() {
   DARTSCOPE(Thread::Current());
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(result)) {
     return result;
   }

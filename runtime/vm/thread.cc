@@ -4,6 +4,7 @@
 
 #include "vm/thread.h"
 
+#include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
@@ -43,6 +44,8 @@ Thread::Thread(Isolate* isolate)
       isolate_(NULL),
       heap_(NULL),
       zone_(NULL),
+      api_reusable_scope_(NULL),
+      api_top_scope_(NULL),
       top_exit_frame_info_(0),
       top_resource_(NULL),
       long_jump_base_(NULL),
@@ -274,9 +277,17 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
+  // Visit the pending functions.
   if (pending_functions_ != GrowableObjectArray::null()) {
     visitor->VisitPointer(
         reinterpret_cast<RawObject**>(&pending_functions_));
+  }
+
+  // Visit the api local scope as it has all the api local handles.
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL) {
+    scope->local_handles()->VisitObjectPointers(visitor);
+    scope = scope->previous();
   }
 }
 
@@ -330,6 +341,54 @@ LEAF_RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
 
   UNREACHABLE();
   return -1;
+}
+
+
+bool Thread::IsValidLocalHandle(Dart_Handle object) const {
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL) {
+    if (scope->local_handles()->IsValidHandle(object)) {
+      return true;
+    }
+    scope = scope->previous();
+  }
+  return false;
+}
+
+
+int Thread::CountLocalHandles() const {
+  int total = 0;
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL) {
+    total += scope->local_handles()->CountHandles();
+    scope = scope->previous();
+  }
+  return total;
+}
+
+
+int Thread::ZoneSizeInBytes() const {
+  int total = 0;
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL) {
+    total += scope->zone()->SizeInBytes();
+    scope = scope->previous();
+  }
+  return total;
+}
+
+
+void Thread::UnwindScopes(uword stack_marker) {
+  // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
+  // under the same top_exit_frame_info.
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL &&
+         scope->stack_marker() != 0 &&
+         scope->stack_marker() == stack_marker) {
+    api_top_scope_ = scope->previous();
+    delete scope;
+    scope = api_top_scope_;
+  }
 }
 
 

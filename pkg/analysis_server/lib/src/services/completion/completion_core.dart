@@ -4,6 +4,8 @@
 
 library analysis_server.src.services.completion.completion_core;
 
+import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -13,29 +15,26 @@ import 'package:analyzer/src/generated/source.dart';
  * The information about a requested list of completions.
  */
 class CompletionRequestImpl implements CompletionRequest {
-  /**
-   * The analysis context in which the completion is being requested.
-   */
-  AnalysisContext context;
+  @override
+  final AnalysisServer server;
 
-  /**
-   * The resource provider associated with this request.
-   */
-  ResourceProvider resourceProvider;
+  @override
+  final AnalysisContext context;
 
-  /**
-   * The source in which the completion is being requested.
-   */
-  Source source;
+  @override
+  final Source source;
 
-  /**
-   * The offset within the source at which the completion is being requested.
-   */
-  int offset;
+  @override
+  final int offset;
 
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
-  CompletionRequestImpl(
-      this.context, this.resourceProvider, this.source, this.offset);
+  CompletionRequestImpl(this.server, this.context, this.source, this.offset);
+
+  @override
+  ResourceProvider get resourceProvider => server.resourceProvider;
+
+  @override
+  ServerPlugin get serverPlugin => server.serverPlugin;
 }
