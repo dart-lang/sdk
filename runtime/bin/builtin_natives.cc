@@ -91,7 +91,8 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   if (Dart_IsError(result)) Dart_PropagateError(result);
 
   // Uses fwrite to support printing NUL bytes.
-  fwrite(chars, 1, length, stdout);
+  intptr_t res = fwrite(chars, 1, length, stdout);
+  ASSERT(res == length);
   fputs("\n", stdout);
   fflush(stdout);
   if (ShouldCaptureStdout()) {

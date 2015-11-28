@@ -828,12 +828,11 @@ void Parser::ParseClass(const Class& cls) {
 
 RawObject* Parser::ParseFunctionParameters(const Function& func) {
   ASSERT(!func.IsNull());
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  StackZone stack_zone(thread);
-  Zone* zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    Thread* thread = Thread::Current();
+    StackZone stack_zone(thread);
+    Zone* zone = stack_zone.GetZone();
     const Script& script = Script::Handle(zone, func.script());
     const Class& owner = Class::Handle(zone, func.Owner());
     ASSERT(!owner.IsNull());
@@ -864,6 +863,8 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     }
     return param_descriptor.raw();
   } else {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
@@ -1008,12 +1009,11 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 
 
 RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  StackZone stack_zone(thread);
-  Zone* zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    Thread* thread = Thread::Current();
+    StackZone stack_zone(thread);
+    Zone* zone = stack_zone.GetZone();
     const Script& script = Script::Handle(zone, cls.script());
     // Parsing metadata can involve following paths in the parser that are
     // normally used for expressions and assume current_function is non-null,
@@ -1038,6 +1038,10 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
     RawObject* metadata = parser.EvaluateMetadata();
     return metadata;
   } else {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone stack_zone(thread);
+    Zone* zone = stack_zone.GetZone();
     Error& error = Error::Handle(zone);
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
