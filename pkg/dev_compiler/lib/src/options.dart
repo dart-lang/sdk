@@ -73,12 +73,17 @@ class CodegenOptions {
   /// other V8 builds
   final bool arrowFnBindThisWorkaround;
 
+  /// Which module format to support.
+  /// Currently 'es6' and 'dart' are supported.
+  final String moduleFormat;
+
   const CodegenOptions(
       {this.emitSourceMaps: true,
       this.forceCompile: false,
       this.closure: _CLOSURE_DEFAULT,
       this.outputDir,
-      this.arrowFnBindThisWorkaround: false});
+      this.arrowFnBindThisWorkaround: false,
+      this.moduleFormat: 'dart'});
 }
 
 /// Options for devrun.
@@ -227,7 +232,8 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           forceCompile: args['force-compile'] || serverMode,
           closure: args['closure'],
           outputDir: outputDir,
-          arrowFnBindThisWorkaround: args['arrow-fn-bind-this']),
+          arrowFnBindThisWorkaround: args['arrow-fn-bind-this'],
+          moduleFormat: args['modules']),
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
           dartSdkPath: sdkPath,
@@ -292,6 +298,14 @@ final ArgParser argParser = new ArgParser()
       help: 'Where to find dev_compiler\'s runtime files', defaultsTo: null)
   ..addFlag('arrow-fn-bind-this',
       help: 'Work around `this` binding in => functions')
+  ..addOption('modules',
+      help: 'Which module pattern to emit',
+      allowed: ['es6', 'dart'],
+      allowedHelp: {
+        'es6': 'es6 modules',
+        'custom-dart': 'a custom format used by dartdevc, similar to AMD'
+      },
+      defaultsTo: 'dart')
 
   // general options
   ..addFlag('help', abbr: 'h', help: 'Display this message')

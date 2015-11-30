@@ -72,6 +72,12 @@ abstract class NodeVisitor<T> {
   T visitClassExpression(ClassExpression node);
   T visitMethod(Method node);
 
+  T visitImportDeclaration(ImportDeclaration node);
+  T visitExportDeclaration(ExportDeclaration node);
+  T visitExportClause(ExportClause node);
+  T visitNameSpecifier(NameSpecifier node);
+  T visitModule(Module node);
+
   T visitComment(Comment node);
   T visitCommentExpression(CommentExpression node);
 
@@ -92,7 +98,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 
   T visitProgram(Program node) => visitNode(node);
 
-  T visitStatement(Statement node) => visitNode(node);
+  T visitStatement(Statement node) => visitModuleItem(node);
   T visitLoop(Loop node) => visitStatement(node);
   T visitJump(Statement node) => visitStatement(node);
 
@@ -173,6 +179,13 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitClassDeclaration(ClassDeclaration node) => visitStatement(node);
   T visitClassExpression(ClassExpression node) => visitExpression(node);
   T visitMethod(Method node) => visitProperty(node);
+
+  T visitModuleItem(ModuleItem node) => visitNode(node);
+  T visitImportDeclaration(ImportDeclaration node) => visitModuleItem(node);
+  T visitExportDeclaration(ExportDeclaration node) => visitModuleItem(node);
+  T visitExportClause(ExportClause node) => visitNode(node);
+  T visitNameSpecifier(NameSpecifier node) => visitNode(node);
+  T visitModule(Module node) => visitNode(node);
 
   T visitInterpolatedNode(InterpolatedNode node) => visitNode(node);
 
@@ -271,7 +284,7 @@ class Program extends Node {
   Program _clone() => new Program(body);
 }
 
-abstract class Statement extends Node {
+abstract class Statement extends ModuleItem {
   Statement toStatement() => this;
   Statement toReturn() => new Block([this, new Return()]);
 }
@@ -1573,4 +1586,122 @@ class CommentExpression extends Expression {
   CommentExpression _clone() => new CommentExpression(comment, expression);
 
   void visitChildren(NodeVisitor visitor) => expression.accept(visitor);
+}
+
+/**
+ * Represents allowed module items:
+ * [Statement], [ImportDeclaration], and [ExportDeclaration].
+ */
+abstract class ModuleItem extends Node {}
+
+class ImportDeclaration extends ModuleItem {
+  final Identifier defaultBinding; // Can be null.
+
+  // Can be null, a single specifier of `* as name`, or a list.
+  final List<NameSpecifier> namedImports;
+
+  final LiteralString from;
+
+  ImportDeclaration({this.defaultBinding, this.namedImports, this.from});
+
+  /** The `import "name.js"` form of import */
+  ImportDeclaration.all(LiteralString module) : this(from: module);
+
+  /** If this import has `* as name` returns the name, otherwise null. */
+  String get importStarAs {
+    if (namedImports != null && namedImports.length == 1 &&
+        namedImports[0].name == '*') {
+      return namedImports[0].asName;
+    }
+    return null;
+  }
+
+  accept(NodeVisitor visitor) => visitor.visitImportDeclaration(this);
+  void visitChildren(NodeVisitor visitor) {
+    if (namedImports != null) {
+      for (NameSpecifier name in namedImports) name.accept(visitor);
+    }
+    from.accept(visitor);
+  }
+  ImportDeclaration _clone() => new ImportDeclaration(
+      defaultBinding: defaultBinding, namedImports: namedImports, from: from);
+}
+
+class ExportDeclaration extends ModuleItem {
+  /**
+   * Exports a name from this module.
+   *
+   * This can be a [ClassDeclaration] or [FunctionDeclaration].
+   * If [isDefault] is true, it can also be an [Expression].
+   * Otherwise it can be a [VariableDeclarationList] or an [ExportClause].
+   */
+  final Node exported;
+
+  /** True if this is an `export default`. */
+  final bool isDefault;
+
+  ExportDeclaration(this.exported, {this.isDefault: false}) {
+    assert(exported is ClassDeclaration ||
+        exported is FunctionDeclaration ||
+        isDefault
+            ? exported is Expression
+            : exported is VariableDeclarationList ||
+              exported is ExportClause);
+  }
+
+  accept(NodeVisitor visitor) => visitor.visitExportDeclaration(this);
+  visitChildren(NodeVisitor visitor) => exported.accept(visitor);
+  ExportDeclaration _clone() =>
+      new ExportDeclaration(exported, isDefault: isDefault);
+}
+
+class ExportClause extends Node {
+  final List<NameSpecifier> exports;
+  final LiteralString from; // Can be null.
+
+  ExportClause(this.exports, {this.from});
+
+  /** The `export * from 'name.js'` form. */
+  ExportClause.star(LiteralString from)
+      : this([new NameSpecifier('*')], from: from);
+
+  /** True if this is an `export *`. */
+  bool get exportStar => exports.length == 1 && exports[0].name == '*';
+
+  accept(NodeVisitor visitor) => visitor.visitExportClause(this);
+  void visitChildren(NodeVisitor visitor) {
+    for (NameSpecifier name in exports) name.accept(visitor);
+    if (from != null) from.accept(visitor);
+  }
+  ExportClause _clone() => new ExportClause(exports, from: from);
+}
+
+/** An import or export specifier. */
+class NameSpecifier extends Node {
+  // TODO(jmesserly): should we wrap this in a node of some sort?
+  final String name;
+  final String asName; // Can be null.
+
+  NameSpecifier(this.name, {this.asName});
+
+  accept(NodeVisitor visitor) => visitor.visitNameSpecifier(this);
+  void visitChildren(NodeVisitor visitor) {}
+  NameSpecifier _clone() => new NameSpecifier(name, asName: asName);
+}
+
+// TODO(jmesserly): should this be related to [Program]?
+class Module extends Node {
+  /// The module's name
+  // TODO(jmesserly): this is not declared in ES6, but is known by the loader.
+  // We use this because some ES5 desugarings require it.
+  final String name;
+
+  final List<ModuleItem> body;
+  Module(this.body, {this.name});
+
+  accept(NodeVisitor visitor) => visitor.visitModule(this);
+  void visitChildren(NodeVisitor visitor) {
+    for (ModuleItem item in body) item.accept(visitor);
+  }
+  Module _clone() => new Module(body);
 }

@@ -11,5 +11,6 @@ import 'characters.dart' as charCodes;
 
 part 'nodes.dart';
 part 'builder.dart';
+part 'module_transform.dart';
 part 'printer.dart';
 part 'template.dart';

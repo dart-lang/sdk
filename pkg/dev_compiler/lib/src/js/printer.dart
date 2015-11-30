@@ -1127,6 +1127,76 @@ class Printer implements NodeVisitor {
     }
   }
 
+  visitImportDeclaration(ImportDeclaration node) {
+    indent();
+    out('import ');
+    if (node.defaultBinding != null) {
+      visit(node.defaultBinding);
+      if (node.namedImports != null) {
+        out(',');
+        spaceOut();
+      }
+    }
+    nameSpecifierListOut(node.namedImports);
+    fromClauseOut(node.from);
+    outSemicolonLn();
+  }
+
+  visitExportDeclaration(ExportDeclaration node) {
+    indent();
+    out('export ');
+    if (node.isDefault) out('default ');
+    // TODO(jmesserly): we need to avoid indent/newline if this is a statement.
+    visit(node.exported);
+    outSemicolonLn();
+  }
+
+  visitExportClause(ExportClause node) {
+    nameSpecifierListOut(node.exports);
+    fromClauseOut(node.from);
+  }
+
+  nameSpecifierListOut(List<NameSpecifier> names) {
+    if (names == null) return;
+
+    if (names.length == 1 && names[0].name == '*') {
+      visit(names[0]);
+      return;
+    }
+
+    out('{');
+    spaceOut();
+    for (int i = 0; i < names.length; i++) {
+      if (i != 0) {
+        out(',');
+        spaceOut();
+      }
+      visit(names[i]);
+    }
+    spaceOut();
+    out('}');
+  }
+
+  fromClauseOut(LiteralString from) {
+    if (from != null) {
+      out(' from');
+      spaceOut();
+      visit(from);
+    }
+  }
+
+  visitNameSpecifier(NameSpecifier node) {
+    out(node.name);
+    if (node.asName != null) {
+      out(' as ');
+      out(node.asName);
+    }
+  }
+
+  visitModule(Module node) {
+    visitAll(node.body);
+  }
+
   visitLiteralExpression(LiteralExpression node) {
     String template = node.template;
     List<Expression> inputs = node.inputs;
