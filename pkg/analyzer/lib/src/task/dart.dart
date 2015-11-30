@@ -1836,7 +1836,7 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
  * static variable whose type should be inferred.
  */
 class ComputeInferableStaticVariableDependenciesTask
-    extends ConstantEvaluationAnalysisTask {
+    extends InferStaticVariableTask {
   /**
    * The name of the [RESOLVED_UNIT5] input.
    */
@@ -1860,19 +1860,11 @@ class ComputeInferableStaticVariableDependenciesTask
     //
     // Prepare inputs.
     //
-    VariableElement variable = target;
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     //
     // Compute dependencies.
     //
-    NodeLocator locator = new NodeLocator(variable.nameOffset);
-    AstNode node = locator.searchWithin(unit);
-    VariableDeclaration declaration =
-        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
-    if (declaration == null || declaration.name != node) {
-      throw new AnalysisException(
-          "NodeLocator failed to find a variable's declaration");
-    }
+    VariableDeclaration declaration = getDeclaration(unit);
     VariableGatherer gatherer = new VariableGatherer(_isInferableStatic);
     declaration.initializer.accept(gatherer);
     //
@@ -2027,7 +2019,7 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
  * A task that computes the [PROPAGABLE_VARIABLE_DEPENDENCIES] for a variable.
  */
 class ComputePropagableVariableDependenciesTask
-    extends ConstantEvaluationAnalysisTask {
+    extends InferStaticVariableTask {
   /**
    * The name of the [RESOLVED_UNIT5] input.
    */
@@ -2051,19 +2043,11 @@ class ComputePropagableVariableDependenciesTask
     //
     // Prepare inputs.
     //
-    VariableElement variable = target;
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     //
     // Compute dependencies.
     //
-    NodeLocator locator = new NodeLocator(variable.nameOffset);
-    AstNode node = locator.searchWithin(unit);
-    VariableDeclaration declaration =
-        node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
-    if (declaration == null || declaration.name != node) {
-      throw new AnalysisException(
-          "NodeLocator failed to find a variable's declaration");
-    }
+    VariableDeclaration declaration = getDeclaration(unit);
     VariableGatherer gatherer = new VariableGatherer(_isPropagable);
     declaration.initializer.accept(gatherer);
     //
@@ -2969,13 +2953,21 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
    */
   VariableDeclaration getDeclaration(CompilationUnit unit) {
     VariableElement variable = target;
-    NodeLocator locator = new NodeLocator(variable.nameOffset);
+    // Usually: Type ^name = ...
+    // Sometimes there is no space after the type: List<Type>^name = ...
+    // So, we need to use an offset within (or right after) the name:
+    //   Type n^ame =
+    //   List<Type>n^ame =
+    //   Type x^=
+    int searchOffset = variable.nameOffset + 1;
+    NodeLocator locator = new NodeLocator(searchOffset);
     AstNode node = locator.searchWithin(unit);
     VariableDeclaration declaration =
         node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
     if (declaration == null || declaration.name != node) {
       throw new AnalysisException(
-          "Failed to find the declaration of the variable ${variable.displayName} in ${variable.source}");
+          "Failed to find the declaration of the variable "
+          "${variable.displayName} in ${variable.source}");
     }
     return declaration;
   }

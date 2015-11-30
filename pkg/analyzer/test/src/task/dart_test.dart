@@ -1859,6 +1859,33 @@ final d = 4;
     expect(
         dependencies, unorderedEquals([getTopLevelVariableElement(unit, 'd')]));
   }
+
+  test_perform_topLevel_withoutSpaceAfterType() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+const List<int>a=[b, c];
+const b = 1;
+const c = 2;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement elementA = getTopLevelVariableElement(unit, 'a');
+    // compute
+    computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
+        matcher: isComputePropagableVariableDependenciesTask);
+    // verify
+    expect(outputs, hasLength(1));
+    List<VariableElement> dependencies =
+        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+    expect(
+        dependencies,
+        unorderedEquals([
+          getTopLevelVariableElement(unit, 'b'),
+          getTopLevelVariableElement(unit, 'c')
+        ]));
+  }
 }
 
 @reflectiveTest
