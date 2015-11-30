@@ -55,8 +55,8 @@ const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 final List<LintRule> rules =
     new List<LintRule>.from(ruleRegistry, growable: false)..sort();
 
-String get enumeratePubRules => rules
-    .where((r) => r.group == Group.pub)
+String get enumerateErrorRules => rules
+    .where((r) => r.group == Group.errors)
     .map((r) => '${toDescription(r)}')
     .join('\n\n');
 
@@ -64,6 +64,11 @@ String get enumerateGroups => Group.builtin
     .map((Group g) =>
         '<li><strong>${g.name}</strong> - ${markdownToHtml(g.description)}</li>')
     .join('\n');
+
+String get enumeratePubRules => rules
+    .where((r) => r.group == Group.pub)
+    .map((r) => '${toDescription(r)}')
+    .join('\n\n');
 
 String get enumerateStyleRules => rules
     .where((r) => r.group == Group.style)
@@ -211,6 +216,10 @@ class Indexer {
             <p>
                ${markdownToHtml(ruleFootMatter)}
             </p>
+
+            <h2 id="styleguide-rules">Error Rules</h2>
+
+               $enumerateErrorRules
 
             <h2 id="styleguide-rules">Style Rules</h2>
 
