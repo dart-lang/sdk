@@ -190,18 +190,6 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     // worry about unlinking.
   }
 
-  // TODO(24523): Insert interceptor on demand when we discover we want to use
-  // one rather than on every check.
-  processTypeTest(TypeTest node) {
-    assert(node.interceptor == null);
-    Primitive receiver = node.value.definition;
-    Primitive interceptor = new Interceptor(receiver, node.sourceInformation)
-        ..interceptedClasses.addAll(_glue.interceptedClasses);
-    new LetPrim(interceptor).insertAbove(node.parent);
-    node.interceptor = new Reference<Primitive>(interceptor);
-    node.interceptor.parent = node;
-  }
-
   bool isNullConstant(Primitive prim) {
     return prim is Constant && prim.value.isNull;
   }

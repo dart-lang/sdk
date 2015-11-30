@@ -201,12 +201,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(Constant $value)';
   }
 
-  String visitCreateFunction(CreateFunction node) {
-    String function =
-        indentBlock(() => indentBlock(() => visit(node.definition)));
-    return '(CreateFunction\n$function)';
-  }
-
   String visitContinuation(Continuation node) {
     String name = newContinuationName(node);
     if (node.isRecursive) name = 'rec $name';
@@ -238,10 +232,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   String visitTypeTest(TypeTest node) {
     String value = access(node.value);
     String typeArguments = node.typeArguments.map(access).join(' ');
-    String interceptor = node.interceptor == null
-        ? ''
-        : access(node.interceptor);
-    return '(TypeTest $value ${node.dartType} ($typeArguments) ($interceptor))';
+    return '(TypeTest $value ${node.dartType} ($typeArguments))';
   }
 
   String visitTypeTestViaFlag(TypeTestViaFlag node) {

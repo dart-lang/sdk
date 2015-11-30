@@ -52,13 +52,13 @@ import '../tree_ir_nodes.dart';
 ///
 /// Note that the pattern above needs no iteration since nested ifs have been
 /// collapsed previously in the [StatementRewriter] phase.
-/// 
+///
 ///
 /// PULL INTO UPDATE EXPRESSION:
-/// 
+///
 /// Assignment expressions before the unique continue to a [whileCondition] are
 /// pulled into the updates for the loop.
-/// 
+///
 ///   L:
 ///   for (; condition; updates) {
 ///     S [ x = E; continue L ]
@@ -69,7 +69,7 @@ import '../tree_ir_nodes.dart';
 ///     S [ continue L ]
 ///   }
 ///
-/// The decision to only pull in assignments is a heuristic to balance 
+/// The decision to only pull in assignments is a heuristic to balance
 /// readability and stack trace usability versus the modest code size
 /// reduction one might get by aggressively moving expressions into the
 /// updates.
@@ -86,11 +86,6 @@ class LoopRewriter extends RecursiveTransformer
 
   void rewrite(FunctionDefinition root) {
     root.body = visitStatement(root.body);
-  }
-
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    node.body = new LoopRewriter().visitStatement(node.body);
   }
 
   Statement visitContinue(Continue node) {

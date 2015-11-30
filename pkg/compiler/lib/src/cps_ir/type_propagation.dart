@@ -36,6 +36,9 @@ import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
 import 'type_mask_system.dart';
+import '../closure.dart' show
+    ClosureFieldElement,
+    BoxLocal;
 
 class ConstantPropagationLattice {
   final TypeMaskSystem typeSystem;
@@ -702,6 +705,21 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                       this.internalError);
 
   void transform(FunctionDefinition root) {
+    // If one of the parameters has no value, the function is unreachable.
+    // We assume all values in scope have a non-empty type (otherwise the
+    // scope is unreachable), so this optimization is required.
+    // TODO(asgerf): Can we avoid emitting the function is the first place?
+    for (Parameter param in root.parameters) {
+      if (getValue(param).isNothing) {
+        // Replace with `throw "Unreachable";`
+        CpsFragment cps = new CpsFragment(null);
+        Primitive message = cps.makeConstant(
+            new StringConstantValue.fromString("Unreachable"));
+        cps.put(new Throw(message));
+        replaceSubtree(root.body, cps.result);
+        return;
+      }
+    }
     push(root.body);
     while (stack.isNotEmpty) {
       visit(stack.removeLast());
@@ -777,7 +795,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     assert(replacement == null);
 
     // Remove dead code after a primitive that always throws.
-    if (isAlwaysThrowing(prim)) {
+    if (isAlwaysThrowingOrDiverging(prim)) {
       replaceSubtree(node.body, new Unreachable());
       return;
     }
@@ -785,16 +803,16 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     push(node.body);
   }
 
-  bool usedToBeCallExpression(Primitive prim) {
-    return prim is UnsafePrimitive;
-  }
-
-  bool isAlwaysThrowing(Primitive prim) {
-    // TODO(asgerf): Generalize this to prim.hasValue && type.isReallyEmpty.
-    // But for now, just reproduce how this worked before.
-    if (!usedToBeCallExpression(prim)) return false;
-    if (prim.type == null) throw 'Missing type for $prim';
-    return prim.type.isEmpty && !prim.type.isNullable;
+  bool isAlwaysThrowingOrDiverging(Primitive prim) {
+    if (prim is SetField) {
+      return getValue(prim.object.definition).isNullConstant;
+    }
+    if (prim is SetIndex) {
+      return getValue(prim.object.definition).isNullConstant;
+    }
+    // If a primitive has a value, but can't return anything, it must throw
+    // or diverge.
+    return prim.hasValue && prim.type.isEmpty && !prim.type.isNullable;
   }
 
   void visitContinuation(Continuation node) {
@@ -834,25 +852,17 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
   /// Removes the entire subtree of [node] and inserts [replacement].
   ///
-  /// By default, all references in the [node] subtree are unlinked, and parent
-  /// pointers in [replacement] are initialized and its types recomputed.
-  ///
-  /// If the caller needs to manually unlink the node, because some references
-  /// were adopted by other nodes, it can be disabled by passing `false`
-  /// as the [unlink] parameter.
+  /// All references in the [node] subtree are unlinked all types in
+  /// [replacement] are recomputed.
   ///
   /// [replacement] must be "fresh", i.e. it must not contain significant parts
-  /// of the original IR inside of it since the [ParentVisitor] will
-  /// redundantly reprocess it.
-  void replaceSubtree(Expression node, Expression replacement,
-                      {bool unlink: true}) {
+  /// of the original IR inside of it, as this leads to redundant reprocessing.
+  void replaceSubtree(Expression node, Expression replacement) {
     InteriorNode parent = node.parent;
     parent.body = replacement;
     replacement.parent = parent;
     node.parent = null;
-    if (unlink) {
-      RemovalVisitor.remove(node);
-    }
+    RemovalVisitor.remove(node);
     reanalyze(replacement);
   }
 
@@ -1929,14 +1939,12 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   }
 
   AbstractValue getValue(Variable node) {
+    assert(node.type != null);
     ConstantValue constant = values[node];
     if (constant != null) {
       return new AbstractValue.constantValue(constant, node.type);
     }
-    if (node.type != null) {
-      return new AbstractValue.nonConstant(node.type);
-    }
-    return lattice.nothing;
+    return new AbstractValue.nonConstant(node.type);
   }
 
 
@@ -2046,19 +2054,12 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
   }
 
-  Primitive visitTypeTest(TypeTest node) {
+  visitTypeTest(TypeTest node) {
     Primitive prim = node.value.definition;
 
     Primitive unaryBuiltinOperator(BuiltinOperator operator) =>
         new ApplyBuiltinOperator(
             operator, <Primitive>[prim], node.sourceInformation);
-
-    void unlinkInterceptor() {
-      if (node.interceptor != null) {
-        node.interceptor.unlink();
-        node.interceptor = null;
-      }
-    }
 
     AbstractValue value = getValue(prim);
     types.DartType dartType = node.dartType;
@@ -2066,7 +2067,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     if (!(dartType.isInterfaceType && dartType.isRaw)) {
       // TODO(23685): Efficient function arity check.
       // TODO(sra): Pass interceptor to runtime subtype functions.
-      unlinkInterceptor();
       return null;
     }
 
@@ -2138,14 +2138,19 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     if (dartType == dartTypes.coreTypes.stringType ||
         dartType == dartTypes.coreTypes.boolType) {
       // These types are recognized in tree_ir TypeOperator codegen.
-      unlinkInterceptor();
       return null;
     }
 
-    // TODO(sra): Propagate sourceInformation.
     // TODO(sra): If getInterceptor(x) === x or JSNull, rewrite
     //     getInterceptor(x).$isFoo ---> x != null && x.$isFoo
-    return new TypeTestViaFlag(node.interceptor.definition, dartType);
+    CpsFragment cps = new CpsFragment(node.sourceInformation);
+    Interceptor interceptor =
+        cps.letPrim(new Interceptor(prim, node.sourceInformation));
+    interceptor.interceptedClasses.addAll(backend.interceptedClasses);
+    Primitive testViaFlag =
+        cps.letPrim(new TypeTestViaFlag(interceptor, dartType));
+    node.replaceUsesWith(testViaFlag);
+    return cps;
   }
 
   Primitive visitTypeTestViaFlag(TypeTestViaFlag node) {
@@ -2170,6 +2175,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         node.interceptedClasses..clear()..add(helpers.jsNumberClass);
         return;
       }
+
+      // TODO(asgerf): Avoid adding non-instantiated intercepted classes
+      // in the first place.  (This should also happen in later pass).
+      node.interceptedClasses.retainWhere(classWorld.isInstantiated);
+
       TypeMask interceptedClassesType = new TypeMask.unionOf(
           node.interceptedClasses.map(typeSystem.getInterceptorSubtypes),
           classWorld);
@@ -2207,8 +2217,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //
       // We only do this optimization if the resulting interceptor call is
       // sufficiently specialized to be worth it (#classes <= 2).
-      // TODO(asgerf): Reconsider when TypeTest interceptors don't intercept
-      //               ALL interceptor classes.
+      // TODO(asgerf): Reconsider when TypeTestViaFlag interceptors don't
+      //               intercept ALL interceptor classes.
       if (node.interceptedClasses.length > 1 &&
           node.interceptedClasses.length < 4 &&
           node.interceptedClasses.contains(helpers.jsInterceptorClass)) {
@@ -2472,14 +2482,20 @@ class TypePropagationVisitor implements Visitor {
       setValue(node.thisParameter,
                nonConstant(typeSystem.getReceiverType(node.element)));
     }
+    bool hasParameterWithoutValue = false;
     for (Parameter param in node.parameters.skip(firstActualParameter)) {
       // TODO(karlklose): remove reference to the element model.
       TypeMask type = param.hint is ParameterElement
           ? typeSystem.getParameterType(param.hint)
           : typeSystem.dynamicType;
       setValue(param, lattice.fromMask(type));
+      if (type.isEmpty && !type.isNullable) {
+        hasParameterWithoutValue = true;
+      }
     }
-    push(node.body);
+    if (!hasParameterWithoutValue) { // Don't analyze unreachable code.
+      push(node.body);
+    }
   }
 
   void visitLetPrim(LetPrim node) {
@@ -2928,10 +2944,6 @@ class TypePropagationVisitor implements Visitor {
     }
   }
 
-  void visitCreateFunction(CreateFunction node) {
-    throw 'CreateFunction is not used';
-  }
-
   void visitGetMutable(GetMutable node) {
     setValue(node, getValue(node.variable.definition));
   }
@@ -2982,8 +2994,13 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitGetField(GetField node) {
-    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
-    setValue(node, lattice.fromMask(typeSystem.getFieldType(node.field)));
+    AbstractValue object = getValue(node.object.definition);
+    if (object.isNothing || object.isNullConstant) {
+      setValue(node, nothing);
+    } else {
+      node.objectIsNotNull = object.isDefinitelyNotNull;
+      setValue(node, lattice.fromMask(typeSystem.getFieldType(node.field)));
+    }
   }
 
   void visitSetField(SetField node) {}
@@ -3039,15 +3056,17 @@ class TypePropagationVisitor implements Visitor {
 
   @override
   void visitGetIndex(GetIndex node) {
-    AbstractValue input = getValue(node.object.definition);
-    node.objectIsNotNull = input.isDefinitelyNotNull;
-    setValue(node, nonConstant(typeSystem.elementTypeOfIndexable(input.type)));
+    AbstractValue object = getValue(node.object.definition);
+    if (object.isNothing || object.isNullConstant) {
+      setValue(node, nothing);
+    } else {
+      node.objectIsNotNull = object.isDefinitelyNotNull;
+      setValue(node, nonConstant(typeSystem.elementTypeOfIndexable(object.type)));
+    }
   }
 
   @override
-  void visitSetIndex(SetIndex node) {
-    setValue(node, nonConstant());
-  }
+  void visitSetIndex(SetIndex node) {}
 
   @override
   void visitAwait(Await node) {

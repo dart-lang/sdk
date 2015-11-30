@@ -596,11 +596,8 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
     vector.add(gvnFor[prim] ?? prim);
   }
 
-  visitTypeTest(TypeTest node) {
+  processTypeTest(TypeTest node) {
     vector = [GvnCode.TYPE_TEST, node.dartType];
-    processReference(node.value);
-    node.typeArguments.forEach(processReference);
-    // Suppress processing of the interceptor argument.
   }
 
   processTypeTestViaFlag(TypeTestViaFlag node) {

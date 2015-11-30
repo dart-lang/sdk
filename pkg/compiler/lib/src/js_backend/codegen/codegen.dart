@@ -1075,12 +1075,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return new js.Await(visitExpression(node.input));
   }
 
-  visitFunctionExpression(tree_ir.FunctionExpression node) {
-    // FunctionExpressions are currently unused.
-    // We might need them if we want to emit raw JS nested functions.
-    throw 'FunctionExpressions should not be used';
-  }
-
   /// Ensures that parameter defaults will be emitted.
   ///
   /// Ideally, this should be done when generating the relevant stub methods,

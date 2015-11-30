@@ -16,6 +16,7 @@ import '../types/constants.dart' show computeTypeMask;
 import '../universe/selector.dart' show Selector;
 import '../universe/call_structure.dart' show CallStructure;
 import '../world.dart' show World;
+import '../closure.dart' show ClosureFieldElement, BoxLocal, TypeVariableLocal;
 
 enum AbstractBool {
   True, False, Maybe, Nothing
@@ -181,6 +182,14 @@ class TypeMaskSystem {
   }
 
   TypeMask getFieldType(FieldElement field) {
+    if (field is ClosureFieldElement) {
+      // The type inference does not report types for all closure fields.
+      // Box fields are never null.
+      if (field.local is BoxLocal) return nonNullType;
+      // Closure fields for type variables contain the internal representation
+      // of the type (which can be null), not the Type object.
+      if (field.local is TypeVariableLocal) return dynamicType;
+    }
     return inferrer.getGuaranteedTypeOfElement(field);
   }
 
