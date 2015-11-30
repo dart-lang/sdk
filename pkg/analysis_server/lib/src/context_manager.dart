@@ -181,6 +181,31 @@ class ContextInfo {
   void setDependencies(Iterable<String> newDependencies) {
     _dependencies = newDependencies.toSet();
   }
+
+  /**
+   * Return `true` if the given [path] is managed by this context or by
+   * any of its children.
+   */
+  bool _managesOrHasChildThatManages(String path) {
+    if (parent == null) {
+      for (ContextInfo child in children) {
+        if (child._managesOrHasChildThatManages(path)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      if (!folder.isOrContains(path)) {
+        return false;
+      }
+      for (ContextInfo child in children) {
+        if (child._managesOrHasChildThatManages(path)) {
+          return true;
+        }
+      }
+      return !pathFilter.ignored(path);
+    }
+  }
 }
 
 /**
@@ -425,7 +450,7 @@ class ContextManagerImpl implements ContextManager {
    * Virtual [ContextInfo] which acts as the ancestor of all other
    * [ContextInfo]s.
    */
-  final ContextInfo _rootInfo = new ContextInfo._root();
+  final ContextInfo rootInfo = new ContextInfo._root();
 
   /**
    * Stream subscription we are using to watch each analysis root directory for
@@ -481,7 +506,7 @@ class ContextManagerImpl implements ContextManager {
 
   @override
   bool isIgnored(String path) {
-    ContextInfo info = _rootInfo;
+    ContextInfo info = rootInfo;
     do {
       info = info.findChildInfoFor(path);
       if (info == null) {
@@ -500,7 +525,7 @@ class ContextManagerImpl implements ContextManager {
       return false;
     }
     // check if in one of the roots
-    for (ContextInfo info in _rootInfo.children) {
+    for (ContextInfo info in rootInfo.children) {
       if (info.folder.contains(path)) {
         return true;
       }
@@ -575,7 +600,7 @@ class ContextManagerImpl implements ContextManager {
   @override
   void refresh(List<Resource> roots) {
     // Destroy old contexts
-    List<ContextInfo> contextInfos = _rootInfo.descendants.toList();
+    List<ContextInfo> contextInfos = rootInfo.descendants.toList();
     if (roots == null) {
       contextInfos.forEach(_destroyContext);
     } else {
@@ -616,22 +641,31 @@ class ContextManagerImpl implements ContextManager {
       }
     });
 
-    List<ContextInfo> contextInfos = _rootInfo.descendants.toList();
+    List<ContextInfo> contextInfos = rootInfo.descendants.toList();
     // included
-    Set<Folder> includedFolders = new HashSet<Folder>();
-    for (int i = 0; i < includedPaths.length; i++) {
-      String path = includedPaths[i];
-      Resource resource = resourceProvider.getResource(path);
-      if (resource is Folder) {
-        includedFolders.add(resource);
-      } else if (!resource.exists) {
-        // Non-existent resources are ignored.  TODO(paulberry): we should set
-        // up a watcher to ensure that if the resource appears later, we will
-        // begin analyzing it.
-      } else {
-        // TODO(scheglov) implemented separate files analysis
-        throw new UnimplementedError('$path is not a folder. '
-            'Only support for folder analysis is implemented currently.');
+    List<Folder> includedFolders = <Folder>[];
+    {
+      // Sort paths to ensure that outer roots are handled before inner roots,
+      // so we can correctly ignore inner roots, which are already managed
+      // by outer roots.
+      LinkedHashSet<String> uniqueIncludedPaths =
+          new LinkedHashSet<String>.from(includedPaths);
+      List<String> sortedIncludedPaths = uniqueIncludedPaths.toList();
+      sortedIncludedPaths.sort((a, b) => a.length - b.length);
+      // Convert paths to folders.
+      for (String path in sortedIncludedPaths) {
+        Resource resource = resourceProvider.getResource(path);
+        if (resource is Folder) {
+          includedFolders.add(resource);
+        } else if (!resource.exists) {
+          // Non-existent resources are ignored.  TODO(paulberry): we should set
+          // up a watcher to ensure that if the resource appears later, we will
+          // begin analyzing it.
+        } else {
+          // TODO(scheglov) implemented separate files analysis
+          throw new UnimplementedError('$path is not a folder. '
+              'Only support for folder analysis is implemented currently.');
+        }
       }
     }
     this.includedPaths = includedPaths;
@@ -648,7 +682,7 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     // Update package roots for existing contexts
-    for (ContextInfo info in _rootInfo.descendants) {
+    for (ContextInfo info in rootInfo.descendants) {
       String newPackageRoot = normalizedPackageRoots[info.folder.path];
       if (info.packageRoot != newPackageRoot) {
         info.packageRoot = newPackageRoot;
@@ -657,17 +691,17 @@ class ContextManagerImpl implements ContextManager {
     }
     // create new contexts
     for (Folder includedFolder in includedFolders) {
-      bool wasIncluded = contextInfos.any((info) {
-        return info.folder.isOrContains(includedFolder.path);
-      });
-      if (!wasIncluded) {
+      String includedPath = includedFolder.path;
+      bool isManaged = rootInfo._managesOrHasChildThatManages(includedPath);
+      if (!isManaged) {
+        ContextInfo parent = _getParentForNewContext(includedPath);
         changeSubscriptions[includedFolder] =
             includedFolder.changes.listen(_handleWatchEvent);
-        _createContexts(_rootInfo, includedFolder, false);
+        _createContexts(parent, includedFolder, false);
       }
     }
     // remove newly excluded sources
-    for (ContextInfo info in _rootInfo.descendants) {
+    for (ContextInfo info in rootInfo.descendants) {
       // prepare excluded sources
       Map<String, Source> excludedSources = new HashMap<String, Source>();
       info.sources.forEach((String path, Source source) {
@@ -685,7 +719,7 @@ class ContextManagerImpl implements ContextManager {
       callbacks.applyChangesToContext(info.folder, changeSet);
     }
     // add previously excluded sources
-    for (ContextInfo info in _rootInfo.descendants) {
+    for (ContextInfo info in rootInfo.descendants) {
       ChangeSet changeSet = new ChangeSet();
       _addPreviouslyExcludedSources(
           info, changeSet, info.folder, oldExcludedPaths);
@@ -822,7 +856,7 @@ class ContextManagerImpl implements ContextManager {
     for (Source source in context.sources) {
       flushedFiles.add(source.fullName);
     }
-    for (ContextInfo contextInfo in _rootInfo.descendants) {
+    for (ContextInfo contextInfo in rootInfo.descendants) {
       AnalysisContext contextN = contextInfo.context;
       if (context != contextN) {
         for (Source source in contextN.sources) {
@@ -1082,7 +1116,7 @@ class ContextManagerImpl implements ContextManager {
    * If no context contains the given path, `null` is returned.
    */
   ContextInfo _getInnermostContextInfoFor(String path) {
-    ContextInfo info = _rootInfo.findChildInfoFor(path);
+    ContextInfo info = rootInfo.findChildInfoFor(path);
     if (info == null) {
       return null;
     }
@@ -1093,6 +1127,17 @@ class ContextManagerImpl implements ContextManager {
       }
       info = childInfo;
     }
+  }
+
+  /**
+   * Return the parent for a new [ContextInfo] with the given [path] folder.
+   */
+  ContextInfo _getParentForNewContext(String path) {
+    ContextInfo parent = _getInnermostContextInfoFor(path);
+    if (parent != null) {
+      return parent;
+    }
+    return rootInfo;
   }
 
   void _handleWatchEvent(WatchEvent event) {
