@@ -9854,13 +9854,14 @@ class Document extends Node
   // The two-argument version of this is automatically generated, but we need to
   // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
   @DomName('Document.createElement')
-  _createElement_2(String tagName) => JS('', '#.createElement(#)', this, tagName);
+  _createElement_2(String tagName) =>
+      JS('Element', '#.createElement(#)', this, tagName);
 
   // The three-argument version of this is automatically generated, but we need to
   // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
   @DomName('Document.createElementNS')
   _createElementNS_2(String namespaceURI, String qualifiedName) =>
-      JS('', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
+      JS('Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
 
   @DomName('Document.createElementNS')
   @DocsEditable()
