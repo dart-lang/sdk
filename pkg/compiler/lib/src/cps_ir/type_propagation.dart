@@ -940,44 +940,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       push(invoke);
       return;
     }
-
-    if (condition is ApplyBuiltinOperator &&
-        (condition.operator == BuiltinOperator.LooseEq ||
-         condition.operator == BuiltinOperator.StrictEq)) {
-      Primitive leftArg = condition.arguments[0].definition;
-      Primitive rightArg = condition.arguments[1].definition;
-      AbstractValue left = getValue(leftArg);
-      AbstractValue right = getValue(rightArg);
-      if (right.isNullConstant &&
-          lattice.isDefinitelyNotNumStringBool(left)) {
-        // Rewrite:
-        //   if (x == null) S1 else S2
-        //     =>
-        //   if (x) S2 else S1   (note the swapped branches)
-        Branch branch = new Branch.loose(leftArg, falseCont, trueCont);
-        replaceSubtree(node, branch);
-        return;
-      } else if (left.isNullConstant &&
-                 lattice.isDefinitelyNotNumStringBool(right)) {
-        Branch branch = new Branch.loose(rightArg, falseCont, trueCont);
-        replaceSubtree(node, branch);
-        return;
-      } else if (right.isTrueConstant &&
-                 lattice.isDefinitelyBool(left, allowNull: true)) {
-        // Rewrite:
-        //   if (x == true) S1 else S2
-        //     =>
-        //   if (x) S1 else S2
-        Branch branch = new Branch.loose(leftArg, trueCont, falseCont);
-        replaceSubtree(node, branch);
-        return;
-      } else if (left.isTrueConstant &&
-                 lattice.isDefinitelyBool(right, allowNull: true)) {
-        Branch branch = new Branch.loose(rightArg, trueCont, falseCont);
-        replaceSubtree(node, branch);
-        return;
-      }
-    }
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
