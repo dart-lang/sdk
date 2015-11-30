@@ -20,7 +20,7 @@ part 'generated_protocol.dart';
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DomainHandler extends RequestHandler {
+abstract class DomainHandler implements RequestHandler {
   /**
    * Perform any operations associated with the shutdown of the domain. It is
    * not guaranteed that this method will be called. If it is, it will be

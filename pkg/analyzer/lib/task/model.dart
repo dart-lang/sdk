@@ -350,7 +350,7 @@ abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ListTaskInput<E> extends TaskInput<List<E>> {
+abstract class ListTaskInput<E> implements TaskInput<List<E>> {
   /**
    * Return a task input that can be used to compute a flatten list whose
    * elements are combined [subListResult]'s associated with those elements.
@@ -392,7 +392,7 @@ abstract class ListTaskInput<E> extends TaskInput<List<E>> {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MapTaskInput<K, V> extends TaskInput<Map<K, V>> {
+abstract class MapTaskInput<K, V> implements TaskInput<Map<K, V>> {
   /**
    * [V] must be a [List].
    * Return a task input that can be used to compute a list whose elements are
