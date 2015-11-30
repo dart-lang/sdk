@@ -685,7 +685,6 @@ class Isolate : public BaseIsolate {
   void Shutdown();
 
   void BuildName(const char* name_prefix);
-  void PrintInvokedFunctions();
 
   void ProfileIdle();
 
