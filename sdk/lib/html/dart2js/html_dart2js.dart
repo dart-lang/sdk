@@ -9846,11 +9846,9 @@ class Document extends Node
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
-    if (typeExtension == null) {
-      return _createElement_2(tagName);
-    } else {
-      return _createElement(tagName, typeExtension);
-    }
+    return (typeExtension == null)
+        ? _createElement_2(tagName)
+        : _createElement(tagName, typeExtension);
   }
 
   // The two-argument version of this is automatically generated, but we need to
@@ -9867,11 +9865,9 @@ class Document extends Node
   @DomName('Document.createElementNS')
   @DocsEditable()
   Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
-    if (typeExtension == null) {
-      return _createElementNS_2(namespaceURI, qualifiedName);
-    } else {
-      return _createElementNS(namespaceURI, qualifiedName, typeExtension);
-    }
+    return (typeExtension == null)
+        ? _createElementNS_2(namespaceURI, qualifiedName)
+        : _createElementNS(namespaceURI, qualifiedName, typeExtension);
   }
 
   @DomName('Document.createNodeIterator')
