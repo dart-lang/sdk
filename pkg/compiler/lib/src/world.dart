@@ -675,10 +675,14 @@ class World implements ClassWorld {
       return false;
     }
 
-    return element.isFinal
-        || element.isConst
-        || (element.isInstanceMember
-            && !compiler.resolverWorld.hasInvokedSetter(element, this));
+    if (element.isFinal || element.isConst) {
+      return true;
+    }
+    if (element.isInstanceMember) {
+      return !compiler.resolverWorld.hasInvokedSetter(element, this) &&
+             !compiler.resolverWorld.fieldSetters.contains(element);
+    }
+    return false;
   }
 
   SideEffects getSideEffectsOfElement(Element element) {
