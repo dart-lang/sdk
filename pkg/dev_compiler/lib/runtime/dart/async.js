@@ -920,7 +920,7 @@ dart_library.library('dart/async', null, /* Imports */[
       onData(handleData) {
         dart.as(handleData, dart.functionType(dart.void, [T]));
         if (handleData == null)
-          handleData = dart.as(_nullDataHandler, __CastType20);
+          handleData = dart.as(_nullDataHandler, __CastType20$(T));
         this[_onData] = dart.as(this[_zone].registerUnaryCallback(handleData), _DataHandler$(T));
       }
       onError(handleError) {
@@ -1583,7 +1583,7 @@ dart_library.library('dart/async', null, /* Imports */[
           this[_forEachListener](dart.as(dart.fn(subscription => {
             dart.as(subscription, _BroadcastSubscription$(T));
             subscription[_close]();
-          }, dart.dynamic, [_BroadcastSubscription$(T)]), __CastType2));
+          }, dart.dynamic, [_BroadcastSubscription$(T)]), __CastType2$(T)));
         } else {
           dart.assert(this[_doneFuture] != null);
           dart.assert(this[_doneFuture][_mayComplete]);
@@ -2272,7 +2272,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let onError = opts && 'onError' in opts ? opts.onError : null;
         let result = new (_Future$())();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
-          f = dart.as(result[_zone].registerUnaryCallback(f), __CastType6);
+          f = dart.as(result[_zone].registerUnaryCallback(f), __CastType6$(T));
           if (onError != null) {
             onError = _registerErrorHandler(onError, result[_zone]);
           }
@@ -3365,12 +3365,12 @@ dart_library.library('dart/async', null, /* Imports */[
       return null;
     }
   }
-  class _NoCallbackAsyncStreamController extends dart.mixin(_StreamController, _AsyncStreamControllerDispatch, _NoCallbacks) {
+  class _NoCallbackAsyncStreamController extends dart.mixin(_StreamController$(dart.dynamic), _AsyncStreamControllerDispatch$(dart.dynamic), _NoCallbacks) {
     _NoCallbackAsyncStreamController() {
       super._StreamController(...arguments);
     }
   }
-  class _NoCallbackSyncStreamController extends dart.mixin(_StreamController, _SyncStreamControllerDispatch, _NoCallbacks) {
+  class _NoCallbackSyncStreamController extends dart.mixin(_StreamController$(dart.dynamic), _SyncStreamControllerDispatch$(dart.dynamic), _NoCallbacks) {
     _NoCallbackSyncStreamController() {
       super._StreamController(...arguments);
     }
@@ -4877,9 +4877,9 @@ dart_library.library('dart/async', null, /* Imports */[
         super._StreamSinkTransformer(dart.as(dart.fn(outputSink => {
           dart.as(outputSink, EventSink$(T));
           if (handleData == null)
-            handleData = dart.as(_StreamHandlerTransformer$()._defaultHandleData, __CastType27);
+            handleData = dart.as(_StreamHandlerTransformer$()._defaultHandleData, __CastType27$(S, T));
           if (handleError == null)
-            handleError = dart.as(_StreamHandlerTransformer$()._defaultHandleError, __CastType30);
+            handleError = dart.as(_StreamHandlerTransformer$()._defaultHandleError, __CastType30$(T));
           if (handleDone == null)
             handleDone = _StreamHandlerTransformer$()._defaultHandleDone;
           return new (_HandlerEventSink$(S, T))(handleData, handleError, handleDone, outputSink);
