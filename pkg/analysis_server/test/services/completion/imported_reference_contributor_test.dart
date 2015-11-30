@@ -8,7 +8,6 @@ import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -20,7 +19,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../operation/operation_queue_test.dart';
 import '../../utils.dart';
 import 'completion_test_util.dart';
 
@@ -64,13 +62,12 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     setUpContributor();
     int replacementOffset = request.replacementOffset;
     int replacementLength = request.replacementLength;
-    AnalysisServer server = new AnalysisServerMock();
     /*
      * Pass null for searchEngine to ensure that it is not used
      * when the cache has been populated.
      */
     request = new DartCompletionRequest(
-        server, context, testSource, completionOffset, cache);
+        context, provider, searchEngine, testSource, completionOffset, cache);
     request.replacementOffset = replacementOffset;
     request.replacementLength = replacementLength;
 

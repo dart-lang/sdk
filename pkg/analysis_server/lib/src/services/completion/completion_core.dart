@@ -4,9 +4,8 @@
 
 library analysis_server.src.services.completion.completion_core;
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -16,9 +15,6 @@ import 'package:analyzer/src/generated/source.dart';
  */
 class CompletionRequestImpl implements CompletionRequest {
   @override
-  final AnalysisServer server;
-
-  @override
   final AnalysisContext context;
 
   @override
@@ -27,14 +23,15 @@ class CompletionRequestImpl implements CompletionRequest {
   @override
   final int offset;
 
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final SearchEngine searchEngine;
+
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
-  CompletionRequestImpl(this.server, this.context, this.source, this.offset);
-
-  @override
-  ResourceProvider get resourceProvider => server.resourceProvider;
-
-  @override
-  ServerPlugin get serverPlugin => server.serverPlugin;
+  CompletionRequestImpl(this.context, this.resourceProvider, this.searchEngine,
+      this.source, this.offset);
 }

@@ -11,7 +11,6 @@ import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
@@ -25,7 +24,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../abstract_context.dart';
-import '../../../operation/operation_queue_test.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -133,10 +131,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   Future computeSuggestions([int times = 200]) async {
-    AnalysisServer server = new AnalysisServerMock(
-        searchEngine: searchEngine, resourceProvider: provider);
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        server, context, testSource, completionOffset);
+        context, provider, searchEngine, testSource, completionOffset);
     request = new DartCompletionRequestImpl.forRequest(baseRequest);
     Completer<List<CompletionSuggestion>> completer =
         new Completer<List<CompletionSuggestion>>();

@@ -32,11 +32,11 @@ const int DART_RELEVANCE_NAMED_PARAMETER = 1060;
 const int DART_RELEVANCE_PARAMETER = 1059;
 
 /**
- * An object used to instantiate [DartCompletionContributor] instances
+ * An object used to instantiate a [DartCompletionContributor] instance
  * for each 'completion.getSuggestions' request.
  * Contributors should *not* be cached between requests.
  */
-typedef List<DartCompletionContributor> DartCompletionContributorFactory();
+typedef DartCompletionContributor DartCompletionContributorFactory();
 
 /**
  * An object used to produce completions

@@ -3,32 +3,31 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Support for client code that extends the analysis server by adding new code
+ * Support for client code that extends the analysis server by adding new
  * Dart specific completion contributors.
  *
  * Plugins can register Dart specific completion contributor factories.
- * The registered contributor factoriess will be used to instantiate new
+ * The registered contributor factories will be used to instantiate new
  * contributors to get completions any time a client issues
  * a 'completion.getSuggestions' request.
  *
- * If a plugin wants to add completions, it should implement the class
- * [DartCompletionContributorFactory] and then register the contributor
- * by including code like the following in the plugin's
- * registerExtensions method:
+ * If a plugin wants to add completions, it should implement
+ * [DartCompletionContributorFactory] by including code
+ * like the following in the plugin's registerExtensions method:
  *
  *     @override
  *     void registerExtensions(RegisterExtension registerExtension) {
  *       ...
  *       registerExtension(
  *           DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
- *           () => [new MyDartCompletionContributor()]);
+ *           () => new MyDartCompletionContributor());
  *       ...
  *     }
  */
 library analysis_server.src.provisional.completion.completion;
 
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -37,5 +36,5 @@ import 'package:plugin/plugin.dart';
  * [DartCompletionContributor].
  */
 final String DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
-    ServerPlugin.UNIQUE_IDENTIFIER,
-    ServerPlugin.DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT);
+    DartCompletionPlugin.UNIQUE_IDENTIFIER,
+    DartCompletionPlugin.CONTRIBUTOR_EXTENSION_POINT);
