@@ -411,6 +411,8 @@ class StringInterpolateNode : public AstNode {
 
   ArrayNode* value() const { return value_; }
 
+  virtual bool IsPotentiallyConst() const;
+
   DECLARE_COMMON_NODE_FUNCTIONS(StringInterpolateNode);
 
  private:
