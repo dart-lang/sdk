@@ -983,18 +983,63 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   ///
   /// Returns `true` if the node was replaced.
   specializeOperatorCall(InvokeMethod node) {
-    replaceWithBinary(BuiltinOperator operator,
-                      Primitive left,
-                      Primitive right) {
-      return new ApplyBuiltinOperator(
-              operator, <Primitive>[left, right], node.sourceInformation);
-    }
-    replaceWithUnary(BuiltinOperator operator, Primitive argument) {
-      return new ApplyBuiltinOperator(
-              operator, <Primitive>[argument], node.sourceInformation);
+    bool trustPrimitives = compiler.trustPrimitives;
+
+    /// Checks that the the receiver satisfied the given predicate [guard],
+    /// otherwise ensures a [NoSuchMethodError] will be thrown.
+    ///
+    /// For example, if the [guard] is `IsNumber` for a call to `<`:
+    ///
+    ///     if (typeof x !== 'number') return x.$lt();
+    ///
+    /// The [guard] must accept all possible non-null values for the receiver,
+    /// but should be as specific as possible so the VM gets more information
+    /// from the check.
+    Primitive guardReceiver(CpsFragment cps, BuiltinOperator guard) {
+      if (guard == null || getValue(node.dartReceiver).isDefinitelyNotNull) {
+        return node.dartReceiver;
+      }
+      if (!trustPrimitives) {
+        Primitive check = cps.applyBuiltin(guard, [node.dartReceiver]);
+        cps.ifFalsy(check)
+           ..invokeMethod(node.dartReceiver, node.selector,
+             typeSystem.nullType, [])
+           ..put(new Unreachable());
+      }
+      // Refine the receiver to be non-null for use in the operator.
+      // This restricts code motion and improves the type computed for the
+      // built-in operator that depends on it.
+      // This must be done even if trusting primitives.
+      Primitive refined = cps.letPrim(
+          new Refinement(node.dartReceiver, typeSystem.nonNullType));
+      return refined;
     }
 
-    bool trustPrimitives = compiler.trustPrimitives;
+    /// Replaces the call with [operator], using the receiver and first argument
+    /// as operands (in that order).
+    ///
+    /// If [guard] is given, the receiver is checked using [guardReceiver],
+    /// unless it is known kot to be null.
+    CpsFragment makeBinary(BuiltinOperator operator, {BuiltinOperator guard}) {
+      CpsFragment cps = new CpsFragment(node.sourceInformation);
+      Primitive left = guardReceiver(cps, guard);
+      Primitive right = node.dartArgument(0);
+      Primitive result = cps.applyBuiltin(operator, [left, right]);
+      result.hint = node.hint;
+      node.replaceUsesWith(result);
+      return cps;
+    }
+
+    /// Like [makeBinary] but for unary operators with the receiver as the
+    /// argument.
+    CpsFragment makeUnary(BuiltinOperator operator, {BuiltinOperator guard}) {
+      CpsFragment cps = new CpsFragment(node.sourceInformation);
+      Primitive argument = guardReceiver(cps, guard);
+      Primitive result = cps.applyBuiltin(operator, [argument]);
+      result.hint = node.hint;
+      node.replaceUsesWith(result);
+      return cps;
+    }
 
     if (node.selector.isOperator && node.arguments.length == 2) {
       Primitive leftArg = node.dartReceiver;
@@ -1008,8 +1053,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         // fact that Dart-null corresponds to both JS-null and JS-undefined.
         // Please see documentation for IsFalsy, StrictEq, and LooseEq.
         if (left.isNullConstant || right.isNullConstant) {
-          return replaceWithBinary(BuiltinOperator.Identical,
-               leftArg, rightArg);
+          return makeBinary(BuiltinOperator.Identical);
         }
         // There are several implementations of == that behave like identical.
         // Specialize it if we definitely call one of those.
@@ -1024,57 +1068,57 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           }
         }
         if (behavesLikeIdentical) {
-          return replaceWithBinary(BuiltinOperator.Identical,
-              leftArg, rightArg);
+          return makeBinary(BuiltinOperator.Identical);
         }
       } else {
-        if (lattice.isDefinitelyNum(left, allowNull: trustPrimitives) &&
+        if (lattice.isDefinitelyNum(left, allowNull: true) &&
             lattice.isDefinitelyNum(right, allowNull: trustPrimitives)) {
           // Try to insert a numeric operator.
           BuiltinOperator operator = NumBinaryBuiltins[opname];
           if (operator != null) {
-            return replaceWithBinary(operator, leftArg, rightArg);
+            return makeBinary(operator, guard: BuiltinOperator.IsNumber);
           }
           // Shift operators are not in [NumBinaryBuiltins] because Dart shifts
           // behave different to JS shifts, especially in the handling of the
           // shift count.
           // Try to insert a shift-left operator.
           if (opname == '<<' &&
-              lattice.isDefinitelyInt(left, allowNull: trustPrimitives) &&
+              lattice.isDefinitelyInt(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
-            return replaceWithBinary(BuiltinOperator.NumShl, leftArg, rightArg);
+            return makeBinary(BuiltinOperator.NumShl,
+                guard: BuiltinOperator.IsNumber);
           }
           // Try to insert a shift-right operator. JavaScript's right shift is
           // consistent with Dart's only for left operands in the unsigned
           // 32-bit range.
           if (opname == '>>' &&
-              lattice.isDefinitelyUint32(left, allowNull: trustPrimitives) &&
+              lattice.isDefinitelyUint32(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
-            return replaceWithBinary(BuiltinOperator.NumShr, leftArg, rightArg);
+            return makeBinary(BuiltinOperator.NumShr,
+                guard: BuiltinOperator.IsNumber);
           }
           // Try to use remainder for '%'. Both operands must be non-negative
           // and the divisor must be non-zero.
           if (opname == '%' &&
-              lattice.isDefinitelyUint(left, allowNull: trustPrimitives) &&
+              lattice.isDefinitelyUint(left, allowNull: true) &&
               lattice.isDefinitelyUint(right) &&
               lattice.isDefinitelyIntInRange(right, min: 1)) {
-            return replaceWithBinary(
-                BuiltinOperator.NumRemainder, leftArg, rightArg);
+            return makeBinary(BuiltinOperator.NumRemainder,
+                guard: BuiltinOperator.IsNumber);
           }
 
           if (opname == '~/' &&
-              lattice.isDefinitelyUint32(left, allowNull: trustPrimitives) &&
+              lattice.isDefinitelyUint32(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 2)) {
-            return replaceWithBinary(
-                BuiltinOperator.NumTruncatingDivideToSigned32,
-                leftArg, rightArg);
+            return makeBinary(BuiltinOperator.NumTruncatingDivideToSigned32,
+                guard: BuiltinOperator.IsNumber);
           }
         }
         if (lattice.isDefinitelyString(left, allowNull: trustPrimitives) &&
             lattice.isDefinitelyString(right, allowNull: trustPrimitives) &&
             opname == '+') {
-          return replaceWithBinary(BuiltinOperator.StringConcatenate,
-                                   leftArg, rightArg);
+          // TODO(asgerf): Add IsString builtin so we can use a guard here.
+          return makeBinary(BuiltinOperator.StringConcatenate);
         }
       }
     }
@@ -1082,13 +1126,15 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       Primitive argument = node.dartReceiver;
       AbstractValue value = getValue(argument);
 
-      if (lattice.isDefinitelyNum(value, allowNull: false)) {
+      if (lattice.isDefinitelyNum(value, allowNull: true)) {
         String opname = node.selector.name;
         if (opname == '~') {
-          return replaceWithUnary(BuiltinOperator.NumBitNot, argument);
+          return makeUnary(BuiltinOperator.NumBitNot,
+              guard: BuiltinOperator.IsNumber);
         }
         if (opname == 'unary-') {
-          return replaceWithUnary(BuiltinOperator.NumNegate, argument);
+          return makeUnary(BuiltinOperator.NumNegate,
+              guard: BuiltinOperator.IsNumber);
         }
       }
     }
@@ -1100,11 +1146,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         if (node.arguments.length == 2) {
           Primitive arg = node.dartArgument(0);
           AbstractValue argValue = getValue(arg);
-          if (lattice.isDefinitelyInt(receiverValue) &&
+          if (lattice.isDefinitelyInt(receiverValue, allowNull: true) &&
               lattice.isDefinitelyInt(argValue) &&
               isIntNotZero(argValue)) {
-            return
-                replaceWithBinary(BuiltinOperator.NumRemainder, receiver, arg);
+            return makeBinary(BuiltinOperator.NumRemainder,
+                guard: BuiltinOperator.IsNumber);
           }
         }
       } else if (name == 'codeUnitAt') {
