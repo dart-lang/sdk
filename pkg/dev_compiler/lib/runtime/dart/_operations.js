@@ -45,13 +45,7 @@ dart_library.library('dart/_operations', null, /* Imports */[
     // Also, do we want an NSM on regular JS objects?
     // See: https://github.com/dart-lang/dev_compiler/issues/169
     let result = obj[field];
-
-    // TODO(vsm): Check this more robustly.
-    if (typeof result == "function" && !hasOwnProperty.call(obj, field)) {
-      // This appears to be a method tearoff.  Bind this.
-      return result.bind(obj);
-    }
-        return result;
+    return result;
   }
   exports.dload = dload;
 
