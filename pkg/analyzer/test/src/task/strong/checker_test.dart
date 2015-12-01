@@ -32,10 +32,15 @@ void main() {
           // it requires inference to work because of dartbug.com/23381
           SplayTreeMap([int compare(K key1, K key2),
                         bool isValidKey(potentialKey)]) {
-            : _comparator = /*warning:DownCastComposite*/(compare == null) ? Comparable.compare : compare,
-              _validKey = /*info:InferredType should be pass*/(isValidKey != null) ? isValidKey : ((v) => true);
-              _Predicate<Object> _v = /*warning:DownCastComposite*/(isValidKey != null) ? isValidKey : ((v) => true);
-              _v = /*info:InferredType should be pass*/(isValidKey != null) ? _v : ((v) => true);
+            : _comparator = /*warning:DownCastComposite*/(compare == null)
+                           ? Comparable.compare : compare,
+              _validKey = /*warning:DownCastComposite*/(isValidKey != null)
+                         ? isValidKey : ((v) => true);
+             _Predicate<Object> _v = /*warning:DownCastComposite*/(isValidKey != null)
+                                    ? isValidKey : (/*info:InferredTypeClosure*/(v) => true);
+        // TODO(leafp): Fix unimplemented LUB in analyzer
+        _v = /*warning:DownCastComposite*/(isValidKey != null)
+             ? _v : (/*info:InferredTypeClosure*/(v) => true);
           }
         }
         void main() {

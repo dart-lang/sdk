@@ -68,6 +68,7 @@ main() {
   runReflectiveTests(SimpleResolverTest);
   runReflectiveTests(StrictModeTest);
   runReflectiveTests(TypePropagationTest);
+  runReflectiveTests(StrongModeDownwardsInferenceTest);
   runReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
   runReflectiveTests(StrongModeTypePropagationTest);
 }
@@ -12128,6 +12129,971 @@ int f() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_OPERATOR]);
+  }
+}
+
+/**
+ * Strong mode static analyzer downwards inference tests
+ */
+@reflectiveTest
+class StrongModeDownwardsInferenceTest extends ResolverTestCase {
+  TypeAssertions _assertions;
+  AsserterBuilder<Element, DartType> _hasElement;
+  AsserterBuilder<DartType, DartType> _isType;
+  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
+      DartType> _isFunction2Of;
+  AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>,
+      DartType> _isInstantiationOf;
+  Asserter<DartType> _isInt;
+  Asserter<DartType> _isNum;
+  Asserter<DartType> _isString;
+  Asserter<DartType> _isDynamic;
+  AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
+  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
+      InterfaceType> _isMapOf;
+
+  @override
+  void setUp() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    resetWithOptions(options);
+    _assertions = new TypeAssertions(typeProvider);
+    _isType = _assertions.isType;
+    _hasElement = _assertions.hasElement;
+    _isInstantiationOf = _assertions.isInstantiationOf;
+    _isInt = _assertions.isInt;
+    _isNum = _assertions.isNum;
+    _isString = _assertions.isString;
+    _isDynamic = _assertions.isDynamic;
+    _isListOf = _assertions.isListOf;
+    _isMapOf = _assertions.isMapOf;
+    _isFunction2Of = _assertions.isFunction2Of;
+  }
+
+  void test_cascadeExpression() {
+    String code = r'''
+      class A<T> {
+        List<T> map(T a, List<T> mapper(T x)) => mapper(a);
+      }
+
+      void main () {
+        A<int> a = new A()..map(0, (x) => [x]);
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    CascadeExpression fetch(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      CascadeExpression exp = decl.initializer;
+      return exp;
+    }
+    Element elementA = AstFinder.getClass(unit, "A").element;
+
+    CascadeExpression cascade = fetch(0);
+    _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.staticType);
+    MethodInvocation invoke = cascade.cascadeSections[0];
+    FunctionExpression function = invoke.argumentList.arguments[1];
+    ExecutableElement f0 = function.element;
+    _isListOf(_isInt)(f0.type.returnType);
+    expect(f0.type.normalParameterTypes[0], typeProvider.intType);
+  }
+
+  void test_constructorInitializer_propagation() {
+    String code = r'''
+      class A {
+        List<String> x;
+        A() : this.x = [];
+      }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    ConstructorDeclaration constructor =
+        AstFinder.getConstructorInClass(unit, "A", null);
+    ConstructorFieldInitializer assignment = constructor.initializers[0];
+    Expression exp = assignment.expression;
+    _isListOf(_isString)(exp.staticType);
+  }
+
+  void test_factoryConstructor_propagation() {
+    String code = r'''
+      class A<T> {
+        factory A() { return new B(); }
+      }
+      class B<S> extends A<S> {}
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    ConstructorDeclaration constructor =
+        AstFinder.getConstructorInClass(unit, "A", null);
+    BlockFunctionBody body = constructor.body;
+    ReturnStatement stmt = body.block.statements[0];
+    InstanceCreationExpression exp = stmt.expression;
+    ClassElement elementB = AstFinder.getClass(unit, "B").element;
+    ClassElement elementA = AstFinder.getClass(unit, "A").element;
+    expect(exp.constructorName.type.type.element, elementB);
+    _isInstantiationOf(_hasElement(elementB))(
+        [_isType(elementA.typeParameters[0].type)])(exp.staticType);
+  }
+
+  void test_fieldDeclaration_propagation() {
+    String code = r'''
+      class A {
+        List<String> f0 = ["hello"];
+      }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    VariableDeclaration field = AstFinder.getFieldInClass(unit, "A", "f0");
+
+    _isListOf(_isString)(field.initializer.staticType);
+  }
+
+  void test_functionDeclaration_body_propagation() {
+    String code = r'''
+      typedef T Function2<S, T>(S x);
+
+      List<int> test1() => [];
+
+      Function2<int, int> test2 (int x) {
+        Function2<String, int> inner() {
+          return (x) => x.length;
+        }
+        return (x) => x;
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
+
+    FunctionDeclaration test1 = AstFinder.getTopLevelFunction(unit, "test1");
+    ExpressionFunctionBody body = test1.functionExpression.body;
+    assertListOfInt(body.expression.staticType);
+
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test2");
+
+    FunctionDeclaration inner =
+        (statements[0] as FunctionDeclarationStatement).functionDeclaration;
+    BlockFunctionBody body0 = inner.functionExpression.body;
+    ReturnStatement return0 = body0.block.statements[0];
+    Expression anon0 = return0.expression;
+    FunctionType type0 = anon0.staticType;
+    expect(type0.returnType, typeProvider.intType);
+    expect(type0.normalParameterTypes[0], typeProvider.stringType);
+
+    FunctionExpression anon1 = (statements[1] as ReturnStatement).expression;
+    FunctionType type1 = anon1.element.type;
+    expect(type1.returnType, typeProvider.intType);
+    expect(type1.normalParameterTypes[0], typeProvider.intType);
+  }
+
+  void test_functionLiteral_assignment_typedArguments() {
+    String code = r'''
+      typedef T Function2<S, T>(S x);
+
+      void main () {
+        Function2<int, String> l0 = (int x) => null;
+        Function2<int, String> l1 = (int x) => "hello";
+        Function2<int, String> l2 = (String x) => "hello";
+        Function2<int, String> l3 = (int x) => 3;
+        Function2<int, String> l4 = (int x) {return 3;};
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      FunctionExpression exp = decl.initializer;
+      return exp.element.type;
+    }
+    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isString)(literal(1));
+    _isFunction2Of(_isString, _isString)(literal(2));
+    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(4));
+  }
+
+  void test_functionLiteral_assignment_unTypedArguments() {
+    String code = r'''
+      typedef T Function2<S, T>(S x);
+
+      void main () {
+        Function2<int, String> l0 = (x) => null;
+        Function2<int, String> l1 = (x) => "hello";
+        Function2<int, String> l2 = (x) => "hello";
+        Function2<int, String> l3 = (x) => 3;
+        Function2<int, String> l4 = (x) {return 3;};
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      FunctionExpression exp = decl.initializer;
+      return exp.element.type;
+    }
+    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isString)(literal(1));
+    _isFunction2Of(_isInt, _isString)(literal(2));
+    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(4));
+  }
+
+  void test_functionLiteral_body_propagation() {
+    String code = r'''
+      typedef T Function2<S, T>(S x);
+
+      void main () {
+        Function2<int, List<String>> l0 = (int x) => ["hello"];
+        Function2<int, List<String>> l1 = (String x) => ["hello"];
+        Function2<int, List<String>> l2 = (int x) => [3];
+        Function2<int, List<String>> l3 = (int x) {return [3];};
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    Expression functionReturnValue(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      FunctionExpression exp = decl.initializer;
+      FunctionBody body = exp.body;
+      if (body is ExpressionFunctionBody) {
+        return body.expression;
+      } else {
+        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        return (stmt as ReturnStatement).expression;
+      }
+    }
+    Asserter<InterfaceType> assertListOfString = _isListOf(_isString);
+    assertListOfString(functionReturnValue(0).staticType);
+    assertListOfString(functionReturnValue(1).staticType);
+    assertListOfString(functionReturnValue(2).staticType);
+    assertListOfString(functionReturnValue(3).staticType);
+  }
+
+  void test_functionLiteral_functionExpressionInvocation_typedArguments() {
+    String code = r'''
+      class Mapper<F, T> {
+        T map(T mapper(F x)) => mapper(null);
+      }
+
+      void main () {
+        (new Mapper<int, String>().map)((int x) => null);
+        (new Mapper<int, String>().map)((int x) => "hello");
+        (new Mapper<int, String>().map)((String x) => "hello");
+        (new Mapper<int, String>().map)((int x) => 3);
+        (new Mapper<int, String>().map)((int x) {return 3;});
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      ExpressionStatement stmt = statements[i];
+      FunctionExpressionInvocation invk = stmt.expression;
+      FunctionExpression exp = invk.argumentList.arguments[0];
+      return exp.element.type;
+    }
+    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isString)(literal(1));
+    _isFunction2Of(_isString, _isString)(literal(2));
+    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(4));
+  }
+
+  void test_functionLiteral_functionExpressionInvocation_unTypedArguments() {
+    String code = r'''
+      class Mapper<F, T> {
+        T map(T mapper(F x)) => mapper(null);
+      }
+
+      void main () {
+        (new Mapper<int, String>().map)((x) => null);
+        (new Mapper<int, String>().map)((x) => "hello");
+        (new Mapper<int, String>().map)((x) => "hello");
+        (new Mapper<int, String>().map)((x) => 3);
+        (new Mapper<int, String>().map)((x) {return 3;});
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      ExpressionStatement stmt = statements[i];
+      FunctionExpressionInvocation invk = stmt.expression;
+      FunctionExpression exp = invk.argumentList.arguments[0];
+      return exp.element.type;
+    }
+    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isString)(literal(1));
+    _isFunction2Of(_isInt, _isString)(literal(2));
+    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(4));
+  }
+
+  void test_functionLiteral_functionInvocation_typedArguments() {
+    String code = r'''
+      String map(String mapper(int x)) => mapper(null);
+
+      void main () {
+        map((int x) => null);
+        map((int x) => "hello");
+        map((String x) => "hello");
+        map((int x) => 3);
+        map((int x) {return 3;});
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      ExpressionStatement stmt = statements[i];
+      MethodInvocation invk = stmt.expression;
+      FunctionExpression exp = invk.argumentList.arguments[0];
+      return exp.element.type;
+    }
+    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isString)(literal(1));
+    _isFunction2Of(_isString, _isString)(literal(2));
+    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(4));
+  }
+
+  void test_functionLiteral_functionInvocation_unTypedArguments() {
+    String code = r'''
+      String map(String mapper(int x)) => mapper(null);
+
+      void main () {
+        map((x) => null);
+        map((x) => "hello");
+        map((x) => "hello");
+        map((x) => 3);
+        map((x) {return 3;});
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      ExpressionStatement stmt = statements[i];
+      MethodInvocation invk = stmt.expression;
+      FunctionExpression exp = invk.argumentList.arguments[0];
+      return exp.element.type;
+    }
+    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isString)(literal(1));
+    _isFunction2Of(_isInt, _isString)(literal(2));
+    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(4));
+  }
+
+  void test_functionLiteral_methodInvocation_typedArguments() {
+    String code = r'''
+      class Mapper<F, T> {
+        T map(T mapper(F x)) => mapper(null);
+      }
+
+      void main () {
+        new Mapper<int, String>().map((int x) => null);
+        new Mapper<int, String>().map((int x) => "hello");
+        new Mapper<int, String>().map((String x) => "hello");
+        new Mapper<int, String>().map((int x) => 3);
+        new Mapper<int, String>().map((int x) {return 3;});
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      ExpressionStatement stmt = statements[i];
+      MethodInvocation invk = stmt.expression;
+      FunctionExpression exp = invk.argumentList.arguments[0];
+      return exp.element.type;
+    }
+    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isString)(literal(1));
+    _isFunction2Of(_isString, _isString)(literal(2));
+    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(4));
+  }
+
+  void test_functionLiteral_methodInvocation_unTypedArguments() {
+    String code = r'''
+      class Mapper<F, T> {
+        T map(T mapper(F x)) => mapper(null);
+      }
+
+      void main () {
+        new Mapper<int, String>().map((x) => null);
+        new Mapper<int, String>().map((x) => "hello");
+        new Mapper<int, String>().map((x) => "hello");
+        new Mapper<int, String>().map((x) => 3);
+        new Mapper<int, String>().map((x) {return 3;});
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      ExpressionStatement stmt = statements[i];
+      MethodInvocation invk = stmt.expression;
+      FunctionExpression exp = invk.argumentList.arguments[0];
+      return exp.element.type;
+    }
+    _isFunction2Of(_isInt, _isString)(literal(0));
+    _isFunction2Of(_isInt, _isString)(literal(1));
+    _isFunction2Of(_isInt, _isString)(literal(2));
+    _isFunction2Of(_isInt, _isInt)(literal(3));
+    _isFunction2Of(_isInt, _isString)(literal(4));
+  }
+
+  void test_functionLiteral_unTypedArgument_propagation() {
+    String code = r'''
+      typedef T Function2<S, T>(S x);
+
+      void main () {
+        Function2<int, int> l0 = (x) => x;
+        Function2<int, int> l1 = (x) => x+1;
+        Function2<int, String> l2 = (x) => x;
+        Function2<int, String> l3 = (x) => x.toLowerCase();
+        Function2<String, String> l4 = (x) => x.toLowerCase();
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    Expression functionReturnValue(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      FunctionExpression exp = decl.initializer;
+      FunctionBody body = exp.body;
+      if (body is ExpressionFunctionBody) {
+        return body.expression;
+      } else {
+        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        return (stmt as ReturnStatement).expression;
+      }
+    }
+    expect(functionReturnValue(0).staticType, typeProvider.intType);
+    expect(functionReturnValue(1).staticType, typeProvider.intType);
+    expect(functionReturnValue(2).staticType, typeProvider.intType);
+    expect(functionReturnValue(3).staticType, typeProvider.dynamicType);
+    expect(functionReturnValue(4).staticType, typeProvider.stringType);
+  }
+
+  void test_instanceCreation() {
+    String code = r'''
+      class A<S, T> {
+        S x;
+        T y;
+        A(this.x, this.y);
+        A.named(this.x, this.y);
+      }
+
+      class B<S, T> extends A<T, S> {
+        B(S y, T x) : super(x, y);
+        B.named(S y, T x) : super.named(x, y);
+      }
+
+      class C<S> extends B<S, S> {
+        C(S a) : super(a, a);
+        C.named(S a) : super.named(a, a);
+      }
+
+      class D<S, T> extends B<T, int> {
+        D(T a) : super(a, 3);
+        D.named(T a) : super.named(a, 3);
+      }
+
+      class E<S, T> extends A<C<S>, T> {
+        E(T a) : super(null, a);
+      }
+
+      class F<S, T> extends A<S, T> {
+        F(S x, T y, {List<S> a, List<T> b}) : super(x, y);
+        F.named(S x, T y, [S a, T b]) : super(a, b);
+      }
+
+      void test0() {
+        A<int, String> a0 = new A(3, "hello");
+        A<int, String> a1 = new A.named(3, "hello");
+        A<int, String> a2 = new A<int, String>(3, "hello");
+        A<int, String> a3 = new A<int, String>.named(3, "hello");
+        A<int, String> a4 = new A<int, dynamic>(3, "hello");
+        A<int, String> a5 = new A<dynamic, dynamic>.named(3, "hello");
+      }
+      void test1()  {
+        A<int, String> a0 = new A("hello", 3);
+        A<int, String> a1 = new A.named("hello", 3);
+      }
+      void test2() {
+        A<int, String> a0 = new B("hello", 3);
+        A<int, String> a1 = new B.named("hello", 3);
+        A<int, String> a2 = new B<String, int>("hello", 3);
+        A<int, String> a3 = new B<String, int>.named("hello", 3);
+        A<int, String> a4 = new B<String, dynamic>("hello", 3);
+        A<int, String> a5 = new B<dynamic, dynamic>.named("hello", 3);
+      }
+      void test3() {
+        A<int, String> a0 = new B(3, "hello");
+        A<int, String> a1 = new B.named(3, "hello");
+      }
+      void test4() {
+        A<int, int> a0 = new C(3);
+        A<int, int> a1 = new C.named(3);
+        A<int, int> a2 = new C<int>(3);
+        A<int, int> a3 = new C<int>.named(3);
+        A<int, int> a4 = new C<dynamic>(3);
+        A<int, int> a5 = new C<dynamic>.named(3);
+      }
+      void test5() {
+        A<int, int> a0 = new C("hello");
+        A<int, int> a1 = new C.named("hello");
+      }
+      void test6()  {
+        A<int, String> a0 = new D("hello");
+        A<int, String> a1 = new D.named("hello");
+        A<int, String> a2 = new D<int, String>("hello");
+        A<int, String> a3 = new D<String, String>.named("hello");
+        A<int, String> a4 = new D<num, dynamic>("hello");
+        A<int, String> a5 = new D<dynamic, dynamic>.named("hello");
+      }
+      void test7() {
+        A<int, String> a0 = new D(3);
+        A<int, String> a1 = new D.named(3);
+      }
+      void test8() {
+        // Currently we only allow variable constraints.  Test that we reject.
+        A<C<int>, String> a0 = new E("hello");
+      }
+      void test9() { // Check named and optional arguments
+        A<int, String> a0 = new F(3, "hello", a: [3], b: ["hello"]);
+        A<int, String> a1 = new F(3, "hello", a: ["hello"], b:[3]);
+        A<int, String> a2 = new F.named(3, "hello", 3, "hello");
+        A<int, String> a3 = new F.named(3, "hello");
+        A<int, String> a4 = new F.named(3, "hello", "hello", 3);
+        A<int, String> a5 = new F.named(3, "hello", "hello");
+      }
+    }''';
+    CompilationUnit unit = resolveSource(code);
+
+    Expression rhs(VariableDeclarationStatement stmt) {
+      VariableDeclaration decl = stmt.variables.variables[0];
+      Expression exp = decl.initializer;
+      return exp;
+    }
+
+    void hasType(Asserter<DartType> assertion, Expression exp) =>
+        assertion(exp.staticType);
+
+    Element elementA = AstFinder.getClass(unit, "A").element;
+    Element elementB = AstFinder.getClass(unit, "B").element;
+    Element elementC = AstFinder.getClass(unit, "C").element;
+    Element elementD = AstFinder.getClass(unit, "D").element;
+    Element elementE = AstFinder.getClass(unit, "E").element;
+    Element elementF = AstFinder.getClass(unit, "F").element;
+
+    AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
+        _isInstantiationOf(_hasElement(elementA));
+    AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf =
+        _isInstantiationOf(_hasElement(elementB));
+    AsserterBuilder<List<Asserter<DartType>>, DartType> assertCOf =
+        _isInstantiationOf(_hasElement(elementC));
+    AsserterBuilder<List<Asserter<DartType>>, DartType> assertDOf =
+        _isInstantiationOf(_hasElement(elementD));
+    AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf =
+        _isInstantiationOf(_hasElement(elementE));
+    AsserterBuilder<List<Asserter<DartType>>, DartType> assertFOf =
+        _isInstantiationOf(_hasElement(elementF));
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test0");
+
+      hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
+      hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
+      hasType(assertAOf([_isInt, _isString]), rhs(statements[1]));
+      hasType(assertAOf([_isInt, _isString]), rhs(statements[2]));
+      hasType(assertAOf([_isInt, _isString]), rhs(statements[3]));
+      hasType(assertAOf([_isInt, _isDynamic]), rhs(statements[4]));
+      hasType(assertAOf([_isDynamic, _isDynamic]), rhs(statements[5]));
+    }
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test1");
+      hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
+      hasType(assertAOf([_isInt, _isString]), rhs(statements[1]));
+    }
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test2");
+      hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
+      hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
+      hasType(assertBOf([_isString, _isInt]), rhs(statements[2]));
+      hasType(assertBOf([_isString, _isInt]), rhs(statements[3]));
+      hasType(assertBOf([_isString, _isDynamic]), rhs(statements[4]));
+      hasType(assertBOf([_isDynamic, _isDynamic]), rhs(statements[5]));
+    }
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test3");
+      hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
+      hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
+    }
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test4");
+      hasType(assertCOf([_isInt]), rhs(statements[0]));
+      hasType(assertCOf([_isInt]), rhs(statements[1]));
+      hasType(assertCOf([_isInt]), rhs(statements[2]));
+      hasType(assertCOf([_isInt]), rhs(statements[3]));
+      hasType(assertCOf([_isDynamic]), rhs(statements[4]));
+      hasType(assertCOf([_isDynamic]), rhs(statements[5]));
+    }
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test5");
+      hasType(assertCOf([_isInt]), rhs(statements[0]));
+      hasType(assertCOf([_isInt]), rhs(statements[1]));
+    }
+
+    {
+      // The first type parameter is not constrained by the
+      // context.  We could choose a tighter type, but currently
+      // we just use dynamic.
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test6");
+      hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
+      hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
+      hasType(assertDOf([_isInt, _isString]), rhs(statements[2]));
+      hasType(assertDOf([_isString, _isString]), rhs(statements[3]));
+      hasType(assertDOf([_isNum, _isDynamic]), rhs(statements[4]));
+      hasType(assertDOf([_isDynamic, _isDynamic]), rhs(statements[5]));
+    }
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test7");
+      hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
+      hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
+    }
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test8");
+      hasType(assertEOf([_isDynamic, _isDynamic]), rhs(statements[0]));
+    }
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInTopLevelFunction(unit, "test9");
+      hasType(assertFOf([_isInt, _isString]), rhs(statements[0]));
+      hasType(assertFOf([_isInt, _isString]), rhs(statements[1]));
+      hasType(assertFOf([_isInt, _isString]), rhs(statements[2]));
+      hasType(assertFOf([_isInt, _isString]), rhs(statements[3]));
+      hasType(assertFOf([_isInt, _isString]), rhs(statements[4]));
+      hasType(assertFOf([_isInt, _isString]), rhs(statements[5]));
+    }
+  }
+
+  void test_listLiteral_nested() {
+    String code = r'''
+      void main () {
+        List<List<int>> l0 = [[]];
+        Iterable<List<int>> l1 = [[3]];
+        Iterable<List<int>> l2 = [[3], [4]];
+        List<List<int>> l3 = [["hello", 3], []];
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    ListLiteral literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      ListLiteral exp = decl.initializer;
+      return exp;
+    }
+
+    Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
+    Asserter<InterfaceType> assertListOfListOfInt = _isListOf(assertListOfInt);
+
+    assertListOfListOfInt(literal(0).staticType);
+    assertListOfListOfInt(literal(1).staticType);
+    assertListOfListOfInt(literal(2).staticType);
+    assertListOfListOfInt(literal(3).staticType);
+
+    assertListOfInt(literal(1).elements[0].staticType);
+    assertListOfInt(literal(2).elements[0].staticType);
+    assertListOfInt(literal(3).elements[0].staticType);
+  }
+
+  void test_listLiteral_simple() {
+    String code = r'''
+      void main () {
+        List<int> l0 = [];
+        List<int> l1 = [3];
+        List<int> l2 = ["hello"];
+        List<int> l3 = ["hello", 3];
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      ListLiteral exp = decl.initializer;
+      return exp.staticType;
+    }
+
+    Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
+
+    assertListOfInt(literal(0));
+    assertListOfInt(literal(1));
+    assertListOfInt(literal(2));
+    assertListOfInt(literal(3));
+  }
+
+  void test_listLiteral_simple_const() {
+    String code = r'''
+      void main () {
+        const List<int> c0 = const [];
+        const List<int> c1 = const [3];
+        const List<int> c2 = const ["hello"];
+        const List<int> c3 = const ["hello", 3];
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      ListLiteral exp = decl.initializer;
+      return exp.staticType;
+    }
+
+    Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
+
+    assertListOfInt(literal(0));
+    assertListOfInt(literal(1));
+    assertListOfInt(literal(2));
+    assertListOfInt(literal(3));
+  }
+
+  void test_listLiteral_simple_disabled() {
+    String code = r'''
+      void main () {
+        List<int> l0 = <num>[];
+        List<int> l1 = <num>[3];
+        List<int> l2 = <String>["hello"];
+        List<int> l3 = <dynamic>["hello", 3];
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      ListLiteral exp = decl.initializer;
+      return exp.staticType;
+    }
+
+    _isListOf(_isNum)(literal(0));
+    _isListOf(_isNum)(literal(1));
+    _isListOf(_isString)(literal(2));
+    _isListOf(_isDynamic)(literal(3));
+  }
+
+  void test_listLiteral_simple_subtype() {
+    String code = r'''
+      void main () {
+        Iterable<int> l0 = [];
+        Iterable<int> l1 = [3];
+        Iterable<int> l2 = ["hello"];
+        Iterable<int> l3 = ["hello", 3];
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      ListLiteral exp = decl.initializer;
+      return exp.staticType;
+    }
+
+    Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
+
+    assertListOfInt(literal(0));
+    assertListOfInt(literal(1));
+    assertListOfInt(literal(2));
+    assertListOfInt(literal(3));
+  }
+
+  void test_mapLiteral_nested() {
+    String code = r'''
+      void main () {
+        Map<int, List<String>> l0 = {};
+        Map<int, List<String>> l1 = {3: ["hello"]};
+        Map<int, List<String>> l2 = {"hello": ["hello"]};
+        Map<int, List<String>> l3 = {3: [3]};
+        Map<int, List<String>> l4 = {3:["hello"], "hello": [3]};
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    MapLiteral literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      MapLiteral exp = decl.initializer;
+      return exp;
+    }
+
+    Asserter<InterfaceType> assertListOfString = _isListOf(_isString);
+    Asserter<InterfaceType> assertMapOfIntToListOfString =
+        _isMapOf(_isInt, assertListOfString);
+
+    assertMapOfIntToListOfString(literal(0).staticType);
+    assertMapOfIntToListOfString(literal(1).staticType);
+    assertMapOfIntToListOfString(literal(2).staticType);
+    assertMapOfIntToListOfString(literal(3).staticType);
+    assertMapOfIntToListOfString(literal(4).staticType);
+
+    assertListOfString(literal(1).entries[0].value.staticType);
+    assertListOfString(literal(2).entries[0].value.staticType);
+    assertListOfString(literal(3).entries[0].value.staticType);
+    assertListOfString(literal(4).entries[0].value.staticType);
+  }
+
+  void test_mapLiteral_simple() {
+    String code = r'''
+      void main () {
+        Map<int, String> l0 = {};
+        Map<int, String> l1 = {3: "hello"};
+        Map<int, String> l2 = {"hello": "hello"};
+        Map<int, String> l3 = {3: 3};
+        Map<int, String> l4 = {3:"hello", "hello": 3};
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      MapLiteral exp = decl.initializer;
+      return exp.staticType;
+    }
+
+    Asserter<InterfaceType> assertMapOfIntToString =
+        _isMapOf(_isInt, _isString);
+
+    assertMapOfIntToString(literal(0));
+    assertMapOfIntToString(literal(1));
+    assertMapOfIntToString(literal(2));
+    assertMapOfIntToString(literal(3));
+  }
+
+  void test_mapLiteral_simple_disabled() {
+    String code = r'''
+      void main () {
+        Map<int, String> l0 = <int, dynamic>{};
+        Map<int, String> l1 = <int, dynamic>{3: "hello"};
+        Map<int, String> l2 = <int, dynamic>{"hello": "hello"};
+        Map<int, String> l3 = <int, dynamic>{3: 3};
+     }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
+    DartType literal(int i) {
+      VariableDeclarationStatement stmt = statements[i];
+      VariableDeclaration decl = stmt.variables.variables[0];
+      MapLiteral exp = decl.initializer;
+      return exp.staticType;
+    }
+
+    Asserter<InterfaceType> assertMapOfIntToDynamic =
+        _isMapOf(_isInt, _isDynamic);
+
+    assertMapOfIntToDynamic(literal(0));
+    assertMapOfIntToDynamic(literal(1));
+    assertMapOfIntToDynamic(literal(2));
+    assertMapOfIntToDynamic(literal(3));
+  }
+
+  void test_methodDeclaration_body_propagation() {
+    String code = r'''
+      class A {
+        List<String> m0(int x) => ["hello"];
+        List<String> m1(int x) {return [3];};
+      }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+    Expression methodReturnValue(String methodName) {
+      MethodDeclaration method =
+          AstFinder.getMethodInClass(unit, "A", methodName);
+      FunctionBody body = method.body;
+      if (body is ExpressionFunctionBody) {
+        return body.expression;
+      } else {
+        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        return (stmt as ReturnStatement).expression;
+      }
+    }
+    Asserter<InterfaceType> assertListOfString = _isListOf(_isString);
+    assertListOfString(methodReturnValue("m0").staticType);
+    assertListOfString(methodReturnValue("m1").staticType);
+  }
+
+  void test_redirectingConstructor_propagation() {
+    String code = r'''
+      class A {
+        A() : this.named([]);
+        A.named(List<String> x);
+      }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    ConstructorDeclaration constructor =
+        AstFinder.getConstructorInClass(unit, "A", null);
+    RedirectingConstructorInvocation invocation = constructor.initializers[0];
+    Expression exp = invocation.argumentList.arguments[0];
+    _isListOf(_isString)(exp.staticType);
+  }
+
+  void test_superConstructorInvocation_propagation() {
+    String code = r'''
+      class B {
+        B(List<String>);
+      }
+      class A extends B {
+        A() : super([]);
+      }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    ConstructorDeclaration constructor =
+        AstFinder.getConstructorInClass(unit, "A", null);
+    SuperConstructorInvocation invocation = constructor.initializers[0];
+    Expression exp = invocation.argumentList.arguments[0];
+    _isListOf(_isString)(exp.staticType);
   }
 }
 

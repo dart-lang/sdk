@@ -5855,6 +5855,7 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
  * > constructorInitializer ::=
  * >     [SuperConstructorInvocation]
  * >   | [ConstructorFieldInitializer]
+ * >   | [RedirectingConstructorInvocation]
  */
 abstract class ConstructorInitializer extends AstNode {}
 

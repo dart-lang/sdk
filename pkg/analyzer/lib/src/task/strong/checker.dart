@@ -467,6 +467,10 @@ class CodeChecker extends RecursiveAstVisitor {
     if (node.typeArguments != null) {
       var targs = node.typeArguments.arguments;
       if (targs.length > 0) type = targs[0].type;
+    } else if (node.staticType is InterfaceType) {
+      InterfaceType listT = node.staticType;
+      var targs = listT.typeArguments;
+      if (targs != null && targs.length > 0) type = targs[0];
     }
     var elements = node.elements;
     for (int i = 0; i < elements.length; i++) {
@@ -483,6 +487,13 @@ class CodeChecker extends RecursiveAstVisitor {
       var targs = node.typeArguments.arguments;
       if (targs.length > 0) ktype = targs[0].type;
       if (targs.length > 1) vtype = targs[1].type;
+    } else if (node.staticType is InterfaceType) {
+      InterfaceType mapT = node.staticType;
+      var targs = mapT.typeArguments;
+      if (targs != null) {
+        if (targs.length > 0) ktype = targs[0];
+        if (targs.length > 1) vtype = targs[1];
+      }
     }
     var entries = node.entries;
     for (int i = 0; i < entries.length; i++) {
@@ -947,7 +958,6 @@ class CodeChecker extends RecursiveAstVisitor {
   void _recordMessage(StaticInfo info) {
     if (info == null) return;
     var error = info.toAnalysisError();
-
     var severity = error.errorCode.errorSeverity;
     if (severity == ErrorSeverity.ERROR) _failure = true;
     if (severity != ErrorSeverity.INFO || _hints) {
