@@ -752,6 +752,10 @@ class FixProcessor {
   }
 
   void _addFix_createConstructorSuperExplicit() {
+    if (node.parent is! ConstructorDeclaration ||
+        node.parent.parent is! ClassDeclaration) {
+      return;
+    }
     ConstructorDeclaration targetConstructor =
         node.parent as ConstructorDeclaration;
     ClassDeclaration targetClassNode =
