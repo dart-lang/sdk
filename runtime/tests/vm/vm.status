@@ -12,6 +12,8 @@ cc/SNPrint_BadArgs: Skip
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
 
+dart/data_uri_import_test/none: SkipByDesign
+
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
@@ -56,10 +58,9 @@ dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 dart/data_uri*test: Skip
 
 [ $runtime == vm ]
-dart/data_uri_failures_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
-dart/data_uri_failures_test/nomime: RuntimeError, OK
-dart/data_uri_failures_test/nocharset: RuntimeError, OK
-dart/data_uri_failures_test/base64: RuntimeError, OK
+dart/data_uri_import_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
+dart/data_uri_import_test/nomime: RuntimeError, OK
+dart/data_uri_import_test/nocharset: RuntimeError, OK
 
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
