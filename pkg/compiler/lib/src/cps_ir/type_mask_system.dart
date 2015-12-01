@@ -34,6 +34,13 @@ class TypeMaskSystem {
 
   TypeMask __indexableTypeTest;
 
+  // The full type of a constant (e.g. a ContainerTypeMask) is not available on
+  // the constant. Type inference flows the type to some place where it is used,
+  // e.g. a parameter. For constant values that are the value of static const
+  // fields we need to remember the association.
+  final Map<ConstantValue, TypeMask> _constantMasks =
+      <ConstantValue, TypeMask>{};
+
   TypeMask get dynamicType => inferrer.dynamicType;
   TypeMask get typeType => inferrer.typeType;
   TypeMask get functionType => inferrer.functionType;
@@ -203,7 +210,16 @@ class TypeMaskSystem {
     return a.intersection(b, classWorld);
   }
 
+  void associateConstantValueWithElement(ConstantValue constant,
+                                         Element element) {
+    if (constant is ListConstantValue) {
+      _constantMasks[constant] = inferrer.getGuaranteedTypeOfElement(element);
+    }
+  }
+
   TypeMask getTypeOf(ConstantValue constant) {
+    TypeMask mask = _constantMasks[constant];
+    if (mask != null) return mask;
     return computeTypeMask(inferrer.compiler, constant);
   }
 
