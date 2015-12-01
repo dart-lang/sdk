@@ -184,9 +184,21 @@ class GetHandler {
   final Map<String, String> _overlayContents = <String, String>{};
 
   /**
+   * Handler for diagnostics requests.
+   */
+  DiagnosticDomainHandler _diagnosticHandler;
+
+  /**
    * Initialize a newly created handler for GET requests.
    */
   GetHandler(this._server, this._printBuffer);
+
+  DiagnosticDomainHandler get diagnosticHandler {
+    if (_diagnosticHandler == null) {
+      _diagnosticHandler = new DiagnosticDomainHandler(_server.analysisServer);
+    }
+    return _diagnosticHandler;
+  }
 
   /**
    * Return the active [CompletionDomainHandler]
@@ -1484,14 +1496,11 @@ class GetHandler {
    * Write the status of the diagnostic domain to the given [buffer].
    */
   void _writeDiagnosticStatus(StringBuffer buffer) {
-    DiagnosticDomainHandler handler =
-        new DiagnosticDomainHandler(_server.analysisServer);
-
     var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
 
     var stopwatch = new Stopwatch();
     stopwatch.start();
-    var response = handler.handleRequest(request);
+    var response = diagnosticHandler.handleRequest(request);
     stopwatch.stop();
 
     int elapsedMs = stopwatch.elapsedMilliseconds;

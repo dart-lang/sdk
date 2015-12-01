@@ -138,7 +138,7 @@ class Sampler {
   }
 
   /// Get the average for the context associated with the given [folder].
-  int getAverage(Folder folder) {
+  num getAverage(Folder folder) {
     resetTimerCountdown();
     return averages[folder].value;
   }
