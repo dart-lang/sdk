@@ -12,14 +12,16 @@ import '../info.dart' show LibraryUnit;
 
 /// We use a storage slot for fields that override or can be overridden by
 /// getter/setter pairs.
-HashSet<FieldElement> findFieldsNeedingStorage(LibraryUnit library) {
+HashSet<FieldElement> findFieldsNeedingStorage(
+    LibraryUnit library, HashSet<ClassElement> extensionTypes) {
   var overrides = new HashSet<FieldElement>();
   for (var unit in library.partsThenLibrary) {
     for (var cls in unit.element.types) {
       var superclasses = getSuperclasses(cls);
       for (var field in cls.fields) {
         if (!field.isSynthetic && !overrides.contains(field)) {
-          checkForPropertyOverride(field, superclasses, overrides);
+          checkForPropertyOverride(
+              field, superclasses, overrides, extensionTypes);
         }
       }
     }
@@ -28,8 +30,11 @@ HashSet<FieldElement> findFieldsNeedingStorage(LibraryUnit library) {
   return overrides;
 }
 
-void checkForPropertyOverride(FieldElement field,
-    List<ClassElement> superclasses, HashSet<FieldElement> overrides) {
+void checkForPropertyOverride(
+    FieldElement field,
+    List<ClassElement> superclasses,
+    HashSet<FieldElement> overrides,
+    HashSet<ClassElement> extensionTypes) {
   assert(!field.isSynthetic);
 
   var library = field.library;
@@ -41,7 +46,8 @@ void checkForPropertyOverride(FieldElement field,
       // If we find an abstract getter/setter pair, stop the search.
       var getter = superprop.getter;
       var setter = superprop.setter;
-      if ((getter == null || getter.isAbstract) &&
+      if (!extensionTypes.contains(superclass) &&
+          (getter == null || getter.isAbstract) &&
           (setter == null || setter.isAbstract)) {
         break;
       }

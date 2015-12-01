@@ -776,6 +776,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     }
 
     // Emit the signature on the class recording the runtime type information
+    var extensions = _extensionsToImplement(classElem);
     {
       var tStatics = <JS.Property>[];
       var tMethods = <JS.Property>[];
@@ -827,7 +828,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         sigFields.add(build('statics', tStatics));
         sigFields.add(aNames);
       }
-      if (!sigFields.isEmpty) {
+      if (!sigFields.isEmpty || extensions.isNotEmpty) {
         var sig = new JS.ObjectInitializer(sigFields);
         var classExpr = new JS.Identifier(name);
         body.add(js.statement('dart.setSignature(#, #);', [classExpr, sig]));
@@ -836,7 +837,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     // If a concrete class implements one of our extensions, we might need to
     // add forwarders.
-    var extensions = _extensionsToImplement(classElem);
     if (extensions.isNotEmpty) {
       var methodNames = <JS.Expression>[];
       for (var e in extensions) {
@@ -3388,7 +3388,7 @@ class JSGenerator extends CodeGenerator {
     // Clone the AST first, so we can mutate it.
     unit = unit.clone();
     var library = unit.library.element.library;
-    var fields = findFieldsNeedingStorage(unit);
+    var fields = findFieldsNeedingStorage(unit, _extensionTypes);
     var codegen =
         new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
     var module = codegen.emitLibrary(unit);
