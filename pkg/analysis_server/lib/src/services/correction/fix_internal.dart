@@ -132,9 +132,9 @@ class FixProcessor {
     errorLength = error.length;
     errorEnd = errorOffset + errorLength;
     errorRange = new SourceRange(errorOffset, errorLength);
-    node = new NodeLocator(errorOffset).searchWithin(unit);
-    coveredNode = new NodeLocator(errorOffset, errorOffset + errorLength)
-        .searchWithin(unit);
+    node = new NodeLocator2(errorOffset).searchWithin(unit);
+    coveredNode =
+        new NodeLocator2(errorOffset, errorEnd - 1).searchWithin(unit);
     // analyze ErrorCode
     ErrorCode errorCode = error.errorCode;
     if (errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN) {
@@ -380,68 +380,66 @@ class FixProcessor {
   }
 
   void _addFix_addMissingParameter() {
-    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+    if (node is ArgumentList && node.parent is MethodInvocation) {
+      ArgumentList argumentList = node;
       MethodInvocation invocation = node.parent;
       SimpleIdentifier methodName = invocation.methodName;
-      ArgumentList argumentList = invocation.argumentList;
-      if (methodName == node && argumentList != null) {
-        Element targetElement = methodName.bestElement;
-        List<Expression> arguments = argumentList.arguments;
-        if (targetElement is ExecutableElement) {
-          List<ParameterElement> parameters = targetElement.parameters;
-          int numParameters = parameters.length;
-          Iterable<ParameterElement> requiredParameters = parameters
-              .takeWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
-          Iterable<ParameterElement> optionalParameters = parameters
-              .skipWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
-          int numRequired = requiredParameters.length;
-          Expression argument = arguments[numRequired];
-          // prepare target
-          int targetOffset;
-          if (numRequired != 0) {
-            AstNode parameterNode = requiredParameters.last.computeNode();
-            targetOffset = parameterNode.end;
+      Element targetElement = methodName.bestElement;
+      List<Expression> arguments = argumentList.arguments;
+      if (targetElement is ExecutableElement) {
+        List<ParameterElement> parameters = targetElement.parameters;
+        int numParameters = parameters.length;
+        Iterable<ParameterElement> requiredParameters = parameters
+            .takeWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
+        Iterable<ParameterElement> optionalParameters = parameters
+            .skipWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
+        int numRequired = requiredParameters.length;
+        Expression argument = arguments[numRequired];
+        // prepare target
+        int targetOffset;
+        if (numRequired != 0) {
+          AstNode parameterNode = requiredParameters.last.computeNode();
+          targetOffset = parameterNode.end;
+        } else {
+          AstNode targetNode = targetElement.computeNode();
+          if (targetNode is FunctionDeclaration) {
+            FunctionExpression function = targetNode.functionExpression;
+            targetOffset = function.parameters.leftParenthesis.end;
+          } else if (targetNode is MethodDeclaration) {
+            targetOffset = targetNode.parameters.leftParenthesis.end;
           } else {
-            AstNode targetNode = targetElement.computeNode();
-            if (targetNode is FunctionDeclaration) {
-              FunctionExpression function = targetNode.functionExpression;
-              targetOffset = function.parameters.leftParenthesis.end;
-            } else if (targetNode is MethodDeclaration) {
-              targetOffset = targetNode.parameters.leftParenthesis.end;
-            } else {
-              return;
-            }
+            return;
           }
-          String targetFile = targetElement.source.fullName;
-          // required
-          {
-            SourceBuilder sb = new SourceBuilder(targetFile, targetOffset);
-            // append source
-            if (numRequired != 0) {
-              sb.append(', ');
-            }
-            _appendParameterForArgument(sb, numRequired, argument);
-            if (numRequired != numParameters) {
-              sb.append(', ');
-            }
-            // add proposal
-            _insertBuilder(sb, targetElement);
-            _addFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, []);
+        }
+        String targetFile = targetElement.source.fullName;
+        // required
+        {
+          SourceBuilder sb = new SourceBuilder(targetFile, targetOffset);
+          // append source
+          if (numRequired != 0) {
+            sb.append(', ');
           }
-          // optional positional
-          if (optionalParameters.isEmpty) {
-            SourceBuilder sb = new SourceBuilder(targetFile, targetOffset);
-            // append source
-            if (numRequired != 0) {
-              sb.append(', ');
-            }
-            sb.append('[');
-            _appendParameterForArgument(sb, numRequired, argument);
-            sb.append(']');
-            // add proposal
-            _insertBuilder(sb, targetElement);
-            _addFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL, []);
+          _appendParameterForArgument(sb, numRequired, argument);
+          if (numRequired != numParameters) {
+            sb.append(', ');
           }
+          // add proposal
+          _insertBuilder(sb, targetElement);
+          _addFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, []);
+        }
+        // optional positional
+        if (optionalParameters.isEmpty) {
+          SourceBuilder sb = new SourceBuilder(targetFile, targetOffset);
+          // append source
+          if (numRequired != 0) {
+            sb.append(', ');
+          }
+          sb.append('[');
+          _appendParameterForArgument(sb, numRequired, argument);
+          sb.append(']');
+          // add proposal
+          _insertBuilder(sb, targetElement);
+          _addFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL, []);
         }
       }
     }
@@ -626,45 +624,26 @@ class FixProcessor {
   }
 
   void _addFix_createConstructor_insteadOfSyntheticDefault() {
-    TypeName typeName = null;
-    ConstructorName constructorName = null;
-    InstanceCreationExpression instanceCreation = null;
-    if (node is SimpleIdentifier) {
-      if (node.parent is TypeName) {
-        typeName = node.parent as TypeName;
-        if (typeName.name == node && typeName.parent is ConstructorName) {
-          constructorName = typeName.parent as ConstructorName;
-          // should be synthetic default constructor
-          {
-            ConstructorElement constructorElement =
-                constructorName.staticElement;
-            if (constructorElement == null ||
-                !constructorElement.isDefaultConstructor ||
-                !constructorElement.isSynthetic) {
-              return;
-            }
-          }
-          // prepare InstanceCreationExpression
-          if (constructorName.parent is InstanceCreationExpression) {
-            instanceCreation =
-                constructorName.parent as InstanceCreationExpression;
-            if (instanceCreation.constructorName != constructorName) {
-              return;
-            }
-          }
-        }
-      }
+    if (node is! ArgumentList) {
+      return;
     }
-    // do we have enough information?
-    if (instanceCreation == null) {
+    if (node.parent is! InstanceCreationExpression) {
+      return;
+    }
+    InstanceCreationExpression instanceCreation = node.parent;
+    ConstructorName constructorName = instanceCreation.constructorName;
+    // should be synthetic default constructor
+    ConstructorElement constructorElement = constructorName.staticElement;
+    if (constructorElement == null ||
+        !constructorElement.isDefaultConstructor ||
+        !constructorElement.isSynthetic) {
       return;
     }
     // prepare target
-    DartType targetType = typeName.type;
-    if (targetType is! InterfaceType) {
+    if (constructorElement.enclosingElement is! ClassElement) {
       return;
     }
-    ClassElement targetElement = targetType.element as ClassElement;
+    ClassElement targetElement = constructorElement.enclosingElement;
     String targetFile = targetElement.source.fullName;
     ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
     _ConstructorLocation targetLocation =
@@ -1618,11 +1597,12 @@ class FixProcessor {
   }
 
   void _addFix_removeParameters_inGetterDeclaration() {
-    if (node is SimpleIdentifier && node.parent is MethodDeclaration) {
-      MethodDeclaration method = node.parent as MethodDeclaration;
+    if (node is MethodDeclaration) {
+      MethodDeclaration method = node as MethodDeclaration;
+      SimpleIdentifier name = method.name;
       FunctionBody body = method.body;
-      if (method.name == node && body != null) {
-        _addReplaceEdit(rf.rangeEndStart(node, body), ' ');
+      if (name != null && body != null) {
+        _addReplaceEdit(rf.rangeEndStart(name, body), ' ');
         _addFix(DartFixKind.REMOVE_PARAMETERS_IN_GETTER_DECLARATION, []);
       }
     }

@@ -2600,6 +2600,22 @@ main() {
 ''');
   }
 
+  test_illegalAsyncReturnType_adjacentNodes() async {
+    errorFilter = (AnalysisError error) {
+      return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
+    };
+    resolveTestUnit('''
+import 'dart:async';
+var v;int main() async => 0;
+''');
+    await assertHasFix(
+        DartFixKind.REPLACE_RETURN_TYPE_FUTURE,
+        '''
+import 'dart:async';
+var v;Future<int> main() async => 0;
+''');
+  }
+
   test_illegalAsyncReturnType_asyncLibrary_import() async {
     errorFilter = (AnalysisError error) {
       return error.errorCode == StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE;
