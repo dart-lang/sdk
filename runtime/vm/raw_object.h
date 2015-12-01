@@ -741,9 +741,10 @@ class RawPatchClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->patched_class_);
   }
   RawClass* patched_class_;
-  RawClass* source_class_;
+  RawClass* origin_class_;
+  RawScript* script_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->source_class_);
+    return reinterpret_cast<RawObject**>(&ptr()->script_);
   }
 
   friend class Function;
@@ -978,7 +979,7 @@ class RawLibrary : public RawObject {
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
-  RawArray* anonymous_classes_;  // Classes containing top-level elements.
+  RawClass* toplevel_class_;  // Class containing top-level elements.
   RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
@@ -995,7 +996,6 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   classid_t index_;             // Library id number.
-  classid_t num_anonymous_;     // Number of entries in anonymous_classes_.
   uint16_t num_imports_;        // Number of entries in imports_.
   int8_t load_state_;           // Of type LibraryState.
   bool corelib_imported_;

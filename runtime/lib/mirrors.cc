@@ -2024,8 +2024,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     token_pos = cls.token_pos();
   } else if (decl.IsField()) {
     const Field& field = Field::Cast(decl);
-    const Class& owner = Class::Handle(field.owner());
-    script = owner.script();
+    script = field.script();
     token_pos = field.token_pos();
   } else if (decl.IsTypeParameter()) {
     const TypeParameter& type_var = TypeParameter::Cast(decl);

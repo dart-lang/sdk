@@ -5189,10 +5189,21 @@ void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawPatchClass* PatchClass::New(const Class& patched_class,
-                               const Class& source_class) {
+                               const Class& origin_class) {
   const PatchClass& result = PatchClass::Handle(PatchClass::New());
   result.set_patched_class(patched_class);
-  result.set_source_class(source_class);
+  result.set_origin_class(origin_class);
+  result.set_script(Script::Handle(origin_class.script()));
+  return result.raw();
+}
+
+
+RawPatchClass* PatchClass::New(const Class& patched_class,
+                               const Script& script) {
+  const PatchClass& result = PatchClass::Handle(PatchClass::New());
+  result.set_patched_class(patched_class);
+  result.set_origin_class(patched_class);
+  result.set_script(script);
   return result.raw();
 }
 
@@ -5206,19 +5217,18 @@ RawPatchClass* PatchClass::New() {
 }
 
 
-RawScript* PatchClass::Script() const {
-  const Class& source_class = Class::Handle(this->source_class());
-  return source_class.script();
-}
-
-
 void PatchClass::set_patched_class(const Class& value) const {
   StorePointer(&raw_ptr()->patched_class_, value.raw());
 }
 
 
-void PatchClass::set_source_class(const Class& value) const {
-  StorePointer(&raw_ptr()->source_class_, value.raw());
+void PatchClass::set_origin_class(const Class& value) const {
+  StorePointer(&raw_ptr()->origin_class_, value.raw());
+}
+
+
+void PatchClass::set_script(const Script& value) const {
+  StorePointer(&raw_ptr()->script_, value.raw());
 }
 
 
@@ -6817,7 +6827,7 @@ RawClass* Function::origin() const {
     return Class::Cast(obj).raw();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).source_class();
+  return PatchClass::Cast(obj).origin_class();
 }
 
 
@@ -6838,7 +6848,7 @@ RawScript* Function::script() const {
     return Class::Cast(obj).script();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).Script();
+  return PatchClass::Cast(obj).script();
 }
 
 
@@ -7390,7 +7400,17 @@ RawClass* Field::origin() const {
     return Class::Cast(obj).raw();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).source_class();
+  return PatchClass::Cast(obj).origin_class();
+}
+
+
+RawScript* Field::script() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).script();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).script();
 }
 
 
@@ -7449,6 +7469,35 @@ RawField* Field::New(const String& name,
   return result.raw();
 }
 
+
+RawField* Field::NewTopLevel(const String& name,
+                             bool is_final,
+                             bool is_const,
+                             const Object& owner,
+                             intptr_t token_pos) {
+  ASSERT(!owner.IsNull());
+  const Field& result = Field::Handle(Field::New());
+  result.set_name(name);
+  result.set_is_static(true);
+  result.set_is_final(is_final);
+  result.set_is_const(is_const);
+  result.set_is_reflectable(true);
+  result.set_is_double_initialized(false);
+  result.set_owner(owner);
+  result.set_token_pos(token_pos);
+  result.set_has_initializer(false);
+  result.set_is_unboxing_candidate(true);
+  result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(FLAG_use_field_guards ? false : true);
+  result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  // Presently, we only attempt to remember the list length for final fields.
+  if (is_final && FLAG_use_field_guards) {
+    result.set_guarded_list_length(Field::kUnknownFixedLength);
+  } else {
+    result.set_guarded_list_length(Field::kNoFixedLength);
+  }
+  return result.raw();
+}
 
 
 RawField* Field::Clone(const Class& new_owner) const {
@@ -9119,11 +9168,10 @@ void DictionaryIterator::MoveToNextObject() {
 ClassDictionaryIterator::ClassDictionaryIterator(const Library& library,
                                                  IterationKind kind)
     : DictionaryIterator(library),
-      anon_array_((kind == kIteratePrivate) ?
-          Array::Handle(library.anonymous_classes()) : Object::empty_array()),
-      anon_size_((kind == kIteratePrivate) ?
-                 library.num_anonymous_classes() : 0),
-      anon_ix_(0) {
+      toplevel_class_(Class::Handle(
+          (kind == kIteratePrivate)
+              ? library.toplevel_class()
+              : Class::null())) {
   MoveToNextClass();
 }
 
@@ -9137,8 +9185,9 @@ RawClass* ClassDictionaryIterator::GetNextClass() {
     MoveToNextClass();
     return cls.raw();
   }
-  ASSERT(anon_ix_ < anon_size_);
-  cls ^= anon_array_.At(anon_ix_++);
+  ASSERT(!toplevel_class_.IsNull());
+  cls = toplevel_class_.raw();
+  toplevel_class_ = Class::null();
   return cls.raw();
 }
 
@@ -9323,32 +9372,31 @@ static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
 }
 
 
-void Library::AddMetadata(const Class& cls,
+void Library::AddMetadata(const Object& owner,
                           const String& name,
                           intptr_t token_pos) const {
   const String& metaname = String::Handle(Symbols::New(name));
-  Field& field = Field::Handle(Field::New(metaname,
-                                          true,   // is_static
-                                          false,  // is_final
-                                          false,  // is_const
-                                          false,  // is_reflectable
-                                          cls,
-                                          Object::dynamic_type(),
-                                          token_pos));
+  const Field& field = Field::Handle(
+      Field::NewTopLevel(metaname,
+                         false,  // is_final
+                         false,  // is_const
+                         owner,
+                         token_pos));
+  field.SetFieldType(Object::dynamic_type());
+  field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   metadata.Add(field, Heap::kOld);
-  cls.AddField(field);
 }
 
 
 void Library::AddClassMetadata(const Class& cls,
-                               const Class& toplevel_class,
+                               const Object& tl_owner,
                                intptr_t token_pos) const {
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
-  AddMetadata(toplevel_class,
+  AddMetadata(tl_owner,
               String::Handle(MakeClassMetaName(cls)),
               token_pos);
 }
@@ -9356,7 +9404,7 @@ void Library::AddClassMetadata(const Class& cls,
 
 void Library::AddFieldMetadata(const Field& field,
                                intptr_t token_pos) const {
-  AddMetadata(Class::Handle(field.origin()),
+  AddMetadata(Object::Handle(field.RawOwner()),
               String::Handle(MakeFieldMetaName(field)),
               token_pos);
 }
@@ -9364,7 +9412,7 @@ void Library::AddFieldMetadata(const Field& field,
 
 void Library::AddFunctionMetadata(const Function& func,
                                   intptr_t token_pos) const {
-  AddMetadata(Class::Handle(func.origin()),
+  AddMetadata(Object::Handle(func.RawOwner()),
               String::Handle(MakeFunctionMetaName(func)),
               token_pos);
 }
@@ -9378,8 +9426,9 @@ void Library::AddTypeParameterMetadata(const TypeParameter& param,
 }
 
 
-void Library::AddLibraryMetadata(const Class& cls, intptr_t token_pos) const {
-  AddMetadata(cls, Symbols::TopLevel(), token_pos);
+void Library::AddLibraryMetadata(const Object& tl_owner,
+                                 intptr_t token_pos) const {
+  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos);
 }
 
 
@@ -9431,8 +9480,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
-                                     field.token_pos());
+    metadata = Parser::ParseMetadata(field);
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
       field.SetStaticValue(Array::Cast(metadata), true);
@@ -9710,8 +9758,7 @@ RawArray* Library::LoadedScripts() const {
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
-        cls = Field::Cast(entry).owner();
-        owner_script = cls.script();
+        owner_script = Field::Cast(entry).script();
       } else {
         continue;
       }
@@ -9726,22 +9773,21 @@ RawArray* Library::LoadedScripts() const {
       AddScriptIfUnique(scripts, owner_script);
     }
 
-    // Special case: Scripts that only contain external top-level functions are
-    // not included above, but can be referenced through a library's anonymous
-    // classes. Example: dart-core:identical.dart.
-    Array& anon_classes = Array::Handle(anonymous_classes());
-    Function& func = Function::Handle();
-    Array& functions = Array::Handle();
-    for (intptr_t i = 0; i < anon_classes.Length(); i++) {
-      cls ^= anon_classes.At(i);
-      if (cls.IsNull()) continue;
+    cls ^= toplevel_class();
+    if (!cls.IsNull()) {
       owner_script = cls.script();
       AddScriptIfUnique(scripts, owner_script);
-      functions = cls.functions();
+      // Special case: Scripts that only contain external top-level functions
+      // are not included above, but can be referenced through a library's
+      // anonymous classes. Example: dart-core:identical.dart.
+      Function& func = Function::Handle();
+      Array& functions = Array::Handle(cls.functions());
       for (intptr_t j = 0; j < functions.Length(); j++) {
         func ^= functions.At(j);
-        owner_script = func.script();
-        AddScriptIfUnique(scripts, owner_script);
+        if (func.is_external()) {
+          owner_script = func.script();
+          AddScriptIfUnique(scripts, owner_script);
+        }
       }
     }
 
@@ -9959,17 +10005,9 @@ RawLibraryPrefix* Library::LookupLocalLibraryPrefix(const String& name) const {
 }
 
 
-void Library::AddAnonymousClass(const Class& cls) const {
-  intptr_t num_anonymous = this->raw_ptr()->num_anonymous_;
-  Array& anon_array = Array::Handle(this->raw_ptr()->anonymous_classes_);
-  if (num_anonymous == anon_array.Length()) {
-    intptr_t new_len = (num_anonymous == 0) ? 4 : num_anonymous * 2;
-    anon_array = Array::Grow(anon_array, new_len);
-    StorePointer(&raw_ptr()->anonymous_classes_, anon_array.raw());
-  }
-  anon_array.SetAt(num_anonymous, cls);
-  num_anonymous++;
-  StoreNonPointer(&raw_ptr()->num_anonymous_, num_anonymous);
+void Library::set_toplevel_class(const Class& value) const {
+  ASSERT(raw_ptr()->toplevel_class_ == Class::null());
+  StorePointer(&raw_ptr()->toplevel_class_, value.raw());
 }
 
 
@@ -10099,12 +10137,10 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
                       Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->metadata_,
                       GrowableObjectArray::New(4, Heap::kOld));
-  result.StorePointer(&result.raw_ptr()->anonymous_classes_,
-                      Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
   result.StorePointer(&result.raw_ptr()->patch_classes_,
                       GrowableObjectArray::New(Object::empty_array(),
                                                Heap::kOld));
-  result.StoreNonPointer(&result.raw_ptr()->num_anonymous_, 0);
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
@@ -10159,12 +10195,8 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  // Take a top-level class and evaluate the expression
-  // as a static function of the class.
-  Class& top_level_class = Class::Handle();
-  Array& top_level_classes = Array::Handle(anonymous_classes());
-  ASSERT(top_level_classes.Length() > 0);
-  top_level_class ^= top_level_classes.At(0);
+  // Evaluate the expression as a static function of the toplevel class.
+  Class& top_level_class = Class::Handle(toplevel_class());
   ASSERT(top_level_class.is_finalized());
   return top_level_class.Evaluate(expr, param_names, param_values);
 }
@@ -10829,19 +10861,17 @@ void Namespace::set_metadata_field(const Field& value) const {
 }
 
 
-void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
+void Namespace::AddMetadata(const Object& owner, intptr_t token_pos) {
   ASSERT(Field::Handle(metadata_field()).IsNull());
-  Field& field = Field::Handle(Field::New(Symbols::TopLevel(),
-                                          true,   // is_static
+  Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                           false,  // is_final
                                           false,  // is_const
-                                          false,  // is_reflectable
-                                          owner_class,
-                                          Object::dynamic_type(),
+                                          owner,
                                           token_pos));
+  field.set_is_reflectable(false);
+  field.SetFieldType(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
   set_metadata_field(field);
-  owner_class.AddField(field);
 }
 
 
@@ -10854,8 +10884,7 @@ RawObject* Namespace::GetMetadata() const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
-                                     field.token_pos());
+    metadata = Parser::ParseMetadata(field);
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
       field.SetStaticValue(Array::Cast(metadata), true);
