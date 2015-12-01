@@ -111,7 +111,7 @@ precompilation_dart2js_test: Skip # Standalone only test.
 noopt_test: Skip # Standalone only test.
 
 [ $runtime == vm && $mode == debug ]
-precompilation_dart2js_test: Slow
+precompilation_dart2js_test: Pass, Slow
 
 [ $runtime == vm && $arch == ia32 ]
 precompilation_test: Skip # Not expected to pass on ia32.
