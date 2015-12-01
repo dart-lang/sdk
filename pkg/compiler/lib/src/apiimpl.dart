@@ -83,6 +83,8 @@ class CompilerImpl extends Compiler {
                 hasOption(options, Flags.trustTypeAnnotations),
             trustPrimitives:
                 hasOption(options, Flags.trustPrimitives),
+            trustJSInteropTypeAnnotations:
+                hasOption(options, Flags.trustJSInteropTypeAnnotations),
             enableMinification: hasOption(options, Flags.minify),
             useFrequencyNamer:
                 !hasOption(options, Flags.noFrequencyBasedMinification),

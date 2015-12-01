@@ -5864,7 +5864,7 @@ class SsaBuilder extends ast.Visitor
         && params.optionalParametersAreNamed;
   }
 
-  HForeignCode invokeJsInteropFunction(Element element,
+  HForeignCode invokeJsInteropFunction(FunctionElement element,
                                        List<HInstruction> arguments,
                                        SourceInformation sourceInformation) {
     assert(backend.isJsInterop(element));
@@ -5898,6 +5898,9 @@ class SsaBuilder extends ast.Visitor
 
       var nativeBehavior = new native.NativeBehavior()
         ..codeTemplate = codeTemplate;
+      if (compiler.trustJSInteropTypeAnnotations) {
+        nativeBehavior.typesReturned.add(constructor.enclosingClass.thisType);
+      }
       return new HForeignCode(
           codeTemplate,
           backend.dynamicType, filteredArguments,
@@ -5917,34 +5920,43 @@ class SsaBuilder extends ast.Visitor
     arguments = arguments.where((arg) => arg != null).toList();
     var inputs = <HInstruction>[target]..addAll(arguments);
 
-    js.Template codeTemplate;
-    if (element.isGetter) {
-      codeTemplate = js.js.parseForeignJS("#");
-    } else if (element.isSetter) {
-      codeTemplate = js.js.parseForeignJS("# = #");
-    } else {
-      FunctionElement function = element;
-      FunctionSignature params = function.functionSignature;
+    var nativeBehavior = new native.NativeBehavior()
+      ..sideEffects.setAllSideEffects();
 
-      var argsStub = <String>[];
-      for (int i = 0; i < arguments.length; i++) {
-        argsStub.add('#');
-      }
+    DartType type = element.isConstructor ?
+        element.enclosingClass.thisType : element.type.returnType;
+    // Native behavior effects here are similar to native/behavior.dart.
+    // The return type is dynamic if we don't trust js-interop type
+    // declarations.
+    nativeBehavior.typesReturned.add(
+        compiler.trustJSInteropTypeAnnotations ? type : const DynamicType());
 
-      if (element.isConstructor) {
-        codeTemplate = js.js.parseForeignJS("new #(${argsStub.join(",")})");
-      } else {
-        codeTemplate = js.js.parseForeignJS("#(${argsStub.join(",")})");
-      }
+    // The allocation effects include the declared type if it is native (which
+    // includes js interop types).
+    if (type.element != null && backend.isNative(type.element)) {
+      nativeBehavior.typesInstantiated.add(type);
     }
 
-    var nativeBehavior = new native.NativeBehavior()
-      ..codeTemplate = codeTemplate
-      ..typesReturned.add(
-          helpers.jsJavaScriptObjectClass.thisType)
-      ..typesInstantiated.add(
-          helpers.jsJavaScriptObjectClass.thisType)
-      ..sideEffects.setAllSideEffects();
+    // It also includes any other JS interop type if we don't trust the
+    // annotation or if is declared too broad.
+    if (!compiler.trustJSInteropTypeAnnotations || type.isObject ||
+        type.isDynamic) {
+      nativeBehavior.typesInstantiated.add(
+          backend.helpers.jsJavaScriptObjectClass.thisType);
+    }
+
+    String code;
+    if (element.isGetter) {
+      code = "#";
+    } else if (element.isSetter) {
+      code = "# = #";
+    } else {
+      var args = new List.filled(arguments.length, '#').join(',');
+      code = element.isConstructor ? "new #($args)" : "#($args)";
+    }
+    js.Template codeTemplate = js.js.parseForeignJS(code);
+    nativeBehavior.codeTemplate = codeTemplate;
+
     return new HForeignCode(
         codeTemplate,
         backend.dynamicType, inputs,
