@@ -3612,11 +3612,6 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
         CURRENT_FUNC);
   }
   Class& cls = Class::Handle(Z, type_obj.type_class());
-#if defined(DEBUG)
-  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
-    return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
-  }
-#endif
   TypeArguments& type_arguments =
       TypeArguments::Handle(Z, type_obj.arguments());
 
@@ -3676,6 +3671,11 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     cls = type_obj.type_class();
   }
   if (constructor.IsGenerativeConstructor()) {
+#if defined(DEBUG)
+    if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+      return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
+    }
+#endif
     // Create the new object.
     new_object = Instance::New(cls);
   }
