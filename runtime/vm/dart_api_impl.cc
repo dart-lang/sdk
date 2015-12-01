@@ -1289,7 +1289,6 @@ DART_EXPORT Dart_Handle Dart_DebugName() {
 }
 
 
-
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(16615): Validate isolate parameter.
@@ -5728,6 +5727,10 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
 
 DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
                                              void* user_data) {
+  // To support various embedders, it must be possible to call this function
+  // from a thread for which we have not entered an Isolate and set up a Thread
+  // TLS object. Therefore, a Zone may not be available, a StackZone cannot be
+  // created, and no ZoneAllocated objects can be allocated.
   if (consumer == NULL) {
     return false;
   }
@@ -5736,8 +5739,6 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
     // Nothing has been recorded.
     return false;
   }
-  Thread* T = Thread::Current();
-  StackZone zone(T);
   Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   TimelineEventFilter filter;

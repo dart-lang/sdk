@@ -9260,8 +9260,14 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
 
   // Grab the global trace.
   AppendData data;
-  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
-  EXPECT(success);
+  {
+    Thread* T = Thread::Current();
+    StackZone zone(T);
+    success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
+    EXPECT(success);
+    // The call should do no zone allocation.
+    EXPECT(zone.SizeInBytes() == 0);
+  }
   buffer = reinterpret_cast<char*>(data.buffer);
   buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
@@ -9301,8 +9307,13 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   }
 
   // Grab the global trace.
-  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
-  EXPECT(success);
+  {
+    Thread* T = Thread::Current();
+    StackZone zone(T);
+    success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
+    EXPECT(success);
+    EXPECT(zone.SizeInBytes() == 0);
+  }
   buffer = reinterpret_cast<char*>(data.buffer);
   buffer_length = data.buffer_length;
   EXPECT(buffer_length > 0);
@@ -9325,6 +9336,167 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
 
   // Free buffer allocated by AppendStreamConsumer
   free(data.buffer);
+}
+
+
+class GlobalTimelineThreadData {
+ public:
+  GlobalTimelineThreadData()
+      : monitor_(new Monitor()),
+        data_(new AppendData()),
+        running_(true),
+        join_id_(OSThread::kInvalidThreadJoinId) {
+  }
+
+  ~GlobalTimelineThreadData() {
+    delete monitor_;
+    monitor_ = NULL;
+    free(data_->buffer);
+    data_->buffer = NULL;
+    data_->buffer_length = 0;
+    delete data_;
+    data_ = NULL;
+  }
+
+  Monitor* monitor() const { return monitor_; }
+  bool running() const { return running_; }
+  AppendData* data() const { return data_; }
+  uint8_t* buffer() const { return data_->buffer; }
+  intptr_t buffer_length() const { return data_->buffer_length; }
+  ThreadJoinId join_id() const { return join_id_; }
+
+  void set_running(bool running) { running_ = running; }
+  void set_join_id(ThreadJoinId join_id) { join_id_ = join_id; }
+
+ private:
+  Monitor* monitor_;
+  AppendData* data_;
+  bool running_;
+  ThreadJoinId join_id_;
+};
+
+
+static void GlobalTimelineThread(uword parameter) {
+  GlobalTimelineThreadData* data =
+      reinterpret_cast<GlobalTimelineThreadData*>(parameter);
+  Thread* T = Thread::Current();
+  // When there is no current Thread, then Zone allocation will fail.
+  EXPECT(T == NULL);
+  {
+    MonitorLocker ml(data->monitor());
+    bool success =
+        Dart_GlobalTimelineGetTrace(AppendStreamConsumer, data->data());
+    EXPECT(success);
+    data->set_running(false);
+    data->set_join_id(OSThread::Current()->join_id());
+    ml.Notify();
+  }
+}
+
+
+// This test is the same as the one above except that the calls to
+// Dart_GlobalTimelineGetTrace are made from a fresh thread. This ensures that
+// we can call the function from a thread for which we have not set up a
+// Thread object.
+TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace_Threaded) {
+  const char* kScriptChars =
+    "bar() => 'z';\n"
+    "foo() => 'a';\n"
+    "main() => foo();\n";
+
+  // Enable all streams.
+  Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL |
+                                        DART_TIMELINE_STREAM_VM);
+  Dart_Handle lib;
+  {
+    // Add something to the VM stream.
+    TimelineDurationScope tds(Timeline::GetVMStream(),
+                              "TestVMDuration");
+    lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  }
+
+  // Invoke main, which will be compiled resulting in a compiler event in
+  // the timeline.
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  const char* buffer = NULL;
+  intptr_t buffer_length = 0;
+
+  // Run Dart_GlobalTimelineGetTrace on a fresh thread.
+  GlobalTimelineThreadData data;
+  int err = OSThread::Start("Timeline test thread",
+      GlobalTimelineThread, reinterpret_cast<uword>(&data));
+  EXPECT(err == 0);
+  {
+    MonitorLocker ml(data.monitor());
+    while (data.running()) {
+      ml.Wait();
+    }
+    buffer = reinterpret_cast<char*>(data.buffer());
+    buffer_length = data.buffer_length();
+    OSThread::Join(data.join_id());
+  }
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
+  // Heartbeat test.
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
+  EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
+  EXPECT_NOTSUBSTRING("\"function\":\"::_bar\"", buffer);
+
+  // Retrieving the global trace resulted in all open blocks being reclaimed.
+  // Add some new events and verify that both sets of events are present
+  // in the resulting trace.
+  {
+    // Add something to the VM stream.
+    TimelineDurationScope tds(Timeline::GetVMStream(),
+                              "TestVMDuration2");
+    // Invoke bar, which will be compiled resulting in a compiler event in
+    // the timeline.
+    result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
+  }
+
+  // Grab the global trace.
+  GlobalTimelineThreadData data2;
+  err = OSThread::Start("Timeline test thread",
+      GlobalTimelineThread, reinterpret_cast<uword>(&data2));
+  EXPECT(err == 0);
+  {
+    MonitorLocker ml(data2.monitor());
+    while (data2.running()) {
+      ml.Wait();
+    }
+    buffer = reinterpret_cast<char*>(data2.buffer());
+    buffer_length = data2.buffer_length();
+    OSThread::Join(data2.join_id());
+  }
+
+  EXPECT(buffer_length > 0);
+  EXPECT(buffer != NULL);
+  // Response starts with a '{' character and not a '['.
+  EXPECT(buffer[0] == '{');
+  // Response ends with a '}' character and not a ']'.
+  EXPECT(buffer[buffer_length - 1] == '\0');
+  EXPECT(buffer[buffer_length - 2] == '}');
+
+  // Heartbeat test for old events.
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration\"", buffer);
+  EXPECT_SUBSTRING("\"cat\":\"Compiler\"", buffer);
+  EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
+
+  // Heartbeat test for new events.
+  EXPECT_SUBSTRING("\"name\":\"TestVMDuration2\"", buffer);
+  EXPECT_SUBSTRING("\"function\":\"::_bar\"", buffer);
 }
 
 }  // namespace dart

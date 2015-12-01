@@ -114,7 +114,16 @@ void OSThread::Cleanup() {
 }
 
 
-bool OSThread::IsThreadInList(ThreadId join_id) {
+OSThread* OSThread::CreateAndSetUnknownThread() {
+  ASSERT(OSThread::Current() == NULL);
+  OSThread* os_thread = new OSThread();
+  OSThread::SetCurrent(os_thread);
+  os_thread->set_name("Unknown");
+  return os_thread;
+}
+
+
+bool OSThread::IsThreadInList(ThreadJoinId join_id) {
   if (join_id == OSThread::kInvalidThreadJoinId) {
     return false;
   }
