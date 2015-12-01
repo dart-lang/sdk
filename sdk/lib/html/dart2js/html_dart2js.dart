@@ -8464,7 +8464,26 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('DedicatedWorkerGlobalScope.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(Object message, [List<MessagePort> transfer]) native;
+  void postMessage(/*any*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_2(message) native;
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
@@ -27427,7 +27446,26 @@ class ServiceWorkerClient extends Interceptor {
   @DomName('ServiceWorkerClient.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('ServiceWorkerClient.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('ServiceWorkerClient.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_2(message) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34017,7 +34055,24 @@ class Worker extends EventTarget implements AbstractWorker {
 
   @DomName('Worker.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('Worker.postMessage')
+  @DocsEditable()
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('Worker.postMessage')
+  @DocsEditable()
+  void _postMessage_2(message) native;
 
   @DomName('Worker.terminate')
   @DocsEditable()
