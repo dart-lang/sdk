@@ -132,11 +132,13 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       return new JsInstanceMirror._(instance);
     }
     get superinterfaces() {
-      let interfaces = this[_cls][dart.implements];
-      if (interfaces == null) {
+      let interfaceThunk = this[_cls][dart.implements];
+      if (interfaceThunk == null) {
         return dart.list([], mirrors.ClassMirror);
+      } else {
+        let interfaces = dart.as(dart.dcall(interfaceThunk), core.List$(core.Type));
+        return interfaces[dartx.map](dart.fn(t => new JsClassMirror._(dart.as(t, core.Type)), JsClassMirror, [dart.dynamic]))[dartx.toList]();
       }
-      dart.throw(new core.UnimplementedError("ClassMirror.superinterfaces unimplemented"));
     }
     getField(fieldName) {
       return dart.throw(new core.UnimplementedError("ClassMirror.getField unimplemented"));
@@ -186,7 +188,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       return dart.throw(new core.UnimplementedError("ClassMirror.mixin unimplemented"));
     }
     get originalDeclaration() {
-      return dart.throw(new core.UnimplementedError("ClassMirror.originalDeclaration unimplemented"));
+      return this;
     }
     get owner() {
       return dart.throw(new core.UnimplementedError("ClassMirror.owner unimplemented"));
@@ -195,13 +197,17 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       return dart.throw(new core.UnimplementedError("ClassMirror.qualifiedName unimplemented"));
     }
     get reflectedType() {
-      return dart.throw(new core.UnimplementedError("ClassMirror.reflectedType unimplemented"));
+      return this[_cls];
     }
     get staticMembers() {
       return dart.throw(new core.UnimplementedError("ClassMirror.staticMembers unimplemented"));
     }
     get superclass() {
-      return dart.throw(new core.UnimplementedError("ClassMirror.superclass unimplemented"));
+      if (dart.equals(this[_cls], core.Object)) {
+        return null;
+      } else {
+        return new JsClassMirror._(this[_cls].__proto__);
+      }
     }
     get typeArguments() {
       return dart.throw(new core.UnimplementedError("ClassMirror.typeArguments unimplemented"));
@@ -414,7 +420,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       return dart.throw(new core.UnimplementedError("MethodMirror.location unimplemented"));
     }
     get metadata() {
-      return dart.throw(new core.UnimplementedError("MethodMirror.metadata unimplemented"));
+      return dart.list([], mirrors.InstanceMirror);
     }
     get owner() {
       return dart.throw(new core.UnimplementedError("MethodMirror.owner unimplemented"));

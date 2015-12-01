@@ -120,11 +120,13 @@ class JsClassMirror implements ClassMirror {
   }
 
   List<ClassMirror> get superinterfaces {
-    var interfaces = JS('Function', '#[dart.implements]', _cls);
-    if (interfaces == null) {
+    var interfaceThunk = JS('Function', '#[dart.implements]', _cls);
+    if (interfaceThunk == null) {
       return [];
+    } else {
+      List<Type> interfaces = interfaceThunk();
+      return interfaces.map((t) => new JsClassMirror._(t)).toList();
     }
-    throw new UnimplementedError("ClassMirror.superinterfaces unimplemented");
   }
 
   // TODO(vsm): Implement
@@ -159,18 +161,25 @@ class JsClassMirror implements ClassMirror {
       throw new UnimplementedError("ClassMirror.location unimplemented");
   ClassMirror get mixin =>
       throw new UnimplementedError("ClassMirror.mixin unimplemented");
-  TypeMirror get originalDeclaration => throw new UnimplementedError(
-      "ClassMirror.originalDeclaration unimplemented");
+  TypeMirror get originalDeclaration {
+    // TODO(vsm): Handle generic case.  How should we represent an original
+    // declaration for a generic class?
+    return this;
+  }
   DeclarationMirror get owner =>
       throw new UnimplementedError("ClassMirror.owner unimplemented");
   Symbol get qualifiedName =>
       throw new UnimplementedError("ClassMirror.qualifiedName unimplemented");
-  Type get reflectedType =>
-      throw new UnimplementedError("ClassMirror.reflectedType unimplemented");
+  Type get reflectedType { return _cls; }
   Map<Symbol, MethodMirror> get staticMembers =>
       throw new UnimplementedError("ClassMirror.staticMembers unimplemented");
-  ClassMirror get superclass =>
-      throw new UnimplementedError("ClassMirror.superclass unimplemented");
+  ClassMirror get superclass {
+    if (_cls == Object) {
+      return null;
+    } else {
+      return new JsClassMirror._(JS('Type', '#.__proto__', _cls));
+    }
+  }
   List<TypeMirror> get typeArguments =>
       throw new UnimplementedError("ClassMirror.typeArguments unimplemented");
   List<TypeVariableMirror> get typeVariables =>
@@ -329,8 +338,10 @@ class JsMethodMirror implements MethodMirror {
       throw new UnimplementedError("MethodMirror.isTopLevel unimplemented");
   SourceLocation get location =>
       throw new UnimplementedError("MethodMirror.location unimplemented");
-  List<InstanceMirror> get metadata =>
-      throw new UnimplementedError("MethodMirror.metadata unimplemented");
+  List<InstanceMirror> get metadata {
+    // TODO(vsm): Parse and store method metadata
+    return <InstanceMirror>[];
+  }
   DeclarationMirror get owner =>
       throw new UnimplementedError("MethodMirror.owner unimplemented");
   Symbol get qualifiedName =>

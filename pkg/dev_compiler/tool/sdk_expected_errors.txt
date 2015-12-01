@@ -274,3 +274,4 @@ warning: [DownCastComposite] min(a.y, b.y) (num) will need runtime check to cast
 warning: [DownCastComposite] max(a.y, b.y) - top (num) will need runtime check to cast to type T (dart:math/rectangle.dart, line 231, col 16)
 warning: [DownCastComposite] _clampToZero(width) (num) will need runtime check to cast to type T (dart:math/rectangle.dart, line 247, col 28)
 warning: [DownCastComposite] _clampToZero(height) (num) will need runtime check to cast to type T (dart:math/rectangle.dart, line 263, col 30)
+warning: [DownCastComposite] interfaceThunk() (dynamic) will need runtime check to cast to type List<Type> (dart:_js_mirrors, line 127, col 31)
