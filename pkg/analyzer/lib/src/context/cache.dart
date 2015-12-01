@@ -66,7 +66,7 @@ class AnalysisCache {
    */
   Iterable<Source> get sources {
     return _partitions
-        .map((CachePartition partition) => partition._sources)
+        .map((CachePartition partition) => partition.sources)
         .expand((Iterable<Source> sources) => sources);
   }
 
@@ -191,7 +191,7 @@ class AnalysisCache {
         <Map<AnalysisTarget, CacheEntry>>[];
     for (CachePartition partition in _partitions) {
       if (context == null || partition.context == context) {
-        maps.add(partition.map);
+        maps.add(partition.entryMap);
       }
     }
     return new MultipleMapIterator<AnalysisTarget, CacheEntry>(maps);
@@ -585,7 +585,7 @@ class CacheEntry {
     _invalidateDependentResults(id, thisData, delta, level + 1);
     // If empty and not explicitly added, remove the entry altogether.
     if (_resultMap.isEmpty && !explicitlyAdded) {
-      _partition._targetMap.remove(target);
+      _partition.entryMap.remove(target);
       _partition._removeIfSource(target);
     }
     // Notify controller.
@@ -858,18 +858,18 @@ abstract class CachePartition {
    * A table mapping the targets belonging to this partition to the information
    * known about those targets.
    */
-  HashMap<AnalysisTarget, CacheEntry> _targetMap =
+  final HashMap<AnalysisTarget, CacheEntry> entryMap =
       new HashMap<AnalysisTarget, CacheEntry>();
 
   /**
    * A set of the [Source] targets.
    */
-  final HashSet<Source> _sources = new HashSet<Source>();
+  final HashSet<Source> sources = new HashSet<Source>();
 
   /**
    * A table mapping full paths to lists of [Source]s with these full paths.
    */
-  final Map<String, List<Source>> _pathToSources = <String, List<Source>>{};
+  final Map<String, List<Source>> pathToSource = <String, List<Source>>{};
 
   /**
    * Initialize a newly created cache partition, belonging to the given
@@ -878,35 +878,28 @@ abstract class CachePartition {
   CachePartition(this.context);
 
   /**
-   * Return a table mapping the targets known to the context to the information
-   * known about the target.
-   *
-   * <b>Note:</b> This method is only visible for use by [AnalysisCache] and
-   * should not be used for any other purpose.
-   */
-  Map<AnalysisTarget, CacheEntry> get map => _targetMap;
-
-  /**
    * Notifies the partition that the client is going to stop using it.
    */
   void dispose() {
-    for (CacheEntry entry in _targetMap.values) {
+    for (CacheEntry entry in entryMap.values) {
       entry.dispose();
     }
-    _targetMap.clear();
+    entryMap.clear();
+    sources.clear();
+    pathToSource.clear();
   }
 
   /**
    * Return the entry associated with the given [target].
    */
-  CacheEntry get(AnalysisTarget target) => _targetMap[target];
+  CacheEntry get(AnalysisTarget target) => entryMap[target];
 
   /**
    * Return [Source]s whose full path is equal to the given [path].
    * Maybe empty, but not `null`.
    */
   List<Source> getSourcesWithFullName(String path) {
-    List<Source> sources = _pathToSources[path];
+    List<Source> sources = pathToSource[path];
     return sources != null ? sources : Source.EMPTY_LIST;
   }
 
@@ -920,7 +913,7 @@ abstract class CachePartition {
    * cache entries.
    */
   MapIterator<AnalysisTarget, CacheEntry> iterator() =>
-      new SingleMapIterator<AnalysisTarget, CacheEntry>(_targetMap);
+      new SingleMapIterator<AnalysisTarget, CacheEntry>(entryMap);
 
   /**
    * Puts the given [entry] into the partition.
@@ -933,7 +926,7 @@ abstract class CachePartition {
     }
     entry._partition = this;
     entry.fixExceptionState();
-    _targetMap[target] = entry;
+    entryMap[target] = entry;
     _addIfSource(target);
   }
 
@@ -946,7 +939,7 @@ abstract class CachePartition {
     for (CacheFlushManager flushManager in _flushManagerMap.values) {
       flushManager.targetRemoved(target);
     }
-    CacheEntry entry = _targetMap.remove(target);
+    CacheEntry entry = entryMap.remove(target);
     if (entry != null) {
       entry._invalidateAll();
     }
@@ -985,16 +978,16 @@ abstract class CachePartition {
   /**
    * Return the number of targets that are mapped to cache entries.
    */
-  int size() => _targetMap.length;
+  int size() => entryMap.length;
 
   /**
-   * If the given [target] is a [Source], adds it to [_sources].
+   * If the given [target] is a [Source], adds it to [sources].
    */
   void _addIfSource(AnalysisTarget target) {
     if (target is Source) {
-      _sources.add(target);
+      sources.add(target);
       String fullName = target.fullName;
-      _pathToSources.putIfAbsent(fullName, () => <Source>[]).add(target);
+      pathToSource.putIfAbsent(fullName, () => <Source>[]).add(target);
     }
   }
 
@@ -1024,17 +1017,17 @@ abstract class CachePartition {
   }
 
   /**
-   * If the given [target] is a [Source], remove it from the list of [_sources].
+   * If the given [target] is a [Source], remove it from the list of [sources].
    */
   void _removeIfSource(AnalysisTarget target) {
     if (target is Source) {
-      _sources.remove(target);
-      String fullName = target.fullName;
-      List<Source> sources = _pathToSources[fullName];
-      if (sources != null) {
-        sources.remove(target);
-        if (sources.isEmpty) {
-          _pathToSources.remove(fullName);
+      sources.remove(target);
+      String path = target.fullName;
+      List<Source> pathSources = pathToSource[path];
+      if (pathSources != null) {
+        pathSources.remove(target);
+        if (pathSources.isEmpty) {
+          pathToSource.remove(path);
         }
       }
     }

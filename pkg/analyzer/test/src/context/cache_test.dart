@@ -961,12 +961,31 @@ abstract class CachePartitionTest extends EngineTestCase {
     expect(createPartition(), isNotNull);
   }
 
+  void test_dispose() {
+    CachePartition partition = createPartition();
+    Source source1 = new TestSource('/1.dart');
+    Source source2 = new TestSource('/2.dart');
+    CacheEntry entry1 = new CacheEntry(source1);
+    CacheEntry entry2 = new CacheEntry(source2);
+    // add two sources
+    partition.put(entry1);
+    partition.put(entry2);
+    expect(partition.entryMap, hasLength(2));
+    expect(partition.pathToSource, hasLength(2));
+    expect(partition.sources, unorderedEquals([source1, source2]));
+    // dispose, no sources
+    partition.dispose();
+    expect(partition.entryMap, isEmpty);
+    expect(partition.pathToSource, isEmpty);
+    expect(partition.sources, isEmpty);
+  }
+
   void test_entrySet() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
     partition.put(entry);
-    Map<AnalysisTarget, CacheEntry> entryMap = partition.map;
+    Map<AnalysisTarget, CacheEntry> entryMap = partition.entryMap;
     expect(entryMap, hasLength(1));
     AnalysisTarget entryKey = entryMap.keys.first;
     expect(entryKey, target);
