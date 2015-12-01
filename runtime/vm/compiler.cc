@@ -549,7 +549,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
           FlowGraphInliner inliner(flow_graph,
                                    &inline_id_to_function,
-                                   &caller_inline_id);
+                                   &caller_inline_id,
+                                   use_speculative_inlining,
+                                   &inlining_black_list);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());

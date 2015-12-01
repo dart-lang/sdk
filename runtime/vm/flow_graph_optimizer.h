@@ -18,8 +18,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
   explicit FlowGraphOptimizer(
       FlowGraph* flow_graph,
-      bool use_speculative_inlining = false,
-      GrowableArray<intptr_t>* inlining_black_list = NULL)
+      bool use_speculative_inlining,
+      GrowableArray<intptr_t>* inlining_black_list)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
         flow_graph_(flow_graph),
         use_speculative_inlining_(use_speculative_inlining),

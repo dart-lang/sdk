@@ -11,6 +11,7 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_optimizer.h"
+#include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
 #include "vm/longjump.h"
@@ -776,10 +777,19 @@ class CallSiteInliner : public ValueObject {
 
       {
         CSTAT_TIMER_SCOPE(thread(), graphinliner_opt_timer);
-        // TODO(zerny): Do more optimization passes on the callee graph.
-        FlowGraphOptimizer optimizer(callee_graph);
+        // TODO(fschneider): Improve suppression of speculative inlining.
+        // Deopt-ids overlap between caller and callee.
+        FlowGraphOptimizer optimizer(callee_graph,
+                                     inliner_->use_speculative_inlining_,
+                                     inliner_->inlining_black_list_);
         if (Compiler::always_optimize()) {
           optimizer.PopulateWithICData();
+
+          optimizer.ApplyClassIds();
+          DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+          FlowGraphTypePropagator::Propagate(callee_graph);
+          DEBUG_ASSERT(callee_graph->VerifyUseLists());
         }
         optimizer.ApplyICData();
         DEBUG_ASSERT(callee_graph->VerifyUseLists());
@@ -1469,7 +1479,9 @@ static Instruction* AppendInstruction(Instruction* first,
 
 bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
                                                    const Function& target) {
-  FlowGraphOptimizer optimizer(owner_->caller_graph());
+  FlowGraphOptimizer optimizer(owner_->caller_graph(),
+                               false,  // Speculative inlining not applicable.
+                               NULL);
   TargetEntryInstr* entry;
   Definition* last;
   // Replace the receiver argument with a redefinition to prevent code from
@@ -1775,11 +1787,16 @@ static bool ShouldTraceInlining(FlowGraph* flow_graph) {
 FlowGraphInliner::FlowGraphInliner(
     FlowGraph* flow_graph,
     GrowableArray<const Function*>* inline_id_to_function,
-    GrowableArray<intptr_t>* caller_inline_id)
+    GrowableArray<intptr_t>* caller_inline_id,
+    bool use_speculative_inlining,
+    GrowableArray<intptr_t>* inlining_black_list)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
       caller_inline_id_(caller_inline_id),
-      trace_inlining_(ShouldTraceInlining(flow_graph)) {
+      trace_inlining_(ShouldTraceInlining(flow_graph)),
+      use_speculative_inlining_(use_speculative_inlining),
+      inlining_black_list_(inlining_black_list) {
+  ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
 }
 
 
@@ -1839,7 +1856,8 @@ bool FlowGraphInliner::AlwaysInline(const Function& function) {
 
   if (function.IsImplicitGetterFunction() || function.IsGetterFunction() ||
       function.IsImplicitSetterFunction() || function.IsSetterFunction() ||
-      IsInlineableOperator(function)) {
+      IsInlineableOperator(function) ||
+      (function.kind() == RawFunction::kConstructor)) {
     const intptr_t count = function.optimized_instruction_count();
     if ((count != 0) && (count < FLAG_inline_getters_setters_smaller_than)) {
       return true;
