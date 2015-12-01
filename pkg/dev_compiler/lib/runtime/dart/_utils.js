@@ -68,7 +68,12 @@ dart_library.library('dart/_utils', null, /* Imports */[
   }
   function copyTheseProperties(to, from, names) {
     for (let name of names) {
-      defineProperty(to, name, getOwnPropertyDescriptor(from, name));
+      var desc = getOwnPropertyDescriptor(from, name);
+      if (desc != void 0) {
+        defineProperty(to, name, desc);
+      } else {
+        defineLazyProperty(to, name, () => from[name]);
+      }
     }
     return to;
   }
@@ -76,7 +81,7 @@ dart_library.library('dart/_utils', null, /* Imports */[
     return copyTheseProperties(to, from, getOwnNamesAndSymbols(from));
   }
   function export_(to, from, show, hide) {
-    if (show == void 0) {
+    if (show == void 0 || show.length == 0) {
       show = getOwnNamesAndSymbols(from);
     }
     if (hide != void 0) {

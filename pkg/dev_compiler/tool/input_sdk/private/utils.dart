@@ -97,7 +97,12 @@ defineMemoizedGetter(obj, String name, getter) =>
 
 copyTheseProperties(to, from, names) => JS('', '''((to, from, names) => {
   for (let name of names) {
-    defineProperty(to, name, getOwnPropertyDescriptor(from, name));
+    var desc = getOwnPropertyDescriptor(from, name);
+    if (desc != void 0) {
+      defineProperty(to, name, desc);
+    } else {
+      defineLazyProperty(to, name, () => from[name]);
+    }
   }
   return to;
 })(#, #, #)''', to, from, names);
@@ -112,7 +117,7 @@ copyProperties(to, from) => JS('', '''((to, from) => {
 // TODO(ochafik): Re-introduce a @JS annotation in the SDK (same as package:js)
 // so that this is named 'export' in JavaScript.
 export_(to, from, show, hide) => JS('', '''((to, from, show, hide) => {
-  if (show == void 0) {
+  if (show == void 0 || show.length == 0) {
     show = getOwnNamesAndSymbols(from);
   }
   if (hide != void 0) {
