@@ -11011,17 +11011,19 @@ RawNamespace* Namespace::New(const Library& library,
 
 
 RawError* Library::CompileAll() {
-  Error& error = Error::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       Isolate::Current()->object_store()->libraries());
-  Library& lib = Library::Handle();
-  Class& cls = Class::Handle();
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
   for (int i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      error = cls.EnsureIsFinalized(Thread::Current());
+      error = cls.EnsureIsFinalized(thread);
       if (!error.IsNull()) {
         return error.raw();
       }
@@ -11029,6 +11031,24 @@ RawError* Library::CompileAll() {
       if (!error.IsNull()) {
         return error.raw();
       }
+    }
+  }
+
+  // Inner functions get added to the closures array. As part of compilation
+  // more closures can be added to the end of the array. Compile all the
+  // closures until we have reached the end of the "worklist".
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(zone,
+      Isolate::Current()->object_store()->closure_functions());
+  Function& func = Function::Handle(zone);
+  for (int i = 0; i < closures.Length(); i++) {
+    func ^= closures.At(i);
+    if (!func.HasCode()) {
+      error = Compiler::CompileFunction(thread, func);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      func.ClearICDataArray();
+      func.ClearCode();
     }
   }
   return error.raw();

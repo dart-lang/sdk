@@ -16,7 +16,7 @@ class ParsedFunction;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
-  explicit FlowGraphOptimizer(
+  FlowGraphOptimizer(
       FlowGraph* flow_graph,
       bool use_speculative_inlining,
       GrowableArray<intptr_t>* inlining_black_list)
