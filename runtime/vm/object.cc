@@ -7575,7 +7575,6 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(owner());
   String& field_name = String::Handle(name());
-  ASSERT(cls.LookupField(field_name) == this->raw());
   field_name = String::EncodeIRI(field_name);
   AddCommonObjectProperties(&jsobj, "Field", ref);
   jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s",
