@@ -83,6 +83,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return type.intersection(otherType, classWorld);
   }
 
+  TypeMask narrowNotNull(TypeMask type) {
+    return type.nonNullable();
+  }
+
   TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
     if (firstType == null) {
       return secondType;
