@@ -110,16 +110,19 @@ precompilation_test: Skip # Standalone only test.
 precompilation_dart2js_test: Skip # Standalone only test.
 noopt_test: Skip # Standalone only test.
 
-[ $runtime == vm && $arch == ia32]
+[ $runtime == vm && $mode == debug ]
+precompilation_dart2js_test: Slow
+
+[ $runtime == vm && $arch == ia32 ]
 precompilation_test: Skip # Not expected to pass on ia32.
 precompilation_dart2js_test: Skip # Not expected to pass on ia32.
 noopt_test: Skip # Not expected to pass on ia32.
 
-[ $runtime == vm && $arch == arm]
+[ $runtime == vm && $arch == arm ]
 precompilation_test: Skip # Issue 24427
 precompilation_dart2js_test: Skip # Issue 24427
 
-[ $runtime == vm && $arch == mips]
+[ $runtime == vm && $arch == mips ]
 precompilation_dart2js_test: SkipSlow
 
 [ $compiler == dart2js && $jscl ]
@@ -136,7 +139,7 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 [ $compiler == dart2js && $browser ]
 *: Skip
 
-[ $arch == simarm || $arch == simarmv5te || $arch == simmips]
+[ $arch == simarm || $arch == simarmv5te || $arch == simmips ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
