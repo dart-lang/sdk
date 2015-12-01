@@ -2953,15 +2953,7 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
    */
   VariableDeclaration getDeclaration(CompilationUnit unit) {
     VariableElement variable = target;
-    // Usually: Type ^name = ...
-    // Sometimes there is no space after the type: List<Type>^name = ...
-    // So, we need to use an offset within (or right after) the name:
-    //   Type n^ame =
-    //   List<Type>n^ame =
-    //   Type x^=
-    int searchOffset = variable.nameOffset + 1;
-    NodeLocator locator = new NodeLocator(searchOffset);
-    AstNode node = locator.searchWithin(unit);
+    AstNode node = new NodeLocator2(variable.nameOffset).searchWithin(unit);
     VariableDeclaration declaration =
         node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
     if (declaration == null || declaration.name != node) {

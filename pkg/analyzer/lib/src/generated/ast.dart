@@ -12946,6 +12946,95 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
 }
 
 /**
+ * An object used to locate the [AstNode] associated with a source range.
+ * More specifically, they will return the deepest [AstNode] which completely
+ * encompasses the specified range.
+ */
+class NodeLocator2 extends UnifyingAstVisitor<Object> {
+  /**
+   * The inclusive start offset of the range used to identify the node.
+   */
+  int _startOffset = 0;
+
+  /**
+   * The inclusive end offset of the range used to identify the node.
+   */
+  int _endOffset = 0;
+
+  /**
+   * The found node or `null` if there is no such node.
+   */
+  AstNode _foundNode;
+
+  /**
+   * Initialize a newly created locator to locate the deepest [AstNode] for
+   * which `node.offset <= [startOffset]` and `[endOffset] < node.end`.
+   *
+   * If [endOffset] is not provided, then it is considered the same as the
+   * given [startOffset].
+   */
+  NodeLocator2(int startOffset, [int endOffset])
+      : this._startOffset = startOffset,
+        this._endOffset = endOffset == null ? startOffset : endOffset;
+
+  /**
+   * Search within the given AST [node] and return the node that was found,
+   * or `null` if no node was found.
+   */
+  AstNode searchWithin(AstNode node) {
+    if (node == null) {
+      return null;
+    }
+    try {
+      node.accept(this);
+    } on NodeLocator_NodeFoundException {} catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logInformation(
+          "Unable to locate element at offset ($_startOffset - $_endOffset)",
+          new CaughtException(exception, stackTrace));
+      return null;
+    }
+    return _foundNode;
+  }
+
+  @override
+  Object visitNode(AstNode node) {
+    Token beginToken = node.beginToken;
+    Token endToken = node.endToken;
+    // Don't include synthetic tokens.
+    while (endToken != beginToken) {
+      if (endToken.type == TokenType.EOF || !endToken.isSynthetic) {
+        break;
+      }
+      endToken = endToken.previous;
+    }
+    int end = endToken.end;
+    int start = node.offset;
+    if (end <= _startOffset) {
+      return null;
+    }
+    if (start > _endOffset) {
+      return null;
+    }
+    try {
+      node.visitChildren(this);
+    } on NodeLocator_NodeFoundException {
+      rethrow;
+    } catch (exception, stackTrace) {
+      // Ignore the exception and proceed in order to visit the rest of the
+      // structure.
+      AnalysisEngine.instance.logger.logInformation(
+          "Exception caught while traversing an AST structure.",
+          new CaughtException(exception, stackTrace));
+    }
+    if (start <= _startOffset && _endOffset < end) {
+      _foundNode = node;
+      throw new NodeLocator_NodeFoundException();
+    }
+    return null;
+  }
+}
+
+/**
  * An exception used by [NodeLocator] to cancel visiting after a node has been
  * found.
  */
