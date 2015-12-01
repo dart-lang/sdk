@@ -7,7 +7,7 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
 ], function(exports, dart, collection, core, wrappers) {
   'use strict';
   let dartx = dart.dartx;
-  dart.export(exports, collection, ['UnmodifiableListView', 'UnmodifiableMapView'], []);
+  dart.export_(exports, collection, ['UnmodifiableListView', 'UnmodifiableMapView'], []);
   const NonGrowableListMixin$ = dart.generic(function(E) {
     class NonGrowableListMixin extends core.Object {
       static _throw() {

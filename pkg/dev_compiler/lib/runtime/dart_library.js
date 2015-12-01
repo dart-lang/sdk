@@ -11,6 +11,11 @@ var dart_library =
 (function (dart_library) {
   'use strict';
 
+  /** Note that we cannot use dart_utils.throwInternalError from here. */
+  function throwLibraryError(message) {
+    throw Error(message);
+  }
+
   // Module support.  This is a simplified module system for Dart.
   // Longer term, we can easily migrate to an existing JS module system:
   // ES6, AMD, RequireJS, ....
@@ -48,7 +53,7 @@ var dart_library =
       for (let name of list) {
         let lib = libraries[name];
         if (!lib) {
-          dart_utils.throwInternalError('Library not available: ' + name);
+          throwLibraryError('Library not available: ' + name);
         }
         results.push(handler(lib));
       }
@@ -58,7 +63,7 @@ var dart_library =
     load(inheritedPendingSet) {
       // Check for cycles
       if (this._state == LibraryLoader.LOADING) {
-        dart_utils.throwInternalError('Circular dependence on library: '
+        throwLibraryError('Circular dependence on library: '
                               + this._name);
       } else if (this._state >= LibraryLoader.LOADED) {
         return this._library;
@@ -107,7 +112,7 @@ var dart_library =
     let loader = libraries[libraryName];
     // TODO(vsm): A user might call this directly from JS (as we do in tests).
     // We may want a different error type.
-    if (!loader) dart_utils.throwInternalError('Library not found: ' + libraryName);
+    if (!loader) throwLibraryError('Library not found: ' + libraryName);
     return loader.load();
   }
   dart_library.import = import_;

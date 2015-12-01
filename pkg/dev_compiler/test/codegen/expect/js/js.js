@@ -6,7 +6,7 @@ dart_library.library('js/js', null, /* Imports */[
 ], function(exports, dart, js, core) {
   'use strict';
   let dartx = dart.dartx;
-  dart.export(exports, js, ['allowInterop', 'allowInteropCaptureThis'], []);
+  dart.export_(exports, js, ['allowInterop', 'allowInteropCaptureThis'], []);
   class JS extends core.Object {
     JS(name) {
       if (name === void 0)

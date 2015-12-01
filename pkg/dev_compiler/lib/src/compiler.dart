@@ -520,8 +520,8 @@ const corelibOrder = const [
 final defaultRuntimeFiles = () {
   var files = [
     'harmony_feature_check.js',
-    'dart_utils.js',
     'dart_library.js',
+    'dart/_utils.js',
     'dart/_errors.js',
     'dart/_generators.js',
     'dart/_types.js',

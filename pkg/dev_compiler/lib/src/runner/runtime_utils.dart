@@ -19,7 +19,7 @@ import 'file_utils.dart';
 /// TODO(ochafik): Investigate alternative module / alias patterns.
 const _ALIASED_RUNTIME_FILES = const {
   'dart_library.js': 'dart_library',
-  'dart_utils.js': 'dart_utils',
+  'dart/_utils.js': 'dart_utils',
 };
 
 /// If [path] is a runtime file with an alias, returns that alias, otherwise

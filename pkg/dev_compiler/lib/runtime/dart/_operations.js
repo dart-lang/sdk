@@ -7,6 +7,7 @@
  */
 dart_library.library('dart/_operations', null, /* Imports */[
 ], /* Lazy Imports */[
+  'dart/_utils',
   'dart/async',
   'dart/collection',
   'dart/core',
@@ -15,7 +16,7 @@ dart_library.library('dart/_operations', null, /* Imports */[
   'dart/_errors',
   'dart/_rtti',
   'dart/_types'
-], function(exports, async, collection, core, _js_helper, classes, errors, rtti,
+], function(exports, dart_utils, async, collection, core, _js_helper, classes, errors, rtti,
             types) {
   'use strict';
 

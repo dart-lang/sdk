@@ -8,9 +8,10 @@
 
 dart_library.library('dart/_rtti', null, /* Imports */[
 ], /* Lazy Imports */[
+  'dart/_utils',
   'dart/core',
   'dart/_types'
-], function(exports, core, types) {
+], function(exports, dart_utils, core, types) {
   'use strict';
 
   const defineLazyProperty = dart_utils.defineLazyProperty;

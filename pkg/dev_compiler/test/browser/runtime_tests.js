@@ -13,6 +13,7 @@ var dartx = dart.dartx;
 // If we decide to expose them, this can go away.
 var classes = dart_library.import('dart/_classes');
 var types = dart_library.import('dart/_types');
+var dart_utils = dart_library.import('dart/_utils');
 
 suite('generic', () => {
   "use strict";

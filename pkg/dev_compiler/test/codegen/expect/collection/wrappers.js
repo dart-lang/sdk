@@ -9,8 +9,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
 ], function(exports, dart, canonicalized_map, core, math, collection, unmodifiable_wrappers) {
   'use strict';
   let dartx = dart.dartx;
-  dart.export(exports, canonicalized_map);
-  dart.export(exports, unmodifiable_wrappers);
+  dart.export_(exports, canonicalized_map);
+  dart.export_(exports, unmodifiable_wrappers);
   const _base = Symbol('_base');
   const _DelegatingIterableBase$ = dart.generic(function(E) {
     class _DelegatingIterableBase extends core.Object {

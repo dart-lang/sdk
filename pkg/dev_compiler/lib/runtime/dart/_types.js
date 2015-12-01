@@ -7,15 +7,16 @@
 
 dart_library.library('dart/_types', null, /* Imports */[
 ], /* Lazy Imports */[
+  'dart/_utils',
   'dart/core',
   'dart/_classes',
   'dart/_rtti'
-], function(exports, core, classes, rtti) {
+], function(exports, dart_utils, core, classes, rtti) {
   'use strict';
 
   const getOwnPropertyNames = Object.getOwnPropertyNames;
 
-  const assert = dart_utils.assert;
+  const assert = dart_utils.assert_;
 
   /**
    * Types in dart are represented at runtime as follows.
@@ -24,12 +25,12 @@ dart_library.library('dart/_types', null, /* Imports */[
    *     If the type is the result of instantiating a generic class,
    *     then the "classes" module manages the association between the
    *     instantiated class and the original class declaration
-   *     and the type arguments with which it was instantiated.  This 
+   *     and the type arguments with which it was instantiated.  This
    *     assocation can be queried via the "classes" module".
    *
    *   - All other types are represented as instances of class TypeRep,
    *     defined in this module.
-   *     - Dynamic, Void, and Bottom are singleton instances of sentinal 
+   *     - Dynamic, Void, and Bottom are singleton instances of sentinal
    *       classes.
    *     - Function types are instances of subclasses of AbstractFunctionType.
    *

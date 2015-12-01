@@ -9,6 +9,11 @@ library dart2js._js_primitives;
 import 'dart:_foreign_helper' show
     JS;
 
+// This import is here temporarily to cause utils.dart to be compiled.
+// TODO(ochafik): Remove this phony import once other Dart files actually depend
+// on utils.
+import 'dart:_utils';
+
 /**
  * This is the low-level method that is used to implement [print].  It is
  * possible to override this function from JavaScript by defining a function in

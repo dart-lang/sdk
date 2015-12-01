@@ -37,6 +37,7 @@ import 'js_metalet.dart' as JS;
 import 'js_module_item_order.dart';
 import 'js_printer.dart' show writeJsLibrary;
 import 'side_effect_analysis.dart';
+import 'package:collection/equality.dart';
 
 // Various dynamic helpers we call.
 // If renaming these, make sure to check other places like the
@@ -49,6 +50,8 @@ const DINDEX = 'dindex';
 const DSETINDEX = 'dsetindex';
 const DCALL = 'dcall';
 const DSEND = 'dsend';
+
+const ListEquality _listEquality = const ListEquality();
 
 class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   final AbstractCompiler compiler;
@@ -104,6 +107,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// The default value of the module object. See [visitLibraryDirective].
   String _jsModuleValue;
 
+  bool _isDartUtils;
+
   Map<String, DartType> _objectMembers;
 
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
@@ -117,6 +122,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var src = context.sourceFactory.forUri('dart:_interceptors');
     var interceptors = context.computeLibraryElement(src);
     _jsArray = interceptors.getType('JSArray');
+    _isDartUtils = currentLibrary.source.uri.toString() == 'dart:_utils';
 
     _objectMembers = getObjectMemberMap(types);
   }
@@ -196,7 +202,19 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       list.add(js.string(compiler.getModuleName(library.source.uri), "'"));
     };
 
-    var imports = <JS.Expression>[js.string('dart/_runtime')];
+    var needsDartRuntime = !_isDartUtils;
+
+    var imports = <JS.Expression>[];
+    var moduleStatements = <JS.Statement>[];
+    if (needsDartRuntime) {
+      imports.add(js.string('dart/_runtime'));
+
+      var dartxImport =
+          js.statement("let # = #.dartx;", [_dartxVar, _runtimeLibVar]);
+      moduleStatements.add(dartxImport);
+    }
+    moduleStatements.addAll(_moduleItems);
+
     _imports.forEach((library, temp) {
       if (_loader.libraryIsLoaded(library)) {
         processImport(library, temp, imports);
@@ -210,11 +228,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     });
 
-    var dartxImport =
-        js.statement("let # = #.dartx;", [_dartxVar, _runtimeLibVar]);
-
-    var module = js.call("function(#) { 'use strict'; #; #; }",
-        [params, dartxImport, _moduleItems]);
+    var module =
+        js.call("function(#) { 'use strict'; #; }", [params, moduleStatements]);
 
     var moduleDef = js.statement("dart_library.library(#, #, #, #, #)", [
       js.string(jsPath, "'"),
@@ -289,7 +304,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       args.add(new JS.ArrayInitializer(shownNames));
       args.add(new JS.ArrayInitializer(hiddenNames));
     }
-    _moduleItems.add(js.statement('dart.export(#);', [args]));
+    _moduleItems.add(js.statement('dart.export_(#);', [args]));
   }
 
   JS.Identifier _initSymbol(JS.Identifier id) {
@@ -1285,15 +1300,67 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
 
     var name = node.name.name;
 
+    var fn = _visit(node.functionExpression);
+    bool needsTagging = true;
+
+    if (currentLibrary.source.isInSystemLibrary &&
+        _isInlineJSFunction(node.functionExpression)) {
+      fn = _simplifyPassThroughArrowFunCallBody(fn);
+      needsTagging = !_isDartUtils;
+    }
+
     var id = new JS.Identifier(name);
-    body.add(annotate(
-        new JS.FunctionDeclaration(id, _visit(node.functionExpression)),
-        node.element));
-    body.add(_emitFunctionTagged(id, node.element.type, topLevel: true)
-        .toStatement());
+    body.add(annotate(new JS.FunctionDeclaration(id, fn), node.element));
+    if (needsTagging) {
+      body.add(_emitFunctionTagged(id, node.element.type, topLevel: true)
+          .toStatement());
+    }
 
     if (isPublic(name)) _addExport(name);
     return _statement(body);
+  }
+
+  bool _isInlineJSFunction(FunctionExpression functionExpression) {
+    bool isJsInvocation(Expression expr) =>
+        expr is MethodInvocation && isInlineJS(expr.methodName.staticElement);
+
+    var body = functionExpression.body;
+    if (body is ExpressionFunctionBody) {
+      return isJsInvocation(body.expression);
+    } else if (body is BlockFunctionBody) {
+      if (body.block.statements.length == 1) {
+        var stat = body.block.statements.single;
+        if (stat is ReturnStatement) {
+          return isJsInvocation(stat.expression);
+        }
+      }
+    }
+    return false;
+  }
+
+  // Simplify `(args) => ((x, y) => { ... })(x, y)` to `(args) => { ... }`.
+  // Note: we don't check if the top-level args match the ones passed through
+  // the arrow function, which allows silently passing args through to the
+  // body (which only works if we don't do weird renamings of Dart params).
+  JS.Fun _simplifyPassThroughArrowFunCallBody(JS.Fun fn) {
+    String getIdent(JS.Node node) => node is JS.Identifier ? node.name : null;
+    List<String> getIdents(List params) =>
+        params.map(getIdent).toList(growable: false);
+
+    if (fn.body is JS.Block && fn.body.statements.length == 1) {
+      var stat = fn.body.statements.single;
+      if (stat is JS.Return && stat.value is JS.Call) {
+        JS.Call call = stat.value;
+        if (call.target is JS.ArrowFun) {
+          var passedArgs = getIdents(call.arguments);
+          JS.ArrowFun innerFun = call.target;
+          if (_listEquality.equals(getIdents(innerFun.params), passedArgs)) {
+            return new JS.Fun(fn.params, innerFun.body);
+          }
+        }
+      }
+    }
+    return fn;
   }
 
   JS.Method _emitTopLevelProperty(FunctionDeclaration node) {

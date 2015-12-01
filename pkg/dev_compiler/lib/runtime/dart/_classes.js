@@ -12,14 +12,15 @@
 // TODO(leafp): Consider splitting some of this out.
 dart_library.library('dart/_classes', null, /* Imports */[
 ], /* Lazy Imports */[
+  'dart/_utils',
   'dart/core',
   'dart/_interceptors',
   'dart/_types',
   'dart/_rtti',
-], function(exports, core, _interceptors, types, rtti) {
+], function(exports, dart_utils, core, _interceptors, types, rtti) {
   'use strict';
 
-  const assert = dart_utils.assert;
+  const assert = dart_utils.assert_;
   const copyProperties = dart_utils.copyProperties;
   const copyTheseProperties = dart_utils.copyTheseProperties;
   const defineMemoizedGetter = dart_utils.defineMemoizedGetter;

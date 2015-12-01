@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 dart_library.library('dart/_runtime', null, /* Imports */[
+  'dart/_utils',
   'dart/_classes',
   'dart/_errors',
   'dart/_generators',
@@ -11,7 +12,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   'dart/_types',
 ], /* Lazy Imports */[
   'dart/_js_helper'
-], function(exports, classes, errors, generators, operations, rtti, types,
+], function(exports, dart_utils, classes, errors, generators, operations, rtti, types,
     _js_helper) {
   'use strict';
 
@@ -64,7 +65,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   ]);
 
   // From dart_utils
-  exportFrom(dart_utils, ['copyProperties', 'export']);
+  exportFrom(dart_utils, ['copyProperties', 'export_']);
   // Renames
   exports.defineLazyClass = _export(dart_utils.defineLazy);
   exports.defineLazyProperties = _export(dart_utils.defineLazy);
