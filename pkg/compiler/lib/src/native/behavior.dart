@@ -818,8 +818,9 @@ class NativeBehavior {
           // annotations. This means that to some degree we still use the return
           // type to decide whether to include native types, even if we don't
           // trust the type annotation.
-          typesInstantiated.add(
-              backend.helpers.jsJavaScriptObjectClass.thisType);
+          ClassElement cls = backend.helpers.jsJavaScriptObjectClass;
+          cls.ensureResolved(resolution);
+          typesInstantiated.add(cls.thisType);
         } else {
           // Otherwise, when the declared type is a Dart type, we do not
           // register an allocation because we assume it cannot be instantiated
