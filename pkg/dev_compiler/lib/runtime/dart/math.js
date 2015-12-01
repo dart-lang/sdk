@@ -33,7 +33,7 @@ dart_library.library('dart/math', null, /* Imports */[
     }),
     names: ['combine', 'finish', 'hash2', 'hash4']
   });
-  let Point$ = dart.generic(function(T) {
+  const Point$ = dart.generic(function(T) {
     class Point extends core.Object {
       Point(x, y) {
         this.x = x;
@@ -100,7 +100,7 @@ dart_library.library('dart/math', null, /* Imports */[
   dart.setSignature(Random, {
     constructors: () => ({new: [Random, [], [core.int]]})
   });
-  let _RectangleBase$ = dart.generic(function(T) {
+  const _RectangleBase$ = dart.generic(function(T) {
     class _RectangleBase extends core.Object {
       _RectangleBase() {
       }
@@ -177,7 +177,7 @@ dart_library.library('dart/math', null, /* Imports */[
     return _RectangleBase;
   });
   let _RectangleBase = _RectangleBase$();
-  let Rectangle$ = dart.generic(function(T) {
+  const Rectangle$ = dart.generic(function(T) {
     class Rectangle extends _RectangleBase$(T) {
       Rectangle(left, top, width, height) {
         this.left = left;
@@ -203,9 +203,9 @@ dart_library.library('dart/math', null, /* Imports */[
     return Rectangle;
   });
   let Rectangle = Rectangle$();
-  let _width = Symbol('_width');
-  let _height = Symbol('_height');
-  let MutableRectangle$ = dart.generic(function(T) {
+  const _width = Symbol('_width');
+  const _height = Symbol('_height');
+  const MutableRectangle$ = dart.generic(function(T) {
     class MutableRectangle extends _RectangleBase$(T) {
       MutableRectangle(left, top, width, height) {
         this.left = left;
@@ -255,14 +255,14 @@ dart_library.library('dart/math', null, /* Imports */[
     return -dart.notNull(value) * 0;
   }
   dart.fn(_clampToZero, core.num, [core.num]);
-  let E = 2.718281828459045;
-  let LN10 = 2.302585092994046;
-  let LN2 = 0.6931471805599453;
-  let LOG2E = 1.4426950408889634;
-  let LOG10E = 0.4342944819032518;
-  let PI = 3.141592653589793;
-  let SQRT1_2 = 0.7071067811865476;
-  let SQRT2 = 1.4142135623730951;
+  const E = 2.718281828459045;
+  const LN10 = 2.302585092994046;
+  const LN2 = 0.6931471805599453;
+  const LOG2E = 1.4426950408889634;
+  const LOG10E = 0.4342944819032518;
+  const PI = 3.141592653589793;
+  const SQRT1_2 = 0.7071067811865476;
+  const SQRT2 = 1.4142135623730951;
   function min(a, b) {
     if (!(typeof a == 'number'))
       dart.throw(new core.ArgumentError(a));
@@ -355,7 +355,7 @@ dart_library.library('dart/math', null, /* Imports */[
     return Math.log(_js_helper.checkNum(x));
   }
   dart.fn(log, core.double, [core.num]);
-  let _POW2_32 = 4294967296;
+  const _POW2_32 = 4294967296;
   class _JSRandom extends core.Object {
     _JSRandom() {
     }
@@ -381,9 +381,9 @@ dart_library.library('dart/math', null, /* Imports */[
       nextBool: [core.bool, []]
     })
   });
-  let _lo = Symbol('_lo');
-  let _hi = Symbol('_hi');
-  let _nextState = Symbol('_nextState');
+  const _lo = Symbol('_lo');
+  const _hi = Symbol('_hi');
+  const _nextState = Symbol('_nextState');
   class _Random extends core.Object {
     _Random(seed) {
       this[_lo] = 0;

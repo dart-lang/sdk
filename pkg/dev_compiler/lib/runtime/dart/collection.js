@@ -8,8 +8,8 @@ dart_library.library('dart/collection', null, /* Imports */[
 ], function(exports, dart, core, _internal, _js_helper, math) {
   'use strict';
   let dartx = dart.dartx;
-  let _source = Symbol('_source');
-  let UnmodifiableListView$ = dart.generic(function(E) {
+  const _source = Symbol('_source');
+  const UnmodifiableListView$ = dart.generic(function(E) {
     class UnmodifiableListView extends _internal.UnmodifiableListBase$(E) {
       UnmodifiableListView(source) {
         this[_source] = source;
@@ -37,17 +37,17 @@ dart_library.library('dart/collection', null, /* Imports */[
     return dart.hashCode(a);
   }
   dart.fn(_defaultHashCode, core.int, [core.Object]);
-  let _Equality$ = dart.generic(function(K) {
-    let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
+  const _Equality$ = dart.generic(function(K) {
+    const _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
     return _Equality;
   });
   let _Equality = _Equality$();
-  let _Hasher$ = dart.generic(function(K) {
-    let _Hasher = dart.typedef('_Hasher', () => dart.functionType(core.int, [K]));
+  const _Hasher$ = dart.generic(function(K) {
+    const _Hasher = dart.typedef('_Hasher', () => dart.functionType(core.int, [K]));
     return _Hasher;
   });
   let _Hasher = _Hasher$();
-  let HashMap$ = dart.generic(function(K, V) {
+  const HashMap$ = dart.generic(function(K, V) {
     class HashMap extends core.Object {
       static new(opts) {
         let equals = opts && 'equals' in opts ? opts.equals : null;
@@ -113,7 +113,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return HashMap;
   });
   let HashMap = HashMap$();
-  let SetMixin$ = dart.generic(function(E) {
+  const SetMixin$ = dart.generic(function(E) {
     class SetMixin extends core.Object {
       [Symbol.iterator]() {
         return new dart.JsIterator(this.iterator);
@@ -443,7 +443,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return SetMixin;
   });
   let SetMixin = SetMixin$();
-  let SetBase$ = dart.generic(function(E) {
+  const SetBase$ = dart.generic(function(E) {
     class SetBase extends SetMixin$(E) {
       static setToString(set) {
         return IterableBase.iterableToFullString(set, '{', '}');
@@ -456,8 +456,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return SetBase;
   });
   let SetBase = SetBase$();
-  let _newSet = Symbol('_newSet');
-  let _HashSetBase$ = dart.generic(function(E) {
+  const _newSet = Symbol('_newSet');
+  const _HashSetBase$ = dart.generic(function(E) {
     class _HashSetBase extends SetBase$(E) {
       difference(other) {
         let result = this[_newSet]();
@@ -494,7 +494,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _HashSetBase;
   });
   let _HashSetBase = _HashSetBase$();
-  let HashSet$ = dart.generic(function(E) {
+  const HashSet$ = dart.generic(function(E) {
     class HashSet extends core.Object {
       static new(opts) {
         let equals = opts && 'equals' in opts ? opts.equals : null;
@@ -548,7 +548,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return HashSet;
   });
   let HashSet = HashSet$();
-  let IterableMixin$ = dart.generic(function(E) {
+  const IterableMixin$ = dart.generic(function(E) {
     class IterableMixin extends core.Object {
       map(f) {
         dart.as(f, dart.functionType(dart.dynamic, [E]));
@@ -814,7 +814,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return IterableMixin;
   });
   let IterableMixin = IterableMixin$();
-  let IterableBase$ = dart.generic(function(E) {
+  const IterableBase$ = dart.generic(function(E) {
     class IterableBase extends core.Object {
       IterableBase() {
       }
@@ -1225,10 +1225,10 @@ dart_library.library('dart/collection', null, /* Imports */[
       return [];
     }
   });
-  let _iterator = Symbol('_iterator');
-  let _state = Symbol('_state');
-  let _move = Symbol('_move');
-  let HasNextIterator$ = dart.generic(function(E) {
+  const _iterator = Symbol('_iterator');
+  const _state = Symbol('_state');
+  const _move = Symbol('_move');
+  const HasNextIterator$ = dart.generic(function(E) {
     class HasNextIterator extends core.Object {
       HasNextIterator(iterator) {
         this[_iterator] = iterator;
@@ -1268,7 +1268,7 @@ dart_library.library('dart/collection', null, /* Imports */[
   HasNextIterator._HAS_NEXT_AND_NEXT_IN_CURRENT = 0;
   HasNextIterator._NO_NEXT = 1;
   HasNextIterator._NOT_MOVED_YET = 2;
-  let LinkedHashMap$ = dart.generic(function(K, V) {
+  const LinkedHashMap$ = dart.generic(function(K, V) {
     class LinkedHashMap extends core.Object {
       static new(opts) {
         let equals = opts && 'equals' in opts ? opts.equals : null;
@@ -1342,7 +1342,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return LinkedHashMap;
   });
   let LinkedHashMap = LinkedHashMap$();
-  let LinkedHashSet$ = dart.generic(function(E) {
+  const LinkedHashSet$ = dart.generic(function(E) {
     class LinkedHashSet extends core.Object {
       static new(opts) {
         let equals = opts && 'equals' in opts ? opts.equals : null;
@@ -1397,14 +1397,14 @@ dart_library.library('dart/collection', null, /* Imports */[
     return LinkedHashSet;
   });
   let LinkedHashSet = LinkedHashSet$();
-  let _modificationCount = Symbol('_modificationCount');
-  let _length = Symbol('_length');
-  let _next = Symbol('_next');
-  let _previous = Symbol('_previous');
-  let _insertAfter = Symbol('_insertAfter');
-  let _list = Symbol('_list');
-  let _unlink = Symbol('_unlink');
-  let LinkedList$ = dart.generic(function(E) {
+  const _modificationCount = Symbol('_modificationCount');
+  const _length = Symbol('_length');
+  const _next = Symbol('_next');
+  const _previous = Symbol('_previous');
+  const _insertAfter = Symbol('_insertAfter');
+  const _list = Symbol('_list');
+  const _unlink = Symbol('_unlink');
+  const LinkedList$ = dart.generic(function(E) {
     class LinkedList extends IterableBase$(E) {
       LinkedList() {
         this[_modificationCount] = 0;
@@ -1536,8 +1536,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return LinkedList;
   });
   let LinkedList = LinkedList$();
-  let _current = Symbol('_current');
-  let _LinkedListIterator$ = dart.generic(function(E) {
+  const _current = Symbol('_current');
+  const _LinkedListIterator$ = dart.generic(function(E) {
     class _LinkedListIterator extends core.Object {
       _LinkedListIterator(list) {
         this[_list] = list;
@@ -1575,7 +1575,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       this[_previous] = null;
     }
   }
-  let LinkedListEntry$ = dart.generic(function(E) {
+  const LinkedListEntry$ = dart.generic(function(E) {
     class LinkedListEntry extends core.Object {
       LinkedListEntry() {
         this[_list] = null;
@@ -1619,7 +1619,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return LinkedListEntry;
   });
   let LinkedListEntry = LinkedListEntry$();
-  let ListMixin$ = dart.generic(function(E) {
+  const ListMixin$ = dart.generic(function(E) {
     class ListMixin extends core.Object {
       get iterator() {
         return new (_internal.ListIterator$(E))(this);
@@ -2205,7 +2205,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return ListMixin;
   });
   let ListMixin = ListMixin$();
-  let ListBase$ = dart.generic(function(E) {
+  const ListBase$ = dart.generic(function(E) {
     class ListBase extends dart.mixin(core.Object, ListMixin$(E)) {
       static listToString(list) {
         return IterableBase.iterableToFullString(list, '[', ']');
@@ -2218,7 +2218,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return ListBase;
   });
   let ListBase = ListBase$();
-  let MapMixin$ = dart.generic(function(K, V) {
+  const MapMixin$ = dart.generic(function(K, V) {
     class MapMixin extends core.Object {
       forEach(action) {
         dart.as(action, dart.functionType(dart.void, [K, V]));
@@ -2279,12 +2279,12 @@ dart_library.library('dart/collection', null, /* Imports */[
     return MapMixin;
   });
   let MapMixin = MapMixin$();
-  let MapBase$ = dart.generic(function(K, V) {
+  const MapBase$ = dart.generic(function(K, V) {
     class MapBase extends dart.mixin(core.Object, MapMixin$(K, V)) {}
     return MapBase;
   });
   let MapBase = MapBase$();
-  let _UnmodifiableMapMixin$ = dart.generic(function(K, V) {
+  const _UnmodifiableMapMixin$ = dart.generic(function(K, V) {
     class _UnmodifiableMapMixin extends core.Object {
       set(key, value) {
         dart.as(key, K);
@@ -2321,7 +2321,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _UnmodifiableMapMixin;
   });
   let _UnmodifiableMapMixin = _UnmodifiableMapMixin$();
-  let UnmodifiableMapBase$ = dart.generic(function(K, V) {
+  const UnmodifiableMapBase$ = dart.generic(function(K, V) {
     class UnmodifiableMapBase extends dart.mixin(MapBase$(K, V), _UnmodifiableMapMixin$(K, V)) {
       UnmodifiableMapBase() {
         super.MapBase(...arguments);
@@ -2330,8 +2330,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return UnmodifiableMapBase;
   });
   let UnmodifiableMapBase = UnmodifiableMapBase$();
-  let _map = Symbol('_map');
-  let _MapBaseValueIterable$ = dart.generic(function(V) {
+  const _map = Symbol('_map');
+  const _MapBaseValueIterable$ = dart.generic(function(V) {
     class _MapBaseValueIterable extends IterableBase$(V) {
       _MapBaseValueIterable(map) {
         this[_map] = map;
@@ -2375,8 +2375,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _MapBaseValueIterable;
   });
   let _MapBaseValueIterable = _MapBaseValueIterable$();
-  let _keys = Symbol('_keys');
-  let _MapBaseValueIterator$ = dart.generic(function(V) {
+  const _keys = Symbol('_keys');
+  const _MapBaseValueIterator$ = dart.generic(function(V) {
     class _MapBaseValueIterator extends core.Object {
       _MapBaseValueIterator(map) {
         this[_map] = map;
@@ -2403,7 +2403,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _MapBaseValueIterator;
   });
   let _MapBaseValueIterator = _MapBaseValueIterator$();
-  let MapView$ = dart.generic(function(K, V) {
+  const MapView$ = dart.generic(function(K, V) {
     class MapView extends core.Object {
       MapView(map) {
         this[_map] = map;
@@ -2479,7 +2479,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return MapView;
   });
   let MapView = MapView$();
-  let UnmodifiableMapView$ = dart.generic(function(K, V) {
+  const UnmodifiableMapView$ = dart.generic(function(K, V) {
     class UnmodifiableMapView extends dart.mixin(MapView$(K, V), _UnmodifiableMapMixin$(K, V)) {
       UnmodifiableMapView() {
         super.MapView(...arguments);
@@ -2605,7 +2605,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     }),
     names: ['containsValue', 'containsKey', 'putIfAbsent', 'clear', 'forEach', 'getValues', 'length', 'isEmpty', 'isNotEmpty', 'mapToString', '_id', '_fillMapWithMappedIterable', '_fillMapWithIterables']
   });
-  let Queue$ = dart.generic(function(E) {
+  const Queue$ = dart.generic(function(E) {
     class Queue extends core.Object {
       static new() {
         return new (ListQueue$(E))();
@@ -2627,10 +2627,10 @@ dart_library.library('dart/collection', null, /* Imports */[
     return Queue;
   });
   let Queue = Queue$();
-  let _element = Symbol('_element');
-  let _link = Symbol('_link');
-  let _asNonSentinelEntry = Symbol('_asNonSentinelEntry');
-  let DoubleLinkedQueueEntry$ = dart.generic(function(E) {
+  const _element = Symbol('_element');
+  const _link = Symbol('_link');
+  const _asNonSentinelEntry = Symbol('_asNonSentinelEntry');
+  const DoubleLinkedQueueEntry$ = dart.generic(function(E) {
     class DoubleLinkedQueueEntry extends core.Object {
       DoubleLinkedQueueEntry(e) {
         this[_element] = e;
@@ -2692,7 +2692,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return DoubleLinkedQueueEntry;
   });
   let DoubleLinkedQueueEntry = DoubleLinkedQueueEntry$();
-  let _DoubleLinkedQueueEntrySentinel$ = dart.generic(function(E) {
+  const _DoubleLinkedQueueEntrySentinel$ = dart.generic(function(E) {
     class _DoubleLinkedQueueEntrySentinel extends DoubleLinkedQueueEntry$(E) {
       _DoubleLinkedQueueEntrySentinel() {
         super.DoubleLinkedQueueEntry(null);
@@ -2722,10 +2722,10 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _DoubleLinkedQueueEntrySentinel;
   });
   let _DoubleLinkedQueueEntrySentinel = _DoubleLinkedQueueEntrySentinel$();
-  let _sentinel = Symbol('_sentinel');
-  let _elementCount = Symbol('_elementCount');
-  let _filter = Symbol('_filter');
-  let DoubleLinkedQueue$ = dart.generic(function(E) {
+  const _sentinel = Symbol('_sentinel');
+  const _elementCount = Symbol('_elementCount');
+  const _filter = Symbol('_filter');
+  const DoubleLinkedQueue$ = dart.generic(function(E) {
     class DoubleLinkedQueue extends IterableBase$(E) {
       DoubleLinkedQueue() {
         this[_sentinel] = null;
@@ -2883,8 +2883,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return DoubleLinkedQueue;
   });
   let DoubleLinkedQueue = DoubleLinkedQueue$();
-  let _nextEntry = Symbol('_nextEntry');
-  let _DoubleLinkedQueueIterator$ = dart.generic(function(E) {
+  const _nextEntry = Symbol('_nextEntry');
+  const _DoubleLinkedQueueIterator$ = dart.generic(function(E) {
     class _DoubleLinkedQueueIterator extends core.Object {
       _DoubleLinkedQueueIterator(sentinel) {
         this[_sentinel] = sentinel;
@@ -2913,17 +2913,17 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _DoubleLinkedQueueIterator;
   });
   let _DoubleLinkedQueueIterator = _DoubleLinkedQueueIterator$();
-  let _head = Symbol('_head');
-  let _tail = Symbol('_tail');
-  let _table = Symbol('_table');
-  let _checkModification = Symbol('_checkModification');
-  let _writeToList = Symbol('_writeToList');
-  let _add = Symbol('_add');
-  let _preGrow = Symbol('_preGrow');
-  let _remove = Symbol('_remove');
-  let _filterWhere = Symbol('_filterWhere');
-  let _grow = Symbol('_grow');
-  let ListQueue$ = dart.generic(function(E) {
+  const _head = Symbol('_head');
+  const _tail = Symbol('_tail');
+  const _table = Symbol('_table');
+  const _checkModification = Symbol('_checkModification');
+  const _writeToList = Symbol('_writeToList');
+  const _add = Symbol('_add');
+  const _preGrow = Symbol('_preGrow');
+  const _remove = Symbol('_remove');
+  const _filterWhere = Symbol('_filterWhere');
+  const _grow = Symbol('_grow');
+  const ListQueue$ = dart.generic(function(E) {
     class ListQueue extends IterableBase$(E) {
       ListQueue(initialCapacity) {
         if (initialCapacity === void 0)
@@ -3256,10 +3256,10 @@ dart_library.library('dart/collection', null, /* Imports */[
   });
   let ListQueue = ListQueue$();
   ListQueue._INITIAL_CAPACITY = 8;
-  let _queue = Symbol('_queue');
-  let _end = Symbol('_end');
-  let _position = Symbol('_position');
-  let _ListQueueIterator$ = dart.generic(function(E) {
+  const _queue = Symbol('_queue');
+  const _end = Symbol('_end');
+  const _position = Symbol('_position');
+  const _ListQueueIterator$ = dart.generic(function(E) {
     class _ListQueueIterator extends core.Object {
       _ListQueueIterator(queue) {
         this[_queue] = queue;
@@ -3290,12 +3290,12 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _ListQueueIterator;
   });
   let _ListQueueIterator = _ListQueueIterator$();
-  let _Predicate$ = dart.generic(function(T) {
-    let _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
+  const _Predicate$ = dart.generic(function(T) {
+    const _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
     return _Predicate;
   });
   let _Predicate = _Predicate$();
-  let _SplayTreeNode$ = dart.generic(function(K) {
+  const _SplayTreeNode$ = dart.generic(function(K) {
     class _SplayTreeNode extends core.Object {
       _SplayTreeNode(key) {
         this.key = key;
@@ -3309,7 +3309,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTreeNode;
   });
   let _SplayTreeNode = _SplayTreeNode$();
-  let _SplayTreeMapNode$ = dart.generic(function(K, V) {
+  const _SplayTreeMapNode$ = dart.generic(function(K, V) {
     class _SplayTreeMapNode extends _SplayTreeNode$(K) {
       _SplayTreeMapNode(key, value) {
         this.value = value;
@@ -3322,19 +3322,19 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTreeMapNode;
   });
   let _SplayTreeMapNode = _SplayTreeMapNode$();
-  let _dummy = Symbol('_dummy');
-  let _root = Symbol('_root');
-  let _count = Symbol('_count');
-  let _splayCount = Symbol('_splayCount');
-  let _compare = Symbol('_compare');
-  let _splay = Symbol('_splay');
-  let _splayMin = Symbol('_splayMin');
-  let _splayMax = Symbol('_splayMax');
-  let _addNewRoot = Symbol('_addNewRoot');
-  let _first = Symbol('_first');
-  let _last = Symbol('_last');
-  let _clear = Symbol('_clear');
-  let _SplayTree$ = dart.generic(function(K) {
+  const _dummy = Symbol('_dummy');
+  const _root = Symbol('_root');
+  const _count = Symbol('_count');
+  const _splayCount = Symbol('_splayCount');
+  const _compare = Symbol('_compare');
+  const _splay = Symbol('_splay');
+  const _splayMin = Symbol('_splayMin');
+  const _splayMax = Symbol('_splayMax');
+  const _addNewRoot = Symbol('_addNewRoot');
+  const _first = Symbol('_first');
+  const _last = Symbol('_last');
+  const _clear = Symbol('_clear');
+  const _SplayTree$ = dart.generic(function(K) {
     class _SplayTree extends core.Object {
       _SplayTree() {
         this[_dummy] = new (_SplayTreeNode$(K))(null);
@@ -3488,9 +3488,9 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTree;
   });
   let _SplayTree = _SplayTree$();
-  let _comparator = Symbol('_comparator');
-  let _validKey = Symbol('_validKey');
-  let SplayTreeMap$ = dart.generic(function(K, V) {
+  const _comparator = Symbol('_comparator');
+  const _validKey = Symbol('_validKey');
+  const SplayTreeMap$ = dart.generic(function(K, V) {
     class SplayTreeMap extends _SplayTree$(K) {
       SplayTreeMap(compare, isValidKey) {
         if (compare === void 0)
@@ -3635,7 +3635,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       containsValue(value) {
         let found = false;
         let initialSplayCount = this[_splayCount];
-        let visit = (function(node) {
+        const visit = (function(node) {
           while (node != null) {
             if (dart.equals(node.value, value))
               return true;
@@ -3735,13 +3735,13 @@ dart_library.library('dart/collection', null, /* Imports */[
     return SplayTreeMap;
   });
   let SplayTreeMap = SplayTreeMap$();
-  let _workList = Symbol('_workList');
-  let _tree = Symbol('_tree');
-  let _currentNode = Symbol('_currentNode');
-  let _findLeftMostDescendent = Symbol('_findLeftMostDescendent');
-  let _getValue = Symbol('_getValue');
-  let _rebuildWorkList = Symbol('_rebuildWorkList');
-  let _SplayTreeIterator$ = dart.generic(function(T) {
+  const _workList = Symbol('_workList');
+  const _tree = Symbol('_tree');
+  const _currentNode = Symbol('_currentNode');
+  const _findLeftMostDescendent = Symbol('_findLeftMostDescendent');
+  const _getValue = Symbol('_getValue');
+  const _rebuildWorkList = Symbol('_rebuildWorkList');
+  const _SplayTreeIterator$ = dart.generic(function(T) {
     class _SplayTreeIterator extends core.Object {
       _SplayTreeIterator(tree) {
         this[_workList] = dart.list([], _SplayTreeNode);
@@ -3821,8 +3821,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTreeIterator;
   });
   let _SplayTreeIterator = _SplayTreeIterator$();
-  let _copyNode = Symbol('_copyNode');
-  let _SplayTreeKeyIterable$ = dart.generic(function(K) {
+  const _copyNode = Symbol('_copyNode');
+  const _SplayTreeKeyIterable$ = dart.generic(function(K) {
     class _SplayTreeKeyIterable extends IterableBase$(K) {
       _SplayTreeKeyIterable(tree) {
         this[_tree] = tree;
@@ -3854,7 +3854,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTreeKeyIterable;
   });
   let _SplayTreeKeyIterable = _SplayTreeKeyIterable$();
-  let _SplayTreeValueIterable$ = dart.generic(function(K, V) {
+  const _SplayTreeValueIterable$ = dart.generic(function(K, V) {
     class _SplayTreeValueIterable extends IterableBase$(V) {
       _SplayTreeValueIterable(map) {
         this[_map] = map;
@@ -3878,7 +3878,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTreeValueIterable;
   });
   let _SplayTreeValueIterable = _SplayTreeValueIterable$();
-  let _SplayTreeKeyIterator$ = dart.generic(function(K) {
+  const _SplayTreeKeyIterator$ = dart.generic(function(K) {
     class _SplayTreeKeyIterator extends _SplayTreeIterator$(K) {
       _SplayTreeKeyIterator(map) {
         super._SplayTreeIterator(map);
@@ -3894,7 +3894,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTreeKeyIterator;
   });
   let _SplayTreeKeyIterator = _SplayTreeKeyIterator$();
-  let _SplayTreeValueIterator$ = dart.generic(function(K, V) {
+  const _SplayTreeValueIterator$ = dart.generic(function(K, V) {
     class _SplayTreeValueIterator extends _SplayTreeIterator$(V) {
       _SplayTreeValueIterator(map) {
         super._SplayTreeIterator(map);
@@ -3910,7 +3910,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTreeValueIterator;
   });
   let _SplayTreeValueIterator = _SplayTreeValueIterator$();
-  let _SplayTreeNodeIterator$ = dart.generic(function(K) {
+  const _SplayTreeNodeIterator$ = dart.generic(function(K) {
     class _SplayTreeNodeIterator extends _SplayTreeIterator$(_SplayTreeNode$(K)) {
       _SplayTreeNodeIterator(tree) {
         super._SplayTreeIterator(tree);
@@ -3933,8 +3933,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _SplayTreeNodeIterator;
   });
   let _SplayTreeNodeIterator = _SplayTreeNodeIterator$();
-  let _clone = Symbol('_clone');
-  let SplayTreeSet$ = dart.generic(function(E) {
+  const _clone = Symbol('_clone');
+  const SplayTreeSet$ = dart.generic(function(E) {
     class SplayTreeSet extends dart.mixin(_SplayTree$(E), IterableMixin$(E), SetMixin$(E)) {
       SplayTreeSet(compare, isValidKey) {
         if (compare === void 0)
@@ -4126,19 +4126,19 @@ dart_library.library('dart/collection', null, /* Imports */[
     return SplayTreeSet;
   });
   let SplayTreeSet = SplayTreeSet$();
-  let _strings = Symbol('_strings');
-  let _nums = Symbol('_nums');
-  let _rest = Symbol('_rest');
-  let _containsKey = Symbol('_containsKey');
-  let _getBucket = Symbol('_getBucket');
-  let _findBucketIndex = Symbol('_findBucketIndex');
-  let _computeKeys = Symbol('_computeKeys');
-  let _get = Symbol('_get');
-  let _addHashTableEntry = Symbol('_addHashTableEntry');
-  let _set = Symbol('_set');
-  let _computeHashCode = Symbol('_computeHashCode');
-  let _removeHashTableEntry = Symbol('_removeHashTableEntry');
-  let _HashMap$ = dart.generic(function(K, V) {
+  const _strings = Symbol('_strings');
+  const _nums = Symbol('_nums');
+  const _rest = Symbol('_rest');
+  const _containsKey = Symbol('_containsKey');
+  const _getBucket = Symbol('_getBucket');
+  const _findBucketIndex = Symbol('_findBucketIndex');
+  const _computeKeys = Symbol('_computeKeys');
+  const _get = Symbol('_get');
+  const _addHashTableEntry = Symbol('_addHashTableEntry');
+  const _set = Symbol('_set');
+  const _computeHashCode = Symbol('_computeHashCode');
+  const _removeHashTableEntry = Symbol('_removeHashTableEntry');
+  const _HashMap$ = dart.generic(function(K, V) {
     class _HashMap extends core.Object {
       _HashMap() {
         this[_length] = 0;
@@ -4448,7 +4448,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _HashMap;
   });
   let _HashMap = _HashMap$();
-  let _IdentityHashMap$ = dart.generic(function(K, V) {
+  const _IdentityHashMap$ = dart.generic(function(K, V) {
     class _IdentityHashMap extends _HashMap$(K, V) {
       _IdentityHashMap() {
         super._HashMap();
@@ -4470,9 +4470,9 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _IdentityHashMap;
   });
   let _IdentityHashMap = _IdentityHashMap$();
-  let _equals = Symbol('_equals');
-  let _hashCode = Symbol('_hashCode');
-  let _CustomHashMap$ = dart.generic(function(K, V) {
+  const _equals = Symbol('_equals');
+  const _hashCode = Symbol('_hashCode');
+  const _CustomHashMap$ = dart.generic(function(K, V) {
     class _CustomHashMap extends _HashMap$(K, V) {
       _CustomHashMap(equals, hashCode, validKey) {
         this[_equals] = equals;
@@ -4529,7 +4529,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _CustomHashMap;
   });
   let _CustomHashMap = _CustomHashMap$();
-  let HashMapKeyIterable$ = dart.generic(function(E) {
+  const HashMapKeyIterable$ = dart.generic(function(E) {
     class HashMapKeyIterable extends IterableBase$(E) {
       HashMapKeyIterable(map) {
         this[_map] = map;
@@ -4573,8 +4573,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return HashMapKeyIterable;
   });
   let HashMapKeyIterable = HashMapKeyIterable$();
-  let _offset = Symbol('_offset');
-  let HashMapKeyIterator$ = dart.generic(function(E) {
+  const _offset = Symbol('_offset');
+  const HashMapKeyIterator$ = dart.generic(function(E) {
     class HashMapKeyIterator extends core.Object {
       HashMapKeyIterator(map, keys) {
         this[_map] = map;
@@ -4608,13 +4608,13 @@ dart_library.library('dart/collection', null, /* Imports */[
     return HashMapKeyIterator;
   });
   let HashMapKeyIterator = HashMapKeyIterator$();
-  let _modifications = Symbol('_modifications');
-  let _value = Symbol('_value');
-  let _newLinkedCell = Symbol('_newLinkedCell');
-  let _unlinkCell = Symbol('_unlinkCell');
-  let _modified = Symbol('_modified');
-  let _key = Symbol('_key');
-  let _LinkedHashMap$ = dart.generic(function(K, V) {
+  const _modifications = Symbol('_modifications');
+  const _value = Symbol('_value');
+  const _newLinkedCell = Symbol('_newLinkedCell');
+  const _unlinkCell = Symbol('_unlinkCell');
+  const _modified = Symbol('_modified');
+  const _key = Symbol('_key');
+  const _LinkedHashMap$ = dart.generic(function(K, V) {
     class _LinkedHashMap extends core.Object {
       _LinkedHashMap() {
         this[_length] = 0;
@@ -4932,7 +4932,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _LinkedHashMap;
   });
   let _LinkedHashMap = _LinkedHashMap$();
-  let _LinkedIdentityHashMap$ = dart.generic(function(K, V) {
+  const _LinkedIdentityHashMap$ = dart.generic(function(K, V) {
     class _LinkedIdentityHashMap extends _LinkedHashMap$(K, V) {
       _LinkedIdentityHashMap() {
         super._LinkedHashMap();
@@ -4955,7 +4955,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _LinkedIdentityHashMap;
   });
   let _LinkedIdentityHashMap = _LinkedIdentityHashMap$();
-  let _LinkedCustomHashMap$ = dart.generic(function(K, V) {
+  const _LinkedCustomHashMap$ = dart.generic(function(K, V) {
     class _LinkedCustomHashMap extends _LinkedHashMap$(K, V) {
       _LinkedCustomHashMap(equals, hashCode, validKey) {
         this[_equals] = equals;
@@ -5021,7 +5021,7 @@ dart_library.library('dart/collection', null, /* Imports */[
   dart.setSignature(LinkedHashMapCell, {
     constructors: () => ({LinkedHashMapCell: [LinkedHashMapCell, [dart.dynamic, dart.dynamic]]})
   });
-  let LinkedHashMapKeyIterable$ = dart.generic(function(E) {
+  const LinkedHashMapKeyIterable$ = dart.generic(function(E) {
     class LinkedHashMapKeyIterable extends IterableBase$(E) {
       LinkedHashMapKeyIterable(map) {
         this[_map] = map;
@@ -5067,8 +5067,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return LinkedHashMapKeyIterable;
   });
   let LinkedHashMapKeyIterable = LinkedHashMapKeyIterable$();
-  let _cell = Symbol('_cell');
-  let LinkedHashMapKeyIterator$ = dart.generic(function(E) {
+  const _cell = Symbol('_cell');
+  const LinkedHashMapKeyIterator$ = dart.generic(function(E) {
     class LinkedHashMapKeyIterator extends core.Object {
       LinkedHashMapKeyIterator(map, modifications) {
         this[_map] = map;
@@ -5101,11 +5101,11 @@ dart_library.library('dart/collection', null, /* Imports */[
     return LinkedHashMapKeyIterator;
   });
   let LinkedHashMapKeyIterator = LinkedHashMapKeyIterator$();
-  let _elements = Symbol('_elements');
-  let _computeElements = Symbol('_computeElements');
-  let _contains = Symbol('_contains');
-  let _lookup = Symbol('_lookup');
-  let _HashSet$ = dart.generic(function(E) {
+  const _elements = Symbol('_elements');
+  const _computeElements = Symbol('_computeElements');
+  const _contains = Symbol('_contains');
+  const _lookup = Symbol('_lookup');
+  const _HashSet$ = dart.generic(function(E) {
     class _HashSet extends _HashSetBase$(E) {
       _HashSet() {
         this[_length] = 0;
@@ -5376,7 +5376,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _HashSet;
   });
   let _HashSet = _HashSet$();
-  let _IdentityHashSet$ = dart.generic(function(E) {
+  const _IdentityHashSet$ = dart.generic(function(E) {
     class _IdentityHashSet extends _HashSet$(E) {
       _IdentityHashSet() {
         super._HashSet();
@@ -5404,9 +5404,9 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _IdentityHashSet;
   });
   let _IdentityHashSet = _IdentityHashSet$();
-  let _equality = Symbol('_equality');
-  let _hasher = Symbol('_hasher');
-  let _CustomHashSet$ = dart.generic(function(E) {
+  const _equality = Symbol('_equality');
+  const _hasher = Symbol('_hasher');
+  const _CustomHashSet$ = dart.generic(function(E) {
     class _CustomHashSet extends _HashSet$(E) {
       _CustomHashSet(equality, hasher, validKey) {
         this[_equality] = equality;
@@ -5462,7 +5462,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _CustomHashSet;
   });
   let _CustomHashSet = _CustomHashSet$();
-  let HashSetIterator$ = dart.generic(function(E) {
+  const HashSetIterator$ = dart.generic(function(E) {
     class HashSetIterator extends core.Object {
       HashSetIterator(set, elements) {
         this[_set] = set;
@@ -5496,8 +5496,8 @@ dart_library.library('dart/collection', null, /* Imports */[
     return HashSetIterator;
   });
   let HashSetIterator = HashSetIterator$();
-  let _unsupported = Symbol('_unsupported');
-  let _LinkedHashSet$ = dart.generic(function(E) {
+  const _unsupported = Symbol('_unsupported');
+  const _LinkedHashSet$ = dart.generic(function(E) {
     class _LinkedHashSet extends _HashSetBase$(E) {
       _LinkedHashSet() {
         this[_length] = 0;
@@ -5821,7 +5821,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _LinkedHashSet;
   });
   let _LinkedHashSet = _LinkedHashSet$();
-  let _LinkedIdentityHashSet$ = dart.generic(function(E) {
+  const _LinkedIdentityHashSet$ = dart.generic(function(E) {
     class _LinkedIdentityHashSet extends _LinkedHashSet$(E) {
       _LinkedIdentityHashSet() {
         super._LinkedHashSet();
@@ -5850,7 +5850,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return _LinkedIdentityHashSet;
   });
   let _LinkedIdentityHashSet = _LinkedIdentityHashSet$();
-  let _LinkedCustomHashSet$ = dart.generic(function(E) {
+  const _LinkedCustomHashSet$ = dart.generic(function(E) {
     class _LinkedCustomHashSet extends _LinkedHashSet$(E) {
       _LinkedCustomHashSet(equality, hasher, validKey) {
         this[_equality] = equality;
@@ -5931,7 +5931,7 @@ dart_library.library('dart/collection', null, /* Imports */[
   dart.setSignature(LinkedHashSetCell, {
     constructors: () => ({LinkedHashSetCell: [LinkedHashSetCell, [dart.dynamic]]})
   });
-  let LinkedHashSetIterator$ = dart.generic(function(E) {
+  const LinkedHashSetIterator$ = dart.generic(function(E) {
     class LinkedHashSetIterator extends core.Object {
       LinkedHashSetIterator(set, modifications) {
         this[_set] = set;

@@ -11,8 +11,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
   let dartx = dart.dartx;
   dart.export(exports, canonicalized_map);
   dart.export(exports, unmodifiable_wrappers);
-  let _base = Symbol('_base');
-  let _DelegatingIterableBase$ = dart.generic(function(E) {
+  const _base = Symbol('_base');
+  const _DelegatingIterableBase$ = dart.generic(function(E) {
     class _DelegatingIterableBase extends core.Object {
       _DelegatingIterableBase() {
       }
@@ -183,7 +183,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
     return _DelegatingIterableBase;
   });
   let _DelegatingIterableBase = _DelegatingIterableBase$();
-  let DelegatingIterable$ = dart.generic(function(E) {
+  const DelegatingIterable$ = dart.generic(function(E) {
     class DelegatingIterable extends _DelegatingIterableBase$(E) {
       DelegatingIterable(base) {
         this[_base] = base;
@@ -196,8 +196,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
     return DelegatingIterable;
   });
   let DelegatingIterable = DelegatingIterable$();
-  let _listBase = Symbol('_listBase');
-  let DelegatingList$ = dart.generic(function(E) {
+  const _listBase = Symbol('_listBase');
+  const DelegatingList$ = dart.generic(function(E) {
     class DelegatingList extends DelegatingIterable$(E) {
       DelegatingList(base) {
         super.DelegatingIterable(base);
@@ -374,8 +374,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
     return DelegatingList;
   });
   let DelegatingList = DelegatingList$();
-  let _setBase = Symbol('_setBase');
-  let DelegatingSet$ = dart.generic(function(E) {
+  const _setBase = Symbol('_setBase');
+  const DelegatingSet$ = dart.generic(function(E) {
     class DelegatingSet extends DelegatingIterable$(E) {
       DelegatingSet(base) {
         super.DelegatingIterable(base);
@@ -456,8 +456,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
     return DelegatingSet;
   });
   let DelegatingSet = DelegatingSet$();
-  let _baseQueue = Symbol('_baseQueue');
-  let DelegatingQueue$ = dart.generic(function(E) {
+  const _baseQueue = Symbol('_baseQueue');
+  const DelegatingQueue$ = dart.generic(function(E) {
     class DelegatingQueue extends DelegatingIterable$(E) {
       DelegatingQueue(queue) {
         super.DelegatingIterable(queue);
@@ -521,7 +521,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
     return DelegatingQueue;
   });
   let DelegatingQueue = DelegatingQueue$();
-  let DelegatingMap$ = dart.generic(function(K, V) {
+  const DelegatingMap$ = dart.generic(function(K, V) {
     class DelegatingMap extends core.Object {
       DelegatingMap(base) {
         this[_base] = base;
@@ -597,8 +597,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
     return DelegatingMap;
   });
   let DelegatingMap = DelegatingMap$();
-  let _baseMap = Symbol('_baseMap');
-  let MapKeySet$ = dart.generic(function(E) {
+  const _baseMap = Symbol('_baseMap');
+  const MapKeySet$ = dart.generic(function(E) {
     class MapKeySet extends dart.mixin(_DelegatingIterableBase$(E), unmodifiable_wrappers.UnmodifiableSetMixin$(E)) {
       MapKeySet(base) {
         this[_baseMap] = base;
@@ -665,8 +665,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
     return MapKeySet;
   });
   dart.defineLazyClassGeneric(exports, 'MapKeySet', {get: MapKeySet$});
-  let _keyForValue = Symbol('_keyForValue');
-  let MapValueSet$ = dart.generic(function(K, V) {
+  const _keyForValue = Symbol('_keyForValue');
+  const MapValueSet$ = dart.generic(function(K, V) {
     class MapValueSet extends _DelegatingIterableBase$(V) {
       MapValueSet(base, keyForValue) {
         this[_baseMap] = base;
@@ -803,8 +803,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
     return MapValueSet;
   });
   let MapValueSet = MapValueSet$();
-  let __CastType0$ = dart.generic(function(V) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(V, []));
+  const __CastType0$ = dart.generic(function(V) {
+    const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(V, []));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();

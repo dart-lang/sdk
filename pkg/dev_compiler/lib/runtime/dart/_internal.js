@@ -10,7 +10,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   class EfficientLength extends core.Object {}
-  let ListIterable$ = dart.generic(function(E) {
+  const ListIterable$ = dart.generic(function(E) {
     class ListIterable extends collection.IterableBase$(E) {
       ListIterable() {
         super.IterableBase();
@@ -290,12 +290,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return ListIterable;
   });
   let ListIterable = ListIterable$();
-  let _iterable = dart.JsSymbol('_iterable');
-  let _start = dart.JsSymbol('_start');
-  let _endOrLength = dart.JsSymbol('_endOrLength');
-  let _endIndex = dart.JsSymbol('_endIndex');
-  let _startIndex = dart.JsSymbol('_startIndex');
-  let SubListIterable$ = dart.generic(function(E) {
+  const _iterable = dart.JsSymbol('_iterable');
+  const _start = dart.JsSymbol('_start');
+  const _endOrLength = dart.JsSymbol('_endOrLength');
+  const _endIndex = dart.JsSymbol('_endIndex');
+  const _startIndex = dart.JsSymbol('_startIndex');
+  const SubListIterable$ = dart.generic(function(E) {
     class SubListIterable extends ListIterable$(E) {
       SubListIterable(iterable, start, endOrLength) {
         this[_iterable] = iterable;
@@ -398,10 +398,10 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return SubListIterable;
   });
   let SubListIterable = SubListIterable$();
-  let _length = dart.JsSymbol('_length');
-  let _index = dart.JsSymbol('_index');
-  let _current = dart.JsSymbol('_current');
-  let ListIterator$ = dart.generic(function(E) {
+  const _length = dart.JsSymbol('_length');
+  const _index = dart.JsSymbol('_index');
+  const _current = dart.JsSymbol('_current');
+  const ListIterator$ = dart.generic(function(E) {
     class ListIterator extends core.Object {
       ListIterator(iterable) {
         this[_iterable] = iterable;
@@ -434,13 +434,13 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return ListIterator;
   });
   let ListIterator = ListIterator$();
-  let _Transformation$ = dart.generic(function(S, T) {
-    let _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
+  const _Transformation$ = dart.generic(function(S, T) {
+    const _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
     return _Transformation;
   });
   let _Transformation = _Transformation$();
-  let _f = dart.JsSymbol('_f');
-  let MappedIterable$ = dart.generic(function(S, T) {
+  const _f = dart.JsSymbol('_f');
+  const MappedIterable$ = dart.generic(function(S, T) {
     class MappedIterable extends collection.IterableBase$(T) {
       static new(iterable, func) {
         if (dart.is(iterable, EfficientLength)) {
@@ -495,7 +495,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return MappedIterable;
   });
   let MappedIterable = MappedIterable$();
-  let EfficientLengthMappedIterable$ = dart.generic(function(S, T) {
+  const EfficientLengthMappedIterable$ = dart.generic(function(S, T) {
     class EfficientLengthMappedIterable extends MappedIterable$(S, T) {
       EfficientLengthMappedIterable(iterable, func) {
         super._(dart.as(iterable, core.Iterable$(S)), func);
@@ -508,8 +508,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return EfficientLengthMappedIterable;
   });
   let EfficientLengthMappedIterable = EfficientLengthMappedIterable$();
-  let _iterator = dart.JsSymbol('_iterator');
-  let MappedIterator$ = dart.generic(function(S, T) {
+  const _iterator = dart.JsSymbol('_iterator');
+  const MappedIterator$ = dart.generic(function(S, T) {
     class MappedIterator extends core.Iterator$(T) {
       MappedIterator(iterator, f) {
         this[_iterator] = iterator;
@@ -535,8 +535,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return MappedIterator;
   });
   let MappedIterator = MappedIterator$();
-  let _source = dart.JsSymbol('_source');
-  let MappedListIterable$ = dart.generic(function(S, T) {
+  const _source = dart.JsSymbol('_source');
+  const MappedListIterable$ = dart.generic(function(S, T) {
     class MappedListIterable extends ListIterable$(T) {
       MappedListIterable(source, f) {
         this[_source] = source;
@@ -559,12 +559,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return MappedListIterable;
   });
   let MappedListIterable = MappedListIterable$();
-  let _ElementPredicate$ = dart.generic(function(E) {
-    let _ElementPredicate = dart.typedef('_ElementPredicate', () => dart.functionType(core.bool, [E]));
+  const _ElementPredicate$ = dart.generic(function(E) {
+    const _ElementPredicate = dart.typedef('_ElementPredicate', () => dart.functionType(core.bool, [E]));
     return _ElementPredicate;
   });
   let _ElementPredicate = _ElementPredicate$();
-  let WhereIterable$ = dart.generic(function(E) {
+  const WhereIterable$ = dart.generic(function(E) {
     class WhereIterable extends collection.IterableBase$(E) {
       WhereIterable(iterable, f) {
         this[_iterable] = iterable;
@@ -582,7 +582,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return WhereIterable;
   });
   let WhereIterable = WhereIterable$();
-  let WhereIterator$ = dart.generic(function(E) {
+  const WhereIterator$ = dart.generic(function(E) {
     class WhereIterator extends core.Iterator$(E) {
       WhereIterator(iterator, f) {
         this[_iterator] = iterator;
@@ -607,12 +607,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return WhereIterator;
   });
   let WhereIterator = WhereIterator$();
-  let _ExpandFunction$ = dart.generic(function(S, T) {
-    let _ExpandFunction = dart.typedef('_ExpandFunction', () => dart.functionType(core.Iterable$(T), [S]));
+  const _ExpandFunction$ = dart.generic(function(S, T) {
+    const _ExpandFunction = dart.typedef('_ExpandFunction', () => dart.functionType(core.Iterable$(T), [S]));
     return _ExpandFunction;
   });
   let _ExpandFunction = _ExpandFunction$();
-  let ExpandIterable$ = dart.generic(function(S, T) {
+  const ExpandIterable$ = dart.generic(function(S, T) {
     class ExpandIterable extends collection.IterableBase$(T) {
       ExpandIterable(iterable, f) {
         this[_iterable] = iterable;
@@ -630,9 +630,9 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return ExpandIterable;
   });
   let ExpandIterable = ExpandIterable$();
-  let _currentExpansion = dart.JsSymbol('_currentExpansion');
-  let _nextExpansion = dart.JsSymbol('_nextExpansion');
-  let ExpandIterator$ = dart.generic(function(S, T) {
+  const _currentExpansion = dart.JsSymbol('_currentExpansion');
+  const _nextExpansion = dart.JsSymbol('_nextExpansion');
+  const ExpandIterator$ = dart.generic(function(S, T) {
     class ExpandIterator extends core.Object {
       ExpandIterator(iterator, f) {
         this[_iterator] = iterator;
@@ -671,8 +671,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return ExpandIterator;
   });
   let ExpandIterator = ExpandIterator$();
-  let _takeCount = dart.JsSymbol('_takeCount');
-  let TakeIterable$ = dart.generic(function(E) {
+  const _takeCount = dart.JsSymbol('_takeCount');
+  const TakeIterable$ = dart.generic(function(E) {
     class TakeIterable extends collection.IterableBase$(E) {
       static new(iterable, takeCount) {
         if (!(typeof takeCount == 'number') || dart.notNull(takeCount) < 0) {
@@ -703,7 +703,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return TakeIterable;
   });
   let TakeIterable = TakeIterable$();
-  let EfficientLengthTakeIterable$ = dart.generic(function(E) {
+  const EfficientLengthTakeIterable$ = dart.generic(function(E) {
     class EfficientLengthTakeIterable extends TakeIterable$(E) {
       EfficientLengthTakeIterable(iterable, takeCount) {
         super._(iterable, takeCount);
@@ -723,8 +723,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return EfficientLengthTakeIterable;
   });
   let EfficientLengthTakeIterable = EfficientLengthTakeIterable$();
-  let _remaining = dart.JsSymbol('_remaining');
-  let TakeIterator$ = dart.generic(function(E) {
+  const _remaining = dart.JsSymbol('_remaining');
+  const TakeIterator$ = dart.generic(function(E) {
     class TakeIterator extends core.Iterator$(E) {
       TakeIterator(iterator, remaining) {
         this[_iterator] = iterator;
@@ -752,7 +752,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return TakeIterator;
   });
   let TakeIterator = TakeIterator$();
-  let TakeWhileIterable$ = dart.generic(function(E) {
+  const TakeWhileIterable$ = dart.generic(function(E) {
     class TakeWhileIterable extends collection.IterableBase$(E) {
       TakeWhileIterable(iterable, f) {
         this[_iterable] = iterable;
@@ -770,8 +770,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return TakeWhileIterable;
   });
   let TakeWhileIterable = TakeWhileIterable$();
-  let _isFinished = dart.JsSymbol('_isFinished');
-  let TakeWhileIterator$ = dart.generic(function(E) {
+  const _isFinished = dart.JsSymbol('_isFinished');
+  const TakeWhileIterator$ = dart.generic(function(E) {
     class TakeWhileIterator extends core.Iterator$(E) {
       TakeWhileIterator(iterator, f) {
         this[_iterator] = iterator;
@@ -800,8 +800,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return TakeWhileIterator;
   });
   let TakeWhileIterator = TakeWhileIterator$();
-  let _skipCount = dart.JsSymbol('_skipCount');
-  let SkipIterable$ = dart.generic(function(E) {
+  const _skipCount = dart.JsSymbol('_skipCount');
+  const SkipIterable$ = dart.generic(function(E) {
     class SkipIterable extends collection.IterableBase$(E) {
       static new(iterable, count) {
         if (dart.is(iterable, EfficientLength)) {
@@ -841,7 +841,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return SkipIterable;
   });
   let SkipIterable = SkipIterable$();
-  let EfficientLengthSkipIterable$ = dart.generic(function(E) {
+  const EfficientLengthSkipIterable$ = dart.generic(function(E) {
     class EfficientLengthSkipIterable extends SkipIterable$(E) {
       EfficientLengthSkipIterable(iterable, skipCount) {
         super._(iterable, skipCount);
@@ -861,7 +861,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return EfficientLengthSkipIterable;
   });
   let EfficientLengthSkipIterable = EfficientLengthSkipIterable$();
-  let SkipIterator$ = dart.generic(function(E) {
+  const SkipIterator$ = dart.generic(function(E) {
     class SkipIterator extends core.Iterator$(E) {
       SkipIterator(iterator, skipCount) {
         this[_iterator] = iterator;
@@ -885,7 +885,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return SkipIterator;
   });
   let SkipIterator = SkipIterator$();
-  let SkipWhileIterable$ = dart.generic(function(E) {
+  const SkipWhileIterable$ = dart.generic(function(E) {
     class SkipWhileIterable extends collection.IterableBase$(E) {
       SkipWhileIterable(iterable, f) {
         this[_iterable] = iterable;
@@ -903,8 +903,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return SkipWhileIterable;
   });
   let SkipWhileIterable = SkipWhileIterable$();
-  let _hasSkipped = dart.JsSymbol('_hasSkipped');
-  let SkipWhileIterator$ = dart.generic(function(E) {
+  const _hasSkipped = dart.JsSymbol('_hasSkipped');
+  const SkipWhileIterator$ = dart.generic(function(E) {
     class SkipWhileIterator extends core.Iterator$(E) {
       SkipWhileIterator(iterator, f) {
         this[_iterator] = iterator;
@@ -932,7 +932,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return SkipWhileIterator;
   });
   let SkipWhileIterator = SkipWhileIterator$();
-  let EmptyIterable$ = dart.generic(function(E) {
+  const EmptyIterable$ = dart.generic(function(E) {
     class EmptyIterable extends collection.IterableBase$(E) {
       EmptyIterable() {
         super.IterableBase();
@@ -1094,7 +1094,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return EmptyIterable;
   });
   let EmptyIterable = EmptyIterable$();
-  let EmptyIterator$ = dart.generic(function(E) {
+  const EmptyIterator$ = dart.generic(function(E) {
     class EmptyIterator extends core.Object {
       EmptyIterator() {
       }
@@ -1113,13 +1113,13 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return EmptyIterator;
   });
   let EmptyIterator = EmptyIterator$();
-  let BidirectionalIterator$ = dart.generic(function(T) {
+  const BidirectionalIterator$ = dart.generic(function(T) {
     class BidirectionalIterator extends core.Object {}
     BidirectionalIterator[dart.implements] = () => [core.Iterator$(T)];
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$();
-  let IterableMixinWorkaround$ = dart.generic(function(T) {
+  const IterableMixinWorkaround$ = dart.generic(function(T) {
     class IterableMixinWorkaround extends core.Object {
       static contains(iterable, element) {
         for (let e of iterable) {
@@ -1572,17 +1572,17 @@ dart_library.library('dart/_internal', null, /* Imports */[
     }),
     names: ['noElement', 'tooMany', 'tooFew']
   });
-  let __CastType0$ = dart.generic(function(S, T) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Iterable$(T), [S]));
+  const __CastType0$ = dart.generic(function(S, T) {
+    const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Iterable$(T), [S]));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();
-  let __CastType2$ = dart.generic(function(T) {
-    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [T]));
+  const __CastType2$ = dart.generic(function(T) {
+    const __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [T]));
     return __CastType2;
   });
   let __CastType2 = __CastType2$();
-  let FixedLengthListMixin$ = dart.generic(function(E) {
+  const FixedLengthListMixin$ = dart.generic(function(E) {
     class FixedLengthListMixin extends core.Object {
       set length(newLength) {
         dart.throw(new core.UnsupportedError("Cannot change the length of a fixed-length list"));
@@ -1650,7 +1650,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return FixedLengthListMixin;
   });
   let FixedLengthListMixin = FixedLengthListMixin$();
-  let UnmodifiableListMixin$ = dart.generic(function(E) {
+  const UnmodifiableListMixin$ = dart.generic(function(E) {
     class UnmodifiableListMixin extends core.Object {
       set(index, value) {
         dart.as(value, E);
@@ -1778,7 +1778,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return UnmodifiableListMixin;
   });
   let UnmodifiableListMixin = UnmodifiableListMixin$();
-  let FixedLengthListBase$ = dart.generic(function(E) {
+  const FixedLengthListBase$ = dart.generic(function(E) {
     class FixedLengthListBase extends dart.mixin(collection.ListBase$(E), FixedLengthListMixin$(E)) {
       FixedLengthListBase() {
         super.ListBase(...arguments);
@@ -1787,7 +1787,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return FixedLengthListBase;
   });
   let FixedLengthListBase = FixedLengthListBase$();
-  let UnmodifiableListBase$ = dart.generic(function(E) {
+  const UnmodifiableListBase$ = dart.generic(function(E) {
     class UnmodifiableListBase extends dart.mixin(collection.ListBase$(E), UnmodifiableListMixin$(E)) {
       UnmodifiableListBase() {
         super.ListBase(...arguments);
@@ -1796,7 +1796,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return UnmodifiableListBase;
   });
   let UnmodifiableListBase = UnmodifiableListBase$();
-  let _backedList = dart.JsSymbol('_backedList');
+  const _backedList = dart.JsSymbol('_backedList');
   class _ListIndicesIterable extends ListIterable$(core.int) {
     _ListIndicesIterable(backedList) {
       this[_backedList] = backedList;
@@ -1815,8 +1815,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
     methods: () => ({elementAt: [core.int, [core.int]]})
   });
   dart.defineExtensionMembers(_ListIndicesIterable, ['elementAt', 'length']);
-  let _values = dart.JsSymbol('_values');
-  let ListMapView$ = dart.generic(function(E) {
+  const _values = dart.JsSymbol('_values');
+  const ListMapView$ = dart.generic(function(E) {
     class ListMapView extends core.Object {
       ListMapView(values) {
         this[_values] = values;
@@ -1896,7 +1896,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     return ListMapView;
   });
   let ListMapView = ListMapView$();
-  let ReversedListIterable$ = dart.generic(function(E) {
+  const ReversedListIterable$ = dart.generic(function(E) {
     class ReversedListIterable extends ListIterable$(E) {
       ReversedListIterable(source) {
         this[_source] = source;
@@ -2315,7 +2315,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     names: ['sort', 'sortRange', '_doSort', '_insertionSort', '_dualPivotQuicksort']
   });
   Sort._INSERTION_SORT_THRESHOLD = 32;
-  let _name = dart.JsSymbol('_name');
+  const _name = dart.JsSymbol('_name');
   class Symbol extends core.Object {
     Symbol(name) {
       this[_name] = name;
@@ -2372,7 +2372,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
   Symbol.publicIdentifierRE = '(?!' + `${Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$][\\w$]*';
   Symbol.identifierRE = '(?!' + `${Symbol.reservedWordRE}` + '\\b(?!\\$))[a-zA-Z$_][\\w$]*';
   Symbol.operatorRE = '(?:[\\-+*/%&|^]|\\[\\]=?|==|~/?|<[<=]?|>[>=]?|unary-)';
-  let POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
+  const POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   dart.defineLazyProperties(Symbol, {
     get publicSymbolPattern() {
       return core.RegExp.new(`^(?:${Symbol.operatorRE}\$|${Symbol.publicIdentifierRE}(?:=?\$|[.](?!\$)))+?\$`);

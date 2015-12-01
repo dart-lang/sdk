@@ -9,8 +9,8 @@ dart_library.library('functions', null, /* Imports */[
     return dart.list([new Foo()], Foo);
   }
   dart.fn(bootstrap, () => dart.definiteFunctionType(core.List$(Foo), []));
-  let A2B$ = dart.generic(function(A, B) {
-    let A2B = dart.typedef('A2B', () => dart.functionType(B, [A]));
+  const A2B$ = dart.generic(function(A, B) {
+    const A2B = dart.typedef('A2B', () => dart.functionType(B, [A]));
     return A2B;
   });
   let A2B = A2B$();

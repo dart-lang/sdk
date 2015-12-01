@@ -50,31 +50,31 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     Object.defineProperty(obj, property, {value: value, enumerable: false, writable: true, configurable: true});
   }
   dart.fn(defineProperty, dart.void, [dart.dynamic, core.String, dart.dynamic]);
-  let _nativeRegExp = Symbol('_nativeRegExp');
+  const _nativeRegExp = Symbol('_nativeRegExp');
   function regExpGetNative(regexp) {
     return regexp[_nativeRegExp];
   }
   dart.fn(regExpGetNative, () => dart.definiteFunctionType(dart.dynamic, [JSSyntaxRegExp]));
-  let _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
+  const _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
   function regExpGetGlobalNative(regexp) {
     let nativeRegexp = regexp[_nativeGlobalVersion];
     nativeRegexp.lastIndex = 0;
     return nativeRegexp;
   }
   dart.fn(regExpGetGlobalNative, () => dart.definiteFunctionType(dart.dynamic, [JSSyntaxRegExp]));
-  let _nativeAnchoredVersion = Symbol('_nativeAnchoredVersion');
+  const _nativeAnchoredVersion = Symbol('_nativeAnchoredVersion');
   function regExpCaptureCount(regexp) {
     let nativeAnchoredRegExp = regexp[_nativeAnchoredVersion];
     let match = nativeAnchoredRegExp.exec('');
     return dart.as(dart.dsend(dart.dload(match, 'length'), '-', 2), core.int);
   }
   dart.fn(regExpCaptureCount, () => dart.definiteFunctionType(core.int, [JSSyntaxRegExp]));
-  let _nativeGlobalRegExp = Symbol('_nativeGlobalRegExp');
-  let _nativeAnchoredRegExp = Symbol('_nativeAnchoredRegExp');
-  let _isMultiLine = Symbol('_isMultiLine');
-  let _isCaseSensitive = Symbol('_isCaseSensitive');
-  let _execGlobal = Symbol('_execGlobal');
-  let _execAnchored = Symbol('_execAnchored');
+  const _nativeGlobalRegExp = Symbol('_nativeGlobalRegExp');
+  const _nativeAnchoredRegExp = Symbol('_nativeAnchoredRegExp');
+  const _isMultiLine = Symbol('_isMultiLine');
+  const _isCaseSensitive = Symbol('_isCaseSensitive');
+  const _execGlobal = Symbol('_execGlobal');
+  const _execAnchored = Symbol('_execAnchored');
   class JSSyntaxRegExp extends core.Object {
     toString() {
       return `RegExp/${this.pattern}/`;
@@ -196,7 +196,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     names: ['makeNative']
   });
   dart.defineExtensionMembers(JSSyntaxRegExp, ['allMatches', 'matchAsPrefix']);
-  let _match = Symbol('_match');
+  const _match = Symbol('_match');
   class _MatchImplementation extends core.Object {
     _MatchImplementation(pattern, match) {
       this.pattern = pattern;
@@ -239,9 +239,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       groups: [core.List$(core.String), [core.List$(core.int)]]
     })
   });
-  let _re = Symbol('_re');
-  let _string = Symbol('_string');
-  let _start = Symbol('_start');
+  const _re = Symbol('_re');
+  const _string = Symbol('_string');
+  const _start = Symbol('_start');
   class _AllMatchesIterable extends collection.IterableBase$(core.Match) {
     _AllMatchesIterable(re, string, start) {
       this[_re] = re;
@@ -257,9 +257,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     constructors: () => ({_AllMatchesIterable: [_AllMatchesIterable, [JSSyntaxRegExp, core.String, core.int]]})
   });
   dart.defineExtensionMembers(_AllMatchesIterable, ['iterator']);
-  let _regExp = Symbol('_regExp');
-  let _nextIndex = Symbol('_nextIndex');
-  let _current = Symbol('_current');
+  const _regExp = Symbol('_regExp');
+  const _nextIndex = Symbol('_nextIndex');
+  const _current = Symbol('_current');
   class _AllMatchesIterator extends core.Object {
     _AllMatchesIterator(regExp, string, nextIndex) {
       this[_regExp] = regExp;
@@ -384,7 +384,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     return `${dart.dsend(receiver, 'substring', 0, start)}${to}${dart.dsend(receiver, 'substring', end)}`;
   }
   dart.fn(stringReplaceFirstRE);
-  let ESCAPE_REGEXP = '[[\\]{}()*+?.\\\\^$|]';
+  const ESCAPE_REGEXP = '[[\\]{}()*+?.\\\\^$|]';
   function stringReplaceAllUnchecked(receiver, from, to) {
     checkString(to);
     if (typeof from == 'string') {
@@ -536,7 +536,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   dart.setSignature(_Patch, {
     constructors: () => ({_Patch: [_Patch, []]})
   });
-  let patch = dart.const(new _Patch());
+  const patch = dart.const(new _Patch());
   class InternalMap extends core.Object {}
   class Primitives extends core.Object {
     static initializeStatics(id) {
@@ -921,8 +921,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     dart.throw(new core.AbstractClassInstantiationError(dart.as(className, core.String)));
   }
   dart.fn(throwAbstractClassInstantiationError);
-  let _message = Symbol('_message');
-  let _method = Symbol('_method');
+  const _message = Symbol('_message');
+  const _method = Symbol('_method');
   class NullError extends core.Error {
     NullError(message, match) {
       this[_message] = message;
@@ -939,7 +939,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   dart.setSignature(NullError, {
     constructors: () => ({NullError: [NullError, [core.String, dart.dynamic]]})
   });
-  let _receiver = Symbol('_receiver');
+  const _receiver = Symbol('_receiver');
   class JsNoSuchMethodError extends core.Error {
     JsNoSuchMethodError(message, match) {
       this[_message] = message;
@@ -976,8 +976,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     return new _StackTrace(exception);
   }
   dart.fn(getTraceFromException, core.StackTrace, [dart.dynamic]);
-  let _exception = Symbol('_exception');
-  let _trace = Symbol('_trace');
+  const _exception = Symbol('_exception');
+  const _trace = Symbol('_trace');
   class _StackTrace extends core.Object {
     _StackTrace(exception) {
       this[_exception] = exception;
@@ -1128,8 +1128,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     return JSON.stringify(string);
   }
   dart.fn(jsonEncodeNative, core.String, [core.String]);
-  let _jsIterator = Symbol('_jsIterator');
-  let SyncIterator$ = dart.generic(function(E) {
+  const _jsIterator = Symbol('_jsIterator');
+  const SyncIterator$ = dart.generic(function(E) {
     class SyncIterator extends core.Object {
       SyncIterator(jsIterator) {
         this[_jsIterator] = jsIterator;
@@ -1152,9 +1152,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     return SyncIterator;
   });
   let SyncIterator = SyncIterator$();
-  let _generator = Symbol('_generator');
-  let _args = Symbol('_args');
-  let SyncIterable$ = dart.generic(function(E) {
+  const _generator = Symbol('_generator');
+  const _args = Symbol('_args');
+  const SyncIterable$ = dart.generic(function(E) {
     class SyncIterable extends collection.IterableBase$(E) {
       SyncIterable(generator, args) {
         this[_generator] = generator;

@@ -161,7 +161,7 @@ dart_library.library('constructors', null, /* Imports */[
       bar: [P, []]
     })
   });
-  let Q$ = dart.generic(function(T) {
+  const Q$ = dart.generic(function(T) {
     class Q extends core.Object {
       Q(y) {
         this.x = dart.as(y, T);

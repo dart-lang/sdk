@@ -112,7 +112,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
     }
   }
   dart.fn(_insertionSort, dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.int, core.int, core.int]);
-  let _MERGE_SORT_LIMIT = 32;
+  const _MERGE_SORT_LIMIT = 32;
   function mergeSort(list, opts) {
     let start = opts && 'start' in opts ? opts.start : 0;
     let end = opts && 'end' in opts ? opts.end : null;

@@ -10,7 +10,7 @@ dart_library.library('fieldtest', null, /* Imports */[
       this.x = 42;
     }
   }
-  let B$ = dart.generic(function(T) {
+  const B$ = dart.generic(function(T) {
     class B extends core.Object {
       B() {
         this.x = null;
@@ -68,7 +68,7 @@ dart_library.library('fieldtest', null, /* Imports */[
     }
   }
   dart.virtualField(Derived, 'foo');
-  let Generic$ = dart.generic(function(T) {
+  const Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
       foo(t) {
         dart.as(t, T);

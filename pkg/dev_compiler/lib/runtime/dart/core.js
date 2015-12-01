@@ -59,8 +59,8 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(_Override, {
     constructors: () => ({_Override: [_Override, []]})
   });
-  let deprecated = dart.const(new Deprecated("next release"));
-  let override = dart.const(new _Override());
+  const deprecated = dart.const(new Deprecated("next release"));
+  const override = dart.const(new _Override());
   class _Proxy extends Object {
     _Proxy() {
     }
@@ -68,7 +68,7 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(_Proxy, {
     constructors: () => ({_Proxy: [_Proxy, []]})
   });
-  let proxy = dart.const(new _Proxy());
+  const proxy = dart.const(new _Proxy());
   dart.defineExtensionNames([
     'toString'
   ]);
@@ -84,12 +84,12 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(bool, {
     constructors: () => ({fromEnvironment: [bool, [String], {defaultValue: bool}]})
   });
-  let Comparator$ = dart.generic(function(T) {
-    let Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
+  const Comparator$ = dart.generic(function(T) {
+    const Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
     return Comparator;
   });
   let Comparator = Comparator$();
-  let Comparable$ = dart.generic(function(T) {
+  const Comparable$ = dart.generic(function(T) {
     class Comparable extends Object {
       static compare(a, b) {
         return a[dartx.compareTo](b);
@@ -457,7 +457,7 @@ dart_library.library('dart/core', null, /* Imports */[
   double.NEGATIVE_INFINITY = -dart.notNull(double.INFINITY);
   double.MIN_POSITIVE = 5e-324;
   double.MAX_FINITE = 1.7976931348623157e+308;
-  let _duration = dart.JsSymbol('_duration');
+  const _duration = dart.JsSymbol('_duration');
   class Duration extends Object {
     Duration(opts) {
       let days = opts && 'days' in opts ? opts.days : 0;
@@ -653,7 +653,7 @@ dart_library.library('dart/core', null, /* Imports */[
       return "Throw of null.";
     }
   }
-  let _hasValue = dart.JsSymbol('_hasValue');
+  const _hasValue = dart.JsSymbol('_hasValue');
   class ArgumentError extends Error {
     ArgumentError(message) {
       if (message === void 0)
@@ -859,7 +859,7 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(FallThroughError, {
     constructors: () => ({FallThroughError: [FallThroughError, []]})
   });
-  let _className = dart.JsSymbol('_className');
+  const _className = dart.JsSymbol('_className');
   class AbstractClassInstantiationError extends Error {
     AbstractClassInstantiationError(className) {
       this[_className] = className;
@@ -872,11 +872,11 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(AbstractClassInstantiationError, {
     constructors: () => ({AbstractClassInstantiationError: [AbstractClassInstantiationError, [String]]})
   });
-  let _receiver = dart.JsSymbol('_receiver');
-  let _memberName = dart.JsSymbol('_memberName');
-  let _arguments = dart.JsSymbol('_arguments');
-  let _namedArguments = dart.JsSymbol('_namedArguments');
-  let _existingArgumentNames = dart.JsSymbol('_existingArgumentNames');
+  const _receiver = dart.JsSymbol('_receiver');
+  const _memberName = dart.JsSymbol('_memberName');
+  const _arguments = dart.JsSymbol('_arguments');
+  const _namedArguments = dart.JsSymbol('_namedArguments');
+  const _existingArgumentNames = dart.JsSymbol('_existingArgumentNames');
   class NoSuchMethodError extends Error {
     NoSuchMethodError(receiver, memberName, positionalArguments, namedArguments, existingArgumentNames) {
       if (existingArgumentNames === void 0)
@@ -1156,8 +1156,8 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(IntegerDivisionByZeroException, {
     constructors: () => ({IntegerDivisionByZeroException: [IntegerDivisionByZeroException, []]})
   });
-  let _getKey = dart.JsSymbol('_getKey');
-  let Expando$ = dart.generic(function(T) {
+  const _getKey = dart.JsSymbol('_getKey');
+  const Expando$ = dart.generic(function(T) {
     class Expando extends Object {
       Expando(name) {
         if (name === void 0)
@@ -1258,7 +1258,7 @@ dart_library.library('dart/core', null, /* Imports */[
       return dart.notNull(this.isGetter) || dart.notNull(this.isSetter);
     }
   }
-  let Iterable$ = dart.generic(function(E) {
+  const Iterable$ = dart.generic(function(E) {
     dart.defineExtensionNames([
       'join'
     ]);
@@ -1293,15 +1293,15 @@ dart_library.library('dart/core', null, /* Imports */[
     return Iterable;
   });
   let Iterable = Iterable$();
-  let _Generator$ = dart.generic(function(E) {
-    let _Generator = dart.typedef('_Generator', () => dart.functionType(E, [int]));
+  const _Generator$ = dart.generic(function(E) {
+    const _Generator = dart.typedef('_Generator', () => dart.functionType(E, [int]));
     return _Generator;
   });
   let _Generator = _Generator$();
-  let _end = dart.JsSymbol('_end');
-  let _start = dart.JsSymbol('_start');
-  let _generator = dart.JsSymbol('_generator');
-  let _GeneratorIterable$ = dart.generic(function(E) {
+  const _end = dart.JsSymbol('_end');
+  const _start = dart.JsSymbol('_start');
+  const _generator = dart.JsSymbol('_generator');
+  const _GeneratorIterable$ = dart.generic(function(E) {
     class _GeneratorIterable extends collection.IterableBase$(E) {
       _GeneratorIterable(end, generator) {
         this[_end] = end;
@@ -1361,9 +1361,9 @@ dart_library.library('dart/core', null, /* Imports */[
     return _GeneratorIterable;
   });
   dart.defineLazyClassGeneric(exports, '_GeneratorIterable', {get: _GeneratorIterable$});
-  let _index = dart.JsSymbol('_index');
-  let _current = dart.JsSymbol('_current');
-  let _GeneratorIterator$ = dart.generic(function(E) {
+  const _index = dart.JsSymbol('_index');
+  const _current = dart.JsSymbol('_current');
+  const _GeneratorIterator$ = dart.generic(function(E) {
     class _GeneratorIterator extends Object {
       _GeneratorIterator(index, end, generator) {
         this[_index] = index;
@@ -1393,18 +1393,18 @@ dart_library.library('dart/core', null, /* Imports */[
     return _GeneratorIterator;
   });
   let _GeneratorIterator = _GeneratorIterator$();
-  let BidirectionalIterator$ = dart.generic(function(E) {
+  const BidirectionalIterator$ = dart.generic(function(E) {
     class BidirectionalIterator extends Object {}
     BidirectionalIterator[dart.implements] = () => [Iterator$(E)];
     return BidirectionalIterator;
   });
   let BidirectionalIterator = BidirectionalIterator$();
-  let Iterator$ = dart.generic(function(E) {
+  const Iterator$ = dart.generic(function(E) {
     class Iterator extends Object {}
     return Iterator;
   });
   let Iterator = Iterator$();
-  let List$ = dart.generic(function(E) {
+  const List$ = dart.generic(function(E) {
     class List extends Object {
       static new(length) {
         if (length === void 0)
@@ -1469,7 +1469,7 @@ dart_library.library('dart/core', null, /* Imports */[
     return List;
   });
   let List = List$();
-  let Map$ = dart.generic(function(K, V) {
+  const Map$ = dart.generic(function(K, V) {
     class Map extends Object {
       static new() {
         return collection.LinkedHashMap$(K, V).new();
@@ -1533,7 +1533,7 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(RegExp, {
     constructors: () => ({new: [RegExp, [String], {multiLine: bool, caseSensitive: bool}]})
   });
-  let Set$ = dart.generic(function(E) {
+  const Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
       static new() {
         return collection.LinkedHashSet$(E).new();
@@ -1556,13 +1556,13 @@ dart_library.library('dart/core', null, /* Imports */[
     return Set;
   });
   dart.defineLazyClassGeneric(exports, 'Set', {get: Set$});
-  let Sink$ = dart.generic(function(T) {
+  const Sink$ = dart.generic(function(T) {
     class Sink extends Object {}
     return Sink;
   });
   let Sink = Sink$();
   class StackTrace extends Object {}
-  let _stop = dart.JsSymbol('_stop');
+  const _stop = dart.JsSymbol('_stop');
   class Stopwatch extends Object {
     get frequency() {
       return Stopwatch._frequency;
@@ -1747,10 +1747,10 @@ dart_library.library('dart/core', null, /* Imports */[
     return 65536 + ((dart.notNull(start) & 1023) << 10) + (dart.notNull(end) & 1023);
   }
   dart.fn(_combineSurrogatePair, int, [int, int]);
-  let _position = dart.JsSymbol('_position');
-  let _nextPosition = dart.JsSymbol('_nextPosition');
-  let _currentCodePoint = dart.JsSymbol('_currentCodePoint');
-  let _checkSplitSurrogate = dart.JsSymbol('_checkSplitSurrogate');
+  const _position = dart.JsSymbol('_position');
+  const _nextPosition = dart.JsSymbol('_nextPosition');
+  const _currentCodePoint = dart.JsSymbol('_currentCodePoint');
+  const _checkSplitSurrogate = dart.JsSymbol('_checkSplitSurrogate');
   class RuneIterator extends Object {
     RuneIterator(string) {
       this.string = string;
@@ -1855,8 +1855,8 @@ dart_library.library('dart/core', null, /* Imports */[
       movePrevious: [bool, []]
     })
   });
-  let _contents = dart.JsSymbol('_contents');
-  let _writeString = dart.JsSymbol('_writeString');
+  const _contents = dart.JsSymbol('_contents');
+  const _writeString = dart.JsSymbol('_writeString');
   class StringBuffer extends Object {
     StringBuffer(content) {
       if (content === void 0)
@@ -1934,21 +1934,21 @@ dart_library.library('dart/core', null, /* Imports */[
     constructors: () => ({new: [Symbol, [String]]})
   });
   class Type extends Object {}
-  let _writeAuthority = dart.JsSymbol('_writeAuthority');
-  let _userInfo = dart.JsSymbol('_userInfo');
-  let _host = dart.JsSymbol('_host');
-  let _port = dart.JsSymbol('_port');
-  let _path = dart.JsSymbol('_path');
-  let _query = dart.JsSymbol('_query');
-  let _fragment = dart.JsSymbol('_fragment');
-  let _pathSegments = dart.JsSymbol('_pathSegments');
-  let _queryParameters = dart.JsSymbol('_queryParameters');
-  let _merge = dart.JsSymbol('_merge');
-  let _hasDotSegments = dart.JsSymbol('_hasDotSegments');
-  let _removeDotSegments = dart.JsSymbol('_removeDotSegments');
-  let _toWindowsFilePath = dart.JsSymbol('_toWindowsFilePath');
-  let _toFilePath = dart.JsSymbol('_toFilePath');
-  let _isPathAbsolute = dart.JsSymbol('_isPathAbsolute');
+  const _writeAuthority = dart.JsSymbol('_writeAuthority');
+  const _userInfo = dart.JsSymbol('_userInfo');
+  const _host = dart.JsSymbol('_host');
+  const _port = dart.JsSymbol('_port');
+  const _path = dart.JsSymbol('_path');
+  const _query = dart.JsSymbol('_query');
+  const _fragment = dart.JsSymbol('_fragment');
+  const _pathSegments = dart.JsSymbol('_pathSegments');
+  const _queryParameters = dart.JsSymbol('_queryParameters');
+  const _merge = dart.JsSymbol('_merge');
+  const _hasDotSegments = dart.JsSymbol('_hasDotSegments');
+  const _removeDotSegments = dart.JsSymbol('_removeDotSegments');
+  const _toWindowsFilePath = dart.JsSymbol('_toWindowsFilePath');
+  const _toFilePath = dart.JsSymbol('_toFilePath');
+  const _isPathAbsolute = dart.JsSymbol('_isPathAbsolute');
   class Uri extends Object {
     get authority() {
       if (!dart.notNull(this.hasAuthority))

@@ -86,7 +86,7 @@ dart_library.library('cascade', null, /* Imports */[
     })());
   }
   dart.fn(test_increment, dart.void, []);
-  let Base$ = dart.generic(function(T) {
+  const Base$ = dart.generic(function(T) {
     class Base extends core.Object {
       Base() {
         this.x = dart.list([], T);

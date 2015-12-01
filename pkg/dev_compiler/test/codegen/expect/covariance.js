@@ -5,8 +5,8 @@ dart_library.library('covariance', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
-  let _t = Symbol('_t');
-  let Foo$ = dart.generic(function(T) {
+  const _t = Symbol('_t');
+  const Foo$ = dart.generic(function(T) {
     class Foo extends core.Object {
       Foo() {
         this[_t] = null;

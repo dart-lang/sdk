@@ -54,13 +54,13 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }),
     names: ['stronger', 'weaker', 'weakest', 'strongest']
   });
-  let REQUIRED = dart.const(new Strength(0, "required"));
-  let STRONG_PREFERRED = dart.const(new Strength(1, "strongPreferred"));
-  let PREFERRED = dart.const(new Strength(2, "preferred"));
-  let STRONG_DEFAULT = dart.const(new Strength(3, "strongDefault"));
-  let NORMAL = dart.const(new Strength(4, "normal"));
-  let WEAK_DEFAULT = dart.const(new Strength(5, "weakDefault"));
-  let WEAKEST = dart.const(new Strength(6, "weakest"));
+  const REQUIRED = dart.const(new Strength(0, "required"));
+  const STRONG_PREFERRED = dart.const(new Strength(1, "strongPreferred"));
+  const PREFERRED = dart.const(new Strength(2, "preferred"));
+  const STRONG_DEFAULT = dart.const(new Strength(3, "strongDefault"));
+  const NORMAL = dart.const(new Strength(4, "normal"));
+  const WEAK_DEFAULT = dart.const(new Strength(5, "weakDefault"));
+  const WEAKEST = dart.const(new Strength(6, "weakest"));
   class Constraint extends core.Object {
     Constraint(strength) {
       this.strength = strength;
@@ -182,9 +182,9 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     constructors: () => ({EditConstraint: [EditConstraint, [Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
-  let NONE = 1;
-  let FORWARD = 2;
-  let BACKWARD = 0;
+  const NONE = 1;
+  const FORWARD = 2;
+  const BACKWARD = 0;
   class BinaryConstraint extends Constraint {
     BinaryConstraint(v1, v2, strength) {
       this.v1 = v1;

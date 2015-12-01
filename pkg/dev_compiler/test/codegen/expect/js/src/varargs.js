@@ -12,7 +12,7 @@ dart_library.library('js/src/varargs', null, /* Imports */[
   dart.setSignature(_Rest, {
     constructors: () => ({_Rest: [_Rest, []]})
   });
-  let rest = dart.const(new _Rest());
+  const rest = dart.const(new _Rest());
   function spread(args) {
     dart.throw(new core.StateError('The spread function cannot be called, ' + 'it should be compiled away.'));
   }

@@ -297,8 +297,8 @@ dart_library.library('expect', null, /* Imports */[
     return core.identical(a, b);
   }
   dart.fn(_identical, core.bool, [dart.dynamic, dart.dynamic]);
-  let _CheckExceptionFn = dart.typedef('_CheckExceptionFn', () => dart.functionType(core.bool, [dart.dynamic]));
-  let _Nullary = dart.typedef('_Nullary', () => dart.functionType(dart.dynamic, []));
+  const _CheckExceptionFn = dart.typedef('_CheckExceptionFn', () => dart.functionType(core.bool, [dart.dynamic]));
+  const _Nullary = dart.typedef('_Nullary', () => dart.functionType(dart.dynamic, []));
   class ExpectException extends core.Object {
     ExpectException(message) {
       this.message = message;

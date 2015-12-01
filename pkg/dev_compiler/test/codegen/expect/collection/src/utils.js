@@ -5,7 +5,7 @@ dart_library.library('collection/src/utils', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
-  let Pair$ = dart.generic(function(E, F) {
+  const Pair$ = dart.generic(function(E, F) {
     class Pair extends core.Object {
       Pair(first, last) {
         this.first = first;

@@ -8,10 +8,10 @@ dart_library.library('sunflower/painter', null, /* Imports */[
 ], function(exports, dart, math, dom, core, circle) {
   'use strict';
   let dartx = dart.dartx;
-  let ORANGE = "orange";
-  let RED = "red";
-  let BLUE = "blue";
-  let TAU = dart.notNull(math.PI) * 2;
+  const ORANGE = "orange";
+  const RED = "red";
+  const BLUE = "blue";
+  const TAU = dart.notNull(math.PI) * 2;
   function querySelector(selector) {
     return dom.document.querySelector(selector);
   }

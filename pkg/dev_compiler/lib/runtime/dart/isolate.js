@@ -27,7 +27,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
   dart.setSignature(IsolateSpawnException, {
     constructors: () => ({IsolateSpawnException: [IsolateSpawnException, [core.String]]})
   });
-  let _pause = Symbol('_pause');
+  const _pause = Symbol('_pause');
   class Isolate extends core.Object {
     Isolate(controlPort, opts) {
       let pauseCapability = opts && 'pauseCapability' in opts ? opts.pauseCapability : null;
@@ -227,7 +227,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
   dart.setSignature(_IsolateUnhandledException, {
     constructors: () => ({_IsolateUnhandledException: [_IsolateUnhandledException, [dart.dynamic, dart.dynamic, core.StackTrace]]})
   });
-  let _description = Symbol('_description');
+  const _description = Symbol('_description');
   class RemoteError extends core.Object {
     RemoteError(description, stackDescription) {
       this[_description] = description;
@@ -241,7 +241,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
   dart.setSignature(RemoteError, {
     constructors: () => ({RemoteError: [RemoteError, [core.String, core.String]]})
   });
-  let _trace = Symbol('_trace');
+  const _trace = Symbol('_trace');
   class _RemoteStackTrace extends core.Object {
     _RemoteStackTrace(trace) {
       this[_trace] = trace;

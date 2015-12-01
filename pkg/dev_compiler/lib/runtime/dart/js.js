@@ -12,7 +12,7 @@ dart_library.library('dart/js', null, /* Imports */[
       return _wrapToDart(dart.global);
     }
   });
-  let _jsObject = Symbol('_jsObject');
+  const _jsObject = Symbol('_jsObject');
   class JsObject extends core.Object {
     _fromJs(jsObject) {
       this[_jsObject] = jsObject;
@@ -166,9 +166,9 @@ dart_library.library('dart/js', null, /* Imports */[
     }),
     methods: () => ({apply: [dart.dynamic, [core.List], {thisArg: dart.dynamic}]})
   });
-  let _checkIndex = Symbol('_checkIndex');
-  let _checkInsertIndex = Symbol('_checkInsertIndex');
-  let JsArray$ = dart.generic(function(E) {
+  const _checkIndex = Symbol('_checkIndex');
+  const _checkInsertIndex = Symbol('_checkInsertIndex');
+  const JsArray$ = dart.generic(function(E) {
     class JsArray extends dart.mixin(JsObject, collection.ListMixin$(E)) {
       JsArray() {
         super._fromJs([]);
@@ -318,7 +318,7 @@ dart_library.library('dart/js', null, /* Imports */[
     return o instanceof Blob || o instanceof Event || window.KeyRange && o instanceof KeyRange || o instanceof ImageData || o instanceof Node || window.TypedData && o instanceof TypedData || o instanceof Window;
   }
   dart.fn(_isBrowserType, core.bool, [dart.dynamic]);
-  let _dartObj = Symbol('_dartObj');
+  const _dartObj = Symbol('_dartObj');
   class _DartObject extends core.Object {
     _DartObject(dartObj) {
       this[_dartObj] = dartObj;
@@ -415,8 +415,8 @@ dart_library.library('dart/js', null, /* Imports */[
     return ret;
   }
   dart.fn(allowInteropCaptureThis, core.Function, [core.Function]);
-  let __CastType0$ = dart.generic(function(E) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [E]));
+  const __CastType0$ = dart.generic(function(E) {
+    const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [E]));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();

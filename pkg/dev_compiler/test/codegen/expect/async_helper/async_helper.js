@@ -6,7 +6,7 @@ dart_library.library('async_helper/async_helper', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   exports._initialized = false;
-  let _Action0 = dart.typedef('_Action0', () => dart.functionType(dart.void, []));
+  const _Action0 = dart.typedef('_Action0', () => dart.functionType(dart.void, []));
   exports._onAsyncEnd = null;
   exports._asyncLevel = 0;
   function _buildException(msg) {

@@ -9,11 +9,11 @@ dart_library.library('sunflower/sunflower', null, /* Imports */[
 ], function(exports, dart, dom, core, math, painter, circle) {
   'use strict';
   let dartx = dart.dartx;
-  let SEED_RADIUS = 2;
-  let SCALE_FACTOR = 4;
-  let MAX_D = 300;
-  let centerX = dart.notNull(MAX_D) / 2;
-  let centerY = centerX;
+  const SEED_RADIUS = 2;
+  const SCALE_FACTOR = 4;
+  const MAX_D = 300;
+  const centerX = dart.notNull(MAX_D) / 2;
+  const centerY = centerX;
   function querySelector(selector) {
     return dom.document.querySelector(selector);
   }

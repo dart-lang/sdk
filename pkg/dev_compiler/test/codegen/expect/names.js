@@ -6,7 +6,7 @@ dart_library.library('names', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   exports.exports = 42;
-  let _foo$ = Symbol('_foo');
+  const _foo$ = Symbol('_foo');
   class Foo extends core.Object {
     [_foo$]() {
       return 123;

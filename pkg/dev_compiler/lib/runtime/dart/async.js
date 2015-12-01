@@ -62,14 +62,14 @@ dart_library.library('dart/async', null, /* Imports */[
     statics: () => ({_getBestStackTrace: [core.StackTrace, [dart.dynamic, core.StackTrace]]}),
     names: ['_getBestStackTrace']
   });
-  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
-  let _add = Symbol('_add');
-  let _closeUnchecked = Symbol('_closeUnchecked');
-  let _addError = Symbol('_addError');
-  let _completeError = Symbol('_completeError');
-  let _complete = Symbol('_complete');
-  let _sink = Symbol('_sink');
-  let Stream$ = dart.generic(function(T) {
+  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const _add = Symbol('_add');
+  const _closeUnchecked = Symbol('_closeUnchecked');
+  const _addError = Symbol('_addError');
+  const _completeError = Symbol('_completeError');
+  const _complete = Symbol('_complete');
+  const _sink = Symbol('_sink');
+  const Stream$ = dart.generic(function(T) {
     class Stream extends core.Object {
       Stream() {
       }
@@ -161,7 +161,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.as(convert, dart.functionType(dart.dynamic, [T]));
         let controller = null;
         let subscription = null;
-        let onListen = (function() {
+        const onListen = (function() {
           let add = dart.bind(controller, 'add');
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = dart.as(controller, _EventSink$(T));
@@ -205,7 +205,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.as(convert, dart.functionType(Stream$(), [T]));
         let controller = null;
         let subscription = null;
-        let onListen = (function() {
+        const onListen = (function() {
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = dart.as(controller, _EventSink$(T));
           subscription = this.listen(dart.fn(event => {
@@ -684,7 +684,7 @@ dart_library.library('dart/async', null, /* Imports */[
           controller.close();
         }
         dart.fn(onDone, dart.void, []);
-        let onListen = (function() {
+        const onListen = (function() {
           zone = Zone.current;
           if (onTimeout == null) {
             timeout2 = dart.fn(() => {
@@ -763,9 +763,9 @@ dart_library.library('dart/async', null, /* Imports */[
     return Stream;
   });
   let Stream = Stream$();
-  let _createSubscription = Symbol('_createSubscription');
-  let _onListen = Symbol('_onListen');
-  let _StreamImpl$ = dart.generic(function(T) {
+  const _createSubscription = Symbol('_createSubscription');
+  const _onListen = Symbol('_onListen');
+  const _StreamImpl$ = dart.generic(function(T) {
     class _StreamImpl extends Stream$(T) {
       _StreamImpl() {
         super.Stream();
@@ -798,9 +798,9 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamImpl;
   });
   let _StreamImpl = _StreamImpl$();
-  let _controller = Symbol('_controller');
-  let _subscribe = Symbol('_subscribe');
-  let _ControllerStream$ = dart.generic(function(T) {
+  const _controller = Symbol('_controller');
+  const _subscribe = Symbol('_subscribe');
+  const _ControllerStream$ = dart.generic(function(T) {
     class _ControllerStream extends _StreamImpl$(T) {
       _ControllerStream(controller) {
         this[_controller] = controller;
@@ -832,7 +832,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _ControllerStream;
   });
   let _ControllerStream = _ControllerStream$();
-  let _BroadcastStream$ = dart.generic(function(T) {
+  const _BroadcastStream$ = dart.generic(function(T) {
     class _BroadcastStream extends _ControllerStream$(T) {
       _BroadcastStream(controller) {
         super._ControllerStream(dart.as(controller, _StreamControllerLifecycle$(T)));
@@ -847,47 +847,47 @@ dart_library.library('dart/async', null, /* Imports */[
     return _BroadcastStream;
   });
   let _BroadcastStream = _BroadcastStream$();
-  let _next = Symbol('_next');
-  let _previous = Symbol('_previous');
+  const _next = Symbol('_next');
+  const _previous = Symbol('_previous');
   class _BroadcastSubscriptionLink extends core.Object {
     _BroadcastSubscriptionLink() {
       this[_next] = null;
       this[_previous] = null;
     }
   }
-  let _zone = Symbol('_zone');
-  let _state = Symbol('_state');
-  let _onData = Symbol('_onData');
-  let _onError = Symbol('_onError');
-  let _onDone = Symbol('_onDone');
-  let _cancelFuture = Symbol('_cancelFuture');
-  let _pending = Symbol('_pending');
-  let _setPendingEvents = Symbol('_setPendingEvents');
-  let _isCanceled = Symbol('_isCanceled');
-  let _extractPending = Symbol('_extractPending');
-  let _isPaused = Symbol('_isPaused');
-  let _isInputPaused = Symbol('_isInputPaused');
-  let _inCallback = Symbol('_inCallback');
-  let _guardCallback = Symbol('_guardCallback');
-  let _onPause = Symbol('_onPause');
-  let _decrementPauseCount = Symbol('_decrementPauseCount');
-  let _hasPending = Symbol('_hasPending');
-  let _mayResumeInput = Symbol('_mayResumeInput');
-  let _onResume = Symbol('_onResume');
-  let _cancel = Symbol('_cancel');
-  let _isClosed = Symbol('_isClosed');
-  let _waitsForCancel = Symbol('_waitsForCancel');
-  let _canFire = Symbol('_canFire');
-  let _cancelOnError = Symbol('_cancelOnError');
-  let _onCancel = Symbol('_onCancel');
-  let _incrementPauseCount = Symbol('_incrementPauseCount');
-  let _sendData = Symbol('_sendData');
-  let _addPending = Symbol('_addPending');
-  let _sendError = Symbol('_sendError');
-  let _sendDone = Symbol('_sendDone');
-  let _close = Symbol('_close');
-  let _checkState = Symbol('_checkState');
-  let _BufferingStreamSubscription$ = dart.generic(function(T) {
+  const _zone = Symbol('_zone');
+  const _state = Symbol('_state');
+  const _onData = Symbol('_onData');
+  const _onError = Symbol('_onError');
+  const _onDone = Symbol('_onDone');
+  const _cancelFuture = Symbol('_cancelFuture');
+  const _pending = Symbol('_pending');
+  const _setPendingEvents = Symbol('_setPendingEvents');
+  const _isCanceled = Symbol('_isCanceled');
+  const _extractPending = Symbol('_extractPending');
+  const _isPaused = Symbol('_isPaused');
+  const _isInputPaused = Symbol('_isInputPaused');
+  const _inCallback = Symbol('_inCallback');
+  const _guardCallback = Symbol('_guardCallback');
+  const _onPause = Symbol('_onPause');
+  const _decrementPauseCount = Symbol('_decrementPauseCount');
+  const _hasPending = Symbol('_hasPending');
+  const _mayResumeInput = Symbol('_mayResumeInput');
+  const _onResume = Symbol('_onResume');
+  const _cancel = Symbol('_cancel');
+  const _isClosed = Symbol('_isClosed');
+  const _waitsForCancel = Symbol('_waitsForCancel');
+  const _canFire = Symbol('_canFire');
+  const _cancelOnError = Symbol('_cancelOnError');
+  const _onCancel = Symbol('_onCancel');
+  const _incrementPauseCount = Symbol('_incrementPauseCount');
+  const _sendData = Symbol('_sendData');
+  const _addPending = Symbol('_addPending');
+  const _sendError = Symbol('_sendError');
+  const _sendDone = Symbol('_sendDone');
+  const _close = Symbol('_close');
+  const _checkState = Symbol('_checkState');
+  const _BufferingStreamSubscription$ = dart.generic(function(T) {
     class _BufferingStreamSubscription extends core.Object {
       _BufferingStreamSubscription(onData, onError, onDone, cancelOnError) {
         this[_zone] = Zone.current;
@@ -1104,7 +1104,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.assert(!dart.notNull(this[_isPaused]));
         dart.assert(!dart.notNull(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
-        let sendError = (function() {
+        const sendError = (function() {
           if (dart.notNull(this[_isCanceled]) && !dart.notNull(this[_waitsForCancel]))
             return;
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
@@ -1133,7 +1133,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.assert(!dart.notNull(this[_isCanceled]));
         dart.assert(!dart.notNull(this[_isPaused]));
         dart.assert(!dart.notNull(this[_inCallback]));
-        let sendDone = (function() {
+        const sendDone = (function() {
           if (!dart.notNull(this[_waitsForCancel]))
             return;
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_CANCELED) | dart.notNull(_BufferingStreamSubscription$()._STATE_CLOSED) | dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
@@ -1220,10 +1220,10 @@ dart_library.library('dart/async', null, /* Imports */[
     return _BufferingStreamSubscription;
   });
   let _BufferingStreamSubscription = _BufferingStreamSubscription$();
-  let _recordCancel = Symbol('_recordCancel');
-  let _recordPause = Symbol('_recordPause');
-  let _recordResume = Symbol('_recordResume');
-  let _ControllerSubscription$ = dart.generic(function(T) {
+  const _recordCancel = Symbol('_recordCancel');
+  const _recordPause = Symbol('_recordPause');
+  const _recordResume = Symbol('_recordResume');
+  const _ControllerSubscription$ = dart.generic(function(T) {
     class _ControllerSubscription extends _BufferingStreamSubscription$(T) {
       _ControllerSubscription(controller, onData, onError, onDone, cancelOnError) {
         this[_controller] = controller;
@@ -1245,13 +1245,13 @@ dart_library.library('dart/async', null, /* Imports */[
     return _ControllerSubscription;
   });
   let _ControllerSubscription = _ControllerSubscription$();
-  let _eventState = Symbol('_eventState');
-  let _expectsEvent = Symbol('_expectsEvent');
-  let _toggleEventId = Symbol('_toggleEventId');
-  let _isFiring = Symbol('_isFiring');
-  let _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
-  let _removeAfterFiring = Symbol('_removeAfterFiring');
-  let _BroadcastSubscription$ = dart.generic(function(T) {
+  const _eventState = Symbol('_eventState');
+  const _expectsEvent = Symbol('_expectsEvent');
+  const _toggleEventId = Symbol('_toggleEventId');
+  const _isFiring = Symbol('_isFiring');
+  const _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
+  const _removeAfterFiring = Symbol('_removeAfterFiring');
+  const _BroadcastSubscription$ = dart.generic(function(T) {
     class _BroadcastSubscription extends _ControllerSubscription$(T) {
       _BroadcastSubscription(controller, onData, onError, onDone, cancelOnError) {
         this[_eventState] = null;
@@ -1294,21 +1294,21 @@ dart_library.library('dart/async', null, /* Imports */[
   _BroadcastSubscription._STATE_EVENT_ID = 1;
   _BroadcastSubscription._STATE_FIRING = 2;
   _BroadcastSubscription._STATE_REMOVE_AFTER_FIRING = 4;
-  let _addStreamState = Symbol('_addStreamState');
-  let _doneFuture = Symbol('_doneFuture');
-  let _isEmpty = Symbol('_isEmpty');
-  let _hasOneListener = Symbol('_hasOneListener');
-  let _isAddingStream = Symbol('_isAddingStream');
-  let _mayAddEvent = Symbol('_mayAddEvent');
-  let _ensureDoneFuture = Symbol('_ensureDoneFuture');
-  let _addListener = Symbol('_addListener');
-  let _removeListener = Symbol('_removeListener');
-  let _callOnCancel = Symbol('_callOnCancel');
-  let _addEventError = Symbol('_addEventError');
-  let _forEachListener = Symbol('_forEachListener');
-  let _mayComplete = Symbol('_mayComplete');
-  let _asyncComplete = Symbol('_asyncComplete');
-  let _BroadcastStreamController$ = dart.generic(function(T) {
+  const _addStreamState = Symbol('_addStreamState');
+  const _doneFuture = Symbol('_doneFuture');
+  const _isEmpty = Symbol('_isEmpty');
+  const _hasOneListener = Symbol('_hasOneListener');
+  const _isAddingStream = Symbol('_isAddingStream');
+  const _mayAddEvent = Symbol('_mayAddEvent');
+  const _ensureDoneFuture = Symbol('_ensureDoneFuture');
+  const _addListener = Symbol('_addListener');
+  const _removeListener = Symbol('_removeListener');
+  const _callOnCancel = Symbol('_callOnCancel');
+  const _addEventError = Symbol('_addEventError');
+  const _forEachListener = Symbol('_forEachListener');
+  const _mayComplete = Symbol('_mayComplete');
+  const _asyncComplete = Symbol('_asyncComplete');
+  const _BroadcastStreamController$ = dart.generic(function(T) {
     class _BroadcastStreamController extends core.Object {
       _BroadcastStreamController(onListen, onCancel) {
         this[_onListen] = onListen;
@@ -1546,7 +1546,7 @@ dart_library.library('dart/async', null, /* Imports */[
   _BroadcastStreamController._STATE_FIRING = 2;
   _BroadcastStreamController._STATE_CLOSED = 4;
   _BroadcastStreamController._STATE_ADDSTREAM = 8;
-  let _SyncBroadcastStreamController$ = dart.generic(function(T) {
+  const _SyncBroadcastStreamController$ = dart.generic(function(T) {
     class _SyncBroadcastStreamController extends _BroadcastStreamController$(T) {
       _SyncBroadcastStreamController(onListen, onCancel) {
         super._BroadcastStreamController(onListen, onCancel);
@@ -1602,7 +1602,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _SyncBroadcastStreamController;
   });
   let _SyncBroadcastStreamController = _SyncBroadcastStreamController$();
-  let _AsyncBroadcastStreamController$ = dart.generic(function(T) {
+  const _AsyncBroadcastStreamController$ = dart.generic(function(T) {
     class _AsyncBroadcastStreamController extends _BroadcastStreamController$(T) {
       _AsyncBroadcastStreamController(onListen, onCancel) {
         super._BroadcastStreamController(onListen, onCancel);
@@ -1644,8 +1644,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _AsyncBroadcastStreamController;
   });
   let _AsyncBroadcastStreamController = _AsyncBroadcastStreamController$();
-  let _addPendingEvent = Symbol('_addPendingEvent');
-  let _AsBroadcastStreamController$ = dart.generic(function(T) {
+  const _addPendingEvent = Symbol('_addPendingEvent');
+  const _AsBroadcastStreamController$ = dart.generic(function(T) {
     class _AsBroadcastStreamController extends _SyncBroadcastStreamController$(T) {
       _AsBroadcastStreamController(onListen, onCancel) {
         this[_pending] = null;
@@ -1714,9 +1714,9 @@ dart_library.library('dart/async', null, /* Imports */[
     return _AsBroadcastStreamController;
   });
   let _AsBroadcastStreamController = _AsBroadcastStreamController$();
-  let _pauseCount = Symbol('_pauseCount');
-  let _resume = Symbol('_resume');
-  let _DoneSubscription$ = dart.generic(function(T) {
+  const _pauseCount = Symbol('_pauseCount');
+  const _resume = Symbol('_resume');
+  const _DoneSubscription$ = dart.generic(function(T) {
     class _DoneSubscription extends core.Object {
       _DoneSubscription() {
         this[_pauseCount] = 0;
@@ -1771,8 +1771,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _DoneSubscription;
   });
   let _DoneSubscription = _DoneSubscription$();
-  let __CastType2$ = dart.generic(function(T) {
-    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.void, [_BufferingStreamSubscription$(T)]));
+  const __CastType2$ = dart.generic(function(T) {
+    const __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.void, [_BufferingStreamSubscription$(T)]));
     return __CastType2;
   });
   let __CastType2 = __CastType2$();
@@ -1791,7 +1791,7 @@ dart_library.library('dart/async', null, /* Imports */[
     methods: () => ({load: [Future$(core.Null), []]})
   });
   DeferredLibrary[dart.metadata] = () => [dart.const(new core.Deprecated("Dart sdk v. 1.8"))];
-  let _s = Symbol('_s');
+  const _s = Symbol('_s');
   class DeferredLoadException extends core.Object {
     DeferredLoadException(s) {
       this[_s] = s;
@@ -1804,8 +1804,8 @@ dart_library.library('dart/async', null, /* Imports */[
   dart.setSignature(DeferredLoadException, {
     constructors: () => ({DeferredLoadException: [DeferredLoadException, [core.String]]})
   });
-  let _completeWithValue = Symbol('_completeWithValue');
-  let Future$ = dart.generic(function(T) {
+  const _completeWithValue = Symbol('_completeWithValue');
+  const Future$ = dart.generic(function(T) {
     class Future extends core.Object {
       static new(computation) {
         let result = new (_Future$(T))();
@@ -2005,7 +2005,7 @@ dart_library.library('dart/async', null, /* Imports */[
   dart.setSignature(TimeoutException, {
     constructors: () => ({TimeoutException: [TimeoutException, [core.String], [core.Duration]]})
   });
-  let Completer$ = dart.generic(function(T) {
+  const Completer$ = dart.generic(function(T) {
     class Completer extends core.Object {
       static new() {
         return new (_AsyncCompleter$(T))();
@@ -2036,15 +2036,15 @@ dart_library.library('dart/async', null, /* Imports */[
     return error != null ? error : new core.NullThrownError();
   }
   dart.fn(_nonNullError, core.Object, [core.Object]);
-  let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [dart.dynamic]));
-  let _FutureOnValue$ = dart.generic(function(T) {
-    let _FutureOnValue = dart.typedef('_FutureOnValue', () => dart.functionType(dart.dynamic, [T]));
+  const __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const _FutureOnValue$ = dart.generic(function(T) {
+    const _FutureOnValue = dart.typedef('_FutureOnValue', () => dart.functionType(dart.dynamic, [T]));
     return _FutureOnValue;
   });
   let _FutureOnValue = _FutureOnValue$();
-  let _FutureErrorTest = dart.typedef('_FutureErrorTest', () => dart.functionType(core.bool, [dart.dynamic]));
-  let _FutureAction = dart.typedef('_FutureAction', () => dart.functionType(dart.dynamic, []));
-  let _Completer$ = dart.generic(function(T) {
+  const _FutureErrorTest = dart.typedef('_FutureErrorTest', () => dart.functionType(core.bool, [dart.dynamic]));
+  const _FutureAction = dart.typedef('_FutureAction', () => dart.functionType(dart.dynamic, []));
+  const _Completer$ = dart.generic(function(T) {
     class _Completer extends core.Object {
       _Completer() {
         this.future = new (_Future$(T))();
@@ -2073,8 +2073,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _Completer;
   });
   let _Completer = _Completer$();
-  let _asyncCompleteError = Symbol('_asyncCompleteError');
-  let _AsyncCompleter$ = dart.generic(function(T) {
+  const _asyncCompleteError = Symbol('_asyncCompleteError');
+  const _AsyncCompleter$ = dart.generic(function(T) {
     class _AsyncCompleter extends _Completer$(T) {
       _AsyncCompleter() {
         super._Completer();
@@ -2099,7 +2099,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _AsyncCompleter;
   });
   let _AsyncCompleter = _AsyncCompleter$();
-  let _SyncCompleter$ = dart.generic(function(T) {
+  const _SyncCompleter$ = dart.generic(function(T) {
     class _SyncCompleter extends _Completer$(T) {
       _SyncCompleter() {
         super._Completer();
@@ -2124,10 +2124,10 @@ dart_library.library('dart/async', null, /* Imports */[
     return _SyncCompleter;
   });
   let _SyncCompleter = _SyncCompleter$();
-  let _nextListener = Symbol('_nextListener');
-  let _onValue = Symbol('_onValue');
-  let _errorTest = Symbol('_errorTest');
-  let _whenCompleteAction = Symbol('_whenCompleteAction');
+  const _nextListener = Symbol('_nextListener');
+  const _onValue = Symbol('_onValue');
+  const _errorTest = Symbol('_errorTest');
+  const _whenCompleteAction = Symbol('_whenCompleteAction');
   class _FutureListener extends core.Object {
     then(result, onValue, errorCallback) {
       this.result = result;
@@ -2210,19 +2210,19 @@ dart_library.library('dart/async', null, /* Imports */[
   _FutureListener.STATE_CATCHERROR = _FutureListener.MASK_ERROR;
   _FutureListener.STATE_CATCHERROR_TEST = dart.notNull(_FutureListener.MASK_ERROR) | dart.notNull(_FutureListener.MASK_TEST_ERROR);
   _FutureListener.STATE_WHENCOMPLETE = _FutureListener.MASK_WHENCOMPLETE;
-  let _resultOrListeners = Symbol('_resultOrListeners');
-  let _isChained = Symbol('_isChained');
-  let _isComplete = Symbol('_isComplete');
-  let _hasValue = Symbol('_hasValue');
-  let _hasError = Symbol('_hasError');
-  let _markPendingCompletion = Symbol('_markPendingCompletion');
-  let _value = Symbol('_value');
-  let _error = Symbol('_error');
-  let _setValue = Symbol('_setValue');
-  let _setErrorObject = Symbol('_setErrorObject');
-  let _setError = Symbol('_setError');
-  let _removeListeners = Symbol('_removeListeners');
-  let _Future$ = dart.generic(function(T) {
+  const _resultOrListeners = Symbol('_resultOrListeners');
+  const _isChained = Symbol('_isChained');
+  const _isComplete = Symbol('_isComplete');
+  const _hasValue = Symbol('_hasValue');
+  const _hasError = Symbol('_hasError');
+  const _markPendingCompletion = Symbol('_markPendingCompletion');
+  const _value = Symbol('_value');
+  const _error = Symbol('_error');
+  const _setValue = Symbol('_setValue');
+  const _setErrorObject = Symbol('_setErrorObject');
+  const _setError = Symbol('_setError');
+  const _removeListeners = Symbol('_removeListeners');
+  const _Future$ = dart.generic(function(T) {
     class _Future extends core.Object {
       _Future() {
         this[_zone] = Zone.current;
@@ -2682,14 +2682,14 @@ dart_library.library('dart/async', null, /* Imports */[
   _Future._CHAINED = 2;
   _Future._VALUE = 4;
   _Future._ERROR = 8;
-  let __CastType6$ = dart.generic(function(T) {
-    let __CastType6 = dart.typedef('__CastType6', () => dart.functionType(dart.dynamic, [T]));
+  const __CastType6$ = dart.generic(function(T) {
+    const __CastType6 = dart.typedef('__CastType6', () => dart.functionType(dart.dynamic, [T]));
     return __CastType6;
   });
   let __CastType6 = __CastType6$();
-  let __CastType8 = dart.typedef('__CastType8', () => dart.functionType(core.bool, [dart.dynamic]));
-  let __CastType10 = dart.typedef('__CastType10', () => dart.functionType(dart.dynamic, [dart.dynamic]));
-  let _AsyncCallback = dart.typedef('_AsyncCallback', () => dart.functionType(dart.void, []));
+  const __CastType8 = dart.typedef('__CastType8', () => dart.functionType(core.bool, [dart.dynamic]));
+  const __CastType10 = dart.typedef('__CastType10', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const _AsyncCallback = dart.typedef('_AsyncCallback', () => dart.functionType(dart.void, []));
   class _AsyncCallbackEntry extends core.Object {
     _AsyncCallbackEntry(callback) {
       this.callback = callback;
@@ -2837,19 +2837,19 @@ dart_library.library('dart/async', null, /* Imports */[
       return _AsyncRun._initializeScheduleImmediate();
     }
   });
-  let StreamSubscription$ = dart.generic(function(T) {
+  const StreamSubscription$ = dart.generic(function(T) {
     class StreamSubscription extends core.Object {}
     return StreamSubscription;
   });
   let StreamSubscription = StreamSubscription$();
-  let EventSink$ = dart.generic(function(T) {
+  const EventSink$ = dart.generic(function(T) {
     class EventSink extends core.Object {}
     EventSink[dart.implements] = () => [core.Sink$(T)];
     return EventSink;
   });
   let EventSink = EventSink$();
-  let _stream = Symbol('_stream');
-  let StreamView$ = dart.generic(function(T) {
+  const _stream = Symbol('_stream');
+  const StreamView$ = dart.generic(function(T) {
     class StreamView extends Stream$(T) {
       StreamView(stream) {
         this[_stream] = stream;
@@ -2884,18 +2884,18 @@ dart_library.library('dart/async', null, /* Imports */[
     return StreamView;
   });
   let StreamView = StreamView$();
-  let StreamConsumer$ = dart.generic(function(S) {
+  const StreamConsumer$ = dart.generic(function(S) {
     class StreamConsumer extends core.Object {}
     return StreamConsumer;
   });
   let StreamConsumer = StreamConsumer$();
-  let StreamSink$ = dart.generic(function(S) {
+  const StreamSink$ = dart.generic(function(S) {
     class StreamSink extends core.Object {}
     StreamSink[dart.implements] = () => [StreamConsumer$(S), EventSink$(S)];
     return StreamSink;
   });
   let StreamSink = StreamSink$();
-  let StreamTransformer$ = dart.generic(function(S, T) {
+  const StreamTransformer$ = dart.generic(function(S, T) {
     class StreamTransformer extends core.Object {
       static new(transformer) {
         return new _StreamSubscriptionTransformer(transformer);
@@ -2913,7 +2913,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return StreamTransformer;
   });
   let StreamTransformer = StreamTransformer$();
-  let StreamIterator$ = dart.generic(function(T) {
+  const StreamIterator$ = dart.generic(function(T) {
     class StreamIterator extends core.Object {
       static new(stream) {
         return new (_StreamIteratorImpl$(T))(stream);
@@ -2925,7 +2925,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return StreamIterator;
   });
   let StreamIterator = StreamIterator$();
-  let _ControllerEventSinkWrapper$ = dart.generic(function(T) {
+  const _ControllerEventSinkWrapper$ = dart.generic(function(T) {
     class _ControllerEventSinkWrapper extends core.Object {
       _ControllerEventSinkWrapper(sink) {
         this[_sink] = sink;
@@ -2955,11 +2955,11 @@ dart_library.library('dart/async', null, /* Imports */[
     return _ControllerEventSinkWrapper;
   });
   let _ControllerEventSinkWrapper = _ControllerEventSinkWrapper$();
-  let __CastType12 = dart.typedef('__CastType12', () => dart.functionType(dart.void, [StreamSubscription]));
-  let __CastType14 = dart.typedef('__CastType14', () => dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace]));
-  let __CastType17 = dart.typedef('__CastType17', () => dart.functionType(dart.void, []));
-  let __CastType18 = dart.typedef('__CastType18', () => dart.functionType(dart.void, [EventSink]));
-  let StreamController$ = dart.generic(function(T) {
+  const __CastType12 = dart.typedef('__CastType12', () => dart.functionType(dart.void, [StreamSubscription]));
+  const __CastType14 = dart.typedef('__CastType14', () => dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace]));
+  const __CastType17 = dart.typedef('__CastType17', () => dart.functionType(dart.void, []));
+  const __CastType18 = dart.typedef('__CastType18', () => dart.functionType(dart.void, [EventSink]));
+  const StreamController$ = dart.generic(function(T) {
     class StreamController extends core.Object {
       static new(opts) {
         let onListen = opts && 'onListen' in opts ? opts.onListen : null;
@@ -2989,7 +2989,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return StreamController;
   });
   let StreamController = StreamController$();
-  let _StreamControllerLifecycle$ = dart.generic(function(T) {
+  const _StreamControllerLifecycle$ = dart.generic(function(T) {
     class _StreamControllerLifecycle extends core.Object {
       [_recordPause](subscription) {
         dart.as(subscription, StreamSubscription$(T));
@@ -3012,13 +3012,13 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamControllerLifecycle;
   });
   let _StreamControllerLifecycle = _StreamControllerLifecycle$();
-  let _varData = Symbol('_varData');
-  let _isInitialState = Symbol('_isInitialState');
-  let _subscription = Symbol('_subscription');
-  let _pendingEvents = Symbol('_pendingEvents');
-  let _ensurePendingEvents = Symbol('_ensurePendingEvents');
-  let _badEventState = Symbol('_badEventState');
-  let _StreamController$ = dart.generic(function(T) {
+  const _varData = Symbol('_varData');
+  const _isInitialState = Symbol('_isInitialState');
+  const _subscription = Symbol('_subscription');
+  const _pendingEvents = Symbol('_pendingEvents');
+  const _ensurePendingEvents = Symbol('_ensurePendingEvents');
+  const _badEventState = Symbol('_badEventState');
+  const _StreamController$ = dart.generic(function(T) {
     class _StreamController extends core.Object {
       _StreamController() {
         this[_varData] = null;
@@ -3211,7 +3211,7 @@ dart_library.library('dart/async', null, /* Imports */[
             result = result.whenComplete(this[_onCancel]);
           }
         }
-        let complete = (function() {
+        const complete = (function() {
           if (this[_doneFuture] != null && dart.notNull(this[_doneFuture][_mayComplete])) {
             this[_doneFuture][_asyncComplete](null);
           }
@@ -3271,7 +3271,7 @@ dart_library.library('dart/async', null, /* Imports */[
   _StreamController._STATE_SUBSCRIPTION_MASK = 3;
   _StreamController._STATE_CLOSED = 4;
   _StreamController._STATE_ADDSTREAM = 8;
-  let _SyncStreamControllerDispatch$ = dart.generic(function(T) {
+  const _SyncStreamControllerDispatch$ = dart.generic(function(T) {
     class _SyncStreamControllerDispatch extends core.Object {
       [_sendData](data) {
         dart.as(data, T);
@@ -3295,7 +3295,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _SyncStreamControllerDispatch;
   });
   let _SyncStreamControllerDispatch = _SyncStreamControllerDispatch$();
-  let _AsyncStreamControllerDispatch$ = dart.generic(function(T) {
+  const _AsyncStreamControllerDispatch$ = dart.generic(function(T) {
     class _AsyncStreamControllerDispatch extends core.Object {
       [_sendData](data) {
         dart.as(data, T);
@@ -3319,7 +3319,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _AsyncStreamControllerDispatch;
   });
   let _AsyncStreamControllerDispatch = _AsyncStreamControllerDispatch$();
-  let _AsyncStreamController$ = dart.generic(function(T) {
+  const _AsyncStreamController$ = dart.generic(function(T) {
     class _AsyncStreamController extends dart.mixin(_StreamController$(T), _AsyncStreamControllerDispatch$(T)) {
       _AsyncStreamController(onListen, onPause, onResume, onCancel) {
         this[_onListen] = onListen;
@@ -3335,7 +3335,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _AsyncStreamController;
   });
   let _AsyncStreamController = _AsyncStreamController$();
-  let _SyncStreamController$ = dart.generic(function(T) {
+  const _SyncStreamController$ = dart.generic(function(T) {
     class _SyncStreamController extends dart.mixin(_StreamController$(T), _SyncStreamControllerDispatch$(T)) {
       _SyncStreamController(onListen, onPause, onResume, onCancel) {
         this[_onListen] = onListen;
@@ -3375,7 +3375,7 @@ dart_library.library('dart/async', null, /* Imports */[
       super._StreamController(...arguments);
     }
   }
-  let _NotificationHandler = dart.typedef('_NotificationHandler', () => dart.functionType(dart.dynamic, []));
+  const _NotificationHandler = dart.typedef('_NotificationHandler', () => dart.functionType(dart.dynamic, []));
   function _runGuarded(notificationHandler) {
     if (notificationHandler == null)
       return null;
@@ -3391,8 +3391,8 @@ dart_library.library('dart/async', null, /* Imports */[
 
   }
   dart.fn(_runGuarded, Future, [_NotificationHandler]);
-  let _target = Symbol('_target');
-  let _StreamSinkWrapper$ = dart.generic(function(T) {
+  const _target = Symbol('_target');
+  const _StreamSinkWrapper$ = dart.generic(function(T) {
     class _StreamSinkWrapper extends core.Object {
       _StreamSinkWrapper(target) {
         this[_target] = target;
@@ -3431,7 +3431,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamSinkWrapper;
   });
   let _StreamSinkWrapper = _StreamSinkWrapper$();
-  let _AddStreamState$ = dart.generic(function(T) {
+  const _AddStreamState$ = dart.generic(function(T) {
     class _AddStreamState extends core.Object {
       _AddStreamState(controller, source, cancelOnError) {
         this.addStreamFuture = new _Future();
@@ -3477,7 +3477,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _AddStreamState;
   });
   let _AddStreamState = _AddStreamState$();
-  let _StreamControllerAddStreamState$ = dart.generic(function(T) {
+  const _StreamControllerAddStreamState$ = dart.generic(function(T) {
     class _StreamControllerAddStreamState extends _AddStreamState$(T) {
       _StreamControllerAddStreamState(controller, varData, source, cancelOnError) {
         this.varData = varData;
@@ -3493,12 +3493,12 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamControllerAddStreamState;
   });
   let _StreamControllerAddStreamState = _StreamControllerAddStreamState$();
-  let _EventSink$ = dart.generic(function(T) {
+  const _EventSink$ = dart.generic(function(T) {
     class _EventSink extends core.Object {}
     return _EventSink;
   });
   let _EventSink = _EventSink$();
-  let _EventDispatch$ = dart.generic(function(T) {
+  const _EventDispatch$ = dart.generic(function(T) {
     class _EventDispatch extends core.Object {}
     return _EventDispatch;
   });
@@ -3512,9 +3512,9 @@ dart_library.library('dart/async', null, /* Imports */[
   _BufferingStreamSubscription._STATE_HAS_PENDING = 64;
   _BufferingStreamSubscription._STATE_PAUSE_COUNT = 128;
   _BufferingStreamSubscription._STATE_PAUSE_COUNT_SHIFT = 7;
-  let _EventGenerator = dart.typedef('_EventGenerator', () => dart.functionType(_PendingEvents, []));
-  let _isUsed = Symbol('_isUsed');
-  let _GeneratedStreamImpl$ = dart.generic(function(T) {
+  const _EventGenerator = dart.typedef('_EventGenerator', () => dart.functionType(_PendingEvents, []));
+  const _isUsed = Symbol('_isUsed');
+  const _GeneratedStreamImpl$ = dart.generic(function(T) {
     class _GeneratedStreamImpl extends _StreamImpl$(T) {
       _GeneratedStreamImpl(pending) {
         this[_pending] = pending;
@@ -3540,7 +3540,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _GeneratedStreamImpl;
   });
   let _GeneratedStreamImpl = _GeneratedStreamImpl$();
-  let _eventScheduled = Symbol('_eventScheduled');
+  const _eventScheduled = Symbol('_eventScheduled');
   class _PendingEvents extends core.Object {
     _PendingEvents() {
       this[_state] = _PendingEvents._STATE_UNSCHEDULED;
@@ -3580,8 +3580,8 @@ dart_library.library('dart/async', null, /* Imports */[
       cancelSchedule: [dart.void, []]
     })
   });
-  let _iterator = Symbol('_iterator');
-  let _IterablePendingEvents$ = dart.generic(function(T) {
+  const _iterator = Symbol('_iterator');
+  const _IterablePendingEvents$ = dart.generic(function(T) {
     class _IterablePendingEvents extends _PendingEvents {
       _IterablePendingEvents(data) {
         this[_iterator] = data[dartx.iterator];
@@ -3627,12 +3627,12 @@ dart_library.library('dart/async', null, /* Imports */[
     return _IterablePendingEvents;
   });
   let _IterablePendingEvents = _IterablePendingEvents$();
-  let _DataHandler$ = dart.generic(function(T) {
-    let _DataHandler = dart.typedef('_DataHandler', () => dart.functionType(dart.void, [T]));
+  const _DataHandler$ = dart.generic(function(T) {
+    const _DataHandler = dart.typedef('_DataHandler', () => dart.functionType(dart.void, [T]));
     return _DataHandler;
   });
   let _DataHandler = _DataHandler$();
-  let _DoneHandler = dart.typedef('_DoneHandler', () => dart.functionType(dart.void, []));
+  const _DoneHandler = dart.typedef('_DoneHandler', () => dart.functionType(dart.void, []));
   function _nullDataHandler(value) {
   }
   dart.fn(_nullDataHandler, dart.void, [dart.dynamic]);
@@ -3645,7 +3645,7 @@ dart_library.library('dart/async', null, /* Imports */[
   function _nullDoneHandler() {
   }
   dart.fn(_nullDoneHandler, dart.void, []);
-  let _DelayedEvent$ = dart.generic(function(T) {
+  const _DelayedEvent$ = dart.generic(function(T) {
     class _DelayedEvent extends core.Object {
       _DelayedEvent() {
         this.next = null;
@@ -3654,7 +3654,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _DelayedEvent;
   });
   let _DelayedEvent = _DelayedEvent$();
-  let _DelayedData$ = dart.generic(function(T) {
+  const _DelayedData$ = dart.generic(function(T) {
     class _DelayedData extends _DelayedEvent$(T) {
       _DelayedData(value) {
         this.value = value;
@@ -3745,8 +3745,8 @@ dart_library.library('dart/async', null, /* Imports */[
       clear: [dart.void, []]
     })
   });
-  let _unlink = Symbol('_unlink');
-  let _insertBefore = Symbol('_insertBefore');
+  const _unlink = Symbol('_unlink');
+  const _insertBefore = Symbol('_insertBefore');
   class _BroadcastLinkedList extends core.Object {
     _BroadcastLinkedList() {
       this[_next] = null;
@@ -3771,11 +3771,11 @@ dart_library.library('dart/async', null, /* Imports */[
       [_insertBefore]: [dart.void, [_BroadcastLinkedList]]
     })
   });
-  let _broadcastCallback = dart.typedef('_broadcastCallback', () => dart.functionType(dart.void, [StreamSubscription]));
-  let _schedule = Symbol('_schedule');
-  let _isSent = Symbol('_isSent');
-  let _isScheduled = Symbol('_isScheduled');
-  let _DoneStreamSubscription$ = dart.generic(function(T) {
+  const _broadcastCallback = dart.typedef('_broadcastCallback', () => dart.functionType(dart.void, [StreamSubscription]));
+  const _schedule = Symbol('_schedule');
+  const _isSent = Symbol('_isSent');
+  const _isScheduled = Symbol('_isScheduled');
+  const _DoneStreamSubscription$ = dart.generic(function(T) {
     class _DoneStreamSubscription extends core.Object {
       _DoneStreamSubscription(onDone) {
         this[_onDone] = onDone;
@@ -3863,14 +3863,14 @@ dart_library.library('dart/async', null, /* Imports */[
   _DoneStreamSubscription._DONE_SENT = 1;
   _DoneStreamSubscription._SCHEDULED = 2;
   _DoneStreamSubscription._PAUSED = 4;
-  let _source = Symbol('_source');
-  let _onListenHandler = Symbol('_onListenHandler');
-  let _onCancelHandler = Symbol('_onCancelHandler');
-  let _cancelSubscription = Symbol('_cancelSubscription');
-  let _pauseSubscription = Symbol('_pauseSubscription');
-  let _resumeSubscription = Symbol('_resumeSubscription');
-  let _isSubscriptionPaused = Symbol('_isSubscriptionPaused');
-  let _AsBroadcastStream$ = dart.generic(function(T) {
+  const _source = Symbol('_source');
+  const _onListenHandler = Symbol('_onListenHandler');
+  const _onCancelHandler = Symbol('_onCancelHandler');
+  const _cancelSubscription = Symbol('_cancelSubscription');
+  const _pauseSubscription = Symbol('_pauseSubscription');
+  const _resumeSubscription = Symbol('_resumeSubscription');
+  const _isSubscriptionPaused = Symbol('_isSubscriptionPaused');
+  const _AsBroadcastStream$ = dart.generic(function(T) {
     class _AsBroadcastStream extends Stream$(T) {
       _AsBroadcastStream(source, onListenHandler, onCancelHandler) {
         this[_source] = source;
@@ -3955,7 +3955,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _AsBroadcastStream;
   });
   let _AsBroadcastStream = _AsBroadcastStream$();
-  let _BroadcastSubscriptionWrapper$ = dart.generic(function(T) {
+  const _BroadcastSubscriptionWrapper$ = dart.generic(function(T) {
     class _BroadcastSubscriptionWrapper extends core.Object {
       _BroadcastSubscriptionWrapper(stream) {
         this[_stream] = stream;
@@ -4008,10 +4008,10 @@ dart_library.library('dart/async', null, /* Imports */[
     return _BroadcastSubscriptionWrapper;
   });
   let _BroadcastSubscriptionWrapper = _BroadcastSubscriptionWrapper$();
-  let _current = Symbol('_current');
-  let _futureOrPrefetch = Symbol('_futureOrPrefetch');
-  let _clear = Symbol('_clear');
-  let _StreamIteratorImpl$ = dart.generic(function(T) {
+  const _current = Symbol('_current');
+  const _futureOrPrefetch = Symbol('_futureOrPrefetch');
+  const _clear = Symbol('_clear');
+  const _StreamIteratorImpl$ = dart.generic(function(T) {
     class _StreamIteratorImpl extends core.Object {
       _StreamIteratorImpl(stream) {
         this[_subscription] = null;
@@ -4141,13 +4141,13 @@ dart_library.library('dart/async', null, /* Imports */[
   _StreamIteratorImpl._STATE_EXTRA_DATA = 3;
   _StreamIteratorImpl._STATE_EXTRA_ERROR = 4;
   _StreamIteratorImpl._STATE_EXTRA_DONE = 5;
-  let __CastType20$ = dart.generic(function(T) {
-    let __CastType20 = dart.typedef('__CastType20', () => dart.functionType(dart.void, [T]));
+  const __CastType20$ = dart.generic(function(T) {
+    const __CastType20 = dart.typedef('__CastType20', () => dart.functionType(dart.void, [T]));
     return __CastType20;
   });
   let __CastType20 = __CastType20$();
-  let __CastType22 = dart.typedef('__CastType22', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
-  let __CastType25 = dart.typedef('__CastType25', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const __CastType22 = dart.typedef('__CastType22', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  const __CastType25 = dart.typedef('__CastType25', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   function _runUserCode(userCode, onSuccess, onError) {
     try {
       dart.dcall(onSuccess, userCode());
@@ -4196,10 +4196,10 @@ dart_library.library('dart/async', null, /* Imports */[
     }
   }
   dart.fn(_cancelAndValue, dart.void, [StreamSubscription, _Future, dart.dynamic]);
-  let _handleData = Symbol('_handleData');
-  let _handleError = Symbol('_handleError');
-  let _handleDone = Symbol('_handleDone');
-  let _ForwardingStream$ = dart.generic(function(S, T) {
+  const _handleData = Symbol('_handleData');
+  const _handleError = Symbol('_handleError');
+  const _handleDone = Symbol('_handleDone');
+  const _ForwardingStream$ = dart.generic(function(S, T) {
     class _ForwardingStream extends Stream$(T) {
       _ForwardingStream(source) {
         this[_source] = source;
@@ -4250,7 +4250,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _ForwardingStream;
   });
   let _ForwardingStream = _ForwardingStream$();
-  let _ForwardingStreamSubscription$ = dart.generic(function(S, T) {
+  const _ForwardingStreamSubscription$ = dart.generic(function(S, T) {
     class _ForwardingStreamSubscription extends _BufferingStreamSubscription$(T) {
       _ForwardingStreamSubscription(stream, onData, onError, onDone, cancelOnError) {
         this[_stream] = stream;
@@ -4310,8 +4310,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _ForwardingStreamSubscription;
   });
   let _ForwardingStreamSubscription = _ForwardingStreamSubscription$();
-  let _Predicate$ = dart.generic(function(T) {
-    let _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
+  const _Predicate$ = dart.generic(function(T) {
+    const _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
     return _Predicate;
   });
   let _Predicate = _Predicate$();
@@ -4324,8 +4324,8 @@ dart_library.library('dart/async', null, /* Imports */[
     sink[_addError](error, dart.as(stackTrace, core.StackTrace));
   }
   dart.fn(_addErrorWithReplacement, dart.void, [_EventSink, dart.dynamic, dart.dynamic]);
-  let _test = Symbol('_test');
-  let _WhereStream$ = dart.generic(function(T) {
+  const _test = Symbol('_test');
+  const _WhereStream$ = dart.generic(function(T) {
     class _WhereStream extends _ForwardingStream$(T, T) {
       _WhereStream(source, test) {
         this[_test] = test;
@@ -4355,13 +4355,13 @@ dart_library.library('dart/async', null, /* Imports */[
     return _WhereStream;
   });
   let _WhereStream = _WhereStream$();
-  let _Transformation$ = dart.generic(function(S, T) {
-    let _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
+  const _Transformation$ = dart.generic(function(S, T) {
+    const _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
     return _Transformation;
   });
   let _Transformation = _Transformation$();
-  let _transform = Symbol('_transform');
-  let _MapStream$ = dart.generic(function(S, T) {
+  const _transform = Symbol('_transform');
+  const _MapStream$ = dart.generic(function(S, T) {
     class _MapStream extends _ForwardingStream$(S, T) {
       _MapStream(source, transform) {
         this[_transform] = transform;
@@ -4389,8 +4389,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _MapStream;
   });
   let _MapStream = _MapStream$();
-  let _expand = Symbol('_expand');
-  let _ExpandStream$ = dart.generic(function(S, T) {
+  const _expand = Symbol('_expand');
+  const _ExpandStream$ = dart.generic(function(S, T) {
     class _ExpandStream extends _ForwardingStream$(S, T) {
       _ExpandStream(source, expand) {
         this[_expand] = expand;
@@ -4417,8 +4417,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _ExpandStream;
   });
   let _ExpandStream = _ExpandStream$();
-  let _ErrorTest = dart.typedef('_ErrorTest', () => dart.functionType(core.bool, [dart.dynamic]));
-  let _HandleErrorStream$ = dart.generic(function(T) {
+  const _ErrorTest = dart.typedef('_ErrorTest', () => dart.functionType(core.bool, [dart.dynamic]));
+  const _HandleErrorStream$ = dart.generic(function(T) {
     class _HandleErrorStream extends _ForwardingStream$(T, T) {
       _HandleErrorStream(source, onError, test) {
         this[_transform] = onError;
@@ -4463,8 +4463,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _HandleErrorStream;
   });
   let _HandleErrorStream = _HandleErrorStream$();
-  let _remaining = Symbol('_remaining');
-  let _TakeStream$ = dart.generic(function(T) {
+  const _remaining = Symbol('_remaining');
+  const _TakeStream$ = dart.generic(function(T) {
     class _TakeStream extends _ForwardingStream$(T, T) {
       _TakeStream(source, count) {
         this[_remaining] = count;
@@ -4491,7 +4491,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _TakeStream;
   });
   let _TakeStream = _TakeStream$();
-  let _TakeWhileStream$ = dart.generic(function(T) {
+  const _TakeWhileStream$ = dart.generic(function(T) {
     class _TakeWhileStream extends _ForwardingStream$(T, T) {
       _TakeWhileStream(source, test) {
         this[_test] = test;
@@ -4524,7 +4524,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _TakeWhileStream;
   });
   let _TakeWhileStream = _TakeWhileStream$();
-  let _SkipStream$ = dart.generic(function(T) {
+  const _SkipStream$ = dart.generic(function(T) {
     class _SkipStream extends _ForwardingStream$(T, T) {
       _SkipStream(source, count) {
         this[_remaining] = count;
@@ -4549,8 +4549,8 @@ dart_library.library('dart/async', null, /* Imports */[
     return _SkipStream;
   });
   let _SkipStream = _SkipStream$();
-  let _hasFailed = Symbol('_hasFailed');
-  let _SkipWhileStream$ = dart.generic(function(T) {
+  const _hasFailed = Symbol('_hasFailed');
+  const _SkipWhileStream$ = dart.generic(function(T) {
     class _SkipWhileStream extends _ForwardingStream$(T, T) {
       _SkipWhileStream(source, test) {
         this[_test] = test;
@@ -4587,13 +4587,13 @@ dart_library.library('dart/async', null, /* Imports */[
     return _SkipWhileStream;
   });
   let _SkipWhileStream = _SkipWhileStream$();
-  let _Equality$ = dart.generic(function(T) {
-    let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [T, T]));
+  const _Equality$ = dart.generic(function(T) {
+    const _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [T, T]));
     return _Equality;
   });
   let _Equality = _Equality$();
-  let _equals = Symbol('_equals');
-  let _DistinctStream$ = dart.generic(function(T) {
+  const _equals = Symbol('_equals');
+  const _DistinctStream$ = dart.generic(function(T) {
     class _DistinctStream extends _ForwardingStream$(T, T) {
       _DistinctStream(source, equals) {
         this[_previous] = _DistinctStream$()._SENTINEL;
@@ -4640,7 +4640,7 @@ dart_library.library('dart/async', null, /* Imports */[
     },
     set _SENTINEL(_) {}
   });
-  let _EventSinkWrapper$ = dart.generic(function(T) {
+  const _EventSinkWrapper$ = dart.generic(function(T) {
     class _EventSinkWrapper extends core.Object {
       _EventSinkWrapper(sink) {
         this[_sink] = sink;
@@ -4670,9 +4670,9 @@ dart_library.library('dart/async', null, /* Imports */[
     return _EventSinkWrapper;
   });
   let _EventSinkWrapper = _EventSinkWrapper$();
-  let _transformerSink = Symbol('_transformerSink');
-  let _isSubscribed = Symbol('_isSubscribed');
-  let _SinkTransformerStreamSubscription$ = dart.generic(function(S, T) {
+  const _transformerSink = Symbol('_transformerSink');
+  const _isSubscribed = Symbol('_isSubscribed');
+  const _SinkTransformerStreamSubscription$ = dart.generic(function(S, T) {
     class _SinkTransformerStreamSubscription extends _BufferingStreamSubscription$(T) {
       _SinkTransformerStreamSubscription(source, mapper, onData, onError, onDone, cancelOnError) {
         this[_transformerSink] = null;
@@ -4768,13 +4768,13 @@ dart_library.library('dart/async', null, /* Imports */[
     return _SinkTransformerStreamSubscription;
   });
   let _SinkTransformerStreamSubscription = _SinkTransformerStreamSubscription$();
-  let _SinkMapper$ = dart.generic(function(S, T) {
-    let _SinkMapper = dart.typedef('_SinkMapper', () => dart.functionType(EventSink$(S), [EventSink$(T)]));
+  const _SinkMapper$ = dart.generic(function(S, T) {
+    const _SinkMapper = dart.typedef('_SinkMapper', () => dart.functionType(EventSink$(S), [EventSink$(T)]));
     return _SinkMapper;
   });
   let _SinkMapper = _SinkMapper$();
-  let _sinkMapper = Symbol('_sinkMapper');
-  let _StreamSinkTransformer$ = dart.generic(function(S, T) {
+  const _sinkMapper = Symbol('_sinkMapper');
+  const _StreamSinkTransformer$ = dart.generic(function(S, T) {
     class _StreamSinkTransformer extends core.Object {
       _StreamSinkTransformer(sinkMapper) {
         this[_sinkMapper] = sinkMapper;
@@ -4792,7 +4792,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamSinkTransformer;
   });
   let _StreamSinkTransformer = _StreamSinkTransformer$();
-  let _BoundSinkStream$ = dart.generic(function(S, T) {
+  const _BoundSinkStream$ = dart.generic(function(S, T) {
     class _BoundSinkStream extends Stream$(T) {
       get isBroadcast() {
         return this[_stream].isBroadcast;
@@ -4820,22 +4820,22 @@ dart_library.library('dart/async', null, /* Imports */[
     return _BoundSinkStream;
   });
   let _BoundSinkStream = _BoundSinkStream$();
-  let _TransformDataHandler$ = dart.generic(function(S, T) {
-    let _TransformDataHandler = dart.typedef('_TransformDataHandler', () => dart.functionType(dart.void, [S, EventSink$(T)]));
+  const _TransformDataHandler$ = dart.generic(function(S, T) {
+    const _TransformDataHandler = dart.typedef('_TransformDataHandler', () => dart.functionType(dart.void, [S, EventSink$(T)]));
     return _TransformDataHandler;
   });
   let _TransformDataHandler = _TransformDataHandler$();
-  let _TransformErrorHandler$ = dart.generic(function(T) {
-    let _TransformErrorHandler = dart.typedef('_TransformErrorHandler', () => dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
+  const _TransformErrorHandler$ = dart.generic(function(T) {
+    const _TransformErrorHandler = dart.typedef('_TransformErrorHandler', () => dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
     return _TransformErrorHandler;
   });
   let _TransformErrorHandler = _TransformErrorHandler$();
-  let _TransformDoneHandler$ = dart.generic(function(T) {
-    let _TransformDoneHandler = dart.typedef('_TransformDoneHandler', () => dart.functionType(dart.void, [EventSink$(T)]));
+  const _TransformDoneHandler$ = dart.generic(function(T) {
+    const _TransformDoneHandler = dart.typedef('_TransformDoneHandler', () => dart.functionType(dart.void, [EventSink$(T)]));
     return _TransformDoneHandler;
   });
   let _TransformDoneHandler = _TransformDoneHandler$();
-  let _HandlerEventSink$ = dart.generic(function(S, T) {
+  const _HandlerEventSink$ = dart.generic(function(S, T) {
     class _HandlerEventSink extends core.Object {
       _HandlerEventSink(handleData, handleError, handleDone, sink) {
         this[_handleData] = handleData;
@@ -4868,7 +4868,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _HandlerEventSink;
   });
   let _HandlerEventSink = _HandlerEventSink$();
-  let _StreamHandlerTransformer$ = dart.generic(function(S, T) {
+  const _StreamHandlerTransformer$ = dart.generic(function(S, T) {
     class _StreamHandlerTransformer extends _StreamSinkTransformer$(S, T) {
       _StreamHandlerTransformer(opts) {
         let handleData = opts && 'handleData' in opts ? opts.handleData : null;
@@ -4912,13 +4912,13 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamHandlerTransformer;
   });
   let _StreamHandlerTransformer = _StreamHandlerTransformer$();
-  let _SubscriptionTransformer$ = dart.generic(function(S, T) {
-    let _SubscriptionTransformer = dart.typedef('_SubscriptionTransformer', () => dart.functionType(StreamSubscription$(T), [Stream$(S), core.bool]));
+  const _SubscriptionTransformer$ = dart.generic(function(S, T) {
+    const _SubscriptionTransformer = dart.typedef('_SubscriptionTransformer', () => dart.functionType(StreamSubscription$(T), [Stream$(S), core.bool]));
     return _SubscriptionTransformer;
   });
   let _SubscriptionTransformer = _SubscriptionTransformer$();
-  let _transformer = Symbol('_transformer');
-  let _StreamSubscriptionTransformer$ = dart.generic(function(S, T) {
+  const _transformer = Symbol('_transformer');
+  const _StreamSubscriptionTransformer$ = dart.generic(function(S, T) {
     class _StreamSubscriptionTransformer extends core.Object {
       _StreamSubscriptionTransformer(transformer) {
         this[_transformer] = transformer;
@@ -4936,7 +4936,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamSubscriptionTransformer;
   });
   let _StreamSubscriptionTransformer = _StreamSubscriptionTransformer$();
-  let _BoundSubscriptionStream$ = dart.generic(function(S, T) {
+  const _BoundSubscriptionStream$ = dart.generic(function(S, T) {
     class _BoundSubscriptionStream extends Stream$(T) {
       _BoundSubscriptionStream(stream, transformer) {
         this[_stream] = stream;
@@ -4964,13 +4964,13 @@ dart_library.library('dart/async', null, /* Imports */[
     return _BoundSubscriptionStream;
   });
   let _BoundSubscriptionStream = _BoundSubscriptionStream$();
-  let __CastType27$ = dart.generic(function(S, T) {
-    let __CastType27 = dart.typedef('__CastType27', () => dart.functionType(dart.void, [S, EventSink$(T)]));
+  const __CastType27$ = dart.generic(function(S, T) {
+    const __CastType27 = dart.typedef('__CastType27', () => dart.functionType(dart.void, [S, EventSink$(T)]));
     return __CastType27;
   });
   let __CastType27 = __CastType27$();
-  let __CastType30$ = dart.generic(function(T) {
-    let __CastType30 = dart.typedef('__CastType30', () => dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
+  const __CastType30$ = dart.generic(function(T) {
+    const __CastType30 = dart.typedef('__CastType30', () => dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]));
     return __CastType30;
   });
   let __CastType30 = __CastType30$();
@@ -5015,23 +5015,23 @@ dart_library.library('dart/async', null, /* Imports */[
     }),
     names: ['run', '_createTimer', '_createPeriodicTimer']
   });
-  let __CastType34 = dart.typedef('__CastType34', () => dart.functionType(dart.void, [Timer]));
-  let ZoneCallback = dart.typedef('ZoneCallback', () => dart.functionType(dart.dynamic, []));
-  let ZoneUnaryCallback = dart.typedef('ZoneUnaryCallback', () => dart.functionType(dart.dynamic, [dart.dynamic]));
-  let ZoneBinaryCallback = dart.typedef('ZoneBinaryCallback', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
-  let HandleUncaughtErrorHandler = dart.typedef('HandleUncaughtErrorHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.dynamic, core.StackTrace]));
-  let RunHandler = dart.typedef('RunHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  let RunUnaryHandler = dart.typedef('RunUnaryHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]));
-  let RunBinaryHandler = dart.typedef('RunBinaryHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]));
-  let RegisterCallbackHandler = dart.typedef('RegisterCallbackHandler', () => dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  let RegisterUnaryCallbackHandler = dart.typedef('RegisterUnaryCallbackHandler', () => dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic])]));
-  let RegisterBinaryCallbackHandler = dart.typedef('RegisterBinaryCallbackHandler', () => dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]));
-  let ErrorCallbackHandler = dart.typedef('ErrorCallbackHandler', () => dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]));
-  let ScheduleMicrotaskHandler = dart.typedef('ScheduleMicrotaskHandler', () => dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
-  let CreateTimerHandler = dart.typedef('CreateTimerHandler', () => dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]));
-  let CreatePeriodicTimerHandler = dart.typedef('CreatePeriodicTimerHandler', () => dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]));
-  let PrintHandler = dart.typedef('PrintHandler', () => dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]));
-  let ForkHandler = dart.typedef('ForkHandler', () => dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map]));
+  const __CastType34 = dart.typedef('__CastType34', () => dart.functionType(dart.void, [Timer]));
+  const ZoneCallback = dart.typedef('ZoneCallback', () => dart.functionType(dart.dynamic, []));
+  const ZoneUnaryCallback = dart.typedef('ZoneUnaryCallback', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const ZoneBinaryCallback = dart.typedef('ZoneBinaryCallback', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  const HandleUncaughtErrorHandler = dart.typedef('HandleUncaughtErrorHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.dynamic, core.StackTrace]));
+  const RunHandler = dart.typedef('RunHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
+  const RunUnaryHandler = dart.typedef('RunUnaryHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic]), dart.dynamic]));
+  const RunBinaryHandler = dart.typedef('RunBinaryHandler', () => dart.functionType(dart.dynamic, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), dart.dynamic, dart.dynamic]));
+  const RegisterCallbackHandler = dart.typedef('RegisterCallbackHandler', () => dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
+  const RegisterUnaryCallbackHandler = dart.typedef('RegisterUnaryCallbackHandler', () => dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic])]));
+  const RegisterBinaryCallbackHandler = dart.typedef('RegisterBinaryCallbackHandler', () => dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]));
+  const ErrorCallbackHandler = dart.typedef('ErrorCallbackHandler', () => dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]));
+  const ScheduleMicrotaskHandler = dart.typedef('ScheduleMicrotaskHandler', () => dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(dart.dynamic, [])]));
+  const CreateTimerHandler = dart.typedef('CreateTimerHandler', () => dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]));
+  const CreatePeriodicTimerHandler = dart.typedef('CreatePeriodicTimerHandler', () => dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]));
+  const PrintHandler = dart.typedef('PrintHandler', () => dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]));
+  const ForkHandler = dart.typedef('ForkHandler', () => dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map]));
   class _ZoneFunction extends core.Object {
     _ZoneFunction(zone, func) {
       this.zone = zone;
@@ -5142,21 +5142,21 @@ dart_library.library('dart/async', null, /* Imports */[
     constructors: () => ({_Zone: [_Zone, []]}),
     methods: () => ({inSameErrorZone: [core.bool, [Zone]]})
   });
-  let _run = Symbol('_run');
-  let _runUnary = Symbol('_runUnary');
-  let _runBinary = Symbol('_runBinary');
-  let _registerCallback = Symbol('_registerCallback');
-  let _registerUnaryCallback = Symbol('_registerUnaryCallback');
-  let _registerBinaryCallback = Symbol('_registerBinaryCallback');
-  let _errorCallback = Symbol('_errorCallback');
-  let _scheduleMicrotask = Symbol('_scheduleMicrotask');
-  let _createTimer = Symbol('_createTimer');
-  let _createPeriodicTimer = Symbol('_createPeriodicTimer');
-  let _print = Symbol('_print');
-  let _fork = Symbol('_fork');
-  let _handleUncaughtError = Symbol('_handleUncaughtError');
-  let _map = Symbol('_map');
-  let _delegate = Symbol('_delegate');
+  const _run = Symbol('_run');
+  const _runUnary = Symbol('_runUnary');
+  const _runBinary = Symbol('_runBinary');
+  const _registerCallback = Symbol('_registerCallback');
+  const _registerUnaryCallback = Symbol('_registerUnaryCallback');
+  const _registerBinaryCallback = Symbol('_registerBinaryCallback');
+  const _errorCallback = Symbol('_errorCallback');
+  const _scheduleMicrotask = Symbol('_scheduleMicrotask');
+  const _createTimer = Symbol('_createTimer');
+  const _createPeriodicTimer = Symbol('_createPeriodicTimer');
+  const _print = Symbol('_print');
+  const _fork = Symbol('_fork');
+  const _handleUncaughtError = Symbol('_handleUncaughtError');
+  const _map = Symbol('_map');
+  const _delegate = Symbol('_delegate');
   class _RootZone extends _Zone {
     _RootZone() {
       super._Zone();
@@ -5350,7 +5350,7 @@ dart_library.library('dart/async', null, /* Imports */[
       print: [dart.void, [core.String]]
     })
   });
-  let _ROOT_ZONE = dart.const(new _RootZone());
+  const _ROOT_ZONE = dart.const(new _RootZone());
   Zone.ROOT = _ROOT_ZONE;
   Zone._current = _ROOT_ZONE;
   function _parentDelegate(zone) {
@@ -5359,7 +5359,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return zone.parent[_delegate];
   }
   dart.fn(_parentDelegate, ZoneDelegate, [_Zone]);
-  let _delegationTarget = Symbol('_delegationTarget');
+  const _delegationTarget = Symbol('_delegationTarget');
   class _ZoneDelegate extends core.Object {
     _ZoneDelegate(delegationTarget) {
       this[_delegationTarget] = delegationTarget;
@@ -5451,7 +5451,7 @@ dart_library.library('dart/async', null, /* Imports */[
       fork: [Zone, [Zone, ZoneSpecification, core.Map]]
     })
   });
-  let _delegateCache = Symbol('_delegateCache');
+  const _delegateCache = Symbol('_delegateCache');
   class _CustomZone extends _Zone {
     get [_delegate]() {
       if (this[_delegateCache] != null)
@@ -5861,8 +5861,8 @@ dart_library.library('dart/async', null, /* Imports */[
     }
   }
   dart.fn(runZoned, dart.dynamic, [dart.functionType(dart.dynamic, [])], {zoneValues: core.Map, zoneSpecification: ZoneSpecification, onError: core.Function});
-  let __CastType36 = dart.typedef('__CastType36', () => dart.functionType(dart.void, [Timer]));
-  let __CastType38 = dart.typedef('__CastType38', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const __CastType36 = dart.typedef('__CastType36', () => dart.functionType(dart.void, [Timer]));
+  const __CastType38 = dart.typedef('__CastType38', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   dart.copyProperties(exports, {
     get _hasDocument() {
       return typeof document == 'object';

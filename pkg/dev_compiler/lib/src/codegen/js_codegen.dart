@@ -293,7 +293,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   }
 
   JS.Identifier _initSymbol(JS.Identifier id) {
-    var s = js.statement('let # = $_SYMBOL(#);', [id, js.string(id.name, "'")]);
+    var s =
+        js.statement('const # = $_SYMBOL(#);', [id, js.string(id.name, "'")]);
     _moduleItems.add(s);
     return id;
   }
@@ -366,7 +367,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var name = element.name;
 
     var fnType = annotateTypeDef(
-        js.statement('let # = dart.typedef(#, () => #);', [
+        js.statement('const # = dart.typedef(#, () => #);', [
           name,
           js.string(name, "'"),
           _emitTypeName(type, lowerTypedef: true)
@@ -412,7 +413,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       // TODO(jmesserly): if we had the JS name on the Element, we could just
       // generate it correctly when we refer to it.
       if (isPublic(dartClassName)) _addExport(dartClassName);
-      return js.statement('let # = #;', [dartClassName, jsTypeName]);
+      return js.statement('const # = #;', [dartClassName, jsTypeName]);
     }
     return null;
   }
@@ -562,7 +563,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var genericName = '$name\$';
     var typeParams = type.typeParameters.map((p) => p.name);
     if (isPublic(name)) _exports.add(genericName);
-    return js.statement('let # = dart.generic(function(#) { #; return #; });',
+    return js.statement('const # = dart.generic(function(#) { #; return #; });',
         [genericName, typeParams, body, name]);
   }
 
@@ -1460,7 +1461,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     var name = new JS.Identifier(func.name.name);
     JS.Statement declareFn;
     if (JS.This.foundIn(fn)) {
-      declareFn = js.statement('let # = #.bind(this);', [name, fn]);
+      declareFn = js.statement('const # = #.bind(this);', [name, fn]);
     } else {
       declareFn = new JS.FunctionDeclaration(name, fn);
     }
@@ -2047,8 +2048,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       // anything they depend on first.
 
       if (isPublic(fieldName)) _addExport(fieldName);
+      var declKeyword = field.isConst || field.isFinal ? 'const' : 'let';
       return annotateVariable(
-          js.statement('let # = #;', [new JS.Identifier(fieldName), jsInit]),
+          js.statement(
+              '$declKeyword # = #;', [new JS.Identifier(fieldName), jsInit]),
           field.element);
     }
 

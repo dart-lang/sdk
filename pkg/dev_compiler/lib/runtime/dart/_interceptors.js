@@ -9,7 +9,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
 ], function(exports, dart, core, _internal, collection, math, _js_helper) {
   'use strict';
   let dartx = dart.dartx;
-  let JSArray$ = dart.generic(function(E) {
+  const JSArray$ = dart.generic(function(E) {
     dart.defineExtensionNames([
       'checkGrowable',
       'add',
@@ -456,7 +456,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
   });
   let JSArray = JSArray$();
   dart.registerExtension(dart.global.Array, JSArray);
-  let JSMutableArray$ = dart.generic(function(E) {
+  const JSMutableArray$ = dart.generic(function(E) {
     class JSMutableArray extends JSArray$(E) {
       JSMutableArray() {
         super.JSArray();
@@ -466,12 +466,12 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     return JSMutableArray;
   });
   let JSMutableArray = JSMutableArray$();
-  let JSFixedArray$ = dart.generic(function(E) {
+  const JSFixedArray$ = dart.generic(function(E) {
     class JSFixedArray extends JSMutableArray$(E) {}
     return JSFixedArray;
   });
   let JSFixedArray = JSFixedArray$();
-  let JSExtendableArray$ = dart.generic(function(E) {
+  const JSExtendableArray$ = dart.generic(function(E) {
     class JSExtendableArray extends JSMutableArray$(E) {}
     return JSExtendableArray;
   });
@@ -483,11 +483,11 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
   dart.setSignature(Interceptor, {
     constructors: () => ({Interceptor: [Interceptor, []]})
   });
-  let _isInt32 = Symbol('_isInt32');
-  let _tdivSlow = Symbol('_tdivSlow');
-  let _shlPositive = Symbol('_shlPositive');
-  let _shrOtherPositive = Symbol('_shrOtherPositive');
-  let _shrBothPositive = Symbol('_shrBothPositive');
+  const _isInt32 = Symbol('_isInt32');
+  const _tdivSlow = Symbol('_tdivSlow');
+  const _shlPositive = Symbol('_shlPositive');
+  const _shrOtherPositive = Symbol('_shrOtherPositive');
+  const _shrBothPositive = Symbol('_shrBothPositive');
   dart.defineExtensionNames([
     'compareTo',
     'isNegative',
@@ -912,7 +912,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
   dart.registerExtension(dart.global.Number, JSNumber);
   JSNumber._MIN_INT32 = -2147483648;
   JSNumber._MAX_INT32 = 2147483647;
-  let _defaultSplit = Symbol('_defaultSplit');
+  const _defaultSplit = Symbol('_defaultSplit');
   dart.defineExtensionNames([
     'codeUnitAt',
     'allMatches',
@@ -1405,7 +1405,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
   });
   JSString[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'String'}))];
   dart.registerExtension(dart.global.String, JSString);
-  let _string = Symbol('_string');
+  const _string = Symbol('_string');
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
     _CodeUnits(string) {
       this[_string] = string;

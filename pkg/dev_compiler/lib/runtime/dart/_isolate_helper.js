@@ -27,12 +27,12 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     return deserializer.deserialize(serializer.serialize(message));
   }
   dart.fn(_clone);
-  let _serializeSendPorts = Symbol('_serializeSendPorts');
-  let _workerId = Symbol('_workerId');
-  let _isolateId = Symbol('_isolateId');
-  let _receivePortId = Symbol('_receivePortId');
-  let _id = Symbol('_id');
-  let _receivePort = Symbol('_receivePort');
+  const _serializeSendPorts = Symbol('_serializeSendPorts');
+  const _workerId = Symbol('_workerId');
+  const _isolateId = Symbol('_isolateId');
+  const _receivePortId = Symbol('_receivePortId');
+  const _id = Symbol('_id');
+  const _receivePort = Symbol('_receivePort');
   class _Serializer extends core.Object {
     _Serializer(opts) {
       let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
@@ -189,7 +189,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       serializeDartObject: [dart.dynamic, [dart.dynamic]]
     })
   });
-  let _adjustSendPorts = Symbol('_adjustSendPorts');
+  const _adjustSendPorts = Symbol('_adjustSendPorts');
   class _Deserializer extends core.Object {
     _Deserializer(opts) {
       let adjustSendPorts = opts && 'adjustSendPorts' in opts ? opts.adjustSendPorts : true;
@@ -403,14 +403,14 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       deserializeDartObject: [dart.dynamic, [dart.dynamic]]
     })
   });
-  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   function _callInIsolate(isolate, func) {
     let result = isolate.eval(func);
     exports._globalState.topEventLoop.run();
     return result;
   }
   dart.fn(_callInIsolate, () => dart.definiteFunctionType(dart.dynamic, [_IsolateContext, core.Function]));
-  let _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
+  const _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
   function enterJsAsync() {
     let o = exports._globalState.topEventLoop;
     o[_activeJsAsyncCount] = dart.notNull(o[_activeJsAsyncCount]) + 1;
@@ -465,8 +465,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       dart.globalState = val;
     }
   });
-  let _nativeDetectEnvironment = Symbol('_nativeDetectEnvironment');
-  let _nativeInitWorkerMessageHandler = Symbol('_nativeInitWorkerMessageHandler');
+  const _nativeDetectEnvironment = Symbol('_nativeDetectEnvironment');
+  const _nativeInitWorkerMessageHandler = Symbol('_nativeInitWorkerMessageHandler');
   class _Manager extends core.Object {
     get useWorkers() {
       return this.supportsWorkers;
@@ -537,12 +537,12 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     statics: () => ({_serializePrintMessage: [dart.dynamic, [dart.dynamic]]}),
     names: ['_serializePrintMessage']
   });
-  let _scheduledControlEvents = Symbol('_scheduledControlEvents');
-  let _isExecutingEvent = Symbol('_isExecutingEvent');
-  let _updateGlobalState = Symbol('_updateGlobalState');
-  let _setGlobals = Symbol('_setGlobals');
-  let _addRegistration = Symbol('_addRegistration');
-  let _close = Symbol('_close');
+  const _scheduledControlEvents = Symbol('_scheduledControlEvents');
+  const _isExecutingEvent = Symbol('_isExecutingEvent');
+  const _updateGlobalState = Symbol('_updateGlobalState');
+  const _setGlobals = Symbol('_setGlobals');
+  const _addRegistration = Symbol('_addRegistration');
+  const _close = Symbol('_close');
   class _IsolateContext extends core.Object {
     _IsolateContext() {
       this.id = (() => {
@@ -826,7 +826,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       unregister: [dart.void, [core.int]]
     })
   });
-  let _runHelper = Symbol('_runHelper');
+  const _runHelper = Symbol('_runHelper');
   class _EventLoop extends core.Object {
     _EventLoop() {
       this.events = collection.Queue$(_IsolateEvent).new();
@@ -860,7 +860,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     [_runHelper]() {
       if (exports.globalWindow != null) {
-        let next = (function() {
+        const next = (function() {
           if (!dart.notNull(this.runIteration()))
             return;
           async.Timer.run(next);
@@ -929,8 +929,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   dart.setSignature(_MainManagerStub, {
     methods: () => ({postMessage: [dart.void, [dart.dynamic]]})
   });
-  let _SPAWNED_SIGNAL = "spawned";
-  let _SPAWN_FAILED_SIGNAL = "spawn failed";
+  const _SPAWNED_SIGNAL = "spawned";
+  const _SPAWN_FAILED_SIGNAL = "spawn failed";
   dart.copyProperties(exports, {
     get globalWindow() {
       return exports._global.window;
@@ -942,9 +942,9 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return !!exports._global.postMessage;
     }
   });
-  let _MainFunction = dart.typedef('_MainFunction', () => dart.functionType(dart.dynamic, []));
-  let _MainFunctionArgs = dart.typedef('_MainFunctionArgs', () => dart.functionType(dart.dynamic, [dart.dynamic]));
-  let _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  const _MainFunction = dart.typedef('_MainFunction', () => dart.functionType(dart.dynamic, []));
+  const _MainFunctionArgs = dart.typedef('_MainFunctionArgs', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   class IsolateNatives extends core.Object {
     static computeThisScript() {
       let currentScript = document.currentScript;
@@ -1249,7 +1249,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return new (core.Expando$(core.int))();
     }
   });
-  let _checkReplyTo = Symbol('_checkReplyTo');
+  const _checkReplyTo = Symbol('_checkReplyTo');
   class _BaseSendPort extends core.Object {
     _BaseSendPort(isolateId) {
       this[_isolateId] = isolateId;
@@ -1265,8 +1265,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     constructors: () => ({_BaseSendPort: [_BaseSendPort, [core.int]]}),
     methods: () => ({[_checkReplyTo]: [dart.void, [isolate.SendPort]]})
   });
-  let _isClosed = Symbol('_isClosed');
-  let _add = Symbol('_add');
+  const _isClosed = Symbol('_isClosed');
+  const _add = Symbol('_add');
   class _NativeJsSendPort extends _BaseSendPort {
     _NativeJsSendPort(receivePort, isolateId) {
       this[_receivePort] = receivePort;
@@ -1330,7 +1330,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     constructors: () => ({_WorkerSendPort: [_WorkerSendPort, [core.int, core.int, core.int]]}),
     methods: () => ({send: [dart.void, [dart.dynamic]]})
   });
-  let _handler = Symbol('_handler');
+  const _handler = Symbol('_handler');
   class RawReceivePortImpl extends core.Object {
     RawReceivePortImpl(handler) {
       this[_handler] = handler;
@@ -1396,8 +1396,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     })
   });
   RawReceivePortImpl._nextFreeId = 1;
-  let _rawPort = Symbol('_rawPort');
-  let _controller = Symbol('_controller');
+  const _rawPort = Symbol('_rawPort');
+  const _controller = Symbol('_controller');
   class ReceivePortImpl extends async.Stream {
     ReceivePortImpl() {
       this.fromRawReceivePort(new RawReceivePortImpl(null));
@@ -1440,16 +1440,16 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       close: [dart.void, []]
     })
   });
-  let _once = Symbol('_once');
-  let _inEventLoop = Symbol('_inEventLoop');
-  let _handle = Symbol('_handle');
+  const _once = Symbol('_once');
+  const _inEventLoop = Symbol('_inEventLoop');
+  const _handle = Symbol('_handle');
   class TimerImpl extends core.Object {
     TimerImpl(milliseconds, callback) {
       this[_once] = true;
       this[_inEventLoop] = false;
       this[_handle] = null;
       if (milliseconds == 0 && (!dart.notNull(hasTimer()) || dart.notNull(exports._globalState.isWorker))) {
-        let internalCallback = (function() {
+        const internalCallback = (function() {
           this[_handle] = null;
           callback();
         }).bind(this);
@@ -1458,7 +1458,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         exports._globalState.topEventLoop.enqueue(exports._globalState.currentContext, internalCallback, 'timer');
         this[_inEventLoop] = true;
       } else if (dart.notNull(hasTimer())) {
-        let internalCallback = (function() {
+        const internalCallback = (function() {
           this[_handle] = null;
           leaveJsAsync();
           callback();

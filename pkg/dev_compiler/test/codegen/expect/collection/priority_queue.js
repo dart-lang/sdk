@@ -6,20 +6,20 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
 ], function(exports, dart, core, collection) {
   'use strict';
   let dartx = dart.dartx;
-  let PriorityQueue$ = dart.generic(function(E) {
+  const PriorityQueue$ = dart.generic(function(E) {
     class PriorityQueue extends core.Object {}
     return PriorityQueue;
   });
   let PriorityQueue = PriorityQueue$();
-  let _queue = Symbol('_queue');
-  let _length = Symbol('_length');
-  let _add = Symbol('_add');
-  let _locate = Symbol('_locate');
-  let _removeLast = Symbol('_removeLast');
-  let _bubbleUp = Symbol('_bubbleUp');
-  let _bubbleDown = Symbol('_bubbleDown');
-  let _grow = Symbol('_grow');
-  let HeapPriorityQueue$ = dart.generic(function(E) {
+  const _queue = Symbol('_queue');
+  const _length = Symbol('_length');
+  const _add = Symbol('_add');
+  const _locate = Symbol('_locate');
+  const _removeLast = Symbol('_removeLast');
+  const _bubbleUp = Symbol('_bubbleUp');
+  const _bubbleDown = Symbol('_bubbleDown');
+  const _grow = Symbol('_grow');
+  const HeapPriorityQueue$ = dart.generic(function(E) {
     class HeapPriorityQueue extends core.Object {
       HeapPriorityQueue(comparison) {
         if (comparison === void 0)
@@ -237,8 +237,8 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
   });
   let HeapPriorityQueue = HeapPriorityQueue$();
   HeapPriorityQueue._INITIAL_CAPACITY = 7;
-  let __CastType0$ = dart.generic(function(E) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [E, E]));
+  const __CastType0$ = dart.generic(function(E) {
+    const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [E, E]));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();

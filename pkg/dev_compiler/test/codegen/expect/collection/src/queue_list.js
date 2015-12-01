@@ -6,14 +6,14 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
 ], function(exports, dart, core, collection) {
   'use strict';
   let dartx = dart.dartx;
-  let _head = Symbol('_head');
-  let _tail = Symbol('_tail');
-  let _table = Symbol('_table');
-  let _add = Symbol('_add');
-  let _preGrow = Symbol('_preGrow');
-  let _grow = Symbol('_grow');
-  let _writeToList = Symbol('_writeToList');
-  let QueueList$ = dart.generic(function(E) {
+  const _head = Symbol('_head');
+  const _tail = Symbol('_tail');
+  const _table = Symbol('_table');
+  const _add = Symbol('_add');
+  const _preGrow = Symbol('_preGrow');
+  const _grow = Symbol('_grow');
+  const _writeToList = Symbol('_writeToList');
+  const QueueList$ = dart.generic(function(E) {
     class QueueList extends dart.mixin(core.Object, collection.ListMixin$(E)) {
       QueueList(initialCapacity) {
         if (initialCapacity === void 0)

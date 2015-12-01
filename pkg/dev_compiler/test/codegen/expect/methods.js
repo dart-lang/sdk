@@ -5,7 +5,7 @@ dart_library.library('methods', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
-  let _c = Symbol('_c');
+  const _c = Symbol('_c');
   class A extends core.Object {
     A() {
       this[_c] = 3;

@@ -46,7 +46,7 @@ dart_library.library('unittest', null, /* Imports */[
   dart.setSignature(TestFailure, {
     constructors: () => ({TestFailure: [TestFailure, [core.String]]})
   });
-  let ErrorFormatter = dart.typedef('ErrorFormatter', () => dart.functionType(core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]));
+  const ErrorFormatter = dart.typedef('ErrorFormatter', () => dart.functionType(core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]));
   function expect(actual, matcher, opts) {
     let reason = opts && 'reason' in opts ? opts.reason : null;
     let verbose = opts && 'verbose' in opts ? opts.verbose : false;

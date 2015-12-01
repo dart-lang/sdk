@@ -48,7 +48,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
     return exports._dart.dsend(obj, name, ...args);
   }
   dart.fn(_dsend, dart.dynamic, [dart.dynamic, core.String, core.List]);
-  let _toJsMap = Symbol('_toJsMap');
+  const _toJsMap = Symbol('_toJsMap');
   class JsInstanceMirror extends core.Object {
     _(reflectee) {
       this.reflectee = reflectee;
@@ -103,9 +103,9 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       [_toJsMap]: [dart.dynamic, [core.Map$(core.Symbol, dart.dynamic)]]
     })
   });
-  let _metadata = Symbol('_metadata');
-  let _declarations = Symbol('_declarations');
-  let _cls = Symbol('_cls');
+  const _metadata = Symbol('_metadata');
+  const _declarations = Symbol('_declarations');
+  const _cls = Symbol('_cls');
   class JsClassMirror extends core.Object {
     get metadata() {
       return this[_metadata];
@@ -278,7 +278,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       isSubtypeOf: [core.bool, [mirrors.TypeMirror]]
     })
   });
-  let _name = Symbol('_name');
+  const _name = Symbol('_name');
   class JsParameterMirror extends core.Object {
     _(name, t, annotations) {
       this[_name] = name;
@@ -330,9 +330,9 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
   dart.setSignature(JsParameterMirror, {
     constructors: () => ({_: [JsParameterMirror, [core.String, core.Type, core.List]]})
   });
-  let _method = Symbol('_method');
-  let _params = Symbol('_params');
-  let _createParameterMirrorList = Symbol('_createParameterMirrorList');
+  const _method = Symbol('_method');
+  const _params = Symbol('_params');
+  const _createParameterMirrorList = Symbol('_createParameterMirrorList');
   class JsMethodMirror extends core.Object {
     _(cls, method) {
       this[_method] = method;

@@ -6,7 +6,7 @@ dart_library.library('collection/iterable_zip', null, /* Imports */[
 ], function(exports, dart, collection, core) {
   'use strict';
   let dartx = dart.dartx;
-  let _iterables = Symbol('_iterables');
+  const _iterables = Symbol('_iterables');
   class IterableZip extends collection.IterableBase$(core.List) {
     IterableZip(iterables) {
       this[_iterables] = iterables;
@@ -21,8 +21,8 @@ dart_library.library('collection/iterable_zip', null, /* Imports */[
     constructors: () => ({IterableZip: [IterableZip, [core.Iterable$(core.Iterable)]]})
   });
   dart.defineExtensionMembers(IterableZip, ['iterator']);
-  let _iterators = Symbol('_iterators');
-  let _current = Symbol('_current');
+  const _iterators = Symbol('_iterators');
+  const _current = Symbol('_current');
   class _IteratorZip extends core.Object {
     _IteratorZip(iterators) {
       this[_iterators] = dart.as(iterators, core.List$(core.Iterator));

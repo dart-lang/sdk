@@ -8,7 +8,7 @@ dart_library.library('dart/typed_data', null, /* Imports */[
   let dartx = dart.dartx;
   class ByteBuffer extends core.Object {}
   class TypedData extends core.Object {}
-  let _littleEndian = Symbol('_littleEndian');
+  const _littleEndian = Symbol('_littleEndian');
   class Endianness extends core.Object {
     _(littleEndian) {
       this[_littleEndian] = littleEndian;

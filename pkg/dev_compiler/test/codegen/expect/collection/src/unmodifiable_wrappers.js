@@ -8,7 +8,7 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
   'use strict';
   let dartx = dart.dartx;
   dart.export(exports, collection, ['UnmodifiableListView', 'UnmodifiableMapView'], []);
-  let NonGrowableListMixin$ = dart.generic(function(E) {
+  const NonGrowableListMixin$ = dart.generic(function(E) {
     class NonGrowableListMixin extends core.Object {
       static _throw() {
         dart.throw(new core.UnsupportedError("Cannot change the length of a fixed-length list"));
@@ -97,7 +97,7 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
     return NonGrowableListMixin;
   });
   let NonGrowableListMixin = NonGrowableListMixin$();
-  let NonGrowableListView$ = dart.generic(function(E) {
+  const NonGrowableListView$ = dart.generic(function(E) {
     class NonGrowableListView extends dart.mixin(wrappers.DelegatingList$(E), NonGrowableListMixin$(E)) {
       NonGrowableListView(listBase) {
         super.DelegatingList(listBase);
@@ -109,8 +109,8 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
     return NonGrowableListView;
   });
   dart.defineLazyClassGeneric(exports, 'NonGrowableListView', {get: NonGrowableListView$});
-  let _throw = Symbol('_throw');
-  let UnmodifiableSetMixin$ = dart.generic(function(E) {
+  const _throw = Symbol('_throw');
+  const UnmodifiableSetMixin$ = dart.generic(function(E) {
     class UnmodifiableSetMixin extends core.Object {
       [_throw]() {
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable Set"));
@@ -161,7 +161,7 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
     return UnmodifiableSetMixin;
   });
   let UnmodifiableSetMixin = UnmodifiableSetMixin$();
-  let UnmodifiableSetView$ = dart.generic(function(E) {
+  const UnmodifiableSetView$ = dart.generic(function(E) {
     class UnmodifiableSetView extends dart.mixin(wrappers.DelegatingSet$(E), UnmodifiableSetMixin$(E)) {
       UnmodifiableSetView(setBase) {
         super.DelegatingSet(setBase);
@@ -173,7 +173,7 @@ dart_library.library('collection/src/unmodifiable_wrappers', null, /* Imports */
     return UnmodifiableSetView;
   });
   dart.defineLazyClassGeneric(exports, 'UnmodifiableSetView', {get: UnmodifiableSetView$});
-  let UnmodifiableMapMixin$ = dart.generic(function(K, V) {
+  const UnmodifiableMapMixin$ = dart.generic(function(K, V) {
     class UnmodifiableMapMixin extends core.Object {
       static _throw() {
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable Map"));

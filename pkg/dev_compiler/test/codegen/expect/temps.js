@@ -5,9 +5,9 @@ dart_library.library('temps', null, /* Imports */[
 ], function(exports, dart, core) {
   'use strict';
   let dartx = dart.dartx;
-  let _x = Symbol('_x');
-  let __x = Symbol('__x');
-  let _function = Symbol('_function');
+  const _x = Symbol('_x');
+  const __x = Symbol('__x');
+  const _function = Symbol('_function');
   class FormalCollision extends core.Object {
     FormalCollision(x, _x$, func) {
       this[_x] = x;
@@ -18,7 +18,7 @@ dart_library.library('temps', null, /* Imports */[
   dart.setSignature(FormalCollision, {
     constructors: () => ({FormalCollision: [FormalCollision, [core.int, core.int, core.Function]]})
   });
-  let _opt = Symbol('_opt');
+  const _opt = Symbol('_opt');
   class OptionalArg extends core.Object {
     OptionalArg(opt) {
       if (opt === void 0)

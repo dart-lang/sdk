@@ -7,8 +7,8 @@ dart_library.library('closure', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   /** @typedef {function({i: (?number|undefined)}=)} */
-  let Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
-  let Foo$ = dart.generic(function(T) {
+  const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
+  const Foo$ = dart.generic(function(T) {
     class Foo extends core.Object {
       /**
        * @param {?number} i
@@ -133,7 +133,7 @@ dart_library.library('closure', null, /* Imports */[
   }
   dart.fn(main, dart.void, [dart.dynamic]);
   /** @final {string} */
-  let some_top_level_constant = "abc";
+  const some_top_level_constant = "abc";
   /** @final {string} */
   exports.some_top_level_final = "abc";
   /** @type {string} */

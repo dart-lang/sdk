@@ -7,11 +7,11 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
 ], function(exports, dart, core, utils, collection) {
   'use strict';
   let dartx = dart.dartx;
-  let _base = Symbol('_base');
-  let _canonicalize = Symbol('_canonicalize');
-  let _isValidKeyFn = Symbol('_isValidKeyFn');
-  let _isValidKey = Symbol('_isValidKey');
-  let CanonicalizedMap$ = dart.generic(function(C, K, V) {
+  const _base = Symbol('_base');
+  const _canonicalize = Symbol('_canonicalize');
+  const _isValidKeyFn = Symbol('_isValidKeyFn');
+  const _isValidKey = Symbol('_isValidKey');
+  const CanonicalizedMap$ = dart.generic(function(C, K, V) {
     class CanonicalizedMap extends core.Object {
       CanonicalizedMap(canonicalize, opts) {
         let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;

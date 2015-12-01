@@ -145,10 +145,10 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     })
   });
   NativeByteBuffer[dart.metadata] = () => [dart.const(new _js_helper.Native("ArrayBuffer"))];
-  let _storage = Symbol('_storage');
-  let _invalidIndex = Symbol('_invalidIndex');
-  let _checkIndex = Symbol('_checkIndex');
-  let _checkSublistArguments = Symbol('_checkSublistArguments');
+  const _storage = Symbol('_storage');
+  const _invalidIndex = Symbol('_invalidIndex');
+  const _checkIndex = Symbol('_checkIndex');
+  const _checkSublistArguments = Symbol('_checkSublistArguments');
   class NativeFloat32x4List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Float32x4), _internal.FixedLengthListMixin$(typed_data.Float32x4)) {
     NativeFloat32x4List(length) {
       this[_storage] = NativeFloat32List.new(dart.notNull(length) * 4);
@@ -535,18 +535,18 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     return result;
   }
   dart.fn(_ensureNativeList, core.List, [core.List]);
-  let _getFloat32 = Symbol('_getFloat32');
-  let _getFloat64 = Symbol('_getFloat64');
-  let _getInt16 = Symbol('_getInt16');
-  let _getInt32 = Symbol('_getInt32');
-  let _getUint16 = Symbol('_getUint16');
-  let _getUint32 = Symbol('_getUint32');
-  let _setFloat32 = Symbol('_setFloat32');
-  let _setFloat64 = Symbol('_setFloat64');
-  let _setInt16 = Symbol('_setInt16');
-  let _setInt32 = Symbol('_setInt32');
-  let _setUint16 = Symbol('_setUint16');
-  let _setUint32 = Symbol('_setUint32');
+  const _getFloat32 = Symbol('_getFloat32');
+  const _getFloat64 = Symbol('_getFloat64');
+  const _getInt16 = Symbol('_getInt16');
+  const _getInt32 = Symbol('_getInt32');
+  const _getUint16 = Symbol('_getUint16');
+  const _getUint32 = Symbol('_getUint32');
+  const _setFloat32 = Symbol('_setFloat32');
+  const _setFloat64 = Symbol('_setFloat64');
+  const _setInt16 = Symbol('_setInt16');
+  const _setInt32 = Symbol('_setInt32');
+  const _setUint16 = Symbol('_setUint16');
+  const _setUint32 = Symbol('_setUint32');
   class NativeByteData extends NativeTypedData {
     static new(length) {
       return NativeByteData._create1(_checkLength(length));
@@ -699,7 +699,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   NativeByteData[dart.metadata] = () => [dart.const(new _js_helper.Native("DataView"))];
-  let _setRangeFast = Symbol('_setRangeFast');
+  const _setRangeFast = Symbol('_setRangeFast');
   class NativeTypedArray extends NativeTypedData {
     [_setRangeFast](start, end, source, skipCount) {
       let targetLength = this.length;

@@ -1176,7 +1176,7 @@ class MiniJsParser {
   }
 
   Expression parseVarDeclarationOrExpression() {
-    var keyword = acceptVarOrLet();
+    var keyword = acceptVarLetOrConst();
     if (keyword != null) {
       return parseVariableDeclarationList(keyword);
     } else {
@@ -1185,9 +1185,10 @@ class MiniJsParser {
   }
 
   /** Accepts a `var` or `let` keyword. If neither is found, returns null. */
-  String acceptVarOrLet() {
+  String acceptVarLetOrConst() {
     if (acceptString('var')) return 'var';
     if (acceptString('let')) return 'let';
+    if (acceptString('const')) return 'const';
     return null;
   }
 
@@ -1246,7 +1247,7 @@ class MiniJsParser {
 
       if (acceptString('try')) return parseTry();
 
-      var keyword = acceptVarOrLet();
+      var keyword = acceptVarLetOrConst();
       if (keyword != null) {
         Expression declarations = parseVariableDeclarationList(keyword);
         expectSemicolon();
@@ -1372,7 +1373,7 @@ class MiniJsParser {
       return finishFor(null);
     }
 
-    var keyword = acceptVarOrLet();
+    var keyword = acceptVarLetOrConst();
     if (keyword != null) {
       String identifier = lastToken;
       expectCategory(ALPHA);

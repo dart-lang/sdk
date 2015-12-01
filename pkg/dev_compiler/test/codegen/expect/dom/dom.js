@@ -12,7 +12,7 @@ dart_library.library('dom/dom', window, /* Imports */[
   dart.setSignature(Overload, {
     constructors: () => ({Overload: [Overload, []]})
   });
-  let overload = dart.const(new Overload());
+  const overload = dart.const(new Overload());
   class CustomEvent extends core.Object {}
   dart.setSignature(CustomEvent, {
     constructors: () => ({CustomEvent: [CustomEvent, [core.String], {detail: dart.dynamic, bubbles: dart.dynamic, cancelable: dart.dynamic}]})
@@ -21,11 +21,11 @@ dart_library.library('dom/dom', window, /* Imports */[
   dart.setSignature(HTMLCollection, {
     methods: () => ({get: [Element, [core.num]]})
   });
-  let EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
-  let InputElement = HTMLInputElement;
-  let CanvasElement = HTMLCanvasElement;
-  let DivElement = HTMLDivElement;
-  let ScriptElement = HTMLScriptElement;
+  const EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
+  const InputElement = HTMLInputElement;
+  const CanvasElement = HTMLCanvasElement;
+  const DivElement = HTMLDivElement;
+  const ScriptElement = HTMLScriptElement;
   class RenderingContext extends core.Object {}
   class CanvasDrawingStyles extends core.Object {
     CanvasDrawingStyles() {

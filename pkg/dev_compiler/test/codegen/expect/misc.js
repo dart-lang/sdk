@@ -12,8 +12,8 @@ dart_library.library('misc', null, /* Imports */[
   dart.setSignature(_Uninitialized, {
     constructors: () => ({_Uninitialized: [_Uninitialized, []]})
   });
-  let UNINITIALIZED = dart.const(new _Uninitialized());
-  let Generic$ = dart.generic(function(T) {
+  const UNINITIALIZED = dart.const(new _Uninitialized());
+  const Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
       get type() {
         return Generic$();
@@ -43,8 +43,8 @@ dart_library.library('misc', null, /* Imports */[
     return ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
   }
   dart.fn(_isWhitespace, core.bool, [core.String]);
-  let expr = 'foo';
-  let _escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F', [`\${${expr}}`]: ''}));
+  const expr = 'foo';
+  const _escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F', [`\${${expr}}`]: ''}));
   function main() {
     core.print(dart.toString(1));
     core.print(dart.toString(1.0));
