@@ -1233,10 +1233,12 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return cps;
     }
     Continuation fail = cps.letCont();
-    Primitive isTooSmall = cps.applyBuiltin(
-        BuiltinOperator.NumLt,
-        <Primitive>[index, cps.makeZero()]);
-    cps.ifTruthy(isTooSmall).invokeContinuation(fail);
+    if (!typeSystem.isDefinitelyNonNegativeInt(index.type)) {
+      Primitive isTooSmall = cps.applyBuiltin(
+          BuiltinOperator.NumLt,
+          <Primitive>[index, cps.makeZero()]);
+      cps.ifTruthy(isTooSmall).invokeContinuation(fail);
+    }
     Primitive isTooLarge = cps.applyBuiltin(
         BuiltinOperator.NumGe,
         <Primitive>[index, cps.letPrim(new GetLength(list))]);
