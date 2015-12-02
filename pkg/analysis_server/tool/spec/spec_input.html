@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.12.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.13.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -391,6 +391,42 @@
               contain multiple items if the file is being analyzed
               in multiple contexts in conflicting ways (such as a
               part that is included in multiple libraries).
+            </p>
+          </field>
+        </result>
+      </request>
+      <request method="getReachableSources">
+        <p>
+          Return the transitive closure of reachable sources for a given file.
+        </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>GET_REACHABLE_SOURCES_INVALID_FILE</tt> will be generated.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The file for which reachable source information is being requested.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="sources">
+            <map>
+              <key><ref>String</ref></key>
+              <value><list>><ref>String</ref></list></value>
+            </map>
+            <p>
+              A mapping from source URIs to directly reachable source URIs. For example,
+              a file "foo.dart" that imports "bar.dart" would have the corresponding mapping
+              { "file:///foo.dart" : ["file:///bar.dart"] }.  If "bar.dart" has further imports
+              (or exports) there will be a mapping from the URI "file:///bar.dart" to them.
+              To check if a specific URI is reachable from a given file, clients can check
+              for its presence in the resulting key set.
             </p>
           </field>
         </result>
@@ -3645,6 +3681,14 @@
             <code>GET_NAVIGATION_INVALID_FILE</code>
             <p>
               An "analysis.getNavigation" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
+            </p>
+          </value>
+          <value>
+            <code>GET_REACHABLE_SOURCES_INVALID_FILE</code>
+            <p>
+              An "analysis.getReachableSources" request specified a FilePath
               which does not match a file currently subject to
               analysis.
             </p>

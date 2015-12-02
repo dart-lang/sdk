@@ -938,6 +938,176 @@ class AnalysisGetHoverResult implements HasToJson {
     return JenkinsSmiHash.finish(hash);
   }
 }
+
+/**
+ * analysis.getReachableSources params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetReachableSourcesParams implements HasToJson {
+  String _file;
+
+  /**
+   * The file for which reachable source information is being requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file for which reachable source information is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  AnalysisGetReachableSourcesParams(String file) {
+    this.file = file;
+  }
+
+  factory AnalysisGetReachableSourcesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      return new AnalysisGetReachableSourcesParams(file);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getReachableSources params", json);
+    }
+  }
+
+  factory AnalysisGetReachableSourcesParams.fromRequest(Request request) {
+    return new AnalysisGetReachableSourcesParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getReachableSources", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisGetReachableSourcesParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getReachableSources result
+ *
+ * {
+ *   "sources": Map<String, List<String>>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetReachableSourcesResult implements HasToJson {
+  Map<String, List<String>> _sources;
+
+  /**
+   * A mapping from source URIs to directly reachable source URIs. For example,
+   * a file "foo.dart" that imports "bar.dart" would have the corresponding
+   * mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
+   * further imports (or exports) there will be a mapping from the URI
+   * "file:///bar.dart" to them. To check if a specific URI is reachable from a
+   * given file, clients can check for its presence in the resulting key set.
+   */
+  Map<String, List<String>> get sources => _sources;
+
+  /**
+   * A mapping from source URIs to directly reachable source URIs. For example,
+   * a file "foo.dart" that imports "bar.dart" would have the corresponding
+   * mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
+   * further imports (or exports) there will be a mapping from the URI
+   * "file:///bar.dart" to them. To check if a specific URI is reachable from a
+   * given file, clients can check for its presence in the resulting key set.
+   */
+  void set sources(Map<String, List<String>> value) {
+    assert(value != null);
+    this._sources = value;
+  }
+
+  AnalysisGetReachableSourcesResult(Map<String, List<String>> sources) {
+    this.sources = sources;
+  }
+
+  factory AnalysisGetReachableSourcesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      Map<String, List<String>> sources;
+      if (json.containsKey("sources")) {
+        sources = jsonDecoder.decodeMap(jsonPath + ".sources", json["sources"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "sources");
+      }
+      return new AnalysisGetReachableSourcesResult(sources);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getReachableSources result", json);
+    }
+  }
+
+  factory AnalysisGetReachableSourcesResult.fromResponse(Response response) {
+    return new AnalysisGetReachableSourcesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["sources"] = sources;
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisGetReachableSourcesResult) {
+      return mapEqual(sources, other.sources, (List<String> a, List<String> b) => listEqual(a, b, (String a, String b) => a == b));
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, sources.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
 /**
  * analysis.getLibraryDependencies params
  *
@@ -13920,6 +14090,7 @@ class RequestError implements HasToJson {
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
+ *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_OVERLAY_CHANGE
@@ -13976,6 +14147,12 @@ class RequestErrorCode implements Enum {
    * match a file currently subject to analysis.
    */
   static const GET_NAVIGATION_INVALID_FILE = const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
+
+  /**
+   * An "analysis.getReachableSources" request specified a FilePath which does
+   * not match a file currently subject to analysis.
+   */
+  static const GET_REACHABLE_SOURCES_INVALID_FILE = const RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
 
   /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is
@@ -14083,7 +14260,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, GET_REACHABLE_SOURCES_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -14103,6 +14280,8 @@ class RequestErrorCode implements Enum {
         return GET_ERRORS_INVALID_FILE;
       case "GET_NAVIGATION_INVALID_FILE":
         return GET_NAVIGATION_INVALID_FILE;
+      case "GET_REACHABLE_SOURCES_INVALID_FILE":
+        return GET_REACHABLE_SOURCES_INVALID_FILE;
       case "INVALID_ANALYSIS_ROOT":
         return INVALID_ANALYSIS_ROOT;
       case "INVALID_EXECUTION_CONTEXT":

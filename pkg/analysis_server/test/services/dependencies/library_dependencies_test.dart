@@ -34,7 +34,7 @@ class LibraryDependenciesTest extends AbstractContextTest {
     // Cycles
     expect(libs, contains('/lib1.dart'));
     expect(libs, contains('/lib2.dart'));
-    // Regular sourcs
+    // Regular sources
     expect(libs, contains('/lib3.dart'));
     expect(libs, contains('/lib4.dart'));
     // Non-source, referenced by source

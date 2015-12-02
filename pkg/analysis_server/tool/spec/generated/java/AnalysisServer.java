@@ -119,6 +119,20 @@ public interface AnalysisServer {
   public void analysis_getNavigation(String file, int offset, int length, GetNavigationConsumer consumer);
 
   /**
+   * {@code analysis.getReachableSources}
+   *
+   * Return the transitive closure of reachable sources for a given file.
+   *
+   * If a request is made for a file which does not exist, or which is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_REACHABLE_SOURCES_INVALID_FILE will be
+   * generated.
+   *
+   * @param file The file for which reachable source information is being requested.
+   */
+  public void analysis_getReachableSources(String file, GetReachableSourcesConsumer consumer);
+
+  /**
    * {@code analysis.reanalyze}
    *
    * Force the re-analysis of everything contained in the specified analysis roots. This will cause

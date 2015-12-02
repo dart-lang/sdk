@@ -411,6 +411,16 @@ class Response {
                 'Error during `analysis.getNavigation`: invalid file.'));
 
   /**
+   * Initialize a newly created instance to represent the
+   * GET_REACHABLE_SOURCES_INVALID_FILE error condition.
+   */
+  Response.getReachableSourcesInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE,
+                'Error during `analysis.getReachableSources`: invalid file.'));
+
+  /**
    * Initialize a newly created instance to represent an error condition caused
    * by an analysis.reanalyze [request] that specifies an analysis root that is
    * not in the current list of analysis roots.
