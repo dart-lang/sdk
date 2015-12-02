@@ -75,7 +75,7 @@ class TypeMaskStrategy implements SelectorConstraintsStrategy {
  * operations on it are not guaranteed to be precise and they may
  * yield conservative answers that contain too many classes.
  */
-abstract class TypeMask implements ReceiverConstraint {
+abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask(ClassElement base,
                    int kind,
                    bool isNullable,

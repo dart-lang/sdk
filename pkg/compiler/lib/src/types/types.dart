@@ -28,6 +28,9 @@ import '../world.dart' show
     ClassWorld,
     World;
 
+import 'abstract_value_domain.dart' show
+    AbstractValue;
+
 part 'container_type_mask.dart';
 part 'dictionary_type_mask.dart';
 part 'flat_type_mask.dart';
