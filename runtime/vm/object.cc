@@ -3537,6 +3537,14 @@ void Class::set_is_finalized() const {
 }
 
 
+void Class::ResetFinalization() const {
+  ASSERT(IsTopLevel());
+  set_state_bits(ClassFinalizedBits::update(RawClass::kAllocated,
+                                            raw_ptr()->state_bits_));
+  set_state_bits(TypeFinalizedBit::update(false, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_prefinalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(RawClass::kPreFinalized,

@@ -6192,6 +6192,9 @@ void Parser::ParseTopLevel() {
   for (intptr_t i = 0; i < top_level.functions().length(); i++) {
     toplevel_class.AddFunction(*top_level.functions()[i]);
   }
+  if (toplevel_class.is_finalized()) {
+    toplevel_class.ResetFinalization();
+  }
   pending_classes.Add(toplevel_class, Heap::kOld);
 }
 
