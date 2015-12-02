@@ -1822,9 +1822,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   bool _inferMethodInvocationGeneric(MethodInvocation node) {
     Element element = node.methodName.staticElement;
     DartType fnType = node.methodName.staticType;
-    if (element is ExecutableElement && fnType.element is! ExecutableElement) {
-      print("Element is $element and function type is $fnType");
-    }
     TypeSystem ts = _typeSystem;
     // TODO(jmesserly): once we allow explicitly passed typeArguments, we need
     // to only do this if node.typeArguments == null.
