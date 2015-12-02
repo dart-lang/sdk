@@ -12,6 +12,14 @@ typedef Foo(x); //LINT
 
 typedef void Bar(int x);
 
+int get xxx => 42; //OK: #151
+
+get xxxx => 42; //LINT
+
+set x(x) { } //LINT
+
+set xx(int x) { } //OK
+
 _f() {}
 const _X = '';
 
@@ -21,6 +29,14 @@ class A {
   final xx = 1; //LINT
   static const y = ''; //LINT
   static final z = 3; //LINT
+
+  int get xxx => 42; //OK: #151
+
+  set xxxxx(x) { } //LINT
+
+  set xx(int x) { } //OK
+
+  get xxxx => 42; //LINT
 
   var zzz, //LINT
       _zzz;

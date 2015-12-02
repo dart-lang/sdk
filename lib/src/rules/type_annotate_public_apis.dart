@@ -5,8 +5,8 @@
 library linter.src.rules.type_annotate_public_apis;
 
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:linter/src/linter.dart';
 import 'package:linter/src/ast.dart';
+import 'package:linter/src/linter.dart';
 
 const desc = r'Type annotate public APIs.';
 
@@ -61,10 +61,10 @@ class TypeAnnotatePublicApis extends LintRule {
 }
 
 class Visitor extends SimpleAstVisitor {
+  _VisitorHelper v;
   final LintRule rule;
-  _VisitoHelper v;
   Visitor(this.rule) {
-    v = new _VisitoHelper(rule);
+    v = new _VisitorHelper(rule);
   }
 
   @override
@@ -75,30 +75,12 @@ class Visitor extends SimpleAstVisitor {
   }
 
   @override
-  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (node.variables.type == null) {
-      node.variables.accept(v);
-    }
-  }
-
-  @override
   visitFunctionDeclaration(FunctionDeclaration node) {
     if (!isPrivate(node.name)) {
-      if (node.returnType == null) {
+      if (node.returnType == null && !node.isSetter) {
         rule.reportLint(node.name);
       } else {
-        node.functionExpression.parameters.accept(v);
-      }
-    }
-  }
-
-  @override
-  visitMethodDeclaration(MethodDeclaration node) {
-    if (!isPrivate(node.name)) {
-      if (node.returnType == null) {
-        rule.reportLint(node.name);
-      } else {
-        node.parameters.accept(v);
+        node.functionExpression.parameters?.accept(v);
       }
     }
   }
@@ -111,23 +93,41 @@ class Visitor extends SimpleAstVisitor {
       node.parameters.accept(v);
     }
   }
-}
-
-class _VisitoHelper extends RecursiveAstVisitor {
-  final LintRule rule;
-  _VisitoHelper(this.rule);
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  visitMethodDeclaration(MethodDeclaration node) {
     if (!isPrivate(node.name)) {
-      rule.reportLint(node.name);
+      if (node.returnType == null && !node.isSetter) {
+        rule.reportLint(node.name);
+      } else {
+        node.parameters?.accept(v);
+      }
     }
   }
+
+  @override
+  visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    if (node.variables.type == null) {
+      node.variables.accept(v);
+    }
+  }
+}
+
+class _VisitorHelper extends RecursiveAstVisitor {
+  final LintRule rule;
+  _VisitorHelper(this.rule);
 
   @override
   visitSimpleFormalParameter(SimpleFormalParameter param) {
     if (param.type == null) {
       rule.reportLint(param);
+    }
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    if (!isPrivate(node.name)) {
+      rule.reportLint(node.name);
     }
   }
 }
