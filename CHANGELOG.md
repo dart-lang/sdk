@@ -19,6 +19,33 @@
   * `Platform` added an `isiOS` getter and `Platform.operatingSystem` may now
     return `ios`.
 
+### Tool changes
+
+* Pub
+
+  * **Breaking:** Pub now eagerly emits an error when a pubspec's "name" field
+    is not a valid Dart identifier. Since packages with non-identifier names
+    were never allowed to be published, and some of them already caused crashes
+    when being written to a `.packages` file, this is unlikely to break many
+    people in practice.
+
+  * `pub serve` now GZIPs the assets it serves to make load times more similar
+    to real-world use-cases.
+
+  * `pub deps` now supports a `--no-dev` flag, which causes it to emit the
+    dependency tree as it would be if no `dev_dependencies` were in use. This
+    makes it easier to see your package's dependency footprint as your users
+    will experience it.
+
+  * `pub global run` now detects when a global executable's SDK constraint is no
+    longer met and errors out, rather than trying to run the executable anyway.
+
+  * Fixed a crashing bug when using `pub global run` on a global script that
+    didn't exist.
+
+  * Fixed a crashing bug when a pubspec contains a dependency without a source
+    declared.
+
 ## 1.13.0 - 2015-11-18
 
 ### Core library changes

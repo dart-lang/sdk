@@ -74,7 +74,7 @@ vars = {
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mustache4dart_rev" : "@5724cfd85151e5b6b53ddcd3380daf188fe47f92",
-  "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
+  "oauth2_tag": "@1.0.0",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@5c199c5954146747f75ed127871207718dc87786",
   "package_config_rev": "@0.1.3",
@@ -83,7 +83,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@e454b4b54d2987e8d2f0fbd3ac519641ada9bd0f",
-  "pub_rev": "@1c08b841158e33b8090bb07e5c39df830db58d44",
+  "pub_rev": "@8c091bf6332e8b392fdac63ae297426fb65ed925",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
@@ -230,7 +230,7 @@ deps = {
       + "/external/github.com/valotas/mustache4dart.git"
       + Var("mustache4dart_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
-      (Var("github_mirror") % "oauth2") + Var("oauth2_rev"),
+      (Var("github_mirror") % "oauth2") + Var("oauth2_tag"),
   Var("dart_root") + "/third_party/pkg/observe":
       (Var("github_mirror") % "observe") + Var("observe_rev"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
