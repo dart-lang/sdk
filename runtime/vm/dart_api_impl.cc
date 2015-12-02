@@ -64,7 +64,7 @@ DEFINE_FLAG(bool, trace_api, false,
 DEFINE_FLAG(bool, verify_acquired_data, false,
             "Verify correct API acquire/release of typed data.");
 
-ThreadLocalKey Api::api_native_key_ = OSThread::kUnsetThreadLocalKey;
+ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
 Dart_Handle Api::false_handle_ = NULL;
 Dart_Handle Api::null_handle_ = NULL;
@@ -484,9 +484,9 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
 
 
 void Api::InitOnce() {
-  ASSERT(api_native_key_ == OSThread::kUnsetThreadLocalKey);
+  ASSERT(api_native_key_ == kUnsetThreadLocalKey);
   api_native_key_ = OSThread::CreateThreadLocal();
-  ASSERT(api_native_key_ != OSThread::kUnsetThreadLocalKey);
+  ASSERT(api_native_key_ != kUnsetThreadLocalKey);
 }
 
 

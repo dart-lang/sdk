@@ -13,7 +13,7 @@ namespace dart {
 
 // The single thread local key which stores all the thread local data
 // for a thread.
-ThreadLocalKey OSThread::thread_key_ = OSThread::kUnsetThreadLocalKey;
+ThreadLocalKey OSThread::thread_key_ = kUnsetThreadLocalKey;
 OSThread* OSThread::thread_list_head_ = NULL;
 Mutex* OSThread::thread_list_lock_ = NULL;
 

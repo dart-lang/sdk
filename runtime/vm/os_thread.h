@@ -177,9 +177,8 @@ class OSThread : public BaseThread {
 
   static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
 
-  static ThreadLocalKey kUnsetThreadLocalKey;
-  static ThreadId kInvalidThreadId;
-  static ThreadJoinId kInvalidThreadJoinId;
+  static const ThreadId kInvalidThreadId;
+  static const ThreadJoinId kInvalidThreadJoinId;
 
  private:
   // These methods should not be used in a generic way and hence

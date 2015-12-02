@@ -86,9 +86,10 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-ThreadLocalKey OSThread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-ThreadId OSThread::kInvalidThreadId = 0;
-ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
+
+const ThreadId OSThread::kInvalidThreadId = 0;
+const ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
+
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();

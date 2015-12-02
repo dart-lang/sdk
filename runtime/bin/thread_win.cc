@@ -70,8 +70,8 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   return 0;
 }
 
-ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-ThreadId Thread::kInvalidThreadId = 0;
+const ThreadLocalKey Thread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
+const ThreadId Thread::kInvalidThreadId = 0;
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   ThreadLocalKey key = TlsAlloc();

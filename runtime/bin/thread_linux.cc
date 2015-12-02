@@ -115,8 +115,9 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 }
 
 
-ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
-ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
+const ThreadLocalKey Thread::kUnsetThreadLocalKey =
+    static_cast<pthread_key_t>(-1);
+const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   pthread_key_t key = kUnsetThreadLocalKey;
