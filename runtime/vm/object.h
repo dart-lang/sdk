@@ -1235,6 +1235,8 @@ class Class : public Object {
 
   void set_is_prefinalized() const;
 
+  void ResetFinalization() const;
+
   bool is_marked_for_parsing() const {
     return MarkedForParsingBit::decode(raw_ptr()->state_bits_);
   }
