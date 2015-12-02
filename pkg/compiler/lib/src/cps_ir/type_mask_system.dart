@@ -257,16 +257,23 @@ class TypeMaskSystem implements AbstractValueDomain {
 
   void associateConstantValueWithElement(ConstantValue constant,
                                          Element element) {
-    if (constant is ListConstantValue) {
-      _constantMasks[constant] = inferrer.getGuaranteedTypeOfElement(element);
+    // TODO(25093): Replace this code with an approach that works for anonymous
+    // constants and non-constant literals.
+    if (constant is ListConstantValue || constant is MapConstantValue) {
+      // Inferred type is usually better (e.g. a ContainerTypeMask) but is
+      // occasionally less general.
+      TypeMask computed = computeTypeMask(inferrer.compiler, constant);
+      TypeMask inferred = inferrer.getGuaranteedTypeOfElement(element);
+      TypeMask best = intersection(inferred, computed);
+      assert(!best.isEmpty);
+      _constantMasks[constant] = best;
     }
   }
 
   @override
   TypeMask getTypeOf(ConstantValue constant) {
-    TypeMask mask = _constantMasks[constant];
-    if (mask != null) return mask;
-    return computeTypeMask(inferrer.compiler, constant);
+    return _constantMasks[constant] ??
+           computeTypeMask(inferrer.compiler, constant);
   }
 
   @override
