@@ -58,7 +58,7 @@ class OSThread : public BaseThread {
     return id_;
   }
 
-  ThreadId join_id() const {
+  ThreadJoinId join_id() const {
     ASSERT(join_id_ != OSThread::kInvalidThreadJoinId);
     return join_id_;
   }
@@ -126,6 +126,8 @@ class OSThread : public BaseThread {
         Thread* vm_thread = reinterpret_cast<Thread*>(thread);
         os_thread = GetOSThreadFromThread(vm_thread);
       }
+    } else {
+      os_thread = CreateAndSetUnknownThread();
     }
     return os_thread;
   }
@@ -171,13 +173,12 @@ class OSThread : public BaseThread {
   // Called at VM startup and shutdown.
   static void InitOnce();
 
-  static bool IsThreadInList(ThreadId join_id);
+  static bool IsThreadInList(ThreadJoinId join_id);
 
   static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
 
-  static ThreadLocalKey kUnsetThreadLocalKey;
-  static ThreadId kInvalidThreadId;
-  static ThreadJoinId kInvalidThreadJoinId;
+  static const ThreadId kInvalidThreadId;
+  static const ThreadJoinId kInvalidThreadJoinId;
 
  private:
   // These methods should not be used in a generic way and hence
@@ -197,11 +198,12 @@ class OSThread : public BaseThread {
   static OSThread* GetOSThreadFromThread(Thread* thread);
   static void AddThreadToList(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);
+  static OSThread* CreateAndSetUnknownThread();
 
   static ThreadLocalKey thread_key_;
 
   const ThreadId id_;
-  const ThreadId join_id_;
+  const ThreadJoinId join_id_;
   const ThreadId trace_id_;  // Used to interface with tracing tools.
   char* name_;  // A name for this thread.
 

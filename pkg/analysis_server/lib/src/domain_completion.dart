@@ -195,8 +195,8 @@ class CompletionDomainHandler implements RequestHandler {
     if (manager == null) {
       manager = completionManagerFor(context, source);
     }
-    CompletionRequest completionRequest =
-        new CompletionRequestImpl(server, context, source, params.offset);
+    CompletionRequest completionRequest = new CompletionRequestImpl(context,
+        server.resourceProvider, server.searchEngine, source, params.offset);
     int notificationCount = 0;
     manager.results(completionRequest).listen((CompletionResult result) {
       ++notificationCount;

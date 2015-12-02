@@ -828,12 +828,11 @@ void Parser::ParseClass(const Class& cls) {
 
 RawObject* Parser::ParseFunctionParameters(const Function& func) {
   ASSERT(!func.IsNull());
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  StackZone stack_zone(thread);
-  Zone* zone = stack_zone.GetZone();
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
+    Thread* thread = Thread::Current();
+    StackZone stack_zone(thread);
+    Zone* zone = stack_zone.GetZone();
     const Script& script = Script::Handle(zone, func.script());
     const Class& owner = Class::Handle(zone, func.Owner());
     ASSERT(!owner.IsNull());
@@ -864,6 +863,8 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     }
     return param_descriptor.raw();
   } else {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
     Error& error = Error::Handle();
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
@@ -1007,14 +1008,15 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 }
 
 
-RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  StackZone stack_zone(thread);
-  Zone* zone = stack_zone.GetZone();
+RawObject* Parser::ParseMetadata(const Field& meta_data) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    const Script& script = Script::Handle(zone, cls.script());
+    Thread* thread = Thread::Current();
+    StackZone stack_zone(thread);
+    Zone* zone = stack_zone.GetZone();
+    const Class& owner_class = Class::Handle(zone, meta_data.owner());
+    const Script& script = Script::Handle(zone, meta_data.script());
+    const intptr_t token_pos = meta_data.token_pos();
     // Parsing metadata can involve following paths in the parser that are
     // normally used for expressions and assume current_function is non-null,
     // so we create a fake function to use as the current_function rather than
@@ -1027,17 +1029,21 @@ RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
         false,  // is_abstract
         false,  // is_external
         false,  // is_native
-        cls,
+        Object::Handle(zone, meta_data.RawOwner()),
         token_pos));
     fake_function.set_is_debuggable(false);
     ParsedFunction* parsed_function =
         new ParsedFunction(thread, fake_function);
     Parser parser(script, parsed_function, token_pos);
-    parser.set_current_class(cls);
+    parser.set_current_class(owner_class);
 
     RawObject* metadata = parser.EvaluateMetadata();
     return metadata;
   } else {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone stack_zone(thread);
+    Zone* zone = stack_zone.GetZone();
     Error& error = Error::Handle(zone);
     error = isolate->object_store()->sticky_error();
     isolate->object_store()->clear_sticky_error();
@@ -1145,18 +1151,14 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   // TODO(koda): Should there be a StackZone here?
   Zone* zone = thread->zone();
 
-  const Class& script_cls = Class::Handle(zone, field.origin());
-  const Script& script = Script::Handle(zone, script_cls.script());
-
   const String& field_name = String::Handle(zone, field.name());
   String& init_name = String::Handle(zone,
       Symbols::FromConcat(Symbols::InitPrefix(), field_name));
 
+  const Script& script = Script::Handle(zone, field.script());
   Object& initializer_owner = Object::Handle(field.owner());
-  if (field.owner() != field.origin()) {
-    initializer_owner =
-        PatchClass::New(Class::Handle(field.owner()), script_cls);
-  }
+  initializer_owner =
+      PatchClass::New(Class::Handle(field.owner()), script);
 
   const Function& initializer = Function::ZoneHandle(zone,
       Function::New(init_name,
@@ -1847,6 +1849,13 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       const bool no_explicit_default_values = false;
       ParseFormalParameterList(no_explicit_default_values, false, &func_params);
 
+      // In top-level and mixin functions, the source may be in a different
+      // script than the script of the current class.
+      Object& sig_func_owner = Object::Handle(Z, current_class().raw());
+      if (current_class().script() != script_.raw()) {
+        sig_func_owner = PatchClass::New(current_class(), script_);
+      }
+
       // The field 'is_static' has no meaning for signature functions.
       const Function& signature_function = Function::Handle(Z,
           Function::New(*parameter.name,
@@ -1856,18 +1865,18 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                         /* is_abstract = */ false,
                         /* is_external = */ false,
                         /* is_native = */ false,
-                        current_class(),
+                        sig_func_owner,
                         parameter.name_pos));
       signature_function.set_result_type(result_type);
       signature_function.set_is_debuggable(false);
       AddFormalParamsToFunction(&func_params, signature_function);
-      const String& signature = String::Handle(Z,
-                                               signature_function.Signature());
+      const String& signature =
+          String::Handle(Z, signature_function.Signature());
       // Lookup the signature class, i.e. the class whose name is the signature.
       // We only lookup in the current library, but not in its imports, and only
       // create a new canonical signature class if it does not exist yet.
-      Class& signature_class = Class::ZoneHandle(Z,
-          library_.LookupLocalClass(signature));
+      Class& signature_class =
+          Class::ZoneHandle(Z, library_.LookupLocalClass(signature));
       if (signature_class.IsNull()) {
         signature_class = Class::NewSignatureClass(signature,
                                                    signature_function,
@@ -2524,7 +2533,7 @@ void Parser::CheckFieldsInitialized(const Class& cls) {
 
     if (found) continue;
 
-    field.RecordStore(Object::Handle(Z));
+    field.RecordStore(Object::null_object());
   }
 }
 
@@ -2691,12 +2700,12 @@ AstNode* Parser::CheckDuplicateFieldInit(
 
       // List argumentNames.
       // The missing implicit setter of the field has no argument names.
-      nsm_args->Add(new(Z) LiteralNode(init_pos, Array::ZoneHandle(Z)));
+      nsm_args->Add(new(Z) LiteralNode(init_pos, Object::null_array()));
 
       // List existingArgumentNames.
       // There is no setter for the final field, thus there are
       // no existing names.
-      nsm_args->Add(new(Z) LiteralNode(init_pos, Array::ZoneHandle(Z)));
+      nsm_args->Add(new(Z) LiteralNode(init_pos, Object::null_array()));
 
       AstNode* nsm_call =
           MakeStaticCall(Symbols::NoSuchMethodError(),
@@ -4414,7 +4423,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
 
 
 void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
-                                  const Class& toplevel_class,
+                                  const Object& tl_owner,
                                   intptr_t metadata_pos) {
   TRACE_PARSER("ParseEnumDeclaration");
   const intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos
@@ -4456,7 +4465,7 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
   cls.set_is_synthesized_class();
   cls.set_is_enum_class();
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(cls, toplevel_class, metadata_pos);
+    library_.AddClassMetadata(cls, tl_owner, metadata_pos);
   }
   cls.set_super_type(Type::Handle(Z, Type::ObjectType()));
   pending_classes.Add(cls, Heap::kOld);
@@ -4464,7 +4473,7 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
 
 
 void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
-                                   const Class& toplevel_class,
+                                   const Object& tl_owner,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
@@ -4579,7 +4588,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     cls.set_is_abstract();
   }
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(cls, toplevel_class, metadata_pos);
+    library_.AddClassMetadata(cls, tl_owner, metadata_pos);
   }
 
   const bool is_mixin_declaration = (CurrentToken() == Token::kASSIGN);
@@ -4959,7 +4968,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
 
 void Parser::ParseMixinAppAlias(
     const GrowableObjectArray& pending_classes,
-    const Class& toplevel_class,
+    const Object& tl_owner,
     intptr_t metadata_pos) {
   TRACE_PARSER("ParseMixinAppAlias");
   const intptr_t classname_pos = TokenPos();
@@ -5013,7 +5022,7 @@ void Parser::ParseMixinAppAlias(
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
   if (metadata_pos >= 0) {
-    library_.AddClassMetadata(mixin_application, toplevel_class, metadata_pos);
+    library_.AddClassMetadata(mixin_application, tl_owner, metadata_pos);
   }
 }
 
@@ -5059,7 +5068,7 @@ bool Parser::IsMixinAppAlias() {
 
 
 void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
-                          const Class& toplevel_class,
+                          const Object& tl_owner,
                           intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
   intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos : TokenPos();
@@ -5069,7 +5078,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
     if (FLAG_warn_mixin_typedef) {
       ReportWarning(TokenPos(), "deprecated mixin application typedef");
     }
-    ParseMixinAppAlias(pending_classes, toplevel_class, metadata_pos);
+    ParseMixinAppAlias(pending_classes, tl_owner, metadata_pos);
     return;
   }
 
@@ -5180,7 +5189,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   pending_classes.Add(function_type_alias, Heap::kOld);
   if (metadata_pos >= 0) {
     library_.AddClassMetadata(function_type_alias,
-                              toplevel_class,
+                              tl_owner,
                               metadata_pos);
   }
 }
@@ -5417,6 +5426,7 @@ RawAbstractType* Parser::ParseMixins(const AbstractType& super_type) {
 
 
 void Parser::ParseTopLevelVariable(TopLevel* top_level,
+                                   const Object& owner,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelVariable");
   const bool is_const = (CurrentToken() == Token::kCONST);
@@ -5452,8 +5462,10 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
 
     const bool is_reflectable =
         !(library_.is_dart_scheme() && library_.IsPrivate(var_name));
-    field = Field::New(var_name, is_static, is_final, is_const, is_reflectable,
-                       current_class(), type, name_pos);
+
+    field = Field::NewTopLevel(var_name, is_final, is_const, owner, name_pos);
+    field.SetFieldType(type);
+    field.set_is_reflectable(is_reflectable);
     field.SetStaticValue(Object::null_instance(), true);
     top_level->AddField(field);
     library_.AddObject(field, var_name);
@@ -5481,13 +5493,11 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
                                /* is_abstract = */ false,
                                /* is_external = */ false,
                                /* is_native = */ false,
-                               current_class(),
+                               owner,
                                name_pos);
         getter.set_result_type(type);
         getter.set_is_debuggable(false);
-        if (library_.is_dart_scheme() && library_.IsPrivate(var_name)) {
-          getter.set_is_reflectable(false);
-        }
+        getter.set_is_reflectable(is_reflectable);
         top_level->AddFunction(getter);
       }
     } else if (is_final) {
@@ -5534,6 +5544,7 @@ RawFunction::AsyncModifier Parser::ParseFunctionModifier() {
 
 
 void Parser::ParseTopLevelFunction(TopLevel* top_level,
+                                   const Object& owner,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelFunction");
   const intptr_t decl_begin_pos = TokenPos();
@@ -5625,7 +5636,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
                     /* is_abstract = */ false,
                     is_external,
                     is_native,
-                    current_class(),
+                    owner,
                     decl_begin_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
@@ -5641,6 +5652,12 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
   if (!is_patch) {
     library_.AddObject(func, func_name);
   } else {
+    // Need to remove the previously added function that is being patched.
+    const Class& toplevel_cls = Class::Handle(Z, library_.toplevel_class());
+    const Function& replaced_func =
+        Function::Handle(Z, toplevel_cls.LookupStaticFunction(func_name));
+    ASSERT(!replaced_func.IsNull());
+    toplevel_cls.RemoveFunction(replaced_func);
     library_.ReplaceObject(func, func_name);
   }
   if (metadata_pos >= 0) {
@@ -5650,6 +5667,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
 
 
 void Parser::ParseTopLevelAccessor(TopLevel* top_level,
+                                   const Object& owner,
                                    intptr_t metadata_pos) {
   TRACE_PARSER("ParseTopLevelAccessor");
   const intptr_t decl_begin_pos = TokenPos();
@@ -5780,7 +5798,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
                     /* is_abstract = */ false,
                     is_external,
                     is_native,
-                    current_class(),
+                    owner,
                     decl_begin_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(accessor_end_pos);
@@ -5797,6 +5815,14 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
   if (!is_patch) {
     library_.AddObject(func, accessor_name);
   } else {
+    // Need to remove the previously added accessor that is being patched.
+    const Class& toplevel_cls = Class::Handle(Z,
+        owner.IsClass() ? Class::Cast(owner).raw()
+                        : PatchClass::Cast(owner).patched_class());
+    const Function& replaced_func =
+        Function::Handle(Z, toplevel_cls.LookupFunction(accessor_name));
+    ASSERT(!replaced_func.IsNull());
+    toplevel_cls.RemoveFunction(replaced_func);
     library_.ReplaceObject(func, accessor_name);
   }
   if (metadata_pos >= 0) {
@@ -5876,7 +5902,8 @@ void Parser::ParseIdentList(GrowableObjectArray* names) {
 }
 
 
-void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
+void Parser::ParseLibraryImportExport(const Object& tl_owner,
+                                      intptr_t metadata_pos) {
   bool is_import = (CurrentToken() == Token::kIMPORT);
   bool is_export = (CurrentToken() == Token::kEXPORT);
   ASSERT(is_import || is_export);
@@ -5961,7 +5988,7 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   Namespace& ns = Namespace::Handle(Z,
       Namespace::New(library, show_names, hide_names));
   if (metadata_pos >= 0) {
-    ns.AddMetadata(metadata_pos, current_class());
+    ns.AddMetadata(tl_owner, metadata_pos);
   }
 
   // Ensure that private dart:_ libraries are only imported into dart:
@@ -6024,7 +6051,7 @@ void Parser::ParseLibraryPart() {
 }
 
 
-void Parser::ParseLibraryDefinition() {
+void Parser::ParseLibraryDefinition(const Object& tl_owner) {
   TRACE_PARSER("ParseLibraryDefinition");
 
   // Handle the script tag.
@@ -6047,14 +6074,14 @@ void Parser::ParseLibraryDefinition() {
     }
     ParseLibraryName();
     if (metadata_pos >= 0) {
-      library_.AddLibraryMetadata(current_class(), metadata_pos);
+      library_.AddLibraryMetadata(tl_owner, metadata_pos);
     }
     rewind_pos = TokenPos();
     metadata_pos = SkipMetadata();
   }
   while ((CurrentToken() == Token::kIMPORT) ||
       (CurrentToken() == Token::kEXPORT)) {
-    ParseLibraryImportExport(metadata_pos);
+    ParseLibraryImportExport(tl_owner, metadata_pos);
     rewind_pos = TokenPos();
     metadata_pos = SkipMetadata();
   }
@@ -6106,13 +6133,21 @@ void Parser::ParseTopLevel() {
   SetPosition(0);
   is_top_level_ = true;
   TopLevel top_level(Z);
-  Class& toplevel_class = Class::Handle(Z,
-      Class::New(Symbols::TopLevel(), script_, TokenPos()));
-  toplevel_class.set_library(library_);
+
+  Object& tl_owner = Object::Handle(Z);
+  Class& toplevel_class = Class::Handle(Z, library_.toplevel_class());
+  if (toplevel_class.IsNull()) {
+    toplevel_class = Class::New(Symbols::TopLevel(), script_, TokenPos());
+    toplevel_class.set_library(library_);
+    library_.set_toplevel_class(toplevel_class);
+    tl_owner = toplevel_class.raw();
+  } else {
+    tl_owner = PatchClass::New(toplevel_class, script_);
+  }
 
   if (is_library_source() || is_patch_source()) {
     set_current_class(toplevel_class);
-    ParseLibraryDefinition();
+    ParseLibraryDefinition(tl_owner);
   } else if (is_part_source()) {
     ParsePartHeader();
   }
@@ -6122,27 +6157,27 @@ void Parser::ParseTopLevel() {
     set_current_class(cls);  // No current class.
     intptr_t metadata_pos = SkipMetadata();
     if (CurrentToken() == Token::kCLASS) {
-      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
+      ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
     } else if (CurrentToken() == Token::kENUM) {
-      ParseEnumDeclaration(pending_classes, toplevel_class, metadata_pos);
+      ParseEnumDeclaration(pending_classes, tl_owner, metadata_pos);
     } else if ((CurrentToken() == Token::kTYPEDEF) &&
                (LookaheadToken(1) != Token::kLPAREN)) {
       set_current_class(toplevel_class);
-      ParseTypedef(pending_classes, toplevel_class, metadata_pos);
+      ParseTypedef(pending_classes, tl_owner, metadata_pos);
     } else if ((CurrentToken() == Token::kABSTRACT) &&
         (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
+      ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
     } else if (is_patch_source() && IsSymbol(Symbols::Patch()) &&
                (LookaheadToken(1) == Token::kCLASS)) {
-      ParseClassDeclaration(pending_classes, toplevel_class, metadata_pos);
+      ParseClassDeclaration(pending_classes, tl_owner, metadata_pos);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
-        ParseTopLevelVariable(&top_level, metadata_pos);
+        ParseTopLevelVariable(&top_level, tl_owner, metadata_pos);
       } else if (IsFunctionDeclaration()) {
-        ParseTopLevelFunction(&top_level, metadata_pos);
+        ParseTopLevelFunction(&top_level, tl_owner, metadata_pos);
       } else if (IsTopLevelAccessor()) {
-        ParseTopLevelAccessor(&top_level, metadata_pos);
+        ParseTopLevelAccessor(&top_level, tl_owner, metadata_pos);
       } else if (CurrentToken() == Token::kEOS) {
         break;
       } else {
@@ -6151,19 +6186,13 @@ void Parser::ParseTopLevel() {
     }
   }
 
-  if ((library_.num_anonymous_classes() == 0) ||
-      (top_level.fields().length() > 0) ||
-      (top_level.functions().length() > 0)) {
+  if (top_level.fields().length() > 0) {
     toplevel_class.AddFields(top_level.fields());
-    const intptr_t len = top_level.functions().length();
-    const Array& array = Array::Handle(Z, Array::New(len, Heap::kOld));
-    for (intptr_t i = 0; i < len; i++) {
-      array.SetAt(i, *top_level.functions()[i]);
-    }
-    toplevel_class.SetFunctions(array);
-    library_.AddAnonymousClass(toplevel_class);
-    pending_classes.Add(toplevel_class, Heap::kOld);
   }
+  for (intptr_t i = 0; i < top_level.functions().length(); i++) {
+    toplevel_class.AddFunction(*top_level.functions()[i]);
+  }
+  pending_classes.Add(toplevel_class, Heap::kOld);
 }
 
 
@@ -6222,9 +6251,7 @@ void Parser::OpenFunctionBlock(const Function& func) {
 
 void Parser::OpenAsyncClosure() {
   TRACE_PARSER("OpenAsyncClosure");
-
   async_temp_scope_ = current_block_->scope;
-
   OpenAsyncTryBlock();
 }
 
@@ -7442,7 +7469,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     // Initialize variable with null.
     variable = new(Z) LocalVariable(
         assign_pos, ident, type);
-    AstNode* null_expr = new(Z) LiteralNode(ident_pos, Instance::ZoneHandle(Z));
+    AstNode* null_expr = new(Z) LiteralNode(ident_pos, Object::null_instance());
     initialization = new(Z) StoreLocalNode(
         ident_pos, variable, null_expr);
   }
@@ -10284,7 +10311,7 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type,
   arguments->Add(new(Z) LiteralNode(
       type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos))));
   // Src value argument.
-  arguments->Add(new(Z) LiteralNode(type_pos, Instance::ZoneHandle(Z)));
+  arguments->Add(new(Z) LiteralNode(type_pos, Object::null_instance()));
   // Dst type name argument.
   arguments->Add(new(Z) LiteralNode(type_pos, Symbols::Malformed()));
   // Dst name argument.
@@ -10343,7 +10370,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
       Smi::New(InvocationMirror::EncodeType(im_call, im_type)))));
   // List arguments.
   if (function_arguments == NULL) {
-    arguments->Add(new(Z) LiteralNode(call_pos, Array::ZoneHandle(Z)));
+    arguments->Add(new(Z) LiteralNode(call_pos, Object::null_array()));
   } else {
     ArrayNode* array = new(Z) ArrayNode(
         call_pos,
@@ -10353,7 +10380,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   }
   // List argumentNames.
   if (function_arguments == NULL) {
-    arguments->Add(new(Z) LiteralNode(call_pos, Array::ZoneHandle(Z)));
+    arguments->Add(new(Z) LiteralNode(call_pos, Object::null_array()));
   } else {
     arguments->Add(new(Z) LiteralNode(call_pos, function_arguments->names()));
   }
@@ -10556,7 +10583,7 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
     LocalVariable* left_temp = result->AddInitializer(lhs);
     const intptr_t no_pos = Scanner::kNoSourcePos;
     LiteralNode* null_operand =
-        new(Z) LiteralNode(no_pos, Instance::ZoneHandle(Z));
+        new(Z) LiteralNode(no_pos, Object::null_instance());
     LoadLocalNode* load_left_temp = new(Z) LoadLocalNode(no_pos, left_temp);
     ComparisonNode* null_compare =
         new(Z) ComparisonNode(no_pos,
@@ -12132,8 +12159,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
   }
   const Array& args_descriptor = Array::Handle(Z,
       ArgumentsDescriptor::New(num_arguments, arguments->names()));
-  Object& result = Object::Handle(Z);
-  result = DartEntry::InvokeFunction(constructor, arg_values, args_descriptor);
+  const Object& result = Object::Handle(Z,
+      DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
@@ -13870,7 +13897,7 @@ AstNode* Parser::ParsePrimary() {
     primary = new(Z) LiteralNode(TokenPos(), Bool::False());
     ConsumeToken();
   } else if (token == Token::kNULL) {
-    primary = new(Z) LiteralNode(TokenPos(), Instance::ZoneHandle(Z));
+    primary = new(Z) LiteralNode(TokenPos(), Object::null_instance());
     ConsumeToken();
   } else if (token == Token::kLPAREN) {
     ConsumeToken();
@@ -13879,7 +13906,7 @@ AstNode* Parser::ParsePrimary() {
     SetAllowFunctionLiterals(saved_mode);
     ExpectToken(Token::kRPAREN);
   } else if (token == Token::kDOUBLE) {
-    Double& double_value = Double::ZoneHandle(Z, CurrentDoubleLiteral());
+    const Double& double_value = Double::ZoneHandle(Z, CurrentDoubleLiteral());
     if (double_value.IsNull()) {
       ReportError("invalid double literal");
     }
@@ -14403,7 +14430,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
 }
 
 
-RawObject* Parser::ParseMetadata(const Class& cls, intptr_t token_pos) {
+RawObject* Parser::ParseMetadata(const Field& meta_data) {
   UNREACHABLE();
   return Object::null();
 }

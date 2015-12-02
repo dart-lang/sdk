@@ -131,10 +131,10 @@ int OSThread::Start(const char* name,
 }
 
 
-ThreadLocalKey OSThread::kUnsetThreadLocalKey =
-    static_cast<pthread_key_t>(-1);
-ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
-ThreadJoinId OSThread::kInvalidThreadJoinId = static_cast<ThreadJoinId>(0);
+const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
+const ThreadJoinId OSThread::kInvalidThreadJoinId =
+    static_cast<ThreadJoinId>(0);
+
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   pthread_key_t key = kUnsetThreadLocalKey;

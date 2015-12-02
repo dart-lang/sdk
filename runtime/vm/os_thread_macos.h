@@ -20,6 +20,11 @@ typedef pthread_key_t ThreadLocalKey;
 typedef pthread_t ThreadId;
 typedef pthread_t ThreadJoinId;
 
+
+static const ThreadLocalKey kUnsetThreadLocalKey =
+    static_cast<pthread_key_t>(-1);
+
+
 class ThreadInlineImpl {
  private:
   ThreadInlineImpl() {}

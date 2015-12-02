@@ -464,10 +464,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return '!$operand';
   }
 
-  String visitFunctionExpression(FunctionExpression node) {
-    return "function ${node.definition.element.name}";
-  }
-
   String visitGetField(GetField node) {
     String object = visitExpression(node.object);
     String field = node.field.name;

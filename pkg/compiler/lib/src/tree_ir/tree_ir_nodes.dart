@@ -114,7 +114,6 @@ class Variable extends Node {
 
   /// Number of places where this variable occurs as:
   /// - left-hand of an [Assign]
-  /// - left-hand of a [FunctionDeclaration]
   /// - parameter in a [FunctionDefinition]
   /// - catch parameter in a [Try]
   int writeCount = 0;
@@ -435,20 +434,6 @@ class Not extends Expression {
 
   accept(ExpressionVisitor visitor) => visitor.visitNot(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitNot(this, arg);
-}
-
-/// Currently unused.
-///
-/// See CreateFunction in the cps_ir_nodes.dart.
-class FunctionExpression extends Expression {
-  final FunctionDefinition definition;
-
-  FunctionExpression(this.definition);
-
-  accept(ExpressionVisitor visitor) => visitor.visitFunctionExpression(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitFunctionExpression(this, arg);
-  }
 }
 
 /// A [LabeledStatement] or [WhileTrue] or [For].
@@ -988,7 +973,6 @@ abstract class ExpressionVisitor<E> {
   E visitLiteralList(LiteralList node);
   E visitLiteralMap(LiteralMap node);
   E visitTypeOperator(TypeOperator node);
-  E visitFunctionExpression(FunctionExpression node);
   E visitGetField(GetField node);
   E visitSetField(SetField node);
   E visitGetStatic(GetStatic node);
@@ -1026,7 +1010,6 @@ abstract class ExpressionVisitor1<E, A> {
   E visitLiteralList(LiteralList node, A arg);
   E visitLiteralMap(LiteralMap node, A arg);
   E visitTypeOperator(TypeOperator node, A arg);
-  E visitFunctionExpression(FunctionExpression node, A arg);
   E visitGetField(GetField node, A arg);
   E visitSetField(SetField node, A arg);
   E visitGetStatic(GetStatic node, A arg);
@@ -1087,8 +1070,6 @@ abstract class StatementVisitor1<S, A> {
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitExpression(Expression e) => e.accept(this);
   visitStatement(Statement s) => s.accept(this);
-
-  visitInnerFunction(FunctionDefinition node);
 
   visitVariable(Variable variable) {}
 
@@ -1152,10 +1133,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitTypeOperator(TypeOperator node) {
     visitExpression(node.value);
     node.typeArguments.forEach(visitExpression);
-  }
-
-  visitFunctionExpression(FunctionExpression node) {
-    visitInnerFunction(node.definition);
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -1309,10 +1286,6 @@ abstract class Transformer implements ExpressionVisitor<Expression>,
 }
 
 class RecursiveTransformer extends Transformer {
-  void visitInnerFunction(FunctionDefinition node) {
-    node.body = visitStatement(node.body);
-  }
-
   void _replaceExpressions(List<Expression> list) {
     for (int i = 0; i < list.length; i++) {
       list[i] = visitExpression(list[i]);
@@ -1386,11 +1359,6 @@ class RecursiveTransformer extends Transformer {
   visitTypeOperator(TypeOperator node) {
     node.value = visitExpression(node.value);
     _replaceExpressions(node.typeArguments);
-    return node;
-  }
-
-  visitFunctionExpression(FunctionExpression node) {
-    visitInnerFunction(node.definition);
     return node;
   }
 

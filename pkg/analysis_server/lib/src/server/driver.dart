@@ -12,6 +12,7 @@ import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
@@ -409,6 +410,7 @@ class Driver implements ServerStarter {
     plugins.addAll(_userDefinedPlugins);
     plugins.add(linterPlugin);
     plugins.add(linterServerPlugin);
+    plugins.add(dartCompletionPlugin);
 
     // Defer to the extension manager in AE for plugin registration.
     AnalysisEngine.instance.userDefinedPlugins = plugins;

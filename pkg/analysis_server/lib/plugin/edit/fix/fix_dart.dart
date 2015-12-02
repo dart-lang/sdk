@@ -18,7 +18,7 @@ import 'package:analyzer/src/generated/source.dart';
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DartFixContext extends FixContext {
+abstract class DartFixContext implements FixContext {
   /**
    * The [CompilationUnit] to compute fixes in.
    */

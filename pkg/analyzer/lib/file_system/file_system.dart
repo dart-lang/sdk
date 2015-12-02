@@ -14,7 +14,7 @@ import 'package:watcher/watcher.dart';
 /**
  * [File]s are leaf [Resource]s which contain data.
  */
-abstract class File extends Resource {
+abstract class File implements Resource {
   /**
    * Watch for changes to this file
    */
@@ -53,7 +53,7 @@ class FileSystemException implements Exception {
 /**
  * [Folder]s are [Resource]s which may contain files and/or other folders.
  */
-abstract class Folder extends Resource {
+abstract class Folder implements Resource {
   /**
    * Watch for changes to the files inside this folder (and in any nested
    * folders, including folders reachable via links).

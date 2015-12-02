@@ -10,6 +10,7 @@ import 'dart:core' hide Resource;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/utilities/average.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -128,7 +129,7 @@ class Sampler {
 
   /// Map of contexts (tracked as folders to avoid leaks) to averages.
   /// TOOD(pq): consider adding GC to remove mappings for deleted folders
-  Map<Folder, _Average> averages = new HashMap<Folder, _Average>();
+  Map<Folder, Average> averages = new HashMap<Folder, Average>();
 
   final AnalysisServer server;
   Sampler(this.server) {
@@ -137,7 +138,7 @@ class Sampler {
   }
 
   /// Get the average for the context associated with the given [folder].
-  int getAverage(Folder folder) {
+  num getAverage(Folder folder) {
     resetTimerCountdown();
     return averages[folder].value;
   }
@@ -174,9 +175,9 @@ class Sampler {
     try {
       server.folderMap.forEach((Folder folder, AnalysisContext context) {
         if (context is AnalysisContextImpl) {
-          _Average average = averages[folder];
+          Average average = averages[folder];
           if (average == null) {
-            average = new _Average();
+            average = new Average();
             averages[folder] = average;
           }
           average.addSample(_workItemCount(context));
@@ -186,26 +187,4 @@ class Sampler {
       stop();
     }
   }
-}
-
-/// Simple rolling average sample counter.
-class _Average {
-  num _val;
-
-  final int sampleCount;
-  _Average([this.sampleCount = 20]);
-
-  num get value => _val ?? 0;
-
-  void addSample(num sample) {
-    if (_val == null) {
-      _val = sample;
-    } else {
-      _val =
-          _val * ((sampleCount - 1) / sampleCount) + sample * (1 / sampleCount);
-    }
-  }
-
-  @override
-  String toString() => 'average: ${value}';
 }

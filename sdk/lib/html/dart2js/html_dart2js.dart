@@ -8464,7 +8464,26 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('DedicatedWorkerGlobalScope.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(Object message, [List<MessagePort> transfer]) native;
+  void postMessage(/*any*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_2(message) native;
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
@@ -9846,32 +9865,29 @@ class Document extends Node
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
-    if (typeExtension == null) {
-      return _createElement_2(tagName);
-    } else {
-      return _createElement(tagName, typeExtension);
-    }
+    return (typeExtension == null)
+        ? _createElement_2(tagName)
+        : _createElement(tagName, typeExtension);
   }
 
   // The two-argument version of this is automatically generated, but we need to
   // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
   @DomName('Document.createElement')
-  _createElement_2(String tagName) => JS('', '#.createElement(#)', this, tagName);
+  _createElement_2(String tagName) =>
+      JS('Element', '#.createElement(#)', this, tagName);
 
   // The three-argument version of this is automatically generated, but we need to
   // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
   @DomName('Document.createElementNS')
   _createElementNS_2(String namespaceURI, String qualifiedName) =>
-      JS('', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
+      JS('Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
 
   @DomName('Document.createElementNS')
   @DocsEditable()
   Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
-    if (typeExtension == null) {
-      return _createElementNS_2(namespaceURI, qualifiedName);
-    } else {
-      return _createElementNS(namespaceURI, qualifiedName, typeExtension);
-    }
+    return (typeExtension == null)
+        ? _createElementNS_2(namespaceURI, qualifiedName)
+        : _createElementNS(namespaceURI, qualifiedName, typeExtension);
   }
 
   @DomName('Document.createNodeIterator')
@@ -27430,7 +27446,26 @@ class ServiceWorkerClient extends Interceptor {
   @DomName('ServiceWorkerClient.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('ServiceWorkerClient.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('ServiceWorkerClient.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_2(message) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34020,7 +34055,24 @@ class Worker extends EventTarget implements AbstractWorker {
 
   @DomName('Worker.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('Worker.postMessage')
+  @DocsEditable()
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('Worker.postMessage')
+  @DocsEditable()
+  void _postMessage_2(message) native;
 
   @DomName('Worker.terminate')
   @DocsEditable()

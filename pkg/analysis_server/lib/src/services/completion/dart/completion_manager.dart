@@ -7,13 +7,13 @@ library services.completion.dart.manager;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
@@ -22,14 +22,6 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
-
-/**
- * A factory for constructing the default set of [DartCompletionContributor]s.
- * Do not call this function directly...
- *    use ServerPlugin.dartCompletionContributorFactories
- */
-List<DartCompletionContributor> defaultDartCompletionContributorFactory() =>
-    [new KeywordContributor(),];
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific
@@ -56,8 +48,8 @@ class DartCompletionManager implements CompletionContributor {
     List<DartCompletionContributor> contributors =
         <DartCompletionContributor>[];
     for (DartCompletionContributorFactory contributorFactory
-        in request.serverPlugin.dartCompletionContributorFactories) {
-      contributors.addAll(contributorFactory());
+        in dartCompletionPlugin.contributorFactories) {
+      contributors.add(contributorFactory());
     }
 
     // Request Dart specific completions from each contributor
@@ -89,13 +81,21 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
    * Initialize a newly created completion request based on the given request.
    */
   factory DartCompletionRequestImpl.forRequest(CompletionRequest request) {
-    return new DartCompletionRequestImpl._(request.server, request.context,
-        request.resourceProvider, request.source, request.offset);
+    return new DartCompletionRequestImpl._(
+        request.context,
+        request.resourceProvider,
+        request.searchEngine,
+        request.source,
+        request.offset);
   }
 
-  DartCompletionRequestImpl._(AnalysisServer server, AnalysisContext context,
-      ResourceProvider resourceProvider, Source source, int offset)
-      : super(server, context, source, offset);
+  DartCompletionRequestImpl._(
+      AnalysisContext context,
+      ResourceProvider resourceProvider,
+      SearchEngine searchEngine,
+      Source source,
+      int offset)
+      : super(context, resourceProvider, searchEngine, source, offset);
 
   @override
   Future<CompilationUnit> resolveDeclarationsInScope() async {

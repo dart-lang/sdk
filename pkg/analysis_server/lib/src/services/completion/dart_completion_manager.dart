@@ -7,7 +7,6 @@ library services.completion.dart;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
@@ -26,6 +25,7 @@ import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/scanner.dart';
@@ -202,7 +202,6 @@ class DartCompletionManager extends CompletionManager {
       DartCompletionRequest request,
       CompletionPerformance performance,
       List<DartCompletionContributor> todo) async {
-
     // Compute suggestions using the new API
     performance.logStartTime('computeSuggestions');
     for (CompletionContributor contributor in newContributors) {
@@ -223,8 +222,7 @@ class DartCompletionManager extends CompletionManager {
       // but need to handle the returned future the same way that futures
       // returned from contributors are handled once this method is refactored
       // to be async.
-      /* await */ contributionSorter.sort(
-          request, request.suggestions);
+      /* await */ contributionSorter.sort(request, request.suggestions);
       // TODO (danrubel) if request is obsolete
       // (processAnalysisRequest returns false)
       // then send empty results
@@ -375,14 +373,19 @@ class DartCompletionRequest extends CompletionRequestImpl {
    */
   final Set<String> _completions = new Set<String>();
 
-  DartCompletionRequest(AnalysisServer server, AnalysisContext context,
-      Source source, int offset, this.cache)
-      : super(server, context, source, offset);
+  DartCompletionRequest(
+      AnalysisContext context,
+      ResourceProvider resourceProvider,
+      SearchEngine searchEngine,
+      Source source,
+      int offset,
+      this.cache)
+      : super(context, resourceProvider, searchEngine, source, offset);
 
   factory DartCompletionRequest.from(
           CompletionRequestImpl request, DartCompletionCache cache) =>
-      new DartCompletionRequest(request.server, request.context, request.source,
-          request.offset, cache);
+      new DartCompletionRequest(request.context, request.resourceProvider,
+          request.searchEngine, request.source, request.offset, cache);
 
   /**
    * Return the original text from the [replacementOffset] to the [offset]
@@ -405,11 +408,6 @@ class DartCompletionRequest extends CompletionRequestImpl {
     }
     return _optype;
   }
-
-  /**
-   * The search engine for use when building suggestions.
-   */
-  SearchEngine get searchEngine => server.searchEngine;
 
   /**
    * The list of suggestions to be sent to the client.

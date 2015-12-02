@@ -7054,10 +7054,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   InterfaceTypeImpl substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
-    // Pruned types should only ever result from performing type variable
-    // substitution, and it doesn't make sense to substitute again after
-    // substituting once.
-    assert(this.prunedTypedefs == null);
     if (argumentTypes.length != parameterTypes.length) {
       throw new IllegalArgumentException(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");

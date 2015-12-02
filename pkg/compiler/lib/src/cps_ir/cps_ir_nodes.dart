@@ -216,6 +216,9 @@ abstract class Primitive extends Variable<Primitive> {
     }
   }
 
+  /// True if this primitive has a value that can be used by other expressions.
+  bool get hasValue;
+
   /// True if the primitive can be removed, assuming it has no uses
   /// (this getter does not check if there are any uses).
   ///
@@ -481,6 +484,8 @@ class InvokeStatic extends UnsafePrimitive {
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 
+  bool get hasValue => true;
+
   void setParentPointers() {
     _setParentsOnList(arguments, this);
   }
@@ -556,6 +561,8 @@ class InvokeMethod extends UnsafePrimitive {
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 
+  bool get hasValue => true;
+
   void setParentPointers() {
     receiver.parent = this;
     _setParentsOnList(arguments, this);
@@ -616,6 +623,8 @@ class InvokeMethodDirectly extends UnsafePrimitive {
 
   accept(Visitor visitor) => visitor.visitInvokeMethodDirectly(this);
 
+  bool get hasValue => true;
+
   void setParentPointers() {
     receiver.parent = this;
     _setParentsOnList(arguments, this);
@@ -661,6 +670,8 @@ class InvokeConstructor extends UnsafePrimitive {
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 
+  bool get hasValue => true;
+
   void setParentPointers() {
     _setParentsOnList(arguments, this);
   }
@@ -680,6 +691,7 @@ class Refinement extends Primitive {
   Refinement(Primitive value, this.refineType)
     : value = new Reference<Primitive>(value);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => false;
 
@@ -716,12 +728,6 @@ class TypeTest extends Primitive {
   /// Otherwise the list is empty.
   final List<Reference<Primitive>> typeArguments;
 
-  /// The Interceptor for [value].  May be `null` if the test can be done
-  /// without an interceptor.  May be the same as [value] after self-interceptor
-  /// optimization.
-  // TODO(24523): Remove this field.
-  Reference<Primitive> interceptor;
-
   TypeTest(Primitive value,
            this.dartType,
            List<Primitive> typeArguments)
@@ -730,13 +736,13 @@ class TypeTest extends Primitive {
 
   accept(Visitor visitor) => visitor.visitTypeTest(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
     value.parent = this;
     _setParentsOnList(typeArguments, this);
-    if (interceptor != null) interceptor.parent = this;
   }
 }
 
@@ -752,6 +758,7 @@ class TypeTestViaFlag extends Primitive {
 
   accept(Visitor visitor) => visitor.visitTypeTestViaFlag(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -785,6 +792,8 @@ class TypeCast extends UnsafePrimitive {
 
   accept(Visitor visitor) => visitor.visitTypeCast(this);
 
+  bool get hasValue => true;
+
   void setParentPointers() {
     value.parent = this;
     _setParentsOnList(typeArguments, this);
@@ -806,6 +815,7 @@ class ApplyBuiltinOperator extends Primitive {
 
   accept(Visitor visitor) => visitor.visitApplyBuiltinOperator(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -835,6 +845,7 @@ class ApplyBuiltinMethod extends Primitive {
 
   accept(Visitor visitor) => visitor.visitApplyBuiltinMethod(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
 
@@ -894,6 +905,7 @@ class GetMutable extends Primitive {
 
   accept(Visitor visitor) => visitor.visitGetMutable(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => false;
 
@@ -918,6 +930,7 @@ class SetMutable extends Primitive {
 
   accept(Visitor visitor) => visitor.visitSetMutable(this);
 
+  bool get hasValue => false;
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
 
@@ -1022,6 +1035,7 @@ class SetField extends Primitive {
 
   accept(Visitor visitor) => visitor.visitSetField(this);
 
+  bool get hasValue => false;
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
 
@@ -1048,6 +1062,7 @@ class GetField extends Primitive {
 
   accept(Visitor visitor) => visitor.visitGetField(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => objectIsNotNull;
   bool get isSafeForReordering => false;
 
@@ -1067,6 +1082,7 @@ class GetLength extends Primitive {
 
   GetLength(Primitive object) : this.object = new Reference<Primitive>(object);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => objectIsNotNull;
   bool get isSafeForReordering => false;
 
@@ -1092,6 +1108,7 @@ class GetIndex extends Primitive {
       : this.object = new Reference<Primitive>(object),
         this.index = new Reference<Primitive>(index);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => objectIsNotNull;
   bool get isSafeForReordering => false;
 
@@ -1118,6 +1135,7 @@ class SetIndex extends Primitive {
         this.index = new Reference<Primitive>(index),
         this.value = new Reference<Primitive>(value);
 
+  bool get hasValue => false;
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
 
@@ -1142,9 +1160,8 @@ class GetStatic extends Primitive {
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
 
-  bool get isSafeForElimination {
-    return true;
-  }
+  bool get hasValue => true;
+  bool get isSafeForElimination => true;
   bool get isSafeForReordering {
     return element is FunctionElement || element.isFinal;
   }
@@ -1163,6 +1180,7 @@ class SetStatic extends Primitive {
 
   accept(Visitor visitor) => visitor.visitSetStatic(this);
 
+  bool get hasValue => false;
   bool get isSafeForElimination => false;
   bool get isSafeForReordering => false;
 
@@ -1183,14 +1201,16 @@ class GetLazyStatic extends UnsafePrimitive {
 
   accept(Visitor visitor) => visitor.visitGetLazyStatic(this);
 
-  void setParentPointers() {
-  }
+  bool get hasValue => true;
+
+  void setParentPointers() {}
 }
 
 /// Creates an object for holding boxed variables captured by a closure.
 class CreateBox extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1223,6 +1243,7 @@ class CreateInstance extends Primitive {
 
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1319,6 +1340,7 @@ class Interceptor extends Primitive {
 
   accept(Visitor visitor) => visitor.visitInterceptor(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1337,6 +1359,7 @@ class CreateInvocationMirror extends Primitive {
 
   accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1358,6 +1381,8 @@ class ForeignCode extends UnsafePrimitive {
 
   accept(Visitor visitor) => visitor.visitForeignCode(this);
 
+  bool get hasValue => true;
+
   void setParentPointers() {
     _setParentsOnList(arguments, this);
   }
@@ -1373,6 +1398,7 @@ class Constant extends Primitive {
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1393,6 +1419,7 @@ class LiteralList extends Primitive {
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1418,6 +1445,7 @@ class LiteralMap extends Primitive {
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1429,29 +1457,6 @@ class LiteralMap extends Primitive {
   }
 }
 
-/// Currently unused.
-///
-/// Nested functions (from Dart code) are translated to classes by closure
-/// conversion, hence they are instantiated with [CreateInstance].
-///
-/// We keep this around for now because it might come in handy when we
-/// handle async/await in the CPS IR.
-///
-/// Instantiates a nested function. [MutableVariable]s are in scope in the
-/// inner function, but primitives are not shared across function boundaries.
-class CreateFunction extends Primitive {
-  final FunctionDefinition definition;
-
-  CreateFunction(this.definition);
-
-  accept(Visitor visitor) => visitor.visitCreateFunction(this);
-
-  bool get isSafeForElimination => true;
-  bool get isSafeForReordering => true;
-
-  void setParentPointers() {}
-}
-
 class Parameter extends Primitive {
   Parameter(Entity hint) {
     super.hint = hint;
@@ -1461,6 +1466,7 @@ class Parameter extends Primitive {
 
   String toString() => 'Parameter(${hint == null ? null : hint.name})';
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1554,6 +1560,7 @@ class ReifyRuntimeType extends Primitive {
   @override
   accept(Visitor visitor) => visitor.visitReifyRuntimeType(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1578,6 +1585,7 @@ class ReadTypeVariable extends Primitive {
   @override
   accept(Visitor visitor) => visitor.visitReadTypeVariable(this);
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1607,6 +1615,7 @@ class TypeExpression extends Primitive {
     return visitor.visitTypeExpression(this);
   }
 
+  bool get hasValue => true;
   bool get isSafeForElimination => true;
   bool get isSafeForReordering => true;
 
@@ -1626,6 +1635,8 @@ class Await extends UnsafePrimitive {
     return visitor.visitAwait(this);
   }
 
+  bool get hasValue => true;
+
   void setParentPointers() {
     input.parent = this;
   }
@@ -1642,6 +1653,8 @@ class Yield extends UnsafePrimitive {
   accept(Visitor visitor) {
     return visitor.visitYield(this);
   }
+
+  bool get hasValue => true;
 
   void setParentPointers() {
     input.parent = this;
@@ -1698,7 +1711,6 @@ abstract class Visitor<T> {
   T visitLiteralList(LiteralList node);
   T visitLiteralMap(LiteralMap node);
   T visitConstant(Constant node);
-  T visitCreateFunction(CreateFunction node);
   T visitGetMutable(GetMutable node);
   T visitParameter(Parameter node);
   T visitContinuation(Continuation node);
@@ -1853,7 +1865,6 @@ class DeepRecursiveVisitor implements Visitor {
   visitTypeTest(TypeTest node) {
     processTypeTest(node);
     processReference(node.value);
-    if (node.interceptor != null) processReference(node.interceptor);
     node.typeArguments.forEach(processReference);
   }
 
@@ -1893,12 +1904,6 @@ class DeepRecursiveVisitor implements Visitor {
   processConstant(Constant node) {}
   visitConstant(Constant node)  {
     processConstant(node);
-  }
-
-  processCreateFunction(CreateFunction node) {}
-  visitCreateFunction(CreateFunction node) {
-    processCreateFunction(node);
-    visit(node.definition);
   }
 
   processMutableVariable(node) {}

@@ -20,11 +20,6 @@ class VariableMerger extends RecursiveVisitor implements Pass {
     visitStatement(node.body);
   }
 
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    rewriteFunction(node);
-  }
-
   /// Rewrites the given function.
   /// This is called for the outermost function and inner functions.
   void rewriteFunction(FunctionDefinition node) {
@@ -110,11 +105,6 @@ class BlockGraphBuilder extends RecursiveVisitor {
     _currentBlock = newBlock();
     node.parameters.forEach(write);
     visitStatement(node.body);
-  }
-
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    // Do nothing. Inner functions are traversed in VariableMerger.
   }
 
   /// Creates a new block with the current exception handler or [catchBlock]
@@ -504,11 +494,6 @@ class SubstituteVariables extends RecursiveTransformer {
       node.parameters[i] = replaceWrite(node.parameters[i]);
     }
     node.body = visitStatement(node.body);
-  }
-
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    // Do nothing. Inner functions are traversed in VariableMerger.
   }
 
   Expression visitVariableUse(VariableUse node) {

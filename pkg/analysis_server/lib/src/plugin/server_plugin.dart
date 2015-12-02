@@ -25,12 +25,9 @@ import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/index/index.dart';
 import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart';
@@ -67,13 +64,6 @@ class ServerPlugin implements Plugin {
    */
   static const String COMPLETION_CONTRIBUTOR_EXTENSION_POINT =
       'completionContributor';
-
-  /**
-   * The simple identifier of the extension point that allows plugins to
-   * register Dart specific completion contributor factories.
-   */
-  static const String DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT =
-      'dartCompletionContributor';
 
   /**
    * The simple identifier of the extension point that allows plugins to
@@ -134,12 +124,6 @@ class ServerPlugin implements Plugin {
    * contributors.
    */
   ExtensionPoint completionContributorExtensionPoint;
-
-  /**
-   * The extension point that allows plugins to register Dart specific
-   * completion contributor factories.
-   */
-  ExtensionPoint dartCompletionContributorExtensionPoint;
 
   /**
    * The extension point that allows plugins to register domains with the
@@ -209,14 +193,6 @@ class ServerPlugin implements Plugin {
       completionContributorExtensionPoint.extensions;
 
   /**
-   * Return a list containing all of the Dart specific completion contributor
-   * factories that were contributed.
-   */
-  List<
-      DartCompletionContributorFactory> get dartCompletionContributorFactories =>
-      dartCompletionContributorExtensionPoint.extensions;
-
-  /**
    * Return a list containing all of the fix contributors that were contributed.
    */
   List<FixContributor> get fixContributors =>
@@ -280,9 +256,6 @@ class ServerPlugin implements Plugin {
     completionContributorExtensionPoint = registerExtensionPoint(
         COMPLETION_CONTRIBUTOR_EXTENSION_POINT,
         _validateCompletionContributorExtension);
-    dartCompletionContributorExtensionPoint = registerExtensionPoint(
-        DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT,
-        _validateDartCompletionContributorExtension);
     domainExtensionPoint = registerExtensionPoint(
         DOMAIN_EXTENSION_POINT, _validateDomainExtension);
     fixContributorExtensionPoint = registerExtensionPoint(
@@ -319,8 +292,6 @@ class ServerPlugin implements Plugin {
     //
     // TODO(brianwilkerson) Register the completion contributors.
     //registerExtension(COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID, ???);
-    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
-        defaultDartCompletionContributorFactory);
     //
     // Register analysis contributors.
     //
@@ -403,18 +374,6 @@ class ServerPlugin implements Plugin {
       String id = completionContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
           'Extensions to $id must be an CompletionContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid Dart specific completion contributor.
-   */
-  void _validateDartCompletionContributorExtension(Object extension) {
-    if (extension is! DartCompletionContributorFactory) {
-      String id = dartCompletionContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError(
-          'Extensions to $id must be a DartCompletionContributorFactory');
     }
   }
 

@@ -7,7 +7,6 @@ library test.services.completion.suggestion;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
@@ -23,7 +22,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../operation/operation_queue_test.dart';
 import '../../utils.dart';
 
 main() {
@@ -88,9 +86,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.newContributors = [];
     int count = 0;
     bool done = false;
-    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
     CompletionRequest completionRequest =
-        new CompletionRequestImpl(server, context, source, 0);
+        new CompletionRequestImpl(context, provider, searchEngine, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
       bool isLast = r is CompletionResultImpl ? r.isLast : true;
       switch (++count) {
@@ -127,9 +124,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.newContributors = [];
     int count = 0;
     bool done = false;
-    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
     CompletionRequest completionRequest =
-        new CompletionRequestImpl(server, context, source, 0);
+        new CompletionRequestImpl(context, provider, searchEngine, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
       bool isLast = r is CompletionResultImpl ? r.isLast : true;
       switch (++count) {

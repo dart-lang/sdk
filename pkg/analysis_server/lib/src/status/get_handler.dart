@@ -13,6 +13,7 @@ import 'dart:math';
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
@@ -23,6 +24,7 @@ import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
+import 'package:analysis_server/src/utilities/average.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
@@ -94,6 +96,11 @@ class GetHandler {
   static const String CONTEXT_PATH = '/context';
 
   /**
+   * The path used to request diagnostic information.
+   */
+  static const String DIAGNOSTIC_PATH = '/diagnostic';
+
+  /**
    * The path used to request information about a element model.
    */
   static const String ELEMENT_PATH = '/element';
@@ -157,6 +164,11 @@ class GetHandler {
       new ContentType("text", "html", charset: "utf-8");
 
   /**
+   * Rolling average of calls to get diagnostics.
+   */
+  Average _diagnosticCallAverage = new Average();
+
+  /**
    * The socket server whose status is to be reported on.
    */
   SocketServer _server;
@@ -172,9 +184,21 @@ class GetHandler {
   final Map<String, String> _overlayContents = <String, String>{};
 
   /**
+   * Handler for diagnostics requests.
+   */
+  DiagnosticDomainHandler _diagnosticHandler;
+
+  /**
    * Initialize a newly created handler for GET requests.
    */
   GetHandler(this._server, this._printBuffer);
+
+  DiagnosticDomainHandler get diagnosticHandler {
+    if (_diagnosticHandler == null) {
+      _diagnosticHandler = new DiagnosticDomainHandler(_server.analysisServer);
+    }
+    return _diagnosticHandler;
+  }
 
   /**
    * Return the active [CompletionDomainHandler]
@@ -211,6 +235,8 @@ class GetHandler {
       _returnCommunicationPerformance(request);
     } else if (path == CONTEXT_PATH) {
       _returnContextInfo(request);
+    } else if (path == DIAGNOSTIC_PATH) {
+      _returnDiagnosticInfo(request);
     } else if (path == ELEMENT_PATH) {
       _returnElement(request);
     } else if (path == INDEX_ELEMENT_BY_NAME) {
@@ -1061,6 +1087,20 @@ class GetHandler {
   }
 
   /**
+   * Return a response displaying diagnostic information.
+   */
+  void _returnDiagnosticInfo(HttpRequest request) {
+    String value = request.requestedUri.queryParameters['index'];
+    int index = value != null ? int.parse(value, onError: (_) => 0) : 0;
+    _writeResponse(request, (StringBuffer buffer) {
+      _writePage(buffer, 'Analysis Server - Diagnostic info', [],
+          (StringBuffer buffer) {
+        _writeDiagnosticStatus(buffer);
+      });
+    });
+  }
+
+  /**
    * Return a response containing information about an element structure.
    */
   void _returnElement(HttpRequest request) {
@@ -1217,6 +1257,7 @@ class GetHandler {
       _writePage(buffer, 'Analysis Server - Status', [], (StringBuffer buffer) {
         if (_writeServerStatus(buffer)) {
           _writeAnalysisStatus(buffer);
+          _writeDiagnosticStatus(buffer);
           _writeEditStatus(buffer);
           _writeExecutionStatus(buffer);
           _writePluginStatus(buffer);
@@ -1246,6 +1287,9 @@ class GetHandler {
         buffer.write('</p>');
         buffer.write('<p>');
         buffer.write(makeLink(OVERLAYS_PATH, {}, 'File overlays'));
+        buffer.write('</p>');
+        buffer.write('<p>');
+        buffer.write(makeLink(DIAGNOSTIC_PATH, {}, 'Diagnostic info'));
         buffer.write('</p>');
       });
     });
@@ -1446,6 +1490,47 @@ class GetHandler {
         followed by the number of suggestions send to the client
         in the last notification. If there is only one notification,
         then there will be only one number in this column.''');
+  }
+
+  /**
+   * Write the status of the diagnostic domain to the given [buffer].
+   */
+  void _writeDiagnosticStatus(StringBuffer buffer) {
+    var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
+
+    var stopwatch = new Stopwatch();
+    stopwatch.start();
+    var response = diagnosticHandler.handleRequest(request);
+    stopwatch.stop();
+
+    int elapsedMs = stopwatch.elapsedMilliseconds;
+    _diagnosticCallAverage.addSample(elapsedMs);
+
+    buffer.write('<h3>Timing</h3>');
+
+    buffer.write('<p>');
+    buffer.write('getDiagnostic (last call): $elapsedMs (ms)');
+    buffer.write('<p>');
+    buffer.write('getDiagnostic (rolling average): '
+        '${_diagnosticCallAverage.value} (ms)');
+    buffer.write('<p>&nbsp;');
+
+    var json = response.toJson()[Response.RESULT];
+    List contexts = json['contexts'];
+    for (var context in contexts) {
+      buffer.write('<p>');
+      buffer.write('<h3>${context["name"]}</h3>');
+      buffer.write('<p>');
+      buffer.write('explicitFileCount: ${context["explicitFileCount"]}');
+      buffer.write('<p>');
+      buffer.write('implicitFileCount: ${context["implicitFileCount"]}');
+      buffer.write('<p>');
+      buffer.write('workItemQueueLength: ${context["workItemQueueLength"]}');
+      buffer.write('<p>');
+      buffer.write('workItemQueueLengthAverage: '
+          '${context["workItemQueueLengthAverage"]}');
+      buffer.write('<p>&nbsp;');
+    }
   }
 
   /**

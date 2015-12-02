@@ -312,10 +312,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
            '${node.interceptedClasses})';
   }
 
-  visitCreateFunction(cps_ir.CreateFunction node) {
-    return "CreateFunction ${node.definition.element.name}";
-  }
-
   visitGetMutable(cps_ir.GetMutable node) {
     String variable = names.name(node.variable.definition);
     return 'GetMutable $variable';
@@ -343,10 +339,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitTypeTest(cps_ir.TypeTest node) {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
-    String interceptor = node.interceptor == null
-        ? ''
-        : ' ${formatReference(node.interceptor)}';
-    return "TypeTest ($value ${node.dartType} ($args)$interceptor)";
+    return "TypeTest ($value ${node.dartType} ($args))";
   }
 
   visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
@@ -572,10 +565,6 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitConstant(cps_ir.Constant node) {
-    unexpectedNode(node);
-  }
-
-  visitCreateFunction(cps_ir.CreateFunction node) {
     unexpectedNode(node);
   }
 

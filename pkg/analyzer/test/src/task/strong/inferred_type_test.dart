@@ -960,9 +960,9 @@ void main() {
 
   testChecker('downwards inference: miscellaneous', {
     '/main.dart': '''
-      typedef (T x);
+      typedef T Function2<S, T>(S x);
       class A<T> {
-        Function2<T> x;
+        Function2<T, T> x;
         A(this.x);
       }
       void main() {
@@ -970,7 +970,7 @@ void main() {
             var x = "hello";
             var y = 3;
             void f(List<Map<int, String>> l) {};
-            f(/*info:InferredTypeLiteral*/[{y: x}]);
+            f(/*info:InferredTypeLiteral*/[/*info:InferredTypeLiteral*/{y: x}]);
           }
           {
             int f(int x) {};
@@ -1024,8 +1024,8 @@ void main() {
           A<int, String> a5 = /*severe:StaticTypeError*/new A<dynamic, dynamic>.named(3, "hello");
         }
         {
-          A<int, String> a0 = /*severe:StaticTypeError*/new A("hello", 3);
-          A<int, String> a1 = /*severe:StaticTypeError*/new A.named("hello", 3);
+          A<int, String> a0 = /*info:InferredTypeAllocation*/new A(/*severe:StaticTypeError*/"hello", /*severe:StaticTypeError*/3);
+          A<int, String> a1 = /*info:InferredTypeAllocation*/new A.named(/*severe:StaticTypeError*/"hello", /*severe:StaticTypeError*/3);
         }
         {
           A<int, String> a0 = /*$info*/new B("hello", 3);
@@ -1036,8 +1036,8 @@ void main() {
           A<int, String> a5 = /*severe:StaticTypeError*/new B<dynamic, dynamic>.named("hello", 3);
         }
         {
-          A<int, String> a0 = /*severe:StaticTypeError*/new B(3, "hello");
-          A<int, String> a1 = /*severe:StaticTypeError*/new B.named(3, "hello");
+          A<int, String> a0 = /*info:InferredTypeAllocation*/new B(/*severe:StaticTypeError*/3, /*severe:StaticTypeError*/"hello");
+          A<int, String> a1 = /*info:InferredTypeAllocation*/new B.named(/*severe:StaticTypeError*/3, /*severe:StaticTypeError*/"hello");
         }
         {
           A<int, int> a0 = /*$info*/new C(3);
@@ -1048,8 +1048,8 @@ void main() {
           A<int, int> a5 = /*severe:StaticTypeError*/new C<dynamic>.named(3);
         }
         {
-          A<int, int> a0 = /*severe:StaticTypeError*/new C("hello");
-          A<int, int> a1 = /*severe:StaticTypeError*/new C.named("hello");
+          A<int, int> a0 = /*info:InferredTypeAllocation*/new C(/*severe:StaticTypeError*/"hello");
+          A<int, int> a1 = /*info:InferredTypeAllocation*/new C.named(/*severe:StaticTypeError*/"hello");
         }
         {
           A<int, String> a0 = /*$info*/new D("hello");
@@ -1060,19 +1060,19 @@ void main() {
           A<int, String> a5 = /*severe:StaticTypeError*/new D<dynamic, dynamic>.named("hello");
         }
         {
-          A<int, String> a0 = /*severe:StaticTypeError*/new D(3);
-          A<int, String> a1 = /*severe:StaticTypeError*/new D.named(3);
+          A<int, String> a0 = /*info:InferredTypeAllocation*/new D(/*severe:StaticTypeError*/3);
+          A<int, String> a1 = /*info:InferredTypeAllocation*/new D.named(/*severe:StaticTypeError*/3);
         }
         { // Currently we only allow variable constraints.  Test that we reject.
           A<C<int>, String> a0 = /*severe:StaticTypeError*/new E("hello");
         }
         { // Check named and optional arguments
-          A<int, String> a0 = /*$info*/new F(3, "hello", a: [3], b: ["hello"]);
-          A<int, String> a1 = /*severe:StaticTypeError*/new F(3, "hello", a: ["hello"], b:[3]);
+          A<int, String> a0 = /*$info*/new F(3, "hello", a: /*info:InferredTypeLiteral*/[3], b: /*info:InferredTypeLiteral*/["hello"]);
+          A<int, String> a1 = /*info:InferredTypeAllocation*/new F(3, "hello", a: /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello"], b: /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/3]);
           A<int, String> a2 = /*$info*/new F.named(3, "hello", 3, "hello");
           A<int, String> a3 = /*$info*/new F.named(3, "hello");
-          A<int, String> a4 = /*severe:StaticTypeError*/new F.named(3, "hello", "hello", 3);
-          A<int, String> a5 = /*severe:StaticTypeError*/new F.named(3, "hello", "hello");
+          A<int, String> a4 = /*info:InferredTypeAllocation*/new F.named(3, "hello", /*severe:StaticTypeError*/"hello", /*severe:StaticTypeError*/3);
+          A<int, String> a5 = /*info:InferredTypeAllocation*/new F.named(3, "hello", /*severe:StaticTypeError*/"hello");
         }
       }
         ''';
@@ -1083,15 +1083,15 @@ void main() {
     String info = "info:InferredTypeLiteral";
     String code = '''
       void foo([List<String> list1 = /*$info*/const [],
-                List<String> list2 = /*severe:StaticTypeError*/const [42]]) {
+                List<String> list2 = /*info:InferredTypeLiteral*/const [/*severe:StaticTypeError*/42]]) {
       }
 
       void main() {
         {
           List<int> l0 = /*$info*/[];
           List<int> l1 = /*$info*/[3];
-          List<int> l2 = /*severe:StaticTypeError*/["hello"];
-          List<int> l3 = /*severe:StaticTypeError*/["hello", 3];
+          List<int> l2 = /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello"];
+          List<int> l3 = /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello", 3];
         }
         {
           List<dynamic> l0 = [];
@@ -1108,14 +1108,14 @@ void main() {
         {
           Iterable<int> i0 = /*$info*/[];
           Iterable<int> i1 = /*$info*/[3];
-          Iterable<int> i2 = /*severe:StaticTypeError*/["hello"];
-          Iterable<int> i3 = /*severe:StaticTypeError*/["hello", 3];
+          Iterable<int> i2 = /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello"];
+          Iterable<int> i3 = /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello", 3];
         }
         {
           const List<int> c0 = /*$info*/const [];
           const List<int> c1 = /*$info*/const [3];
-          const List<int> c2 = /*severe:StaticTypeError*/const ["hello"];
-          const List<int> c3 = /*severe:StaticTypeError*/const ["hello", 3];
+          const List<int> c2 = /*info:InferredTypeLiteral*/const [/*severe:StaticTypeError*/"hello"];
+          const List<int> c3 = /*info:InferredTypeLiteral*/const [/*severe:StaticTypeError*/"hello", 3];
         }
       }
       ''';
@@ -1133,28 +1133,28 @@ void main() {
       void main() {
         f0(/*$info*/[]);
         f0(/*$info*/[3]);
-        f0(/*severe:StaticTypeError*/["hello"]);
-        f0(/*severe:StaticTypeError*/["hello", 3]);
+        f0(/*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello"]);
+        f0(/*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello", 3]);
 
         f1(a: /*$info*/[]);
         f1(a: /*$info*/[3]);
-        f1(a: /*severe:StaticTypeError*/["hello"]);
-        f1(a: /*severe:StaticTypeError*/["hello", 3]);
+        f1(a: /*$info*/[/*severe:StaticTypeError*/"hello"]);
+        f1(a: /*$info*/[/*severe:StaticTypeError*/"hello", 3]);
 
         f2(/*$info*/[]);
         f2(/*$info*/[3]);
-        f2(/*severe:StaticTypeError*/["hello"]);
-        f2(/*severe:StaticTypeError*/["hello", 3]);
+        f2(/*$info*/[/*severe:StaticTypeError*/"hello"]);
+        f2(/*$info*/[/*severe:StaticTypeError*/"hello", 3]);
 
         f3(/*$info*/[]);
-        f3(/*$info*/[[3]]);
-        f3(/*severe:StaticTypeError*/[["hello"]]);
-        f3(/*severe:StaticTypeError*/[["hello"], [3]]);
+        f3(/*$info*/[/*$info*/[3]]);
+        f3(/*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"]]);
+        f3(/*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"], /*$info*/[3]]);
 
         f4(a: /*$info*/[]);
-        f4(a: /*$info*/[[3]]);
-        f4(a: /*severe:StaticTypeError*/[["hello"]]);
-        f4(a: /*severe:StaticTypeError*/[["hello"], [3]]);
+        f4(a: /*$info*/[/*$info*/[3]]);
+        f4(a: /*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"]]);
+        f4(a: /*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"], /*$info*/[3]]);
       }
       ''';
     testChecker('infer downwards', {'/main.dart': code});
@@ -1164,15 +1164,15 @@ void main() {
     String info = "info:InferredTypeLiteral";
     String code = '''
       void foo([Map<int, String> m1 = /*$info*/const {1: "hello"},
-                Map<int, String> m1 = /*severe:StaticTypeError*/const {"hello": "world"}]) {
+        Map<int, String> m1 = /*$info*/const {(/*severe:StaticTypeError*/"hello"): "world"}]) {
       }
       void main() {
         {
           Map<int, String> l0 = /*$info*/{};
           Map<int, String> l1 = /*$info*/{3: "hello"};
-          Map<int, String> l2 = /*severe:StaticTypeError*/{"hello": "hello"};
-          Map<int, String> l3 = /*severe:StaticTypeError*/{3: 3};
-          Map<int, String> l4 = /*severe:StaticTypeError*/{3:"hello", "hello": 3};
+          Map<int, String> l2 = /*$info*/{(/*severe:StaticTypeError*/"hello"): "hello"};
+          Map<int, String> l3 = /*$info*/{3: /*severe:StaticTypeError*/3};
+          Map<int, String> l4 = /*$info*/{3:"hello", (/*severe:StaticTypeError*/"hello"): /*severe:StaticTypeError*/3};
         }
         {
           Map<dynamic, dynamic> l0 = {};
@@ -1185,15 +1185,15 @@ void main() {
           Map<dynamic, String> l0 = /*$info*/{};
           Map<dynamic, String> l1 = /*$info*/{3: "hello"};
           Map<dynamic, String> l2 = /*$info*/{"hello": "hello"};
-          Map<dynamic, String> l3 = /*severe:StaticTypeError*/{3: 3};
-          Map<dynamic, String> l4 = /*severe:StaticTypeError*/{3:"hello", "hello": 3};
+          Map<dynamic, String> l3 = /*$info*/{3: /*severe:StaticTypeError*/3};
+          Map<dynamic, String> l4 = /*$info*/{3:"hello", "hello": /*severe:StaticTypeError*/3};
         }
         {
           Map<int, dynamic> l0 = /*$info*/{};
           Map<int, dynamic> l1 = /*$info*/{3: "hello"};
-          Map<int, dynamic> l2 = /*severe:StaticTypeError*/{"hello": "hello"};
+          Map<int, dynamic> l2 = /*$info*/{(/*severe:StaticTypeError*/"hello"): "hello"};
           Map<int, dynamic> l3 = /*$info*/{3: 3};
-          Map<int, dynamic> l3 = /*severe:StaticTypeError*/{3:"hello", "hello": 3};
+          Map<int, dynamic> l4 = /*$info*/{3:"hello", (/*severe:StaticTypeError*/"hello"): 3};
         }
         {
           Map<int, String> l0 = /*severe:StaticTypeError*/<num, dynamic>{};
@@ -1203,9 +1203,9 @@ void main() {
         {
           const Map<int, String> l0 = /*$info*/const {};
           const Map<int, String> l1 = /*$info*/const {3: "hello"};
-          const Map<int, String> l2 = /*severe:StaticTypeError*/const {"hello": "hello"};
-          const Map<int, String> l3 = /*severe:StaticTypeError*/const {3: 3};
-          const Map<int, String> l4 = /*severe:StaticTypeError*/const {3:"hello", "hello": 3};
+          const Map<int, String> l2 = /*$info*/const {(/*severe:StaticTypeError*/"hello"): "hello"};
+          const Map<int, String> l3 = /*$info*/const {3: /*severe:StaticTypeError*/3};
+          const Map<int, String> l4 = /*$info*/const {3:"hello", (/*severe:StaticTypeError*/"hello"): /*severe:StaticTypeError*/3};
         }
       }
       ''';
@@ -1218,34 +1218,112 @@ void main() {
 
       void main () {
         {
-          Function2<int, String> l0 = (int x) => null;
+          Function2<int, String> l0 = /*info:InferredTypeClosure*/(int x) => null;
           Function2<int, String> l1 = (int x) => "hello";
           Function2<int, String> l2 = /*severe:StaticTypeError*/(String x) => "hello";
           Function2<int, String> l3 = /*severe:StaticTypeError*/(int x) => 3;
-          Function2<int, String> l4 = /*warning:UninferredClosure should be severe:StaticTypeError*/(int x) {return 3};
+          Function2<int, String> l4 = /*info:InferredTypeClosure*/(int x) {return /*severe:StaticTypeError*/3;};
         }
         {
-          Function2<int, String> l0 = /*info:InferredTypeClosure*/(x) => null;
+          Function2<int, String> l0 = /*info:InferredTypeClosure, info:InferredTypeClosure*/(x) => null;
           Function2<int, String> l1 = /*info:InferredTypeClosure*/(x) => "hello";
-          Function2<int, String> l2 = /*severe:StaticTypeError*/(x) => 3;
-          Function2<int, String> l3 = /*warning:UninferredClosure should be severe:StaticTypeError*/(x) {return 3};
+          Function2<int, String> l2 = /*info:InferredTypeClosure, severe:StaticTypeError*/(x) => 3;
+          Function2<int, String> l3 = /*info:InferredTypeClosure, info:InferredTypeClosure*/(x) {return /*severe:StaticTypeError*/3;};
+          Function2<int, String> l4 = /*info:InferredTypeClosure, info:InferredTypeClosure*/(x) {return /*severe:StaticTypeError*/x;};
         }
         {
-          Function2<int, List<String>> l0 = (int x) => null;
-          Function2<int, List<String>> l1 = /*info:InferredTypeClosure*/(int x) => ["hello"];
-          Function2<int, List<String>> l2 = /*severe:StaticTypeError*/(String x) => ["hello"];
-          Function2<int, List<String>> l3 = /*warning:UninferredClosure should be severe:StaticTypeError*/(int x) => [3];
-          Function2<int, List<String>> l4 = /*warning:UninferredClosure should be severe:StaticTypeError*/(int x) {return [3]};
+          Function2<int, List<String>> l0 = /*info:InferredTypeClosure*/(int x) => null;
+          Function2<int, List<String>> l1 = (int x) => /*info:InferredTypeLiteral*/["hello"];
+          Function2<int, List<String>> l2 = /*severe:StaticTypeError*/(String x) => /*info:InferredTypeLiteral*/["hello"];
+          Function2<int, List<String>> l3 = (int x) => /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/3];
+          Function2<int, List<String>> l4 = /*info:InferredTypeClosure*/(int x) {return /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/3];};
         }
         {
           Function2<int, int> l0 = /*info:InferredTypeClosure*/(x) => x;
-          Function2<int, int> l1 = /*info:InferredTypeClosure*/(x) => /*info:DynamicInvoke should be pass*/x+1;
-          Function2<int, String> l2 = /*info:InferredTypeClosure should be severe:StaticTypeError*/(x) => x;
-          Function2<int, String> l3 = /*info:InferredTypeClosure should be severe:StaticTypeError*/(x) => /*info:DynamicInvoke should be pass*/x.substring(3);
-          Function2<String, String> l4 = /*info:InferredTypeClosure*/(x) => /*info:DynamicInvoke should be pass*/x.substring(3);
+          Function2<int, int> l1 = /*info:InferredTypeClosure*/(x) => x+1;
+          Function2<int, String> l2 = /*info:InferredTypeClosure, severe:StaticTypeError*/(x) => x;
+          Function2<int, String> l3 = /*info:InferredTypeClosure, info:InferredTypeClosure*/(x) => /*info:DynamicCast, info:DynamicInvoke*/x.substring(3);
+          Function2<String, String> l4 = /*info:InferredTypeClosure*/(x) => x.substring(3);
         }
       }
       '''
+  });
+
+  testChecker('downwards inference initializing formal, default formal', {
+    '/main.dart': '''
+      typedef T Function2<S, T>([S x]);
+      class Foo {
+        List<int> x;
+        Foo([this.x = /*info:InferredTypeLiteral*/const [1]]);
+        Foo.named([List<int> x = /*info:InferredTypeLiteral*/const [1]]);
+      }
+      void f([List<int> l = /*info:InferredTypeLiteral*/const [1]]) {}
+// We do this inference in an early task but don't preserve the infos.
+      Function2<List<int>, String> g = /*pass should be info:InferredTypeClosure*/([llll = /*info:InferredTypeLiteral*/const [1]]) => "hello";
+'''
+  });
+
+  testChecker('downwards inference async/await', {
+    '/main.dart': '''
+      import 'dart:async';
+      Future<int> test() async {
+        List<int> l0 = /*warning:DownCastComposite should be pass*/await /*pass should be info:InferredTypeLiteral*/[3];
+        List<int> l1 = await /*info:InferredTypeAllocation*/new Future.value(/*info:InferredTypeLiteral*/[3]);
+        '''
+  });
+
+  testChecker('downwards inference foreach', {
+    '/main.dart': '''
+      import 'dart:async';
+      void main() {
+        for(int x in /*info:InferredTypeLiteral*/[1, 2, 3]) {
+        }
+        await for(int x in /*info:InferredTypeAllocation*/new Stream()) {
+        }
+      }
+        '''
+  });
+
+  testChecker('downwards inference yield/yield*', {
+    '/main.dart': '''
+      import 'dart:async';
+        Stream<List<int>> foo() async* {
+          yield /*info:InferredTypeLiteral*/[];
+          yield /*severe:StaticTypeError*/new Stream();
+          yield* /*severe:StaticTypeError*/[];
+          yield* /*info:InferredTypeAllocation*/new Stream();
+        }
+
+        Iterable<Map<int, int>> bar() sync* {
+          yield /*info:InferredTypeLiteral*/{};
+          yield /*severe:StaticTypeError*/new List();
+          yield* /*severe:StaticTypeError*/{};
+          yield* /*info:InferredTypeAllocation*/new List();
+        }
+        '''
+  });
+
+  testChecker('downwards inference, annotations', {
+    '/main.dart': '''
+        class Foo {
+          const Foo(List<String> l);
+          const Foo.named(List<String> l);
+        }
+        @Foo(/*info:InferredTypeLiteral*/const [])
+        class Bar {}
+        @Foo.named(/*info:InferredTypeLiteral*/const [])
+        class Baz {}
+        '''
+  });
+
+  testChecker('downwards inference, assignment statements', {
+    '/main.dart': '''
+    void main() {
+      List<int> l;
+      l = /*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello"];
+      l = (l = /*info:InferredTypeLiteral*/[1]);
+    }
+'''
   });
 
   testChecker('inferred initializing formal checks default value', {

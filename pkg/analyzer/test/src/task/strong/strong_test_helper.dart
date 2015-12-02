@@ -92,6 +92,13 @@ void testChecker(String name, Map<String, String> testFiles) {
 
         var librarySource = context.getLibrariesContaining(source).single;
         var resolved = context.resolveCompilationUnit2(source, librarySource);
+        var analyzerErrors = context
+            .getErrors(source)
+            .errors
+            .where((error) =>
+                error.errorCode.name.startsWith('dev_compiler.InferredType'))
+            .toList();
+        errors.addAll(analyzerErrors);
         checker.visitCompilationUnit(resolved);
 
         new _ExpectedErrorVisitor(errors).validate(resolved);
@@ -396,6 +403,7 @@ final Map<String, String> mockSdkSources = {
 
         class String {
           String operator +(String other) {}
+          String substring(int len) {}
         }
         class bool {}
         class num {

@@ -13,7 +13,7 @@ namespace dart {
 
 // The single thread local key which stores all the thread local data
 // for a thread.
-ThreadLocalKey OSThread::thread_key_ = OSThread::kUnsetThreadLocalKey;
+ThreadLocalKey OSThread::thread_key_ = kUnsetThreadLocalKey;
 OSThread* OSThread::thread_list_head_ = NULL;
 Mutex* OSThread::thread_list_lock_ = NULL;
 
@@ -114,7 +114,16 @@ void OSThread::Cleanup() {
 }
 
 
-bool OSThread::IsThreadInList(ThreadId join_id) {
+OSThread* OSThread::CreateAndSetUnknownThread() {
+  ASSERT(OSThread::Current() == NULL);
+  OSThread* os_thread = new OSThread();
+  OSThread::SetCurrent(os_thread);
+  os_thread->set_name("Unknown");
+  return os_thread;
+}
+
+
+bool OSThread::IsThreadInList(ThreadJoinId join_id) {
   if (join_id == OSThread::kInvalidThreadJoinId) {
     return false;
   }

@@ -179,13 +179,15 @@ class Octagon {
     // Do a single-source shortest paths reaching out from (-v2).
     updateDistance(constraint.v2.negated, 0);
     iterateWorklist();
-    int distanceToV2 = distance[constraint.v2];
-    if (distanceToV2 != null) {
-      // Allow one use of the B edge.
-      // This must be done outside fixpoint iteration as an infinite loop
-      // would arise when an negative-weight cycle using only B exists.
-      updateDistance(constraint.v1.negated, distanceToV2 + constraint.bound);
-      iterateWorklist();
+    if (constraint.v1 != constraint.v2) {
+      int distanceToV2 = distance[constraint.v2];
+      if (distanceToV2 != null) {
+        // Allow one use of the B edge.
+        // This must be done outside fixpoint iteration as an infinite loop
+        // would arise when an negative-weight cycle using only B exists.
+        updateDistance(constraint.v1.negated, distanceToV2 + constraint.bound);
+        iterateWorklist();
+      }
     }
     // Get the distance to (v1) and check if the A edge would complete a cycle.
     int distanceToV1 = distance[constraint.v1];

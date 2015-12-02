@@ -337,6 +337,16 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     }
   }
 
+  TypeInformation narrowNotNull(TypeInformation type) {
+    if (type.type.isExact && !type.type.isNullable) {
+      return type;
+    }
+    TypeInformation newType =
+        new NarrowTypeInformation(type, dynamicType.type.nonNullable());
+    allocatedTypes.add(newType);
+    return newType;
+  }
+
   ElementTypeInformation getInferredTypeOf(Element element) {
     element = element.implementation;
     return typeInformations.putIfAbsent(element, () {

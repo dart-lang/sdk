@@ -500,11 +500,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return createInnerBuilder().buildFunction(function);
   }
 
-  Expression visitCreateFunction(cps_ir.CreateFunction node) {
-    FunctionDefinition def = makeSubFunction(node.definition);
-    return new FunctionExpression(def);
-  }
-
   Expression visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     return new ReifyRuntimeType(
         getVariableUse(node.value), node.sourceInformation);

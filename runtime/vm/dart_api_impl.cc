@@ -64,7 +64,7 @@ DEFINE_FLAG(bool, trace_api, false,
 DEFINE_FLAG(bool, verify_acquired_data, false,
             "Verify correct API acquire/release of typed data.");
 
-ThreadLocalKey Api::api_native_key_ = OSThread::kUnsetThreadLocalKey;
+ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
 Dart_Handle Api::false_handle_ = NULL;
 Dart_Handle Api::null_handle_ = NULL;
@@ -484,9 +484,9 @@ ApiLocalScope* Api::TopScope(Thread* thread) {
 
 
 void Api::InitOnce() {
-  ASSERT(api_native_key_ == OSThread::kUnsetThreadLocalKey);
+  ASSERT(api_native_key_ == kUnsetThreadLocalKey);
   api_native_key_ = OSThread::CreateThreadLocal();
-  ASSERT(api_native_key_ != OSThread::kUnsetThreadLocalKey);
+  ASSERT(api_native_key_ != kUnsetThreadLocalKey);
 }
 
 
@@ -1287,7 +1287,6 @@ DART_EXPORT Dart_Handle Dart_DebugName() {
   Isolate* I = T->isolate();
   return Api::NewHandle(T, String::New(I->name()));
 }
-
 
 
 DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
@@ -3613,11 +3612,6 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
         CURRENT_FUNC);
   }
   Class& cls = Class::Handle(Z, type_obj.type_class());
-#if defined(DEBUG)
-  if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
-    return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
-  }
-#endif
   TypeArguments& type_arguments =
       TypeArguments::Handle(Z, type_obj.arguments());
 
@@ -3677,6 +3671,11 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
     cls = type_obj.type_class();
   }
   if (constructor.IsGenerativeConstructor()) {
+#if defined(DEBUG)
+    if (!cls.is_allocated() && Dart::IsRunningPrecompiledCode()) {
+      return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
+    }
+#endif
     // Create the new object.
     new_object = Instance::New(cls);
   }
@@ -5728,6 +5727,10 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
 
 DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
                                              void* user_data) {
+  // To support various embedders, it must be possible to call this function
+  // from a thread for which we have not entered an Isolate and set up a Thread
+  // TLS object. Therefore, a Zone may not be available, a StackZone cannot be
+  // created, and no ZoneAllocated objects can be allocated.
   if (consumer == NULL) {
     return false;
   }
@@ -5736,8 +5739,6 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
     // Nothing has been recorded.
     return false;
   }
-  Thread* T = Thread::Current();
-  StackZone zone(T);
   Timeline::ReclaimCachedBlocksFromThreads();
   JSONStream js;
   TimelineEventFilter filter;

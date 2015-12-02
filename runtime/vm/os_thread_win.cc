@@ -86,9 +86,10 @@ int OSThread::Start(const char* name,
   return 0;
 }
 
-ThreadLocalKey OSThread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-ThreadId OSThread::kInvalidThreadId = 0;
-ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
+
+const ThreadId OSThread::kInvalidThreadId = 0;
+const ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
+
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
@@ -275,8 +276,7 @@ void Mutex::Unlock() {
 }
 
 
-ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ =
-    OSThread::kUnsetThreadLocalKey;
+ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ = kUnsetThreadLocalKey;
 
 
 Monitor::Monitor() {
@@ -326,8 +326,7 @@ void Monitor::Exit() {
 
 
 void MonitorWaitData::ThreadExit() {
-  if (MonitorWaitData::monitor_wait_data_key_ !=
-      OSThread::kUnsetThreadLocalKey) {
+  if (MonitorWaitData::monitor_wait_data_key_ != kUnsetThreadLocalKey) {
     uword raw_wait_data =
       OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
     // Clear in case this is called a second time.
@@ -435,8 +434,7 @@ void MonitorData::SignalAndRemoveAllWaiters() {
 MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Ensure that the thread local key for monitor wait data objects is
   // initialized.
-  ASSERT(MonitorWaitData::monitor_wait_data_key_ !=
-         OSThread::kUnsetThreadLocalKey);
+  ASSERT(MonitorWaitData::monitor_wait_data_key_ != kUnsetThreadLocalKey);
 
   // Get the MonitorWaitData object containing the event for this
   // thread from thread local storage. Create it if it does not exist.

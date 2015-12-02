@@ -81,7 +81,6 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
 
     // Set all the object fields.
     READ_OBJECT_FIELDS(cls, cls.raw()->from(), cls.raw()->to(), kAsReference);
-
     ASSERT(!cls.IsInFullSnapshot() || (kind == Snapshot::kFull));
   } else {
     cls ^= reader->ReadClassId(object_id);
@@ -1069,8 +1068,6 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     // Set all non object fields.
     library.StoreNonPointer(&library.raw_ptr()->index_,
                             reader->ReadClassIDValue());
-    library.StoreNonPointer(&library.raw_ptr()->num_anonymous_,
-                            reader->ReadClassIDValue());
     library.StoreNonPointer(&library.raw_ptr()->num_imports_,
                             reader->Read<uint16_t>());
     library.StoreNonPointer(&library.raw_ptr()->load_state_,
@@ -1140,7 +1137,6 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     ASSERT((kind == Snapshot::kFull) || !ptr()->is_in_fullsnapshot_);
     // Write out all non object fields.
     writer->WriteClassIDValue(ptr()->index_);
-    writer->WriteClassIDValue(ptr()->num_anonymous_);
     writer->Write<uint16_t>(ptr()->num_imports_);
     writer->Write<int8_t>(ptr()->load_state_);
     writer->Write<bool>(ptr()->corelib_imported_);

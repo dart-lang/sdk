@@ -201,8 +201,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   cps.FunctionDefinition optimizeCpsIr(cps.FunctionDefinition cpsFunction) {
     cpsOptimizationTask.measure(() {
-      TypeMaskSystem typeSystem = new TypeMaskSystem(compiler);
-
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
       applyCpsPass(new InsertRefinements(typeSystem), cpsFunction);

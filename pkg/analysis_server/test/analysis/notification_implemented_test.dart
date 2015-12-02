@@ -315,6 +315,84 @@ class B extends A {
     assertHasImplementedMember('f(_) {} // A');
   }
 
+  test_static_field_instanceStatic() async {
+    addTestFile('''
+class A {
+  int F = 0;
+}
+class B extends A {
+  static int F = 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('F = 0');
+  }
+
+  test_static_field_staticInstance() async {
+    addTestFile('''
+class A {
+  static int F = 0;
+}
+class B extends A {
+  int F = 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('F = 0');
+  }
+
+  test_static_field_staticStatic() async {
+    addTestFile('''
+class A {
+  static int F = 0;
+}
+class B extends A {
+  static int F = 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('F = 0');
+  }
+
+  test_static_method_instanceStatic() async {
+    addTestFile('''
+class A {
+  int m() => 0;
+}
+class B extends A {
+  static int m() => 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('m() => 0');
+  }
+
+  test_static_method_staticInstance() async {
+    addTestFile('''
+class A {
+  static int m() => 0;
+}
+class B extends A {
+  int m() => 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('m() => 0');
+  }
+
+  test_static_method_staticStatic() async {
+    addTestFile('''
+class A {
+  static int m() => 0;
+}
+class B extends A {
+  static int m() => 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('m() => 0');
+  }
+
   Future waitForImplementedElements() {
     Future waitForNotification(int times) {
       if (times == 0 || implementedClasses != null) {

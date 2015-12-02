@@ -1481,18 +1481,6 @@ uword Isolate::GetAndClearStackOverflowFlags() {
 }
 
 
-static int MostUsedFunctionFirst(const Function* const* a,
-                                 const Function* const* b) {
-  if ((*a)->usage_counter() > (*b)->usage_counter()) {
-    return -1;
-  } else if ((*a)->usage_counter() < (*b)->usage_counter()) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-
 void Isolate::AddClosureFunction(const Function& function) const {
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(object_store()->closure_functions());
@@ -1546,47 +1534,6 @@ RawFunction* Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
     return Function::null();
   }
   return Function::RawCast(closures_array.At(idx));
-}
-
-
-static void AddFunctionsFromClass(const Class& cls,
-                                  GrowableArray<const Function*>* functions) {
-  const Array& class_functions = Array::Handle(cls.functions());
-  // Class 'dynamic' is allocated/initialized in a special way, leaving
-  // the functions field NULL instead of empty.
-  const int func_len = class_functions.IsNull() ? 0 : class_functions.Length();
-  for (int j = 0; j < func_len; j++) {
-    Function& function = Function::Handle();
-    function ^= class_functions.At(j);
-    if (function.usage_counter() > 0) {
-      functions->Add(&function);
-    }
-  }
-}
-
-
-void Isolate::PrintInvokedFunctions() {
-  ASSERT(this == Isolate::Current());
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(object_store()->libraries());
-  Library& library = Library::Handle();
-  GrowableArray<const Function*> invoked_functions;
-  for (int i = 0; i < libraries.Length(); i++) {
-    library ^= libraries.At(i);
-    Class& cls = Class::Handle();
-    ClassDictionaryIterator iter(library,
-                                 ClassDictionaryIterator::kIteratePrivate);
-    while (iter.HasNext()) {
-      cls = iter.GetNextClass();
-      AddFunctionsFromClass(cls, &invoked_functions);
-    }
-  }
-  invoked_functions.Sort(MostUsedFunctionFirst);
-  for (int i = 0; i < invoked_functions.length(); i++) {
-    OS::Print("%10" Pd " x %s\n",
-        invoked_functions[i]->usage_counter(),
-        invoked_functions[i]->ToFullyQualifiedCString());
-  }
 }
 
 

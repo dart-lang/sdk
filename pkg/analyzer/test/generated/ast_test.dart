@@ -29,6 +29,7 @@ main() {
   runReflectiveTests(IndexExpressionTest);
   runReflectiveTests(NodeListTest);
   runReflectiveTests(NodeLocatorTest);
+  runReflectiveTests(NodeLocator2Test);
   runReflectiveTests(SimpleIdentifierTest);
   runReflectiveTests(SimpleStringLiteralTest);
   runReflectiveTests(StringInterpolationTest);
@@ -941,6 +942,50 @@ class NodeListTest extends EngineTestCase {
     } on RangeError {
       // Expected
     }
+  }
+}
+
+@reflectiveTest
+class NodeLocator2Test extends ParserTestCase {
+  void test_onlyStartOffset() {
+    String code = ' int vv; ';
+    //             012345678
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    TopLevelVariableDeclaration declaration = unit.declarations[0];
+    VariableDeclarationList variableList = declaration.variables;
+    Identifier typeName = variableList.type.name;
+    SimpleIdentifier varName = variableList.variables[0].name;
+    expect(new NodeLocator2(0).searchWithin(unit), same(unit));
+    expect(new NodeLocator2(1).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(2).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(3).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(4).searchWithin(unit), same(variableList));
+    expect(new NodeLocator2(5).searchWithin(unit), same(varName));
+    expect(new NodeLocator2(6).searchWithin(unit), same(varName));
+    expect(new NodeLocator2(7).searchWithin(unit), same(declaration));
+    expect(new NodeLocator2(8).searchWithin(unit), same(unit));
+    expect(new NodeLocator2(9).searchWithin(unit), isNull);
+    expect(new NodeLocator2(100).searchWithin(unit), isNull);
+  }
+
+  void test_startEndOffset() {
+    String code = ' int vv; ';
+    //             012345678
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    TopLevelVariableDeclaration declaration = unit.declarations[0];
+    VariableDeclarationList variableList = declaration.variables;
+    Identifier typeName = variableList.type.name;
+    SimpleIdentifier varName = variableList.variables[0].name;
+    expect(new NodeLocator2(-1, 2).searchWithin(unit), isNull);
+    expect(new NodeLocator2(0, 2).searchWithin(unit), same(unit));
+    expect(new NodeLocator2(1, 2).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(1, 3).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(1, 4).searchWithin(unit), same(variableList));
+    expect(new NodeLocator2(5, 6).searchWithin(unit), same(varName));
+    expect(new NodeLocator2(5, 7).searchWithin(unit), same(declaration));
+    expect(new NodeLocator2(5, 8).searchWithin(unit), same(unit));
+    expect(new NodeLocator2(5, 100).searchWithin(unit), isNull);
+    expect(new NodeLocator2(100, 200).searchWithin(unit), isNull);
   }
 }
 

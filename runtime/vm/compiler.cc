@@ -549,7 +549,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
           FlowGraphInliner inliner(flow_graph,
                                    &inline_id_to_function,
-                                   &caller_inline_id);
+                                   &caller_inline_id,
+                                   use_speculative_inlining,
+                                   &inlining_black_list);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -1380,24 +1382,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
     if (!func.HasCode() &&
         !func.is_abstract() &&
         !func.IsRedirectingFactory()) {
-      error = CompileFunction(thread, func);
-      if (!error.IsNull()) {
-        return error.raw();
-      }
-      func.ClearICDataArray();
-      func.ClearCode();
-    }
-  }
-
-  // Inner functions get added to the closures array. As part of compilation
-  // more closures can be added to the end of the array. Compile all the
-  // closures until we have reached the end of the "worklist".
-  const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(zone,
-          Isolate::Current()->object_store()->closure_functions());
-  for (int i = 0; i < closures.Length(); i++) {
-    func ^= closures.At(i);
-    if ((func.Owner() == cls.raw()) && !func.HasCode()) {
       error = CompileFunction(thread, func);
       if (!error.IsNull()) {
         return error.raw();

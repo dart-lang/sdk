@@ -1284,7 +1284,7 @@ const x = 1;
     // should be set to the same error state.
     for (String otherVariableName in otherVariables) {
       PropertyInducingElement otherVariableElement =
-          getTopLevelVariableElement(unit, otherVariableName);
+          AstFinder.getTopLevelVariableElement(unit, otherVariableName);
       _expectCircularityError((otherVariableElement
           as TopLevelVariableElementImpl).evaluationResult);
     }
@@ -1299,7 +1299,7 @@ const x = 1;
       CompilationUnit unit, String variableName) {
     // Find the element for the given constant.
     PropertyInducingElement variableElement =
-        getTopLevelVariableElement(unit, variableName);
+        AstFinder.getTopLevelVariableElement(unit, variableName);
     // Now compute the value of the constant.
     computeResult(variableElement, CONSTANT_VALUE,
         matcher: isComputeConstantValueTask);
@@ -1787,7 +1787,7 @@ class B {
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    FieldElement elementA = getFieldInClassElement(unit, 'A', 'a');
+    FieldElement elementA = AstFinder.getFieldInClassElement(unit, 'A', 'a');
     // compute
     computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
         matcher: isComputePropagableVariableDependenciesTask);
@@ -1798,10 +1798,10 @@ class B {
     expect(
         dependencies,
         unorderedEquals([
-          getFieldInClassElement(unit, 'A', 'a1'),
-          getFieldInClassElement(unit, 'A', 'a2'),
-          getFieldInClassElement(unit, 'B', 'b1'),
-          getFieldInClassElement(unit, 'B', 'b2')
+          AstFinder.getFieldInClassElement(unit, 'A', 'a1'),
+          AstFinder.getFieldInClassElement(unit, 'A', 'a2'),
+          AstFinder.getFieldInClassElement(unit, 'B', 'b1'),
+          AstFinder.getFieldInClassElement(unit, 'B', 'b2')
         ]));
   }
 
@@ -1818,7 +1818,8 @@ var   d4 = 4;
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    TopLevelVariableElement elementA = getTopLevelVariableElement(unit, 'a');
+    TopLevelVariableElement elementA =
+        AstFinder.getTopLevelVariableElement(unit, 'a');
     // compute
     computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
         matcher: isComputePropagableVariableDependenciesTask);
@@ -1829,8 +1830,8 @@ var   d4 = 4;
     expect(
         dependencies,
         unorderedEquals([
-          getTopLevelVariableElement(unit, 'd1'),
-          getTopLevelVariableElement(unit, 'd2')
+          AstFinder.getTopLevelVariableElement(unit, 'd1'),
+          AstFinder.getTopLevelVariableElement(unit, 'd2')
         ]));
   }
 
@@ -1848,7 +1849,32 @@ final d = 4;
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    TopLevelVariableElement elementA = getTopLevelVariableElement(unit, 'a');
+    TopLevelVariableElement elementA =
+        AstFinder.getTopLevelVariableElement(unit, 'a');
+    // compute
+    computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
+        matcher: isComputePropagableVariableDependenciesTask);
+    // verify
+    expect(outputs, hasLength(1));
+    List<VariableElement> dependencies =
+        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+    expect(dependencies,
+        unorderedEquals([AstFinder.getTopLevelVariableElement(unit, 'd')]));
+  }
+
+  test_perform_topLevel_withoutSpaceAfterType() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+const List<int>a=[b, c];
+const b = 1;
+const c = 2;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement elementA =
+        AstFinder.getTopLevelVariableElement(unit, 'a');
     // compute
     computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
         matcher: isComputePropagableVariableDependenciesTask);
@@ -1857,7 +1883,11 @@ final d = 4;
     List<VariableElement> dependencies =
         outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
     expect(
-        dependencies, unorderedEquals([getTopLevelVariableElement(unit, 'd')]));
+        dependencies,
+        unorderedEquals([
+          AstFinder.getTopLevelVariableElement(unit, 'b'),
+          AstFinder.getTopLevelVariableElement(unit, 'c')
+        ]));
   }
 }
 
@@ -2443,11 +2473,11 @@ class Z {}
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9,
         matcher: isInferInstanceMembersInUnitTask);
     CompilationUnit unit = outputs[RESOLVED_UNIT9];
-    VariableDeclaration field = getFieldInClass(unit, 'B', 'f');
-    MethodDeclaration method = getMethodInClass(unit, 'B', 'm');
-    DartType typeX = getClass(unit, 'X').element.type;
-    DartType typeY = getClass(unit, 'Y').element.type;
-    DartType typeZ = getClass(unit, 'Z').element.type;
+    VariableDeclaration field = AstFinder.getFieldInClass(unit, 'B', 'f');
+    MethodDeclaration method = AstFinder.getMethodInClass(unit, 'B', 'm');
+    DartType typeX = AstFinder.getClass(unit, 'X').element.type;
+    DartType typeY = AstFinder.getClass(unit, 'Y').element.type;
+    DartType typeZ = AstFinder.getClass(unit, 'Z').element.type;
 
     expect(field.element.type, typeX);
     expect(method.element.returnType, typeY);
@@ -2481,9 +2511,12 @@ class M {
         new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
     CompilationUnit secondUnit = outputs[RESOLVED_UNIT9];
 
-    VariableDeclaration variableA = getTopLevelVariable(firstUnit, 'a');
-    VariableDeclaration variableB = getTopLevelVariable(secondUnit, 'b');
-    VariableDeclaration variableC = getFieldInClass(secondUnit, 'M', 'c');
+    VariableDeclaration variableA =
+        AstFinder.getTopLevelVariable(firstUnit, 'a');
+    VariableDeclaration variableB =
+        AstFinder.getTopLevelVariable(secondUnit, 'b');
+    VariableDeclaration variableC =
+        AstFinder.getFieldInClass(secondUnit, 'M', 'c');
     InterfaceType stringType = context.typeProvider.stringType;
 
     expect(variableA.element.type, stringType);
@@ -2505,8 +2538,10 @@ class C {
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
     CompilationUnit unit = outputs[RESOLVED_UNIT9];
-    VariableDeclaration topLevelDecl = getTopLevelVariable(unit, 'topLevel');
-    VariableDeclaration fieldDecl = getFieldInClass(unit, 'C', 'field');
+    VariableDeclaration topLevelDecl =
+        AstFinder.getTopLevelVariable(unit, 'topLevel');
+    VariableDeclaration fieldDecl =
+        AstFinder.getFieldInClass(unit, 'C', 'field');
     VariableElement topLevel = topLevelDecl.name.staticElement;
     VariableElement field = fieldDecl.name.staticElement;
 
@@ -2531,7 +2566,7 @@ class M {
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
         matcher: isInferStaticVariableTypesInUnitTask);
     CompilationUnit unit = outputs[RESOLVED_UNIT7];
-    VariableDeclaration declaration = getFieldInClass(unit, 'M', 'X');
+    VariableDeclaration declaration = AstFinder.getFieldInClass(unit, 'M', 'X');
     InterfaceType stringType = context.typeProvider.stringType;
     expect(declaration.element.type, stringType);
   }
@@ -2577,10 +2612,13 @@ class M {}
         new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT7);
     CompilationUnit secondUnit = outputs[RESOLVED_UNIT7];
 
-    VariableDeclaration variableA = getTopLevelVariable(firstUnit, 'a');
-    VariableDeclaration variableB = getTopLevelVariable(secondUnit, 'b');
-    VariableDeclaration variableC = getTopLevelVariable(firstUnit, 'c');
-    ClassDeclaration classM = getClass(secondUnit, 'M');
+    VariableDeclaration variableA =
+        AstFinder.getTopLevelVariable(firstUnit, 'a');
+    VariableDeclaration variableB =
+        AstFinder.getTopLevelVariable(secondUnit, 'b');
+    VariableDeclaration variableC =
+        AstFinder.getTopLevelVariable(firstUnit, 'c');
+    ClassDeclaration classM = AstFinder.getClass(secondUnit, 'M');
     DartType typeM = classM.element.type;
 
     expect(variableA.element.type, typeM);
@@ -2627,7 +2665,8 @@ class C {
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableDeclaration declaration = getFieldInClass(unit, 'C', 'field');
+    VariableDeclaration declaration =
+        AstFinder.getFieldInClass(unit, 'C', 'field');
     VariableElement variable = declaration.name.staticElement;
     InferStaticVariableTypeTask inferTask =
         new InferStaticVariableTypeTask(task.context, variable);
@@ -2642,7 +2681,8 @@ var topLevel = '';
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableDeclaration declaration = getTopLevelVariable(unit, 'topLevel');
+    VariableDeclaration declaration =
+        AstFinder.getTopLevelVariable(unit, 'topLevel');
     VariableElement variable = declaration.name.staticElement;
     InferStaticVariableTypeTask inferTask =
         new InferStaticVariableTypeTask(task.context, variable);
@@ -2661,8 +2701,10 @@ class C {
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableDeclaration topLevelDecl = getTopLevelVariable(unit, 'topLevel3');
-    VariableDeclaration fieldDecl = getFieldInClass(unit, 'C', 'field3');
+    VariableDeclaration topLevelDecl =
+        AstFinder.getTopLevelVariable(unit, 'topLevel3');
+    VariableDeclaration fieldDecl =
+        AstFinder.getFieldInClass(unit, 'C', 'field3');
     VariableElement topLevel = topLevelDecl.name.staticElement;
     VariableElement field = fieldDecl.name.staticElement;
 
@@ -2687,9 +2729,9 @@ class C {
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     VariableElement topLevel =
-        getTopLevelVariable(unit, 'topLevel').name.staticElement;
+        AstFinder.getTopLevelVariable(unit, 'topLevel').name.staticElement;
     VariableElement field =
-        getFieldInClass(unit, 'C', 'field').name.staticElement;
+        AstFinder.getFieldInClass(unit, 'C', 'field').name.staticElement;
 
     computeResult(field, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
@@ -2710,9 +2752,11 @@ var tau = piFirst ? pi * 2 : 6.28;
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     VariableElement piFirst =
-        getTopLevelVariable(unit, 'piFirst').name.staticElement;
-    VariableElement pi = getTopLevelVariable(unit, 'pi').name.staticElement;
-    VariableElement tau = getTopLevelVariable(unit, 'tau').name.staticElement;
+        AstFinder.getTopLevelVariable(unit, 'piFirst').name.staticElement;
+    VariableElement pi =
+        AstFinder.getTopLevelVariable(unit, 'pi').name.staticElement;
+    VariableElement tau =
+        AstFinder.getTopLevelVariable(unit, 'tau').name.staticElement;
 
     computeResult(piFirst, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
@@ -2730,7 +2774,8 @@ var a = '' / null;
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableElement a = getTopLevelVariable(unit, 'a').name.staticElement;
+    VariableElement a =
+        AstFinder.getTopLevelVariable(unit, 'a').name.staticElement;
 
     computeResult(a, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
@@ -2746,7 +2791,8 @@ var a = null;
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableElement a = getTopLevelVariable(unit, 'a').name.staticElement;
+    VariableElement a =
+        AstFinder.getTopLevelVariable(unit, 'a').name.staticElement;
 
     computeResult(a, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
@@ -3130,9 +3176,11 @@ final tau = piFirst ? pi * 2 : 6.28;
     CompilationUnit unit = outputs[RESOLVED_UNIT6];
     // verify
     TopLevelVariableElement piFirst =
-        getTopLevelVariableElement(unit, 'piFirst');
-    TopLevelVariableElement pi = getTopLevelVariableElement(unit, 'pi');
-    TopLevelVariableElement tau = getTopLevelVariableElement(unit, 'tau');
+        AstFinder.getTopLevelVariableElement(unit, 'piFirst');
+    TopLevelVariableElement pi =
+        AstFinder.getTopLevelVariableElement(unit, 'pi');
+    TopLevelVariableElement tau =
+        AstFinder.getTopLevelVariableElement(unit, 'tau');
     expect(piFirst.propagatedType, context.typeProvider.boolType);
     expect(pi.propagatedType, isNull);
     expect(tau.propagatedType, isNull);
@@ -3154,9 +3202,12 @@ final c = '2';
     // verify
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
-    expect(getTopLevelVariableElement(unit, 'a').propagatedType, intType);
-    expect(getTopLevelVariableElement(unit, 'b').propagatedType, intType);
-    expect(getTopLevelVariableElement(unit, 'c').propagatedType, stringType);
+    expect(AstFinder.getTopLevelVariableElement(unit, 'a').propagatedType,
+        intType);
+    expect(AstFinder.getTopLevelVariableElement(unit, 'b').propagatedType,
+        intType);
+    expect(AstFinder.getTopLevelVariableElement(unit, 'c').propagatedType,
+        stringType);
   }
 }
 
@@ -3173,9 +3224,11 @@ final tau = piFirst ? pi * 2 : 6.28;
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     TopLevelVariableElement piFirst =
-        getTopLevelVariableElement(unit, 'piFirst');
-    TopLevelVariableElement pi = getTopLevelVariableElement(unit, 'pi');
-    TopLevelVariableElement tau = getTopLevelVariableElement(unit, 'tau');
+        AstFinder.getTopLevelVariableElement(unit, 'piFirst');
+    TopLevelVariableElement pi =
+        AstFinder.getTopLevelVariableElement(unit, 'pi');
+    TopLevelVariableElement tau =
+        AstFinder.getTopLevelVariableElement(unit, 'tau');
     // compute
     computeResult(piFirst, PROPAGATED_VARIABLE,
         matcher: isPropagateVariableTypeTask);
@@ -3193,7 +3246,7 @@ var a = null;
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    TopLevelVariableElement a = getTopLevelVariableElement(unit, 'a');
+    TopLevelVariableElement a = AstFinder.getTopLevelVariableElement(unit, 'a');
     // compute
     computeResult(a, PROPAGATED_VARIABLE, matcher: isPropagateVariableTypeTask);
     expect(a.propagatedType, isNull);
@@ -3209,9 +3262,12 @@ final c = '2';
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    TopLevelVariableElement elementA = getTopLevelVariableElement(unit, 'a');
-    TopLevelVariableElement elementB = getTopLevelVariableElement(unit, 'b');
-    TopLevelVariableElement elementC = getTopLevelVariableElement(unit, 'c');
+    TopLevelVariableElement elementA =
+        AstFinder.getTopLevelVariableElement(unit, 'a');
+    TopLevelVariableElement elementB =
+        AstFinder.getTopLevelVariableElement(unit, 'b');
+    TopLevelVariableElement elementC =
+        AstFinder.getTopLevelVariableElement(unit, 'c');
     // compute
     computeResult(elementA, PROPAGATED_VARIABLE,
         matcher: isPropagateVariableTypeTask);
@@ -3263,7 +3319,7 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
 
     // B.b2 shoud be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
 
     computeResult(
         new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
@@ -3271,21 +3327,21 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
 
     // B.b2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
 
     // A.a2 should now be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
 
     computeResult(
         new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
   }
 
   // Test inference of instance fields across units
@@ -3320,14 +3376,14 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
 
     // A.a2 should now be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
 
     computeResult(
         new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
   }
 
   // Test inference of instance fields across units with cycles
@@ -3365,36 +3421,36 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     CompilationUnit unit1 = outputs[RESOLVED_UNIT8];
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
 
     computeResult(
         new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
     CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a1"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
 
     computeResult(
         new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a1"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
   }
 
   // Test inference between static and instance fields
@@ -3428,22 +3484,22 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
 
     // A.a2 should now be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
 
     // B.b2 shoud be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "B", "b2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "B", "b2"), dynamicType, intType);
 
     computeResult(
         new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT8);
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
 
     // B.b2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "B", "b2"), intType, intType);
   }
 }
 
@@ -3810,11 +3866,14 @@ var tau = piFirst ? pi * 2 : 6.28;
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
     CompilationUnit unit = outputs[RESOLVED_UNIT10];
     VariableElement piFirst =
-        getTopLevelVariable(unit, 'piFirst').name.staticElement;
-    VariableElement pi = getTopLevelVariable(unit, 'pi').name.staticElement;
-    VariableElement tau = getTopLevelVariable(unit, 'tau').name.staticElement;
-    Expression piFirstUse = (getTopLevelVariable(unit, 'tau').initializer
-        as ConditionalExpression).condition;
+        AstFinder.getTopLevelVariable(unit, 'piFirst').name.staticElement;
+    VariableElement pi =
+        AstFinder.getTopLevelVariable(unit, 'pi').name.staticElement;
+    VariableElement tau =
+        AstFinder.getTopLevelVariable(unit, 'tau').name.staticElement;
+    Expression piFirstUse = (AstFinder
+        .getTopLevelVariable(unit, 'tau')
+        .initializer as ConditionalExpression).condition;
 
     expect(piFirstUse.staticType, context.typeProvider.boolType);
     expect(piFirst.type, context.typeProvider.boolType);
@@ -3855,17 +3914,17 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit1, "x"), intType, intType);
+        AstFinder.getTopLevelVariable(unit1, "x"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "A", "x"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "A", "x"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit2, "y"), intType, intType);
+        AstFinder.getTopLevelVariable(unit2, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit2, "B", "y"), intType, intType);
+        AstFinder.getFieldInClass(unit2, "B", "y"), intType, intType);
 
     List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
+        AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[1], intType, intType);
     assertAssignmentStatementTypes(statements[2], intType, intType);
@@ -3905,13 +3964,13 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
 
     List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
+        AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[1], intType, intType);
   }
@@ -3952,9 +4011,13 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType stringType = context.typeProvider.stringType;
 
     assertVariableDeclarationStatementTypes(
-        getStatementsInTopLevelFunction(unit0, "foo")[0], stringType, intType);
+        AstFinder.getStatementsInTopLevelFunction(unit0, "foo")[0],
+        stringType,
+        intType);
     assertVariableDeclarationStatementTypes(
-        getStatementsInTopLevelFunction(unit2, "foo")[0], stringType, intType);
+        AstFinder.getStatementsInTopLevelFunction(unit2, "foo")[0],
+        stringType,
+        intType);
   }
 
   // Test inference interactions between local variables and top level
@@ -3991,17 +4054,17 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType stringType = context.typeProvider.stringType;
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit1, "x"), intType, intType);
+        AstFinder.getTopLevelVariable(unit1, "x"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "A", "x"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "A", "x"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit2, "y"), intType, intType);
+        AstFinder.getTopLevelVariable(unit2, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit2, "B", "y"), intType, intType);
+        AstFinder.getFieldInClass(unit2, "B", "y"), intType, intType);
 
     List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
+        AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[0], intType, stringType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -4043,17 +4106,17 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a1"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
 
     List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
+        AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[1], intType, intType);
     assertAssignmentStatementTypes(statements[2], intType, intType);
@@ -4077,7 +4140,8 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
 
     assertVariableDeclarationStatementTypes(statements[0], intType, intType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -4115,7 +4179,8 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInMethod(unit, "A", "test1");
+    List<Statement> statements =
+        AstFinder.getStatementsInMethod(unit, "A", "test1");
 
     assertVariableDeclarationStatementTypes(statements[0], intType, intType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -4130,9 +4195,9 @@ var tau = piFirst ? pi * 2 : 6.28;
     assertAssignmentStatementTypes(statements[8], intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "x"), intType, intType);
+        AstFinder.getFieldInClass(unit, "A", "x"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "z"), intType, intType);
+        AstFinder.getFieldInClass(unit, "A", "z"), intType, intType);
   }
 
   // Test inference of instance fields across units
@@ -4163,7 +4228,8 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test1");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test1");
 
     assertVariableDeclarationStatementTypes(statements[0], intType, intType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -4178,11 +4244,11 @@ var tau = piFirst ? pi * 2 : 6.28;
     assertAssignmentStatementTypes(statements[8], intType, intType);
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "x"), intType, intType);
+        AstFinder.getTopLevelVariable(unit, "x"), intType, intType);
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "y"), intType, intType);
+        AstFinder.getTopLevelVariable(unit, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "z"), intType, intType);
+        AstFinder.getTopLevelVariable(unit, "z"), intType, intType);
   }
 
   // Test inference between static and instance fields
@@ -4218,19 +4284,20 @@ var tau = piFirst ? pi * 2 : 6.28;
     DartType dynamicType = context.typeProvider.dynamicType;
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "x"), dynamicType, bottomType);
+        AstFinder.getTopLevelVariable(unit, "x"), dynamicType, bottomType);
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "y"), intType, intType);
+        AstFinder.getTopLevelVariable(unit, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "x"), dynamicType, bottomType);
+        AstFinder.getFieldInClass(unit, "A", "x"), dynamicType, bottomType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "y"), intType, intType);
+        AstFinder.getFieldInClass(unit, "A", "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "x2"), dynamicType, bottomType);
+        AstFinder.getFieldInClass(unit, "A", "x2"), dynamicType, bottomType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "y2"), intType, intType);
+        AstFinder.getFieldInClass(unit, "A", "y2"), intType, intType);
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
 
     assertAssignmentStatementTypes(statements[0], dynamicType, stringType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -4256,7 +4323,8 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
     VariableDeclaration decl =
         (statements[0] as VariableDeclarationStatement).variables.variables[0];
     expect(decl.element.type, intType);
@@ -4294,7 +4362,8 @@ void main() {
     _fillErrorListener(STRONG_MODE_ERRORS);
     expect(errorListener.errors, isEmpty);
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "main");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     ExpressionStatement statement = statements[1];
     IndexExpression idx = statement.expression;
     expect(DynamicInvoke.get(idx.target), isNotNull);
@@ -4485,131 +4554,6 @@ class _AbstractDartTaskTest extends AbstractContextTest {
     AnalysisOptionsImpl options = context.analysisOptions;
     options.strongMode = true;
     context.analysisOptions = options;
-  }
-
-  /**
-   * Return the declaration of the class with the given [className] in the given
-   * compilation [unit].
-   */
-  ClassDeclaration getClass(CompilationUnit unit, String className) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
-      if (unitMember is ClassDeclaration && unitMember.name.name == className) {
-        return unitMember;
-      }
-    }
-    fail('No class named $className in ${unit.element.source}');
-    return null;
-  }
-
-  /**
-   * Return the declaration of the field with the given [fieldName] in the class
-   * with the given [className] in the given compilation [unit].
-   */
-  VariableDeclaration getFieldInClass(
-      CompilationUnit unit, String className, String fieldName) {
-    ClassDeclaration unitMember = getClass(unit, className);
-    NodeList<ClassMember> classMembers = unitMember.members;
-    for (ClassMember classMember in classMembers) {
-      if (classMember is FieldDeclaration) {
-        NodeList<VariableDeclaration> fields = classMember.fields.variables;
-        for (VariableDeclaration field in fields) {
-          if (field.name.name == fieldName) {
-            return field;
-          }
-        }
-      }
-    }
-    fail('No field named $fieldName in $className');
-    return null;
-  }
-
-  /**
-   * Return the element of the field with the given [fieldName] in the class
-   * with the given [className] in the given compilation [unit].
-   */
-  FieldElement getFieldInClassElement(
-      CompilationUnit unit, String className, String fieldName) {
-    return getFieldInClass(unit, className, fieldName)?.name?.staticElement;
-  }
-
-  /**
-   * Return the declaration of the method with the given [methodName] in the
-   * class with the given [className] in the given compilation [unit].
-   */
-  MethodDeclaration getMethodInClass(
-      CompilationUnit unit, String className, String methodName) {
-    ClassDeclaration unitMember = getClass(unit, className);
-    NodeList<ClassMember> classMembers = unitMember.members;
-    for (ClassMember classMember in classMembers) {
-      if (classMember is MethodDeclaration) {
-        if (classMember.name.name == methodName) {
-          return classMember;
-        }
-      }
-    }
-    fail('No method named $methodName in $className');
-    return null;
-  }
-
-  List<Statement> getStatementsInMethod(
-      CompilationUnit unit, String className, String methodName) {
-    MethodDeclaration method = getMethodInClass(unit, className, methodName);
-    BlockFunctionBody body = method.body;
-    return body.block.statements;
-  }
-
-  List<Statement> getStatementsInTopLevelFunction(
-      CompilationUnit unit, String functionName) {
-    FunctionDeclaration function = getTopLevelFunction(unit, functionName);
-    BlockFunctionBody body = function.functionExpression.body;
-    return body.block.statements;
-  }
-
-  /**
-   * Return the declaration of the top-level function with the given
-   * [functionName] in the given compilation [unit].
-   */
-  FunctionDeclaration getTopLevelFunction(
-      CompilationUnit unit, String functionName) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
-      if (unitMember is FunctionDeclaration) {
-        if (unitMember.name.name == functionName) {
-          return unitMember;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the declaration of the top-level variable with the given
-   * [variableName] in the given compilation [unit].
-   */
-  VariableDeclaration getTopLevelVariable(
-      CompilationUnit unit, String variableName) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
-      if (unitMember is TopLevelVariableDeclaration) {
-        NodeList<VariableDeclaration> variables =
-            unitMember.variables.variables;
-        for (VariableDeclaration variable in variables) {
-          if (variable.name.name == variableName) {
-            return variable;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the top-level variable element with the given [name].
-   */
-  TopLevelVariableElement getTopLevelVariableElement(
-      CompilationUnit unit, String name) {
-    return getTopLevelVariable(unit, name)?.name?.staticElement;
   }
 
   void setUp() {

@@ -579,11 +579,6 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitFunctionExpression(FunctionExpression node) {
-    new StatementRewriter.nested(this).rewrite(node.definition);
-    return node;
-  }
-
   Statement visitReturn(Return node) {
     node.value = visitExpression(node.value);
     return node;
@@ -1256,8 +1251,6 @@ class IsVariableUsedVisitor extends RecursiveVisitor {
       wasFound = true;
     }
   }
-
-  visitInnerFunction(FunctionDefinition node) {}
 }
 
 typedef VariableUseCallback(VariableUse use);
@@ -1268,8 +1261,6 @@ class VariableUseVisitor extends RecursiveVisitor {
   VariableUseVisitor(this.callback);
 
   visitVariableUse(VariableUse use) => callback(use);
-
-  visitInnerFunction(FunctionDefinition node) {}
 
   static void visit(Expression node, VariableUseCallback callback) {
     new VariableUseVisitor(callback).visitExpression(node);
