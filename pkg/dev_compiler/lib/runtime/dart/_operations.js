@@ -185,14 +185,18 @@ dart_library.library('dart/_operations', null, /* Imports */[
     return false;
   }
 
-  function strongInstanceOf(obj, type) {
+  function strongInstanceOf(obj, type, ignoreFromWhiteList) {
     let actual = rtti.realRuntimeType(obj);
-    return types.isSubtype(actual, type) || actual == types.jsobject;
+    if (types.isSubtype(actual, type) || actual == types.jsobject) return true;
+    if (ignoreFromWhiteList == void 0) return false;
+    if (types.isGroundType(type)) return false;
+    if (_ignoreTypeFailure(actual, type)) return true;
+    return false;
   }
   exports.strongInstanceOf = strongInstanceOf;
 
   function instanceOfOrNull(obj, type) {
-    if ((obj == null) || strongInstanceOf(obj, type)) return true;
+    if ((obj == null) || strongInstanceOf(obj, type, true)) return true;
     return false;
   }
 
@@ -225,6 +229,9 @@ dart_library.library('dart/_operations', null, /* Imports */[
   exports.cast = cast;
 
   function asInt(obj) {
+    if (obj == null) {
+      return null;
+    }
     if (Math.floor(obj) != obj) {
       // Note: null will also be caught by this check
       errors.throwCastError(rtti.realRuntimeType(obj), core.int);
