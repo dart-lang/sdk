@@ -1,3 +1,8 @@
+
+# 0.1.9
+
+* Fix `type_annotate_public_apis` to properly handle getters/setters (#151; dart-lang/sdk#25092).
+
 # 0.1.8
 
 * Fix to protect against errors in linting invalid source (dart-lang/sdk#24910).
