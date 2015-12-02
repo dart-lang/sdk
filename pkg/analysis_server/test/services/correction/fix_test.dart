@@ -1493,6 +1493,23 @@ import 'my_file.dart';
     expect(fileEdit.edits[0].replacement, contains('library my_file;'));
   }
 
+  test_createFile_forImport_BAD_inPackage_lib_justLib() async {
+    provider.newFile('/projects/my_package/pubspec.yaml', 'name: my_package');
+    testFile = '/projects/my_package/test.dart';
+    resolveTestUnit('''
+import 'lib';
+''');
+    await assertNoFix(DartFixKind.CREATE_FILE);
+  }
+
+  test_createFile_forImport_BAD_notDart() async {
+    testFile = '/my/project/bin/test.dart';
+    resolveTestUnit('''
+import 'my_file.txt';
+''');
+    await assertNoFix(DartFixKind.CREATE_FILE);
+  }
+
   test_createFile_forImport_inPackage_lib() async {
     provider.newFile('/projects/my_package/pubspec.yaml', 'name: my_package');
     testFile = '/projects/my_package/lib/test.dart';

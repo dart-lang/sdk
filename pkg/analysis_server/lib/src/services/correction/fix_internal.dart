@@ -1096,7 +1096,7 @@ class FixProcessor {
       Source source = importDirective.source;
       if (source != null) {
         String file = source.fullName;
-        if (isAbsolute(file)) {
+        if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
           String libName = _computeLibraryName(file);
           SourceEdit edit = new SourceEdit(0, 0, 'library $libName;$eol$eol');
           doSourceChange_addSourceEdit(change, context, source, edit);
@@ -2376,7 +2376,7 @@ class FixProcessor {
       if (relPathParts[0].toLowerCase() == 'lib') {
         relPathParts.removeAt(0);
       }
-      {
+      if (relPathParts.isNotEmpty) {
         String nameWithoutExt = pathContext.withoutExtension(relPathParts.last);
         relPathParts[relPathParts.length - 1] = nameWithoutExt;
       }
