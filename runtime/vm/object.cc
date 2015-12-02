@@ -13334,7 +13334,7 @@ RawCode* Code::FinalizeCode(const char* name,
   VerifiedMemory::Accept(region.start(), region.size());
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
-  code.set_compile_timestamp(OS::GetCurrentTimeMicros());
+  code.set_compile_timestamp(OS::GetCurrentTraceMicros());
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
                            assembler->prologue_offset(),
