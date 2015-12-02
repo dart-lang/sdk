@@ -2533,7 +2533,7 @@ void Parser::CheckFieldsInitialized(const Class& cls) {
 
     if (found) continue;
 
-    field.RecordStore(Object::Handle(Z));
+    field.RecordStore(Object::null_object());
   }
 }
 
@@ -2700,12 +2700,12 @@ AstNode* Parser::CheckDuplicateFieldInit(
 
       // List argumentNames.
       // The missing implicit setter of the field has no argument names.
-      nsm_args->Add(new(Z) LiteralNode(init_pos, Array::ZoneHandle(Z)));
+      nsm_args->Add(new(Z) LiteralNode(init_pos, Object::null_array()));
 
       // List existingArgumentNames.
       // There is no setter for the final field, thus there are
       // no existing names.
-      nsm_args->Add(new(Z) LiteralNode(init_pos, Array::ZoneHandle(Z)));
+      nsm_args->Add(new(Z) LiteralNode(init_pos, Object::null_array()));
 
       AstNode* nsm_call =
           MakeStaticCall(Symbols::NoSuchMethodError(),
@@ -7469,7 +7469,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     // Initialize variable with null.
     variable = new(Z) LocalVariable(
         assign_pos, ident, type);
-    AstNode* null_expr = new(Z) LiteralNode(ident_pos, Instance::ZoneHandle(Z));
+    AstNode* null_expr = new(Z) LiteralNode(ident_pos, Object::null_instance());
     initialization = new(Z) StoreLocalNode(
         ident_pos, variable, null_expr);
   }
@@ -10311,7 +10311,7 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type,
   arguments->Add(new(Z) LiteralNode(
       type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos))));
   // Src value argument.
-  arguments->Add(new(Z) LiteralNode(type_pos, Instance::ZoneHandle(Z)));
+  arguments->Add(new(Z) LiteralNode(type_pos, Object::null_instance()));
   // Dst type name argument.
   arguments->Add(new(Z) LiteralNode(type_pos, Symbols::Malformed()));
   // Dst name argument.
@@ -10370,7 +10370,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
       Smi::New(InvocationMirror::EncodeType(im_call, im_type)))));
   // List arguments.
   if (function_arguments == NULL) {
-    arguments->Add(new(Z) LiteralNode(call_pos, Array::ZoneHandle(Z)));
+    arguments->Add(new(Z) LiteralNode(call_pos, Object::null_array()));
   } else {
     ArrayNode* array = new(Z) ArrayNode(
         call_pos,
@@ -10380,7 +10380,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   }
   // List argumentNames.
   if (function_arguments == NULL) {
-    arguments->Add(new(Z) LiteralNode(call_pos, Array::ZoneHandle(Z)));
+    arguments->Add(new(Z) LiteralNode(call_pos, Object::null_array()));
   } else {
     arguments->Add(new(Z) LiteralNode(call_pos, function_arguments->names()));
   }
@@ -10583,7 +10583,7 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
     LocalVariable* left_temp = result->AddInitializer(lhs);
     const intptr_t no_pos = Scanner::kNoSourcePos;
     LiteralNode* null_operand =
-        new(Z) LiteralNode(no_pos, Instance::ZoneHandle(Z));
+        new(Z) LiteralNode(no_pos, Object::null_instance());
     LoadLocalNode* load_left_temp = new(Z) LoadLocalNode(no_pos, left_temp);
     ComparisonNode* null_compare =
         new(Z) ComparisonNode(no_pos,
@@ -12159,8 +12159,8 @@ RawObject* Parser::EvaluateConstConstructorCall(
   }
   const Array& args_descriptor = Array::Handle(Z,
       ArgumentsDescriptor::New(num_arguments, arguments->names()));
-  Object& result = Object::Handle(Z);
-  result = DartEntry::InvokeFunction(constructor, arg_values, args_descriptor);
+  const Object& result = Object::Handle(Z,
+      DartEntry::InvokeFunction(constructor, arg_values, args_descriptor));
   if (result.IsError()) {
       // An exception may not occur in every parse attempt, i.e., the
       // generated AST is not deterministic. Therefore mark the function as
@@ -13897,7 +13897,7 @@ AstNode* Parser::ParsePrimary() {
     primary = new(Z) LiteralNode(TokenPos(), Bool::False());
     ConsumeToken();
   } else if (token == Token::kNULL) {
-    primary = new(Z) LiteralNode(TokenPos(), Instance::ZoneHandle(Z));
+    primary = new(Z) LiteralNode(TokenPos(), Object::null_instance());
     ConsumeToken();
   } else if (token == Token::kLPAREN) {
     ConsumeToken();
@@ -13906,7 +13906,7 @@ AstNode* Parser::ParsePrimary() {
     SetAllowFunctionLiterals(saved_mode);
     ExpectToken(Token::kRPAREN);
   } else if (token == Token::kDOUBLE) {
-    Double& double_value = Double::ZoneHandle(Z, CurrentDoubleLiteral());
+    const Double& double_value = Double::ZoneHandle(Z, CurrentDoubleLiteral());
     if (double_value.IsNull()) {
       ReportError("invalid double literal");
     }
