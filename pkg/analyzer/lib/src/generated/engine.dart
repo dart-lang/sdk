@@ -6275,6 +6275,11 @@ abstract class AnalysisOptions {
   bool get enableAsync;
 
   /**
+   * Return `true` to enable interface libraries (DEP 40).
+   */
+  bool get enableConditionalDirectives;
+
+  /**
    * Return `true` if analysis is to include the new deferred loading support.
    */
   @deprecated // Always true
@@ -6406,6 +6411,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * 37).
    */
   bool enableAssertMessage = false;
+
+  /**
+   * A flag indicating whether interface libraries are to be supported (DEP 40).
+   */
+  bool enableConditionalDirectives = false;
 
   /**
    * A flag indicating whether generic methods are to be supported (DEP 22).

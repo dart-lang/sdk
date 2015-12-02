@@ -1199,6 +1199,16 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.elseExpression));
 
   @override
+  Configuration visitConfiguration(Configuration node) => new Configuration(
+      cloneToken(node.ifKeyword),
+      cloneToken(node.leftParenthesis),
+      cloneNode(node.name),
+      cloneToken(node.equalToken),
+      cloneNode(node.value),
+      cloneToken(node.rightParenthesis),
+      cloneNode(node.libraryUri));
+
+  @override
   ConstructorDeclaration visitConstructorDeclaration(
           ConstructorDeclaration node) =>
       new ConstructorDeclaration(
@@ -1262,6 +1272,10 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.semicolon));
 
   @override
+  DottedName visitDottedName(DottedName node) =>
+      new DottedName(cloneNodeList(node.components));
+
+  @override
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) =>
       new DoubleLiteral(cloneToken(node.literal), node.value);
 
@@ -1296,6 +1310,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
         cloneNode(node.uri),
+        cloneNodeList(node.configurations),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
     directive.source = node.source;
@@ -1466,6 +1481,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
         cloneNode(node.uri),
+        cloneNodeList(node.configurations),
         cloneToken(node.deferredKeyword),
         cloneToken(node.asKeyword),
         cloneNode(node.prefix),
@@ -2077,6 +2093,18 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConfiguration(Configuration node) {
+    Configuration other = _other as Configuration;
+    return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        isEqualNodes(node.name, other.name) &&
+        isEqualTokens(node.equalToken, other.equalToken) &&
+        isEqualNodes(node.value, other.value) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
+        isEqualNodes(node.libraryUri, other.libraryUri);
+  }
+
+  @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration other = _other as ConstructorDeclaration;
     return isEqualNodes(
@@ -2151,6 +2179,12 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.condition, other.condition) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
+  bool visitDottedName(DottedName node) {
+    DottedName other = _other as DottedName;
+    return _isEqualNodeLists(node.components, other.components);
   }
 
   @override
@@ -3179,6 +3213,8 @@ abstract class AstVisitor<R> {
 
   R visitConditionalExpression(ConditionalExpression node);
 
+  R visitConfiguration(Configuration node);
+
   R visitConstructorDeclaration(ConstructorDeclaration node);
 
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node);
@@ -3192,6 +3228,8 @@ abstract class AstVisitor<R> {
   R visitDefaultFormalParameter(DefaultFormalParameter node);
 
   R visitDoStatement(DoStatement node);
+
+  R visitDottedName(DottedName node);
 
   R visitDoubleLiteral(DoubleLiteral node);
 
@@ -5153,6 +5191,85 @@ class ConditionalExpression extends Expression {
   }
 }
 
+/**
+ * A configuration in either an import or export directive.
+ *
+ *     configuration ::=
+ *         'if' '(' test ')' uri
+ *
+ *     test ::=
+ *         dottedName ('==' stringLiteral)?
+ *
+ *     dottedName ::=
+ *         identifier ('.' identifier)*
+ */
+class Configuration extends AstNode {
+  Token ifKeyword;
+  Token leftParenthesis;
+  DottedName _name;
+  Token equalToken;
+  StringLiteral _value;
+  Token rightParenthesis;
+  StringLiteral _libraryUri;
+
+  Configuration(
+      this.ifKeyword,
+      this.leftParenthesis,
+      DottedName name,
+      this.equalToken,
+      StringLiteral value,
+      this.rightParenthesis,
+      StringLiteral libraryUri) {
+    _name = _becomeParentOf(name);
+    _value = _becomeParentOf(value);
+    _libraryUri = _becomeParentOf(libraryUri);
+  }
+
+  @override
+  Token get beginToken => ifKeyword;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+    ..add(ifKeyword)
+    ..add(leftParenthesis)
+    ..add(_name)
+    ..add(equalToken)
+    ..add(_value)
+    ..add(rightParenthesis)
+    ..add(_libraryUri);
+
+  @override
+  Token get endToken => _libraryUri.endToken;
+
+  StringLiteral get libraryUri => _libraryUri;
+
+  void set libraryUri(StringLiteral libraryUri) {
+    _libraryUri = _becomeParentOf(libraryUri);
+  }
+
+  DottedName get name => _name;
+
+  void set name(DottedName name) {
+    _name = _becomeParentOf(name);
+  }
+
+  StringLiteral get value => _value;
+
+  void set value(StringLiteral value) {
+    _value = _becomeParentOf(value);
+  }
+
+  @override
+  accept(AstVisitor visitor) => visitor.visitConfiguration(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _safelyVisitChild(_name, visitor);
+    _safelyVisitChild(_value, visitor);
+    _safelyVisitChild(_libraryUri, visitor);
+  }
+}
+
 /// Instances of the class [ConstantEvaluator] evaluate constant expressions to
 /// produce their compile-time value.
 ///
@@ -6488,6 +6605,49 @@ class DoStatement extends Statement {
 }
 
 /**
+ * A dotted name, used in a configuration within an import or export directive.
+ *
+ * > dottedName ::=
+ * >     [SimpleIdentifier] ('.' [SimpleIdentifier])*
+ */
+class DottedName extends AstNode {
+  /**
+   * The components of the identifier.
+   */
+  NodeList<SimpleIdentifier> _components;
+
+  /**
+   * Initialize a newly created dotted name.
+   */
+  DottedName(List<SimpleIdentifier> components) {
+    _components = new NodeList<SimpleIdentifier>(this, components);
+  }
+
+  @override
+  Token get beginToken => _components.beginToken;
+
+  @override
+  // TODO(paulberry): add "." tokens.
+  Iterable get childEntities => new ChildEntities()..addAll(_components);
+
+  /**
+   * Return the components of the identifier.
+   */
+  NodeList<SimpleIdentifier> get components => _components;
+
+  @override
+  Token get endToken => _components.endToken;
+
+  @override
+  accept(AstVisitor visitor) => visitor.visitDottedName(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _components.accept(visitor);
+  }
+}
+
+/**
  * A floating point literal expression.
  *
  * > doubleLiteral ::=
@@ -6906,9 +7066,16 @@ class ExportDirective extends NamespaceDirective {
    * corresponding attribute. The list of [combinators] can be `null` if there
    * are no combinators.
    */
-  ExportDirective(Comment comment, List<Annotation> metadata, Token keyword,
-      StringLiteral libraryUri, List<Combinator> combinators, Token semicolon)
-      : super(comment, metadata, keyword, libraryUri, combinators, semicolon);
+  ExportDirective(
+      Comment comment,
+      List<Annotation> metadata,
+      Token keyword,
+      StringLiteral libraryUri,
+      List<Configuration> configurations,
+      List<Combinator> combinators,
+      Token semicolon)
+      : super(comment, metadata, keyword, libraryUri, configurations,
+            combinators, semicolon);
 
   @override
   Iterable get childEntities => super._childEntities
@@ -8917,6 +9084,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitExpression(node);
 
   @override
+  R visitConfiguration(Configuration node) => visitNode(node);
+
+  @override
   R visitConstructorDeclaration(ConstructorDeclaration node) =>
       visitClassMember(node);
 
@@ -8945,6 +9115,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitDoStatement(DoStatement node) => visitStatement(node);
+
+  @override
+  R visitDottedName(DottedName node) => visitNode(node);
 
   @override
   R visitDoubleLiteral(DoubleLiteral node) => visitLiteral(node);
@@ -9685,12 +9858,14 @@ class ImportDirective extends NamespaceDirective {
       List<Annotation> metadata,
       Token keyword,
       StringLiteral libraryUri,
+      List<Configuration> configurations,
       this.deferredKeyword,
       this.asKeyword,
       SimpleIdentifier prefix,
       List<Combinator> combinators,
       Token semicolon)
-      : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
+      : super(comment, metadata, keyword, libraryUri, configurations,
+            combinators, semicolon) {
     _prefix = _becomeParentOf(prefix);
   }
 
@@ -9989,6 +10164,16 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  Configuration visitConfiguration(Configuration node) => new Configuration(
+      _mapToken(node.ifKeyword),
+      _mapToken(node.leftParenthesis),
+      _cloneNode(node.name),
+      _mapToken(node.equalToken),
+      _cloneNode(node.value),
+      _mapToken(node.rightParenthesis),
+      _cloneNode(node.libraryUri));
+
+  @override
   ConstructorDeclaration visitConstructorDeclaration(
       ConstructorDeclaration node) {
     ConstructorDeclaration copy = new ConstructorDeclaration(
@@ -10058,6 +10243,10 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _mapToken(node.semicolon));
 
   @override
+  DottedName visitDottedName(DottedName node) =>
+      new DottedName(_cloneNodeList(node.components));
+
+  @override
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral copy = new DoubleLiteral(_mapToken(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
@@ -10095,6 +10284,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
         _cloneNodeList(node.metadata),
         _mapToken(node.keyword),
         _cloneNode(node.uri),
+        _cloneNodeList(node.configurations),
         _cloneNodeList(node.combinators),
         _mapToken(node.semicolon));
     copy.element = node.element;
@@ -10279,6 +10469,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNodeList(node.metadata),
           _mapToken(node.keyword),
           _cloneNode(node.uri),
+          _cloneNodeList(node.configurations),
           _mapToken(node.deferredKeyword),
           _mapToken(node.asKeyword),
           _cloneNode(node.prefix),
@@ -12552,6 +12743,12 @@ abstract class NamespaceDirective extends UriBasedDirective {
   Token keyword;
 
   /**
+   * The configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  NodeList<Configuration> _configurations;
+
+  /**
    * The combinators used to control which names are imported or exported.
    */
   NodeList<Combinator> _combinators;
@@ -12567,9 +12764,16 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * corresponding attribute. The list of [combinators] can be `null` if there
    * are no combinators.
    */
-  NamespaceDirective(Comment comment, List<Annotation> metadata, this.keyword,
-      StringLiteral libraryUri, List<Combinator> combinators, this.semicolon)
+  NamespaceDirective(
+      Comment comment,
+      List<Annotation> metadata,
+      this.keyword,
+      StringLiteral libraryUri,
+      List<Configuration> configurations,
+      List<Combinator> combinators,
+      this.semicolon)
       : super(comment, metadata, libraryUri) {
+    _configurations = new NodeList<Configuration>(this, configurations);
     _combinators = new NodeList<Combinator>(this, combinators);
   }
 
@@ -12577,6 +12781,12 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * Return the combinators used to control how names are imported or exported.
    */
   NodeList<Combinator> get combinators => _combinators;
+
+  /**
+   * Return the configurations used to control which library will actually be
+   * loaded at run-time.
+   */
+  NodeList<Configuration> get configurations => _configurations;
 
   @override
   Token get endToken => semicolon;
@@ -13348,6 +13558,21 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConfiguration(Configuration node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as DottedName;
+      return true;
+    } else if (identical(node.value, _oldNode)) {
+      node.value = _newNode as StringLiteral;
+      return true;
+    } else if (identical(node.libraryUri, _oldNode)) {
+      node.libraryUri = _newNode as StringLiteral;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     if (identical(node.returnType, _oldNode)) {
       node.returnType = _newNode as Identifier;
@@ -13434,6 +13659,14 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.condition, _oldNode)) {
       node.condition = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitDottedName(DottedName node) {
+    if (_replaceInList(node.components)) {
       return true;
     }
     return visitNode(node);
@@ -15323,6 +15556,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R visitConfiguration(Configuration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitConstructorDeclaration(ConstructorDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -15360,6 +15599,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitDoStatement(DoStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitDottedName(DottedName node) {
     node.visitChildren(this);
     return null;
   }
@@ -16414,6 +16659,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitConditionalExpression(ConditionalExpression node) => null;
 
   @override
+  R visitConfiguration(Configuration node) => null;
+
+  @override
   R visitConstructorDeclaration(ConstructorDeclaration node) => null;
 
   @override
@@ -16433,6 +16681,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitDoStatement(DoStatement node) => null;
+
+  @override
+  R visitDottedName(DottedName node) => null;
 
   @override
   R visitDoubleLiteral(DoubleLiteral node) => null;
@@ -18329,6 +18580,16 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
+  Object visitConfiguration(Configuration node) {
+    _writer.print('if (');
+    _visitNode(node.name);
+    _visitNodeWithPrefix(" == ", node.value);
+    _writer.print(') ');
+    _visitNode(node.libraryUri);
+    return null;
+  }
+
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.externalKeyword, " ");
@@ -18394,6 +18655,12 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _writer.print(" while (");
     _visitNode(node.condition);
     _writer.print(");");
+    return null;
+  }
+
+  @override
+  Object visitDottedName(DottedName node) {
+    _visitNodeListWithSeparator(node.components, ".");
     return null;
   }
 
@@ -19856,6 +20123,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitConditionalExpression(ConditionalExpression node) => visitNode(node);
 
   @override
+  R visitConfiguration(Configuration node) => visitNode(node);
+
+  @override
   R visitConstructorDeclaration(ConstructorDeclaration node) => visitNode(node);
 
   @override
@@ -19876,6 +20146,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitDoStatement(DoStatement node) => visitNode(node);
+
+  @override
+  R visitDottedName(DottedName node) => visitNode(node);
 
   @override
   R visitDoubleLiteral(DoubleLiteral node) => visitNode(node);

@@ -434,6 +434,7 @@ class AstFactory {
           metadata,
           TokenFactory.tokenFromKeyword(Keyword.EXPORT),
           string2(uri),
+          null,
           combinators,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -660,6 +661,7 @@ class AstFactory {
           metadata,
           TokenFactory.tokenFromKeyword(Keyword.IMPORT),
           string2(uri),
+          null,
           !isDeferred ? null : TokenFactory.tokenFromKeyword(Keyword.DEFERRED),
           prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS),
           prefix == null ? null : identifier3(prefix),
