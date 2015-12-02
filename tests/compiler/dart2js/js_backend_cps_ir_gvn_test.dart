@@ -54,7 +54,7 @@ function(x, list) {
   var v0 = x.left, a = v0.left, b = v0.right, sum = 0, k = 0, c = (v0 = x.right).left, d = v0.right, i = a.value + c.value, v1 = list[v0 = i * (b.value + d.value)];
   for (; k < 10; sum = sum + (v1 + i), k = k + 1)
     if (v0 < 0 || v0 >= 10)
-      H.ioore(list, v0);
+      return H.ioore(list, v0);
   return sum;
 }"""),
 ];
