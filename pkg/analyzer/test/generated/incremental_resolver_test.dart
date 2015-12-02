@@ -3521,15 +3521,8 @@ class A {
 
   @override
   void setUp() {
-    AnalysisEngine.instance.useTaskModel = true;
     super.setUp();
     _resetWithIncremental(true);
-  }
-
-  @override
-  void tearDown() {
-    super.tearDown();
-    AnalysisEngine.instance.useTaskModel = false;
   }
 
   void test_computeConstants() {
