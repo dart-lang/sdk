@@ -92,7 +92,6 @@ class AstNodeVisitor : public ValueObject {
 #define DECLARE_COMMON_NODE_FUNCTIONS(type)                                    \
   virtual void Visit(AstNodeVisitor* visitor);                                 \
   virtual const char* PrettyName() const;                                      \
-  virtual bool Is##type() const { return true; }                               \
   virtual type* As##type() { return this; }
 
 
@@ -107,7 +106,7 @@ class AstNode : public ZoneAllocated {
   intptr_t token_pos() const { return token_pos_; }
 
 #define AST_TYPE_CHECK(BaseName)                                               \
-  virtual bool Is##BaseName##Node() const { return false; }                    \
+  bool Is##BaseName##Node() { return As##BaseName##Node() != NULL; }           \
   virtual BaseName##Node* As##BaseName##Node() { return NULL; }
 
   FOR_EACH_NODE(AST_TYPE_CHECK)
