@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
@@ -119,23 +120,31 @@ import "../foo/foo.dart";
     });
   }
 
+  void processRequiredPlugins() {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(server.serverPlugin);
+
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+  }
+
   void setUp() {
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    ExtensionManager manager = new ExtensionManager();
-    ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
     server = new AnalysisServer(
         channel,
         resourceProvider,
         packageMapProvider,
         null,
-        serverPlugin,
+        new ServerPlugin(),
         new AnalysisServerOptions(),
         new MockSdk(),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
+    processRequiredPlugins();
   }
 
   Future test_contextDisposed() {

@@ -120,6 +120,7 @@ class Driver {
    * Generate the task dependency graph and return it as a [String].
    */
   String generateFileContents() {
+    AnalysisEngine.instance.processRequiredPlugins();
     List<String> lines = <String>[];
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;

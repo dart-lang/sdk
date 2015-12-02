@@ -47,6 +47,7 @@ import 'package:unittest/unittest.dart';
 ///
 void testChecker(String name, Map<String, String> testFiles) {
   test(name, () {
+    AnalysisEngine.instance.processRequiredPlugins();
     expect(testFiles.containsKey('/main.dart'), isTrue,
         reason: '`/main.dart` is missing in testFiles');
 

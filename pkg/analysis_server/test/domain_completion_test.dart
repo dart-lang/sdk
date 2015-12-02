@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -56,9 +57,22 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   bool wasTaskModelEnabled;
 
   AnalysisServer createAnalysisServer(Index index) {
-    ExtensionManager manager = new ExtensionManager();
+    //
+    // Collect plugins
+    //
     ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(serverPlugin);
+    addServerPlugins(plugins);
+    //
+    // Process plugins
+    //
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+    //
+    // Create the server
+    //
     return new Test_AnalysisServer(
         super.serverChannel,
         super.resourceProvider,

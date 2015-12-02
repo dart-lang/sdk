@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
+import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -79,11 +80,17 @@ class AbstractContextManagerTest {
     return folderPath;
   }
 
+  void processRequiredPlugins() {
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
+  }
+
   UriResolver providePackageResolver(Folder folder) {
     return packageResolver;
   }
 
   void setUp() {
+    processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
     manager = new ContextManagerImpl(resourceProvider, providePackageResolver,

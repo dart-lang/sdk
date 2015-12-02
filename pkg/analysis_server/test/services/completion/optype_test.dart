@@ -14,6 +14,8 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import '../../utils.dart';
+import 'package:plugin/plugin.dart';
+import 'package:plugin/manager.dart';
 
 main() {
   initializeTestEnvironment();
@@ -23,6 +25,16 @@ main() {
 @reflectiveTest
 class OpTypeTest {
   OpType visitor;
+
+  void processRequiredPlugins() {
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
+  }
+
+  @override
+  void setUp() {
+    processRequiredPlugins();
+  }
 
   void addTestSource(String content, {bool resolved: false}) {
     int offset = content.indexOf('^');

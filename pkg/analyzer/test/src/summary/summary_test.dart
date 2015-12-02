@@ -67,6 +67,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
 
   @override
   void setUp() {
+    super.setUp();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableGenericMethods = true;
     resetWithOptions(options);

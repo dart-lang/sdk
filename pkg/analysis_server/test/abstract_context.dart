@@ -75,6 +75,10 @@ class AbstractContextTest {
     }
   }
 
+  void processRequiredPlugins() {
+    AnalysisEngine.instance.processRequiredPlugins();
+  }
+
   CompilationUnit resolveDartUnit(Source unitSource, Source librarySource) {
     return context.resolveCompilationUnit2(unitSource, librarySource);
   }
@@ -84,6 +88,7 @@ class AbstractContextTest {
   }
 
   void setUp() {
+    processRequiredPlugins();
     setupResourceProvider();
     resourceResolver = new ResourceUriResolver(provider);
     packageMap = new Map<String, List<Folder>>();

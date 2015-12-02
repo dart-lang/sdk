@@ -13,6 +13,8 @@ import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
 import 'resolver_test.dart';
@@ -91,7 +93,13 @@ class EngineTestCase {
     return null;
   }
 
-  void setUp() {}
+  void setUp() {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    new ExtensionManager().processPlugins(plugins);
+  }
 
   void tearDown() {}
 
@@ -557,10 +565,6 @@ class TestSource extends Source {
    */
   bool generateExceptionOnRead = false;
 
-  @override
-  int get modificationStamp =>
-      generateExceptionOnRead ? -1 : _modificationStamp;
-
   /**
    * The number of times that the contents of this source have been requested.
    */
@@ -586,9 +590,14 @@ class TestSource extends Source {
   }
 
   int get hashCode => 0;
+
   bool get isInSystemLibrary {
     return false;
   }
+
+  @override
+  int get modificationStamp =>
+      generateExceptionOnRead ? -1 : _modificationStamp;
 
   String get shortName {
     return _name;
