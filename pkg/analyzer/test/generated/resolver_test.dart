@@ -12587,6 +12587,18 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     expect(functionReturnValue(4).staticType, typeProvider.stringType);
   }
 
+  void test_inference_hints() {
+    Source source = addSource(r'''
+      void main () {
+        var x = 3;
+        List<int> l0 = [];
+     }
+   ''');
+    LibraryElement library = resolve2(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_instanceCreation() {
     String code = r'''
       class A<S, T> {
@@ -13819,25 +13831,6 @@ class TypeOverrideManagerTest extends EngineTestCase {
 
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
-  void test_invocation_target_prefixed() {
-    addNamedSource(
-        '/helper.dart',
-        '''
-library helper;
-int max(int x, int y) => 0;
-''');
-    String code = '''
-import 'helper.dart' as helper;
-main() {
-  helper.max(10, 10); // marker
-}''';
-    SimpleIdentifier methodName =
-        _findMarkedIdentifier(code, "(10, 10); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-    expect(methodInvoke.methodName.staticElement, isNotNull);
-    expect(methodInvoke.methodName.propagatedElement, isNull);
-  }
-
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(
@@ -14655,6 +14648,25 @@ main() {
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
+  }
+
+  void test_invocation_target_prefixed() {
+    addNamedSource(
+        '/helper.dart',
+        '''
+library helper;
+int max(int x, int y) => 0;
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.max(10, 10); // marker
+}''';
+    SimpleIdentifier methodName =
+        _findMarkedIdentifier(code, "(10, 10); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodInvoke.methodName.staticElement, isNotNull);
+    expect(methodInvoke.methodName.propagatedElement, isNull);
   }
 
   void test_is_conditional() {

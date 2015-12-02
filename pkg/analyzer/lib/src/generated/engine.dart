@@ -1170,6 +1170,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.hint && !options.hint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.strongModeHints != options.strongModeHints
+            : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableSuperMixins != options.enableSuperMixins;
@@ -1206,6 +1209,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     this._options.strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      this._options.strongModeHints = options.strongModeHints;
+    }
     _generateImplicitErrors = options.generateImplicitErrors;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
@@ -6462,6 +6468,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool strongMode = false;
 
   /**
+   * A flag indicating whether strong-mode inference hints should be
+   * used.  This flag is not exposed in the interface, and should be
+   * replaced by something more general.
+   */
+  // TODO(leafp): replace this with something more general
+  bool strongModeHints = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -6488,6 +6502,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lint = options.lint;
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      strongModeHints = options.strongModeHints;
+    }
   }
 
   /**
@@ -6510,6 +6527,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lint = options.lint;
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      strongModeHints = options.strongModeHints;
+    }
   }
 
   bool get analyzeFunctionBodies {

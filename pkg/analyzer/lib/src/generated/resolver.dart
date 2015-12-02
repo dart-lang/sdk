@@ -5772,6 +5772,11 @@ class InferenceContext {
   final AnalysisErrorListener _errorListener;
 
   /**
+   * If true, emit hints when types are inferred
+   */
+  final bool _inferenceHints;
+
+  /**
    * Type provider, needed for type matching.
    */
   final TypeProvider _typeProvider;
@@ -5792,8 +5797,8 @@ class InferenceContext {
    */
   List<DartType> _returnStack = <DartType>[];
 
-  InferenceContext._(
-      this._errorListener, TypeProvider typeProvider, this._typeSystem)
+  InferenceContext._(this._errorListener, TypeProvider typeProvider,
+      this._typeSystem, this._inferenceHints)
       : _typeProvider = typeProvider,
         _rules = new TypeRules(typeProvider);
 
@@ -5837,7 +5842,7 @@ class InferenceContext {
    */
   void recordInference(Expression node, DartType type) {
     StaticInfo info = InferredType.create(_rules, node, type);
-    if (info == null) {
+    if (!_inferenceHints || info == null) {
       return;
     }
     AnalysisError error = info.toAnalysisError();
@@ -10695,8 +10700,13 @@ class ResolverVisitor extends ScopedVisitor {
     }
     this.elementResolver = new ElementResolver(this);
     this.typeSystem = definingLibrary.context.typeSystem;
-    this.inferenceContext =
-        new InferenceContext._(errorListener, typeProvider, typeSystem);
+    bool strongModeHints = false;
+    AnalysisOptions options = definingLibrary.context.analysisOptions;
+    if (options is AnalysisOptionsImpl) {
+      strongModeHints = options.strongModeHints;
+    }
+    this.inferenceContext = new InferenceContext._(
+        errorListener, typeProvider, typeSystem, strongModeHints);
     if (typeAnalyzerFactory == null) {
       this.typeAnalyzer = new StaticTypeAnalyzer(this);
     } else {

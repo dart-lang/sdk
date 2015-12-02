@@ -267,6 +267,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.strongModeHints != options.strongModeHints
+            : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
@@ -290,6 +293,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     this._options.strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      this._options.strongModeHints = options.strongModeHints;
+    }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {
         workManager.onAnalysisOptionsChanged();
