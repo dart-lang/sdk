@@ -4410,6 +4410,27 @@ main(int p) {
     ]);
   }
 
+  test_perform_ConstantValidator_duplicateFields() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+class Test {
+  final int x = 1;
+  final int x = 2;
+  const Test();
+}
+
+main() {
+  const Test();
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertNoErrors();
+  }
+
   test_perform_directiveError() {
     Source source = newSource(
         '/test.dart',
