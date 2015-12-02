@@ -17293,24 +17293,13 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
     const int64_t right_value = other.AsInt64Value();
     switch (operation) {
       case Token::kADD: {
-        if (((left_value < 0) != (right_value < 0)) ||
-            ((left_value + right_value) < 0) == (left_value < 0)) {
+        if (!Utils::WillAddOverflow(left_value, right_value)) {
           return Integer::New(left_value + right_value, space);
         }
         break;
       }
       case Token::kSUB: {
-        // TODO(srdjan): XCode 7 produces different code in -O0 than in -O2 for
-        // following code when 'left_value - right_value' overflows into a
-        // positive number (left negative, right positive):
-        //   if (((left_value < 0) == (right_value < 0)) ||
-        //       ((left_value - right_value) < 0) == (left_value < 0)) {
-        //
-        // Restructuring code using temporary variables is a workaround.
-        const bool both_same_sign = (left_value < 0) == (right_value < 0);
-        const bool result_same_sign_as_left =
-            ((left_value - right_value) < 0) == (left_value < 0);
-        if (both_same_sign || result_same_sign_as_left) {
+        if (!Utils::WillSubOverflow(left_value, right_value)) {
           return Integer::New(left_value - right_value, space);
         }
         break;
