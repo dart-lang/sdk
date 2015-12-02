@@ -230,8 +230,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     return (arguments) {
       var value = arguments[nameOrPosition];
 
-      Identifier toIdentifier(item) {
-        if (item is Identifier) return item;
+      Parameter toIdentifier(item) {
+        if (item is Parameter) return item;
         if (item is String) return new Identifier(item);
         return error('Interpolated value #$nameOrPosition is not an Identifier'
             ' or List of Identifiers: $value');
@@ -826,6 +826,37 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator visitExportClause(ExportClause node) =>
       throw new UnimplementedError();
+
+  @override
+  Instantiator visitDestructuredVariable(DestructuredVariable node) {
+    Instantiator makeName = visit(node.name);
+    Instantiator makeStructure = visit(node.structure);
+    Instantiator makeDefaultValue = visit(node.defaultValue);
+    return (arguments) {
+      return new DestructuredVariable(
+          name: makeName(arguments),
+          structure: makeStructure(arguments),
+          defaultValue: makeDefaultValue(arguments));
+    };
+  }
+
+  @override
+  Instantiator visitArrayBindingPattern(ArrayBindingPattern node) {
+    List<Instantiator> makeVars = node.variables.map(this.visit).toList();
+    return (arguments) {
+      return new ArrayBindingPattern(
+          makeVars.map((m) => m(arguments)).toList());
+    };
+  }
+
+  @override
+  Instantiator visitObjectBindingPattern(ObjectBindingPattern node) {
+    List<Instantiator> makeVars = node.variables.map(this.visit).toList();
+    return (arguments) {
+      return new ObjectBindingPattern(
+          makeVars.map((m) => m(arguments)).toList());
+    };
+  }
 }
 
 /**

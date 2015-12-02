@@ -35,6 +35,7 @@ import 'js_interop.dart';
 import 'js_names.dart' as JS;
 import 'js_metalet.dart' as JS;
 import 'js_module_item_order.dart';
+import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
 import 'side_effect_analysis.dart';
 import 'package:collection/equality.dart';
@@ -942,9 +943,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       // Pass along all arguments verbatim, and let the callee handle them.
       // TODO(jmesserly): we'll need something different once we have
       // rest/spread support, but this should work for now.
-      var params = _visit(node.parameters);
+      var params =
+          _emitFormalParameterList(node.parameters, allowDestructuring: false);
+
       var fun = js.call('function(#) { return $newKeyword #(#); }',
-          [params, _visit(redirect), params,]) as JS.Fun;
+          [params, _visit(redirect), params]) as JS.Fun;
       return annotate(
           new JS.Method(name, fun, isStatic: true)..sourceInformation = node,
           node.element);
@@ -1205,21 +1208,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       var jsParam = _visit(param.identifier);
 
       if (param.kind == ParameterKind.NAMED) {
-        // Parameters will be passed using their real names, not the (possibly
-        // renamed) local variable.
-        var paramName = js.string(param.identifier.name, "'");
+        if (!_isDestructurableNamedParam(param)) {
+          // Parameters will be passed using their real names, not the (possibly
+          // renamed) local variable.
+          var paramName = js.string(param.identifier.name, "'");
 
-        // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming
-        // (either test if `obj.prop !== void 0`, or use JSCompiler_renameProperty).
-        body.add(js.statement('let # = # && # in # ? #.# : #;', [
-          jsParam,
-          _namedArgTemp,
-          paramName,
-          _namedArgTemp,
-          _namedArgTemp,
-          paramName,
-          _defaultParamValue(param),
-        ]));
+          // TODO(ochafik): Fix `'prop' in obj` to please Closure's renaming.
+          body.add(js.statement('let # = # && # in # ? #.# : #;', [
+            jsParam,
+            _namedArgTemp,
+            paramName,
+            _namedArgTemp,
+            _namedArgTemp,
+            paramName,
+            _defaultParamValue(param),
+          ]));
+        }
       } else if (param.kind == ParameterKind.POSITIONAL) {
         body.add(js.statement('if (# === void 0) # = #;',
             [jsParam, jsParam, _defaultParamValue(param)]));
@@ -1422,17 +1426,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (parent is FunctionDeclaration) {
       return _emitFunctionBody(params, node.body);
     } else {
-      String code;
+      // Chrome Canary does not accept default values with destructuring in
+      // arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
+      // with regular functions (e.g. `function({a} = {}) { return 1 }`).
+      // Note that Firefox accepts both syntaxes just fine.
+      // TODO(ochafik): Simplify this code when Chrome Canary catches up.
+      var canUseArrowFun = !node.parameters.parameters.any(_isNamedParam);
+
+      String code = canUseArrowFun ? '(#) => #' : 'function(#) { return # }';
       JS.Node jsBody;
       var body = node.body;
       if (body.isGenerator || body.isAsynchronous) {
-        code = '(#) => #';
         jsBody = _emitGeneratorFunctionBody(params, body);
       } else if (body is ExpressionFunctionBody) {
-        code = '(#) => #';
         jsBody = _visit(body.expression);
       } else {
-        code = '(#) => { #; }';
+        code = canUseArrowFun ? '(#) => { #; }' : 'function(#) { #; }';
         jsBody = _visit(body);
       }
       var clos = js.call(code, [params, jsBody]);
@@ -1973,18 +1982,79 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
         _propertyName(node.name.label.name), _visit(node.expression));
   }
 
+  bool _isNamedParam(FormalParameter param) =>
+      param.kind == ParameterKind.NAMED;
+
+  /// We cannot destructure named params that clash with JS reserved names:
+  /// see discussion in https://github.com/dart-lang/dev_compiler/issues/392.
+  bool _isDestructurableNamedParam(FormalParameter param) =>
+      _isNamedParam(param) && !invalidVariableName(param.identifier.name);
+
   @override
-  List<JS.Parameter> visitFormalParameterList(FormalParameterList node) {
+  List<JS.Parameter> visitFormalParameterList(FormalParameterList node) =>
+      _emitFormalParameterList(node);
+
+  List<JS.Parameter> _emitFormalParameterList(FormalParameterList node,
+      {bool allowDestructuring: true}) {
     var result = <JS.Parameter>[];
+
+    var namedVars = <JS.DestructuredVariable>[];
+    var destructure = allowDestructuring &&
+        node.parameters.where(_isNamedParam).every(_isDestructurableNamedParam);
+    var hasNamedArgsConflictingWithObjectProperties = false;
+    var needsOpts = false;
+
     for (FormalParameter param in node.parameters) {
       if (param.kind == ParameterKind.NAMED) {
-        result.add(_namedArgTemp);
-        break;
+        if (destructure) {
+          if (_jsObjectProperties.contains(param.identifier.name)) {
+            hasNamedArgsConflictingWithObjectProperties = true;
+          }
+          namedVars.add(new JS.DestructuredVariable(
+              name: _visit(param.identifier),
+              defaultValue: _defaultParamValue(param)));
+        } else {
+          needsOpts = true;
+        }
+      } else {
+        result.add(_visit(param));
       }
-      result.add(_visit(param));
+    }
+
+    if (needsOpts) {
+      result.add(_namedArgTemp);
+    } else if (namedVars.isNotEmpty) {
+      // Note: `var {valueOf} = {}` extracts `Object.prototype.valueOf`, so
+      // in case there are conflicting names we create an object without
+      // any prototype.
+      var defaultOpts = hasNamedArgsConflictingWithObjectProperties
+          ? js.call('Object.create(null)')
+          : js.call('{}');
+      result.add(new JS.DestructuredVariable(
+          structure: new JS.ObjectBindingPattern(namedVars),
+          defaultValue: defaultOpts));
     }
     return result;
   }
+
+  /// See ES6 spec (and `Object.getOwnPropertyNames(Object.prototype)`):
+  /// http://www.ecma-international.org/ecma-262/6.0/#sec-properties-of-the-object-prototype-object
+  /// http://www.ecma-international.org/ecma-262/6.0/#sec-additional-properties-of-the-object.prototype-object
+  static final Set<String> _jsObjectProperties = new Set<String>()
+    ..addAll([
+      "constructor",
+      "toString",
+      "toLocaleString",
+      "valueOf",
+      "hasOwnProperty",
+      "isPrototypeOf",
+      "propertyIsEnumerable",
+      "__defineGetter__",
+      "__lookupGetter__",
+      "__defineSetter__",
+      "__lookupSetter__",
+      "__proto__"
+    ]);
 
   @override
   JS.Statement visitExpressionStatement(ExpressionStatement node) =>

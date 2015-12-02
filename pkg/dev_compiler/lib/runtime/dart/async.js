@@ -142,10 +142,8 @@ dart_library.library('dart/async', null, /* Imports */[
       get isBroadcast() {
         return false;
       }
-      asBroadcastStream(opts) {
-        let onListen = opts && 'onListen' in opts ? opts.onListen : null;
+      asBroadcastStream({onListen = null, onCancel = null} = {}) {
         dart.as(onListen, dart.functionType(dart.void, [StreamSubscription$(T)]));
-        let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
         dart.as(onCancel, dart.functionType(dart.void, [StreamSubscription$(T)]));
         return new (_AsBroadcastStream$(T))(this, dart.as(onListen, __CastType12), dart.as(onCancel, dart.functionType(dart.void, [StreamSubscription])));
       }
@@ -241,8 +239,7 @@ dart_library.library('dart/async', null, /* Imports */[
         }
         return controller.stream;
       }
-      handleError(onError, opts) {
-        let test = opts && 'test' in opts ? opts.test : null;
+      handleError(onError, {test = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         return new (_HandleErrorStream$(T))(this, onError, test);
       }
@@ -536,9 +533,8 @@ dart_library.library('dart/async', null, /* Imports */[
           }), cancelOnError: true});
         return future;
       }
-      firstWhere(test, opts) {
+      firstWhere(test, {defaultValue = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [T]));
-        let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
         dart.as(defaultValue, dart.functionType(core.Object, []));
         let future = new _Future();
         let subscription = null;
@@ -564,9 +560,8 @@ dart_library.library('dart/async', null, /* Imports */[
           }), cancelOnError: true});
         return future;
       }
-      lastWhere(test, opts) {
+      lastWhere(test, {defaultValue = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [T]));
-        let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
         dart.as(defaultValue, dart.functionType(core.Object, []));
         let future = new _Future();
         let result = null;
@@ -656,8 +651,7 @@ dart_library.library('dart/async', null, /* Imports */[
           }).bind(this)), cancelOnError: true});
         return future;
       }
-      timeout(timeLimit, opts) {
-        let onTimeout = opts && 'onTimeout' in opts ? opts.onTimeout : null;
+      timeout(timeLimit, {onTimeout = null} = {}) {
         dart.as(onTimeout, dart.functionType(dart.void, [EventSink]));
         let controller = null;
         let subscription = null;
@@ -770,12 +764,9 @@ dart_library.library('dart/async', null, /* Imports */[
       _StreamImpl() {
         super.Stream();
       }
-      listen(onData, opts) {
+      listen(onData, {onError = null, onDone = null, cancelOnError = null} = {}) {
         dart.as(onData, dart.functionType(dart.void, [T]));
-        let onError = opts && 'onError' in opts ? opts.onError : null;
-        let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         dart.as(onDone, dart.functionType(dart.void, []));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let subscription = this[_createSubscription](onData, onError, onDone, cancelOnError);
         this[_onListen](subscription);
@@ -1454,9 +1445,8 @@ dart_library.library('dart/async', null, /* Imports */[
       get done() {
         return this[_ensureDoneFuture]();
       }
-      addStream(stream, opts) {
+      addStream(stream, {cancelOnError = true} = {}) {
         dart.as(stream, Stream$(T));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
           dart.throw(this[_addEventError]());
         this[_state] = dart.notNull(this[_state]) | dart.notNull(_BroadcastStreamController$()._STATE_ADDSTREAM);
@@ -1777,8 +1767,7 @@ dart_library.library('dart/async', null, /* Imports */[
   });
   let __CastType2 = __CastType2$();
   class DeferredLibrary extends core.Object {
-    DeferredLibrary(libraryName, opts) {
-      let uri = opts && 'uri' in opts ? opts.uri : null;
+    DeferredLibrary(libraryName, {uri = null} = {}) {
       this.libraryName = libraryName;
       this.uri = uri;
     }
@@ -1876,9 +1865,7 @@ dart_library.library('dart/async', null, /* Imports */[
         }));
         return dart.as(result, Future$(T));
       }
-      static wait(futures, opts) {
-        let eagerError = opts && 'eagerError' in opts ? opts.eagerError : false;
-        let cleanUp = opts && 'cleanUp' in opts ? opts.cleanUp : null;
+      static wait(futures, {eagerError = false, cleanUp = null} = {}) {
         dart.as(cleanUp, dart.functionType(dart.void, [dart.dynamic]));
         let result = new (_Future$(core.List))();
         let values = null;
@@ -2267,9 +2254,8 @@ dart_library.library('dart/async', null, /* Imports */[
           this[_state] = _Future$()._INCOMPLETE;
         }
       }
-      then(f, opts) {
+      then(f, {onError = null} = {}) {
         dart.as(f, dart.functionType(dart.dynamic, [T]));
-        let onError = opts && 'onError' in opts ? opts.onError : null;
         let result = new (_Future$())();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
           f = dart.as(result[_zone].registerUnaryCallback(f), __CastType6$(T));
@@ -2280,8 +2266,7 @@ dart_library.library('dart/async', null, /* Imports */[
         this[_addListener](new _FutureListener.then(result, f, onError));
         return result;
       }
-      catchError(onError, opts) {
-        let test = opts && 'test' in opts ? opts.test : null;
+      catchError(onError, {test = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let result = new (_Future$())();
         if (!dart.notNull(core.identical(result[_zone], _ROOT_ZONE))) {
@@ -2601,8 +2586,7 @@ dart_library.library('dart/async', null, /* Imports */[
           source = result;
         }
       }
-      timeout(timeLimit, opts) {
-        let onTimeout = opts && 'onTimeout' in opts ? opts.onTimeout : null;
+      timeout(timeLimit, {onTimeout = null} = {}) {
         dart.as(onTimeout, dart.functionType(dart.dynamic, []));
         if (dart.notNull(this[_isComplete]))
           return new (_Future$()).immediate(this);
@@ -2858,19 +2842,14 @@ dart_library.library('dart/async', null, /* Imports */[
       get isBroadcast() {
         return this[_stream].isBroadcast;
       }
-      asBroadcastStream(opts) {
-        let onListen = opts && 'onListen' in opts ? opts.onListen : null;
+      asBroadcastStream({onListen = null, onCancel = null} = {}) {
         dart.as(onListen, dart.functionType(dart.void, [StreamSubscription$(T)]));
-        let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
         dart.as(onCancel, dart.functionType(dart.void, [StreamSubscription$(T)]));
         return this[_stream].asBroadcastStream({onListen: onListen, onCancel: onCancel});
       }
-      listen(onData, opts) {
+      listen(onData, {onError = null, onDone = null, cancelOnError = null} = {}) {
         dart.as(onData, dart.functionType(dart.void, [T]));
-        let onError = opts && 'onError' in opts ? opts.onError : null;
-        let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         dart.as(onDone, dart.functionType(dart.void, []));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         return this[_stream].listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
       }
     }
@@ -2961,21 +2940,13 @@ dart_library.library('dart/async', null, /* Imports */[
   const __CastType18 = dart.typedef('__CastType18', () => dart.functionType(dart.void, [EventSink]));
   const StreamController$ = dart.generic(function(T) {
     class StreamController extends core.Object {
-      static new(opts) {
-        let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        let onPause = opts && 'onPause' in opts ? opts.onPause : null;
-        let onResume = opts && 'onResume' in opts ? opts.onResume : null;
-        let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        let sync = opts && 'sync' in opts ? opts.sync : false;
+      static new({onListen = null, onPause = null, onResume = null, onCancel = null, sync = false} = {}) {
         if (onListen == null && onPause == null && onResume == null && onCancel == null) {
           return dart.as(dart.notNull(sync) ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController(), StreamController$(T));
         }
         return dart.notNull(sync) ? new (_SyncStreamController$(T))(onListen, onPause, onResume, onCancel) : new (_AsyncStreamController$(T))(onListen, onPause, onResume, onCancel);
       }
-      static broadcast(opts) {
-        let onListen = opts && 'onListen' in opts ? opts.onListen : null;
-        let onCancel = opts && 'onCancel' in opts ? opts.onCancel : null;
-        let sync = opts && 'sync' in opts ? opts.sync : false;
+      static broadcast({onListen = null, onCancel = null, sync = false} = {}) {
         return dart.notNull(sync) ? new (_SyncBroadcastStreamController$(T))(onListen, onCancel) : new (_AsyncBroadcastStreamController$(T))(onListen, onCancel);
       }
     }
@@ -3087,9 +3058,8 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.assert(this[_isAddingStream]);
         return new core.StateError("Cannot add event while adding a stream");
       }
-      addStream(source, opts) {
+      addStream(source, {cancelOnError = true} = {}) {
         dart.as(source, Stream$(T));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
           dart.throw(this[_badEventState]());
         if (dart.notNull(this[_isCanceled]))
@@ -3409,9 +3379,8 @@ dart_library.library('dart/async', null, /* Imports */[
       close() {
         return this[_target].close();
       }
-      addStream(source, opts) {
+      addStream(source, {cancelOnError = true} = {}) {
         dart.as(source, Stream$(T));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         return this[_target].addStream(source, {cancelOnError: cancelOnError});
       }
       get done() {
@@ -3885,12 +3854,9 @@ dart_library.library('dart/async', null, /* Imports */[
       get isBroadcast() {
         return true;
       }
-      listen(onData, opts) {
+      listen(onData, {onError = null, onDone = null, cancelOnError = null} = {}) {
         dart.as(onData, dart.functionType(dart.void, [T]));
-        let onError = opts && 'onError' in opts ? opts.onError : null;
-        let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         dart.as(onDone, dart.functionType(dart.void, []));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         if (this[_controller] == null || dart.notNull(this[_controller].isClosed)) {
           return new (_DoneStreamSubscription$(T))(onDone);
         }
@@ -4208,12 +4174,9 @@ dart_library.library('dart/async', null, /* Imports */[
       get isBroadcast() {
         return this[_source].isBroadcast;
       }
-      listen(onData, opts) {
+      listen(onData, {onError = null, onDone = null, cancelOnError = null} = {}) {
         dart.as(onData, dart.functionType(dart.void, [T]));
-        let onError = opts && 'onError' in opts ? opts.onError : null;
-        let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         dart.as(onDone, dart.functionType(dart.void, []));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         return this[_createSubscription](onData, onError, onDone, cancelOnError);
       }
@@ -4802,12 +4765,9 @@ dart_library.library('dart/async', null, /* Imports */[
         this[_sinkMapper] = sinkMapper;
         super.Stream();
       }
-      listen(onData, opts) {
+      listen(onData, {onError = null, onDone = null, cancelOnError = null} = {}) {
         dart.as(onData, dart.functionType(dart.void, [T]));
-        let onError = opts && 'onError' in opts ? opts.onError : null;
-        let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         dart.as(onDone, dart.functionType(dart.void, []));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let subscription = new (_SinkTransformerStreamSubscription$(dart.dynamic, T))(this[_stream], dart.as(this[_sinkMapper], _SinkMapper), onData, onError, onDone, cancelOnError);
         return subscription;
@@ -4870,10 +4830,7 @@ dart_library.library('dart/async', null, /* Imports */[
   let _HandlerEventSink = _HandlerEventSink$();
   const _StreamHandlerTransformer$ = dart.generic(function(S, T) {
     class _StreamHandlerTransformer extends _StreamSinkTransformer$(S, T) {
-      _StreamHandlerTransformer(opts) {
-        let handleData = opts && 'handleData' in opts ? opts.handleData : null;
-        let handleError = opts && 'handleError' in opts ? opts.handleError : null;
-        let handleDone = opts && 'handleDone' in opts ? opts.handleDone : null;
+      _StreamHandlerTransformer({handleData = null, handleError = null, handleDone = null} = {}) {
         super._StreamSinkTransformer(dart.as(dart.fn(outputSink => {
           dart.as(outputSink, EventSink$(T));
           if (handleData == null)
@@ -4943,12 +4900,9 @@ dart_library.library('dart/async', null, /* Imports */[
         this[_transformer] = transformer;
         super.Stream();
       }
-      listen(onData, opts) {
+      listen(onData, {onError = null, onDone = null, cancelOnError = null} = {}) {
         dart.as(onData, dart.functionType(dart.void, [T]));
-        let onError = opts && 'onError' in opts ? opts.onError : null;
-        let onDone = opts && 'onDone' in opts ? opts.onDone : null;
         dart.as(onDone, dart.functionType(dart.void, []));
-        let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         cancelOnError = core.identical(true, cancelOnError);
         let result = this[_transformer](this[_stream], cancelOnError);
         result.onData(onData);
@@ -5045,20 +4999,7 @@ dart_library.library('dart/async', null, /* Imports */[
     static new(opts) {
       return new _ZoneSpecification(opts);
     }
-    static from(other, opts) {
-      let handleUncaughtError = opts && 'handleUncaughtError' in opts ? opts.handleUncaughtError : null;
-      let run = opts && 'run' in opts ? opts.run : null;
-      let runUnary = opts && 'runUnary' in opts ? opts.runUnary : null;
-      let runBinary = opts && 'runBinary' in opts ? opts.runBinary : null;
-      let registerCallback = opts && 'registerCallback' in opts ? opts.registerCallback : null;
-      let registerUnaryCallback = opts && 'registerUnaryCallback' in opts ? opts.registerUnaryCallback : null;
-      let registerBinaryCallback = opts && 'registerBinaryCallback' in opts ? opts.registerBinaryCallback : null;
-      let errorCallback = opts && 'errorCallback' in opts ? opts.errorCallback : null;
-      let scheduleMicrotask = opts && 'scheduleMicrotask' in opts ? opts.scheduleMicrotask : null;
-      let createTimer = opts && 'createTimer' in opts ? opts.createTimer : null;
-      let createPeriodicTimer = opts && 'createPeriodicTimer' in opts ? opts.createPeriodicTimer : null;
-      let print = opts && 'print' in opts ? opts.print : null;
-      let fork = opts && 'fork' in opts ? opts.fork : null;
+    static from(other, {handleUncaughtError = null, run = null, runUnary = null, runBinary = null, registerCallback = null, registerUnaryCallback = null, registerBinaryCallback = null, errorCallback = null, scheduleMicrotask = null, createTimer = null, createPeriodicTimer = null, print = null, fork = null} = {}) {
       return ZoneSpecification.new({handleUncaughtError: handleUncaughtError != null ? handleUncaughtError : other.handleUncaughtError, run: run != null ? run : other.run, runUnary: runUnary != null ? runUnary : other.runUnary, runBinary: runBinary != null ? runBinary : other.runBinary, registerCallback: registerCallback != null ? registerCallback : other.registerCallback, registerUnaryCallback: registerUnaryCallback != null ? registerUnaryCallback : other.registerUnaryCallback, registerBinaryCallback: registerBinaryCallback != null ? registerBinaryCallback : other.registerBinaryCallback, errorCallback: errorCallback != null ? errorCallback : other.errorCallback, scheduleMicrotask: scheduleMicrotask != null ? scheduleMicrotask : other.scheduleMicrotask, createTimer: createTimer != null ? createTimer : other.createTimer, createPeriodicTimer: createPeriodicTimer != null ? createPeriodicTimer : other.createPeriodicTimer, print: print != null ? print : other.print, fork: fork != null ? fork : other.fork});
     }
   }
@@ -5069,20 +5010,7 @@ dart_library.library('dart/async', null, /* Imports */[
     })
   });
   class _ZoneSpecification extends core.Object {
-    _ZoneSpecification(opts) {
-      let handleUncaughtError = opts && 'handleUncaughtError' in opts ? opts.handleUncaughtError : null;
-      let run = opts && 'run' in opts ? opts.run : null;
-      let runUnary = opts && 'runUnary' in opts ? opts.runUnary : null;
-      let runBinary = opts && 'runBinary' in opts ? opts.runBinary : null;
-      let registerCallback = opts && 'registerCallback' in opts ? opts.registerCallback : null;
-      let registerUnaryCallback = opts && 'registerUnaryCallback' in opts ? opts.registerUnaryCallback : null;
-      let registerBinaryCallback = opts && 'registerBinaryCallback' in opts ? opts.registerBinaryCallback : null;
-      let errorCallback = opts && 'errorCallback' in opts ? opts.errorCallback : null;
-      let scheduleMicrotask = opts && 'scheduleMicrotask' in opts ? opts.scheduleMicrotask : null;
-      let createTimer = opts && 'createTimer' in opts ? opts.createTimer : null;
-      let createPeriodicTimer = opts && 'createPeriodicTimer' in opts ? opts.createPeriodicTimer : null;
-      let print = opts && 'print' in opts ? opts.print : null;
-      let fork = opts && 'fork' in opts ? opts.fork : null;
+    _ZoneSpecification({handleUncaughtError = null, run = null, runUnary = null, runBinary = null, registerCallback = null, registerUnaryCallback = null, registerBinaryCallback = null, errorCallback = null, scheduleMicrotask = null, createTimer = null, createPeriodicTimer = null, print = null, fork = null} = {}) {
       this.handleUncaughtError = handleUncaughtError;
       this.run = run;
       this.runUnary = runUnary;
@@ -5250,24 +5178,21 @@ dart_library.library('dart/async', null, /* Imports */[
       }
 
     }
-    bindCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+    bindCallback(f, {runGuarded = true} = {}) {
       if (dart.notNull(runGuarded)) {
         return dart.fn((() => this.runGuarded(f)).bind(this));
       } else {
         return dart.fn((() => this.run(f)).bind(this));
       }
     }
-    bindUnaryCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+    bindUnaryCallback(f, {runGuarded = true} = {}) {
       if (dart.notNull(runGuarded)) {
         return dart.fn((arg => this.runUnaryGuarded(f, arg)).bind(this));
       } else {
         return dart.fn((arg => this.runUnary(f, arg)).bind(this));
       }
     }
-    bindBinaryCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+    bindBinaryCallback(f, {runGuarded = true} = {}) {
       if (dart.notNull(runGuarded)) {
         return dart.fn(((arg1, arg2) => this.runBinaryGuarded(f, arg1, arg2)).bind(this));
       } else {
@@ -5280,9 +5205,7 @@ dart_library.library('dart/async', null, /* Imports */[
     handleUncaughtError(error, stackTrace) {
       return _rootHandleUncaughtError(null, null, this, error, stackTrace);
     }
-    fork(opts) {
-      let specification = opts && 'specification' in opts ? opts.specification : null;
-      let zoneValues = opts && 'zoneValues' in opts ? opts.zoneValues : null;
+    fork({specification = null, zoneValues = null} = {}) {
       return _rootFork(null, null, this, specification, zoneValues);
     }
     run(f) {
@@ -5521,8 +5444,7 @@ dart_library.library('dart/async', null, /* Imports */[
       }
 
     }
-    bindCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+    bindCallback(f, {runGuarded = true} = {}) {
       let registered = this.registerCallback(f);
       if (dart.notNull(runGuarded)) {
         return dart.fn((() => this.runGuarded(registered)).bind(this));
@@ -5530,8 +5452,7 @@ dart_library.library('dart/async', null, /* Imports */[
         return dart.fn((() => this.run(registered)).bind(this));
       }
     }
-    bindUnaryCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+    bindUnaryCallback(f, {runGuarded = true} = {}) {
       let registered = this.registerUnaryCallback(f);
       if (dart.notNull(runGuarded)) {
         return dart.fn((arg => this.runUnaryGuarded(registered, arg)).bind(this));
@@ -5539,8 +5460,7 @@ dart_library.library('dart/async', null, /* Imports */[
         return dart.fn((arg => this.runUnary(registered, arg)).bind(this));
       }
     }
-    bindBinaryCallback(f, opts) {
-      let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
+    bindBinaryCallback(f, {runGuarded = true} = {}) {
       let registered = this.registerBinaryCallback(f);
       if (dart.notNull(runGuarded)) {
         return dart.fn(((arg1, arg2) => this.runBinaryGuarded(registered, arg1, arg2)).bind(this));
@@ -5568,9 +5488,7 @@ dart_library.library('dart/async', null, /* Imports */[
       let parentDelegate = _parentDelegate(implementation.zone);
       return dart.dcall(implementation.function, implementation.zone, parentDelegate, this, error, stackTrace);
     }
-    fork(opts) {
-      let specification = opts && 'specification' in opts ? opts.specification : null;
-      let zoneValues = opts && 'zoneValues' in opts ? opts.zoneValues : null;
+    fork({specification = null, zoneValues = null} = {}) {
       let implementation = this[_fork];
       dart.assert(implementation != null);
       let parentDelegate = _parentDelegate(implementation.zone);
@@ -5825,10 +5743,7 @@ dart_library.library('dart/async', null, /* Imports */[
     },
     set _rootMap(_) {}
   });
-  function runZoned(body, opts) {
-    let zoneValues = opts && 'zoneValues' in opts ? opts.zoneValues : null;
-    let zoneSpecification = opts && 'zoneSpecification' in opts ? opts.zoneSpecification : null;
-    let onError = opts && 'onError' in opts ? opts.onError : null;
+  function runZoned(body, {zoneValues = null, zoneSpecification = null, onError = null} = {}) {
     let errorHandler = null;
     if (onError != null) {
       errorHandler = dart.fn((self, parent, zone, error, stackTrace) => {

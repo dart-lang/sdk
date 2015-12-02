@@ -24,8 +24,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
     return -1;
   }
   dart.fn(_comparableBinarySearch, core.int, [core.List$(core.Comparable), core.Comparable]);
-  function binarySearch(sortedList, key, opts) {
-    let compare = opts && 'compare' in opts ? opts.compare : null;
+  function binarySearch(sortedList, key, {compare = null} = {}) {
     if (compare == null) {
       return _comparableBinarySearch(dart.as(sortedList, core.List$(core.Comparable)), dart.as(key, core.Comparable));
     }
@@ -82,10 +81,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
     }
   }
   dart.fn(_reverse, dart.void, [core.List, core.int, core.int]);
-  function insertionSort(list, opts) {
-    let compare = opts && 'compare' in opts ? opts.compare : null;
-    let start = opts && 'start' in opts ? opts.start : 0;
-    let end = opts && 'end' in opts ? opts.end : null;
+  function insertionSort(list, {compare = null, start = 0, end = null} = {}) {
     if (end == null)
       end = list[dartx.length];
     if (compare == null)
@@ -113,10 +109,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
   }
   dart.fn(_insertionSort, dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.int, core.int, core.int]);
   const _MERGE_SORT_LIMIT = 32;
-  function mergeSort(list, opts) {
-    let start = opts && 'start' in opts ? opts.start : 0;
-    let end = opts && 'end' in opts ? opts.end : null;
-    let compare = opts && 'compare' in opts ? opts.compare : null;
+  function mergeSort(list, {start = 0, end = null, compare = null} = {}) {
     if (end == null)
       end = list[dartx.length];
     if (compare == null)

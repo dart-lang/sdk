@@ -595,6 +595,38 @@ class Printer implements NodeVisitor {
                         newInForInit: inForInit, newAtStatementBegin: false);
   }
 
+  visitArrayBindingPattern(ArrayBindingPattern node) {
+    out("[");
+    visitCommaSeparated(node.variables, EXPRESSION,
+                        newInForInit: false, newAtStatementBegin: false);
+    out("]");
+  }
+  visitObjectBindingPattern(ObjectBindingPattern node) {
+    out("{");
+    visitCommaSeparated(node.variables, EXPRESSION,
+                        newInForInit: false, newAtStatementBegin: false);
+    out("}");
+  }
+
+  visitDestructuredVariable(DestructuredVariable node) {
+    var hasName = node.name != null;
+    if (hasName) visit(node.name);
+    if (node.structure != null) {
+      if (hasName) {
+        out(":");
+        spaceOut();
+      }
+      visit(node.structure);
+    }
+    if (node.defaultValue != null) {
+      spaceOut();
+      out("=");
+      spaceOut();
+      visitNestedExpression(node.defaultValue, EXPRESSION,
+                            newInForInit: false, newAtStatementBegin: false);
+    }
+  }
+
   visitAssignment(Assignment assignment) {
     visitNestedExpression(assignment.leftHandSide, LEFT_HAND_SIDE,
                           newInForInit: inForInit,
@@ -1542,14 +1574,23 @@ abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
   declare(Identifier node);
 
   visitFunctionExpression(FunctionExpression node) {
-    for (var p in node.params) {
-      declare(p is RestParameter ? p.parameter : p);
-    }
+    node.params.forEach(_scanVariableBinding);
     node.body.accept(this);
   }
 
+  _scanVariableBinding(VariableBinding d) {
+    if (d is Identifier) declare(d);
+    if (d is RestParameter) _scanVariableBinding(d.parameter);
+    else if (d is BindingPattern) {
+      for (var v in d.variables) {
+        if (v.name != null) declare(v.name);
+        if (v.structure != null) _scanVariableBinding(v.structure);
+      }
+    }
+  }
+
   visitVariableInitialization(VariableInitialization node) {
-    declare(node.declaration);
+    _scanVariableBinding(node.declaration);
     if (node.value != null) node.value.accept(this);
   }
 

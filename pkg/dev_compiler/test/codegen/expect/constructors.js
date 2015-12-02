@@ -69,8 +69,7 @@ dart_library.library('constructors', null, /* Imports */[
     constructors: () => ({G: [G, [], [core.String]]})
   });
   class H extends core.Object {
-    H(opts) {
-      let p1 = opts && 'p1' in opts ? opts.p1 : null;
+    H({p1 = null} = {}) {
     }
   }
   dart.setSignature(H, {

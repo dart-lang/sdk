@@ -811,6 +811,22 @@ class MiniJsParser {
     return expression;
   }
 
+  InterpolatedIdentifier parseInterpolatedIdentifier() {
+    var id = new InterpolatedIdentifier(parseHash());
+    interpolatedValues.add(id);
+    return id;
+  }
+
+  Identifier parseIdentifier() {
+    if (acceptCategory(HASH)) {
+      return parseInterpolatedIdentifier();
+    } else {
+      var id = new Identifier(lastToken);
+      expectCategory(ALPHA);
+      return id;
+    }
+  }
+
   /**
    * CoverParenthesizedExpressionAndArrowParameterList[Yield] :
    *     ( Expression )
@@ -1136,43 +1152,88 @@ class MiniJsParser {
   }
 
   /** Parse a variable declaration list, with `var` or `let` [keyword] */
-  VariableDeclarationList parseVariableDeclarationList(String keyword) {
-    // Supports one form for interpolated variable declaration:
-    //    let # = ...
-    if (acceptCategory(HASH)) {
-      var name = new InterpolatedIdentifier(parseHash());
-      interpolatedValues.add(name);
-
-      Expression initializer = acceptString("=") ? parseAssignment() : null;
-      return new VariableDeclarationList(keyword,
-          [new VariableInitialization(name, initializer)]);
-    }
-
-    String firstVariable = lastToken;
-    expectCategory(ALPHA);
-    return finishVariableDeclarationList(keyword, firstVariable);
-  }
-
-  VariableDeclarationList finishVariableDeclarationList(
-      String keyword, String firstVariable) {
+  VariableDeclarationList parseVariableDeclarationList(String keyword)  {
     var initialization = [];
 
-    void declare(String variable) {
-      Expression initializer = null;
-      if (acceptString("=")) {
-        initializer = parseAssignment();
-      }
-      var declaration = new Identifier(variable);
-      initialization.add(new VariableInitialization(declaration, initializer));
-    }
+    do {
+      var declarator = parseVariableBinding();
+      var initializer = acceptString("=") ? parseAssignment() : null;
+      initialization.add(new VariableInitialization(declarator, initializer));
+    } while (acceptCategory(COMMA));
 
-    declare(firstVariable);
-    while (acceptCategory(COMMA)) {
-      String variable = lastToken;
-      expectCategory(ALPHA);
-      declare(variable);
-    }
     return new VariableDeclarationList(keyword, initialization);
+  }
+
+  VariableBinding parseVariableBinding() {
+    switch (lastCategory) {
+      case ALPHA:
+      case HASH:
+        return parseIdentifier();
+      case LBRACE:
+      case LSQUARE:
+        return parseBindingPattern();
+      default:
+        error('Unexpected token $lastToken: ${categoryToString(lastCategory)}');
+        return null;
+    }
+  }
+
+  /// Note: this doesn't deal with general-case destructuring yet, it just
+  /// supports it in variable initialization.
+  /// See ES6 spec:
+  /// http://www.ecma-international.org/ecma-262/6.0/#sec-destructuring-binding-patterns
+  /// http://www.ecma-international.org/ecma-262/6.0/#sec-destructuring-assignment
+  /// TODO(ochafik): Support destructuring in LeftHandSideExpression.
+  BindingPattern parseBindingPattern() {
+    if (acceptCategory(LBRACE)) {
+      return parseObjectBindingPattern();
+    } else {
+      expectCategory(LSQUARE);
+      return parseArrayBindingPattern();
+    }
+  }
+
+  ArrayBindingPattern parseArrayBindingPattern() {
+    var variables = <DestructuredVariable>[];
+    do {
+      var name;
+      var structure;
+      var defaultValue;
+
+      var declarator = parseVariableBinding();
+      if (declarator is Identifier) name = declarator;
+      else if (declarator is BindingPattern) structure = declarator;
+      else error("Unexpected LHS: $declarator");
+
+      if (acceptString("=")) {
+        defaultValue = parseExpression();
+      }
+      variables.add(new DestructuredVariable(
+          name: name, structure: structure, defaultValue: defaultValue));
+    } while (acceptCategory(COMMA));
+
+    expectCategory(RSQUARE);
+    return new ArrayBindingPattern(variables);
+  }
+
+  ObjectBindingPattern parseObjectBindingPattern() {
+    var variables = <DestructuredVariable>[];
+    do {
+      var name = parseIdentifier();
+      var structure;
+      var defaultValue;
+
+      if (acceptCategory(COLON)) {
+        structure = parseBindingPattern();
+      } else if (acceptString("=")) {
+        defaultValue = parseExpression();
+      }
+      variables.add(new DestructuredVariable(
+          name: name, structure: structure, defaultValue: defaultValue));
+    } while (acceptCategory(COMMA));
+
+    expectCategory(RBRACE);
+    return new ObjectBindingPattern(variables);
   }
 
   Expression parseVarDeclarationOrExpression() {
@@ -1395,7 +1456,7 @@ class MiniJsParser {
             iterableExpression,
             body);
       }
-      var declarations = finishVariableDeclarationList(keyword, identifier);
+      var declarations = parseVariableDeclarationList(keyword);
       expectCategory(SEMICOLON);
       return finishFor(declarations);
     }
@@ -1499,18 +1560,10 @@ class MiniJsParser {
   }
 
   ClassExpression parseClass() {
-    Identifier name;
-    if (acceptCategory(HASH)) {
-      var interpolatedName = new InterpolatedIdentifier(parseHash());
-      interpolatedValues.add(interpolatedName);
-      name = interpolatedName;
-    } else {
-      name = new Identifier(lastToken);
-      expectCategory(ALPHA);
-    }
+    Identifier name = parseIdentifier();
     Expression heritage = null;
     if (acceptString('extends')) {
-      heritage = parseLeftHandSide();
+      heritage = parseConditional();
     }
     expectCategory(LBRACE);
     var methods = new List<Method>();

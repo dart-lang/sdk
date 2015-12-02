@@ -88,6 +88,7 @@ _writeHtmlRunner(
       '--js-flags="--harmony-arrow-functions '
       '--harmony-classes '
       '--harmony-computed-property-names '
+      '--harmony_destructuring '
       '--harmony-spreadcalls"'
       '\n');
 }

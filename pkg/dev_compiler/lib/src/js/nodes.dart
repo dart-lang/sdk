@@ -88,6 +88,10 @@ abstract class NodeVisitor<T> {
   T visitInterpolatedStatement(InterpolatedStatement node);
   T visitInterpolatedMethod(InterpolatedMethod node);
   T visitInterpolatedIdentifier(InterpolatedIdentifier node);
+
+  T visitArrayBindingPattern(ArrayBindingPattern node);
+  T visitObjectBindingPattern(ObjectBindingPattern node);
+  T visitDestructuredVariable(DestructuredVariable node);
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
@@ -210,6 +214,13 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 
   T visitAwait(Await node) => visitExpression(node);
   T visitDartYield(DartYield node) => visitStatement(node);
+
+  T visitBindingPattern(BindingPattern node) => visitNode(node);
+  T visitArrayBindingPattern(ArrayBindingPattern node)
+      => visitBindingPattern(node);
+  T visitObjectBindingPattern(ObjectBindingPattern node)
+      => visitBindingPattern(node);
+  T visitDestructuredVariable(DestructuredVariable node) => visitNode(node);
 }
 
 abstract class Node {
@@ -230,7 +241,7 @@ abstract class Node {
 
   withClosureAnnotation(ClosureAnnotation closureAnnotation) {
     if (this.closureAnnotation == closureAnnotation) return this;
-    
+
     return _clone()
         ..sourceInformation = sourceInformation
         .._closureAnnotation = closureAnnotation;
@@ -751,15 +762,69 @@ class Assignment extends Expression {
 
 class VariableInitialization extends Assignment {
   /** [value] may be null. */
-  VariableInitialization(Identifier declaration, Expression value)
+  VariableInitialization(VariableBinding declaration, Expression value)
       : super(declaration, value);
 
-  Identifier get declaration => leftHandSide;
+  VariableBinding get declaration => leftHandSide;
 
   accept(NodeVisitor visitor) => visitor.visitVariableInitialization(this);
 
   VariableInitialization _clone() =>
       new VariableInitialization(declaration, value);
+}
+
+abstract class VariableBinding extends Expression {
+}
+
+class DestructuredVariable extends Expression implements Parameter {
+  final Identifier name;
+  final BindingPattern structure;
+  final Expression defaultValue;
+  DestructuredVariable({this.name, this.structure, this.defaultValue}) {
+    assert(name != null || structure != null);
+  }
+
+  accept(NodeVisitor visitor) => visitor.visitDestructuredVariable(this);
+  void visitChildren(NodeVisitor visitor) {
+    name?.accept(visitor);
+    structure?.accept(visitor);
+    defaultValue?.accept(visitor);
+  }
+
+  /// Avoid parenthesis when pretty-printing.
+  @override int get precedenceLevel => PRIMARY;
+  @override Node _clone() =>
+      new DestructuredVariable(
+          name: name, structure: structure, defaultValue: defaultValue);
+}
+
+abstract class BindingPattern extends Expression implements VariableBinding {
+  final List<DestructuredVariable> variables;
+  BindingPattern(this.variables);
+
+  void visitChildren(NodeVisitor visitor) {
+    for (DestructuredVariable v in variables) v.accept(visitor);
+  }
+}
+
+class ObjectBindingPattern extends BindingPattern {
+  ObjectBindingPattern(List<DestructuredVariable> variables)
+      : super(variables);
+  accept(NodeVisitor visitor) => visitor.visitObjectBindingPattern(this);
+
+  /// Avoid parenthesis when pretty-printing.
+  @override int get precedenceLevel => PRIMARY;
+  @override Node _clone() => new ObjectBindingPattern(variables);
+}
+
+class ArrayBindingPattern extends BindingPattern {
+  ArrayBindingPattern(List<DestructuredVariable> variables)
+      : super(variables);
+  accept(NodeVisitor visitor) => visitor.visitArrayBindingPattern(this);
+
+  /// Avoid parenthesis when pretty-printing.
+  @override int get precedenceLevel => PRIMARY;
+  @override Node _clone() => new ObjectBindingPattern(variables);
 }
 
 class Conditional extends Expression {
@@ -930,7 +995,7 @@ class Prefix extends Expression {
 }
 
 // SpreadElement isn't really a prefix expression, as it can only appear in
-// certain places such as ArgumentList and destructuring, but we pretend
+// certain places such as ArgumentList and BindingPattern, but we pretend
 // it is for simplicity's sake.
 class Spread extends Prefix {
   Spread(Expression operand) : super('...', operand);
@@ -957,9 +1022,9 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-abstract class Parameter implements Expression {}
+abstract class Parameter implements Expression, VariableBinding {}
 
-class Identifier extends Expression implements Parameter {
+class Identifier extends Expression implements Parameter, VariableBinding {
   final String name;
   final bool allowRename;
 

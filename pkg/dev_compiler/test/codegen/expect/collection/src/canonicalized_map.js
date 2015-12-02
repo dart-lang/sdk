@@ -13,14 +13,12 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
   const _isValidKey = Symbol('_isValidKey');
   const CanonicalizedMap$ = dart.generic(function(C, K, V) {
     class CanonicalizedMap extends core.Object {
-      CanonicalizedMap(canonicalize, opts) {
-        let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
+      CanonicalizedMap(canonicalize, {isValidKey = null} = {}) {
         this[_base] = core.Map$(C, utils.Pair$(K, V)).new();
         this[_canonicalize] = canonicalize;
         this[_isValidKeyFn] = isValidKey;
       }
-      from(other, canonicalize, opts) {
-        let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
+      from(other, canonicalize, {isValidKey = null} = {}) {
         this[_base] = core.Map$(C, utils.Pair$(K, V)).new();
         this[_canonicalize] = canonicalize;
         this[_isValidKeyFn] = isValidKey;

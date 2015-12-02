@@ -26,13 +26,15 @@ dart_library.library('methods', null, /* Imports */[
         b = 0;
       return b;
     }
-    w(a, opts) {
-      let b = opts && 'b' in opts ? opts.b : null;
+    w(a, {b = null} = {}) {
       return dart.asInt(dart.notNull(a) + dart.notNull(b));
     }
-    ww(a, opts) {
-      let b = opts && 'b' in opts ? opts.b : 0;
-      return dart.notNull(a) + dart.notNull(b);
+    clashWithObjectProperty({constructor = null} = Object.create(null)) {
+      return constructor;
+    }
+    clashWithJsReservedName(opts) {
+      let func = opts && 'function' in opts ? opts.function : null;
+      return func;
     }
     get a() {
       return this.x();
@@ -52,7 +54,8 @@ dart_library.library('methods', null, /* Imports */[
       z: [core.int, [], [core.num]],
       zz: [core.int, [], [core.int]],
       w: [core.int, [core.int], {b: core.num}],
-      ww: [core.int, [core.int], {b: core.int}]
+      clashWithObjectProperty: [dart.dynamic, [], {constructor: dart.dynamic}],
+      clashWithJsReservedName: [dart.dynamic, [], {function: dart.dynamic}]
     })
   });
   class Bar extends core.Object {

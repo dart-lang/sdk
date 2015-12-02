@@ -49,10 +49,7 @@ dart_library.library('dart/collection', null, /* Imports */[
   let _Hasher = _Hasher$();
   const HashMap$ = dart.generic(function(K, V) {
     class HashMap extends core.Object {
-      static new(opts) {
-        let equals = opts && 'equals' in opts ? opts.equals : null;
-        let hashCode = opts && 'hashCode' in opts ? opts.hashCode : null;
-        let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
+      static new({equals = null, hashCode = null, isValidKey = null} = {}) {
         if (isValidKey == null) {
           if (hashCode == null) {
             if (equals == null) {
@@ -87,9 +84,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         }));
         return result;
       }
-      static fromIterable(iterable, opts) {
-        let key = opts && 'key' in opts ? opts.key : null;
-        let value = opts && 'value' in opts ? opts.value : null;
+      static fromIterable(iterable, {key = null, value = null} = {}) {
         let map = HashMap$(K, V).new();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
@@ -190,8 +185,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         }
         return result;
       }
-      toList(opts) {
-        let growable = opts && 'growable' in opts ? opts.growable : true;
+      toList({growable = true} = {}) {
         let result = dart.notNull(growable) ? (() => {
           let _ = core.List$(E).new();
           _[dartx.length] = this.length;
@@ -322,9 +316,8 @@ dart_library.library('dart/collection', null, /* Imports */[
         } while (dart.notNull(it.moveNext()));
         return result;
       }
-      firstWhere(test, opts) {
+      firstWhere(test, {orElse = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
           if (dart.notNull(test(element)))
@@ -334,9 +327,8 @@ dart_library.library('dart/collection', null, /* Imports */[
           return orElse();
         dart.throw(_internal.IterableElementError.noElement());
       }
-      lastWhere(test, opts) {
+      lastWhere(test, {orElse = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let result = null;
         let foundMatching = false;
@@ -496,10 +488,7 @@ dart_library.library('dart/collection', null, /* Imports */[
   let _HashSetBase = _HashSetBase$();
   const HashSet$ = dart.generic(function(E) {
     class HashSet extends core.Object {
-      static new(opts) {
-        let equals = opts && 'equals' in opts ? opts.equals : null;
-        let hashCode = opts && 'hashCode' in opts ? opts.hashCode : null;
-        let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
+      static new({equals = null, hashCode = null, isValidKey = null} = {}) {
         if (isValidKey == null) {
           if (hashCode == null) {
             if (equals == null) {
@@ -629,8 +618,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         }
         return false;
       }
-      toList(opts) {
-        let growable = opts && 'growable' in opts ? opts.growable : true;
+      toList({growable = true} = {}) {
         return core.List$(E).from(this, {growable: growable});
       }
       toSet() {
@@ -692,9 +680,8 @@ dart_library.library('dart/collection', null, /* Imports */[
           dart.throw(_internal.IterableElementError.tooMany());
         return result;
       }
-      firstWhere(test, opts) {
+      firstWhere(test, {orElse = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
           if (dart.notNull(test(element)))
@@ -704,9 +691,8 @@ dart_library.library('dart/collection', null, /* Imports */[
           return orElse();
         dart.throw(_internal.IterableElementError.noElement());
       }
-      lastWhere(test, opts) {
+      lastWhere(test, {orElse = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let result = null;
         let foundMatching = false;
@@ -897,8 +883,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         }
         return false;
       }
-      toList(opts) {
-        let growable = opts && 'growable' in opts ? opts.growable : true;
+      toList({growable = true} = {}) {
         return core.List$(E).from(this, {growable: growable});
       }
       toSet() {
@@ -960,9 +945,8 @@ dart_library.library('dart/collection', null, /* Imports */[
           dart.throw(_internal.IterableElementError.tooMany());
         return result;
       }
-      firstWhere(test, opts) {
+      firstWhere(test, {orElse = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
           if (dart.notNull(test(element)))
@@ -972,9 +956,8 @@ dart_library.library('dart/collection', null, /* Imports */[
           return orElse();
         dart.throw(_internal.IterableElementError.noElement());
       }
-      lastWhere(test, opts) {
+      lastWhere(test, {orElse = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let result = null;
         let foundMatching = false;
@@ -1270,10 +1253,7 @@ dart_library.library('dart/collection', null, /* Imports */[
   HasNextIterator._NOT_MOVED_YET = 2;
   const LinkedHashMap$ = dart.generic(function(K, V) {
     class LinkedHashMap extends core.Object {
-      static new(opts) {
-        let equals = opts && 'equals' in opts ? opts.equals : null;
-        let hashCode = opts && 'hashCode' in opts ? opts.hashCode : null;
-        let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
+      static new({equals = null, hashCode = null, isValidKey = null} = {}) {
         if (isValidKey == null) {
           if (hashCode == null) {
             if (equals == null) {
@@ -1308,9 +1288,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         }));
         return result;
       }
-      static fromIterable(iterable, opts) {
-        let key = opts && 'key' in opts ? opts.key : null;
-        let value = opts && 'value' in opts ? opts.value : null;
+      static fromIterable(iterable, {key = null, value = null} = {}) {
         let map = LinkedHashMap$(K, V).new();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
@@ -1344,10 +1322,7 @@ dart_library.library('dart/collection', null, /* Imports */[
   let LinkedHashMap = LinkedHashMap$();
   const LinkedHashSet$ = dart.generic(function(E) {
     class LinkedHashSet extends core.Object {
-      static new(opts) {
-        let equals = opts && 'equals' in opts ? opts.equals : null;
-        let hashCode = opts && 'hashCode' in opts ? opts.hashCode : null;
-        let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
+      static new({equals = null, hashCode = null, isValidKey = null} = {}) {
         if (isValidKey == null) {
           if (hashCode == null) {
             if (equals == null) {
@@ -1698,9 +1673,8 @@ dart_library.library('dart/collection', null, /* Imports */[
         }
         return false;
       }
-      firstWhere(test, opts) {
+      firstWhere(test, {orElse = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
@@ -1715,9 +1689,8 @@ dart_library.library('dart/collection', null, /* Imports */[
           return orElse();
         dart.throw(_internal.IterableElementError.noElement());
       }
-      lastWhere(test, opts) {
+      lastWhere(test, {orElse = null} = {}) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this.length;
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
@@ -1815,8 +1788,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
-      toList(opts) {
-        let growable = opts && 'growable' in opts ? opts.growable : true;
+      toList({growable = true} = {}) {
         let result = null;
         if (dart.notNull(growable)) {
           result = core.List$(E).new();
@@ -3000,8 +2972,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         core.RangeError.checkValidIndex(index, this);
         return this[_table][dartx.get](dart.notNull(this[_head]) + dart.notNull(index) & dart.notNull(this[_table][dartx.length]) - 1);
       }
-      toList(opts) {
-        let growable = opts && 'growable' in opts ? opts.growable : true;
+      toList({growable = true} = {}) {
         let list = null;
         if (dart.notNull(growable)) {
           list = core.List$(E).new();
@@ -3512,11 +3483,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         }));
         return result;
       }
-      static fromIterable(iterable, opts) {
-        let key = opts && 'key' in opts ? opts.key : null;
-        let value = opts && 'value' in opts ? opts.value : null;
-        let compare = opts && 'compare' in opts ? opts.compare : null;
-        let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
+      static fromIterable(iterable, {key = null, value = null, compare = null, isValidKey = null} = {}) {
         let map = new (SplayTreeMap$(K, V))(compare, isValidKey);
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;

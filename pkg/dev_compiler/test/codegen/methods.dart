@@ -19,9 +19,8 @@ class A {
     return a + b;
   }
 
-  int ww(int a, {int b: 0}) {
-    return a + b;
-  }
+  clashWithObjectProperty({constructor}) => constructor;
+  clashWithJsReservedName({function}) => function;
 
   int get a => x();
 

@@ -36,6 +36,7 @@ abstract class ClosureAnnotator {
           superType: _closureTypeForDartType(e.supertype),
           interfaces: e.interfaces.map(_closureTypeForDartType).toList());
 
+  // TODO(ochafik): Handle destructured params when Closure supports it.
   ClosureAnnotation closureAnnotationFor(
       ExecutableElement e, String namedArgsMapName) {
     var paramTypes = <String, ClosureType>{};
