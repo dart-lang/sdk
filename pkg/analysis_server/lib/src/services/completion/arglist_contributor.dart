@@ -198,6 +198,12 @@ class _ArgSuggestionBuilder {
         }
       }
     }
+    if (parent is Annotation) {
+      Element element = parent.element;
+      if (element is ExecutableElement) {
+        _addSuggestions(element.parameters);
+      }
+    }
     return new Future.value(false);
   }
 
