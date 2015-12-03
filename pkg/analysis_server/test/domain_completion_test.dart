@@ -823,7 +823,7 @@ class Test_CompletionDomainHandler extends CompletionDomainHandler {
   }
 
   CompletionManager createCompletionManager(
-      AnalysisContext context, Source source, SearchEngine searchEngine) {
+      AnalysisServer server, AnalysisContext context, Source source) {
     return new MockCompletionManager(mockContext, source, searchEngine);
   }
 }

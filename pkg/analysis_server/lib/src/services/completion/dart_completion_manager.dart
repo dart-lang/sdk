@@ -15,8 +15,6 @@ import 'package:analysis_server/src/services/completion/combinator_contributor.d
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    as newImpl;
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -87,7 +85,7 @@ class DartCompletionManager extends CompletionManager {
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
   List<DartCompletionContributor> contributors;
-  List<CompletionContributor> newContributors;
+  Iterable<CompletionContributor> newContributors;
   DartContributionSorter contributionSorter;
 
   DartCompletionManager(
@@ -114,7 +112,7 @@ class DartCompletionManager extends CompletionManager {
     if (newContributors == null) {
       newContributors = <CompletionContributor>[
         // TODO(danrubel) initialize using plugin API
-        new newImpl.DartCompletionManager(),
+        //new newImpl.DartCompletionManager(),
       ];
     }
     if (contributionSorter == null) {
@@ -126,9 +124,12 @@ class DartCompletionManager extends CompletionManager {
    * Create a new initialized Dart source completion manager
    */
   factory DartCompletionManager.create(
-      AnalysisContext context, SearchEngine searchEngine, Source source) {
+      AnalysisContext context,
+      SearchEngine searchEngine,
+      Source source,
+      Iterable<CompletionContributor> newContributors) {
     return new DartCompletionManager(context, searchEngine, source,
-        new DartCompletionCache(context, source));
+        new DartCompletionCache(context, source), null, newContributors);
   }
 
   @override

@@ -4,8 +4,10 @@
 
 library analysis_server.src.provisional.completion.dart.plugin;
 
+import 'package:analysis_server/src/provisional/completion/completion.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
 import 'package:plugin/plugin.dart';
 
@@ -53,6 +55,15 @@ class DartCompletionPlugin implements Plugin {
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
+    //
+    // Register DartCompletionManager as a CompletionContributor
+    // which delegates to all the DartCompletionContributors
+    //
+    registerExtension(COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new DartCompletionManager());
+    //
+    // Register the default DartCompletionContributors
+    //
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new KeywordContributor());
   }
