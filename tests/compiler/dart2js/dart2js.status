@@ -56,14 +56,18 @@ js_backend_cps_ir_constructor_test: Pass, Slow
 exit_code_test: Skip # This tests requires checked mode.
 
 [ $checked ]
+analyze_dart2js_helpers_test: Pass, Slow
 analyze_dart2js_test: Pass, Slow
 analyze_unused_dart2js_test: Pass, Slow
-uri_retention_test: Pass, Slow
-deferred_mirrors_test: Pass, Slow
-mirror_final_field_inferrer2_test: Pass, Slow
 check_elements_invariants_test: Slow, Pass, Timeout
-import_mirrors_test: Slow, Pass
+deferred_mirrors_test: Pass, Slow
 exit_code_test: Pass, Slow
+import_mirrors_test: Slow, Pass
+interop_anonymous_unreachable_test: Pass, Slow
+mirror_final_field_inferrer2_test: Pass, Slow
+source_map_pub_build_validity_test: Pass, Slow
+sourcemaps/source_mapping_operators_test: Pass, Slow
+uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 
 [ $mode == debug ]

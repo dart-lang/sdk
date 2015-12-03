@@ -44,18 +44,10 @@ class DartCompletionManager implements CompletionContributor {
    */
   Future<List<CompletionSuggestion>> _computeDartSuggestions(
       DartCompletionRequest request) async {
-    // Build the Dart specific completion contributors
-    List<DartCompletionContributor> contributors =
-        <DartCompletionContributor>[];
-    for (DartCompletionContributorFactory contributorFactory
-        in dartCompletionPlugin.contributorFactories) {
-      contributors.add(contributorFactory());
-    }
-
     // Request Dart specific completions from each contributor
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (DartCompletionContributor contributor in contributors) {
-      suggestions.addAll(await contributor.computeSuggestions(request));
+    for (DartCompletionContributor c in dartCompletionPlugin.contributors) {
+      suggestions.addAll(await c.computeSuggestions(request));
     }
     return suggestions;
   }

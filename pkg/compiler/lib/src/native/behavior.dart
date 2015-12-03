@@ -140,9 +140,15 @@ class NativeBehavior {
   ///
   /// Two forms of the string is supported:
   ///
-  /// 1) A single type string of the form 'void', '', 'var' or 'T1|...|Tn'
-  ///    which defines the types returned and for the later form also created by
-  ///    the call to JS.
+  /// 1) A single type string of the form 'void', '', 'var' or 'T1|...|Tn' which
+  ///    defines the types returned, and, for the last form, the types also
+  ///    created by the call to JS.  'var' (and '') are like 'dynamic' or
+  ///    'Object' except that 'dynamic' would indicate that objects of any type
+  ///    are created, which defeats tree-shaking.  Think of 'var' (and '') as
+  ///    meaning 'any pre-existing type'.
+  ///
+  ///    The types Ti are non-nullable, so add class `Null` to specify a
+  ///    nullable type, e.g `'String|Null'`.
   ///
   /// 2) A sequence of <tag>:<value> pairs of the following kinds
   ///
@@ -155,7 +161,7 @@ class NativeBehavior {
   ///    A <type-tag> is either 'returns' or 'creates' and <type-string> is a
   ///    type string like in 1). The type string marked by 'returns' defines the
   ///    types returned and 'creates' defines the types created by the call to
-  ///    JS.
+  ///    JS. If 'creates' is missing, it defaults to 'returns'.
   ///
   ///    An <effect-tag> is either 'effects' or 'depends' and <effect-string> is
   ///    either 'all', 'none' or a comma-separated list of 'no-index',
@@ -309,23 +315,30 @@ class NativeBehavior {
 
     String returns = values['returns'];
     if (returns != null) {
-      resolveTypesString(returns, onVar: () {
-        typesReturned.add(objectType);
-        typesReturned.add(nullType);
-      }, onType: (type) {
-        typesReturned.add(type);
-      });
+      resolveTypesString(returns,
+        onVar: () {
+          typesReturned.add(objectType);
+          typesReturned.add(nullType);
+        },
+        onType: (type) {
+          typesReturned.add(type);
+        });
     }
 
     String creates = values['creates'];
     if (creates != null) {
-      resolveTypesString(creates, onVoid: () {
-        reportError("Invalid type string 'creates:$creates'");
-      }, onVar: () {
-        reportError("Invalid type string 'creates:$creates'");
-      }, onType: (type) {
-        typesInstantiated.add(type);
-      });
+      resolveTypesString(creates,
+        onVoid: () {
+          reportError("Invalid type string 'creates:$creates'");
+        },
+        onType: (type) {
+          typesInstantiated.add(type);
+        });
+    } else if (returns != null) {
+      resolveTypesString(returns,
+        onType: (type) {
+          typesInstantiated.add(type);
+        });
     }
 
     const throwsOption = const <String, NativeThrowBehavior>{

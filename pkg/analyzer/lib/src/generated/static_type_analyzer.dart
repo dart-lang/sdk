@@ -1828,7 +1828,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (element is ExecutableElement &&
         fnType is FunctionTypeImpl &&
         ts is StrongTypeSystemImpl) {
-      List<Expression> arguments = node.argumentList.arguments;
+      // We may have too many (or too few) arguments.  Only use arguments
+      // which have been matched up with a static parameter.
+      Iterable<Expression> arguments = node.argumentList.arguments
+          .where((e) => e.staticParameterElement != null);
       List<DartType> argTypes = arguments.map((e) => e.staticType).toList();
       List<DartType> paramTypes =
           arguments.map((e) => e.staticParameterElement.type).toList();
@@ -1847,11 +1850,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           correspondingParams.add(inferredParameters[i]);
         }
         node.argumentList.correspondingStaticParameters = correspondingParams;
-
         _recordStaticType(node.methodName, inferred);
         _recordStaticType(node, inferred.returnType);
+        return true;
       }
-      return true;
     }
     return false;
   }

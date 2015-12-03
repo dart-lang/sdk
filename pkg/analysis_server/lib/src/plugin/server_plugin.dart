@@ -189,8 +189,9 @@ class ServerPlugin implements Plugin {
    * Return a list containing all of the completion contributors that were
    * contributed.
    */
-  List<CompletionContributor> get completionContributors =>
-      completionContributorExtensionPoint.extensions;
+  Iterable<CompletionContributor> get completionContributors =>
+      completionContributorExtensionPoint.extensions
+          .map((CompletionContributorFactory factory) => factory());
 
   /**
    * Return a list containing all of the fix contributors that were contributed.
@@ -370,10 +371,10 @@ class ServerPlugin implements Plugin {
    * valid completion contributor.
    */
   void _validateCompletionContributorExtension(Object extension) {
-    if (extension is! CompletionContributor) {
+    if (extension is! CompletionContributorFactory) {
       String id = completionContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
-          'Extensions to $id must be an CompletionContributor');
+          'Extensions to $id must be an CompletionContributorFactory');
     }
   }
 

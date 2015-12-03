@@ -50,11 +50,11 @@ class StrongTypeSystemImpl implements TypeSystem {
       FunctionTypeImpl fnType,
       List<DartType> correspondingParameterTypes,
       List<DartType> argumentTypes) {
-    ExecutableElement element = fnType.element;
+    TypeParameterizedElement element = fnType.element;
     if (element.typeParameters.isEmpty) {
       return fnType;
     }
-
+    assert(correspondingParameterTypes.length == argumentTypes.length);
     int numParams = element.typeParameters.length;
     List<DartType> fnTypeParams = fnType.typeArguments;
     fnTypeParams = fnTypeParams.sublist(0, numParams);

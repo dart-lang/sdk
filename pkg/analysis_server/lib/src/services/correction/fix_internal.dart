@@ -292,6 +292,9 @@ class FixProcessor {
       _addFix_useStaticAccess_method();
       _addFix_useStaticAccess_property();
     }
+    if (errorCode == StaticTypeWarningCode.INVALID_ASSIGNMENT) {
+      _addFix_changeTypeAnnotation();
+    }
     if (errorCode == StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) {
       _addFix_removeParentheses_inGetterInvocation();
     }
@@ -486,6 +489,29 @@ class FixProcessor {
         parent = node.parent;
       }
       _addFix(DartFixKind.REPLACE_WITH_NULL_AWARE, []);
+    }
+  }
+
+  void _addFix_changeTypeAnnotation() {
+    AstNode declaration = coveredNode.parent;
+    if (declaration is VariableDeclaration &&
+        declaration.initializer == coveredNode) {
+      AstNode variableList = declaration.parent;
+      if (variableList is VariableDeclarationList &&
+          variableList.variables.length == 1) {
+        TypeName typeNode = variableList.type;
+        if (typeNode != null) {
+          Expression initializer = coveredNode;
+          DartType newType = initializer.bestType;
+          if (newType is InterfaceType || newType is FunctionType) {
+            String newTypeSource =
+                utils.getTypeSource(newType, librariesToImport);
+            _addReplaceEdit(rf.rangeNode(typeNode), newTypeSource);
+            _addFix(DartFixKind.CHANGE_TYPE_ANNOTATION,
+                [typeNode.type.displayName, newTypeSource]);
+          }
+        }
+      }
     }
   }
 

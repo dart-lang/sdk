@@ -276,6 +276,17 @@ void main() {
    '''
   });
 
+  // Regression test for https://github.com/dart-lang/sdk/issues/25069
+  testChecker('Void subtyping', {
+    '/main.dart': '''
+      typedef int Foo();
+      void foo() {}
+      void main () {
+        Foo x = /*severe:StaticTypeError*/foo();
+      }
+   '''
+  });
+
   testChecker('Ground type subtyping: dynamic is top', {
     '/main.dart': '''
 
@@ -1103,6 +1114,15 @@ void main() {
             z = b ? null : "hello";
           }
       '''
+  });
+
+  // This is a regression test for https://github.com/dart-lang/sdk/issues/25071
+  testChecker('unbound redirecting constructor', {
+    '/main.dart': '''
+      class Foo {
+        Foo() : this.init();
+      }
+       '''
   });
 
   testChecker('redirecting constructor', {

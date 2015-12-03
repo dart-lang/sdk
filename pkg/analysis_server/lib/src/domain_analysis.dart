@@ -21,6 +21,7 @@ import 'package:analysis_server/src/operation/operation_analysis.dart'
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
+import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -164,6 +165,22 @@ class AnalysisDomainHandler implements RequestHandler {
     return Response.DELAYED_RESPONSE;
   }
 
+  /**
+   * Implement the `analysis.getReachableSources` request.
+   */
+  Response getReachableSources(Request request) {
+    AnalysisGetReachableSourcesParams params =
+        new AnalysisGetReachableSourcesParams.fromRequest(request);
+    ContextSourcePair pair = server.getContextSourcePair(params.file);
+    if (pair.context == null || pair.source == null) {
+      return new Response.getReachableSourcesInvalidFile(request);
+    }
+    Map<String, List<String>> sources = new ReachableSourceCollector(
+        pair.source, pair.context).collectSources();
+    return new AnalysisGetReachableSourcesResult(sources)
+        .toResponse(request.id);
+  }
+
   @override
   Response handleRequest(Request request) {
     try {
@@ -176,6 +193,8 @@ class AnalysisDomainHandler implements RequestHandler {
         return getLibraryDependencies(request);
       } else if (requestName == ANALYSIS_GET_NAVIGATION) {
         return getNavigation(request);
+      } else if (requestName == ANALYSIS_GET_REACHABLE_SOURCES) {
+        return getReachableSources(request);
       } else if (requestName == ANALYSIS_REANALYZE) {
         return reanalyze(request);
       } else if (requestName == ANALYSIS_SET_ANALYSIS_ROOTS) {

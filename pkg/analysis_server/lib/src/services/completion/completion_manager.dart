@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
+    show CompletionContributor, CompletionContributorFactory, CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -57,14 +57,14 @@ abstract class CompletionManager {
    * Create a manager for the given request.
    */
   factory CompletionManager.create(
-      AnalysisContext context, Source source, SearchEngine searchEngine) {
+      AnalysisContext context,
+      Source source,
+      SearchEngine searchEngine,
+      Iterable<CompletionContributor> newContributors) {
     if (context != null) {
       if (AnalysisEngine.isDartFileName(source.shortName)) {
-        return new DartCompletionManager.create(context, searchEngine, source);
-      }
-      if (AnalysisEngine.isHtmlFileName(source.shortName)) {
-        //TODO (danrubel) implement
-//        return new HtmlCompletionManager(context, searchEngine, source, offset);
+        return new DartCompletionManager.create(
+            context, searchEngine, source, newContributors);
       }
     }
     return new NoOpCompletionManager(source);

@@ -678,6 +678,7 @@ class GetHandler {
     List<Folder> allContexts = <Folder>[];
     Map<Folder, List<CacheEntry>> entryMap =
         new HashMap<Folder, List<CacheEntry>>();
+    StringBuffer invalidKeysBuffer = new StringBuffer();
     analysisServer.folderMap
         .forEach((Folder folder, InternalAnalysisContext context) {
       Source source = context.sourceFactory.forUri(sourceUri);
@@ -694,7 +695,15 @@ class GetHandler {
               entries = <CacheEntry>[];
               entryMap[folder] = entries;
             }
-            entries.add(iterator.value);
+            CacheEntry value = iterator.value;
+            if (value == null) {
+              if (invalidKeysBuffer.isNotEmpty) {
+                invalidKeysBuffer.write(', ');
+              }
+              invalidKeysBuffer.write(iterator.key.toString());
+            } else {
+              entries.add(value);
+            }
           }
         }
       }
@@ -706,6 +715,11 @@ class GetHandler {
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Cache Entry',
           ['Context: $contextFilter', 'File: $sourceUri'], (HttpResponse) {
+        if (invalidKeysBuffer.isNotEmpty) {
+          buffer.write('<h3>Targets with null Entries</h3><p>');
+          buffer.write(invalidKeysBuffer.toString());
+          buffer.write('</p>');
+        }
         List<CacheEntry> entries = entryMap[folder];
         buffer.write('<h3>Analyzing Contexts</h3><p>');
         bool first = true;

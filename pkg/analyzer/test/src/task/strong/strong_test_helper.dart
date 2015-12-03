@@ -227,6 +227,7 @@ void testChecker(String name, Map<String, String> testFiles) {
     // Enable task model strong mode
     var context = AnalysisEngine.instance.createAnalysisContext();
     context.analysisOptions.strongMode = true;
+    context.analysisOptions.strongModeHints = true;
 
     context.sourceFactory = new SourceFactory([
       new MockDartSdk(mockSdkSources, reportMissing: true).resolver,

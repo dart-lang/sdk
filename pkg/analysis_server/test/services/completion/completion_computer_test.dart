@@ -66,7 +66,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     source = addSource('/does/not/exist.dart', '');
-    manager = new DartCompletionManager.create(context, searchEngine, source);
+    manager =
+        new DartCompletionManager.create(context, searchEngine, source, []);
     suggestion1 = new CompletionSuggestion(CompletionSuggestionKind.INVOCATION,
         DART_RELEVANCE_DEFAULT, "suggestion1", 1, 1, false, false);
     suggestion2 = new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
@@ -83,7 +84,6 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     contributor1 = new MockCompletionContributor(suggestion1, null);
     contributor2 = new MockCompletionContributor(null, suggestion2);
     manager.contributors = [contributor1, contributor2];
-    manager.newContributors = [];
     int count = 0;
     bool done = false;
     CompletionRequest completionRequest =
@@ -121,7 +121,6 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     contributor1 = new MockCompletionContributor(suggestion1, null);
     contributor2 = new MockCompletionContributor(suggestion2, null);
     manager.contributors = [contributor1, contributor2];
-    manager.newContributors = [];
     int count = 0;
     bool done = false;
     CompletionRequest completionRequest =

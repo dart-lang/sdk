@@ -387,7 +387,7 @@ class ConstantPropagationLattice {
 
   AbstractConstantValue closedOnInt(AbstractConstantValue left,
                                     AbstractConstantValue right) {
-    if (isDefinitelyInt(left) && isDefinitelyInt(right)) {
+    if (isDefinitelyInt(left) && isDefinitelyInt(right, allowNull: true)) {
       return nonConstant(typeSystem.intType);
     }
     return null;
@@ -395,7 +395,7 @@ class ConstantPropagationLattice {
 
   AbstractConstantValue closedOnUint(AbstractConstantValue left,
                                      AbstractConstantValue right) {
-    if (isDefinitelyUint(left) && isDefinitelyUint(right)) {
+    if (isDefinitelyUint(left) && isDefinitelyUint(right, allowNull: true)) {
       return nonConstant(typeSystem.uintType);
     }
     return null;
@@ -403,7 +403,7 @@ class ConstantPropagationLattice {
 
   AbstractConstantValue closedOnUint31(AbstractConstantValue left,
                                        AbstractConstantValue right) {
-    if (isDefinitelyUint31(left) && isDefinitelyUint31(right)) {
+    if (isDefinitelyUint31(left) && isDefinitelyUint31(right, allowNull: true)) {
       return nonConstant(typeSystem.uint31Type);
     }
     return null;
@@ -414,7 +414,8 @@ class ConstantPropagationLattice {
     AbstractConstantValue folded = foldBinary(constantSystem.add, left, right);
     if (folded != null) return folded;
     if (isDefinitelyNum(left)) {
-      if (isDefinitelyUint31(left) && isDefinitelyUint31(right)) {
+      if (isDefinitelyUint31(left) &&
+          isDefinitelyUint31(right, allowNull: true)) {
         return nonConstant(typeSystem.uint32Type);
       }
       return closedOnUint(left, right) ?? closedOnInt(left, right);
@@ -450,7 +451,7 @@ class ConstantPropagationLattice {
       if (isDefinitelyUint32(left) && isDefinitelyIntInRange(right, min: 2)) {
         return nonConstant(typeSystem.uint31Type);
       }
-      if (isDefinitelyUint(right)) {
+      if (isDefinitelyUint(right, allowNull: true)) {
         // `0` will be an exception, other values will shrink the result.
         if (isDefinitelyUint31(left)) return nonConstant(typeSystem.uint31Type);
         if (isDefinitelyUint32(left)) return nonConstant(typeSystem.uint32Type);
@@ -501,7 +502,8 @@ class ConstantPropagationLattice {
         foldBinary(constantSystem.bitAnd, left, right);
     if (folded != null) return folded;
     if (isDefinitelyNum(left)) {
-      if (isDefinitelyUint31(left) || isDefinitelyUint31(right)) {
+      if (isDefinitelyUint31(left) ||
+          isDefinitelyUint31(right, allowNull: true)) {
         // Either 31-bit argument will truncate the other.
         return nonConstant(typeSystem.uint31Type);
       }

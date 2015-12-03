@@ -2913,6 +2913,13 @@ part 'test.dart';
     expect(outputs[UNITS], hasLength(1));
   }
 
+  test_perform_flushTokenStream() {
+    _performParseTask(r'''
+class Test {}
+''');
+    expect(analysisCache.getState(source, TOKEN_STREAM), CacheState.FLUSHED);
+  }
+
   test_perform_invalidDirectives() {
     _performParseTask(r'''
 library lib;

@@ -1485,6 +1485,7 @@ class Class : public Object {
   friend class Object;
   friend class Type;
   friend class Intrinsifier;
+  friend class Precompiler;
 };
 
 

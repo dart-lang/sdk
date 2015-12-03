@@ -24,7 +24,7 @@
  *       ...
  *     }
  */
-library analysis_server.src.provisional.completion.completion;
+library analysis_server.src.provisional.completion.dart;
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
@@ -33,7 +33,7 @@ import 'package:plugin/plugin.dart';
 /**
  * The identifier of the extension point that allows plugins to register code
  * completion contributors. The object used as an extension must be a
- * [DartCompletionContributor].
+ * [DartCompletionContributorFactory].
  */
 final String DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
     DartCompletionPlugin.UNIQUE_IDENTIFIER,

@@ -64,8 +64,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         content.substring(completionOffset + 1);
     testSource = addSource(testFile, content);
     cache = new DartCompletionCache(context, testSource);
-    request = new DartCompletionRequest(context, provider, searchEngine,
-        testSource, completionOffset, cache);
+    request = new DartCompletionRequest(
+        context, provider, searchEngine, testSource, completionOffset, cache);
   }
 
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {

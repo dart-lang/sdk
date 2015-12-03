@@ -12184,6 +12184,18 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     expect(functionReturnValue(4).staticType, typeProvider.stringType);
   }
 
+  void test_inference_hints() {
+    Source source = addSource(r'''
+      void main () {
+        var x = 3;
+        List<int> l0 = [];
+     }
+   ''');
+    LibraryElement library = resolve2(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_instanceCreation() {
     String code = r'''
       class A<S, T> {
