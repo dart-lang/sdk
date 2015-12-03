@@ -50,27 +50,19 @@ class StrongTypeSystemImpl implements TypeSystem {
       FunctionTypeImpl fnType,
       List<DartType> correspondingParameterTypes,
       List<DartType> argumentTypes) {
-    TypeParameterizedElement element = fnType.element;
-    if (element.typeParameters.isEmpty) {
+    if (fnType.boundTypeParameters.isEmpty) {
       return fnType;
     }
-    assert(correspondingParameterTypes.length == argumentTypes.length);
-    int numParams = element.typeParameters.length;
-    List<DartType> fnTypeParams = fnType.typeArguments;
-    fnTypeParams = fnTypeParams.sublist(0, numParams);
-    for (int i = 0; i < numParams; i++) {
-      if (element.typeParameters[i].type != fnTypeParams[i]) {
-        // Only infer if all of the type parameters are unsubstituted.
-        return fnType;
-      }
-    }
+
+    List<TypeParameterType> fnTypeParams =
+        TypeParameterTypeImpl.getTypes(fnType.boundTypeParameters);
 
     // Create a TypeSystem that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
-    var inferringTypeSystem = new _StrongInferenceTypeSystem(
-        typeProvider, new List<TypeParameterType>.from(fnTypeParams));
+    var inferringTypeSystem =
+        new _StrongInferenceTypeSystem(typeProvider, fnTypeParams);
 
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
@@ -132,8 +124,8 @@ class StrongTypeSystemImpl implements TypeSystem {
       }
     }
 
-    // Return the substituted type.
-    return fnType.substitute2(inferredTypes, fnTypeParams);
+    // Return the instantiated type.
+    return fnType.instantiate(inferredTypes);
   }
 
   // TODO(leafp): Document the rules in play here

@@ -13114,22 +13114,6 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
-  void fail_genericMethod_nested() {
-    // TODO(jmesserly): this test currently fails because we incorrectly capture
-    // S in FunctionTypeImpl.substitute. We should probably rename free
-    // variables during substitution to avoid it.
-    _resolveTestUnit(r'''
-class C<T> {
-  /*=T*/ f/*<S>*/(/*=S*/ x) {
-    new C<S>().f/*<int>*/(3);
-    return null;
-  }
-}
-''');
-    SimpleIdentifier f = _findIdentifier('f/*<int>*/(3);');
-    expect(f.staticType.toString(), '(int) → S');
-  }
-
   void setUp() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = true;
@@ -13176,13 +13160,11 @@ main() {
     SimpleIdentifier f = _findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[T]');
-    expect(e.type.typeParameters[0].type, e.type.typeArguments[0]);
-    expect(e.type.toString(), '(T) → T');
+    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeParameters.toString(), '[]');
+    expect(e.type.toString(), '<T>(T) → T');
 
-    // Substitute for T
-    DartType t = e.typeParameters[0].type;
-    FunctionType ft = e.type.substitute2([typeProvider.stringType], [t]);
+    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
 
@@ -13201,16 +13183,17 @@ main() {
     SimpleIdentifier f = _findIdentifier('f');
     MethodElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[T, E]');
-    expect(e.type.typeArguments.toString(), '[T, E]');
-    expect(e.type.toString(), '(E) → List<T>');
+    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeParameters.toString(), '[E]');
+    expect(e.type.typeArguments.toString(), '[E]');
+    expect(e.type.toString(), '<T>(E) → List<T>');
 
     SimpleIdentifier c = _findIdentifier('cOfString');
     FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
-    expect(ft.toString(), '(String) → List<T>');
-    DartType t = e.typeParameters[0].type;
-    ft = ft.substitute2([typeProvider.intType], [t]);
+    expect(ft.toString(), '<T>(String) → List<T>');
+    ft = ft.instantiate([typeProvider.intType]);
     expect(ft.toString(), '(String) → List<int>');
+    expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
   }
 
   void test_genericMethod_functionTypedParameter() {
@@ -13228,16 +13211,48 @@ main() {
     SimpleIdentifier f = _findIdentifier('f');
     MethodElementImpl e = f.staticElement;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[T, E]');
-    expect(e.type.typeArguments.toString(), '[T, E]');
-    expect(e.type.toString(), '((E) → T) → List<T>');
+    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeParameters.toString(), '[E]');
+    expect(e.type.typeArguments.toString(), '[E]');
+    expect(e.type.toString(), '<T>((E) → T) → List<T>');
 
     SimpleIdentifier c = _findIdentifier('cOfString');
     FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
-    expect(ft.toString(), '((String) → T) → List<T>');
-    DartType t = e.typeParameters[0].type;
-    ft = ft.substitute2([typeProvider.intType], [t]);
+    expect(ft.toString(), '<T>((String) → T) → List<T>');
+    ft = ft.instantiate([typeProvider.intType]);
     expect(ft.toString(), '((String) → int) → List<int>');
+  }
+
+  void test_genericMethod_nestedCapture() {
+    _resolveTestUnit(r'''
+class C<T> {
+  /*=T*/ f/*<S>*/(/*=S*/ x) {
+    new C<S>().f/*<int>*/(3);
+    new C<S>().f; // tear-off
+    return null;
+  }
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f/*<int>*/(3);');
+    expect(f.staticType.toString(), '(int) → S');
+    FunctionType ft = f.staticType;
+    expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
+
+    f = _findIdentifier('f;');
+    expect(f.staticType.toString(), '<S₀>(S₀) → S');
+  }
+
+  void test_genericMethod_nestedFunctions() {
+    _resolveTestUnit(r'''
+/*=S*/ f/*<S>*/(/*=S*/ x) {
+  g/*<S>*/(/*=S*/ x) => f;
+  return null;
+}
+''');
+    SimpleIdentifier g = _findIdentifier('f');
+    expect(g.staticType.toString(), '<S>(S) → S');
+    SimpleIdentifier f = _findIdentifier('g');
+    expect(f.staticType.toString(), '<S>(S) → dynamic');
   }
 
   void test_pseudoGeneric_max_doubleDouble() {

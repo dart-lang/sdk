@@ -14964,7 +14964,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (argumentList != null) {
       NodeList<TypeName> arguments = argumentList.arguments;
       int argumentCount = arguments.length;
-      List<DartType> parameters = _getTypeArguments(type);
+      List<DartType> parameters = _getTypeParameters(type);
       int parameterCount = parameters.length;
       List<DartType> typeArguments = new List<DartType>(parameterCount);
       if (argumentCount == parameterCount) {
@@ -14983,21 +14983,13 @@ class TypeResolverVisitor extends ScopedVisitor {
           typeArguments[i] = _dynamicType;
         }
       }
-      if (type is InterfaceTypeImpl) {
-        InterfaceTypeImpl interfaceType = type as InterfaceTypeImpl;
-        type = interfaceType.substitute4(typeArguments);
-      } else if (type is FunctionTypeImpl) {
-        FunctionTypeImpl functionType = type as FunctionTypeImpl;
-        type = functionType.substitute3(typeArguments);
-      } else {
-        // TODO(brianwilkerson) Report this internal error.
-      }
+      type = _instantiateType(type, typeArguments);
     } else {
       //
       // Check for the case where there are no type arguments given for a
       // parameterized type.
       //
-      List<DartType> parameters = _getTypeArguments(type);
+      List<DartType> parameters = _getTypeParameters(type);
       int parameterCount = parameters.length;
       if (parameterCount > 0) {
         DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
@@ -15005,7 +14997,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         for (int i = 0; i < parameterCount; i++) {
           arguments[i] = dynamicType;
         }
-        type = type.substitute2(arguments, parameters);
+        type = _instantiateType(type, arguments);
       }
     }
     typeName.staticType = type;
@@ -15190,11 +15182,11 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @param type the type whole type arguments are to be returned
    * @return the type arguments associated with the given type
    */
-  List<DartType> _getTypeArguments(DartType type) {
+  List<DartType> _getTypeParameters(DartType type) {
     if (type is InterfaceType) {
       return type.typeArguments;
     } else if (type is FunctionType) {
-      return type.typeArguments;
+      return TypeParameterTypeImpl.getTypes(type.boundTypeParameters);
     }
     return DartType.EMPTY_LIST;
   }
@@ -15231,6 +15223,17 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     return type;
+  }
+
+  DartType _instantiateType(DartType type, List<DartType> typeArguments) {
+    if (type is InterfaceTypeImpl) {
+      return type.substitute4(typeArguments);
+    } else if (type is FunctionTypeImpl) {
+      return type.instantiate(typeArguments);
+    } else {
+      // TODO(brianwilkerson) Report this internal error.
+      return type;
+    }
   }
 
   /**
