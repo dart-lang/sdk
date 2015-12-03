@@ -785,57 +785,29 @@ void Assembler::orps(XmmRegister dst, XmmRegister src) {
 }
 
 void Assembler::notps(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-  } float_not_constant =
-      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_not_constant)));
+  // { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+  movq(TMP, Address(THR, Thread::float_not_address_offset()));
   xorps(dst, Address(TMP, 0));
 }
 
 
 void Assembler::negateps(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-  } float_negate_constant =
-      { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_negate_constant)));
+  // { 0x80000000, 0x80000000, 0x80000000, 0x80000000 }
+  movq(TMP, Address(THR, Thread::float_negate_address_offset()));
   xorps(dst, Address(TMP, 0));
 }
 
 
 void Assembler::absps(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-  } float_absolute_constant =
-      { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_absolute_constant)));
+  // { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF }
+  movq(TMP, Address(THR, Thread::float_absolute_address_offset()));
   andps(dst, Address(TMP, 0));
 }
 
 
 void Assembler::zerowps(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint32_t a;
-    uint32_t b;
-    uint32_t c;
-    uint32_t d;
-  } float_zerow_constant =
-      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&float_zerow_constant)));
+  // { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 }
+  movq(TMP, Address(THR, Thread::float_zerow_address_offset()));
   andps(dst, Address(TMP, 0));
 }
 
@@ -1017,13 +989,8 @@ void Assembler::addpd(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::negatepd(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint64_t a;
-    uint64_t b;
-  } double_negate_constant =
-      { 0x8000000000000000LL, 0x8000000000000000LL };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
+  // { 0x8000000000000000LL, 0x8000000000000000LL }
+  movq(TMP, Address(THR, Thread::double_negate_address_offset()));
   xorpd(dst, Address(TMP, 0));
 }
 
@@ -1065,13 +1032,8 @@ void Assembler::divpd(XmmRegister dst, XmmRegister src) {
 
 
 void Assembler::abspd(XmmRegister dst) {
-  static const struct ALIGN16 {
-    uint64_t a;
-    uint64_t b;
-  } double_absolute_const =
-      { 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL };
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_absolute_const)));
+  // { 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL }
+  movq(TMP, Address(THR, Thread::double_abs_address_offset()));
   andpd(dst, Address(TMP, 0));
 }
 
@@ -3160,25 +3122,15 @@ void Assembler::IncrementSmiField(const Address& dest, int64_t increment) {
 
 
 void Assembler::DoubleNegate(XmmRegister d) {
-  static const struct ALIGN16 {
-    uint64_t a;
-    uint64_t b;
-  } double_negate_constant =
-      {0x8000000000000000LL, 0x8000000000000000LL};
-  LoadImmediate(
-      TMP, Immediate(reinterpret_cast<intptr_t>(&double_negate_constant)));
+  // {0x8000000000000000LL, 0x8000000000000000LL}
+  movq(TMP, Address(THR, Thread::double_negate_address_offset()));
   xorpd(d, Address(TMP, 0));
 }
 
 
 void Assembler::DoubleAbs(XmmRegister reg) {
-  static const struct ALIGN16 {
-    uint64_t a;
-    uint64_t b;
-  } double_abs_constant =
-      {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
-  LoadImmediate(TMP,
-      Immediate(reinterpret_cast<intptr_t>(&double_abs_constant)));
+  // {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL}
+  movq(TMP, Address(THR, Thread::double_abs_address_offset()));
   andpd(reg, Address(TMP, 0));
 }
 
