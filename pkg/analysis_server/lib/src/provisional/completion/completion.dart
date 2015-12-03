@@ -6,12 +6,13 @@
  * Support for client code that extends the analysis server by adding new code
  * completion contributors.
  *
- * Plugins can register completion contributors. The registered contributors
- * will be used to get completions any time a client issues a
- * 'completion.getSuggestions' request.
+ * Plugins can register completion contributor factories.
+ * The registered contributor factories will be used to instantiate new
+ * contributors to get completions any time a client issues
+ * a 'completion.getSuggestions' request.
  *
- * If a plugin wants to add completions, it should implement the class
- * [CompletionContributor] and then register the contributor by including code
+ * If a plugin wants to add completions, it should implement
+ * [CompletionContributorFactory] by including code
  * like the following in the plugin's registerExtensions method:
  *
  *     @override
@@ -19,20 +20,19 @@
  *       ...
  *       registerExtension(
  *           COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
- *           new MyCompletionContributor());
+ *           () => new MyCompletionContributor());
  *       ...
  *     }
  */
 library analysis_server.src.provisional.completion.completion;
 
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:plugin/plugin.dart';
 
 /**
  * The identifier of the extension point that allows plugins to register code
  * completion contributors. The object used as an extension must be a
- * [CompletionContributor].
+ * [CompletionContributorFactory].
  */
 final String COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
     ServerPlugin.UNIQUE_IDENTIFIER,

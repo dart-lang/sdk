@@ -19,6 +19,13 @@ import 'package:analyzer/src/generated/source.dart';
 const EMPTY_LIST = const <CompletionSuggestion>[];
 
 /**
+ * An object used to instantiate a [CompletionContributor] instance
+ * for each 'completion.getSuggestions' request.
+ * Contributors should *not* be cached between requests.
+ */
+typedef CompletionContributor CompletionContributorFactory();
+
+/**
  * An object used to produce completions at a specific location within a file.
  *
  * Clients may implement this class when implementing plugins.
