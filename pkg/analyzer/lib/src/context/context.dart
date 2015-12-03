@@ -1309,8 +1309,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @deprecated
   @override
-  void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
-      DataDescriptor rowDesc, CacheState state)) {}
+  void visitCacheItems(void callback(
+      Source source, dynamic dartEntry, dynamic rowDesc, CacheState state)) {}
 
   @override
   void visitContentCache(ContentCacheVisitor visitor) {
