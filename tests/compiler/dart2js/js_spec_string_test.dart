@@ -64,10 +64,11 @@ void test(String specString,
         typesReturned: actualReturns, typesInstantiated: actualCreates,
         objectType: OBJECT, nullType: NULL);
   } catch (e) {
-    Expect.isTrue(expectError);
-    Expect.isNotNull(listener.errorMessage, 'Error expected.');
+    Expect.isTrue(expectError, 'Unexpected error "$specString"');
+    Expect.isNotNull(listener.errorMessage, 'Error message expected.');
     return;
   }
+  Expect.isFalse(expectError, 'Missing error for "$specString".');
   Expect.isNull(listener.errorMessage, 'Unexpected error.');
   if (returns != null) {
     Expect.listEquals(returns, actualReturns, 'Unexpected returns.');
@@ -217,16 +218,23 @@ void main() {
   test('returns:void;', returns: [], creates: []);
   test('returns:;', returns: [OBJECT, NULL], creates: []);
   test('returns:var;', returns: [OBJECT, NULL], creates: []);
-  test('returns:A;', returns: ['A'], creates: []);
-  test('returns:A|B;', returns: ['A', 'B'], creates: []);
-  test('returns:A|B|C;', returns: ['A', 'B', 'C'], creates: []);
+  test('returns:A;', returns: ['A'], creates: ['A']);
+  test('returns:A|B;', returns: ['A', 'B'], creates: ['A', 'B']);
+  test('returns:A|B|C;', returns: ['A', 'B', 'C'], creates: ['A', 'B', 'C']);
 
   test('creates:void;', expectError: true);
-  test('creates:;', expectError: true);
-  test('creates:var;', expectError: true);
+  test('creates:;', creates: []);
+  test('creates:var;', creates: []);
   test('creates:A;', returns: [], creates: ['A']);
   test('creates:A|B;', returns: [], creates: ['A', 'B']);
   test('creates:A|B|C;', returns: [], creates: ['A', 'B', 'C']);
+
+  test('returns:void;creates:', returns: [], creates: []);
+  test('returns:;creates:', returns: [OBJECT, NULL], creates: []);
+  test('returns:var;creates:', returns: [OBJECT, NULL], creates: []);
+  test('returns:A;creates:', returns: ['A'], creates: []);
+  test('returns:A|B;creates:;', returns: ['A', 'B'], creates: []);
+  test('returns:A|B|C;creates:;', returns: ['A', 'B', 'C'], creates: []);
 
   test('returns:void;creates:A;', returns: [], creates: ['A']);
   test('returns:;creates:A|B;', returns: [OBJECT, NULL], creates: ['A', 'B']);
@@ -242,18 +250,31 @@ void main() {
   testWithSideEffects('returns:void;', returns: [], creates: []);
   testWithSideEffects('returns:;', returns: [OBJECT, NULL], creates: []);
   testWithSideEffects('returns:var;', returns: [OBJECT, NULL], creates: []);
-  testWithSideEffects('returns:A;', returns: ['A'], creates: []);
-  testWithSideEffects('returns:A|B;', returns: ['A', 'B'], creates: []);
-  testWithSideEffects('returns:A|B|C;', returns: ['A', 'B', 'C'], creates: []);
+  testWithSideEffects('returns:A;', returns: ['A'], creates: ['A']);
+  testWithSideEffects('returns:A|B;',
+      returns: ['A', 'B'], creates: ['A', 'B']);
+  testWithSideEffects('returns:A|B|C;',
+      returns: ['A', 'B', 'C'], creates: ['A', 'B', 'C']);
   testWithSideEffects('returns: A| B |C ;',
-      returns: ['A', 'B', 'C'], creates: []);
+      returns: ['A', 'B', 'C'], creates: ['A', 'B', 'C']);
 
   testWithSideEffects('creates:void;', expectError: true);
-  testWithSideEffects('creates:;', expectError: true);
-  testWithSideEffects('creates:var;', expectError: true);
+  testWithSideEffects('creates:;', creates: []);
+  testWithSideEffects('creates:var;', creates: []);
   testWithSideEffects('creates:A;', returns: [], creates: ['A']);
   testWithSideEffects('creates:A|B;', returns: [], creates: ['A', 'B']);
   testWithSideEffects('creates:A|B|C;', returns: [], creates: ['A', 'B', 'C']);
+
+  testWithSideEffects('returns:void;creates:;', returns: [], creates: []);
+  testWithSideEffects('returns:;creates:;',
+      returns: [OBJECT, NULL], creates: []);
+  testWithSideEffects('returns:var;creates:;',
+      returns: [OBJECT, NULL], creates: []);
+  testWithSideEffects('returns:A;creates:;', returns: ['A'], creates: []);
+  testWithSideEffects('returns:A|B;creates:;',
+      returns: ['A', 'B'], creates: []);
+  testWithSideEffects('returns:A|B|C;creates:;',
+      returns: ['A', 'B', 'C'], creates: []);
 
   testWithSideEffects('returns:void;creates:A;', returns: [], creates: ['A']);
   testWithSideEffects('returns:;creates:A|B;',
