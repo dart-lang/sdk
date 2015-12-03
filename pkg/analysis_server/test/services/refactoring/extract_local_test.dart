@@ -69,17 +69,16 @@ main() {
         expectedMessage: 'Cannot extract the left-hand side of an assignment.');
   }
 
-  test_checkInitialConditions_methodName_reference() async {
+  test_checkInitialConditions_namePartOfDeclaration_function() async {
     indexTestUnit('''
 main() {
-  main();
 }
 ''');
-    _createRefactoringWithSuffix('main', '();');
+    _createRefactoringWithSuffix('main', '()');
     // check conditions
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract a single method name.');
+        expectedMessage: 'Cannot extract the name part of a declaration.');
   }
 
   test_checkInitialConditions_namePartOfDeclaration_variable() async {
@@ -859,6 +858,24 @@ main() {
 ''');
   }
 
+  test_singleExpression_methodName_reference() async {
+    indexTestUnit('''
+main() {
+  var v = foo().length;
+}
+String foo() => '';
+''');
+    _createRefactoringWithSuffix('foo', '().');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = foo();
+  var v = res.length;
+}
+String foo() => '';
+''');
+  }
+
   test_singleExpression_nameOfProperty_prefixedIdentifier() async {
     indexTestUnit('''
 main(p) {
@@ -894,7 +911,7 @@ String foo() => '';
   }
 
   /**
-   * Here we use knowledge how exactly `1 + 2 + 3 + 41 is parsed. We know that
+   * Here we use knowledge how exactly `1 + 2 + 3 + 4` is parsed. We know that
    * `1 + 2` will be a separate and complete binary expression, so it can be
    * handled as a single expression.
    */
