@@ -713,6 +713,7 @@ void Precompiler::DropUncompiledFunctions() {
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
+  Function& function2 = Function::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
@@ -729,7 +730,16 @@ void Precompiler::DropUncompiledFunctions() {
       retained_functions = GrowableObjectArray::New();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        if (function.HasCode()) {
+        bool retain = function.HasCode();
+        if (!retain && function.HasImplicitClosureFunction()) {
+          // It can happen that all uses of an implicit closure inline their
+          // target function, leaving the target function uncompiled. Keep
+          // the target function anyway so we can enumerate it to bind its
+          // static calls, etc.
+          function2 = function.ImplicitClosureFunction();
+          retain = function2.HasCode();
+        }
+        if (retain) {
           retained_functions.Add(function);
           function.DropUncompiledImplicitClosureFunction();
         } else {
@@ -780,7 +790,10 @@ void Precompiler::BindStaticCalls() {
     }
 
     void VisitFunction(const Function& function) {
-      ASSERT(function.HasCode());
+      if (!function.HasCode()) {
+        ASSERT(function.HasImplicitClosureFunction());
+        return;
+      }
       code_ = function.CurrentCode();
       table_ = code_.static_calls_target_table();
 
@@ -837,6 +850,10 @@ void Precompiler::DedupStackmaps() {
     }
 
     void VisitFunction(const Function& function) {
+      if (!function.HasCode()) {
+        ASSERT(function.HasImplicitClosureFunction());
+        return;
+      }
       code_ = function.CurrentCode();
       stackmaps_ = code_.stackmaps();
       if (stackmaps_.IsNull()) return;
@@ -876,6 +893,7 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
+  Object& object = Object::Handle(Z);
   Function& function = Function::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
@@ -894,6 +912,15 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
         visitor->VisitFunction(function);
         if (function.HasImplicitClosureFunction()) {
           function = function.ImplicitClosureFunction();
+          visitor->VisitFunction(function);
+        }
+      }
+
+      functions = cls.invocation_dispatcher_cache();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        object = functions.At(j);
+        if (object.IsFunction()) {
+          function ^= functions.At(j);
           visitor->VisitFunction(function);
         }
       }
