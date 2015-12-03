@@ -1850,11 +1850,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           correspondingParams.add(inferredParameters[i]);
         }
         node.argumentList.correspondingStaticParameters = correspondingParams;
-
         _recordStaticType(node.methodName, inferred);
         _recordStaticType(node, inferred.returnType);
+        return true;
       }
-      return true;
     }
     return false;
   }
