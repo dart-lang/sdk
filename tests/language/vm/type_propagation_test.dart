@@ -12,7 +12,7 @@ class B {
 }
 
 class C {
-  final f0;
+  final f0 = null;
 
   final a;
   C() : a = new B(0);
