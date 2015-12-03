@@ -5,13 +5,13 @@
 library test.services.completion.dart.arglist;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/arglist_contributor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
-import 'completion_test_util.dart';
+import '../../../utils.dart';
+import 'completion_contributor_util.dart';
 
 main() {
   initializeTestEnvironment();
@@ -19,9 +19,9 @@ main() {
 }
 
 @reflectiveTest
-class ArgListContributorTest extends AbstractCompletionTest {
+class ArgListContributorTest extends DartCompletionContributorTest {
   void assertNoOtherSuggestions(Iterable<CompletionSuggestion> expected) {
-    for (CompletionSuggestion suggestion in request.suggestions) {
+    for (CompletionSuggestion suggestion in suggestions) {
       if (!expected.contains(suggestion)) {
         failedCompletion('did not expect completion: '
             '${suggestion.completion}\n  $suggestion');
@@ -34,7 +34,7 @@ class ArgListContributorTest extends AbstractCompletionTest {
     CompletionSuggestionKind csKind = CompletionSuggestionKind.ARGUMENT_LIST;
     CompletionSuggestion cs = getSuggest(csKind: csKind);
     if (cs == null) {
-      failedCompletion('expected completion $csKind', request.suggestions);
+      failedCompletion('expected completion $csKind', suggestions);
     }
     assertSuggestArgumentList_params(
         paramNames, paramTypes, cs.parameterNames, cs.parameterTypes);
@@ -86,59 +86,51 @@ class ArgListContributorTest extends AbstractCompletionTest {
   }
 
   @override
-  void setUpContributor() {
-    contributor = new ArgListContributor();
+  DartCompletionContributor createContributor() {
+    return new ArgListContributor();
   }
 
-  test_Annotation_local_constructor_named_param() {
+  test_Annotation_local_constructor_named_param() async {
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
 @A(^) main() { }''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['one', 'two']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['one', 'two']);
   }
 
-  test_Annotation_imported_constructor_named_param() {
-    addSource('/libA.dart', '''
+  test_Annotation_imported_constructor_named_param() async {
+    addSource(
+        '/libA.dart',
+        '''
 library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
     addTestSource('import "/libA.dart"; @A(^) main() { }');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['one','two']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['one', 'two']);
   }
 
-  test_ArgumentList_getter() {
+  test_ArgumentList_getter() async {
     addTestSource('class A {int get foo => 7; main() {foo(^)}');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_constructor_named_param() {
+  test_ArgumentList_imported_constructor_named_param() async {
     //
     addSource('/libA.dart', 'library libA; class A{A({int one}){}}');
     addTestSource('import "/libA.dart"; main() { new A(^);}');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['one']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['one']);
   }
 
-  test_ArgumentList_imported_constructor_named_param2() {
+  test_ArgumentList_imported_constructor_named_param2() async {
     //
     addSource('/libA.dart', 'library libA; class A{A.foo({int one}){}}');
     addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['one']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['one']);
   }
 
-  test_ArgumentList_imported_function_0() {
+  test_ArgumentList_imported_function_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -152,13 +144,11 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
       class B { }
       String bar() => true;
       void main() {expect(a^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_1() {
+  test_ArgumentList_imported_function_1() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -172,13 +162,11 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArgumentList(['arg'], ['String']);
-    });
+    await computeSuggestions();
+    assertSuggestArgumentList(['arg'], ['String']);
   }
 
-  test_ArgumentList_imported_function_2() {
+  test_ArgumentList_imported_function_2() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -192,13 +180,11 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArgumentList(['arg1', 'arg2'], ['String', 'int']);
-    });
+    await computeSuggestions();
+    assertSuggestArgumentList(['arg1', 'arg2'], ['String', 'int']);
   }
 
-  test_ArgumentList_imported_function_3() {
+  test_ArgumentList_imported_function_3() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -212,13 +198,11 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArgumentList(['arg1', 'arg2'], ['String', 'int']);
-    });
+    await computeSuggestions();
+    assertSuggestArgumentList(['arg1', 'arg2'], ['String', 'int']);
   }
 
-  test_ArgumentList_imported_function_3a() {
+  test_ArgumentList_imported_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -232,13 +216,11 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
       class B { }
       String bar() => true;
       void main() {expect('hello', ^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_3b() {
+  test_ArgumentList_imported_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -252,13 +234,11 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
       class B { }
       String bar() => true;
       void main() {expect('hello', ^x)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_3c() {
+  test_ArgumentList_imported_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -272,13 +252,11 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
       class B { }
       String bar() => true;
       void main() {expect('hello', x^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_3d() {
+  test_ArgumentList_imported_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -292,71 +270,57 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
       class B { }
       String bar() => true;
       void main() {expect('hello', x ^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_imported_function_named_param() {
+  test_ArgumentList_imported_function_named_param() async {
     //
     addTestSource('main() { int.parse("16", ^);}');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['radix', 'onError']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['radix', 'onError']);
   }
 
-  test_ArgumentList_imported_function_named_param1() {
+  test_ArgumentList_imported_function_named_param1() async {
     //
     addTestSource('main() { int.parse("16", r^);}');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['radix', 'onError']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['radix', 'onError']);
   }
 
-  test_ArgumentList_imported_function_named_param2() {
+  test_ArgumentList_imported_function_named_param2() async {
     //
     addTestSource('main() { int.parse("16", radix: 7, ^);}');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['onError']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['onError']);
   }
 
-  test_ArgumentList_imported_function_named_param2a() {
+  test_ArgumentList_imported_function_named_param2a() async {
     //
     addTestSource('main() { int.parse("16", radix: ^);}');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_local_constructor_named_param() {
+  test_ArgumentList_local_constructor_named_param() async {
     //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
 main() { new A(^);}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['one', 'two']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['one', 'two']);
   }
 
-  test_ArgumentList_local_constructor_named_param2() {
+  test_ArgumentList_local_constructor_named_param2() async {
     //
     addTestSource('''
 class A { A.foo({int one, String two: 'defaultValue'}) { } }
 main() { new A.foo(^);}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['one', 'two']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['one', 'two']);
   }
 
-  test_ArgumentList_local_function_1() {
+  test_ArgumentList_local_function_1() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       import '/libA.dart'
@@ -364,13 +328,11 @@ main() { new A.foo(^);}''');
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArgumentList(['arg'], ['dynamic']);
-    });
+    await computeSuggestions();
+    assertSuggestArgumentList(['arg'], ['dynamic']);
   }
 
-  test_ArgumentList_local_function_2() {
+  test_ArgumentList_local_function_2() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       import '/libA.dart'
@@ -378,13 +340,11 @@ main() { new A.foo(^);}''');
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArgumentList(['arg1', 'arg2'], ['dynamic', 'int']);
-    });
+    await computeSuggestions();
+    assertSuggestArgumentList(['arg1', 'arg2'], ['dynamic', 'int']);
   }
 
-  test_ArgumentList_local_function_3() {
+  test_ArgumentList_local_function_3() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       import '/libA.dart'
@@ -392,13 +352,11 @@ main() { new A.foo(^);}''');
       class B { }
       String bar() => true;
       void main() {expect(^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArgumentList(['arg1', 'arg2'], ['dynamic', 'int']);
-    });
+    await computeSuggestions();
+    assertSuggestArgumentList(['arg1', 'arg2'], ['dynamic', 'int']);
   }
 
-  test_ArgumentList_local_function_3a() {
+  test_ArgumentList_local_function_3a() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       import '/libA.dart'
@@ -406,13 +364,11 @@ main() { new A.foo(^);}''');
       class B { }
       String bar() => true;
       void main() {expect('hello', ^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_local_function_3b() {
+  test_ArgumentList_local_function_3b() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       import '/libA.dart'
@@ -420,13 +376,11 @@ main() { new A.foo(^);}''');
       class B { }
       String bar() => true;
       void main() {expect('hello', ^x)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_local_function_3c() {
+  test_ArgumentList_local_function_3c() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       import '/libA.dart'
@@ -434,13 +388,11 @@ main() { new A.foo(^);}''');
       class B { }
       String bar() => true;
       void main() {expect('hello', x^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_local_function_3d() {
+  test_ArgumentList_local_function_3d() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addTestSource('''
       import '/libA.dart'
@@ -448,57 +400,47 @@ main() { new A.foo(^);}''');
       class B { }
       String bar() => true;
       void main() {expect('hello', x ^)}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_local_function_named_param() {
+  test_ArgumentList_local_function_named_param() async {
     //
     addTestSource('''
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", ^);}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['radix', 'onError']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['radix', 'onError']);
   }
 
-  test_ArgumentList_local_function_named_param1() {
+  test_ArgumentList_local_function_named_param1() async {
     //
     addTestSource('''
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", r^);}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['radix', 'onError']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['radix', 'onError']);
   }
 
-  test_ArgumentList_local_function_named_param2() {
+  test_ArgumentList_local_function_named_param2() async {
     //
     addTestSource('''
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", radix: 7, ^);}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArguments(namedArguments: ['onError']);
-    });
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['onError']);
   }
 
-  test_ArgumentList_local_function_named_param2a() {
+  test_ArgumentList_local_function_named_param2a() async {
     //
     addTestSource('''
 f(v,{int radix, int onError(String s)}){}
 main() { f("16", radix: ^);}''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_local_method_0() {
+  test_ArgumentList_local_method_0() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -512,13 +454,11 @@ main() { f("16", radix: ^);}''');
         expect() { }
         void foo() {expect(^)}}
       String bar() => true;''');
-    computeFast();
-    return computeFull((bool result) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_ArgumentList_local_method_2() {
+  test_ArgumentList_local_method_2() async {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
     addSource(
         '/libA.dart',
@@ -532,9 +472,7 @@ main() { f("16", radix: ^);}''');
         expect(arg, int blat) { }
         void foo() {expect(^)}}
       String bar() => true;''');
-    computeFast();
-    return computeFull((bool result) {
-      assertSuggestArgumentList(['arg', 'blat'], ['dynamic', 'int']);
-    });
+    await computeSuggestions();
+    assertSuggestArgumentList(['arg', 'blat'], ['dynamic', 'int']);
   }
 }

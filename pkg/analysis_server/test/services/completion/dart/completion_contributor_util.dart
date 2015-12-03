@@ -61,6 +61,21 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(suggestion.hasNamedParameters, isNotNull);
   }
 
+  void assertNoSuggestions({CompletionSuggestionKind kind: null}) {
+    if (kind == null) {
+      if (suggestions.length > 0) {
+        failedCompletion('Expected no suggestions', suggestions);
+      }
+      return;
+    }
+    CompletionSuggestion suggestion = suggestions.firstWhere(
+        (CompletionSuggestion cs) => cs.kind == kind,
+        orElse: () => null);
+    if (suggestion != null) {
+      failedCompletion('did not expect completion: $completion\n  $suggestion');
+    }
+  }
+
   void assertNotSuggested(String completion) {
     CompletionSuggestion suggestion = suggestions.firstWhere(
         (CompletionSuggestion cs) => cs.completion == completion,

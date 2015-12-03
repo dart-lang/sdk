@@ -10,7 +10,6 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
@@ -100,7 +99,7 @@ class DartCompletionManager extends CompletionManager {
         new LocalReferenceContributor(),
         new ImportedReferenceContributor(),
         //new KeywordContributor(),
-        new ArgListContributor(),
+        //new ArgListContributor(),
         new CombinatorContributor(),
         new PrefixedElementContributor(),
         new UriContributor(),
@@ -110,10 +109,7 @@ class DartCompletionManager extends CompletionManager {
       ];
     }
     if (newContributors == null) {
-      newContributors = <CompletionContributor>[
-        // TODO(danrubel) initialize using plugin API
-        //new newImpl.DartCompletionManager(),
-      ];
+      newContributors = <CompletionContributor>[];
     }
     if (contributionSorter == null) {
       contributionSorter = defaultContributionSorter;

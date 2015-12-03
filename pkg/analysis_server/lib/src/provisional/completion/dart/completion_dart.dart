@@ -74,4 +74,13 @@ abstract class DartCompletionRequest extends CompletionRequest {
    * should be discarded as it may have changed.
    */
   Future<CompilationUnit> resolveDeclarationsInScope();
+
+  /**
+   * Return a [Future] that completes when the element associated with
+   * the given [identifier] is available or if the identifier cannot be resolved
+   * (e.g. unknown identifier, completion aborted, etc).
+   * Any information obtained from [target] prior to calling this method
+   * should be discarded as it may have changed.
+   */
+  Future resolveIdentifier(SimpleIdentifier identifier);
 }
