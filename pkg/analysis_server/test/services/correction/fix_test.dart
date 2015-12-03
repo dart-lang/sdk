@@ -597,6 +597,55 @@ main(B b) {
 ''');
   }
 
+  test_changeTypeAnnotation_BAD_multipleVariables() async {
+    resolveTestUnit('''
+main() {
+  String a, b = 42;
+}
+''');
+    await assertNoFix(DartFixKind.CHANGE_TYPE_ANNOTATION);
+  }
+
+  test_changeTypeAnnotation_BAD_notVariableDeclaration() async {
+    resolveTestUnit('''
+main() {
+  String v;
+  v = 42;
+}
+''');
+    await assertNoFix(DartFixKind.CHANGE_TYPE_ANNOTATION);
+  }
+
+  test_changeTypeAnnotation_OK_generic() async {
+    resolveTestUnit('''
+main() {
+  String v = <int>[];
+}
+''');
+    await assertHasFix(
+        DartFixKind.CHANGE_TYPE_ANNOTATION,
+        '''
+main() {
+  List<int> v = <int>[];
+}
+''');
+  }
+
+  test_changeTypeAnnotation_OK_simple() async {
+    resolveTestUnit('''
+main() {
+  String v = 'abc'.length;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CHANGE_TYPE_ANNOTATION,
+        '''
+main() {
+  int v = 'abc'.length;
+}
+''');
+  }
+
   test_createClass() async {
     resolveTestUnit('''
 main() {

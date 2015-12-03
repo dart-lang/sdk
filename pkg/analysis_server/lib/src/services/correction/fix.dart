@@ -127,6 +127,8 @@ class DartFixKind {
   static const CHANGE_TO = const FixKind('CHANGE_TO', 49, "Change to '{0}'");
   static const CHANGE_TO_STATIC_ACCESS = const FixKind(
       'CHANGE_TO_STATIC_ACCESS', 50, "Change access to static using '{0}'");
+  static const CHANGE_TYPE_ANNOTATION = const FixKind(
+      'CHANGE_TYPE_ANNOTATION', 50, "Change '{0}' to '{1}' type annotation");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
