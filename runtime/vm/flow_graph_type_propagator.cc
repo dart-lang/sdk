@@ -149,65 +149,8 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
     }
   }
 
-  HandleBranchOnStrictCompare(block);
-
   for (intptr_t i = 0; i < block->dominated_blocks().length(); ++i) {
     PropagateRecursive(block->dominated_blocks()[i]);
-  }
-
-  RollbackTo(rollback_point);
-}
-
-
-void FlowGraphTypePropagator::HandleBranchOnStrictCompare(
-    BlockEntryInstr* block) {
-  BranchInstr* branch = block->last_instruction()->AsBranch();
-  if (branch == NULL) {
-    return;
-  }
-
-  StrictCompareInstr* compare = branch->comparison()->AsStrictCompare();
-  if ((compare == NULL) || !compare->right()->BindsToConstant()) {
-    return;
-  }
-
-  const intptr_t rollback_point = rollback_.length();
-
-  Definition* defn = compare->left()->definition();
-  const Object& right = compare->right()->BoundConstant();
-  intptr_t cid = right.GetClassId();
-
-  if (defn->IsLoadClassId() && right.IsSmi()) {
-    defn = defn->AsLoadClassId()->object()->definition();
-    cid = Smi::Cast(right).Value();
-  }
-
-  if (!CheckClassInstr::IsImmutableClassId(cid)) {
-    if ((cid == kOneByteStringCid) || (cid == kTwoByteStringCid)) {
-      SetTypeOf(defn, ZoneCompileType::Wrap(CompileType::String()));
-      PropagateRecursive((compare->kind() == Token::kEQ_STRICT) ?
-          branch->true_successor() : branch->false_successor());
-      RollbackTo(rollback_point);
-    }
-    return;
-  }
-
-  if (compare->kind() == Token::kEQ_STRICT) {
-    if (cid == kNullCid) {
-      branch->set_constrained_type(MarkNonNullable(defn));
-      PropagateRecursive(branch->false_successor());
-    }
-
-    SetCid(defn, cid);
-    PropagateRecursive(branch->true_successor());
-  } else if (compare->kind() == Token::kNE_STRICT) {
-    if (cid == kNullCid) {
-      branch->set_constrained_type(MarkNonNullable(defn));
-      PropagateRecursive(branch->true_successor());
-    }
-
-    SetCid(defn, cid);
-    PropagateRecursive(branch->false_successor());
   }
 
   RollbackTo(rollback_point);
