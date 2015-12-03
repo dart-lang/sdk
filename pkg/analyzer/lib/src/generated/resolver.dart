@@ -2154,13 +2154,18 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
               _findIdentifier(_enclosingUnit.functions, functionName);
         }
       } else {
-        PropertyAccessorElement accessor =
-            _findIdentifier(_enclosingUnit.accessors, functionName);
-        if ((property as sc.KeywordToken).keyword == sc.Keyword.SET) {
-          accessor = accessor.variable.setter;
-          functionName.staticElement = accessor;
+        if (_enclosingExecutable != null) {
+          _enclosingExecutable =
+              _findIdentifier(_enclosingExecutable.functions, functionName);
+        } else {
+          PropertyAccessorElement accessor =
+              _findIdentifier(_enclosingUnit.accessors, functionName);
+          if ((property as sc.KeywordToken).keyword == sc.Keyword.SET) {
+            accessor = accessor.variable.setter;
+            functionName.staticElement = accessor;
+          }
+          _enclosingExecutable = accessor;
         }
-        _enclosingExecutable = accessor;
       }
       node.functionExpression.element = _enclosingExecutable;
       return super.visitFunctionDeclaration(node);
