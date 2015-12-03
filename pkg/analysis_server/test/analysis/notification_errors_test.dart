@@ -25,9 +25,6 @@ main() {
 class NotificationErrorsTest extends AbstractAnalysisTest {
   Map<String, List<AnalysisError>> filesErrors = {};
 
-  /// Cached model state in case tests need to set task model to on/off.
-  bool wasTaskModelEnabled;
-
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
@@ -39,13 +36,6 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     server.handlers = [new AnalysisDomainHandler(server),];
-    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
-  }
-
-  @override
-  void tearDown() {
-    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
-    super.tearDown();
   }
 
   test_importError() async {
@@ -66,9 +56,6 @@ import 'does_not_exist.dart';
   }
 
   test_lintError() async {
-    // Requires task model.
-    AnalysisEngine.instance.useTaskModel = true;
-
     var camelCaseTypesLintName = 'camel_case_types';
 
     addFile(

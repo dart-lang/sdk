@@ -99,20 +99,8 @@ class EnumTest {
       ..check_explicit_values();
   }
 
-  void test_RetentionPriority() {
-    new EnumTester<RetentionPriority>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
   void test_SourceKind() {
     new EnumTester<SourceKind>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
-  void test_SourcePriority() {
-    new EnumTester<SourcePriority>()
       ..check_getters()
       ..check_explicit_values();
   }

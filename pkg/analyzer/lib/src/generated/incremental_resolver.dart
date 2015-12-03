@@ -7,27 +7,16 @@ library engine.incremental_resolver;
 import 'dart:collection';
 import 'dart:math' as math;
 
-import 'package:analyzer/src/context/cache.dart'
-    show CacheEntry, Delta, DeltaResult;
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart' show CONTENT, LINE_INFO;
-import 'package:analyzer/task/model.dart'
-    show AnalysisTarget, ResultDescriptor, TargetedResult, TaskDescriptor;
+import 'package:analyzer/task/model.dart';
 
 import 'ast.dart';
 import 'element.dart';
-import 'engine.dart'
-    show
-        AnalysisContext,
-        AnalysisOptions,
-        CacheState,
-        DartEntry,
-        DataDescriptor,
-        InternalAnalysisContext,
-        RecordingErrorListener,
-        SourceEntry;
+import 'engine.dart';
 import 'error.dart';
 import 'error_verifier.dart';
 import 'incremental_logger.dart' show logger, LoggingTimer;
@@ -971,11 +960,6 @@ class IncrementalResolver {
   LibraryElementImpl _definingLibrary;
 
   /**
-   * The [DartEntry] corresponding to the source being resolved.
-   */
-  DartEntry oldEntry;
-
-  /**
    * The [CacheEntry] corresponding to the source being resolved.
    */
   CacheEntry newSourceEntry;
@@ -1031,7 +1015,6 @@ class IncrementalResolver {
    * given source in the given library.
    */
   IncrementalResolver(
-      this.oldEntry,
       this.newSourceEntry,
       this.newUnitEntry,
       this._definingUnit,
@@ -1243,14 +1226,6 @@ class IncrementalResolver {
   }
 
   void _shiftEntryErrors() {
-    if (oldEntry != null) {
-      _shiftEntryErrors_OLD();
-    } else {
-      _shiftEntryErrors_NEW();
-    }
-  }
-
-  void _shiftEntryErrors_NEW() {
     _shiftErrors_NEW(HINTS);
     _shiftErrors_NEW(LINTS);
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
@@ -1259,13 +1234,6 @@ class IncrementalResolver {
     _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
-  }
-
-  void _shiftEntryErrors_OLD() {
-    _shiftErrors_OLD(DartEntry.RESOLUTION_ERRORS);
-    _shiftErrors_OLD(DartEntry.VERIFICATION_ERRORS);
-    _shiftErrors_OLD(DartEntry.HINTS);
-    _shiftErrors_OLD(DartEntry.LINTS);
   }
 
   void _shiftErrors(List<AnalysisError> errors) {
@@ -1281,12 +1249,6 @@ class IncrementalResolver {
 
   void _shiftErrors_NEW(ResultDescriptor<List<AnalysisError>> descriptor) {
     List<AnalysisError> errors = newUnitEntry.getValue(descriptor);
-    _shiftErrors(errors);
-  }
-
-  void _shiftErrors_OLD(DataDescriptor<List<AnalysisError>> descriptor) {
-    List<AnalysisError> errors =
-        oldEntry.getValueInLibrary(descriptor, _librarySource);
     _shiftErrors(errors);
   }
 
@@ -1315,14 +1277,6 @@ class IncrementalResolver {
   }
 
   void _updateEntry() {
-    if (oldEntry != null) {
-      _updateEntry_OLD();
-    } else {
-      _updateEntry_NEW();
-    }
-  }
-
-  void _updateEntry_NEW() {
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
     _updateErrors_NEW(RESOLVE_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
@@ -1333,11 +1287,6 @@ class IncrementalResolver {
     newUnitEntry.setState(USED_LOCAL_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(HINTS, CacheState.INVALID);
     newUnitEntry.setState(LINTS, CacheState.INVALID);
-  }
-
-  void _updateEntry_OLD() {
-    _updateErrors_OLD(DartEntry.RESOLUTION_ERRORS, _resolveErrors);
-    _updateErrors_OLD(DartEntry.VERIFICATION_ERRORS, _verifyErrors);
   }
 
   List<AnalysisError> _updateErrors(
@@ -1371,14 +1320,6 @@ class IncrementalResolver {
     newUnitEntry.setValueIncremental(descriptor, errors, true);
   }
 
-  void _updateErrors_OLD(DataDescriptor<List<AnalysisError>> descriptor,
-      List<AnalysisError> newErrors) {
-    List<AnalysisError> oldErrors =
-        oldEntry.getValueInLibrary(descriptor, _librarySource);
-    List<AnalysisError> errors = _updateErrors(oldErrors, newErrors);
-    oldEntry.setValueInLibrary(descriptor, _librarySource, errors);
-  }
-
   void _verify(AstNode node) {
     LoggingTimer timer = logger.startTimer();
     try {
@@ -1408,19 +1349,14 @@ class PoorMansIncrementalResolver {
   final Source _unitSource;
 
   /**
-   * The [DartEntry] corresponding to the source being resolved.
-   */
-  DartEntry _oldEntry;
-
-  /**
    * The [CacheEntry] corresponding to the source being resolved.
    */
-  CacheEntry _newSourceEntry;
+  CacheEntry _sourceEntry;
 
   /**
    * The [CacheEntry] corresponding to the [LibrarySpecificUnit] being resolved.
    */
-  CacheEntry _newUnitEntry;
+  CacheEntry _unitEntry;
 
   final CompilationUnit _oldUnit;
   CompilationUnitElement _unitElement;
@@ -1437,9 +1373,8 @@ class PoorMansIncrementalResolver {
   PoorMansIncrementalResolver(
       this._typeProvider,
       this._unitSource,
-      this._oldEntry,
-      this._newSourceEntry,
-      this._newUnitEntry,
+      this._sourceEntry,
+      this._unitEntry,
       this._oldUnit,
       bool resolveApiChanges) {
     _resolveApiChanges = resolveApiChanges;
@@ -1498,9 +1433,8 @@ class PoorMansIncrementalResolver {
             _shiftTokens(firstPair.oldToken);
             {
               IncrementalResolver incrementalResolver = new IncrementalResolver(
-                  _oldEntry,
-                  _newSourceEntry,
-                  _newUnitEntry,
+                  _sourceEntry,
+                  _unitEntry,
                   _unitElement,
                   _updateOffset,
                   _updateEndOld,
@@ -1595,9 +1529,8 @@ class PoorMansIncrementalResolver {
         }
         // perform incremental resolution
         IncrementalResolver incrementalResolver = new IncrementalResolver(
-            _oldEntry,
-            _newSourceEntry,
-            _newUnitEntry,
+            _sourceEntry,
+            _unitEntry,
             _unitElement,
             _updateOffset,
             _updateEndOld,
@@ -1666,9 +1599,8 @@ class PoorMansIncrementalResolver {
     NodeReplacer.replace(oldComment, newComment);
     // update elements
     IncrementalResolver incrementalResolver = new IncrementalResolver(
-        _oldEntry,
-        _newSourceEntry,
-        _newUnitEntry,
+        _sourceEntry,
+        _unitEntry,
         _unitElement,
         _updateOffset,
         _updateEndOld,
@@ -1732,26 +1664,12 @@ class PoorMansIncrementalResolver {
   }
 
   void _updateEntry() {
-    if (_oldEntry != null) {
-      _updateEntry_OLD();
-    } else {
-      _updateEntry_NEW();
-    }
-  }
-
-  void _updateEntry_NEW() {
     // scan results
-    _newSourceEntry.setValueIncremental(SCAN_ERRORS, _newScanErrors, true);
-    _newSourceEntry.setValueIncremental(LINE_INFO, _newLineInfo, false);
+    _sourceEntry.setValueIncremental(SCAN_ERRORS, _newScanErrors, true);
+    _sourceEntry.setValueIncremental(LINE_INFO, _newLineInfo, false);
     // parse results
-    _newSourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
-    _newSourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
-  }
-
-  void _updateEntry_OLD() {
-    _oldEntry.setValue(SourceEntry.LINE_INFO, _newLineInfo);
-    _oldEntry.setValue(DartEntry.SCAN_ERRORS, _newScanErrors);
-    _oldEntry.setValue(DartEntry.PARSE_ERRORS, _newParseErrors);
+    _sourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
+    _sourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
   }
 
   /**

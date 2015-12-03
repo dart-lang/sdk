@@ -5,12 +5,7 @@
 library test.src.task.driver_test;
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        CacheState,
-        InternalAnalysisContext,
-        RetentionPriority;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -34,9 +29,7 @@ main() {
   runReflectiveTests(ResultDataTest);
 }
 
-AnalysisCache createCache(
-    {AnalysisContext context,
-    RetentionPriority policy: RetentionPriority.LOW}) {
+AnalysisCache createCache({AnalysisContext context}) {
   CachePartition partition = new UniversalCachePartition(context);
   return new AnalysisCache(<CachePartition>[partition]);
 }

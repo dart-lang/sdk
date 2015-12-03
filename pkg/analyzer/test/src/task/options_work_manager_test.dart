@@ -111,8 +111,8 @@ class OptionsWorkManagerTest {
   }
 
   void test_applyPriorityTargets() {
-    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(true);
-    when(context.shouldErrorsBeAnalyzed(source3, null)).thenReturn(true);
+    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(true);
+    when(context.shouldErrorsBeAnalyzed(source3)).thenReturn(true);
     manager.priorityResultQueue
         .add(new TargetedResult(source1, ANALYSIS_OPTIONS_ERRORS));
     manager.priorityResultQueue

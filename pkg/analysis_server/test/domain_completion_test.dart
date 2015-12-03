@@ -53,9 +53,6 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   int requestCount = 0;
   String testFile2 = '/project/bin/test2.dart';
 
-  /// Cached model state in case tests need to set task model to on/off.
-  bool wasTaskModelEnabled;
-
   AnalysisServer createAnalysisServer(Index index) {
     //
     // Collect plugins
@@ -99,8 +96,6 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
-    AnalysisEngine.instance.useTaskModel = true;
     createProject();
     analysisDomain = handler;
     completionDomain = new Test_CompletionDomainHandler(server);
@@ -113,7 +108,6 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     super.tearDown();
     analysisDomain = null;
     completionDomain = null;
-    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
   }
 
   /**

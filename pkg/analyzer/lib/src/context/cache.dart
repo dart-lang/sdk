@@ -7,8 +7,7 @@ library analyzer.src.context.cache;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, CacheState, InternalAnalysisContext, RetentionPriority;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';

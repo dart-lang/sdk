@@ -4,11 +4,10 @@
 
 library engine.incremental_resolver_test;
 
-import 'package:analyzer/src/context/cache.dart' as task;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisCache;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart' as log;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
@@ -3026,22 +3025,12 @@ class IncrementalResolverTest extends ResolverTestCase {
 
   @override
   void reset() {
-    if (AnalysisEngine.instance.useTaskModel) {
-      analysisContext2 = AnalysisContextFactory.contextWithCore();
-    } else {
-      analysisContext2 = AnalysisContextFactory.oldContextWithCore();
-    }
+    analysisContext2 = AnalysisContextFactory.contextWithCore();
   }
 
   @override
   void resetWithOptions(AnalysisOptions options) {
-    if (AnalysisEngine.instance.useTaskModel) {
-      analysisContext2 =
-          AnalysisContextFactory.contextWithCoreAndOptions(options);
-    } else {
-      analysisContext2 =
-          AnalysisContextFactory.oldContextWithCoreAndOptions(options);
-    }
+    AnalysisContextFactory.contextWithCoreAndOptions(options);
   }
 
   void setUp() {
@@ -3391,28 +3380,10 @@ class B {
     int updateEndOld = updateOffset + edit.length;
     int updateOldNew = updateOffset + edit.replacement.length;
     IncrementalResolver resolver;
-    if (AnalysisEngine.instance.useTaskModel) {
-      LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
-      task.AnalysisCache cache = analysisContext2.analysisCache;
-      resolver = new IncrementalResolver(
-          null,
-          cache.get(source),
-          cache.get(lsu),
-          unit.element,
-          updateOffset,
-          updateEndOld,
-          updateOldNew);
-    } else {
-      resolver = new IncrementalResolver(
-          (analysisContext2 as AnalysisContextImpl)
-              .getReadableSourceEntryOrNull(source),
-          null,
-          null,
-          unit.element,
-          updateOffset,
-          updateEndOld,
-          updateOldNew);
-    }
+    LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
+    AnalysisCache cache = analysisContext2.analysisCache;
+    resolver = new IncrementalResolver(cache.get(source), cache.get(lsu),
+        unit.element, updateOffset, updateEndOld, updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
@@ -4470,7 +4441,7 @@ foo(int p) {}
     // Invalidate VERIFY_ERRORS.
     AnalysisCache cache = analysisContext2.analysisCache;
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    task.CacheEntry cacheEntry = cache.get(target);
+    CacheEntry cacheEntry = cache.get(target);
     expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(2));
     cacheEntry.setState(VERIFY_ERRORS, CacheState.INVALID);
     // Don't run tasks, so don't recompute VERIFY_ERRORS before incremental.

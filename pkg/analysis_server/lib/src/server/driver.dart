@@ -209,11 +209,6 @@ class Driver implements ServerStarter {
   static const String CLIENT_VERSION = "client-version";
 
   /**
-   * The name of the option used to disable the use of the new task model.
-   */
-  static const String DISABLE_NEW_TASK_MODEL = "disable-new-task-model";
-
-  /**
    * The name of the option used to enable incremental resolution of API
    * changes.
    */
@@ -399,10 +394,6 @@ class Driver implements ServerStarter {
         results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
     //
-    // Enable the new task model, if appropriate.
-    //
-    AnalysisEngine.instance.useTaskModel = !results[DISABLE_NEW_TASK_MODEL];
-    //
     // Process all of the plugins so that extensions are registered.
     //
     ServerPlugin serverPlugin = new ServerPlugin();
@@ -481,11 +472,6 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
-    parser.addFlag(DISABLE_NEW_TASK_MODEL,
-        help: "disable the use of the new task model",
-        defaultsTo: false,
-        hide: true,
-        negatable: false);
     parser.addFlag(ENABLE_INCREMENTAL_RESOLUTION_API,
         help: "enable using incremental resolution for API changes",
         defaultsTo: false,

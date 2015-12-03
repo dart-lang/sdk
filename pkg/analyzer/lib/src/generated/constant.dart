@@ -2169,7 +2169,7 @@ abstract class DartObject {
    * * this object is not of type 'Type', or
    * * the value of the object being represented is `null`.
    */
-  ParameterizedType toTypeValue();
+  DartType toTypeValue();
 }
 
 /**
@@ -3130,13 +3130,10 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  ParameterizedType toTypeValue() {
+  DartType toTypeValue() {
     if (_state is TypeState) {
       Element element = (_state as TypeState).value;
-      if (element is ClassElement) {
-        return element.type;
-      }
-      if (element is FunctionElement) {
+      if (element is TypeDefiningElement) {
         return element.type;
       }
     }

@@ -62,12 +62,6 @@ main() {
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
   runReflectiveTests(FileUriResolverTest);
-  if (!AnalysisEngine.instance.useTaskModel) {
-    runReflectiveTests(HtmlParserTest);
-    runReflectiveTests(HtmlTagInfoBuilderTest);
-    runReflectiveTests(HtmlUnitBuilderTest);
-    runReflectiveTests(HtmlWarningCodeTest);
-  }
   runReflectiveTests(ReferenceFinderTest);
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(ToSourceVisitorTest);
@@ -2038,7 +2032,7 @@ const A<int> a = const A<int>(10);''');
     expect(evaluationResult.value, isNotNull);
     DartObjectImpl value = evaluationResult.value;
     expect(value.type, typeProvider.symbolType);
-    expect(value.value, "a");
+    expect(value.toSymbolValue(), "a");
   }
 
   void test_instanceCreationExpression_withSupertypeParams_explicit() {
@@ -2149,7 +2143,7 @@ const A a = const A();
         (voidSymbol.element as VariableElementImpl).evaluationResult;
     DartObjectImpl value = voidSymbolResult.value;
     expect(value.type, typeProvider.symbolType);
-    expect(value.value, "void");
+    expect(value.toSymbolValue(), "void");
   }
 
   Map<String, DartObjectImpl> _assertFieldType(
@@ -2220,7 +2214,7 @@ const A a = const A();
     expect(result.value, isNotNull);
     DartObjectImpl value = result.value;
     expect(value.type, typeProvider.stringType);
-    return value.stringValue;
+    return value.toStringValue();
   }
 
   void _assertValidUnknown(EvaluationResultImpl result) {
@@ -2482,8 +2476,7 @@ class C {}
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
     expect(result.type, typeProvider.typeType);
-    ClassElement element = result.value;
-    expect(element.name, 'C');
+    expect(result.toTypeValue().name, 'C');
   }
 
   void test_visitSimpleIdentifier_dynamic() {
@@ -2492,7 +2485,7 @@ const a = dynamic;
 ''');
     DartObjectImpl result = _evaluateConstant(compilationUnit, 'a', null);
     expect(result.type, typeProvider.typeType);
-    expect(result.value, typeProvider.dynamicType.element);
+    expect(result.toTypeValue(), typeProvider.dynamicType);
   }
 
   void test_visitSimpleIdentifier_inEnvironment() {
@@ -2931,51 +2924,51 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_getValue_bool_false() {
-    expect(_boolValue(false).value, false);
+    expect(_boolValue(false).toBoolValue(), false);
   }
 
   void test_getValue_bool_true() {
-    expect(_boolValue(true).value, true);
+    expect(_boolValue(true).toBoolValue(), true);
   }
 
   void test_getValue_bool_unknown() {
-    expect(_boolValue(null).value, isNull);
+    expect(_boolValue(null).toBoolValue(), isNull);
   }
 
   void test_getValue_double_known() {
     double value = 2.3;
-    expect(_doubleValue(value).value, value);
+    expect(_doubleValue(value).toDoubleValue(), value);
   }
 
   void test_getValue_double_unknown() {
-    expect(_doubleValue(null).value, isNull);
+    expect(_doubleValue(null).toDoubleValue(), isNull);
   }
 
   void test_getValue_int_known() {
     int value = 23;
-    expect(_intValue(value).value, value);
+    expect(_intValue(value).toIntValue(), value);
   }
 
   void test_getValue_int_unknown() {
-    expect(_intValue(null).value, isNull);
+    expect(_intValue(null).toIntValue(), isNull);
   }
 
   void test_getValue_list_empty() {
-    Object result = _listValue().value;
+    Object result = _listValue().toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
     expect(array, hasLength(0));
   }
 
   void test_getValue_list_valid() {
-    Object result = _listValue([_intValue(23)]).value;
+    Object result = _listValue([_intValue(23)]).toListValue();
     _assertInstanceOfObjectArray(result);
     List<Object> array = result as List<Object>;
     expect(array, hasLength(1));
   }
 
   void test_getValue_map_empty() {
-    Object result = _mapValue().value;
+    Object result = _mapValue().toMapValue();
     EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
     Map map = result as Map;
     expect(map, hasLength(0));
@@ -2983,23 +2976,23 @@ class DartObjectImplTest extends EngineTestCase {
 
   void test_getValue_map_valid() {
     Object result =
-        _mapValue([_stringValue("key"), _stringValue("value")]).value;
+        _mapValue([_stringValue("key"), _stringValue("value")]).toMapValue();
     EngineTestCase.assertInstanceOf((obj) => obj is Map, Map, result);
     Map map = result as Map;
     expect(map, hasLength(1));
   }
 
   void test_getValue_null() {
-    expect(_nullValue().value, isNull);
+    expect(_nullValue().isNull, isTrue);
   }
 
   void test_getValue_string_known() {
     String value = "twenty-three";
-    expect(_stringValue(value).value, value);
+    expect(_stringValue(value).toStringValue(), value);
   }
 
   void test_getValue_string_unknown() {
-    expect(_stringValue(null).value, isNull);
+    expect(_stringValue(null).toStringValue(), isNull);
   }
 
   void test_greaterThan_knownDouble_knownDouble_false() {
@@ -8401,469 +8394,6 @@ class FileUriResolverTest {
   }
 }
 
-@reflectiveTest
-class HtmlParserTest extends EngineTestCase {
-  /**
-   * The name of the 'script' tag in an HTML file.
-   */
-  static String _TAG_SCRIPT = "script";
-  void fail_parse_scriptWithComment() {
-    String scriptBody = r'''
-      /**
-       *     <editable-label bind-value="dartAsignableValue">
-       *     </editable-label>
-       */
-      class Foo {}''';
-    ht.HtmlUnit htmlUnit = parse("""
-<html>
-  <body>
-    <script type='application/dart'>
-$scriptBody
-    </script>
-  </body>
-</html>""");
-    _validate(htmlUnit, [
-      _t4("html", [
-        _t4("body", [
-          _t("script", _a(["type", "'application/dart'"]), scriptBody)
-        ])
-      ])
-    ]);
-  }
-
-  ht.HtmlUnit parse(String contents) {
-//    TestSource source =
-//        new TestSource.con1(FileUtilities2.createFile("/test.dart"), contents);
-    ht.AbstractScanner scanner = new ht.StringScanner(null, contents);
-    scanner.passThroughElements = <String>[_TAG_SCRIPT];
-    ht.Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    ht.HtmlUnit unit =
-        new ht.HtmlParser(null, errorListener, options).parse(token, lineInfo);
-    errorListener.assertNoErrors();
-    return unit;
-  }
-
-  void test_parse_attribute() {
-    ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"></body></html>");
-    _validate(htmlUnit, [
-      _t4("html", [
-        _t("body", _a(["foo", "\"sdfsdf\""]), "")
-      ])
-    ]);
-    ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
-    ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    expect(bodyNode.attributes[0].text, "sdfsdf");
-  }
-
-  void test_parse_attribute_EOF() {
-    ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"");
-    _validate(htmlUnit, [
-      _t4("html", [
-        _t("body", _a(["foo", "\"sdfsdf\""]), "")
-      ])
-    ]);
-  }
-
-  void test_parse_attribute_EOF_missing_quote() {
-    ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsd");
-    _validate(htmlUnit, [
-      _t4("html", [
-        _t("body", _a(["foo", "\"sdfsd"]), "")
-      ])
-    ]);
-    ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
-    ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    expect(bodyNode.attributes[0].text, "sdfsd");
-  }
-
-  void test_parse_attribute_extra_quote() {
-    ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"\"></body></html>");
-    _validate(htmlUnit, [
-      _t4("html", [
-        _t("body", _a(["foo", "\"sdfsdf\""]), "")
-      ])
-    ]);
-  }
-
-  void test_parse_attribute_single_quote() {
-    ht.HtmlUnit htmlUnit = parse("<html><body foo='sdfsdf'></body></html>");
-    _validate(htmlUnit, [
-      _t4("html", [
-        _t("body", _a(["foo", "'sdfsdf'"]), "")
-      ])
-    ]);
-    ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
-    ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    expect(bodyNode.attributes[0].text, "sdfsdf");
-  }
-
-  void test_parse_comment_embedded() {
-    ht.HtmlUnit htmlUnit = parse("<html <!-- comment -->></html>");
-    _validate(htmlUnit, [_t3("html", "")]);
-  }
-
-  void test_parse_comment_first() {
-    ht.HtmlUnit htmlUnit = parse("<!-- comment --><html></html>");
-    _validate(htmlUnit, [_t3("html", "")]);
-  }
-
-  void test_parse_comment_in_content() {
-    ht.HtmlUnit htmlUnit = parse("<html><!-- comment --></html>");
-    _validate(htmlUnit, [_t3("html", "<!-- comment -->")]);
-  }
-
-  void test_parse_content() {
-    ht.HtmlUnit htmlUnit = parse("<html>\n<p a=\"b\">blat \n </p>\n</html>");
-    // ht.XmlTagNode.getContent() does not include whitespace
-    // between '<' and '>' at this time
-    _validate(htmlUnit, [
-      _t3("html", "\n<pa=\"b\">blat \n </p>\n", [
-        _t("p", _a(["a", "\"b\""]), "blat \n ")
-      ])
-    ]);
-  }
-
-  void test_parse_content_none() {
-    ht.HtmlUnit htmlUnit = parse("<html><p/>blat<p/></html>");
-    _validate(htmlUnit, [
-      _t3("html", "<p/>blat<p/>", [_t3("p", ""), _t3("p", "")])
-    ]);
-  }
-
-  void test_parse_declaration() {
-    ht.HtmlUnit htmlUnit = parse("<!DOCTYPE html>\n\n<html><p></p></html>");
-    _validate(htmlUnit, [
-      _t4("html", [_t3("p", "")])
-    ]);
-  }
-
-  void test_parse_directive() {
-    ht.HtmlUnit htmlUnit = parse("<?xml ?>\n\n<html><p></p></html>");
-    _validate(htmlUnit, [
-      _t4("html", [_t3("p", "")])
-    ]);
-  }
-
-  void test_parse_getAttribute() {
-    ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"></body></html>");
-    ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
-    ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    expect(bodyNode.getAttribute("foo").text, "sdfsdf");
-    expect(bodyNode.getAttribute("bar"), null);
-    expect(bodyNode.getAttribute(null), null);
-  }
-
-  void test_parse_getAttributeText() {
-    ht.HtmlUnit htmlUnit = parse("<html><body foo=\"sdfsdf\"></body></html>");
-    ht.XmlTagNode htmlNode = htmlUnit.tagNodes[0];
-    ht.XmlTagNode bodyNode = htmlNode.tagNodes[0];
-    expect(bodyNode.getAttributeText("foo"), "sdfsdf");
-    expect(bodyNode.getAttributeText("bar"), null);
-    expect(bodyNode.getAttributeText(null), null);
-  }
-
-  void test_parse_headers() {
-    String code = r'''
-<html>
-  <body>
-    <h2>000</h2>
-    <div>
-      111
-    </div>
-  </body>
-</html>''';
-    ht.HtmlUnit htmlUnit = parse(code);
-    _validate(htmlUnit, [
-      _t4("html", [
-        _t4("body", [_t3("h2", "000"), _t4("div")])
-      ])
-    ]);
-  }
-
-  void test_parse_script() {
-    ht.HtmlUnit htmlUnit =
-        parse("<html><script >here is <p> some</script></html>");
-    _validate(htmlUnit, [
-      _t4("html", [_t3("script", "here is <p> some")])
-    ]);
-  }
-
-  void test_parse_self_closing() {
-    ht.HtmlUnit htmlUnit = parse("<html>foo<br>bar</html>");
-    _validate(htmlUnit, [
-      _t3("html", "foo<br>bar", [_t3("br", "")])
-    ]);
-  }
-
-  void test_parse_self_closing_declaration() {
-    ht.HtmlUnit htmlUnit = parse("<!DOCTYPE html><html>foo</html>");
-    _validate(htmlUnit, [_t3("html", "foo")]);
-  }
-
-  XmlValidator_Attributes _a(List<String> keyValuePairs) =>
-      new XmlValidator_Attributes(keyValuePairs);
-  XmlValidator_Tag _t(
-          String tag, XmlValidator_Attributes attributes, String content,
-          [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
-      new XmlValidator_Tag(tag, attributes, content, children);
-  XmlValidator_Tag _t3(String tag, String content,
-          [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
-      new XmlValidator_Tag(
-          tag, new XmlValidator_Attributes(), content, children);
-  XmlValidator_Tag _t4(String tag,
-          [List<XmlValidator_Tag> children = XmlValidator_Tag.EMPTY_LIST]) =>
-      new XmlValidator_Tag(tag, new XmlValidator_Attributes(), null, children);
-  void _validate(ht.HtmlUnit htmlUnit, List<XmlValidator_Tag> expectedTags) {
-    XmlValidator validator = new XmlValidator();
-    validator.expectTags(expectedTags);
-    htmlUnit.accept(validator);
-    validator.assertValid();
-  }
-}
-
-@reflectiveTest
-class HtmlTagInfoBuilderTest extends HtmlParserTest {
-  void test_builder() {
-    HtmlTagInfoBuilder builder = new HtmlTagInfoBuilder();
-    ht.HtmlUnit unit = parse(r'''
-<html>
-  <body>
-    <div id="x"></div>
-    <p class='c'></p>
-    <div class='c'></div>
-  </body>
-</html>''');
-    unit.accept(builder);
-    HtmlTagInfo info = builder.getTagInfo();
-    expect(info, isNotNull);
-    List<String> allTags = info.allTags;
-    expect(allTags, hasLength(4));
-    expect(info.getTagWithId("x"), "div");
-    List<String> tagsWithClass = info.getTagsWithClass("c");
-    expect(tagsWithClass, hasLength(2));
-  }
-}
-
-@reflectiveTest
-class HtmlUnitBuilderTest {
-  InternalAnalysisContext _context;
-
-  void setUp() {
-    _context = AnalysisContextFactory.contextWithCore();
-  }
-
-  void tearDown() {
-    _context = null;
-  }
-
-  void test_embedded_script() {
-    HtmlElementImpl element = _build(r'''
-<html>
-<script type="application/dart">foo=2;</script>
-</html>''');
-    _validate(element, [
-      _s(_l([_v("foo")]))
-    ]);
-  }
-
-  void test_embedded_script_no_content() {
-    HtmlElementImpl element = _build(r'''
-<html>
-<script type="application/dart"></script>
-</html>''');
-    _validate(element, [_s(_l())]);
-  }
-
-  void test_external_script() {
-    HtmlElementImpl element = _build(r'''
-<html>
-<script type="application/dart" src="other.dart"/>
-</html>''');
-    _validate(element, [_s2("other.dart")]);
-  }
-
-  void test_external_script_no_source() {
-    HtmlElementImpl element = _build(r'''
-<html>
-<script type="application/dart"/>
-</html>''');
-    _validate(element, [_s2(null)]);
-  }
-
-  void test_external_script_with_content() {
-    HtmlElementImpl element = _build(r'''
-<html>
-<script type="application/dart" src="other.dart">blat=2;</script>
-</html>''');
-    _validate(element, [_s2("other.dart")]);
-  }
-
-  void test_no_scripts() {
-    HtmlElementImpl element = _build(r'''
-<!DOCTYPE html>
-<html><p></p></html>''');
-    _validate(element, []);
-  }
-
-  void test_two_dart_scripts() {
-    HtmlElementImpl element = _build(r'''
-<html>
-<script type="application/dart">bar=2;</script>
-<script type="application/dart" src="other.dart"/>
-<script src="dart.js"/>
-</html>''');
-    _validate(element, [
-      _s(_l([_v("bar")])),
-      _s2("other.dart")
-    ]);
-  }
-
-  HtmlElementImpl _build(String contents) {
-    TestSource source = new TestSource(
-        FileUtilities2.createFile("/test.html").getAbsolutePath(), contents);
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    _context.applyChanges(changeSet);
-    HtmlUnitBuilder builder = new HtmlUnitBuilder(_context);
-    return builder.buildHtmlElement(source, _context.parseHtmlUnit(source));
-  }
-
-  HtmlUnitBuilderTest_ExpectedLibrary _l(
-          [List<HtmlUnitBuilderTest_ExpectedVariable> expectedVariables =
-              HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]) =>
-      new HtmlUnitBuilderTest_ExpectedLibrary(this, expectedVariables);
-  _ExpectedScript _s(HtmlUnitBuilderTest_ExpectedLibrary expectedLibrary) =>
-      new _ExpectedScript.con1(expectedLibrary);
-  _ExpectedScript _s2(String scriptSourcePath) =>
-      new _ExpectedScript.con2(scriptSourcePath);
-  HtmlUnitBuilderTest_ExpectedVariable _v(String varName) =>
-      new HtmlUnitBuilderTest_ExpectedVariable(varName);
-  void _validate(
-      HtmlElementImpl element, List<_ExpectedScript> expectedScripts) {
-    expect(element.context, same(_context));
-    List<HtmlScriptElement> scripts = element.scripts;
-    expect(scripts, isNotNull);
-    expect(scripts, hasLength(expectedScripts.length));
-    for (int scriptIndex = 0; scriptIndex < scripts.length; scriptIndex++) {
-      expectedScripts[scriptIndex]._validate(scriptIndex, scripts[scriptIndex]);
-    }
-  }
-}
-
-class HtmlUnitBuilderTest_ExpectedLibrary {
-  final HtmlUnitBuilderTest HtmlUnitBuilderTest_this;
-  final List<HtmlUnitBuilderTest_ExpectedVariable> _expectedVariables;
-  HtmlUnitBuilderTest_ExpectedLibrary(this.HtmlUnitBuilderTest_this,
-      [this._expectedVariables =
-          HtmlUnitBuilderTest_ExpectedVariable.EMPTY_LIST]);
-  void _validate(int scriptIndex, EmbeddedHtmlScriptElementImpl script) {
-    LibraryElement library = script.scriptLibrary;
-    expect(library, isNotNull, reason: "script $scriptIndex");
-    expect(script.context, same(HtmlUnitBuilderTest_this._context),
-        reason: "script $scriptIndex");
-    CompilationUnitElement unit = library.definingCompilationUnit;
-    expect(unit, isNotNull, reason: "script $scriptIndex");
-    List<TopLevelVariableElement> variables = unit.topLevelVariables;
-    expect(variables, hasLength(_expectedVariables.length));
-    for (int index = 0; index < variables.length; index++) {
-      _expectedVariables[index].validate(scriptIndex, variables[index]);
-    }
-    expect(library.enclosingElement, same(script),
-        reason: "script $scriptIndex");
-  }
-}
-
-class HtmlUnitBuilderTest_ExpectedVariable {
-  static const List<HtmlUnitBuilderTest_ExpectedVariable> EMPTY_LIST =
-      const <HtmlUnitBuilderTest_ExpectedVariable>[];
-  final String _expectedName;
-  HtmlUnitBuilderTest_ExpectedVariable(this._expectedName);
-  void validate(int scriptIndex, TopLevelVariableElement variable) {
-    expect(variable, isNotNull, reason: "script $scriptIndex");
-    expect(variable.name, _expectedName, reason: "script $scriptIndex");
-  }
-}
-
-/**
- * Instances of the class `HtmlWarningCodeTest` test the generation of HTML warning codes.
- */
-@reflectiveTest
-class HtmlWarningCodeTest {
-  /**
-   * The analysis context used to resolve the HTML files.
-   */
-  InternalAnalysisContext _context;
-
-  /**
-   * The contents of the 'test.html' file.
-   */
-  String _contents;
-
-  /**
-   * The list of reported errors.
-   */
-  List<AnalysisError> _errors;
-
-  void setUp() {
-    _context = AnalysisContextFactory.contextWithCore();
-  }
-
-  void tearDown() {
-    _context = null;
-    _contents = null;
-    _errors = null;
-  }
-
-  void test_invalidUri() {
-    _verify(
-        r'''
-<html>
-<script type='application/dart' src='ht:'/>
-</html>''',
-        [HtmlWarningCode.INVALID_URI]);
-    _assertErrorLocation2(_errors[0], "ht:");
-  }
-
-  void test_uriDoesNotExist() {
-    _verify(
-        r'''
-<html>
-<script type='application/dart' src='other.dart'/>
-</html>''',
-        [HtmlWarningCode.URI_DOES_NOT_EXIST]);
-    _assertErrorLocation2(_errors[0], "other.dart");
-  }
-
-  void _assertErrorLocation(
-      AnalysisError error, int expectedOffset, int expectedLength) {
-    expect(error.offset, expectedOffset, reason: error.toString());
-    expect(error.length, expectedLength, reason: error.toString());
-  }
-
-  void _assertErrorLocation2(AnalysisError error, String expectedString) {
-    _assertErrorLocation(
-        error, _contents.indexOf(expectedString), expectedString.length);
-  }
-
-  void _verify(String contents, List<ErrorCode> expectedErrorCodes) {
-    this._contents = contents;
-    TestSource source = new TestSource(
-        FileUtilities2.createFile("/test.html").getAbsolutePath(), contents);
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(source);
-    _context.applyChanges(changeSet);
-    HtmlUnitBuilder builder = new HtmlUnitBuilder(_context);
-    builder.buildHtmlElement(source, _context.parseHtmlUnit(source));
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    errorListener.addAll2(builder.errorListener);
-    errorListener.assertErrorsWithCodes(expectedErrorCodes);
-    _errors = errorListener.errors;
-  }
-}
-
 /**
  * Instances of the class `MockDartSdk` implement a [DartSdk].
  */
@@ -9378,52 +8908,4 @@ class XmlValidator_Tag {
   final List<XmlValidator_Tag> _children;
   XmlValidator_Tag(this._tag, this._attributes, this._content,
       [this._children = EMPTY_LIST]);
-}
-
-class _ExpectedScript {
-  String _expectedExternalScriptName;
-  HtmlUnitBuilderTest_ExpectedLibrary _expectedLibrary;
-  _ExpectedScript.con1(HtmlUnitBuilderTest_ExpectedLibrary expectedLibrary) {
-    this._expectedExternalScriptName = null;
-    this._expectedLibrary = expectedLibrary;
-  }
-  _ExpectedScript.con2(String expectedExternalScriptPath) {
-    this._expectedExternalScriptName = expectedExternalScriptPath;
-    this._expectedLibrary = null;
-  }
-  void _validate(int scriptIndex, HtmlScriptElement script) {
-    if (_expectedLibrary != null) {
-      _validateEmbedded(scriptIndex, script);
-    } else {
-      _validateExternal(scriptIndex, script);
-    }
-  }
-
-  void _validateEmbedded(int scriptIndex, HtmlScriptElement script) {
-    if (script is! EmbeddedHtmlScriptElementImpl) {
-      fail(
-          "Expected script $scriptIndex to be embedded, but found ${script != null ? script.runtimeType : "null"}");
-    }
-    EmbeddedHtmlScriptElementImpl embeddedScript =
-        script as EmbeddedHtmlScriptElementImpl;
-    _expectedLibrary._validate(scriptIndex, embeddedScript);
-  }
-
-  void _validateExternal(int scriptIndex, HtmlScriptElement script) {
-    if (script is! ExternalHtmlScriptElementImpl) {
-      fail(
-          "Expected script $scriptIndex to be external with src=$_expectedExternalScriptName but found ${script != null ? script.runtimeType : "null"}");
-    }
-    ExternalHtmlScriptElementImpl externalScript =
-        script as ExternalHtmlScriptElementImpl;
-    Source scriptSource = externalScript.scriptSource;
-    if (_expectedExternalScriptName == null) {
-      expect(scriptSource, isNull, reason: "script $scriptIndex");
-    } else {
-      expect(scriptSource, isNotNull, reason: "script $scriptIndex");
-      String actualExternalScriptName = scriptSource.shortName;
-      expect(actualExternalScriptName, _expectedExternalScriptName,
-          reason: "script $scriptIndex");
-    }
-  }
 }

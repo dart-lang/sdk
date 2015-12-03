@@ -15,13 +15,7 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide
-        AnalysisCache,
-        CachePartition,
-        SdkCachePartition,
-        UniversalCachePartition,
-        WorkManager;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart' as ht show HtmlUnit;
 import 'package:analyzer/src/generated/incremental_resolver.dart';
@@ -219,11 +213,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * A factory to override how the [TypeResolverVisitor] is created.
    */
   TypeResolverVisitorFactory typeResolverVisitorFactory;
-
-  /**
-   * A factory to override how [LibraryResolver] is created.
-   */
-  LibraryResolverFactory libraryResolverFactory;
 
   /**
    * Initialize a newly created analysis context.
@@ -452,16 +441,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     return new List<Source>.from(sources);
-  }
-
-  @override
-  AnalysisContextStatistics get statistics {
-    AnalysisContextStatisticsImpl statistics =
-        new AnalysisContextStatisticsImpl();
-    // TODO(brianwilkerson) Implement this.
-//    visitCacheItems(statistics._internalPutCacheItem);
-//    statistics.partitionData = _cache.partitionData;
-    return statistics;
   }
 
   List<Source> get test_priorityOrder => _priorityOrder;
@@ -696,7 +675,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return new AnalysisCache(<CachePartition>[_privatePartition]);
     }
     return new AnalysisCache(<CachePartition>[
-      AnalysisEngine.instance.partitionManager_new.forSdk(sdk),
+      AnalysisEngine.instance.partitionManager.forSdk(sdk),
       _privatePartition
     ]);
   }
@@ -1248,7 +1227,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  bool shouldErrorsBeAnalyzed(Source source, Object entry) {
+  bool shouldErrorsBeAnalyzed(Source source) {
     CacheEntry entry = analysisCache.get(source);
     if (source.isInSystemLibrary) {
       return _options.generateSdkErrors;
@@ -1331,68 +1310,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @deprecated
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
-      DataDescriptor rowDesc, CacheState state)) {
-    // TODO(brianwilkerson) Figure out where this is used and either remove it
-    // or adjust the call sites to use CacheEntry's.
-//    bool hintsEnabled = _options.hint;
-//    bool lintsEnabled = _options.lint;
-//    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
-//    while (iterator.moveNext()) {
-//      Source source = iterator.key;
-//      cache.CacheEntry entry = iterator.value;
-//      for (DataDescriptor descriptor in entry.descriptors) {
-//        if (descriptor == DartEntry.SOURCE_KIND) {
-//          // The source kind is always valid, so the state isn't interesting.
-//          continue;
-//        } else if (descriptor == DartEntry.CONTAINING_LIBRARIES) {
-//          // The list of containing libraries is always valid, so the state
-//          // isn't interesting.
-//          continue;
-//        } else if (descriptor == DartEntry.PUBLIC_NAMESPACE) {
-//          // The public namespace isn't computed by performAnalysisTask()
-//          // and therefore isn't interesting.
-//          continue;
-//        } else if (descriptor == HtmlEntry.HINTS) {
-//          // We are not currently recording any hints related to HTML.
-//          continue;
-//        }
-//        callback(
-//            source, entry, descriptor, entry.getState(descriptor));
-//      }
-//      if (entry is DartEntry) {
-//        // get library-specific values
-//        List<Source> librarySources = getLibrariesContaining(source);
-//        for (Source librarySource in librarySources) {
-//          for (DataDescriptor descriptor in entry.libraryDescriptors) {
-//            if (descriptor == DartEntry.BUILT_ELEMENT ||
-//                descriptor == DartEntry.BUILT_UNIT) {
-//              // These values are not currently being computed, so their state
-//              // is not interesting.
-//              continue;
-//            } else if (!entry.explicitlyAdded &&
-//                !_generateImplicitErrors &&
-//                (descriptor == DartEntry.VERIFICATION_ERRORS ||
-//                    descriptor == DartEntry.HINTS ||
-//                    descriptor == DartEntry.LINTS)) {
-//              continue;
-//            } else if (source.isInSystemLibrary &&
-//                !_generateSdkErrors &&
-//                (descriptor == DartEntry.VERIFICATION_ERRORS ||
-//                    descriptor == DartEntry.HINTS ||
-//                    descriptor == DartEntry.LINTS)) {
-//              continue;
-//            } else if (!hintsEnabled && descriptor == DartEntry.HINTS) {
-//              continue;
-//            } else if (!lintsEnabled && descriptor == DartEntry.LINTS) {
-//              continue;
-//            }
-//            callback(librarySource, entry, descriptor,
-//                entry.getStateInLibrary(descriptor, librarySource));
-//          }
-//        }
-//      }
-//    }
-  }
+      DataDescriptor rowDesc, CacheState state)) {}
 
   @override
   void visitContentCache(ContentCacheVisitor visitor) {
@@ -1663,7 +1581,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         } else if (state == CacheState.ERROR) {
           return;
         }
-        if (shouldErrorsBeAnalyzed(source, unitEntry)) {
+        if (shouldErrorsBeAnalyzed(source)) {
           state = unitEntry.getState(VERIFY_ERRORS);
           if (state == CacheState.INVALID ||
               (isPriority && state == CacheState.FLUSHED)) {
@@ -1944,7 +1862,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
           typeProvider,
           unitSource,
-          null,
           sourceEntry,
           unitEntry,
           oldUnit,
@@ -2160,8 +2077,7 @@ class SdkAnalysisContext extends AnalysisContextImpl {
       throw new IllegalArgumentException(
           "The source factory for an SDK analysis context must have a DartUriResolver");
     }
-    return new AnalysisCache(<CachePartition>[
-      AnalysisEngine.instance.partitionManager_new.forSdk(sdk)
-    ]);
+    return new AnalysisCache(
+        <CachePartition>[AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
   }
 }

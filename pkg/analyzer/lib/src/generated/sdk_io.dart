@@ -6,7 +6,7 @@ library engine.sdk.io;
 
 import 'dart:io';
 
-import 'package:analyzer/src/context/context.dart' as newContext;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 
 import 'ast.dart';
@@ -242,11 +242,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      if (AnalysisEngine.instance.useTaskModel) {
-        _analysisContext = new newContext.SdkAnalysisContext();
-      } else {
-        _analysisContext = new SdkAnalysisContext();
-      }
+      _analysisContext = new SdkAnalysisContext();
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       List<String> uris = this.uris;

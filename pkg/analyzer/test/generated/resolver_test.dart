@@ -6,7 +6,7 @@ library engine.resolver_test;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/context/context.dart' as newContext;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -44,15 +44,6 @@ main() {
   runReflectiveTests(ScopeTest);
   runReflectiveTests(ElementResolverTest);
   runReflectiveTests(InheritanceManagerTest);
-  if (!AnalysisEngine.instance.useTaskModel) {
-    runReflectiveTests(LibraryElementBuilderTest);
-  }
-  if (!AnalysisEngine.instance.useTaskModel) {
-    runReflectiveTests(LibraryResolver2Test);
-  }
-  if (!AnalysisEngine.instance.useTaskModel) {
-    runReflectiveTests(LibraryResolverTest);
-  }
   runReflectiveTests(LibraryTest);
   runReflectiveTests(StaticTypeAnalyzerTest);
   runReflectiveTests(StaticTypeAnalyzer2Test);
@@ -89,10 +80,6 @@ class AnalysisContextFactory {
    * Return the context that was created.
    */
   static InternalAnalysisContext contextWithCore() {
-    if (AnalysisEngine.instance.useTaskModel) {
-      NewAnalysisContextForTests context = new NewAnalysisContextForTests();
-      return initContextWithCore(context);
-    }
     AnalysisContextForTests context = new AnalysisContextForTests();
     return initContextWithCore(context);
   }
@@ -103,11 +90,6 @@ class AnalysisContextFactory {
    */
   static InternalAnalysisContext contextWithCoreAndOptions(
       AnalysisOptions options) {
-    if (AnalysisEngine.instance.useTaskModel) {
-      NewAnalysisContextForTests context = new NewAnalysisContextForTests();
-      context._internalSetAnalysisOptions(options);
-      return initContextWithCore(context);
-    }
     AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
     return initContextWithCore(context);
@@ -410,31 +392,11 @@ class AnalysisContextFactory {
     context.recordLibraryElements(elementMap);
     return context;
   }
-
-  /**
-   * Create an analysis context that has a fake core library already resolved.
-   * Return the context that was created.
-   */
-  static AnalysisContextImpl oldContextWithCore() {
-    AnalysisContextForTests context = new AnalysisContextForTests();
-    return initContextWithCore(context);
-  }
-
-  /**
-   * Create an analysis context that uses the given [options] and has a fake
-   * core library already resolved. Return the context that was created.
-   */
-  static AnalysisContextImpl oldContextWithCoreAndOptions(
-      AnalysisOptions options) {
-    AnalysisContextForTests context = new AnalysisContextForTests();
-    context._internalSetAnalysisOptions(options);
-    return initContextWithCore(context);
-  }
 }
 
 /**
- * Instances of the class `AnalysisContextForTests` implement an analysis context that has a
- * fake SDK that is much smaller and faster for testing purposes.
+ * An analysis context that has a fake SDK that is much smaller and faster for
+ * testing purposes.
  */
 class AnalysisContextForTests extends AnalysisContextImpl {
   @override
@@ -6066,214 +6028,6 @@ class InheritanceManagerTest {
 }
 
 @reflectiveTest
-class LibraryElementBuilderTest {
-  /**
-   * The analysis context used to analyze sources.
-   */
-  InternalAnalysisContext _context;
-
-  /**
-   * Add a source file to the content provider. The file path should be absolute.
-   *
-   * @param filePath the path of the file being added
-   * @param contents the contents to be returned by the content provider for the specified file
-   * @return the source object representing the added file
-   */
-  Source addSource(String filePath, String contents) {
-    Source source = new FileBasedSource(FileUtilities2.createFile(filePath));
-    _context.setContents(source, contents);
-    return source;
-  }
-
-  void setUp() {
-    _context = AnalysisContextFactory.contextWithCore();
-  }
-
-  void tearDown() {
-    _context = null;
-  }
-
-  void test_accessorsAcrossFiles() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-library lib;
-part 'first.dart';
-part 'second.dart';''');
-    addSource(
-        "/first.dart",
-        r'''
-part of lib;
-int get V => 0;''');
-    addSource(
-        "/second.dart",
-        r'''
-part of lib;
-void set V(int v) {}''');
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    List<CompilationUnitElement> sourcedUnits = element.parts;
-    expect(sourcedUnits, hasLength(2));
-    List<PropertyAccessorElement> firstAccessors = sourcedUnits[0].accessors;
-    expect(firstAccessors, hasLength(1));
-    List<PropertyAccessorElement> secondAccessors = sourcedUnits[1].accessors;
-    expect(secondAccessors, hasLength(1));
-    expect(secondAccessors[0].variable, same(firstAccessors[0].variable));
-  }
-
-  void test_empty() {
-    Source librarySource = addSource("/lib.dart", "library lib;");
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    expect(element.name, "lib");
-    expect(element.entryPoint, isNull);
-    expect(element.importedLibraries, hasLength(0));
-    expect(element.imports, hasLength(0));
-    expect(element.library, same(element));
-    expect(element.prefixes, hasLength(0));
-    expect(element.parts, hasLength(0));
-    CompilationUnitElement unit = element.definingCompilationUnit;
-    expect(unit, isNotNull);
-    expect(unit.name, "lib.dart");
-    expect(unit.library, element);
-    expect(unit.accessors, hasLength(0));
-    expect(unit.functions, hasLength(0));
-    expect(unit.functionTypeAliases, hasLength(0));
-    expect(unit.types, hasLength(0));
-    expect(unit.topLevelVariables, hasLength(0));
-  }
-
-  void test_libraryElement_docRange() {
-    String code = r'''
-/// My dart doc.
-library lib;
-
-class A {}''';
-    Source librarySource = addSource("/lib.dart", code);
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    SourceRange docRange = element.docRange;
-    expect(docRange, isNotNull);
-    expect(docRange.offset, code.indexOf('/// My dart doc.'));
-    expect(docRange.length, '/// My dart doc.'.length);
-  }
-
-  void test_missingLibraryDirectiveWithPart() {
-    addSource("/a.dart", "part of lib;");
-    Source librarySource = addSource("/lib.dart", "part 'a.dart';");
-    LibraryElement element = _buildLibrary(
-        librarySource, [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-    expect(element, isNotNull);
-  }
-
-  void test_missingPartOfDirective() {
-    addSource("/a.dart", "class A {}");
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-library lib;
-
-part 'a.dart';''');
-    LibraryElement element =
-        _buildLibrary(librarySource, [CompileTimeErrorCode.PART_OF_NON_PART]);
-    expect(element, isNotNull);
-  }
-
-  void test_multipleFiles() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-library lib;
-part 'first.dart';
-part 'second.dart';
-
-class A {}''');
-    addSource(
-        "/first.dart",
-        r'''
-part of lib;
-class B {}''');
-    addSource(
-        "/second.dart",
-        r'''
-part of lib;
-class C {}''');
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    List<CompilationUnitElement> sourcedUnits = element.parts;
-    expect(sourcedUnits, hasLength(2));
-    _assertTypes(element.definingCompilationUnit, ["A"]);
-    if (sourcedUnits[0].name == "first.dart") {
-      _assertTypes(sourcedUnits[0], ["B"]);
-      _assertTypes(sourcedUnits[1], ["C"]);
-    } else {
-      _assertTypes(sourcedUnits[0], ["C"]);
-      _assertTypes(sourcedUnits[1], ["B"]);
-    }
-  }
-
-  void test_singleFile() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-/// My dart doc.
-library lib;
-
-class A {}''');
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    _assertTypes(element.definingCompilationUnit, ["A"]);
-  }
-
-  /**
-   * Ensure that there are elements representing all of the types in the given array of type names.
-   *
-   * @param unit the compilation unit containing the types
-   * @param typeNames the names of the types that should be found
-   */
-  void _assertTypes(CompilationUnitElement unit, List<String> typeNames) {
-    expect(unit, isNotNull);
-    List<ClassElement> types = unit.types;
-    expect(types, hasLength(typeNames.length));
-    for (ClassElement type in types) {
-      expect(type, isNotNull);
-      String actualTypeName = type.displayName;
-      bool wasExpected = false;
-      for (String expectedTypeName in typeNames) {
-        if (expectedTypeName == actualTypeName) {
-          wasExpected = true;
-        }
-      }
-      if (!wasExpected) {
-        fail("Found unexpected type $actualTypeName");
-      }
-    }
-  }
-
-  /**
-   * Build the element model for the library whose defining compilation unit has the given source.
-   *
-   * @param librarySource the source of the defining compilation unit for the library
-   * @param expectedErrorCodes the errors that are expected to be found while building the element
-   *          model
-   * @return the element model that was built for the library
-   * @throws Exception if the element model could not be built
-   */
-  LibraryElement _buildLibrary(Source librarySource,
-      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
-    LibraryResolver resolver = new LibraryResolver(_context);
-    LibraryElementBuilder builder = new LibraryElementBuilder(
-        resolver.analysisContext, resolver.errorListener);
-    Library library = resolver.createLibrary(librarySource);
-    LibraryElement element = builder.buildLibrary(library);
-    GatheringErrorListener listener = new GatheringErrorListener();
-    listener.addAll2(resolver.errorListener);
-    listener.assertErrorsWithCodes(expectedErrorCodes);
-    return element;
-  }
-}
-
-@reflectiveTest
 class LibraryImportScopeTest extends ResolverTestCase {
   void test_conflictingImports() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
@@ -6450,104 +6204,6 @@ class LibraryImportScopeTest extends ResolverTestCase {
         scope.lookup(AstFactory.identifier3(typeName), importingLibrary);
     errorListener.assertNoErrors();
     expect(nonPrefixedElement, same(nonPrefixedType));
-  }
-}
-
-@reflectiveTest
-class LibraryResolver2Test extends ResolverTestCase {
-  LibraryResolver2 _resolver;
-
-  Source _coreLibrarySource;
-
-  Source _asyncLibrarySource;
-
-  @override
-  void setUp() {
-    super.setUp();
-    _resolver = new LibraryResolver2(analysisContext2);
-    _coreLibrarySource =
-        analysisContext2.sourceFactory.forUri(DartSdk.DART_CORE);
-    _asyncLibrarySource =
-        analysisContext2.sourceFactory.forUri(DartSdk.DART_ASYNC);
-  }
-
-  void test_imports_relative() {
-    Source sourceA = addSource(r'''
-library libA;
-import 'libB.dart';
-class A {}''');
-    Source sourceB = addNamedSource(
-        "/libB.dart",
-        r'''
-library libB;
-import 'test.dart
-class B {}''');
-    List<ResolvableLibrary> cycle = new List<ResolvableLibrary>();
-    ResolvableLibrary coreLib = _createResolvableLibrary(_coreLibrarySource);
-    coreLib.libraryElement = analysisContext2
-        .computeLibraryElement(_coreLibrarySource) as LibraryElementImpl;
-    ResolvableLibrary asyncLib = _createResolvableLibrary(_asyncLibrarySource);
-    asyncLib.libraryElement = analysisContext2
-        .computeLibraryElement(_asyncLibrarySource) as LibraryElementImpl;
-    ResolvableLibrary libA = _createResolvableLibrary(sourceA);
-    ResolvableLibrary libB = _createResolvableLibrary(sourceB);
-    libA.importedLibraries = <ResolvableLibrary>[coreLib, asyncLib, libB];
-    libB.importedLibraries = <ResolvableLibrary>[coreLib, asyncLib, libA];
-    cycle.add(libA);
-    cycle.add(libB);
-    LibraryElement library = _resolver.resolveLibrary(sourceA, cycle);
-    List<LibraryElement> importedLibraries = library.importedLibraries;
-    assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-  }
-
-  ResolvableLibrary _createResolvableLibrary(Source source) {
-    CompilationUnit unit = analysisContext2.parseCompilationUnit(source);
-    ResolvableLibrary resolvableLibrary = new ResolvableLibrary(source);
-    resolvableLibrary.resolvableCompilationUnits = <ResolvableCompilationUnit>[
-      new ResolvableCompilationUnit(source, unit)
-    ];
-    return resolvableLibrary;
-  }
-}
-
-@reflectiveTest
-class LibraryResolverTest extends ResolverTestCase {
-  LibraryResolver _resolver;
-
-  @override
-  void setUp() {
-    super.setUp();
-    _resolver = new LibraryResolver(analysisContext2);
-  }
-
-  void test_imports_dart_html() {
-    Source source = addSource(r'''
-library libA;
-import 'dart:html';
-class A {}''');
-    LibraryElement library = _resolver.resolveLibrary(source, true);
-    List<LibraryElement> importedLibraries = library.importedLibraries;
-    assertNamedElements(importedLibraries, ["dart.core", "dart.dom.html"]);
-  }
-
-  void test_imports_none() {
-    Source source = addSource(r'''
-library libA;
-class A {}''');
-    LibraryElement library = _resolver.resolveLibrary(source, true);
-    List<LibraryElement> importedLibraries = library.importedLibraries;
-    assertNamedElements(importedLibraries, ["dart.core"]);
-  }
-
-  void test_imports_relative() {
-    addNamedSource("/libB.dart", "library libB;");
-    Source source = addSource(r'''
-library libA;
-import 'libB.dart';
-class A {}''');
-    LibraryElement library = _resolver.resolveLibrary(source, true);
-    List<LibraryElement> importedLibraries = library.importedLibraries;
-    assertNamedElements(importedLibraries, ["dart.core", "libB"]);
   }
 }
 
@@ -6733,61 +6389,6 @@ class MemberMapTest {
     map.put(m1.name, m1);
     expect(map.size, 1);
     expect(map.get("m1"), m1);
-  }
-}
-
-/**
- * An analysis context that has a fake SDK that is much smaller and faster for
- * testing purposes.
- */
-class NewAnalysisContextForTests extends newContext.AnalysisContextImpl {
-  @override
-  void set analysisOptions(AnalysisOptions options) {
-    AnalysisOptions currentOptions = analysisOptions;
-    bool needsRecompute = currentOptions.analyzeFunctionBodiesPredicate !=
-            options.analyzeFunctionBodiesPredicate ||
-        currentOptions.generateImplicitErrors !=
-            options.generateImplicitErrors ||
-        currentOptions.generateSdkErrors != options.generateSdkErrors ||
-        currentOptions.dart2jsHint != options.dart2jsHint ||
-        (currentOptions.hint && !options.hint) ||
-        currentOptions.preserveComments != options.preserveComments ||
-        currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
-    if (needsRecompute) {
-      fail(
-          "Cannot set options that cause the sources to be reanalyzed in a test context");
-    }
-    super.analysisOptions = options;
-  }
-
-  @override
-  bool exists(Source source) =>
-      super.exists(source) || sourceFactory.dartSdk.context.exists(source);
-
-  @override
-  TimestampedData<String> getContents(Source source) {
-    if (source.isInSystemLibrary) {
-      return sourceFactory.dartSdk.context.getContents(source);
-    }
-    return super.getContents(source);
-  }
-
-  @override
-  int getModificationStamp(Source source) {
-    if (source.isInSystemLibrary) {
-      return sourceFactory.dartSdk.context.getModificationStamp(source);
-    }
-    return super.getModificationStamp(source);
-  }
-
-  /**
-   * Set the analysis options, even if they would force re-analysis. This method should only be
-   * invoked before the fake SDK is initialized.
-   *
-   * @param options the analysis options to be set
-   */
-  void _internalSetAnalysisOptions(AnalysisOptions options) {
-    super.analysisOptions = options;
   }
 }
 
@@ -13153,9 +12754,6 @@ main() {
   }
 
   void test_genericFunction() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     _resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
     SimpleIdentifier f = _findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
@@ -13171,9 +12769,6 @@ main() {
   }
 
   void test_genericMethod() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     _resolveTestUnit(r'''
 class C<E> {
   List/*<T>*/ f/*<T>*/(E e) => null;
@@ -13198,9 +12793,6 @@ main() {
   }
 
   void test_genericMethod_functionTypedParameter() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     _resolveTestUnit(r'''
 class C<E> {
   List/*<T>*/ f/*<T>*/(/*=T*/ f(E e)) => null;
@@ -13494,9 +13086,6 @@ main() {
   }
 
   void test_localVariableInference_transitive_field_inferred_lexical() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     String code = r'''
 class A {
   final x = 3;
@@ -13513,9 +13102,6 @@ main() {
   }
 
   void test_localVariableInference_transitive_field_inferred_reversed() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     String code = r'''
 class A {
   f() {
@@ -13586,9 +13172,6 @@ main() {
   }
 
   void test_localVariableInference_transitive_toplevel_inferred_lexical() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     String code = r'''
 final x = 3;
 main() {
@@ -13601,9 +13184,6 @@ main() {
   }
 
   void test_localVariableInference_transitive_toplevel_inferred_reversed() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     String code = r'''
 main() {
   var v = x;
@@ -13813,25 +13393,6 @@ class TypeOverrideManagerTest extends EngineTestCase {
 
 @reflectiveTest
 class TypePropagationTest extends ResolverTestCase {
-  void test_invocation_target_prefixed() {
-    addNamedSource(
-        '/helper.dart',
-        '''
-library helper;
-int max(int x, int y) => 0;
-''');
-    String code = '''
-import 'helper.dart' as helper;
-main() {
-  helper.max(10, 10); // marker
-}''';
-    SimpleIdentifier methodName =
-        _findMarkedIdentifier(code, "(10, 10); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-    expect(methodInvoke.methodName.staticElement, isNotNull);
-    expect(methodInvoke.methodName.propagatedElement, isNull);
-  }
-
   void fail_mergePropagatedTypesAtJoinPoint_1() {
     // https://code.google.com/p/dart/issues/detail?id=19929
     _assertTypeOfMarkedExpression(
@@ -14117,8 +13678,6 @@ main(CanvasElement canvas) {
   }
 
   void test_finalPropertyInducingVariable_classMember_instance() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14135,8 +13694,6 @@ f(A a) {
   }
 
   void test_finalPropertyInducingVariable_classMember_instance_inherited() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14155,8 +13712,6 @@ class B extends A {
   }
 
   void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14175,8 +13730,6 @@ f(p) {
   }
 
   void test_finalPropertyInducingVariable_classMember_instance_unprefixed() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     String code = r'''
 class A {
   final v = 0;
@@ -14189,8 +13742,6 @@ class A {
   }
 
   void test_finalPropertyInducingVariable_classMember_static() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14207,8 +13758,6 @@ f() {
   }
 
   void test_finalPropertyInducingVariable_topLevelVariable_prefixed() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource("/lib.dart", "final V = 0;");
     String code = r'''
 import 'lib.dart' as p;
@@ -14220,8 +13769,6 @@ f() {
   }
 
   void test_finalPropertyInducingVariable_topLevelVariable_simple() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource("/lib.dart", "final V = 0;");
     String code = r'''
 import 'lib.dart';
@@ -14649,6 +14196,25 @@ main() {
       expect(identifier.staticType, same(typeProvider.intType));
       expect(identifier.propagatedType, same(null));
     }
+  }
+
+  void test_invocation_target_prefixed() {
+    addNamedSource(
+        '/helper.dart',
+        '''
+library helper;
+int max(int x, int y) => 0;
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.max(10, 10); // marker
+}''';
+    SimpleIdentifier methodName =
+        _findMarkedIdentifier(code, "(10, 10); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodInvoke.methodName.staticElement, isNotNull);
+    expect(methodInvoke.methodName.propagatedElement, isNull);
   }
 
   void test_is_conditional() {
