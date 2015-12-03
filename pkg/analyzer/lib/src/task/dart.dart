@@ -3488,13 +3488,13 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   /**
    * Return a map from the names of the inputs of this kind of task to the task
    * input descriptors describing those inputs for a task with the given
-   * [source].
+   * [target].
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     return <String, TaskInput>{
       LINE_INFO_INPUT_NAME: LINE_INFO.of(target),
       MODIFICATION_TIME_INPUT_NAME: MODIFICATION_TIME.of(target),
-      TOKEN_STREAM_INPUT_NAME: TOKEN_STREAM.of(target)
+      TOKEN_STREAM_INPUT_NAME: TOKEN_STREAM.of(target, flushOnAccess: true)
     };
   }
 
