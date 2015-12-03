@@ -106,11 +106,11 @@ void ThreadRegistry::Unschedule(Thread* thread,
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   os_thread->DisableThreadInterrupts();
+  os_thread->set_thread(NULL);
+  OSThread::SetCurrent(os_thread);
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
   thread->set_os_thread(NULL);
-  os_thread->set_thread(NULL);
-  OSThread::SetCurrent(os_thread);
   if (!is_mutator) {
     ASSERT(thread->api_top_scope() == NULL);
     ReturnThreadToFreelist(thread);
