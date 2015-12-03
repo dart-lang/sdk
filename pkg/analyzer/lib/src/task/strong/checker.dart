@@ -583,8 +583,13 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var type = node.staticElement.type;
-    checkArgumentList(node.argumentList, type);
+    var type = node.staticElement?.type;
+    // TODO(leafp): There's a TODO in visitRedirectingConstructorInvocation
+    // in the element_resolver to handle the case that the element is null
+    // and emit an error.  In the meantime, just be defensive here.
+    if (type != null) {
+      checkArgumentList(node.argumentList, type);
+    }
     node.visitChildren(this);
   }
 

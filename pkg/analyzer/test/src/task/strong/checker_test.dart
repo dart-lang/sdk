@@ -1116,6 +1116,15 @@ void main() {
       '''
   });
 
+  // This is a regression test for https://github.com/dart-lang/sdk/issues/25071
+  testChecker('unbound redirecting constructor', {
+    '/main.dart': '''
+      class Foo {
+        Foo() : this.init();
+      }
+       '''
+  });
+
   testChecker('redirecting constructor', {
     '/main.dart': '''
           class A {
