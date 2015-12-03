@@ -91,13 +91,22 @@ class ArgListContributorTest extends AbstractCompletionTest {
   }
 
   test_Annotation_local_constructor_named_param() {
-    //
     addTestSource('''
 class A { A({int one, String two: 'defaultValue'}) { } }
 @A(^) main() { }''');
     computeFast();
     return computeFull((bool result) {
       assertSuggestArguments(namedArguments: ['one', 'two']);
+    });
+  }
+
+  test_Annotation_imported_constructor_named_param() {
+    addSource('/libA.dart', '''
+library libA; class A { A({int one, String two: 'defaultValue'}) { } }')");''');
+    addTestSource('import "/libA.dart"; @A(^) main() { }');
+    computeFast();
+    return computeFull((bool result) {
+      assertSuggestArguments(namedArguments: ['one','two']);
     });
   }
 
