@@ -276,6 +276,17 @@ void main() {
    '''
   });
 
+  // Regression test for https://github.com/dart-lang/sdk/issues/25069
+  testChecker('Void subtyping', {
+    '/main.dart': '''
+      typedef int Foo();
+      void foo() {}
+      void main () {
+        Foo x = /*severe:StaticTypeError*/foo();
+      }
+   '''
+  });
+
   testChecker('Ground type subtyping: dynamic is top', {
     '/main.dart': '''
 

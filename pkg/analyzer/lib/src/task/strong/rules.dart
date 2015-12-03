@@ -321,6 +321,10 @@ class TypeRules {
       return false;
     }
 
+    if (t1.isVoid || t2.isVoid) {
+      return false;
+    }
+
     if (t2.isDartCoreFunction) {
       if (t1 is FunctionType) return true;
       if (t1.element is ClassElement) {

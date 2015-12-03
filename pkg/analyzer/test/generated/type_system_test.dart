@@ -675,6 +675,13 @@ class StrongSubtypingTest {
         subtypes: subtypes);
   }
 
+  // Regression test for https://github.com/dart-lang/sdk/issues/25069
+  void test_isSubtypeOf_simple_function_void() {
+    FunctionType functionType =
+        TypeBuilder.functionType(<DartType>[intType], objectType);
+    _checkIsNotSubtypeOf(voidType, functionType);
+  }
+
   void test_isSubtypeOf_simple_function() {
     FunctionType top =
         TypeBuilder.functionType(<DartType>[intType], objectType);
