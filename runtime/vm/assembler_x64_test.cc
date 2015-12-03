@@ -2021,21 +2021,16 @@ ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
 
 
 static void EnterTestFrame(Assembler* assembler) {
-  COMPILE_ASSERT(THR != CallingConventions::kArg1Reg);
-  COMPILE_ASSERT(CODE_REG != CallingConventions::kArg2Reg);
   __ EnterFrame(0);
   __ pushq(CODE_REG);
   __ pushq(PP);
-  __ pushq(THR);
   __ movq(CODE_REG, Address(CallingConventions::kArg1Reg,
                             VMHandles::kOffsetOfRawPtrInHandle));
-  __ movq(THR, CallingConventions::kArg2Reg);
   __ LoadPoolPointer(PP);
 }
 
 
 static void LeaveTestFrame(Assembler* assembler) {
-  __ popq(THR);
   __ popq(PP);
   __ popq(CODE_REG);
   __ LeaveFrame();
@@ -2058,7 +2053,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
 
 
 ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
-  double res = test->InvokeWithCodeAndThread<double>();
+  double res = test->InvokeWithCode<double>();
   EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
 }
 
@@ -2079,7 +2074,7 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
 
 
 ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
-  double res = test->InvokeWithCodeAndThread<double>();
+  double res = test->InvokeWithCode<double>();
   EXPECT_FLOAT_EQ(1.0, res, 0.000001f);
 }
 
@@ -2525,7 +2520,7 @@ ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
 
 
 ASSEMBLER_TEST_RUN(PackedNegate, test) {
-  float res = test->InvokeWithCodeAndThread<float>();
+  float res = test->InvokeWithCode<float>();
   EXPECT_FLOAT_EQ(-12.3f, res, 0.001f);
 }
 
@@ -2543,7 +2538,7 @@ ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
 
 
 ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
-  float res = test->InvokeWithCodeAndThread<float>();
+  float res = test->InvokeWithCode<float>();
   EXPECT_FLOAT_EQ(15.3f, res, 0.001f);
 }
 
@@ -2559,7 +2554,7 @@ ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
 
 
 ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
-  float res = test->InvokeWithCodeAndThread<float>();
+  float res = test->InvokeWithCode<float>();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
 }
 
@@ -2683,7 +2678,7 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
 
 
 ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
-  uint32_t res = test->InvokeWithCodeAndThread<uint32_t>();
+  uint32_t res = test->InvokeWithCode<uint32_t>();
   EXPECT_EQ(static_cast<uword>(0x0), res);
 }
 
@@ -3108,7 +3103,7 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
 
 
 ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
-  bool res = test->InvokeWithCodeAndThread<bool>();
+  bool res = test->InvokeWithCode<bool>();
   EXPECT_EQ(true, res);
 }
 
@@ -3420,13 +3415,10 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
   EnterTestFrame(assembler);
 #if defined(TARGET_OS_WINDOWS)
-  // First argument is code object, second argument is thread. MSVC passes
-  // third argument in XMM2.
-  __ DoubleAbs(XMM2);
-  __ movaps(XMM0, XMM2);
+  // First argument is code object, MSVC passes second argument in XMM1.
+  __ DoubleAbs(XMM1);
+  __ movaps(XMM0, XMM1);
 #else
-  // SysV ABI allocates integral and double registers for arguments
-  // independently.
   __ DoubleAbs(XMM0);
 #endif
   LeaveTestFrame(assembler);
@@ -3436,10 +3428,10 @@ ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
 
 ASSEMBLER_TEST_RUN(DoubleAbs, test) {
   double val = -12.45;
-  double res =  test->InvokeWithCodeAndThread<double, double>(val);
+  double res =  test->InvokeWithCode<double, double>(val);
   EXPECT_FLOAT_EQ(-val, res, 0.001);
   val = 12.45;
-  res = test->InvokeWithCodeAndThread<double, double>(val);
+  res = test->InvokeWithCode<double, double>(val);
   EXPECT_FLOAT_EQ(val, res, 0.001);
 }
 

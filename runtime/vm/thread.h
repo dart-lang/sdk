@@ -79,6 +79,7 @@ class Zone;
   V(RawCode*, invoke_dart_code_stub_,                                          \
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
 
+
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
@@ -86,22 +87,11 @@ class Zone;
     NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \
     Symbols::PredefinedAddress(), NULL)                                        \
-  V(uword, double_negate_address_,                                             \
-    reinterpret_cast<uword>(&double_negate_constant), 0)                       \
-  V(uword, double_abs_address_,                                                \
-    reinterpret_cast<uword>(&double_abs_constant), 0)                          \
-  V(uword, float_not_address_,                                                 \
-    reinterpret_cast<uword>(&float_not_constant), 0)                           \
-  V(uword, float_negate_address_,                                              \
-    reinterpret_cast<uword>(&float_negate_constant), 0)                        \
-  V(uword, float_absolute_address_,                                            \
-    reinterpret_cast<uword>(&float_absolute_constant), 0)                      \
-  V(uword, float_zerow_address_,                                               \
-    reinterpret_cast<uword>(&float_zerow_constant), 0)                         \
 
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \
   CACHED_ADDRESSES_LIST(V)                                                     \
+
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
