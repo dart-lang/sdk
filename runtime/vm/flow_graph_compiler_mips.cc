@@ -1312,7 +1312,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
   if (ic_data.NumArgsTested() == 1) {
     __ LoadUniqueObject(S5, ic_data);
-    __ BranchLink(*StubCode::ICLookup_entry());
+    __ BranchLinkPatchable(*StubCode::ICLookup_entry());
   } else {
     const String& name = String::Handle(zone(), ic_data.target_name());
     const Array& arguments_descriptor =
@@ -1323,7 +1323,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
         MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
 
     __ LoadUniqueObject(S5, cache);
-    __ BranchLink(*StubCode::MegamorphicLookup_entry());
+    __ BranchLinkPatchable(*StubCode::MegamorphicLookup_entry());
   }
   __ jalr(T1);
 
