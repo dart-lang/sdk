@@ -584,7 +584,8 @@ class Debugger {
     kSingleStep
   };
 
-  static bool HasEventHandler();
+  static bool HasAnyEventHandler();
+  static bool HasDebugEventHandler();
   void InvokeEventHandler(DebuggerEvent* event);
 
   void FindCompiledFunctions(const Script& script,

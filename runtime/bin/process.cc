@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/dartutils.h"
-#include "bin/dbg_connection.h"
-#include "bin/eventhandler.h"
 #include "bin/io_buffer.h"
 #include "bin/log.h"
 #include "bin/platform.h"

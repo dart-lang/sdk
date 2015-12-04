@@ -8,7 +8,7 @@
 #include "include/dart_native_api.h"
 #include "include/dart_tools_api.h"
 #include "platform/assert.h"
-#include "platform/json.h"
+#include "platform/text_buffer.h"
 #include "platform/utils.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
@@ -7077,24 +7077,15 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
   const char* kScriptChars =
       "import 'builtin';\n"
       "import 'dart:isolate';\n"
-      "void entry(message) {\n"
-      "  var data = message[0];\n"
-      "  var replyTo = message[1];\n"
-      "  if (data) {\n"
-      "    throw new Exception('MakeChildExit');\n"
-      "  } else {\n"
-      "    replyTo.send('hello');\n"
-      "  }\n"
-      "}\n"
-      "\n"
-      "void main(exc_child, exc_parent) {\n"
-      "  var receivePort = new RawReceivePort();\n"
-      "  Isolate.spawn(entry, [exc_child, receivePort.sendPort]);\n"
-      "  receivePort.handler = (message) {\n"
-      "    receivePort.close();\n"
-      "    if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
-      "    if (exc_parent) throw new Exception('MakeParentExit');\n"
+      "void main(shouldThrowException) {\n"
+      "  var rp = new RawReceivePort();\n"
+      "  rp.handler = (msg) {\n"
+      "    rp.close();\n"
+      "    if (shouldThrowException) {\n"
+      "      throw new Exception('ExceptionFromTimer');\n"
+      "    }\n"
       "  };\n"
+      "  rp.sendPort.send(1);\n"
       "}\n";
 
   if (Dart_CurrentIsolate() != NULL) {
@@ -7122,28 +7113,10 @@ static Dart_Isolate RunLoopTestCallback(const char* script_name,
 }
 
 
-// The error string from the last unhandled exception. This value is only
-// valid until the next Dart_ExitScope().
-static char* last_exception = NULL;
-
-
-static void RunLoopUnhandledExceptionCallback(Dart_Handle exception) {
-  Dart_Handle error_string = Dart_ToString(exception);
-  EXPECT_VALID(error_string);
-  const char* error_text;
-  Dart_Handle result = Dart_StringToCString(error_string, &error_text);
-  // Duplicate the string since error text is freed when callback is finished.
-  last_exception = strdup(error_text);
-  EXPECT_VALID(result);
-}
-
-
 // Common code for RunLoop_Success/RunLoop_Failure.
-static void RunLoopTest(bool throw_exception_child,
-                        bool throw_exception_parent) {
+static void RunLoopTest(bool throw_exception) {
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
-  Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
   Dart_Isolate isolate = RunLoopTestCallback(
       NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
@@ -7153,29 +7126,15 @@ static void RunLoopTest(bool throw_exception_child,
   EXPECT_VALID(lib);
 
   Dart_Handle result;
-  Dart_Handle args[2];
-  args[0] = (throw_exception_child ? Dart_True() : Dart_False());
-  args[1] = (throw_exception_parent ? Dart_True() : Dart_False());
-  result = Dart_Invoke(lib, NewString("main"), 2, args);
+  Dart_Handle args[1];
+  args[0] = (throw_exception ? Dart_True() : Dart_False());
+  result = Dart_Invoke(lib, NewString("main"), 1, args);
   EXPECT_VALID(result);
-  if (throw_exception_child) {
-    // TODO(tball): fix race-condition
-    // EXPECT_NOTNULL(last_exception);
-    // EXPECT_STREQ("UnhandledException", last_exception);
+  result = Dart_RunLoop();
+  if (throw_exception) {
+    EXPECT_ERROR(result, "Exception: ExceptionFromTimer");
   } else {
-    result = Dart_RunLoop();
-    if (throw_exception_parent) {
-      EXPECT_ERROR(result, "Exception: MakeParentExit");
-      EXPECT_NOTNULL(last_exception);
-      EXPECT_STREQ("UnhandledException", last_exception);
-    } else {
-      EXPECT_VALID(result);
-      EXPECT(last_exception == NULL);
-    }
-  }
-  if (last_exception != NULL) {
-    free(last_exception);
-    last_exception = NULL;
+    EXPECT_VALID(result);
   }
 
   Dart_ExitScope();
@@ -7186,18 +7145,12 @@ static void RunLoopTest(bool throw_exception_child,
 
 
 UNIT_TEST_CASE(RunLoop_Success) {
-  RunLoopTest(false, false);
+  RunLoopTest(false);
 }
 
 
-// This test exits the vm.  Listed as FAIL in vm.status.
-UNIT_TEST_CASE(RunLoop_ExceptionChild) {
-  RunLoopTest(true, false);
-}
-
-
-UNIT_TEST_CASE(RunLoop_ExceptionParent) {
-  RunLoopTest(false, true);
+UNIT_TEST_CASE(RunLoop_Exception) {
+  RunLoopTest(true);
 }
 
 
@@ -7283,81 +7236,6 @@ void BusyLoop_start(uword unused) {
   }
 }
 
-
-// This callback handles isolate interrupts for the IsolateInterrupt
-// test.  It ignores the first two interrupts and throws an exception
-// on the third interrupt.
-const int kInterruptCount = 10;
-static int interrupt_count = 0;
-static bool IsolateInterruptTestCallback() {
-  OS::Print(" ========== Interrupt callback called #%d\n", interrupt_count + 1);
-  {
-    MonitorLocker ml(sync);
-    interrupt_count++;
-    ml.Notify();
-  }
-  if (interrupt_count == kInterruptCount) {
-    Dart_EnterScope();
-    Dart_Handle lib = Dart_LookupLibrary(NewString(TestCase::url()));
-    EXPECT_VALID(lib);
-    Dart_Handle exc = NewString("foo");
-    EXPECT_VALID(exc);
-    Dart_Handle result = Dart_ThrowException(exc);
-    EXPECT_VALID(result);
-    UNREACHABLE();  // Dart_ThrowException only returns if it gets an error.
-    return false;
-  }
-  ASSERT(interrupt_count < kInterruptCount);
-  return true;
-}
-
-
-TEST_CASE(IsolateInterrupt) {
-  Dart_IsolateInterruptCallback saved = Isolate::InterruptCallback();
-  Isolate::SetInterruptCallback(IsolateInterruptTestCallback);
-
-  sync = new Monitor();
-  int result = OSThread::Start("IsolateInterrupt", BusyLoop_start, 0);
-  EXPECT_EQ(0, result);
-
-  {
-    MonitorLocker ml(sync);
-    // Wait for the other isolate to enter main.
-    while (!main_entered) {
-      ml.Wait();
-    }
-  }
-
-  // Send a number of interrupts to the other isolate. All but the
-  // last allow execution to continue. The last causes an exception in
-  // the isolate.
-  for (int i = 0; i < kInterruptCount; i++) {
-    // Space out the interrupts a bit.
-    OS::Sleep(i + 1);
-    Dart_InterruptIsolate(shared_isolate);
-    {
-      MonitorLocker ml(sync);
-      // Wait for interrupt_count to be increased.
-      while (interrupt_count == i) {
-        ml.Wait();
-      }
-      OS::Print(" ========== Interrupt processed #%d\n", interrupt_count);
-    }
-  }
-
-  {
-    MonitorLocker ml(sync);
-    // Wait for our isolate to finish.
-    while (shared_isolate != NULL) {
-      ml.Wait();
-    }
-  }
-
-  // We should have received the expected number of interrupts.
-  EXPECT_EQ(kInterruptCount, interrupt_count);
-
-  Isolate::SetInterruptCallback(saved);
-}
 
 static void* saved_callback_data;
 static void IsolateShutdownTestCallback(void* callback_data) {

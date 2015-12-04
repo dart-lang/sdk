@@ -24,8 +24,6 @@ class Dart : public AllStatic {
       const uint8_t* vm_isolate_snapshot,
       const uint8_t* instructions_snapshot,
       Dart_IsolateCreateCallback create,
-      Dart_IsolateInterruptCallback interrupt,
-      Dart_IsolateUnhandledExceptionCallback unhandled,
       Dart_IsolateShutdownCallback shutdown,
       Dart_FileOpenCallback file_open,
       Dart_FileReadCallback file_read,

@@ -11,7 +11,6 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/dbg_connection.h"
 #include "bin/directory.h"
 #include "bin/embedded_dart_io.h"
 #include "bin/eventhandler.h"
@@ -22,9 +21,11 @@
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 #include "platform/globals.h"
 #include "platform/hashmap.h"
+#include "platform/text_buffer.h"
 
 namespace dart {
 namespace bin {
@@ -42,20 +43,6 @@ static bool generate_script_snapshot = false;
 static bool generate_script_snapshot_after_run = false;
 static const char* snapshot_filename = NULL;
 
-
-// Global state that indicates whether there is a debug breakpoint.
-// This pointer points into an argv buffer and does not need to be
-// free'd.
-static const char* breakpoint_at = NULL;
-
-
-// Global state that indicates whether we should open a connection
-// and listen for a debugger to connect.
-static bool start_debugger = false;
-static const char* debug_ip = NULL;
-static int debug_port = -1;
-static const char* DEFAULT_DEBUG_IP = "127.0.0.1";
-static const int DEFAULT_DEBUG_PORT = 5858;
 
 // Value of the --package-root flag.
 // (This pointer points into an argv buffer and does not need to be
@@ -143,7 +130,6 @@ static void ErrorExit(int exit_code, const char* format, ...) {
   }
 
   if (do_vm_shutdown) {
-    DebuggerConnectionHandler::StopHandler();
     EventHandler::Stop();
   }
   Platform::Exit(exit_code);
@@ -190,17 +176,6 @@ static bool ProcessVerboseOption(const char* arg,
     return false;
   }
   has_verbose_option = true;
-  return true;
-}
-
-
-static bool ProcessBreakpointOption(const char* funcname,
-                                    CommandLineOptions* vm_options) {
-  ASSERT(funcname != NULL);
-  if (*funcname == '\0') {
-    return false;
-  }
-  breakpoint_at = funcname;
   return true;
 }
 
@@ -370,22 +345,6 @@ static bool ProcessNooptOption(
 }
 
 
-static bool ProcessDebugOption(const char* option_value,
-                               CommandLineOptions* vm_options) {
-  ASSERT(option_value != NULL);
-  if (!ExtractPortAndIP(option_value, &debug_port, &debug_ip,
-                        DEFAULT_DEBUG_PORT, DEFAULT_DEBUG_IP)) {
-    Log::PrintErr("unrecognized --debug option syntax. "
-                  "Use --debug[:<port number>[/<IPv4 address>]]\n");
-    return false;
-  }
-
-  breakpoint_at = "main";
-  start_debugger = true;
-  return true;
-}
-
-
 static bool ProcessScriptSnapshotOptionHelper(const char* filename,
                                               bool* snapshot_option) {
   *snapshot_option = false;
@@ -459,17 +418,6 @@ static bool ProcessObserveOption(const char* option_value,
 }
 
 
-extern bool trace_debug_protocol;
-static bool ProcessTraceDebugProtocolOption(const char* arg,
-                                            CommandLineOptions* vm_options) {
-  if (*arg != '\0') {
-    return false;
-  }
-  trace_debug_protocol = true;
-  return true;
-}
-
-
 static bool ProcessTraceLoadingOption(const char* arg,
                                       CommandLineOptions* vm_options) {
   if (*arg != '\0') {
@@ -523,9 +471,7 @@ static struct {
   { "--version", ProcessVersionOption },
 
   // VM specific options to the standalone dart program.
-  { "--break-at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
-  { "--debug", ProcessDebugOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--gen-precompiled-snapshot", ProcessGenPrecompiledSnapshotOption },
   { "--noopt", ProcessNooptOption },
@@ -534,7 +480,6 @@ static struct {
   { "--shutdown", ProcessShutdownOption },
   { "--snapshot=", ProcessScriptSnapshotOption },
   { "--snapshot-after-run=", ProcessScriptSnapshotAfterRunOption },
-  { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
   { "--trace-loading", ProcessTraceLoadingOption },
   { NULL, NULL }
 };
@@ -964,25 +909,6 @@ static void PrintUsage() {
 }
 
 
-static Dart_Handle SetBreakpoint(const char* breakpoint_at,
-                                 Dart_Handle library) {
-  char* bpt_function = strdup(breakpoint_at);
-  Dart_Handle class_name;
-  Dart_Handle function_name;
-  char* dot = strchr(bpt_function, '.');
-  if (dot == NULL) {
-    class_name = DartUtils::NewString("");
-    function_name = DartUtils::NewString(breakpoint_at);
-  } else {
-    *dot = '\0';
-    class_name = DartUtils::NewString(bpt_function);
-    function_name = DartUtils::NewString(dot + 1);
-  }
-  free(bpt_function);
-  return Dart_OneTimeBreakAtEntry(library, class_name, function_name);
-}
-
-
 char* BuildIsolateName(const char* script_name,
                        const char* func_name) {
   // Skip past any slashes in the script name.
@@ -1029,14 +955,21 @@ static const char* ServiceGetIOHandler(
   DartScope scope;
   // TODO(ajohnsen): Store the library/function in isolate data or user_data.
   Dart_Handle dart_io_str = Dart_NewStringFromCString("dart:io");
-  if (Dart_IsError(dart_io_str)) return ServiceRequestError(dart_io_str);
+  if (Dart_IsError(dart_io_str)) {
+    return ServiceRequestError(dart_io_str);
+  }
+
   Dart_Handle io_lib = Dart_LookupLibrary(dart_io_str);
-  if (Dart_IsError(io_lib)) return ServiceRequestError(io_lib);
+  if (Dart_IsError(io_lib)) {
+    return ServiceRequestError(io_lib);
+  }
+
   Dart_Handle handler_function_name =
       Dart_NewStringFromCString("_serviceObjectHandler");
   if (Dart_IsError(handler_function_name)) {
     return ServiceRequestError(handler_function_name);
   }
+
   // TODO(johnmccutchan): paths is no longer used.  Update the io
   // _serviceObjectHandler function to use json rpc.
   Dart_Handle paths = Dart_NewList(0);
@@ -1048,10 +981,15 @@ static const char* ServiceGetIOHandler(
   }
   Dart_Handle args[] = {paths, keys, values};
   Dart_Handle result = Dart_Invoke(io_lib, handler_function_name, 3, args);
-  if (Dart_IsError(result)) return ServiceRequestError(result);
+  if (Dart_IsError(result)) {
+    return ServiceRequestError(result);
+  }
+
   const char *json;
   result = Dart_StringToCString(result, &json);
-  if (Dart_IsError(result)) return ServiceRequestError(result);
+  if (Dart_IsError(result)) {
+    return ServiceRequestError(result);
+  }
   return strdup(json);
 }
 
@@ -1199,7 +1137,6 @@ bool RunMainIsolate(const char* script_name,
       free(error);
     }
     if (do_vm_shutdown) {
-      DebuggerConnectionHandler::StopHandler();
       EventHandler::Stop();
     }
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
@@ -1316,18 +1253,6 @@ bool RunMainIsolate(const char* script_name,
           Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
       CHECK_RESULT(main_closure);
 
-      // Set debug breakpoint if specified on the command line before calling
-      // the main function.
-      if (breakpoint_at != NULL) {
-        result = SetBreakpoint(breakpoint_at, root_lib);
-        if (Dart_IsError(result)) {
-          ErrorExit(kErrorExitCode,
-                    "Error setting breakpoint at '%s': %s\n",
-                    breakpoint_at,
-                    Dart_GetError(result));
-        }
-      }
-
       // Call _startIsolate in the isolate library to enable dispatching the
       // initial startup message.
       const intptr_t kNumIsolateArgs = 2;
@@ -1434,18 +1359,6 @@ void main(int argc, char** argv) {
   // Start event handler.
   EventHandler::Start();
 
-  // Start the debugger wire protocol handler if necessary.
-  if (start_debugger) {
-    ASSERT(debug_port >= 0);
-    bool print_msg = verbose_debug_seen || (debug_port == 0);
-    debug_port = DebuggerConnectionHandler::StartHandler(debug_ip, debug_port);
-    if (print_msg) {
-      Log::Print("Debugger listening on port %d\n", debug_port);
-    }
-  } else {
-    DebuggerConnectionHandler::InitForVmService();
-  }
-
   const uint8_t* instructions_snapshot = NULL;
   if (has_run_precompiled_snapshot) {
     instructions_snapshot = reinterpret_cast<const uint8_t*>(
@@ -1466,7 +1379,6 @@ void main(int argc, char** argv) {
       GetVMServiceAssetsArchiveCallback);
   if (error != NULL) {
     if (do_vm_shutdown) {
-      DebuggerConnectionHandler::StopHandler();
       EventHandler::Stop();
     }
     fprintf(stderr, "VM initialization failed: %s\n", error);
@@ -1494,7 +1406,6 @@ void main(int argc, char** argv) {
     free(error);
   }
   if (do_vm_shutdown) {
-    DebuggerConnectionHandler::StopHandler();
     EventHandler::Stop();
   }
 

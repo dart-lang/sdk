@@ -50,8 +50,6 @@ typed_array_int64_uint64_test: Fail # Issue 13921
 typed_data_isolate_test: SkipByDesign # This test uses dart:io
 io/*: SkipByDesign # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
-debugger/*: SkipByDesign # Do not run standalone debugger tests in browser.
-coverage_test: Skip
 full_coverage_test: Skip
 http_launch_test: Skip
 vmservice/*: SkipByDesign # Do not run standalone vm service tests in browser.
@@ -91,7 +89,6 @@ io/process_exit_negative_test: Fail, OK # relies on a static error that is a war
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 package/package_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
 package/package1_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
-debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 full_coverage_test: Skip
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
