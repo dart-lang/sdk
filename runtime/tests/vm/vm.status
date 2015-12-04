@@ -81,9 +81,6 @@ dart/spawn_shutdown_test: Skip  # VM Shutdown test
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Skip  # Timeout.
 
-[ $runtime == vm && $builder_tag == asan && $arch == x64]
-cc/TestObjectCompare : Crash # Issue 25002
-
 [ $noopt ]
 dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
