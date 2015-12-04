@@ -9,12 +9,11 @@ import 'dart:math' show min;
 
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/model.dart'
-    show AnalysisTarget, ConstantEvaluationTarget;
+import 'package:analyzer/task/model.dart' show AnalysisTarget;
 
 import 'ast.dart';
 import 'constant.dart' show DartObject, EvaluationResultImpl;
-import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
+import 'engine.dart' show AnalysisContext, AnalysisEngine;
 import 'html.dart' show XmlAttributeNode, XmlTagNode;
 import 'java_core.dart';
 import 'java_engine.dart';
