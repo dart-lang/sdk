@@ -398,7 +398,8 @@ Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 EffectSet LoadStaticFieldInstr::Dependencies() const {
-  return StaticField().is_final() ? EffectSet::None() : EffectSet::All();
+  return (StaticField().is_final() && !FLAG_fields_may_be_reset)
+      ? EffectSet::None() : EffectSet::All();
 }
 
 

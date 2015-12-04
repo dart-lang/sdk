@@ -17,6 +17,7 @@ DEFINE_FLAG(bool, trace_type_propagation, false,
 DECLARE_FLAG(bool, propagate_types);
 DECLARE_FLAG(bool, trace_cha);
 DECLARE_FLAG(bool, use_cha_deopt);
+DECLARE_FLAG(bool, fields_may_be_reset);
 
 
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
@@ -952,7 +953,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
     abstract_type = &AbstractType::ZoneHandle(field.type());
   }
   ASSERT(field.is_static());
-  if (field.is_final()) {
+  if (field.is_final() && !FLAG_fields_may_be_reset) {
     const Instance& obj = Instance::Handle(field.StaticValue());
     if ((obj.raw() != Object::sentinel().raw()) &&
         (obj.raw() != Object::transition_sentinel().raw()) &&

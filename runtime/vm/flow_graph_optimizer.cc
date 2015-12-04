@@ -55,6 +55,7 @@ DECLARE_FLAG(bool, trace_cha);
 DECLARE_FLAG(bool, trace_field_guards);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, fields_may_be_reset);
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -5653,8 +5654,13 @@ class Place : public ValueObject {
     return "<?>";
   }
 
-  bool IsFinalField() const {
-    return (kind() == kField) && field().is_final();
+  // Fields that are considered immutable by load optimization.
+  // Handle static finals as non-final with precompilation because
+  // they may be reset to uninitialized after compilation.
+  bool IsImmutableField() const {
+    return (kind() == kField)
+        && field().is_final()
+        && (!field().is_static() || !FLAG_fields_may_be_reset);
   }
 
   intptr_t Hashcode() const {
@@ -5991,7 +5997,7 @@ class AliasedSet : public ZoneAllocated {
 
   // Compute least generic alias for the place and assign alias id to it.
   void AddRepresentative(Place* place) {
-    if (!place->IsFinalField()) {
+    if (!place->IsImmutableField()) {
       const Place* alias = CanonicalizeAlias(place->ToAlias());
       EnsureSet(&representatives_, alias->id())->Add(place->id());
 
@@ -6197,7 +6203,7 @@ class AliasedSet : public ZoneAllocated {
   // This essentially means that no stores to the same location can
   // occur in other functions.
   bool IsIndependentFromEffects(Place* place) {
-    if (place->IsFinalField()) {
+    if (place->IsImmutableField()) {
       // Note that we can't use LoadField's is_immutable attribute here because
       // some VM-fields (those that have no corresponding Field object and
       // accessed through offset alone) can share offset but have different
@@ -6631,7 +6637,7 @@ class LoadOptimizer : public ValueObject {
               aliased_set_->LookupAliasId(place.ToAlias());
           if (alias_id != AliasedSet::kNoAlias) {
             killed = aliased_set_->GetKilledSet(alias_id);
-          } else if (!place.IsFinalField()) {
+          } else if (!place.IsImmutableField()) {
             // We encountered unknown alias: this means intrablock load
             // forwarding refined parameter of this store, for example
             //
@@ -7535,7 +7541,7 @@ class StoreOptimizer : public LivenessAnalysis {
         bool is_load = false;
         bool is_store = false;
         Place place(instr, &is_load, &is_store);
-        if (place.IsFinalField()) {
+        if (place.IsImmutableField()) {
           // Loads/stores of final fields do not participate.
           continue;
         }
@@ -7624,7 +7630,7 @@ class StoreOptimizer : public LivenessAnalysis {
         bool is_store = false;
         Place place(instr, &is_load, &is_store);
         ASSERT(!is_load && is_store);
-        if (place.IsFinalField()) {
+        if (place.IsImmutableField()) {
           // Final field do not participate in dead store elimination.
           continue;
         }
