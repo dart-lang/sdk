@@ -16,7 +16,7 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
-    show DART_RELEVANCE_DEFAULT, DART_RELEVANCE_LOW;
+    show DART_RELEVANCE_DEFAULT, DART_RELEVANCE_LOW, ReplacementRange;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -37,6 +37,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   String testFile = '/completionTest.dart';
   Source testSource;
   int completionOffset;
+  int replacementOffset;
+  int replacementLength;
   DartCompletionContributor contributor;
   DartCompletionRequest request;
   List<CompletionSuggestion> suggestions;
@@ -149,6 +151,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         context, provider, searchEngine, testSource, completionOffset);
     request = new DartCompletionRequestImpl.forRequest(baseRequest);
+    var range = new ReplacementRange.compute(request.offset, request.target);
+    replacementOffset = range.offset;
+    replacementLength = range.length;
     Completer<List<CompletionSuggestion>> completer =
         new Completer<List<CompletionSuggestion>>();
 

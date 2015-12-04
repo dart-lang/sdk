@@ -167,8 +167,6 @@ class ArgListContributor extends DartCompletionContributor {
       _addSuggestions(elem.parameters);
       return suggestions;
     }
-
-    print('${elem.runtimeType} :: $elem');
     return EMPTY_LIST;
   }
 
