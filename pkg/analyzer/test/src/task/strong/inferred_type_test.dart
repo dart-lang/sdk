@@ -1160,6 +1160,118 @@ void main() {
     testChecker('infer downwards', {'/main.dart': code});
   });
 
+  group('downwards inference on constructor arguments', () {
+    String info = "info:InferredTypeLiteral";
+    String code = '''
+      class F0 {
+        F0(List<int> a) {};
+      }
+      class F1 {
+        F1({List<int> a}) {};
+      }
+      class F2 {
+        F2(Iterable<int> a) {};
+      }
+      class F3 {
+        F3(Iterable<Iterable<int>> a) {};
+      }
+      class F4 {
+        F4({Iterable<Iterable<int>> a}) {};
+      }
+      void main() {
+        new F0(/*$info*/[]);
+        new F0(/*$info*/[3]);
+        new F0(/*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello"]);
+        new F0(/*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello",
+                                            3]);
+
+        new F1(a: /*$info*/[]);
+        new F1(a: /*$info*/[3]);
+        new F1(a: /*$info*/[/*severe:StaticTypeError*/"hello"]);
+        new F1(a: /*$info*/[/*severe:StaticTypeError*/"hello", 3]);
+
+        new F2(/*$info*/[]);
+        new F2(/*$info*/[3]);
+        new F2(/*$info*/[/*severe:StaticTypeError*/"hello"]);
+        new F2(/*$info*/[/*severe:StaticTypeError*/"hello", 3]);
+
+        new F3(/*$info*/[]);
+        new F3(/*$info*/[/*$info*/[3]]);
+        new F3(/*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"]]);
+        new F3(/*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"],
+                         /*$info*/[3]]);
+
+        new F4(a: /*$info*/[]);
+        new F4(a: /*$info*/[/*$info*/[3]]);
+        new F4(a: /*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"]]);
+        new F4(a: /*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"],
+                            /*$info*/[3]]);
+      }
+      ''';
+    testChecker('infer downwards', {'/main.dart': code});
+  });
+
+  group('downwards inference on generic constructor arguments', () {
+    String info = "info:InferredTypeLiteral";
+    String code = '''
+      class F0<T> {
+        F0(List<T> a) {};
+      }
+      class F1<T> {
+        F1({List<T> a}) {};
+      }
+      class F2<T> {
+        F2(Iterable<T> a) {};
+      }
+      class F3<T> {
+        F3(Iterable<Iterable<T>> a) {};
+      }
+      class F4<T> {
+        F4({Iterable<Iterable<T>> a}) {};
+      }
+      void main() {
+        new F0<int>(/*$info*/[]);
+        new F0<int>(/*$info*/[3]);
+        new F0<int>(/*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello"]);
+        new F0<int>(/*info:InferredTypeLiteral*/[/*severe:StaticTypeError*/"hello",
+                                            3]);
+
+        new F1<int>(a: /*$info*/[]);
+        new F1<int>(a: /*$info*/[3]);
+        new F1<int>(a: /*$info*/[/*severe:StaticTypeError*/"hello"]);
+        new F1<int>(a: /*$info*/[/*severe:StaticTypeError*/"hello", 3]);
+
+        new F2<int>(/*$info*/[]);
+        new F2<int>(/*$info*/[3]);
+        new F2<int>(/*$info*/[/*severe:StaticTypeError*/"hello"]);
+        new F2<int>(/*$info*/[/*severe:StaticTypeError*/"hello", 3]);
+
+        new F3<int>(/*$info*/[]);
+        new F3<int>(/*$info*/[/*$info*/[3]]);
+        new F3<int>(/*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"]]);
+        new F3<int>(/*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"],
+                         /*$info*/[3]]);
+
+        new F4<int>(a: /*$info*/[]);
+        new F4<int>(a: /*$info*/[/*$info*/[3]]);
+        new F4<int>(a: /*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"]]);
+        new F4<int>(a: /*$info*/[/*$info*/[/*severe:StaticTypeError*/"hello"],
+                            /*$info*/[3]]);
+
+        new F3(/*$info*/[]);
+        new F3(/*$info*/[[3]]);
+        new F3(/*$info*/[["hello"]]);
+        new F3(/*$info*/[["hello"], [3]]);
+
+        new F4(a: /*$info*/[]);
+        new F4(a: /*$info*/[[3]]);
+        new F4(a: /*$info*/[["hello"]]);
+        new F4(a: /*$info*/[["hello"], [3]]);
+      }
+      ''';
+    testChecker('infer downwards', {'/main.dart': code});
+  });
+
   group('downwards inference on map literals', () {
     String info = "info:InferredTypeLiteral";
     String code = '''
