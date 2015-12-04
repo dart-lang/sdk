@@ -958,7 +958,7 @@ void _rootScheduleMicrotask(Zone self, ZoneDelegate parent, Zone zone, f()) {
     // Use root zone as event zone if the function is already bound.
     zone = _ROOT_ZONE;
   }
-  _scheduleAsyncCallback(new _AsyncCallbackEntry(f, zone));
+  _scheduleAsyncCallback(f);
 }
 
 Timer _rootCreateTimer(Zone self, ZoneDelegate parent, Zone zone,
