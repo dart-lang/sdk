@@ -187,6 +187,7 @@ body_less_constructor_wrong_arg_negative_test: CompileTimeError # Test Issue 186
 empty_block_case_test: StaticWarning # Test Issue 18701
 error_stacktrace_test: StaticWarning # Test Issue 18702
 
+abstract_beats_arguments_test: StaticWarning
 const_counter_negative_test: CompileTimeError
 const_optional_args_negative_test: CompileTimeError
 constructor_redirect1_negative_test: CompileTimeError
