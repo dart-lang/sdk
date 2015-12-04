@@ -2481,7 +2481,6 @@ LayoutTests/fast/forms/autofocus-opera-007_t01: Skip # Times out. Please triage 
 LayoutTests/fast/forms/autofocus-readonly-attribute_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/button/button-disabled-blur_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/forms/button-baseline-and-collapsing_t01: Pass, RuntimeError # Please triage this failure
-LayoutTests/fast/forms/change-form-element-document-crash_t01: RuntimeError # Dartium JSInterop failure, or else Firefox roll error. Issue 24409
 LayoutTests/fast/forms/checkValidity-001_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/checkValidity-002_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/forms/checkValidity-004_t01: Pass, RuntimeError # Please triage this failure
