@@ -97,7 +97,7 @@ void testChecker(String name, Map<String, String> testFiles) {
             .getErrors(source)
             .errors
             .where((error) =>
-                error.errorCode.name.startsWith('dev_compiler.InferredType'))
+                error.errorCode.name.startsWith('STRONG_MODE_INFERRED_TYPE'))
             .toList();
         errors.addAll(analyzerErrors);
         checker.visitCompilationUnit(resolved);
@@ -483,7 +483,7 @@ List<LibraryElement> reachableLibraries(LibraryElement start) {
 
 String errorCodeName(ErrorCode errorCode) {
   var name = errorCode.name;
-  final prefix = 'dev_compiler.';
+  final prefix = 'STRONG_MODE_';
   if (name.startsWith(prefix)) {
     return name.substring(prefix.length);
   } else {

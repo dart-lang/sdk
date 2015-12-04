@@ -4394,7 +4394,7 @@ class C {
 
     var errors = errorListener.errors;
     expect(errors.length, 1);
-    expect(errors[0].errorCode.name, "dev_compiler.StaticTypeError");
+    expect(errors[0].errorCode.name, "STRONG_MODE_STATIC_TYPE_ERROR");
   }
 }
 
