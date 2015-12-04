@@ -197,8 +197,18 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     AstNode coveringNode = new NodeLocator(
         selectionRange.offset, selectionRange.end).searchWithin(unit);
     // compute covering expressions
-    for (AstNode node = coveringNode; node is Expression; node = node.parent) {
+    for (AstNode node = coveringNode;
+        node is Expression || node is ArgumentList;
+        node = node.parent) {
       AstNode parent = node.parent;
+      // skip ArgumentList
+      if (node is ArgumentList) {
+        continue;
+      }
+      // skip AssignmentExpression
+      if (node is AssignmentExpression) {
+        continue;
+      }
       // cannot extract the name part of a property access
       if (parent is PrefixedIdentifier && parent.identifier == node ||
           parent is PropertyAccess && parent.propertyName == node) {
