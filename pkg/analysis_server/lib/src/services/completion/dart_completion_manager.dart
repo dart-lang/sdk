@@ -20,7 +20,6 @@ import 'package:analysis_server/src/services/completion/imported_reference_contr
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
-import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -102,7 +101,7 @@ class DartCompletionManager extends CompletionManager {
         //new ArgListContributor(),
         new CombinatorContributor(),
         new PrefixedElementContributor(),
-        new UriContributor(),
+        //new UriContributor(),
         // TODO(brianwilkerson) Use the completion contributor extension point
         // to add the contributor below (and eventually, all the contributors).
 //        new NewCompletionWrapper(new InheritedContributor())
@@ -447,6 +446,10 @@ class ReplacementRange {
     bool isKeywordOrIdentifier(Token token) =>
         token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
 
+    //TODO(danrubel) Ideally this needs to be pushed down into the contributors
+    // but that implies that each suggestion can have a different
+    // replacement offsent/length which would mean an API change
+
     var entity = target.entity;
     Token token = entity is AstNode ? entity.beginToken : entity;
     if (token != null && requestOffset < token.offset) {
@@ -461,7 +464,25 @@ class ReplacementRange {
       }
       if (token != null && isKeywordOrIdentifier(token)) {
         if (token.offset <= requestOffset && requestOffset <= token.end) {
+          // Replacement range for typical identifier completion
           return new ReplacementRange(token.offset, token.length);
+        }
+      }
+      if (token is StringToken) {
+        SimpleStringLiteral uri = new SimpleStringLiteral(token, token.lexeme);
+        Token previous = token.previous;
+        if (previous is KeywordToken) {
+          Keyword keyword = previous.keyword;
+          if (keyword == Keyword.IMPORT ||
+              keyword == Keyword.EXPORT ||
+              keyword == Keyword.PART) {
+            int start = uri.contentsOffset;
+            var end = uri.contentsEnd;
+            if (start <= requestOffset && requestOffset <= end) {
+              // Replacement range for import URI
+              return new ReplacementRange(start, end - start);
+            }
+          }
         }
       }
     }

@@ -5,15 +5,15 @@
 library test.services.completion.contributor.dart.importuri;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/completion/uri_contributor.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:path/path.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
-import 'completion_test_util.dart';
+import '../../../utils.dart';
+import 'completion_contributor_util.dart';
 
 main() {
   initializeTestEnvironment();
@@ -22,85 +22,85 @@ main() {
 }
 
 @reflectiveTest
-class UriContributorTest extends AbstractCompletionTest {
+class UriContributorTest extends DartCompletionContributorTest {
   @override
-  void setUpContributor() {
-    contributor = new UriContributor();
+  DartCompletionContributor createContributor() {
+    return new UriContributor();
   }
 
-  test_after_import() {
+  test_after_import() async {
     addTestSource('import "p"^');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNoSuggestions();
   }
 
-  test_after_import_raw() {
+  test_after_import_raw() async {
     addTestSource('import r"p"^');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNoSuggestions();
   }
 
-  test_before_import() {
+  test_before_import() async {
     addTestSource('import ^"p"');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNoSuggestions();
   }
 
-  test_before_import_raw() {
+  test_before_import_raw() async {
     addTestSource('import ^r"p"');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNoSuggestions();
   }
 
-  test_before_import_raw2() {
+  test_before_import_raw2() async {
     addTestSource('import r^"p"');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNoSuggestions();
   }
 
-  test_export_package2() {
+  test_export_package2() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
     addPackageSource('bar', 'bar.dart', 'library bar;');
     addTestSource('export "package:foo/baz/^" import');
-    computeFast();
+    await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import() {
+  test_import() async {
     addTestSource('import "^"');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import2() {
+  test_import2() async {
     addTestSource('import "^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_dart() {
+  test_import_dart() async {
     addTestSource('import "d^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 1);
-    expect(request.replacementLength, 1);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('dart:core',
         csKind: CompletionSuggestionKind.IMPORT, relevance: DART_RELEVANCE_LOW);
@@ -109,11 +109,11 @@ class UriContributorTest extends AbstractCompletionTest {
     assertSuggest('dart:math', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_dart2() {
+  test_import_dart2() async {
     addTestSource('import "dart:async"; import "d^"');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 1);
-    expect(request.replacementLength, 1);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('dart:core',
         csKind: CompletionSuggestionKind.IMPORT, relevance: DART_RELEVANCE_LOW);
@@ -122,15 +122,15 @@ class UriContributorTest extends AbstractCompletionTest {
     assertSuggest('dart:math', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_file() {
+  test_import_file() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('import "^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
@@ -139,15 +139,15 @@ class UriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_import_file2() {
+  test_import_file2() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('import "..^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 2);
-    expect(request.replacementLength, 2);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 2);
+    expect(replacementLength, 2);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
@@ -156,15 +156,15 @@ class UriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_import_file_child() {
+  test_import_file_child() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('import "foo/^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 4);
-    expect(request.replacementLength, 4);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 4);
+    expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -173,15 +173,15 @@ class UriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_import_file_parent() {
+  test_import_file_parent() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('import "../^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 3);
-    expect(request.replacementLength, 3);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -190,15 +190,15 @@ class UriContributorTest extends AbstractCompletionTest {
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_file_parent2() {
+  test_import_file_parent2() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('import "../b^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 4);
-    expect(request.replacementLength, 4);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 4);
+    expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -207,14 +207,14 @@ class UriContributorTest extends AbstractCompletionTest {
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_package() {
+  test_import_package() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
     addPackageSource('bar', 'bar.dart', 'library bar;');
     addTestSource('import "p^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 1);
-    expect(request.replacementLength, 1);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:foo/', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:foo/foo.dart',
@@ -226,46 +226,46 @@ class UriContributorTest extends AbstractCompletionTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_package2() {
+  test_import_package2() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
     addPackageSource('bar', 'bar.dart', 'library bar;');
     addTestSource('import "package:foo/baz/^" import');
-    computeFast();
+    await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_package2_raw() {
+  test_import_package2_raw() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
     addPackageSource('bar', 'bar.dart', 'library bar;');
     addTestSource('import r"package:foo/baz/^" import');
-    computeFast();
+    await computeSuggestions();
     assertSuggest('package:foo/baz/too.dart',
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_package_missing_lib() {
+  test_import_package_missing_lib() async {
     var pkgSrc = addPackageSource('bar', 'bar.dart', 'library bar;');
     provider.deleteFolder(dirname(pkgSrc.fullName));
     addTestSource('import "p^" class');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 1);
-    expect(request.replacementLength, 1);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:bar/', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('package:bar/bar.dart');
   }
 
-  test_import_package_raw() {
+  test_import_package_raw() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
     addPackageSource('bar', 'bar.dart', 'library bar;');
     addTestSource('import r"p^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 1);
-    expect(request.replacementLength, 1);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:foo/', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:foo/foo.dart',
@@ -277,40 +277,36 @@ class UriContributorTest extends AbstractCompletionTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_raw() {
+  test_import_raw() async {
     addTestSource('import r"^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_outside_import() {
+  test_outside_import() async {
     addTestSource('import ^"d" import');
-    computeFast();
-    computeFull((_) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_outside_import2() {
+  test_outside_import2() async {
     addTestSource('import "d"^ import');
-    computeFast();
-    computeFull((_) {
-      assertNoSuggestions();
-    });
+    await computeSuggestions();
+    assertNoSuggestions();
   }
 
-  test_part_file() {
+  test_part_file() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('library x; part "^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
@@ -319,15 +315,15 @@ class UriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_part_file2() {
+  test_part_file2() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('library x; part "..^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 2);
-    expect(request.replacementLength, 2);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 2);
+    expect(replacementLength, 2);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
@@ -336,15 +332,15 @@ class UriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_part_file_child() {
+  test_part_file_child() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('library x; part "foo/^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 4);
-    expect(request.replacementLength, 4);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 4);
+    expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -353,15 +349,15 @@ class UriContributorTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_part_file_parent() {
+  test_part_file_parent() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
     addTestSource('library x; part "../^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 3);
-    expect(request.replacementLength, 3);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -372,10 +368,10 @@ class UriContributorTest extends AbstractCompletionTest {
 }
 
 @reflectiveTest
-class UriContributorWindowsTest extends AbstractCompletionTest {
+class UriContributorWindowsTest extends DartCompletionContributorTest {
   @override
-  void setUpContributor() {
-    contributor = new UriContributor();
+  DartCompletionContributor createContributor() {
+    return new UriContributor();
   }
 
   @override
@@ -383,15 +379,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     provider = new _TestWinResourceProvider();
   }
 
-  test_import_file() {
+  test_import_file() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('import "^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
@@ -400,15 +396,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_import_file2() {
+  test_import_file2() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('import "..^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 2);
-    expect(request.replacementLength, 2);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 2);
+    expect(replacementLength, 2);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
@@ -417,15 +413,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_import_file_child() {
+  test_import_file_child() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('import "foo/^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 4);
-    expect(request.replacementLength, 4);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 4);
+    expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -434,15 +430,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_import_file_parent() {
+  test_import_file_parent() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('import "../^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 3);
-    expect(request.replacementLength, 3);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -451,15 +447,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_import_file_parent2() {
+  test_import_file_parent2() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('import "../b^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 4);
-    expect(request.replacementLength, 4);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 4);
+    expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -468,15 +464,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
   }
 
-  test_part_file() {
+  test_part_file() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('library x; part "^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset);
-    expect(request.replacementLength, 0);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
@@ -485,15 +481,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_part_file2() {
+  test_part_file2() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('library x; part "..^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 2);
-    expect(request.replacementLength, 2);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 2);
+    expect(replacementLength, 2);
     assertNotSuggested('completion.dart');
     assertSuggest('other.dart', csKind: CompletionSuggestionKind.IMPORT);
     assertNotSuggested('foo');
@@ -502,15 +498,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_part_file_child() {
+  test_part_file_child() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('library x; part "foo/^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 4);
-    expect(request.replacementLength, 4);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 4);
+    expect(replacementLength, 4);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');
@@ -519,15 +515,15 @@ class UriContributorWindowsTest extends AbstractCompletionTest {
     assertNotSuggested('../blat.dart');
   }
 
-  test_part_file_parent() {
+  test_part_file_parent() async {
     testFile = '\\proj\\completion.dart';
     addSource('\\proj\\other.dart', 'library other;');
     addSource('\\proj\\foo\\bar.dart', 'library bar;');
     addSource('\\blat.dart', 'library blat;');
     addTestSource('library x; part "../^" import');
-    computeFast();
-    expect(request.replacementOffset, completionOffset - 3);
-    expect(request.replacementLength, 3);
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
     assertNotSuggested('completion.dart');
     assertNotSuggested('other.dart');
     assertNotSuggested('foo');

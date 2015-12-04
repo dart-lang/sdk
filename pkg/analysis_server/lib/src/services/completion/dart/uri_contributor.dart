@@ -7,7 +7,7 @@ library services.completion.contributor.dart.importuri;
 import 'dart:async';
 import 'dart:core' hide Resource;
 
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' show posix;
 import 'package:path/src/context.dart';
 
-import '../../protocol_server.dart'
+import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
 /**
@@ -26,26 +26,19 @@ class UriContributor extends DartCompletionContributor {
   _UriSuggestionBuilder builder;
 
   @override
-  bool computeFast(DartCompletionRequest request) {
+  Future<List<CompletionSuggestion>> computeSuggestions(
+      DartCompletionRequest request) async {
     builder = new _UriSuggestionBuilder(request);
-    return builder.computeFast(request.target.containingNode);
-  }
-
-  @override
-  Future<bool> computeFull(DartCompletionRequest request) {
-    return new Future.value(false);
+    request.target.containingNode.accept(builder);
+    return builder.suggestions;
   }
 }
 
 class _UriSuggestionBuilder extends SimpleAstVisitor {
   final DartCompletionRequest request;
+  final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   _UriSuggestionBuilder(this.request);
-
-  bool computeFast(AstNode node) {
-    node.accept(this);
-    return true;
-  }
 
   @override
   visitExportDirective(ExportDirective node) {
@@ -179,24 +172,15 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
 
   void _addSuggestion(String completion,
       {int relevance: DART_RELEVANCE_DEFAULT}) {
-    request.addSuggestion(new CompletionSuggestion(
-        CompletionSuggestionKind.IMPORT,
-        relevance,
-        completion,
-        completion.length,
-        0,
-        false,
-        false));
+    suggestions.add(new CompletionSuggestion(CompletionSuggestionKind.IMPORT,
+        relevance, completion, completion.length, 0, false, false));
   }
 
   String _extractPartialUri(SimpleStringLiteral node) {
     if (request.offset < node.contentsOffset) {
       return null;
     }
-    String partial = node.literal.lexeme.substring(
+    return node.literal.lexeme.substring(
         node.contentsOffset - node.offset, request.offset - node.offset);
-    request.replacementOffset = node.contentsOffset;
-    request.replacementLength = node.contentsEnd - node.contentsOffset;
-    return partial;
   }
 }

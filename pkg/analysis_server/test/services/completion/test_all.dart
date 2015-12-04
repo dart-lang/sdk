@@ -18,7 +18,6 @@ import 'local_reference_contributor_test.dart'
     as local_reference_contributor_test;
 import 'optype_test.dart' as optype_test;
 import 'prefixed_element_contributor_test.dart' as invocation_test;
-import 'uri_contributor_test.dart' as uri_contributor_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -34,6 +33,5 @@ main() {
     local_declaration_visitor_test.main();
     local_reference_contributor_test.main();
     optype_test.main();
-    uri_contributor_test.main();
   });
 }
