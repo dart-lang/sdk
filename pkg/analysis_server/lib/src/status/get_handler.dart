@@ -32,11 +32,13 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     hide AnalysisCache, AnalysisContextImpl, AnalysisTask;
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
@@ -1084,6 +1086,49 @@ class GetHandler {
               ?.toList());
         }
 
+        buffer.write('<h3>Configuration</h3>');
+
+        AnalysisOptionsImpl options = context.analysisOptions;
+        buffer.write('<p><b>Options</b></p>');
+        buffer.write('<p>');
+        _writeOption(
+            buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
+        _writeOption(buffer, 'Cache size', options.cacheSize);
+        _writeOption(
+            buffer, 'Enable generic methods', options.enableGenericMethods);
+        _writeOption(buffer, 'Enable strict call checks',
+            options.enableStrictCallChecks);
+        _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
+        _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
+        _writeOption(buffer, 'Generate errors in implicit files',
+            options.generateImplicitErrors);
+        _writeOption(
+            buffer, 'Generate errors in SDK files', options.generateSdkErrors);
+        _writeOption(buffer, 'Generate hints', options.hint);
+        _writeOption(buffer, 'Incremental resolution', options.incremental);
+        _writeOption(buffer, 'Incremental resolution with API changes',
+            options.incrementalApi);
+        _writeOption(buffer, 'Preserve comments', options.preserveComments);
+        _writeOption(buffer, 'Strong mode', options.strongMode);
+        _writeOption(buffer, 'Strong mode hints', options.strongModeHints,
+            last: true);
+        buffer.write('</p>');
+
+        List<Linter> lints = context.getConfigurationData(CONFIGURED_LINTS_KEY);
+        buffer.write('<p><b>Lints</b></p>');
+        if (lints.isEmpty) {
+          buffer.write('<p><none></p>');
+        } else {
+          for (Linter lint in lints) {
+            buffer.write('<p> ${lint.runtimeType}</p>');
+          }
+        }
+
+        List<ErrorFilter> errorFilters =
+            context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+        int filterCount = errorFilters?.length ?? 0;
+        buffer.write('<p><b>Error Filter count</b>: $filterCount</p>');
+
         _writeFiles(buffer, 'Priority Files', priorityNames);
         _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
         _writeFiles(buffer, 'Implicitly Analyzed Files', implicitNames);
@@ -1271,7 +1316,6 @@ class GetHandler {
       _writePage(buffer, 'Analysis Server - Status', [], (StringBuffer buffer) {
         if (_writeServerStatus(buffer)) {
           _writeAnalysisStatus(buffer);
-          _writeDiagnosticStatus(buffer);
           _writeEditStatus(buffer);
           _writeExecutionStatus(buffer);
           _writePluginStatus(buffer);
@@ -1370,26 +1414,6 @@ class GetHandler {
       // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
       buffer.write('</p>');
 
-      buffer.write('<p><b>Options</b></p>');
-      buffer.write('<p>');
-      _writeOption(
-          buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
-      _writeOption(buffer, 'Cache size', options.cacheSize);
-      _writeOption(
-          buffer, 'Enable strict call checks', options.enableStrictCallChecks);
-      _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
-      _writeOption(buffer, 'Generate hints', options.hint);
-      _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
-      _writeOption(buffer, 'Generate errors in implicit files',
-          options.generateImplicitErrors);
-      _writeOption(
-          buffer, 'Generate errors in SDK files', options.generateSdkErrors);
-      _writeOption(buffer, 'Incremental resolution', options.incremental);
-      _writeOption(buffer, 'Incremental resolution with API changes',
-          options.incrementalApi);
-      _writeOption(buffer, 'Preserve comments', options.preserveComments,
-          last: true);
-      buffer.write('</p>');
       int freq = AnalysisServer.performOperationDelayFreqency;
       String delay = freq > 0 ? '1 ms every $freq ms' : 'off';
       buffer.write('<p><b>perform operation delay:</b> $delay</p>');
