@@ -18,6 +18,7 @@
 #include "vm/intermediate_language.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/precompiler.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -49,6 +50,7 @@ DEFINE_FLAG(bool, use_cha_deopt, true,
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
 
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_cha);
@@ -267,12 +269,32 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
           Resolver::ResolveDynamicForReceiverClass(owner_class,
                                                    call->function_name(),
                                                    args_desc));
-      if (function.IsNull()) {
-        return false;
+      if (!function.IsNull()) {
+        const ICData& ic_data = ICData::ZoneHandle(Z,
+            ICData::NewFrom(*call->ic_data(), class_ids.length()));
+        ic_data.AddReceiverCheck(owner_class.id(), function);
+        call->set_ic_data(&ic_data);
+        return true;
       }
+    }
+  }
+
+  if (FLAG_precompilation &&
+      (isolate()->object_store()->unique_dynamic_targets() != Array::null())) {
+    // Check if the target is unique.
+    Function& target_function = Function::Handle(Z);
+    Precompiler::GetUniqueDynamicTarget(
+        isolate(), call->function_name(), &target_function);
+    // Calls with named arguments must be resolved/checked at runtime.
+    String& error_message = String::Handle(Z);
+    if (!target_function.IsNull() &&
+        !target_function.HasOptionalNamedParameters() &&
+        target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
+                                               &error_message)) {
+      const intptr_t cid = Class::Handle(Z, target_function.Owner()).id();
       const ICData& ic_data = ICData::ZoneHandle(Z,
-          ICData::NewFrom(*call->ic_data(), class_ids.length()));
-      ic_data.AddReceiverCheck(owner_class.id(), function);
+          ICData::NewFrom(*call->ic_data(), 1));
+      ic_data.AddReceiverCheck(cid, target_function);
       call->set_ic_data(&ic_data);
       return true;
     }
