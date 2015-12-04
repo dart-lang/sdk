@@ -2845,8 +2845,8 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   // Shared handles used during the iteration.
   String& member_name = String::Handle();
 
-  const PatchClass& patch_class =
-      PatchClass::Handle(PatchClass::New(*this, patch));
+  const PatchClass& patch_class = PatchClass::Handle(
+      PatchClass::New(*this, Script::Handle(patch.script())));
 
   Array& orig_list = Array::Handle(functions());
   intptr_t orig_len = orig_list.Length();
@@ -2948,8 +2948,10 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   SetFields(new_list);
 
   // The functions and fields in the patch class are no longer needed.
+  // The patch class itself is also no longer needed.
   patch.SetFunctions(Object::empty_array());
   patch.SetFields(Object::empty_array());
+  Library::Handle(patch.library()).RemovePatchClass(patch);
   return true;
 }
 
@@ -3579,25 +3581,9 @@ bool Class::IsMixinApplication() const {
 }
 
 
-void Class::SetPatchClass(const Class& cls) const {
-  ASSERT(GetPatchClass() == Class::null());
-  const GrowableObjectArray& patch_classes =
-      GrowableObjectArray::Handle(Library::Handle(library()).patch_classes());
-  patch_classes.Add(cls);
-}
-
-
 RawClass* Class::GetPatchClass() const {
-  const GrowableObjectArray& patch_classes =
-      GrowableObjectArray::Handle(Library::Handle(library()).patch_classes());
-  Class& pc = Class::Handle();
-  for (intptr_t i = 0; i < patch_classes.Length(); i++) {
-    pc ^= patch_classes.At(i);
-    if (pc.Name() == this->Name()) {  // Names are canonicalized.
-      return pc.raw();
-    }
-  }
-  return Class::null();
+  const Library& lib = Library::Handle(library());
+  return lib.GetPatchClass(String::Handle(Name()));
 }
 
 
@@ -9345,6 +9331,52 @@ RawInstance* Library::TransitiveLoadError() const {
 }
 
 
+void Library::AddPatchClass(const Class& cls) const {
+  ASSERT(cls.is_patch());
+  ASSERT(GetPatchClass(String::Handle(cls.Name())) == Class::null());
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  patch_classes.Add(cls);
+}
+
+
+RawClass* Library::GetPatchClass(const String& name) const {
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  Object& obj = Object::Handle();
+  for (intptr_t i = 0; i < patch_classes.Length(); i++) {
+    obj = patch_classes.At(i);
+    if (obj.IsClass() &&
+        (Class::Cast(obj).Name() == name.raw())) {  // Names are canonicalized.
+      return Class::RawCast(obj.raw());
+    }
+  }
+  return Class::null();
+}
+
+
+void Library::RemovePatchClass(const Class& cls) const {
+  ASSERT(cls.is_patch());
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  const intptr_t num_classes = patch_classes.Length();
+  intptr_t i = 0;
+  while (i < num_classes) {
+    if (cls.raw() == patch_classes.At(i)) break;
+    i++;
+  }
+  if (i == num_classes) return;
+  // Replace the entry with the script. We keep the script so that
+  // Library::LoadedScripts() can find it without having to iterate
+  // over the members of each class.
+  ASSERT(i < num_classes);  // We must have found a class.
+  Class& pc = Class::Handle();
+  pc ^= patch_classes.At(i);
+  const Script& patch_script = Script::Handle(pc.script());
+  patch_classes.SetAt(i, patch_script);
+}
+
+
 static RawString* MakeClassMetaName(const Class& cls) {
   return Symbols::FromConcat(Symbols::At(), String::Handle(cls.Name()));
 }
@@ -9779,8 +9811,13 @@ RawArray* Library::LoadedScripts() const {
     // Add all scripts from patch classes.
     GrowableObjectArray& patches = GrowableObjectArray::Handle(patch_classes());
     for (intptr_t i = 0; i < patches.Length(); i++) {
-      cls ^= patches.At(i);
-      owner_script = cls.script();
+      entry = patches.At(i);
+      if (entry.IsClass()) {
+        owner_script = Class::Cast(entry).script();
+      }  else {
+        ASSERT(entry.IsScript());
+        owner_script ^= Script::Cast(entry).raw();
+      }
       AddScriptIfUnique(scripts, owner_script);
     }
 

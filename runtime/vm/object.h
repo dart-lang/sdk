@@ -1065,7 +1065,6 @@ class Class : public Object {
   bool IsMixinApplication() const;
 
   RawClass* GetPatchClass() const;
-  void SetPatchClass(const Class& patch_class) const;
 
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
@@ -3394,6 +3393,10 @@ class Library : public Object {
   RawInstance* LoadError() const { return raw_ptr()->load_error_; }
   void SetLoadError(const Instance& error) const;
   RawInstance* TransitiveLoadError() const;
+
+  void AddPatchClass(const Class& cls) const;
+  RawClass* GetPatchClass(const String& name) const;
+  void RemovePatchClass(const Class& cls) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibrary));

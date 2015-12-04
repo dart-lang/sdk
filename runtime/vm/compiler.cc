@@ -316,7 +316,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
-      THR_Print("Compiling Class %s '%s'\n", "", cls.ToCString());
+      THR_Print("Compiling Class '%s'\n", cls.ToCString());
     }
 
     // Add the primary class which needs to be parsed to the parse list.
