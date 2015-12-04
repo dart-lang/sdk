@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test optimizations with static fields with precompilation.
-// VMOptions=--noopt --inlining-hotness=0
+// VMOptions=--inlining-hotness=0
 
 import 'package:expect/expect.dart';
 
