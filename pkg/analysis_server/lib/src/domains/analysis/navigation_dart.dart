@@ -288,7 +288,16 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     }
     // add regions
     TypeName typeName = node.type;
-    computer._addRegionForNode(typeName.name, element);
+    // [prefix].ClassName
+    {
+      Identifier name = typeName.name;
+      Identifier className = name;
+      if (name is PrefixedIdentifier) {
+        name.prefix.accept(this);
+        className = name.identifier;
+      }
+      computer._addRegionForNode(className, element);
+    }
     // <TypeA, TypeB>
     TypeArgumentList typeArguments = typeName.typeArguments;
     if (typeArguments != null) {
