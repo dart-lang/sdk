@@ -54,6 +54,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     testSource = addSource(testFile, content);
   }
 
+  void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
+    expect(suggestion.parameterNames, isNull);
+    expect(suggestion.parameterTypes, isNull);
+    expect(suggestion.requiredParameterCount, isNull);
+    expect(suggestion.hasNamedParameters, isNull);
+  }
+
   void assertHasParameterInfo(CompletionSuggestion suggestion) {
     expect(suggestion.parameterNames, isNotNull);
     expect(suggestion.parameterTypes, isNotNull);
@@ -126,6 +133,101 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
     }
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestClass(String name,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool isDeprecated: false,
+      String elemFile,
+      int elemOffset}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind,
+        relevance: relevance,
+        importUri: importUri,
+        isDeprecated: isDeprecated,
+        elemFile: elemFile,
+        elemOffset: elemOffset);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.CLASS));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, isNull);
+    assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestFunction(String name, String returnType,
+      {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool deprecated: false,
+      int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind,
+        relevance: relevance,
+        importUri: importUri,
+        isDeprecated: deprecated);
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.FUNCTION));
+    expect(element.name, equals(name));
+    expect(element.isDeprecated, equals(deprecated));
+    String param = element.parameters;
+    expect(param, isNotNull);
+    expect(param[0], equals('('));
+    expect(param[param.length - 1], equals(')'));
+    expect(element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    assertHasParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestFunctionTypeAlias(
+      String name, String returnType, bool isDeprecated,
+      [int relevance = DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String importUri]) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind,
+        relevance: relevance,
+        importUri: importUri,
+        isDeprecated: isDeprecated);
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.FUNCTION_TYPE_ALIAS));
+    expect(element.name, equals(name));
+    expect(element.isDeprecated, equals(isDeprecated));
+    // TODO (danrubel) Determine why params are null
+    //    String param = element.parameters;
+    //    expect(param, isNotNull);
+    //    expect(param[0], equals('('));
+    //    expect(param[param.length - 1], equals(')'));
+    expect(element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    // TODO (danrubel) Determine why param info is missing
+    //    assertHasParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestTopLevelVar(String name, String returnType,
+      [int relevance = DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+      String importUri]) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind, relevance: relevance, importUri: importUri);
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.TOP_LEVEL_VARIABLE));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 

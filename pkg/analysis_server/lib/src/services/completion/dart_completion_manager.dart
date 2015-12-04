@@ -10,7 +10,6 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
@@ -99,7 +98,7 @@ class DartCompletionManager extends CompletionManager {
         new ImportedReferenceContributor(),
         //new KeywordContributor(),
         //new ArgListContributor(),
-        new CombinatorContributor(),
+        // new CombinatorContributor(),
         new PrefixedElementContributor(),
         //new UriContributor(),
         // TODO(brianwilkerson) Use the completion contributor extension point
