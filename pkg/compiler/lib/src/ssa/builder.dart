@@ -5134,15 +5134,17 @@ class SsaBuilder extends ast.Visitor
       stack.add(graph.addConstantNull(compiler));
       return;
     }
+
     if (checkTypeVariableBounds(node, type)) return;
 
-    var inputs = <HInstruction>[];
-    if (constructor.isGenerativeConstructor &&
-        backend.isNativeOrExtendsNative(constructor.enclosingClass) &&
-        !backend.isJsInterop(constructor)) {
-      // Native class generative constructors take a pre-constructed object.
-      inputs.add(graph.addConstantNull(compiler));
+    // Abstract class instantiation error takes precedence over argument
+    // mismatch.
+    ClassElement cls = constructor.enclosingClass;
+    if (cls.isAbstract && constructor.isGenerativeConstructor) {
+      generateAbstractClassInstantiationError(send, cls.name);
+      return;
     }
+
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
     constructorImplementation = constructor.implementation;
@@ -5151,6 +5153,14 @@ class SsaBuilder extends ast.Visitor
             constructorImplementation.functionSignature)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
+    }
+
+    var inputs = <HInstruction>[];
+    if (constructor.isGenerativeConstructor &&
+        backend.isNativeOrExtendsNative(constructor.enclosingClass) &&
+        !backend.isJsInterop(constructor)) {
+      // Native class generative constructors take a pre-constructed object.
+      inputs.add(graph.addConstantNull(compiler));
     }
     inputs.addAll(makeStaticArgumentList(callStructure,
                                          send.arguments,
@@ -5198,13 +5208,7 @@ class SsaBuilder extends ast.Visitor
     } else {
       SourceInformation sourceInformation =
           sourceInformationBuilder.buildNew(send);
-      ClassElement cls = constructor.enclosingClass;
-      if (cls.isAbstract && constructor.isGenerativeConstructor) {
-        generateAbstractClassInstantiationError(send, cls.name);
-        return;
-      }
       potentiallyAddTypeArguments(inputs, cls, expectedType);
-
       addInlinedInstantiation(expectedType);
       pushInvokeStatic(node, constructor, inputs,
           typeMask: elementType,

@@ -651,28 +651,14 @@ typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
 /**
  * An isolate interrupt callback function.
  *
- * This callback, provided by the embedder, is called when an isolate
- * is interrupted as a result of a call to Dart_InterruptIsolate().
- * When the callback is called, Dart_CurrentIsolate can be used to
- * figure out which isolate is being interrupted.
- *
- * \return The embedder returns true if the isolate should continue
- *   execution. If the embedder returns false, the isolate will be
- *   unwound (currently unimplemented).
+ * This callback has been DEPRECATED.
  */
 typedef bool (*Dart_IsolateInterruptCallback)();
-/* TODO(turnidge): Define and implement unwinding. */
 
 /**
  * An isolate unhandled exception callback function.
  *
- * This callback, provided by the embedder, is called when an unhandled
- * exception or internal error is thrown during isolate execution. When the
- * callback is invoked, Dart_CurrentIsolate can be used to figure out which
- * isolate was running when the exception was thrown.
- *
- * \param error The unhandled exception or error.  This handle's scope is
- *   only valid until the embedder returns from this callback.
+ * This callback has been DEPRECATED.
  */
 typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
 
@@ -754,10 +740,8 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  *   instructions, or NULL if no snapshot is provided.
  * \param create A function to be called during isolate creation.
  *   See Dart_IsolateCreateCallback.
- * \param interrupt A function to be called when an isolate is interrupted.
- *   See Dart_IsolateInterruptCallback.
- * \param unhandled_exception A function to be called if an isolate has an
- *   unhandled exception.  Set Dart_IsolateUnhandledExceptionCallback.
+ * \param interrupt This parameter has been DEPRECATED.
+ * \param unhandled_exception This parameter has been DEPRECATED.
  * \param shutdown A function to be called when an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
  *

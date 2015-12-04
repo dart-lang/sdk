@@ -7,7 +7,7 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
-#include "platform/json.h"
+#include "platform/text_buffer.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler.h"
@@ -629,14 +629,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
       // We didn't notify the debugger when the stack was full. Do it now.
       I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
     }
-  }
-
-  // Invoke the isolate's unhandled exception callback if there is one.
-  if (Isolate::UnhandledExceptionCallback() != NULL) {
-    Dart_EnterScope();
-    Dart_Handle error = Api::NewHandle(T, result.raw());
-    (Isolate::UnhandledExceptionCallback())(error);
-    Dart_ExitScope();
   }
 
   // Generate the error and stacktrace strings for the error message.
@@ -1686,9 +1678,6 @@ void Isolate::Shutdown() {
 
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
-Dart_IsolateInterruptCallback Isolate::interrupt_callback_ = NULL;
-Dart_IsolateUnhandledExceptionCallback
-    Isolate::unhandled_exception_callback_ = NULL;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
 Dart_FileOpenCallback Isolate::file_open_callback_ = NULL;
 Dart_FileReadCallback Isolate::file_read_callback_ = NULL;

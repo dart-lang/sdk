@@ -90,6 +90,15 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       : super(context, resourceProvider, searchEngine, source, offset);
 
   @override
+  CompletionTarget get target {
+    if (_target == null) {
+      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
+      _target = new CompletionTarget.forOffset(unit, offset);
+    }
+    return _target;
+  }
+
+  @override
   Future<CompilationUnit> resolveDeclarationsInScope() async {
     CompilationUnit unit = target.unit;
     if (_haveResolveDeclarationsInScope) {
@@ -131,11 +140,46 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   }
 
   @override
-  CompletionTarget get target {
-    if (_target == null) {
-      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
-      _target = new CompletionTarget.forOffset(unit, offset);
+  Future resolveIdentifier(SimpleIdentifier identifier) async {
+    if (identifier.bestElement != null) {
+      return;
     }
-    return _target;
+
+    //TODO(danrubel) resolve the expression or containing method
+    // rather than the entire complilation unit
+
+    CompilationUnit unit = target.unit;
+
+    // Determine the library source
+    Source librarySource;
+    if (unit.directives.any((d) => d is PartOfDirective)) {
+      List<Source> libraries = context.getLibrariesContaining(source);
+      if (libraries.isEmpty) {
+        return;
+      }
+      librarySource = libraries[0];
+    } else {
+      librarySource = source;
+    }
+
+    // Resolve declarations in the target unit
+    CompilationUnit resolvedUnit =
+        await new AnalysisFutureHelper<CompilationUnit>(
+            context,
+            new LibrarySpecificUnit(librarySource, source),
+            RESOLVED_UNIT).computeAsync();
+
+    // TODO(danrubel) determine if the underlying source has been modified
+    // in a way that invalidates the completion request
+    // and return null
+
+    // Gracefully degrade if unit cannot be resolved
+    if (resolvedUnit == null) {
+      return;
+    }
+
+    // Recompute the target for the newly resolved unit
+    _target = new CompletionTarget.forOffset(resolvedUnit, offset);
+    _haveResolveDeclarationsInScope = true;
   }
 }

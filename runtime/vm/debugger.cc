@@ -258,9 +258,15 @@ void DebuggerEvent::UpdateTimestamp() {
 }
 
 
-bool Debugger::HasEventHandler() {
+bool Debugger::HasAnyEventHandler() {
   return ((event_handler_ != NULL) ||
           Service::isolate_stream.enabled() ||
+          Service::debug_stream.enabled());
+}
+
+
+bool Debugger::HasDebugEventHandler() {
+  return ((event_handler_ != NULL) ||
           Service::debug_stream.enabled());
 }
 
@@ -289,8 +295,6 @@ static bool ServiceNeedsDebuggerEvent(DebuggerEvent::EventType type) {
 
 
 void Debugger::InvokeEventHandler(DebuggerEvent* event) {
-  ASSERT(HasEventHandler());
-
   // Give the event to the Service first, as the debugger event handler
   // may go into a message loop and the Service will not.
   //
@@ -301,7 +305,8 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
     Service::HandleEvent(&service_event);
   }
 
-  if (FLAG_steal_breakpoints && event->IsPauseEvent()) {
+  if ((FLAG_steal_breakpoints || (event_handler_ == NULL)) &&
+      event->IsPauseEvent()) {
     // We allow the embedder's default breakpoint handler to be overridden.
     isolate_->PauseEventHandler();
   } else if (event_handler_ != NULL) {
@@ -325,7 +330,7 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
 
 
 void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
-  if (HasEventHandler()) {
+  if (HasAnyEventHandler()) {
     DebuggerEvent event(isolate_, type);
     ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
     if (type == DebuggerEvent::kIsolateInterrupted) {
@@ -347,20 +352,8 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
 
 
 RawError* Debugger::SignalIsolateInterrupted() {
-  if (HasEventHandler()) {
+  if (HasDebugEventHandler()) {
     SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
-  }
-  Dart_IsolateInterruptCallback callback = isolate_->InterruptCallback();
-  if (callback != NULL) {
-    if (!(*callback)()) {
-      if (FLAG_trace_isolates) {
-        OS::Print("[!] Embedder api: terminating isolate:\n"
-                  "\tisolate:    %s\n", isolate_->name());
-      }
-      const String& msg =
-          String::Handle(String::New("isolate terminated by embedder"));
-      return UnwindError::New(msg);
-    }
   }
 
   // If any error occurred while in the debug message loop, return it here.
@@ -1411,7 +1404,7 @@ void Debugger::DeoptimizeWorld() {
 
 
 void Debugger::SignalBpResolved(Breakpoint* bpt) {
-  if (HasEventHandler() && !bpt->IsSingleShot()) {
+  if (HasDebugEventHandler() && !bpt->IsSingleShot()) {
     DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointResolved);
     event.set_breakpoint(bpt);
     InvokeEventHandler(&event);
@@ -1632,7 +1625,7 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   // interested in exception events.
   if (ignore_breakpoints_ ||
       IsPaused() ||
-      (!HasEventHandler()) ||
+      (!HasDebugEventHandler()) ||
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
@@ -2616,9 +2609,6 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
 
 RawError* Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
-  // We can't get here unless the debugger event handler enabled
-  // single stepping.
-  ASSERT(HasEventHandler());
   // Don't pause recursively.
   if (IsPaused()) {
     return Error::null();
@@ -2686,7 +2676,7 @@ RawError* Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
+  if (ignore_breakpoints_ || IsPaused()) {
     return Error::null();
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -2775,8 +2765,12 @@ void Debugger::BreakHere(const String& msg) {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
+  if (ignore_breakpoints_ || IsPaused()) {
     return;
+  }
+
+  if (!HasDebugEventHandler()) {
+    OS::Print("Hit debugger!");
   }
 
   DebuggerStackTrace* stack_trace = CollectStackTrace();

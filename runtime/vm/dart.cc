@@ -73,8 +73,6 @@ class ReadOnlyHandles {
 const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            const uint8_t* instructions_snapshot,
                            Dart_IsolateCreateCallback create,
-                           Dart_IsolateInterruptCallback interrupt,
-                           Dart_IsolateUnhandledExceptionCallback unhandled,
                            Dart_IsolateShutdownCallback shutdown,
                            Dart_FileOpenCallback file_open,
                            Dart_FileReadCallback file_read,
@@ -197,8 +195,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
-  Isolate::SetInterruptCallback(interrupt);
-  Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
 
   Service::SetGetServiceAssetsCallback(get_service_assets);

@@ -963,6 +963,8 @@ class A {
   test_import_deferred_partial() async {
     addTestSource('import "package:foo/foo.dart" def^ as foo;');
     await computeSuggestions();
+    expect(replacementOffset, 30);
+    expect(replacementLength, 3);
     assertSuggestKeywords([Keyword.DEFERRED], relevance: DART_RELEVANCE_HIGH);
     expect(suggestions[0].selectionOffset, 8);
     expect(suggestions[0].selectionLength, 0);
@@ -977,6 +979,8 @@ class A {
   test_import_partial() async {
     addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
     await computeSuggestions();
+    expect(replacementOffset, 0);
+    expect(replacementLength, 3);
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
@@ -985,6 +989,8 @@ class A {
   test_import_partial2() async {
     addTestSource('^imp import "package:foo/foo.dart";');
     await computeSuggestions();
+    expect(replacementOffset, 0);
+    expect(replacementLength, 3);
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
@@ -993,6 +999,8 @@ class A {
   test_import_partial3() async {
     addTestSource(' ^imp import "package:foo/foo.dart"; import "bar.dart";');
     await computeSuggestions();
+    expect(replacementOffset, 1);
+    expect(replacementLength, 3);
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
@@ -1001,6 +1009,8 @@ class A {
   test_import_partial4() async {
     addTestSource('^ imp import "package:foo/foo.dart";');
     await computeSuggestions();
+    expect(replacementOffset, 0);
+    expect(replacementLength, 0);
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_DECLARATION_AND_LIBRARY_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
@@ -1009,6 +1019,8 @@ class A {
   test_import_partial5() async {
     addTestSource('library libA; imp^ import "package:foo/foo.dart";');
     await computeSuggestions();
+    expect(replacementOffset, 14);
+    expect(replacementLength, 3);
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
@@ -1018,6 +1030,8 @@ class A {
     addTestSource(
         'library bar; import "zoo.dart"; imp^ import "package:foo/foo.dart";');
     await computeSuggestions();
+    expect(replacementOffset, 32);
+    expect(replacementLength, 3);
     // TODO(danrubel) should not suggest declaration keywords
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
@@ -1345,6 +1359,8 @@ main() {
   test_switch_start5() async {
     addTestSource('main() {switch(1) {c^ default:}}');
     await computeSuggestions();
+    expect(replacementOffset, 19);
+    expect(replacementLength, 1);
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -1352,6 +1368,8 @@ main() {
   test_switch_start6() async {
     addTestSource('main() {switch(1) {c^}}');
     await computeSuggestions();
+    expect(replacementOffset, 19);
+    expect(replacementLength, 1);
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
   }
@@ -1359,6 +1377,8 @@ main() {
   test_switch_start7() async {
     addTestSource('main() {switch(1) { c^ }}');
     await computeSuggestions();
+    expect(replacementOffset, 20);
+    expect(replacementLength, 1);
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT],
         relevance: DART_RELEVANCE_HIGH);
   }

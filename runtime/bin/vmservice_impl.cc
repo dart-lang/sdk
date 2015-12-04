@@ -12,7 +12,7 @@
 #include "bin/platform.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
-#include "platform/json.h"
+#include "platform/text_buffer.h"
 
 namespace dart {
 namespace bin {

@@ -10,7 +10,6 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
 import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
@@ -21,7 +20,6 @@ import 'package:analysis_server/src/services/completion/imported_reference_contr
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
-import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -100,20 +98,17 @@ class DartCompletionManager extends CompletionManager {
         new LocalReferenceContributor(),
         new ImportedReferenceContributor(),
         //new KeywordContributor(),
-        new ArgListContributor(),
+        //new ArgListContributor(),
         new CombinatorContributor(),
         new PrefixedElementContributor(),
-        new UriContributor(),
+        //new UriContributor(),
         // TODO(brianwilkerson) Use the completion contributor extension point
         // to add the contributor below (and eventually, all the contributors).
 //        new NewCompletionWrapper(new InheritedContributor())
       ];
     }
     if (newContributors == null) {
-      newContributors = <CompletionContributor>[
-        // TODO(danrubel) initialize using plugin API
-        //new newImpl.DartCompletionManager(),
-      ];
+      newContributors = <CompletionContributor>[];
     }
     if (contributionSorter == null) {
       contributionSorter = defaultContributionSorter;
@@ -150,39 +145,21 @@ class DartCompletionManager extends CompletionManager {
    */
   List<DartCompletionContributor> computeFast(
       DartCompletionRequest request, CompletionPerformance performance) {
-    bool isKeywordOrIdentifier(Token token) =>
-        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
-
     return performance.logElapseTime('computeFast', () {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
       request.target = new CompletionTarget.forOffset(unit, request.offset);
-      request.replacementOffset = request.offset;
-      request.replacementLength = 0;
       if (request.offset < 0 || request.offset > unit.end) {
+        request.replacementOffset = request.offset;
+        request.replacementLength = 0;
         sendResults(request, true);
         return [];
       }
 
-      var entity = request.target.entity;
-      Token token = entity is AstNode ? entity.beginToken : entity;
-      if (token != null && request.offset < token.offset) {
-        token = token.previous;
-      }
-      if (token != null) {
-        if (request.offset == token.offset && !isKeywordOrIdentifier(token)) {
-          // If the insertion point is at the beginning of the current token
-          // and the current token is not an identifier
-          // then check the previous token to see if it should be replaced
-          token = token.previous;
-        }
-        if (token != null && isKeywordOrIdentifier(token)) {
-          if (token.offset <= request.offset && request.offset <= token.end) {
-            request.replacementOffset = token.offset;
-            request.replacementLength = token.length;
-          }
-        }
-      }
+      ReplacementRange range =
+          new ReplacementRange.compute(request.offset, request.target);
+      request.replacementOffset = range.offset;
+      request.replacementLength = range.length;
 
       List<DartCompletionContributor> todo = new List.from(contributors);
       todo.removeWhere((DartCompletionContributor c) {
@@ -453,5 +430,62 @@ class DartCompletionRequest extends CompletionRequestImpl {
             element: suggestion.element);
       }
     }
+  }
+}
+
+/**
+ * Utility class for computing the code completion replacement range
+ */
+class ReplacementRange {
+  int offset;
+  int length;
+
+  ReplacementRange(this.offset, this.length);
+
+  factory ReplacementRange.compute(int requestOffset, CompletionTarget target) {
+    bool isKeywordOrIdentifier(Token token) =>
+        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
+
+    //TODO(danrubel) Ideally this needs to be pushed down into the contributors
+    // but that implies that each suggestion can have a different
+    // replacement offsent/length which would mean an API change
+
+    var entity = target.entity;
+    Token token = entity is AstNode ? entity.beginToken : entity;
+    if (token != null && requestOffset < token.offset) {
+      token = token.previous;
+    }
+    if (token != null) {
+      if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
+        // If the insertion point is at the beginning of the current token
+        // and the current token is not an identifier
+        // then check the previous token to see if it should be replaced
+        token = token.previous;
+      }
+      if (token != null && isKeywordOrIdentifier(token)) {
+        if (token.offset <= requestOffset && requestOffset <= token.end) {
+          // Replacement range for typical identifier completion
+          return new ReplacementRange(token.offset, token.length);
+        }
+      }
+      if (token is StringToken) {
+        SimpleStringLiteral uri = new SimpleStringLiteral(token, token.lexeme);
+        Token previous = token.previous;
+        if (previous is KeywordToken) {
+          Keyword keyword = previous.keyword;
+          if (keyword == Keyword.IMPORT ||
+              keyword == Keyword.EXPORT ||
+              keyword == Keyword.PART) {
+            int start = uri.contentsOffset;
+            var end = uri.contentsEnd;
+            if (start <= requestOffset && requestOffset <= end) {
+              // Replacement range for import URI
+              return new ReplacementRange(start, end - start);
+            }
+          }
+        }
+      }
+    }
+    return new ReplacementRange(requestOffset, 0);
   }
 }

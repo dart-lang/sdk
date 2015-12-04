@@ -1124,9 +1124,17 @@ DART_EXPORT char* Dart_Initialize(
   if ((instructions_snapshot != NULL) && !FLAG_precompilation) {
     return strdup("Flag --precompilation was not specified.");
   }
+  if (interrupt != NULL) {
+    return strdup("Dart_Initialize: "
+                  "Setting of interrupt callback is not supported.");
+  }
+  if (unhandled != NULL) {
+    return strdup("Dart_Initialize: "
+                  "Setting of unhandled exception callback is not supported.");
+  }
   const char* err_msg = Dart::InitOnce(vm_isolate_snapshot,
                                        instructions_snapshot,
-                                       create, interrupt, unhandled, shutdown,
+                                       create, shutdown,
                                        file_open, file_read, file_write,
                                        file_close, entropy_source,
                                        get_service_assets);

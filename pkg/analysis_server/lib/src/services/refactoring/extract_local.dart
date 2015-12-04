@@ -207,16 +207,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       // fatal selection problems
       if (coveringExpressionOffsets.isEmpty) {
         if (node is SimpleIdentifier) {
-          Element element = node.bestElement;
-          if (element is FunctionElement || element is MethodElement) {
-            return new RefactoringStatus.fatal(
-                'Cannot extract a single method name.',
-                newLocation_fromNode(node));
-          }
           if (node.inDeclarationContext()) {
             return new RefactoringStatus.fatal(
                 'Cannot extract the name part of a declaration.',
                 newLocation_fromNode(node));
+          }
+          Element element = node.bestElement;
+          if (element is FunctionElement || element is MethodElement) {
+            continue;
           }
         }
         if (parent is AssignmentExpression && parent.leftHandSide == node) {

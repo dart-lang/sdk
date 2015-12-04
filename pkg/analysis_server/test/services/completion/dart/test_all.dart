@@ -7,16 +7,20 @@ library test.services.completion.dart;
 import 'package:unittest/unittest.dart';
 
 import '../../../utils.dart';
+import 'arglist_contributor_test.dart' as arglist_test;
 import 'common_usage_sorter_test.dart' as common_usage_test;
 import 'inherited_contributor_test.dart' as inherited_contributor_test;
 import 'keyword_contributor_test.dart' as keyword_test;
+import 'uri_contributor_test.dart' as uri_contributor_test;
 
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
   group('dart/completion', () {
+    arglist_test.main();
     common_usage_test.main();
     inherited_contributor_test.main();
     keyword_test.main();
+    uri_contributor_test.main();
   });
 }
