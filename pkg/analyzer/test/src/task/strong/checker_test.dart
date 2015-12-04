@@ -2364,12 +2364,14 @@ void main() {
         foo1() async => x;
         Future foo2() async => x;
         Future<int> foo3() async => (/*info:DynamicCast*/x);
-        Future<int> foo4() async => (/*severe:StaticTypeError*/new Future<int>.value(/*info:DynamicCast*/x));
+        Future<int> foo4() async => (new Future<int>.value(/*info:DynamicCast*/x));
+        Future<int> foo5() async => (/*severe:StaticTypeError*/new Future<String>.value(/*info:DynamicCast*/x));
 
         bar1() async { return x; }
         Future bar2() async { return x; }
         Future<int> bar3() async { return (/*info:DynamicCast*/x); }
-        Future<int> bar4() async { return (/*severe:StaticTypeError*/new Future<int>.value(/*info:DynamicCast*/x)); }
+        Future<int> bar4() async { return (new Future<int>.value(/*info:DynamicCast*/x)); }
+        Future<int> bar5() async { return (/*severe:StaticTypeError*/new Future<String>.value(/*info:DynamicCast*/x)); }
 
         int y;
         Future<int> z;
@@ -2386,7 +2388,7 @@ void main() {
           if (new Random().nextBool()) {
             return true;
           } else {
-            return /*severe:StaticTypeError*/new Future<bool>.value(false);
+            return new Future<bool>.value(false);
           }
         }
     '''
