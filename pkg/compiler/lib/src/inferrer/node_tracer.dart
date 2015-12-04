@@ -2,7 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of type_graph_inferrer;
+library compiler.src.inferrer.node_tracer;
+
+import '../common/names.dart' show Identifiers;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart';
+import '../types/types.dart' show ContainerTypeMask, MapTypeMask;
+import '../util/util.dart' show Setlet;
+
+import 'type_graph_inferrer.dart' show TypeGraphInferrerEngine;
+import 'type_graph_nodes.dart';
+import 'debug.dart' as debug;
 
 // A set of selectors we know do not escape the elements inside the
 // list.
@@ -64,6 +74,7 @@ Set<String> doesNotEscapeMapSet = new Set<String>.from(
     'keys'
   ]);
 
+/// Common logic to trace a value through the type inference graph nodes.
 abstract class TracerVisitor<T extends TypeInformation>
     implements TypeInformationVisitor {
   final T tracedType;
@@ -136,7 +147,7 @@ abstract class TracerVisitor<T extends TypeInformation>
   }
 
   void bailout(String reason) {
-    if (_VERBOSE) {
+    if (debug.VERBOSE) {
       print('Bailing out on $tracedType because: $reason');
     }
     continueAnalyzing = false;
@@ -202,7 +213,7 @@ abstract class TracerVisitor<T extends TypeInformation>
         flow.users.forEach((user) {
           if (user is !DynamicCallSiteTypeInformation) return;
           if (user.receiver != flow) return;
-          if (inferrer._returnsListElementTypeSet.contains(user.selector)) {
+          if (inferrer.returnsListElementTypeSet.contains(user.selector)) {
             addNewEscapeInformation(user);
           } else if (!doesNotEscapeListSet.contains(user.selector.name)) {
             bailout('Escape from a list via [${user.selector.name}]');
