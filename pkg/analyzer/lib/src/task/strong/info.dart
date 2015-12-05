@@ -203,10 +203,6 @@ class DownCastImplicit extends DownCast {
   toErrorCode() => new HintCode(name, message);
 }
 
-//
-// Standard down casts.  These casts are implicitly injected by the compiler.
-//
-
 // A down cast from dynamic to T.
 class DynamicCast extends DownCast {
   DynamicCast(TypeRules rules, Expression expression, Cast cast)
