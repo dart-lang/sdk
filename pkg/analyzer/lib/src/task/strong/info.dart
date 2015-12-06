@@ -481,6 +481,32 @@ abstract class StaticError extends StaticInfo {
 // Analyzer instead has template strings, and replaces '{0}' with the first
 // argument.
 abstract class StaticInfo {
+  /// Strong-mode error code names.
+  ///
+  /// Used for error code configuration validation in `.analysis_options`.
+  static const List<String> names = const [
+    //
+    // Manually populated.
+    //
+    'STRONG_MODE_ASSIGNMENT_CAST',
+    'STRONG_MODE_DOWN_CAST_COMPOSITE',
+    'STRONG_MODE_DOWN_CAST_IMPLICIT',
+    'STRONG_MODE_DYNAMIC_CAST',
+    'STRONG_MODE_DYNAMIC_INVOKE',
+    'STRONG_MODE_INFERRED_TYPE',
+    'STRONG_MODE_INFERRED_TYPE_ALLOCATION',
+    'STRONG_MODE_INFERRED_TYPE_CLOSURE',
+    'STRONG_MODE_INFERRED_TYPE_LITERAL',
+    'STRONG_MODE_INVALID_FIELD_OVERRIDE',
+    'STRONG_MODE_INVALID_METHOD_OVERRIDE',
+    'STRONG_MODE_INVALID_PARAMETER_DECLARATION',
+    'STRONG_MODE_INVALID_SUPER_INVOCATION',
+    'STRONG_MODE_INVALID_VARIABLE_DECLARATION',
+    'STRONG_MODE_NON_GROUND_TYPE_CHECK_INFO',
+    'STRONG_MODE_STATIC_TYPE_ERROR',
+    'STRONG_MODE_UNINFERRED_CLOSURE',
+  ];
+
   List<Object> get arguments => [node];
 
   String get name;
