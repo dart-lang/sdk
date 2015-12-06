@@ -317,6 +317,13 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(10));
   GET_NATIVE_ARGUMENT(Array, packages, arguments->NativeArgAt(11));
 
+  if (Dart::IsRunningPrecompiledCode()) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, String::Handle(String::New(
+        "Isolate.spawnUri not supported under precompilation")));
+    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+    UNREACHABLE();
+  }
 
   // Canonicalize the uri with respect to the current isolate.
   const Library& root_lib =

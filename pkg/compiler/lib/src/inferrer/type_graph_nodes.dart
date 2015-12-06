@@ -2,7 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of type_graph_inferrer;
+library compiler.src.inferrer.type_graph_nodes;
+
+import 'dart:collection' show IterableBase;
+
+import '../common.dart';
+import '../common/names.dart' show Identifiers;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
+import '../dart_types.dart' show
+    DartType,
+    FunctionType,
+    InterfaceType,
+    TypeKind;
+import '../elements/elements.dart';
+import '../native/native.dart' as native;
+import '../tree/tree.dart' as ast show
+    DartString,
+    Node,
+    LiteralBool,
+    Send,
+    SendSet,
+    TryStatement;
+import '../types/types.dart' show
+    ContainerTypeMask,
+    DictionaryTypeMask,
+    MapTypeMask,
+    TypeMask,
+    ValueTypeMask;
+import '../universe/selector.dart' show Selector;
+import '../util/util.dart' show ImmutableEmptySet, Setlet;
+import '../world.dart' show ClassWorld;
+
+import 'inferrer_visitor.dart' show ArgumentsTypes;
+import 'type_graph_inferrer.dart' show
+    TypeGraphInferrerEngine,
+    TypeInformationSystem;
+import 'debug.dart' as debug;
 
 /**
  * Common class for all nodes in the graph. The current nodes are:
@@ -455,14 +492,14 @@ class MemberTypeInformation extends ElementTypeInformation
       return mask;
     }
     if (element.isField) {
-      return new TypeMaskSystem(compiler).narrowType(mask, element.type);
+      return _narrowType(compiler, mask, element.type);
     }
     assert(element.isFunction ||
            element.isGetter ||
            element.isFactoryConstructor);
 
     FunctionType type = element.type;
-    return new TypeMaskSystem(compiler).narrowType(mask, type.returnType);
+    return _narrowType(compiler, mask, type.returnType);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -594,7 +631,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
     assert(!compiler.enableTypeAssertions);
-    return new TypeMaskSystem(compiler).narrowType(mask, element.type);
+    return _narrowType(compiler, mask, element.type);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -935,7 +972,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           ValueTypeMask arg = arguments.positional[0].type;
           String key = arg.value.primitiveValue.slowToString();
           if (dictionaryTypeMask.typeMap.containsKey(key)) {
-            if (_VERBOSE) {
+            if (debug.VERBOSE) {
               print("Dictionary lookup for $key yields "
                     "${dictionaryTypeMask.typeMap[key]}.");
             }
@@ -943,14 +980,14 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           } else {
             // The typeMap is precise, so if we do not find the key, the lookup
             // will be [null] at runtime.
-            if (_VERBOSE) {
+            if (debug.VERBOSE) {
               print("Dictionary lookup for $key yields [null].");
             }
             return inferrer.types.nullType.type;
           }
         }
         MapTypeMask mapTypeMask = typeMask;
-        if (_VERBOSE) {
+        if (debug.VERBOSE) {
           print(
               "Map lookup for $selector yields ${mapTypeMask.valueType}.");
         }
@@ -1180,7 +1217,7 @@ class NarrowTypeInformation extends TypeInformation {
     TypeMask input = assignments.first.type;
     TypeMask intersection = input.intersection(typeAnnotation,
         inferrer.classWorld);
-    if (_ANOMALY_WARN) {
+    if (debug.ANOMALY_WARN) {
       if (!input.containsMask(intersection, inferrer.classWorld) ||
           !typeAnnotation.containsMask(intersection, inferrer.classWorld)) {
         print("ANOMALY WARNING: narrowed $input to $intersection via "
@@ -1610,4 +1647,25 @@ abstract class TypeInformationVisitor<T> {
   T visitParameterTypeInformation(ParameterTypeInformation info);
   T visitClosureTypeInformation(ClosureTypeInformation info);
   T visitAwaitTypeInformation(AwaitTypeInformation info);
+}
+
+TypeMask _narrowType(Compiler compiler, TypeMask type, DartType annotation,
+    {bool isNullable: true}) {
+  if (annotation.treatAsDynamic) return type;
+  if (annotation.isObject) return type;
+  TypeMask otherType;
+  if (annotation.isTypedef || annotation.isFunctionType) {
+    otherType = compiler.typesTask.functionType;
+  } else if (annotation.isTypeVariable) {
+    // TODO(ngeoffray): Narrow to bound.
+    return type;
+  } else if (annotation.isVoid) {
+    otherType = compiler.typesTask.nullType;
+  } else {
+    assert(annotation.isInterfaceType);
+    otherType = new TypeMask.nonNullSubtype(annotation.element, compiler.world);
+  }
+  if (isNullable) otherType = otherType.nullable();
+  if (type == null) return otherType;
+  return type.intersection(otherType, compiler.world);
 }

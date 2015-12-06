@@ -672,6 +672,22 @@ main() {
     }
   }
 
+  test_instanceCreation_withImportPrefix_named() async {
+    addTestFile('''
+import 'dart:async' as ppp;
+main() {
+  new ppp.Future.value(42);
+}
+''');
+    await prepareNavigation();
+    {
+      assertHasRegion('ppp.');
+      assertHasTarget('ppp;');
+    }
+    assertHasRegion('Future.value');
+    assertHasRegion('value(42)');
+  }
+
   test_library() async {
     addTestFile('''
 library my.lib;

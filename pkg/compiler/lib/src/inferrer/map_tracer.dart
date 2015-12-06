@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of type_graph_inferrer;
+library compiler.src.inferrer.map_tracer;
+
+import '../elements/elements.dart';
+import '../universe/selector.dart' show Selector;
+
+import 'node_tracer.dart';
+import 'type_graph_nodes.dart';
 
 Set<String> okMapSelectorsSet = new Set.from(
     const <String>[

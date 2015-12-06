@@ -87,6 +87,51 @@ LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
 }
 
 
+static const struct ALIGN16 {
+  uint64_t a;
+  uint64_t b;
+} double_negate_constant =
+    {0x8000000000000000LL, 0x8000000000000000LL};
+
+static const struct ALIGN16 {
+  uint64_t a;
+  uint64_t b;
+} double_abs_constant =
+    {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
+
+static const struct ALIGN16 {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t d;
+} float_not_constant =
+    { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+
+static const struct ALIGN16 {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t d;
+} float_negate_constant =
+    { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+
+static const struct ALIGN16 {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t d;
+} float_absolute_constant =
+    { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
+
+static const struct ALIGN16 {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t d;
+} float_zerow_constant =
+    { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 };
+
+
 void Thread::InitVMConstants() {
 #define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
   ASSERT((init_expr)->IsOldObject());

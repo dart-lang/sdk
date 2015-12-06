@@ -5141,6 +5141,12 @@ class SsaBuilder extends ast.Visitor
     // mismatch.
     ClassElement cls = constructor.enclosingClass;
     if (cls.isAbstract && constructor.isGenerativeConstructor) {
+      // However, we need to ensure that all arguments are evaluated before we
+      // throw the ACIE exception.
+      send.arguments.forEach((arg) {
+        visit(arg);
+        pop();
+      });
       generateAbstractClassInstantiationError(send, cls.name);
       return;
     }

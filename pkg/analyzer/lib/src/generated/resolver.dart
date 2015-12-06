@@ -9305,12 +9305,12 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
-    DartType contextType = InferenceContext.getType(node);
-    if (contextType is InterfaceType &&
-        contextType.typeArguments != null &&
-        contextType.typeArguments.length > 0) {
-      TypeName classTypeName = node.constructorName.type;
-      if (classTypeName.typeArguments == null) {
+    TypeName classTypeName = node.constructorName.type;
+    if (classTypeName.typeArguments == null) {
+      DartType contextType = InferenceContext.getType(node);
+      if (contextType is InterfaceType &&
+          contextType.typeArguments != null &&
+          contextType.typeArguments.length > 0) {
         List<DartType> targs =
             inferenceContext.matchTypes(classTypeName.type, contextType);
         if (targs != null && targs.any((t) => !t.isDynamic)) {
@@ -9321,24 +9321,17 @@ class ResolverVisitor extends ScopedVisitor {
           // The element resolver uses the type on the constructor name, so
           // infer it first
           typeAnalyzer.inferConstructorName(node.constructorName, fullType);
-          safelyVisit(node.constructorName);
-          ConstructorElement invokedConstructor =
-              node.constructorName.staticElement;
-          FunctionType rawConstructorType = invokedConstructor.type;
-          FunctionType constructorType = rawConstructorType.substitute2(
-              targs, rawConstructorType.typeArguments);
-          InferenceContext.setType(node.argumentList, constructorType);
-          safelyVisit(node.argumentList);
-          InferenceContext.setType(node, fullType);
-          node.accept(elementResolver);
-          node.accept(typeAnalyzer);
-          return null;
         }
-      } else {
-        InferenceContext.clearType(node);
       }
     }
-    super.visitInstanceCreationExpression(node);
+    safelyVisit(node.constructorName);
+    FunctionType constructorType = node.constructorName.staticElement?.type;
+    if (constructorType != null) {
+      InferenceContext.setType(node.argumentList, constructorType);
+    }
+    safelyVisit(node.argumentList);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 

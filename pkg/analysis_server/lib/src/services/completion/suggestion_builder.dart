@@ -7,97 +7,19 @@ library services.completion.suggestion.builder;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
+import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
+    show createSuggestion;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:path/path.dart' as path;
+
+export 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
+    show createSuggestion;
 
 const String DYNAMIC = 'dynamic';
-
-/**
- * Return a suggestion based upon the given element
- * or `null` if a suggestion is not appropriate for the given element.
- * If the suggestion is not currently in scope, then specify
- * importForSource as the source to which an import should be added.
- */
-CompletionSuggestion createSuggestion(Element element,
-    {String completion,
-    CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
-    int relevance: DART_RELEVANCE_DEFAULT,
-    Source importForSource}) {
-  if (element is ExecutableElement && element.isOperator) {
-    // Do not include operators in suggestions
-    return null;
-  }
-  if (completion == null) {
-    completion = element.displayName;
-  }
-  bool isDeprecated = element.isDeprecated;
-  CompletionSuggestion suggestion = new CompletionSuggestion(
-      kind,
-      isDeprecated ? DART_RELEVANCE_LOW : relevance,
-      completion,
-      completion.length,
-      0,
-      isDeprecated,
-      false);
-  suggestion.element = protocol.convertElement(element);
-  Element enclosingElement = element.enclosingElement;
-  if (enclosingElement is ClassElement) {
-    suggestion.declaringType = enclosingElement.displayName;
-  }
-  suggestion.returnType = getReturnTypeString(element);
-  if (element is ExecutableElement && element is! PropertyAccessorElement) {
-    suggestion.parameterNames = element.parameters
-        .map((ParameterElement parameter) => parameter.name)
-        .toList();
-    suggestion.parameterTypes = element.parameters
-        .map((ParameterElement parameter) => parameter.type.displayName)
-        .toList();
-    suggestion.requiredParameterCount = element.parameters
-        .where((ParameterElement parameter) =>
-            parameter.parameterKind == ParameterKind.REQUIRED)
-        .length;
-    suggestion.hasNamedParameters = element.parameters.any(
-        (ParameterElement parameter) =>
-            parameter.parameterKind == ParameterKind.NAMED);
-  }
-  if (importForSource != null) {
-    String srcPath = path.dirname(importForSource.fullName);
-    LibraryElement libElem = element.library;
-    if (libElem != null) {
-      Source libSource = libElem.source;
-      if (libSource != null) {
-        UriKind uriKind = libSource.uriKind;
-        if (uriKind == UriKind.DART_URI) {
-          suggestion.importUri = libSource.uri.toString();
-        } else if (uriKind == UriKind.PACKAGE_URI) {
-          suggestion.importUri = libSource.uri.toString();
-        } else if (uriKind == UriKind.FILE_URI &&
-            element.source.uriKind == UriKind.FILE_URI) {
-          try {
-            suggestion.importUri =
-                path.relative(libSource.fullName, from: srcPath);
-          } catch (_) {
-            // ignored
-          }
-        }
-      }
-    }
-    if (suggestion.importUri == null) {
-      // Do not include out of scope suggestions
-      // for which we cannot determine an import
-      return null;
-    }
-  }
-  return suggestion;
-}
 
 /**
  * Call the given function with each non-null non-empty inherited type name

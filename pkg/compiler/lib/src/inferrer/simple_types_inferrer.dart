@@ -52,155 +52,6 @@ import '../world.dart' show ClassWorld;
 import 'inferrer_visitor.dart';
 
 /**
- * An implementation of [TypeSystem] for [TypeMask].
- */
-class TypeMaskSystem implements TypeSystem<TypeMask> {
-  final Compiler compiler;
-  final ClassWorld classWorld;
-  TypeMaskSystem(Compiler compiler)
-      : this.compiler = compiler,
-        this.classWorld = compiler.world;
-
-  TypeMask narrowType(TypeMask type,
-                      DartType annotation,
-                      {bool isNullable: true}) {
-    if (annotation.treatAsDynamic) return type;
-    if (annotation.isObject) return type;
-    TypeMask otherType;
-    if (annotation.isTypedef || annotation.isFunctionType) {
-      otherType = functionType;
-    } else if (annotation.isTypeVariable) {
-      // TODO(ngeoffray): Narrow to bound.
-      return type;
-    } else if (annotation.isVoid) {
-      otherType = nullType;
-    } else {
-      assert(annotation.isInterfaceType);
-      otherType = new TypeMask.nonNullSubtype(annotation.element, classWorld);
-    }
-    if (isNullable) otherType = otherType.nullable();
-    if (type == null) return otherType;
-    return type.intersection(otherType, classWorld);
-  }
-
-  TypeMask narrowNotNull(TypeMask type) {
-    return type.nonNullable();
-  }
-
-  TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
-    if (firstType == null) {
-      return secondType;
-    } else if (secondType == dynamicType || firstType == dynamicType) {
-      return dynamicType;
-    } else if (firstType == secondType) {
-      return firstType;
-    } else {
-      TypeMask union = firstType.union(secondType, classWorld);
-      // TODO(kasperl): If the union isn't nullable it seems wasteful
-      // to use dynamic. Fix that.
-      return union.containsAll(classWorld) ? dynamicType : union;
-    }
-  }
-
-  TypeMask allocateDiamondPhi(TypeMask firstType, TypeMask secondType) {
-    return computeLUB(firstType, secondType);
-  }
-
-  TypeMask get dynamicType => compiler.typesTask.dynamicType;
-  TypeMask get nullType => compiler.typesTask.nullType;
-  TypeMask get intType => compiler.typesTask.intType;
-  TypeMask get uint32Type => compiler.typesTask.uint32Type;
-  TypeMask get uint31Type => compiler.typesTask.uint31Type;
-  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
-  TypeMask get doubleType => compiler.typesTask.doubleType;
-  TypeMask get numType => compiler.typesTask.numType;
-  TypeMask get boolType => compiler.typesTask.boolType;
-  TypeMask get functionType => compiler.typesTask.functionType;
-  TypeMask get listType => compiler.typesTask.listType;
-  TypeMask get constListType => compiler.typesTask.constListType;
-  TypeMask get fixedListType => compiler.typesTask.fixedListType;
-  TypeMask get growableListType => compiler.typesTask.growableListType;
-  TypeMask get mapType => compiler.typesTask.mapType;
-  TypeMask get constMapType => compiler.typesTask.constMapType;
-  TypeMask get stringType => compiler.typesTask.stringType;
-  TypeMask get typeType => compiler.typesTask.typeType;
-  TypeMask get syncStarIterableType => compiler.typesTask.syncStarIterableType;
-  TypeMask get asyncFutureType => compiler.typesTask.asyncFutureType;
-  TypeMask get asyncStarStreamType => compiler.typesTask.asyncStarStreamType;
-  bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
-
-  TypeMask stringLiteralType(ast.DartString value) => stringType;
-  TypeMask boolLiteralType(ast.LiteralBool value) => boolType;
-
-  TypeMask nonNullSubtype(ClassElement type)
-      => new TypeMask.nonNullSubtype(type.declaration, classWorld);
-  TypeMask nonNullSubclass(ClassElement type)
-      => new TypeMask.nonNullSubclass(type.declaration, classWorld);
-  TypeMask nonNullExact(ClassElement type)
-      => new TypeMask.nonNullExact(type.declaration, classWorld);
-  TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
-
-  TypeMask allocateList(TypeMask type,
-                        ast.Node node,
-                        Element enclosing,
-                        [TypeMask elementType, int length]) {
-    return new ContainerTypeMask(type, node, enclosing, elementType, length);
-  }
-
-  TypeMask allocateMap(TypeMask type, ast.Node node, Element element,
-                       [List<TypeMask> keys, List<TypeMask> values]) {
-    return type;
-  }
-
-  TypeMask allocateClosure(ast.Node node, Element element) {
-    return functionType;
-  }
-
-  TypeMask newTypedSelector(TypeMask receiver, TypeMask mask) {
-    return receiver;
-  }
-
-  TypeMask addPhiInput(Local variable,
-                       TypeMask phiType,
-                       TypeMask newType) {
-    return computeLUB(phiType, newType);
-  }
-
-  TypeMask allocatePhi(ast.Node node,
-                       Local variable,
-                       TypeMask inputType) {
-    return inputType;
-  }
-
-  TypeMask allocateLoopPhi(ast.Node node,
-                           Local variable,
-                           TypeMask inputType) {
-    return inputType;
-  }
-
-  TypeMask simplifyPhi(ast.Node node,
-                       Local variable,
-                       TypeMask phiType) {
-    return phiType;
-  }
-
-  bool selectorNeedsUpdate(TypeMask type, TypeMask mask) {
-    return type != mask;
-  }
-
-  TypeMask refineReceiver(Selector selector,
-                          TypeMask mask,
-                          TypeMask receiverType,
-                          bool isConditional) {
-    TypeMask newType =
-        compiler.world.allFunctions.receiverType(selector, mask);
-    return receiverType.intersection(newType, classWorld);
-  }
-
-  TypeMask getConcreteTypeFor(TypeMask mask) => mask;
-}
-
-/**
  * Common super class used by [SimpleTypeInferrerVisitor] to propagate
  * type information about visited nodes, as well as to request type
  * information of elements.
@@ -486,6 +337,15 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 }
 
+/// [SimpleTypeInferrerVisitor] can be thought of as a type-inference graph
+/// builder for a single element.
+///
+/// Calling [run] will start the work of visiting the body of the code to
+/// construct a set of infernece-nodes that abstractly represent what the code
+/// is doing.
+///
+/// This visitor is parameterized by an [InferenceEngine], which internally
+/// decides how to represent inference nodes.
 class SimpleTypeInferrerVisitor<T>
     extends InferrerVisitor<T, InferrerEngine<T, TypeSystem<T>>> {
   T returnType;

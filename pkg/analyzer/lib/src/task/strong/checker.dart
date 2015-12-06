@@ -613,6 +613,14 @@ class CodeChecker extends RecursiveAstVisitor {
       // analyzer error in this case.
       return;
     }
+    InterfaceType futureType = rules.provider.futureType;
+    DartType actualType = expression.staticType;
+    if (body.isAsynchronous &&
+        !body.isGenerator &&
+        actualType is InterfaceType &&
+        actualType.element == futureType.element) {
+      type = futureType.substitute4([type]);
+    }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
   }

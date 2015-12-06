@@ -4644,13 +4644,12 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   }
 
   if (is_patch) {
+    cls.set_is_patch();
     // Apply the changes to the patched class looked up above.
     ASSERT(obj.raw() == library_.LookupLocalObject(class_name));
     // The patched class must not be finalized yet.
-    const Class& orig_class = Class::Cast(obj);
-    ASSERT(!orig_class.is_finalized());
-    orig_class.SetPatchClass(cls);
-    cls.set_is_patch();
+    ASSERT(!Class::Cast(obj).is_finalized());
+    library_.AddPatchClass(cls);
   }
   pending_classes.Add(cls, Heap::kOld);
 

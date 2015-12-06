@@ -332,14 +332,38 @@ main() {
     _createRefactoring(testCode.indexOf('bb * 2'), 0);
     // check conditions
     await refactoring.checkInitialConditions();
-    List<String> subExpressions = <String>[];
-    for (int i = 0; i < refactoring.coveringExpressionOffsets.length; i++) {
-      int offset = refactoring.coveringExpressionOffsets[i];
-      int length = refactoring.coveringExpressionLengths[i];
-      subExpressions.add(testCode.substring(offset, offset + length));
-    }
+    List<String> subExpressions = _getCoveringExpressions();
     expect(subExpressions,
         ['bbb', 'bbb * 2', 'aaa + bbb * 2', 'aaa + bbb * 2 + 3']);
+  }
+
+  test_coveringExpressions_inArgumentList() async {
+    indexTestUnit('''
+main() {
+  foo(111 + 222);
+}
+int foo(int x) => x;
+''');
+    _createRefactoring(testCode.indexOf('11 +'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['111', '111 + 222', 'foo(111 + 222)']);
+  }
+
+  test_coveringExpressions_skipAssignments() async {
+    indexTestUnit('''
+main() {
+  int v;
+  foo(v = 111 + 222);
+}
+int foo(x) => 42;
+''');
+    _createRefactoring(testCode.indexOf('11 +'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['111', '111 + 222', 'foo(v = 111 + 222)']);
   }
 
   test_fragmentExpression() {
@@ -1052,5 +1076,15 @@ main() {
     int offset = findOffset(selectionSearch + suffix);
     int length = selectionSearch.length;
     _createRefactoring(offset, length);
+  }
+
+  List<String> _getCoveringExpressions() {
+    List<String> subExpressions = <String>[];
+    for (int i = 0; i < refactoring.coveringExpressionOffsets.length; i++) {
+      int offset = refactoring.coveringExpressionOffsets[i];
+      int length = refactoring.coveringExpressionLengths[i];
+      subExpressions.add(testCode.substring(offset, offset + length));
+    }
+    return subExpressions;
   }
 }

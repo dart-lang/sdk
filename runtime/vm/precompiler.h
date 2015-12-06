@@ -93,6 +93,16 @@ class Precompiler : public ValueObject {
       Dart_QualifiedFunctionName embedder_entry_points[],
       bool reset_fields);
 
+  // Returns named function that is a unique dynamic target, i.e.,
+  // - the target is identified by its name alone, since it occurs only once.
+  // - target's class has no subclasses, and neither is subclassed, i.e.,
+  //   the receiver type can be only the function's class.
+  // Returns Function::null() if there is no unique dynamic target for
+  // given 'fname'. 'fname' must be a symbol.
+  static void GetUniqueDynamicTarget(Isolate* isolate,
+                                     const String& fname,
+                                     Object* function);
+
  private:
   Precompiler(Thread* thread, bool reset_fields);
 
@@ -115,6 +125,7 @@ class Precompiler : public ValueObject {
   void CheckForNewDynamicFunctions();
 
   void DropUncompiledFunctions();
+  void CollectDynamicFunctionNames();
   void BindStaticCalls();
   void DedupStackmaps();
   void ResetPrecompilerState();

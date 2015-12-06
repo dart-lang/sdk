@@ -7,7 +7,6 @@ library test.services.completion;
 import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
-import 'combinator_contributor_test.dart' as combinator_test;
 import 'completion_computer_test.dart' as completion_computer_test;
 import 'completion_manager_test.dart' as completion_manager_test;
 import 'completion_target_test.dart' as completion_target_test;
@@ -23,7 +22,6 @@ import 'prefixed_element_contributor_test.dart' as invocation_test;
 main() {
   initializeTestEnvironment();
   group('completion', () {
-    combinator_test.main();
     completion_computer_test.main();
     completion_manager_test.main();
     completion_target_test.main();

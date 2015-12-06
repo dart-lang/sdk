@@ -4,9 +4,7 @@
 
 library type_graph_inferrer;
 
-import 'dart:collection' show
-    IterableBase,
-    Queue;
+import 'dart:collection' show Queue;
 
 import '../common.dart';
 import '../common/names.dart' show
@@ -15,8 +13,6 @@ import '../common/names.dart' show
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart';
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir show
-    Node;
 import '../dart_types.dart' show
     DartType,
     FunctionType,
@@ -26,7 +22,6 @@ import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show
     Annotations,
     JavaScriptBackend;
-import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart' show
     TreeElementMapping;
 import '../tree/tree.dart' as ast show
@@ -38,11 +33,9 @@ import '../tree/tree.dart' as ast show
     TryStatement;
 import '../types/types.dart' show
     ContainerTypeMask,
-    DictionaryTypeMask,
     MapTypeMask,
     TypeMask,
-    TypesInferrer,
-    ValueTypeMask;
+    TypesInferrer;
 import '../types/constants.dart' show
     computeTypeMask;
 import '../universe/call_structure.dart' show
@@ -62,15 +55,12 @@ import 'inferrer_visitor.dart' show
     TypeSystem;
 import 'simple_types_inferrer.dart';
 
-part 'closure_tracer.dart';
-part 'list_tracer.dart';
-part 'map_tracer.dart';
-part 'node_tracer.dart';
-part 'type_graph_nodes.dart';
+import 'closure_tracer.dart';
+import 'list_tracer.dart';
+import 'map_tracer.dart';
+import 'type_graph_nodes.dart';
+import 'debug.dart' as debug;
 
-bool _VERBOSE = false;
-bool _PRINT_SUMMARY = false;
-final _ANOMALY_WARN = false;
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
@@ -622,7 +612,7 @@ class TypeGraphInferrerEngine
    * A set of selector names that [List] implements, that we know return
    * their element type.
    */
-  final Set<Selector> _returnsListElementTypeSet = new Set<Selector>.from(
+  final Set<Selector> returnsListElementTypeSet = new Set<Selector>.from(
     <Selector>[
       new Selector.getter(const PublicName('first')),
       new Selector.getter(const PublicName('last')),
@@ -637,7 +627,7 @@ class TypeGraphInferrerEngine
   bool returnsListElementType(Selector selector, TypeMask mask) {
     return mask != null &&
            mask.isContainer &&
-           _returnsListElementTypeSet.contains(selector);
+           returnsListElementTypeSet.contains(selector);
   }
 
   bool returnsMapValueType(Selector selector, TypeMask mask) {
@@ -733,7 +723,7 @@ class TypeGraphInferrerEngine
         if (!tracer.continueAnalyzing) {
           elements.forEach((FunctionElement e) {
             compiler.world.registerMightBePassedToApply(e);
-            if (_VERBOSE) print("traced closure $e as ${true} (bail)");
+            if (debug.VERBOSE) print("traced closure $e as ${true} (bail)");
             e.functionSignature.forEachParameter((parameter) {
               types.getInferredTypeOf(parameter).giveUp(
                   this,
@@ -754,7 +744,7 @@ class TypeGraphInferrerEngine
           if (tracer.tracedType.mightBePassedToFunctionApply) {
             compiler.world.registerMightBePassedToApply(e);
           };
-          if (_VERBOSE) {
+          if (debug.VERBOSE) {
             print("traced closure $e as "
                 "${compiler.world.getMightBePassedToApply(e)}");
           }
@@ -808,7 +798,7 @@ class TypeGraphInferrerEngine
     workQueue.addAll(seenTypes);
     refine();
 
-    if (_PRINT_SUMMARY) {
+    if (debug.PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((ListTypeInformation info) {
         print('${info.type} '
               'for ${info.originalType.allocationNode} '
@@ -956,7 +946,7 @@ class TypeGraphInferrerEngine
         overallRefineCount++;
         info.refineCount++;
         if (info.refineCount > MAX_CHANGE_COUNT) {
-          if (_ANOMALY_WARN) {
+          if (debug.ANOMALY_WARN) {
             print("ANOMALY WARNING: max refinement reached for $info");
           }
           info.giveUp(this);
