@@ -1121,44 +1121,38 @@ main(A a) {
     buildTests(
         'testCompletion_combinator_afterComma',
         '''
-"import 'dart:math' show cos, !1;''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+import 'dart:math' show cos, !1;''',
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests(
         'testCompletion_combinator_ended',
         '''
 import 'dart:math' show !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests(
         'testCompletion_combinator_export',
         '''
 export 'dart:math' show !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests(
         'testCompletion_combinator_hide',
         '''
 import 'dart:math' hide !1;"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests(
         'testCompletion_combinator_notEnded',
         '''
 import 'dart:math' show !1"''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests(
         'testCompletion_combinator_usePrefix',
         '''
 import 'dart:math' show s!1"''',
-        <String>["1+sin", "1+sqrt", "1-cos", "1-String"],
-        failingTests: '1');
+        <String>["1+sin", "1+sqrt", "1-cos", "1-String"]);
 
     buildTests(
         'testCompletion_constructor_field',

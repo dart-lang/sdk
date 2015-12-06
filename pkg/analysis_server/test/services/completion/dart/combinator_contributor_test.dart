@@ -76,8 +76,8 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestClass('PB',
         relevance: DART_RELEVANCE_DEFAULT,
         kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestTopLevelVar('T1', null, DART_RELEVANCE_DEFAULT,
-        CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestTopLevelVar('T1', null,
+        kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestFunction('F1', 'PB',
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertNotSuggested('C');
@@ -127,8 +127,8 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestClass('PB',
         relevance: DART_RELEVANCE_DEFAULT,
         kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestTopLevelVar('T1', null, DART_RELEVANCE_DEFAULT,
-        CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestTopLevelVar('T1', null,
+        kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestFunction('F1', 'PB',
         kind: CompletionSuggestionKind.IDENTIFIER);
     assertSuggestClass('Clz',
@@ -140,5 +140,12 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('D');
     assertNotSuggested('X');
     assertNotSuggested('Object');
+  }
+
+  test_Combinator_show_PI() async {
+    addTestSource('import "dart:math" show ^;');
+    await computeSuggestions();
+    assertSuggestTopLevelVar('PI', 'double',
+        kind: CompletionSuggestionKind.IDENTIFIER);
   }
 }

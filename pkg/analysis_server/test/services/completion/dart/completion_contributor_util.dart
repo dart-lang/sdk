@@ -215,9 +215,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   }
 
   CompletionSuggestion assertSuggestTopLevelVar(String name, String returnType,
-      [int relevance = DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      String importUri]) {
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      String importUri}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind, relevance: relevance, importUri: importUri);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
