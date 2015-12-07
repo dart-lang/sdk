@@ -4974,11 +4974,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of named parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_NAMED = const StaticWarningCode(
       'INVALID_OVERRIDE_NAMED',
-      "Missing the named parameter '{0}' to match the overridden method from '{1}'");
+      "Missing the named parameter '{0}' to match the overridden method from '{1}' from '{2}'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -4987,11 +4988,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of positional parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_POSITIONAL =
       const StaticWarningCode('INVALID_OVERRIDE_POSITIONAL',
-          "Must have at least {0} parameters to match the overridden method from '{1}'");
+          "Must have at least {0} parameters to match the overridden method '{1}' from '{2}'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -5000,11 +5002,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of required parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_REQUIRED =
       const StaticWarningCode('INVALID_OVERRIDE_REQUIRED',
-          "Must have {0} required parameters or less to match the overridden method from '{1}'");
+          "Must have {0} required parameters or less to match the overridden method '{1}' from '{2}'");
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a

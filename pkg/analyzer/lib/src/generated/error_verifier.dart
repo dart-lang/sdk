@@ -1336,6 +1336,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.INVALID_OVERRIDE_REQUIRED, errorNameTarget, [
         overriddenNormalPT.length,
+        overriddenExecutable,
         overriddenExecutable.enclosingElement.displayName
       ]);
       return true;
@@ -1345,6 +1346,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.INVALID_OVERRIDE_POSITIONAL, errorNameTarget, [
         overriddenPositionalPT.length + overriddenNormalPT.length,
+        overriddenExecutable,
         overriddenExecutable.enclosingElement.displayName
       ]);
       return true;
@@ -1358,6 +1360,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.INVALID_OVERRIDE_NAMED, errorNameTarget, [
           overriddenParamName,
+          overriddenExecutable,
           overriddenExecutable.enclosingElement.displayName
         ]);
         return true;
