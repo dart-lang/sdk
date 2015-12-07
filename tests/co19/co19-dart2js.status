@@ -3172,6 +3172,9 @@ LayoutTests/fast/dom/HTMLAnchorElement/set-href-attribute-pathname_t01: RuntimeE
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 
+[ $compiler == dart2js && $runtime == ff && $system == linux]
+LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19 issue 16
+
 [ $compiler == dart2js && $runtime == safari ]
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
