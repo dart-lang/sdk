@@ -1823,31 +1823,48 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     Element element = node.methodName.staticElement;
     DartType fnType = node.methodName.staticType;
     TypeSystem ts = _typeSystem;
-    // TODO(jmesserly): once we allow explicitly passed typeArguments, we need
-    // to only do this if node.typeArguments == null.
-    if (element is ExecutableElement &&
+    if (node.typeArguments == null &&
+        element is ExecutableElement &&
         fnType is FunctionTypeImpl &&
         ts is StrongTypeSystemImpl) {
-      // We may have too many (or too few) arguments.  Only use arguments
-      // which have been matched up with a static parameter.
-      Iterable<Expression> arguments = node.argumentList.arguments
-          .where((e) => e.staticParameterElement != null);
-      List<DartType> argTypes = arguments.map((e) => e.staticType).toList();
-      List<DartType> paramTypes =
-          arguments.map((e) => e.staticParameterElement.type).toList();
+      FunctionTypeImpl genericFunction = fnType.originalFunction;
+      if (genericFunction.boundTypeParameters.isEmpty) {
+        return false;
+      }
+      for (DartType typeArg in fnType.instantiatedTypeArguments) {
+        if (!typeArg.isDynamic) {
+          return false;
+        }
+      }
+
+      List<ParameterElement> genericParameters = genericFunction.parameters;
+      List<DartType> argTypes = new List<DartType>();
+      List<DartType> paramTypes = new List<DartType>();
+      for (Expression arg in node.argumentList.arguments) {
+        // We may have too many (or too few) arguments.  Only use arguments
+        // which have been matched up with a static parameter.
+        ParameterElement p = arg.staticParameterElement;
+        if (p != null) {
+          int i = element.parameters.indexOf(p);
+          argTypes.add(arg.staticType);
+          paramTypes.add(genericParameters[i].type);
+        }
+      }
 
       FunctionType inferred = ts.inferCallFromArguments(
-          _typeProvider, fnType, paramTypes, argTypes);
+          _typeProvider, genericFunction, paramTypes, argTypes);
       if (inferred != fnType) {
-        // TODO(jmesserly): inference should be happening earlier, which would
-        // allow these parameters to be correct from the get-go.
-
+        // TODO(jmesserly): we need to fix up the parameter elements based on
+        // inferred method.
         List<ParameterElement> inferredParameters = inferred.parameters;
         List<ParameterElement> correspondingParams =
             new List<ParameterElement>();
-        for (Expression arg in arguments) {
-          int i = element.parameters.indexOf(arg.staticParameterElement);
-          correspondingParams.add(inferredParameters[i]);
+        for (Expression arg in node.argumentList.arguments) {
+          ParameterElement p = arg.staticParameterElement;
+          if (p != null) {
+            int i = element.parameters.indexOf(p);
+            correspondingParams.add(inferredParameters[i]);
+          }
         }
         node.argumentList.correspondingStaticParameters = correspondingParams;
         _recordStaticType(node.methodName, inferred);

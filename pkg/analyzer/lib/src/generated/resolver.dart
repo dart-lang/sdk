@@ -11821,6 +11821,7 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the invocation.
     //
     safelyVisit(node.target);
+    safelyVisit(node.typeArguments);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
     Element methodElement = node.methodName.staticElement;

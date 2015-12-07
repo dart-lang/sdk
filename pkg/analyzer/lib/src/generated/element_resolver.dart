@@ -635,6 +635,46 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
     }
+    //
+    // Check for a generic method & apply type arguments if any were passed.
+    //
+    if (staticElement is MethodElement || staticElement is FunctionElement) {
+      FunctionType type = (staticElement as ExecutableElement).type;
+      List<TypeParameterElement> parameters = type.boundTypeParameters;
+
+      NodeList<TypeName> arguments = node.typeArguments?.arguments;
+      if (arguments != null && arguments.length != parameters.length) {
+        // Wrong number of type arguments. Ignore them
+        arguments = null;
+        _resolver.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+            methodName,
+            [type, parameters.length, arguments.length]);
+      }
+      if (parameters.isNotEmpty) {
+        List<DartType> typeArgs;
+        if (arguments == null) {
+          typeArgs = new List<DartType>.filled(
+              parameters.length, DynamicTypeImpl.instance);
+        } else {
+          typeArgs = new List<DartType>.from(arguments.map((n) => n.type));
+        }
+        type = type.instantiate(typeArgs);
+
+        if (staticElement is MethodMember) {
+          MethodMember member = staticElement;
+          staticElement =
+              new MethodMember(member.baseElement, member.definingType, type);
+        } else if (staticElement is MethodElement) {
+          ClassElement clazz = staticElement.enclosingElement;
+          staticElement = new MethodMember(staticElement, clazz.type, type);
+        } else {
+          staticElement =
+              new FunctionMember(staticElement as FunctionElement, type);
+        }
+      }
+    }
+
     staticElement = _convertSetterToGetter(staticElement);
     propagatedElement = _convertSetterToGetter(propagatedElement);
     //

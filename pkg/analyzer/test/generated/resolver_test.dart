@@ -13196,6 +13196,29 @@ main() {
     expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
   }
 
+  void test_genericMethod_explicitTypeParams() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    _resolveTestUnit(r'''
+class C<E> {
+  List/*<T>*/ f/*<T>*/(E e) => null;
+}
+main() {
+  C<String> cOfString;
+  var x = cOfString.f/*<int>*/('hi');
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f/*<int>*/');
+    FunctionType ft = f.staticType;
+    expect(ft.toString(), '(String) → List<int>');
+    expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
+
+    SimpleIdentifier x = _findIdentifier('x');
+    expect(x.staticType,
+        typeProvider.listType.substitute4([typeProvider.intType]));
+  }
+
   void test_genericMethod_functionTypedParameter() {
     if (!AnalysisEngine.instance.useTaskModel) {
       return;
@@ -13221,6 +13244,31 @@ main() {
     expect(ft.toString(), '<T>((String) → T) → List<T>');
     ft = ft.instantiate([typeProvider.intType]);
     expect(ft.toString(), '((String) → int) → List<int>');
+  }
+
+  void test_genericMethod_implicitDynamic() {
+    if (!AnalysisEngine.instance.useTaskModel) {
+      return;
+    }
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/25100#issuecomment-162047588
+    // These should not cause any hints or warnings.
+    _resolveTestUnit(r'''
+class List<E> {
+  /*=T*/ map/*<T>*/(/*=T*/ f(E e)) => null;
+}
+void foo() {
+  List list = null;
+  list.map((e) => e);
+  list.map((e) => 3);
+}''');
+
+    SimpleIdentifier map1 = _findIdentifier('map((e) => e);');
+    expect(map1.staticType.toString(), '((dynamic) → dynamic) → dynamic');
+    expect(map1.propagatedType, isNull);
+    SimpleIdentifier map2 = _findIdentifier('map((e) => 3);');
+    expect(map2.staticType.toString(), '((dynamic) → int) → int');
+    expect(map2.propagatedType, isNull);
   }
 
   void test_genericMethod_nestedCapture() {

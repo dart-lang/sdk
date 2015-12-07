@@ -1990,10 +1990,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
 class ConstructorMember extends ExecutableMember implements ConstructorElement {
   /**
    * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * [baseElement], defined by the [definingType]. If [type] is passed, it
+   * represents the full type of the member, and will take precedence over
+   * the [definingType].
    */
-  ConstructorMember(ConstructorElement baseElement, InterfaceType definingType)
-      : super(baseElement, definingType);
+  ConstructorMember(ConstructorElement baseElement, InterfaceType definingType,
+      [FunctionType type])
+      : super(baseElement, definingType, type);
 
   @override
   ConstructorElement get baseElement => super.baseElement as ConstructorElement;
@@ -2081,10 +2084,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     if (baseType == substitutedType) {
       return constructor;
     }
-    // TODO(brianwilkerson) Consider caching the substituted type in the
-    // instance. It would use more memory but speed up some operations.
-    // We need to see how often the type is being re-computed.
-    return new ConstructorMember(constructor, definingType);
+    return new ConstructorMember(constructor, definingType, substitutedType);
   }
 }
 
@@ -3573,7 +3573,7 @@ class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl
  * An element representing an executable object, including functions, methods,
  * constructors, getters, and setters.
  */
-abstract class ExecutableElement implements TypeParameterizedElement {
+abstract class ExecutableElement implements FunctionTypedElement {
   /**
    * An empty list of executable elements.
    */
@@ -3649,24 +3649,6 @@ abstract class ExecutableElement implements TypeParameterizedElement {
    * executable element.
    */
   List<LocalVariableElement> get localVariables;
-
-  /**
-   * Return a list containing all of the parameters defined by this executable
-   * element.
-   */
-  List<ParameterElement> get parameters;
-
-  /**
-   * Return the return type defined by this executable element. If the element
-   * model is fully populated, then the [returnType] will not be `null`, even
-   * if no return type was explicitly specified.
-   */
-  DartType get returnType;
-
-  /**
-   * Return the type of function defined by this executable element.
-   */
-  FunctionType get type;
 }
 
 /**
@@ -3941,12 +3923,21 @@ abstract class ExecutableElementImpl extends ElementImpl
  * type parameters are known.
  */
 abstract class ExecutableMember extends Member implements ExecutableElement {
+  @override
+  final FunctionType type;
+
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * Initialize a newly created element to represent a callable element (like a
+   * method or function or property), based on the [baseElement], defined by the
+   * [definingType]. If [type] is passed, it represents the full type of the
+   * member, and will take precedence over the [definingType].
    */
-  ExecutableMember(ExecutableElement baseElement, InterfaceType definingType)
-      : super(baseElement, definingType);
+  ExecutableMember(ExecutableElement baseElement, InterfaceType definingType,
+      [FunctionType type])
+      : type = type ??
+            baseElement.type.substitute2(definingType.typeArguments,
+                TypeParameterTypeImpl.getTypes(definingType.typeParameters)),
+        super(baseElement, definingType);
 
   @override
   ExecutableElement get baseElement => super.baseElement as ExecutableElement;
@@ -3999,26 +3990,10 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   }
 
   @override
-  List<ParameterElement> get parameters {
-    List<ParameterElement> baseParameters = baseElement.parameters;
-    int parameterCount = baseParameters.length;
-    if (parameterCount == 0) {
-      return baseParameters;
-    }
-    List<ParameterElement> parameterizedParameters =
-        new List<ParameterElement>(parameterCount);
-    for (int i = 0; i < parameterCount; i++) {
-      parameterizedParameters[i] =
-          ParameterMember.from(baseParameters[i], definingType);
-    }
-    return parameterizedParameters;
-  }
+  List<ParameterElement> get parameters => type.parameters;
 
   @override
-  DartType get returnType => substituteFor(baseElement.returnType);
-
-  @override
-  FunctionType get type => substituteFor(baseElement.type);
+  DartType get returnType => type.returnType;
 
   @override
   List<TypeParameterElement> get typeParameters => baseElement.typeParameters;
@@ -4258,18 +4233,21 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 class FieldFormalParameterMember extends ParameterMember
     implements FieldFormalParameterElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * Initialize a newly created element to represent a field formal parameter,
+   * based on the [baseElement], defined by the [definingType]. If [type]
+   * is passed it will be used as the substituted type for this member.
    */
   FieldFormalParameterMember(
-      FieldFormalParameterElement baseElement, ParameterizedType definingType)
-      : super(baseElement, definingType);
+      FieldFormalParameterElement baseElement, ParameterizedType definingType,
+      [DartType type])
+      : super(baseElement, definingType, type);
 
   @override
   FieldElement get field {
     FieldElement field = (baseElement as FieldFormalParameterElement).field;
     if (field is FieldElement) {
-      return FieldMember.from(field, definingType);
+      return FieldMember.from(
+          field, substituteFor(field.enclosingElement.type));
     }
     return field;
   }
@@ -4285,7 +4263,7 @@ class FieldFormalParameterMember extends ParameterMember
  */
 class FieldMember extends VariableMember implements FieldElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
+   * Initialize a newly created element to represent a field, based on the
    * [baseElement], defined by the [definingType].
    */
   FieldMember(FieldElement baseElement, InterfaceType definingType)
@@ -4293,9 +4271,6 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   FieldElement get baseElement => super.baseElement as FieldElement;
-
-  @override
-  InterfaceType get definingType => super.definingType as InterfaceType;
 
   @override
   ClassElement get enclosingElement => baseElement.enclosingElement;
@@ -4330,7 +4305,7 @@ class FieldMember extends VariableMember implements FieldElement {
    * field. Return the member that was created, or the base field if no member
    * was created.
    */
-  static FieldElement from(FieldElement field, InterfaceType definingType) {
+  static FieldElement from(FieldElement field, ParameterizedType definingType) {
     if (!_isChangedByTypeSubstitution(field, definingType)) {
       return field;
     }
@@ -4346,11 +4321,12 @@ class FieldMember extends VariableMember implements FieldElement {
    * arguments from the defining type.
    */
   static bool _isChangedByTypeSubstitution(
-      FieldElement field, InterfaceType definingType) {
+      FieldElement field, ParameterizedType definingType) {
     List<DartType> argumentTypes = definingType.typeArguments;
     if (field != null && argumentTypes.length != 0) {
       DartType baseType = field.type;
-      List<DartType> parameterTypes = definingType.element.type.typeArguments;
+      List<DartType> parameterTypes =
+          TypeParameterTypeImpl.getTypes(definingType.typeParameters);
       if (baseType != null) {
         DartType substitutedType =
             baseType.substitute2(argumentTypes, parameterTypes);
@@ -4525,6 +4501,70 @@ class FunctionElementImpl extends ExecutableElementImpl
 }
 
 /**
+ * An element of a generic function, where the type parameters are known.
+ */
+// TODO(jmesserly): the term "function member" is a bit weird, but it allows
+// a certain consistency.
+class FunctionMember extends ExecutableMember implements FunctionElement {
+  /**
+   * Initialize a newly created element to represent a function, based on the
+   * [baseElement], with the corresponding function [type].
+   */
+  FunctionMember(FunctionElement baseElement, [DartType type])
+      : super(baseElement, null, type);
+
+  @override
+  FunctionElement get baseElement => super.baseElement as FunctionElement;
+
+  @override
+  Element get enclosingElement => baseElement.enclosingElement;
+
+  @override
+  bool get isEntryPoint => baseElement.isEntryPoint;
+
+  @override
+  SourceRange get visibleRange => baseElement.visibleRange;
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
+
+  @override
+  FunctionDeclaration computeNode() => baseElement.computeNode();
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(baseElement.displayName);
+    (type as FunctionTypeImpl).appendTo(buffer);
+    return buffer.toString();
+  }
+
+  /**
+   * If the given [method]'s type is different when any type parameters from the
+   * defining type's declaration are replaced with the actual type arguments
+   * from the [definingType], create a method member representing the given
+   * method. Return the member that was created, or the base method if no member
+   * was created.
+   */
+  static MethodElement from(
+      MethodElement method, ParameterizedType definingType) {
+    if (method == null || definingType.typeArguments.length == 0) {
+      return method;
+    }
+    FunctionType baseType = method.type;
+    List<DartType> argumentTypes = definingType.typeArguments;
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(definingType.typeParameters);
+    FunctionType substitutedType =
+        baseType.substitute2(argumentTypes, parameterTypes);
+    if (baseType == substitutedType) {
+      return method;
+    }
+    return new MethodMember(method, definingType, substitutedType);
+  }
+}
+
+/**
  * The type of a function, method, constructor, getter, or setter. Function
  * types come in three variations:
  *
@@ -4669,7 +4709,7 @@ abstract class FunctionType implements ParameterizedType {
  * A function type alias (`typedef`).
  */
 abstract class FunctionTypeAliasElement
-    implements TypeDefiningElement, TypeParameterizedElement {
+    implements TypeDefiningElement, FunctionTypedElement {
   /**
    * An empty array of type alias elements.
    */
@@ -4681,19 +4721,6 @@ abstract class FunctionTypeAliasElement
    */
   @override
   CompilationUnitElement get enclosingElement;
-
-  /**
-   * Return a list containing all of the parameters defined by this type alias.
-   */
-  List<ParameterElement> get parameters;
-
-  /**
-   * Return the return type defined by this type alias.
-   */
-  DartType get returnType;
-
-  @override
-  FunctionType get type;
 
   /**
    * Return the resolved function type alias node that declares this element.
@@ -4853,6 +4880,31 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 }
 
 /**
+ * An element that has a [FunctionType] as its [type].
+ *
+ * This also provides convenient access to the parameters and return type.
+ */
+abstract class FunctionTypedElement implements TypeParameterizedElement {
+  /**
+   * Return a list containing all of the parameters defined by this executable
+   * element.
+   */
+  List<ParameterElement> get parameters;
+
+  /**
+   * Return the return type defined by this element. If the element model is
+   * fully populated, then the [returnType] will not be `null`, even
+   * if no return type was explicitly specified.
+   */
+  DartType get returnType;
+
+  /**
+   * Return the type of function defined by this element.
+   */
+  FunctionType get type;
+}
+
+/**
  * The type of a function, method, constructor, getter, or setter.
  */
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
@@ -4957,26 +5009,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
    * Return the base parameter elements of this function element.
    */
-  List<ParameterElement> get baseParameters {
-    Element element = this.element;
-    if (element is ExecutableElement) {
-      return element.parameters;
-    } else {
-      return (element as FunctionTypeAliasElement).parameters;
-    }
-  }
+  List<ParameterElement> get baseParameters => element.parameters;
 
   /**
    * Return the return type defined by this function's element.
    */
-  DartType get baseReturnType {
-    Element element = this.element;
-    if (element is ExecutableElement) {
-      return element.returnType;
-    } else {
-      return (element as FunctionTypeAliasElement).returnType;
-    }
-  }
+  DartType get baseReturnType => element.returnType;
 
   @override
   List<TypeParameterElement> get boundTypeParameters => _boundTypeParameters;
@@ -5053,6 +5091,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  FunctionTypedElement get element => super.element;
+
+  @override
   int get hashCode {
     if (element == null) {
       return 0;
@@ -5073,6 +5114,26 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       code = (code << 1) + (type as TypeImpl).hashCode;
     }
     return code;
+  }
+
+  /**
+   * The type arguments that were used to instantiate this function type, if
+   * any, otherwise this will return an empty list.
+   *
+   * Given a function type `f`:
+   *
+   *     f == f.originalFunction.instantiate(f.instantiatedTypeArguments)
+   *
+   * Will always hold.
+   */
+  List<DartType> get instantiatedTypeArguments {
+    int typeParameterCount = element.type.boundTypeParameters.length;
+    if (typeParameterCount == 0) {
+      return DartType.EMPTY_LIST;
+    }
+    // The substituted types at the end should be our bound type parameters.
+    int skipCount = typeArguments.length - typeParameterCount;
+    return new List<DartType>.from(typeArguments.skip(skipCount));
   }
 
   @override
@@ -5170,6 +5231,20 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
     }
     return types;
+  }
+
+  /**
+   * If this is an instantiation of a generic function type, this will get
+   * the original function from which it was instantiated.
+   *
+   * Otherwise, this will return `this`.
+   */
+  FunctionTypeImpl get originalFunction {
+    if (element.type.boundTypeParameters.isEmpty) {
+      return this;
+    }
+    return (element.type as FunctionTypeImpl).substitute2(typeArguments,
+        TypeParameterTypeImpl.getTypes(typeParameters), prunedTypedefs);
   }
 
   @override
@@ -8380,7 +8455,7 @@ abstract class Member implements Element {
   final ParameterizedType _definingType;
 
   /**
-   * Initialize a newly created element to represent a constructor, based on the
+   * Initialize a newly created element to represent a member, based on the
    * [baseElement], defined by the [definingType].
    */
   Member(this._baseElement, this._definingType);
@@ -8497,6 +8572,7 @@ abstract class Member implements Element {
    * Return the type that results from replacing the type parameters in the
    * given [type] with the type arguments associated with this member.
    */
+  @deprecated
   DartType substituteFor(DartType type) {
     if (type == null) {
       return null;
@@ -8644,11 +8720,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
  */
 class MethodMember extends ExecutableMember implements MethodElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * Initialize a newly created element to represent a method, based on the
+   * [baseElement], defined by the [definingType]. If [type] is passed, it
+   * represents the full type of the member, and will take precedence over
+   * the [definingType].
    */
-  MethodMember(MethodElement baseElement, InterfaceType definingType)
-      : super(baseElement, definingType);
+  MethodMember(MethodElement baseElement, InterfaceType definingType,
+      [DartType type])
+      : super(baseElement, definingType, type);
 
   @override
   MethodElement get baseElement => super.baseElement as MethodElement;
@@ -8706,10 +8785,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
     if (baseType == substitutedType) {
       return method;
     }
-    // TODO(brianwilkerson) Consider caching the substituted type in the
-    // instance. It would use more memory but speed up some operations.
-    // We need to see how often the type is being re-computed.
-    return new MethodMember(method, definingType);
+    return new MethodMember(method, definingType, substitutedType);
   }
 }
 
@@ -9436,11 +9512,13 @@ class ParameterMember extends VariableMember
     with ParameterElementMixin
     implements ParameterElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * Initialize a newly created element to represent a parameter, based on the
+   * [baseElement], defined by the [definingType]. If [type] is passed it will
+   * represent the already substituted type.
    */
-  ParameterMember(ParameterElement baseElement, ParameterizedType definingType)
-      : super(baseElement, definingType);
+  ParameterMember(ParameterElement baseElement, ParameterizedType definingType,
+      [DartType type])
+      : super._(baseElement, definingType, type);
 
   @override
   ParameterElement get baseElement => super.baseElement as ParameterElement;
@@ -9462,18 +9540,11 @@ class ParameterMember extends VariableMember
 
   @override
   List<ParameterElement> get parameters {
-    List<ParameterElement> baseParameters = baseElement.parameters;
-    int parameterCount = baseParameters.length;
-    if (parameterCount == 0) {
-      return baseParameters;
+    DartType type = this.type;
+    if (type is FunctionType) {
+      return type.parameters;
     }
-    List<ParameterElement> parameterizedParameters =
-        new List<ParameterElement>(parameterCount);
-    for (int i = 0; i < parameterCount; i++) {
-      parameterizedParameters[i] =
-          ParameterMember.from(baseParameters[i], definingType);
-    }
-    return parameterizedParameters;
+    return ParameterElement.EMPTY_LIST;
   }
 
   @override
@@ -9482,6 +9553,8 @@ class ParameterMember extends VariableMember
   @override
   SourceRange get visibleRange => baseElement.visibleRange;
 
+  // TODO(jmesserly): this equality is broken. It should consider the defining
+  // type as well, otherwise we're dropping the substitution.
   @override
   bool operator ==(Object object) =>
       object is ParameterMember && baseElement == object.baseElement;
@@ -9548,8 +9621,9 @@ class ParameterMember extends VariableMember
     // Check if parameter type depends on defining type type arguments.
     // It is possible that we did not resolve field formal parameter yet,
     // so skip this check for it.
-    bool isFieldFormal = parameter is FieldFormalParameterElement;
-    if (!isFieldFormal) {
+    if (parameter is FieldFormalParameterElement) {
+      return new FieldFormalParameterMember(parameter, definingType);
+    } else {
       DartType baseType = parameter.type;
       List<DartType> argumentTypes = definingType.typeArguments;
       List<DartType> parameterTypes =
@@ -9559,15 +9633,8 @@ class ParameterMember extends VariableMember
       if (baseType == substitutedType) {
         return parameter;
       }
+      return new ParameterMember(parameter, definingType, substitutedType);
     }
-    // TODO(brianwilkerson) Consider caching the substituted type in the
-    // instance. It would use more memory but speed up some operations.
-    // We need to see how often the type is being re-computed.
-    if (isFieldFormal) {
-      return new FieldFormalParameterMember(
-          parameter as FieldFormalParameterElement, definingType);
-    }
-    return new ParameterMember(parameter, definingType);
   }
 }
 
@@ -9855,7 +9922,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 class PropertyAccessorMember extends ExecutableMember
     implements PropertyAccessorElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
+   * Initialize a newly created element to represent a property, based on the
    * [baseElement], defined by the [definingType].
    */
   PropertyAccessorMember(
@@ -11194,12 +11261,25 @@ abstract class VariableElementImpl extends ElementImpl
  * type parameters are known.
  */
 abstract class VariableMember extends Member implements VariableElement {
+  @override
+  final DartType type;
+
   /**
-   * Initialize a newly created element to represent a constructor, based on the
+   * Initialize a newly created element to represent a variable, based on the
    * [baseElement], defined by the [definingType].
    */
-  VariableMember(VariableElement baseElement, ParameterizedType definingType)
-      : super(baseElement, definingType);
+  VariableMember(VariableElement baseElement, ParameterizedType definingType,
+      [DartType type])
+      : type = type ??
+            baseElement.type.substitute2(definingType.typeArguments,
+                TypeParameterTypeImpl.getTypes(definingType.typeParameters)),
+        super(baseElement, definingType);
+
+  // TODO(jmesserly): this is temporary to allow the ParameterMember subclass.
+  // Apparently mixins don't work with optional params.
+  VariableMember._(VariableElement baseElement, ParameterizedType definingType,
+      DartType type)
+      : this(baseElement, definingType, type);
 
   @override
   VariableElement get baseElement => super.baseElement as VariableElement;
@@ -11236,9 +11316,6 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isStatic => baseElement.isStatic;
-
-  @override
-  DartType get type => substituteFor(baseElement.type);
 
   @override
   void visitChildren(ElementVisitor visitor) {
