@@ -3860,9 +3860,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationField('scA', 'String');
-      assertSuggestInvocationField('scB', 'int');
-      assertSuggestInvocationField('scI', null);
+      // Suggested by StaticMemberContributor
+      assertNotSuggested('scA');
+      assertNotSuggested('scB');
+      assertNotSuggested('scI');
       assertNotSuggested('b');
       assertNotSuggested('_c');
       assertNotSuggested('d');

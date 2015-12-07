@@ -301,8 +301,9 @@ class _PrefixedIdentifierSuggestionBuilder
     if (element != null) {
       InterfaceType type = element.type;
       if (type != null) {
-        StaticClassElementSuggestionBuilder.suggestionsFor(
-            request, type.element);
+        // Suggested by StaticMemberContributor
+        // StaticClassElementSuggestionBuilder.suggestionsFor(
+        //     request, type.element);
       }
     }
     return new Future.value(false);
