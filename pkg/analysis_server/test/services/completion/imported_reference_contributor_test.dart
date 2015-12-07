@@ -257,6 +257,13 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     });
   }
 
+  test_Assert() {
+    addTestSource('main() {assert(^)}');
+    return computeFull((bool result) {
+      assertSuggestClass('String');
+    });
+  }
+
   @override
   test_AssignmentExpression_RHS() {
     return super.test_AssignmentExpression_RHS().then((_) {

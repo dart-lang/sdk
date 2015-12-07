@@ -129,6 +129,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     }
   }
 
+@override
+  void visitAssertStatement(AssertStatement node) {
+    if (identical(entity, node.condition)) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
   void visitAssignmentExpression(AssignmentExpression node) {
     if (identical(entity, node.rightHandSide)) {
       optype.includeReturnValueSuggestions = true;
