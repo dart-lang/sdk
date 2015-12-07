@@ -4,6 +4,8 @@
 
 library analyzer.src.task.options;
 
+import 'dart:collection';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -126,9 +128,20 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       new List.from(AnalyzerOptions.ignoreSynonyms)
         ..addAll(AnalyzerOptions.includeSynonyms));
 
-  bool recognizedErrorCode(String name) =>
-      ErrorCode.values.any((ErrorCode code) => code.name == name) ||
-          StaticInfo.names.contains(name);
+  /// Lazily populated set of error codes (hashed for speedy lookup).
+  static HashSet<String> _errorCodes;
+
+  /// Legal error code names.
+  static Set<String> get errorCodes {
+    if (_errorCodes == null) {
+      _errorCodes = new HashSet<String>();
+      // Engine codes.
+      _errorCodes.addAll(ErrorCode.values.map((ErrorCode code) => code.name));
+      // Strong-mode codes.
+      _errorCodes.addAll(StaticInfo.names);
+    }
+    return _errorCodes;
+  }
 
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
@@ -143,7 +156,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       filters.nodes.forEach((k, v) {
         if (k is YamlScalar) {
           value = toUpperCase(k.value);
-          if (!recognizedErrorCode(value)) {
+          if (!errorCodes.contains(value)) {
             reporter.reportErrorForSpan(
                 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                 k.span,
