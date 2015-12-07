@@ -10,6 +10,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 
 export 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show EMPTY_LIST;
@@ -59,6 +60,16 @@ abstract class DartCompletionContributor {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartCompletionRequest extends CompletionRequest {
+  /**
+   * Return a [Future] that completes with the library element
+   * which contains the unit in which the completion is occurring.
+   * The [Future] may return `null` if the library cannot be determined
+   * (e.g. unlinked part file).
+   * Any information obtained from [target] prior to calling this method
+   * should be discarded as it may have changed.
+   */
+  Future<LibraryElement> get libraryElement;
+
   /**
    * Return the completion target.  This determines what part of the parse tree
    * will receive the newly inserted text.

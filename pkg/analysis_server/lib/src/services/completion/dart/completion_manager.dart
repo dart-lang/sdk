@@ -18,6 +18,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -88,6 +89,19 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       Source source,
       int offset)
       : super(context, resourceProvider, searchEngine, source, offset);
+
+  @override
+  Future<LibraryElement> get libraryElement async {
+    //TODO(danrubel) build the library element rather than all the declarations
+    CompilationUnit unit = await resolveDeclarationsInScope();
+    if (unit != null) {
+      CompilationUnitElement elem = unit.element;
+      if (elem != null) {
+        return elem.library;
+      }
+    }
+    return null;
+  }
 
   @override
   CompletionTarget get target {

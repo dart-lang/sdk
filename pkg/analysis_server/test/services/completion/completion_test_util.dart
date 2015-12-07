@@ -356,29 +356,6 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestNamedConstructor(
-      String name, String returnType,
-      [int relevance = DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    if (contributor is PrefixedElementContributor) {
-      CompletionSuggestion cs =
-          assertSuggest(name, csKind: kind, relevance: relevance);
-      protocol.Element element = cs.element;
-      expect(element, isNotNull);
-      expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
-      expect(element.name, equals(name));
-      String param = element.parameters;
-      expect(param, isNotNull);
-      expect(param[0], equals('('));
-      expect(param[param.length - 1], equals(')'));
-      expect(element.returnType, equals(returnType));
-      assertHasParameterInfo(cs);
-      return cs;
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
       {int relevance: DART_RELEVANCE_PARAMETER}) {
     return assertNotSuggested(name);
@@ -2452,7 +2429,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestNamedConstructor('c', 'X');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('c');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('_d');
@@ -2479,7 +2457,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestNamedConstructor('c', 'X');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('c');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('_d');
@@ -2497,7 +2476,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset - 2);
       expect(request.replacementLength, 13);
-      assertSuggestNamedConstructor('fromCharCodes', 'String');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('fromCharCodes');
       assertNotSuggested('isEmpty');
       assertNotSuggested('isNotEmpty');
       assertNotSuggested('length');
@@ -2518,8 +2498,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestNamedConstructor('c', 'X');
-      assertSuggestNamedConstructor('_d', 'X');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('c');
+      assertNotSuggested('_d');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('z');
@@ -2539,8 +2520,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestNamedConstructor('c', 'X');
-      assertSuggestNamedConstructor('_d', 'X');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('c');
+      assertNotSuggested('_d');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('z');

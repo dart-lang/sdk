@@ -264,11 +264,6 @@ class _PrefixedIdentifierSuggestionBuilder
 
   @override
   Future<bool> computeFull(AstNode node) {
-    if (node is ConstructorName) {
-      // some PrefixedIdentifier nodes are transformed into
-      // ConstructorName nodes during the resolution process.
-      return new NamedConstructorSuggestionBuilder(request).computeFull(node);
-    }
     if (node is PrefixedIdentifier) {
       SimpleIdentifier prefix = node.prefix;
       if (prefix != null) {

@@ -468,61 +468,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
 
 /**
  * This class visits elements in a class and provides suggestions based upon
- * the visible named constructors in that class.
- */
-class NamedConstructorSuggestionBuilder extends GeneralizingElementVisitor
-    with ElementSuggestionBuilder
-    implements SuggestionBuilder {
-  final DartCompletionRequest request;
-
-  NamedConstructorSuggestionBuilder(this.request);
-
-  @override
-  CompletionSuggestionKind get kind => CompletionSuggestionKind.INVOCATION;
-
-  @override
-  bool computeFast(AstNode node) {
-    return false;
-  }
-
-  @override
-  Future<bool> computeFull(AstNode node) {
-    if (node is SimpleIdentifier) {
-      node = node.parent;
-    }
-    if (node is ConstructorName) {
-      TypeName typeName = node.type;
-      if (typeName != null) {
-        DartType type = typeName.type;
-        if (type != null) {
-          if (type.element is ClassElement) {
-            type.element.accept(this);
-          }
-          return new Future.value(true);
-        }
-      }
-    }
-    return new Future.value(false);
-  }
-
-  @override
-  visitClassElement(ClassElement element) {
-    element.visitChildren(this);
-  }
-
-  @override
-  visitConstructorElement(ConstructorElement element) {
-    addSuggestion(element);
-  }
-
-  @override
-  visitElement(Element element) {
-    // ignored
-  }
-}
-
-/**
- * This class visits elements in a class and provides suggestions based upon
  * the visible static members in that class. Clients should call
  * [StaticClassElementSuggestionBuilder.suggestionsFor].
  */
