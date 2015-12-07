@@ -160,6 +160,62 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
+  CompletionSuggestion assertSuggestConstructor(String name,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
+      int elemOffset}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        relevance: relevance, importUri: importUri, elemOffset: elemOffset);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
+    int index = name.indexOf('.');
+    expect(element.name, index >= 0 ? name.substring(index + 1) : '');
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestEnum(String completion,
+      {bool isDeprecated: false}) {
+    CompletionSuggestion suggestion =
+        assertSuggest(completion, isDeprecated: isDeprecated);
+    expect(suggestion.isDeprecated, isDeprecated);
+    expect(suggestion.element.kind, protocol.ElementKind.ENUM);
+    return suggestion;
+  }
+
+  CompletionSuggestion assertSuggestEnumConst(String completion,
+      {bool isDeprecated: false}) {
+    CompletionSuggestion suggestion =
+        assertSuggest(completion, isDeprecated: isDeprecated);
+    expect(suggestion.isDeprecated, isDeprecated);
+    expect(suggestion.element.kind, protocol.ElementKind.ENUM_CONSTANT);
+    return suggestion;
+  }
+
+  CompletionSuggestion assertSuggestField(String name, String type,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind,
+        relevance: relevance,
+        importUri: importUri,
+        elemKind: protocol.ElementKind.FIELD,
+        isDeprecated: isDeprecated);
+    // The returnType represents the type of a field
+    expect(cs.returnType, type != null ? type : 'dynamic');
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.FIELD));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    // The returnType represents the type of a field
+    expect(element.returnType, type != null ? type : 'dynamic');
+    assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
   CompletionSuggestion assertSuggestFunction(String name, String returnType,
       {CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool deprecated: false,
@@ -211,6 +267,78 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         equals(returnType != null ? returnType : 'dynamic'));
     // TODO (danrubel) Determine why param info is missing
     //    assertHasParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestGetter(String name, String returnType,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind,
+        relevance: relevance,
+        importUri: importUri,
+        elemKind: protocol.ElementKind.GETTER,
+        isDeprecated: isDeprecated);
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.GETTER));
+    expect(element.name, equals(name));
+    expect(element.parameters, isNull);
+    expect(element.returnType,
+        equals(returnType != null ? returnType : 'dynamic'));
+    assertHasNoParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestMethod(
+      String name, String declaringType, String returnType,
+      {int relevance: DART_RELEVANCE_DEFAULT,
+      String importUri,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
+      bool isDeprecated: false}) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind,
+        relevance: relevance,
+        importUri: importUri,
+        isDeprecated: isDeprecated);
+    expect(cs.declaringType, equals(declaringType));
+    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.METHOD));
+    expect(element.name, equals(name));
+    String param = element.parameters;
+    expect(param, isNotNull);
+    expect(param[0], equals('('));
+    expect(param[param.length - 1], equals(')'));
+    expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    assertHasParameterInfo(cs);
+    return cs;
+  }
+
+  CompletionSuggestion assertSuggestSetter(String name,
+      [int relevance = DART_RELEVANCE_DEFAULT,
+      String importUri,
+      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
+    CompletionSuggestion cs = assertSuggest(name,
+        csKind: kind,
+        relevance: relevance,
+        importUri: importUri,
+        elemKind: protocol.ElementKind.SETTER);
+    protocol.Element element = cs.element;
+    expect(element, isNotNull);
+    expect(element.kind, equals(protocol.ElementKind.SETTER));
+    expect(element.name, equals(name));
+    // TODO (danrubel) assert setter param
+    //expect(element.parameters, isNull);
+    // TODO (danrubel) it would be better if this was always null
+    if (element.returnType != null) {
+      expect(element.returnType, 'dynamic');
+    }
+    assertHasNoParameterInfo(cs);
     return cs;
   }
 
