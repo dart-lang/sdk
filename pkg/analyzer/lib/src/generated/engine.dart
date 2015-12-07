@@ -1842,10 +1842,8 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   /**
    * A table mapping the sources known to the context to the information known
    * about the source.
-   *
-   * TODO(scheglov) add the type, once we have only one cache.
    */
-  dynamic get analysisCache;
+  AnalysisCache get analysisCache;
 
   /**
    * Allow the client to supply its own content cache.  This will take the
@@ -1876,10 +1874,8 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   /**
    * The partition that contains analysis results that are not shared with other
    * contexts.
-   *
-   * TODO(scheglov) add the type, once we have only one cache.
    */
-  dynamic get privateAnalysisCachePartition;
+  CachePartition get privateAnalysisCachePartition;
 
   /**
    * Sets the [TypeProvider] for this context.

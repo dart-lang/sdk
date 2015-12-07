@@ -7793,16 +7793,6 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
    */
   static const List<LocalVariableElement> EMPTY_LIST =
       const <LocalVariableElement>[];
-
-  /**
-   * Return the resolved [VariableDeclaration] node that declares this
-   * [LocalVariableElement].
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   */
-  @override
-  VariableDeclaration computeNode();
 }
 
 /**
