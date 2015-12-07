@@ -26,12 +26,13 @@ void check2(String name, name1, f1, name2, f2) {
   Expect.equals(s1, s2, '\n  $name.$name1: "$s1"\n  $name.$name2: "$s2"\n');
 }
 
-void check(String name, f1, f2, [f3, f4, f5, f6]) {
+void check(String name, f1, f2, [f3, f4, f5, f6, f7]) {
   check2(name, 'f1', f1, 'f2', f2);
   if (f3 != null) check2(name, 'f1', f1, 'f3', f3);
   if (f4 != null) check2(name, 'f1', f1, 'f4', f4);
   if (f5 != null) check2(name, 'f1', f1, 'f5', f5);
   if (f6 != null) check2(name, 'f1', f1, 'f6', f6);
+  if (f7 != null) check2(name, 'f1', f1, 'f7', f7);
 }
 
 class IntPlusNull {
@@ -61,8 +62,12 @@ class IntPlusNull {
     return a + null;
   }
 
+  static f7() {
+    return 1 + null;
+  }
+
   static test() {
-    check('IntPlusNull', f1, f2, f3, f4, f5, f6);
+    check('IntPlusNull', f1, f2, f3, f4, f5, f6, f7);
   }
 }
 
@@ -93,8 +98,12 @@ class StringPlusNull {
     return a + null;
   }
 
+  static f7() {
+    return 'a' + null;
+  }
+
   static test() {
-    check('StringPlusNull', f1, f2, f3, f4, f5, f6);
+    check('StringPlusNull', f1, f2, f3, f4, f5, f6, f7);
   }
 }
 
@@ -125,8 +134,12 @@ class IntPlusString {
     return a + 'a';
   }
 
+  static f7() {
+    return 1 + 'a';
+  }
+
   static test() {
-    check('IntPlusString', f1, f2, f3, f4, f5, f6);
+    check('IntPlusString', f1, f2, f3, f4, f5, f6, f7);
   }
 }
 
@@ -157,8 +170,12 @@ class StringPlusInt {
     return a + 1;
   }
 
+  static f7() {
+    return 'a' + 1;
+  }
+
   static test() {
-    check('StringPlusInt', f1, f2, f3, f4, f5, f6);
+    check('StringPlusInt', f1, f2, f3, f4, f5, f6, f7);
   }
 }
 
