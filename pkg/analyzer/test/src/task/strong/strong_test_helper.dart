@@ -173,13 +173,18 @@ class _ExpectedErrorVisitor extends UnifyingAstVisitor {
         var commentText = '$comment';
         var start = commentText.lastIndexOf('/*');
         var end = commentText.lastIndexOf('*/');
-        if (start != -1 && end != -1) {
+        if (start != -1 &&
+            end != -1 &&
+            !commentText.startsWith('/*<', start) &&
+            !commentText.startsWith('/*=', start)) {
           expect(start, lessThan(end));
           var errors = commentText.substring(start + 2, end).split(',');
           var expectations =
               errors.map(_ErrorExpectation.parse).where((x) => x != null);
 
-          for (var e in expectations) _expectError(node, e);
+          for (var e in expectations) {
+            _expectError(node, e);
+          }
         }
       }
     }
