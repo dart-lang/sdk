@@ -104,7 +104,7 @@ linter:
           var config = processAnalysisOptionsFile(src);
           expect(config.ruleConfigs.length, equals(1));
           // Verify that defaults are enabled.
-          expect(config.ruleConfigs[0].args['enabled'], equals(true));
+          expect(config.ruleConfigs[0].args['enabled'], isTrue);
         });
 
         test('rule map (bools)', () {
@@ -124,9 +124,9 @@ linter:
               (RuleConfig rc1, RuleConfig rc2) => rc1.name.compareTo(rc2.name));
           expect(ruleConfigs, hasLength(2));
           expect(ruleConfigs[0].name, equals('camel_case_types'));
-          expect(config.ruleConfigs[0].args['enabled'], equals(false));
+          expect(config.ruleConfigs[0].args['enabled'], isFalse);
           expect(ruleConfigs[1].name, equals('unnecessary_getters'));
-          expect(config.ruleConfigs[1].args['enabled'], equals(true));
+          expect(config.ruleConfigs[1].args['enabled'], isTrue);
         });
       });
     });
@@ -137,6 +137,74 @@ linter:
 
     test('bad format', () {
       expect(processAnalysisOptionsFile('foo: '), isNull);
+    });
+  });
+
+  group('options processing', () {
+    group('raw maps', () {
+      test('rule list', () {
+        Map options = {};
+        var lintOptions = {
+          'rules': ['camel_case_types']
+        };
+        options['linter'] = lintOptions;
+
+        var config = parseConfig(options);
+        expect(config, isNotNull);
+        expect(config.ruleConfigs, hasLength(1));
+      });
+
+      test('rule map (bool)', () {
+        Map options = {};
+        var lintOptions = {
+          'rules': {'camel_case_types': true}
+        };
+        options['linter'] = lintOptions;
+
+        var config = parseConfig(options);
+        expect(config, isNotNull);
+        expect(config.ruleConfigs, hasLength(1));
+      });
+
+      test('rule map (string)', () {
+        Map options = {};
+        var lintOptions = {
+          'rules': {'camel_case_types': 'true'}
+        };
+        options['linter'] = lintOptions;
+
+        var config = parseConfig(options);
+        expect(config, isNotNull);
+        expect(config.ruleConfigs, hasLength(1));
+      });
+
+      test('nested rule map (bool)', () {
+        Map options = {};
+        var lintOptions = {
+          'rules': {
+            'style_guide': {'camel_case_types': true}
+          }
+        };
+        options['linter'] = lintOptions;
+
+        var config = parseConfig(options);
+        expect(config, isNotNull);
+        expect(config.ruleConfigs, hasLength(1));
+      });
+
+      test('nested rule map (string)', () {
+        Map options = {};
+        var lintOptions = {
+          'rules': {
+            'style_guide': {'camel_case_types': true}
+          }
+        };
+        options['linter'] = lintOptions;
+
+        var config = parseConfig(options);
+        expect(config, isNotNull);
+        expect(config.ruleConfigs, hasLength(1));
+      });
     });
   });
 }

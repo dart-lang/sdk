@@ -14,8 +14,8 @@ LintConfig parseConfig(Map optionsMap) {
   if (optionsMap != null) {
     var options = optionsMap['linter'];
     // Quick check of basic contract.
-    if (options is YamlMap) {
-      return new _LintConfig().._parseYaml(options);
+    if (options is Map) {
+      return new _LintConfig().._parseMap(options);
     }
   }
   return null;
@@ -44,10 +44,9 @@ class AnalysisOptionsProcessor extends OptionsProcessor {
   }
 
   @override
-  void optionsProcessed(
-      AnalysisContext context, Map<String, YamlNode> options) {
+  void optionsProcessed(AnalysisContext context, Map<String, Object> options) {
     var lints = plugin.registerLints(context, parseConfig(options));
-    if (lints?.isNotEmpty) {
+    if (lints.isNotEmpty) {
       var options = new AnalysisOptionsImpl.from(context.analysisOptions);
       options.lint = true;
       context.analysisOptions = options;
@@ -80,16 +79,30 @@ class _LintConfig implements LintConfig {
   final fileExcludes = <String>[];
   final ruleConfigs = <RuleConfig>[];
 
-  addAsListOrString(value, List<String> list) {
-    if (value is YamlList) {
+  void addAsListOrString(value, List<String> list) {
+    if (value is List) {
       value.forEach((v) => list.add(v));
     } else if (value is String) {
       list.add(value);
     }
   }
 
+  bool asBool(scalar) {
+    if (scalar is bool) {
+      return scalar;
+    }
+    if (scalar is String) {
+      if (scalar == 'true') {
+        return true;
+      }
+      if (scalar == 'false') {
+        return false;
+      }
+    }
+    return null;
+  }
+
   String asString(scalar) {
-    //TODO: add mis-format warnings
     if (scalar is String) {
       return scalar;
     }
@@ -97,9 +110,9 @@ class _LintConfig implements LintConfig {
   }
 
   Object parseArgs(args) {
-    //TODO: add mis-format warnings
-    if (args is bool) {
-      return {'enabled': args};
+    bool enabled = asBool(args);
+    if (enabled != null) {
+      return {'enabled': enabled};
     }
     return null;
   }
@@ -111,9 +124,73 @@ class _LintConfig implements LintConfig {
     }
   }
 
+  void _parseMap(Map options) {
+    //TODO(pq): unify map parsing.
+    if (options is YamlMap) {
+      _parseYaml(options);
+    } else {
+      _parseRawMap(options);
+    }
+  }
+
+  void _parseRawMap(Map options) {
+    options.forEach((k, v) {
+      if (k is! String) {
+        return;
+      }
+      String key = k;
+      switch (key) {
+        case 'files':
+          if (v is Map) {
+            addAsListOrString(v['include'], fileIncludes);
+            addAsListOrString(v['exclude'], fileExcludes);
+          }
+          break;
+
+        case 'rules':
+          // - unnecessary_getters
+          // - camel_case_types
+          if (v is List) {
+            v.forEach((rule) {
+              var config = new _RuleConfig();
+              config.name = asString(rule);
+              config.args = {'enabled': true};
+              ruleConfigs.add(config);
+            });
+          }
+
+          // {unnecessary_getters: false, camel_case_types: true}
+          if (v is Map) {
+            v.forEach((key, value) {
+              // style_guide: {unnecessary_getters: false, camel_case_types: true}
+              if (value is Map) {
+                value.forEach((rule, args) {
+                  // unnecessary_getters: false
+                  var config = new _RuleConfig();
+                  config.group = key;
+                  config.name = asString(rule);
+                  config.args = parseArgs(args);
+                  ruleConfigs.add(config);
+                });
+              } else {
+                //{unnecessary_getters: false}
+                value = asBool(value);
+                if (value != null) {
+                  var config = new _RuleConfig();
+                  config.name = asString(key);
+                  config.args = {'enabled': value};
+                  ruleConfigs.add(config);
+                }
+              }
+            });
+          }
+          break;
+      }
+    });
+  }
+
   void _parseYaml(YamlMap yaml) {
     yaml.nodes.forEach((k, v) {
-      //TODO: add mis-format warnings
       if (k is! YamlScalar) {
         return;
       }
