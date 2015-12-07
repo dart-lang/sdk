@@ -52,9 +52,12 @@ CompletionSuggestion createSuggestion(Element element,
     suggestion.parameterNames = element.parameters
         .map((ParameterElement parameter) => parameter.name)
         .toList();
-    suggestion.parameterTypes = element.parameters
-        .map((ParameterElement parameter) => parameter.type.displayName)
-        .toList();
+    suggestion.parameterTypes =
+        element.parameters.map((ParameterElement parameter) {
+      DartType paramType = parameter.type;
+      // Gracefully degrade if type not resolved yet
+      return paramType != null ? paramType.displayName : 'var';
+    }).toList();
     suggestion.requiredParameterCount = element.parameters
         .where((ParameterElement parameter) =>
             parameter.parameterKind == ParameterKind.REQUIRED)

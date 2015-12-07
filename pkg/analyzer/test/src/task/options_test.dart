@@ -284,6 +284,16 @@ analyzer:
         [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
+  test_analyzer_strong_mode_error_code_supported() {
+    validate(
+        '''
+analyzer:
+  errors:
+    strong_mode_assignment_cast: ignore
+''',
+        []);
+  }
+
   test_analyzer_supported_exclude() {
     validate(
         '''

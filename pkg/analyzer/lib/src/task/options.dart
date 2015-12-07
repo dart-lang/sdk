@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/task/strong/info.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
@@ -125,6 +126,10 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       new List.from(AnalyzerOptions.ignoreSynonyms)
         ..addAll(AnalyzerOptions.includeSynonyms));
 
+  bool recognizedErrorCode(String name) =>
+      ErrorCode.values.any((ErrorCode code) => code.name == name) ||
+          StaticInfo.names.contains(name);
+
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
     var analyzer = options[AnalyzerOptions.analyzer];
@@ -138,7 +143,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       filters.nodes.forEach((k, v) {
         if (k is YamlScalar) {
           value = toUpperCase(k.value);
-          if (!ErrorCode.values.any((ErrorCode code) => code.name == value)) {
+          if (!recognizedErrorCode(value)) {
             reporter.reportErrorForSpan(
                 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                 k.span,

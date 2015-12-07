@@ -366,6 +366,8 @@ class CompletionTest extends AbstractAnalysisTest {
         expect(suggestionsDone, isNotNull);
         suggestions = params.results;
       }
+    } else if (notification.event == SERVER_ERROR) {
+      fail('server error: ${notification.toJson()}');
     }
   }
 
