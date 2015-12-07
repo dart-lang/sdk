@@ -39,9 +39,6 @@ poi/serialize_test: SkipByDesign # Uses dart:io.
 [ $compiler == dart2js ]
 poi/*: Skip # Issue 20031
 
-[ $compiler == dart2js && $runtime == none ]
-poi/serialize_test: RuntimeError # Issue 25125
-
 [ $compiler == dart2js ]
 # Compilation is slow, test fails at runtime due to time out, but
 # unpredictably.
