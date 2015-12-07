@@ -55,6 +55,46 @@ main() {
   group('updateContent', testUpdateContent);
 
   group('AnalysisDomainHandler', () {
+    group('getReachableSources', () {
+      test('valid sources', () async {
+        String fileA = '/project/a.dart';
+        String fileB = '/project/b.dart';
+        resourceProvider.newFile(fileA, 'import "b.dart";');
+        resourceProvider.newFile(fileB, '');
+
+        server.setAnalysisRoots('0', ['/project/'], [], {});
+
+        await server.onAnalysisComplete;
+
+        var request =
+            new AnalysisGetReachableSourcesParams(fileA).toRequest('0');
+        var response = handler.handleRequest(request);
+
+        var json = response.toJson()[Response.RESULT];
+
+        // Sanity checks.
+        expect(json['sources'], hasLength(6));
+        expect(json['sources']['file:///project/a.dart'],
+            unorderedEquals(['dart:core', 'file:///project/b.dart']));
+        expect(json['sources']['file:///project/b.dart'], ['dart:core']);
+      });
+
+      test('invalid source', () async {
+        resourceProvider.newFile('/project/a.dart', 'import "b.dart";');
+        server.setAnalysisRoots('0', ['/project/'], [], {});
+
+        await server.onAnalysisComplete;
+
+        var request =
+            new AnalysisGetReachableSourcesParams('/does/not/exist.dart')
+                .toRequest('0');
+        var response = handler.handleRequest(request);
+        expect(response.error, isNotNull);
+        expect(response.error.code,
+            RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE);
+      });
+    });
+
     group('setAnalysisRoots', () {
       Response testSetAnalysisRoots(
           List<String> included, List<String> excluded) {

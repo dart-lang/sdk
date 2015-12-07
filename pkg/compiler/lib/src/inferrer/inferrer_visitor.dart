@@ -91,6 +91,11 @@ abstract class TypeSystem<T> {
   T narrowType(T type, DartType annotation, {bool isNullable: true});
 
   /**
+   * Returns the non-nullable type [T].
+   */
+  T narrowNotNull(T type);
+
+  /**
    * Returns a new type that unions [firstInput] and [secondInput].
    */
   T allocateDiamondPhi(T firstInput, T secondInput);
@@ -469,9 +474,13 @@ class LocalsHandler<T> {
 
       SendSet send = node != null ? node.asSendSet() : null;
       if (send != null && send.isIfNullAssignment && currentType != null) {
-        // If-null assignments may return either the new or the original value.
+        // If-null assignments may return either the new or the original value
+        // narrowed to non-null.
         type = types.addPhiInput(
-            local, types.allocatePhi(locals.block, local, currentType), type);
+            local,
+            types.allocatePhi(locals.block, local,
+                              types.narrowNotNull(currentType)),
+            type);
       }
       locals[local] = type;
       if (currentType != type) {
@@ -1124,7 +1133,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   T visitIfNull(Send node, Node left, Node right, _) {
     T firstType = visit(left);
     T secondType = visit(right);
-    return types.allocateDiamondPhi(firstType, secondType);
+    return types.allocateDiamondPhi(types.narrowNotNull(firstType), secondType);
   }
 
   @override

@@ -467,6 +467,10 @@ class CodeChecker extends RecursiveAstVisitor {
     if (node.typeArguments != null) {
       var targs = node.typeArguments.arguments;
       if (targs.length > 0) type = targs[0].type;
+    } else if (node.staticType is InterfaceType) {
+      InterfaceType listT = node.staticType;
+      var targs = listT.typeArguments;
+      if (targs != null && targs.length > 0) type = targs[0];
     }
     var elements = node.elements;
     for (int i = 0; i < elements.length; i++) {
@@ -483,6 +487,13 @@ class CodeChecker extends RecursiveAstVisitor {
       var targs = node.typeArguments.arguments;
       if (targs.length > 0) ktype = targs[0].type;
       if (targs.length > 1) vtype = targs[1].type;
+    } else if (node.staticType is InterfaceType) {
+      InterfaceType mapT = node.staticType;
+      var targs = mapT.typeArguments;
+      if (targs != null) {
+        if (targs.length > 0) ktype = targs[0];
+        if (targs.length > 1) vtype = targs[1];
+      }
     }
     var entries = node.entries;
     for (int i = 0; i < entries.length; i++) {
@@ -572,8 +583,13 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    var type = node.staticElement.type;
-    checkArgumentList(node.argumentList, type);
+    var type = node.staticElement?.type;
+    // TODO(leafp): There's a TODO in visitRedirectingConstructorInvocation
+    // in the element_resolver to handle the case that the element is null
+    // and emit an error.  In the meantime, just be defensive here.
+    if (type != null) {
+      checkArgumentList(node.argumentList, type);
+    }
     node.visitChildren(this);
   }
 
@@ -596,6 +612,14 @@ class CodeChecker extends RecursiveAstVisitor {
       // not match the return or yield type.  We should have already gotten an
       // analyzer error in this case.
       return;
+    }
+    InterfaceType futureType = rules.provider.futureType;
+    DartType actualType = expression.staticType;
+    if (body.isAsynchronous &&
+        !body.isGenerator &&
+        actualType is InterfaceType &&
+        actualType.element == futureType.element) {
+      type = futureType.substitute4([type]);
     }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
@@ -947,7 +971,6 @@ class CodeChecker extends RecursiveAstVisitor {
   void _recordMessage(StaticInfo info) {
     if (info == null) return;
     var error = info.toAnalysisError();
-
     var severity = error.errorCode.errorSeverity;
     if (severity == ErrorSeverity.ERROR) _failure = true;
     if (severity != ErrorSeverity.INFO || _hints) {

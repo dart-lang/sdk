@@ -75,7 +75,7 @@ void ThreadInterrupter::Startup() {
   ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadJoinId);
   {
     MonitorLocker startup_ml(monitor_);
-    OSThread::Start(ThreadMain, 0);
+    OSThread::Start("ThreadInterrupter", ThreadMain, 0);
     while (!thread_running_) {
       startup_ml.Wait();
     }
@@ -153,7 +153,9 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
   {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
-    interrupter_thread_id_ = OSThread::GetCurrentThreadJoinId();
+    OSThread* os_thread = OSThread::Current();
+    ASSERT(os_thread != NULL);
+    interrupter_thread_id_ = os_thread->join_id();
     thread_running_ = true;
     startup_ml.Notify();
   }
@@ -182,9 +184,9 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
       monitor_->Exit();
 
       {
-        ThreadIterator it;
+        OSThreadIterator it;
         while (it.HasNext()) {
-          Thread* thread = it.Next();
+          OSThread* thread = it.Next();
           if (thread->ThreadInterruptsEnabled()) {
             interrupted_thread_count++;
             InterruptThread(thread);

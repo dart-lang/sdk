@@ -444,6 +444,13 @@ class ObjectStore {
     compile_time_constants_ = value.raw();
   }
 
+  RawArray* unique_dynamic_targets() const {
+    return unique_dynamic_targets_;
+  }
+  void set_unique_dynamic_targets(const Array& value) {
+    unique_dynamic_targets_ = value.raw();
+  }
+
   RawGrowableObjectArray* token_objects() const {
     return token_objects_;
   }
@@ -570,6 +577,7 @@ class ObjectStore {
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&compile_time_constants_);
   }
+  RawArray* unique_dynamic_targets_;
   RawGrowableObjectArray* token_objects_;
   RawArray* token_objects_map_;
   RawGrowableObjectArray* megamorphic_cache_table_;

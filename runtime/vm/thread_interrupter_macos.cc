@@ -43,7 +43,7 @@ class ThreadInterrupterMacOS : public AllStatic {
 };
 
 
-void ThreadInterrupter::InterruptThread(Thread* thread) {
+void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter interrupting %p\n", thread->id());
   }
@@ -64,4 +64,3 @@ void ThreadInterrupter::RemoveSignalHandler() {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)
-

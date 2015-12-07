@@ -1160,9 +1160,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisOptions get analysisOptions => _options;
 
   @override
-  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
-
-  @override
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute = this._options.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
@@ -1173,6 +1170,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.hint && !options.hint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.strongModeHints != options.strongModeHints
+            : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableSuperMixins != options.enableSuperMixins;
@@ -1209,6 +1209,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     this._options.strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      this._options.strongModeHints = options.strongModeHints;
+    }
     _generateImplicitErrors = options.generateImplicitErrors;
     _generateSdkErrors = options.generateSdkErrors;
     if (needsRecompute) {
@@ -1256,6 +1259,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
+
+  @override
+  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 
   @override
   List<AnalysisTarget> get explicitTargets {
@@ -6462,6 +6468,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool strongMode = false;
 
   /**
+   * A flag indicating whether strong-mode inference hints should be
+   * used.  This flag is not exposed in the interface, and should be
+   * replaced by something more general.
+   */
+  // TODO(leafp): replace this with something more general
+  bool strongModeHints = false;
+
+  /**
    * Initialize a newly created set of analysis options to have their default
    * values.
    */
@@ -6488,6 +6502,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lint = options.lint;
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      strongModeHints = options.strongModeHints;
+    }
   }
 
   /**
@@ -6510,6 +6527,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     lint = options.lint;
     preserveComments = options.preserveComments;
     strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      strongModeHints = options.strongModeHints;
+    }
   }
 
   bool get analyzeFunctionBodies {
@@ -9420,6 +9440,9 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   set contentCache(ContentCache value);
 
+  /// Get the [EmbedderYamlLocator] for this context.
+  EmbedderYamlLocator get embedderYamlLocator;
+
   /**
    * Return a list of the explicit targets being analyzed by this context.
    */
@@ -9449,9 +9472,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    */
   dynamic get privateAnalysisCachePartition;
 
-  /// Get the [EmbedderYamlLocator] for this context.
-  EmbedderYamlLocator get embedderYamlLocator;
-  
   /**
    * A factory to override how [ResolverVisitor] is created.
    */

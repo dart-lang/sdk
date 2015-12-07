@@ -18,6 +18,7 @@
 #include "vm/intermediate_language.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/precompiler.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
@@ -49,12 +50,14 @@ DEFINE_FLAG(bool, use_cha_deopt, true,
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
 
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_cha);
 DECLARE_FLAG(bool, trace_field_guards);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(bool, fields_may_be_reset);
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -266,12 +269,32 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
           Resolver::ResolveDynamicForReceiverClass(owner_class,
                                                    call->function_name(),
                                                    args_desc));
-      if (function.IsNull()) {
-        return false;
+      if (!function.IsNull()) {
+        const ICData& ic_data = ICData::ZoneHandle(Z,
+            ICData::NewFrom(*call->ic_data(), class_ids.length()));
+        ic_data.AddReceiverCheck(owner_class.id(), function);
+        call->set_ic_data(&ic_data);
+        return true;
       }
+    }
+  }
+
+  if (FLAG_precompilation &&
+      (isolate()->object_store()->unique_dynamic_targets() != Array::null())) {
+    // Check if the target is unique.
+    Function& target_function = Function::Handle(Z);
+    Precompiler::GetUniqueDynamicTarget(
+        isolate(), call->function_name(), &target_function);
+    // Calls with named arguments must be resolved/checked at runtime.
+    String& error_message = String::Handle(Z);
+    if (!target_function.IsNull() &&
+        !target_function.HasOptionalNamedParameters() &&
+        target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
+                                               &error_message)) {
+      const intptr_t cid = Class::Handle(Z, target_function.Owner()).id();
       const ICData& ic_data = ICData::ZoneHandle(Z,
-          ICData::NewFrom(*call->ic_data(), class_ids.length()));
-      ic_data.AddReceiverCheck(owner_class.id(), function);
+          ICData::NewFrom(*call->ic_data(), 1));
+      ic_data.AddReceiverCheck(cid, target_function);
       call->set_ic_data(&ic_data);
       return true;
     }
@@ -959,12 +982,11 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
   if (ic_data.NumArgsTested() != 2) {
     return false;
   }
-  Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
   GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
     if (ic_data.IsUsedAt(i)) {
-      ic_data.GetCheckAt(i, &class_ids, &target);
+      ic_data.GetClassIdsAt(i, &class_ids);
       ASSERT(class_ids.length() == 2);
       if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
           !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
@@ -982,12 +1004,11 @@ static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
   if (ic_data.NumArgsTested() != 2) {
     return false;
   }
-  Function& target = Function::Handle();
   const intptr_t len = ic_data.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (ic_data.IsUsedAt(i)) {
       GrowableArray<intptr_t> class_ids;
-      ic_data.GetCheckAt(i, &class_ids, &target);
+      ic_data.GetClassIdsAt(i, &class_ids);
       ASSERT(class_ids.length() == 2);
       if ((class_ids[0] == receiver_class_id) &&
           (class_ids[1] == argument_class_id)) {
@@ -2358,9 +2379,8 @@ bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.HasOneTarget());
-  Function& target = Function::Handle(Z);
   GrowableArray<intptr_t> class_ids;
-  ic_data.GetCheckAt(0, &class_ids, &target);
+  ic_data.GetClassIdsAt(0, &class_ids);
   ASSERT(class_ids.length() == 1);
   // Inline implicit instance getter.
   const String& field_name =
@@ -4839,6 +4859,7 @@ void FlowGraphOptimizer::WidenSmiToInt32() {
          instr_it.Advance()) {
       BinarySmiOpInstr* smi_op = instr_it.Current()->AsBinarySmiOp();
       if ((smi_op != NULL) &&
+          smi_op->HasSSATemp() &&
           BenefitsFromWidening(smi_op) &&
           CanBeWidened(smi_op)) {
         candidates.Add(smi_op);
@@ -5655,8 +5676,13 @@ class Place : public ValueObject {
     return "<?>";
   }
 
-  bool IsFinalField() const {
-    return (kind() == kField) && field().is_final();
+  // Fields that are considered immutable by load optimization.
+  // Handle static finals as non-final with precompilation because
+  // they may be reset to uninitialized after compilation.
+  bool IsImmutableField() const {
+    return (kind() == kField)
+        && field().is_final()
+        && (!field().is_static() || !FLAG_fields_may_be_reset);
   }
 
   intptr_t Hashcode() const {
@@ -5993,7 +6019,7 @@ class AliasedSet : public ZoneAllocated {
 
   // Compute least generic alias for the place and assign alias id to it.
   void AddRepresentative(Place* place) {
-    if (!place->IsFinalField()) {
+    if (!place->IsImmutableField()) {
       const Place* alias = CanonicalizeAlias(place->ToAlias());
       EnsureSet(&representatives_, alias->id())->Add(place->id());
 
@@ -6199,7 +6225,7 @@ class AliasedSet : public ZoneAllocated {
   // This essentially means that no stores to the same location can
   // occur in other functions.
   bool IsIndependentFromEffects(Place* place) {
-    if (place->IsFinalField()) {
+    if (place->IsImmutableField()) {
       // Note that we can't use LoadField's is_immutable attribute here because
       // some VM-fields (those that have no corresponding Field object and
       // accessed through offset alone) can share offset but have different
@@ -6633,7 +6659,7 @@ class LoadOptimizer : public ValueObject {
               aliased_set_->LookupAliasId(place.ToAlias());
           if (alias_id != AliasedSet::kNoAlias) {
             killed = aliased_set_->GetKilledSet(alias_id);
-          } else if (!place.IsFinalField()) {
+          } else if (!place.IsImmutableField()) {
             // We encountered unknown alias: this means intrablock load
             // forwarding refined parameter of this store, for example
             //
@@ -7537,7 +7563,7 @@ class StoreOptimizer : public LivenessAnalysis {
         bool is_load = false;
         bool is_store = false;
         Place place(instr, &is_load, &is_store);
-        if (place.IsFinalField()) {
+        if (place.IsImmutableField()) {
           // Loads/stores of final fields do not participate.
           continue;
         }
@@ -7626,7 +7652,7 @@ class StoreOptimizer : public LivenessAnalysis {
         bool is_store = false;
         Place place(instr, &is_load, &is_store);
         ASSERT(!is_load && is_store);
-        if (place.IsFinalField()) {
+        if (place.IsImmutableField()) {
           // Final field do not participate in dead store elimination.
           continue;
         }

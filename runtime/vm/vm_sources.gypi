@@ -315,6 +315,7 @@
     'os_linux.cc',
     'os_macos.cc',
     'os_test.cc',
+    'os_thread.cc',
     'os_thread.h',
     'os_thread_android.cc',
     'os_thread_android.h',

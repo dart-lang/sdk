@@ -4,6 +4,8 @@
 
 library analysis_server.src.services.correction.fix;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -17,14 +19,17 @@ import 'package:analyzer/src/generated/parser.dart';
  * reported after it's source was analyzed in the given [context]. The [plugin]
  * is used to get the list of fix contributors.
  */
-List<Fix> computeFixes(ServerPlugin plugin, ResourceProvider resourceProvider,
-    AnalysisContext context, AnalysisError error) {
+Future<List<Fix>> computeFixes(
+    ServerPlugin plugin,
+    ResourceProvider resourceProvider,
+    AnalysisContext context,
+    AnalysisError error) async {
   List<Fix> fixes = <Fix>[];
   List<FixContributor> contributors = plugin.fixContributors;
+  FixContext fixContext = new FixContextImpl(resourceProvider, context, error);
   for (FixContributor contributor in contributors) {
     try {
-      List<Fix> contributedFixes =
-          contributor.computeFixes(resourceProvider, context, error);
+      List<Fix> contributedFixes = await contributor.computeFixes(fixContext);
       if (contributedFixes != null) {
         fixes.addAll(contributedFixes);
       }
@@ -122,6 +127,8 @@ class DartFixKind {
   static const CHANGE_TO = const FixKind('CHANGE_TO', 49, "Change to '{0}'");
   static const CHANGE_TO_STATIC_ACCESS = const FixKind(
       'CHANGE_TO_STATIC_ACCESS', 50, "Change access to static using '{0}'");
+  static const CHANGE_TYPE_ANNOTATION = const FixKind(
+      'CHANGE_TYPE_ANNOTATION', 50, "Change '{0}' to '{1}' type annotation");
   static const CREATE_CLASS =
       const FixKind('CREATE_CLASS', 50, "Create class '{0}'");
   static const CREATE_CONSTRUCTOR =
@@ -201,4 +208,25 @@ class DartFixKind {
       const FixKind('USE_EQ_EQ_NULL', 50, "Use == null instead of 'is Null'");
   static const USE_NOT_EQ_NULL =
       const FixKind('USE_NOT_EQ_NULL', 50, "Use != null instead of 'is! Null'");
+}
+
+/**
+ * The implementation of [FixContext].
+ */
+class FixContextImpl implements FixContext {
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final AnalysisContext analysisContext;
+
+  @override
+  final AnalysisError error;
+
+  FixContextImpl(this.resourceProvider, this.analysisContext, this.error);
+
+  FixContextImpl.from(FixContext other)
+      : resourceProvider = other.resourceProvider,
+        analysisContext = other.analysisContext,
+        error = other.error;
 }

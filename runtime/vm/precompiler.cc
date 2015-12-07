@@ -4,8 +4,10 @@
 
 #include "vm/precompiler.h"
 
+#include "vm/cha.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
+#include "vm/hash_table.h"
 #include "vm/isolate.h"
 #include "vm/log.h"
 #include "vm/longjump.h"
@@ -22,6 +24,10 @@ namespace dart {
 #define Z (zone())
 
 
+DEFINE_FLAG(bool, collect_dynamic_function_names, false,
+    "In precompilation collects all dynamic function names in order to"
+    " identify unique targets");
+DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynaic targets");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 
 
@@ -94,6 +100,8 @@ void Precompiler::DoCompileAll(
     // iterations.
     ClearAllCode();
 
+    CollectDynamicFunctionNames();
+
     // Start with the allocations and invocations that happen from C++.
     AddRoots(embedder_entry_points);
 
@@ -124,12 +132,12 @@ void Precompiler::DoCompileAll(
 
 
 void Precompiler::ClearAllCode() {
-  class CodeCodeFunctionVisitor : public FunctionVisitor {
+  class ClearCodeFunctionVisitor : public FunctionVisitor {
     void VisitFunction(const Function& function) {
       function.ClearCode();
     }
   };
-  CodeCodeFunctionVisitor visitor;
+  ClearCodeFunctionVisitor visitor;
   VisitFunctions(&visitor);
 }
 
@@ -588,6 +596,11 @@ void Precompiler::AddInstantiatedClass(const Class& cls) {
 
   class_count_++;
   cls.set_is_allocated(true);
+  error_ = cls.EnsureIsFinalized(T);
+  if (!error_.IsNull()) {
+    Jump(error_);
+  }
+
   changed_ = true;
 
   if (FLAG_trace_precompiler) {
@@ -703,11 +716,161 @@ void Precompiler::CheckForNewDynamicFunctions() {
 }
 
 
+class NameFunctionsTraits {
+ public:
+  static bool IsMatch(const Object& a, const Object& b) {
+    return a.IsString() && b.IsString() &&
+        String::Cast(a).Equals(String::Cast(b));
+  }
+  static uword Hash(const Object& obj) {
+    return String::Cast(obj).Hash();
+  }
+  static RawObject* NewKey(const String& str) {
+    return str.raw();
+  }
+};
+
+typedef UnorderedHashMap<NameFunctionsTraits> Table;
+
+
+class FunctionsTraits {
+ public:
+  static bool IsMatch(const Object& a, const Object& b) {
+    Zone* zone = Thread::Current()->zone();
+    String& a_s = String::Handle(zone);
+    String& b_s = String::Handle(zone);
+    a_s = a.IsFunction() ? Function::Cast(a).name() : String::Cast(a).raw();
+    b_s = b.IsFunction() ? Function::Cast(b).name() : String::Cast(b).raw();
+    ASSERT(a_s.IsSymbol() && b_s.IsSymbol());
+    return a_s.raw() == b_s.raw();
+  }
+  static uword Hash(const Object& obj) {
+    if (obj.IsFunction()) {
+      return String::Handle(Function::Cast(obj).name()).Hash();
+    } else {
+      ASSERT(String::Cast(obj).IsSymbol());
+      return String::Cast(obj).Hash();
+    }
+  }
+  static RawObject* NewKey(const Function& function) {
+    return function.raw();
+  }
+};
+
+typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
+
+
+static void AddNameToFunctionsTable(Zone* zone,
+                                    Table* table,
+                                    const String& fname,
+                                    const Function& function) {
+  Array& farray = Array::Handle(zone);
+  farray ^= table->InsertNewOrGetValue(fname, Array::empty_array());
+  farray = Array::Grow(farray, farray.Length() + 1);
+  farray.SetAt(farray.Length() - 1, function);
+  table->UpdateValue(fname, farray);
+}
+
+
+void Precompiler::CollectDynamicFunctionNames() {
+  if (!FLAG_collect_dynamic_function_names) {
+    return;
+  }
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& functions = Array::Handle(Z);
+  Function& function = Function::Handle(Z);
+  String& fname = String::Handle(Z);
+  Array& farray = Array::Handle(Z);
+
+  Table table(HashTables::New<Table>(100));
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+      functions = cls.functions();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        function ^= functions.At(j);
+        if (function.IsDynamicFunction()) {
+          fname = function.name();
+          if (function.IsSetterFunction() ||
+              function.IsImplicitSetterFunction()) {
+            AddNameToFunctionsTable(zone(), &table, fname, function);
+          } else if (function.IsGetterFunction() ||
+                     function.IsImplicitGetterFunction()) {
+            // Enter both getter and non getter name.
+            AddNameToFunctionsTable(zone(), &table, fname, function);
+            fname = Field::NameFromGetter(fname);
+            AddNameToFunctionsTable(zone(), &table, fname, function);
+          } else {
+            // Regular function. Enter both getter and non getter name.
+            AddNameToFunctionsTable(zone(), &table, fname, function);
+            fname = Field::GetterName(fname);
+            AddNameToFunctionsTable(zone(), &table, fname, function);
+          }
+        }
+      }
+    }
+  }
+
+  // Locate all entries with one function only, and whose owner is neither
+  // subclassed nor implemented.
+  Table::Iterator iter(&table);
+  String& key = String::Handle(Z);
+  UniqueFunctionsSet functions_set(HashTables::New<UniqueFunctionsSet>(20));
+  while (iter.MoveNext()) {
+    intptr_t curr_key = iter.Current();
+    key ^= table.GetKey(curr_key);
+    farray ^= table.GetOrNull(key);
+    ASSERT(!farray.IsNull());
+    if (farray.Length() == 1) {
+      function ^= farray.At(0);
+      cls = function.Owner();
+      if (!CHA::IsImplemented(cls) && !CHA::HasSubclasses(cls)) {
+        functions_set.Insert(function);
+      }
+    }
+  }
+
+  if (FLAG_print_unique_targets) {
+    UniqueFunctionsSet::Iterator unique_iter(&functions_set);
+    while (unique_iter.MoveNext()) {
+      intptr_t curr_key = unique_iter.Current();
+      function ^= functions_set.GetKey(curr_key);
+      THR_Print("* %s\n", function.ToQualifiedCString());
+    }
+    THR_Print("%" Pd " of %" Pd " dynamic selectors are unique\n",
+        functions_set.NumOccupied(), table.NumOccupied());
+  }
+
+  isolate()->object_store()->set_unique_dynamic_targets(
+      functions_set.Release());
+  table.Release();
+}
+
+
+void Precompiler::GetUniqueDynamicTarget(Isolate* isolate,
+                                         const String& fname,
+                                         Object* function) {
+  UniqueFunctionsSet functions_set(
+      isolate->object_store()->unique_dynamic_targets());
+  ASSERT(fname.IsSymbol());
+  *function = functions_set.GetOrNull(fname);
+  ASSERT(functions_set.Release().raw() ==
+      isolate->object_store()->unique_dynamic_targets());
+}
+
+
 void Precompiler::DropUncompiledFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
   Function& function = Function::Handle(Z);
+  Function& function2 = Function::Handle(Z);
   GrowableObjectArray& retained_functions = GrowableObjectArray::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
@@ -724,7 +887,16 @@ void Precompiler::DropUncompiledFunctions() {
       retained_functions = GrowableObjectArray::New();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
-        if (function.HasCode()) {
+        bool retain = function.HasCode();
+        if (!retain && function.HasImplicitClosureFunction()) {
+          // It can happen that all uses of an implicit closure inline their
+          // target function, leaving the target function uncompiled. Keep
+          // the target function anyway so we can enumerate it to bind its
+          // static calls, etc.
+          function2 = function.ImplicitClosureFunction();
+          retain = function2.HasCode();
+        }
+        if (retain) {
           retained_functions.Add(function);
           function.DropUncompiledImplicitClosureFunction();
         } else {
@@ -775,7 +947,10 @@ void Precompiler::BindStaticCalls() {
     }
 
     void VisitFunction(const Function& function) {
-      ASSERT(function.HasCode());
+      if (!function.HasCode()) {
+        ASSERT(function.HasImplicitClosureFunction());
+        return;
+      }
       code_ = function.CurrentCode();
       table_ = code_.static_calls_target_table();
 
@@ -832,6 +1007,10 @@ void Precompiler::DedupStackmaps() {
     }
 
     void VisitFunction(const Function& function) {
+      if (!function.HasCode()) {
+        ASSERT(function.HasImplicitClosureFunction());
+        return;
+      }
       code_ = function.CurrentCode();
       stackmaps_ = code_.stackmaps();
       if (stackmaps_.IsNull()) return;
@@ -871,6 +1050,7 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
+  Object& object = Object::Handle(Z);
   Function& function = Function::Handle(Z);
   GrowableObjectArray& closures = GrowableObjectArray::Handle(Z);
 
@@ -889,6 +1069,15 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
         visitor->VisitFunction(function);
         if (function.HasImplicitClosureFunction()) {
           function = function.ImplicitClosureFunction();
+          visitor->VisitFunction(function);
+        }
+      }
+
+      functions = cls.invocation_dispatcher_cache();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        object = functions.At(j);
+        if (object.IsFunction()) {
+          function ^= functions.At(j);
           visitor->VisitFunction(function);
         }
       }
@@ -922,7 +1111,10 @@ void Precompiler::FinalizeAllClasses() {
       if (cls.IsDynamicClass()) {
         continue;  // class 'dynamic' is in the read-only VM isolate.
       }
-      cls.EnsureIsFinalized(T);
+      error_ = cls.EnsureIsFinalized(T);
+      if (!error_.IsNull()) {
+        Jump(error_);
+      }
     }
   }
   I->set_all_classes_finalized(true);

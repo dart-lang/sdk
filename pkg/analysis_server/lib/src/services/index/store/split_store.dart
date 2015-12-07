@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';

@@ -323,7 +323,7 @@ import "../foo/foo.dart";
       subscriptions[service] = <String>[bar.path].toSet();
     }
     server.setAnalysisSubscriptions(subscriptions);
-    await pumpEventQueue(500);
+    await pumpEventQueue(1000);
     expect(server.statusAnalyzing, isFalse);
     channel.notificationsReceived.clear();
     server.updateContent(
@@ -454,6 +454,27 @@ import "../foo/foo.dart";
       var params = new ServerStatusParams.fromNotification(notification);
       expect(params.analysis.isAnalyzing, isFalse);
     });
+  }
+
+  test_setAnalysisSubscriptions_fileInIgnoredFolder() async {
+    String path = '/project/samples/sample.dart';
+    resourceProvider.newFile(path, '');
+    resourceProvider.newFile(
+        '/project/.analysis_options',
+        r'''
+analyzer:
+  exclude:
+    - 'samples/**'
+''');
+    server.setAnalysisRoots('0', ['/project'], [], {});
+    server.setAnalysisSubscriptions(<AnalysisService, Set<String>>{
+      AnalysisService.NAVIGATION: new Set<String>.from([path])
+    });
+    // the file is excluded, so no navigation notification
+    await server.onAnalysisComplete;
+    expect(channel.notificationsReceived.any((notification) {
+      return notification.event == ANALYSIS_NAVIGATION;
+    }), isFalse);
   }
 
   Future test_shutdown() {

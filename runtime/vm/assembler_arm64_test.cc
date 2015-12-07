@@ -1625,14 +1625,17 @@ ASSEMBLER_TEST_RUN(LoadImmediateMedNeg4, test) {
 static void EnterTestFrame(Assembler* assembler) {
   __ EnterFrame(0);
   __ Push(CODE_REG);
+  __ Push(THR);
   __ TagAndPushPP();
   __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
+  __ mov(THR, R1);
   __ LoadPoolPointer(PP);
 }
 
 
 static void LeaveTestFrame(Assembler* assembler) {
   __ PopAndUntagPP();
+  __ Pop(THR);
   __ Pop(CODE_REG);
   __ LeaveFrame();
 }
@@ -1652,7 +1655,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediatePPSmall, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LoadImmediatePPSmall, test) {
-  EXPECT_EQ(42, test->InvokeWithCode<int64_t>());
+  EXPECT_EQ(42, test->InvokeWithCodeAndThread<int64_t>());
 }
 
 
@@ -1667,7 +1670,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LoadImmediatePPMed, test) {
-  EXPECT_EQ(0xf1234123, test->InvokeWithCode<int64_t>());
+  EXPECT_EQ(0xf1234123, test->InvokeWithCodeAndThread<int64_t>());
 }
 
 
@@ -1682,7 +1685,7 @@ ASSEMBLER_TEST_GENERATE(LoadImmediatePPMed2, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LoadImmediatePPMed2, test) {
-  EXPECT_EQ(0x4321f1234124, test->InvokeWithCode<int64_t>());
+  EXPECT_EQ(0x4321f1234124, test->InvokeWithCodeAndThread<int64_t>());
 }
 
 
@@ -1698,23 +1701,15 @@ ASSEMBLER_TEST_GENERATE(LoadImmediatePPLarge, assembler) {
 
 ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
   EXPECT_EQ(static_cast<int64_t>(0x9287436598237465),
-            test->InvokeWithCode<int64_t>());
+            test->InvokeWithCodeAndThread<int64_t>());
 }
-
-
-#define ASSEMBLER_TEST_RUN_WITH_THREAD(result_type, var_name) \
-  Thread* thread = Thread::Current(); \
-  result_type var_name = test->InvokeWithCode<result_type>(thread);
 
 
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
   __ SetupDartSP(kTestStackSpace);
   EnterTestFrame(assembler);
-  __ Push(THR);
-  __ mov(THR, R1);
   __ LoadObject(R0, Object::null_object());
-  __ Pop(THR);
   LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
@@ -1722,18 +1717,14 @@ ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
-  ASSEMBLER_TEST_RUN_WITH_THREAD(RawObject*, result);
-  EXPECT_EQ(Object::null(), result);
+  EXPECT_EQ(Object::null(), test->InvokeWithCodeAndThread<RawObject*>());
 }
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
   __ SetupDartSP(kTestStackSpace);
   EnterTestFrame(assembler);
-  __ Push(THR);
-  __ mov(THR, R1);
   __ LoadObject(R0, Bool::True());
-  __ Pop(THR);
   LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
@@ -1741,18 +1732,14 @@ ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
-  ASSEMBLER_TEST_RUN_WITH_THREAD(RawObject*, result);
-  EXPECT_EQ(Bool::True().raw(), result);
+  EXPECT_EQ(Bool::True().raw(), test->InvokeWithCodeAndThread<RawObject*>());
 }
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
   __ SetupDartSP(kTestStackSpace);
   EnterTestFrame(assembler);
-  __ Push(THR);
-  __ mov(THR, R1);
   __ LoadObject(R0, Bool::False());
-  __ Pop(THR);
   LeaveTestFrame(assembler);
   __ mov(CSP, SP);
   __ ret();
@@ -1760,8 +1747,7 @@ ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
-  ASSEMBLER_TEST_RUN_WITH_THREAD(RawObject*, result);
-  EXPECT_EQ(Bool::False().raw(), result);
+  EXPECT_EQ(Bool::False().raw(), test->InvokeWithCodeAndThread<RawObject*>());
 }
 
 
@@ -3591,7 +3577,7 @@ ASSEMBLER_TEST_GENERATE(ComputeRange, assembler) {
   __ SetupDartSP(kTestStackSpace);
   EnterTestFrame(assembler);
   Label miss, done;
-  __ ComputeRange(R0, R1, R2, &miss);
+  __ ComputeRange(R0, R2, R3, &miss);
   __ b(&done);
 
   __ Bind(&miss);
@@ -3605,7 +3591,8 @@ ASSEMBLER_TEST_GENERATE(ComputeRange, assembler) {
 
 
 ASSEMBLER_TEST_RUN(ComputeRange, test) {
-#define RANGE_OF(arg_type, v) test->InvokeWithCode<intptr_t, arg_type>(v)
+#define RANGE_OF(arg_type, v)                                                  \
+  test->InvokeWithCodeAndThread<intptr_t, arg_type>(v)
 
   EXPECT_EQ(ICData::kInt32RangeBit, RANGE_OF(RawSmi*, Smi::New(0)));
   EXPECT_EQ(ICData::kInt32RangeBit, RANGE_OF(RawSmi*, Smi::New(1)));

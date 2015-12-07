@@ -168,6 +168,16 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     applyConstraint(v2, v1.negated, -1);
   }
 
+  void makeLessThanOrEqualToConstant(SignedVariable v1, int k) {
+    // v1 + v1 <= 2k
+    applyConstraint(v1, v1, 2 * k);
+  }
+
+  void makeGreaterThanOrEqualToConstant(SignedVariable v1, int k) {
+    // -v1 - v1 <= -2k
+    applyConstraint(v1.negated, v1.negated, -2 * k);
+  }
+
   void makeConstant(SignedVariable v1, int k) {
     // We model this using the constraints:
     //    v1 + v1 <=  2k
@@ -329,56 +339,130 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
 
   @override
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    if (node.operator != BuiltinOperator.NumAdd &&
-        node.operator != BuiltinOperator.NumSubtract) {
-      return;
+    if (!isInt(node)) return;
+    if (node.arguments.length == 1) {
+      applyUnaryOperator(node);
+    } else if (node.arguments.length == 2) {
+      applyBinaryOperator(node);
     }
-    if (!isInt(node.arguments[0].definition) ||
-        !isInt(node.arguments[1].definition)) {
-      return;
-    }
-    if (!isInt(node)) {
-      // TODO(asgerf): The result of this operation should always be an integer,
-      // but currently type propagation does not always prove this.
-      return;
-    }
-    // We have `v1 = v2 +/- v3`, but the octagon cannot represent constraints
-    // involving more than two variables. Check if one operand is a constant.
-    int getConstantArgument(int n) {
-      Primitive prim = node.arguments[n].definition;
-      if (prim is Constant && prim.value.isInt) {
-        IntConstantValue constant = prim.value;
-        return constant.primitiveValue;
-      }
-      return null;
-    }
-    int constant = getConstantArgument(0);
-    int operandIndex = 1;
-    if (constant == null) {
-      constant = getConstantArgument(1);
-      operandIndex = 0;
-    }
-    if (constant == null) {
-      // Neither argument was a constant.
-      // Classical octagon-based analyzers would compute upper and lower bounds
-      // for the two operands and add constraints for the result based on
-      // those.  For performance reasons we omit that.
-      // TODO(asgerf): It seems expensive, but we should evaluate it.
-      return;
-    }
-    SignedVariable v1 = getValue(node);
-    SignedVariable v2 = getValue(node.arguments[operandIndex].definition);
+  }
 
-    if (node.operator == BuiltinOperator.NumAdd) {
-      // v1 = v2 + const
-      makeFloatingPointSum(v1, v2, constant);
-    } else if (operandIndex == 0) {
-      // v1 = v2 - const
-      makeFloatingPointSum(v1, v2, -constant);
-    } else {
-      // v1 = const - v2   <==>   v1 = (-v2) + const
-      makeFloatingPointSum(v1, v2.negated, constant);
+  void applyBinaryOperator(ApplyBuiltinOperator node) {
+    Primitive left = node.arguments[0].definition;
+    Primitive right = node.arguments[1].definition;
+    if (!isInt(left) || !isInt(right)) {
+      return;
     }
+    SignedVariable leftVar = getValue(left);
+    SignedVariable rightVar = getValue(right);
+    SignedVariable result = getValue(node);
+    switch (node.operator) {
+      case BuiltinOperator.NumAdd:
+        int leftConst = getIntConstant(left);
+        if (leftConst != null) {
+          makeFloatingPointSum(result, rightVar, leftConst);
+        }
+        int rightConst = getIntConstant(right);
+        if (rightConst != null) {
+          makeFloatingPointSum(result, leftVar, rightConst);
+        }
+        // Attempt to compute the sign of the result.
+        // TODO(asgerf): Compute upper/lower bounds instead of using 0.
+        if (testConstraint(leftVar, rightVar, 0)) {
+          makeLessThanOrEqualToConstant(result, 0);
+        }
+        if (testConstraint(leftVar.negated, rightVar.negated, 0)) {
+          makeGreaterThanOrEqualToConstant(result, 0);
+        }
+        // Classical octagon-based analyzers would compute upper and lower
+        // bounds for the two operands and add constraints for the result based
+        // on those.  For performance reasons we only compute the sign
+        // TODO(asgerf): It seems expensive, but we should evaluate it.
+        break;
+
+      case BuiltinOperator.NumSubtract:
+        int leftConst = getIntConstant(left);
+        if (leftConst != null) {
+          // result = leftConst - right = (-right) + leftConst
+          makeFloatingPointSum(result, rightVar.negated, leftConst);
+        }
+        int rightConst = getIntConstant(right);
+        if (rightConst != null) {
+          // result = left - rightConst = left + (-rightConst)
+          makeFloatingPointSum(result, leftVar, -rightConst);
+        }
+        // Attempt to compute the sign of the result.
+        if (isDefinitelyGreaterThanOrEqualTo(leftVar, rightVar)) {
+          makeGreaterThanOrEqualToConstant(result, 0);
+        }
+        if (isDefinitelyLessThanOrEqualTo(leftVar, rightVar)) {
+          makeLessThanOrEqualToConstant(result, 0);
+        }
+        break;
+
+      case BuiltinOperator.NumTruncatingDivideToSigned32:
+        if (isDefinitelyGreaterThanOrEqualToConstant(leftVar, 0)) {
+          // If we divide by a positive number, the result is closer to zero.
+          // If we divide by a negative number, the result is negative, and
+          // thus less than the original (non-negative) number.
+          // TODO(asgerf): The divisor is currently always positive, because
+          // type propagation checks that, but we could do better.
+          makeLessThanOrEqual(result, leftVar);
+        }
+        break;
+
+      case BuiltinOperator.NumShr:
+        if (isDefinitelyGreaterThanOrEqualToConstant(leftVar, 0)) {
+          makeLessThanOrEqual(result, leftVar);
+        }
+        int shiftAmount = getIntConstant(right);
+        if (shiftAmount != null) {
+          // TODO(asgerf): Compute upper bound on [leftVar] and use that
+          // instead of MAX_UINT32.
+          makeLessThanOrEqualToConstant(result, MAX_UINT32 >> shiftAmount);
+        }
+        break;
+
+      case BuiltinOperator.NumRemainder:
+        // TODO(asgerf): This check overlaps with checks performed in a type
+        //   propagation transformation, and we can do it more precisely here.
+        //   Should we do the rewrite here?
+        if (isDefinitelyGreaterThanOrEqualToConstant(leftVar, 0) &&
+            isDefinitelyGreaterThanOrEqualToConstant(rightVar, 1)) {
+          makeLessThanOrEqual(result, leftVar);
+          makeLessThan(result, rightVar);
+        }
+        break;
+
+      case BuiltinOperator.NumAnd:
+        // We use the faster UInt32 check instead of constraint based checks
+        // here, because the common case is that one operand is a constant.
+        if (isUInt32(left)) {
+          makeLessThanOrEqual(result, leftVar);
+        }
+        if (isUInt32(right)) {
+          makeLessThanOrEqual(result, rightVar);
+        }
+        break;
+
+      default:
+    }
+  }
+
+  void applyUnaryOperator(ApplyBuiltinOperator node) {
+    Primitive argument = node.arguments[0].definition;
+    if (!isInt(argument)) return;
+    if (node.operator == BuiltinOperator.NumNegate) {
+      valueOf[node] = getValue(argument).negated;
+    }
+  }
+
+  int getIntConstant(Primitive prim) {
+    if (prim is Constant && prim.value.isInt) {
+      IntConstantValue constant = prim.value;
+      return constant.primitiveValue;
+    }
+    return null;
   }
 
   @override
@@ -398,7 +482,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         Monotonicity mono = monotonicity[param];
         if (mono == null) {
           // Value never changes. This is extremely uncommon.
-          initialValue.substituteFor(param);
+          param.replaceUsesWith(initialValue);
         } else if (mono == Monotonicity.Increasing) {
           makeGreaterThanOrEqual(getValue(param), initialVariable);
         } else if (mono == Monotonicity.Decreasing) {
@@ -468,7 +552,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     }
   }
 
-  // ---------------- CALL EXPRESSIONS --------------------
+  // ---------------- PRIMITIVES --------------------
 
   @override
   void visitInvokeMethod(InvokeMethod node) {
@@ -478,7 +562,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         .changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
@@ -486,7 +569,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     if (world.getSideEffectsOfElement(node.target).changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
@@ -499,7 +581,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     if (world.getSideEffectsOfElement(target).changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
@@ -507,19 +588,16 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     if (world.getSideEffectsOfElement(node.target).changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
   void visitTypeCast(TypeCast node) {
-    push(node.continuation.definition);
   }
 
   @override
   void visitGetLazyStatic(GetLazyStatic node) {
     // TODO(asgerf): How do we get the side effects of a lazy field initializer?
     currentEffectNumber = makeNewEffect();
-    push(node.continuation.definition);
   }
 
   @override
@@ -527,22 +605,17 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     if (node.nativeBehavior.sideEffects.changesIndex()) {
       currentEffectNumber = makeNewEffect();
     }
-    push(node.continuation.definition);
   }
 
   @override
   void visitAwait(Await node) {
     currentEffectNumber = makeNewEffect();
-    push(node.continuation.definition);
   }
 
   @override
   void visitYield(Yield node) {
     currentEffectNumber = makeNewEffect();
-    push(node.continuation.definition);
   }
-
-  // ---------------- PRIMITIVES --------------------
 
   @override
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {

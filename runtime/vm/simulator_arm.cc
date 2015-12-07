@@ -700,8 +700,8 @@ Simulator::Simulator() {
   // the size specified by the user and the buffer space needed for
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
-  stack_ = new char[(Isolate::GetSpecifiedStackSize() +
-                     Isolate::kStackSizeBuffer +
+  stack_ = new char[(OSThread::GetSpecifiedStackSize() +
+                     OSThread::kStackSizeBuffer +
                      kSimulatorStackUnderflowSize)];
   pc_modified_ = false;
   icount_ = 0;
@@ -1177,7 +1177,7 @@ uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
   return StackBase() +
-      (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+      (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 

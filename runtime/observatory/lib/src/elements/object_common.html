@@ -26,6 +26,20 @@
         <div class="memberValue">{{ object.size | formatSize }}</div>
       </div>
 
+      <div class="memberItem" title="Space reachable from this object, excluding class references">
+        <div class="memberName">reachable size</div>
+        <div class="memberValue">
+          <template if="{{ reachableBytes == null }}">
+            <eval-link callback="{{ reachableSize }}"
+                       label="[calculate]">
+            </eval-link>
+          </template>
+          <template if="{{ reachableBytes != null }}">
+            {{ reachableBytes | formatSize }}
+          </template>
+        </div>
+      </div>
+
       <div class="memberItem" title="Space that would be reclaimed if references to this object were replaced with null">
         <div class="memberName">retained size</div>
         <div class="memberValue">

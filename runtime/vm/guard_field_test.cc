@@ -4,7 +4,6 @@
 
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
-#include "vm/intermediate_language.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 

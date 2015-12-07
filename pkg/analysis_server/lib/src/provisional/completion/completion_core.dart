@@ -4,51 +4,39 @@
 
 library analysis_server.src.provisional.completion.completion_core;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/model.dart';
 
 /**
- * A method or function called when the requested analysis has been performed.
+ * An empty list returned by [CompletionContributor]s
+ * when they have no suggestions to contribute.
  */
-typedef AnalysisRequest AnalysisCallback<V>(
-    CompletionRequest request, V computedValue);
+const EMPTY_LIST = const <CompletionSuggestion>[];
 
 /**
- * A request from a contributor for additional analysis.
+ * An object used to instantiate a [CompletionContributor] instance
+ * for each 'completion.getSuggestions' request.
+ * Contributors should *not* be cached between requests.
  */
-class AnalysisRequest<V> {
-  /**
-   * An object with which an analysis result can be associated.
-   */
-  AnalysisTarget target;
-
-  /**
-   * A description of an analysis result that can be computed by an [AnalysisTask].
-   */
-  ResultDescriptor<V> descriptor;
-
-  /**
-   * A method or function called when the requested analysis has been performed.
-   */
-  AnalysisCallback<V> callback;
-
-  AnalysisRequest(this.target, this.descriptor, this.callback);
-}
+typedef CompletionContributor CompletionContributorFactory();
 
 /**
  * An object used to produce completions at a specific location within a file.
  *
- * Clients may extend this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class CompletionContributor {
   /**
-   * Compute a list of completion suggestions based on the given completion
-   * [request]. Return the suggestions that were computed.
+   * Return a [Future] that completes with a list of suggestions
+   * for the given completion [request].
    */
-  List<CompletionSuggestion> computeSuggestions(CompletionRequest request);
+  Future<List<CompletionSuggestion>> computeSuggestions(
+      CompletionRequest request);
 }
 
 /**
@@ -72,6 +60,11 @@ abstract class CompletionRequest {
    * Return the resource provider associated with this request.
    */
   ResourceProvider get resourceProvider;
+
+  /**
+   * Return the search engine.
+   */
+  SearchEngine get searchEngine;
 
   /**
    * Return the source in which the completion is being requested.

@@ -1,3 +1,6 @@
+## 0.26.3
+* (Internal) Support for `_embedder.yaml` discovery and processing.
+
 ## 0.26.2
 * Add code generation utilities for use in both analyzer and analysis server.
 

@@ -555,6 +555,10 @@ class _LibrarySerializer {
       } else {
         b.reference = referenceMap.putIfAbsent(element, () {
           assert(unlinkedReferences.length == prelinkedReferences.length);
+          CompilationUnitElement unitElement =
+              element.getAncestor((Element e) => e is CompilationUnitElement);
+          int unit = dependentLibrary.units.indexOf(unitElement);
+          assert(unit != -1);
           int index = unlinkedReferences.length;
           // TODO(paulberry): set UnlinkedReference.prefix.
           unlinkedReferences
@@ -563,7 +567,8 @@ class _LibrarySerializer {
               dependency: serializeDependency(dependentLibrary),
               kind: element is FunctionTypeAliasElement
                   ? PrelinkedReferenceKind.typedef
-                  : PrelinkedReferenceKind.classOrEnum));
+                  : PrelinkedReferenceKind.classOrEnum,
+              unit: unit));
           return index;
         });
       }

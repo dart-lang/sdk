@@ -60,6 +60,7 @@ import '../tree/tree.dart' show
 import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/world_impact.dart' show
+    ImpactStrategy,
     WorldImpact;
 
 import 'codegen.dart' show
@@ -424,6 +425,13 @@ abstract class Backend {
   ///
   /// Returns null if there is none.
   Uri resolvePatchUri(String libraryName, Uri plaformConfigUri);
+
+  /// Creates an impact strategy to use for compilation.
+  ImpactStrategy createImpactStrategy(
+      {bool supportDeferredLoad: true,
+       bool supportDumpInfo: true}) {
+    return const ImpactStrategy();
+  }
 }
 
 /// Interface for resolving calls to foreign functions.

@@ -581,6 +581,52 @@ class JavaScriptBackend extends Backend {
         new Namer(compiler);
   }
 
+  /// The backend must *always* call this method when enqueuing an
+  /// element. Calls done by the backend are not seen by global
+  /// optimizations, so they would make these optimizations unsound.
+  /// Therefore we need to collect the list of helpers the backend may
+  /// use.
+  // TODO(johnniwinther): Replace this with a more precise modelling; type
+  // inference of these elements is disabled.
+  Element registerBackendUse(Element element) {
+    if (element != null) {
+      bool registerUse = false;
+      if (element == helpers.streamIteratorConstructor ||
+          element == helpers.compiler.symbolConstructor ||
+          element == helpers.compiler.symbolValidatedConstructor ||
+          element == helpers.syncCompleterConstructor ||
+          element == coreClasses.symbolClass ||
+          element == helpers.objectNoSuchMethod) {
+        // TODO(johnniwinther): These are valid but we could be more precise.
+        registerUse = true;
+      } else if (element.implementationLibrary.isPatch ||
+                 element.library == helpers.jsHelperLibrary ||
+                 element.library == helpers.interceptorsLibrary ||
+                 element.library == helpers.isolateHelperLibrary) {
+        // TODO(johnniwinther): We should be more precise about these.
+        registerUse = true;
+      } else if (element == coreClasses.listClass ||
+                 element == helpers.mapLiteralClass ||
+                 element == coreClasses.functionClass ||
+                 element == coreClasses.stringClass) {
+        // TODO(johnniwinther): Avoid these.
+        registerUse = true;
+      }
+      if (!registerUse) {
+        assert(invariant(element, false,
+            message: "Backend use of $element is not allowed."));
+        return element;
+      }
+      helpersUsed.add(element.declaration);
+      if (element.isClass && element.isPatched) {
+        // Both declaration and implementation may declare fields, so we
+        // add both to the list of helpers.
+        helpersUsed.add(element.implementation);
+      }
+    }
+    return element;
+  }
+
   bool usedByBackend(Element element) {
     if (element.isParameter
         || element.isInitializingFormal
@@ -1479,23 +1525,6 @@ class JavaScriptBackend extends Backend {
            compiler.enabledRuntimeType;
   }
 
-  /// The backend must *always* call this method when enqueuing an
-  /// element. Calls done by the backend are not seen by global
-  /// optimizations, so they would make these optimizations unsound.
-  /// Therefore we need to collect the list of helpers the backend may
-  /// use.
-  Element registerBackendUse(Element element) {
-    if (element != null) {
-      helpersUsed.add(element.declaration);
-      if (element.isClass && element.isPatched) {
-        // Both declaration and implementation may declare fields, so we
-        // add both to the list of helpers.
-        helpersUsed.add(element.implementation);
-      }
-    }
-    return element;
-  }
-
   /// Enqueue [e] in [enqueuer].
   ///
   /// This method calls [registerBackendUse].
@@ -1602,7 +1631,10 @@ class JavaScriptBackend extends Backend {
     }
 
     generatedCode[element] = functionCompiler.compile(work);
-    return impactTransformer.transformCodegenImpact(work.registry.worldImpact);
+    WorldImpact worldImpact =
+        impactTransformer.transformCodegenImpact(work.registry.worldImpact);
+    compiler.dumpInfoTask.registerImpact(element, worldImpact);
+    return worldImpact;
   }
 
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
@@ -2611,6 +2643,17 @@ class JavaScriptBackend extends Backend {
     if (patchLocation == null) return null;
     return platformConfigUri.resolve(patchLocation);
   }
+
+  @override
+  ImpactStrategy createImpactStrategy(
+      {bool supportDeferredLoad: true,
+       bool supportDumpInfo: true}) {
+    return new JavaScriptImpactStrategy(
+        resolution,
+        compiler.dumpInfoTask,
+        supportDeferredLoad: supportDeferredLoad,
+        supportDumpInfo: supportDumpInfo);
+  }
 }
 
 /// Handling of special annotations for tests.
@@ -3078,4 +3121,47 @@ class Dependency {
   final Element annotatedElement;
 
   const Dependency(this.constant, this.annotatedElement);
+}
+
+class JavaScriptImpactStrategy extends ImpactStrategy {
+  final Resolution resolution;
+  final DumpInfoTask dumpInfoTask;
+  final bool supportDeferredLoad;
+  final bool supportDumpInfo;
+
+  JavaScriptImpactStrategy(this.resolution,
+                           this.dumpInfoTask,
+                           {this.supportDeferredLoad,
+                            this.supportDumpInfo});
+
+  @override
+  void visitImpact(Element element,
+                   WorldImpact impact,
+                   WorldImpactVisitor visitor,
+                   ImpactUseCase impactUse) {
+    // TODO(johnniwinther): Compute the application strategy once for each use.
+    if (impactUse == ResolutionEnqueuer.IMPACT_USE) {
+      if (supportDeferredLoad) {
+        impact.apply(visitor);
+      } else {
+        impact.apply(visitor);
+        resolution.uncacheWorldImpact(element);
+      }
+    } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
+      impact.apply(visitor);
+      // Impacts are uncached globally in [onImpactUsed].
+    } else if (impactUse == DumpInfoTask.IMPACT_USE) {
+      impact.apply(visitor);
+      dumpInfoTask.unregisterImpact(element);
+    } else {
+      impact.apply(visitor);
+    }
+  }
+
+  @override
+  void onImpactUsed(ImpactUseCase impactUse) {
+    if (impactUse == DeferredLoadTask.IMPACT_USE) {
+      resolution.emptyCache();
+    }
+  }
 }

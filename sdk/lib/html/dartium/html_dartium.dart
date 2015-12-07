@@ -9535,7 +9535,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('DedicatedWorkerGlobalScope.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
   
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
@@ -33019,7 +33019,7 @@ class ServiceWorkerClient extends DartHtmlDomObject {
   @DomName('ServiceWorkerClient.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkServiceWorkerClient.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkServiceWorkerClient.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40454,10 +40454,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.moveTo]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo) from MDN.
-   * * [Window.moveTo]
-   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveto) from W3C.
+   * * [Window.moveTo](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo)
+   *   from MDN.
+   * * [Window.moveTo](http://dev.w3.org/csswg/cssom-view/#dom-window-moveto)
+   *   from W3C.
    */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);
@@ -40677,7 +40677,7 @@ class Worker extends EventTarget implements AbstractWorker {
 
   @DomName('Worker.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
   
   @DomName('Worker.terminate')
   @DocsEditable()

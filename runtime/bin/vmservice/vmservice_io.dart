@@ -5,6 +5,7 @@
 library vmservice_io;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
@@ -27,7 +28,7 @@ var _signalSubscription;
 // HTTP server.
 Server server;
 Future<Server> serverFuture;
-Map<String, Asset> assets;
+HashMap<String, Asset> assets;
 
 _onShutdown() {
   if (server != null) {

@@ -4,8 +4,8 @@
 
 library analysis_server.test.src.utilities.change_builder_dart_test;
 
-import 'package:analysis_server/plugin/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/src/utilities/change_builder_dart.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';

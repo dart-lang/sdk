@@ -34,6 +34,12 @@ class WorldImpact {
 
   Iterable<TypeUse> get typeUses => const <TypeUse>[];
 
+  void apply(WorldImpactVisitor visitor) {
+    staticUses.forEach(visitor.visitStaticUse);
+    dynamicUses.forEach(visitor.visitDynamicUse);
+    typeUses.forEach(visitor.visitTypeUse);
+  }
+
   String toString() => dump(this);
 
   static String dump(WorldImpact worldImpact) {
@@ -154,6 +160,12 @@ class TransformedWorldImpact implements WorldImpact {
     return _staticUses != null ? _staticUses : worldImpact.staticUses;
   }
 
+  void apply(WorldImpactVisitor visitor) {
+    staticUses.forEach(visitor.visitStaticUse);
+    dynamicUses.forEach(visitor.visitDynamicUse);
+    typeUses.forEach(visitor.visitTypeUse);
+  }
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('TransformedWorldImpact($worldImpact)');
@@ -161,3 +173,78 @@ class TransformedWorldImpact implements WorldImpact {
     return sb.toString();
   }
 }
+
+/// Constant used to denote a specific use of a [WorldImpact].
+class ImpactUseCase {
+  final String name;
+
+  const ImpactUseCase(this.name);
+
+  String toString() => 'ImpactUseCase($name)';
+}
+
+/// Strategy used for processing [WorldImpact] object in various use cases.
+class ImpactStrategy {
+  const ImpactStrategy();
+
+  /// Applies [impact] to [visitor] for the [impactUseCase] of [element].
+  void visitImpact(Element element,
+                   WorldImpact impact,
+                   WorldImpactVisitor visitor,
+                   ImpactUseCase impactUseCase) {
+    // Apply unconditionally.
+    impact.apply(visitor);
+  }
+
+  /// Notifies the strategy that no more impacts of [impactUseCase] will be
+  /// applied.
+  void onImpactUsed(ImpactUseCase impactUseCase) {
+    // Do nothing.
+  }
+}
+
+/// Visitor used to process the uses of a [WorldImpact].
+abstract class WorldImpactVisitor {
+  void visitStaticUse(StaticUse staticUse);
+  void visitDynamicUse(DynamicUse dynamicUse);
+  void visitTypeUse(TypeUse typeUse);
+}
+
+// TODO(johnniwinther): Remove these when we get anonymous local classes.
+typedef void VisitUse<U>(U use);
+
+class WorldImpactVisitorImpl implements WorldImpactVisitor {
+  final VisitUse<StaticUse> _visitStaticUse;
+  final VisitUse<DynamicUse> _visitDynamicUse;
+  final VisitUse<TypeUse> _visitTypeUse;
+
+  WorldImpactVisitorImpl(
+      {VisitUse<StaticUse> visitStaticUse,
+       VisitUse<DynamicUse> visitDynamicUse,
+       VisitUse<TypeUse> visitTypeUse})
+      : _visitStaticUse = visitStaticUse,
+        _visitDynamicUse = visitDynamicUse,
+        _visitTypeUse = visitTypeUse;
+
+  @override
+  void visitStaticUse(StaticUse use) {
+    if (_visitStaticUse != null) {
+      _visitStaticUse(use);
+    }
+  }
+
+  @override
+  void visitDynamicUse(DynamicUse use) {
+    if (_visitDynamicUse != null) {
+      _visitDynamicUse(use);
+    }
+  }
+
+  @override
+  void visitTypeUse(TypeUse use) {
+    if (_visitTypeUse != null) {
+      _visitTypeUse(use);
+    }
+  }
+}
+

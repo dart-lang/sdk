@@ -186,8 +186,21 @@ abstract class Resolution {
   DartType resolveTypeAnnotation(Element element, TypeAnnotation node);
 
   bool hasBeenResolved(Element element);
+
+  /// Returns the precomputed [WorldImpact] for [element].
   WorldImpact getWorldImpact(Element element);
+
+  /// Computes the [WorldImpact] for [element].
   WorldImpact computeWorldImpact(Element element);
+
+  /// Removes the [WorldImpact] for [element] from the resolution cache. Later
+  /// calls to [getWorldImpact] or [computeWorldImpact] returns an empty impact.
+  void uncacheWorldImpact(Element element);
+
+  /// Removes the [WorldImpact]s for all [Element]s in the resolution cache. ,
+  /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
+  /// impact.
+  void emptyCache();
 }
 
 // TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.

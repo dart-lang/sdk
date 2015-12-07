@@ -29,9 +29,10 @@
           # '-fvisibility=hidden',
           # '-fvisibility-inlines-hidden',
           '-fstack-protector',
+          '-Wa,--noexecstack',
         ],
         'ldflags': [
-          '-Wa,--noexecstack',
+          '-Wl,-z,noexecstack',
           '-Wl,-z,now',
           '-Wl,-z,relro',
         ],
@@ -236,6 +237,10 @@
         ],
         'cflags': [
           '-O3',
+          '-ffunction-sections',
+        ],
+        'ldflags': [
+          '-Wl,--gc-sections',
         ],
       },
     },

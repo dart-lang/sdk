@@ -77,6 +77,7 @@ DECLARE_FLAG(bool, trace_irregexp);
 bool Compiler::always_optimize_ = false;
 bool Compiler::allow_recompilation_ = true;
 
+#ifndef DART_PRECOMPILED
 
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
 // separate helpers functions & `optimizing` args.
@@ -315,7 +316,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     if (FLAG_trace_compiler) {
-      THR_Print("Compiling Class %s '%s'\n", "", cls.ToCString());
+      THR_Print("Compiling Class '%s'\n", cls.ToCString());
     }
 
     // Add the primary class which needs to be parsed to the parse list.
@@ -548,7 +549,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
           FlowGraphInliner inliner(flow_graph,
                                    &inline_id_to_function,
-                                   &caller_inline_id);
+                                   &caller_inline_id,
+                                   use_speculative_inlining,
+                                   &inlining_black_list);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -1387,24 +1390,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       func.ClearCode();
     }
   }
-
-  // Inner functions get added to the closures array. As part of compilation
-  // more closures can be added to the end of the array. Compile all the
-  // closures until we have reached the end of the "worklist".
-  const GrowableObjectArray& closures =
-      GrowableObjectArray::Handle(zone,
-          Isolate::Current()->object_store()->closure_functions());
-  for (int i = 0; i < closures.Length(); i++) {
-    func ^= closures.At(i);
-    if ((func.Owner() == cls.raw()) && !func.HasCode()) {
-      error = CompileFunction(thread, func);
-      if (!error.IsNull()) {
-        return error.raw();
-      }
-      func.ClearICDataArray();
-      func.ClearCode();
-    }
-  }
   return error.raw();
 }
 
@@ -1731,9 +1716,7 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 
 void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   ASSERT(Isolate::Current()->background_compiler() == task);
-  if (task == NULL) {
-    return;
-  }
+  ASSERT(task != NULL);
   BackgroundCompilationQueue* function_queue = task->function_queue();
 
   Monitor* queue_monitor = task->queue_monitor_;
@@ -1791,5 +1774,113 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
     Dart::thread_pool()->Run(isolate->background_compiler());
   }
 }
+
+
+#else  // DART_PRECOMPILED
+
+
+DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
+  UNREACHABLE();
+}
+
+
+bool Compiler::IsBackgroundCompilation() {
+  UNREACHABLE();
+  return false;
+}
+
+
+RawError* Compiler::Compile(const Library& library, const Script& script) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::CompileClass(const Class& cls) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::CompileFunction(Thread* thread,
+                                    const Function& function) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
+                                          const Function& function) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::CompileOptimizedFunction(Thread* thread,
+                                             const Function& function,
+                                             intptr_t osr_id) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::CompileParsedFunction(
+    ParsedFunction* parsed_function) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+void Compiler::ComputeLocalVarDescriptors(const Code& code) {
+  UNREACHABLE();
+}
+
+
+RawError* Compiler::CompileAllFunctions(const Class& cls) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+void Compiler::CompileStaticInitializer(const Field& field) {
+  UNREACHABLE();
+}
+
+
+RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
+  ASSERT(field.HasPrecompiledInitializer());
+  const Function& initializer =
+      Function::Handle(field.PrecompiledInitializer());
+  return DartEntry::InvokeFunction(initializer, Object::empty_array());
+}
+
+
+
+RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
+  UNREACHABLE();
+  return Object::null();
+}
+
+
+void BackgroundCompiler::CompileOptimized(const Function& function) {
+  UNREACHABLE();
+}
+
+
+void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
+  UNREACHABLE();
+}
+
+
+void BackgroundCompiler::Stop(BackgroundCompiler* task) {
+  UNREACHABLE();
+}
+
+
+void BackgroundCompiler::EnsureInit(Thread* thread) {
+  UNREACHABLE();
+}
+
+#endif  // DART_PRECOMPILED
 
 }  // namespace dart

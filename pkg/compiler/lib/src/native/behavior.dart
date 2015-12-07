@@ -140,9 +140,15 @@ class NativeBehavior {
   ///
   /// Two forms of the string is supported:
   ///
-  /// 1) A single type string of the form 'void', '', 'var' or 'T1|...|Tn'
-  ///    which defines the types returned and for the later form also created by
-  ///    the call to JS.
+  /// 1) A single type string of the form 'void', '', 'var' or 'T1|...|Tn' which
+  ///    defines the types returned, and, for the last form, the types also
+  ///    created by the call to JS.  'var' (and '') are like 'dynamic' or
+  ///    'Object' except that 'dynamic' would indicate that objects of any type
+  ///    are created, which defeats tree-shaking.  Think of 'var' (and '') as
+  ///    meaning 'any pre-existing type'.
+  ///
+  ///    The types Ti are non-nullable, so add class `Null` to specify a
+  ///    nullable type, e.g `'String|Null'`.
   ///
   /// 2) A sequence of <tag>:<value> pairs of the following kinds
   ///
@@ -155,7 +161,7 @@ class NativeBehavior {
   ///    A <type-tag> is either 'returns' or 'creates' and <type-string> is a
   ///    type string like in 1). The type string marked by 'returns' defines the
   ///    types returned and 'creates' defines the types created by the call to
-  ///    JS.
+  ///    JS. If 'creates' is missing, it defaults to 'returns'.
   ///
   ///    An <effect-tag> is either 'effects' or 'depends' and <effect-string> is
   ///    either 'all', 'none' or a comma-separated list of 'no-index',
@@ -309,23 +315,30 @@ class NativeBehavior {
 
     String returns = values['returns'];
     if (returns != null) {
-      resolveTypesString(returns, onVar: () {
-        typesReturned.add(objectType);
-        typesReturned.add(nullType);
-      }, onType: (type) {
-        typesReturned.add(type);
-      });
+      resolveTypesString(returns,
+        onVar: () {
+          typesReturned.add(objectType);
+          typesReturned.add(nullType);
+        },
+        onType: (type) {
+          typesReturned.add(type);
+        });
     }
 
     String creates = values['creates'];
     if (creates != null) {
-      resolveTypesString(creates, onVoid: () {
-        reportError("Invalid type string 'creates:$creates'");
-      }, onVar: () {
-        reportError("Invalid type string 'creates:$creates'");
-      }, onType: (type) {
-        typesInstantiated.add(type);
-      });
+      resolveTypesString(creates,
+        onVoid: () {
+          reportError("Invalid type string 'creates:$creates'");
+        },
+        onType: (type) {
+          typesInstantiated.add(type);
+        });
+    } else if (returns != null) {
+      resolveTypesString(returns,
+        onType: (type) {
+          typesInstantiated.add(type);
+        });
     }
 
     const throwsOption = const <String, NativeThrowBehavior>{
@@ -645,12 +658,26 @@ class NativeBehavior {
   static NativeBehavior ofMethod(FunctionElement method,  Compiler compiler) {
     FunctionType type = method.computeType(compiler.resolution);
     var behavior = new NativeBehavior();
-    behavior.typesReturned.add(type.returnType);
+    var returnType = type.returnType;
+    bool isInterop = compiler.backend.isJsInterop(method);
+    // Note: For dart:html and other internal libraries we maintain, we can
+    // trust the return type and use it to limit what we enqueue. We have to
+    // be more conservative about JS interop types and assume they can return
+    // anything (unless the user provides the experimental flag to trust the
+    // type of js-interop APIs). We do restrict the allocation effects and say
+    // that interop calls create only interop types (which may be unsound if
+    // an interop call returns a DOM type and declares a dynamic return type,
+    // but otherwise we would include a lot of code by default).
+    // TODO(sigmund,sra): consider doing something better for numeric types.
+    behavior.typesReturned.add(
+        !isInterop || compiler.trustJSInteropTypeAnnotations ? returnType
+        : const DynamicType());
     if (!type.returnType.isVoid) {
       // Declared types are nullable.
       behavior.typesReturned.add(compiler.coreTypes.nullType);
     }
-    behavior._capture(type, compiler.resolution);
+    behavior._capture(type, compiler.resolution,
+        isInterop: isInterop, compiler: compiler);
 
     // TODO(sra): Optional arguments are currently missing from the
     // DartType. This should be fixed so the following work-around can be
@@ -668,10 +695,15 @@ class NativeBehavior {
     Resolution resolution = compiler.resolution;
     DartType type = field.computeType(resolution);
     var behavior = new NativeBehavior();
-    behavior.typesReturned.add(type);
+    bool isInterop = compiler.backend.isJsInterop(field);
+    // TODO(sigmund,sra): consider doing something better for numeric types.
+    behavior.typesReturned.add(
+        !isInterop || compiler.trustJSInteropTypeAnnotations ? type
+        : const DynamicType());
     // Declared types are nullable.
     behavior.typesReturned.add(resolution.coreTypes.nullType);
-    behavior._capture(type, resolution);
+    behavior._capture(type, resolution,
+        isInterop: isInterop, compiler: compiler);
     behavior._overrideWithAnnotations(field, compiler);
     return behavior;
   }
@@ -765,17 +797,50 @@ class NativeBehavior {
   /// Models the behavior of Dart code receiving instances and methods of [type]
   /// from native code.  We usually start the analysis by capturing a native
   /// method that has been used.
-  void _capture(DartType type, Resolution resolution) {
+  ///
+  /// We assume that JS-interop APIs cannot instantiate Dart types or
+  /// non-JSInterop native types.
+  void _capture(DartType type, Resolution resolution,
+      {bool isInterop: false, Compiler compiler}) {
     type.computeUnaliased(resolution);
     type = type.unaliased;
     if (type is FunctionType) {
       FunctionType functionType = type;
-      _capture(functionType.returnType, resolution);
+      _capture(functionType.returnType, resolution,
+          isInterop: isInterop, compiler: compiler);
       for (DartType parameter in functionType.parameterTypes) {
         _escape(parameter, resolution);
       }
     } else {
-      typesInstantiated.add(type);
+      DartType instantiated = null;
+      JavaScriptBackend backend = compiler?.backend;
+      if (!isInterop) {
+        typesInstantiated.add(type);
+      } else {
+        if (type.element != null && backend.isNative(type.element)) {
+          // Any declared native or interop type (isNative implies isJsInterop)
+          // is assumed to be allocated.
+          typesInstantiated.add(type);
+        }
+
+        if (!compiler.trustJSInteropTypeAnnotations ||
+          type.isDynamic || type.isObject) {
+          // By saying that only JS-interop types can be created, we prevent
+          // pulling in every other native type (e.g. all of dart:html) when a
+          // JS interop API returns dynamic or when we don't trust the type
+          // annotations. This means that to some degree we still use the return
+          // type to decide whether to include native types, even if we don't
+          // trust the type annotation.
+          ClassElement cls = backend.helpers.jsJavaScriptObjectClass;
+          cls.ensureResolved(resolution);
+          typesInstantiated.add(cls.thisType);
+        } else {
+          // Otherwise, when the declared type is a Dart type, we do not
+          // register an allocation because we assume it cannot be instantiated
+          // from within the JS-interop code. It must have escaped from another
+          // API.
+        }
+      }
     }
   }
 

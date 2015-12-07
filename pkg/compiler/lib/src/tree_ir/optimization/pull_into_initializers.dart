@@ -338,15 +338,6 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
-  void visitInnerFunction(FunctionDefinition node) {
-    new PullIntoInitializers().rewrite(node);
-  }
-
-  Expression visitFunctionExpression(FunctionExpression node) {
-    visitInnerFunction(node.definition);
-    return node;
-  }
-
   Expression visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     rewriteList(node.arguments);
     return node;

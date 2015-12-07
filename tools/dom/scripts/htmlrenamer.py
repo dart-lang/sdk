@@ -439,12 +439,6 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
   'FormData.append(DOMString name, Blob value, DOMString filename)':
       'appendBlob',
-  'IDBDatabase.transaction(DOMStringList storeNames, IDBTransactionMode mode)':
-      'transactionStores',
-  'IDBDatabase.transaction(sequence<DOMString> storeNames, IDBTransactionMode mode)':
-      'transactionList',
-  'IDBDatabase.transaction(DOMString storeName, IDBTransactionMode mode)':
-      'transactionStore',
   'RTCDataChannel.send(ArrayBuffer data)': 'sendByteBuffer',
   'RTCDataChannel.send(ArrayBufferView data)': 'sendTypedData',
   'RTCDataChannel.send(Blob data)': 'sendBlob',
@@ -777,6 +771,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLTitleElement.text',
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
+    'IDBDatabase.transaction', # We do this in a template without the generated implementation at all.
     'Location.valueOf',
     'MessageEvent.ports',
     'MessageEvent.webkitInitMessageEvent',

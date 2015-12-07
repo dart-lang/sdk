@@ -7,10 +7,11 @@ library IsolateImportNegativeTest;
 /*  /// 01: runtime error, static type warning
 import 'dart:isolate';
 */  /// 01: continued
+import 'package:async_helper/async_helper.dart';
 
 void entry(msg) {}
 
 main() {
-  Isolate.spawn(entry, null);
+  asyncStart();
+  Isolate.spawn(entry, null).whenComplete(asyncEnd);
 }
-

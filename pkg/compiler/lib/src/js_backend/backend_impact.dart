@@ -68,8 +68,8 @@ class BackendImpacts {
             helpers.getRuntimeTypeInfo,
             helpers.computeSignature,
             helpers.getRuntimeTypeArguments],
-          instantiatedClasses: [
-            coreClasses.listClass]);
+          otherImpacts: [
+            listValues]);
     }
     return _computeSignature;
   }
@@ -187,6 +187,74 @@ class BackendImpacts {
     return _throwNoSuchMethod;
   }
 
+  BackendImpact _stringValues;
+
+  BackendImpact get stringValues {
+    if (_stringValues == null) {
+      _stringValues = new BackendImpact(
+          instantiatedClasses: [
+            helpers.jsStringClass]);
+    }
+    return _stringValues;
+  }
+
+  BackendImpact _numValues;
+
+  BackendImpact get numValues {
+    if (_numValues == null) {
+      _numValues = new BackendImpact(
+          instantiatedClasses: [
+            helpers.jsIntClass,
+            helpers.jsPositiveIntClass,
+            helpers.jsUInt32Class,
+            helpers.jsUInt31Class,
+            helpers.jsNumberClass,
+            helpers.jsDoubleClass]);
+    }
+    return _numValues;
+  }
+
+  BackendImpact get intValues => numValues;
+
+  BackendImpact get doubleValues => numValues;
+
+  BackendImpact _boolValues;
+
+  BackendImpact get boolValues {
+    if (_boolValues == null) {
+      _boolValues = new BackendImpact(
+          instantiatedClasses: [
+            helpers.jsBoolClass]);
+    }
+    return _boolValues;
+  }
+
+  BackendImpact _nullValue;
+
+  BackendImpact get nullValue {
+    if (_nullValue == null) {
+      _nullValue = new BackendImpact(
+          instantiatedClasses: [
+            helpers.jsNullClass]);
+    }
+    return _nullValue;
+  }
+
+  BackendImpact _listValues;
+
+  BackendImpact get listValues {
+    if (_listValues == null) {
+      _listValues = new BackendImpact(
+          instantiatedClasses: [
+            helpers.jsArrayClass,
+            helpers.jsMutableArrayClass,
+            helpers.jsFixedArrayClass,
+            helpers.jsExtendableArrayClass,
+            helpers.jsUnmodifiableArrayClass]);
+    }
+    return _listValues;
+  }
+
   BackendImpact _throwRuntimeError;
 
   BackendImpact get throwRuntimeError {
@@ -194,9 +262,9 @@ class BackendImpacts {
       _throwRuntimeError = new BackendImpact(
           staticUses: [
             helpers.throwRuntimeError],
-          // Also register the types of the arguments passed to this method.
-          instantiatedClasses: [
-            coreClasses.stringClass]);
+          otherImpacts: [
+            // Also register the types of the arguments passed to this method.
+            stringValues]);
     }
     return _throwRuntimeError;
   }
@@ -208,8 +276,7 @@ class BackendImpacts {
       _superNoSuchMethod = new BackendImpact(
           staticUses: [
             helpers.createInvocationMirror,
-            coreClasses.objectClass.lookupLocalMember(
-                Identifiers.noSuchMethod_)],
+            helpers.objectNoSuchMethod],
           otherImpacts: [
             _needsInt(
                 'Needed to encode the invocation kind of super.noSuchMethod.'),
@@ -277,23 +344,19 @@ class BackendImpacts {
   /// Helper for registering that `int` is needed.
   BackendImpact _needsInt(String reason) {
     // TODO(johnniwinther): Register [reason] for use in dump-info.
-    return new BackendImpact(
-        instantiatedClasses: [coreClasses.intClass]);
+    return intValues;
   }
 
   /// Helper for registering that `List` is needed.
   BackendImpact _needsList(String reason) {
     // TODO(johnniwinther): Register [reason] for use in dump-info.
-    return new BackendImpact(
-        instantiatedClasses: [coreClasses.listClass]);
+    return listValues;
   }
 
   /// Helper for registering that `String` is needed.
   BackendImpact _needsString(String reason) {
     // TODO(johnniwinther): Register [reason] for use in dump-info.
-    return new BackendImpact(
-        instantiatedClasses: [
-          coreClasses.stringClass]);
+    return stringValues;
   }
 
   BackendImpact _assertWithoutMessage;
@@ -352,62 +415,15 @@ class BackendImpacts {
     return _stringJuxtaposition;
   }
 
-  // TODO(johnniwinther): Point to to the JavaScript classes instead of the Dart
-  // classes in these impacts.
-  BackendImpact _nullLiteral;
+  BackendImpact get nullLiteral => nullValue;
 
-  BackendImpact get nullLiteral {
-    if (_nullLiteral == null) {
-      _nullLiteral = new BackendImpact(
-          instantiatedClasses: [
-            coreClasses.nullClass]);
-    }
-    return _nullLiteral;
-  }
+  BackendImpact get boolLiteral => boolValues;
 
-  BackendImpact _boolLiteral;
+  BackendImpact get intLiteral => intValues;
 
-  BackendImpact get boolLiteral {
-    if (_boolLiteral == null) {
-      _boolLiteral = new BackendImpact(
-          instantiatedClasses: [
-            coreClasses.boolClass]);
-    }
-    return _boolLiteral;
-  }
+  BackendImpact get doubleLiteral => doubleValues;
 
-  BackendImpact _intLiteral;
-
-  BackendImpact get intLiteral {
-    if (_intLiteral == null) {
-      _intLiteral = new BackendImpact(
-          instantiatedClasses: [
-            coreClasses.intClass]);
-    }
-    return _intLiteral;
-  }
-
-  BackendImpact _doubleLiteral;
-
-  BackendImpact get doubleLiteral {
-    if (_doubleLiteral == null) {
-      _doubleLiteral = new BackendImpact(
-          instantiatedClasses: [
-            coreClasses.doubleClass]);
-    }
-    return _doubleLiteral;
-  }
-
-  BackendImpact _stringLiteral;
-
-  BackendImpact get stringLiteral {
-    if (_stringLiteral == null) {
-      _stringLiteral = new BackendImpact(
-          instantiatedClasses: [
-            coreClasses.stringClass]);
-    }
-    return _stringLiteral;
-  }
+  BackendImpact get stringLiteral => stringValues;
 
   BackendImpact _catchStatement;
 
@@ -468,7 +484,7 @@ class BackendImpacts {
     if (_stackTraceInCatch == null) {
       _stackTraceInCatch = new BackendImpact(
           instantiatedClasses: [
-            coreClasses.stackTraceClass],
+            helpers.stackTraceClass],
           staticUses: [
             helpers.traceFromException]);
     }
@@ -498,9 +514,8 @@ class BackendImpacts {
             helpers.getRuntimeTypeInfo,
             helpers.runtimeTypeToString,
             helpers.createRuntimeType],
-          instantiatedClasses: [
-            coreClasses.listClass],
           otherImpacts: [
+            listValues,
             getRuntimeTypeArgument,
             _needsInt('Needed for accessing a type variable literal on this.')
           ]);
@@ -513,8 +528,8 @@ class BackendImpacts {
   BackendImpact get typeCheck {
     if (_typeCheck == null) {
       _typeCheck = new BackendImpact(
-          instantiatedClasses: [
-            coreClasses.boolClass]);
+          otherImpacts: [
+            boolValues]);
     }
     return _typeCheck;
   }
@@ -551,9 +566,8 @@ class BackendImpacts {
             // TODO(johnniwinther): Investigate why this is needed.
             helpers.setRuntimeTypeInfo,
             helpers.getRuntimeTypeInfo],
-          instantiatedClasses: [
-            coreClasses.listClass],
           otherImpacts: [
+            listValues,
             getRuntimeTypeArgument]);
     }
     return _genericTypeCheck;
@@ -564,8 +578,8 @@ class BackendImpacts {
   BackendImpact get genericIsCheck {
     if (_genericIsCheck == null) {
       _genericIsCheck = new BackendImpact(
-          instantiatedClasses: [
-            coreClasses.listClass]);
+          otherImpacts: [
+            intValues]);
     }
     return _genericIsCheck;
   }

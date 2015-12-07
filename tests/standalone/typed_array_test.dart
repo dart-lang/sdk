@@ -8,19 +8,25 @@
 // Library tag to be able to run in html test framework.
 library TypedArray;
 import "package:expect/expect.dart";
+import 'package:async_helper/async_helper.dart';
 import 'dart:isolate';
 import 'dart:typed_data';
 
 void main() {
-  int8_receiver();
-  uint8_receiver();
-  int16_receiver();
-  uint16_receiver();
-  int32_receiver();
-  uint32_receiver();
+  test(int8_receiver);
+  test(uint8_receiver);
+  test(int16_receiver);
+  test(uint16_receiver);
+  test(int32_receiver);
+  test(uint32_receiver);
   // int64 and uint64 in separate test.
-  float32_receiver();
-  float64_receiver();
+  test(float32_receiver);
+  test(float64_receiver);
+}
+
+test(f) {
+  asyncStart();
+  return f().whenComplete(asyncEnd);
 }
 
 // Int8 array.
@@ -32,15 +38,17 @@ Int8List initInt8() {
 }
 Int8List int8 = initInt8();
 
-void int8_receiver() {
+int8_receiver() {
   var response = new ReceivePort();
   var remote = Isolate.spawn(int8_sender, [int8.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(int8.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(int8[i], a[i]);
     }
     print("int8_receiver");
+    asyncEnd();
   });
 }
 
@@ -65,15 +73,17 @@ Uint8List initUint8() {
 }
 Uint8List uint8 = initUint8();
 
-void uint8_receiver() {
+uint8_receiver() {
   var response = new ReceivePort();
   var remote = Isolate.spawn(uint8_sender, [uint8.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(uint8.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(uint8[i], a[i]);
     }
     print("uint8_receiver");
+    asyncEnd();
   });
 }
 
@@ -98,15 +108,17 @@ Int16List initInt16() {
 }
 Int16List int16 = initInt16();
 
-void int16_receiver() {
+int16_receiver() {
   var response = new ReceivePort();
   var remote = Isolate.spawn(int16_sender, [int16.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(int16.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(int16[i], a[i]);
     }
     print("int16_receiver");
+    asyncEnd();
   });
 }
 
@@ -131,15 +143,17 @@ Uint16List initUint16() {
 }
 Uint16List uint16 = initUint16();
 
-void uint16_receiver() {
+uint16_receiver() {
   var response = new ReceivePort();
   var remote = Isolate.spawn(uint16_sender, [uint16.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(uint16.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(uint16[i], a[i]);
     }
     print("uint16_receiver");
+    asyncEnd();
   });
 }
 
@@ -164,15 +178,17 @@ Int32List initInt32() {
 }
 Int32List int32 = initInt32();
 
-void int32_receiver() {
+int32_receiver() {
   var response = new ReceivePort();
   var remote = Isolate.spawn(int32_sender, [int32.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(int32.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(int32[i], a[i]);
     }
     print("int32_receiver");
+    asyncEnd();
   });
 }
 
@@ -197,15 +213,17 @@ Uint32List initUint32() {
 }
 Uint32List uint32 = initUint32();
 
-void uint32_receiver() {
+uint32_receiver() {
   var response = new ReceivePort();
   var remote = Isolate.spawn(uint32_sender, [uint32.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(uint32.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(uint32[i], a[i]);
     }
     print("uint32_receiver");
+    asyncEnd();
   });
 }
 
@@ -230,16 +248,18 @@ Float32List initFloat32() {
 }
 Float32List float32 = initFloat32();
 
-void float32_receiver() {
+float32_receiver() {
   var response = new ReceivePort();
   var remote =
       Isolate.spawn(float32_sender, [float32.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(float32.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(float32[i], a[i]);
     }
     print("float32_receiver");
+    asyncEnd();
   });
 }
 
@@ -264,16 +284,18 @@ Float64List initFloat64() {
 }
 Float64List float64 = initFloat64();
 
-void float64_receiver() {
+float64_receiver() {
   var response = new ReceivePort();
   var remote =
       Isolate.spawn(float64_sender, [float64.length, response.sendPort]);
-  response.first.then((a) {
+  asyncStart();
+  return response.first.then((a) {
     Expect.equals(float64.length, a.length);
     for (int i = 0; i < a.length; i++) {
       Expect.equals(float64[i], a[i]);
     }
     print("float64_receiver");
+    asyncEnd();
   });
 }
 

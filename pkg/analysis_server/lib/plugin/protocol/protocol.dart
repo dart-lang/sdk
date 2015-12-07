@@ -20,7 +20,7 @@ part 'generated_protocol.dart';
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class DomainHandler extends RequestHandler {
+abstract class DomainHandler implements RequestHandler {
   /**
    * Perform any operations associated with the shutdown of the domain. It is
    * not guaranteed that this method will be called. If it is, it will be
@@ -409,6 +409,16 @@ class Response {
             error: new RequestError(
                 RequestErrorCode.GET_NAVIGATION_INVALID_FILE,
                 'Error during `analysis.getNavigation`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * GET_REACHABLE_SOURCES_INVALID_FILE error condition.
+   */
+  Response.getReachableSourcesInvalidFile(Request request)
+      : this(request.id,
+            error: new RequestError(
+                RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE,
+                'Error during `analysis.getReachableSources`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused

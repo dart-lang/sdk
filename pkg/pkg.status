@@ -28,6 +28,7 @@ analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # 
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
 
 [ $compiler == dart2js ]
+analyzer_cli/test/*: SkipByDesign # Only meant to run on vm
 analysis_server/test/*: Skip # Issue 22161
 analysis_server/test/analysis_notification_highlights_test: Pass, Slow # 19756, 21628
 analysis_server/test/analysis_notification_navigation_test: Pass, Slow # Issue 19756, 21628

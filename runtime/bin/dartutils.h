@@ -216,20 +216,20 @@ class DartUtils {
   // Global state that stores the original working directory..
   static const char* original_working_directory;
 
-  static const char* kDartScheme;
-  static const char* kDartExtensionScheme;
-  static const char* kAsyncLibURL;
-  static const char* kBuiltinLibURL;
-  static const char* kCoreLibURL;
-  static const char* kInternalLibURL;
-  static const char* kIsolateLibURL;
-  static const char* kIOLibURL;
-  static const char* kIOLibPatchURL;
-  static const char* kUriLibURL;
-  static const char* kHttpScheme;
-  static const char* kVMServiceLibURL;
+  static const char* const kDartScheme;
+  static const char* const kDartExtensionScheme;
+  static const char* const kAsyncLibURL;
+  static const char* const kBuiltinLibURL;
+  static const char* const kCoreLibURL;
+  static const char* const kInternalLibURL;
+  static const char* const kIsolateLibURL;
+  static const char* const kIOLibURL;
+  static const char* const kIOLibPatchURL;
+  static const char* const kUriLibURL;
+  static const char* const kHttpScheme;
+  static const char* const kVMServiceLibURL;
 
-  static uint8_t magic_number[];
+  static const uint8_t magic_number[];
 
  private:
   DISALLOW_ALLOCATION();

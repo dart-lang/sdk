@@ -4,6 +4,8 @@
 
 library analysis_server.plugin.edit.fix.fix_core;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     show SourceChange;
 import 'package:analyzer/file_system/file_system.dart';
@@ -51,6 +53,28 @@ class Fix {
 }
 
 /**
+ * An object used to provide context information for [FixContributor]s.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class FixContext {
+  /**
+   * The [AnalysisContext] to get fixes in.
+   */
+  AnalysisContext get analysisContext;
+
+  /**
+   * The error to fix, should be reported in the given [analysisContext].
+   */
+  AnalysisError get error;
+
+  /**
+   * The [ResourceProvider] to access files and folders.
+   */
+  ResourceProvider get resourceProvider;
+}
+
+/**
  * An object used to produce fixes for a specific error. Fix contributors are
  * long-lived objects and must not retain any state between invocations of
  * [computeFixes].
@@ -59,11 +83,9 @@ class Fix {
  */
 abstract class FixContributor {
   /**
-   * Return a list of fixes for the given [error]. The error was reported
-   * after it's source was analyzed in the given [context].
+   * Return a list of fixes for the given [context].
    */
-  List<Fix> computeFixes(ResourceProvider resourceProvider,
-      AnalysisContext context, AnalysisError error);
+  Future<List<Fix>> computeFixes(FixContext context);
 }
 
 /**
@@ -71,8 +93,8 @@ abstract class FixContributor {
  * information that is common across a number of fixes and to be shared by those
  * fixes. For example, if an unnecessary cast is found then one of the suggested
  * fixes will be to remove the cast. If there are multiple unnecessary casts in
- * a single file, then there will be multiple fixes, one per occurance, but they
- * will all share the same kind.
+ * a single file, then there will be multiple fixes, one per occurrence, but
+ * they will all share the same kind.
  *
  * Clients may not extend, implement or mix-in this class.
  */

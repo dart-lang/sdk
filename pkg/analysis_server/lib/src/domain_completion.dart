@@ -12,6 +12,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionRequest, CompletionResult;
+import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -100,7 +101,7 @@ class CompletionDomainHandler implements RequestHandler {
       }
       _discardManager();
     }
-    _manager = createCompletionManager(context, source, searchEngine);
+    _manager = createCompletionManager(server, context, source);
     if (context != null) {
       _sourcesChangedSubscription =
           context.onSourcesChanged.listen(sourcesChanged);
@@ -122,8 +123,9 @@ class CompletionDomainHandler implements RequestHandler {
   }
 
   CompletionManager createCompletionManager(
-      AnalysisContext context, Source source, SearchEngine searchEngine) {
-    return new CompletionManager.create(context, source, searchEngine);
+      AnalysisServer server, AnalysisContext context, Source source) {
+    return new CompletionManager.create(context, source, server.searchEngine,
+        server.serverPlugin.completionContributors);
   }
 
   @override
@@ -194,8 +196,8 @@ class CompletionDomainHandler implements RequestHandler {
     if (manager == null) {
       manager = completionManagerFor(context, source);
     }
-    CompletionRequest completionRequest =
-        new CompletionRequestImpl(server, context, source, params.offset);
+    CompletionRequest completionRequest = new CompletionRequestImpl(context,
+        server.resourceProvider, server.searchEngine, source, params.offset);
     int notificationCount = 0;
     manager.results(completionRequest).listen((CompletionResult result) {
       ++notificationCount;

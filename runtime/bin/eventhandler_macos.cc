@@ -132,7 +132,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    strerror_r(errno, error_message, kBufferSize);
+    Utils::StrError(errno, error_message, kBufferSize);
     FATAL1("Failed adding interrupt fd to kqueue: %s\n", error_message);
   }
 }
@@ -358,7 +358,7 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
     if ((events[i].flags & EV_ERROR) != 0) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
-      strerror_r(events[i].data, error_message, kBufferSize);
+      Utils::StrError(events[i].data, error_message, kBufferSize);
       FATAL1("kevent failed %s\n", error_message);
     }
     if (events[i].udata == NULL) {
@@ -440,7 +440,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     if (result == -1) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
-      strerror_r(errno, error_message, kBufferSize);
+      Utils::StrError(errno, error_message, kBufferSize);
       FATAL1("kevent failed %s\n", error_message);
     } else {
       handler_impl->HandleTimeout();

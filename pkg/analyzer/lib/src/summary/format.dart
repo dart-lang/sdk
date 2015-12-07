@@ -130,13 +130,16 @@ PrelinkedLibraryBuilder encodePrelinkedLibrary(builder.BuilderContext builderCon
 class PrelinkedReference {
   int _dependency;
   PrelinkedReferenceKind _kind;
+  int _unit;
 
   PrelinkedReference.fromJson(Map json)
     : _dependency = json["dependency"],
-      _kind = json["kind"] == null ? null : PrelinkedReferenceKind.values[json["kind"]];
+      _kind = json["kind"] == null ? null : PrelinkedReferenceKind.values[json["kind"]],
+      _unit = json["unit"];
 
   int get dependency => _dependency ?? 0;
   PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+  int get unit => _unit ?? 0;
 }
 
 class PrelinkedReferenceBuilder {
@@ -158,13 +161,21 @@ class PrelinkedReferenceBuilder {
     }
   }
 
+  void set unit(int _value) {
+    assert(!_json.containsKey("unit"));
+    if (_value != null) {
+      _json["unit"] = _value;
+    }
+  }
+
   Map finish() => _json;
 }
 
-PrelinkedReferenceBuilder encodePrelinkedReference(builder.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind}) {
+PrelinkedReferenceBuilder encodePrelinkedReference(builder.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind, int unit}) {
   PrelinkedReferenceBuilder builder = new PrelinkedReferenceBuilder(builderContext);
   builder.dependency = dependency;
   builder.kind = kind;
+  builder.unit = unit;
   return builder;
 }
 

@@ -247,7 +247,7 @@ main(x) {
 """,
 r"""
 function(x) {
-  P.print(V.Foo$().getter$1(123));
+  P.print(V.Foo$().get$getter().call$1(123));
 }"""),
 ];
 

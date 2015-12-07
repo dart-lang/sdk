@@ -28,6 +28,7 @@ import 'elements/elements.dart' show
     FunctionElement,
     ImportElement,
     LibraryElement,
+    LocalFunctionElement,
     MetadataAnnotation,
     PrefixElement,
     ScopeContainerElement,
@@ -48,11 +49,14 @@ import 'tree/tree.dart' show
     NewExpression,
     Node;
 import 'universe/use.dart' show
+    DynamicUse,
     StaticUse,
     TypeUse,
     TypeUseKind;
 import 'universe/world_impact.dart' show
-    WorldImpact;
+    ImpactUseCase,
+    WorldImpact,
+    WorldImpactVisitorImpl;
 import 'util/setlet.dart' show
     Setlet;
 import 'util/uri_extras.dart' as uri_extras;
@@ -121,6 +125,8 @@ class DeferredLoadTask extends CompilerTask {
 
   /// Will be `true` if the program contains deferred libraries.
   bool isProgramSplit = false;
+
+  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Deferred load');
 
   /// A mapping from the name of a defer import to all the output units it
   /// depends on in a list of lists to be loaded in the order they appear.
@@ -318,30 +324,35 @@ class DeferredLoadTask extends CompilerTask {
 
         WorldImpact worldImpact =
             compiler.resolution.getWorldImpact(analyzableElement);
-        worldImpact.staticUses.forEach((StaticUse staticUse) {
-          elements.add(staticUse.element);
-        });
-        for (TypeUse typeUse in worldImpact.typeUses) {
-          DartType type = typeUse.type;
-          switch (typeUse.kind) {
-            case TypeUseKind.TYPE_LITERAL:
-              if (type.isTypedef || type.isInterfaceType) {
-                elements.add(type.element);
-              }
-              break;
-            case TypeUseKind.INSTANTIATION:
-            case TypeUseKind.IS_CHECK:
-            case TypeUseKind.AS_CAST:
-            case TypeUseKind.CATCH_TYPE:
-              collectTypeDependencies(type);
-              break;
-            case TypeUseKind.CHECKED_MODE_CHECK:
-              if (compiler.enableTypeAssertions) {
-                collectTypeDependencies(type);
-              }
-              break;
-          }
-        }
+        compiler.impactStrategy.visitImpact(
+            analyzableElement,
+            worldImpact,
+            new WorldImpactVisitorImpl(
+                visitStaticUse: (StaticUse staticUse) {
+                  elements.add(staticUse.element);
+                },
+                visitTypeUse: (TypeUse typeUse) {
+                  DartType type = typeUse.type;
+                  switch (typeUse.kind) {
+                    case TypeUseKind.TYPE_LITERAL:
+                      if (type.isTypedef || type.isInterfaceType) {
+                        elements.add(type.element);
+                      }
+                      break;
+                    case TypeUseKind.INSTANTIATION:
+                    case TypeUseKind.IS_CHECK:
+                    case TypeUseKind.AS_CAST:
+                    case TypeUseKind.CATCH_TYPE:
+                      collectTypeDependencies(type);
+                      break;
+                    case TypeUseKind.CHECKED_MODE_CHECK:
+                      if (compiler.enableTypeAssertions) {
+                        collectTypeDependencies(type);
+                      }
+                      break;
+                  }
+                }),
+             IMPACT_USE);
 
         TreeElements treeElements = analyzableElement.resolvedAst.elements;
         assert(treeElements != null);
@@ -711,6 +722,9 @@ class DeferredLoadTask extends CompilerTask {
       // Generate a unique name for each OutputUnit.
       _assignNamesToOutputUnits(allOutputUnits);
     });
+    // Notify the impact strategy impacts are no longer needed for deferred
+    // load.
+    compiler.impactStrategy.onImpactUsed(IMPACT_USE);
   }
 
   void beforeResolution(Compiler compiler) {

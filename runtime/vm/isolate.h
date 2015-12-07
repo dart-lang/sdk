@@ -121,13 +121,10 @@ class Isolate : public BaseIsolate {
 
   // Visit all object pointers.
   void IterateObjectPointers(ObjectPointerVisitor* visitor,
-                             bool visit_prologue_weak_persistent_handles,
                              bool validate_frames);
 
   // Visits weak object pointers.
-  void VisitWeakPersistentHandles(HandleVisitor* visitor,
-                                  bool visit_prologue_weak_persistent_handles);
-  void VisitPrologueWeakPersistentHandles(HandleVisitor* visitor);
+  void VisitWeakPersistentHandles(HandleVisitor* visitor);
 
   StoreBuffer* store_buffer() { return store_buffer_; }
 
@@ -254,8 +251,6 @@ class Isolate : public BaseIsolate {
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
-  uword stack_base() const { return stack_base_; }
-
   // Stack overflow flags
   enum {
     kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
@@ -273,13 +268,6 @@ class Isolate : public BaseIsolate {
   // the generated code before the slow path runtime routine for a
   // stack overflow is called.
   uword GetAndClearStackOverflowFlags();
-
-  // Retrieve the stack address bounds for profiler.
-  bool GetProfilerStackBounds(uword* lower, uword* upper) const;
-
-  static uword GetSpecifiedStackSize();
-
-  static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
 
   // Interrupt bits.
   enum {
@@ -440,21 +428,6 @@ class Isolate : public BaseIsolate {
   }
   static Dart_IsolateCreateCallback CreateCallback() {
     return create_callback_;
-  }
-
-  static void SetInterruptCallback(Dart_IsolateInterruptCallback cb) {
-    interrupt_callback_ = cb;
-  }
-  static Dart_IsolateInterruptCallback InterruptCallback() {
-    return interrupt_callback_;
-  }
-
-  static void SetUnhandledExceptionCallback(
-      Dart_IsolateUnhandledExceptionCallback cb) {
-    unhandled_exception_callback_ = cb;
-  }
-  static Dart_IsolateUnhandledExceptionCallback UnhandledExceptionCallback() {
-    return unhandled_exception_callback_;
   }
 
   static void SetShutdownCallback(Dart_IsolateShutdownCallback cb) {
@@ -697,15 +670,12 @@ class Isolate : public BaseIsolate {
   void Shutdown();
 
   void BuildName(const char* name_prefix);
-  void PrintInvokedFunctions();
 
   void ProfileIdle();
 
   // Visit all object pointers. Caller must ensure concurrent sweeper is not
   // running, and the visitor must not allocate.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor,
-                           bool visit_prologue_weak_persistent_handles,
-                           bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
   void set_user_tag(uword tag) {
     user_tag_ = tag;
@@ -742,6 +712,8 @@ class Isolate : public BaseIsolate {
   }
 
   // Accessed from generated code:
+  // TODO(asiva): Need to consider moving the stack_limit_ from isolate to
+  // being thread specific.
   uword stack_limit_;
   StoreBuffer* store_buffer_;
   Heap* heap_;
@@ -777,7 +749,6 @@ class Isolate : public BaseIsolate {
   Simulator* simulator_;
   Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
   uword saved_stack_limit_;
-  uword stack_base_;
   uword stack_overflow_flags_;
   int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
@@ -863,8 +834,6 @@ class Isolate : public BaseIsolate {
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE
 
   static Dart_IsolateCreateCallback create_callback_;
-  static Dart_IsolateInterruptCallback interrupt_callback_;
-  static Dart_IsolateUnhandledExceptionCallback unhandled_exception_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;
@@ -914,7 +883,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
       // Ensure this is not a nested 'isolate enter' with prior state.
-      ASSERT(new_isolate_->stack_base() == 0);
+      ASSERT(new_isolate_->saved_stack_limit() == 0);
       Thread::EnterIsolate(new_isolate_);
     }
   }
@@ -928,7 +897,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(saved_isolate_ == NULL);
       // ASSERT that we have bottomed out of all Dart invocations.
-      ASSERT(new_isolate_->stack_base() == 0);
+      ASSERT(new_isolate_->saved_stack_limit() == 0);
       Thread::ExitIsolate();
     }
   }

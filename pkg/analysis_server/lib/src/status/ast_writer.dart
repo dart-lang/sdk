@@ -50,6 +50,9 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
     } else if (node is ExportDirective) {
       properties['element'] = node.element;
       properties['source'] = node.source;
+    } else if (node is FunctionDeclaration) {
+      properties['external keyword'] = node.externalKeyword;
+      properties['property keyword'] = node.propertyKeyword;
     } else if (node is FunctionExpressionInvocation) {
       properties['static element'] = node.staticElement;
       properties['static type'] = node.staticType;
@@ -60,6 +63,11 @@ class AstWriter extends UnifyingAstVisitor with TreeWriter {
       properties['source'] = node.source;
     } else if (node is LibraryDirective) {
       properties['element'] = node.element;
+    } else if (node is MethodDeclaration) {
+      properties['external keyword'] = node.externalKeyword;
+      properties['modifier keyword'] = node.modifierKeyword;
+      properties['operator keyword'] = node.operatorKeyword;
+      properties['property keyword'] = node.propertyKeyword;
     } else if (node is PartDirective) {
       properties['element'] = node.element;
       properties['source'] = node.source;

@@ -4,23 +4,33 @@
 
 library class_ref_element;
 
+import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 import 'service_ref.dart';
+import 'dart:async';
 
 @CustomTag('class-ref')
 class ClassRefElement extends ServiceRefElement {
+  @observable bool asValue = false;
+
   ClassRefElement.created() : super.created();
 
-  refChanged(oldValue) {
-    super.refChanged(oldValue);
-    _updateShadowDom();
+  String makeExpandKey(String key) {
+    return '${expandKey}/${key}';
   }
 
-  void _updateShadowDom() {
-    clearShadowRoot();
-    if (ref == null) {
-      return;
+  dynamic expander() {
+    return expandEvent;
+  }
+
+  void expandEvent(bool expand, Function onDone) {
+    if (expand) {
+      Class cls = ref;
+      cls.reload().then((result) {
+        return Future.wait(cls.fields.map((field) => field.reload()));
+      }).whenComplete(onDone);
+    } else {
+      onDone();
     }
-    insertLinkIntoShadowRoot(name, url, hoverText);
   }
 }

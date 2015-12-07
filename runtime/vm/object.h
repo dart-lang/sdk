@@ -1065,7 +1065,6 @@ class Class : public Object {
   bool IsMixinApplication() const;
 
   RawClass* GetPatchClass() const;
-  void SetPatchClass(const Class& patch_class) const;
 
   // Interfaces is an array of Types.
   RawArray* interfaces() const { return raw_ptr()->interfaces_; }
@@ -1148,8 +1147,6 @@ class Class : public Object {
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;
   void AddFields(const GrowableArray<const Field*>& fields) const;
-  intptr_t FindFieldIndex(const Field& field) const;
-  RawField* FieldFromIndex(intptr_t idx) const;
 
   // Returns an array of all fields of this class and its superclasses indexed
   // by offset in words.
@@ -1163,7 +1160,6 @@ class Class : public Object {
   void SetFunctions(const Array& value) const;
   void AddFunction(const Function& function) const;
   void RemoveFunction(const Function& function) const;
-  intptr_t FindFunctionIndex(const Function& function) const;
   RawFunction* FunctionFromIndex(intptr_t idx) const;
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   RawFunction* ImplicitClosureFunctionFromIndex(intptr_t idx) const;
@@ -1237,6 +1233,8 @@ class Class : public Object {
   }
 
   void set_is_prefinalized() const;
+
+  void ResetFinalization() const;
 
   bool is_marked_for_parsing() const {
     return MarkedForParsingBit::decode(raw_ptr()->state_bits_);
@@ -1486,6 +1484,7 @@ class Class : public Object {
   friend class Object;
   friend class Type;
   friend class Intrinsifier;
+  friend class Precompiler;
 };
 
 
@@ -1719,8 +1718,8 @@ class TypeArguments : public Object {
 class PatchClass : public Object {
  public:
   RawClass* patched_class() const { return raw_ptr()->patched_class_; }
-  RawClass* source_class() const { return raw_ptr()->source_class_; }
-  RawScript* Script() const;
+  RawClass* origin_class() const { return raw_ptr()->origin_class_; }
+  RawScript* script() const { return raw_ptr()->script_; }
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
@@ -1731,11 +1730,15 @@ class PatchClass : public Object {
   }
 
   static RawPatchClass* New(const Class& patched_class,
-                            const Class& source_class);
+                            const Class& origin_class);
+
+  static RawPatchClass* New(const Class& patched_class,
+                            const Script& source);
 
  private:
   void set_patched_class(const Class& value) const;
-  void set_source_class(const Class& value) const;
+  void set_origin_class(const Class& value) const;
+  void set_script(const Script& value) const;
 
   static RawPatchClass* New();
 
@@ -1872,10 +1875,11 @@ class ICData : public Object {
 
   // Retrieving checks.
 
-  // TODO(srdjan): GetCheckAt without target.
   void GetCheckAt(intptr_t index,
                   GrowableArray<intptr_t>* class_ids,
                   Function* target) const;
+  void GetClassIdsAt(intptr_t index, GrowableArray<intptr_t>* class_ids) const;
+
   // Only for 'num_args_checked == 1'.
   void GetOneClassCheckAt(intptr_t index,
                           intptr_t* class_id,
@@ -2138,6 +2142,7 @@ class Function : public Object {
   RawClass* Owner() const;
   RawClass* origin() const;
   RawScript* script() const;
+  RawObject* RawOwner() const { return raw_ptr()->owner_; }
 
   RawJSRegExp* regexp() const;
   intptr_t string_specialization_cid() const;
@@ -2865,6 +2870,9 @@ class Field : public Object {
   bool is_reflectable() const {
     return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
+  void set_is_reflectable(bool value) const {
+    set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
+  }
   bool is_double_initialized() const {
     return DoubleInitializedBit::decode(raw_ptr()->kind_bits_);
   }
@@ -2885,6 +2893,8 @@ class Field : public Object {
 
   RawClass* owner() const;
   RawClass* origin() const;  // Either mixin class, or same as owner().
+  RawScript* script() const;
+  RawObject* RawOwner() const { return raw_ptr()->owner_; }
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
   // Used by class finalizer, otherwise initialized in constructor.
@@ -2902,6 +2912,12 @@ class Field : public Object {
                        const Class& owner,
                        const AbstractType& type,
                        intptr_t token_pos);
+
+  static RawField* NewTopLevel(const String& name,
+                               bool is_final,
+                               bool is_const,
+                               const Object& owner,
+                               intptr_t token_pos);
 
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
@@ -3090,9 +3106,6 @@ class Field : public Object {
   }
   void set_is_const(bool value) const {
     set_kind_bits(ConstBit::update(value, raw_ptr()->kind_bits_));
-  }
-  void set_is_reflectable(bool value) const {
-    set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
   }
   void set_owner(const Object& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
@@ -3319,6 +3332,8 @@ class DictionaryIterator : public ValueObject {
 class ClassDictionaryIterator : public DictionaryIterator {
  public:
   enum IterationKind {
+    // TODO(hausner): fix call sites that use kIteratePrivate. There is only
+    // one top-level class per library left, not an array to iterate over.
     kIteratePrivate,
     kNoIteratePrivate
   };
@@ -3326,7 +3341,9 @@ class ClassDictionaryIterator : public DictionaryIterator {
   ClassDictionaryIterator(const Library& library,
                           IterationKind kind = kNoIteratePrivate);
 
-  bool HasNext() const { return (next_ix_ < size_) || (anon_ix_ < anon_size_); }
+  bool HasNext() const {
+      return (next_ix_ < size_) || !toplevel_class_.IsNull();
+  }
 
   // Returns a non-null raw class.
   RawClass* GetNextClass();
@@ -3334,9 +3351,7 @@ class ClassDictionaryIterator : public DictionaryIterator {
  private:
   void MoveToNextClass();
 
-  const Array& anon_array_;
-  const int anon_size_;  // Number of anonymous classes to iterate over.
-  int anon_ix_;  // Index of next anonymous class.
+  Class& toplevel_class_;
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
 };
@@ -3378,6 +3393,10 @@ class Library : public Object {
   RawInstance* LoadError() const { return raw_ptr()->load_error_; }
   void SetLoadError(const Instance& error) const;
   RawInstance* TransitiveLoadError() const;
+
+  void AddPatchClass(const Class& cls) const;
+  RawClass* GetPatchClass(const String& name) const;
+  void RemovePatchClass(const Class& cls) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawLibrary));
@@ -3432,17 +3451,19 @@ class Library : public Object {
   void AddExport(const Namespace& ns) const;
 
   void AddClassMetadata(const Class& cls,
-                        const Class& toplevel_class,
+                        const Object& tl_owner,
                         intptr_t token_pos) const;
   void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
   void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
-  void AddLibraryMetadata(const Class& cls, intptr_t token_pos) const;
+  void AddLibraryMetadata(const Object& tl_owner, intptr_t token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
                                 intptr_t token_pos) const;
   RawObject* GetMetadata(const Object& obj) const;
 
-  intptr_t num_anonymous_classes() const { return raw_ptr()->num_anonymous_; }
-  RawArray* anonymous_classes() const { return raw_ptr()->anonymous_classes_; }
+  RawClass* toplevel_class() const {
+    return raw_ptr()->toplevel_class_;
+  }
+  void set_toplevel_class(const Class& value) const;
 
   RawGrowableObjectArray* patch_classes() const {
     return raw_ptr()->patch_classes_;
@@ -3590,7 +3611,7 @@ class Library : public Object {
 
   RawString* MakeMetadataName(const Object& obj) const;
   RawField* GetMetadataField(const String& metaname) const;
-  void AddMetadata(const Class& cls,
+  void AddMetadata(const Object& owner,
                    const String& name,
                    intptr_t token_pos) const;
 
@@ -3613,7 +3634,7 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
-  void AddMetadata(intptr_t token_pos, const Class& owner_class);
+  void AddMetadata(const Object& owner, intptr_t token_pos);
   RawObject* GetMetadata() const;
 
   static intptr_t InstanceSize() {

@@ -86,6 +86,11 @@ int _computeArgIndex(AstNode containingNode, Object entity) {
  */
 class CompletionTarget {
   /**
+   * The compilation unit in which the completion is occurring.
+   */
+  final CompilationUnit unit;
+
+  /**
    * The context in which the completion is occurring.  This is the AST node
    * which is a direct parent of [entity].
    */
@@ -156,10 +161,12 @@ class CompletionTarget {
             // Try to replace with a comment token.
             Token commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
-              return new CompletionTarget._(containingNode, commentToken, true);
+              return new CompletionTarget._(
+                  compilationUnit, containingNode, commentToken, true);
             }
             // Target found.
-            return new CompletionTarget._(containingNode, entity, false);
+            return new CompletionTarget._(
+                compilationUnit, containingNode, entity, false);
           } else {
             // Since entity is a token, we don't need to look inside it; just
             // proceed to the next entity.
@@ -189,10 +196,11 @@ class CompletionTarget {
                 containingNode = docComment;
               } else {
                 return new CompletionTarget._(
-                    compilationUnit, commentToken, true);
+                    compilationUnit, compilationUnit, commentToken, true);
               }
             }
-            return new CompletionTarget._(containingNode, entity, false);
+            return new CompletionTarget._(
+                compilationUnit, containingNode, entity, false);
           }
 
           // Otherwise, the completion target is somewhere inside the entity,
@@ -216,7 +224,8 @@ class CompletionTarget {
 
       // Since no completion target was found, we set the completion target
       // entity to null and use the compilationUnit as the parent.
-      return new CompletionTarget._(compilationUnit, null, false);
+      return new CompletionTarget._(
+          compilationUnit, compilationUnit, null, false);
     }
   }
 
@@ -224,7 +233,8 @@ class CompletionTarget {
    * Create a [CompletionTarget] holding the given [containingNode] and
    * [entity].
    */
-  CompletionTarget._(AstNode containingNode, Object entity, this.isCommentText)
+  CompletionTarget._(
+      this.unit, AstNode containingNode, Object entity, this.isCommentText)
       : this.containingNode = containingNode,
         this.entity = entity,
         this.argIndex = _computeArgIndex(containingNode, entity);

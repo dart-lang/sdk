@@ -347,8 +347,6 @@ async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*
 mirrors/deferred_mirrors_metadata_test: RuntimeError # U.loadLibrary is not a function
 mirrors/deferred_mirrors_metatarget_test: RuntimeError # X.loadLibrary is not a function
 mirrors/deferred_mirrors_update_test: RuntimeError # U.loadLibrary is not a function
-mirrors/delegate_call_through_getter_test: RuntimeError # Please triage this failure.
-mirrors/delegate_test: RuntimeError # Please triage this failure.
 mirrors/library_enumeration_deferred_loading_test: RuntimeError # L.loadLibrary is not a function
 mirrors/symbol_validation_test/none: RuntimeError # Please triage this failure.
 mirrors/typedef_deferred_library_test: RuntimeError # G.loadLibrary is not a function

@@ -63,11 +63,6 @@ class LogicalRewriter extends RecursiveTransformer
 
   final FallthroughStack fallthrough = new FallthroughStack();
 
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    new LogicalRewriter().rewrite(node);
-  }
-
   /// True if the given statement is equivalent to its fallthrough semantics.
   ///
   /// This means it will ultimately translate to an empty statement.
@@ -543,9 +538,9 @@ class LogicalRewriter extends RecursiveTransformer
     }
   }
 
-  /// True if [e2] is known to return the same value as [e1] 
+  /// True if [e2] is known to return the same value as [e1]
   /// (with no additional side effects) if evaluated immediately after [e1].
-  /// 
+  ///
   /// Concretely, this is true if [e1] and [e2] are uses of the same variable,
   /// or if [e2] is a use of a variable assigned by [e1].
   bool isSameVariable(Expression e1, Expression e2) {

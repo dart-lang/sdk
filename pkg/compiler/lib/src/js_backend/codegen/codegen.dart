@@ -68,6 +68,18 @@ class CodeGenerator extends tree_ir.StatementVisitor
   final tree_ir.FallthroughStack shortContinue =
       new tree_ir.FallthroughStack();
 
+  /// When the top element is true, [Unreachable] statements will be emitted
+  /// as [Return]s, otherwise they are emitted as empty because they are
+  /// followed by the end of the method.
+  ///
+  /// Note on why the [fallthrough] stack should not be used for this:
+  /// Ordinary statements may choose whether to use the [fallthrough] target,
+  /// and the choice to do so may disable an optimization in [visitIf].
+  /// But omitting an unreachable 'return' should have lower priority than
+  /// the optimizations in [visitIf], so [visitIf] will instead tell the
+  /// [Unreachable] statements whether they may use fallthrough or not.
+  List<bool> emitUnreachableAsReturn = <bool>[false];
+
   Set<tree_ir.Label> usedLabels = new Set<tree_ir.Label>();
 
   List<js.Statement> accumulator = new List<js.Statement>();
@@ -272,6 +284,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
     Selector selector = node.selector;
     TypeMask mask = node.mask;
+    mask = glue.extendMaskIfReachesAll(selector, mask);
     if (selector.isGetter) {
       registry.registerDynamicUse(new DynamicUse(selector, mask));
     } else if (selector.isSetter) {
@@ -533,16 +546,34 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   void visitExpressionStatement(tree_ir.ExpressionStatement node) {
-    accumulator.add(new js.ExpressionStatement(
-        visitExpression(node.expression)));
-    visitStatement(node.next);
+    js.Expression exp = visitExpression(node.expression);
+    if (node.next is tree_ir.Unreachable && emitUnreachableAsReturn.last) {
+      // Emit as 'return exp' to assist local analysis in the VM.
+      accumulator.add(new js.Return(exp));
+    } else {
+      accumulator.add(new js.ExpressionStatement(exp));
+      visitStatement(node.next);
+    }
+  }
+
+  bool isNullReturn(tree_ir.Statement node) {
+    return node is tree_ir.Return && isNull(node.value);
+  }
+
+  bool isEndOfMethod(tree_ir.Statement node) {
+    return isNullReturn(node) ||
+           node is tree_ir.Break && isNullReturn(node.target.binding.next);
   }
 
   @override
   void visitIf(tree_ir.If node) {
     js.Expression condition = visitExpression(node.condition);
     int usesBefore = fallthrough.useCount;
+    // Unless the 'else' part ends the method. make sure to terminate any
+    // uncompletable code paths in the 'then' part.
+    emitUnreachableAsReturn.add(!isEndOfMethod(node.elseStatement));
     js.Statement thenBody = buildBodyStatement(node.thenStatement);
+    emitUnreachableAsReturn.removeLast();
     bool thenHasFallthrough = (fallthrough.useCount > usesBefore);
     if (thenHasFallthrough) {
       js.Statement elseBody = buildBodyStatement(node.elseStatement);
@@ -613,7 +644,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
     shortBreak.push(node.next);
     shortContinue.push(node);
     fallthrough.push(node);
+    emitUnreachableAsReturn.add(true);
     js.Statement body = buildBodyStatement(node.body);
+    emitUnreachableAsReturn.removeLast();
     fallthrough.pop();
     shortContinue.pop();
     shortBreak.pop();
@@ -643,7 +676,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
     shortBreak.push(fallthrough.target);
     shortContinue.push(node);
     fallthrough.push(node);
+    emitUnreachableAsReturn.add(true);
     js.Statement jsBody = buildBodyStatement(node.body);
+    emitUnreachableAsReturn.removeLast();
     fallthrough.pop();
     shortContinue.pop();
     if (shortBreak.useCount > 0) {
@@ -682,8 +717,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   void visitUnreachable(tree_ir.Unreachable node) {
-    // Output nothing.
-    // TODO(asgerf): Emit a throw/return to assist local analysis in the VM?
+    if (emitUnreachableAsReturn.last) {
+      // Emit a return to assist local analysis in the VM.
+      accumulator.add(new js.Return());
+    }
   }
 
   @override
@@ -949,6 +986,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.StringConcatenate:
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
+      case BuiltinOperator.CharCodeAt:
+        return js.js('#.charCodeAt(#)', args);
       case BuiltinOperator.Identical:
         registry.registerStaticUse(new StaticUse.staticInvoke(
             glue.identicalFunction, new CallStructure.unnamed(args.length)));
@@ -1070,12 +1109,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitAwait(tree_ir.Await node) {
     return new js.Await(visitExpression(node.input));
-  }
-
-  visitFunctionExpression(tree_ir.FunctionExpression node) {
-    // FunctionExpressions are currently unused.
-    // We might need them if we want to emit raw JS nested functions.
-    throw 'FunctionExpressions should not be used';
   }
 
   /// Ensures that parameter defaults will be emitted.

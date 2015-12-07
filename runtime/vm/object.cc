@@ -74,9 +74,9 @@ DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, write_protect_code);
 
 
-static const char* kGetterPrefix = "get:";
+static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
-static const char* kSetterPrefix = "set:";
+static const char* const kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.
@@ -2218,29 +2218,6 @@ void Class::RemoveFunction(const Function& function) const {
 }
 
 
-intptr_t Class::FindFunctionIndex(const Function& needle) const {
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return -1;
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  Array& funcs = thread->ArrayHandle();
-  Function& function = thread->FunctionHandle();
-  funcs ^= functions();
-  ASSERT(!funcs.IsNull());
-  const intptr_t len = funcs.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    function ^= funcs.At(i);
-    if (function.raw() == needle.raw()) {
-      return i;
-    }
-  }
-  // No function found.
-  return -1;
-}
-
-
 RawFunction* Class::FunctionFromIndex(intptr_t idx) const {
   const Array& funcs = Array::Handle(functions());
   if ((idx < 0) || (idx >= funcs.Length())) {
@@ -2868,8 +2845,8 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   // Shared handles used during the iteration.
   String& member_name = String::Handle();
 
-  const PatchClass& patch_class =
-      PatchClass::Handle(PatchClass::New(*this, patch));
+  const PatchClass& patch_class = PatchClass::Handle(
+      PatchClass::New(*this, Script::Handle(patch.script())));
 
   Array& orig_list = Array::Handle(functions());
   intptr_t orig_len = orig_list.Length();
@@ -2971,8 +2948,10 @@ bool Class::ApplyPatch(const Class& patch, Error* error) const {
   SetFields(new_list);
 
   // The functions and fields in the patch class are no longer needed.
+  // The patch class itself is also no longer needed.
   patch.SetFunctions(Object::empty_array());
   patch.SetFields(Object::empty_array());
+  Library::Handle(patch.library()).RemovePatchClass(patch);
   return true;
 }
 
@@ -3094,46 +3073,6 @@ void Class::AddFields(const GrowableArray<const Field*>& new_fields) const {
     new_arr.SetAt(i + num_old_fields, *new_fields.At(i));
   }
   SetFields(new_arr);
-}
-
-
-intptr_t Class::FindFieldIndex(const Field& needle) const {
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return -1;
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FIELD_HANDLESCOPE(thread);
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  Array& fields_array = thread->ArrayHandle();
-  Field& field = thread->FieldHandle();
-  String& field_name = thread->StringHandle();
-  fields_array ^= fields();
-  ASSERT(!fields_array.IsNull());
-  String& needle_name = String::Handle(thread->zone());
-  needle_name ^= needle.name();
-  const intptr_t len = fields_array.Length();
-  for (intptr_t i = 0; i < len; i++) {
-    field ^= fields_array.At(i);
-    field_name ^= field.name();
-    if (field_name.Equals(needle_name)) {
-      return i;
-    }
-  }
-  // No field found.
-  return -1;
-}
-
-
-RawField* Class::FieldFromIndex(intptr_t idx) const {
-  const Array& flds = Array::Handle(fields());
-  if ((idx < 0) || (idx >= flds.Length())) {
-    return Field::null();
-  }
-  Field& field = Field::Handle();
-  field ^= flds.At(idx);
-  ASSERT(!field.IsNull());
-  return field.raw();
 }
 
 
@@ -3600,6 +3539,14 @@ void Class::set_is_finalized() const {
 }
 
 
+void Class::ResetFinalization() const {
+  ASSERT(IsTopLevel());
+  set_state_bits(ClassFinalizedBits::update(RawClass::kAllocated,
+                                            raw_ptr()->state_bits_));
+  set_state_bits(TypeFinalizedBit::update(false, raw_ptr()->state_bits_));
+}
+
+
 void Class::set_is_prefinalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(RawClass::kPreFinalized,
@@ -3634,25 +3581,9 @@ bool Class::IsMixinApplication() const {
 }
 
 
-void Class::SetPatchClass(const Class& cls) const {
-  ASSERT(GetPatchClass() == Class::null());
-  const GrowableObjectArray& patch_classes =
-      GrowableObjectArray::Handle(Library::Handle(library()).patch_classes());
-  patch_classes.Add(cls);
-}
-
-
 RawClass* Class::GetPatchClass() const {
-  const GrowableObjectArray& patch_classes =
-      GrowableObjectArray::Handle(Library::Handle(library()).patch_classes());
-  Class& pc = Class::Handle();
-  for (intptr_t i = 0; i < patch_classes.Length(); i++) {
-    pc ^= patch_classes.At(i);
-    if (pc.Name() == this->Name()) {  // Names are canonicalized.
-      return pc.raw();
-    }
-  }
-  return Class::null();
+  const Library& lib = Library::Handle(library());
+  return lib.GetPatchClass(String::Handle(Name()));
 }
 
 
@@ -5252,10 +5183,21 @@ void PatchClass::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 
 RawPatchClass* PatchClass::New(const Class& patched_class,
-                               const Class& source_class) {
+                               const Class& origin_class) {
   const PatchClass& result = PatchClass::Handle(PatchClass::New());
   result.set_patched_class(patched_class);
-  result.set_source_class(source_class);
+  result.set_origin_class(origin_class);
+  result.set_script(Script::Handle(origin_class.script()));
+  return result.raw();
+}
+
+
+RawPatchClass* PatchClass::New(const Class& patched_class,
+                               const Script& script) {
+  const PatchClass& result = PatchClass::Handle(PatchClass::New());
+  result.set_patched_class(patched_class);
+  result.set_origin_class(patched_class);
+  result.set_script(script);
   return result.raw();
 }
 
@@ -5269,19 +5211,18 @@ RawPatchClass* PatchClass::New() {
 }
 
 
-RawScript* PatchClass::Script() const {
-  const Class& source_class = Class::Handle(this->source_class());
-  return source_class.script();
-}
-
-
 void PatchClass::set_patched_class(const Class& value) const {
   StorePointer(&raw_ptr()->patched_class_, value.raw());
 }
 
 
-void PatchClass::set_source_class(const Class& value) const {
-  StorePointer(&raw_ptr()->source_class_, value.raw());
+void PatchClass::set_origin_class(const Class& value) const {
+  StorePointer(&raw_ptr()->origin_class_, value.raw());
+}
+
+
+void PatchClass::set_script(const Script& value) const {
+  StorePointer(&raw_ptr()->script_, value.raw());
 }
 
 
@@ -6880,7 +6821,7 @@ RawClass* Function::origin() const {
     return Class::Cast(obj).raw();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).source_class();
+  return PatchClass::Cast(obj).origin_class();
 }
 
 
@@ -6901,7 +6842,7 @@ RawScript* Function::script() const {
     return Class::Cast(obj).script();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).Script();
+  return PatchClass::Cast(obj).script();
 }
 
 
@@ -7453,7 +7394,17 @@ RawClass* Field::origin() const {
     return Class::Cast(obj).raw();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).source_class();
+  return PatchClass::Cast(obj).origin_class();
+}
+
+
+RawScript* Field::script() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).script();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).script();
 }
 
 
@@ -7512,6 +7463,35 @@ RawField* Field::New(const String& name,
   return result.raw();
 }
 
+
+RawField* Field::NewTopLevel(const String& name,
+                             bool is_final,
+                             bool is_const,
+                             const Object& owner,
+                             intptr_t token_pos) {
+  ASSERT(!owner.IsNull());
+  const Field& result = Field::Handle(Field::New());
+  result.set_name(name);
+  result.set_is_static(true);
+  result.set_is_final(is_final);
+  result.set_is_const(is_const);
+  result.set_is_reflectable(true);
+  result.set_is_double_initialized(false);
+  result.set_owner(owner);
+  result.set_token_pos(token_pos);
+  result.set_has_initializer(false);
+  result.set_is_unboxing_candidate(true);
+  result.set_guarded_cid(FLAG_use_field_guards ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(FLAG_use_field_guards ? false : true);
+  result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  // Presently, we only attempt to remember the list length for final fields.
+  if (is_final && FLAG_use_field_guards) {
+    result.set_guarded_list_length(Field::kUnknownFixedLength);
+  } else {
+    result.set_guarded_list_length(Field::kNoFixedLength);
+  }
+  return result.raw();
+}
 
 
 RawField* Field::Clone(const Class& new_owner) const {
@@ -7584,14 +7564,16 @@ const char* Field::ToCString() const {
       "Field <%s.%s>:%s%s%s", cls_name, field_name, kF0, kF1, kF2);
 }
 
+
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   Class& cls = Class::Handle(owner());
-  intptr_t id = cls.FindFieldIndex(*this);
-  ASSERT(id >= 0);
-  intptr_t cid = cls.id();
+  String& field_name = String::Handle(name());
+  field_name = String::EncodeIRI(field_name);
   AddCommonObjectProperties(&jsobj, "Field", ref);
-  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%" Pd "", cid, id);
+  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s",
+                          cls.id(), field_name.ToCString());
+
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
   AddNameProperties(&jsobj, user_name, vm_name);
@@ -8994,6 +8976,10 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t to_line,
                               intptr_t to_column) const {
   const String& src = String::Handle(Source());
+  if (src.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return Symbols::OptimizedOut().raw();
+  }
   intptr_t length = src.Length();
   intptr_t line = 1 + line_offset();
   intptr_t column = 1;
@@ -9179,11 +9165,10 @@ void DictionaryIterator::MoveToNextObject() {
 ClassDictionaryIterator::ClassDictionaryIterator(const Library& library,
                                                  IterationKind kind)
     : DictionaryIterator(library),
-      anon_array_((kind == kIteratePrivate) ?
-          Array::Handle(library.anonymous_classes()) : Object::empty_array()),
-      anon_size_((kind == kIteratePrivate) ?
-                 library.num_anonymous_classes() : 0),
-      anon_ix_(0) {
+      toplevel_class_(Class::Handle(
+          (kind == kIteratePrivate)
+              ? library.toplevel_class()
+              : Class::null())) {
   MoveToNextClass();
 }
 
@@ -9197,8 +9182,9 @@ RawClass* ClassDictionaryIterator::GetNextClass() {
     MoveToNextClass();
     return cls.raw();
   }
-  ASSERT(anon_ix_ < anon_size_);
-  cls ^= anon_array_.At(anon_ix_++);
+  ASSERT(!toplevel_class_.IsNull());
+  cls = toplevel_class_.raw();
+  toplevel_class_ = Class::null();
   return cls.raw();
 }
 
@@ -9345,6 +9331,52 @@ RawInstance* Library::TransitiveLoadError() const {
 }
 
 
+void Library::AddPatchClass(const Class& cls) const {
+  ASSERT(cls.is_patch());
+  ASSERT(GetPatchClass(String::Handle(cls.Name())) == Class::null());
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  patch_classes.Add(cls);
+}
+
+
+RawClass* Library::GetPatchClass(const String& name) const {
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  Object& obj = Object::Handle();
+  for (intptr_t i = 0; i < patch_classes.Length(); i++) {
+    obj = patch_classes.At(i);
+    if (obj.IsClass() &&
+        (Class::Cast(obj).Name() == name.raw())) {  // Names are canonicalized.
+      return Class::RawCast(obj.raw());
+    }
+  }
+  return Class::null();
+}
+
+
+void Library::RemovePatchClass(const Class& cls) const {
+  ASSERT(cls.is_patch());
+  const GrowableObjectArray& patch_classes =
+      GrowableObjectArray::Handle(this->patch_classes());
+  const intptr_t num_classes = patch_classes.Length();
+  intptr_t i = 0;
+  while (i < num_classes) {
+    if (cls.raw() == patch_classes.At(i)) break;
+    i++;
+  }
+  if (i == num_classes) return;
+  // Replace the entry with the script. We keep the script so that
+  // Library::LoadedScripts() can find it without having to iterate
+  // over the members of each class.
+  ASSERT(i < num_classes);  // We must have found a class.
+  Class& pc = Class::Handle();
+  pc ^= patch_classes.At(i);
+  const Script& patch_script = Script::Handle(pc.script());
+  patch_classes.SetAt(i, patch_script);
+}
+
+
 static RawString* MakeClassMetaName(const Class& cls) {
   return Symbols::FromConcat(Symbols::At(), String::Handle(cls.Name()));
 }
@@ -9383,32 +9415,31 @@ static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
 }
 
 
-void Library::AddMetadata(const Class& cls,
+void Library::AddMetadata(const Object& owner,
                           const String& name,
                           intptr_t token_pos) const {
   const String& metaname = String::Handle(Symbols::New(name));
-  Field& field = Field::Handle(Field::New(metaname,
-                                          true,   // is_static
-                                          false,  // is_final
-                                          false,  // is_const
-                                          false,  // is_reflectable
-                                          cls,
-                                          Object::dynamic_type(),
-                                          token_pos));
+  const Field& field = Field::Handle(
+      Field::NewTopLevel(metaname,
+                         false,  // is_final
+                         false,  // is_const
+                         owner,
+                         token_pos));
+  field.SetFieldType(Object::dynamic_type());
+  field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
   GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   metadata.Add(field, Heap::kOld);
-  cls.AddField(field);
 }
 
 
 void Library::AddClassMetadata(const Class& cls,
-                               const Class& toplevel_class,
+                               const Object& tl_owner,
                                intptr_t token_pos) const {
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
-  AddMetadata(toplevel_class,
+  AddMetadata(tl_owner,
               String::Handle(MakeClassMetaName(cls)),
               token_pos);
 }
@@ -9416,7 +9447,7 @@ void Library::AddClassMetadata(const Class& cls,
 
 void Library::AddFieldMetadata(const Field& field,
                                intptr_t token_pos) const {
-  AddMetadata(Class::Handle(field.origin()),
+  AddMetadata(Object::Handle(field.RawOwner()),
               String::Handle(MakeFieldMetaName(field)),
               token_pos);
 }
@@ -9424,7 +9455,7 @@ void Library::AddFieldMetadata(const Field& field,
 
 void Library::AddFunctionMetadata(const Function& func,
                                   intptr_t token_pos) const {
-  AddMetadata(Class::Handle(func.origin()),
+  AddMetadata(Object::Handle(func.RawOwner()),
               String::Handle(MakeFunctionMetaName(func)),
               token_pos);
 }
@@ -9438,8 +9469,9 @@ void Library::AddTypeParameterMetadata(const TypeParameter& param,
 }
 
 
-void Library::AddLibraryMetadata(const Class& cls, intptr_t token_pos) const {
-  AddMetadata(cls, Symbols::TopLevel(), token_pos);
+void Library::AddLibraryMetadata(const Object& tl_owner,
+                                 intptr_t token_pos) const {
+  AddMetadata(tl_owner, Symbols::TopLevel(), token_pos);
 }
 
 
@@ -9491,8 +9523,7 @@ RawObject* Library::GetMetadata(const Object& obj) const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
-                                     field.token_pos());
+    metadata = Parser::ParseMetadata(field);
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
       field.SetStaticValue(Array::Cast(metadata), true);
@@ -9770,8 +9801,7 @@ RawArray* Library::LoadedScripts() const {
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
-        cls = Field::Cast(entry).owner();
-        owner_script = cls.script();
+        owner_script = Field::Cast(entry).script();
       } else {
         continue;
       }
@@ -9781,27 +9811,31 @@ RawArray* Library::LoadedScripts() const {
     // Add all scripts from patch classes.
     GrowableObjectArray& patches = GrowableObjectArray::Handle(patch_classes());
     for (intptr_t i = 0; i < patches.Length(); i++) {
-      cls ^= patches.At(i);
-      owner_script = cls.script();
+      entry = patches.At(i);
+      if (entry.IsClass()) {
+        owner_script = Class::Cast(entry).script();
+      }  else {
+        ASSERT(entry.IsScript());
+        owner_script ^= Script::Cast(entry).raw();
+      }
       AddScriptIfUnique(scripts, owner_script);
     }
 
-    // Special case: Scripts that only contain external top-level functions are
-    // not included above, but can be referenced through a library's anonymous
-    // classes. Example: dart-core:identical.dart.
-    Array& anon_classes = Array::Handle(anonymous_classes());
-    Function& func = Function::Handle();
-    Array& functions = Array::Handle();
-    for (intptr_t i = 0; i < anon_classes.Length(); i++) {
-      cls ^= anon_classes.At(i);
-      if (cls.IsNull()) continue;
+    cls ^= toplevel_class();
+    if (!cls.IsNull()) {
       owner_script = cls.script();
       AddScriptIfUnique(scripts, owner_script);
-      functions = cls.functions();
+      // Special case: Scripts that only contain external top-level functions
+      // are not included above, but can be referenced through a library's
+      // anonymous classes. Example: dart-core:identical.dart.
+      Function& func = Function::Handle();
+      Array& functions = Array::Handle(cls.functions());
       for (intptr_t j = 0; j < functions.Length(); j++) {
         func ^= functions.At(j);
-        owner_script = func.script();
-        AddScriptIfUnique(scripts, owner_script);
+        if (func.is_external()) {
+          owner_script = func.script();
+          AddScriptIfUnique(scripts, owner_script);
+        }
       }
     }
 
@@ -10019,17 +10053,9 @@ RawLibraryPrefix* Library::LookupLocalLibraryPrefix(const String& name) const {
 }
 
 
-void Library::AddAnonymousClass(const Class& cls) const {
-  intptr_t num_anonymous = this->raw_ptr()->num_anonymous_;
-  Array& anon_array = Array::Handle(this->raw_ptr()->anonymous_classes_);
-  if (num_anonymous == anon_array.Length()) {
-    intptr_t new_len = (num_anonymous == 0) ? 4 : num_anonymous * 2;
-    anon_array = Array::Grow(anon_array, new_len);
-    StorePointer(&raw_ptr()->anonymous_classes_, anon_array.raw());
-  }
-  anon_array.SetAt(num_anonymous, cls);
-  num_anonymous++;
-  StoreNonPointer(&raw_ptr()->num_anonymous_, num_anonymous);
+void Library::set_toplevel_class(const Class& value) const {
+  ASSERT(raw_ptr()->toplevel_class_ == Class::null());
+  StorePointer(&raw_ptr()->toplevel_class_, value.raw());
 }
 
 
@@ -10159,12 +10185,10 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
                       Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->metadata_,
                       GrowableObjectArray::New(4, Heap::kOld));
-  result.StorePointer(&result.raw_ptr()->anonymous_classes_,
-                      Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->toplevel_class_, Class::null());
   result.StorePointer(&result.raw_ptr()->patch_classes_,
                       GrowableObjectArray::New(Object::empty_array(),
                                                Heap::kOld));
-  result.StoreNonPointer(&result.raw_ptr()->num_anonymous_, 0);
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
@@ -10219,12 +10243,8 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 RawObject* Library::Evaluate(const String& expr,
                              const Array& param_names,
                              const Array& param_values) const {
-  // Take a top-level class and evaluate the expression
-  // as a static function of the class.
-  Class& top_level_class = Class::Handle();
-  Array& top_level_classes = Array::Handle(anonymous_classes());
-  ASSERT(top_level_classes.Length() > 0);
-  top_level_class ^= top_level_classes.At(0);
+  // Evaluate the expression as a static function of the toplevel class.
+  Class& top_level_class = Class::Handle(toplevel_class());
   ASSERT(top_level_class.is_finalized());
   return top_level_class.Evaluate(expr, param_names, param_values);
 }
@@ -10751,8 +10771,8 @@ bool LibraryPrefix::LoadLibrary() const {
     const String& lib_url = String::Handle(zone, deferred_lib.url());
     Dart_LibraryTagHandler handler = isolate->library_tag_handler();
     handler(Dart_kImportTag,
-            Api::NewHandle(isolate, importer()),
-            Api::NewHandle(isolate, lib_url.raw()));
+            Api::NewHandle(thread, importer()),
+            Api::NewHandle(thread, lib_url.raw()));
   } else {
     // Another load request is in flight.
     ASSERT(deferred_lib.LoadRequested());
@@ -10889,19 +10909,17 @@ void Namespace::set_metadata_field(const Field& value) const {
 }
 
 
-void Namespace::AddMetadata(intptr_t token_pos, const Class& owner_class) {
+void Namespace::AddMetadata(const Object& owner, intptr_t token_pos) {
   ASSERT(Field::Handle(metadata_field()).IsNull());
-  Field& field = Field::Handle(Field::New(Symbols::TopLevel(),
-                                          true,   // is_static
+  Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
                                           false,  // is_final
                                           false,  // is_const
-                                          false,  // is_reflectable
-                                          owner_class,
-                                          Object::dynamic_type(),
+                                          owner,
                                           token_pos));
+  field.set_is_reflectable(false);
+  field.SetFieldType(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
   set_metadata_field(field);
-  owner_class.AddField(field);
 }
 
 
@@ -10914,8 +10932,7 @@ RawObject* Namespace::GetMetadata() const {
   Object& metadata = Object::Handle();
   metadata = field.StaticValue();
   if (field.StaticValue() == Object::empty_array().raw()) {
-    metadata = Parser::ParseMetadata(Class::Handle(field.owner()),
-                                     field.token_pos());
+    metadata = Parser::ParseMetadata(field);
     if (metadata.IsArray()) {
       ASSERT(Array::Cast(metadata).raw() != Object::empty_array().raw());
       field.SetStaticValue(Array::Cast(metadata), true);
@@ -11042,17 +11059,19 @@ RawNamespace* Namespace::New(const Library& library,
 
 
 RawError* Library::CompileAll() {
-  Error& error = Error::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       Isolate::Current()->object_store()->libraries());
-  Library& lib = Library::Handle();
-  Class& cls = Class::Handle();
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
   for (int i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      error = cls.EnsureIsFinalized(Thread::Current());
+      error = cls.EnsureIsFinalized(thread);
       if (!error.IsNull()) {
         return error.raw();
       }
@@ -11060,6 +11079,24 @@ RawError* Library::CompileAll() {
       if (!error.IsNull()) {
         return error.raw();
       }
+    }
+  }
+
+  // Inner functions get added to the closures array. As part of compilation
+  // more closures can be added to the end of the array. Compile all the
+  // closures until we have reached the end of the "worklist".
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(zone,
+      Isolate::Current()->object_store()->closure_functions());
+  Function& func = Function::Handle(zone);
+  for (int i = 0; i < closures.Length(); i++) {
+    func ^= closures.At(i);
+    if (!func.HasCode()) {
+      error = Compiler::CompileFunction(thread, func);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      func.ClearICDataArray();
+      func.ClearCode();
     }
   }
   return error.raw();
@@ -12286,8 +12323,7 @@ bool ICData::HasCheck(const GrowableArray<intptr_t>& cids) const {
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     GrowableArray<intptr_t> class_ids;
-    Function& target = Function::Handle();
-    GetCheckAt(i, &class_ids, &target);
+    GetClassIdsAt(i, &class_ids);
     bool matches = true;
     for (intptr_t k = 0; k < class_ids.length(); k++) {
       if (class_ids[k] != cids[k]) {
@@ -12446,6 +12482,19 @@ void ICData::GetCheckAt(intptr_t index,
 }
 
 
+void ICData::GetClassIdsAt(intptr_t index,
+                           GrowableArray<intptr_t>* class_ids) const {
+  ASSERT(index < NumberOfChecks());
+  ASSERT(class_ids != NULL);
+  class_ids->Clear();
+  const Array& data = Array::Handle(ic_data());
+  intptr_t data_pos = index * TestEntryLength();
+  for (intptr_t i = 0; i < NumArgsTested(); i++) {
+    class_ids->Add(Smi::Value(Smi::RawCast(data.At(data_pos++))));
+  }
+}
+
+
 void ICData::GetOneClassCheckAt(intptr_t index,
                                 intptr_t* class_id,
                                 Function* target) const {
@@ -12469,8 +12518,7 @@ intptr_t ICData::GetCidAt(intptr_t index) const {
 
 intptr_t ICData::GetClassIdAt(intptr_t index, intptr_t arg_nr) const {
   GrowableArray<intptr_t> class_ids;
-  Function& target = Function::Handle();
-  GetCheckAt(index, &class_ids, &target);
+  GetClassIdsAt(index, &class_ids);
   return class_ids[arg_nr];
 }
 
@@ -12646,12 +12694,11 @@ void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
   ASSERT(NumArgsTested() == 2);
   first->Clear();
   second->Clear();
-  Function& target = Function::Handle();
   GrowableArray<intptr_t> class_ids;
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (GetCountAt(i) > 0) {
-      GetCheckAt(i, &class_ids, &target);
+      GetClassIdsAt(i, &class_ids);
       ASSERT(class_ids.length() == 2);
       first->Add(class_ids[0]);
       second->Add(class_ids[1]);
@@ -12894,13 +12941,12 @@ bool ICData::HasRangeFeedback() const {
   }
 
   bool initialized = false;
-  Function& t = Function::Handle();
   const intptr_t len = NumberOfChecks();
   GrowableArray<intptr_t> class_ids;
   for (intptr_t i = 0; i < len; i++) {
     if (IsUsedAt(i)) {
       initialized = true;
-      GetCheckAt(i, &class_ids, &t);
+      GetClassIdsAt(i, &class_ids);
       for (intptr_t j = 0; j < class_ids.length(); j++) {
         const intptr_t cid = class_ids[j];
         if ((cid != kSmiCid) && (cid != kMintCid)) {
@@ -13333,7 +13379,7 @@ RawCode* Code::FinalizeCode(const char* name,
   VerifiedMemory::Accept(region.start(), region.size());
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
-  code.set_compile_timestamp(OS::GetCurrentTimeMicros());
+  code.set_compile_timestamp(OS::GetCurrentTraceMicros());
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
                            assembler->prologue_offset(),
@@ -17292,19 +17338,13 @@ RawInteger* Integer::ArithmeticOp(Token::Kind operation,
     const int64_t right_value = other.AsInt64Value();
     switch (operation) {
       case Token::kADD: {
-        if (((left_value < 0) != (right_value < 0)) ||
-            ((left_value + right_value) < 0) == (left_value < 0)) {
+        if (!Utils::WillAddOverflow(left_value, right_value)) {
           return Integer::New(left_value + right_value, space);
         }
         break;
       }
       case Token::kSUB: {
-        // TODO(srdjan): Investigate why XCode 7 produces wrong code
-        // if the comparison is inlined as in above (Token::kADD).
-        const bool both_same_sign = (left_value < 0) == (right_value < 0);
-        const bool result_same_sign_as_left =
-            ((left_value - right_value) < 0) == (left_value < 0);
-        if (both_same_sign || result_same_sign_as_left) {
+        if (!Utils::WillSubOverflow(left_value, right_value)) {
           return Integer::New(left_value - right_value, space);
         }
         break;
@@ -19365,11 +19405,9 @@ static FinalizablePersistentHandle* AddFinalizer(
     Dart_WeakPersistentHandleFinalizer callback) {
   ASSERT((callback != NULL && peer != NULL) ||
          (callback == NULL && peer == NULL));
-  const bool is_prologue = false;
   // TODO(19482): Make API consistent for external size of strings/typed data.
   const intptr_t external_size = 0;
   return FinalizablePersistentHandle::New(Isolate::Current(),
-                                          is_prologue,
                                           referent,
                                           peer,
                                           callback,

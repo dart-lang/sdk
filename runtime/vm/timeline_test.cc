@@ -478,7 +478,9 @@ TEST_CASE(TimelinePauses_Basic) {
   ASSERT(recorder != NULL);
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ThreadId tid = OSThread::GetCurrentThreadTraceId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  ThreadId tid = os_thread->trace_id();
 
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
@@ -648,7 +650,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
   ASSERT(recorder != NULL);
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ThreadId tid = OSThread::GetCurrentThreadTraceId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  ThreadId tid = os_thread->trace_id();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);

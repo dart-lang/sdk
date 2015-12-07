@@ -151,6 +151,7 @@ namespace dart {
   V(DateNatives_localTimeZoneAdjustmentInSeconds, 0)                           \
   V(AssertionError_throwNew, 2)                                                \
   V(Async_rethrow, 2)                                                          \
+  V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(AbstractClassInstantiationError_throwNew, 2)                               \
@@ -406,6 +407,7 @@ namespace dart {
   V(VMService_ListenStream, 1)                                                 \
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
+  V(VMService_DecodeAssets, 1)                                                 \
 
 class BootstrapNatives : public AllStatic {
  public:

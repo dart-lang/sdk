@@ -20,13 +20,16 @@ typedef DWORD ThreadLocalKey;
 typedef DWORD ThreadId;
 typedef DWORD ThreadJoinId;
 
+
+static const ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
+
+
 class ThreadInlineImpl {
  private:
   ThreadInlineImpl() {}
   ~ThreadInlineImpl() {}
 
   static uword GetThreadLocal(ThreadLocalKey key) {
-    static ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
     ASSERT(key != kUnsetThreadLocalKey);
     return reinterpret_cast<uword>(TlsGetValue(key));
   }

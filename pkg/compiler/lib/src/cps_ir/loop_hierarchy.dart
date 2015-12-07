@@ -99,29 +99,13 @@ class LoopHierarchy {
     return loopTarget[cont];
   }
 
-  bool _isCallContinuation(Continuation cont) {
-    return cont.hasExactlyOneUse && cont.firstRef.parent is CallExpression;
-  }
-
   /// Analyzes a basic block and returns the innermost loop that
   /// can be invoked recursively from that block.
   Continuation _processBlock(Expression node, Continuation catchLoop) {
-    List<Continuation> callContinuations = <Continuation>[];
     for (; node is! TailExpression; node = node.next) {
       if (node is LetCont) {
         for (Continuation cont in node.continuations) {
-          if (!_isCallContinuation(cont)) {
-            // Process non-call continuations at the binding site, so they
-            // their loop target is known at all use sites.
-            _processContinuation(cont, catchLoop);
-          } else {
-            // To avoid deep recursion, do not analyze call continuations
-            // recursively. This basic block traversal steps into the
-            // call contiunation after visiting its use site. We store the
-            // continuations in a list so we can set the loop target once
-            // it is known.
-            callContinuations.add(cont);
-          }
+          _processContinuation(cont, catchLoop);
         }
       } else if (node is LetHandler) {
         catchLoop = _processContinuation(node.handler, catchLoop);
@@ -141,13 +125,28 @@ class LoopHierarchy {
     } else {
       assert(node is Unreachable || node is Throw);
     }
-    target = _markInnerLoop(target, catchLoop);
-    for (Continuation cont in callContinuations) {
-      // Store the loop target on each call continuation in the basic block.
-      // Because we walk over call continuations as part of the basic block
-      // traversal, these do not get their loop target set otherwise.
-      loopTarget[cont] = target;
+    return _markInnerLoop(target, catchLoop);
+  }
+
+  /// Returns the the innermost loop that effectively encloses both
+  /// c1 and c2 (or `null` if there is no such loop).
+  Continuation lowestCommonAncestor(Continuation c1, Continuation c2) {
+    int d1 = getDepth(c1), d2 = getDepth(c2);
+    while (c1 != c2) {
+      if (d1 <= d2) {
+        c2 = getEnclosingLoop(c2);
+        d2 = getDepth(c2);
+      } else {
+        c1 = getEnclosingLoop(c1);
+        d1 = getDepth(c1);
+      }
     }
-    return target;
+    return c1;
+  }
+
+  /// Returns the lexical nesting depth of [loop].
+  int getDepth(Continuation loop) {
+    if (loop == null) return 0;
+    return loopDepth[loop];
   }
 }

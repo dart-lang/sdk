@@ -1622,6 +1622,7 @@ uword SnapshotWriter::GetObjectTags(RawObject* raw) {
 
 #define VM_OBJECT_CLASS_LIST(V)                                                \
   V(OneByteString)                                                             \
+  V(TwoByteString)                                                             \
   V(Mint)                                                                      \
   V(Bigint)                                                                    \
   V(Double)                                                                    \

@@ -152,12 +152,12 @@ class AllocationFilter : public SampleFilter {
   explicit AllocationFilter(Isolate* isolate, intptr_t cid)
       : SampleFilter(isolate),
         cid_(cid),
-        enable_embedder_ticks_(false) {
+        enable_vm_ticks_(false) {
   }
 
   bool FilterSample(Sample* sample) {
-    if (!enable_embedder_ticks_ &&
-        (sample->vm_tag() == VMTag::kEmbedderTagId)) {
+    if (!enable_vm_ticks_ &&
+        (sample->vm_tag() == VMTag::kVMTagId)) {
       // We don't want to see embedder ticks in the test.
       return false;
     }
@@ -165,13 +165,13 @@ class AllocationFilter : public SampleFilter {
            (sample->allocation_cid() == cid_);
   }
 
-  void set_enable_embedder_ticks(bool enable) {
-    enable_embedder_ticks_ = enable;
+  void set_enable_vm_ticks(bool enable) {
+    enable_vm_ticks_ = enable;
   }
 
  private:
   intptr_t cid_;
-  bool enable_embedder_ticks_;
+  bool enable_vm_ticks_;
 };
 
 
@@ -835,7 +835,7 @@ TEST_CASE(Profiler_ClassAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_class.id());
-    filter.set_enable_embedder_ticks(true);
+    filter.set_enable_vm_ticks(true);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
@@ -864,7 +864,7 @@ TEST_CASE(Profiler_ClassAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_class.id());
-    filter.set_enable_embedder_ticks(true);
+    filter.set_enable_vm_ticks(true);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());

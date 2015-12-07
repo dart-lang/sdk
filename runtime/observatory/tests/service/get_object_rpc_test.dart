@@ -774,7 +774,7 @@ var tests = [
   (Isolate isolate) async {
     // Call eval to get a class id.
     var evalResult = await eval(isolate, 'new _DummyClass()');
-    var id = "${evalResult['class']['id']}/fields/0";
+    var id = "${evalResult['class']['id']}/fields/dummyVar";
     var params = {
       'objectId': id,
     };
@@ -796,7 +796,7 @@ var tests = [
   (Isolate isolate) async {
     // Call eval to get a class id.
     var evalResult = await eval(isolate, 'new _DummyClass()');
-    var id = "${evalResult['class']['id']}/fields/9999";
+    var id = "${evalResult['class']['id']}/fields/mythicalField";
     var params = {
       'objectId': id,
     };

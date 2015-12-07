@@ -4,6 +4,8 @@
 
 library dart2js.cps_ir.octagon;
 
+import 'dart:collection';
+
 /// For every variable in the constraint system, two [SignedVariable]s exist,
 /// representing the positive and negative uses of the variable.
 ///
@@ -19,9 +21,6 @@ class SignedVariable {
 
   static int _hashCount = 0;
   final int hashCode = (_hashCount = _hashCount + 1) & 0x0fffffff;
-
-  /// Temporary field used by the constraint solver's graph search.
-  bool _isBeingVisited = false;
 
   SignedVariable._make() {
     _negated = new SignedVariable._makeTwin(this);
@@ -87,16 +86,13 @@ class Octagon {
   ///
   /// The constraint should be removed again using [popConstraint].
   void pushConstraint(Constraint constraint) {
-    if (_unsolvableCounter > 0) {
+    if (_unsolvableCounter > 0 ||
+        _unsolvableCounter == 0 && _checkUnsolvable(constraint)) {
       ++_unsolvableCounter;
     }
     constraint.v1._constraints.add(constraint);
     if (constraint.v1 != constraint.v2) {
       constraint.v2._constraints.add(constraint);
-    }
-    // Check if this constraint has made the system unsolvable.
-    if (_unsolvableCounter == 0 && _checkUnsolvable(constraint)) {
-      _unsolvableCounter = 1;
     }
   }
 
@@ -115,101 +111,87 @@ class Octagon {
     }
   }
 
-  // Temporaries using during path finding.
-  SignedVariable _goal;
-  Map<SignedVariable, int> _distanceToGoal;
-
-  /// Return true if the recently added [constraint] made the system unsolvable.
+  /// Return true if [constraint] would make the constraint system unsolvable.
   ///
-  /// This function assumes the system was solvable before adding [constraint].
+  /// Assumes the system is currently solvable.
   bool _checkUnsolvable(Constraint constraint) {
     // Constraints are transitively composed like so:
-    //    v1 - v2 <= k1
-    //    v2 - v3 <= k2
+    //    v1 + v2 <= k1
+    //   -v2 + v3 <= k2
     // implies:
-    //    v1 - v3 <= k1 + k2
+    //    v1 + v3 <= k1 + k2
     //
-    // We construct a graph such that the tightest bound on `v1 - v3` is the
-    // weight of the shortest path from `v1` to `v3`.
+    // We construct a graph such that the tightest bound on `v1 + v3` is the
+    // weight of the shortest path from `v1` to `-v3`.
     //
-    // Ever constraint `v1 - v2 <= k` gives rise to two edges:
-    //     (v1)  --k--> (v2)
-    //     (-v2) --k--> (-v2)
+    // Every constraint `v1 + v2 <= k` gives rise to two edges:
+    //     (v1) --k--> (-v2)
+    //     (v2) --k--> (-v1)
     //
     // The system is unsolvable if and only if a negative-weight cycle exists
     // in this graph (this corresponds to a variable being less than itself).
 
-    // We assume the system was solvable to begin with, so we only look for
-    // cycles that use the new edges.
-    //
-    // The new [constraint] `v1 + v2 <= k` just added the edges:
-    //     (v1)  --k--> (-v2)
-    //     (v2)  --k--> (-v1)
-    //
-    // Look for a path from (-v2) to (v1) with weight at most -k-1, as this
-    // will complete a negative-weight cycle.
-
-    // It suffices to do this once. We need not check for the converse path
-    // (-v1) to (v2) because of the symmetry in the graph.
-    //
-    // Note that the graph symmetry is not a redundancy. Some cycles include
-    // both of the new edges at once, so they must be added to the graph
-    // beforehand.
-    _goal = constraint.v2;
-    _distanceToGoal = <SignedVariable, int>{};
-    int targetWeight = -constraint.bound - 1;
-    int pathWeight = _search(constraint.v1.negated, targetWeight, 0);
-    return pathWeight != null && pathWeight <= targetWeight;
+    // Check if a negative-weight cycle would be created by adding [constraint].
+    int length = _cycleLength(constraint);
+    return length != null && length < 0;
   }
 
-  static const int MAX_DEPTH = 100;
-
-  /// Returns the shortest path from [v1] to [_goal] (or any path shorter than
-  /// [budget]), or `null` if no path exists.
-  int _search(SignedVariable v1, int budget, int depth) {
-    if (v1 == _goal && budget >= 0) return 0;
-
-    // Disregard paths that use a lot of edges.
-    // In extreme cases (e.g. hundreds of `push` calls or nested ifs) this can
-    // get slow and/or overflow the stack.  Most paths that matter are very
-    // short (1-5 edges) with some occasional 10-30 length paths in math code.
-    if (depth >= MAX_DEPTH) return null;
-
-    // We found a cycle, but not the one we're looking for. If the constraint
-    // system was solvable to being with, then this must be a positive-weight
-    // cycle, and no shortest path goes through a positive-weight cycle.
-    if (v1._isBeingVisited) return null;
-
-    // Check if we have previously searched from here.
-    if (_distanceToGoal.containsKey(v1)) {
-      // We have already searched this node, return the cached answer.
-      // Note that variables may explicitly map to null, so the double lookup
-      // is necessary.
-      return _distanceToGoal[v1];
+  /// Returns the length of the shortest simple cycle that would be created by
+  /// adding [constraint] to the graph.
+  ///
+  /// Assumes there are no existing negative-weight cycles. The new cycle
+  /// may have negative weight as [constraint] has not been added yet.
+  int _cycleLength(Constraint constraint) {
+    // Single-source shortest path using a FIFO queue.
+    Queue<SignedVariable> worklist = new Queue<SignedVariable>();
+    Map<SignedVariable, int> distance = {};
+    void updateDistance(SignedVariable v, int newDistance) {
+      int oldDistance = distance[v];
+      if (oldDistance == null || oldDistance > newDistance) {
+        distance[v] = newDistance;
+        worklist.addLast(v);
+      }
     }
-
-    v1._isBeingVisited = true;
-
-    int shortestDistance = v1 == _goal ? 0 : null;
-    for (Constraint c in v1._constraints) {
-      SignedVariable v2 = c.v1 == v1 ? c.v2 : c.v1;
-      int distance = _search(v2.negated, budget - c.bound, depth + 1);
-      if (distance != null) {
-        distance += c.bound; // Pay the cost of using the edge.
-         if (distance <= budget) {
-          // Success! We found a path that is short enough so return fast.
-          // All recursive calls will now return immediately, so there is no
-          // need to update distanceToGoal, but we need to clear the
-          // beingVisited flag for the next query.
-          v1._isBeingVisited = false;
-          return distance;
-        } else if (shortestDistance == null || distance < shortestDistance) {
-          shortestDistance = distance;
+    void iterateWorklist() {
+      while (!worklist.isEmpty) {
+        SignedVariable v1 = worklist.removeFirst();
+        int distanceToV1 = distance[v1];
+        for (Constraint c in v1._constraints) {
+          SignedVariable v2 = c.v1 == v1 ? c.v2 : c.v1;
+          updateDistance(v2.negated, distanceToV1 + c.bound);
         }
       }
     }
-    v1._isBeingVisited = false;
-    _distanceToGoal[v1] = shortestDistance;
-    return shortestDistance;
+    // Two new edges will be added by the constraint `v1 + v2 <= k`:
+    //
+    //   A. (v1) --> (-v2)
+    //   B. (v2) --> (-v1)
+    //
+    // We need to check for two kinds of cycles:
+    //
+    //   Using only A:       (-v2) --> (v1) --A--> (-v2)
+    //   Using B and then A: (-v2) --> (v2) --B--> (-v1) --> (v1) --A--> (-v2)
+    //
+    // Because of the graph symmetry, cycles using only B or using A and then B
+    // exist if and only if the corresponding cycle above exist, so there is no
+    // need to check for those.
+    //
+    // Do a single-source shortest paths reaching out from (-v2).
+    updateDistance(constraint.v2.negated, 0);
+    iterateWorklist();
+    if (constraint.v1 != constraint.v2) {
+      int distanceToV2 = distance[constraint.v2];
+      if (distanceToV2 != null) {
+        // Allow one use of the B edge.
+        // This must be done outside fixpoint iteration as an infinite loop
+        // would arise when an negative-weight cycle using only B exists.
+        updateDistance(constraint.v1.negated, distanceToV2 + constraint.bound);
+        iterateWorklist();
+      }
+    }
+    // Get the distance to (v1) and check if the A edge would complete a cycle.
+    int distanceToV1 = distance[constraint.v1];
+    if (distanceToV1 == null) return null;
+    return distanceToV1 + constraint.bound;
   }
 }

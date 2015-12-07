@@ -101,7 +101,9 @@ void ThreadPool::Shutdown() {
 
     // First tell all the workers to shut down.
     Worker* current = saved;
-    ThreadId id = OSThread::GetCurrentThreadId();
+    OSThread* os_thread = OSThread::Current();
+    ASSERT(os_thread != NULL);
+    ThreadId id = os_thread->id();
     while (current != NULL) {
       Worker* next = current->all_next_;
       ThreadId currentId = current->id();
@@ -245,7 +247,9 @@ bool ThreadPool::ReleaseIdleWorker(Worker* worker) {
 
   // The thread for worker will exit. Add its ThreadId to the join_list_
   // so that we can join on it at the next opportunity.
-  JoinList::AddLocked(OSThread::GetCurrentThreadJoinId(), &join_list_);
+  OSThread* os_thread = OSThread::Current();
+  ASSERT(os_thread != NULL);
+  JoinList::AddLocked(os_thread->join_id(), &join_list_);
   count_stopped_++;
   count_idle_--;
   return true;
@@ -333,7 +337,9 @@ void ThreadPool::Worker::StartThread() {
     ASSERT(task_ != NULL);
   }
 #endif
-  int result = OSThread::Start(&Worker::Main, reinterpret_cast<uword>(this));
+  int result = OSThread::Start("Dart ThreadPool Worker",
+                               &Worker::Main,
+                               reinterpret_cast<uword>(this));
   if (result != 0) {
     FATAL1("Could not start worker thread: result = %d.", result);
   }
@@ -417,12 +423,11 @@ void ThreadPool::Worker::Shutdown() {
 
 // static
 void ThreadPool::Worker::Main(uword args) {
-  Thread::EnsureInit();
-  Thread* thread = Thread::Current();
-  thread->set_name("Dart ThreadPool Worker");
   Worker* worker = reinterpret_cast<Worker*>(args);
-  ThreadId id = OSThread::GetCurrentThreadId();
-  ThreadJoinId join_id = OSThread::GetCurrentThreadJoinId();
+  OSThread* os_thread = OSThread::Current();
+  ASSERT(os_thread != NULL);
+  ThreadId id = os_thread->id();
+  ThreadJoinId join_id = os_thread->join_id();
   ThreadPool* pool;
 
   {

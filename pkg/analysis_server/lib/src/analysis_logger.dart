@@ -43,8 +43,7 @@ class AnalysisLogger implements Logger {
     } else {
       baseLogger.severe(message, exception.exception, exception.stackTrace);
     }
-    server.sendServerErrorNotification(
-        message, exception, exception?.stackTrace);
+    server.sendServerErrorNotification(message, exception, null);
   }
 
   @override

@@ -283,12 +283,11 @@ void StackFrameIterator::SetupNextExitFrameData() {
 }
 
 
-// TODO(johnmccutchan): Remove |isolate| argument.
 // Tell MemorySanitizer that generated code initializes part of the stack.
 // TODO(koda): Limit to frames that are actually written by generated code.
-static void UnpoisonStack(Isolate* isolate, uword fp) {
+static void UnpoisonStack(uword fp) {
   ASSERT(fp != 0);
-  uword size = isolate->GetSpecifiedStackSize();
+  uword size = OSThread::GetSpecifiedStackSize();
   MSAN_UNPOISON(reinterpret_cast<void*>(fp - size), 2 * size);
 }
 
@@ -355,7 +354,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     if (!HasNextFrame()) {
       return NULL;
     }
-    UnpoisonStack(thread_->isolate(), frames_.fp_);
+    UnpoisonStack(frames_.fp_);
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();

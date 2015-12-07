@@ -375,6 +375,9 @@ class StringConstantValue extends PrimitiveConstantValue {
       : this.primitiveValue = value,
         this.hashCode = value.slowToString().hashCode;
 
+  StringConstantValue.fromString(String value)
+      : this(new DartString.literal(value));
+
   bool get isString => true;
 
   DartType getType(CoreTypes types) => types.stringType;

@@ -10,10 +10,9 @@ import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
@@ -28,7 +27,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../operation/operation_queue_test.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -66,10 +64,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         content.substring(completionOffset + 1);
     testSource = addSource(testFile, content);
     cache = new DartCompletionCache(context, testSource);
-    AnalysisServer server = new AnalysisServerMock(
-        searchEngine: searchEngine, resourceProvider: provider);
     request = new DartCompletionRequest(
-        server, context, testSource, completionOffset, cache);
+        context, provider, searchEngine, testSource, completionOffset, cache);
   }
 
   void assertHasNoParameterInfo(CompletionSuggestion suggestion) {
@@ -441,7 +437,7 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
   bool computeFast() {
     expect(computeFastResult, isNull);
     _completionManager = new DartCompletionManager(context, searchEngine,
-        testSource, cache, [contributor], new CommonUsageComputer({}));
+        testSource, cache, [contributor], [], new CommonUsageSorter({}));
     var result =
         _completionManager.computeFast(request, new CompletionPerformance());
     expect(request.replacementOffset, isNotNull);

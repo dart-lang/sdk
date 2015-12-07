@@ -47,6 +47,10 @@ import '../core_types.dart' show
     CoreClasses,
     CoreTypes;
 import '../dart_types.dart';
+import '../deferred_load.dart' show
+    DeferredLoadTask;
+import '../dump_info.dart' show
+    DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/visitor.dart' show
     BaseElementVisitor;
@@ -92,8 +96,11 @@ import '../universe/use.dart' show
     TypeUse,
     TypeUseKind;
 import '../universe/world_impact.dart' show
+    ImpactStrategy,
+    ImpactUseCase,
     TransformedWorldImpact,
-    WorldImpact;
+    WorldImpact,
+    WorldImpactVisitor;
 import '../util/characters.dart';
 import '../util/util.dart';
 import '../world.dart' show

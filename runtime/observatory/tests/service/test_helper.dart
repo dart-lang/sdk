@@ -319,6 +319,17 @@ Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
 }
 
 
+Future<Instance> rootLibraryFieldValue(Isolate isolate,
+                                       String fieldName) async {
+  Library rootLib = await isolate.rootLibrary.load();
+  Field field = rootLib.variables.singleWhere((v) => v.name == fieldName);
+  await field.load();
+  Instance value = field.staticValue;
+  await value.load();
+  return value;
+}
+
+
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether

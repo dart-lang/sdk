@@ -5,9 +5,10 @@
 library engine.incremental_resolver_test;
 
 import 'package:analyzer/src/context/cache.dart' as task;
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisCache;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart' as log;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
@@ -19,6 +20,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
@@ -3519,15 +3521,8 @@ class A {
 
   @override
   void setUp() {
-    AnalysisEngine.instance.useTaskModel = true;
     super.setUp();
     _resetWithIncremental(true);
-  }
-
-  @override
-  void tearDown() {
-    super.tearDown();
-    AnalysisEngine.instance.useTaskModel = false;
   }
 
   void test_computeConstants() {
@@ -4460,6 +4455,41 @@ foo(int p) {}
 ''');
   }
 
+  void test_updateErrors_invalidVerifyErrors() {
+    _resolveUnit(r'''
+main() {
+  foo('aaa');
+}
+main2() {
+  foo('bbb');
+}
+foo(int p) {}
+''');
+    // Complete analysis, e.g. compute VERIFY_ERRORS.
+    _runTasks();
+    // Invalidate VERIFY_ERRORS.
+    AnalysisCache cache = analysisContext2.analysisCache;
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    task.CacheEntry cacheEntry = cache.get(target);
+    expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(2));
+    cacheEntry.setState(VERIFY_ERRORS, CacheState.INVALID);
+    // Don't run tasks, so don't recompute VERIFY_ERRORS before incremental.
+    _updateAndValidate(
+        r'''
+main() {
+  foo(0);
+}
+main2() {
+  foo('bbb');
+}
+foo(int p) {}
+''',
+        runTasksBeforeIncremental: false);
+    // Incremental analysis should have left VERIFY_ERRORS invalid,
+    // so it was correctly recomputed later during the full analysis.
+    expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(1));
+  }
+
   void test_updateErrors_removeExisting_hint() {
     _resolveUnit(r'''
 int main() {
@@ -4595,9 +4625,13 @@ class B extends A {}
   }
 
   void _updateAndValidate(String newCode,
-      {bool expectedSuccess: true, bool compareWithFull: true}) {
+      {bool expectedSuccess: true,
+      bool compareWithFull: true,
+      bool runTasksBeforeIncremental: true}) {
     // Run any pending tasks tasks.
-    _runTasks();
+    if (runTasksBeforeIncremental) {
+      _runTasks();
+    }
     // Update the source - currently this may cause incremental resolution.
     // Then request the updated resolved unit.
     _resetWithIncremental(true);
@@ -4613,7 +4647,8 @@ class B extends A {}
     // The existing CompilationUnit[Element] should be updated.
     expect(newUnit, same(oldUnit));
     expect(newUnit.element, same(oldUnitElement));
-    expect(analysisContext.parseCompilationUnit(source), same(oldUnit));
+    expect(analysisContext.getResolvedCompilationUnit(source, oldLibrary),
+        same(oldUnit));
     // The only expected pending task should return the same resolved
     // "newUnit", so all clients will get it using the usual way.
     AnalysisResult analysisResult = analysisContext.performAnalysisTask();

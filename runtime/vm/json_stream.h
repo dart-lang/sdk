@@ -6,7 +6,7 @@
 #define VM_JSON_STREAM_H_
 
 #include "include/dart_api.h"  // for Dart_Port
-#include "platform/json.h"
+#include "platform/text_buffer.h"
 #include "vm/allocation.h"
 #include "vm/service.h"
 

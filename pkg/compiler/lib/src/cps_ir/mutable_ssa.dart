@@ -168,7 +168,7 @@ class MutableVariableEliminator implements Pass {
         if (shouldRewrite(variable)) {
           // Replace with the reaching definition from the environment.
           Primitive value = environment[variable];
-          value.substituteFor(getter);
+          getter.replaceUsesWith(value);
           mergeHints(variable, value);
           node.remove();
         }

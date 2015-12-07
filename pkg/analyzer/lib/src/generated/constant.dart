@@ -704,6 +704,13 @@ class ConstantEvaluationEngine {
           field is ConstFieldElementImpl) {
         validator.beforeGetFieldEvaluationResult(field);
         EvaluationResultImpl evaluationResult = field.evaluationResult;
+        // It is possible that the evaluation result is null.
+        // This happens for example when we have duplicate fields.
+        // class Test {final x = 1; final x = 2; const Test();}
+        if (evaluationResult == null) {
+          continue;
+        }
+        // Match the value and the type.
         DartType fieldType =
             FieldMember.from(field, constructor.returnType).type;
         DartObjectImpl fieldValue = evaluationResult.value;
@@ -713,7 +720,7 @@ class ConstantEvaluationEngine {
               node,
               [fieldValue.type, field.name, fieldType]);
         }
-        fieldMap[field.name] = evaluationResult.value;
+        fieldMap[field.name] = fieldValue;
       }
     }
     // Now evaluate the constructor declaration.

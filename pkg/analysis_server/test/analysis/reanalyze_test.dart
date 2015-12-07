@@ -44,31 +44,32 @@ class ReanalyzeTest extends AbstractAnalysisTest {
     expect(newContext, isNot(same(oldContext)));
   }
 
-  test_reanalyze_with_overlay() {
+  test_reanalyze_with_overlay() async {
     createProject();
     resourceProvider.newFolder(testFolder);
     resourceProvider.newFile(testFile, 'main() {}');
-    return waitForTasksFinished().then((_) {
-      // Update the content with an overlay that contains a syntax error.
-      server.updateContent('1', {testFile: new AddContentOverlay('main() {')});
-      return waitForTasksFinished();
-    }).then((_) {
-      // Verify that the syntax error was detected.
+    await waitForTasksFinished();
+    // Update the content with an overlay that contains a syntax error.
+    server.updateContent('1', {testFile: new AddContentOverlay('main() {')});
+    await waitForTasksFinished();
+    // Verify that the syntax error was detected.
+    {
       List<AnalysisError> errors = filesErrors[testFile];
       expect(errors, hasLength(1));
-      // Remove testFile from filesErrors so that we'll notice when the file is
-      // re-analyzed.
-      filesErrors.remove(testFile);
-      // Reanalyze.
-      server.reanalyze(null);
-      return waitForTasksFinished();
-    }).then((_) {
-      // The file should have been reanalyzed.
-      expect(filesErrors, contains(testFile));
-      // Verify that the syntax error is present (this indicates that the
-      // content introduced by the call to updateContent is still in effect).
+    }
+    // Remove testFile from filesErrors so that we'll notice when the file is
+    // re-analyzed.
+    filesErrors.remove(testFile);
+    // Reanalyze.
+    server.reanalyze(null);
+    await waitForTasksFinished();
+    // The file should have been reanalyzed.
+    expect(filesErrors, contains(testFile));
+    // Verify that the syntax error is present (this indicates that the
+    // content introduced by the call to updateContent is still in effect).
+    {
       List<AnalysisError> errors = filesErrors[testFile];
       expect(errors, hasLength(1));
-    });
+    }
   }
 }

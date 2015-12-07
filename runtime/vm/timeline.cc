@@ -126,9 +126,9 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
   }
 
   // Iterate over threads.
-  ThreadIterator it;
+  OSThreadIterator it;
   while (it.HasNext()) {
-    Thread* thread = it.Next();
+    OSThread* thread = it.Next();
     MutexLocker ml(thread->timeline_block_lock());
     // Grab block and clear it.
     TimelineEventBlock* block = thread->timeline_block();
@@ -350,7 +350,9 @@ void TimelineEvent::Init(EventType event_type,
   set_event_type(event_type);
   timestamp0_ = 0;
   timestamp1_ = 0;
-  thread_ = OSThread::GetCurrentThreadTraceId();
+  OSThread* os_thread = OSThread::Current();
+  ASSERT(os_thread != NULL);
+  thread_ = os_thread->trace_id();
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
     isolate_id_ = isolate->main_port();
@@ -641,9 +643,9 @@ TimelineEventRecorder::TimelineEventRecorder()
 
 
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
-  ThreadIterator it;
+  OSThreadIterator it;
   while (it.HasNext()) {
-    Thread* thread = it.Next();
+    OSThread* thread = it.Next();
     const char* thread_name = thread->name();
     if (thread_name == NULL) {
       // Only emit a thread name if one was set.
@@ -666,7 +668,7 @@ void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
 
 TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // Grab the current thread.
-  Thread* thread = Thread::Current();
+  OSThread* thread = OSThread::Current();
   ASSERT(thread != NULL);
   Mutex* thread_block_lock = thread->timeline_block_lock();
   ASSERT(thread_block_lock != NULL);
@@ -707,7 +709,7 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
     return;
   }
   // Grab the current thread.
-  Thread* thread = Thread::Current();
+  OSThread* thread = OSThread::Current();
   ASSERT(thread != NULL);
   // Unlock the thread's block lock.
   Mutex* thread_block_lock = thread->timeline_block_lock();
@@ -901,9 +903,6 @@ intptr_t TimelineEventRingRecorder::FindOldestBlockIndex() const {
 
 
 TimelineEvent* TimelineEventRingRecorder::StartEvent() {
-  // Grab the current thread.
-  Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
   return ThreadBlockStartEvent();
 }
 
@@ -986,9 +985,6 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
 
 
 TimelineEvent* TimelineEventEndlessRecorder::StartEvent() {
-  // Grab the current thread.
-  Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
   return ThreadBlockStartEvent();
 }
 
@@ -1045,7 +1041,7 @@ void TimelineEventEndlessRecorder::Clear() {
   }
   head_ = NULL;
   block_index_ = 0;
-  Thread* thread = Thread::Current();
+  OSThread* thread = OSThread::Current();
   thread->set_timeline_block(NULL);
 }
 
@@ -1067,8 +1063,10 @@ TimelineEventBlock::~TimelineEventBlock() {
 TimelineEvent* TimelineEventBlock::StartEvent() {
   ASSERT(!IsFull());
   if (FLAG_trace_timeline) {
-    OS::Print("StartEvent in block %p for thread %" Px "\n",
-              this, OSThread::CurrentCurrentThreadIdAsIntPtr());
+    OSThread* os_thread = OSThread::Current();
+    ASSERT(os_thread != NULL);
+    intptr_t tid = OSThread::ThreadIdToIntPtr(os_thread->id());
+    OS::Print("StartEvent in block %p for thread %" Px "\n", this, tid);
   }
   return &events_[length_++];
 }
@@ -1119,7 +1117,9 @@ void TimelineEventBlock::Reset() {
 
 
 void TimelineEventBlock::Open() {
-  thread_id_ = OSThread::GetCurrentThreadTraceId();
+  OSThread* os_thread = OSThread::Current();
+  ASSERT(os_thread != NULL);
+  thread_id_ = os_thread->trace_id();
   in_use_ = true;
 }
 

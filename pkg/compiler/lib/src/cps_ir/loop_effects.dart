@@ -46,9 +46,7 @@ class LoopSideEffects extends TrampolineRecursiveVisitor {
   Expression traverseContinuation(Continuation cont) {
     if (cont.isRecursive) {
       SideEffects oldEffects = currentLoopSideEffects;
-      Continuation oldLoopHeader = currentLoopHeader;
       bool oldChangesLength = currentLoopChangesLength;
-      currentLoopHeader = cont;
       loopSideEffects[cont] = currentLoopSideEffects = new SideEffects.empty();
       exitContinuations[cont] = <Continuation>[];
       pushAction(() {
@@ -57,11 +55,15 @@ class LoopSideEffects extends TrampolineRecursiveVisitor {
           loopsChangingLength.add(cont);
         }
         currentLoopChangesLength = currentLoopChangesLength || oldChangesLength;
-        currentLoopHeader = oldLoopHeader;
         currentLoopSideEffects = oldEffects;
         exitContinuations[cont].forEach(push);
       });
     }
+    Continuation oldLoopHeader = currentLoopHeader;
+    currentLoopHeader = loopHierarchy.getLoopHeader(cont);
+    pushAction(() {
+      currentLoopHeader = oldLoopHeader;
+    });
     return cont.body;
   }
 
@@ -87,6 +89,13 @@ class LoopSideEffects extends TrampolineRecursiveVisitor {
       Continuation inner = currentLoopHeader;
       Continuation outer = loopHierarchy.getEnclosingLoop(currentLoopHeader);
       while (outer != loop) {
+        if (inner == null) {
+          // The shrinking reductions pass must run before any pass that relies
+          // on computing loop side effects.
+          world.compiler.reporter.internalError(null,
+              'Unreachable continuations must be removed before computing '
+              'loop side effects.');
+        }
         inner = outer;
         outer = loopHierarchy.getEnclosingLoop(outer);
       }
@@ -171,6 +180,7 @@ class LoopSideEffects extends TrampolineRecursiveVisitor {
   }
 
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    currentLoopSideEffects.setChangesIndex();
     currentLoopChangesLength = true; // Push and pop.
   }
 }

@@ -317,8 +317,8 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually execute `map` for each event.
    */
-  Stream map(convert(T event)) {
-    return new _MapStream<T, dynamic>(this, convert);
+  Stream/*<S>*/ map/*<S>*/(/*=S*/ convert(T event)) {
+    return new _MapStream<T, dynamic/*=S*/>(this, convert);
   }
 
   /**
@@ -479,8 +479,8 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually call `convert` and expand the events.
    */
-  Stream expand(Iterable convert(T value)) {
-    return new _ExpandStream<T, dynamic>(this, convert);
+  Stream/*<S>*/ expand(Iterable/*<S>*/ convert(T value)) {
+    return new _ExpandStream<T, dynamic/*=S*/>(this, convert);
   }
 
   /**
@@ -554,7 +554,9 @@ abstract class Stream<T> {
   }
 
   /** Reduces a sequence of values by repeatedly applying [combine]. */
-  Future fold(var initialValue, combine(var previous, T element)) {
+  Future/*<S>*/ fold/*<S>*/(var/*=S*/ initialValue,
+      /*=S*/ combine(var/*=S*/ previous, T element)) {
+
     _Future result = new _Future();
     var value = initialValue;
     StreamSubscription subscription;

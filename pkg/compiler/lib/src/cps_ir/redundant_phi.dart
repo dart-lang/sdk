@@ -138,7 +138,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
       // * and implicitly remove param from continuation signature and
       //   invocations by not incrementing `dst`. References of removed
       //   arguments are unlinked to keep definition usages up to date.
-      uniqueDefinition.substituteFor(oldDefinition);
+      oldDefinition.replaceUsesWith(uniqueDefinition);
       for (InvokeContinuation invoke in invokes) {
         invoke.arguments[src].unlink();
       }
@@ -191,7 +191,7 @@ void _moveIntoScopeOf(LetCont letCont, Definition definition) {
 
 /// Ensures [continuation] has its own LetCont binding by creating
 /// a new LetCont below its current binding, if necessary.
-/// 
+///
 /// Returns the LetCont that now binds [continuation].
 LetCont _makeUniqueBinding(Continuation continuation) {
   LetCont letCont = continuation.parent;

@@ -26,6 +26,7 @@ const String ANALYSIS_GET_HOVER = 'analysis.getHover';
 const String ANALYSIS_GET_LIBRARY_DEPENDENCIES =
     'analysis.getLibraryDependencies';
 const String ANALYSIS_GET_NAVIGATION = 'analysis.getNavigation';
+const String ANALYSIS_GET_REACHABLE_SOURCES = 'analysis.getReachableSources';
 const String ANALYSIS_REANALYZE = 'analysis.reanalyze';
 const String ANALYSIS_SET_ANALYSIS_ROOTS = 'analysis.setAnalysisRoots';
 const String ANALYSIS_SET_GENERAL_SUBSCRIPTIONS =

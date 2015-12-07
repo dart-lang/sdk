@@ -238,6 +238,41 @@ abstract class IntegrationTestMixin {
   }
 
   /**
+   * Return the transitive closure of reachable sources for a given file.
+   *
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * GET_REACHABLE_SOURCES_INVALID_FILE will be generated.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file for which reachable source information is being requested.
+   *
+   * Returns
+   *
+   * sources ( Map<String, List<String>> )
+   *
+   *   A mapping from source URIs to directly reachable source URIs. For
+   *   example, a file "foo.dart" that imports "bar.dart" would have the
+   *   corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
+   *   "bar.dart" has further imports (or exports) there will be a mapping from
+   *   the URI "file:///bar.dart" to them. To check if a specific URI is
+   *   reachable from a given file, clients can check for its presence in the
+   *   resulting key set.
+   */
+  Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(String file) {
+    var params = new AnalysisGetReachableSourcesParams(file).toJson();
+    return server.send("analysis.getReachableSources", params)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisGetReachableSourcesResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
    * Return library dependency information for use in client-side indexing and
    * package URI resolution.
    *

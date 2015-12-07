@@ -15,9 +15,10 @@
 #include <unistd.h>  // NOLINT
 #include <libgen.h>  // NOLINT
 
-#include "platform/signal_blocker.h"
 #include "bin/builtin.h"
 #include "bin/log.h"
+#include "platform/signal_blocker.h"
+#include "platform/utils.h"
 
 
 namespace dart {
@@ -56,7 +57,7 @@ void File::Close() {
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_buf[kBufferSize];
-      Log::PrintErr("%s\n", strerror_r(errno, error_buf, kBufferSize));
+      Log::PrintErr("%s\n", Utils::StrError(errno, error_buf, kBufferSize));
     }
   }
   handle_->set_fd(kClosedFd);
@@ -429,7 +430,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
     FATAL2("Failed stat on file descriptor %d: %s", fd,
-           strerror_r(errno, error_buf, kBufferSize));
+           Utils::StrError(errno, error_buf, kBufferSize));
   }
   if (S_ISCHR(buf.st_mode)) return kTerminal;
   if (S_ISFIFO(buf.st_mode)) return kPipe;

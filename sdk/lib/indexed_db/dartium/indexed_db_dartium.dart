@@ -292,6 +292,27 @@ class Database extends EventTarget {
     return _createObjectStore(name, options);
   }
 
+  Transaction transaction(storeName_OR_storeNames, String mode) {
+    if (mode != 'readonly' && mode != 'readwrite') {
+      throw new ArgumentError("Invalid transaction mode $mode");
+    }
+    var names;
+    if (storeName_OR_storeNames == null) {
+      throw new ArgumentError("stores may not be null in transaction");
+    } else if (storeName_OR_storeNames is String || storeName_OR_storeNames is DomStringList) {
+      names = unwrap_jso(storeName_OR_storeNames);
+    } else if (storeName_OR_storeNames is List<String>) {
+      names = convertDartToNative_List(storeName_OR_storeNames);
+    } else {
+      throw new ArgumentError("Invalid store(s) $store_Name_OR_storeNames");
+    }
+
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), names, mode));
+  }
+
+  Transaction transactionList(List<String> storeNames, String mode) => transaction(storeNames, mode);
+  Transaction transactionStores(List<String> storeNames, String mode) => transaction(storeNames, mode);
+  Transaction transactionStore(String storeName, String mode) => transaction(storeName, mode);
 
   // To suppress missing implicit constructor warnings.
   factory Database._() { throw new UnsupportedError("Not supported"); }
@@ -379,49 +400,6 @@ class Database extends EventTarget {
   @DocsEditable()
   void deleteObjectStore(String name) => _blink.BlinkIDBDatabase.instance.deleteObjectStore_Callback_1_(unwrap_jso(this), name);
   
-  Transaction transaction(storeName_OR_storeNames, [String mode]) {
-    if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && mode == null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
-    }
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && mode == null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
-    }
-    if ((storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null) && mode == null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Transaction transactionList(List<String> storeNames, [String mode]) {
-    if (mode != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), convertDartToNative_StringArray(storeNames), mode));
-    }
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), convertDartToNative_StringArray(storeNames)));
-  }
-
-  Transaction transactionStore(String storeName, [String mode]) {
-    if (mode != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeName, mode));
-    }
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeName));
-  }
-
-  Transaction transactionStores(List<String> storeNames, [String mode]) {
-    if (mode != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeNames), mode));
-    }
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeNames)));
-  }
-
   /// Stream of `abort` events handled by this [Database].
   @DomName('IDBDatabase.onabort')
   @DocsEditable()

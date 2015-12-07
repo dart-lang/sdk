@@ -16,11 +16,12 @@
 #include <sys/wait.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
-#include "platform/signal_blocker.h"
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
 #include "bin/thread.h"
+#include "platform/signal_blocker.h"
+#include "platform/utils.h"
 
 
 extern char **environ;
@@ -643,7 +644,7 @@ class ProcessStarter {
   void SetChildOsErrorMessage() {
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
-    *os_error_message_ = strdup(strerror_r(errno, error_buf, kBufferSize));
+    *os_error_message_ = strdup(Utils::StrError(errno, error_buf, kBufferSize));
   }
 
 
@@ -653,7 +654,7 @@ class ProcessStarter {
     int child_errno = errno;
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
-    char* os_error_message = strerror_r(errno, error_buf, kBufferSize);
+    char* os_error_message = Utils::StrError(errno, error_buf, kBufferSize);
     int bytes_written =
         FDUtils::WriteToBlocking(
             exec_control_[1], &child_errno, sizeof(child_errno));

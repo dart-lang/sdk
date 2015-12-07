@@ -63,12 +63,15 @@ class ObjectGraph : public StackResource {
   // Like 'IterateObjects', but restricted to objects reachable from 'root'
   // (including 'root' itself).
   void IterateObjectsFrom(const Object& root, Visitor* visitor);
+  void IterateObjectsFrom(intptr_t class_id, Visitor* visitor);
 
   // The number of bytes retained by 'obj'.
   intptr_t SizeRetainedByInstance(const Object& obj);
+  intptr_t SizeReachableByInstance(const Object& obj);
 
   // The number of bytes retained by the set of all objects of the given class.
   intptr_t SizeRetainedByClass(intptr_t class_id);
+  intptr_t SizeReachableByClass(intptr_t class_id);
 
   // Finds some retaining path from the isolate roots to 'obj'. Populates the
   // provided array with pairs of (object, offset from parent in words),

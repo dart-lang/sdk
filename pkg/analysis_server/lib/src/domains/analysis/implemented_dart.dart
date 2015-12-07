@@ -54,22 +54,37 @@ class ImplementedComputer {
   }
 
   void _addMemberIfImplemented(Element element) {
-    if (!element.isSynthetic) {
-      String name = element.displayName;
-      if (name != null && _hasOverride(name)) {
-        _addImplementedMember(element);
-      }
+    if (element.isSynthetic || _isStatic(element)) {
+      return;
+    }
+    String name = element.displayName;
+    if (name != null && _hasOverride(name)) {
+      _addImplementedMember(element);
     }
   }
 
   bool _hasOverride(String name) {
     for (ClassElement subtype in subtypes) {
-      if (subtype.getMethod(name) != null) {
-        return true;
+      MethodElement method = subtype.getMethod(name);
+      if (method != null) {
+        return !method.isStatic;
       }
-      if (subtype.getField(name) != null) {
-        return true;
+      FieldElement field = subtype.getField(name);
+      if (field != null) {
+        return !field.isStatic;
       }
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given [element] is a static element.
+   */
+  static bool _isStatic(Element element) {
+    if (element is ExecutableElement) {
+      return element.isStatic;
+    } else if (element is PropertyInducingElement) {
+      return element.isStatic;
     }
     return false;
   }

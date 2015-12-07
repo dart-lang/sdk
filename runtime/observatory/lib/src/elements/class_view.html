@@ -181,6 +181,19 @@
             </div>
           </div>
           <div class="memberItem">
+            <div class="memberName">total reachable memory size</div>
+            <div class="memberValue">
+              <template if="{{ reachableBytes == null }}">
+                <eval-link callback="{{ reachableSize }}"
+                           label="[calculate]">
+                </eval-link>
+              </template>
+              <template if="{{ reachableBytes != null }}">
+                {{ reachableBytes | formatSize }}
+              </template>
+            </div>
+          </div>
+          <div class="memberItem">
             <div class="memberName">total retained memory size</div>
             <div class="memberValue">
               <template if="{{ retainedBytes == null }}">

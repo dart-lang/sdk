@@ -97,7 +97,9 @@ class CaughtException implements Exception {
       }
     } else {
       buffer.writeln(exception.toString());
-      buffer.writeln(stackTrace.toString());
+      if (stackTrace != null) {
+        buffer.writeln(stackTrace.toString());
+      }
     }
   }
 }

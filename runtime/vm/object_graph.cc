@@ -173,7 +173,7 @@ ObjectGraph::~ObjectGraph() {
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
   Stack stack(isolate());
-  isolate()->IterateObjectPointers(&stack, false, false);
+  isolate()->IterateObjectPointers(&stack, false);
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
@@ -186,7 +186,41 @@ void ObjectGraph::IterateObjectsFrom(const Object& root,
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);
   stack.TraverseGraph(visitor);
-  // TODO(koda): Optimize if we only visited a small subgraph.
+  Unmarker::UnmarkAll(isolate());
+}
+
+
+class InstanceAccumulator : public ObjectVisitor {
+ public:
+  explicit InstanceAccumulator(ObjectGraph::Stack* stack,
+                               intptr_t class_id,
+                               Isolate* isolate)
+    : ObjectVisitor(isolate), stack_(stack), class_id_(class_id) { }
+
+  void VisitObject(RawObject* obj) {
+    if (obj->GetClassId() == class_id_) {
+      RawObject* rawobj = obj;
+      stack_->VisitPointer(&rawobj);
+    }
+  }
+
+ private:
+  ObjectGraph::Stack* stack_;
+  const intptr_t class_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(InstanceAccumulator);
+};
+
+
+void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
+                                     ObjectGraph::Visitor* visitor) {
+  NoSafepointScope no_safepoint_scope_;
+  Stack stack(isolate());
+
+  InstanceAccumulator accumulator(&stack, class_id, isolate());
+  isolate()->heap()->IterateObjects(&accumulator);
+
+  stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
 
@@ -240,6 +274,13 @@ intptr_t ObjectGraph::SizeRetainedByInstance(const Object& obj) {
 }
 
 
+intptr_t ObjectGraph::SizeReachableByInstance(const Object& obj) {
+  SizeVisitor total;
+  IterateObjectsFrom(obj, &total);
+  return total.size();
+}
+
+
 intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
   SizeVisitor total;
   IterateObjects(&total);
@@ -248,6 +289,13 @@ intptr_t ObjectGraph::SizeRetainedByClass(intptr_t class_id) {
   IterateObjects(&excluding_class);
   intptr_t size_excluding_class = excluding_class.size();
   return size_total - size_excluding_class;
+}
+
+
+intptr_t ObjectGraph::SizeReachableByClass(intptr_t class_id) {
+  SizeVisitor total;
+  IterateObjectsFrom(class_id, &total);
+  return total.size();
 }
 
 
@@ -473,7 +521,7 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream) {
   stream->WriteUnsigned(0);
   {
     WritePointerVisitor ptr_writer(isolate(), stream);
-    isolate()->IterateObjectPointers(&ptr_writer, false, false);
+    isolate()->IterateObjectPointers(&ptr_writer, false);
   }
   stream->WriteUnsigned(0);
   IterateObjects(&visitor);

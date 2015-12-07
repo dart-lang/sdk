@@ -73,8 +73,6 @@ class ReadOnlyHandles {
 const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            const uint8_t* instructions_snapshot,
                            Dart_IsolateCreateCallback create,
-                           Dart_IsolateInterruptCallback interrupt,
-                           Dart_IsolateUnhandledExceptionCallback unhandled,
                            Dart_IsolateShutdownCallback shutdown,
                            Dart_FileOpenCallback file_open,
                            Dart_FileReadCallback file_read,
@@ -90,11 +88,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Isolate::SetEntropySourceCallback(entropy_source);
   OS::InitOnce();
   VirtualMemory::InitOnce();
-  Thread::InitOnceBeforeIsolate();
-  Thread::EnsureInit();
+  OSThread::InitOnce();
   Timeline::InitOnce();
-  Thread* thread = Thread::Current();
-  thread->set_name("Dart_Initialize");
   TimelineDurationScope tds(Timeline::GetVMStream(),
                             "Dart::InitOnce");
   Isolate::InitOnce();
@@ -108,7 +103,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Metric::InitOnce();
   StoreBuffer::InitOnce();
   MarkingStack::InitOnce();
-  Thread::EnsureInit();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
@@ -120,8 +114,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   ASSERT(thread_pool_ == NULL);
   thread_pool_ = new ThreadPool();
   {
-    Thread* T = Thread::Current();
-    ASSERT(T != NULL);
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
@@ -137,6 +129,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == Isolate::Current());
     ASSERT(vm_isolate_ == Thread::Current()->isolate());
 
+    Thread* T = Thread::Current();
+    ASSERT(T != NULL);
     StackZone zone(T);
     HandleScope handle_scope(T);
     Object::InitNull(vm_isolate_);
@@ -180,7 +174,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     } else {
       Symbols::InitOnce(vm_isolate_);
     }
-    Thread::InitOnceAfterObjectAndStubCode();
+    // We need to initialize the constants here for the vm isolate thread due to
+    // bootstrapping issues.
+    T->InitVMConstants();
     Scanner::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
@@ -199,8 +195,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
 
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
-  Isolate::SetInterruptCallback(interrupt);
-  Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
 
   Service::SetGetServiceAssetsCallback(get_service_assets);
@@ -250,7 +244,6 @@ const char* Dart::Cleanup() {
     thread_pool_ = NULL;
 
     // Set the VM isolate as current isolate.
-    Thread::EnsureInit();
     Thread::EnterIsolate(vm_isolate_);
 
     ShutdownIsolate();
@@ -260,7 +253,12 @@ const char* Dart::Cleanup() {
     TargetCPUFeatures::Cleanup();
     StoreBuffer::ShutDown();
 
-    Thread::Shutdown();
+    // Delete the current thread's TLS and set it's TLS to null.
+    // If it is the last thread then the destructor would call
+    // OSThread::Cleanup.
+    OSThread* os_thread = OSThread::Current();
+    OSThread::SetCurrent(NULL);
+    delete os_thread;
   } else {
     // Shutdown the service isolate.
     ServiceIsolate::Shutdown();

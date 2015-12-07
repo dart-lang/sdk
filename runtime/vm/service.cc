@@ -97,7 +97,7 @@ char* RingServiceIdZone::GetServiceId(const Object& obj) {
 EmbedderServiceHandler* Service::isolate_service_handler_head_ = NULL;
 EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 struct ServiceMethodDescriptor;
-ServiceMethodDescriptor* FindMethod(const char* method_name);
+const ServiceMethodDescriptor* FindMethod(const char* method_name);
 
 
 // Support for streams defined in embedders.
@@ -491,7 +491,7 @@ class IdParameter : public MethodParameter {
 
 class EnumParameter : public MethodParameter {
  public:
-  EnumParameter(const char* name, bool required, const char** enums)
+  EnumParameter(const char* name, bool required, const char* const* enums)
       : MethodParameter(name, required),
         enums_(enums) {
   }
@@ -509,14 +509,14 @@ class EnumParameter : public MethodParameter {
   }
 
  private:
-  const char** enums_;
+  const char* const* enums_;
 };
 
 
 // If the key is not found, this function returns the last element in the
 // values array. This can be used to encode the default value.
 template<typename T>
-T EnumMapper(const char* value, const char** enums, T* values) {
+T EnumMapper(const char* value, const char* const* enums, T* values) {
   ASSERT(value != NULL);
   intptr_t i = 0;
   for (i = 0; enums[i] != NULL; i++) {
@@ -644,7 +644,7 @@ void Service::InvokeMethod(Isolate* I, const Array& msg) {
     }
     const char* c_method_name = method_name.ToCString();
 
-    ServiceMethodDescriptor* method = FindMethod(c_method_name);
+    const ServiceMethodDescriptor* method = FindMethod(c_method_name);
     if (method != NULL) {
       if (!ValidateParameters(method->parameters, &js)) {
         js.PostReply();
@@ -1271,22 +1271,24 @@ static RawObject* LookupHeapObjectClasses(Thread* thread,
     return func.raw();
 
   } else if (strcmp(parts[2], "fields") == 0) {
-    // Field ids look like: "classes/17/fields/11"
+    // Field ids look like: "classes/17/fields/name"
     if (num_parts != 4) {
       return Object::sentinel().raw();
     }
-    intptr_t id;
-    if (!GetIntegerId(parts[3], &id)) {
+    const char* encoded_id = parts[3];
+    String& id = String::Handle(zone, String::New(encoded_id));
+    id = String::DecodeIRI(id);
+    if (id.IsNull()) {
       return Object::sentinel().raw();
     }
-    Field& field = Field::Handle(zone, cls.FieldFromIndex(id));
+    Field& field = Field::Handle(zone, cls.LookupField(id));
     if (field.IsNull()) {
       return Object::sentinel().raw();
     }
     return field.raw();
 
   } else if (strcmp(parts[2], "functions") == 0) {
-    // Function ids look like: "classes/17/functions/11"
+    // Function ids look like: "classes/17/functions/name"
     if (num_parts != 4) {
       return Object::sentinel().raw();
     }
@@ -1385,12 +1387,12 @@ static RawObject* LookupHeapObjectCode(Isolate* isolate,
     return Object::sentinel().raw();
   }
   uword pc;
-  static const char* kCollectedPrefix = "collected-";
+  static const char* const kCollectedPrefix = "collected-";
   static intptr_t kCollectedPrefixLen = strlen(kCollectedPrefix);
-  static const char* kNativePrefix = "native-";
-  static intptr_t kNativePrefixLen = strlen(kNativePrefix);
-  static const char* kReusedPrefix = "reused-";
-  static intptr_t kReusedPrefixLen = strlen(kReusedPrefix);
+  static const char* const kNativePrefix = "native-";
+  static const intptr_t kNativePrefixLen = strlen(kNativePrefix);
+  static const char* const kReusedPrefix = "reused-";
+  static const intptr_t kReusedPrefixLen = strlen(kReusedPrefix);
   const char* id = parts[1];
   if (strncmp(kCollectedPrefix, id, kCollectedPrefixLen) == 0) {
     if (!GetUnsignedIntegerId(&id[kCollectedPrefixLen], &pc, 16)) {
@@ -1764,16 +1766,14 @@ static bool GetRetainingPath(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* get_retained_size_params[] = {
   ISOLATE_PARAMETER,
+  new IdParameter("targetId", true),
   NULL,
 };
 
 
 static bool GetRetainedSize(Thread* thread, JSONStream* js) {
   const char* target_id = js->LookupParam("targetId");
-  if (target_id == NULL) {
-    PrintMissingParamError(js, "targetId");
-    return true;
-  }
+  ASSERT(target_id != NULL);
   ObjectIdRing::LookupResult lookup_result;
   Object& obj = Object::Handle(LookupHeapObject(thread, target_id,
                                                 &lookup_result));
@@ -1800,6 +1800,48 @@ static bool GetRetainedSize(Thread* thread, JSONStream* js) {
 
   ObjectGraph graph(thread);
   intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+  const Object& result = Object::Handle(Integer::New(retained_size));
+  result.PrintJSON(js, true);
+  return true;
+}
+
+
+static const MethodParameter* get_reachable_size_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("targetId", true),
+  NULL,
+};
+
+
+static bool GetReachableSize(Thread* thread, JSONStream* js) {
+  const char* target_id = js->LookupParam("targetId");
+  ASSERT(target_id != NULL);
+  ObjectIdRing::LookupResult lookup_result;
+  Object& obj = Object::Handle(LookupHeapObject(thread, target_id,
+                                                &lookup_result));
+  if (obj.raw() == Object::sentinel().raw()) {
+    if (lookup_result == ObjectIdRing::kCollected) {
+      PrintSentinel(js, kCollectedSentinel);
+    } else if (lookup_result == ObjectIdRing::kExpired) {
+      PrintSentinel(js, kExpiredSentinel);
+    } else {
+      PrintInvalidParamError(js, "targetId");
+    }
+    return true;
+  }
+  // TODO(rmacnak): There is no way to get the size retained by a class object.
+  // SizeRetainedByClass should be a separate RPC.
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    ObjectGraph graph(thread);
+    intptr_t retained_size = graph.SizeReachableByClass(cls.id());
+    const Object& result = Object::Handle(Integer::New(retained_size));
+    result.PrintJSON(js, true);
+    return true;
+  }
+
+  ObjectGraph graph(thread);
+  intptr_t retained_size = graph.SizeReachableByInstance(obj);
   const Object& result = Object::Handle(Integer::New(retained_size));
   result.PrintJSON(js, true);
   return true;
@@ -2446,14 +2488,14 @@ static bool GetIsolateMetric(Thread* thread, JSONStream* js) {
     return true;
   }
   // Verify id begins with "metrics/".
-  static const char* kMetricIdPrefix = "metrics/";
+  static const char* const kMetricIdPrefix = "metrics/";
   static intptr_t kMetricIdPrefixLen = strlen(kMetricIdPrefix);
   if (strncmp(metric_id, kMetricIdPrefix, kMetricIdPrefixLen) != 0) {
     PrintInvalidParamError(js, "metricId");
     return true;
   }
   // Check if id begins with "metrics/native/".
-  static const char* kNativeMetricIdPrefix = "metrics/native/";
+  static const char* const kNativeMetricIdPrefix = "metrics/native/";
   static intptr_t kNativeMetricIdPrefixLen = strlen(kNativeMetricIdPrefix);
   const bool native_metric =
       strncmp(metric_id, kNativeMetricIdPrefix, kNativeMetricIdPrefixLen) == 0;
@@ -2662,7 +2704,7 @@ static bool GetTagProfile(Thread* thread, JSONStream* js) {
 }
 
 
-static const char* tags_enum_names[] = {
+static const char* const tags_enum_names[] = {
   "None",
   "UserVM",
   "UserOnly",
@@ -2672,7 +2714,7 @@ static const char* tags_enum_names[] = {
 };
 
 
-static Profile::TagOrder tags_enum_values[] = {
+static const Profile::TagOrder tags_enum_values[] = {
   Profile::kNoTags,
   Profile::kUserVM,
   Profile::kUser,
@@ -3397,7 +3439,7 @@ static bool SetTraceClassAllocation(Thread* thread, JSONStream* js) {
 }
 
 
-static ServiceMethodDescriptor service_methods_[] = {
+static const ServiceMethodDescriptor service_methods_[] = {
   { "_dumpIdZone", DumpIdZone, NULL },
   { "_echo", Echo,
     NULL },
@@ -3455,6 +3497,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_object_by_address_params },
   { "_getPorts", GetPorts,
     get_ports_params },
+  { "_getReachableSize", GetReachableSize,
+    get_reachable_size_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
@@ -3504,11 +3548,11 @@ static ServiceMethodDescriptor service_methods_[] = {
 };
 
 
-ServiceMethodDescriptor* FindMethod(const char* method_name) {
+const ServiceMethodDescriptor* FindMethod(const char* method_name) {
   intptr_t num_methods = sizeof(service_methods_) /
                          sizeof(service_methods_[0]);
   for (intptr_t i = 0; i < num_methods; i++) {
-    ServiceMethodDescriptor& method = service_methods_[i];
+    const ServiceMethodDescriptor& method = service_methods_[i];
     if (strcmp(method_name, method.name) == 0) {
       return &method;
     }

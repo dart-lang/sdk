@@ -920,6 +920,7 @@ class Printer implements NodeVisitor {
     // reserved word.  We don't generate fields with reserved word names except
     // for 'super'.
     if (field == '"super"') return false;
+    if (field == '"catch"') return false;
     return true;
   }
 

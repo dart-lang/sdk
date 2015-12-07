@@ -2231,6 +2231,23 @@ class DebuggerFrameElement extends ObservatoryElement {
         busy = false;
       });
   }
+
+  @observable
+  get properLocals {
+    var locals = new List();
+    var homeMethod = frame.function.homeMethod;
+    if (homeMethod.dartOwner is Class && homeMethod.isStatic) {
+      locals.add(
+          {'name' : '<class>',
+           'value' : homeMethod.dartOwner});
+    } else if (homeMethod.dartOwner is Library) {
+      locals.add(
+          {'name' : '<library>',
+           'value' : homeMethod.dartOwner});
+    }
+    locals.addAll(frame.variables);
+    return locals;
+  }
 }
 
 @CustomTag('debugger-message')

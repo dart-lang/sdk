@@ -34,20 +34,20 @@ namespace dart {
 namespace bin {
 
 const char* DartUtils::original_working_directory = NULL;
-const char* DartUtils::kDartScheme = "dart:";
-const char* DartUtils::kDartExtensionScheme = "dart-ext:";
-const char* DartUtils::kAsyncLibURL = "dart:async";
-const char* DartUtils::kBuiltinLibURL = "dart:_builtin";
-const char* DartUtils::kCoreLibURL = "dart:core";
-const char* DartUtils::kInternalLibURL = "dart:_internal";
-const char* DartUtils::kIsolateLibURL = "dart:isolate";
-const char* DartUtils::kIOLibURL = "dart:io";
-const char* DartUtils::kIOLibPatchURL = "dart:io-patch";
-const char* DartUtils::kUriLibURL = "dart:uri";
-const char* DartUtils::kHttpScheme = "http:";
-const char* DartUtils::kVMServiceLibURL = "dart:vmservice";
+const char* const DartUtils::kDartScheme = "dart:";
+const char* const DartUtils::kDartExtensionScheme = "dart-ext:";
+const char* const DartUtils::kAsyncLibURL = "dart:async";
+const char* const DartUtils::kBuiltinLibURL = "dart:_builtin";
+const char* const DartUtils::kCoreLibURL = "dart:core";
+const char* const DartUtils::kInternalLibURL = "dart:_internal";
+const char* const DartUtils::kIsolateLibURL = "dart:isolate";
+const char* const DartUtils::kIOLibURL = "dart:io";
+const char* const DartUtils::kIOLibPatchURL = "dart:io-patch";
+const char* const DartUtils::kUriLibURL = "dart:uri";
+const char* const DartUtils::kHttpScheme = "http:";
+const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
-uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
+const uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
 
 static bool IsWindowsHost() {
 #if defined(TARGET_OS_WINDOWS)

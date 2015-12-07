@@ -7,51 +7,43 @@ library services.completion.dart;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show AnalysisRequest, CompletionRequest;
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
-    as newApi;
+    show AnalysisRequest, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/arglist_contributor.dart';
-import 'package:analysis_server/src/services/completion/combinator_contributor.dart';
-import 'package:analysis_server/src/services/completion/common_usage_computer.dart';
+import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
-import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
-import 'package:analysis_server/src/services/completion/uri_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/cancelable_future.dart';
-import 'package:analyzer/src/context/context.dart'
-    show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/model.dart';
 
-const int DART_RELEVANCE_COMMON_USAGE = 1200;
-const int DART_RELEVANCE_DEFAULT = 1000;
-const int DART_RELEVANCE_HIGH = 2000;
-const int DART_RELEVANCE_INHERITED_ACCESSOR = 1057;
-const int DART_RELEVANCE_INHERITED_FIELD = 1058;
-const int DART_RELEVANCE_INHERITED_METHOD = 1057;
-const int DART_RELEVANCE_KEYWORD = 1055;
-const int DART_RELEVANCE_LOCAL_ACCESSOR = 1057;
-const int DART_RELEVANCE_LOCAL_FIELD = 1058;
-const int DART_RELEVANCE_LOCAL_FUNCTION = 1056;
-const int DART_RELEVANCE_LOCAL_METHOD = 1057;
-const int DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE = 1056;
-const int DART_RELEVANCE_LOCAL_VARIABLE = 1059;
-const int DART_RELEVANCE_LOW = 500;
-const int DART_RELEVANCE_NAMED_PARAMETER = 1060;
-const int DART_RELEVANCE_PARAMETER = 1059;
+export 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart'
+    show
+        DART_RELEVANCE_COMMON_USAGE,
+        DART_RELEVANCE_DEFAULT,
+        DART_RELEVANCE_HIGH,
+        DART_RELEVANCE_INHERITED_ACCESSOR,
+        DART_RELEVANCE_INHERITED_FIELD,
+        DART_RELEVANCE_INHERITED_METHOD,
+        DART_RELEVANCE_KEYWORD,
+        DART_RELEVANCE_LOCAL_ACCESSOR,
+        DART_RELEVANCE_LOCAL_FIELD,
+        DART_RELEVANCE_LOCAL_FUNCTION,
+        DART_RELEVANCE_LOCAL_METHOD,
+        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE,
+        DART_RELEVANCE_LOCAL_VARIABLE,
+        DART_RELEVANCE_LOW,
+        DART_RELEVANCE_NAMED_PARAMETER,
+        DART_RELEVANCE_PARAMETER;
 
 /**
  * The base class for contributing code completion suggestions.
@@ -84,17 +76,18 @@ class DartCompletionManager extends CompletionManager {
    * The [defaultContributionSorter] is a long-lived object that isn't allowed
    * to maintain state between calls to [ContributionSorter#sort(...)].
    */
-  static ContributionSorter defaultContributionSorter =
-      new CommonUsageComputer();
+  static DartContributionSorter defaultContributionSorter =
+      new CommonUsageSorter();
 
   final SearchEngine searchEngine;
   final DartCompletionCache cache;
   List<DartCompletionContributor> contributors;
-  ContributionSorter contributionSorter;
+  Iterable<CompletionContributor> newContributors;
+  DartContributionSorter contributionSorter;
 
   DartCompletionManager(
       AnalysisContext context, this.searchEngine, Source source, this.cache,
-      [this.contributors, this.contributionSorter])
+      [this.contributors, this.newContributors, this.contributionSorter])
       : super(context, source) {
     if (contributors == null) {
       contributors = [
@@ -103,15 +96,18 @@ class DartCompletionManager extends CompletionManager {
         // and can hide other suggestions with the same name
         new LocalReferenceContributor(),
         new ImportedReferenceContributor(),
-        new KeywordContributor(),
-        new ArgListContributor(),
-        new CombinatorContributor(),
+        //new KeywordContributor(),
+        //new ArgListContributor(),
+        // new CombinatorContributor(),
         new PrefixedElementContributor(),
-        new UriContributor(),
+        //new UriContributor(),
         // TODO(brianwilkerson) Use the completion contributor extension point
         // to add the contributor below (and eventually, all the contributors).
 //        new NewCompletionWrapper(new InheritedContributor())
       ];
+    }
+    if (newContributors == null) {
+      newContributors = <CompletionContributor>[];
     }
     if (contributionSorter == null) {
       contributionSorter = defaultContributionSorter;
@@ -122,9 +118,12 @@ class DartCompletionManager extends CompletionManager {
    * Create a new initialized Dart source completion manager
    */
   factory DartCompletionManager.create(
-      AnalysisContext context, SearchEngine searchEngine, Source source) {
+      AnalysisContext context,
+      SearchEngine searchEngine,
+      Source source,
+      Iterable<CompletionContributor> newContributors) {
     return new DartCompletionManager(context, searchEngine, source,
-        new DartCompletionCache(context, source));
+        new DartCompletionCache(context, source), null, newContributors);
   }
 
   @override
@@ -145,39 +144,21 @@ class DartCompletionManager extends CompletionManager {
    */
   List<DartCompletionContributor> computeFast(
       DartCompletionRequest request, CompletionPerformance performance) {
-    bool isKeywordOrIdentifier(Token token) =>
-        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
-
     return performance.logElapseTime('computeFast', () {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
       request.target = new CompletionTarget.forOffset(unit, request.offset);
-      request.replacementOffset = request.offset;
-      request.replacementLength = 0;
       if (request.offset < 0 || request.offset > unit.end) {
+        request.replacementOffset = request.offset;
+        request.replacementLength = 0;
         sendResults(request, true);
         return [];
       }
 
-      var entity = request.target.entity;
-      Token token = entity is AstNode ? entity.beginToken : entity;
-      if (token != null && request.offset < token.offset) {
-        token = token.previous;
-      }
-      if (token != null) {
-        if (request.offset == token.offset && !isKeywordOrIdentifier(token)) {
-          // If the insertion point is at the beginning of the current token
-          // and the current token is not an identifier
-          // then check the previous token to see if it should be replaced
-          token = token.previous;
-        }
-        if (token != null && isKeywordOrIdentifier(token)) {
-          if (token.offset <= request.offset && request.offset <= token.end) {
-            request.replacementOffset = token.offset;
-            request.replacementLength = token.length;
-          }
-        }
-      }
+      ReplacementRange range =
+          new ReplacementRange.compute(request.offset, request.target);
+      request.replacementOffset = range.offset;
+      request.replacementLength = range.length;
 
       List<DartCompletionContributor> todo = new List.from(contributors);
       todo.removeWhere((DartCompletionContributor c) {
@@ -185,14 +166,6 @@ class DartCompletionManager extends CompletionManager {
           return c.computeFast(request);
         });
       });
-      _processAnalysisRequest(request,
-          contributionSorter.sort(request, request.suggestions));
-      // TODO (danrubel) if request is obsolete
-      // (processAnalysisRequest returns false)
-      // then send empty results
-      if (todo.isEmpty) {
-        sendResults(request, todo.isEmpty);
-      }
       return todo;
     });
   }
@@ -202,9 +175,38 @@ class DartCompletionManager extends CompletionManager {
    * resolved and request that each remaining contributor finish their work.
    * Return a [Future] that completes when the last notification has been sent.
    */
-  Future computeFull(DartCompletionRequest request,
-      CompletionPerformance performance, List<DartCompletionContributor> todo) {
+  Future computeFull(
+      DartCompletionRequest request,
+      CompletionPerformance performance,
+      List<DartCompletionContributor> todo) async {
+    // Compute suggestions using the new API
+    performance.logStartTime('computeSuggestions');
+    for (CompletionContributor contributor in newContributors) {
+      String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
+      performance.logStartTime(contributorTag);
+      List<CompletionSuggestion> newSuggestions =
+          await contributor.computeSuggestions(request);
+      for (CompletionSuggestion suggestion in newSuggestions) {
+        request.addSuggestion(suggestion);
+      }
+      performance.logElapseTime(contributorTag);
+    }
+    performance.logElapseTime('computeSuggestions');
     performance.logStartTime('waitForAnalysis');
+
+    if (todo.isEmpty) {
+      // TODO(danrubel) current sorter requires no additional analysis,
+      // but need to handle the returned future the same way that futures
+      // returned from contributors are handled once this method is refactored
+      // to be async.
+      /* await */ contributionSorter.sort(request, request.suggestions);
+      // TODO (danrubel) if request is obsolete
+      // (processAnalysisRequest returns false)
+      // then send empty results
+      sendResults(request, true);
+    }
+
+    // Compute the other suggestions
     return waitForAnalysis().then((CompilationUnit unit) {
       if (controller.isClosed) {
         return;
@@ -229,8 +231,12 @@ class DartCompletionManager extends CompletionManager {
               performance.logElapseTime(completeTag);
               bool last = --count == 0;
               if (changed || last) {
-                _processAnalysisRequest(request,
-                    contributionSorter.sort(request, request.suggestions));
+                // TODO(danrubel) current sorter requires no additional analysis,
+                // but need to handle the returned future the same way that futures
+                // returned from contributors are handled once this method is refactored
+                // to be async.
+                /* await */ contributionSorter.sort(
+                    request, request.suggestions);
                 // TODO (danrubel) if request is obsolete
                 // (processAnalysisRequest returns false)
                 // then send empty results
@@ -250,9 +256,7 @@ class DartCompletionManager extends CompletionManager {
     CompletionPerformance performance = new CompletionPerformance();
     performance.logElapseTime('compute', () {
       List<DartCompletionContributor> todo = computeFast(request, performance);
-      if (!todo.isEmpty) {
-        computeFull(request, performance, todo);
-      }
+      computeFull(request, performance, todo);
     });
   }
 
@@ -290,38 +294,6 @@ class DartCompletionManager extends CompletionManager {
       // compilation unit is never going to get computed.
       return null;
     }, test: (e) => e is AnalysisNotScheduledError);
-  }
-
-  /**
-   * Process the analysis [analysis] and any subsequent requests.
-   * Return a [Future] that returns `true`
-   * once all analysis requests have been processed
-   * or `false` if the original completion request is obsolete
-   * and processing requests was terminated before finished.
-   */
-  Future<bool> _processAnalysisRequest(
-      CompletionRequest request, AnalysisRequest analysis) {
-    // Return if no additional analysis is necessary
-    if (analysis == null) {
-      return new Future.value(true);
-    }
-
-    // Check to see if the result is already cached
-    var cachedValue = context.getResult(analysis.target, analysis.descriptor);
-    if (cachedValue != null) {
-      return _processAnalysisRequest(
-          request, analysis.callback(request, cachedValue));
-    }
-
-    // TODO (danrubel) determine when completion request is obsolete
-    // and analysis should be terminated before requesting additional analysis
-
-    // Request additional analysis
-    return new AnalysisFutureHelper((context as AnalysisContextImpl),
-        analysis.target, analysis.descriptor).computeAsync().then((value) {
-      return _processAnalysisRequest(
-          request, analysis.callback(request, cachedValue));
-    });
   }
 }
 
@@ -378,14 +350,19 @@ class DartCompletionRequest extends CompletionRequestImpl {
    */
   final Set<String> _completions = new Set<String>();
 
-  DartCompletionRequest(AnalysisServer server, AnalysisContext context,
-      Source source, int offset, this.cache)
-      : super(server, context, source, offset);
+  DartCompletionRequest(
+      AnalysisContext context,
+      ResourceProvider resourceProvider,
+      SearchEngine searchEngine,
+      Source source,
+      int offset,
+      this.cache)
+      : super(context, resourceProvider, searchEngine, source, offset);
 
   factory DartCompletionRequest.from(
           CompletionRequestImpl request, DartCompletionCache cache) =>
-      new DartCompletionRequest(request.server, request.context, request.source,
-          request.offset, cache);
+      new DartCompletionRequest(request.context, request.resourceProvider,
+          request.searchEngine, request.source, request.offset, cache);
 
   /**
    * Return the original text from the [replacementOffset] to the [offset]
@@ -408,11 +385,6 @@ class DartCompletionRequest extends CompletionRequestImpl {
     }
     return _optype;
   }
-
-  /**
-   * The search engine for use when building suggestions.
-   */
-  SearchEngine get searchEngine => server.searchEngine;
 
   /**
    * The list of suggestions to be sent to the client.
@@ -461,80 +433,58 @@ class DartCompletionRequest extends CompletionRequestImpl {
 }
 
 /**
- * A wrapper around a new dart completion contributor that makes it usable where
- * an old dart completion contributor is expected.
+ * Utility class for computing the code completion replacement range
  */
-class NewCompletionWrapper implements DartCompletionContributor {
-  /**
-   * The new-style contributor that is being wrapped.
-   */
-  final newApi.DartCompletionContributor contributor;
+class ReplacementRange {
+  int offset;
+  int length;
 
-  /**
-   * Initialize a newly created wrapper for the given [contributor].
-   */
-  NewCompletionWrapper(this.contributor);
+  ReplacementRange(this.offset, this.length);
 
-  @override
-  bool computeFast(DartCompletionRequest request) {
-    List<CompletionSuggestion> suggestions =
-        contributor.computeSuggestions(new OldRequestWrapper(request));
-    if (suggestions == null) {
-      return false;
+  factory ReplacementRange.compute(int requestOffset, CompletionTarget target) {
+    bool isKeywordOrIdentifier(Token token) =>
+        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
+
+    //TODO(danrubel) Ideally this needs to be pushed down into the contributors
+    // but that implies that each suggestion can have a different
+    // replacement offsent/length which would mean an API change
+
+    var entity = target.entity;
+    Token token = entity is AstNode ? entity.beginToken : entity;
+    if (token != null && requestOffset < token.offset) {
+      token = token.previous;
     }
-    for (CompletionSuggestion suggestion in suggestions) {
-      request.addSuggestion(suggestion);
-    }
-    return true;
-  }
-
-  @override
-  Future<bool> computeFull(DartCompletionRequest request) async {
-    List<CompletionSuggestion> suggestions =
-        contributor.computeSuggestions(new OldRequestWrapper(request));
-    if (suggestions != null) {
-      for (CompletionSuggestion suggestion in suggestions) {
-        request.addSuggestion(suggestion);
+    if (token != null) {
+      if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
+        // If the insertion point is at the beginning of the current token
+        // and the current token is not an identifier
+        // then check the previous token to see if it should be replaced
+        token = token.previous;
       }
-      return true;
+      if (token != null && isKeywordOrIdentifier(token)) {
+        if (token.offset <= requestOffset && requestOffset <= token.end) {
+          // Replacement range for typical identifier completion
+          return new ReplacementRange(token.offset, token.length);
+        }
+      }
+      if (token is StringToken) {
+        SimpleStringLiteral uri = new SimpleStringLiteral(token, token.lexeme);
+        Token previous = token.previous;
+        if (previous is KeywordToken) {
+          Keyword keyword = previous.keyword;
+          if (keyword == Keyword.IMPORT ||
+              keyword == Keyword.EXPORT ||
+              keyword == Keyword.PART) {
+            int start = uri.contentsOffset;
+            var end = uri.contentsEnd;
+            if (start <= requestOffset && requestOffset <= end) {
+              // Replacement range for import URI
+              return new ReplacementRange(start, end - start);
+            }
+          }
+        }
+      }
     }
-    return false;
+    return new ReplacementRange(requestOffset, 0);
   }
-
-  @override
-  String toString() => 'wrapped $contributor';
-}
-
-/**
- * A wrapper around an old dart completion request that makes it usable where a
- * new dart completion request is expected.
- */
-class OldRequestWrapper implements newApi.DartCompletionRequest {
-  final DartCompletionRequest request;
-
-  OldRequestWrapper(this.request);
-
-  @override
-  AnalysisContext get context => request.context;
-
-  @override
-  bool get isResolved => request.unit.element != null;
-
-  @override
-  int get offset => request.offset;
-
-  @override
-  ResourceProvider get resourceProvider => request.resourceProvider;
-
-  @override
-  Source get source => request.source;
-
-  @override
-  CompletionTarget get target => request.target;
-
-  @override
-  CompilationUnit get unit => request.unit;
-
-  @override
-  String toString() => 'wrapped $request';
 }

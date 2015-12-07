@@ -201,13 +201,14 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   cps.FunctionDefinition optimizeCpsIr(cps.FunctionDefinition cpsFunction) {
     cpsOptimizationTask.measure(() {
-      TypeMaskSystem typeSystem = new TypeMaskSystem(compiler);
-
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
       applyCpsPass(new InsertRefinements(typeSystem), cpsFunction);
       applyCpsPass(new TypePropagator(compiler, typeSystem, this), cpsFunction);
-      applyCpsPass(new ShareFinalFields(backend), cpsFunction);
+      applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
+      applyCpsPass(new ShrinkingReducer(), cpsFunction);
+      applyCpsPass(new RedundantRefinementEliminator(typeSystem), cpsFunction);
+      applyCpsPass(new GVN(compiler), cpsFunction);
       applyCpsPass(new RemoveRefinements(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new ScalarReplacer(compiler), cpsFunction);
@@ -216,7 +217,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
       applyCpsPass(new BoundsChecker(typeSystem, compiler.world), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
-      applyCpsPass(new ShareInterceptors(backend), cpsFunction);
+      applyCpsPass(new OptimizeInterceptors(backend), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
     });
     return cpsFunction;

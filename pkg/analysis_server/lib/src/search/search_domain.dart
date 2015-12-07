@@ -6,10 +6,10 @@ library search.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/search/element_references.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/index/index.dart';

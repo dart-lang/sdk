@@ -668,9 +668,8 @@ class IrBuilder {
     assert(!element.isLocal);
     assert(!element.isInstanceMember);
     assert(isOpen);
-    return _continueWithExpression(
-        (k) => new ir.InvokeStatic(element, selector, arguments, k,
-                                   sourceInformation));
+    return addPrimitive(
+        new ir.InvokeStatic(element, selector, arguments, sourceInformation));
   }
 
   ir.Primitive _buildInvokeSuper(Element target,
@@ -679,9 +678,8 @@ class IrBuilder {
                                  SourceInformation sourceInformation) {
     assert(target.isInstanceMember);
     assert(isOpen);
-    return _continueWithExpression(
-        (k) => new ir.InvokeMethodDirectly(
-            buildThis(), target, selector, arguments, k, sourceInformation));
+    return addPrimitive(new ir.InvokeMethodDirectly(
+        buildThis(), target, selector, arguments, sourceInformation));
   }
 
   ir.Primitive _buildInvokeDynamic(ir.Primitive receiver,
@@ -690,9 +688,8 @@ class IrBuilder {
                                    List<ir.Primitive> arguments,
                                    SourceInformation sourceInformation) {
     assert(isOpen);
-    return _continueWithExpression(
-        (k) => new ir.InvokeMethod(receiver, selector, mask, arguments, k,
-                                   sourceInformation));
+    return addPrimitive(new ir.InvokeMethod(
+        receiver, selector, mask, arguments, sourceInformation));
   }
 
   ir.Primitive _buildInvokeCall(ir.Primitive target,
@@ -1047,8 +1044,7 @@ class IrBuilder {
   /// initialized yet.
   ir.Primitive buildStaticFieldLazyGet(FieldElement field,
                                        SourceInformation sourceInformation) {
-    return _continueWithExpression(
-        (k) => new ir.GetLazyStatic(field, k, sourceInformation));
+    return addPrimitive(new ir.GetLazyStatic(field, sourceInformation));
   }
 
   /// Create a getter invocation of the static [getter].
@@ -1393,14 +1389,11 @@ class IrBuilder {
     // in expressionReceiver.iterator () iteratorInvoked
     ir.Primitive expressionReceiver = buildExpression(this);
     List<ir.Primitive> emptyArguments = <ir.Primitive>[];
-    ir.Parameter iterator = new ir.Parameter(null);
-    ir.Continuation iteratorInvoked = new ir.Continuation([iterator]);
-    add(new ir.LetCont(iteratorInvoked,
+    ir.Primitive iterator = addPrimitive(
         new ir.InvokeMethod(expressionReceiver,
             Selectors.iterator,
             iteratorMask,
-            emptyArguments,
-            iteratorInvoked)));
+            emptyArguments));
 
     // Fill with:
     // let cont loop(x, ...) =
@@ -1410,14 +1403,11 @@ class IrBuilder {
     // in loop(v, ...)
     JumpCollector loop = new BackwardJumpCollector(environment, target: target);
     addRecursiveContinuation(loop);
-    ir.Parameter condition = new ir.Parameter(null);
-    ir.Continuation moveNextInvoked = new ir.Continuation([condition]);
-    add(new ir.LetCont(moveNextInvoked,
+    ir.Primitive condition = addPrimitive(
         new ir.InvokeMethod(iterator,
             Selectors.moveNext,
             moveNextMask,
-            emptyArguments,
-            moveNextInvoked)));
+            emptyArguments));
 
     // As a delimited term, build:
     // <<BODY>> =
@@ -1432,14 +1422,12 @@ class IrBuilder {
     if (buildVariableDeclaration != null) {
       buildVariableDeclaration(bodyBuilder);
     }
-    ir.Parameter currentValue = new ir.Parameter(null);
-    ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
-    bodyBuilder.add(new ir.LetCont(currentInvoked,
+    ir.Primitive currentValue = bodyBuilder.addPrimitive(
         new ir.InvokeMethod(
             iterator,
             Selectors.current,
             currentMask,
-            emptyArguments, currentInvoked)));
+            emptyArguments));
     // TODO(sra): Does this cover all cases? The general setter case include
     // super.
     // TODO(johnniwinther): Extract this as a provided strategy.
@@ -2607,9 +2595,8 @@ class IrBuilder {
     assert(isOpen);
     Selector selector =
         new Selector.call(target.memberName, new CallStructure(arguments.length));
-    return _continueWithExpression(
-        (k) => new ir.InvokeMethodDirectly(
-            receiver, target, selector, arguments, k, sourceInformation));
+    return addPrimitive(new ir.InvokeMethodDirectly(
+        receiver, target, selector, arguments, sourceInformation));
   }
 
   /// Loads parameters to a constructor body into the environment.
@@ -2654,10 +2641,9 @@ class IrBuilder {
       arguments = new List<ir.Primitive>.from(arguments)
           ..addAll(typeArguments);
     }
-    return _continueWithExpression(
-        (k) => new ir.InvokeConstructor(
-            type, element, selector, arguments, k, sourceInformation,
-            allocationSiteType: allocationSiteType));
+    return addPrimitive(new ir.InvokeConstructor(
+        type, element, selector, arguments, sourceInformation,
+        allocationSiteType: allocationSiteType));
   }
 
   ir.Primitive buildTypeExpression(DartType type) {
@@ -2730,12 +2716,11 @@ class IrBuilder {
                                 {Element dependency}) {
     assert(behavior != null);
     TypeMask type = program.getTypeMaskForForeign(behavior);
-    ir.Primitive result = _continueWithExpression((k) => new ir.ForeignCode(
+    ir.Primitive result = addPrimitive(new ir.ForeignCode(
         codeTemplate,
         type,
         arguments,
         behavior,
-        k,
         dependency: dependency));
     if (!codeTemplate.isExpression) {
       // Close the term if this is a "throw" expression or native body.
@@ -2792,8 +2777,7 @@ class IrBuilder {
         // `x as Object` and `x as dynamic` are the same as `x`.
         return value;
       }
-      return _continueWithExpression(
-              (k) => new ir.TypeCast(value, type, typeArguments, k));
+      return addPrimitive(new ir.TypeCast(value, type, typeArguments));
     }
   }
 
@@ -2836,14 +2820,12 @@ class IrBuilder {
         <ir.Primitive>[value]);
   }
 
-  ir.Node buildAwait(ir.Primitive value) {
-    return _continueWithExpression((k) => new ir.Await(value, k));
+  ir.Primitive buildAwait(ir.Primitive value) {
+    return addPrimitive(new ir.Await(value));
   }
 
   void buildYield(ir.Primitive value, bool hasStar) {
-    _continueWithExpression((k) {
-      return new ir.Yield(value, hasStar, k);
-    });
+    addPrimitive(new ir.Yield(value, hasStar));
   }
 
   ir.Primitive buildRefinement(ir.Primitive value, TypeMask type) {

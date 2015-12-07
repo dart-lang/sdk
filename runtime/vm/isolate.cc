@@ -7,7 +7,7 @@
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
-#include "platform/json.h"
+#include "platform/text_buffer.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler.h"
@@ -631,14 +631,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     }
   }
 
-  // Invoke the isolate's unhandled exception callback if there is one.
-  if (Isolate::UnhandledExceptionCallback() != NULL) {
-    Dart_EnterScope();
-    Dart_Handle error = Api::NewHandle(I, result.raw());
-    (Isolate::UnhandledExceptionCallback())(error);
-    Dart_ExitScope();
-  }
-
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
   String& stacktrace_str = String::Handle(T->zone());
@@ -766,7 +758,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       simulator_(NULL),
       mutex_(new Mutex()),
       saved_stack_limit_(0),
-      stack_base_(0),
       stack_overflow_flags_(0),
       stack_overflow_count_(0),
       message_handler_(NULL),
@@ -798,7 +789,9 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       field_invalidation_gen_(kInvalidGen),
       prefix_invalidation_gen_(kInvalidGen) {
   flags_.CopyFrom(api_flags);
-  Thread::Current()->set_vm_tag(VMTag::kEmbedderTagId);
+  // TODO(asiva): A Thread is not available here, need to figure out
+  // how the vm_tag (kEmbedderTagId) can be set, these tags need to
+  // move to the OSThread structure.
   set_user_tag(UserTags::kDefaultUserTag);
 }
 
@@ -987,19 +980,7 @@ void Isolate::BuildName(const char* name_prefix) {
 }
 
 
-// TODO(5411455): Use flag to override default value and Validate the
-// stack size by querying OS.
-uword Isolate::GetSpecifiedStackSize() {
-  ASSERT(Isolate::kStackSizeBuffer < OSThread::GetMaxStackSize());
-  uword stack_size = OSThread::GetMaxStackSize() - Isolate::kStackSizeBuffer;
-  return stack_size;
-}
-
-
 void Isolate::SetStackLimitFromStackBase(uword stack_base) {
-  // Set stack base.
-  stack_base_ = stack_base;
-
   // Set stack limit.
 #if defined(USING_SIMULATOR)
   // Ignore passed-in native stack top and use Simulator stack top.
@@ -1008,7 +989,7 @@ void Isolate::SetStackLimitFromStackBase(uword stack_base) {
   stack_base = sim->StackTop();
   // The overflow area is accounted for by the simulator.
 #endif
-  SetStackLimit(stack_base - GetSpecifiedStackSize());
+  SetStackLimit(stack_base - OSThread::GetSpecifiedStackSize());
 }
 
 
@@ -1026,19 +1007,6 @@ void Isolate::SetStackLimit(uword limit) {
 
 void Isolate::ClearStackLimit() {
   SetStackLimit(~static_cast<uword>(0));
-  stack_base_ = 0;
-}
-
-
-bool Isolate::GetProfilerStackBounds(uword* lower, uword* upper) const {
-  uword stack_upper = stack_base_;
-  if (stack_upper == 0) {
-    return false;
-  }
-  uword stack_lower = stack_upper - GetSpecifiedStackSize();
-  *lower = stack_lower;
-  *upper = stack_upper;
-  return true;
 }
 
 
@@ -1322,7 +1290,6 @@ bool Isolate::NotifyErrorListeners(const String& msg,
 static MessageHandler::MessageStatus RunIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   IsolateSpawnState* state = NULL;
-  Thread* thread = Thread::Current();
   {
     // TODO(turnidge): Is this locking required here at all anymore?
     MutexLocker ml(isolate->mutex());
@@ -1330,6 +1297,7 @@ static MessageHandler::MessageStatus RunIsolate(uword parameter) {
   }
   {
     StartIsolateScope start_scope(isolate);
+    Thread* thread = Thread::Current();
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
@@ -1432,8 +1400,8 @@ static void ShutdownIsolate(uword parameter) {
   {
     // Print the error if there is one.  This may execute dart code to
     // print the exception object, so we need to use a StartIsolateScope.
-    Thread* thread = Thread::Current();
     StartIsolateScope start_scope(isolate);
+    Thread* thread = Thread::Current();
     ASSERT(thread->isolate() == isolate);
     StackZone zone(thread);
     HandleScope handle_scope(thread);
@@ -1505,18 +1473,6 @@ uword Isolate::GetAndClearStackOverflowFlags() {
 }
 
 
-static int MostUsedFunctionFirst(const Function* const* a,
-                                 const Function* const* b) {
-  if ((*a)->usage_counter() > (*b)->usage_counter()) {
-    return -1;
-  } else if ((*a)->usage_counter() < (*b)->usage_counter()) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-
 void Isolate::AddClosureFunction(const Function& function) const {
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(object_store()->closure_functions());
@@ -1570,47 +1526,6 @@ RawFunction* Isolate::ClosureFunctionFromIndex(intptr_t idx) const {
     return Function::null();
   }
   return Function::RawCast(closures_array.At(idx));
-}
-
-
-static void AddFunctionsFromClass(const Class& cls,
-                                  GrowableArray<const Function*>* functions) {
-  const Array& class_functions = Array::Handle(cls.functions());
-  // Class 'dynamic' is allocated/initialized in a special way, leaving
-  // the functions field NULL instead of empty.
-  const int func_len = class_functions.IsNull() ? 0 : class_functions.Length();
-  for (int j = 0; j < func_len; j++) {
-    Function& function = Function::Handle();
-    function ^= class_functions.At(j);
-    if (function.usage_counter() > 0) {
-      functions->Add(&function);
-    }
-  }
-}
-
-
-void Isolate::PrintInvokedFunctions() {
-  ASSERT(this == Isolate::Current());
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(object_store()->libraries());
-  Library& library = Library::Handle();
-  GrowableArray<const Function*> invoked_functions;
-  for (int i = 0; i < libraries.Length(); i++) {
-    library ^= libraries.At(i);
-    Class& cls = Class::Handle();
-    ClassDictionaryIterator iter(library,
-                                 ClassDictionaryIterator::kIteratePrivate);
-    while (iter.HasNext()) {
-      cls = iter.GetNextClass();
-      AddFunctionsFromClass(cls, &invoked_functions);
-    }
-  }
-  invoked_functions.Sort(MostUsedFunctionFirst);
-  for (int i = 0; i < invoked_functions.length(); i++) {
-    OS::Print("%10" Pd " x %s\n",
-        invoked_functions[i]->usage_counter(),
-        invoked_functions[i]->ToFullyQualifiedCString());
-  }
 }
 
 
@@ -1670,7 +1585,6 @@ void Isolate::LowLevelShutdown() {
   // Finalize any weak persistent handles with a non-null referent.
   FinalizeWeakPersistentHandlesVisitor visitor;
   api_state()->weak_persistent_handles().VisitHandles(&visitor);
-  api_state()->prologue_weak_persistent_handles().VisitHandles(&visitor);
 
   if (FLAG_trace_isolates) {
     heap()->PrintSizes();
@@ -1695,7 +1609,9 @@ void Isolate::LowLevelShutdown() {
 void Isolate::Shutdown() {
   ASSERT(this == Isolate::Current());
   // Wait until all background compilation has finished.
-  BackgroundCompiler::Stop(background_compiler_);
+  if (background_compiler_ != NULL) {
+    BackgroundCompiler::Stop(background_compiler_);
+  }
 
 #if defined(DEBUG)
   if (heap_ != NULL) {
@@ -1758,15 +1674,10 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
-  // All threads should have exited by now.
-  thread_registry()->CheckNotScheduled(this);
 }
 
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
-Dart_IsolateInterruptCallback Isolate::interrupt_callback_ = NULL;
-Dart_IsolateUnhandledExceptionCallback
-    Isolate::unhandled_exception_callback_ = NULL;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
 Dart_FileOpenCallback Isolate::file_open_callback_ = NULL;
 Dart_FileReadCallback Isolate::file_read_callback_ = NULL;
@@ -1779,15 +1690,13 @@ Isolate* Isolate::isolates_list_head_ = NULL;
 bool Isolate::creation_enabled_ = false;
 
 void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
-                                    bool visit_prologue_weak_handles,
                                     bool validate_frames) {
   HeapIterationScope heap_iteration_scope;
-  VisitObjectPointers(visitor, visit_prologue_weak_handles, validate_frames);
+  VisitObjectPointers(visitor, validate_frames);
 }
 
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
-                                  bool visit_prologue_weak_handles,
                                   bool validate_frames) {
   ASSERT(visitor != NULL);
 
@@ -1802,7 +1711,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit the dart api state for all local and persistent handles.
   if (api_state() != NULL) {
-    api_state()->VisitObjectPointers(visitor, visit_prologue_weak_handles);
+    api_state()->VisitObjectPointers(visitor);
   }
 
   // Visit the current tag which is stored in the isolate.
@@ -1843,17 +1752,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 
-void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor,
-                                         bool visit_prologue_weak_handles) {
+void Isolate::VisitWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != NULL) {
-    api_state()->VisitWeakHandles(visitor, visit_prologue_weak_handles);
-  }
-}
-
-
-void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
-  if (api_state() != NULL) {
-    api_state()->VisitPrologueWeakHandles(visitor);
+    api_state()->VisitWeakHandles(visitor);
   }
 }
 

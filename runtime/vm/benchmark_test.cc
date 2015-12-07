@@ -55,7 +55,7 @@ BENCHMARK(CorelibCompileAll) {
 BENCHMARK(CorelibCompilerStats) {
   bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
   bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
-  CompilerStats* stats = Isolate::Current()->compiler_stats();
+  CompilerStats* stats = thread->isolate()->compiler_stats();
   ASSERT(stats != NULL);
   stats->EnableBenchmark();
   Timer timer(true, "Compiler stats compiling all of Core lib");
@@ -77,7 +77,7 @@ BENCHMARK(CorelibCompilerStats) {
 BENCHMARK(CorelibIsolateStartup) {
   const int kNumIterations = 1000;
   Timer timer(true, "CorelibIsolateStartup");
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
   Thread::ExitIsolate();
   for (int i = 0; i < kNumIterations; i++) {
     timer.Start();
@@ -416,7 +416,7 @@ BENCHMARK(Dart2JSCompilerStats) {
         reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver));
     EXPECT_VALID(lib);
   }
-  CompilerStats* stats = Isolate::Current()->compiler_stats();
+  CompilerStats* stats = thread->isolate()->compiler_stats();
   ASSERT(stats != NULL);
   stats->EnableBenchmark();
   Timer timer(true, "Compile all of dart2js benchmark");
@@ -545,7 +545,7 @@ BENCHMARK_SIZE(CoreSnapshotSize) {
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
-  Api::CheckAndFinalizePendingClasses(Isolate::Current());
+  Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
   FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
@@ -582,7 +582,7 @@ BENCHMARK_SIZE(StandaloneSnapshotSize) {
   // Need to load the script into the dart: core library due to
   // the import of dart:_internal.
   TestCase::LoadCoreTestScript(kScriptChars, NULL);
-  Api::CheckAndFinalizePendingClasses(Isolate::Current());
+  Api::CheckAndFinalizePendingClasses(thread);
 
   // Write snapshot with object content.
   FullSnapshotWriter writer(&vm_isolate_snapshot_buffer,
@@ -623,7 +623,7 @@ BENCHMARK(EnterExitIsolate) {
       "\n";
   const intptr_t kLoopCount = 1000000;
   TestCase::LoadTestScript(kScriptChars, NULL);
-  Api::CheckAndFinalizePendingClasses(Isolate::Current());
+  Api::CheckAndFinalizePendingClasses(thread);
   Dart_Isolate isolate = Dart_CurrentIsolate();
   Timer timer(true, "Enter and Exit isolate");
   timer.Start();

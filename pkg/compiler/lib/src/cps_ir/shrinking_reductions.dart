@@ -138,8 +138,7 @@ class ShrinkingReducer extends Pass {
 
     // Substitute the invocation argument for the continuation parameter.
     for (int i = 0; i < invoke.arguments.length; i++) {
-      Reference argRef = invoke.arguments[i];
-      argRef.definition.substituteFor(cont.parameters[i]);
+      cont.parameters[i].replaceUsesWith(invoke.arguments[i].definition);
     }
 
     // Perform bookkeeping on substituted body and scan for new redexes.
@@ -168,7 +167,7 @@ class ShrinkingReducer extends Pass {
     Continuation wrappedCont = invoke.continuation.definition;
 
     // Replace all occurrences with the wrapped continuation.
-    wrappedCont.substituteFor(cont);
+    cont.replaceUsesWith(wrappedCont);
 
     // Perform bookkeeping on removed body and scan for new redexes.
     new _RemovalVisitor(_worklist).visit(cont);

@@ -256,9 +256,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   AnalysisOptions get analysisOptions => _options;
 
   @override
-  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
-
-  @override
   void set analysisOptions(AnalysisOptions options) {
     bool needsRecompute = this._options.analyzeFunctionBodiesPredicate !=
             options.analyzeFunctionBodiesPredicate ||
@@ -270,6 +267,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
+        ((options is AnalysisOptionsImpl)
+            ? this._options.strongModeHints != options.strongModeHints
+            : false) ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
@@ -293,6 +293,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     this._options.strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      this._options.strongModeHints = options.strongModeHints;
+    }
     if (needsRecompute) {
       for (WorkManager workManager in workManagers) {
         workManager.onAnalysisOptionsChanged();
@@ -327,6 +330,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   DeclaredVariables get declaredVariables => _declaredVariables;
+
+  @override
+  EmbedderYamlLocator get embedderYamlLocator => _embedderYamlLocator;
 
   @override
   List<AnalysisTarget> get explicitTargets {
@@ -1155,6 +1161,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(LIBRARY_ELEMENT3, library);
       setValue(LIBRARY_ELEMENT4, library);
       setValue(LIBRARY_ELEMENT5, library);
+      setValue(LIBRARY_ELEMENT6, library);
+      setValue(LIBRARY_ELEMENT7, library);
       setValue(LINE_INFO, new LineInfo(<int>[0]));
       setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(PARSED_UNIT, CacheState.FLUSHED);
@@ -1183,6 +1191,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
       setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
@@ -1268,6 +1277,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 

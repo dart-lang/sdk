@@ -4,12 +4,26 @@
 
 library analysis_server.plugin.edit.fix.fix_dart;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analyzer/file_system/file_system.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart'
+    show DartFixContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
+
+/**
+ * An object used to provide context information for [DartFixContributor]s.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class DartFixContext implements FixContext {
+  /**
+   * The [CompilationUnit] to compute fixes in.
+   */
+  CompilationUnit get unit;
+}
 
 /**
  * A [FixContributor] that can be used to contribute fixes for errors in Dart
@@ -19,28 +33,27 @@ import 'package:analyzer/src/generated/source.dart';
  */
 abstract class DartFixContributor implements FixContributor {
   @override
-  List<Fix> computeFixes(ResourceProvider resourceProvider,
-      AnalysisContext context, AnalysisError error) {
-    Source source = error.source;
+  Future<List<Fix>> computeFixes(FixContext context) async {
+    AnalysisContext analysisContext = context.analysisContext;
+    Source source = context.error.source;
     if (!AnalysisEngine.isDartFileName(source.fullName)) {
       return Fix.EMPTY_LIST;
     }
-    List<Source> libraries = context.getLibrariesContaining(source);
+    List<Source> libraries = analysisContext.getLibrariesContaining(source);
     if (libraries.isEmpty) {
       return Fix.EMPTY_LIST;
     }
     CompilationUnit unit =
-        context.resolveCompilationUnit2(source, libraries[0]);
+        analysisContext.resolveCompilationUnit2(source, libraries[0]);
     if (unit == null) {
       return Fix.EMPTY_LIST;
     }
-    return internalComputeFixes(resourceProvider, unit, error);
+    DartFixContext dartContext = new DartFixContextImpl(context, unit);
+    return internalComputeFixes(dartContext);
   }
 
   /**
-   * Return a list of fixes for the given [error]. The error was reported
-   * against the given compilation [unit].
+   * Return a list of fixes for the given [context].
    */
-  List<Fix> internalComputeFixes(ResourceProvider resourceProvider,
-      CompilationUnit unit, AnalysisError error);
+  Future<List<Fix>> internalComputeFixes(DartFixContext context);
 }

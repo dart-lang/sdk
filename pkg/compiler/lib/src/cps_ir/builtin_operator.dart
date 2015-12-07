@@ -70,6 +70,12 @@ enum BuiltinOperator {
   /// Returns the empty string if no arguments are given.
   StringConcatenate,
 
+  /// Corresponds to `a.charCodeAt(b)`. `a' must be a String. The index `b` must
+  /// be in range `0 <= b < a.length`.
+  /// TODO(sra): Consider replacing with a Primitive to allow lowering when 'a'
+  /// is nullable (i.e. throws).
+  CharCodeAt,
+
   /// Returns true if the two arguments are the same value, and that value is
   /// not NaN, or if one argument is +0 and the other is -0.
   ///

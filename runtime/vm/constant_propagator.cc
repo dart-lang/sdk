@@ -19,6 +19,8 @@ DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
     "Print constant propagation and useless code elimination.");
 
+DECLARE_FLAG(bool, fields_may_be_reset);
+
 // Quick access to the current zone and isolate.
 #define I (isolate())
 #define Z (graph_->zone())
@@ -704,14 +706,16 @@ void ConstantPropagator::VisitInitStaticField(InitStaticFieldInstr* instr) {
 
 
 void ConstantPropagator::VisitLoadStaticField(LoadStaticFieldInstr* instr) {
-  const Field& field = instr->StaticField();
-  ASSERT(field.is_static());
-  Instance& obj = Instance::Handle(Z, field.StaticValue());
-  if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
-      (obj.raw() != Object::transition_sentinel().raw())) {
-    if (obj.IsSmi() || obj.IsOld()) {
-      SetValue(instr, obj);
-      return;
+  if (!FLAG_fields_may_be_reset) {
+    const Field& field = instr->StaticField();
+    ASSERT(field.is_static());
+    Instance& obj = Instance::Handle(Z, field.StaticValue());
+    if (field.is_final() && (obj.raw() != Object::sentinel().raw()) &&
+        (obj.raw() != Object::transition_sentinel().raw())) {
+      if (obj.IsSmi() || obj.IsOld()) {
+        SetValue(instr, obj);
+        return;
+      }
     }
   }
   SetValue(instr, non_constant_);

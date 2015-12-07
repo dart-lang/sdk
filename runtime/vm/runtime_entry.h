@@ -45,8 +45,7 @@ class RuntimeEntry : public ValueObject {
         is_leaf_(is_leaf),
         is_float_(is_float),
         next_(NULL) {
-    // Strip off const for registration.
-    VMTag::RegisterRuntimeEntry(const_cast<RuntimeEntry*>(this));
+    VMTag::RegisterRuntimeEntry(this);
   }
   ~RuntimeEntry() {}
 

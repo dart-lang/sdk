@@ -3353,6 +3353,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src) {
     ConstantValue constant = getConstantForVariable(field);
     if (constant != null && !field.isAssignable) {
+      typeMaskSystem.associateConstantValueWithElement(constant, field);
       return irBuilder.buildConstant(constant, sourceInformation: src);
     } else if (backend.constants.lazyStatics.contains(field)) {
       return irBuilder.buildStaticFieldLazyGet(field, src);

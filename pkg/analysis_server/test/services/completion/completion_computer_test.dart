@@ -7,9 +7,9 @@ library test.services.completion.suggestion;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionRequest, CompletionResult;
+import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -22,7 +22,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../operation/operation_queue_test.dart';
 import '../../utils.dart';
 
 main() {
@@ -67,7 +66,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     index = createLocalMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     source = addSource('/does/not/exist.dart', '');
-    manager = new DartCompletionManager.create(context, searchEngine, source);
+    manager =
+        new DartCompletionManager.create(context, searchEngine, source, []);
     suggestion1 = new CompletionSuggestion(CompletionSuggestionKind.INVOCATION,
         DART_RELEVANCE_DEFAULT, "suggestion1", 1, 1, false, false);
     suggestion2 = new CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
@@ -86,9 +86,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.contributors = [contributor1, contributor2];
     int count = 0;
     bool done = false;
-    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
     CompletionRequest completionRequest =
-        new CompletionRequestImpl(server, context, source, 0);
+        new CompletionRequestImpl(context, provider, searchEngine, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
       bool isLast = r is CompletionResultImpl ? r.isLast : true;
       switch (++count) {
@@ -113,7 +112,7 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
       // There is only one notification
       expect(count, equals(1));
     });
-    return pumpEventQueue(150).then((_) {
+    return pumpEventQueue(250).then((_) {
       expect(done, isTrue);
     });
   }
@@ -124,9 +123,8 @@ class DartCompletionManagerTest extends AbstractSingleUnitTest {
     manager.contributors = [contributor1, contributor2];
     int count = 0;
     bool done = false;
-    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine);
     CompletionRequest completionRequest =
-        new CompletionRequestImpl(server, context, source, 0);
+        new CompletionRequestImpl(context, provider, searchEngine, source, 0);
     manager.results(completionRequest).listen((CompletionResult r) {
       bool isLast = r is CompletionResultImpl ? r.isLast : true;
       switch (++count) {

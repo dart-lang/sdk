@@ -20,6 +20,7 @@ main() {
   runReflectiveTests(TypeSystemTest);
   runReflectiveTests(StrongSubtypingTest);
   runReflectiveTests(StrongAssignabilityTest);
+  runReflectiveTests(StrongGenericFunctionInferenceTest);
 }
 
 @reflectiveTest
@@ -296,6 +297,202 @@ class StrongAssignabilityTest {
 }
 
 @reflectiveTest
+class StrongGenericFunctionInferenceTest {
+  TypeProvider typeProvider;
+  StrongTypeSystemImpl typeSystem;
+
+  DartType get bottomType => typeProvider.bottomType;
+  InterfaceType get doubleType => typeProvider.doubleType;
+  DartType get dynamicType => typeProvider.dynamicType;
+  InterfaceType get functionType => typeProvider.functionType;
+  InterfaceType get intType => typeProvider.intType;
+  InterfaceType get iterableType => typeProvider.iterableType;
+  InterfaceType get listType => typeProvider.listType;
+  InterfaceType get numType => typeProvider.numType;
+  InterfaceType get objectType => typeProvider.objectType;
+  InterfaceType get stringType => typeProvider.stringType;
+  DartType get voidType => VoidTypeImpl.instance;
+
+  void setUp() {
+    typeProvider = new TestTypeProvider();
+    typeSystem = new StrongTypeSystemImpl();
+  }
+
+  void test_boundedByAnotherTypeParameter() {
+    // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
+    var tFrom = _typeParameter('TFrom');
+    var tTo = _typeParameter('TTo', iterableType.substitute4([tFrom]));
+    var cast = _functionType([tFrom, tTo], [tFrom], tTo);
+    expect(_inferCall(cast, [stringType]), [
+      stringType,
+      iterableType.substitute4([stringType])
+    ]);
+  }
+
+  void test_boundedRecursively() {
+    // class Clonable<T extends Clonable<T>>
+    ClassElementImpl clonable =
+        ElementFactory.classElement('Clonable', objectType, ['T']);
+    (clonable.typeParameters[0] as TypeParameterElementImpl).bound =
+        clonable.type;
+    // class Foo extends Clonable<Foo>
+    ClassElementImpl foo = ElementFactory.classElement('Foo', null);
+    foo.supertype = clonable.type.substitute4([foo.type]);
+
+    // <S extends Clonable<S>>
+    var s = _typeParameter('S');
+    (s.element as TypeParameterElementImpl).bound =
+        clonable.type.substitute4([s]);
+    // (S, S) -> S
+    var clone = _functionType([s], [s, s], s);
+    expect(_inferCall(clone, [foo.type, foo.type]), [foo.type]);
+
+    // Something invalid...
+    expect(_inferCall(clone, [stringType, numType]), [
+      clonable.type.substitute4([dynamicType])
+    ]);
+  }
+
+  void test_genericCastFunction() {
+    // <TFrom, TTo>(TFrom) -> TTo
+    var tFrom = _typeParameter('TFrom');
+    var tTo = _typeParameter('TTo');
+    var cast = _functionType([tFrom, tTo], [tFrom], tTo);
+    expect(_inferCall(cast, [intType]), [intType, dynamicType]);
+  }
+
+  void test_genericCastFunctionWithUpperBound() {
+    // <TFrom, TTo extends TFrom>(TFrom) -> TTo
+    var tFrom = _typeParameter('TFrom');
+    var tTo = _typeParameter('TTo', tFrom);
+    var cast = _functionType([tFrom, tTo], [tFrom], tTo);
+    expect(_inferCall(cast, [intType]), [intType, intType]);
+  }
+
+  void test_parametersToFunctionParam() {
+    // <T>(f(T t)) -> T
+    var t = _typeParameter('T');
+    var cast = _functionType([
+      t
+    ], [
+      _functionType([], [t], dynamicType)
+    ], t);
+    expect(
+        _inferCall(cast, [
+          _functionType([], [numType], dynamicType)
+        ]),
+        [numType]);
+  }
+
+  void test_parametersUseLeastUpperBound() {
+    // <T>(T x, T y) -> T
+    var t = _typeParameter('T');
+    var cast = _functionType([t], [t, t], t);
+    expect(_inferCall(cast, [intType, doubleType]), [numType]);
+  }
+
+  void test_parameterTypeUsesUpperBound() {
+    // <T extends num>(T) -> dynamic
+    var t = _typeParameter('T', numType);
+    var f = _functionType([t], [t], dynamicType);
+    expect(_inferCall(f, [intType]), [intType]);
+  }
+
+  void test_returnFunctionWithGenericParameter() {
+    // <T>(T -> T) -> (T -> void)
+    var t = _typeParameter('T');
+    var f = _functionType([
+      t
+    ], [
+      _functionType([], [t], t)
+    ], _functionType([], [t], voidType));
+    expect(
+        _inferCall(f, [
+          _functionType([], [numType], intType)
+        ]),
+        [numType]);
+  }
+
+  void test_returnFunctionWithGenericParameterAndReturn() {
+    // <T>(T -> T) -> (T -> T)
+    var t = _typeParameter('T');
+    var f = _functionType([
+      t
+    ], [
+      _functionType([], [t], t)
+    ], _functionType([], [t], t));
+    expect(
+        _inferCall(f, [
+          _functionType([], [numType], intType)
+        ]),
+        [numType]);
+  }
+
+  void test_returnFunctionWithGenericReturn() {
+    // <T>(T -> T) -> (() -> T)
+    var t = _typeParameter('T');
+    var f = _functionType([
+      t
+    ], [
+      _functionType([], [t], t)
+    ], _functionType([], [], t));
+    expect(
+        _inferCall(f, [
+          _functionType([], [numType], intType)
+        ]),
+        [intType]);
+  }
+
+  void test_unifyParametersToFunctionParam() {
+    // <T>(f(T t), g(T t)) -> T
+    var t = _typeParameter('T');
+    var cast = _functionType([
+      t
+    ], [
+      _functionType([], [t], dynamicType),
+      _functionType([], [t], dynamicType)
+    ], t);
+    expect(
+        _inferCall(cast, [
+          _functionType([], [intType], dynamicType),
+          _functionType([], [doubleType], dynamicType)
+        ]),
+        [dynamicType]);
+  }
+
+  void test_unusedReturnTypeIsDynamic() {
+    // <T>() -> T
+    var t = _typeParameter('T');
+    var f = _functionType([t], [], t);
+    expect(_inferCall(f, []), [dynamicType]);
+  }
+
+  void test_unusedReturnTypeWithUpperBound() {
+    // <T extends num>() -> T
+    var t = _typeParameter('T', numType);
+    var f = _functionType([t], [], t);
+    expect(_inferCall(f, []), [numType]);
+  }
+
+  FunctionTypeImpl _functionType(
+      List<DartType> typeParams, List<DartType> params, DartType result) {
+    FunctionElementImpl f = ElementFactory.functionElement8(params, result);
+    f.typeParameters =
+        new List<TypeParameterElement>.from(typeParams.map((t) => t.element));
+    return f.type = new FunctionTypeImpl(f);
+  }
+
+  List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments) {
+    FunctionType inferred = typeSystem.inferCallFromArguments(
+        typeProvider, ft, ft.parameters.map((p) => p.type).toList(), arguments);
+    return inferred.typeArguments;
+  }
+
+  TypeParameterType _typeParameter(String name, [DartType bound]) =>
+      ElementFactory.typeParameterWithType(name, bound).type;
+}
+
+@reflectiveTest
 class StrongSubtypingTest {
   TypeProvider typeProvider;
   TypeSystem typeSystem;
@@ -476,6 +673,13 @@ class StrongSubtypingTest {
         supertypes: supertypes,
         unrelated: unrelated,
         subtypes: subtypes);
+  }
+
+  // Regression test for https://github.com/dart-lang/sdk/issues/25069
+  void test_isSubtypeOf_simple_function_void() {
+    FunctionType functionType =
+        TypeBuilder.functionType(<DartType>[intType], objectType);
+    _checkIsNotSubtypeOf(voidType, functionType);
   }
 
   void test_isSubtypeOf_simple_function() {

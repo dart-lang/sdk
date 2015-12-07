@@ -209,8 +209,8 @@ abstract class SummaryTest {
       String relativeUri, String expectedName,
       {String expectedPrefix,
       bool allowTypeParameters: false,
-      PrelinkedReferenceKind expectedKind:
-          PrelinkedReferenceKind.classOrEnum}) {
+      PrelinkedReferenceKind expectedKind: PrelinkedReferenceKind.classOrEnum,
+      int expectedUnit: 0}) {
     expect(typeRef, new isInstanceOf<UnlinkedTypeRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
@@ -239,6 +239,7 @@ abstract class SummaryTest {
       }
     }
     expect(referenceResolution.kind, expectedKind);
+    expect(referenceResolution.unit, expectedUnit);
   }
 
   /**
@@ -1658,7 +1659,8 @@ class C {
             otherDeclarations: 'library my.lib; import "a.dart";'),
         absUri('/a.dart'),
         'a.dart',
-        'C');
+        'C',
+        expectedUnit: 1);
   }
 
   test_type_reference_to_imported_part_with_prefix() {
@@ -1670,7 +1672,8 @@ class C {
         absUri('/a.dart'),
         'a.dart',
         'C',
-        expectedPrefix: 'p');
+        expectedPrefix: 'p',
+        expectedUnit: 1);
   }
 
   test_type_reference_to_internal_class() {
@@ -1699,7 +1702,8 @@ class C {
             otherDeclarations: 'library my.lib; part "a.dart";'),
         null,
         null,
-        'C');
+        'C',
+        expectedUnit: 1);
   }
 
   test_type_reference_to_nonexistent_file_via_prefix() {
@@ -1723,7 +1727,7 @@ class C {
     // The referenced unit should be 2, since unit 0 is a.dart and unit 1 is
     // b.dart.  a.dart and b.dart are counted even though nothing is imported
     // from them.
-    checkTypeRef(typeRef, absUri('/a.dart'), 'a.dart', 'C');
+    checkTypeRef(typeRef, absUri('/a.dart'), 'a.dart', 'C', expectedUnit: 2);
   }
 
   test_type_unresolved() {

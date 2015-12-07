@@ -122,6 +122,16 @@ void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
 }
 
 
+bool StringInterpolateNode::IsPotentiallyConst() const {
+  for (int i = 0; i < value_->length(); i++) {
+    if (!value_->ElementAt(i)->IsPotentiallyConst()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 bool LiteralNode::IsPotentiallyConst() const {
   return true;
 }

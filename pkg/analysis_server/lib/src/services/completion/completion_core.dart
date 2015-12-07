@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.src.services.completion.completion_dart;
+library analysis_server.src.services.completion.completion_core;
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -13,29 +14,24 @@ import 'package:analyzer/src/generated/source.dart';
  * The information about a requested list of completions.
  */
 class CompletionRequestImpl implements CompletionRequest {
-  /**
-   * The analysis context in which the completion is being requested.
-   */
-  AnalysisContext context;
+  @override
+  final AnalysisContext context;
 
-  /**
-   * The resource provider associated with this request.
-   */
-  ResourceProvider resourceProvider;
+  @override
+  final Source source;
 
-  /**
-   * The source in which the completion is being requested.
-   */
-  Source source;
+  @override
+  final int offset;
 
-  /**
-   * The offset within the source at which the completion is being requested.
-   */
-  int offset;
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final SearchEngine searchEngine;
 
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
-  CompletionRequestImpl(
-      this.context, this.resourceProvider, this.source, this.offset);
+  CompletionRequestImpl(this.context, this.resourceProvider, this.searchEngine,
+      this.source, this.offset);
 }

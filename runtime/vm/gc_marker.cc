@@ -499,12 +499,10 @@ void GCMarker::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
 
 void GCMarker::IterateRoots(Isolate* isolate,
                             ObjectPointerVisitor* visitor,
-                            bool visit_prologue_weak_persistent_handles,
                             intptr_t slice_index, intptr_t num_slices) {
   ASSERT(0 <= slice_index && slice_index < num_slices);
   if ((slice_index == 0) || (num_slices <= 1)) {
     isolate->VisitObjectPointers(visitor,
-                                 visit_prologue_weak_persistent_handles,
                                  StackFrameIterator::kDontValidateFrames);
   }
   if ((slice_index == 1) || (num_slices <= 1)) {
@@ -516,73 +514,10 @@ void GCMarker::IterateRoots(Isolate* isolate,
 }
 
 
-void GCMarker::IterateWeakRoots(Isolate* isolate,
-                                HandleVisitor* visitor,
-                                bool visit_prologue_weak_persistent_handles) {
+void GCMarker::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  isolate->VisitWeakPersistentHandles(visitor,
-                                      visit_prologue_weak_persistent_handles);
-}
-
-
-template<class MarkingVisitorType>
-void GCMarker::IterateWeakReferences(Isolate* isolate,
-                                     MarkingVisitorType* visitor) {
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  while (true) {
-    WeakReferenceSet* queue = state->delayed_weak_reference_sets();
-    if (queue == NULL) {
-      // The delay queue is empty therefore no clean-up is required.
-      return;
-    }
-    state->set_delayed_weak_reference_sets(NULL);
-    while (queue != NULL) {
-      WeakReferenceSet* reference_set = WeakReferenceSet::Pop(&queue);
-      ASSERT(reference_set != NULL);
-      intptr_t num_keys = reference_set->num_keys();
-      intptr_t num_values = reference_set->num_values();
-      if ((num_keys == 1) && (num_values == 1) &&
-          reference_set->SingletonKeyEqualsValue()) {
-        // We do not have to process sets that have just one key/value pair
-        // and the key and value are identical.
-        continue;
-      }
-      bool is_unreachable = true;
-      // Test each key object for reachability.  If a key object is
-      // reachable, all value objects should be marked.
-      for (intptr_t k = 0; k < num_keys; ++k) {
-        if (!IsUnreachable(*reference_set->get_key(k))) {
-          for (intptr_t v = 0; v < num_values; ++v) {
-            visitor->VisitPointer(reference_set->get_value(v));
-          }
-          is_unreachable = false;
-          // Since we have found a key object that is reachable and all
-          // value objects have been marked we can break out of iterating
-          // this set and move on to the next set.
-          break;
-        }
-      }
-      // If all key objects are unreachable put the reference on a
-      // delay queue.  This reference will be revisited if another
-      // reference is marked.
-      if (is_unreachable) {
-        state->DelayWeakReferenceSet(reference_set);
-      }
-    }
-    if (!visitor->DrainMarkingStack()) {
-      // Break out of the loop if there has been no forward process.
-      // All key objects in the weak reference sets are unreachable
-      // so we reset the weak reference sets queue.
-      state->set_delayed_weak_reference_sets(NULL);
-      break;
-    }
-  }
-  ASSERT(state->delayed_weak_reference_sets() == NULL);
-  // All weak reference sets are zone allocated and unmarked references which
-  // were on the delay queue will be freed when the zone is released in the
-  // epilog callback.
+  isolate->VisitWeakPersistentHandles(visitor);
 }
 
 
@@ -643,7 +578,6 @@ class MarkTask : public ThreadPool::Task {
            DelaySet* delay_set,
            ThreadBarrier* barrier,
            bool collect_code,
-           bool visit_prologue_weak_persistent_handles,
            intptr_t task_index,
            intptr_t num_tasks,
            uintptr_t* num_busy)
@@ -655,8 +589,6 @@ class MarkTask : public ThreadPool::Task {
         delay_set_(delay_set),
         barrier_(barrier),
         collect_code_(collect_code),
-        visit_prologue_weak_persistent_handles_(
-            visit_prologue_weak_persistent_handles),
         task_index_(task_index),
         num_tasks_(num_tasks),
         num_busy_(num_busy) {
@@ -672,9 +604,7 @@ class MarkTask : public ThreadPool::Task {
       SyncMarkingVisitor visitor(isolate_, heap_, page_space_, marking_stack_,
                                  delay_set_, skipped_code_functions);
       // Phase 1: Iterate over roots and drain marking stack in tasks.
-      marker_->IterateRoots(isolate_, &visitor,
-                            visit_prologue_weak_persistent_handles_,
-                            task_index_, num_tasks_);
+      marker_->IterateRoots(isolate_, &visitor, task_index_, num_tasks_);
       do {
         visitor.DrainMarkingStack();
 
@@ -723,7 +653,6 @@ class MarkTask : public ThreadPool::Task {
   DelaySet* delay_set_;
   ThreadBarrier* barrier_;
   bool collect_code_;
-  bool visit_prologue_weak_persistent_handles_;
   const intptr_t task_index_;
   const intptr_t num_tasks_;
   uintptr_t* num_busy_;
@@ -764,7 +693,6 @@ void GCMarker::MarkObjects(Isolate* isolate,
     Zone* zone = stack_zone.GetZone();
     MarkingStack marking_stack;
     DelaySet delay_set;
-    const bool visit_prologue_weak_persistent_handles = !invoke_api_callbacks;
     marked_bytes_ = 0;
     const int num_tasks = FLAG_marker_tasks;
     if (num_tasks == 0) {
@@ -773,13 +701,10 @@ void GCMarker::MarkObjects(Isolate* isolate,
           collect_code ? new(zone) SkippedCodeFunctions() : NULL;
       UnsyncMarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
                                 &delay_set, skipped_code_functions);
-      IterateRoots(isolate, &mark, visit_prologue_weak_persistent_handles,
-                   0, 1);
+      IterateRoots(isolate, &mark, 0, 1);
       mark.DrainMarkingStack();
-      IterateWeakReferences(isolate, &mark);
       MarkingWeakVisitor mark_weak;
-      IterateWeakRoots(isolate, &mark_weak,
-                       !visit_prologue_weak_persistent_handles);
+      IterateWeakRoots(isolate, &mark_weak);
       // All marking done; detach code, etc.
       FinalizeResultsFrom(&mark);
     } else {
@@ -791,7 +716,6 @@ void GCMarker::MarkObjects(Isolate* isolate,
         MarkTask* mark_task =
             new MarkTask(this, isolate, heap_, page_space, &marking_stack,
                          &delay_set, &barrier, collect_code,
-                         visit_prologue_weak_persistent_handles,
                          i, num_tasks, &num_busy);
         ThreadPool* pool = Dart::thread_pool();
         pool->Run(mark_task);
@@ -803,10 +727,8 @@ void GCMarker::MarkObjects(Isolate* isolate,
           collect_code ? new(zone) SkippedCodeFunctions() : NULL;
       SyncMarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
                               &delay_set, skipped_code_functions);
-      IterateWeakReferences(isolate, &mark);
       MarkingWeakVisitor mark_weak;
-      IterateWeakRoots(isolate, &mark_weak,
-                       !visit_prologue_weak_persistent_handles);
+      IterateWeakRoots(isolate, &mark_weak);
       barrier.Sync();
 
       // Phase 3: Finalize results from all markers (detach code, etc.).

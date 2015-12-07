@@ -70,6 +70,7 @@ enum StaticUseKind {
   GENERAL,
   STATIC_TEAR_OFF,
   SUPER_TEAR_OFF,
+  SUPER_FIELD_SET,
   FIELD_GET,
   FIELD_SET,
   CLOSURE,
@@ -160,12 +161,21 @@ class StaticUse {
     return new StaticUse._(element, StaticUseKind.GENERAL);
   }
 
-  /// Write access of a super field or setter [element].
-  factory StaticUse.superSet(Element element) {
+  /// Write access of a super field [element].
+  factory StaticUse.superFieldSet(FieldElement element) {
     assert(invariant(element, element.isInstanceMember,
         message: "Super set element $element must be an instance method."));
-    assert(invariant(element, element.isField || element.isSetter,
-        message: "Super set element $element must be a field or a setter."));
+    assert(invariant(element, element.isField,
+        message: "Super set element $element must be a field."));
+    return new StaticUse._(element, StaticUseKind.SUPER_FIELD_SET);
+  }
+
+  /// Write access of a super setter [element].
+  factory StaticUse.superSetterSet(SetterElement element) {
+    assert(invariant(element, element.isInstanceMember,
+        message: "Super set element $element must be an instance method."));
+    assert(invariant(element, element.isSetter,
+        message: "Super set element $element must be a setter."));
     return new StaticUse._(element, StaticUseKind.GENERAL);
   }
 
