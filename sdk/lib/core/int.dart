@@ -170,7 +170,7 @@ abstract class int extends num {
    * non-negative number (i.e. unsigned representation).  The returned value has
    * zeros in all bit positions higher than [width].
    *
-   *     (-1).toUnsigned(5) == 32   // 11111111  ->  00011111
+   *     (-1).toUnsigned(5) == 31   // 11111111  ->  00011111
    *
    * This operation can be used to simulate arithmetic from low level languages.
    * For example, to increment an 8 bit quantity:
