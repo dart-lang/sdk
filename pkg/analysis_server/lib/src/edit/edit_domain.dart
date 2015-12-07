@@ -250,15 +250,20 @@ class EditDomainHandler implements RequestHandler {
     if (!engine.AnalysisEngine.isDartFileName(file)) {
       return new Response.sortMembersInvalidFile(request);
     }
-    // prepare resolved units
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-    if (units.isEmpty) {
+    // prepare location
+    ContextSourcePair contextSource = server.getContextSourcePair(file);
+    engine.AnalysisContext context = contextSource.context;
+    Source source = contextSource.source;
+    if (context == null || source == null) {
       return new Response.sortMembersInvalidFile(request);
     }
-    // prepare context
-    CompilationUnit unit = units.first;
-    engine.AnalysisContext context = unit.element.context;
-    Source source = unit.element.source;
+    // prepare parsed unit
+    CompilationUnit unit;
+    try {
+      unit = context.parseCompilationUnit(source);
+    } catch (e) {
+      return new Response.sortMembersInvalidFile(request);
+    }
     // check if there are scan/parse errors in the file
     engine.AnalysisErrorInfo errors = context.getErrors(source);
     int numScanParseErrors = _getNumberOfScanParseErrors(errors.errors);
