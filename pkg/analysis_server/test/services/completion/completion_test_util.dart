@@ -4418,10 +4418,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationField('b', null,
-          relevance: DART_RELEVANCE_LOCAL_FIELD);
-      assertSuggestInvocationField('_c', 'X',
-          relevance: DART_RELEVANCE_LOCAL_FIELD);
+      // Contributed by FieldFormalConstructorContributor
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
       assertNotSuggested('sb');
       assertNotSuggested('d');
       assertNotSuggested('_e');
@@ -4458,10 +4457,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset - 1);
       expect(request.replacementLength, 1);
-      assertSuggestInvocationField('b', null,
-          relevance: DART_RELEVANCE_LOCAL_FIELD);
-      assertSuggestInvocationField('_c', 'X',
-          relevance: DART_RELEVANCE_LOCAL_FIELD);
+      // Contributed by FieldFormalConstructorContributor
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
       assertNotSuggested('d');
       assertNotSuggested('_e');
       assertNotSuggested('f');
@@ -4497,10 +4495,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 1);
-      assertSuggestInvocationField('b', null,
-          relevance: DART_RELEVANCE_LOCAL_FIELD);
-      assertSuggestInvocationField('_c', 'X',
-          relevance: DART_RELEVANCE_LOCAL_FIELD);
+      // Contributed by FieldFormalConstructorContributor
+      assertNotSuggested('b');
+      assertNotSuggested('_c');
       assertNotSuggested('d');
       assertNotSuggested('_e');
       assertNotSuggested('f');
@@ -4537,8 +4534,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
       assertNotSuggested('b');
-      assertSuggestInvocationField('_c', 'X',
-          relevance: DART_RELEVANCE_LOCAL_FIELD);
+      // Contributed by FieldFormalConstructorContributor
+      assertNotSuggested('_c');
       assertNotSuggested('d');
       assertNotSuggested('_e');
       assertNotSuggested('f');
