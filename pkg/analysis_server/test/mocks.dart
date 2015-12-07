@@ -119,11 +119,6 @@ class MockFunctionTypeAliasElement extends TypedMock
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class MockHtmlElement extends TypedMock implements HtmlElement {
-  final ElementKind kind = ElementKind.HTML;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class MockImportElement extends TypedMock implements ImportElement {
   final ElementKind kind = ElementKind.IMPORT;
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

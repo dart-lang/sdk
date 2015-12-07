@@ -538,17 +538,7 @@ class TestLogger implements Logger {
   }
 
   @override
-  void logError2(String message, Object exception) {
-    errorCount++;
-  }
-
-  @override
   void logInformation(String message, [CaughtException exception]) {
-    infoCount++;
-  }
-
-  @override
-  void logInformation2(String message, Object exception) {
     infoCount++;
   }
 }

@@ -9,7 +9,6 @@ import 'dart:mirrors';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/html.dart' as html;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -65,12 +64,6 @@ class EnumTest {
 
   void test_ErrorType() {
     new EnumTester<ErrorType>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
-  void test_html_TokenType() {
-    new EnumTester<html.TokenType>()
       ..check_getters()
       ..check_explicit_values();
   }

@@ -1148,8 +1148,6 @@ class GetHandler {
    * Return a response displaying diagnostic information.
    */
   void _returnDiagnosticInfo(HttpRequest request) {
-    String value = request.requestedUri.queryParameters['index'];
-    int index = value != null ? int.parse(value, onError: (_) => 0) : 0;
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(buffer, 'Analysis Server - Diagnostic info', [],
           (StringBuffer buffer) {

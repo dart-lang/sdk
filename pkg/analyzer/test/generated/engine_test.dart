@@ -13,7 +13,6 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/html.dart' as ht;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -311,12 +310,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  ResolverVisitorFactory get resolverVisitorFactory {
-    fail("Unexpected invocation of getResolverVisitorFactory");
-    return null;
-  }
-
-  @override
   SourceFactory get sourceFactory {
     fail("Unexpected invocation of getSourceFactory");
     return null;
@@ -342,12 +335,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   void set typeProvider(TypeProvider typeProvider) {
     fail("Unexpected invocation of set typeProvider");
-  }
-
-  @override
-  TypeResolverVisitorFactory get typeResolverVisitorFactory {
-    fail("Unexpected invocation of getTypeResolverVisitorFactory");
-    return null;
   }
 
   @override
@@ -397,13 +384,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  @deprecated
-  HtmlElement computeHtmlElement(Source source) {
-    fail("Unexpected invocation of computeHtmlElement");
-    return null;
-  }
-
-  @override
   List<Source> computeImportedLibraries(Source source) {
     fail("Unexpected invocation of computeImportedLibraries");
     return null;
@@ -424,12 +404,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   LineInfo computeLineInfo(Source source) {
     fail("Unexpected invocation of computeLineInfo");
-    return null;
-  }
-
-  @override
-  CompilationUnit computeResolvableCompilationUnit(Source source) {
-    fail("Unexpected invocation of computeResolvableCompilationUnit");
     return null;
   }
 
@@ -503,13 +477,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   @override
   AnalysisErrorInfo getErrors(Source source) {
     fail("Unexpected invocation of getErrors");
-    return null;
-  }
-
-  @override
-  @deprecated
-  HtmlElement getHtmlElement(Source source) {
-    fail("Unexpected invocation of getHtmlElement");
     return null;
   }
 
@@ -588,13 +555,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  @deprecated
-  ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
-    fail("Unexpected invocation of getResolvedHtmlUnit");
-    return null;
-  }
-
-  @override
   Object getResult(AnalysisTarget target, ResultDescriptor result) {
     fail("Unexpected invocation of getResult");
     return null;
@@ -649,12 +609,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  ht.HtmlUnit parseHtmlUnit(Source source) {
-    fail("Unexpected invocation of parseHtmlUnit");
-    return null;
-  }
-
-  @override
   AnalysisResult performAnalysisTask() {
     fail("Unexpected invocation of performAnalysisTask");
     return null;
@@ -681,13 +635,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   CompilationUnit resolveCompilationUnit2(
       Source unitSource, Source librarySource) {
     fail("Unexpected invocation of resolveCompilationUnit");
-    return null;
-  }
-
-  @override
-  @deprecated
-  ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
-    fail("Unexpected invocation of resolveHtmlUnit");
     return null;
   }
 
@@ -722,13 +669,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   bool validateCacheConsistency() {
     fail("Unexpected invocation of validateCacheConsistency");
     return false;
-  }
-
-  @deprecated
-  @override
-  void visitCacheItems(void callback(
-      Source source, dynamic dartEntry, dynamic rowDesc, CacheState state)) {
-    fail("Unexpected invocation of visitCacheItems");
   }
 
   @override

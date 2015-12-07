@@ -2187,30 +2187,6 @@ class Parser {
   }
 
   /**
-   * Set whether the parser is to parse the async support.
-   */
-  @deprecated
-  void set parseAsync(bool parseAsync) {
-    // Async support cannot be disabled
-  }
-
-  /**
-   * Set whether the parser is to parse deferred libraries.
-   */
-  @deprecated
-  void set parseDeferredLibraries(bool parseDeferredLibraries) {
-    // Deferred libraries support cannot be disabled
-  }
-
-  /**
-   * Set whether the parser is to parse enum declarations.
-   */
-  @deprecated
-  void set parseEnum(bool parseEnum) {
-    // Enum support cannot be disabled
-  }
-
-  /**
    * Set whether parser is to parse function bodies.
    */
   void set parseFunctionBodies(bool parseFunctionBodies) {

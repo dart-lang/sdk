@@ -27,26 +27,6 @@ import 'utilities_dart.dart';
 export 'type_system.dart';
 
 /**
- * Callback signature used by ImplicitConstructorBuilder to register
- * computations to be performed, and their dependencies.  A call to this
- * callback indicates that [computation] may be used to compute implicit
- * constructors for [classElement], but that the computation may not be invoked
- * until after implicit constructors have been built for [superclassElement].
- */
-typedef void ImplicitConstructorBuilderCallback(ClassElement classElement,
-    ClassElement superclassElement, void computation());
-
-typedef ResolverVisitor ResolverVisitorFactory(
-    Library library, Source source, TypeProvider typeProvider);
-
-typedef StaticTypeAnalyzer StaticTypeAnalyzerFactory(ResolverVisitor visitor);
-
-typedef TypeResolverVisitor TypeResolverVisitorFactory(
-    Library library, Source source, TypeProvider typeProvider);
-
-typedef void VoidFunction();
-
-/**
  * Instances of the class `BestPracticesVerifier` traverse an AST structure looking for
  * violations of Dart best practices.
  */
@@ -6658,308 +6638,6 @@ class LabelScope {
 }
 
 /**
- * Instances of the class `Library` represent the data about a single library during the
- * resolution of some (possibly different) library. They are not intended to be used except during
- * the resolution process.
- */
-class Library {
-  /**
-   * An empty list that can be used to initialize lists of libraries.
-   */
-  static const List<Library> _EMPTY_ARRAY = const <Library>[];
-
-  /**
-   * The prefix of a URI using the dart-ext scheme to reference a native code library.
-   */
-  static String _DART_EXT_SCHEME = "dart-ext:";
-
-  /**
-   * The analysis context in which this library is being analyzed.
-   */
-  final InternalAnalysisContext _analysisContext;
-
-  /**
-   * The inheritance manager which is used for this member lookups in this library.
-   */
-  InheritanceManager _inheritanceManager;
-
-  /**
-   * The listener to which analysis errors will be reported.
-   */
-  final AnalysisErrorListener errorListener;
-
-  /**
-   * The source specifying the defining compilation unit of this library.
-   */
-  final Source librarySource;
-
-  /**
-   * The library element representing this library.
-   */
-  LibraryElementImpl _libraryElement;
-
-  /**
-   * A list containing all of the libraries that are imported into this library.
-   */
-  List<Library> _importedLibraries = _EMPTY_ARRAY;
-
-  /**
-   * A table mapping URI-based directive to the actual URI value.
-   */
-  HashMap<UriBasedDirective, String> _directiveUris =
-      new HashMap<UriBasedDirective, String>();
-
-  /**
-   * A flag indicating whether this library explicitly imports core.
-   */
-  bool explicitlyImportsCore = false;
-
-  /**
-   * A list containing all of the libraries that are exported from this library.
-   */
-  List<Library> _exportedLibraries = _EMPTY_ARRAY;
-
-  /**
-   * A table mapping the sources for the compilation units in this library to their corresponding
-   * AST structures.
-   */
-  HashMap<Source, CompilationUnit> _astMap =
-      new HashMap<Source, CompilationUnit>();
-
-  /**
-   * The library scope used when resolving elements within this library's compilation units.
-   */
-  LibraryScope _libraryScope;
-
-  /**
-   * Initialize a newly created data holder that can maintain the data associated with a library.
-   *
-   * @param analysisContext the analysis context in which this library is being analyzed
-   * @param errorListener the listener to which analysis errors will be reported
-   * @param librarySource the source specifying the defining compilation unit of this library
-   */
-  Library(this._analysisContext, this.errorListener, this.librarySource) {
-    this._libraryElement =
-        _analysisContext.getLibraryElement(librarySource) as LibraryElementImpl;
-  }
-
-  /**
-   * Return an array of the [CompilationUnit]s that make up the library. The first unit is
-   * always the defining unit.
-   *
-   * @return an array of the [CompilationUnit]s that make up the library. The first unit is
-   *         always the defining unit
-   */
-  List<CompilationUnit> get compilationUnits {
-    List<CompilationUnit> unitArrayList = new List<CompilationUnit>();
-    unitArrayList.add(definingCompilationUnit);
-    for (Source source in _astMap.keys.toSet()) {
-      if (librarySource != source) {
-        unitArrayList.add(getAST(source));
-      }
-    }
-    return unitArrayList;
-  }
-
-  /**
-   * Return a collection containing the sources for the compilation units in this library, including
-   * the defining compilation unit.
-   *
-   * @return the sources for the compilation units in this library
-   */
-  Set<Source> get compilationUnitSources => _astMap.keys.toSet();
-
-  /**
-   * Return the AST structure associated with the defining compilation unit for this library.
-   *
-   * @return the AST structure associated with the defining compilation unit for this library
-   * @throws AnalysisException if an AST structure could not be created for the defining compilation
-   *           unit
-   */
-  CompilationUnit get definingCompilationUnit => getAST(librarySource);
-
-  /**
-   * Set the libraries that are exported by this library to be those in the given array.
-   *
-   * @param exportedLibraries the libraries that are exported by this library
-   */
-  void set exportedLibraries(List<Library> exportedLibraries) {
-    this._exportedLibraries = exportedLibraries;
-  }
-
-  /**
-   * Return an array containing the libraries that are exported from this library.
-   *
-   * @return an array containing the libraries that are exported from this library
-   */
-  List<Library> get exports => _exportedLibraries;
-
-  /**
-   * Set the libraries that are imported into this library to be those in the given array.
-   *
-   * @param importedLibraries the libraries that are imported into this library
-   */
-  void set importedLibraries(List<Library> importedLibraries) {
-    this._importedLibraries = importedLibraries;
-  }
-
-  /**
-   * Return an array containing the libraries that are imported into this library.
-   *
-   * @return an array containing the libraries that are imported into this library
-   */
-  List<Library> get imports => _importedLibraries;
-
-  /**
-   * Return an array containing the libraries that are either imported or exported from this
-   * library.
-   *
-   * @return the libraries that are either imported or exported from this library
-   */
-  List<Library> get importsAndExports {
-    HashSet<Library> libraries = new HashSet<Library>();
-    for (Library library in _importedLibraries) {
-      libraries.add(library);
-    }
-    for (Library library in _exportedLibraries) {
-      libraries.add(library);
-    }
-    return new List.from(libraries);
-  }
-
-  /**
-   * Return the inheritance manager for this library.
-   *
-   * @return the inheritance manager for this library
-   */
-  InheritanceManager get inheritanceManager {
-    if (_inheritanceManager == null) {
-      return _inheritanceManager = new InheritanceManager(_libraryElement);
-    }
-    return _inheritanceManager;
-  }
-
-  /**
-   * Return the library element representing this library, creating it if necessary.
-   *
-   * @return the library element representing this library
-   */
-  LibraryElementImpl get libraryElement {
-    if (_libraryElement == null) {
-      try {
-        _libraryElement = _analysisContext.computeLibraryElement(librarySource)
-            as LibraryElementImpl;
-      } on AnalysisException catch (exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError(
-            "Could not compute library element for ${librarySource.fullName}",
-            new CaughtException(exception, stackTrace));
-      }
-    }
-    return _libraryElement;
-  }
-
-  /**
-   * Set the library element representing this library to the given library element.
-   *
-   * @param libraryElement the library element representing this library
-   */
-  void set libraryElement(LibraryElementImpl libraryElement) {
-    this._libraryElement = libraryElement;
-    if (_inheritanceManager != null) {
-      _inheritanceManager.libraryElement = libraryElement;
-    }
-  }
-
-  /**
-   * Return the library scope used when resolving elements within this library's compilation units.
-   *
-   * @return the library scope used when resolving elements within this library's compilation units
-   */
-  LibraryScope get libraryScope {
-    if (_libraryScope == null) {
-      _libraryScope = new LibraryScope(_libraryElement, errorListener);
-    }
-    return _libraryScope;
-  }
-
-  /**
-   * Return the AST structure associated with the given source.
-   *
-   * @param source the source representing the compilation unit whose AST is to be returned
-   * @return the AST structure associated with the given source
-   * @throws AnalysisException if an AST structure could not be created for the compilation unit
-   */
-  CompilationUnit getAST(Source source) {
-    CompilationUnit unit = _astMap[source];
-    if (unit == null) {
-      unit = _analysisContext.computeResolvableCompilationUnit(source);
-      _astMap[source] = unit;
-    }
-    return unit;
-  }
-
-  /**
-   * Return the result of resolving the URI of the given URI-based directive against the URI of the
-   * library, or `null` if the URI is not valid. If the URI is not valid, report the error.
-   *
-   * @param directive the directive which URI should be resolved
-   * @return the result of resolving the URI against the URI of the library
-   */
-  Source getSource(UriBasedDirective directive) {
-    StringLiteral uriLiteral = directive.uri;
-    if (uriLiteral is StringInterpolation) {
-      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
-          uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
-      return null;
-    }
-    String uriContent = uriLiteral.stringValue.trim();
-    _directiveUris[directive] = uriContent;
-    uriContent = Uri.encodeFull(uriContent);
-    if (directive is ImportDirective &&
-        uriContent.startsWith(_DART_EXT_SCHEME)) {
-      _libraryElement.hasExtUri = true;
-      return null;
-    }
-    try {
-      parseUriWithException(uriContent);
-      Source source =
-          _analysisContext.sourceFactory.resolveUri(librarySource, uriContent);
-      if (!_analysisContext.exists(source)) {
-        errorListener.onError(new AnalysisError(
-            librarySource,
-            uriLiteral.offset,
-            uriLiteral.length,
-            CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-            [uriContent]));
-      }
-      return source;
-    } on URISyntaxException {
-      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
-          uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
-    }
-    return null;
-  }
-
-  /**
-   * Returns the URI value of the given directive.
-   */
-  String getUri(UriBasedDirective directive) => _directiveUris[directive];
-
-  /**
-   * Set the AST structure associated with the defining compilation unit for this library to the
-   * given AST structure.
-   *
-   * @param unit the AST structure associated with the defining compilation unit for this library
-   */
-  void setDefiningCompilationUnit(CompilationUnit unit) {
-    _astMap[librarySource] = unit;
-  }
-
-  @override
-  String toString() => librarySource.shortName;
-}
-
-/**
  * Instances of the class `LibraryImportScope` represent the scope containing all of the names
  * available from imported libraries.
  */
@@ -7285,29 +6963,6 @@ class MemberMap {
    */
   MemberMap([int initialCapacity = 10]) {
     _initArrays(initialCapacity);
-  }
-
-  /**
-   * This constructor takes an initial capacity of the map.
-   *
-   * @param initialCapacity the initial capacity
-   */
-  @deprecated // Use new MemberMap(initialCapacity)
-  MemberMap.con1(int initialCapacity) {
-    _initArrays(initialCapacity);
-  }
-
-  /**
-   * Copy constructor.
-   */
-  @deprecated // Use new MemberMap.from(memberMap)
-  MemberMap.con2(MemberMap memberMap) {
-    _initArrays(memberMap._size + 5);
-    for (int i = 0; i < memberMap._size; i++) {
-      _keys[i] = memberMap._keys[i];
-      _values[i] = memberMap._values[i];
-    }
-    _size = memberMap._size;
   }
 
   /**
@@ -7847,10 +7502,9 @@ class PartialResolverVisitor extends ResolverVisitor {
    */
   PartialResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope,
-      InheritanceManager inheritanceManager,
-      StaticTypeAnalyzerFactory typeAnalyzerFactory})
-      : super(definingLibrary, source, typeProvider, errorListener);
+      {Scope nameScope})
+      : super(definingLibrary, source, typeProvider, errorListener,
+            nameScope: nameScope);
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
@@ -8193,11 +7847,6 @@ class ResolverErrorCode extends ErrorCode {
  */
 class ResolverVisitor extends ScopedVisitor {
   /**
-   * The manager for the inheritance mappings.
-   */
-  InheritanceManager _inheritanceManager;
-
-  /**
    * The object used to resolve the element associated with the current node.
    */
   ElementResolver elementResolver;
@@ -8283,16 +7932,9 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope,
-      InheritanceManager inheritanceManager,
-      StaticTypeAnalyzerFactory typeAnalyzerFactory})
+      {Scope nameScope})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
-    if (inheritanceManager == null) {
-      this._inheritanceManager = new InheritanceManager(definingLibrary);
-    } else {
-      this._inheritanceManager = inheritanceManager;
-    }
     this.elementResolver = new ElementResolver(this);
     this.typeSystem = definingLibrary.context.typeSystem;
     bool strongModeHints = false;
@@ -8302,31 +7944,8 @@ class ResolverVisitor extends ScopedVisitor {
     }
     this.inferenceContext = new InferenceContext._(
         errorListener, typeProvider, typeSystem, strongModeHints);
-    if (typeAnalyzerFactory == null) {
-      this.typeAnalyzer = new StaticTypeAnalyzer(this);
-    } else {
-      this.typeAnalyzer = typeAnalyzerFactory(this);
-    }
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   *
-   * Deprecated.  Please use unnamed constructor instead.
-   */
-  @deprecated
-  ResolverVisitor.con1(
-      Library library, Source source, TypeProvider typeProvider,
-      {StaticTypeAnalyzerFactory typeAnalyzerFactory})
-      : this(
-            library.libraryElement, source, typeProvider, library.errorListener,
-            nameScope: library.libraryScope,
-            inheritanceManager: library.inheritanceManager,
-            typeAnalyzerFactory: typeAnalyzerFactory);
 
   /**
    * Return the element representing the function containing the current node, or `null` if
@@ -13358,22 +12977,6 @@ class VariableResolverVisitor extends ScopedVisitor {
       {Scope nameScope})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope);
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   *
-   * Deprecated.  Please use unnamed constructor instead.
-   */
-  @deprecated
-  VariableResolverVisitor.con1(
-      Library library, Source source, TypeProvider typeProvider)
-      : this(
-            library.libraryElement, source, typeProvider, library.errorListener,
-            nameScope: library.libraryScope);
 
   @override
   Object visitExportDirective(ExportDirective node) => null;

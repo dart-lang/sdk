@@ -44,7 +44,6 @@ main() {
   runReflectiveTests(ScopeTest);
   runReflectiveTests(ElementResolverTest);
   runReflectiveTests(InheritanceManagerTest);
-  runReflectiveTests(LibraryTest);
   runReflectiveTests(StaticTypeAnalyzerTest);
   runReflectiveTests(StaticTypeAnalyzer2Test);
   runReflectiveTests(SubtypeManagerTest);
@@ -1966,12 +1965,9 @@ class ElementResolverTest extends EngineTestCase {
         definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    Library library = new Library(context, _listener, source);
-    library.libraryElement = _definingLibrary;
     _visitor = new ResolverVisitor(
-        library.libraryElement, source, _typeProvider, library.errorListener,
-        nameScope: library.libraryScope,
-        inheritanceManager: library.inheritanceManager);
+        _definingLibrary, source, _typeProvider, _listener,
+        nameScope: new LibraryScope(_definingLibrary, _listener));
     try {
       return _visitor.elementResolver;
     } catch (exception) {
@@ -6241,109 +6237,6 @@ class LibraryScopeTest extends ResolverTestCase {
     LibraryScope scope = new LibraryScope(definingLibrary, errorListener);
     expect(scope.errorListener, errorListener);
   }
-}
-
-@reflectiveTest
-class LibraryTest {
-  /**
-   * The error listener to which all errors will be reported.
-   */
-  GatheringErrorListener _errorListener;
-
-  /**
-   * The analysis context to pass in to all libraries created by the tests.
-   */
-  InternalAnalysisContext _analysisContext;
-
-  /**
-   * The library used by the tests.
-   */
-  Library _library;
-
-  void setUp() {
-    _analysisContext = AnalysisContextFactory.contextWithCore();
-    _errorListener = new GatheringErrorListener();
-    _library = _createLibrary("/lib.dart");
-  }
-
-  void tearDown() {
-    _errorListener = null;
-    _analysisContext = null;
-    _library = null;
-  }
-
-  void test_getExplicitlyImportsCore() {
-    expect(_library.explicitlyImportsCore, isFalse);
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getExports() {
-    expect(_library.exports, hasLength(0));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getImports() {
-    expect(_library.imports, hasLength(0));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getImportsAndExports() {
-    _library.importedLibraries = <Library>[_createLibrary("/imported.dart")];
-    _library.exportedLibraries = <Library>[_createLibrary("/exported.dart")];
-    expect(_library.importsAndExports, hasLength(2));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getLibraryScope() {
-    LibraryElementImpl element = new LibraryElementImpl.forNode(
-        _analysisContext, AstFactory.libraryIdentifier2(["lib"]));
-    element.definingCompilationUnit =
-        new CompilationUnitElementImpl("lib.dart");
-    _library.libraryElement = element;
-    expect(_library.libraryScope, isNotNull);
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getLibrarySource() {
-    expect(_library.librarySource, isNotNull);
-  }
-
-  void test_setExplicitlyImportsCore() {
-    _library.explicitlyImportsCore = true;
-    expect(_library.explicitlyImportsCore, isTrue);
-    _errorListener.assertNoErrors();
-  }
-
-  void test_setExportedLibraries() {
-    Library exportLibrary = _createLibrary("/exported.dart");
-    _library.exportedLibraries = <Library>[exportLibrary];
-    List<Library> exports = _library.exports;
-    expect(exports, hasLength(1));
-    expect(exports[0], same(exportLibrary));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_setImportedLibraries() {
-    Library importLibrary = _createLibrary("/imported.dart");
-    _library.importedLibraries = <Library>[importLibrary];
-    List<Library> imports = _library.imports;
-    expect(imports, hasLength(1));
-    expect(imports[0], same(importLibrary));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_setLibraryElement() {
-    LibraryElementImpl element = new LibraryElementImpl.forNode(
-        _analysisContext, AstFactory.libraryIdentifier2(["lib"]));
-    _library.libraryElement = element;
-    expect(_library.libraryElement, same(element));
-  }
-
-  Library _createLibrary(String definingCompilationUnitPath) => new Library(
-      _analysisContext,
-      _errorListener,
-      new FileBasedSource(
-          FileUtilities2.createFile(definingCompilationUnitPath)));
 }
 
 @reflectiveTest
@@ -11227,12 +11120,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     LibraryElementImpl definingLibrary =
         new LibraryElementImpl.forNode(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    Library library = new Library(context, _listener, source);
-    library.libraryElement = definingLibrary;
     _visitor = new ResolverVisitor(
-        library.libraryElement, source, _typeProvider, library.errorListener,
-        nameScope: library.libraryScope,
-        inheritanceManager: library.inheritanceManager);
+        definingLibrary, source, _typeProvider, _listener,
+        nameScope: new LibraryScope(definingLibrary, _listener));
     _visitor.overrideManager.enterScope();
     try {
       return _visitor.typeAnalyzer;
@@ -15138,15 +15028,14 @@ class TypeResolverVisitorTest {
   GatheringErrorListener _listener;
 
   /**
-   * The object representing the information about the library in which the types are being
-   * resolved.
-   */
-  Library _library;
-
-  /**
    * The type provider used to access the types.
    */
   TestTypeProvider _typeProvider;
+
+  /**
+   * The library scope in which types are to be resolved.
+   */
+  LibraryScope libraryScope;
 
   /**
    * The visitor used to resolve types needed to form the type hierarchy.
@@ -15178,16 +15067,15 @@ class TypeResolverVisitorTest {
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     Source librarySource =
         new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
-    _library = new Library(context, _listener, librarySource);
     LibraryElementImpl element = new LibraryElementImpl.forNode(
         context, AstFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
-    _library.libraryElement = element;
     _typeProvider = new TestTypeProvider();
-    _visitor = new TypeResolverVisitor(_library.libraryElement, librarySource,
-        _typeProvider, _library.errorListener,
-        nameScope: _library.libraryScope);
+    libraryScope = new LibraryScope(element, _listener);
+    _visitor = new TypeResolverVisitor(
+        element, librarySource, _typeProvider, _listener,
+        nameScope: libraryScope);
   }
 
   void test_visitCatchClause_exception() {
@@ -15747,7 +15635,7 @@ class TypeResolverVisitorTest {
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     if (definedElements != null) {
       for (Element element in definedElements) {
-        _library.libraryScope.define(element);
+        libraryScope.define(element);
       }
     }
     node.accept(_visitor);

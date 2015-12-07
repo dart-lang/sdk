@@ -13,8 +13,7 @@ import 'package:analyzer/task/model.dart' show AnalysisTarget;
 
 import 'ast.dart';
 import 'constant.dart' show DartObject, EvaluationResultImpl;
-import 'engine.dart' show AnalysisContext, AnalysisEngine;
-import 'html.dart' show XmlAttributeNode, XmlTagNode;
+import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'resolver.dart';
@@ -213,13 +212,6 @@ abstract class ClassElement
    * Return `true` if this element has an annotation of the form '@proxy'.
    */
   bool get isProxy;
-
-  /**
-   * Return `true` if this class is a mixin application.  Deprecated--please
-   * use [isMixinApplication] instead.
-   */
-  @deprecated
-  bool get isTypedef;
 
   /**
    * Return `true` if this class can validly be used as a mixin when defining
@@ -482,12 +474,6 @@ abstract class ClassElement
  * A concrete implementation of a [ClassElement].
  */
 class ClassElementImpl extends ElementImpl implements ClassElement {
-  /**
-   * An empty list of class elements.
-   */
-  @deprecated // Use ClassElement.EMPTY_LIST
-  static const List<ClassElement> EMPTY_ARRAY = const <ClassElement>[];
-
   /**
    * A list containing all of the accessors (getters and setters) contained in
    * this class.
@@ -763,10 +749,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     return false;
   }
-
-  @override
-  @deprecated
-  bool get isTypedef => isMixinApplication;
 
   @override
   bool get isValidMixin => hasModifier(Modifier.MIXIN);
@@ -1424,13 +1406,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements CompilationUnitElement {
   /**
-   * An empty list of compilation unit elements.
-   */
-  @deprecated // Use CompilationUnitElement.EMPTY_LIST
-  static const List<CompilationUnitElement> EMPTY_ARRAY =
-      const <CompilationUnitElement>[];
-
-  /**
    * The source that corresponds to this compilation unit.
    */
   Source source;
@@ -1735,19 +1710,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /**
    * Initialize a newly created field element to have the given [name].
    */
-  @deprecated // Use new ConstFieldElementImpl.forNode(name)
-  ConstFieldElementImpl.con1(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize a newly created synthetic field element to have the given
-   * [name] and [offset].
-   */
-  @deprecated // Use new ConstFieldElementImpl(name, offset)
-  ConstFieldElementImpl.con2(String name, int offset) : super(name, offset);
-
-  /**
-   * Initialize a newly created field element to have the given [name].
-   */
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
@@ -1859,13 +1821,6 @@ abstract class ConstructorElement
  */
 class ConstructorElementImpl extends ExecutableElementImpl
     implements ConstructorElement {
-  /**
-   * An empty list of constructor elements.
-   */
-  @deprecated // Use ConstructorElement.EMPTY_LIST
-  static const List<ConstructorElement> EMPTY_ARRAY =
-      const <ConstructorElement>[];
-
   /**
    * The constructor to which this constructor is redirecting.
    */
@@ -2200,17 +2155,6 @@ abstract class DartType {
    * such as when the type represents the type of an unnamed function.
    */
   String get name;
-
-  /**
-   * Return the least upper bound of this type and the given [type], or `null`
-   * if there is no least upper bound.
-   *
-   * Deprecated, since it is impossible to implement the correct algorithm
-   * without access to a [TypeProvider].  Please use
-   * [TypeSystem.getLeastUpperBound] instead.
-   */
-  @deprecated
-  DartType getLeastUpperBound(DartType type);
 
   /**
    * Return `true` if this type is assignable to the given [type]. A type
@@ -2562,21 +2506,6 @@ abstract class Element implements AnalysisTarget {
   int get nameOffset;
 
   /**
-   * **DEPRECATED** Use `computeNode()` instead.
-   *
-   * Return the resolved [AstNode] node that declares this element, or `null` if
-   * this element is synthetic or isn't contained in a compilation unit, such as
-   * a [LibraryElement].
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   *
-   * <b>Note:</b> This method cannot be used in an async environment.
-   */
-  @deprecated
-  AstNode get node;
-
-  /**
    * Return the source that contains this element, or `null` if this element is
    * not contained in a source.
    */
@@ -2701,13 +2630,6 @@ abstract class ElementAnnotation {
  * A concrete implementation of an [ElementAnnotation].
  */
 class ElementAnnotationImpl implements ElementAnnotation {
-  /**
-   * An empty list of annotations.
-   */
-  @deprecated // Use ElementAnnotation.EMPTY_LIST
-  static const List<ElementAnnotationImpl> EMPTY_ARRAY =
-      const <ElementAnnotationImpl>[];
-
   /**
    * The name of the class used to mark an element as being deprecated.
    */
@@ -3000,10 +2922,6 @@ abstract class ElementImpl implements Element {
     _cachedHashCode = null;
     _cachedLocation = null;
   }
-
-  @deprecated
-  @override
-  AstNode get node => computeNode();
 
   @override
   Source get source {
@@ -3475,13 +3393,7 @@ abstract class ElementVisitor<R> {
 
   R visitConstructorElement(ConstructorElement element);
 
-  @deprecated
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element);
-
   R visitExportElement(ExportElement element);
-
-  @deprecated
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element);
 
   R visitFieldElement(FieldElement element);
 
@@ -3490,9 +3402,6 @@ abstract class ElementVisitor<R> {
   R visitFunctionElement(FunctionElement element);
 
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
-
-  @deprecated
-  R visitHtmlElement(HtmlElement element);
 
   R visitImportElement(ImportElement element);
 
@@ -3515,58 +3424,6 @@ abstract class ElementVisitor<R> {
   R visitTopLevelVariableElement(TopLevelVariableElement element);
 
   R visitTypeParameterElement(TypeParameterElement element);
-}
-
-/**
- * A script tag in an HTML file having content that defines a Dart library.
- */
-@deprecated
-abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
-  /**
-   * Return the library element defined by the content of the script tag.
-   */
-  LibraryElement get scriptLibrary;
-}
-
-/**
- * A concrete implementation of an [EmbeddedHtmlScriptElement].
- */
-@deprecated
-class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl
-    implements EmbeddedHtmlScriptElement {
-  /**
-   * The library defined by the script tag's content.
-   */
-  LibraryElement _scriptLibrary;
-
-  /**
-   * Initialize a newly created script element to represent the given [node].
-   */
-  EmbeddedHtmlScriptElementImpl(XmlTagNode node) : super(node);
-
-  @override
-  ElementKind get kind => ElementKind.EMBEDDED_HTML_SCRIPT;
-
-  @override
-  LibraryElement get scriptLibrary => _scriptLibrary;
-
-  /**
-   * Set the script library defined by the script tag's content to the given
-   * [library].
-   */
-  void set scriptLibrary(LibraryElementImpl library) {
-    library.enclosingElement = this;
-    _scriptLibrary = library;
-  }
-
-  @override
-  accept(ElementVisitor visitor) =>
-      visitor.visitEmbeddedHtmlScriptElement(this);
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChild(_scriptLibrary, visitor);
-  }
 }
 
 /**
@@ -3674,13 +3531,6 @@ abstract class ExecutableElement implements TypeParameterizedElement {
  */
 abstract class ExecutableElementImpl extends ElementImpl
     implements ExecutableElement {
-  /**
-   * An empty list of executable elements.
-   */
-  @deprecated // Use ExecutableElement.EMPTY_LIST
-  static const List<ExecutableElement> EMPTY_ARRAY =
-      const <ExecutableElement>[];
-
   /**
    * A list containing all of the functions defined within this executable
    * element.
@@ -4042,12 +3892,6 @@ abstract class ExportElement implements Element, UriReferencedElement {
   /**
    * An empty list of export elements.
    */
-  @deprecated // Use ExportElement.EMPTY_LIST
-  static const List<ExportElement> EMPTY_ARRAY = const <ExportElement>[];
-
-  /**
-   * An empty list of export elements.
-   */
   static const List<ExportElement> EMPTY_LIST = const <ExportElement>[];
 
   /**
@@ -4101,44 +3945,6 @@ class ExportElementImpl extends UriReferencedElementImpl
 }
 
 /**
- * A script tag in an HTML file having a `source` attribute that references a
- * Dart library source file.
- */
-@deprecated
-abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
-  /**
-   * Return the source referenced by this element, or `null` if this element
-   * does not reference a Dart library source file.
-   */
-  Source get scriptSource;
-}
-
-/**
- * A concrete implementation of an [ExternalHtmlScriptElement].
- */
-@deprecated
-class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl
-    implements ExternalHtmlScriptElement {
-  /**
-   * The source specified in the `source` attribute or `null` if unspecified.
-   */
-  Source scriptSource;
-
-  /**
-   * Initialize a newly created script element to correspond to the given
-   * [node].
-   */
-  ExternalHtmlScriptElementImpl(XmlTagNode node) : super(node);
-
-  @override
-  ElementKind get kind => ElementKind.EXTERNAL_HTML_SCRIPT;
-
-  @override
-  accept(ElementVisitor visitor) =>
-      visitor.visitExternalHtmlScriptElement(this);
-}
-
-/**
  * A field defined within a type.
  */
 abstract class FieldElement
@@ -4169,12 +3975,6 @@ abstract class FieldElement
  */
 class FieldElementImpl extends PropertyInducingElementImpl
     implements FieldElement {
-  /**
-   * An empty list of field elements.
-   */
-  @deprecated // Use FieldElement.EMPTY_LIST
-  static const List<FieldElement> EMPTY_ARRAY = const <FieldElement>[];
-
   /**
    * Initialize a newly created synthetic field element to have the given [name]
    * at the given [offset].
@@ -4427,12 +4227,6 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
  */
 class FunctionElementImpl extends ExecutableElementImpl
     implements FunctionElement {
-  /**
-   * An empty list of function elements.
-   */
-  @deprecated // Use FunctionElement.EMPTY_LIST
-  static const List<FunctionElement> EMPTY_ARRAY = const <FunctionElement>[];
-
   /**
    * The offset to the beginning of the visible range for this element.
    */
@@ -4711,13 +4505,6 @@ abstract class FunctionTypeAliasElement
 class FunctionTypeAliasElementImpl extends ElementImpl
     implements FunctionTypeAliasElement {
   /**
-   * An empty array of type alias elements.
-   */
-  @deprecated // Use FunctionTypeAliasElement.EMPTY_LIST
-  static List<FunctionTypeAliasElement> EMPTY_ARRAY =
-      new List<FunctionTypeAliasElement>(0);
-
-  /**
    * A list containing all of the parameters defined by this type alias.
    */
   List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
@@ -4885,21 +4672,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionTypeImpl(ExecutableElement element,
       [List<FunctionTypeAliasElement> prunedTypedefs])
       : this._(element, null, prunedTypedefs, null, null, null);
-
-  /**
-   * Initialize a newly created function type to be declared by the given
-   * [element].
-   */
-  @deprecated // Use new FunctionTypeImpl(element)
-  FunctionTypeImpl.con1(ExecutableElement element) : this(element);
-
-  /**
-   * Initialize a newly created function type to be declared by the given
-   * [element].
-   */
-  @deprecated // Use new FunctionTypeImpl.forTypedef(element)
-  FunctionTypeImpl.con2(FunctionTypeAliasElement element)
-      : this.forTypedef(element);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -5813,20 +5585,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
-  @override
-  @deprecated
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) =>
-      visitHtmlScriptElement(element);
-
   R visitExecutableElement(ExecutableElement element) => visitElement(element);
 
   @override
   R visitExportElement(ExportElement element) => visitElement(element);
-
-  @override
-  @deprecated
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) =>
-      visitHtmlScriptElement(element);
 
   @override
   R visitFieldElement(FieldElement element) =>
@@ -5842,13 +5604,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
       visitElement(element);
-
-  @override
-  @deprecated
-  R visitHtmlElement(HtmlElement element) => visitElement(element);
-
-  @deprecated
-  R visitHtmlScriptElement(HtmlScriptElement element) => visitElement(element);
 
   @override
   R visitImportElement(ImportElement element) => visitElement(element);
@@ -5945,153 +5700,9 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 }
 
 /**
- * An HTML file.
- */
-@deprecated
-abstract class HtmlElement implements Element {
-  /**
-   * An empty list of HTML file elements.
-   */
-  static const List<HtmlElement> EMPTY_LIST = const <HtmlElement>[];
-
-  /**
-   * Return a list containing all of the script elements contained in the HTML
-   * file. This includes scripts with libraries that are defined by the content
-   * of a script tag as well as libraries that are referenced in the `source`
-   * attribute of a script tag.
-   */
-  List<HtmlScriptElement> get scripts;
-}
-
-/**
- * A concrete implementation of an [HtmlElement].
- */
-@deprecated
-class HtmlElementImpl extends ElementImpl implements HtmlElement {
-  /**
-   * An empty list of HTML file elements.
-   */
-  @deprecated // Use HtmlElement.EMPTY_LIST
-  static const List<HtmlElement> EMPTY_ARRAY = const <HtmlElement>[];
-
-  /**
-   * The analysis context in which this library is defined.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The scripts contained in or referenced from script tags in the HTML file.
-   */
-  List<HtmlScriptElement> _scripts = HtmlScriptElement.EMPTY_LIST;
-
-  /**
-   * The source that corresponds to this HTML file.
-   */
-  Source source;
-
-  /**
-   * Initialize a newly created HTML element in the given [context] to have the
-   * given [name].
-   */
-  HtmlElementImpl(this.context, String name) : super(name, -1);
-
-  @override
-  int get hashCode => source.hashCode;
-
-  @override
-  String get identifier => source.encoding;
-
-  @override
-  ElementKind get kind => ElementKind.HTML;
-
-  @override
-  List<HtmlScriptElement> get scripts => _scripts;
-
-  /**
-   * Set the scripts contained in the HTML file to the given [scripts].
-   */
-  void set scripts(List<HtmlScriptElement> scripts) {
-    if (scripts.length == 0) {
-      this._scripts = HtmlScriptElement.EMPTY_LIST;
-      return;
-    }
-    for (HtmlScriptElement script in scripts) {
-      (script as HtmlScriptElementImpl).enclosingElement = this;
-    }
-    this._scripts = scripts;
-  }
-
-  @override
-  bool operator ==(Object object) {
-    if (identical(object, this)) {
-      return true;
-    }
-    return object is HtmlElementImpl && source == object.source;
-  }
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    if (source == null) {
-      buffer.write("{HTML file}");
-    } else {
-      buffer.write(source.fullName);
-    }
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(_scripts, visitor);
-  }
-}
-
-/**
- * A script tag in an HTML file.
- *
- * See [EmbeddedHtmlScriptElement], and [ExternalHtmlScriptElement].
- */
-@deprecated
-abstract class HtmlScriptElement implements Element {
-  /**
-   * An empty list of HTML script elements.
-   */
-  static const List<HtmlScriptElement> EMPTY_LIST = const <HtmlScriptElement>[];
-}
-
-/**
- * A concrete implementation of an [HtmlScriptElement].
- */
-@deprecated
-abstract class HtmlScriptElementImpl extends ElementImpl
-    implements HtmlScriptElement {
-  /**
-   * An empty list of HTML script elements.
-   */
-  @deprecated // Use HtmlScriptElement.EMPTY_LIST
-  static const List<HtmlScriptElement> EMPTY_ARRAY =
-      const <HtmlScriptElement>[];
-
-  /**
-   * Initialize a newly created script element corresponding to the given
-   * [node].
-   */
-  HtmlScriptElementImpl(XmlTagNode node)
-      : super(node.tag, node.tagToken.offset);
-}
-
-/**
  * A single import directive within a library.
  */
 abstract class ImportElement implements Element, UriReferencedElement {
-  /**
-   * An empty list of import elements.
-   */
-  @deprecated // Use ImportElement.EMPTY_LIST
-  static const List<ImportElement> EMPTY_ARRAY = const <ImportElement>[];
-
   /**
    * An empty list of import elements.
    */
@@ -6203,12 +5814,6 @@ abstract class InterfaceType implements ParameterizedType {
   /**
    * An empty list of types.
    */
-  @deprecated // Use InterfaceType.EMPTY_LIST
-  static const List<InterfaceType> EMPTY_ARRAY = const <InterfaceType>[];
-
-  /**
-   * An empty list of types.
-   */
   static const List<InterfaceType> EMPTY_LIST = const <InterfaceType>[];
 
   /**
@@ -6262,24 +5867,6 @@ abstract class InterfaceType implements ParameterizedType {
    * with the given name.
    */
   PropertyAccessorElement getGetter(String name);
-
-  /**
-   * Return the least upper bound of this type and the given [type], or `null`
-   * if there is no least upper bound.
-   *
-   * Given two interfaces <i>I</i> and <i>J</i>, let <i>S<sub>I</sub></i> be the
-   * set of superinterfaces of <i>I<i>, let <i>S<sub>J</sub></i> be the set of
-   * superinterfaces of <i>J</i> and let <i>S = (I &cup; S<sub>I</sub>) &cap;
-   * (J &cup; S<sub>J</sub>)</i>. Furthermore, we define <i>S<sub>n</sub> =
-   * {T | T &isin; S &and; depth(T) = n}</i> for any finite <i>n</i>, where
-   * <i>depth(T)</i> is the number of steps in the longest inheritance path from
-   * <i>T</i> to <i>Object</i>. Let <i>q</i> be the largest number such that
-   * <i>S<sub>q</sub></i> has cardinality one. The least upper bound of <i>I</i>
-   * and <i>J</i> is the sole element of <i>S<sub>q</sub></i>.
-   */
-  @override
-  @deprecated
-  DartType getLeastUpperBound(DartType type);
 
   /**
    * Return the element representing the method with the given [name] that is
@@ -6551,7 +6138,9 @@ abstract class InterfaceType implements ParameterizedType {
     if (first.element == second.element) {
       return _leastUpperBound(first, second);
     }
-    return first.getLeastUpperBound(second);
+    AnalysisContext context = first.element.context;
+    return context.typeSystem
+        .getLeastUpperBound(context.typeProvider, first, second);
   }
 
   /**
@@ -6620,23 +6209,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   InterfaceTypeImpl(ClassElement element, [this.prunedTypedefs])
       : super(element, element.displayName);
-
-  /**
-   * Initialize a newly created type to be declared by the given [element].
-   */
-  @deprecated // Use new InterfaceTypeImpl(element)
-  InterfaceTypeImpl.con1(ClassElement element)
-      : prunedTypedefs = null,
-        super(element, element.displayName);
-
-  /**
-   * Initialize a newly created type to have the given [name]. This constructor
-   * should only be used in cases where there is no declaration of the type.
-   */
-  @deprecated // Use new InterfaceTypeImpl.named(name)
-  InterfaceTypeImpl.con2(String name)
-      : prunedTypedefs = null,
-        super(null, name);
 
   /**
    * Initialize a newly created type to have the given [name]. This constructor
@@ -6822,26 +6394,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement getGetter(String getterName) => PropertyAccessorMember
       .from((element as ClassElementImpl).getGetter(getterName), this);
-
-  @override
-  @deprecated
-  DartType getLeastUpperBound(DartType type) {
-    // quick check for self
-    if (identical(type, this)) {
-      return this;
-    }
-    // dynamic
-    DartType dynamicType = DynamicTypeImpl.instance;
-    if (identical(this, dynamicType) || identical(type, dynamicType)) {
-      return dynamicType;
-    }
-    // TODO (jwren) opportunity here for a better, faster algorithm if this
-    // turns out to be a bottle-neck
-    if (type is! InterfaceType) {
-      return null;
-    }
-    return computeLeastUpperBound(this, type);
-  }
 
   @override
   MethodElement getMethod(String methodName) => MethodMember.from(
@@ -7469,12 +7021,6 @@ abstract class LabelElement implements Element {
  */
 class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
-   * An empty list of label elements.
-   */
-  @deprecated // Use LabelElement.EMPTY_LIST
-  static const List<LabelElement> EMPTY_ARRAY = const <LabelElement>[];
-
-  /**
    * A flag indicating whether this label is associated with a `switch`
    * statement.
    */
@@ -7662,12 +7208,6 @@ abstract class LibraryElement implements Element {
  * A concrete implementation of a [LibraryElement].
  */
 class LibraryElementImpl extends ElementImpl implements LibraryElement {
-  /**
-   * An empty list of library elements.
-   */
-  @deprecated // Use LibraryElement.EMPTY_LIST
-  static const List<LibraryElement> EMPTY_ARRAY = const <LibraryElement>[];
-
   /**
    * The analysis context in which this library is defined.
    */
@@ -8271,13 +7811,6 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
 class LocalVariableElementImpl extends VariableElementImpl
     implements LocalVariableElement {
   /**
-   * An empty list of field elements.
-   */
-  @deprecated // Use LocalVariableElement.EMPTY_LIST
-  static const List<LocalVariableElement> EMPTY_ARRAY =
-      const <LocalVariableElement>[];
-
-  /**
    * The offset to the beginning of the visible range for this element.
    */
   int _visibleRangeOffset = 0;
@@ -8442,10 +7975,6 @@ abstract class Member implements Element {
   @override
   int get nameOffset => _baseElement.nameOffset;
 
-  @deprecated
-  @override
-  AstNode get node => computeNode();
-
   @override
   Source get source => _baseElement.source;
 
@@ -8507,20 +8036,6 @@ abstract class Member implements Element {
     return type.substitute2(argumentTypes, parameterTypes);
   }
 
-  /**
-   * Return the list of types that results from replacing the type parameters in
-   * the given [types] with the type arguments associated with this member.
-   */
-  @deprecated
-  List<InterfaceType> substituteFor2(List<InterfaceType> types) {
-    int count = types.length;
-    List<InterfaceType> substitutedTypes = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      substitutedTypes[i] = substituteFor(types[i]);
-    }
-    return substitutedTypes;
-  }
-
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
@@ -8551,12 +8066,6 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
  * A concrete implementation of a [MethodElement].
  */
 class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
-  /**
-   * An empty list of method elements.
-   */
-  @deprecated // Use MethodElement.EMPTY_LIST
-  static const List<MethodElement> EMPTY_ARRAY = const <MethodElement>[];
-
   /**
    * Initialize a newly created method element to have the given [name] at the
    * given [offset].
@@ -8962,10 +8471,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   int get nameOffset => -1;
 
-  @deprecated
-  @override
-  AstNode get node => null;
-
   @override
   Source get source => null;
 
@@ -9142,13 +8647,6 @@ abstract class NamespaceCombinator {
   /**
    * An empty list of namespace combinators.
    */
-  @deprecated // Use NamespaceCombinator.EMPTY_LIST
-  static const List<NamespaceCombinator> EMPTY_ARRAY =
-      const <NamespaceCombinator>[];
-
-  /**
-   * An empty list of namespace combinators.
-   */
   static const List<NamespaceCombinator> EMPTY_LIST =
       const <NamespaceCombinator>[];
 }
@@ -9208,12 +8706,6 @@ abstract class ParameterElement
 class ParameterElementImpl extends VariableElementImpl
     with ParameterElementMixin
     implements ParameterElement {
-  /**
-   * An empty list of parameter elements.
-   */
-  @deprecated // Use ParameterElement.EMPTY_LIST
-  static const List<ParameterElement> EMPTY_ARRAY = const <ParameterElement>[];
-
   /**
    * A list containing all of the parameters defined by this parameter element.
    * There will only be parameters if this parameter is a function typed
@@ -9599,12 +9091,6 @@ abstract class PrefixElement implements Element {
  */
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**
-   * An empty list of prefix elements.
-   */
-  @deprecated // Use PrefixElement.EMPTY_LIST
-  static const List<PrefixElement> EMPTY_ARRAY = const <PrefixElement>[];
-
-  /**
    * A list containing all of the libraries that are imported using this prefix.
    */
   List<LibraryElement> _importedLibraries = LibraryElement.EMPTY_LIST;
@@ -9711,13 +9197,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
  */
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElement {
-  /**
-   * An empty list of property accessor elements.
-   */
-  @deprecated // Use PropertyAccessorElement.EMPTY_LIST
-  static const List<PropertyAccessorElement> EMPTY_ARRAY =
-      const <PropertyAccessorElement>[];
-
   /**
    * The variable associated with this accessor.
    */
@@ -10041,13 +9520,6 @@ abstract class PropertyInducingElement implements VariableElement {
 abstract class PropertyInducingElementImpl extends VariableElementImpl
     implements PropertyInducingElement {
   /**
-   * An empty list of elements.
-   */
-  @deprecated // Use PropertyInducingElement.EMPTY_LIST
-  static const List<PropertyInducingElement> EMPTY_ARRAY =
-      const <PropertyInducingElement>[];
-
-  /**
    * The getter associated with this element.
    */
   PropertyAccessorElement getter;
@@ -10108,21 +9580,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  @deprecated
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
   R visitExportElement(ExportElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  @deprecated
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -10147,13 +9605,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  @deprecated
-  R visitHtmlElement(HtmlElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -10301,15 +9752,7 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitConstructorElement(ConstructorElement element) => null;
 
   @override
-  @deprecated
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => null;
-
-  @override
   R visitExportElement(ExportElement element) => null;
-
-  @override
-  @deprecated
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => null;
 
   @override
   R visitFieldElement(FieldElement element) => null;
@@ -10323,10 +9766,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
-
-  @override
-  @deprecated
-  R visitHtmlElement(HtmlElement element) => null;
 
   @override
   R visitImportElement(ImportElement element) => null;
@@ -10382,13 +9821,6 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     implements TopLevelVariableElement {
   /**
-   * An empty list of top-level variable elements.
-   */
-  @deprecated // Use TopLevelVariableElement.EMPTY_LIST
-  static const List<TopLevelVariableElement> EMPTY_ARRAY =
-      const <TopLevelVariableElement>[];
-
-  /**
    * Initialize a newly created synthetic top-level variable element to have the
    * given [name] and [offset].
    */
@@ -10429,12 +9861,6 @@ abstract class TypeDefiningElement implements Element {
  * representing the declared type of elements in the element model.
  */
 abstract class TypeImpl implements DartType {
-  /**
-   * An empty list of types.
-   */
-  @deprecated // Use DartType.EMPTY_LIST
-  static const List<DartType> EMPTY_ARRAY = const <DartType>[];
-
   /**
    * The element representing the declaration of this type, or `null` if the
    * type has not, or cannot, be associated with an element.
@@ -10487,9 +9913,6 @@ abstract class TypeImpl implements DartType {
       buffer.write(name);
     }
   }
-
-  @override
-  DartType getLeastUpperBound(DartType type) => null;
 
   /**
    * Return `true` if this type is assignable to the given [type] (written in
@@ -10658,13 +10081,6 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 class TypeParameterElementImpl extends ElementImpl
     implements TypeParameterElement {
   /**
-   * An empty list of type parameter elements.
-   */
-  @deprecated // Use TypeParameterElement.EMPTY_LIST
-  static const List<TypeParameterElement> EMPTY_ARRAY =
-      const <TypeParameterElement>[];
-
-  /**
    * The type defined by this type parameter.
    */
   TypeParameterType type;
@@ -10733,13 +10149,6 @@ abstract class TypeParameterType implements DartType {
  * A concrete implementation of a [TypeParameterType].
  */
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
-  /**
-   * An empty list of type parameter types.
-   */
-  @deprecated // Use TypeParameterType.EMPTY_LIST
-  static const List<TypeParameterType> EMPTY_ARRAY =
-      const <TypeParameterType>[];
-
   /**
    * Initialize a newly created type parameter type to be declared by the given
    * [element] and to have the given name.
@@ -11063,12 +10472,6 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
  */
 abstract class VariableElementImpl extends ElementImpl
     implements VariableElement {
-  /**
-   * An empty list of variable elements.
-   */
-  @deprecated // Use VariableElement.EMPTY_LIST
-  static const List<VariableElement> EMPTY_ARRAY = const <VariableElement>[];
-
   /**
    * The declared type of this variable.
    */

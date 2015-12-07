@@ -3596,11 +3596,8 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     //
     // Resolve references and record outputs.
     //
-    InheritanceManager inheritanceManager =
-        new InheritanceManager(libraryElement);
     PartialResolverVisitor visitor = new PartialResolverVisitor(libraryElement,
-        unitElement.source, typeProvider, AnalysisErrorListener.NULL_LISTENER,
-        inheritanceManager: inheritanceManager);
+        unitElement.source, typeProvider, AnalysisErrorListener.NULL_LISTENER);
     unit.accept(visitor);
     //
     // Record outputs.
@@ -4386,14 +4383,11 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       // the size of the enclosing class, and hence incrementally resolving each
       // field was quadratic.  We may wish to revisit this if we can resolve
       // this performance issue.
-      InheritanceManager inheritanceManager =
-          new InheritanceManager(libraryElement);
       PartialResolverVisitor visitor = new PartialResolverVisitor(
           libraryElement,
           unitElement.source,
           typeProvider,
-          AnalysisErrorListener.NULL_LISTENER,
-          inheritanceManager: inheritanceManager);
+          AnalysisErrorListener.NULL_LISTENER);
       unit.accept(visitor);
     }
     //

@@ -9,13 +9,12 @@ import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import '../../utils.dart';
-import 'package:plugin/plugin.dart';
-import 'package:plugin/manager.dart';
 
 main() {
   initializeTestEnvironment();
@@ -25,16 +24,6 @@ main() {
 @reflectiveTest
 class OpTypeTest {
   OpType visitor;
-
-  void processRequiredPlugins() {
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
-  }
-
-  @override
-  void setUp() {
-    processRequiredPlugins();
-  }
 
   void addTestSource(String content, {bool resolved: false}) {
     int offset = content.indexOf('^');
@@ -77,6 +66,15 @@ class OpTypeTest {
     expect(visitor.inStaticMethodBody, staticMethodBody,
         reason: 'staticMethodBody');
     expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
+  }
+
+  void processRequiredPlugins() {
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
+  }
+
+  void setUp() {
+    processRequiredPlugins();
   }
 
   test_Annotation() {

@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/html.dart' as ht show HtmlUnit;
 import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -203,16 +202,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * [incrementalResolutionValidation_lastSource].
    */
   CompilationUnit incrementalResolutionValidation_lastUnit;
-
-  /**
-   * A factory to override how the [ResolverVisitor] is created.
-   */
-  ResolverVisitorFactory resolverVisitorFactory;
-
-  /**
-   * A factory to override how the [TypeResolverVisitor] is created.
-   */
-  TypeResolverVisitorFactory typeResolverVisitorFactory;
 
   /**
    * Initialize a newly created analysis context.
@@ -600,14 +589,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       computeResult(source, EXPORTED_LIBRARIES);
 
   @override
-  @deprecated
-  HtmlElement computeHtmlElement(Source source) {
-    // TODO(brianwilkerson) Remove this method after switching to the new task
-    // model.
-    throw new UnimplementedError('Not supported in the new task model');
-  }
-
-  @override
   List<Source> computeImportedLibraries(Source source) =>
       computeResult(source, EXPLICITLY_IMPORTED_LIBRARIES);
 
@@ -630,12 +611,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   LineInfo computeLineInfo(Source source) => computeResult(source, LINE_INFO);
-
-  @override
-  @deprecated
-  CompilationUnit computeResolvableCompilationUnit(Source source) {
-    return null;
-  }
 
   @override
   CancelableFuture<CompilationUnit> computeResolvedCompilationUnitAsync(
@@ -821,14 +796,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  @deprecated
-  HtmlElement getHtmlElement(Source source) {
-    // TODO(brianwilkerson) Remove this method after switching to the new task
-    // model.
-    throw new UnimplementedError('Not supported in the new task model');
-  }
-
-  @override
   List<Source> getHtmlFilesReferencing(Source source) {
     if (!AnalysisEngine.isDartFileName(source.shortName)) {
       return Source.EMPTY_LIST;
@@ -960,14 +927,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  @deprecated
-  ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
-    // TODO(brianwilkerson) Remove this method after switching to the new task
-    // model.
-    throw new UnimplementedError('Not supported in the new task model');
-  }
-
-  @override
   Object getResult(AnalysisTarget target, ResultDescriptor result) {
     return _cache.getValue(target, result);
   }
@@ -1089,14 +1048,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  @deprecated // use parseHtmlDocument(source)
-  ht.HtmlUnit parseHtmlUnit(Source source) {
-    // TODO(brianwilkerson) Remove this method after switching to the new task
-    // model.
-    throw new UnimplementedError('Not supported in the new task model');
-  }
-
-  @override
   AnalysisResult performAnalysisTask() {
     return PerformanceStatistics.performAnaysis.makeCurrentWhile(() {
       _evaluatePendingFutures();
@@ -1206,14 +1157,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  @deprecated
-  ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
-    // TODO(brianwilkerson) Remove this method after switching to the new task
-    // model.
-    throw new UnimplementedError('Not supported in the new task model');
-  }
-
-  @override
   void setChangedContents(Source source, String contents, int offset,
       int oldLength, int newLength) {
     if (_contentRangeChanged(source, contents, offset, oldLength, newLength)) {
@@ -1312,11 +1255,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     return changedSources.length > 0;
   }
-
-  @deprecated
-  @override
-  void visitCacheItems(void callback(
-      Source source, dynamic dartEntry, dynamic rowDesc, CacheState state)) {}
 
   @override
   void visitContentCache(ContentCacheVisitor visitor) {

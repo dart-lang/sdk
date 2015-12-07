@@ -21,7 +21,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -422,16 +421,6 @@ class PerformAnalysisOperation extends ServerOperation {
         server.sendServerErrorNotification(
             'Failed to index Dart file: $file', exception, stackTrace);
       }
-      // HTML
-      try {
-        HtmlUnit htmlUnit = notice.resolvedHtmlUnit;
-        if (htmlUnit != null) {
-          server.addOperation(new _HtmlIndexOperation(context, file, htmlUnit));
-        }
-      } catch (exception, stackTrace) {
-        server.sendServerErrorNotification(
-            'Failed to index HTML file: $file', exception, stackTrace);
-      }
     }
   }
 }
@@ -507,24 +496,6 @@ class _DartOverridesOperation extends _DartNotificationOperation {
   @override
   void perform(AnalysisServer server) {
     sendAnalysisNotificationOverrides(server, file, unit);
-  }
-}
-
-class _HtmlIndexOperation extends _SingleFileOperation {
-  final HtmlUnit unit;
-
-  _HtmlIndexOperation(AnalysisContext context, String file, this.unit)
-      : super(context, file);
-
-  @override
-  ServerOperationPriority get priority {
-    return ServerOperationPriority.ANALYSIS_INDEX;
-  }
-
-  @override
-  void perform(AnalysisServer server) {
-    Index index = server.index;
-    index.index(context, unit);
   }
 }
 

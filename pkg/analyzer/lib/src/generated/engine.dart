@@ -27,7 +27,6 @@ import 'ast.dart';
 import 'constant.dart';
 import 'element.dart';
 import 'error.dart';
-import 'html.dart' as ht;
 import 'java_core.dart';
 import 'java_engine.dart';
 import 'resolver.dart';
@@ -254,24 +253,6 @@ abstract class AnalysisContext {
   List<AnalysisError> computeErrors(Source source);
 
   /**
-   * Return the element model corresponding to the HTML file defined by the
-   * given [source]. If the element model does not yet exist it will be created.
-   * The process of creating an element model for an HTML file can be
-   * long-running, depending on the size of the file and the number of libraries
-   * that are defined in it (via script tags) that also need to have a model
-   * built for them.
-   *
-   * Throws AnalysisException if the element model could not be determined
-   * because the analysis could not be performed.
-   *
-   * <b>Note:</b> This method cannot be used in an async environment.
-   *
-   * See [getHtmlElement].
-   */
-  @deprecated
-  HtmlElement computeHtmlElement(Source source);
-
-  /**
    * Return the kind of the given [source], computing it's kind if it is not
    * already known. Return [SourceKind.UNKNOWN] if the source is not contained
    * in this context.
@@ -397,17 +378,6 @@ abstract class AnalysisContext {
   AnalysisErrorInfo getErrors(Source source);
 
   /**
-   * Return the element model corresponding to the HTML file defined by the
-   * given [source], or `null` if the source does not represent an HTML file,
-   * the element representing the file has not yet been created, or the analysis
-   * of the HTML file failed for some reason.
-   *
-   * See [computeHtmlElement].
-   */
-  @deprecated
-  HtmlElement getHtmlElement(Source source);
-
-  /**
    * Return the sources for the HTML files that reference the compilation unit
    * with the given [source]. If the source does not represent a Dart source or
    * is not known to this context, the returned list will be empty. The contents
@@ -500,15 +470,6 @@ abstract class AnalysisContext {
       Source unitSource, Source librarySource);
 
   /**
-   * Return the fully resolved HTML unit defined by the given [htmlSource], or
-   * `null` if the resolved unit is not already computed.
-   *
-   * See [resolveHtmlUnit].
-   */
-  @deprecated
-  ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource);
-
-  /**
    * Return the value of the given [result] for the given [target].
    *
    * If the corresponding [target] does not exist, or the [result] is not
@@ -579,18 +540,6 @@ abstract class AnalysisContext {
   Document parseHtmlDocument(Source source);
 
   /**
-   * Parse a single HTML [source] to produce an AST structure. The resulting
-   * HTML AST structure may or may not be resolved, and may have a slightly
-   * different structure depending upon whether it is resolved.
-   *
-   * Throws an [AnalysisException] if the analysis could not be performed
-   *
-   * <b>Note:</b> This method cannot be used in an async environment.
-   */
-  @deprecated // use parseHtmlDocument(source)
-  ht.HtmlUnit parseHtmlUnit(Source source);
-
-  /**
    * Perform the next unit of work required to keep the analysis results
    * up-to-date and return information about the consequent changes to the
    * analysis results. This method can be long running.
@@ -643,17 +592,6 @@ abstract class AnalysisContext {
    */
   CompilationUnit resolveCompilationUnit2(
       Source unitSource, Source librarySource);
-
-  /**
-   * Parse and resolve a single [htmlSource] within the given context to produce
-   * a fully resolved AST.
-   *
-   * Throws an [AnalysisException] if the analysis could not be performed.
-   *
-   * <b>Note:</b> This method cannot be used in an async environment.
-   */
-  @deprecated
-  ht.HtmlUnit resolveHtmlUnit(Source htmlSource);
 
   /**
    * Set the contents of the given [source] to the given [contents] and mark the
@@ -1068,22 +1006,10 @@ abstract class AnalysisListener {
   void parsedDart(AnalysisContext context, Source source, CompilationUnit unit);
 
   /**
-   * Reports that the given HTML [source] was parsed in the given [context].
-   */
-  @deprecated
-  void parsedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
-
-  /**
    * Reports that the given Dart [source] was resolved in the given [context].
    */
   void resolvedDart(
       AnalysisContext context, Source source, CompilationUnit unit);
-
-  /**
-   * Reports that the given HTML [source] was resolved in the given [context].
-   */
-  @deprecated
-  void resolvedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
 }
 
 /**
@@ -1100,18 +1026,6 @@ class AnalysisNotScheduledError implements Exception {}
  * context.
  */
 abstract class AnalysisOptions {
-  /**
-   * If analysis is to parse and analyze all function bodies, return `true`.
-   * If analysis is to skip all function bodies, return `false`.  If analysis
-   * is to parse and analyze function bodies in some sources and not in others,
-   * throw an exception.
-   *
-   * This getter is deprecated; consider using [analyzeFunctionBodiesPredicate]
-   * instead.
-   */
-  @deprecated // Use this.analyzeFunctionBodiesPredicate
-  bool get analyzeFunctionBodies;
-
   /**
    * Function that returns `true` if analysis is to parse and analyze function
    * bodies for a given source.
@@ -1135,38 +1049,14 @@ abstract class AnalysisOptions {
   bool get enableAssertMessage;
 
   /**
-   * Return `true` if analysis is to include the new async support.
-   */
-  @deprecated // Always true
-  bool get enableAsync;
-
-  /**
    * Return `true` to enable interface libraries (DEP 40).
    */
   bool get enableConditionalDirectives;
 
   /**
-   * Return `true` if analysis is to include the new deferred loading support.
-   */
-  @deprecated // Always true
-  bool get enableDeferredLoading;
-
-  /**
-   * Return `true` if analysis is to include the new enum support.
-   */
-  @deprecated // Always true
-  bool get enableEnum;
-
-  /**
    * Return `true` to enable generic methods (DEP 22).
    */
   bool get enableGenericMethods => null;
-
-  /**
-   * Return `true` to enable null-aware operators (DEP 9).
-   */
-  @deprecated // Always true
-  bool get enableNullAwareOperators;
 
   /**
    * Return `true` to strictly follow the specification when generating
@@ -1240,18 +1130,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * The maximum number of sources for which data should be kept in the cache.
    */
   static const int DEFAULT_CACHE_SIZE = 64;
-
-  /**
-   * The default value for enabling deferred loading.
-   */
-  @deprecated
-  static bool DEFAULT_ENABLE_DEFERRED_LOADING = true;
-
-  /**
-   * The default value for enabling enum support.
-   */
-  @deprecated
-  static bool DEFAULT_ENABLE_ENUM = true;
 
   /**
    * A predicate indicating whether analysis is to parse and analyze function
@@ -1349,7 +1227,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * A flag indicating whether strong-mode analysis should be used.
    */
   bool strongMode = false;
- 
+
   /**
    * A flag indicating whether strong-mode inference hints should be
    * used.  This flag is not exposed in the interface, and should be
@@ -1363,33 +1241,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * values.
    */
   AnalysisOptionsImpl();
-
-  /**
-   * Initialize a newly created set of analysis options to have the same values
-   * as those in the given set of analysis [options].
-   */
-  @deprecated // Use new AnalysisOptionsImpl.from(options)
-  AnalysisOptionsImpl.con1(AnalysisOptions options) {
-    analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
-    cacheSize = options.cacheSize;
-    dart2jsHint = options.dart2jsHint;
-    enableAssertMessage = options.enableAssertMessage;
-    enableStrictCallChecks = options.enableStrictCallChecks;
-    enableGenericMethods = options.enableGenericMethods;
-    enableSuperMixins = options.enableSuperMixins;
-    generateImplicitErrors = options.generateImplicitErrors;
-    generateSdkErrors = options.generateSdkErrors;
-    hint = options.hint;
-    incremental = options.incremental;
-    incrementalApi = options.incrementalApi;
-    incrementalValidation = options.incrementalValidation;
-    lint = options.lint;
-    preserveComments = options.preserveComments;
-    strongMode = options.strongMode;
-    if (options is AnalysisOptionsImpl) {
-      strongModeHints = options.strongModeHints;
-    }
-  }
 
   /**
    * Initialize a newly created set of analysis options to have the same values
@@ -1445,42 +1296,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       throw new ArgumentError.notNull('analyzeFunctionBodiesPredicate');
     }
     _analyzeFunctionBodiesPredicate = value;
-  }
-
-  @deprecated
-  @override
-  bool get enableAsync => true;
-
-  @deprecated
-  void set enableAsync(bool enable) {
-    // Async support cannot be disabled
-  }
-
-  @deprecated
-  @override
-  bool get enableDeferredLoading => true;
-
-  @deprecated
-  void set enableDeferredLoading(bool enable) {
-    // Deferred loading support cannot be disabled
-  }
-
-  @deprecated
-  @override
-  bool get enableEnum => true;
-
-  @deprecated
-  void set enableEnum(bool enable) {
-    // Enum support cannot be disabled
-  }
-
-  @deprecated
-  @override
-  bool get enableNullAwareOperators => true;
-
-  @deprecated
-  void set enableNullAwareOperators(bool enable) {
-    // Null-aware operator support cannot be disabled
   }
 
   /**
@@ -1643,13 +1458,6 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
   CompilationUnit get resolvedDartUnit;
 
   /**
-   * The fully resolved HTML AST that changed as a result of the analysis, or
-   * `null` if the AST was not changed.
-   */
-  @deprecated
-  ht.HtmlUnit get resolvedHtmlUnit;
-
-  /**
    * Return the source for which the result is being reported.
    */
   Source get source;
@@ -1680,13 +1488,6 @@ class ChangeNoticeImpl implements ChangeNotice {
    * `null` if the AST was not changed.
    */
   CompilationUnit resolvedDartUnit;
-
-  /**
-   * The fully resolved HTML AST that changed as a result of the analysis, or
-   * `null` if the AST was not changed.
-   */
-  @deprecated
-  ht.HtmlUnit resolvedHtmlUnit;
 
   /**
    * The errors that changed as a result of the analysis, or `null` if errors
@@ -2081,19 +1882,9 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   dynamic get privateAnalysisCachePartition;
 
   /**
-   * A factory to override how [ResolverVisitor] is created.
-   */
-  ResolverVisitorFactory get resolverVisitorFactory;
-
-  /**
    * Sets the [TypeProvider] for this context.
    */
   void set typeProvider(TypeProvider typeProvider);
-
-  /**
-   * A factory to override how [TypeResolverVisitor] is created.
-   */
-  TypeResolverVisitorFactory get typeResolverVisitorFactory;
 
   /**
    * A list of all [WorkManager]s used by this context.
@@ -2121,17 +1912,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * computed.
    */
   List<Source> computeImportedLibraries(Source source);
-
-  /**
-   * Return an AST structure corresponding to the given [source], but ensure
-   * that the structure has not already been resolved and will not be resolved
-   * by any other threads or in any other library.
-   *
-   * Throws an [AnalysisException] if the analysis could not be performed.
-   *
-   * <b>Note:</b> This method cannot be used in an async environment
-   */
-  CompilationUnit computeResolvableCompilationUnit(Source source);
 
   /**
    * Return all the resolved [CompilationUnit]s for the given [source] if not
@@ -2200,13 +1980,6 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   void test_flushAstStructures(Source source);
 
   /**
-   * Call the given callback function for eache cache item in the context.
-   */
-  @deprecated
-  void visitCacheItems(void callback(
-      Source source, dynamic dartEntry, dynamic rowDesc, CacheState state));
-
-  /**
    * Visit all entries of the content cache.
    */
   void visitContentCache(ContentCacheVisitor visitor);
@@ -2233,25 +2006,11 @@ abstract class Logger {
   void logError(String message, [CaughtException exception]);
 
   /**
-   * Log the given [exception] as one representing an error. The [message] is an
-   * explanation of why the error occurred or what it means.
-   */
-  @deprecated // Use logError(message, exception)
-  void logError2(String message, Object exception);
-
-  /**
    * Log the given informational message. The [message] is expected to be an
    * explanation of why the error occurred or what it means. The [exception] is
    * expected to be the reason for the error.
    */
   void logInformation(String message, [CaughtException exception]);
-
-  /**
-   * Log the given [exception] as one representing an informational message. The
-   * [message] is an explanation of why the error occurred or what it means.
-   */
-  @deprecated // Use logInformation(message, exception)
-  void logInformation2(String message, Object exception);
 }
 
 /**
@@ -2262,13 +2021,7 @@ class NullLogger implements Logger {
   void logError(String message, [CaughtException exception]) {}
 
   @override
-  void logError2(String message, Object exception) {}
-
-  @override
   void logInformation(String message, [CaughtException exception]) {}
-
-  @override
-  void logInformation2(String message, Object exception) {}
 }
 
 /**
