@@ -6,6 +6,7 @@
   method AnalysisEngine.processRequiredPlugins().
 * Removed the old task model and code that supported it. None of the removed code was intended to be public API, but
   might be in use anyway.
+* Removed previously deprecated API's (marked with the @deprecated annotation).
 
 ## 0.26.3
 * (Internal) Support for `_embedder.yaml` discovery and processing.
