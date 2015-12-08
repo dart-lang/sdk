@@ -478,6 +478,19 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_imports_prefixed2() {
+    addTestFile('''
+      import 'dart:html' as foo;
+      main() {foo.^}
+    ''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
+      assertNoResult('test');
+    });
+  }
+
   test_invocation() {
     addTestFile('class A {b() {}} main() {A a; a.^}');
     return getSuggestions().then((_) {
@@ -637,6 +650,16 @@ class B extends A {m() {^}}
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
       assertNoResult('HtmlElement');
       assertNoResult('test');
+    });
+  }
+
+  test_static() {
+    addTestFile('class A {static b() {} c() {}} main() {A.^}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+      assertNoResult('c');
     });
   }
 

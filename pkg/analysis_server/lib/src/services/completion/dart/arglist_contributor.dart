@@ -151,7 +151,7 @@ class ArgListContributor extends DartCompletionContributor {
     }
 
     // Resolve the target expression to determine the arguments
-    await request.resolveIdentifier(targetId);
+    await request.resolveExpression(targetId);
     // Gracefully degrade if the element could not be resolved
     // e.g. target changed, completion aborted
     targetId = _getTargetId(request.target.containingNode);

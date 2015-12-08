@@ -5,7 +5,6 @@
 library services.completion.contributor.dart.static_member;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
@@ -17,7 +16,7 @@ import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
 /**
- * A contributor for calculating invocation / access suggestions
+ * A contributor for calculating static member invocation / access suggestions
  * `completion.getSuggestions` request results.
  */
 class StaticMemberContributor extends DartCompletionContributor {
@@ -32,7 +31,7 @@ class StaticMemberContributor extends DartCompletionContributor {
     }
 
     // Resolve the expression and the containing library
-    await request.resolveIdentifier(targetId);
+    await request.resolveExpression(targetId);
     LibraryElement containingLibrary = await request.libraryElement;
     // Gracefully degrade if the library could not be determined
     // e.g. detached part file or source change

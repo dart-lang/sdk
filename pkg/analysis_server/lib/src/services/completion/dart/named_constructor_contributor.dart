@@ -44,7 +44,7 @@ class NamedConstructorContributor extends DartCompletionContributor {
     }
 
     // Resolve the target to determine the type
-    await request.resolveIdentifier(targetId);
+    await request.resolveExpression(targetId);
 
     // Recompute the target since resolution may have changed it
     AstNode node = request.target.containingNode;

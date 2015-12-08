@@ -13,6 +13,7 @@ import 'common_usage_sorter_test.dart' as common_usage_test;
 import 'field_formal_contributor_test.dart' as field_formal_contributor_test;
 import 'inherited_contributor_test.dart' as inherited_contributor_test;
 import 'keyword_contributor_test.dart' as keyword_test;
+import 'library_member_contributor_test.dart' as library_test;
 import 'named_constructor_contributor_test.dart' as named_contributor_test;
 import 'static_member_contributor_test.dart' as static_contributor_test;
 import 'uri_contributor_test.dart' as uri_contributor_test;
@@ -27,6 +28,7 @@ main() {
     field_formal_contributor_test.main();
     inherited_contributor_test.main();
     keyword_test.main();
+    library_test.main();
     named_contributor_test.main();
     static_contributor_test.main();
     uri_contributor_test.main();

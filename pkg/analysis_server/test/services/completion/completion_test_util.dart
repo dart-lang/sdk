@@ -3985,9 +3985,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationClass('X');
-      assertSuggestInvocationClass('Y');
-      assertSuggestInvocationTopLevelVar('T1', null);
+      // Suggested by LibraryMemberContributor
+      assertNotSuggested('X');
+      assertNotSuggested('Y');
+      assertNotSuggested('T1');
       assertNotSuggested('T2');
       assertNotSuggested('Object');
       assertNotSuggested('b');
@@ -4014,8 +4015,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationClass('X');
-      assertSuggestInvocationClass('Y');
+      // Suggested by LibraryMemberContributor
+      assertNotSuggested('X');
+      assertNotSuggested('Y');
       assertNotSuggested('T1');
       assertNotSuggested('T2');
       assertNotSuggested('Object');
@@ -4043,8 +4045,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationClass('X');
-      assertSuggestInvocationClass('Y');
+      // Suggested by LibraryMemberContributor
+      assertNotSuggested('X');
+      assertNotSuggested('Y');
       assertNotSuggested('T1');
       assertNotSuggested('T2');
       assertNotSuggested('Object');

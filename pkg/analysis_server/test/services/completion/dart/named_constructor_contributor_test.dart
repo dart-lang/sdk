@@ -91,7 +91,7 @@ class NamedConstructorContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestNamedConstructor('c', null);
+    assertSuggestNamedConstructor('c', 'X');
     assertNotSuggested('F1');
     assertNotSuggested('T1');
     assertNotSuggested('_d');

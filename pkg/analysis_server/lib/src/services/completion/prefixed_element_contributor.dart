@@ -317,32 +317,35 @@ class _PrefixedIdentifierSuggestionBuilder
   @override
   Future<bool> visitPrefixElement(PrefixElement element) {
     bool modified = false;
+
+    // Suggested by LibraryMemberContributor
+
     // Find the import directive with the given prefix
-    for (Directive directive in request.unit.directives) {
-      if (directive is ImportDirective) {
-        if (directive.prefix != null) {
-          if (directive.prefix.name == element.name) {
-            // Suggest elements from the imported library
-            LibraryElement library = directive.uriElement;
-            AstNode node = request.target.containingNode;
-            bool typesOnly = node.parent is TypeName;
-            bool instCreation =
-                typesOnly && node.parent.parent is ConstructorName;
-            LibraryElementSuggestionBuilder.suggestionsFor(
-                request,
-                CompletionSuggestionKind.INVOCATION,
-                library,
-                typesOnly,
-                instCreation);
-            modified = true;
-            if (directive.deferredKeyword != null) {
-              FunctionElement loadLibFunct = library.loadLibraryFunction;
-              request.addSuggestion(createSuggestion(loadLibFunct));
-            }
-          }
-        }
-      }
-    }
+    // for (Directive directive in request.unit.directives) {
+    //   if (directive is ImportDirective) {
+    //     if (directive.prefix != null) {
+    //       if (directive.prefix.name == element.name) {
+    //         // Suggest elements from the imported library
+    //         LibraryElement library = directive.uriElement;
+    //         AstNode node = request.target.containingNode;
+    //         bool typesOnly = node.parent is TypeName;
+    //         bool instCreation =
+    //             typesOnly && node.parent.parent is ConstructorName;
+    //         LibraryElementSuggestionBuilder.suggestionsFor(
+    //             request,
+    //             CompletionSuggestionKind.INVOCATION,
+    //             library,
+    //             typesOnly,
+    //             instCreation);
+    //         modified = true;
+    //         if (directive.deferredKeyword != null) {
+    //           FunctionElement loadLibFunct = library.loadLibraryFunction;
+    //           request.addSuggestion(createSuggestion(loadLibFunct));
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     return new Future.value(modified);
   }
 

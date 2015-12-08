@@ -154,11 +154,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   }
 
   @override
-  Future resolveIdentifier(SimpleIdentifier identifier) async {
-    if (identifier.bestElement != null) {
-      return;
-    }
-
+  Future resolveExpression(Expression expression) async {
     //TODO(danrubel) resolve the expression or containing method
     // rather than the entire complilation unit
 
