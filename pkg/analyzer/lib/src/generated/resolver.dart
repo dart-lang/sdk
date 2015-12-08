@@ -9005,22 +9005,25 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitListLiteral(ListLiteral node) {
     DartType contextType = InferenceContext.getType(node);
-    if (node.typeArguments == null && contextType is InterfaceType) {
+    List<DartType> targs = null;
+    if (node.typeArguments != null) {
+      targs = node.typeArguments.arguments.map((t) => t.type).toList();
+    } else if (contextType is InterfaceType) {
       InterfaceType listD =
           typeProvider.listType.substitute4([typeProvider.dynamicType]);
-      List<DartType> targs = inferenceContext.matchTypes(listD, contextType);
-      if (targs != null &&
-          targs.length == 1 &&
-          targs.any((t) => !t.isDynamic)) {
-        DartType eType = targs[0];
-        InterfaceType listT = typeProvider.listType.substitute4([eType]);
-        for (Expression child in node.elements) {
-          InferenceContext.setType(child, eType);
-        }
-        InferenceContext.setType(node, listT);
-      } else {
-        InferenceContext.clearType(node);
+      targs = inferenceContext.matchTypes(listD, contextType);
+    }
+    if (targs != null &&
+        targs.length == 1 &&
+        !targs[0].isDynamic) {
+      DartType eType = targs[0];
+      InterfaceType listT = typeProvider.listType.substitute4([eType]);
+      for (Expression child in node.elements) {
+        InferenceContext.setType(child, eType);
       }
+      InferenceContext.setType(node, listT);
+    } else {
+      InferenceContext.clearType(node);
     }
     super.visitListLiteral(node);
     return null;
@@ -9029,24 +9032,27 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitMapLiteral(MapLiteral node) {
     DartType contextType = InferenceContext.getType(node);
-    if (node.typeArguments == null && contextType is InterfaceType) {
+    List<DartType> targs = null;
+    if (node.typeArguments != null) {
+      targs = node.typeArguments.arguments.map((t) => t.type).toList();
+    } else if (contextType is InterfaceType) {
       InterfaceType mapD = typeProvider.mapType
           .substitute4([typeProvider.dynamicType, typeProvider.dynamicType]);
-      List<DartType> targs = inferenceContext.matchTypes(mapD, contextType);
-      if (targs != null &&
-          targs.length == 2 &&
-          targs.any((t) => !t.isDynamic)) {
-        DartType kType = targs[0];
-        DartType vType = targs[1];
-        InterfaceType mapT = typeProvider.mapType.substitute4([kType, vType]);
-        for (MapLiteralEntry entry in node.entries) {
-          InferenceContext.setType(entry.key, kType);
-          InferenceContext.setType(entry.value, vType);
-        }
-        InferenceContext.setType(node, mapT);
-      } else {
-        InferenceContext.clearType(node);
+      targs = inferenceContext.matchTypes(mapD, contextType);
+    }
+    if (targs != null &&
+        targs.length == 2 &&
+        targs.any((t) => !t.isDynamic)) {
+      DartType kType = targs[0];
+      DartType vType = targs[1];
+      InterfaceType mapT = typeProvider.mapType.substitute4([kType, vType]);
+      for (MapLiteralEntry entry in node.entries) {
+        InferenceContext.setType(entry.key, kType);
+        InferenceContext.setType(entry.value, vType);
       }
+      InferenceContext.setType(node, mapT);
+    } else {
+      InferenceContext.clearType(node);
     }
     super.visitMapLiteral(node);
     return null;

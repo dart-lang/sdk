@@ -349,6 +349,36 @@ void main() {
     '''
   });
 
+  testChecker('infer list literal nested in map literal', {
+    '/main.dart': r'''
+class Resource {}
+class Folder extends Resource {}
+
+Resource getResource(String str) => null;
+
+class Foo<T> {
+  Foo(T t);
+}
+
+main() {
+  // List inside map
+  var map = <String, List<Folder>>{
+    'pkgA': /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/')],
+    'pkgB': /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgB/lib/')]
+  };
+  // Also try map inside list
+  var list = <Map<String, Folder>>[
+    /*info:INFERRED_TYPE_LITERAL*/{ 'pkgA': /*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/') },
+    /*info:INFERRED_TYPE_LITERAL*/{ 'pkgB': /*info:DOWN_CAST_IMPLICIT*/getResource('/pkgB/lib/') },
+  ];
+  // Instance creation too
+  var foo = new Foo<List<Folder>>(
+    /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/')]
+  );
+}
+    '''
+  });
+
   // but flags can enable this behavior.
   testChecker('infer if complex expressions read possibly inferred field', {
     '/a.dart': '''
