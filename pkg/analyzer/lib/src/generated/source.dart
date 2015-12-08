@@ -662,6 +662,17 @@ class SourceFactory {
   }
 
   /**
+   * Return a source factory that will resolve URI's in the same way that this
+   * source factory does.
+   */
+  SourceFactory clone() {
+    SourceFactory factory =
+        new SourceFactory(_resolvers, _packages, _resourceProvider);
+    factory.localSourcePredicate = _localSourcePredicate;
+    return factory;
+  }
+
+  /**
    * Return a source object representing the given absolute URI, or `null` if the URI is not a
    * valid URI or if it is not an absolute URI.
    *

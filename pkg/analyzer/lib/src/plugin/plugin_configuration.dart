@@ -84,10 +84,11 @@ class PluginConfig {
   PluginConfig(this.plugins);
 
   /// Create a plugin configuration from an options map.
-  factory PluginConfig.fromOptions(Map<String, YamlNode> options) {
+  factory PluginConfig.fromOptions(Map<String, Object> options) {
     List<PluginInfo> plugins = [];
     var analyzerOptions = options[_analyzerOptionScope];
     if (analyzerOptions != null) {
+      //TODO(pq): handle "raw" maps (https://github.com/dart-lang/sdk/issues/25126)
       if (analyzerOptions is YamlMap) {
         var pluginConfig = analyzerOptions[_pluginOptionScope];
         if (pluginConfig is YamlMap) {
@@ -143,7 +144,7 @@ class PluginConfigOptionsProcessor extends OptionsProcessor {
 
   @override
   void optionsProcessed(
-      AnalysisContext context, Map<String, YamlNode> options) {
+      AnalysisContext context, Map<String, Object> options) {
     _config = new PluginConfig.fromOptions(options);
   }
 }

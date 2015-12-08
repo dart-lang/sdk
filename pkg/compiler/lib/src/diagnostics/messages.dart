@@ -146,6 +146,7 @@ enum MessageKind {
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
+  CONST_LOOP_VARIABLE,
   CONST_MAP_KEY_OVERRIDES_EQUALS,
   CONST_WITHOUT_INITIALIZER,
   CONSTRUCTOR_CALL_EXPECTED,
@@ -2056,6 +2057,16 @@ void main() {
                     "removing the 'final' modifier.",
           examples: const [
               "class C { static final field; } main() => C.field;"]),
+
+      MessageKind.CONST_LOOP_VARIABLE:
+        const MessageTemplate(MessageKind.CONST_LOOP_VARIABLE,
+          "A loop variable cannot be constant.",
+          howToFix: "Try remove the 'const' modifier or "
+                    "replacing it with a 'final' modifier.",
+          examples: const ["""
+void main() {
+  for (const c in []) {}
+}"""]),
 
       MessageKind.MEMBER_USES_CLASS_NAME:
         const MessageTemplate(MessageKind.MEMBER_USES_CLASS_NAME,

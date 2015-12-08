@@ -192,17 +192,26 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    * The [compare] function must act as a [Comparator].
    *
-   *     List<String> numbers = ['one', 'two', 'three', 'four'];
+   *     List<String> numbers = ['two', 'three', 'four'];
    *     // Sort from shortest to longest.
-   *     numbers.sort((x, y) => x.length.compareTo(y.length));
-   *     numbers.join(', '); // 'one, two, four, three'
+   *     numbers.sort((a, b) => a.length.compareTo(b.length));
+   *     print(numbers);  // [two, four, three]
    *
    * The default List implementations use [Comparable.compare] if
    * [compare] is omitted.
    *
    *     List<int> nums = [13, 2, -11];
    *     nums.sort();
-   *     nums.join(', '); // '-11, 2, 13'
+   *     print(nums);  // [-11, 2, 13]
+   *
+   * A [Comparator] may compare objects as equal (return zero), even if they
+   * are distinct objects.
+   * The sort function is not guaranteed to be stable, so distinct objects
+   * that compare as equal may occur in any order in the result:
+   *
+   *     List<String> numbers = ['one', 'two', 'three', 'four'];
+   *     numbers.sort((a, b) => a.length.compareTo(b.length));
+   *     print(numbers);  // [one, two, four, three] OR [two, one, four, three]
    */
   void sort([int compare(E a, E b)]);
 

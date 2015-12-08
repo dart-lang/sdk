@@ -55,7 +55,7 @@ String getReturnTypeString(engine.Element element) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType.toString();
+      return element.returnType?.toString();
     }
   } else if (element is engine.VariableElement) {
     engine.DartType type = element.type;

@@ -22,6 +22,22 @@ class StrongTypeSystemImpl implements TypeSystem {
 
   StrongTypeSystemImpl();
 
+  bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
+    return ft.parameters.any((p) => predicate(p.type));
+  }
+
+  /**
+   * Given a type t, if t is an interface type with a call method
+   * defined, return the function type for the call method, otherwise
+   * return null.
+   */
+  FunctionType getCallMethodType(DartType t) {
+    if (t is InterfaceType) {
+      return t.lookUpInheritedMethod("call")?.type;
+    }
+    return null;
+  }
+
   @override
   DartType getLeastUpperBound(
       TypeProvider typeProvider, DartType type1, DartType type2) {
@@ -128,9 +144,10 @@ class StrongTypeSystemImpl implements TypeSystem {
     return fnType.instantiate(inferredTypes);
   }
 
-  // TODO(leafp): Document the rules in play here
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
+    // TODO(leafp): Document the rules in play here
+
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -138,8 +155,8 @@ class StrongTypeSystemImpl implements TypeSystem {
 
     // Don't allow implicit downcasts between function types
     // and call method objects, as these will almost always fail.
-    if ((fromType is FunctionType && _getCallMethodType(toType) != null) ||
-        (toType is FunctionType && _getCallMethodType(fromType) != null)) {
+    if ((fromType is FunctionType && getCallMethodType(toType) != null) ||
+        (toType is FunctionType && getCallMethodType(fromType) != null)) {
       return false;
     }
 
@@ -160,19 +177,35 @@ class StrongTypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  bool isGroundType(DartType t) {
+    // TODO(leafp): Revisit this.
+    if (t is TypeParameterType) return false;
+    if (_isTop(t)) return true;
+
+    if (t is FunctionType) {
+      if (!_isTop(t.returnType) ||
+          anyParameterType(t, (pt) => !_isBottom(pt, dynamicIsBottom: true))) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    if (t is InterfaceType) {
+      var typeArguments = t.typeArguments;
+      for (var typeArgument in typeArguments) {
+        if (!_isTop(typeArgument)) return false;
+      }
+      return true;
+    }
+
+    // We should not see any other type aside from malformed code.
+    return false;
+  }
+
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return _isSubtypeOf(leftType, rightType, null);
-  }
-
-  // Given a type t, if t is an interface type with a call method
-  // defined, return the function type for the call method, otherwise
-  // return null.
-  FunctionType _getCallMethodType(DartType t) {
-    if (t is InterfaceType) {
-      return t.lookUpInheritedMethod("call")?.type;
-    }
-    return null;
   }
 
   _GuardedSubtypeChecker<DartType> _guard(
@@ -407,7 +440,7 @@ class StrongTypeSystemImpl implements TypeSystem {
     // the interface type declares a call method with a type
     // which is a super type of the function type.
     if (t1 is InterfaceType && t2 is FunctionType) {
-      var callType = _getCallMethodType(t1);
+      var callType = getCallMethodType(t1);
       return (callType != null) && _isFunctionSubtypeOf(callType, t2);
     }
 

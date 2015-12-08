@@ -7,7 +7,6 @@ library engine.resolver;
 import 'dart:collection';
 
 import '../task/strong/info.dart' show InferredType, StaticInfo;
-import '../task/strong/rules.dart' show TypeRules;
 import 'ast.dart';
 import 'constant.dart';
 import 'element.dart';
@@ -5336,11 +5335,6 @@ class InferenceContext {
   final TypeSystem _typeSystem;
 
   /**
-   * The DDC type rules, used to create the inference info nodes.
-   */
-  final TypeRules _rules;
-
-  /**
    * A stack of return types for all of the enclosing
    * functions and methods.
    */
@@ -5348,8 +5342,7 @@ class InferenceContext {
 
   InferenceContext._(this._errorListener, TypeProvider typeProvider,
       this._typeSystem, this._inferenceHints)
-      : _typeProvider = typeProvider,
-        _rules = new TypeRules(typeProvider);
+      : _typeProvider = typeProvider;
 
   /**
    * Get the return type of the current enclosing function, if any.
@@ -5390,7 +5383,7 @@ class InferenceContext {
    * [type] has been inferred as the type of [node].
    */
   void recordInference(Expression node, DartType type) {
-    StaticInfo info = InferredType.create(_rules, node, type);
+    StaticInfo info = InferredType.create(_typeSystem, node, type);
     if (!_inferenceHints || info == null) {
       return;
     }
@@ -9030,6 +9023,7 @@ class ResolverVisitor extends ScopedVisitor {
     // because it needs to be visited in the context of the invocation.
     //
     safelyVisit(node.target);
+    safelyVisit(node.typeArguments);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
     Element methodElement = node.methodName.staticElement;

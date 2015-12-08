@@ -8,6 +8,9 @@
   might be in use anyway.
 * Removed previously deprecated API's (marked with the @deprecated annotation).
 
+## 0.26.4
+* Options processing API updated to accept untyped options maps (#25126).
+
 ## 0.26.3
 * (Internal) Support for `_embedder.yaml` discovery and processing.
 

@@ -19,6 +19,8 @@ def makeArchive(tar_path, client_root, files):
   for input_file_name in files:
     # Chop off client_root.
     archive_file_name = input_file_name[ len(client_root) : ]
+    # Replace back slash with forward slash. So we do not have Windows paths.
+    archive_file_name = archive_file_name.replace("\\", "/")
     # Open input file and add it to the archive.
     with open(input_file_name, 'rb') as input_file:
       tarInfo = tarfile.TarInfo(name=archive_file_name)

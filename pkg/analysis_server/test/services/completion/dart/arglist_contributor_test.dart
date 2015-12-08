@@ -302,6 +302,27 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
     assertNoSuggestions();
   }
 
+  test_ArgumentList_imported_function_named_param_label1() async {
+    //
+    addTestSource('main() { int.parse("16", r^: 16);}');
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['radix', 'onError']);
+  }
+
+  test_ArgumentList_imported_function_named_param_label2() async {
+    //
+    addTestSource('main() { int.parse("16", ^r: 16);}');
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['radix', 'onError']);
+  }
+
+  test_ArgumentList_imported_function_named_param_label3() async {
+    //
+    addTestSource('main() { int.parse("16", ^: 16);}');
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['radix', 'onError']);
+  }
+
   test_ArgumentList_local_constructor_named_param() async {
     //
     addTestSource('''

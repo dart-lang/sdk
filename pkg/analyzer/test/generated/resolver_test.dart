@@ -12639,6 +12639,81 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_genericFunction_typedef() {
+    String code = r'''
+typedef T F<T>(T x);
+F f0;
+
+class C {
+  static F f1;
+  F f2;
+  void g(F f3) {
+    F f4;
+    f0(3);
+    f1(3);
+    f2(3);
+    f3(3);
+    f4(3);
+  }
+}
+
+class D<S> {
+  static F f1;
+  F f2;
+  void g(F f3) {
+    F f4;
+    f0(3);
+    f1(3);
+    f2(3);
+    f3(3);
+    f4(3);
+  }
+}
+''';
+    _resolveTestUnit(code);
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInMethod(testUnit, "C", "g");
+
+      ExpressionStatement exps0 = statements[1];
+      ExpressionStatement exps1 = statements[2];
+      ExpressionStatement exps2 = statements[3];
+      ExpressionStatement exps3 = statements[4];
+      ExpressionStatement exps4 = statements[5];
+      Expression exp0 = exps0.expression;
+      Expression exp1 = exps1.expression;
+      Expression exp2 = exps2.expression;
+      Expression exp3 = exps3.expression;
+      Expression exp4 = exps4.expression;
+      expect(exp0.staticType, typeProvider.dynamicType);
+      expect(exp1.staticType, typeProvider.dynamicType);
+      expect(exp2.staticType, typeProvider.dynamicType);
+      expect(exp3.staticType, typeProvider.dynamicType);
+      expect(exp4.staticType, typeProvider.dynamicType);
+    }
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInMethod(testUnit, "D", "g");
+
+      ExpressionStatement exps0 = statements[1];
+      ExpressionStatement exps1 = statements[2];
+      ExpressionStatement exps2 = statements[3];
+      ExpressionStatement exps3 = statements[4];
+      ExpressionStatement exps4 = statements[5];
+      Expression exp0 = exps0.expression;
+      Expression exp1 = exps1.expression;
+      Expression exp2 = exps2.expression;
+      Expression exp3 = exps3.expression;
+      Expression exp4 = exps4.expression;
+      expect(exp0.staticType, typeProvider.dynamicType);
+      expect(exp1.staticType, typeProvider.dynamicType);
+      expect(exp2.staticType, typeProvider.dynamicType);
+      expect(exp3.staticType, typeProvider.dynamicType);
+      expect(exp4.staticType, typeProvider.dynamicType);
+    }
+  }
+
   void test_genericFunction() {
     _resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
     SimpleIdentifier f = _findIdentifier('f');
@@ -12677,6 +12752,26 @@ main() {
     expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
   }
 
+  void test_genericMethod_explicitTypeParams() {
+    _resolveTestUnit(r'''
+class C<E> {
+  List/*<T>*/ f/*<T>*/(E e) => null;
+}
+main() {
+  C<String> cOfString;
+  var x = cOfString.f/*<int>*/('hi');
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f/*<int>*/');
+    FunctionType ft = f.staticType;
+    expect(ft.toString(), '(String) → List<int>');
+    expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
+
+    SimpleIdentifier x = _findIdentifier('x');
+    expect(x.staticType,
+        typeProvider.listType.substitute4([typeProvider.intType]));
+  }
+
   void test_genericMethod_functionTypedParameter() {
     _resolveTestUnit(r'''
 class C<E> {
@@ -12699,6 +12794,28 @@ main() {
     expect(ft.toString(), '<T>((String) → T) → List<T>');
     ft = ft.instantiate([typeProvider.intType]);
     expect(ft.toString(), '((String) → int) → List<int>');
+  }
+
+  void test_genericMethod_implicitDynamic() {
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/25100#issuecomment-162047588
+    // These should not cause any hints or warnings.
+    _resolveTestUnit(r'''
+class List<E> {
+  /*=T*/ map/*<T>*/(/*=T*/ f(E e)) => null;
+}
+void foo() {
+  List list = null;
+  list.map((e) => e);
+  list.map((e) => 3);
+}''');
+
+    SimpleIdentifier map1 = _findIdentifier('map((e) => e);');
+    expect(map1.staticType.toString(), '((dynamic) → dynamic) → dynamic');
+    expect(map1.propagatedType, isNull);
+    SimpleIdentifier map2 = _findIdentifier('map((e) => 3);');
+    expect(map2.staticType.toString(), '((dynamic) → int) → int');
+    expect(map2.propagatedType, isNull);
   }
 
   void test_genericMethod_nestedCapture() {

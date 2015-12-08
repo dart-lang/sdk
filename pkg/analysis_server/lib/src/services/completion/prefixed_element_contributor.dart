@@ -264,11 +264,6 @@ class _PrefixedIdentifierSuggestionBuilder
 
   @override
   Future<bool> computeFull(AstNode node) {
-    if (node is ConstructorName) {
-      // some PrefixedIdentifier nodes are transformed into
-      // ConstructorName nodes during the resolution process.
-      return new NamedConstructorSuggestionBuilder(request).computeFull(node);
-    }
     if (node is PrefixedIdentifier) {
       SimpleIdentifier prefix = node.prefix;
       if (prefix != null) {
@@ -306,8 +301,9 @@ class _PrefixedIdentifierSuggestionBuilder
     if (element != null) {
       InterfaceType type = element.type;
       if (type != null) {
-        StaticClassElementSuggestionBuilder.suggestionsFor(
-            request, type.element);
+        // Suggested by StaticMemberContributor
+        // StaticClassElementSuggestionBuilder.suggestionsFor(
+        //     request, type.element);
       }
     }
     return new Future.value(false);

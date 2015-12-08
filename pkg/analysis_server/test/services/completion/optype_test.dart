@@ -108,6 +108,11 @@ class OpTypeTest {
     assertOpType(typeNames: true);
   }
 
+  test_Assert() {
+    addTestSource('main() {assert(^)}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_AssignmentExpression_name() {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block

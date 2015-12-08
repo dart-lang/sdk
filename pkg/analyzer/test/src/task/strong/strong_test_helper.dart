@@ -15,8 +15,8 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
@@ -240,8 +240,8 @@ void testChecker(String name, Map<String, String> testFiles) {
         context.resolveCompilationUnit2(mainSource, mainSource);
 
     var collector = new _ErrorCollector();
-    var checker = new CodeChecker(
-        new TypeRules(context.typeProvider), collector,
+    var checker = new CodeChecker(context.typeProvider,
+        new StrongTypeSystemImpl(), collector,
         hints: true);
 
     // Extract expectations from the comments in the test files, and
@@ -426,13 +426,18 @@ class _ExpectedErrorVisitor extends UnifyingAstVisitor {
         var commentText = '$comment';
         var start = commentText.lastIndexOf('/*');
         var end = commentText.lastIndexOf('*/');
-        if (start != -1 && end != -1) {
+        if (start != -1 &&
+            end != -1 &&
+            !commentText.startsWith('/*<', start) &&
+            !commentText.startsWith('/*=', start)) {
           expect(start, lessThan(end));
           var errors = commentText.substring(start + 2, end).split(',');
           var expectations =
               errors.map(_ErrorExpectation.parse).where((x) => x != null);
 
-          for (var e in expectations) _expectError(node, e);
+          for (var e in expectations) {
+            _expectError(node, e);
+          }
         }
       }
     }

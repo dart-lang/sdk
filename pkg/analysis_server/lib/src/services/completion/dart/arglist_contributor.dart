@@ -87,6 +87,23 @@ bool _isAppendingToArgList(DartCompletionRequest request) {
 }
 
 /**
+ * Determine if the completion target is the label for a named argument.
+ */
+bool _isEditingNamedArgLabel(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  if (node is ArgumentList) {
+    var entity = request.target.entity;
+    if (entity is NamedExpression) {
+      int offset = request.offset;
+      if (entity.offset <= offset && offset < entity.end) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Determine if the completion target is an emtpy argument list.
  */
 bool _isEmptyArgList(DartCompletionRequest request) {
@@ -233,7 +250,7 @@ class ArgListContributor extends DartCompletionContributor {
       _addArgListSuggestion(requiredParam);
       return;
     }
-    if (_isAppendingToArgList(request)) {
+    if (_isEditingNamedArgLabel(request) || _isAppendingToArgList(request)) {
       if (requiredCount == 0 || requiredCount < _argCount(request)) {
         _addDefaultParamSuggestions(parameters);
       }
