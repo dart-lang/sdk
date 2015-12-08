@@ -1707,6 +1707,8 @@ void Parser::SkipToMatching() {
         is_match = opening_token == Token::kLBRACK;
         break;
       case Token::kEOS:
+        opening_token = token_stack.RemoveLast();
+        opening_pos = token_pos_stack.RemoveLast();
         unexpected_token_found = true;
         break;
       default:

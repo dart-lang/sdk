@@ -9370,9 +9370,7 @@ void Library::RemovePatchClass(const Class& cls) const {
   // Library::LoadedScripts() can find it without having to iterate
   // over the members of each class.
   ASSERT(i < num_classes);  // We must have found a class.
-  Class& pc = Class::Handle();
-  pc ^= patch_classes.At(i);
-  const Script& patch_script = Script::Handle(pc.script());
+  const Script& patch_script = Script::Handle(cls.script());
   patch_classes.SetAt(i, patch_script);
 }
 
@@ -9816,7 +9814,7 @@ RawArray* Library::LoadedScripts() const {
         owner_script = Class::Cast(entry).script();
       }  else {
         ASSERT(entry.IsScript());
-        owner_script ^= Script::Cast(entry).raw();
+        owner_script = Script::Cast(entry).raw();
       }
       AddScriptIfUnique(scripts, owner_script);
     }
