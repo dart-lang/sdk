@@ -14,7 +14,7 @@ namespace dart {
 
 static int32_t kMaxAllowedSeconds = 2100000000;
 
-DEFINE_NATIVE_ENTRY(DateNatives_timeZoneName, 1) {
+DEFINE_NATIVE_ENTRY(DateTime_timeZoneName, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(
       Integer, dart_seconds, arguments->NativeArgAt(0));
   int64_t seconds = dart_seconds.AsInt64Value();
@@ -26,7 +26,7 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneName, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(DateNatives_timeZoneOffsetInSeconds, 1) {
+DEFINE_NATIVE_ENTRY(DateTime_timeZoneOffsetInSeconds, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(
       Integer, dart_seconds, arguments->NativeArgAt(0));
   int64_t seconds = dart_seconds.AsInt64Value();
@@ -38,14 +38,14 @@ DEFINE_NATIVE_ENTRY(DateNatives_timeZoneOffsetInSeconds, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(DateNatives_localTimeZoneAdjustmentInSeconds, 0) {
+DEFINE_NATIVE_ENTRY(DateTime_localTimeZoneAdjustmentInSeconds, 0) {
   int adjustment = OS::GetLocalTimeZoneAdjustmentInSeconds();
   return Integer::New(adjustment);
 }
 
 
-DEFINE_NATIVE_ENTRY(DateNatives_currentTimeMillis, 0) {
-  return Integer::New(OS::GetCurrentTimeMillis());
+DEFINE_NATIVE_ENTRY(DateTime_currentTimeMicros, 0) {
+  return Integer::New(OS::GetCurrentTimeMicros());
 }
 
 }  // namespace dart

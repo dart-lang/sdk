@@ -145,10 +145,10 @@ namespace dart {
   V(Random_setupSeed, 1)                                                       \
   V(Random_initialSeed, 0)                                                     \
   V(SecureRandom_getBytes, 1)                                                  \
-  V(DateNatives_currentTimeMillis, 0)                                          \
-  V(DateNatives_timeZoneName, 1)                                               \
-  V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
-  V(DateNatives_localTimeZoneAdjustmentInSeconds, 0)                           \
+  V(DateTime_currentTimeMicros, 0)                                             \
+  V(DateTime_timeZoneName, 1)                                                  \
+  V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
+  V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 2)                                                \
   V(Async_rethrow, 2)                                                          \
   V(StackTrace_current, 0)                                                     \
