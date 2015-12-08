@@ -580,7 +580,13 @@ class DateTime implements Comparable {
    * Returns a new [DateTime] instance with [duration] subtracted from [this].
    *
    *     DateTime today = new DateTime.now();
-   *     DateTime sixtyDaysAgo = today.subtract(new Duration(days: 60));
+   *     DateTime sixtyDaysAgo = today.subtract(new Duration(days: 30));
+   *
+   * Notice that duration being subtracted is actually 30 * 24 * 60 * 60 seconds
+   * and if that crosses a daylight saving time change, the resulting `DateTime`
+   * won't have the same time of day as `today`, and may not actually hit the
+   * calendar date 30 days earlier. Be careful when working with dates in local
+   * time.
    */
   DateTime subtract(Duration duration) {
     int ms = millisecondsSinceEpoch;
@@ -591,13 +597,29 @@ class DateTime implements Comparable {
   /**
    * Returns a [Duration] with the difference between [this] and [other].
    *
-   *     DateTime berlinWallFell = new DateTime(1989, DateTime.NOVEMBER, 9);
-   *     DateTime dDay = new DateTime(1944, DateTime.JUNE, 6);
+   *     DateTime berlinWallFell = new DateTime.utc(1989, DateTime.NOVEMBER, 9);
+   *     DateTime dDay = new DateTime.utc(1944, DateTime.JUNE, 6);
    *
    *     Duration difference = berlinWallFell.difference(dDay);
    *     assert(difference.inDays == 16592);
+   *
+   * The difference is measured in seconds and fractions of seconds.
+   * The difference above counts the number of fractional seconds between
+   * midnight at the beginning of those dates.
+   * If the dates above had been in local time, not UTC, then the difference
+   * between two midnights may not be a multiple of 24 hours due to daylight
+   * saving differences.
+   *
+   * For example, in Australia, similar code using local time instead of UTC:
+   *
+   *     DateTime berlinWallFell = new DateTime(1989, DateTime.NOVEMBER, 9);
+   *     DateTime dDay = new DateTime(1944, DateTime.JUNE, 6);
+   *     Duration difference = berlinWallFell.difference(dDay);
+   *     assert(difference.inDays == 16592);
+   *
+   * will fail because the difference is actually 16591 days and 23 hours, and
+   * [Duration.inDays] only returns the number of whole days.
    */
-
   Duration difference(DateTime other) {
     int ms = millisecondsSinceEpoch;
     int otherMs = other.millisecondsSinceEpoch;
