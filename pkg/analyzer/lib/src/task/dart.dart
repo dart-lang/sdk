@@ -30,7 +30,6 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -5007,7 +5006,8 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     if (context.analysisOptions.strongMode) {
-      unit.accept(new CodeChecker(new TypeRules(typeProvider), errorListener));
+      unit.accept(new CodeChecker(
+          typeProvider, new StrongTypeSystemImpl(), errorListener));
     }
 
     //

@@ -9,20 +9,21 @@ library analyzer.src.task.strong.checker;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
+import 'package:analyzer/src/generated/type_system.dart';
 
 import 'info.dart';
-import 'rules.dart';
 
 /// Checks for overriding declarations of fields and methods. This is used to
 /// check overrides between classes and superclasses, interfaces, and mixin
 /// applications.
 class _OverrideChecker {
   bool _failure = false;
-  final TypeRules _rules;
+  final StrongTypeSystemImpl rules;
   final AnalysisErrorListener _reporter;
 
-  _OverrideChecker(this._rules, this._reporter);
+  _OverrideChecker(this.rules, this._reporter);
 
   void check(ClassDeclaration node) {
     if (node.element.type.isObject) return;
@@ -299,7 +300,7 @@ class _OverrideChecker {
       AstNode node, AstNode errorLocation, bool isSubclass) {
     assert(!element.isStatic);
 
-    FunctionType subType = _rules.elementType(element);
+    FunctionType subType = _elementType(element);
     // TODO(vsm): Test for generic
     FunctionType baseType = _getMemberType(type, element);
     if (baseType == null) return false;
@@ -313,8 +314,8 @@ class _OverrideChecker {
             errorLocation, element, type, subType, baseType));
       }
     }
-    if (!_rules.isAssignable(subType, baseType)) {
-      // See whether non-assignable cases fit one of our common patterns:
+    if (!rules.isSubtypeOf(subType, baseType)) {
+      // See whether non-subtype cases fit one of our common patterns:
       //
       // Common pattern 1: Inferable return type (on getters and methods)
       //   class A {
@@ -341,7 +342,8 @@ class _OverrideChecker {
 
 /// Checks the body of functions and properties.
 class CodeChecker extends RecursiveAstVisitor {
-  final TypeRules rules;
+  final StrongTypeSystemImpl rules;
+  final TypeProvider typeProvider;
   final AnalysisErrorListener reporter;
   final _OverrideChecker _overrideChecker;
   final bool _hints;
@@ -354,7 +356,7 @@ class CodeChecker extends RecursiveAstVisitor {
     _overrideChecker._failure = false;
   }
 
-  CodeChecker(TypeRules rules, AnalysisErrorListener reporter,
+  CodeChecker(this.typeProvider, StrongTypeSystemImpl rules, AnalysisErrorListener reporter,
       {bool hints: false})
       : rules = rules,
         reporter = reporter,
@@ -403,7 +405,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     var field = node.fieldName;
     var element = field.staticElement;
-    DartType staticType = rules.elementType(element);
+    DartType staticType = _elementType(element);
     checkAssignment(node.expression, staticType);
     node.visitChildren(this);
   }
@@ -413,8 +415,8 @@ class CodeChecker extends RecursiveAstVisitor {
     // Check that the expression is an Iterable.
     var expr = node.iterable;
     var iterableType = node.awaitKeyword != null
-        ? rules.provider.streamType
-        : rules.provider.iterableType;
+        ? typeProvider.streamType
+        : typeProvider.iterableType;
     var loopVariable = node.identifier != null
         ? node.identifier
         : node.loopVariable?.identifier;
@@ -463,7 +465,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    var type = rules.provider.dynamicType;
+    var type = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
       var targs = node.typeArguments.arguments;
       if (targs.length > 0) type = targs[0].type;
@@ -481,8 +483,8 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitMapLiteral(MapLiteral node) {
-    var ktype = rules.provider.dynamicType;
-    var vtype = rules.provider.dynamicType;
+    var ktype = DynamicTypeImpl.instance;
+    var vtype = DynamicTypeImpl.instance;
     if (node.typeArguments != null) {
       var targs = node.typeArguments.arguments;
       if (targs.length > 0) ktype = targs[0].type;
@@ -521,8 +523,8 @@ class CodeChecker extends RecursiveAstVisitor {
         // TODO(vsm): When can this happen?
         assert(element != null);
       }
-      DartType expectedType = rules.elementType(element);
-      if (expectedType == null) expectedType = rules.provider.dynamicType;
+      DartType expectedType = _elementType(element);
+      if (expectedType == null) expectedType = DynamicTypeImpl.instance;
       checkArgument(arg, expectedType);
     }
   }
@@ -538,19 +540,19 @@ class CodeChecker extends RecursiveAstVisitor {
 
   void checkFunctionApplication(
       Expression node, Expression f, ArgumentList list) {
-    if (rules.isDynamicCall(f)) {
+    if (_isDynamicCall(f)) {
       // If f is Function and this is a method invocation, we should have
       // gotten an analyzer error, so no need to issue another error.
       _recordDynamicInvoke(node, f);
     } else {
-      checkArgumentList(list, rules.getTypeAsCaller(f));
+      checkArgumentList(list, _getTypeAsCaller(f));
     }
   }
 
   @override
   visitMethodInvocation(MethodInvocation node) {
     var target = node.realTarget;
-    if (rules.isDynamicTarget(target) &&
+    if (_isDynamicTarget(target) &&
         !_isObjectMethod(node, node.methodName)) {
       _recordDynamicInvoke(node, target);
 
@@ -606,14 +608,14 @@ class CodeChecker extends RecursiveAstVisitor {
   void _checkReturnOrYield(Expression expression, AstNode node,
       {bool yieldStar: false}) {
     var body = node.getAncestor((n) => n is FunctionBody);
-    var type = rules.getExpectedReturnType(body, yieldStar: yieldStar);
+    var type = _getExpectedReturnType(body, yieldStar: yieldStar);
     if (type == null) {
       // We have a type mismatch: the async/async*/sync* modifier does
       // not match the return or yield type.  We should have already gotten an
       // analyzer error in this case.
       return;
     }
-    InterfaceType futureType = rules.provider.futureType;
+    InterfaceType futureType = typeProvider.futureType;
     DartType actualType = expression?.staticType;
     if (body.isAsynchronous &&
         !body.isGenerator &&
@@ -623,6 +625,59 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
+  }
+
+  /// Gets the expected return type of the given function [body], either from
+  /// a normal return/yield, or from a yield*.
+  DartType _getExpectedReturnType(FunctionBody body, {bool yieldStar: false}) {
+    FunctionType functionType;
+    var parent = body.parent;
+    if (parent is Declaration) {
+      functionType = _elementType(parent.element);
+    } else {
+      assert(parent is FunctionExpression);
+      functionType = parent.staticType ?? DynamicTypeImpl.instance;
+    }
+
+    var type = functionType.returnType;
+
+    InterfaceType expectedType = null;
+    if (body.isAsynchronous) {
+      if (body.isGenerator) {
+        // Stream<T> -> T
+        expectedType = typeProvider.streamType;
+      } else {
+        // Future<T> -> T
+        // TODO(vsm): Revisit with issue #228.
+        expectedType = typeProvider.futureType;
+      }
+    } else {
+      if (body.isGenerator) {
+        // Iterable<T> -> T
+        expectedType = typeProvider.iterableType;
+      } else {
+        // T -> T
+        return type;
+      }
+    }
+    if (yieldStar) {
+      if (type.isDynamic) {
+        // Ensure it's at least a Stream / Iterable.
+        return expectedType.substitute4([typeProvider.dynamicType]);
+      } else {
+        // Analyzer will provide a separate error if expected type
+        // is not compatible with type.
+        return type;
+      }
+    }
+    if (type.isDynamic) {
+      return type;
+    } else if (type is InterfaceType && type.element == expectedType.element) {
+      return type.typeArguments[0];
+    } else {
+      // Malformed type - fallback on analyzer error.
+      return null;
+    }
   }
 
   @override
@@ -644,7 +699,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
-    if ((rules.isDynamicTarget(target) || field.staticElement == null) &&
+    if ((_isDynamicTarget(target) || field.staticElement == null) &&
         !_isObjectProperty(target, field)) {
       _recordDynamicInvoke(node, target);
     }
@@ -665,7 +720,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     // Check that defaults have the proper subtype.
     var parameter = node.parameter;
-    var parameterType = rules.elementType(parameter.element);
+    var parameterType = _elementType(parameter.element);
     assert(parameterType != null);
     var defaultValue = node.defaultValue;
     if (defaultValue != null) {
@@ -680,11 +735,11 @@ class CodeChecker extends RecursiveAstVisitor {
     var element = node.element;
     var typeName = node.type;
     if (typeName != null) {
-      var type = rules.elementType(element);
+      var type = _elementType(element);
       var fieldElement =
           node.identifier.staticElement as FieldFormalParameterElement;
-      var fieldType = rules.elementType(fieldElement.field);
-      if (!rules.isSubTypeOf(type, fieldType)) {
+      var fieldType = _elementType(fieldElement.field);
+      if (!rules.isSubtypeOf(type, fieldType)) {
         var staticInfo =
             new InvalidParameterDeclaration(rules, node, fieldType);
         _recordMessage(staticInfo);
@@ -698,7 +753,7 @@ class CodeChecker extends RecursiveAstVisitor {
     var arguments = node.argumentList;
     var element = node.staticElement;
     if (element != null) {
-      var type = rules.elementType(node.staticElement);
+      var type = _elementType(node.staticElement);
       checkArgumentList(arguments, type);
     }
     node.visitChildren(this);
@@ -765,7 +820,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (op.isUserDefinableOperator ||
         op.type == TokenType.PLUS_PLUS ||
         op.type == TokenType.MINUS_MINUS) {
-      if (rules.isDynamicTarget(node.operand)) {
+      if (_isDynamicTarget(node.operand)) {
         _recordDynamicInvoke(node, node.operand);
       }
       // For ++ and --, even if it is not dynamic, we still need to check
@@ -778,7 +833,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitBinaryExpression(BinaryExpression node) {
     var op = node.operator;
     if (op.isUserDefinableOperator) {
-      if (rules.isDynamicTarget(node.leftOperand)) {
+      if (_isDynamicTarget(node.leftOperand)) {
         // Dynamic invocation
         // TODO(vsm): Move this logic to the resolver?
         if (op.type != TokenType.EQ_EQ && op.type != TokenType.BANG_EQ) {
@@ -826,7 +881,7 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitIndexExpression(IndexExpression node) {
     var target = node.realTarget;
-    if (rules.isDynamicTarget(target)) {
+    if (_isDynamicTarget(target)) {
       _recordDynamicInvoke(node, target);
     } else {
       var element = node.staticElement;
@@ -845,21 +900,92 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   DartType getType(TypeName name) {
-    return (name == null) ? rules.provider.dynamicType : name.type;
+    return (name == null) ? DynamicTypeImpl.instance : name.type;
   }
 
   /// Analyzer checks boolean conversions, but we need to check too, because
   /// it uses the default assignability rules that allow `dynamic` and `Object`
   /// to be assigned to bool with no message.
   void checkBoolean(Expression expr) =>
-      checkAssignment(expr, rules.provider.boolType);
+      checkAssignment(expr, typeProvider.boolType);
 
   void checkAssignment(Expression expr, DartType type) {
     if (expr is ParenthesizedExpression) {
       checkAssignment(expr.expression, type);
     } else {
-      _recordMessage(rules.checkAssignment(expr, type));
+      _recordMessage(_checkAssignment(expr, type));
     }
+  }
+
+  StaticInfo _checkAssignment(Expression expr, DartType toT) {
+    final fromT = expr.staticType ?? DynamicTypeImpl.instance;
+    final Coercion c = _coerceTo(fromT, toT);
+    if (c is Identity) return null;
+    if (c is CoercionError) return new StaticTypeError(rules, expr, toT);
+    var reason = null;
+
+    var errors = <String>[];
+
+    var ok = _inferExpression(expr, toT, errors);
+    if (ok) return InferredType.create(rules, expr, toT);
+    reason = (errors.isNotEmpty) ? errors.first : null;
+
+    if (c is Cast) return DownCast.create(rules, expr, c, reason: reason);
+    assert(false);
+    return null;
+  }
+
+  /// Checks if we can perform downwards inference on [e] tp get type [t].
+  /// If it is not possible, this will add a message to [errors].
+  bool _inferExpression(Expression e, DartType t, List<String> errors) {
+    DartType staticType = e.staticType ?? DynamicTypeImpl.instance;
+    if (rules.isSubtypeOf(staticType, t)) {
+      return true;
+    }
+    errors.add("$e cannot be typed as $t");
+    return false;
+  }
+
+  // Produce a coercion which coerces something of type fromT
+  // to something of type toT.
+  // Returns the error coercion if the types cannot be coerced
+  // according to our current criteria.
+  Coercion _coerceTo(DartType fromT, DartType toT) {
+    // We can use anything as void
+    if (toT.isVoid) return Coercion.identity(toT);
+
+    // fromT <: toT, no coercion needed
+    if (rules.isSubtypeOf(fromT, toT)) return Coercion.identity(toT);
+
+    // TODO(vsm): We can get rid of the second clause if we disallow
+    // all sideways casts - see TODO below.
+    // -------
+    // Note: a function type is never assignable to a class per the Dart
+    // spec - even if it has a compatible call method.  We disallow as
+    // well for consistency.
+    if ((fromT is FunctionType && rules.getCallMethodType(toT) != null) ||
+        (toT is FunctionType && rules.getCallMethodType(fromT) != null)) {
+      return Coercion.error();
+    }
+
+    // Downcast if toT <: fromT
+    if (rules.isSubtypeOf(toT, fromT)) return Coercion.cast(fromT, toT);
+
+    // TODO(vsm): Once we have generic methods, we should delete this
+    // workaround.  These sideways casts are always ones we warn about
+    // - i.e., we think they are likely to fail at runtime.
+    // -------
+    // Downcast if toT <===> fromT
+    // The intention here is to allow casts that are sideways in the restricted
+    // type system, but allowed in the regular dart type system, since these
+    // are likely to succeed.  The canonical example is List<dynamic> and
+    // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
+    // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
+    if (fromT.isAssignableTo(toT)) {
+      return Coercion.cast(fromT, toT);
+    }
+
+    return Coercion.error();
   }
 
   DartType _specializedBinaryReturnType(
@@ -877,14 +1003,14 @@ class CodeChecker extends RecursiveAstVisitor {
       case TokenType.STAR_EQ:
       case TokenType.TILDE_SLASH_EQ:
       case TokenType.PERCENT_EQ:
-        if (t1 == rules.provider.intType &&
-            t2 == rules.provider.intType) return t1;
-        if (t1 == rules.provider.doubleType &&
-            t2 == rules.provider.doubleType) return t1;
+        if (t1 == typeProvider.intType &&
+            t2 == typeProvider.intType) return t1;
+        if (t1 == typeProvider.doubleType &&
+            t2 == typeProvider.doubleType) return t1;
         // This particular combo is not spelled out in the spec, but all
         // implementations and analyzer seem to follow this.
-        if (t1 == rules.provider.doubleType &&
-            t2 == rules.provider.intType) return t1;
+        if (t1 == typeProvider.doubleType &&
+            t2 == typeProvider.intType) return t1;
     }
     return normalReturnType;
   }
@@ -912,11 +1038,11 @@ class CodeChecker extends RecursiveAstVisitor {
       var returnType = _specializedBinaryReturnType(
           op, lhsType, rhsType, functionType.returnType);
 
-      if (!rules.isSubTypeOf(returnType, lhsType)) {
-        final numType = rules.provider.numType;
+      if (!rules.isSubtypeOf(returnType, lhsType)) {
+        final numType = typeProvider.numType;
         // Try to fix up the numerical case if possible.
-        if (rules.isSubTypeOf(lhsType, numType) &&
-            rules.isSubTypeOf(lhsType, rhsType)) {
+        if (rules.isSubtypeOf(lhsType, numType) &&
+            rules.isSubtypeOf(lhsType, rhsType)) {
           // This is also slightly different from spec, but allows us to keep
           // compound operators in the int += num and num += dynamic cases.
           staticInfo = DownCast.create(
@@ -932,7 +1058,7 @@ class CodeChecker extends RecursiveAstVisitor {
       // Check the rhs type
       if (staticInfo is! CoercionInfo) {
         var paramType = paramTypes.first;
-        staticInfo = rules.checkAssignment(expr.rightHandSide, paramType);
+        staticInfo = _checkAssignment(expr.rightHandSide, paramType);
         _recordMessage(staticInfo);
       }
     }
@@ -940,13 +1066,13 @@ class CodeChecker extends RecursiveAstVisitor {
 
   bool _isObjectGetter(Expression target, SimpleIdentifier id) {
     PropertyAccessorElement element =
-        rules.provider.objectType.element.getGetter(id.name);
+        typeProvider.objectType.element.getGetter(id.name);
     return (element != null && !element.isStatic);
   }
 
   bool _isObjectMethod(Expression target, SimpleIdentifier id) {
     MethodElement element =
-        rules.provider.objectType.element.getMethod(id.name);
+        typeProvider.objectType.element.getMethod(id.name);
     return (element != null && !element.isStatic);
   }
 
@@ -955,7 +1081,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   DartType _getStaticType(Expression expr) {
-    return expr.staticType ?? rules.provider.dynamicType;
+    return expr.staticType ?? DynamicTypeImpl.instance;
   }
 
   void _recordDynamicInvoke(AstNode node, AstNode target) {
@@ -985,6 +1111,58 @@ class CodeChecker extends RecursiveAstVisitor {
       // assert(CoercionInfo.get(info.node) == null);
       CoercionInfo.set(info.node, info);
     }
+  }
+
+  bool _isLibraryPrefix(Expression node) =>
+      node is SimpleIdentifier && node.staticElement is PrefixElement;
+
+  /// Returns `true` if the target expression is dynamic.
+  bool _isDynamicTarget(Expression node) {
+    if (node == null) return false;
+
+    if (_isLibraryPrefix(node)) return false;
+
+    // Null type happens when we have unknown identifiers, like a dart: import
+    // that doesn't resolve.
+    var type = node.staticType;
+    return type == null || type.isDynamic;
+  }
+
+  /// Returns `true` if the expression is a dynamic function call or method
+  /// invocation.
+  bool _isDynamicCall(Expression call) {
+    var ft = _getTypeAsCaller(call);
+    // TODO(leafp): This will currently return true if t is Function
+    // This is probably the most correct thing to do for now, since
+    // this code is also used by the back end.  Maybe revisit at some
+    // point?
+    if (ft == null) return true;
+    // Dynamic as the parameter type is treated as bottom.  A function with
+    // a dynamic parameter type requires a dynamic call in general.
+    // However, as an optimization, if we have an original definition, we know
+    // dynamic is reified as Object - in this case a regular call is fine.
+    if (call is SimpleIdentifier) {
+      var element = call.staticElement;
+      if (element is FunctionElement || element is MethodElement) {
+        // An original declaration.
+        return false;
+      }
+    }
+
+    return rules.anyParameterType(ft, (pt) => pt.isDynamic);
+  }
+
+  /// Given an expression, return its type assuming it is
+  /// in the caller position of a call (that is, accounting
+  /// for the possibility of a call method).  Returns null
+  /// if expression is not statically callable.
+  FunctionType _getTypeAsCaller(Expression applicand) {
+    var t = applicand.staticType ?? DynamicTypeImpl.instance;
+    if (t is InterfaceType) {
+      return rules.getCallMethodType(t);
+    }
+    if (t is FunctionType) return t;
+    return null;
   }
 }
 
@@ -1054,6 +1232,14 @@ _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
     if (baseMethod == null || baseMethod.isStatic) return null;
     return baseMethod.type;
   }
-  ;
   return f;
+}
+
+
+DartType _elementType(Element e) {
+  if (e == null) {
+    // Malformed code - just return dynamic.
+    return DynamicTypeImpl.instance;
+  }
+  return (e as dynamic).type;
 }

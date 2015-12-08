@@ -15,8 +15,8 @@ import 'package:analyzer/src/generated/engine.dart' hide SdkAnalysisContext;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:logging/logging.dart'; // TODO(jmesserly): remove
 import 'package:source_span/source_span.dart'; // TODO(jmesserly): remove
 import 'package:unittest/unittest.dart';
@@ -76,8 +76,8 @@ void testChecker(String name, Map<String, String> testFiles) {
         context.resolveCompilationUnit2(mainSource, mainSource);
 
     var collector = new _ErrorCollector();
-    var checker = new CodeChecker(
-        new TypeRules(context.typeProvider), collector,
+    var checker = new CodeChecker(context.typeProvider,
+        new StrongTypeSystemImpl(), collector,
         hints: true);
 
     // Extract expectations from the comments in the test files, and
