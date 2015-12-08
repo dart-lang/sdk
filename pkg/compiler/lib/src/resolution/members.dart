@@ -126,7 +126,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// When visiting the type declaration of the variable in a [ForIn] loop,
   /// the initializer of the variable is implicit and we should not emit an
   /// error when verifying that all final variables are initialized.
-  bool allowFinalWithoutInitializer = false;
+  bool inLoopVariable = false;
 
   /// The nodes for which variable access and mutation must be registered in
   /// order to determine when the static type of variables types is promoted.
@@ -4387,10 +4387,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Scope blockScope) {
     LibraryElement library = enclosingElement.library;
 
-    bool oldAllowFinalWithoutInitializer = allowFinalWithoutInitializer;
-    allowFinalWithoutInitializer = true;
+    bool oldAllowFinalWithoutInitializer = inLoopVariable;
+    inLoopVariable = true;
     visitIn(declaration, blockScope);
-    allowFinalWithoutInitializer = oldAllowFinalWithoutInitializer;
+    inLoopVariable = oldAllowFinalWithoutInitializer;
 
     Send send = declaration.asSend();
     VariableDefinitions variableDefinitions =

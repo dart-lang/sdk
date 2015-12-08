@@ -60,11 +60,16 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
     registry.registerTypeUse(
         new TypeUse.instantiation(compiler.coreTypes.nullType));
     if (definitions.modifiers.isConst) {
-      reporter.reportErrorMessage(
-          node, MessageKind.CONST_WITHOUT_INITIALIZER);
+      if (resolver.inLoopVariable) {
+        reporter.reportErrorMessage(
+            node, MessageKind.CONST_LOOP_VARIABLE);
+      } else {
+        reporter.reportErrorMessage(
+            node, MessageKind.CONST_WITHOUT_INITIALIZER);
+      }
     }
     if (definitions.modifiers.isFinal &&
-        !resolver.allowFinalWithoutInitializer) {
+        !resolver.inLoopVariable) {
       reporter.reportErrorMessage(
           node, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
