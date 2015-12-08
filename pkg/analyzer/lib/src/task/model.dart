@@ -4,7 +4,7 @@
 
 library analyzer.src.task.model;
 
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/task/model.dart';
 

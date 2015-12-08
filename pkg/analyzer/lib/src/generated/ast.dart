@@ -140,15 +140,6 @@ abstract class AnnotatedNode extends AstNode {
   NodeList<Annotation> get metadata => _metadata;
 
   /**
-   * Set the metadata associated with this node to the given [metadata].
-   */
-  @deprecated // Directly modify the list returned by "this.metadata"
-  void set metadata(List<Annotation> metadata) {
-    _metadata.clear();
-    _metadata.addAll(metadata);
-  }
-
-  /**
    * Return a list containing the comment and annotations associated with this
    * node, sorted in lexical order.
    */
@@ -465,37 +456,6 @@ class ArgumentList extends AstNode {
   @override
   accept(AstVisitor visitor) => visitor.visitArgumentList(this);
 
-  /**
-   * If
-   * * the given [expression] is a child of this list,
-   * * the AST structure has been resolved,
-   * * the function being invoked is known based on propagated type information,
-   *   and
-   * * the expression corresponds to one of the parameters of the function being
-   *   invoked,
-   * then return the parameter element representing the parameter to which the
-   * value of the given expression will be bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement getPropagatedParameterElementFor(Expression expression) {
-    return _getPropagatedParameterElementFor(expression);
-  }
-
-  /**
-   * If
-   * * the given [expression] is a child of this list,
-   * * the AST structure has been resolved,
-   * * the function being invoked is known based on static type information, and
-   * * the expression corresponds to one of the parameters of the function being
-   *   invoked,
-   * then return the parameter element representing the parameter to which the
-   * value of the given expression will be bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.staticParameterElement"
-  ParameterElement getStaticParameterElementFor(Expression expression) {
-    return _getStaticParameterElementFor(expression);
-  }
-
   @override
   void visitChildren(AstVisitor visitor) {
     _arguments.accept(visitor);
@@ -656,6 +616,17 @@ class AssertStatement extends Statement {
   Expression _condition;
 
   /**
+   * The comma, if a message expression was supplied.  Otherwise `null`.
+   */
+  Token comma;
+
+  /**
+   * The message to report if the assertion fails.  `null` if no message was
+   * supplied.
+   */
+  Expression _message;
+
+  /**
    * The right parenthesis.
    */
   Token rightParenthesis;
@@ -668,9 +639,16 @@ class AssertStatement extends Statement {
   /**
    * Initialize a newly created assert statement.
    */
-  AssertStatement(this.assertKeyword, this.leftParenthesis,
-      Expression condition, this.rightParenthesis, this.semicolon) {
+  AssertStatement(
+      this.assertKeyword,
+      this.leftParenthesis,
+      Expression condition,
+      this.comma,
+      Expression message,
+      this.rightParenthesis,
+      this.semicolon) {
     _condition = _becomeParentOf(condition);
+    _message = _becomeParentOf(message);
   }
 
   @override
@@ -681,6 +659,8 @@ class AssertStatement extends Statement {
     ..add(assertKeyword)
     ..add(leftParenthesis)
     ..add(_condition)
+    ..add(comma)
+    ..add(_message)
     ..add(rightParenthesis)
     ..add(semicolon);
 
@@ -701,17 +681,16 @@ class AssertStatement extends Statement {
   Token get endToken => semicolon;
 
   /**
-   * Return the token representing the 'assert' keyword.
+   * Return the message to report if the assertion fails.
    */
-  @deprecated // Use "this.assertKeyword"
-  Token get keyword => assertKeyword;
+  Expression get message => _message;
 
   /**
-   * Set the token representing the 'assert' keyword to the given [token].
+   * Set the message to report if the assertion fails to the given
+   * [expression].
    */
-  @deprecated // Use "this.assertKeyword"
-  set keyword(Token token) {
-    assertKeyword = token;
+  void set message(Expression expression) {
+    _message = _becomeParentOf(expression);
   }
 
   @override
@@ -720,6 +699,7 @@ class AssertStatement extends Statement {
   @override
   void visitChildren(AstVisitor visitor) {
     _safelyVisitChild(_condition, visitor);
+    _safelyVisitChild(message, visitor);
   }
 }
 
@@ -828,17 +808,6 @@ class AssignmentExpression extends Expression {
   int get precedence => 1;
 
   /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the right operand
-   * will be bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement get propagatedParameterElementForRightHandSide {
-    return _propagatedParameterElementForRightHandSide;
-  }
-
-  /**
    * Return the expression used to compute the right hand side.
    */
   Expression get rightHandSide => _rightHandSide;
@@ -849,17 +818,6 @@ class AssignmentExpression extends Expression {
    */
   void set rightHandSide(Expression expression) {
     _rightHandSide = _becomeParentOf(expression);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the right operand will be
-   * bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.staticParameterElement"
-  ParameterElement get staticParameterElementForRightHandSide {
-    return _staticParameterElementForRightHandSide;
   }
 
   /**
@@ -1037,6 +995,8 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.assertKeyword),
       cloneToken(node.leftParenthesis),
       cloneNode(node.condition),
+      cloneToken(node.comma),
+      cloneNode(node.message),
       cloneToken(node.rightParenthesis),
       cloneToken(node.semicolon));
 
@@ -1163,6 +1123,16 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNode(node.elseExpression));
 
   @override
+  Configuration visitConfiguration(Configuration node) => new Configuration(
+      cloneToken(node.ifKeyword),
+      cloneToken(node.leftParenthesis),
+      cloneNode(node.name),
+      cloneToken(node.equalToken),
+      cloneNode(node.value),
+      cloneToken(node.rightParenthesis),
+      cloneNode(node.libraryUri));
+
+  @override
   ConstructorDeclaration visitConstructorDeclaration(
           ConstructorDeclaration node) =>
       new ConstructorDeclaration(
@@ -1226,6 +1196,10 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.semicolon));
 
   @override
+  DottedName visitDottedName(DottedName node) =>
+      new DottedName(cloneNodeList(node.components));
+
+  @override
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) =>
       new DoubleLiteral(cloneToken(node.literal), node.value);
 
@@ -1260,6 +1234,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
         cloneNode(node.uri),
+        cloneNodeList(node.configurations),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
     directive.source = node.source;
@@ -1430,6 +1405,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
         cloneNode(node.uri),
+        cloneNodeList(node.configurations),
         cloneToken(node.deferredKeyword),
         cloneToken(node.asKeyword),
         cloneNode(node.prefix),
@@ -1893,6 +1869,8 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualTokens(node.assertKeyword, other.assertKeyword) &&
         isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
         isEqualNodes(node.condition, other.condition) &&
+        isEqualTokens(node.comma, other.comma) &&
+        isEqualNodes(node.message, other.message) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualTokens(node.semicolon, other.semicolon);
   }
@@ -2039,6 +2017,18 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConfiguration(Configuration node) {
+    Configuration other = _other as Configuration;
+    return isEqualTokens(node.ifKeyword, other.ifKeyword) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        isEqualNodes(node.name, other.name) &&
+        isEqualTokens(node.equalToken, other.equalToken) &&
+        isEqualNodes(node.value, other.value) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
+        isEqualNodes(node.libraryUri, other.libraryUri);
+  }
+
+  @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration other = _other as ConstructorDeclaration;
     return isEqualNodes(
@@ -2113,6 +2103,12 @@ class AstComparator implements AstVisitor<bool> {
         isEqualNodes(node.condition, other.condition) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
         isEqualTokens(node.semicolon, other.semicolon);
+  }
+
+  @override
+  bool visitDottedName(DottedName node) {
+    DottedName other = _other as DottedName;
+    return _isEqualNodeLists(node.components, other.components);
   }
 
   @override
@@ -2868,12 +2864,6 @@ abstract class AstNode {
   /**
    * An empty list of AST nodes.
    */
-  @deprecated // Use "AstNode.EMPTY_LIST"
-  static const List<AstNode> EMPTY_ARRAY = EMPTY_LIST;
-
-  /**
-   * An empty list of AST nodes.
-   */
   static const List<AstNode> EMPTY_LIST = const <AstNode>[];
 
   /**
@@ -2966,14 +2956,6 @@ abstract class AstNode {
   AstNode get parent => _parent;
 
   /**
-   * Set the parent of this node to the [newParent].
-   */
-  @deprecated // Never intended for public use.
-  void set parent(AstNode newParent) {
-    _parent = newParent;
-  }
-
-  /**
    * Return the node at the root of this node's AST structure. Note that this
    * method's performance is linear with respect to the depth of the node in the
    * AST structure (O(depth)).
@@ -2993,14 +2975,6 @@ abstract class AstNode {
    * the visitor as a result of visiting this node.
    */
   /* <E> E */ accept(AstVisitor /*<E>*/ visitor);
-
-  /**
-   * Make this node the parent of the given [child] node. Return the child node.
-   */
-  @deprecated // Never intended for public use.
-  AstNode becomeParentOf(AstNode child) {
-    return _becomeParentOf(child);
-  }
 
   /**
    * Return the most immediate ancestor of this node for which the [predicate]
@@ -3025,16 +2999,6 @@ abstract class AstNode {
       return null;
     }
     return _propertyMap[name];
-  }
-
-  /**
-   * If the given [child] is not `null`, use the given [visitor] to visit it.
-   */
-  @deprecated // Never intended for public use.
-  void safelyVisitChild(AstNode child, AstVisitor visitor) {
-    if (child != null) {
-      child.accept(visitor);
-    }
   }
 
   /**
@@ -3141,6 +3105,8 @@ abstract class AstVisitor<R> {
 
   R visitConditionalExpression(ConditionalExpression node);
 
+  R visitConfiguration(Configuration node);
+
   R visitConstructorDeclaration(ConstructorDeclaration node);
 
   R visitConstructorFieldInitializer(ConstructorFieldInitializer node);
@@ -3154,6 +3120,8 @@ abstract class AstVisitor<R> {
   R visitDefaultFormalParameter(DefaultFormalParameter node);
 
   R visitDoStatement(DoStatement node);
+
+  R visitDottedName(DottedName node);
 
   R visitDoubleLiteral(DoubleLiteral node);
 
@@ -3466,17 +3434,6 @@ class BinaryExpression extends Expression {
   int get precedence => operator.type.precedence;
 
   /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the right operand
-   * will be bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement get propagatedParameterElementForRightOperand {
-    return _propagatedParameterElementForRightOperand;
-  }
-
-  /**
    * Return the expression used to compute the right operand.
    */
   Expression get rightOperand => _rightOperand;
@@ -3487,17 +3444,6 @@ class BinaryExpression extends Expression {
    */
   void set rightOperand(Expression expression) {
     _rightOperand = _becomeParentOf(expression);
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the right operand will be
-   * bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.staticParameterElement"
-  ParameterElement get staticParameterElementForRightOperand {
-    return _staticParameterElementForRightOperand;
   }
 
   /**
@@ -3826,20 +3772,6 @@ class BreakStatement extends Statement {
 
   @override
   Token get endToken => semicolon;
-
-  /**
-   * Return the token representing the 'break' keyword.
-   */
-  @deprecated // Use "this.breakKeyword"
-  Token get keyword => breakKeyword;
-
-  /**
-   * Set the token representing the 'break' keyword to the given [token].
-   */
-  @deprecated // Use "this.breakKeyword"
-  void set keyword(Token token) {
-    breakKeyword = token;
-  }
 
   /**
    * Return the label associated with the statement, or `null` if there is no
@@ -5115,6 +5047,85 @@ class ConditionalExpression extends Expression {
   }
 }
 
+/**
+ * A configuration in either an import or export directive.
+ *
+ *     configuration ::=
+ *         'if' '(' test ')' uri
+ *
+ *     test ::=
+ *         dottedName ('==' stringLiteral)?
+ *
+ *     dottedName ::=
+ *         identifier ('.' identifier)*
+ */
+class Configuration extends AstNode {
+  Token ifKeyword;
+  Token leftParenthesis;
+  DottedName _name;
+  Token equalToken;
+  StringLiteral _value;
+  Token rightParenthesis;
+  StringLiteral _libraryUri;
+
+  Configuration(
+      this.ifKeyword,
+      this.leftParenthesis,
+      DottedName name,
+      this.equalToken,
+      StringLiteral value,
+      this.rightParenthesis,
+      StringLiteral libraryUri) {
+    _name = _becomeParentOf(name);
+    _value = _becomeParentOf(value);
+    _libraryUri = _becomeParentOf(libraryUri);
+  }
+
+  @override
+  Token get beginToken => ifKeyword;
+
+  @override
+  Iterable get childEntities => new ChildEntities()
+    ..add(ifKeyword)
+    ..add(leftParenthesis)
+    ..add(_name)
+    ..add(equalToken)
+    ..add(_value)
+    ..add(rightParenthesis)
+    ..add(_libraryUri);
+
+  @override
+  Token get endToken => _libraryUri.endToken;
+
+  StringLiteral get libraryUri => _libraryUri;
+
+  void set libraryUri(StringLiteral libraryUri) {
+    _libraryUri = _becomeParentOf(libraryUri);
+  }
+
+  DottedName get name => _name;
+
+  void set name(DottedName name) {
+    _name = _becomeParentOf(name);
+  }
+
+  StringLiteral get value => _value;
+
+  void set value(StringLiteral value) {
+    _value = _becomeParentOf(value);
+  }
+
+  @override
+  accept(AstVisitor visitor) => visitor.visitConfiguration(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _safelyVisitChild(_name, visitor);
+    _safelyVisitChild(_value, visitor);
+    _safelyVisitChild(_libraryUri, visitor);
+  }
+}
+
 /// Instances of the class [ConstantEvaluator] evaluate constant expressions to
 /// produce their compile-time value.
 ///
@@ -5824,21 +5835,6 @@ class ConstructorFieldInitializer extends ConstructorInitializer {
     _fieldName = _becomeParentOf(identifier);
   }
 
-  /**
-   * Return the token for the 'this' keyword, or `null` if there is no 'this'
-   * keyword.
-   */
-  @deprecated // Use "this.thisKeyword"
-  Token get keyword => thisKeyword;
-
-  /**
-   * Set the token for the 'this' keyword to the given [token].
-   */
-  @deprecated // Use "this.thisKeyword"
-  set keyword(Token token) {
-    thisKeyword = token;
-  }
-
   @override
   accept(AstVisitor visitor) => visitor.visitConstructorFieldInitializer(this);
 
@@ -5999,21 +5995,6 @@ class ContinueStatement extends Statement {
 
   @override
   Token get endToken => semicolon;
-
-  /**
-   * Return the token for the 'continue' keyword, or `null` if there is no
-   * 'continue' keyword.
-   */
-  @deprecated // Use "this.continueKeyword"
-  Token get keyword => continueKeyword;
-
-  /**
-   * Set the token for the 'continue' keyword to the given [token].
-   */
-  @deprecated // Use "this.continueKeyword"
-  set keyword(Token token) {
-    continueKeyword = token;
-  }
 
   /**
    * Return the label associated with the statement, or `null` if there is no
@@ -6450,6 +6431,49 @@ class DoStatement extends Statement {
 }
 
 /**
+ * A dotted name, used in a configuration within an import or export directive.
+ *
+ * > dottedName ::=
+ * >     [SimpleIdentifier] ('.' [SimpleIdentifier])*
+ */
+class DottedName extends AstNode {
+  /**
+   * The components of the identifier.
+   */
+  NodeList<SimpleIdentifier> _components;
+
+  /**
+   * Initialize a newly created dotted name.
+   */
+  DottedName(List<SimpleIdentifier> components) {
+    _components = new NodeList<SimpleIdentifier>(this, components);
+  }
+
+  @override
+  Token get beginToken => _components.beginToken;
+
+  @override
+  // TODO(paulberry): add "." tokens.
+  Iterable get childEntities => new ChildEntities()..addAll(_components);
+
+  /**
+   * Return the components of the identifier.
+   */
+  NodeList<SimpleIdentifier> get components => _components;
+
+  @override
+  Token get endToken => _components.endToken;
+
+  @override
+  accept(AstVisitor visitor) => visitor.visitDottedName(this);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _components.accept(visitor);
+  }
+}
+
+/**
  * A floating point literal expression.
  *
  * > doubleLiteral ::=
@@ -6818,21 +6842,6 @@ class EnumDeclaration extends NamedCompilationUnitMember {
   @override
   Token get firstTokenAfterCommentAndMetadata => enumKeyword;
 
-  /**
-   * Return the token for the 'enum' keyword, or `null` if there is no
-   * 'enum' keyword.
-   */
-  @deprecated // Use "this.enumKeyword"
-  Token get keyword => enumKeyword;
-
-  /**
-   * Set the token for the 'enum' keyword to the given [token].
-   */
-  @deprecated // Use "this.enumKeyword"
-  set keyword(Token token) {
-    enumKeyword = token;
-  }
-
   @override
   accept(AstVisitor visitor) => visitor.visitEnumDeclaration(this);
 
@@ -6868,9 +6877,16 @@ class ExportDirective extends NamespaceDirective {
    * corresponding attribute. The list of [combinators] can be `null` if there
    * are no combinators.
    */
-  ExportDirective(Comment comment, List<Annotation> metadata, Token keyword,
-      StringLiteral libraryUri, List<Combinator> combinators, Token semicolon)
-      : super(comment, metadata, keyword, libraryUri, combinators, semicolon);
+  ExportDirective(
+      Comment comment,
+      List<Annotation> metadata,
+      Token keyword,
+      StringLiteral libraryUri,
+      List<Configuration> configurations,
+      List<Combinator> combinators,
+      Token semicolon)
+      : super(comment, metadata, keyword, libraryUri, configurations,
+            combinators, semicolon);
 
   @override
   Iterable get childEntities => super._childEntities
@@ -6908,12 +6924,6 @@ class ExportDirective extends NamespaceDirective {
  * >   | [ThrowExpression]
  */
 abstract class Expression extends AstNode {
-  /**
-   * An empty list of expressions.
-   */
-  @deprecated // Use "Expression.EMPTY_LIST"
-  static const List<Expression> EMPTY_ARRAY = EMPTY_LIST;
-
   /**
    * An empty list of expressions.
    */
@@ -7239,20 +7249,6 @@ class ExtendsClause extends AstNode {
   Token get endToken => _superclass.endToken;
 
   /**
-   * Return the token for the 'extends' keyword.
-   */
-  @deprecated // Use "this.extendsKeyword"
-  Token get keyword => extendsKeyword;
-
-  /**
-   * Set the token for the 'extends' keyword to the given [token].
-   */
-  @deprecated // Use "this.extendsKeyword"
-  set keyword(Token token) {
-    extendsKeyword = token;
-  }
-
-  /**
    * Return the name of the class that is being extended.
    */
   TypeName get superclass => _superclass;
@@ -7470,20 +7466,6 @@ class FieldFormalParameter extends NormalFormalParameter {
   }
 
   /**
-   * Return the token representing the 'this' keyword.
-   */
-  @deprecated // Use "this.thisKeyword"
-  Token get thisToken => thisKeyword;
-
-  /**
-   * Set the token representing the 'this' keyword to the given [token].
-   */
-  @deprecated // Use "this.thisKeyword"
-  set thisToken(Token token) {
-    thisKeyword = token;
-  }
-
-  /**
    * Return the name of the declared type of the parameter, or `null` if the
    * parameter does not have a declared type. Note that if this is a
    * function-typed field formal parameter this is the return type of the
@@ -7581,44 +7563,6 @@ class ForEachStatement extends Statement {
   Statement _body;
 
   /**
-   * Initialize a newly created for-each statement. The [awaitKeyword] can be
-   * `null` if this is not an asynchronous for loop.
-   */
-  @deprecated // Use new ForEachStatement.withDeclaration(...)
-  ForEachStatement.con1(
-      this.awaitKeyword,
-      this.forKeyword,
-      this.leftParenthesis,
-      DeclaredIdentifier loopVariable,
-      this.inKeyword,
-      Expression iterator,
-      this.rightParenthesis,
-      Statement body) {
-    _loopVariable = _becomeParentOf(loopVariable);
-    _iterable = _becomeParentOf(iterator);
-    _body = _becomeParentOf(body);
-  }
-
-  /**
-   * Initialize a newly created for-each statement. The [awaitKeyword] can be
-   * `null` if this is not an asynchronous for loop.
-   */
-  @deprecated // Use new ForEachStatement.withReference(...)
-  ForEachStatement.con2(
-      this.awaitKeyword,
-      this.forKeyword,
-      this.leftParenthesis,
-      SimpleIdentifier identifier,
-      this.inKeyword,
-      Expression iterator,
-      this.rightParenthesis,
-      Statement body) {
-    _identifier = _becomeParentOf(identifier);
-    _iterable = _becomeParentOf(iterator);
-    _body = _becomeParentOf(body);
-  }
-
-  /**
    * Initialize a newly created for-each statement whose loop control variable
    * is declared internally (in the for-loop part). The [awaitKeyword] can be
    * `null` if this is not an asynchronous for loop.
@@ -7711,12 +7655,6 @@ class ForEachStatement extends Statement {
   void set iterable(Expression expression) {
     _iterable = _becomeParentOf(expression);
   }
-
-  /**
-   * Return the expression evaluated to produce the iterator.
-   */
-  @deprecated // Use "this.iterable"
-  Expression get iterator => iterable;
 
   /**
    * Return the declaration of the loop variable, or `null` if the loop variable
@@ -8879,6 +8817,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitExpression(node);
 
   @override
+  R visitConfiguration(Configuration node) => visitNode(node);
+
+  @override
   R visitConstructorDeclaration(ConstructorDeclaration node) =>
       visitClassMember(node);
 
@@ -8907,6 +8848,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitDoStatement(DoStatement node) => visitStatement(node);
+
+  @override
+  R visitDottedName(DottedName node) => visitNode(node);
 
   @override
   R visitDoubleLiteral(DoubleLiteral node) => visitLiteral(node);
@@ -9491,20 +9435,6 @@ class ImplementsClause extends AstNode {
    */
   NodeList<TypeName> get interfaces => _interfaces;
 
-  /**
-   * Return the token representing the 'implements' keyword.
-   */
-  @deprecated // Use "this.implementsKeyword"
-  Token get keyword => implementsKeyword;
-
-  /**
-   * Set the token representing the 'implements' keyword to the given [token].
-   */
-  @deprecated // Use "this.implementsKeyword"
-  set keyword(Token token) {
-    implementsKeyword = token;
-  }
-
   @override
   accept(AstVisitor visitor) => visitor.visitImplementsClause(this);
 
@@ -9647,28 +9577,15 @@ class ImportDirective extends NamespaceDirective {
       List<Annotation> metadata,
       Token keyword,
       StringLiteral libraryUri,
+      List<Configuration> configurations,
       this.deferredKeyword,
       this.asKeyword,
       SimpleIdentifier prefix,
       List<Combinator> combinators,
       Token semicolon)
-      : super(comment, metadata, keyword, libraryUri, combinators, semicolon) {
+      : super(comment, metadata, keyword, libraryUri, configurations,
+            combinators, semicolon) {
     _prefix = _becomeParentOf(prefix);
-  }
-
-  /**
-   * The token representing the 'as' token, or `null` if the imported names are
-   * not prefixed.
-   */
-  @deprecated // Use "this.asKeyword"
-  Token get asToken => asKeyword;
-
-  /**
-   * The token representing the 'as' token to the given token.
-   */
-  @deprecated // Use "this.asKeyword"
-  set asToken(Token token) {
-    asKeyword = token;
   }
 
   @override
@@ -9679,21 +9596,6 @@ class ImportDirective extends NamespaceDirective {
     ..add(_prefix)
     ..addAll(combinators)
     ..add(semicolon);
-
-  /**
-   * Return the token representing the 'deferred' token, or `null` if the
-   * imported is not deferred.
-   */
-  @deprecated // Use "this.deferredKeyword"
-  Token get deferredToken => deferredKeyword;
-
-  /**
-   * Set the token representing the 'deferred' token to the given token.
-   */
-  @deprecated // Use "this.deferredKeyword"
-  set deferredToken(Token token) {
-    deferredKeyword = token;
-  }
 
   @override
   ImportElement get element => super.element as ImportElement;
@@ -9796,6 +9698,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _mapToken(node.assertKeyword),
       _mapToken(node.leftParenthesis),
       _cloneNode(node.condition),
+      _mapToken(node.comma),
+      _cloneNode(node.message),
       _mapToken(node.rightParenthesis),
       _mapToken(node.semicolon));
 
@@ -9949,6 +9853,16 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  Configuration visitConfiguration(Configuration node) => new Configuration(
+      _mapToken(node.ifKeyword),
+      _mapToken(node.leftParenthesis),
+      _cloneNode(node.name),
+      _mapToken(node.equalToken),
+      _cloneNode(node.value),
+      _mapToken(node.rightParenthesis),
+      _cloneNode(node.libraryUri));
+
+  @override
   ConstructorDeclaration visitConstructorDeclaration(
       ConstructorDeclaration node) {
     ConstructorDeclaration copy = new ConstructorDeclaration(
@@ -10018,6 +9932,10 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _mapToken(node.semicolon));
 
   @override
+  DottedName visitDottedName(DottedName node) =>
+      new DottedName(_cloneNodeList(node.components));
+
+  @override
   DoubleLiteral visitDoubleLiteral(DoubleLiteral node) {
     DoubleLiteral copy = new DoubleLiteral(_mapToken(node.literal), node.value);
     copy.propagatedType = node.propagatedType;
@@ -10055,6 +9973,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
         _cloneNodeList(node.metadata),
         _mapToken(node.keyword),
         _cloneNode(node.uri),
+        _cloneNodeList(node.configurations),
         _cloneNodeList(node.combinators),
         _mapToken(node.semicolon));
     copy.element = node.element;
@@ -10239,6 +10158,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNodeList(node.metadata),
           _mapToken(node.keyword),
           _cloneNode(node.uri),
+          _cloneNodeList(node.configurations),
           _mapToken(node.deferredKeyword),
           _mapToken(node.asKeyword),
           _cloneNode(node.prefix),
@@ -10905,17 +10825,6 @@ class IndexExpression extends Expression {
   int get precedence => 15;
 
   /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the index
-   * expression will be bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement get propagatedParameterElementForIndex {
-    return _propagatedParameterElementForIndex;
-  }
-
-  /**
    * Return the expression used to compute the object being indexed. If this
    * index expression is not part of a cascade expression, then this is the same
    * as [target]. If this index expression is part of a cascade expression, then
@@ -10933,17 +10842,6 @@ class IndexExpression extends Expression {
       return (ancestor as CascadeExpression).target;
     }
     return _target;
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the index expression will
-   * be bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement get staticParameterElementForIndex {
-    return _staticParameterElementForIndex;
   }
 
   /**
@@ -11592,20 +11490,6 @@ class LibraryDirective extends Directive {
 
   @override
   Token get keyword => libraryKeyword;
-
-  /**
-   * Return the token representing the 'library' token.
-   */
-  @deprecated // Use "this.libraryKeyword"
-  Token get libraryToken => libraryKeyword;
-
-  /**
-   * Set the token representing the 'library' token to the given [token].
-   */
-  @deprecated // Use "this.libraryKeyword"
-  set libraryToken(Token token) {
-    libraryKeyword = token;
-  }
 
   /**
    * Return the name of the library being defined.
@@ -12291,26 +12175,6 @@ class MethodInvocation extends Expression {
     _methodName = _becomeParentOf(identifier);
   }
 
-  /**
-   * The operator that separates the target from the method name, or `null`
-   * if there is no target. In an ordinary method invocation this will be a
-   * period ('.'). In a cascade section this will be the cascade operator
-   * ('..').
-   */
-  @deprecated // Use this.operator
-  Token get period => operator;
-
-  /**
-   * The operator that separates the target from the method name, or `null`
-   * if there is no target. In an ordinary method invocation this will be a
-   * period ('.'). In a cascade section this will be the cascade operator
-   * ('..').
-   */
-  @deprecated // Use this.operator
-  void set period(Token value) {
-    operator = value;
-  }
-
   @override
   int get precedence => 15;
 
@@ -12512,6 +12376,12 @@ abstract class NamespaceDirective extends UriBasedDirective {
   Token keyword;
 
   /**
+   * The configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  NodeList<Configuration> _configurations;
+
+  /**
    * The combinators used to control which names are imported or exported.
    */
   NodeList<Combinator> _combinators;
@@ -12527,9 +12397,16 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * corresponding attribute. The list of [combinators] can be `null` if there
    * are no combinators.
    */
-  NamespaceDirective(Comment comment, List<Annotation> metadata, this.keyword,
-      StringLiteral libraryUri, List<Combinator> combinators, this.semicolon)
+  NamespaceDirective(
+      Comment comment,
+      List<Annotation> metadata,
+      this.keyword,
+      StringLiteral libraryUri,
+      List<Configuration> configurations,
+      List<Combinator> combinators,
+      this.semicolon)
       : super(comment, metadata, libraryUri) {
+    _configurations = new NodeList<Configuration>(this, configurations);
     _combinators = new NodeList<Combinator>(this, combinators);
   }
 
@@ -12537,6 +12414,12 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * Return the combinators used to control how names are imported or exported.
    */
   NodeList<Combinator> get combinators => _combinators;
+
+  /**
+   * Return the configurations used to control which library will actually be
+   * loaded at run-time.
+   */
+  NodeList<Configuration> get configurations => _configurations;
 
   @override
   Token get endToken => semicolon;
@@ -12581,20 +12464,6 @@ class NativeClause extends AstNode {
 
   @override
   Token get endToken => _name.endToken;
-
-  /**
-   * Get the token representing the 'native' keyword.
-   */
-  @deprecated // Use "this.nativeKeyword"
-  Token get keyword => nativeKeyword;
-
-  /**
-   * Set the token representing the 'native' keyword to the given [token].
-   */
-  @deprecated // Use "this.nativeKeyword"
-  set keyword(Token token) {
-    nativeKeyword = token;
-  }
 
   /**
    * Return the name of the native object that implements the class.
@@ -12662,22 +12531,6 @@ class NativeFunctionBody extends FunctionBody {
 
   @override
   Token get endToken => semicolon;
-
-  /**
-   * Return the token representing 'native' that marks the start of the function
-   * body.
-   */
-  @deprecated // Use "this.nativeKeyword"
-  Token get nativeToken => nativeKeyword;
-
-  /**
-   * Set the token representing 'native' that marks the start of the function
-   * body to the given [token].
-   */
-  @deprecated // Use "this.nativeKeyword"
-  set nativeToken(Token token) {
-    nativeKeyword = token;
-  }
 
   /**
    * Return the string literal representing the string after the 'native' token.
@@ -12750,7 +12603,8 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
   int get length => _elements.length;
 
   @deprecated // Never intended for public use.
-  void set length(int value) {
+  @override
+  void set length(int newLength) {
     throw new UnsupportedError("Cannot resize NodeList.");
   }
 
@@ -12824,12 +12678,6 @@ class NodeList<E extends AstNode> extends Object with ListMixin<E> {
     _elements.removeAt(index);
     return removedNode;
   }
-
-  /**
-   * Create an empty list with the given [owner].
-   */
-  @deprecated // Use "new NodeList<E>(owner)"
-  static NodeList create(AstNode owner) => new NodeList(owner);
 }
 
 /**
@@ -12863,22 +12711,6 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
   NodeLocator(int startOffset, [int endOffset])
       : this._startOffset = startOffset,
         this._endOffset = endOffset == null ? startOffset : endOffset;
-
-  /**
-   * Initialize a newly created locator to locate an [AstNode] by locating the
-   * node within an AST structure that corresponds to the given [offset] in the
-   * source.
-   */
-  @deprecated // Use new NodeLocator(offset)
-  NodeLocator.con1(int offset) : this(offset);
-
-  /**
-   * Initialize a newly created locator to locate an [AstNode] by locating the
-   * node within an AST structure that corresponds to the given range of
-   * characters (between the [startOffset] and [endOffset] in the source.
-   */
-  @deprecated // Use new NodeLocator(startOffset, endOffset)
-  NodeLocator.con2(this._startOffset, this._endOffset);
 
   /**
    * Return the node that was found that corresponds to the given source range
@@ -13120,6 +12952,10 @@ class NodeReplacer implements AstVisitor<bool> {
       node.condition = _newNode as Expression;
       return true;
     }
+    if (identical(node._message, _oldNode)) {
+      node.message = _newNode as Expression;
+      return true;
+    }
     return visitNode(node);
   }
 
@@ -13304,6 +13140,21 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConfiguration(Configuration node) {
+    if (identical(node.name, _oldNode)) {
+      node.name = _newNode as DottedName;
+      return true;
+    } else if (identical(node.value, _oldNode)) {
+      node.value = _newNode as StringLiteral;
+      return true;
+    } else if (identical(node.libraryUri, _oldNode)) {
+      node.libraryUri = _newNode as StringLiteral;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     if (identical(node.returnType, _oldNode)) {
       node.returnType = _newNode as Identifier;
@@ -13390,6 +13241,14 @@ class NodeReplacer implements AstVisitor<bool> {
       return true;
     } else if (identical(node.condition, _oldNode)) {
       node.condition = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitDottedName(DottedName node) {
+    if (_replaceInList(node.components)) {
       return true;
     }
     return visitNode(node);
@@ -14479,20 +14338,6 @@ class PartDirective extends UriBasedDirective {
   @override
   Token get keyword => partKeyword;
 
-  /**
-   * Return the token representing the 'part' token.
-   */
-  @deprecated // Use "this.partKeyword"
-  Token get partToken => partKeyword;
-
-  /**
-   * Set the token representing the 'part' token to the given [token].
-   */
-  @deprecated // Use "this.partKeyword"
-  set partToken(Token token) {
-    partKeyword = token;
-  }
-
   @override
   CompilationUnitElement get uriElement => element as CompilationUnitElement;
 
@@ -14566,34 +14411,6 @@ class PartOfDirective extends Directive {
    */
   void set libraryName(LibraryIdentifier libraryName) {
     _libraryName = _becomeParentOf(libraryName);
-  }
-
-  /**
-   * Return the token representing the 'of' token.
-   */
-  @deprecated // Use "this.ofKeyword"
-  Token get ofToken => ofKeyword;
-
-  /**
-   * Set the token representing the 'of' token to the given [token].
-   */
-  @deprecated // Use "this.ofKeyword"
-  set ofToken(Token token) {
-    ofKeyword = token;
-  }
-
-  /**
-   * Return the token representing the 'part' token.
-   */
-  @deprecated // Use "this.partKeyword"
-  Token get partToken => partKeyword;
-
-  /**
-   * Set the token representing the 'part' token to the given [token].
-   */
-  @deprecated // Use "this.partKeyword"
-  set partToken(Token token) {
-    partKeyword = token;
   }
 
   @override
@@ -14685,28 +14502,6 @@ class PostfixExpression extends Expression {
 
   @override
   int get precedence => 15;
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the operand will
-   * be bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement get propagatedParameterElementForOperand {
-    return _propagatedParameterElementForOperand;
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the operand will be bound.
-   * Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement get staticParameterElementForOperand {
-    return _staticParameterElementForOperand;
-  }
 
   /**
    * If the AST structure has been resolved, and the function being invoked is
@@ -14958,28 +14753,6 @@ class PrefixExpression extends Expression {
 
   @override
   int get precedence => 14;
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on propagated type information, then return the parameter
-   * element representing the parameter to which the value of the operand will
-   * be bound. Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement get propagatedParameterElementForOperand {
-    return _propagatedParameterElementForOperand;
-  }
-
-  /**
-   * If the AST structure has been resolved, and the function being invoked is
-   * known based on static type information, then return the parameter element
-   * representing the parameter to which the value of the operand will be bound.
-   * Otherwise, return `null`.
-   */
-  @deprecated // Use "expression.propagatedParameterElement"
-  ParameterElement get staticParameterElementForOperand {
-    return _staticParameterElementForOperand;
-  }
 
   /**
    * If the AST structure has been resolved, and the function being invoked is
@@ -15279,6 +15052,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R visitConfiguration(Configuration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R visitConstructorDeclaration(ConstructorDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -15316,6 +15095,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitDoStatement(DoStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitDottedName(DottedName node) {
     node.visitChildren(this);
     return null;
   }
@@ -15883,20 +15668,6 @@ class RedirectingConstructorInvocation extends ConstructorInitializer {
   @override
   Token get endToken => _argumentList.endToken;
 
-  /**
-   * Return the token for the 'this' keyword.
-   */
-  @deprecated // Use "this.thisKeyword"
-  Token get keyword => thisKeyword;
-
-  /**
-   * Set the token for the 'this' keyword to the given [token].
-   */
-  @deprecated // Use "this.thisKeyword"
-  set keyword(Token token) {
-    thisKeyword = token;
-  }
-
   @override
   accept(AstVisitor visitor) =>
       visitor.visitRedirectingConstructorInvocation(this);
@@ -15933,20 +15704,6 @@ class RethrowExpression extends Expression {
 
   @override
   Token get endToken => rethrowKeyword;
-
-  /**
-   * Return the token representing the 'rethrow' keyword.
-   */
-  @deprecated // Use "this.rethrowKeyword"
-  Token get keyword => rethrowKeyword;
-
-  /**
-   * Set the token representing the 'rethrow' keyword to the given [token].
-   */
-  @deprecated // Use "this.rethrowKeyword"
-  set keyword(Token token) {
-    rethrowKeyword = token;
-  }
 
   @override
   int get precedence => 0;
@@ -16013,20 +15770,6 @@ class ReturnStatement extends Statement {
    */
   void set expression(Expression expression) {
     _expression = _becomeParentOf(expression);
-  }
-
-  /**
-   * Return the token representing the 'return' keyword.
-   */
-  @deprecated // Use "this.returnKeyword"
-  Token get keyword => returnKeyword;
-
-  /**
-   * Set the token representing the 'return' keyword to the given [token].
-   */
-  @deprecated // Use "this.returnKeyword"
-  set keyword(Token token) {
-    returnKeyword = token;
   }
 
   @override
@@ -16370,6 +16113,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitConditionalExpression(ConditionalExpression node) => null;
 
   @override
+  R visitConfiguration(Configuration node) => null;
+
+  @override
   R visitConstructorDeclaration(ConstructorDeclaration node) => null;
 
   @override
@@ -16389,6 +16135,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitDoStatement(DoStatement node) => null;
+
+  @override
+  R visitDottedName(DottedName node) => null;
 
   @override
   R visitDoubleLiteral(DoubleLiteral node) => null;
@@ -17063,12 +16812,6 @@ class SimpleStringLiteral extends SingleStringLiteral {
   String _value;
 
   /**
-   * The toolkit specific element associated with this literal, or `null`.
-   */
-  @deprecated // No replacement
-  Element toolkitElement;
-
-  /**
    * Initialize a newly created simple string literal.
    */
   SimpleStringLiteral(this.literal, String value) {
@@ -17393,14 +17136,6 @@ abstract class StringLiteral extends Literal {
    * [IllegalArgumentException] if the string is not a constant string without
    * any string interpolation.
    */
-  @deprecated // Use "this.stringValue"
-  void appendStringValue(StringBuffer buffer) => _appendStringValue(buffer);
-
-  /**
-   * Append the value of this string literal to the given [buffer]. Throw an
-   * [IllegalArgumentException] if the string is not a constant string without
-   * any string interpolation.
-   */
   void _appendStringValue(StringBuffer buffer);
 }
 
@@ -17492,20 +17227,6 @@ class SuperConstructorInvocation extends ConstructorInitializer {
   @override
   Token get endToken => _argumentList.endToken;
 
-  /**
-   * Return the token for the 'super' keyword.
-   */
-  @deprecated // Use "this.superKeyword"
-  Token get keyword => superKeyword;
-
-  /**
-   * Set the token for the 'super' keyword to the given [token].
-   */
-  @deprecated // Use "this.superKeyword"
-  set keyword(Token token) {
-    superKeyword = token;
-  }
-
   @override
   accept(AstVisitor visitor) => visitor.visitSuperConstructorInvocation(this);
 
@@ -17541,20 +17262,6 @@ class SuperExpression extends Expression {
 
   @override
   Token get endToken => superKeyword;
-
-  /**
-   * Return the token for the 'super' keyword.
-   */
-  @deprecated // Use "this.superKeyword"
-  Token get keyword => superKeyword;
-
-  /**
-   * Set the token for the 'super' keyword to the given [token].
-   */
-  @deprecated // Use "this.superKeyword"
-  set keyword(Token token) {
-    superKeyword = token;
-  }
 
   @override
   int get precedence => 16;
@@ -17810,20 +17517,6 @@ class SwitchStatement extends Statement {
   }
 
   /**
-   * Return the token representing the 'switch' keyword.
-   */
-  @deprecated // Use "this.switchKeyword"
-  Token get keyword => switchKeyword;
-
-  /**
-   * Set the token representing the 'switch' keyword to the given [token].
-   */
-  @deprecated // Use "this.switchKeyword"
-  set keyword(Token token) {
-    switchKeyword = token;
-  }
-
-  /**
    * Return the switch members that can be selected by the expression.
    */
   NodeList<SwitchMember> get members => _members;
@@ -17907,20 +17600,6 @@ class ThisExpression extends Expression {
   @override
   Token get endToken => thisKeyword;
 
-  /**
-   * Return the token representing the 'this' keyword.
-   */
-  @deprecated // Use "this.thisKeyword"
-  Token get keyword => thisKeyword;
-
-  /**
-   * Set the token representing the 'this' keyword to the given [token].
-   */
-  @deprecated // Use "this.thisKeyword"
-  set keyword(Token token) {
-    thisKeyword = token;
-  }
-
   @override
   int get precedence => 16;
 
@@ -17983,20 +17662,6 @@ class ThrowExpression extends Expression {
    */
   void set expression(Expression expression) {
     _expression = _becomeParentOf(expression);
-  }
-
-  /**
-   * Return the token representing the 'throw' keyword.
-   */
-  @deprecated // Use "this.throwKeyword"
-  Token get keyword => throwKeyword;
-
-  /**
-   * Set the token representing the 'throw' keyword to the given [token].
-   */
-  @deprecated // Use "this.throwKeyword"
-  set keyword(Token token) {
-    throwKeyword = token;
   }
 
   @override
@@ -18127,6 +17792,10 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitAssertStatement(AssertStatement node) {
     _writer.print("assert (");
     _visitNode(node.condition);
+    if (node.message != null) {
+      _writer.print(', ');
+      _visitNode(node.message);
+    }
     _writer.print(");");
     return null;
   }
@@ -18281,6 +17950,16 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
+  Object visitConfiguration(Configuration node) {
+    _writer.print('if (');
+    _visitNode(node.name);
+    _visitNodeWithPrefix(" == ", node.value);
+    _writer.print(') ');
+    _visitNode(node.libraryUri);
+    return null;
+  }
+
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
     _visitTokenWithSuffix(node.externalKeyword, " ");
@@ -18346,6 +18025,12 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _writer.print(" while (");
     _visitNode(node.condition);
     _writer.print(");");
+    return null;
+  }
+
+  @override
+  Object visitDottedName(DottedName node) {
+    _visitNodeListWithSeparator(node.components, ".");
     return null;
   }
 
@@ -19347,20 +19032,6 @@ abstract class TypeAlias extends NamedCompilationUnitMember {
 
   @override
   Token get firstTokenAfterCommentAndMetadata => typedefKeyword;
-
-  /**
-   * Return the token representing the 'typedef' keyword.
-   */
-  @deprecated // Use "this.typedefKeyword"
-  Token get keyword => typedefKeyword;
-
-  /**
-   * Set the token representing the 'typedef' keyword to the given [token].
-   */
-  @deprecated // Use "this.typedefKeyword"
-  set keyword(Token token) {
-    typedefKeyword = token;
-  }
 }
 
 /**
@@ -19643,21 +19314,6 @@ class TypeParameter extends Declaration {
   Token get firstTokenAfterCommentAndMetadata => _name.beginToken;
 
   /**
-   * Return the token representing the 'extends' keyword, or `null` if there is
-   * no explicit upper bound.
-   */
-  @deprecated // Use "this.extendsKeyword"
-  Token get keyword => extendsKeyword;
-
-  /**
-   * Set the token representing the 'extends' keyword to the given [token].
-   */
-  @deprecated // Use "this.extendsKeyword"
-  set keyword(Token token) {
-    extendsKeyword = token;
-  }
-
-  /**
    * Return the name of the type parameter.
    */
   SimpleIdentifier get name => _name;
@@ -19808,6 +19464,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R visitConditionalExpression(ConditionalExpression node) => visitNode(node);
 
   @override
+  R visitConfiguration(Configuration node) => visitNode(node);
+
+  @override
   R visitConstructorDeclaration(ConstructorDeclaration node) => visitNode(node);
 
   @override
@@ -19828,6 +19487,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitDoStatement(DoStatement node) => visitNode(node);
+
+  @override
+  R visitDottedName(DottedName node) => visitNode(node);
 
   @override
   R visitDoubleLiteral(DoubleLiteral node) => visitNode(node);
@@ -20583,20 +20245,6 @@ class WhileStatement extends Statement {
   @override
   Token get endToken => _body.endToken;
 
-  /**
-   * Return the token representing the 'while' keyword.
-   */
-  @deprecated // Use "this.whileKeyword"
-  Token get keyword => whileKeyword;
-
-  /**
-   * Set the token representing the 'while' keyword to the given [token].
-   */
-  @deprecated // Use "this.whileKeyword"
-  set keyword(Token token) {
-    whileKeyword = token;
-  }
-
   @override
   accept(AstVisitor visitor) => visitor.visitWhileStatement(this);
 
@@ -20642,14 +20290,6 @@ class WithClause extends AstNode {
 
   @override
   Token get endToken => _mixinTypes.endToken;
-
-  /**
-   * Set the token representing the 'with' keyword to the given [token].
-   */
-  @deprecated // Use "this.withKeyword"
-  void set mixinKeyword(Token token) {
-    this.withKeyword = token;
-  }
 
   /**
    * Return the names of the mixins that were specified.

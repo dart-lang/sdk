@@ -5,13 +5,7 @@
 library test.src.task.driver_test;
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide
-        AnalysisCache,
-        AnalysisContextImpl,
-        AnalysisTask,
-        UniversalCachePartition,
-        WorkManager;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/inputs.dart';

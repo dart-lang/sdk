@@ -24,7 +24,18 @@ import 'package:yaml/src/yaml_node.dart';
 // TODO(pq): fix tests to run safely on the bots
 // https://github.com/dart-lang/sdk/issues/25001
 main() {}
-_main() {
+const emptyOptionsFile = 'test/data/empty_options.yaml';
+
+/// Start a driver for the given [source], optionally providing additional
+/// [args] and an [options] file path.  The value of [options] defaults to
+/// an empty options file to avoid unwanted configuration from an otherwise
+/// discovered options file.
+void drive(String source,
+        {String options: emptyOptionsFile,
+        List<String> args: const <String>[]}) =>
+    new Driver().start(['--options', options, source]..addAll(args));
+
+not_main() {
   group('Driver', () {
     StringSink savedOutSink, savedErrorSink;
     int savedExitCode;
@@ -429,17 +440,6 @@ main() {}
     });
   });
 }
-
-const emptyOptionsFile = 'test/data/empty_options.yaml';
-
-/// Start a driver for the given [source], optionally providing additional
-/// [args] and an [options] file path.  The value of [options] defaults to
-/// an empty options file to avoid unwanted configuration from an otherwise
-/// discovered options file.
-void drive(String source,
-        {String options: emptyOptionsFile,
-        List<String> args: const <String>[]}) =>
-    new Driver().start(['--options', options, source]..addAll(args));
 
 Map<String, YamlNode> parseOptions(String src) =>
     new AnalysisOptionsProvider().getOptionsFromString(src);

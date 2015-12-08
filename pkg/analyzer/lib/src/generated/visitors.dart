@@ -153,6 +153,13 @@ class DelegatingAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T visitConfiguration(Configuration node) {
+    _delegates.forEach((delegate) => delegate.visitConfiguration(node));
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   T visitConstructorDeclaration(ConstructorDeclaration node) {
     _delegates
         .forEach((delegate) => delegate.visitConstructorDeclaration(node));
@@ -200,6 +207,13 @@ class DelegatingAstVisitor<T> implements AstVisitor<T> {
   @override
   T visitDoStatement(DoStatement node) {
     _delegates.forEach((delegate) => delegate.visitDoStatement(node));
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  T visitDottedName(DottedName node) {
+    _delegates.forEach((delegate) => delegate.visitDottedName(node));
     node.visitChildren(this);
     return null;
   }
@@ -291,15 +305,15 @@ class DelegatingAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T visitForStatement(ForStatement node) {
-    _delegates.forEach((delegate) => delegate.visitForStatement(node));
+  T visitFormalParameterList(FormalParameterList node) {
+    _delegates.forEach((delegate) => delegate.visitFormalParameterList(node));
     node.visitChildren(this);
     return null;
   }
 
   @override
-  T visitFormalParameterList(FormalParameterList node) {
-    _delegates.forEach((delegate) => delegate.visitFormalParameterList(node));
+  T visitForStatement(ForStatement node) {
+    _delegates.forEach((delegate) => delegate.visitForStatement(node));
     node.visitChildren(this);
     return null;
   }
@@ -542,15 +556,15 @@ class DelegatingAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T visitPrefixExpression(PrefixExpression node) {
-    _delegates.forEach((delegate) => delegate.visitPrefixExpression(node));
+  T visitPrefixedIdentifier(PrefixedIdentifier node) {
+    _delegates.forEach((delegate) => delegate.visitPrefixedIdentifier(node));
     node.visitChildren(this);
     return null;
   }
 
   @override
-  T visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _delegates.forEach((delegate) => delegate.visitPrefixedIdentifier(node));
+  T visitPrefixExpression(PrefixExpression node) {
+    _delegates.forEach((delegate) => delegate.visitPrefixExpression(node));
     node.visitChildren(this);
     return null;
   }

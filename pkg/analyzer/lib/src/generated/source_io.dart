@@ -136,27 +136,6 @@ class FileBasedSource extends Source {
             '${uri == null ? file.toURI() : uri}@${file.getPath()}',
             () => _idTable.length);
 
-  /**
-   * Initialize a newly created source object.
-   *
-   * @param file the file represented by this source
-   */
-  @deprecated // Use new FileBasedSource(file)
-  FileBasedSource.con1(JavaFile file) : this(file);
-
-  /**
-   * Initialize a newly created source object.
-   *
-   * @param file the file represented by this source
-   * @param uri the URI from which this source was originally derived
-   */
-  @deprecated // Use new FileBasedSource(file, uri)
-  FileBasedSource.con2(Uri uri, JavaFile file)
-      : uri = uri,
-        file = file,
-        id = _idTable.putIfAbsent(
-            '$uri@${file.getPath()}', () => _idTable.length);
-
   @override
   TimestampedData<String> get contents {
     return PerformanceStatistics.io.makeCurrentWhile(() {

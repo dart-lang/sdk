@@ -196,6 +196,8 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
       1, (Parser target, arg0) => target._parseCommentReferences(arg0)),
   'parseCompilationUnitMember_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._parseCompilationUnitMember(arg0)),
+  'parseConfiguration_0':
+      new MethodTrampoline(0, (Parser target) => target._parseConfiguration()),
   'parseConstExpression_0': new MethodTrampoline(
       0, (Parser target) => target._parseConstExpression()),
   'parseConstructor_8': new MethodTrampoline(
@@ -214,6 +216,8 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
       0, (Parser target) => target._parseDocumentationComment()),
   'parseDoStatement_0':
       new MethodTrampoline(0, (Parser target) => target._parseDoStatement()),
+  'parseDottedName_0':
+      new MethodTrampoline(0, (Parser target) => target._parseDottedName()),
   'parseEmptyStatement_0':
       new MethodTrampoline(0, (Parser target) => target._parseEmptyStatement()),
   'parseEnumConstantDeclaration_0': new MethodTrampoline(
@@ -574,6 +578,9 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
     }
+    if (identical(_oldNode, node.message)) {
+      return _parser.parseExpression2();
+    }
     return _notAChild(node);
   }
 
@@ -745,6 +752,18 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   }
 
   @override
+  AstNode visitConfiguration(Configuration node) {
+    if (identical(_oldNode, node.name)) {
+      throw new InsufficientContextException();
+    } else if (identical(_oldNode, node.value)) {
+      return _parser.parseStringLiteral();
+    } else if (identical(_oldNode, node.libraryUri)) {
+      return _parser.parseStringLiteral();
+    }
+    return _notAChild(node);
+  }
+
+  @override
   AstNode visitConstructorDeclaration(ConstructorDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -824,6 +843,14 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       return _parser.parseStatement2();
     } else if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
+    }
+    return _notAChild(node);
+  }
+
+  @override
+  AstNode visitDottedName(DottedName node) {
+    if (node.components.contains(_oldNode)) {
+      throw new InsufficientContextException();
     }
     return _notAChild(node);
   }
@@ -2118,6 +2145,12 @@ class Parser {
   bool _inInitializer = false;
 
   /**
+   * A flag indicating whether the parser is to parse conditional directives
+   * syntax.
+   */
+  bool parseConditionalDirectives = false;
+
+  /**
    * A flag indicating whether the parser is to parse generic method syntax.
    */
   bool parseGenericMethods = false;
@@ -2151,30 +2184,6 @@ class Parser {
       return false;
     }
     return _tokenMatchesIdentifier(next);
-  }
-
-  /**
-   * Set whether the parser is to parse the async support.
-   */
-  @deprecated
-  void set parseAsync(bool parseAsync) {
-    // Async support cannot be disabled
-  }
-
-  /**
-   * Set whether the parser is to parse deferred libraries.
-   */
-  @deprecated
-  void set parseDeferredLibraries(bool parseDeferredLibraries) {
-    // Deferred libraries support cannot be disabled
-  }
-
-  /**
-   * Set whether the parser is to parse enum declarations.
-   */
-  @deprecated
-  void set parseEnum(bool parseEnum) {
-    // Enum support cannot be disabled
   }
 
   /**
@@ -4378,10 +4387,16 @@ class Parser {
       _reportErrorForNode(
           ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression);
     }
+    Token comma;
+    Expression message;
+    if (_matches(TokenType.COMMA)) {
+      comma = getAndAdvance();
+      message = parseExpression2();
+    }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
     Token semicolon = _expect(TokenType.SEMICOLON);
     return new AssertStatement(
-        keyword, leftParen, expression, rightParen, semicolon);
+        keyword, leftParen, expression, comma, message, rightParen, semicolon);
   }
 
   /**
@@ -5262,6 +5277,52 @@ class Parser {
   }
 
   /**
+   * Parse a configuration in either an import or export directive.
+   *
+   *     configuration ::=
+   *         'if' '(' test ')' uri
+   *
+   *     test ::=
+   *         dottedName ('==' stringLiteral)?
+   *
+   *     dottedName ::=
+   *         identifier ('.' identifier)*
+   */
+  Configuration _parseConfiguration() {
+    Token ifKeyword = _expectKeyword(Keyword.IF);
+    Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
+    DottedName name = _parseDottedName();
+    Token equalToken = null;
+    StringLiteral value = null;
+    if (_matches(TokenType.EQ_EQ)) {
+      equalToken = getAndAdvance();
+      value = parseStringLiteral();
+      if (value is StringInterpolation) {
+        _reportErrorForNode(
+            ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, value);
+      }
+    }
+    Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
+    StringLiteral libraryUri = _parseUri();
+    return new Configuration(ifKeyword, leftParenthesis, name, equalToken,
+        value, rightParenthesis, libraryUri);
+  }
+
+  /**
+   * Parse a list of configurations. If conditional directives are not
+   * supported, return an empty list without attempting to parse anything.
+   */
+  List<Configuration> _parseConfigurations() {
+    List<Configuration> configurations = <Configuration>[];
+    if (parseConditionalDirectives) {
+      while (_matchesKeyword(Keyword.IF)) {
+        configurations.add(_parseConfiguration());
+      }
+    }
+    return configurations;
+  }
+
+  /**
    * Parse a const expression. Return the const expression that was parsed.
    *
    *     constExpression ::=
@@ -5577,6 +5638,22 @@ class Parser {
   }
 
   /**
+   * Parse a dotted name. Return the dotted name that was parsed.
+   *
+   *     dottedName ::=
+   *         identifier ('.' identifier)*
+   */
+  DottedName _parseDottedName() {
+    List<SimpleIdentifier> components = new List<SimpleIdentifier>();
+    components.add(parseSimpleIdentifier());
+    while (_matches(TokenType.PERIOD)) {
+      _advance();
+      components.add(parseSimpleIdentifier());
+    }
+    return new DottedName(components);
+  }
+
+  /**
    * Parse an empty statement. Return the empty statement that was parsed.
    *
    *     emptyStatement ::=
@@ -5683,11 +5760,12 @@ class Parser {
    * associated with the directive. Return the export directive that was parsed.
    *
    *     exportDirective ::=
-   *         metadata 'export' stringLiteral combinator*';'
+   *         metadata 'export' stringLiteral configuration* combinator*';'
    */
   ExportDirective _parseExportDirective(CommentAndMetadata commentAndMetadata) {
     Token exportKeyword = _expectKeyword(Keyword.EXPORT);
     StringLiteral libraryUri = _parseUri();
+    List<Configuration> configurations = _parseConfigurations();
     List<Combinator> combinators = _parseCombinators();
     Token semicolon = _expectSemicolon();
     return new ExportDirective(
@@ -5695,6 +5773,7 @@ class Parser {
         commentAndMetadata.metadata,
         exportKeyword,
         libraryUri,
+        configurations,
         combinators,
         semicolon);
   }
@@ -6350,11 +6429,12 @@ class Parser {
    * associated with the directive. Return the import directive that was parsed.
    *
    *     importDirective ::=
-   *         metadata 'import' stringLiteral (deferred)? ('as' identifier)? combinator*';'
+   *         metadata 'import' stringLiteral configuration* (deferred)? ('as' identifier)? combinator*';'
    */
   ImportDirective _parseImportDirective(CommentAndMetadata commentAndMetadata) {
     Token importKeyword = _expectKeyword(Keyword.IMPORT);
     StringLiteral libraryUri = _parseUri();
+    List<Configuration> configurations = _parseConfigurations();
     Token deferredToken = null;
     Token asToken = null;
     SimpleIdentifier prefix = null;
@@ -6390,6 +6470,7 @@ class Parser {
         commentAndMetadata.metadata,
         importKeyword,
         libraryUri,
+        configurations,
         deferredToken,
         asToken,
         prefix,
@@ -9469,6 +9550,10 @@ class ParserErrorCode extends ErrorCode {
       'INVALID_HEX_ESCAPE',
       "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
 
+  static const ParserErrorCode INVALID_LITERAL_IN_CONFIGURATION =
+      const ParserErrorCode('INVALID_LITERAL_IN_CONFIGURATION',
+          "The literal in a configuration cannot contain interpolation");
+
   static const ParserErrorCode INVALID_OPERATOR = const ParserErrorCode(
       'INVALID_OPERATOR', "The string '{0}' is not a valid operator");
 
@@ -9862,6 +9947,8 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.assertKeyword, toNode.assertKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.comma, toNode.comma),
+        _isEqualNodes(node.message, toNode.message),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
         _isEqualTokens(node.semicolon, toNode.semicolon));
   }
@@ -10057,6 +10144,22 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConfiguration(Configuration node) {
+    Configuration toNode = this._toNode as Configuration;
+    if (_and(
+        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.equalToken, toNode.equalToken),
+        _isEqualNodes(node.value, toNode.value),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.libraryUri, toNode.libraryUri))) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration toNode = this._toNode as ConstructorDeclaration;
     if (_and(
@@ -10149,6 +10252,12 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodes(node.condition, toNode.condition),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
         _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitDottedName(DottedName node) {
+    DottedName toNode = this._toNode as DottedName;
+    return _isEqualNodeLists(node.components, toNode.components);
   }
 
   @override

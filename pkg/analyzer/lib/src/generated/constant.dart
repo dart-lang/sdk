@@ -57,9 +57,6 @@ class BoolState extends InstanceState {
   BoolState(this.value);
 
   @override
-  bool get hasExactValue => true;
-
-  @override
   int get hashCode => value == null ? 0 : (value ? 2 : 3);
 
   @override
@@ -1972,33 +1969,6 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
  */
 abstract class DartObject {
   /**
-   * Return the boolean value of this object, or `null` if either the value of
-   * this object is not known or this object is not of type 'bool'.
-   *
-   * Deprecated. Use [toBoolValue].
-   */
-  @deprecated
-  bool get boolValue;
-
-  /**
-   * Return the floating point value of this object, or `null` if either the
-   * value of this object is not known or this object is not of type 'double'.
-   *
-   * Deprecated. Use [toDoubleValue].
-   */
-  @deprecated
-  double get doubleValue;
-
-  /**
-   * Return `true` if this object's value can be represented exactly.
-   *
-   * Deprecated. The semantics of this method were not clear. One semantic is
-   * covered by [hasKnownValue].
-   */
-  @deprecated
-  bool get hasExactValue;
-
-  /**
    * Return `true` if the value of the object being represented is known.
    *
    * This method will return `false` if
@@ -2017,43 +1987,9 @@ abstract class DartObject {
   bool get hasKnownValue;
 
   /**
-   * Return the integer value of this object, or `null` if either the value of
-   * this object is not known or this object is not of type 'int'.
-   *
-   * Deprecated. Use [toIntValue].
-   */
-  @deprecated
-  int get intValue;
-
-  /**
-   * Return `true` if this object represents the value 'false'.
-   *
-   * Deprecated. Use `object.toBoolValue() == false`.
-   */
-  @deprecated
-  bool get isFalse;
-
-  /**
    * Return `true` if the object being represented represents the value 'null'.
    */
   bool get isNull;
-
-  /**
-   * Return `true` if this object represents the value 'true'.
-   *
-   * Deprecated. Use `object.toBoolValue() == true`.
-   */
-  @deprecated
-  bool get isTrue;
-
-  /**
-   * Return the string value of this object, or `null` if either the value of
-   * this object is not known or this object is not of type 'String'.
-   *
-   * Deprecated. Use [toStringValue].
-   */
-  @deprecated
-  String get stringValue;
 
   /**
    * Return a representation of the type of the object being represented.
@@ -2078,16 +2014,6 @@ abstract class DartObject {
    * would return `false` from [hasKnownValue].
    */
   ParameterizedType get type;
-
-  /**
-   * Return this object's value if it can be represented exactly, or `null` if
-   * either the value cannot be represented exactly or if the value is `null`.
-   * Clients should use `hasExactValue` to distinguish between these two cases.
-   *
-   * Deprecated. Use one of the `isXValue()` methods.
-   */
-  @deprecated
-  Object get value;
 
   /**
    * Return a representation of the value of the field with the given [name].
@@ -2169,7 +2095,7 @@ abstract class DartObject {
    * * this object is not of type 'Type', or
    * * the value of the object being represented is `null`.
    */
-  ParameterizedType toTypeValue();
+  DartType toTypeValue();
 }
 
 /**
@@ -2566,29 +2492,13 @@ class DartObjectImpl implements DartObject {
     return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
   }
 
-  @deprecated
-  @override
-  bool get boolValue => toBoolValue();
-
-  @deprecated
-  @override
-  double get doubleValue => toDoubleValue();
-
   HashMap<String, DartObjectImpl> get fields => _state.fields;
-
-  @deprecated
-  @override
-  bool get hasExactValue => _state.hasExactValue;
 
   @override
   int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
 
   @override
   bool get hasKnownValue => !_state.isUnknown;
-
-  @deprecated
-  @override
-  int get intValue => toIntValue();
 
   /**
    * Return `true` if this object represents an object whose type is 'bool'.
@@ -2601,17 +2511,8 @@ class DartObjectImpl implements DartObject {
    */
   bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
 
-  @deprecated
-  @override
-  bool get isFalse => toBoolValue() == false;
-
   @override
   bool get isNull => _state is NullState;
-
-  @deprecated
-  @override
-  bool get isTrue =>
-      _state is BoolState && identical((_state as BoolState).value, true);
 
   /**
    * Return `true` if this object represents an unknown value.
@@ -2623,14 +2524,6 @@ class DartObjectImpl implements DartObject {
    * class.
    */
   bool get isUserDefinedObject => _state is GenericState;
-
-  @deprecated
-  @override
-  String get stringValue => toStringValue();
-
-  @deprecated
-  @override
-  Object get value => _state.value;
 
   @override
   bool operator ==(Object object) {
@@ -3130,13 +3023,10 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
-  ParameterizedType toTypeValue() {
+  DartType toTypeValue() {
     if (_state is TypeState) {
-      Element element = (_state as TypeState).value;
-      if (element is ClassElement) {
-        return element.type;
-      }
-      if (element is FunctionElement) {
+      Element element = (_state as TypeState)._element;
+      if (element is TypeDefiningElement) {
         return element.type;
       }
     }
@@ -3238,9 +3128,6 @@ class DoubleState extends NumState {
    * [value].
    */
   DoubleState(this.value);
-
-  @override
-  bool get hasExactValue => true;
 
   @override
   int get hashCode => value == null ? 0 : value.hashCode;
@@ -3817,14 +3704,6 @@ class EvaluationResultImpl {
     this._errors = errors == null ? <AnalysisError>[] : errors;
   }
 
-  @deprecated // Use new EvaluationResultImpl(value)
-  EvaluationResultImpl.con1(this.value) {
-    this._errors = new List<AnalysisError>(0);
-  }
-
-  @deprecated // Use new EvaluationResultImpl(value, errors)
-  EvaluationResultImpl.con2(this.value, List<AnalysisError> this._errors);
-
   List<AnalysisError> get errors => _errors;
 
   bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
@@ -4021,11 +3900,6 @@ abstract class InstanceState {
   HashMap<String, DartObjectImpl> get fields => null;
 
   /**
-   * Return `true` if this object's value can be represented exactly.
-   */
-  bool get hasExactValue => false;
-
-  /**
    * Return `true` if this object represents an object whose type is 'bool'.
    */
   bool get isBool => false;
@@ -4045,13 +3919,6 @@ abstract class InstanceState {
    * Return the name of the type of this value.
    */
   String get typeName;
-
-  /**
-   * Return this object's value if it can be represented exactly, or `null` if
-   * either the value cannot be represented exactly or if the value is `null`.
-   * Clients should use [hasExactValue] to distinguish between these two cases.
-   */
-  Object get value => null;
 
   /**
    * Return the result of invoking the '+' operator on this object with the
@@ -4446,9 +4313,6 @@ class IntState extends NumState {
    * [value].
    */
   IntState(this.value);
-
-  @override
-  bool get hasExactValue => true;
 
   @override
   int get hashCode => value == null ? 0 : value.hashCode;
@@ -4907,17 +4771,6 @@ class ListState extends InstanceState {
   ListState(this._elements);
 
   @override
-  bool get hasExactValue {
-    int count = _elements.length;
-    for (int i = 0; i < count; i++) {
-      if (!_elements[i].hasExactValue) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
   int get hashCode {
     int value = 0;
     int count = _elements.length;
@@ -4929,20 +4782,6 @@ class ListState extends InstanceState {
 
   @override
   String get typeName => "List";
-
-  @override
-  List<Object> get value {
-    int count = _elements.length;
-    List<Object> result = new List<Object>(count);
-    for (int i = 0; i < count; i++) {
-      DartObjectImpl element = _elements[i];
-      if (!element.hasExactValue) {
-        return null;
-      }
-      result[i] = element.value;
-    }
-    return result;
-  }
 
   @override
   bool operator ==(Object object) {
@@ -5015,16 +4854,6 @@ class MapState extends InstanceState {
   MapState(this._entries);
 
   @override
-  bool get hasExactValue {
-    for (DartObjectImpl key in _entries.keys) {
-      if (!key.hasExactValue || !_entries[key].hasExactValue) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
   int get hashCode {
     int value = 0;
     for (DartObjectImpl key in _entries.keys.toSet()) {
@@ -5035,19 +4864,6 @@ class MapState extends InstanceState {
 
   @override
   String get typeName => "Map";
-
-  @override
-  Map<Object, Object> get value {
-    HashMap<Object, Object> result = new HashMap<Object, Object>();
-    for (DartObjectImpl key in _entries.keys) {
-      DartObjectImpl value = _entries[key];
-      if (!key.hasExactValue || !value.hasExactValue) {
-        return null;
-      }
-      result[key.value] = value.value;
-    }
-    return result;
-  }
 
   @override
   bool operator ==(Object object) {
@@ -5117,9 +4933,6 @@ class NullState extends InstanceState {
    * An instance representing the boolean value 'null'.
    */
   static NullState NULL_STATE = new NullState();
-
-  @override
-  bool get hasExactValue => true;
 
   @override
   int get hashCode => 0;
@@ -5378,9 +5191,6 @@ class StringState extends InstanceState {
   StringState(this.value);
 
   @override
-  bool get hasExactValue => true;
-
-  @override
   int get hashCode => value == null ? 0 : value.hashCode;
 
   @override
@@ -5466,9 +5276,6 @@ class SymbolState extends InstanceState {
   SymbolState(this.value);
 
   @override
-  bool get hasExactValue => true;
-
-  @override
   int get hashCode => value == null ? 0 : value.hashCode;
 
   @override
@@ -5532,9 +5339,6 @@ class TypeState extends InstanceState {
 
   @override
   String get typeName => "Type";
-
-  @override
-  Element get value => _element;
 
   @override
   bool operator ==(Object object) =>

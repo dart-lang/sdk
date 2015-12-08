@@ -295,14 +295,6 @@ class JavaString {
 }
 
 class JavaSystem {
-  @deprecated
-  static void arraycopy(
-      List src, int srcPos, List dest, int destPos, int length) {
-    for (int i = 0; i < length; i++) {
-      dest[destPos + i] = src[srcPos + i];
-    }
-  }
-
   static int currentTimeMillis() {
     return (new DateTime.now()).millisecondsSinceEpoch;
   }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library src.domain_diagnostic;
+library analysis_server.src.domain_diagnostic;
 
 import 'dart:async';
 import 'dart:collection';
@@ -14,8 +14,7 @@ import 'package:analysis_server/src/utilities/average.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisCache, AnalysisContextImpl;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/driver.dart';

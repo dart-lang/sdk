@@ -47,21 +47,11 @@ class AnalysisLogger implements Logger {
   }
 
   @override
-  void logError2(String message, Object exception) {
-    baseLogger.severe(message, exception);
-  }
-
-  @override
   void logInformation(String message, [CaughtException exception]) {
     if (exception == null) {
       baseLogger.info(message);
     } else {
       baseLogger.info(message, exception.exception, exception.stackTrace);
     }
-  }
-
-  @override
-  void logInformation2(String message, Object exception) {
-    baseLogger.info(message, exception);
   }
 }

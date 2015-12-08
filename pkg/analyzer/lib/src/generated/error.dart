@@ -124,27 +124,6 @@ class AnalysisError {
   }
 
   /**
-   * Initialize a newly created analysis error for the specified [source]. The
-   * error will have the given [errorCode] and the list of [arguments] will be
-   * used to complete the message. The error has no location information.
-   */
-  @deprecated // Use new AnalysisError(source, 0, 0, errorCode, arguments)
-  AnalysisError.con1(Source source, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, 0, 0, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source] at the
-   * given [offset] with the given [length]. The error will have the given
-   * [errorCode] and the list of [arguments] will be used to complete the
-   * message.
-   */
-  @deprecated // Use new AnalysisError(source, offset, length, errorCode, arguments)
-  AnalysisError.con2(Source source, int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, offset, length, errorCode, arguments);
-
-  /**
    * Return the template used to create the correction to be displayed for this
    * error, or `null` if there is no correction information for this error. The
    * correction should indicate how the user can fix the error.
@@ -277,28 +256,6 @@ class AnalysisErrorWithProperties extends AnalysisError {
       Source source, int offset, int length, ErrorCode errorCode,
       [List<Object> arguments])
       : super(source, offset, length, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source]. The
-   * error will have the given [errorCode] and the list of [arguments] will be
-   * used to complete the message. The error has no location information.
-   */
-  @deprecated // Use new AnalysisErrorWithProperties(source, 0, 0, errorCode, arguments)
-  AnalysisErrorWithProperties.con1(Source source, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, 0, 0, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source] at the
-   * given [offset] with the given [length]. The error will have the given
-   * [errorCode] and the list of [arguments] will be used to complete the
-   * message.
-   */
-  @deprecated // Use new AnalysisErrorWithProperties(source, offset, length, errorCode, arguments)
-  AnalysisErrorWithProperties.con2(
-      Source source, int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, offset, length, errorCode, arguments);
 
   @override
   Object getProperty(ErrorProperty property) => _propertyMap[property];
@@ -1176,6 +1133,15 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
       const CompileTimeErrorCode('EXTENDS_DEFERRED_CLASS',
           "This class cannot extend the deferred class '{0}'");
+
+  /**
+   * DEP 37 extends the syntax for assert() to allow a second "message"
+   * argument.  We issue this error if the user tries to supply a "message"
+   * argument but the DEP is not enabled.
+   */
+  static const CompileTimeErrorCode EXTRA_ARGUMENT_TO_ASSERT =
+      const CompileTimeErrorCode('EXTRA_ARGUMENT_TO_ASSERT',
+          "Assertions only accept a single argument");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;

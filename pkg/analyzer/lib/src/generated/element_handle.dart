@@ -68,10 +68,6 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isProxy => actualElement.isProxy;
 
   @override
-  @deprecated
-  bool get isTypedef => actualElement.isMixinApplication;
-
-  @override
   bool get isValidMixin => actualElement.isValidMixin;
 
   @override
@@ -379,10 +375,6 @@ abstract class ElementHandle implements Element {
 
   @override
   int get nameOffset => actualElement.nameOffset;
-
-  @deprecated
-  @override
-  AstNode get node => computeNode();
 
   @override
   Source get source => actualElement.source;

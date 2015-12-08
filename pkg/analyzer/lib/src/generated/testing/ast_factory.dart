@@ -46,11 +46,14 @@ class AstFactory {
       new AsExpression(
           expression, TokenFactory.tokenFromKeyword(Keyword.AS), type);
 
-  static AssertStatement assertStatement(Expression condition) =>
+  static AssertStatement assertStatement(Expression condition,
+          [Expression message]) =>
       new AssertStatement(
           TokenFactory.tokenFromKeyword(Keyword.ASSERT),
           TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
           condition,
+          message == null ? null : TokenFactory.tokenFromType(TokenType.COMMA),
+          message,
           TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -431,6 +434,7 @@ class AstFactory {
           metadata,
           TokenFactory.tokenFromKeyword(Keyword.EXPORT),
           string2(uri),
+          null,
           combinators,
           TokenFactory.tokenFromType(TokenType.SEMICOLON));
 
@@ -657,6 +661,7 @@ class AstFactory {
           metadata,
           TokenFactory.tokenFromKeyword(Keyword.IMPORT),
           string2(uri),
+          null,
           !isDeferred ? null : TokenFactory.tokenFromKeyword(Keyword.DEFERRED),
           prefix == null ? null : TokenFactory.tokenFromKeyword(Keyword.AS),
           prefix == null ? null : identifier3(prefix),

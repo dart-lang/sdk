@@ -409,15 +409,6 @@ class ElementFactory {
     return getter;
   }
 
-  @deprecated
-  static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
-    Source source =
-        new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
-    HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
-    unit.source = source;
-    return unit;
-  }
-
   static ImportElementImpl importFor(
       LibraryElement importedLibrary, PrefixElement prefix,
       [List<NamespaceCombinator> combinators =

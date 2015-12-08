@@ -20,6 +20,7 @@ import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
+import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -111,19 +112,22 @@ class AbstractContextManagerTest {
     return folderPath;
   }
 
+  void processRequiredPlugins() {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(linterPlugin);
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+  }
+
   UriResolver providePackageResolver(Folder folder) {
     return packageResolver;
   }
 
   void setUp() {
-    List<Plugin> plugins = <Plugin>[];
-    plugins.add(linterPlugin);
-
-    // Defer to the extension manager in AE for plugin registration.
-    AnalysisEngine.instance.userDefinedPlugins = plugins;
-    // Force registration.
-    AnalysisEngine.instance.taskManager;
-
+    processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
     manager = new ContextManagerImpl(resourceProvider, providePackageResolver,

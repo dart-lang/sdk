@@ -23,9 +23,6 @@ main() {
 
 @reflectiveTest
 class AnalysisOptionsFileNotificationTest extends AbstractAnalysisTest {
-  /// Cached model state in case tests need to set task model to on/off.
-  bool wasTaskModelEnabled;
-
   Map<String, List<AnalysisError>> filesErrors = {};
 
   final testSource = '''
@@ -78,13 +75,10 @@ analyzer:
   void setUp() {
     super.setUp();
     server.handlers = [new AnalysisDomainHandler(server)];
-    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
-    AnalysisEngine.instance.useTaskModel = true;
   }
 
   @override
   void tearDown() {
-    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
     filesErrors[optionsFilePath] = [];
     filesErrors[testFile] = [];
     super.tearDown();

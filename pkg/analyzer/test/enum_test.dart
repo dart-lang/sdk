@@ -9,7 +9,6 @@ import 'dart:mirrors';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/html.dart' as html;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -69,12 +68,6 @@ class EnumTest {
       ..check_explicit_values();
   }
 
-  void test_html_TokenType() {
-    new EnumTester<html.TokenType>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
   void test_INIT_STATE() {
     new EnumTester<INIT_STATE>()
       ..check_getters()
@@ -99,20 +92,8 @@ class EnumTest {
       ..check_explicit_values();
   }
 
-  void test_RetentionPriority() {
-    new EnumTester<RetentionPriority>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
   void test_SourceKind() {
     new EnumTester<SourceKind>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
-  void test_SourcePriority() {
-    new EnumTester<SourcePriority>()
       ..check_getters()
       ..check_explicit_values();
   }

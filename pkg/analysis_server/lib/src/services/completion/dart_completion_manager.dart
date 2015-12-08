@@ -22,7 +22,7 @@ import 'package:analysis_server/src/services/completion/prefixed_element_contrib
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 

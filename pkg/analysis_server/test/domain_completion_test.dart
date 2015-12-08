@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -52,13 +53,23 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   int requestCount = 0;
   String testFile2 = '/project/bin/test2.dart';
 
-  /// Cached model state in case tests need to set task model to on/off.
-  bool wasTaskModelEnabled;
-
   AnalysisServer createAnalysisServer(Index index) {
-    ExtensionManager manager = new ExtensionManager();
+    //
+    // Collect plugins
+    //
     ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(serverPlugin);
+    addServerPlugins(plugins);
+    //
+    // Process plugins
+    //
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+    //
+    // Create the server
+    //
     return new Test_AnalysisServer(
         super.serverChannel,
         super.resourceProvider,
@@ -85,8 +96,6 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
-    AnalysisEngine.instance.useTaskModel = true;
     createProject();
     analysisDomain = handler;
     completionDomain = new Test_CompletionDomainHandler(server);
@@ -99,7 +108,6 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     super.tearDown();
     analysisDomain = null;
     completionDomain = null;
-    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
   }
 
   /**

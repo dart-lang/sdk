@@ -23,8 +23,8 @@ import 'utils.dart';
 ///
 // TODO(pq): fix tests to run safely on the bots
 // https://github.com/dart-lang/sdk/issues/25001
-main () {}
-_main() {
+main() {}
+not_main() {
   group('--strong', () {
     StringSink savedOutSink, savedErrorSink;
     int savedExitCode;

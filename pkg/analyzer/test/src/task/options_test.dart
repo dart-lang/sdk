@@ -6,7 +6,7 @@ library test.src.task.options_test;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';

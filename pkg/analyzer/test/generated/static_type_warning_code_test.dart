@@ -58,6 +58,30 @@ f() {}''');
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
+  void test_assert_message_suppresses_type_promotion() {
+    // If a variable is assigned to inside the expression for an assert
+    // message, type promotion should be suppressed, just as it would be if the
+    // assignment occurred outside an assert statement.  (Note that it is a
+    // dubious practice for the computation of an assert message to have side
+    // effects, since it is only evaluated if the assert fails).
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+class C {
+  void foo() {}
+}
+
+f(Object x) {
+  if (x is C) {
+    x.foo();
+    assert(true, () { x = new C(); return 'msg'; }());
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    // Do not verify since `x.foo()` fails to resolve.
+  }
+
   void test_await_flattened() {
     Source source = addSource('''
 import 'dart:async';

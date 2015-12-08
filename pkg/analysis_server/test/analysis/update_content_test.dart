@@ -107,11 +107,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     server.updateContent('2', {testFile: new RemoveContentOverlay()});
     // Validate that at the end the unit was indexed.
     await server.onAnalysisComplete;
-    if (AnalysisEngine.instance.useTaskModel) {
-      verify(server.index.index(anyObject, testUnitMatcher)).times(3);
-    } else {
-      verify(server.index.index(anyObject, testUnitMatcher)).times(2);
-    }
+    verify(server.index.index(anyObject, testUnitMatcher)).times(3);
   }
 
   test_multiple_contexts() async {

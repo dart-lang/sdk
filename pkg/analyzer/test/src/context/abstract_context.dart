@@ -9,12 +9,13 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisCache, AnalysisContextImpl, AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -124,6 +125,14 @@ class AbstractContextTest {
   }
 
   void setUp() {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+
     prepareAnalysisContext();
   }
 

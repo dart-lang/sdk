@@ -63,6 +63,7 @@ class _SameResolutionValidator implements AstVisitor {
   visitAssertStatement(AssertStatement node) {
     AssertStatement other = this.other;
     _visitNode(node.condition, other.condition);
+    _visitNode(node.message, other.message);
   }
 
   @override
@@ -185,6 +186,14 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   @override
+  visitConfiguration(Configuration node) {
+    Configuration other = this.other;
+    _visitNode(node.name, other.name);
+    _visitNode(node.value, other.value);
+    _visitNode(node.libraryUri, other.libraryUri);
+  }
+
+  @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration other = this.other;
     _visitDeclaration(node, other);
@@ -235,6 +244,12 @@ class _SameResolutionValidator implements AstVisitor {
     DoStatement other = this.other;
     _visitNode(node.condition, other.condition);
     _visitNode(node.body, other.body);
+  }
+
+  @override
+  visitDottedName(DottedName node) {
+    DottedName other = this.other;
+    _visitList(node.components, other.components);
   }
 
   @override

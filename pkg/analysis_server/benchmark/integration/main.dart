@@ -26,8 +26,7 @@ main(List<String> rawArgs) {
   });
   PerfArgs args = parseArgs(rawArgs);
 
-  Driver driver = new Driver(
-      diagnosticPort: args.diagnosticPort, newTaskModel: args.newTaskModel);
+  Driver driver = new Driver(diagnosticPort: args.diagnosticPort);
   Stream<Operation> stream = openInput(args);
   StreamSubscription<Operation> subscription;
   subscription = stream.listen((Operation op) {
@@ -57,7 +56,6 @@ const DIAGNOSTIC_PORT_OPTION = 'diagnosticPort';
 const HELP_CMDLINE_OPTION = 'help';
 const INPUT_CMDLINE_OPTION = 'input';
 const MAP_OPTION = 'map';
-const NEW_TASK_MODEL_OPTION = 'newTaskModel';
 
 /**
  * The amount of time to give the server to respond to a shutdown request
@@ -94,10 +92,6 @@ ArgParser get argParser {
       help: '<dirPath>\n'
           'The temporary directory containing source used during performance measurement.\n'
           'WARNING: The contents of the target directory will be modified');
-  _argParser.addFlag(NEW_TASK_MODEL_OPTION,
-      help: "enable the use of the new task model",
-      defaultsTo: false,
-      negatable: false);
   _argParser.addOption(DIAGNOSTIC_PORT_OPTION,
       abbr: 'd',
       help: 'localhost port on which server will provide diagnostic web pages');
@@ -181,8 +175,6 @@ PerfArgs parseArgs(List<String> rawArgs) {
     showHelp = true;
   }
 
-  perfArgs.newTaskModel = args[NEW_TASK_MODEL_OPTION];
-
   String portText = args[DIAGNOSTIC_PORT_OPTION];
   if (portText != null) {
     perfArgs.diagnosticPort = int.parse(portText, onError: (s) {
@@ -253,9 +245,4 @@ class PerfArgs {
    * The diagnostic port for Analysis Server or `null` if none.
    */
   int diagnosticPort;
-
-  /**
-   * `true` if the server should run using the new task model.
-   */
-  bool newTaskModel;
 }

@@ -16,7 +16,7 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:unittest/unittest.dart';
+import 'package:unittest/unittest.dart' hide Configuration;
 
 import '../reflective_tests.dart';
 import '../utils.dart';
@@ -1344,6 +1344,11 @@ class Foo {
     parse4("parseStringLiteral", "'\$1'", [ParserErrorCode.MISSING_IDENTIFIER]);
   }
 
+  void test_invalidLiteralInConfiguration() {
+    parse4("parseConfiguration", "if (a == 'x \$y z') 'a.dart'",
+        [ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION]);
+  }
+
   void test_invalidOperator() {
     parse3("parseClassMember", <Object>["C"], "void operator ===(x) {}",
         [ParserErrorCode.INVALID_OPERATOR]);
@@ -2640,6 +2645,12 @@ class ParserTestCase extends EngineTestCase {
   static bool parseFunctionBodies = true;
 
   /**
+   * A flag indicating whether conditional directives support should be enabled
+   * for a specific test.
+   */
+  bool enableConditionalDirectives = false;
+
+  /**
    * A flag indicating whether generic method support should be enabled for a
    * specific test.
    */
@@ -2700,6 +2711,7 @@ class ParserTestCase extends EngineTestCase {
     // Parse the source.
     //
     Parser parser = createParser(listener);
+    parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
@@ -5158,6 +5170,36 @@ class SimpleParserTest extends ParserTestCase {
     expect(statement.assertKeyword, isNotNull);
     expect(statement.leftParenthesis, isNotNull);
     expect(statement.condition, isNotNull);
+    expect(statement.comma, isNull);
+    expect(statement.message, isNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_messageLowPrecedence() {
+    // Using a throw expression as an assert message would be silly in
+    // practice, but it's the lowest precedence expression type, so verifying
+    // that it works should give us high confidence that other expression types
+    // will work as well.
+    AssertStatement statement =
+        parse4('parseAssertStatement', 'assert (x, throw "foo");');
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNotNull);
+    expect(statement.message, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.semicolon, isNotNull);
+  }
+
+  void test_parseAssertStatement_messageString() {
+    AssertStatement statement =
+        parse4('parseAssertStatement', 'assert (x, "foo");');
+    expect(statement.assertKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.condition, isNotNull);
+    expect(statement.comma, isNotNull);
+    expect(statement.message, isNotNull);
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.semicolon, isNotNull);
   }
@@ -7133,6 +7175,54 @@ void''');
     expect(expression.elseExpression, isNotNull);
   }
 
+  void test_parseConfiguration_noOperator_dottedIdentifier() {
+    Configuration configuration =
+        parse4('parseConfiguration', "if (a.b) 'c.dart'");
+    expect(configuration.ifKeyword, isNotNull);
+    expect(configuration.leftParenthesis, isNotNull);
+    _expectDottedName(configuration.name, ["a", "b"]);
+    expect(configuration.equalToken, isNull);
+    expect(configuration.value, isNull);
+    expect(configuration.rightParenthesis, isNotNull);
+    expect(configuration.libraryUri, isNotNull);
+  }
+
+  void test_parseConfiguration_noOperator_simpleIdentifier() {
+    Configuration configuration =
+        parse4('parseConfiguration', "if (a) 'b.dart'");
+    expect(configuration.ifKeyword, isNotNull);
+    expect(configuration.leftParenthesis, isNotNull);
+    _expectDottedName(configuration.name, ["a"]);
+    expect(configuration.equalToken, isNull);
+    expect(configuration.value, isNull);
+    expect(configuration.rightParenthesis, isNotNull);
+    expect(configuration.libraryUri, isNotNull);
+  }
+
+  void test_parseConfiguration_operator_dottedIdentifier() {
+    Configuration configuration =
+        parse4('parseConfiguration', "if (a.b == 'c') 'd.dart'");
+    expect(configuration.ifKeyword, isNotNull);
+    expect(configuration.leftParenthesis, isNotNull);
+    _expectDottedName(configuration.name, ["a", "b"]);
+    expect(configuration.equalToken, isNotNull);
+    expect(configuration.value, isNotNull);
+    expect(configuration.rightParenthesis, isNotNull);
+    expect(configuration.libraryUri, isNotNull);
+  }
+
+  void test_parseConfiguration_operator_simpleIdentifier() {
+    Configuration configuration =
+        parse4('parseConfiguration', "if (a == 'b') 'c.dart'");
+    expect(configuration.ifKeyword, isNotNull);
+    expect(configuration.leftParenthesis, isNotNull);
+    _expectDottedName(configuration.name, ["a"]);
+    expect(configuration.equalToken, isNotNull);
+    expect(configuration.value, isNotNull);
+    expect(configuration.rightParenthesis, isNotNull);
+    expect(configuration.libraryUri, isNotNull);
+  }
+
   void test_parseConstExpression_instanceCreation() {
     InstanceCreationExpression expression =
         parse4("parseConstExpression", "const A()");
@@ -7398,6 +7488,16 @@ void''');
     expect(statement.semicolon, isNotNull);
   }
 
+  void test_parseDottedName_multiple() {
+    DottedName name = parse4("parseDottedName", "a.b.c");
+    _expectDottedName(name, ["a", "b", "c"]);
+  }
+
+  void test_parseDottedName_single() {
+    DottedName name = parse4("parseDottedName", "a");
+    _expectDottedName(name, ["a"]);
+  }
+
   void test_parseEmptyStatement() {
     EmptyStatement statement = parse4("parseEmptyStatement", ";");
     expect(statement.semicolon, isNotNull);
@@ -7452,6 +7552,35 @@ void''');
     expect(expression.operator, isNotNull);
     expect(expression.operator.type, TokenType.EQ_EQ);
     expect(expression.rightOperand, isNotNull);
+  }
+
+  void test_parseExportDirective_configuration_multiple() {
+    enableConditionalDirectives = true;
+    ExportDirective directive = parse(
+        "parseExportDirective",
+        <Object>[emptyCommentAndMetadata()],
+        "export 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(2));
+    _expectDottedName(directive.configurations[0].name, ['a']);
+    _expectDottedName(directive.configurations[1].name, ['c']);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseExportDirective_configuration_single() {
+    enableConditionalDirectives = true;
+    ExportDirective directive = parse(
+        "parseExportDirective",
+        <Object>[emptyCommentAndMetadata()],
+        "export 'lib/lib.dart' if (a.b == 'c.dart') '';");
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(1));
+    _expectDottedName(directive.configurations[0].name, ['a', 'b']);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseExportDirective_hide() {
@@ -8627,6 +8756,41 @@ void''');
     ImplementsClause clause = parse4("parseImplementsClause", "implements A");
     expect(clause.interfaces, hasLength(1));
     expect(clause.implementsKeyword, isNotNull);
+  }
+
+  void test_parseImportDirective_configuration_multiple() {
+    enableConditionalDirectives = true;
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        <Object>[emptyCommentAndMetadata()],
+        "import 'lib/lib.dart' if (a) 'b.dart' if (c) 'd.dart';");
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(2));
+    _expectDottedName(directive.configurations[0].name, ['a']);
+    _expectDottedName(directive.configurations[1].name, ['c']);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
+  }
+
+  void test_parseImportDirective_configuration_single() {
+    enableConditionalDirectives = true;
+    ImportDirective directive = parse(
+        "parseImportDirective",
+        <Object>[emptyCommentAndMetadata()],
+        "import 'lib/lib.dart' if (a.b == 'c.dart') '';");
+    expect(directive.keyword, isNotNull);
+    expect(directive.uri, isNotNull);
+    expect(directive.configurations, hasLength(1));
+    _expectDottedName(directive.configurations[0].name, ['a', 'b']);
+    expect(directive.deferredKeyword, isNull);
+    expect(directive.asKeyword, isNull);
+    expect(directive.prefix, isNull);
+    expect(directive.combinators, hasLength(0));
+    expect(directive.semicolon, isNotNull);
   }
 
   void test_parseImportDirective_deferred() {
@@ -11006,6 +11170,17 @@ void''');
   SimpleStringLiteral _createSyntheticStringLiteral() {
     GatheringErrorListener listener = new GatheringErrorListener();
     return invokeParserMethod2("createSyntheticStringLiteral", "", listener);
+  }
+
+  void _expectDottedName(DottedName name, List<String> expectedComponents) {
+    int count = expectedComponents.length;
+    NodeList<SimpleIdentifier> components = name.components;
+    expect(components, hasLength(count));
+    for (int i = 0; i < count; i++) {
+      SimpleIdentifier component = components[i];
+      expect(component, isNotNull);
+      expect(component.name, expectedComponents[i]);
+    }
   }
 
   /**

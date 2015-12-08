@@ -97,22 +97,27 @@ class AbstractAnalysisTest {
   }
 
   AnalysisServer createAnalysisServer(Index index) {
+    //
+    // Collect plugins
+    //
     ServerPlugin serverPlugin = new ServerPlugin();
-    // TODO(pq): this convoluted extension registry dance needs cleanup.
-    List<Plugin> plugins = <Plugin>[
-      serverPlugin,
-      linterPlugin,
-      linterServerPlugin,
-      dartCompletionPlugin,
-    ];
-    // Accessing `taskManager` ensures that AE plugins are registered.
-    AnalysisEngine.instance.taskManager;
-    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(serverPlugin);
+    plugins.add(dartCompletionPlugin);
+    plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
     addServerPlugins(plugins);
-    // process plugins
+    //
+    // Process plugins
+    //
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
-    // create server
+    //
+    // Create server
+    //
     return new AnalysisServer(
         serverChannel,
         resourceProvider,

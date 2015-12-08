@@ -4,8 +4,7 @@
 
 library test.src.task.general_test;
 
-import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisTask, GetContentTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/general.dart';

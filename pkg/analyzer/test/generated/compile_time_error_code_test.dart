@@ -262,6 +262,19 @@ main() {
     verify([source]);
   }
 
+  void test_assertWithExtraArgument() {
+    // TODO(paulberry): once DEP 37 is turned on by default, this test should
+    // be removed.
+    Source source = addSource('''
+f(bool x) {
+  assert(x, 'foo');
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT]);
+    verify([source]);
+  }
+
   void test_async_used_as_identifier_in_annotation() {
     Source source = addSource('''
 const int async = 0;
