@@ -6,10 +6,6 @@ checking for errors and warnings that are specified in the
 DartPad, code editors, and IDEs such as WebStorm use the same
 analysis engine that dartanalyzer uses.
 
-If you want to _contribute_ to the dartanalyzer project, see the
-[contributor docs](https://github.com/dart-lang/analyzer_cli/blob/master/CONTRIBUTOR.md).
-This page contains information about _using_ the dartanalyzer command-line tool.
-
 ## Basic usage
 
 Run the analyzer from the top directory of the package.
