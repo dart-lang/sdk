@@ -8,6 +8,7 @@ import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 import '../../io/source_information.dart';
 import '../../elements/elements.dart';
+import '../../js/placeholder_safety.dart';
 
 /**
  * Translates to direct-style.
@@ -1140,13 +1141,24 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   void handleForeignCode(ForeignCode node) {
-    // Arguments will get inserted in a JS code template.  The arguments will
-    // not always be evaluated (e.g. if the template is '# && #').
-    // TODO(asgerf): We could analyze the JS AST to see if arguments are
-    //               definitely evaluated left-to-right.
+    // Some arguments will get inserted in a JS code template.  The arguments
+    // will not always be evaluated (e.g. the second placeholder in the template
+    // '# && #').
+
+    // TODO(sra): Find out which tree_ir expressions are not nullable. It helps
+    // a lot with templates like '#.push(#)'.
+    bool isNullable(e) => true;
+
+    int safeArguments =
+      PlaceholderSafetyAnalysis.analyze(node.codeTemplate.ast, isNullable);
     inEmptyEnvironment(() {
-      _rewriteList(node.arguments);
+      for (int i = node.arguments.length - 1; i >= safeArguments; --i) {
+        node.arguments[i] = visitExpression(node.arguments[i]);
+      }
     });
+    for (int i = safeArguments - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
   }
 
   @override
