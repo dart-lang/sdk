@@ -1269,7 +1269,8 @@ void ClassFinalizer::FinalizeUpperBounds(const Class& cls) {
   for (intptr_t i = 0; i < num_type_params; i++) {
     type_param ^= type_params.TypeAt(i);
     bound = type_param.bound();
-    if (bound.IsFinalized() || bound.IsBeingFinalized()) {
+    // Bound may be finalized, but not canonical yet.
+    if (bound.IsCanonical() || bound.IsBeingFinalized()) {
       // A bound involved in F-bounded quantification may form a cycle.
       continue;
     }
@@ -2231,7 +2232,10 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
   FinalizeTypeParameters(cls);  // May change super type.
   super_class = cls.SuperClass();
   ASSERT(super_class.IsNull() || super_class.is_type_finalized());
-  ResolveUpperBounds(cls);
+  // Only resolving rather than finalizing the upper bounds here would result in
+  // instantiated type parameters of the super type to temporarily have
+  // unfinalized bounds. It is more efficient to finalize them early.
+  FinalizeUpperBounds(cls);
   // Finalize super type.
   AbstractType& super_type = AbstractType::Handle(cls.super_type());
   if (!super_type.IsNull()) {
@@ -2344,6 +2348,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 void ClassFinalizer::FinalizeClass(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
+  ASSERT(cls.is_type_finalized());
   if (cls.is_finalized()) {
     return;
   }

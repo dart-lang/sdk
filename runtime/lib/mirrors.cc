@@ -1206,6 +1206,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
 DEFINE_NATIVE_ENTRY(ClassMirror_type_variables, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
+  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
   return CreateTypeVariableList(klass);
 }
 

@@ -53,6 +53,7 @@ mixin_super_2_test: CompileTimeError # Issue 23773
 mixin_super_bound2_test: CompileTimeError # Issue 23773
 mixin_super_use_test: CompileTimeError # Issue 23773
 mixin_superclass_test: CompileTimeError # Issue 23773
+regress_25122_test: Crash # Issue 25181
 
 ref_before_declaration_test/00: MissingCompileTimeError
 ref_before_declaration_test/01: MissingCompileTimeError
