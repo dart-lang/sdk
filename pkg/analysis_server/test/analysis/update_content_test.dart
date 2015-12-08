@@ -132,8 +132,9 @@ main() { f(); }''');
 library baz;
 f(int i) {}
 ''');
-    Request request = new AnalysisSetAnalysisRootsParams(
-        ['/project1', '/project2'], []).toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams(['/project1', '/project2'], [])
+            .toRequest('0');
     handleSuccessfulRequest(request);
     {
       await server.onAnalysisComplete;
@@ -162,8 +163,9 @@ f() {}
     String filePath = '/User/project1/test.dart';
     Folder folder1 = resourceProvider.newFolder('/User/project1');
     Folder folder2 = resourceProvider.newFolder('/User/project2');
-    Request request = new AnalysisSetAnalysisRootsParams(
-        [folder1.path, folder2.path], []).toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams([folder1.path, folder2.path], [])
+            .toRequest('0');
     handleSuccessfulRequest(request);
     // exactly 2 contexts
     expect(server.folderMap, hasLength(2));
@@ -270,6 +272,4 @@ class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
   }
 }
 
-class _MockIndex extends TypedMock implements Index {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _MockIndex extends TypedMock implements Index {}

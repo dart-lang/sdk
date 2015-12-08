@@ -346,6 +346,4 @@ class _InternalAnalysisContextMock extends TypedMock
     return _pendingNotices.putIfAbsent(
         source, () => new ChangeNoticeImpl(source));
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

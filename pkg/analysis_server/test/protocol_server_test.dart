@@ -26,9 +26,7 @@ main() {
   defineReflectiveTests(EnumTest);
 }
 
-class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {}
 
 @reflectiveTest
 class AnalysisErrorTest {

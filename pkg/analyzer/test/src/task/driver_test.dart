@@ -755,8 +755,6 @@ class _InternalAnalysisContextMock extends TypedMock
     }
     return entry;
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -782,6 +780,4 @@ class _TestCycleAwareDependencyWalker extends CycleAwareDependencyWalker<int> {
   }
 }
 
-class _WorkManagerMock extends TypedMock implements WorkManager {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _WorkManagerMock extends TypedMock implements WorkManager {}

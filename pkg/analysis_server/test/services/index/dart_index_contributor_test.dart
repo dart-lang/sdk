@@ -1781,9 +1781,7 @@ class ExpectedLocation {
   }
 }
 
-class MockIndexStore extends TypedMock implements InternalIndexStore {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockIndexStore extends TypedMock implements InternalIndexStore {}
 
 /**
  * Information about a relation recorded into {@link IndexStore}.

@@ -593,8 +593,8 @@ class DartWorkManagerTest {
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
     entry1.setValue(PARSE_ERRORS, <AnalysisError>[error2], []);
     // PARSED_UNIT is ready, set errors
-    manager.resultsComputed(
-        source1, {PARSED_UNIT: AstFactory.compilationUnit()});
+    manager
+        .resultsComputed(source1, {PARSED_UNIT: AstFactory.compilationUnit()});
     // all of the errors are included
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.errors, unorderedEquals([error1, error2]));
@@ -761,13 +761,9 @@ class DartWorkManagerTest {
   }
 }
 
-class _DartSdkMock extends TypedMock implements DartSdk {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _DartSdkMock extends TypedMock implements DartSdk {}
 
-class _DartWorkManagerMock extends TypedMock implements DartWorkManager {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _DartWorkManagerMock extends TypedMock implements DartWorkManager {}
 
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
@@ -799,20 +795,15 @@ class _InternalAnalysisContextMock extends TypedMock
     return _pendingNotices.putIfAbsent(
         source, () => new ChangeNoticeImpl(source));
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _SourceFactoryMock extends TypedMock implements SourceFactory {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _SourceFactoryMock extends TypedMock implements SourceFactory {}
 
 class _SourceMock extends TypedMock implements Source {
   final String shortName;
   _SourceMock(this.shortName);
   @override
   String get fullName => '/' + shortName;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
   @override
   String toString() => fullName;
 }

@@ -1114,9 +1114,7 @@ class UniversalCachePartitionTest extends CachePartitionTest {
 }
 
 class _InternalAnalysisContextMock extends TypedMock
-    implements InternalAnalysisContext {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+    implements InternalAnalysisContext {}
 
 /**
  * Keep the given [keepDescriptor], invalidate all the other results.

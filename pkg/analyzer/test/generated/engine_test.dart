@@ -72,9 +72,7 @@ class AnalyzedSourcesListener {
   }
 }
 
-class CompilationUnitMock extends TypedMock implements CompilationUnit {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class CompilationUnitMock extends TypedMock implements CompilationUnit {}
 
 class MockSourceFactory extends SourceFactory {
   MockSourceFactory() : super([]);

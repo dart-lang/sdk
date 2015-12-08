@@ -80,6 +80,4 @@ class GetContentTaskTest extends EngineTestCase {
   }
 }
 
-class _MockContext extends TypedMock implements AnalysisContext {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _MockContext extends TypedMock implements AnalysisContext {}
