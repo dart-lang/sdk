@@ -1828,6 +1828,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         fnType is FunctionTypeImpl &&
         ts is StrongTypeSystemImpl) {
       FunctionTypeImpl genericFunction = fnType.originalFunction;
+      if (element is PropertyAccessorElement) {
+        genericFunction = element.type.returnType;
+      }
       if (genericFunction.boundTypeParameters.isEmpty) {
         return false;
       }

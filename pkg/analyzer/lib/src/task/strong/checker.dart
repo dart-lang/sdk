@@ -614,7 +614,7 @@ class CodeChecker extends RecursiveAstVisitor {
       return;
     }
     InterfaceType futureType = rules.provider.futureType;
-    DartType actualType = expression.staticType;
+    DartType actualType = expression?.staticType;
     if (body.isAsynchronous &&
         !body.isGenerator &&
         actualType is InterfaceType &&

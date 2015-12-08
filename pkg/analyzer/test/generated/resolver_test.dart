@@ -13152,6 +13152,81 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_genericFunction_typedef() {
+    String code = r'''
+typedef T F<T>(T x);
+F f0;
+
+class C {
+  static F f1;
+  F f2;
+  void g(F f3) {
+    F f4;
+    f0(3);
+    f1(3);
+    f2(3);
+    f3(3);
+    f4(3);
+  }
+}
+
+class D<S> {
+  static F f1;
+  F f2;
+  void g(F f3) {
+    F f4;
+    f0(3);
+    f1(3);
+    f2(3);
+    f3(3);
+    f4(3);
+  }
+}
+''';
+    _resolveTestUnit(code);
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInMethod(testUnit, "C", "g");
+
+      ExpressionStatement exps0 = statements[1];
+      ExpressionStatement exps1 = statements[2];
+      ExpressionStatement exps2 = statements[3];
+      ExpressionStatement exps3 = statements[4];
+      ExpressionStatement exps4 = statements[5];
+      Expression exp0 = exps0.expression;
+      Expression exp1 = exps1.expression;
+      Expression exp2 = exps2.expression;
+      Expression exp3 = exps3.expression;
+      Expression exp4 = exps4.expression;
+      expect(exp0.staticType, typeProvider.dynamicType);
+      expect(exp1.staticType, typeProvider.dynamicType);
+      expect(exp2.staticType, typeProvider.dynamicType);
+      expect(exp3.staticType, typeProvider.dynamicType);
+      expect(exp4.staticType, typeProvider.dynamicType);
+    }
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInMethod(testUnit, "D", "g");
+
+      ExpressionStatement exps0 = statements[1];
+      ExpressionStatement exps1 = statements[2];
+      ExpressionStatement exps2 = statements[3];
+      ExpressionStatement exps3 = statements[4];
+      ExpressionStatement exps4 = statements[5];
+      Expression exp0 = exps0.expression;
+      Expression exp1 = exps1.expression;
+      Expression exp2 = exps2.expression;
+      Expression exp3 = exps3.expression;
+      Expression exp4 = exps4.expression;
+      expect(exp0.staticType, typeProvider.dynamicType);
+      expect(exp1.staticType, typeProvider.dynamicType);
+      expect(exp2.staticType, typeProvider.dynamicType);
+      expect(exp3.staticType, typeProvider.dynamicType);
+      expect(exp4.staticType, typeProvider.dynamicType);
+    }
+  }
+
   void test_genericFunction() {
     if (!AnalysisEngine.instance.useTaskModel) {
       return;
