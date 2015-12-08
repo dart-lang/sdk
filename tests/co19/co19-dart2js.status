@@ -9623,7 +9623,6 @@ WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage th
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
-Language/Expressions/Instance_Creation/New/evaluation_t12: RuntimeError # Please triage this failure.
 Language/Expressions/Method_Invocation/Super_Invocation/syntax_t01: RuntimeError # Cannot read property 'call' of undefined
 Language/Expressions/Identifier_Reference/evaluation_variable_or_parameter_t03.dart: Crash # (i=0): For-loop variable captured in loop header
 Language/Statements/For/syntax_t07: Crash # unsupported operation on erroneous element

@@ -2155,6 +2155,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       InterfaceType type,
       ast.NodeList arguments,
       CallStructure callStructure, _) {
+    for (ast.Node argument in arguments) visit(argument);
     return buildAbstractClassInstantiationError(element.enclosingClass);
   }
 
