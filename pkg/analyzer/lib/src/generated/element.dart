@@ -5076,9 +5076,22 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // variables, and see if the result is equal.
     if (boundTypeParameters.isNotEmpty) {
       List<DartType> instantiateTypeArgs = new List<DartType>();
-      for (TypeParameterElement e in boundTypeParameters) {
-        instantiateTypeArgs.add(new TypeParameterTypeImpl(
-            new TypeParameterElementImpl(e.name, -1)));
+      List<DartType> variablesThis = new List<DartType>();
+      List<DartType> variablesOther = new List<DartType>();
+      for (int i = 0; i < boundTypeParameters.length; i++) {
+        TypeParameterElement pThis = boundTypeParameters[i];
+        TypeParameterElement pOther = otherType.boundTypeParameters[i];
+        TypeParameterTypeImpl pFresh = new TypeParameterTypeImpl(
+            new TypeParameterElementImpl(pThis.name, -1));
+        instantiateTypeArgs.add(pFresh);
+        variablesThis.add(pThis.type);
+        variablesOther.add(pOther.type);
+        // Check that the bounds are equal after equating the previous
+        // bound variables.
+        if (pThis.bound?.substitute2(instantiateTypeArgs, variablesThis) !=
+            pOther.bound?.substitute2(instantiateTypeArgs, variablesOther)) {
+          return false;
+        }
       }
       // After instantiation, they will no longer have boundTypeParameters,
       // so we will continue below.
@@ -5110,6 +5123,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
 
       List<DartType> instantiateTypeArgs = new List<DartType>();
+      List<DartType> variables = new List<DartType>();
       buffer.write("<");
       for (TypeParameterElement e in boundTypeParameters) {
         if (e != boundTypeParameters[0]) {
@@ -5130,6 +5144,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
             new TypeParameterTypeImpl(new TypeParameterElementImpl(name, -1));
         t.appendTo(buffer);
         instantiateTypeArgs.add(t);
+        variables.add(e.type);
+        if (e.bound != null) {
+          buffer.write(" extends ");
+          TypeImpl renamed =
+              e.bound.substitute2(instantiateTypeArgs, variables);
+          renamed.appendTo(buffer);
+        }
       }
       buffer.write(">");
 

@@ -1376,7 +1376,6 @@ void main() {
             /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
           }
 
-          // These work because they're exactly equal FunctionTypes
           class DerivedFuture<T> extends Future<T> {
             /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
           }
@@ -1385,13 +1384,12 @@ void main() {
             /*=B*/ then/*<B>*/(/*=B*/ onValue(A a)) => null;
           }
 
-          // These don't work but should.
           class DerivedFuture3<T> extends Future<T> {
-            /*=/*severe:INVALID_METHOD_OVERRIDE should be pass*/S*/ then/*<S>*/(Object onValue(T t)) => null;
+            /*=S*/ then/*<S>*/(Object onValue(T t)) => null;
           }
 
           class DerivedFuture4<A> extends Future<A> {
-            /*=/*severe:INVALID_METHOD_OVERRIDE should be pass*/B*/ then/*<B>*/(Object onValue(A a)) => null;
+            /*=B*/ then/*<B>*/(Object onValue(A a)) => null;
           }
        '''
   });

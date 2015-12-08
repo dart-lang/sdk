@@ -12743,6 +12743,16 @@ main() {
     expect(ft.toString(), '(String) → String');
   }
 
+  void test_genericFunction_bounds() {
+    _resolveTestUnit(r'/*=T*/ f/*<T extends num>*/(/*=T*/ x) => null;');
+    SimpleIdentifier f = _findIdentifier('f');
+    FunctionElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T extends num]');
+    expect(e.type.boundTypeParameters.toString(), '[T extends num]');
+    expect(e.type.typeParameters.toString(), '[]');
+    expect(e.type.toString(), '<T extends num>(T) → T');
+  }
+
   void test_genericFunction_static() {
     _resolveTestUnit(r'''
 class C<E> {
