@@ -13,7 +13,9 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
 const ASYNC = 'async';
+const ASYNC_STAR = 'async*';
 const AWAIT = 'await';
+const SYNC_STAR = 'sync*';
 
 /**
  * A contributor for calculating `completion.getSuggestions` request results
@@ -47,8 +49,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitArgumentList(ArgumentList node) {
-    if (entity == node.rightParenthesis ||
-        (entity is SimpleIdentifier && node.arguments.contains(entity))) {
+    if (entity == node.rightParenthesis) {
+      _addExpressionKeywords(node);
+      Token previous = (entity as Token).previous;
+      if (previous.isSynthetic) {
+        previous = previous.previous;
+      }
+      if (previous.lexeme == ')') {
+        _addSuggestion2(ASYNC);
+        _addSuggestion2(ASYNC_STAR);
+        _addSuggestion2(SYNC_STAR);
+      }
+    }
+    if (entity is SimpleIdentifier && node.arguments.contains(entity)) {
       _addExpressionKeywords(node);
     }
   }
@@ -69,6 +82,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         }
         if (previous.lexeme == ')' && next.lexeme == '{') {
           _addSuggestion2(ASYNC);
+          _addSuggestion2(ASYNC_STAR);
+          _addSuggestion2(SYNC_STAR);
         }
       }
     }
@@ -92,6 +107,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       ClassMember previous = index > 0 ? node.members[index - 1] : null;
       if (previous is MethodDeclaration && previous.body is EmptyFunctionBody) {
         _addSuggestion2(ASYNC);
+        _addSuggestion2(ASYNC_STAR);
+        _addSuggestion2(SYNC_STAR);
       }
     } else {
       _addClassDeclarationKeywords(node);
@@ -138,6 +155,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           previousMember.functionExpression is FunctionExpression &&
           previousMember.functionExpression.body is EmptyFunctionBody) {
         _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+        _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
       }
       _addCompilationUnitKeywords();
     }
@@ -200,8 +219,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   @override
   visitFunctionExpression(FunctionExpression node) {
     if (entity == node.body) {
-      if (!node.body.isAsynchronous) {
+      FunctionBody body = node.body;
+      if (!body.isAsynchronous) {
         _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+        if (body is! ExpressionFunctionBody) {
+          _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+          _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+        }
       }
       if (node.body is EmptyFunctionBody &&
           node.parent is FunctionDeclaration &&
@@ -266,8 +290,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       if (node.body is EmptyFunctionBody) {
         _addClassBodyKeywords();
         _addSuggestion2(ASYNC);
+        _addSuggestion2(ASYNC_STAR);
+        _addSuggestion2(SYNC_STAR);
       } else {
         _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
+        if (node.body is! ExpressionFunctionBody) {
+          _addSuggestion2(ASYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+          _addSuggestion2(SYNC_STAR, relevance: DART_RELEVANCE_HIGH);
+        }
       }
     }
   }
