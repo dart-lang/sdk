@@ -5452,7 +5452,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode TYPE_PARAMETER_REFERENCED_BY_STATIC =
       const StaticWarningCode('TYPE_PARAMETER_REFERENCED_BY_STATIC',
-          "Static members cannot reference type parameters");
+          "Static members cannot reference type parameters of the class");
 
   /**
    * 12.16.3 Static Invocation: A static method invocation <i>i</i> has the form

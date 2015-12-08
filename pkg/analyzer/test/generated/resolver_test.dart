@@ -12743,6 +12743,27 @@ main() {
     expect(ft.toString(), '(String) → String');
   }
 
+  void test_genericFunction_static() {
+    _resolveTestUnit(r'''
+class C<E> {
+  static /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f');
+    MethodElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.boundTypeParameters.toString(), '[T]');
+    // TODO(jmesserly): we could get rid of this {E/E} substitution, but it's
+    // probably harmless, as E won't be used in the function (error verifier
+    // checks this), and {E/E} is a no-op anyway.
+    expect(e.type.typeParameters.toString(), '[E]');
+    expect(e.type.typeArguments.toString(), '[E]');
+    expect(e.type.toString(), '<T>(T) → T');
+
+    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
+    expect(ft.toString(), '(String) → String');
+  }
+
   void test_genericFunction_typedef() {
     String code = r'''
 typedef T F<T>(T x);

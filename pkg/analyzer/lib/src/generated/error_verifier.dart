@@ -5238,9 +5238,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInStaticMethod || _isInStaticVariableDeclaration) {
       DartType type = name.type;
       if (type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, name);
-        return true;
+        // The class's type parameters are not in scope for static methods.
+        // However all other type parameters are legal (e.g. the static method's
+        // type parameters, or a local function's type parameters).
+        if (type.element.enclosingElement is ClassElement) {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, name);
+          return true;
+        }
       }
     }
     return false;
