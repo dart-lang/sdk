@@ -453,6 +453,17 @@ void Parser::ParseCompilationUnit(const Library& library,
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread, parser_timer);
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
+  TimelineDurationScope tds(thread,
+                            thread->isolate()->GetCompilerStream(),
+                            "CompileTopLevel");
+  if (tds.enabled()) {
+    tds.SetNumArguments(1);
+    tds.CopyArgument(
+        0,
+        "script",
+        const_cast<char*>(String::Handle(script.url()).ToCString()));
+  }
+
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
 }
