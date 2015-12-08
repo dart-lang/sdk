@@ -539,7 +539,7 @@ class ContextManagerImpl implements ContextManager {
    */
   void processOptionsForContext(ContextInfo info, Folder folder,
       {bool optionsRemoved: false}) {
-    Map<String, YamlNode> options;
+    Map<String, Object> options;
     try {
       options = analysisOptionsProvider.getOptions(folder);
     } catch (_) {
@@ -548,6 +548,24 @@ class ContextManagerImpl implements ContextManager {
 
     if (options == null && !optionsRemoved) {
       return;
+    }
+
+    // In case options files are removed, revert to defaults.
+    if (optionsRemoved) {
+      // Start with defaults.
+      info.context.analysisOptions = new AnalysisOptionsImpl();
+
+      // Apply inherited options.
+      options = _getEmbeddedOptions(info.context);
+      if (options != null) {
+        configureContextOptions(info.context, options);
+      }
+    } else {
+      // Check for embedded options.
+      YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
+      if (embeddedOptions != null) {
+        options = new Merger().merge(embeddedOptions, options);
+      }
     }
 
     // Notify options processors.
@@ -562,33 +580,18 @@ class ContextManagerImpl implements ContextManager {
       }
     });
 
-    // In case options files are removed, revert to defaults.
-    if (optionsRemoved) {
-      // Start with defaults.
-      info.context.analysisOptions = new AnalysisOptionsImpl();
+    configureContextOptions(info.context, options);
 
-      // Apply inherited options.
-      YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
-      if (embeddedOptions != null) {
-        configureContextOptions(info.context, embeddedOptions);
-      }
+    // Nothing more to do.
+    if (options == null) {
       return;
     }
 
-    // Check for embedded options.
-    YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
-    if (embeddedOptions != null) {
-      options = new Merger().merge(embeddedOptions, options);
-    }
-
-    // Analysis options are processed 'in-line'.
     var analyzer = options[AnalyzerOptions.analyzer];
     if (analyzer is! Map) {
-      // No options for analyzer.
+      // Done.
       return;
     }
-
-    configureContextOptions(info.context, options);
 
     // Set ignore patterns.
     YamlList exclude = analyzer[AnalyzerOptions.exclude];

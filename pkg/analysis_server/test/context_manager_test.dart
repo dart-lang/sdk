@@ -15,8 +15,12 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/services/lint.dart';
+import 'package:linter/src/plugin/linter_plugin.dart';
+import 'package:linter/src/rules/avoid_as.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
+import 'package:plugin/plugin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -67,6 +71,34 @@ class AbstractContextManagerTest {
 
   String projPath = '/my/proj';
 
+  AnalysisError missing_return =
+      new AnalysisError(new TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+    ['x']
+  ]);
+
+  AnalysisError invalid_assignment_error =
+      new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
+    ['x'],
+    ['y']
+  ]);
+
+  AnalysisError unused_local_variable = new AnalysisError(
+      new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
+    ['x']
+  ]);
+
+  List<ErrorFilter> get errorFilters =>
+      callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+
+  List<Linter> get lints => getLints(callbacks.currentContext);
+
+  AnalysisOptions get options => callbacks.currentContext.analysisOptions;
+
+  void deleteFile(List<String> pathComponents) {
+    String filePath = posix.joinAll(pathComponents);
+    resourceProvider.deleteFile(filePath);
+  }
+
   String newFile(List<String> pathComponents, [String content = '']) {
     String filePath = posix.joinAll(pathComponents);
     resourceProvider.newFile(filePath, content);
@@ -84,6 +116,14 @@ class AbstractContextManagerTest {
   }
 
   void setUp() {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.add(linterPlugin);
+
+    // Defer to the extension manager in AE for plugin registration.
+    AnalysisEngine.instance.userDefinedPlugins = plugins;
+    // Force registration.
+    AnalysisEngine.instance.taskManager;
+
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
     manager = new ContextManagerImpl(resourceProvider, providePackageResolver,
@@ -91,6 +131,99 @@ class AbstractContextManagerTest {
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
+  }
+
+  test_analysis_options_file_delete() async {
+    // Setup .analysis_options
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+embedder_libs:
+  "dart:foobar": "../sdk_ext/entry.dart"
+analyzer:
+  language:
+    enableGenericMethods: true
+  errors:
+    unused_local_variable: false
+linter:
+  rules:
+    - camel_case_types
+''');
+
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    // Verify options were set.
+    expect(errorFilters, hasLength(1));
+    expect(lints, hasLength(1));
+    expect(options.enableGenericMethods, isTrue);
+
+    // Remove options.
+    deleteFile([projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE]);
+    await pumpEventQueue();
+
+    // Verify defaults restored.
+    expect(errorFilters, isEmpty);
+    expect(lints, isEmpty);
+    expect(options.enableGenericMethods, isFalse);
+  }
+
+  test_analysis_options_file_delete_with_embedder() async {
+    // Setup _embedder.yaml.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile(
+        [libPath, '_embedder.yaml'],
+        r'''
+analyzer:
+  strong-mode: true
+  errors:
+    missing_return: false
+linter:
+  rules:
+    - avoid_as
+''');
+
+    // Setup .packages file
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+
+    // Setup .analysis_options
+    newFile(
+        [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
+        r'''
+analyzer:
+  language:
+    enableGenericMethods: true
+  errors:
+    unused_local_variable: false
+linter:
+  rules:
+    - camel_case_types
+''');
+
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    // Verify options were set.
+    expect(options.enableGenericMethods, isTrue);
+    expect(options.strongMode, isTrue);
+    expect(errorFilters, hasLength(2));
+    expect(lints, hasLength(2));
+
+    // Remove options.
+    deleteFile([projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE]);
+    await pumpEventQueue();
+
+    // Verify defaults restored.
+    expect(options.enableGenericMethods, isFalse);
+    expect(lints, hasLength(1));
+    expect(lints.first, new isInstanceOf<AvoidAs>());
+    expect(errorFilters, hasLength(1));
+    expect(errorFilters.first(missing_return), isTrue);
   }
 
   test_analysis_options_parse_failure() async {
@@ -154,6 +287,11 @@ analyzer:
   strong-mode: true
   language:
     enableSuperMixins: true
+  errors:
+    missing_return: false
+linter:
+  rules:
+    - avoid_as
 ''');
     // Setup .packages file
     newFile(
@@ -172,6 +310,9 @@ analyzer:
     enableGenericMethods: true
   errors:
     unused_local_variable: false
+linter:
+  rules:
+    - camel_case_types
 ''');
 
     // Setup context.
@@ -186,25 +327,31 @@ analyzer:
     var context = contexts[0];
 
     // Verify options.
-    //   * from `_embedder.yaml`:
+    // * from `_embedder.yaml`:
     expect(context.analysisOptions.strongMode, isTrue);
     expect(context.analysisOptions.enableSuperMixins, isTrue);
-    //   * from `.analysis_options`:
+    // * from `.analysis_options`:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
-    //     verify tests are excluded
+    // * verify tests are excluded
     expect(callbacks.currentContextFilePaths[projPath].keys,
         ['/my/proj/sdk_ext/entry.dart']);
 
     // Verify filter setup.
-    List<ErrorFilter> filters =
-        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-    expect(filters, hasLength(1));
+    expect(errorFilters, hasLength(2));
+
+    // * (embedder.)
+    expect(errorFilters.any((f) => f(missing_return)), isTrue);
+
+    // * (options.)
+    expect(errorFilters.any((f) => f(unused_local_variable)), isTrue);
+
+    // Verify lints.
+    var lintNames = lints.map((lint) => lint.name);
+
     expect(
-        filters.first(new AnalysisError(
-            new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
-          ['x']
-        ])),
-        isTrue);
+        lintNames,
+        unorderedEquals(
+            ['avoid_as' /* embedder */, 'camel_case_types' /* options */]));
 
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
@@ -268,16 +415,9 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     // Verify filter setup.
-    List<ErrorFilter> filters =
-        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-    expect(filters, isNotNull);
-    expect(filters, hasLength(1));
-    expect(
-        filters.first(new AnalysisError(
-            new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
-          ['x']
-        ])),
-        isTrue);
+    expect(errorFilters, isNotNull);
+    expect(errorFilters, hasLength(1));
+    expect(errorFilters.first(unused_local_variable), isTrue);
   }
 
   test_error_filter_analysis_option_multiple_filters() async {
@@ -294,24 +434,12 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     // Verify filter setup.
-    List<ErrorFilter> filters =
-        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-    expect(filters, isNotNull);
-    expect(filters, hasLength(2));
+    expect(errorFilters, isNotNull);
+    expect(errorFilters, hasLength(2));
 
-    var unused_error = new AnalysisError(
-        new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
-      ['x']
-    ]);
-
-    var invalid_assignment_error =
-        new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
-      ['x'],
-      ['y']
-    ]);
-
-    expect(filters.any((filter) => filter(unused_error)), isTrue);
-    expect(filters.any((filter) => filter(invalid_assignment_error)), isTrue);
+    expect(errorFilters.any((filter) => filter(unused_local_variable)), isTrue);
+    expect(
+        errorFilters.any((filter) => filter(invalid_assignment_error)), isTrue);
   }
 
   test_error_filter_analysis_option_synonyms() async {
@@ -328,10 +456,8 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     // Verify filter setup.
-    List<ErrorFilter> filters =
-        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-    expect(filters, isNotNull);
-    expect(filters, hasLength(2));
+    expect(errorFilters, isNotNull);
+    expect(errorFilters, hasLength(2));
   }
 
   test_error_filter_analysis_option_unpsecified() async {
@@ -347,9 +473,7 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     // Verify filter setup.
-    List<ErrorFilter> filters =
-        callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-    expect(filters, isEmpty);
+    expect(errorFilters, isEmpty);
   }
 
   test_ignoreFilesInPackagesFolder() {

@@ -30,9 +30,9 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
 final _OptionsProcessor _processor = new _OptionsProcessor();
 
 /// Configure this [context] based on configuration details specified in
-/// the given [options].
+/// the given [options].  If [options] is `null`, default values are applied.
 void configureContextOptions(
-        AnalysisContext context, Map<String, YamlNode> options) =>
+        AnalysisContext context, Map<String, Object> options) =>
     _processor.configure(context, options);
 
 /// `analyzer` analysis options constants.
@@ -384,9 +384,13 @@ class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
 }
 
 class _OptionsProcessor {
-  void configure(AnalysisContext context, Map<String, YamlNode> options) {
+  static final Map<String, Object> defaults = {'analyzer': {}};
+
+  /// Configure [context] based on the given [options] (which can be `null`
+  /// to restore [defaults]).
+  void configure(AnalysisContext context, Map<String, Object> options) {
     if (options == null) {
-      return;
+      options = defaults;
     }
 
     var analyzer = options[AnalyzerOptions.analyzer];
@@ -407,19 +411,36 @@ class _OptionsProcessor {
     setLanguageOptions(context, language);
   }
 
+  ErrorFilter parseFilter(String code, Object enable) {
+    enable = toLowerCase(enable);
+    if (AnalyzerOptions.ignoreSynonyms.contains(enable)) {
+      // Case-insensitive.
+      code = toUpperCase(code);
+      return ((AnalysisError error) => error.errorCode.name == code);
+    }
+  }
+
   void setFilters(AnalysisContext context, Object codes) {
     List<ErrorFilter> filters = <ErrorFilter>[];
     // If codes are enumerated, collect them as filters; else leave filters
     // empty to overwrite previous value.
     if (codes is YamlMap) {
       String value;
+      // TODO(pq): stop traversing nodes and unify w/ standard map handling
       codes.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
-          value = toLowerCase(v.value);
-          if (AnalyzerOptions.ignoreSynonyms.contains(value)) {
-            // Case-insensitive.
-            String code = toUpperCase(k.value);
-            filters.add((AnalysisError error) => error.errorCode.name == code);
+          ErrorFilter filter = parseFilter(k.value, v.value);
+          if (filter != null) {
+            filters.add(filter);
+          }
+        }
+      });
+    } else if (codes is Map) {
+      codes.forEach((k, v) {
+        if (k is String) {
+          ErrorFilter filter = parseFilter(k, v);
+          if (filter != null) {
+            filters.add(filter);
           }
         }
       });
