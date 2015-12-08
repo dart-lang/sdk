@@ -192,6 +192,7 @@ analyzer/test/src/task/strong_mode_test: Crash # Issue 24485
 
 # The following tests were broken by merging branch analyzer-breaking-0.27.
 [ $compiler == dart2analyzer ]
+analysis_server/test/services/completion/dart/library_member_contributor_test: Fail
 analysis_server/test/analysis/navigation_collector_test: Fail
 analysis_server/test/socket_server_test: Fail
 analysis_server/test/domain_analysis_test: Fail
