@@ -189,6 +189,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     // This was determined to not be a good hint, see: dartbug.com/16029
     //checkForOverridingPrivateMember(node);
     _checkForMissingReturn(node.returnType, node.body);
+    _checkForUnnecessaryNoSuchMethod(node);
     return super.visitMethodDeclaration(node);
   }
 
@@ -728,35 +729,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check for the passed class declaration for the
-   * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
-   *
-   * @param node the class declaration to check
-   * @return `true` if and only if a hint code is generated on the passed node
-   * See [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE].
-   */
-//  bool _checkForOverrideEqualsButNotHashCode(ClassDeclaration node) {
-//    ClassElement classElement = node.element;
-//    if (classElement == null) {
-//      return false;
-//    }
-//    MethodElement equalsOperatorMethodElement =
-//        classElement.getMethod(sc.TokenType.EQ_EQ.lexeme);
-//    if (equalsOperatorMethodElement != null) {
-//      PropertyAccessorElement hashCodeElement =
-//          classElement.getGetter(_HASHCODE_GETTER_NAME);
-//      if (hashCodeElement == null) {
-//        _errorReporter.reportErrorForNode(
-//            HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
-//            node.name,
-//            [classElement.displayName]);
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
-
-  /**
    * Check for the passed as expression for the [HintCode.UNNECESSARY_CAST] hint code.
    *
    * @param node the as expression to check
@@ -801,6 +773,83 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         lhsType.isMoreSpecificThan(rhsType)) {
       _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
       return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check for the passed class declaration for the
+   * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
+   *
+   * @param node the class declaration to check
+   * @return `true` if and only if a hint code is generated on the passed node
+   * See [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE].
+   */
+//  bool _checkForOverrideEqualsButNotHashCode(ClassDeclaration node) {
+//    ClassElement classElement = node.element;
+//    if (classElement == null) {
+//      return false;
+//    }
+//    MethodElement equalsOperatorMethodElement =
+//        classElement.getMethod(sc.TokenType.EQ_EQ.lexeme);
+//    if (equalsOperatorMethodElement != null) {
+//      PropertyAccessorElement hashCodeElement =
+//          classElement.getGetter(_HASHCODE_GETTER_NAME);
+//      if (hashCodeElement == null) {
+//        _errorReporter.reportErrorForNode(
+//            HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
+//            node.name,
+//            [classElement.displayName]);
+//        return true;
+//      }
+//    }
+//    return false;
+//  }
+
+  /**
+   * Generate a hint for `noSuchMethod` methods that do nothing except of
+   * calling another `noSuchMethod` that is not defined by `Object`.
+   *
+   * @return `true` if and only if a hint code is generated on the passed node
+   * See [HintCode.UNNECESSARY_NO_SUCH_METHOD].
+   */
+  bool _checkForUnnecessaryNoSuchMethod(MethodDeclaration node) {
+    if (node.name.name != FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
+      return false;
+    }
+    bool isNonObjectNoSuchMethodInvocation(Expression invocation) {
+      if (invocation is MethodInvocation &&
+          invocation.target is SuperExpression &&
+          invocation.argumentList.arguments.length == 1) {
+        SimpleIdentifier name = invocation.methodName;
+        if (name.name == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
+          Element methodElement = name.staticElement;
+          Element classElement = methodElement?.enclosingElement;
+          return methodElement is MethodElement &&
+              classElement is ClassElement &&
+              !classElement.type.isObject;
+        }
+      }
+      return false;
+    }
+    FunctionBody body = node.body;
+    if (body is ExpressionFunctionBody) {
+      if (isNonObjectNoSuchMethodInvocation(body.expression)) {
+        _errorReporter.reportErrorForNode(
+            HintCode.UNNECESSARY_NO_SUCH_METHOD, node);
+        return true;
+      }
+    } else if (body is BlockFunctionBody) {
+      List<Statement> statements = body.block.statements;
+      if (statements.length == 1) {
+        Statement returnStatement = statements.first;
+        if (returnStatement is ReturnStatement &&
+            isNonObjectNoSuchMethodInvocation(returnStatement.expression)) {
+          _errorReporter.reportErrorForNode(
+              HintCode.UNNECESSARY_NO_SUCH_METHOD, node);
+          return true;
+        }
+      }
     }
     return false;
   }

@@ -3548,6 +3548,36 @@ m(num i) {
     verify([source]);
   }
 
+  void test_unnecessaryNoSuchMethod_blockBody() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) {
+    return super.noSuchMethod(y);
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_expressionBody() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) => super.noSuchMethod(y);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
+    verify([source]);
+  }
+
   void test_unnecessaryTypeCheck_null_is_Null() {
     Source source = addSource("bool b = null is Null;");
     computeLibrarySourceErrors(source);
@@ -7063,6 +7093,67 @@ void g(bool c) {
     Source source = addSource(r'''
 m(v) {
   var b = Object as dynamic;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_blockBody_notReturnStatement() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) {
+    print(y);
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_blockBody_notSingleStatement() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) {
+    print(y);
+    return super.noSuchMethod(y);
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_expressionBody_notNoSuchMethod() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) => super.hashCode;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_expressionBody_notSuper() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) => 42;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -12639,6 +12730,19 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_genericFunction() {
+    _resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
+    SimpleIdentifier f = _findIdentifier('f');
+    FunctionElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.typeParameters.toString(), '[]');
+    expect(e.type.toString(), '<T>(T) → T');
+
+    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
+    expect(ft.toString(), '(String) → String');
+  }
+
   void test_genericFunction_typedef() {
     String code = r'''
 typedef T F<T>(T x);
@@ -12712,19 +12816,6 @@ class D<S> {
       expect(exp3.staticType, typeProvider.dynamicType);
       expect(exp4.staticType, typeProvider.dynamicType);
     }
-  }
-
-  void test_genericFunction() {
-    _resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
-    SimpleIdentifier f = _findIdentifier('f');
-    FunctionElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.boundTypeParameters.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[]');
-    expect(e.type.toString(), '<T>(T) → T');
-
-    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
-    expect(ft.toString(), '(String) → String');
   }
 
   void test_genericMethod() {

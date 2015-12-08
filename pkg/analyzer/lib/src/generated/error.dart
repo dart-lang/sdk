@@ -3656,6 +3656,12 @@ class HintCode extends ErrorCode {
       const HintCode('UNNECESSARY_CAST', "Unnecessary cast");
 
   /**
+   * Unnecessary `noSuchMethod` declaration.
+   */
+  static const HintCode UNNECESSARY_NO_SUCH_METHOD = const HintCode(
+      'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration");
+
+  /**
    * Unnecessary type checks, the result is always true.
    */
   static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = const HintCode(
