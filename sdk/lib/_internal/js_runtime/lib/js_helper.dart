@@ -2898,10 +2898,9 @@ class BoundClosure extends TearOffClosure {
   bool operator==(other) {
     if (identical(this, other)) return true;
     if (other is! BoundClosure) return false;
-    return JS('bool', '# === # && # === # && # === #',
-        _self, other._self,
-        _target, other._target,
-        _receiver, other._receiver);
+    return JS('bool', '# === #', _self, other._self) &&
+           JS('bool', '# === #', _target, other._target) &&
+           JS('bool', '# === #', _receiver, other._receiver);
   }
 
   int get hashCode {
