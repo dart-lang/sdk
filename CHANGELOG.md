@@ -1,4 +1,9 @@
 
+# 0.1.10
+
+* Updated to use `analyzer` `0.27.0`.
+* Updated options processing to handle untyped maps (dart-lang/sdk#25126).
+
 # 0.1.9
 
 * Fix `type_annotate_public_apis` to properly handle getters/setters (#151; dart-lang/sdk#25092).

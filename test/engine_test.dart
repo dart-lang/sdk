@@ -82,17 +82,9 @@ void defineLinterEngineTests() {
         logger.logError('logError');
         expect(errCollector.trim(), equals('logError'));
       });
-      test('logError2', () {
-        logger.logError2('logError2', null);
-        expect(errCollector.trim(), equals('logError2'));
-      });
       test('logInformation', () {
         logger.logInformation('logInformation');
         expect(outCollector.trim(), equals('logInformation'));
-      });
-      test('logInformation2', () {
-        logger.logInformation2('logInformation2', null);
-        expect(outCollector.trim(), equals('logInformation2'));
       });
     });
 

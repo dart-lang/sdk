@@ -30,6 +30,8 @@ import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
 import 'package:path/path.dart' as p;
+import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 
 Source createSource(Uri sourceUri) =>
     new FileBasedSource(new JavaFile(sourceUri.toFilePath()));
@@ -57,7 +59,9 @@ class AnalysisDriver {
 
   final LinterOptions options;
 
-  AnalysisDriver(this.options);
+  AnalysisDriver(this.options) {
+    _processPlugins();
+  }
 
   /// Return the number of sources that have been analyzed so far.
   int get numSourcesAnalyzed => _sourcesAnalyzed.length;
@@ -198,6 +202,15 @@ class AnalysisDriver {
     }
     return null;
   }
+
+  void _processPlugins() {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+  }
 }
 
 class DriverOptions {
@@ -238,11 +251,6 @@ class StdLogger extends Logger {
   @override
   void logError(String message, [exception]) => errorSink.writeln(message);
   @override
-  void logError2(String message, dynamic exception) =>
-      errorSink.writeln(message);
   @override
   void logInformation(String message, [exception]) => outSink.writeln(message);
-  @override
-  void logInformation2(String message, dynamic exception) =>
-      outSink.writeln(message);
 }

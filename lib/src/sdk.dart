@@ -420,7 +420,7 @@ class _SdkAnalysisContext extends AnalysisContextImpl {
       return super.createCacheFromSourceFactory(factory);
     }
     return new AnalysisCache(<CachePartition>[
-      AnalysisEngine.instance.partitionManager_new.forSdk(sdk)
+      AnalysisEngine.instance.partitionManager.forSdk(sdk)
     ]);
   }
 }

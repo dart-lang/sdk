@@ -5,10 +5,12 @@
 
 library linter.test.plugin_test;
 
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
@@ -75,9 +77,13 @@ rules:
 }
 
 LinterPlugin newTestPlugin() {
+  List<Plugin> plugins = <Plugin>[];
+  plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+  plugins.add(AnalysisEngine.instance.commandLinePlugin);
+  plugins.add(AnalysisEngine.instance.optionsPlugin);
   LinterPlugin linterPlugin = new LinterPlugin();
+  plugins.add(linterPlugin);
   ExtensionManager manager = new ExtensionManager();
-  manager.processPlugins(new List.from(AnalysisEngine.instance.supportedPlugins)
-    ..add(linterPlugin));
+  manager.processPlugins(plugins);
   return linterPlugin;
 }
