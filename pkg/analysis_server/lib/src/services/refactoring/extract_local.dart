@@ -59,6 +59,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     unitElement = unit.element;
     selectionRange = new SourceRange(selectionOffset, selectionLength);
     utils = new CorrectionUtils(unit);
+    file = unitElement.source.fullName;
   }
 
   @override
@@ -117,6 +118,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     } else {
       occurrences = [selectionRange];
     }
+    occurrences.sort((a, b) => a.offset - b.offset);
     // If the whole expression of a statement is selected, like '1 + 2',
     // then convert it into a variable declaration statement.
     if (wholeStatementExpression && occurrences.length == 1) {
@@ -127,36 +129,53 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       doSourceChange_addElementEdit(change, unitElement, edit);
       return new Future.value(change);
     }
+    // prepare positions
+    List<Position> positions = <Position>[];
+    int occurrencesShift = 0;
+    void addPosition(int offset) {
+      positions.add(new Position(file, offset));
+    }
     // add variable declaration
     {
-      String declarationSource;
+      String declarationCode;
+      int nameOffsetInDeclarationCode;
       if (stringLiteralPart != null) {
-        declarationSource = "var $name = '$stringLiteralPart';";
+        declarationCode = 'var ';
+        nameOffsetInDeclarationCode = declarationCode.length;
+        declarationCode += "$name = '$stringLiteralPart';";
       } else {
         String keyword = _declarationKeyword;
-        String initializerSource = utils.getRangeText(selectionRange);
-        declarationSource = "$keyword $name = $initializerSource;";
+        String initializerCode = utils.getRangeText(selectionRange);
+        declarationCode = '$keyword ';
+        nameOffsetInDeclarationCode = declarationCode.length;
+        declarationCode += '$name = $initializerCode;';
       }
-      String eol = utils.endOfLine;
       // prepare location for declaration
       AstNode target = _findDeclarationTarget(occurrences);
+      String eol = utils.endOfLine;
       // insert variable declaration
       if (target is Statement) {
         String prefix = utils.getNodePrefix(target);
         SourceEdit edit =
-            new SourceEdit(target.offset, 0, declarationSource + eol + prefix);
+            new SourceEdit(target.offset, 0, declarationCode + eol + prefix);
         doSourceChange_addElementEdit(change, unitElement, edit);
+        addPosition(edit.offset + nameOffsetInDeclarationCode);
+        occurrencesShift = edit.replacement.length;
       } else if (target is ExpressionFunctionBody) {
         String prefix = utils.getNodePrefix(target.parent);
         String indent = utils.getIndent(1);
-        String declStatement = prefix + indent + declarationSource + eol;
-        String exprStatement = prefix + indent + 'return ';
         Expression expr = target.expression;
-        doSourceChange_addElementEdit(
-            change,
-            unitElement,
-            new SourceEdit(target.offset, expr.offset - target.offset,
-                '{' + eol + declStatement + exprStatement));
+        {
+          String code = '{' + eol + prefix + indent;
+          addPosition(
+              target.offset + code.length + nameOffsetInDeclarationCode);
+          code += declarationCode + eol;
+          code += prefix + indent + 'return ';
+          SourceEdit edit =
+              new SourceEdit(target.offset, expr.offset - target.offset, code);
+          occurrencesShift = target.offset + code.length - expr.offset;
+          doSourceChange_addElementEdit(change, unitElement, edit);
+        }
         doSourceChange_addElementEdit(change, unitElement,
             new SourceEdit(expr.end, 0, ';' + eol + prefix + '}'));
       }
@@ -165,12 +184,23 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     String occurrenceReplacement = name;
     if (stringLiteralPart != null) {
       occurrenceReplacement = "\${$name}";
+      occurrencesShift += 2;
     }
     // replace occurrences with variable reference
     for (SourceRange range in occurrences) {
       SourceEdit edit = newSourceEdit_range(range, occurrenceReplacement);
+      addPosition(range.offset + occurrencesShift);
+      occurrencesShift += name.length - range.length;
       doSourceChange_addElementEdit(change, unitElement, edit);
     }
+    // add the linked group
+    change.addLinkedEditGroup(new LinkedEditGroup(
+        positions,
+        name.length,
+        names
+            .map((name) => new LinkedEditSuggestion(
+                name, LinkedEditSuggestionKind.VARIABLE))
+            .toList()));
     // done
     return new Future.value(change);
   }
@@ -194,8 +224,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       selectionRange = new SourceRange(offset, end - offset);
     }
     // get covering node
-    AstNode coveringNode = new NodeLocator(
-        selectionRange.offset, selectionRange.end).searchWithin(unit);
+    AstNode coveringNode =
+        new NodeLocator(selectionRange.offset, selectionRange.end)
+            .searchWithin(unit);
     // compute covering expressions
     for (AstNode node = coveringNode;
         node is Expression || node is ArgumentList;

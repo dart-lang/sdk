@@ -5,6 +5,7 @@
 library test.services.refactoring.extract_local;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -534,7 +535,7 @@ main() {
     expect(refactoring.names, unorderedEquals(['helloBob', 'bob']));
   }
 
-  test_occurrences_differentVariable() {
+  test_occurrences_differentVariable() async {
     indexTestUnit('''
 main() {
   {
@@ -550,7 +551,7 @@ main() {
 ''');
     _createRefactoringWithSuffix('v + 1', '); // marker');
     // apply refactoring
-    return _assertSuccessfulRefactoring('''
+    await _assertSuccessfulRefactoring('''
 main() {
   {
     int v = 1;
@@ -564,6 +565,8 @@ main() {
   }
 }
 ''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [36, 59, 85], names: ['object', 'i']);
   }
 
   test_occurrences_disableOccurrences() {
@@ -788,7 +791,7 @@ main(p) {
 ''');
   }
 
-  test_singleExpression_inExpressionBody() {
+  test_singleExpression_inExpressionBody() async {
     indexTestUnit('''
 main() {
   print((x) => x.y * x.y + 1);
@@ -796,7 +799,7 @@ main() {
 ''');
     _createRefactoringForString('x.y');
     // apply refactoring
-    return _assertSuccessfulRefactoring('''
+    await _assertSuccessfulRefactoring('''
 main() {
   print((x) {
     var res = x.y;
@@ -804,6 +807,8 @@ main() {
   });
 }
 ''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [31, 53, 59], names: ['y']);
   }
 
   test_singleExpression_inIfElseIf() {
@@ -987,7 +992,7 @@ main() {
 ''');
   }
 
-  test_stringLiteral_part() {
+  test_stringLiteral_part() async {
     indexTestUnit('''
 main() {
   print('abcdefgh');
@@ -995,15 +1000,16 @@ main() {
 ''');
     _createRefactoringForString('cde');
     // apply refactoring
-    return _assertSuccessfulRefactoring(r'''
+    await _assertSuccessfulRefactoring(r'''
 main() {
   var res = 'cde';
   print('ab${res}fgh');
 }
 ''');
+    _assertSingleLinkedEditGroup(length: 3, offsets: [15, 41], names: ['cde']);
   }
 
-  test_stringLiteral_whole() {
+  test_stringLiteral_whole() async {
     indexTestUnit('''
 main() {
   print('abc');
@@ -1011,15 +1017,17 @@ main() {
 ''');
     _createRefactoringForString("'abc'");
     // apply refactoring
-    return _assertSuccessfulRefactoring('''
+    await _assertSuccessfulRefactoring('''
 main() {
   var res = 'abc';
   print(res);
 }
 ''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [15, 36], names: ['object', 's']);
   }
 
-  test_stringLiteralPart() {
+  test_stringLiteralPart() async {
     indexTestUnit(r'''
 main() {
   int x = 1;
@@ -1029,7 +1037,7 @@ main() {
 ''');
     _createRefactoringForString(r'$x+$y');
     // apply refactoring
-    return _assertSuccessfulRefactoring(r'''
+    await _assertSuccessfulRefactoring(r'''
 main() {
   int x = 1;
   int y = 2;
@@ -1037,6 +1045,7 @@ main() {
   print('${res}=${x+y}');
 }
 ''');
+    _assertSingleLinkedEditGroup(length: 3, offsets: [41, 67], names: ['xy']);
   }
 
   Future _assertInitialConditions_fatal_selection() async {
@@ -1044,6 +1053,27 @@ main() {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             'Expression must be selected to activate this refactoring.');
+  }
+
+  void _assertSingleLinkedEditGroup(
+      {int length, List<int> offsets, List<String> names}) {
+    String positionsString = offsets
+        .map((offset) => '{"file": "$testFile", "offset": $offset}')
+        .join(',');
+    String suggestionsString =
+        names.map((name) => '{"value": "$name", "kind": "VARIABLE"}').join(',');
+    _assertSingleLinkedEditGroupJson('''
+{
+  "length": $length,
+  "positions": [$positionsString],
+  "suggestions": [$suggestionsString]
+}''');
+  }
+
+  void _assertSingleLinkedEditGroupJson(String expectedJsonString) {
+    List<LinkedEditGroup> editGroups = refactoringChange.linkedEditGroups;
+    expect(editGroups, hasLength(1));
+    expect(editGroups.first.toJson(), JSON.decode(expectedJsonString));
   }
 
   /**
