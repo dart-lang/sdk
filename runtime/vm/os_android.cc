@@ -179,7 +179,7 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
-int64_t OS::GetCurrentTraceMicros() {
+int64_t OS::GetCurrentMonotonicMicros() {
   struct timespec ts;
   if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
     UNREACHABLE();

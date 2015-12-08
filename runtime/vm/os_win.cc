@@ -123,7 +123,7 @@ int64_t OS::GetCurrentTimeMicros() {
 
 static int64_t qpc_ticks_per_second = 0;
 
-int64_t OS::GetCurrentTraceMicros() {
+int64_t OS::GetCurrentMonotonicMicros() {
   if (qpc_ticks_per_second == 0) {
     // QueryPerformanceCounter not supported, fallback.
     return GetCurrentTimeMicros();

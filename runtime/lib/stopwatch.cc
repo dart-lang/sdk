@@ -11,7 +11,7 @@ namespace dart {
 
 DEFINE_NATIVE_ENTRY(Stopwatch_now, 0) {
   // TODO(iposva): investigate other hi-res time sources such as cycle count.
-  return Integer::New(OS::GetCurrentTimeMicros());
+  return Integer::New(OS::GetCurrentMonotonicMicros());
 }
 
 

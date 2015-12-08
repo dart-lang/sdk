@@ -90,7 +90,7 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
-int64_t OS::GetCurrentTraceMicros() {
+int64_t OS::GetCurrentMonotonicMicros() {
 #if TARGET_OS_IOS
   // On iOS mach_absolute_time stops while the device is sleeping. Instead use
   // now - KERN_BOOTTIME to get a time difference that is not impacted by clock

@@ -189,7 +189,7 @@ void TimelineEvent::Reset() {
 
 void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
   Init(kAsyncBegin, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  timestamp0_ = OS::GetCurrentMonotonicMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -198,7 +198,7 @@ void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
 void TimelineEvent::AsyncInstant(const char* label,
                                  int64_t async_id) {
   Init(kAsyncInstant, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  timestamp0_ = OS::GetCurrentMonotonicMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -207,7 +207,7 @@ void TimelineEvent::AsyncInstant(const char* label,
 void TimelineEvent::AsyncEnd(const char* label,
                              int64_t async_id) {
   Init(kAsyncEnd, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  timestamp0_ = OS::GetCurrentMonotonicMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -215,18 +215,18 @@ void TimelineEvent::AsyncEnd(const char* label,
 
 void TimelineEvent::DurationBegin(const char* label) {
   Init(kDuration, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  timestamp0_ = OS::GetCurrentMonotonicMicros();
 }
 
 
 void TimelineEvent::DurationEnd() {
-  timestamp1_ = OS::GetCurrentTraceMicros();
+  timestamp1_ = OS::GetCurrentMonotonicMicros();
 }
 
 
 void TimelineEvent::Instant(const char* label) {
   Init(kInstant, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  timestamp0_ = OS::GetCurrentMonotonicMicros();
 }
 
 
@@ -453,7 +453,7 @@ int64_t TimelineEvent::AsyncId() const {
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
-    return OS::GetCurrentTraceMicros() - timestamp0_;
+    return OS::GetCurrentMonotonicMicros() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
 }
@@ -529,7 +529,7 @@ TimelineDurationScope::~TimelineDurationScope() {
     return;
   }
   ASSERT(event != NULL);
-  event->Duration(label_, timestamp_, OS::GetCurrentTraceMicros());
+  event->Duration(label_, timestamp_, OS::GetCurrentMonotonicMicros());
   event->StealArguments(arguments_length_, arguments_);
   event->Complete();
   arguments_length_ = 0;
@@ -545,7 +545,7 @@ void TimelineDurationScope::Init() {
     // Stream is not enabled, do nothing.
     return;
   }
-  timestamp_ = OS::GetCurrentTraceMicros();
+  timestamp_ = OS::GetCurrentMonotonicMicros();
   enabled_ = true;
 }
 

@@ -820,7 +820,7 @@ static Sample* SetupSample(Thread* thread,
   Isolate* isolate = thread->isolate();
   ASSERT(sample_buffer != NULL);
   Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(isolate, OS::GetCurrentTraceMicros(), tid);
+  sample->Init(isolate, OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
 #if defined(USING_SIMULATOR)
   // When running in the simulator, the runtime entry function address

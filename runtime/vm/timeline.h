@@ -129,10 +129,10 @@ class TimelineEvent {
                 int64_t end_micros);
 
   void Begin(const char* label,
-             int64_t micros = OS::GetCurrentTraceMicros());
+             int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void End(const char* label,
-           int64_t micros = OS::GetCurrentTraceMicros());
+           int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void SerializedJSON(const char* json);
 
