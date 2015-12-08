@@ -121,6 +121,9 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
         return;
       }
     }
+    if (dirPath.endsWith('\\.')) {
+      dirPath = dirPath.substring(0, dirPath.length - 1);
+    }
 
     Resource dir = resProvider.getResource(dirPath);
     if (dir is Folder) {
