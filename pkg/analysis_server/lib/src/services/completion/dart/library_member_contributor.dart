@@ -33,9 +33,10 @@ class LibraryMemberContributor extends DartCompletionContributor {
     // Resolve the expression and the containing library
     await request.resolveExpression(targetId);
     LibraryElement containingLibrary = await request.libraryElement;
-    // Gracefully degrade if the library could not be determined
+    List<Directive> directives = await request.resolveDirectives();
+    // Gracefully degrade if the library or directives could not be determined
     // e.g. detached part file or source change
-    if (containingLibrary == null) {
+    if (containingLibrary == null || directives == null) {
       return EMPTY_LIST;
     }
 
@@ -51,7 +52,7 @@ class LibraryMemberContributor extends DartCompletionContributor {
       List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
       // Find the import directive with the given prefix
-      for (Directive directive in request.target.unit.directives) {
+      for (Directive directive in directives) {
         if (directive is ImportDirective) {
           if (directive.prefix != null) {
             if (directive.prefix.name == elem.name) {

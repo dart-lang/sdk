@@ -55,6 +55,23 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     assertSuggestFunction('loadLibrary', 'Future<dynamic>');
   }
 
+  test_libraryPrefix_deferred_inPart() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
+    addSource(
+        libFile,
+        '''
+        library testA;
+        import "dart:async" deferred as bar;
+        part "$testFile";''');
+    addTestSource('part of testA; foo() {bar.^}');
+    // Assume that libraries containing has been computed for part files
+    await computeLibrariesContaining();
+    await computeSuggestions();
+    assertSuggestClass('Future');
+    assertSuggestFunction('loadLibrary', 'Future<dynamic>');
+  }
+
   test_libraryPrefix_with_exports() async {
     addSource('/libA.dart', 'library libA; class A { }');
     addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
@@ -78,6 +95,42 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
         var T2;
         class A { }
         main() {b.^}''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('X');
+    assertSuggestClass('Y');
+    assertSuggestTopLevelVar('T1', null);
+    assertNotSuggested('T2');
+    assertNotSuggested('Object');
+    assertNotSuggested('b');
+    assertNotSuggested('A');
+    assertNotSuggested('==');
+  }
+
+  test_PrefixedIdentifier_library_inPart() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    var libFile = '${testFile.substring(0, testFile.length - 5)}A.dart';
+    addSource(
+        '/testB.dart',
+        '''
+        lib B;
+        var T1;
+        class X { }
+        class Y { }''');
+    addSource(
+        libFile,
+        '''
+        library testA;
+        import "/testB.dart" as b;
+        part "$testFile";
+        var T2;
+        class A { }''');
+    addTestSource('''
+        part of testA;
+        main() {b.^}''');
+    // Assume that libraries containing has been computed for part files
+    await computeLibrariesContaining();
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);

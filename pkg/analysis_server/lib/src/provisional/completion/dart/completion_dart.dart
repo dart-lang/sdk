@@ -92,6 +92,16 @@ abstract class DartCompletionRequest extends CompletionRequest {
   Future<CompilationUnit> resolveDeclarationsInScope();
 
   /**
+   * Return a [Future] that completes with a list of directives for the library
+   * in which in which the completion is occurring.
+   * The [Future] may return `null` if the library unit cannot be determined
+   * (e.g. unlinked part file).
+   * Any information obtained from [target] prior to calling this method
+   * should be discarded as it may have changed.
+   */
+  Future<List<Directive>> resolveDirectives();
+
+  /**
    * Return a [Future] that completes when the element associated with
    * the given [expression] in the target compilation unit is available.
    * It may also complete if the expression cannot be resolved

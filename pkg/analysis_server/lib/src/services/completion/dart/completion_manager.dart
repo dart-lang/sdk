@@ -60,6 +60,14 @@ class DartCompletionManager implements CompletionContributor {
 class DartCompletionRequestImpl extends CompletionRequestImpl
     implements DartCompletionRequest {
   /**
+   * The source for the library containing the completion request.
+   * This may be different from the source in which the completion is requested
+   * if the completion is being requested in a part file.
+   * This may be `null` if the library for a part file cannot be determined.
+   */
+  Source _librarySource;
+
+  /**
    * The cached completion target or `null` if not computed yet.
    */
   CompletionTarget _target;
@@ -93,7 +101,16 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       SearchEngine searchEngine,
       Source source,
       int offset)
-      : super(context, resourceProvider, searchEngine, source, offset);
+      : super(context, resourceProvider, searchEngine, source, offset) {
+    if (target.unit.directives.any((d) => d is PartOfDirective)) {
+      List<Source> libraries = context.getLibrariesContaining(source);
+      if (libraries.isNotEmpty) {
+        _librarySource = libraries[0];
+      }
+    } else {
+      _librarySource = source;
+    }
+  }
 
   @override
   Future<LibraryElement> get libraryElement async {
@@ -134,24 +151,16 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       return unit;
     }
 
-    // Determine the library source
-    Source librarySource;
-    if (unit.directives.any((d) => d is PartOfDirective)) {
-      List<Source> libraries = context.getLibrariesContaining(source);
-      if (libraries.isEmpty) {
-        return null;
-      }
-      librarySource = libraries[0];
-    } else {
-      librarySource = source;
+    // Gracefully degrade if librarySource cannot be determined
+    if (_librarySource == null) {
+      return null;
     }
 
     // Resolve declarations in the target unit
     CompilationUnit resolvedUnit =
-        await new AnalysisFutureHelper<CompilationUnit>(
-            context,
-            new LibrarySpecificUnit(librarySource, source),
-            RESOLVED_UNIT3).computeAsync();
+        await new AnalysisFutureHelper<CompilationUnit>(context,
+                new LibrarySpecificUnit(_librarySource, source), RESOLVED_UNIT3)
+            .computeAsync();
 
     // TODO(danrubel) determine if the underlying source has been modified
     // in a way that invalidates the completion request
@@ -169,30 +178,36 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   }
 
   @override
+  Future<List<Directive>> resolveDirectives() async {
+    CompilationUnit libUnit;
+    if (_librarySource == source) {
+      libUnit = await resolveDeclarationsInScope();
+    } else if (_librarySource != null) {
+      libUnit =
+          await new AnalysisFutureHelper<CompilationUnit>(
+                  context,
+                  new LibrarySpecificUnit(_librarySource, _librarySource),
+                  RESOLVED_UNIT3)
+              .computeAsync();
+    }
+    return libUnit?.directives;
+  }
+
+  @override
   Future resolveExpression(Expression expression) async {
     //TODO(danrubel) resolve the expression or containing method
     // rather than the entire complilation unit
 
-    CompilationUnit unit = target.unit;
-
-    // Determine the library source
-    Source librarySource;
-    if (unit.directives.any((d) => d is PartOfDirective)) {
-      List<Source> libraries = context.getLibrariesContaining(source);
-      if (libraries.isEmpty) {
-        return;
-      }
-      librarySource = libraries[0];
-    } else {
-      librarySource = source;
+    // Gracefully degrade if librarySource cannot be determined
+    if (_librarySource == null) {
+      return null;
     }
 
     // Resolve declarations in the target unit
     CompilationUnit resolvedUnit =
-        await new AnalysisFutureHelper<CompilationUnit>(
-            context,
-            new LibrarySpecificUnit(librarySource, source),
-            RESOLVED_UNIT).computeAsync();
+        await new AnalysisFutureHelper<CompilationUnit>(context,
+                new LibrarySpecificUnit(_librarySource, source), RESOLVED_UNIT)
+            .computeAsync();
 
     // TODO(danrubel) determine if the underlying source has been modified
     // in a way that invalidates the completion request
@@ -200,7 +215,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
 
     // Gracefully degrade if unit cannot be resolved
     if (resolvedUnit == null) {
-      return;
+      return null;
     }
 
     // Recompute the target for the newly resolved unit

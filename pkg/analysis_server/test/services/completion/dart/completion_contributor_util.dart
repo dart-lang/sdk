@@ -368,6 +368,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     if (libraries.isNotEmpty) {
       return new Future.value(libraries);
     }
+    if (times == 0) {
+      fail('failed to determine libraries containing $testSource');
+    }
     context.performAnalysisTask();
     // We use a delayed future to allow microtask events to finish. The
     // Future.value or Future() constructors use scheduleMicrotask themselves and
