@@ -63,8 +63,8 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestField('scA', 'String');
-    assertSuggestField('scB', 'int');
-    assertSuggestField('scI', null);
+    assertNotSuggested('scB');
+    assertNotSuggested('scI');
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');
@@ -122,7 +122,10 @@ class StaticMemberContributorTest extends DartCompletionContributorTest {
   test_only_static() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('''
-class C {
+class B {
+  static int b1;
+}
+class C extends B {
   int f1;
   static int f2;
   m1() {}
@@ -130,6 +133,7 @@ class C {
 }
 void main() {C.^}''');
     await computeSuggestions();
+    assertNotSuggested('b1');
     assertNotSuggested('f1');
     assertSuggestField('f2', 'int');
     assertNotSuggested('m1');
@@ -139,7 +143,10 @@ void main() {C.^}''');
   test_only_static2() async {
     // SimpleIdentifier  MethodInvocation  ExpressionStatement
     addTestSource('''
-class C {
+class B {
+  static int b1;
+}
+class C extends B {
   int f1;
   static int f2;
   m1() {}
@@ -147,6 +154,7 @@ class C {
 }
 void main() {C.^ print("something");}''');
     await computeSuggestions();
+    assertNotSuggested('b1');
     assertNotSuggested('f1');
     assertSuggestField('f2', 'int');
     assertNotSuggested('m1');

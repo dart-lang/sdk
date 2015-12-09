@@ -101,12 +101,6 @@ class _SuggestionBuilder extends GeneralizingElementVisitor {
   @override
   visitClassElement(ClassElement element) {
     element.visitChildren(this);
-    element.allSupertypes.forEach((InterfaceType type) {
-      ClassElement childElem = type.element;
-      if (childElem != null) {
-        childElem.visitChildren(this);
-      }
-    });
   }
 
   @override
