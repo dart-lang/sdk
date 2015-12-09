@@ -697,7 +697,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         this[_baseMap].putIfAbsent(key, dart.as(dart.fn(() => {
           result = true;
           return value;
-        }), __CastType0$(V)));
+        }), __CastType0));
         return result;
       }
       addAll(elements) {
