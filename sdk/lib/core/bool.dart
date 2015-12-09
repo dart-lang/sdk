@@ -40,7 +40,14 @@ class bool {
    */
   external const factory bool.fromEnvironment(String name,
                                               {bool defaultValue: false});
-
+  
+  /// The negated value. For example:
+  ///
+  ///     if (new File('hello.txt').existsSync().not) {
+  ///       print("hello.txt doesn't exist");
+  ///     }
+  bool get not => !this;
+  
   /**
    * Returns [:"true":] if the receiver is [:true:], or [:"false":] if the
    * receiver is [:false:].
