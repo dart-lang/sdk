@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// VMOptions=--optimization_counter_threshold=10 --no-use-osr
+// We are using --complete-timeline below to ensure that we get timeline events
+// generated during all phases of compilation and deoptimization.
+// VMOptions=--optimization_counter_threshold=10 --no-use-osr --complete-timeline
 
 import "package:expect/expect.dart";
 

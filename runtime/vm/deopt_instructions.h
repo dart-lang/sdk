@@ -224,7 +224,7 @@ class DeoptContext {
   uint32_t deopt_flags_;
   intptr_t caller_fp_;
   Thread* thread_;
-  TimelineEvent* timeline_event_;
+  int64_t deopt_start_micros_;
 
   DeferredSlot* deferred_slots_;
 
