@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class AbsolutePathContextPosixTest {
-  AbsolutePathContext context = new AbsolutePathContext(r'/');
+  AbsolutePathContext context = new AbsolutePathContext(false);
 
   void test_append() {
     expect(context.append(r'/path/to', r'foo.dart'), r'/path/to/foo.dart');
@@ -36,6 +36,27 @@ class AbsolutePathContextPosixTest {
     expect(context.dirname(r'/path/to'), r'/path');
     expect(context.dirname(r'/path'), r'/');
     expect(context.dirname(r'/'), r'/');
+  }
+
+  void test_isValid_absolute() {
+    expect(context.isValid(r'/foo/bar'), isTrue);
+    expect(context.isValid(r'/foo'), isTrue);
+    expect(context.isValid(r'/'), isTrue);
+    expect(context.isValid(r''), isFalse);
+    expect(context.isValid(r'foo/bar'), isFalse);
+  }
+
+  void test_isValid_normalized() {
+    expect(context.isValid(r'/foo/bar'), isTrue);
+    expect(context.isValid(r'/foo/..bar'), isTrue);
+    expect(context.isValid(r'/foo/.bar/baz'), isTrue);
+    expect(context.isValid(r'/foo/...'), isTrue);
+    expect(context.isValid(r'/foo/.../bar'), isTrue);
+    expect(context.isValid(r'/foo/.bar/.'), isFalse);
+    expect(context.isValid(r'/foo/bar/../baz'), isFalse);
+    expect(context.isValid(r'/foo/bar/..'), isFalse);
+    expect(context.isValid(r'/foo/./bar'), isFalse);
+    expect(context.isValid(r'/.'), isFalse);
   }
 
   void test_isWithin() {
@@ -57,7 +78,7 @@ class AbsolutePathContextPosixTest {
 
 @reflectiveTest
 class AbsolutePathContextWindowsTest {
-  AbsolutePathContext context = new AbsolutePathContext(r'\');
+  AbsolutePathContext context = new AbsolutePathContext(true);
 
   void test_append() {
     expect(context.append(r'C:\path\to', r'foo.dart'), r'C:\path\to\foo.dart');
@@ -75,6 +96,29 @@ class AbsolutePathContextWindowsTest {
     expect(context.dirname(r'C:\path\to'), r'C:\path');
     expect(context.dirname(r'C:\path'), r'C:\');
     expect(context.dirname(r'C:\'), r'C:\');
+  }
+
+  void test_isValid_absolute() {
+    expect(context.isValid(r'C:\foo\bar'), isTrue);
+    expect(context.isValid(r'c:\foo\bar'), isTrue);
+    expect(context.isValid(r'D:\foo\bar'), isTrue);
+    expect(context.isValid(r'C:\foo'), isTrue);
+    expect(context.isValid(r'C:\'), isTrue);
+    expect(context.isValid(r''), isFalse);
+    expect(context.isValid(r'foo\bar'), isFalse);
+  }
+
+  void test_isValid_normalized() {
+    expect(context.isValid(r'C:\foo\bar'), isTrue);
+    expect(context.isValid(r'C:\foo\..bar'), isTrue);
+    expect(context.isValid(r'C:\foo\.bar\baz'), isTrue);
+    expect(context.isValid(r'C:\foo\...'), isTrue);
+    expect(context.isValid(r'C:\foo\...\bar'), isTrue);
+    expect(context.isValid(r'C:\foo\.bar\.'), isFalse);
+    expect(context.isValid(r'C:\foo\bar\..\baz'), isFalse);
+    expect(context.isValid(r'C:\foo\bar\..'), isFalse);
+    expect(context.isValid(r'C:\foo\.\bar'), isFalse);
+    expect(context.isValid(r'C:\.'), isFalse);
   }
 
   void test_isWithin() {

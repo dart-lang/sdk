@@ -441,6 +441,15 @@ class Response {
                 "Invalid execution context: $contextId"));
 
   /**
+   * Initialize a newly created instance to represent the
+   * INVALID_FILE_PATH_FORMAT error condition.
+   */
+  Response.invalidFilePathFormat(Request request, path)
+      : this(request.id,
+            error: new RequestError(RequestErrorCode.INVALID_FILE_PATH_FORMAT,
+                'Invalid file path format: $path'));
+
+  /**
    * Initialize a newly created instance to represent an error condition caused
    * by a [request] that had invalid parameter.  [path] is the path to the
    * invalid parameter, in Javascript notation (e.g. "foo.bar" means that the

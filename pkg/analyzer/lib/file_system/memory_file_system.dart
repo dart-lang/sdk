@@ -30,7 +30,7 @@ class MemoryResourceProvider implements ResourceProvider {
   int nextStamp = 0;
 
   final AbsolutePathContext absolutePathContext =
-      new AbsolutePathContext(posix.separator);
+      new AbsolutePathContext(false);
 
   @override
   Context get pathContext => posix;

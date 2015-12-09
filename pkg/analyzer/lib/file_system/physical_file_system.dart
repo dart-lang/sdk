@@ -33,7 +33,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   static final String SERVER_DIR = ".dartServer";
 
   final AbsolutePathContext absolutePathContext =
-      new AbsolutePathContext(io.Platform.pathSeparator);
+      new AbsolutePathContext(io.Platform.isWindows);
 
   PhysicalResourceProvider(String fileReadMode(String s)) {
     if (fileReadMode != null) {
