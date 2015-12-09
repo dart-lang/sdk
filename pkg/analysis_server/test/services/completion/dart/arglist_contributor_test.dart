@@ -31,15 +31,19 @@ class ArgListContributorTest extends DartCompletionContributorTest {
 
   void assertSuggestArgumentList(
       List<String> paramNames, List<String> paramTypes) {
-    CompletionSuggestionKind csKind = CompletionSuggestionKind.ARGUMENT_LIST;
-    CompletionSuggestion cs = getSuggest(csKind: csKind);
-    if (cs == null) {
-      failedCompletion('expected completion $csKind', suggestions);
-    }
-    assertSuggestArgumentList_params(
-        paramNames, paramTypes, cs.parameterNames, cs.parameterTypes);
-    expect(cs.relevance, DART_RELEVANCE_HIGH);
-    assertNoOtherSuggestions([cs]);
+    // DEPRECATED... argument lists are no longer suggested.
+    // See https://github.com/dart-lang/sdk/issues/25197
+    assertNoSuggestions(kind: CompletionSuggestionKind.ARGUMENT_LIST);
+
+    // CompletionSuggestionKind csKind = CompletionSuggestionKind.ARGUMENT_LIST;
+    // CompletionSuggestion cs = getSuggest(csKind: csKind);
+    // if (cs == null) {
+    //   failedCompletion('expected completion $csKind', suggestions);
+    // }
+    // assertSuggestArgumentList_params(
+    //     paramNames, paramTypes, cs.parameterNames, cs.parameterTypes);
+    // expect(cs.relevance, DART_RELEVANCE_HIGH);
+    // assertNoOtherSuggestions([cs]);
   }
 
   void assertSuggestArgumentList_params(

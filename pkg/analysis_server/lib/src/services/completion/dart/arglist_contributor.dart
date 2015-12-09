@@ -188,32 +188,35 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   void _addArgListSuggestion(Iterable<ParameterElement> requiredParam) {
-    StringBuffer completion = new StringBuffer('(');
-    List<String> paramNames = new List<String>();
-    List<String> paramTypes = new List<String>();
-    for (ParameterElement param in requiredParam) {
-      String name = param.name;
-      if (name != null && name.length > 0) {
-        if (completion.length > 1) {
-          completion.write(', ');
-        }
-        completion.write(name);
-        paramNames.add(name);
-        paramTypes.add(_getParamType(param));
-      }
-    }
-    completion.write(')');
-    CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.ARGUMENT_LIST,
-        DART_RELEVANCE_HIGH,
-        completion.toString(),
-        completion.length,
-        0,
-        false,
-        false);
-    suggestion.parameterNames = paramNames;
-    suggestion.parameterTypes = paramTypes;
-    suggestions.add(suggestion);
+    // DEPRECATED... argument lists are no longer suggested.
+    // See https://github.com/dart-lang/sdk/issues/25197
+
+    // StringBuffer completion = new StringBuffer('(');
+    // List<String> paramNames = new List<String>();
+    // List<String> paramTypes = new List<String>();
+    // for (ParameterElement param in requiredParam) {
+    //   String name = param.name;
+    //   if (name != null && name.length > 0) {
+    //     if (completion.length > 1) {
+    //       completion.write(', ');
+    //     }
+    //     completion.write(name);
+    //     paramNames.add(name);
+    //     paramTypes.add(_getParamType(param));
+    //   }
+    // }
+    // completion.write(')');
+    // CompletionSuggestion suggestion = new CompletionSuggestion(
+    //     CompletionSuggestionKind.ARGUMENT_LIST,
+    //     DART_RELEVANCE_HIGH,
+    //     completion.toString(),
+    //     completion.length,
+    //     0,
+    //     false,
+    //     false);
+    // suggestion.parameterNames = paramNames;
+    // suggestion.parameterTypes = paramTypes;
+    // suggestions.add(suggestion);
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters) {
