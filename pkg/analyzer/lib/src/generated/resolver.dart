@@ -9013,9 +9013,7 @@ class ResolverVisitor extends ScopedVisitor {
           typeProvider.listType.substitute4([typeProvider.dynamicType]);
       targs = inferenceContext.matchTypes(listD, contextType);
     }
-    if (targs != null &&
-        targs.length == 1 &&
-        !targs[0].isDynamic) {
+    if (targs != null && targs.length == 1 && !targs[0].isDynamic) {
       DartType eType = targs[0];
       InterfaceType listT = typeProvider.listType.substitute4([eType]);
       for (Expression child in node.elements) {
@@ -9040,9 +9038,7 @@ class ResolverVisitor extends ScopedVisitor {
           .substitute4([typeProvider.dynamicType, typeProvider.dynamicType]);
       targs = inferenceContext.matchTypes(mapD, contextType);
     }
-    if (targs != null &&
-        targs.length == 2 &&
-        targs.any((t) => !t.isDynamic)) {
+    if (targs != null && targs.length == 2 && targs.any((t) => !t.isDynamic)) {
       DartType kType = targs[0];
       DartType vType = targs[1];
       InterfaceType mapT = typeProvider.mapType.substitute4([kType, vType]);
@@ -9082,8 +9078,16 @@ class ResolverVisitor extends ScopedVisitor {
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
     Element methodElement = node.methodName.staticElement;
-    if (methodElement is ExecutableElement) {
-      InferenceContext.setType(node.argumentList, methodElement.type);
+    DartType contextType = null;
+    if (methodElement is PropertyAccessorElement && methodElement.isGetter) {
+      contextType = methodElement.returnType;
+    } else if (methodElement is VariableElement) {
+      contextType = methodElement.type;
+    } else if (methodElement is ExecutableElement) {
+      contextType = methodElement.type;
+    }
+    if (contextType is FunctionType) {
+      InferenceContext.setType(node.argumentList, contextType);
     }
     safelyVisit(node.argumentList);
     node.accept(typeAnalyzer);
