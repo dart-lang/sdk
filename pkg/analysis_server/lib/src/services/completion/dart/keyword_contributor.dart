@@ -16,6 +16,8 @@ const ASYNC = 'async';
 const ASYNC_STAR = 'async*';
 const AWAIT = 'await';
 const SYNC_STAR = 'sync*';
+const YIELD = 'yield';
+const YIELD_STAR = 'yield*';
 
 /**
  * A contributor for calculating `completion.getSuggestions` request results
@@ -463,6 +465,10 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     }
     if (_inAsyncMethodOrFunction(node)) {
       _addSuggestion2(AWAIT);
+    } else if (_inAsyncStarOrSyncStarMethodOrFunction(node)) {
+      _addSuggestion2(AWAIT);
+      _addSuggestion2(YIELD);
+      _addSuggestion2(YIELD_STAR);
     }
     if (_inLoop(node)) {
       _addSuggestions([Keyword.BREAK, Keyword.CONTINUE]);
@@ -511,7 +517,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   bool _inAsyncMethodOrFunction(AstNode node) {
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
-    return body != null && body.isAsynchronous;
+    return body != null && body.isAsynchronous && body.star == null;
+  }
+
+  bool _inAsyncStarOrSyncStarMethodOrFunction(AstNode node) {
+    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    return body != null && body.keyword != null && body.star != null;
   }
 
   bool _inCatchClause(Block node) =>
@@ -536,7 +547,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   bool _inForLoop(AstNode node) =>
       node.getAncestor((p) => p is ForStatement || p is ForEachStatement) !=
-          null;
+      null;
 
   bool _inLoop(AstNode node) =>
       _inDoLoop(node) || _inForLoop(node) || _inWhileLoop(node);

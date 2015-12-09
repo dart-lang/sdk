@@ -727,6 +727,19 @@ class A {
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
   }
 
+  test_function_body_inClass_constructorInitializer_async_star() async {
+    addTestSource(r'''
+  foo(p) {}
+  class A {
+    final f;
+    A() : f = foo(() async* {^});
+  }
+  ''');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
   test_function_body_inClass_field() async {
     addTestSource(r'''
 class A {
@@ -777,6 +790,21 @@ class A {
     assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
   }
 
+  test_function_body_inClass_methodBody_inFunction_async_star() async {
+    addTestSource(r'''
+  class A {
+    m() {
+      f() {
+        f2() async* {^};
+      };
+    }
+  }
+  ''');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_IN_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
   test_function_body_inUnit() async {
     addTestSource('main() {^}');
     await computeSuggestions();
@@ -793,6 +821,34 @@ class A {
     addTestSource('main() async {^}');
     await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
+  }
+
+  test_function_body_inUnit_async_star() async {
+    addTestSource('main() async* {n^}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
+  test_function_body_inUnit_async_star2() async {
+    addTestSource('main() async* {n^ foo}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
+  test_function_body_inUnit_sync_star() async {
+    addTestSource('main() sync* {n^}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
+  test_function_body_inUnit_sync_star2() async {
+    addTestSource('main() sync* {n^ foo}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   test_if_expression_in_class() async {
@@ -1201,6 +1257,13 @@ main() {
     addTestSource('class A { foo() async {^}}');
     await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
+  }
+
+  test_method_body_async_star() async {
+    addTestSource('class A { foo() async* {^}}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_IN_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   test_method_body_async2() async {
