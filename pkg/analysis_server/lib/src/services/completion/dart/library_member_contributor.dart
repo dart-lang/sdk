@@ -62,8 +62,14 @@ class LibraryMemberContributor extends DartCompletionContributor {
                 bool isConstructor = parent.parent is ConstructorName;
                 bool typesOnly = parent is TypeName;
                 bool instCreation = typesOnly && isConstructor;
-                library.visitChildren(new _SuggestionBuilder(
-                    suggestions, typesOnly, instCreation));
+                LibraryElementSuggestionBuilder builder =
+                    new LibraryElementSuggestionBuilder(
+                        containingLibrary,
+                        CompletionSuggestionKind.INVOCATION,
+                        typesOnly,
+                        instCreation);
+                library.visitChildren(builder);
+                suggestions.addAll(builder.suggestions);
 
                 // If the import is 'deferred' then suggest 'loadLibrary'
                 if (directive.deferredKeyword != null) {
@@ -103,99 +109,5 @@ class LibraryMemberContributor extends DartCompletionContributor {
       }
     }
     return null;
-  }
-}
-
-/**
- * This class visits elements in a library and provides suggestions based upon
- * the visible members in that library.
- */
-class _SuggestionBuilder extends GeneralizingElementVisitor {
-  final List<CompletionSuggestion> suggestions;
-  final bool typesOnly;
-  final bool instCreation;
-
-  _SuggestionBuilder(this.suggestions, this.typesOnly, this.instCreation);
-
-  @override
-  visitClassElement(ClassElement element) {
-    if (instCreation) {
-      element.visitChildren(this);
-    } else {
-      _addSuggestion(element);
-    }
-  }
-
-  @override
-  visitCompilationUnitElement(CompilationUnitElement element) {
-    element.visitChildren(this);
-    LibraryElement containingLibrary = element.library;
-    if (containingLibrary != null) {
-      for (var lib in containingLibrary.exportedLibraries) {
-        lib.visitChildren(this);
-      }
-    }
-  }
-
-  @override
-  visitConstructorElement(ConstructorElement element) {
-    if (instCreation) {
-      ClassElement classElem = element.enclosingElement;
-      if (classElem != null) {
-        String prefix = classElem.name;
-        if (prefix != null && prefix.length > 0) {
-          _addSuggestion(element, prefix: prefix);
-        }
-      }
-    }
-  }
-
-  @override
-  visitElement(Element element) {
-    // ignored
-  }
-
-  @override
-  visitFunctionElement(FunctionElement element) {
-    if (!typesOnly) {
-      _addSuggestion(element);
-    }
-  }
-
-  @override
-  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    if (!instCreation) {
-      _addSuggestion(element);
-    }
-  }
-
-  @override
-  visitTopLevelVariableElement(TopLevelVariableElement element) {
-    if (!typesOnly) {
-      _addSuggestion(element);
-    }
-  }
-
-  void _addSuggestion(Element element, {String prefix}) {
-    if (element.isPrivate) {
-      return;
-    }
-    String completion = element.displayName;
-    if (prefix != null && prefix.length > 0) {
-      if (completion == null || completion.length <= 0) {
-        completion = prefix;
-      } else {
-        completion = '$prefix.$completion';
-      }
-    }
-    if (completion != null && completion.length > 0) {
-      CompletionSuggestion suggestion = createSuggestion(element,
-          completion: completion,
-          kind: CompletionSuggestionKind.INVOCATION,
-          relevance: DART_RELEVANCE_DEFAULT);
-      if (suggestion != null) {
-        suggestions.add(suggestion);
-      }
-    }
   }
 }

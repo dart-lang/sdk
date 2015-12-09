@@ -112,9 +112,9 @@ abstract class ElementSuggestionBuilder {
   CompletionSuggestionKind get kind;
 
   /**
-   * Return the request on which the builder is operating.
+   * Return the library in which the completion is requested.
    */
-  DartCompletionRequest get request;
+  LibraryElement get containingLibrary;
 
   /**
    * Add a suggestion based upon the given element.
@@ -122,13 +122,7 @@ abstract class ElementSuggestionBuilder {
   void addSuggestion(Element element,
       {String prefix, int relevance: DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
-      LibraryElement elementLibrary = element.library;
-      CompilationUnitElement unitElem = request.target.unit.element;
-      if (unitElem == null) {
-        return;
-      }
-      LibraryElement unitLibrary = unitElem.library;
-      if (elementLibrary != unitLibrary) {
+      if (element.library != containingLibrary) {
         return;
       }
     }
@@ -173,18 +167,17 @@ abstract class ElementSuggestionBuilder {
 
 /**
  * This class visits elements in a library and provides suggestions based upon
- * the visible members in that library. Clients should call
- * [LibraryElementSuggestionBuilder.suggestionsFor].
+ * the visible members in that library.
  */
 class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     with ElementSuggestionBuilder {
-  final DartCompletionRequest request;
+  final LibraryElement containingLibrary;
   final CompletionSuggestionKind kind;
   final bool typesOnly;
   final bool instCreation;
 
   LibraryElementSuggestionBuilder(
-      this.request, this.kind, this.typesOnly, this.instCreation);
+      this.containingLibrary, this.kind, this.typesOnly, this.instCreation);
 
   @override
   visitClassElement(ClassElement element) {
@@ -242,21 +235,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!typesOnly) {
       addSuggestion(element);
-    }
-  }
-
-  /**
-   * Add suggestions for the visible members in the given library
-   */
-  static void suggestionsFor(
-      DartCompletionRequest request,
-      CompletionSuggestionKind kind,
-      LibraryElement library,
-      bool typesOnly,
-      bool instCreation) {
-    if (library != null) {
-      library.visitChildren(new LibraryElementSuggestionBuilder(
-          request, kind, typesOnly, instCreation));
     }
   }
 }
