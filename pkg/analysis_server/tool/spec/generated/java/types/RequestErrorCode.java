@@ -76,6 +76,11 @@ public class RequestErrorCode {
   public static final String INVALID_EXECUTION_CONTEXT = "INVALID_EXECUTION_CONTEXT";
 
   /**
+   * The format of the given file path is invalid, e.g. is not absolute and normalized.
+   */
+  public static final String INVALID_FILE_PATH_FORMAT = "INVALID_FILE_PATH_FORMAT";
+
+  /**
    * An "analysis.updateContent" request contained a ChangeContentOverlay object which can't be
    * applied, due to an edit having an offset or length that is out of range.
    */

@@ -2683,7 +2683,12 @@
       <type name="FilePath">
         <ref>String</ref>
         <p>
-          The absolute path of a file.
+          The absolute, normalized path of a file.
+        </p>
+        <p>
+          If the format of a file path in a request is not valid, e.g. the
+          path is not absolute or is not normalized, then an error of type
+          <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
         </p>
       </type>
       <type name="FoldingKind">
@@ -3694,6 +3699,13 @@
             <p>
               The context root used to create an execution context does not
               exist.
+            </p>
+          </value>
+          <value>
+            <code>INVALID_FILE_PATH_FORMAT</code>
+            <p>
+              The format of the given file path is invalid, e.g. is not
+              absolute and normalized.
             </p>
           </value>
           <value>
