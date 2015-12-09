@@ -148,24 +148,18 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {
-    String className;
     // TODO(karlklose): for illegal nodes constructed for tests or unresolved
     // constructor calls in the DartBackend, we get an element with no enclosing
     // class.  Clean this up by introducing a name field to the node and
     // removing [ErroneousElement]s from the IR.
-    if (node.dartType != null) {
-      className = node.dartType.toString();
-    } else {
-      className = node.target.enclosingClass.name;
-    }
-    String callName;
-    if (node.target.name.isEmpty) {
-      callName = '${className}';
-    } else {
-      callName = '${className}.${node.target.name}';
+    String name = node.dartType != null
+        ? node.dartType.toString()
+        : node.target.enclosingClass.name;
+    if (!node.target.name.isEmpty) {
+      name = '${name}.${node.target.name}';
     }
     String args = formatArguments(node.selector.callStructure, node.arguments);
-    return '(InvokeConstructor $callName $args)';
+    return '(InvokeConstructor $name $args)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
