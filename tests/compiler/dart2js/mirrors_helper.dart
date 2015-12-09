@@ -15,10 +15,9 @@ main() {
 }
 
 /// Singleline doc comment.
-@Metadata // This is intentionally the type literal.
+@Metadata(null)
 // Singleline comment 1.
 // Singleline comment 2.
-@Metadata(null)
 @Metadata(true)
 @Metadata(false)
 @Metadata(0)

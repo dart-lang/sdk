@@ -21,6 +21,11 @@ import '../compiler.dart' show
     Compiler;
 import '../compile_time_constants.dart' show
     ConstantCompiler;
+import '../constants/expressions.dart' show
+    ConstantExpression,
+    ConstantExpressionKind,
+    ConstructedConstantExpression,
+    ErroneousConstantExpression;
 import '../constants/values.dart' show
     ConstantValue;
 import '../core_types.dart' show
@@ -1061,8 +1066,29 @@ class ResolverTask extends CompilerTask {
       node.accept(visitor);
       // TODO(johnniwinther): Avoid passing the [TreeElements] to
       // [compileMetadata].
-      annotation.constant =
-          constantCompiler.compileMetadata(annotation, node, registry.mapping);
+      ConstantExpression constant = constantCompiler.compileMetadata(
+          annotation, node, registry.mapping);
+      switch (constant.kind) {
+        case ConstantExpressionKind.CONSTRUCTED:
+          ConstructedConstantExpression constructedConstant = constant;
+          if (constructedConstant.type.isGeneric) {
+            // Const constructor calls cannot have type arguments.
+            // TODO(24312): Remove this.
+            reporter.reportErrorMessage(
+                node, MessageKind.INVALID_METADATA_GENERIC);
+            constant = new ErroneousConstantExpression();
+          }
+          break;
+        case ConstantExpressionKind.VARIABLE:
+        case ConstantExpressionKind.ERRONEOUS:
+          break;
+        default:
+          reporter.reportErrorMessage(node, MessageKind.INVALID_METADATA);
+          constant = new ErroneousConstantExpression();
+          break;
+      }
+      annotation.constant = constant;
+
       constantCompiler.evaluate(annotation.constant);
       // TODO(johnniwinther): Register the relation between the annotation
       // and the annotated element instead. This will allow the backend to

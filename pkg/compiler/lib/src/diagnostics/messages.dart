@@ -256,6 +256,8 @@ enum MessageKind {
   INVALID_CONTINUE,
   INVALID_FOR_IN,
   INVALID_INITIALIZER,
+  INVALID_METADATA,
+  INVALID_METADATA_GENERIC,
   INVALID_OVERRIDDEN_FIELD,
   INVALID_OVERRIDDEN_GETTER,
   INVALID_OVERRIDDEN_METHOD,
@@ -2865,6 +2867,31 @@ main() => new C();
         const MessageTemplate(MessageKind.UNIMPLEMENTED_IMPLICIT_GETTER,
           "The getter '#{name}' is implicitly declared by this field "
           "in class '#{class}'."),
+
+      MessageKind.INVALID_METADATA:
+        const MessageTemplate(MessageKind.INVALID_METADATA,
+          "A metadata annotation must be either a reference to a compile-time "
+          "constant variable or a call to a constant constructor.",
+          howToFix:
+            "Try using a different constant value or referencing it through a "
+            "constant variable.",
+          examples: const [
+'@Object main() {}',
+'@print main() {}']),
+
+      MessageKind.INVALID_METADATA_GENERIC:
+        const MessageTemplate(MessageKind.INVALID_METADATA_GENERIC,
+          "A metadata annotation using a constant constructor cannot use type "
+          "arguments.",
+          howToFix:
+            "Try removing the type arguments or referencing the constant "
+            "through a constant variable.",
+          examples: const ['''
+class C<T> {
+  const C();
+}
+@C<int>() main() {}
+''']),
 
       MessageKind.EQUAL_MAP_ENTRY_KEY:
         const MessageTemplate(MessageKind.EQUAL_MAP_ENTRY_KEY,
