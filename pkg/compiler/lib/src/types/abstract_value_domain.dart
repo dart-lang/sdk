@@ -161,4 +161,9 @@ abstract class AbstractValueDomain {
 
   /// The length property of [value], or `null` if unknown.
   int getContainerLength(AbstractValue value);
+
+  /// Returns the type of the entry of [container] at a given index.
+  /// Returns `null` if unknown.
+  AbstractValue indexWithConstant(AbstractValue container,
+                                  ConstantValue indexValue);
 }

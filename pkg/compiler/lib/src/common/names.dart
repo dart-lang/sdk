@@ -112,13 +112,15 @@ class Selectors {
   static final Selector codeUnitAt =
       new Selector.call(const PublicName('codeUnitAt'), CallStructure.ONE_ARG);
 
+  static final Selector index = new Selector.index();
+
   /// List of all the selectors held in static fields.
   ///
   /// These objects are shared between different runs in batch-mode and must
   /// thus remain in the [Selector.canonicalizedValues] map.
   static final List<Selector> ALL = <Selector>[
       cancel, current, iterator, moveNext, noSuchMethod_, toString_,
-      hashCode_, compareTo, equals, length, codeUnitAt];
+      hashCode_, compareTo, equals, length, codeUnitAt, index];
 }
 
 /// [Uri]s commonly used.
