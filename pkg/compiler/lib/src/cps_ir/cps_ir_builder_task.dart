@@ -993,10 +993,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                                     op.BinaryOperator operator,
                                     ast.Node argument) {
     List<ir.Primitive> arguments = <ir.Primitive>[visit(argument)];
-    CallStructure callStructure =
-        normalizeDynamicArguments(CallStructure.ONE_ARG, arguments);
-    return irBuilder.buildSuperMethodInvocation(
-        function, callStructure, arguments);
+    return irBuilder.buildSuperMethodInvocation(function,
+        CallStructure.ONE_ARG, arguments);
   }
 
   @override
@@ -1318,8 +1316,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CallStructure callStructure,
       _) {
     List<ir.Primitive> arguments = <ir.Primitive>[];
-    callStructure =
-        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    callStructure = translateStaticArguments(argumentsNode, method,
+        callStructure, arguments);
     return irBuilder.buildSuperMethodInvocation(
         method,
         callStructure,
