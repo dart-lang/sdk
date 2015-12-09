@@ -117,7 +117,6 @@ Language/Metadata/before_param_t09: RuntimeError # Please triage this failure
 Language/Metadata/before_type_param_t01: CompileTimeError # Please triage this failure
 Language/Metadata/before_typedef_t01: RuntimeError # Please triage this failure
 Language/Metadata/before_variable_t01: RuntimeError # Please triage this failure
-Language/Metadata/compilation_t10: MissingCompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError # Please triage this failure
 Language/Mixins/Mixin_Application/wrong_mixin_type_t01: MissingCompileTimeError # Please triage this failure
@@ -9621,7 +9620,6 @@ WebPlatformTest/webstorage/storage_builtins_t01: RuntimeError # Please triage th
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
-Language/Statements/For/syntax_t07: Crash # unsupported operation on erroneous element
 Language/Statements/Labels/scope_t04: Crash # (switch (i){L:case 0:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/Statements/Continue/label_t12: Crash # (switch (2){L:case 1:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/Statements/Continue/label_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case

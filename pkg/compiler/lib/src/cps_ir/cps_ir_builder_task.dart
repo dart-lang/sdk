@@ -1244,7 +1244,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement function,
       ast.NodeList arguments,
       CallStructure callStructure, _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         elements.getSelector(node),
         arguments.nodes.mapToList(visit));
   }
@@ -1643,7 +1643,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive buildLocalNoSuchSetter(LocalElement local, ir.Primitive value) {
     Selector selector = new Selector.setter(
         new Name(local.name, local.library, isSetter: true));
-    return buildStaticNoSuchMethod(selector, [value]);
+    return irBuilder.buildStaticNoSuchMethod(selector, [value]);
   }
 
   @override
@@ -1699,13 +1699,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   ir.Primitive buildStaticNoSuchGetter(Element element) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.getter(new Name(element.name, element.library)),
         const <ir.Primitive>[]);
   }
 
   ir.Primitive buildStaticNoSuchSetter(Element element, ir.Primitive value) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(new Name(element.name, element.library)),
         <ir.Primitive>[value]);
   }
@@ -2034,10 +2034,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildNonTailThrow(visit(node.expression));
   }
 
-  ir.Primitive buildStaticNoSuchMethod(
-      Selector selector,
-      List<ir.Primitive> arguments);
-
   ir.Primitive buildInstanceNoSuchMethod(
       Selector selector,
       TypeMask mask,
@@ -2055,7 +2051,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node rhs, _) {
     // TODO(asgerf): What is unresolved? The getter and/or the setter?
     //               If it was the setter, we must evaluate the right-hand side.
-    return buildStaticNoSuchMethod(elements.getSelector(node), []);
+    return irBuilder.buildStaticNoSuchMethod(elements.getSelector(node), []);
   }
 
   @override
@@ -2080,7 +2076,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> arguments = <ir.Primitive>[];
     CallStructure callStructure = translateDynamicArguments(
         argumentsNode, selector.callStructure, arguments);
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector(selector.kind, selector.memberName, callStructure),
         arguments);
   }
@@ -2095,7 +2091,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> arguments = <ir.Primitive>[];
     callStructure =
         translateDynamicArguments(argumentsNode, callStructure, arguments);
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.call(constructor.memberName, callStructure), arguments);
   }
 
@@ -2103,7 +2099,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitUnresolvedGet(
       ast.Send node,
       Element element, _) {
-    return buildStaticNoSuchMethod(elements.getSelector(node), []);
+    return irBuilder.buildStaticNoSuchMethod(elements.getSelector(node), []);
   }
 
   @override
@@ -2112,7 +2108,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       Element element,
       ast.NodeList arguments,
       Selector selector, _) {
-    return buildStaticNoSuchMethod(elements.getSelector(node),
+    return irBuilder.buildStaticNoSuchMethod(elements.getSelector(node),
         arguments.nodes.mapToList(visit));
   }
 
@@ -2128,7 +2124,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> arguments = <ir.Primitive>[];
     callStructure =
         translateDynamicArguments(argumentsNode, callStructure, arguments);
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.call(name, callStructure),
         arguments);
   }
@@ -2138,7 +2134,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       Element element,
       ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(elements.getSelector(node), [visit(rhs)]);
+    return irBuilder.buildStaticNoSuchMethod(elements.getSelector(node),
+        [visit(rhs)]);
   }
 
   @override
@@ -2189,7 +2186,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node rhs, _) {
     InterfaceType type = constant.type;
     ClassElement element = type.element;
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(element.memberName),
         [visit(rhs)]);
   }
@@ -2201,7 +2198,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node rhs, _) {
     TypedefType type = constant.type;
     TypedefElement element = type.element;
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(element.memberName),
         [visit(rhs)]);
   }
@@ -2211,7 +2208,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.SendSet node,
       TypeVariableElement element,
       ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(element.memberName), [visit(rhs)]);
   }
 
@@ -2220,7 +2217,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.SendSet node,
       ConstantExpression constant,
       ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(Names.dynamic_), [visit(rhs)]);
   }
 
@@ -2241,7 +2238,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       FieldElement field,
       ast.Node rhs, _) {
     // TODO(asgerf): Include class name somehow for static class members?
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(field.memberName),
         [visit(rhs)]);
   }
@@ -2262,7 +2259,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.SendSet node,
       LocalElement local,
       ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(new Name(local.name, local.library)),
         [visit(rhs)]);
   }
@@ -2273,7 +2270,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement function,
       ast.Node rhs,
       _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(function.memberName),
         [visit(rhs)]);
   }
@@ -2284,7 +2281,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       GetterElement getter,
       ast.Node rhs,
       _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(getter.memberName),
         [visit(rhs)]);
   }
@@ -2294,7 +2291,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       SetterElement setter,
       _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.getter(setter.memberName),
         []);
   }
@@ -2307,7 +2304,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CallStructure callStructure, _) {
     // Translate as a method call.
     List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.call(setter.memberName, callStructure),
         arguments);
   }
@@ -2579,6 +2576,7 @@ class GlobalProgramInformation {
   }
 
   FunctionElement get throwTypeErrorHelper => _backend.helpers.throwTypeError;
+  Element get throwNoSuchMethod => _backend.helpers.throwNoSuchMethod;
 
   ClassElement get nullClass => _compiler.coreClasses.nullClass;
 
@@ -3365,20 +3363,6 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         arguments,
         sourceInformationBuilder.buildNew(node),
         allocationSiteType: allocationSiteType);
-  }
-
-  @override
-  ir.Primitive buildStaticNoSuchMethod(Selector selector,
-                                       List<ir.Primitive> arguments) {
-    Element thrower = backend.helpers.throwNoSuchMethod;
-    ir.Primitive receiver = irBuilder.buildStringConstant('');
-    ir.Primitive name = irBuilder.buildStringConstant(selector.name);
-    ir.Primitive argumentList = irBuilder.buildListLiteral(null, arguments);
-    ir.Primitive expectedArgumentNames = irBuilder.buildNullConstant();
-    return irBuilder.buildStaticFunctionInvocation(
-        thrower,
-        new CallStructure.unnamed(4),
-        [receiver, name, argumentList, expectedArgumentNames]);
   }
 
   @override
