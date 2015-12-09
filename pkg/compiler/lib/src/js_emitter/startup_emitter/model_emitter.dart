@@ -208,7 +208,8 @@ class ModelEmitter {
       token.setHash(hunkHashes[key]);
     });
 
-    writeMainFragment(mainFragment, mainCode);
+    writeMainFragment(mainFragment, mainCode,
+      isSplit: program.deferredFragments.isNotEmpty);
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
@@ -249,10 +250,18 @@ class ModelEmitter {
     return hunkHashes;
   }
 
+  js.Statement buildDeferredInitializerGlobal() {
+    String global = deferredInitializersGlobal;
+    return js.js.statement(
+        "if (typeof($global) === 'undefined') var # = Object.create(null);",
+        new js.VariableDeclaration(global, allowRename: false));
+  }
+
   // Writes the given [fragment]'s [code] into a file.
   //
   // Updates the shared [outputBuffers] field with the output.
-  void writeMainFragment(MainFragment fragment, js.Statement code) {
+  void writeMainFragment(MainFragment fragment, js.Statement code,
+      {bool isSplit}) {
     LineColumnCollector lineColumnCollector;
     List<CodeOutputListener> codeOutputListeners;
     if (shouldGenerateSourceMap) {
@@ -268,6 +277,7 @@ class ModelEmitter {
     js.Program program = new js.Program([
         buildGeneratedBy(),
         new js.Comment(HOOKS_API_USAGE),
+        isSplit ? buildDeferredInitializerGlobal() : new js.Block.empty(),
         code]);
 
     mainOutput.addBuffer(js.prettyPrint(program, compiler,
@@ -321,6 +331,7 @@ class ModelEmitter {
 
     js.Program program = new js.Program([
         buildGeneratedBy(),
+        buildDeferredInitializerGlobal(),
         js.js.statement('$deferredInitializersGlobal.current = #', code)]);
 
     output.addBuffer(js.prettyPrint(program, compiler,

@@ -1371,6 +1371,16 @@ class Emitter implements js_emitter.Emitter {
     assembleTypedefs(program);
   }
 
+  jsAst.Statement buildDeferredHeader() {
+    /// For deferred loading we communicate the initializers via this global
+    /// variable. The deferred hunks will add their initialization to this.
+    /// The semicolon is important in minified mode, without it the
+    /// following parenthesis looks like a call to the object literal.
+    return js.statement('self.#deferredInitializers = '
+                        'self.#deferredInitializers || Object.create(null);',
+                        {'deferredInitializers': deferredInitializers});
+  }
+
   jsAst.Program buildOutputAstForMain(Program program,
       Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes) {
     MainFragment mainFragment = program.mainFragment;
@@ -1383,14 +1393,7 @@ class Emitter implements js_emitter.Emitter {
               ..add(js.comment(HOOKS_API_USAGE));
 
     if (isProgramSplit) {
-      /// For deferred loading we communicate the initializers via this global
-      /// variable. The deferred hunks will add their initialization to this.
-      /// The semicolon is important in minified mode, without it the
-      /// following parenthesis looks like a call to the object literal.
-      statements.add(
-          js.statement('self.#deferredInitializers = '
-                       'self.#deferredInitializers || Object.create(null);',
-                       {'deferredInitializers': deferredInitializers}));
+      statements.add(buildDeferredHeader());
     }
 
     // Collect the AST for the decriptors
@@ -1999,6 +2002,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       statements
           ..add(buildGeneratedBy())
+          ..add(buildDeferredHeader())
           ..add(js.statement('${deferredInitializers}.current = '
                              """function (#, ${namer.staticStateHolder}) {
                                   #
