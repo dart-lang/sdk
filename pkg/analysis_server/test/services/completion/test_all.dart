@@ -16,7 +16,6 @@ import 'local_declaration_visitor_test.dart' as local_declaration_visitor_test;
 import 'local_reference_contributor_test.dart'
     as local_reference_contributor_test;
 import 'optype_test.dart' as optype_test;
-import 'prefixed_element_contributor_test.dart' as invocation_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -27,7 +26,6 @@ main() {
     completion_target_test.main();
     dart_contributor_tests.main();
     imported_test.main();
-    invocation_test.main();
     local_declaration_visitor_test.main();
     local_reference_contributor_test.main();
     optype_test.main();

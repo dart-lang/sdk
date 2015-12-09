@@ -71,6 +71,11 @@ abstract class DartCompletionRequest extends CompletionRequest {
   Future<LibraryElement> get libraryElement;
 
   /**
+   * Answer the [DartType] for Object in dart:core
+   */
+  DartType get objectType;
+
+  /**
    * Return the completion target.  This determines what part of the parse tree
    * will receive the newly inserted text.
    */

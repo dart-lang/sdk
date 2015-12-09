@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/completion/dart/keyword_contributor
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:plugin/plugin.dart';
 
@@ -85,6 +86,8 @@ class DartCompletionPlugin implements Plugin {
         () => new NamedConstructorContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new StaticMemberContributor());
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new TypeMemberContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new UriContributor());
   }

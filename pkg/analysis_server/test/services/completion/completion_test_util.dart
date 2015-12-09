@@ -16,7 +16,6 @@ import 'package:analysis_server/src/services/completion/dart/common_usage_sorter
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
-import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -637,11 +636,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestInvocationClass(String name,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestClass(name, relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationField(String name, String type,
@@ -652,42 +647,24 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestInvocationGetter(
       String name, String returnType,
       {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestGetter(name, returnType,
-          relevance: relevance, isDeprecated: isDeprecated);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationMethod(
       String name, String declaringType, String returnType,
       {int relevance: DART_RELEVANCE_DEFAULT}) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestMethod(name, declaringType, returnType,
-          relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationSetter(String name,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestSetter(name);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationTopLevelVar(
       String name, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestTopLevelVar(name, returnType, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalClass(String name,

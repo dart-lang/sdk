@@ -65,6 +65,11 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   CompletionTarget _target;
 
   /**
+   * The [DartType] for Object in dart:core
+   */
+  InterfaceType _objectType;
+
+  /**
    * `true` if [resolveDeclarationsInScope] has partially resolved the unit
    * referenced by [target], else `false`.
    */
@@ -101,6 +106,16 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       }
     }
     return null;
+  }
+
+  @override
+  InterfaceType get objectType {
+    if (_objectType == null) {
+      Source coreUri = context.sourceFactory.forUri('dart:core');
+      LibraryElement coreLib = context.getLibraryElement(coreUri);
+      _objectType = coreLib.getType('Object').type;
+    }
+    return _objectType;
   }
 
   @override

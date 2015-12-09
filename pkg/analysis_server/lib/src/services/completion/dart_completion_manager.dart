@@ -18,7 +18,6 @@ import 'package:analysis_server/src/services/completion/dart_completion_cache.da
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
-import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -99,7 +98,7 @@ class DartCompletionManager extends CompletionManager {
         //new KeywordContributor(),
         //new ArgListContributor(),
         // new CombinatorContributor(),
-        new PrefixedElementContributor(),
+        // new PrefixedElementContributor(),
         //new UriContributor(),
         // TODO(brianwilkerson) Use the completion contributor extension point
         // to add the contributor below (and eventually, all the contributors).
