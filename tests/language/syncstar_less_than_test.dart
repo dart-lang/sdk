@@ -4,7 +4,8 @@
 
 import "package:expect/expect.dart";
 
-confuse(x) => [1, 'x', true, null, x].last;
+@NoInline() @AssumeDynamic()
+confuse(x) => x;
 
 Iterable<int> foo() sync* {
  var a = confuse(1);
