@@ -106,8 +106,8 @@ touchevent_test/supported: Fail # Touch events are only supported on touch devic
 element_animate_test/omit_timing: RuntimeError # Also timing out on MacOS. Issue 23507
 element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue 23507
 element_animate_test/simple_timing: RuntimeError # Please triage this failure
-element_types_test/supported_object: Pass, RuntimeError # Issue 25155
-element_types_test/supported_embed: Pass, RuntimeError # Issue 25155
+element_types_test/supported_object: RuntimeError # Issue 25155
+element_types_test/supported_embed: RuntimeError # Issue 25155
 event_test: Pass, RuntimeError # Issue 25158 Passes on 46, fails on 47
 history_test/history: Pass, RuntimeError # Issue 25158, passes on 46 fails on 47
 
