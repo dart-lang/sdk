@@ -1325,22 +1325,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   }
 
   bool _isInlineJSFunction(FunctionExpression functionExpression) {
-    bool isJsInvocation(Expression expr) =>
-        expr is MethodInvocation && isInlineJS(expr.methodName.staticElement);
-
     var body = functionExpression.body;
     if (body is ExpressionFunctionBody) {
-      return isJsInvocation(body.expression);
+      return _isJSInvocation(body.expression);
     } else if (body is BlockFunctionBody) {
       if (body.block.statements.length == 1) {
         var stat = body.block.statements.single;
         if (stat is ReturnStatement) {
-          return isJsInvocation(stat.expression);
+          return _isJSInvocation(stat.expression);
         }
       }
     }
     return false;
   }
+
+  bool _isJSInvocation(Expression expr) =>
+      expr is MethodInvocation && isInlineJS(expr.methodName.staticElement);
 
   // Simplify `(args) => ((x, y) => { ... })(x, y)` to `(args) => { ... }`.
   // Note: we don't check if the top-level args match the ones passed through
@@ -1753,7 +1753,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     // Always qualify:
     // * mutable top-level fields
     // * elements from other libraries
-    bool mutableTopLevel = e is TopLevelVariableElement && !e.isConst;
+    bool mutableTopLevel = e is TopLevelVariableElement &&
+        !e.isConst &&
+        !_isFinalJSDecl(e.computeNode());
     bool fromAnotherLibrary = e.library != currentLibrary;
     if (mutableTopLevel || fromAnotherLibrary) {
       return new JS.PropertyAccess(libName, nameExpr);
@@ -2160,6 +2162,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     return new JS.VariableInitialization(name, _visitInitializer(node));
   }
 
+  bool _isFinalJSDecl(AstNode field) => field is VariableDeclaration &&
+      field.isFinal &&
+      _isJSInvocation(field.initializer);
+
   /// Emits a static or top-level field.
   JS.Statement _emitStaticField(VariableDeclaration field) {
     PropertyInducingElement element = field.element;
@@ -2178,8 +2184,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       eagerInit = false;
     }
 
+    // Treat `final x = JS('', '...')` as a const (non-lazy) to help compile
+    // runtime helpers.
+    var isJSTopLevel = field.isFinal && _isFinalJSDecl(field);
+    if (isJSTopLevel) eagerInit = true;
+
     var fieldName = field.name.name;
-    if (field.isConst && eagerInit && element is TopLevelVariableElement) {
+    if ((field.isConst && eagerInit && element is TopLevelVariableElement) ||
+        isJSTopLevel) {
       // constant fields don't change, so we can generate them as `let`
       // but add them to the module's exports. However, make sure we generate
       // anything they depend on first.

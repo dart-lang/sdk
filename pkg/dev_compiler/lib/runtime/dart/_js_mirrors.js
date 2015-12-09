@@ -28,24 +28,18 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
     return new JsClassMirror._(key);
   }
   dart.fn(reflectType, mirrors.TypeMirror, [core.Type]);
-  dart.defineLazyProperties(exports, {
-    get _dart() {
-      return dart;
-    },
-    get _metadata() {
-      return exports._dart.metadata;
-    }
-  });
+  const _dart = dart;
+  const _metadata = _dart.metadata;
   function _dload(obj, name) {
-    return exports._dart.dload(obj, name);
+    return _dart.dload(obj, name);
   }
   dart.fn(_dload, dart.dynamic, [dart.dynamic, core.String]);
   function _dput(obj, name, val) {
-    exports._dart.dput(obj, name, val);
+    _dart.dput(obj, name, val);
   }
   dart.fn(_dput, dart.void, [dart.dynamic, core.String, dart.dynamic]);
   function _dsend(obj, name, args) {
-    return exports._dart.dsend(obj, name, ...args);
+    return _dart.dsend(obj, name, ...args);
   }
   dart.fn(_dsend, dart.dynamic, [dart.dynamic, core.String, core.List]);
   const _toJsMap = Symbol('_toJsMap');
@@ -103,12 +97,12 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       [_toJsMap]: [dart.dynamic, [core.Map$(core.Symbol, dart.dynamic)]]
     })
   });
-  const _metadata = Symbol('_metadata');
+  const _metadata$ = Symbol('_metadata');
   const _declarations = Symbol('_declarations');
   const _cls = Symbol('_cls');
   class JsClassMirror extends core.Object {
     get metadata() {
-      return this[_metadata];
+      return this[_metadata$];
     }
     get declarations() {
       return this[_declarations];
@@ -116,10 +110,10 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
     _(cls) {
       this[_cls] = cls;
       this.simpleName = core.Symbol.new(cls.name);
-      this[_metadata] = null;
+      this[_metadata$] = null;
       this[_declarations] = null;
       let fn = this[_cls][dart.metadata];
-      this[_metadata] = fn == null ? dart.list([], mirrors.InstanceMirror) : core.List$(mirrors.InstanceMirror).from(dart.as(dart.dsend(dart.dcall(fn), 'map', dart.fn(i => new JsInstanceMirror._(i), JsInstanceMirror, [dart.dynamic])), core.Iterable));
+      this[_metadata$] = fn == null ? dart.list([], mirrors.InstanceMirror) : core.List$(mirrors.InstanceMirror).from(dart.as(dart.dsend(dart.dcall(fn), 'map', dart.fn(i => new JsInstanceMirror._(i), JsInstanceMirror, [dart.dynamic])), core.Iterable));
       this[_declarations] = core.Map$(core.Symbol, mirrors.MethodMirror).new();
       this[_declarations].set(this.simpleName, new JsMethodMirror._(this, this[_cls]));
     }
@@ -344,7 +338,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       this[_method] = method;
       this[_name] = getName(cls.simpleName);
       this[_params] = null;
-      let ftype = exports._dart.classGetConstructorType(cls[_cls]);
+      let ftype = _dart.classGetConstructorType(cls[_cls]);
       this[_params] = this[_createParameterMirrorList](ftype);
     }
     get constructorName() {

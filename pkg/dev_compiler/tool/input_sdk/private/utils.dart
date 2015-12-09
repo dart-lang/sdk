@@ -10,17 +10,15 @@ import 'dart:_foreign_helper' show JS;
 /// by the Dart runtime.
 // TODO(ochafik): Rewrite some of these in Dart when possible.
 
-// TODO(ochafik): Make these final + special-case them in js_codegen to fix
-// Analyzer errors.
-const defineProperty = JS('', 'Object.defineProperty');
-const getOwnPropertyDescriptor = JS('', 'Object.getOwnPropertyDescriptor');
-const getOwnPropertyNames = JS('', 'Object.getOwnPropertyNames');
-const getOwnPropertySymbols = JS('', 'Object.getOwnPropertySymbols');
+final defineProperty = JS('', 'Object.defineProperty');
+final getOwnPropertyDescriptor = JS('', 'Object.getOwnPropertyDescriptor');
+final getOwnPropertyNames = JS('', 'Object.getOwnPropertyNames');
+final getOwnPropertySymbols = JS('', 'Object.getOwnPropertySymbols');
 
-const hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
+final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 
 // TODO(ochafik): Add ES6 class syntax support to JS intrinsics to avoid this.
-const StrongModeError = JS('', '''(function() {
+final StrongModeError = JS('', '''(function() {
   function StrongModeError(message) {
     Error.call(this);
     this.message = message;

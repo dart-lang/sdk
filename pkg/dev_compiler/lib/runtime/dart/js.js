@@ -334,9 +334,9 @@ dart_library.library('dart/js', null, /* Imports */[
     } else if (dart.is(o, JsObject)) {
       return dart.dload(o, _jsObject);
     } else if (dart.is(o, core.Function)) {
-      return _putIfAbsent(exports._jsProxies, o, _wrapDartFunction);
+      return _putIfAbsent(_jsProxies, o, _wrapDartFunction);
     } else {
-      return _putIfAbsent(exports._jsProxies, o, dart.fn(o => new _DartObject(o), _DartObject, [dart.dynamic]));
+      return _putIfAbsent(_jsProxies, o, dart.fn(o => new _DartObject(o), _DartObject, [dart.dynamic]));
     }
   }
   dart.fn(_convertToJS);
@@ -345,7 +345,7 @@ dart_library.library('dart/js', null, /* Imports */[
       let args = Array.prototype.map.call(arguments, _convertToDart);
       return _convertToJS(f(...args));
     };
-    dart.dsetindex(exports._dartProxies, wrapper, f);
+    dart.dsetindex(_dartProxies, wrapper, f);
     return wrapper;
   }
   dart.fn(_wrapDartFunction);
@@ -358,7 +358,7 @@ dart_library.library('dart/js', null, /* Imports */[
     } else if (dart.is(o, _DartObject) && dart.jsobject != dart.realRuntimeType(o)) {
       return dart.dload(o, _dartObj);
     } else {
-      return _putIfAbsent(exports._dartProxies, o, _wrapToDart);
+      return _putIfAbsent(_dartProxies, o, _wrapToDart);
     }
   }
   dart.fn(_convertToDart, core.Object, [dart.dynamic]);
@@ -372,14 +372,8 @@ dart_library.library('dart/js', null, /* Imports */[
     return new JsObject._fromJs(o);
   }
   dart.fn(_wrapToDart, JsObject, [dart.dynamic]);
-  dart.defineLazyProperties(exports, {
-    get _dartProxies() {
-      return new WeakMap();
-    },
-    get _jsProxies() {
-      return new WeakMap();
-    }
-  });
+  const _dartProxies = new WeakMap();
+  const _jsProxies = new WeakMap();
   function _putIfAbsent(weakMap, o, getValue) {
     let value = weakMap.get(o);
     if (value == null) {
