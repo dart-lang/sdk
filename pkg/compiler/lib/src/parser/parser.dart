@@ -943,6 +943,8 @@ class Parser {
                             Token name) {
 
     Token externalModifier;
+    // TODO(johnniwinther): Move error reporting to resolution to give more
+    // specific error messages.
     for (Token modifier in modifiers) {
       if (externalModifier == null && optional('external', modifier)) {
         externalModifier = modifier;
@@ -1318,6 +1320,8 @@ class Parser {
     Token constModifier;
     int modifierCount = 0;
     int allowedModifierCount = 1;
+    // TODO(johnniwinther): Move error reporting to resolution to give more
+    // specific error messages.
     for (Token modifier in modifiers) {
       if (externalModifier == null && optional('external', modifier)) {
         modifierCount++;
@@ -1349,6 +1353,11 @@ class Parser {
             modifier, MessageKind.EXTRANEOUS_MODIFIER, {'modifier': modifier});
       }
     }
+    if (getOrSet != null &&  constModifier != null) {
+      listener.reportError(
+          constModifier, MessageKind.EXTRANEOUS_MODIFIER,
+          {'modifier': constModifier});
+    }
     parseModifierList(modifiers);
 
     if (type == null) {
@@ -1360,7 +1369,6 @@ class Parser {
     if (optional('operator', name)) {
       token = parseOperatorName(name);
       if (staticModifier != null) {
-        // TODO(ahe): Consider a more specific error message.
         listener.reportError(
             staticModifier, MessageKind.EXTRANEOUS_MODIFIER,
             {'modifier': staticModifier});
