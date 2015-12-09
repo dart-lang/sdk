@@ -856,7 +856,7 @@ class ResolverTask extends CompilerTask {
     if (lookupElement == null) {
       reporter.internalError(member,
           "No abstract field for accessor");
-    } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
+    } else if (!lookupElement.isAbstractField) {
       if (lookupElement.isMalformed || lookupElement.isAmbiguous) return;
       reporter.internalError(member,
           "Inaccessible abstract field for accessor");
@@ -869,14 +869,14 @@ class ResolverTask extends CompilerTask {
     if (setter == null) return;
     int getterFlags = getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     int setterFlags = setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
-    if (!identical(getterFlags, setterFlags)) {
+    if (getterFlags != setterFlags) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
-      reporter.reportErrorMessage(
+      reporter.reportWarningMessage(
           field.getter,
           MessageKind.GETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
-      reporter.reportErrorMessage(
+      reporter.reportWarningMessage(
           field.setter,
           MessageKind.SETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
