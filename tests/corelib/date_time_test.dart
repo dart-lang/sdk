@@ -38,7 +38,7 @@ void testMillisecondsSinceEpoch() {
 
 void testMicrosecondsSinceEpoch() {
   var dt1 = new DateTime.fromMillisecondsSinceEpoch(1);
-  var microsecondsSinceEpoch = dt1.millisecondsSinceEpoch;
+  var microsecondsSinceEpoch = dt1.microsecondsSinceEpoch;
   var dt2 = new DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
   Expect.equals(microsecondsSinceEpoch, dt2.microsecondsSinceEpoch);
 
