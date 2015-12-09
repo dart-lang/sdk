@@ -1307,7 +1307,6 @@ final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestion
  *   "explicitFileCount": int
  *   "implicitFileCount": int
  *   "workItemQueueLength": int
- *   "workItemQueueLengthAverage": String
  *   "cacheEntryExceptions": List<String>
  * }
  */
@@ -1317,7 +1316,6 @@ final Matcher isContextData = new LazyMatcher(() => new MatchesJsonObject(
     "explicitFileCount": isInt,
     "implicitFileCount": isInt,
     "workItemQueueLength": isInt,
-    "workItemQueueLengthAverage": isString,
     "cacheEntryExceptions": isListOf(isString)
   }));
 

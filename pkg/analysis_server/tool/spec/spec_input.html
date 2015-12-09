@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.13.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.14.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -1995,14 +1995,9 @@
         </params>
       </notification>
     </domain>
-    <domain name="diagnostic" experimental="true">
+    <domain name="diagnostic">
       <p>
-        The diagnostic domain contains experimental server diagnostics APIs. Note
-        that as an experimental API, docs are not generated for this domain and it
-        is subject subject to change without notice.
-        Because this experimental domain is not part of the analysis server's API,
-        the version number of the API will not be updated when changes are made.
-        Caveat emptor!
+        The diagnostic domain contains server diagnostics APIs.
       </p>
       <request method="getDiagnostics">
         <p>Return server diagnostics.</p>
@@ -2496,7 +2491,7 @@
           <value><code>PARAMETER</code></value>
         </enum>
       </type>
-      <type name="ContextData" experimental="true">
+      <type name="ContextData">
         <p>
           Information about an analysis context.
         </p>
@@ -2523,12 +2518,6 @@
             <ref>int</ref>
             <p>
               The number of work items in the queue.
-            </p>
-          </field>
-          <field name="workItemQueueLengthAverage">
-            <ref>String</ref>
-            <p>
-              A rolling average of work items in the queue. (A double encoded as a String.)
             </p>
           </field>
           <field name="cacheEntryExceptions">

@@ -58,10 +58,6 @@ main() {
     handler = new DiagnosticDomainHandler(server);
   });
 
-  tearDown(() {
-    handler.sampler?.stop();
-  });
-
   group('DiagnosticDomainHandler', () {
     test('getDiagnostics', () async {
       String file = '/project/bin/test.dart';
@@ -84,7 +80,6 @@ main() {
       expect(context['explicitFileCount'], fileCount);
       expect(context['implicitFileCount'], 0);
       expect(context['workItemQueueLength'], isNotNull);
-      expect(context['workItemQueueLengthAverage'], isNotNull);
     });
 
     test('getDiagnostics - (no root)', () async {
