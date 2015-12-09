@@ -566,6 +566,15 @@ abstract class TypeSystem {
       TypeProvider typeProvider, DartType type1, DartType type2);
 
   /**
+   * Given a [function] type, instantiate it with its bounds.
+   *
+   * The behavior of this method depends on the type system, for example, in
+   * classic Dart `dynamic` will be used for all type arguments, whereas
+   * strong mode prefers the actual bound type if it was specified.
+   */
+  FunctionType instantiateToBounds(FunctionType function);
+
+  /**
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
    * if leftType <==> rightType).
    */
@@ -671,6 +680,18 @@ class TypeSystemImpl implements TypeSystem {
       assert(false);
       return typeProvider.dynamicType;
     }
+  }
+
+  /**
+   * Instantiate the function type using `dynamic` for all generic parameters.
+   */
+  FunctionType instantiateToBounds(FunctionType function) {
+    int count = function.boundTypeParameters.length;
+    if (count == 0) {
+      return function;
+    }
+    return function.instantiate(
+        new List<DartType>.filled(count, DynamicTypeImpl.instance));
   }
 
   @override

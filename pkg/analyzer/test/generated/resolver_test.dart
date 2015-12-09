@@ -12972,6 +12972,98 @@ class C<T> {
     expect(f.staticType.toString(), '<S>(S) → dynamic');
   }
 
+  void test_genericMethod_override() {
+    _resolveTestUnit(r'''
+class C {
+  /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  /*=T*/ f/*<T>*/(/*=T*/ x) => null; // from D
+}
+''');
+    SimpleIdentifier f =
+        _findIdentifier('f/*<T>*/(/*=T*/ x) => null; // from D');
+    MethodElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.toString(), '<T>(T) → T');
+
+    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
+    expect(ft.toString(), '(String) → String');
+  }
+
+  void test_genericMethod_override_bounds() {
+    _resolveTestUnit(r'''
+class A {}
+class B extends A {}
+class C {
+  /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  /*=T*/ f/*<T extends A>*/(/*=T*/ x) => null;
+}
+''');
+  }
+
+  void test_genericMethod_override_invalidReturnType() {
+    Source source = addSource(r'''
+class C {
+  Iterable/*<T>*/ f/*<T>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  String f/*<S>*/(/*=S*/ x) => null;
+}''');
+    // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
+    // from CodeChecker don't have working equality.
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors.map((e) => e.errorCode.name), [
+      'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
+      'STRONG_MODE_INVALID_METHOD_OVERRIDE'
+    ]);
+    expect(errors[0].message, contains('Iterable<S>'),
+        reason: 'errors should be in terms of the type parameters '
+            'at the error location');
+    verify([source]);
+  }
+
+  void test_genericMethod_override_invalidTypeParamBounds() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+class C {
+  /*=T*/ f/*<T extends A>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
+}''');
+    // TODO(jmesserly): this is modified code from assertErrors, which we can't
+    // use directly because STRONG_MODE_* errors don't have working equality.
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors.map((e) => e.errorCode.name), [
+      'STRONG_MODE_INVALID_METHOD_OVERRIDE',
+      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND'
+    ]);
+    verify([source]);
+  }
+
+  void test_genericMethod_override_invalidTypeParamCount() {
+    Source source = addSource(r'''
+class C {
+  /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  /*=S*/ f/*<T, S>*/(/*=T*/ x) => null;
+}''');
+    // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
+    // from CodeChecker don't have working equality.
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors.map((e) => e.errorCode.name), [
+      'STRONG_MODE_INVALID_METHOD_OVERRIDE',
+      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
+    ]);
+    verify([source]);
+  }
+
   void test_pseudoGeneric_max_doubleDouble() {
     String code = r'''
 import 'dart:math';

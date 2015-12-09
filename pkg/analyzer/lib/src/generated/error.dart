@@ -4869,6 +4869,35 @@ class StaticWarningCode extends ErrorCode {
           "The parameter type '{0}' is not assignable to '{1}' as required by the method it is overriding from '{2}'");
 
   /**
+   * Generic Method DEP: number of type parameters must match.
+   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
+   *
+   * Parameters:
+   * 0: the number of type parameters in the method
+   * 1: the number of type parameters in the overridden method
+   * 2: the name of the class where the overridden method is declared
+   */
+  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
+      const StaticWarningCode('INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
+          "The method has {0} type parameters, but it is overriding a method with {1} type parameters from '{2}'");
+
+  /**
+   * Generic Method DEP: bounds of type parameters must be compatible.
+   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
+   *
+   * Parameters:
+   * 0: the type parameter name
+   * 1: the type parameter bound
+   * 2: the overridden type parameter name
+   * 3: the overridden type parameter bound
+   * 4: the name of the class where the overridden method is declared
+   */
+  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND =
+      const StaticWarningCode(
+          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
+          "The type parameter '{0}' extends '{1}', but that is stricter than '{2}' extends '{3}' in the overridden method from '{4}'");
+
+  /**
    * 7.1 Instance Methods: It is a static warning if an instance method
    * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
    * is not a subtype of the type of <i>m2</i>.
