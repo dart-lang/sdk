@@ -175,7 +175,7 @@ dart_library.library('dart/js', null, /* Imports */[
       from(other) {
         super._fromJs((() => {
           let _ = [];
-          _[dartx.addAll](other[dartx.map](dart.as(_convertToJS, __CastType0$(E))));
+          _[dartx.addAll](other[dartx.map](dart.as(_convertToJS, __CastType0)));
           return _;
         })());
       }

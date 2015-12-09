@@ -97,7 +97,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         let list = core.List$(E).new();
         list[dartx.length] = this[_length];
         list[dartx.setRange](0, this[_length], this[_queue]);
-        list[dartx.sort](dart.as(this.comparison, __CastType0$(E)));
+        list[dartx.sort](dart.as(this.comparison, __CastType0));
         return list;
       }
       toSet() {

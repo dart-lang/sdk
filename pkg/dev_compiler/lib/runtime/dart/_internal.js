@@ -616,7 +616,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         super.IterableBase();
       }
       get iterator() {
-        return new (ExpandIterator$(S, T))(this[_iterable][dartx.iterator], dart.as(this[_f], __CastType0$(S, T)));
+        return new (ExpandIterator$(S, T))(this[_iterable][dartx.iterator], dart.as(this[_f], __CastType0));
       }
     }
     dart.setSignature(ExpandIterable, {
@@ -1309,7 +1309,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       where(iterable, f) {
         dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
-        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType2$(T)));
+        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType2));
       }
       static map(iterable, f) {
         dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
