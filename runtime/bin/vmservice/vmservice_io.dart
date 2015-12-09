@@ -28,7 +28,17 @@ var _signalSubscription;
 // HTTP server.
 Server server;
 Future<Server> serverFuture;
-HashMap<String, Asset> assets;
+HashMap<String, Asset> _assets;
+HashMap<String, Asset> get assets {
+  if (_assets == null) {
+    try {
+      _assets = Asset.request();
+    } catch (e) {
+      print('Could not load Observatory assets: $e');
+    }
+  }
+  return _assets;
+}
 
 _onShutdown() {
   if (server != null) {
@@ -43,11 +53,6 @@ _onShutdown() {
 }
 
 _bootServer() {
-  try {
-    assets = Asset.request();
-  } catch (e) {
-    print('Could not load Observatory assets: $e');
-  }
   // Lazily create service.
   var service = new VMService();
   service.onShutdown = _onShutdown;
