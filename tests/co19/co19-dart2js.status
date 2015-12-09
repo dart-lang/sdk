@@ -104,8 +104,6 @@ Language/Generics/syntax_t17: fail # Issue 21203
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t01: CompileTimeError # Please triage this failure
 Language/Interfaces/Superinterfaces/Inheritance_and_Overriding/same_name_method_and_getter_t02: CompileTimeError # Please triage this failure
 Language/Libraries_and_Scripts/Imports/namespace_changes_t10: CompileTimeError # Please triage this failure
-Language/Libraries_and_Scripts/Imports/same_name_t08: fail # Issue 21171
-Language/Libraries_and_Scripts/Imports/same_name_t18: fail # Issue 21171
 Language/Libraries_and_Scripts/URIs/syntax_t04: CompileTimeError # Please triage this failure
 Language/Libraries_and_Scripts/URIs/syntax_t05: CompileTimeError # Please triage this failure
 Language/Libraries_and_Scripts/URIs/syntax_t09: CompileTimeError # Please triage this failure
