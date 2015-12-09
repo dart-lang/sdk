@@ -4,8 +4,9 @@
 
 import "package:expect/expect.dart";
 
-@NoInline() @AssumeDynamic()
-confuse(x) => x;
+@NoInline()
+@AssumeDynamic()
+confuse(x) => x is int ? x : 0;
 
 test1() {
   int x = 0;
