@@ -610,6 +610,19 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         if (script == null) return null;
         LibraryElement element =
             createLibrarySync(handler, script, resolvedUri);
+        CompilationUnitElementX compilationUnit = element.entryCompilationUnit;
+        if (compilationUnit.partTag != null) {
+          DiagnosticMessage error = reporter.withCurrentElement(
+              compilationUnit,
+              () => reporter.createMessage(
+                  compilationUnit.partTag, MessageKind.IMPORT_PART_OF));
+          DiagnosticMessage info = reporter.withCurrentElement(
+              importingLibrary,
+              () => reporter.createMessage(
+                  node,
+                  MessageKind.IMPORT_PART_OF_HERE));
+          reporter.reportError(error, <DiagnosticMessage>[info]);
+        }
         return processLibraryTags(handler, element).then((_) {
           reporter.withCurrentElement(element, () {
             handler.registerLibraryExports(element);

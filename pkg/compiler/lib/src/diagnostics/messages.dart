@@ -234,6 +234,7 @@ enum MessageKind {
   IMPORT_BEFORE_PARTS,
   IMPORT_EXPERIMENTAL_MIRRORS,
   IMPORT_PART_OF,
+  IMPORT_PART_OF_HERE,
   IMPORTED_HERE,
   INHERIT_GETTER_AND_METHOD,
   INHERITED_EXPLICIT_GETTER,
@@ -1953,6 +1954,10 @@ main() {}
 'part.dart': """
 part of library;
 """}]),
+
+      MessageKind.IMPORT_PART_OF_HERE:
+        const MessageTemplate(MessageKind.IMPORT_PART_OF_HERE,
+          "The library is imported here."),
 
       MessageKind.LIBRARY_NAME_MISMATCH:
         const MessageTemplate(MessageKind.LIBRARY_NAME_MISMATCH,
