@@ -47,7 +47,6 @@ main() {
   runReflectiveTests(ComputePropagableVariableDependenciesTaskTest);
   runReflectiveTests(ContainingLibrariesTaskTest);
   runReflectiveTests(DartErrorsTaskTest);
-  runReflectiveTests(ErrorFilterTest);
   runReflectiveTests(EvaluateUnitConstantsTaskTest);
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
@@ -1116,8 +1115,9 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
         computeResult(target, CONSTANT_VALUE,
             matcher: isComputeConstantValueTask);
         expect(outputs[CONSTANT_VALUE], same(target));
-        EvaluationResultImpl evaluationResult = (annotation.elementAnnotation
-            as ElementAnnotationImpl).evaluationResult;
+        EvaluationResultImpl evaluationResult =
+            (annotation.elementAnnotation as ElementAnnotationImpl)
+                .evaluationResult;
         return evaluationResult;
       }
     }
@@ -1285,8 +1285,9 @@ const x = 1;
     for (String otherVariableName in otherVariables) {
       PropertyInducingElement otherVariableElement =
           AstFinder.getTopLevelVariableElement(unit, otherVariableName);
-      _expectCircularityError((otherVariableElement
-          as TopLevelVariableElementImpl).evaluationResult);
+      _expectCircularityError(
+          (otherVariableElement as TopLevelVariableElementImpl)
+              .evaluationResult);
     }
   }
 
@@ -1958,32 +1959,6 @@ class DartErrorsTaskTest extends _AbstractDartTaskTest {
     // This should contain only the errors in the part file, not the ones in the
     // library.
     expect(errors, hasLength(1));
-  }
-}
-
-@reflectiveTest
-class ErrorFilterTest extends _AbstractDartTaskTest {
-  @override
-  setUp() {
-    super.setUp();
-    context.setConfigurationData(CONFIGURED_ERROR_FILTERS, [
-      (AnalysisError error) => error.errorCode.name == 'INVALID_ASSIGNMENT'
-    ]);
-  }
-
-  test_error_filters() {
-    AnalysisTarget library = newSource(
-        '/test.dart',
-        '''
-main() {
-  int x = ""; // INVALID_ASSIGNMENT (suppressed)
-  // UNUSED_LOCAL_VARIABLE
-}''');
-    computeResult(library, DART_ERRORS, matcher: isDartErrorsTask);
-    expect(outputs, hasLength(1));
-    List<AnalysisError> errors = outputs[DART_ERRORS];
-    expect(errors, hasLength(1));
-    expect(errors.first.errorCode, HintCode.UNUSED_LOCAL_VARIABLE);
   }
 }
 
@@ -3879,8 +3854,9 @@ var tau = piFirst ? pi * 2 : 6.28;
     VariableElement tau =
         AstFinder.getTopLevelVariable(unit, 'tau').name.staticElement;
     Expression piFirstUse = (AstFinder
-        .getTopLevelVariable(unit, 'tau')
-        .initializer as ConditionalExpression).condition;
+            .getTopLevelVariable(unit, 'tau')
+            .initializer as ConditionalExpression)
+        .condition;
 
     expect(piFirstUse.staticType, context.typeProvider.boolType);
     expect(piFirst.type, context.typeProvider.boolType);

@@ -6,6 +6,7 @@ library analyzer.src.generated.error;
 
 import 'dart:collection';
 
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/ast.dart' show AstNode;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -18,18 +19,11 @@ import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 
 /**
- * The descriptor used to associate error filters with analysis contexts in
+ * The descriptor used to associate error processors with analysis contexts in
  * configuration data.
  */
-final ListResultDescriptor<List<ErrorFilter>> CONFIGURED_ERROR_FILTERS =
-    new ListResultDescriptorImpl('configured.errors', const <ErrorFilter>[]);
-
-/**
- * A predicate used to potentially filter an [error].
- *
- * Returns `true` if this error should be filtered from analysis results.
- */
-typedef bool ErrorFilter(AnalysisError error);
+final ListResultDescriptor<List<ErrorProcessor>> CONFIGURED_ERROR_PROCESSORS =
+    new ListResultDescriptorImpl('configured.errors', const <ErrorProcessor>[]);
 
 /**
  * An error discovered during the analysis of some Dart code.

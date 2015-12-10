@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -48,6 +49,10 @@ class AnalyzerOptions {
 
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = const ['ignore', 'false'];
+
+  /// Valid error `severity`s.
+  static final List<String> severities =
+      ErrorSeverity.values.map((s) => s.name).toList();
 
   /// Ways to say `include`.
   static const List<String> includeSynonyms = const ['include', 'true'];
@@ -404,48 +409,11 @@ class _OptionsProcessor {
 
     // Set filters.
     var filters = analyzer[AnalyzerOptions.errors];
-    setFilters(context, filters);
+    setProcessors(context, filters);
 
     // Process language options.
     var language = analyzer[AnalyzerOptions.language];
     setLanguageOptions(context, language);
-  }
-
-  ErrorFilter parseFilter(String code, Object enable) {
-    enable = toLowerCase(enable);
-    if (AnalyzerOptions.ignoreSynonyms.contains(enable)) {
-      // Case-insensitive.
-      code = toUpperCase(code);
-      return ((AnalysisError error) => error.errorCode.name == code);
-    }
-  }
-
-  void setFilters(AnalysisContext context, Object codes) {
-    List<ErrorFilter> filters = <ErrorFilter>[];
-    // If codes are enumerated, collect them as filters; else leave filters
-    // empty to overwrite previous value.
-    if (codes is YamlMap) {
-      String value;
-      // TODO(pq): stop traversing nodes and unify w/ standard map handling
-      codes.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          ErrorFilter filter = parseFilter(k.value, v.value);
-          if (filter != null) {
-            filters.add(filter);
-          }
-        }
-      });
-    } else if (codes is Map) {
-      codes.forEach((k, v) {
-        if (k is String) {
-          ErrorFilter filter = parseFilter(k, v);
-          if (filter != null) {
-            filters.add(filter);
-          }
-        }
-      });
-    }
-    context.setConfigurationData(CONFIGURED_ERROR_FILTERS, filters);
   }
 
   void setLanguageOption(
@@ -479,6 +447,11 @@ class _OptionsProcessor {
     } else if (configs is Map) {
       configs.forEach((k, v) => setLanguageOption(context, k, v));
     }
+  }
+
+  void setProcessors(AnalysisContext context, Object codes) {
+    ErrorConfig config = new ErrorConfig(codes);
+    context.setConfigurationData(CONFIGURED_ERROR_PROCESSORS, config.processors);
   }
 
   void setStrongMode(AnalysisContext context, Object strongMode) {

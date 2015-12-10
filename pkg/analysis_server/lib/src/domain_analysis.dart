@@ -65,7 +65,8 @@ class AnalysisDomainHandler implements RequestHandler {
           if (errorInfo == null) {
             server.sendResponse(new Response.getErrorsInvalidFile(request));
           } else {
-            errors = doAnalysisError_listFromEngine(
+            engine.AnalysisContext context = server.getAnalysisContext(file);
+            errors = doAnalysisError_listFromEngine(context,
                 errorInfo.lineInfo, errorInfo.errors);
             server.sendResponse(
                 new AnalysisGetErrorsResult(errors).toResponse(request.id));

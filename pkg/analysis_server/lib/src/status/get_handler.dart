@@ -27,6 +27,7 @@ import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/validator.dart';
 import 'package:analysis_server/src/utilities/average.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
@@ -1148,10 +1149,10 @@ class GetHandler {
             }
           }
 
-          List<ErrorFilter> errorFilters =
-              context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-          int filterCount = errorFilters?.length ?? 0;
-          buffer.write('<p><b>Error Filter count</b>: $filterCount</p>');
+          List<ErrorProcessor> errorProcessors =
+              context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+          int processorCount = errorProcessors?.length ?? 0;
+          buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
         });
 
         _writeFiles(buffer, 'Priority Files', priorityNames);

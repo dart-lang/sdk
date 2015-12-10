@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/embedder.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -88,8 +89,8 @@ class AbstractContextManagerTest {
     ['x']
   ]);
 
-  List<ErrorFilter> get errorFilters =>
-      callbacks.currentContext.getConfigurationData(CONFIGURED_ERROR_FILTERS);
+  List<ErrorProcessor> get errorProcessors => callbacks.currentContext
+      .getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
 
   List<Linter> get lints => getLints(callbacks.currentContext);
 
@@ -99,6 +100,9 @@ class AbstractContextManagerTest {
     String filePath = posix.joinAll(pathComponents);
     resourceProvider.deleteFile(filePath);
   }
+
+  ErrorProcessor getProcessor(AnalysisError error) =>
+      ErrorProcessor.getProcessor(callbacks.currentContext, error);
 
   String newFile(List<String> pathComponents, [String content = '']) {
     String filePath = posix.joinAll(pathComponents);
@@ -159,7 +163,7 @@ linter:
     await pumpEventQueue();
 
     // Verify options were set.
-    expect(errorFilters, hasLength(1));
+    expect(errorProcessors, hasLength(1));
     expect(lints, hasLength(1));
     expect(options.enableGenericMethods, isTrue);
 
@@ -168,7 +172,7 @@ linter:
     await pumpEventQueue();
 
     // Verify defaults restored.
-    expect(errorFilters, isEmpty);
+    expect(errorProcessors, isEmpty);
     expect(lints, isEmpty);
     expect(options.enableGenericMethods, isFalse);
   }
@@ -215,7 +219,7 @@ linter:
     // Verify options were set.
     expect(options.enableGenericMethods, isTrue);
     expect(options.strongMode, isTrue);
-    expect(errorFilters, hasLength(2));
+    expect(errorProcessors, hasLength(2));
     expect(lints, hasLength(2));
 
     // Remove options.
@@ -226,8 +230,8 @@ linter:
     expect(options.enableGenericMethods, isFalse);
     expect(lints, hasLength(1));
     expect(lints.first, new isInstanceOf<AvoidAs>());
-    expect(errorFilters, hasLength(1));
-    expect(errorFilters.first(missing_return), isTrue);
+    expect(errorProcessors, hasLength(1));
+    expect(getProcessor(missing_return).severity, isNull);
   }
 
   test_analysis_options_parse_failure() async {
@@ -341,13 +345,13 @@ linter:
         ['/my/proj/sdk_ext/entry.dart']);
 
     // Verify filter setup.
-    expect(errorFilters, hasLength(2));
+    expect(errorProcessors, hasLength(2));
 
     // * (embedder.)
-    expect(errorFilters.any((f) => f(missing_return)), isTrue);
+    expect(getProcessor(missing_return).severity, isNull);
 
     // * (options.)
-    expect(errorFilters.any((f) => f(unused_local_variable)), isTrue);
+    expect(getProcessor(unused_local_variable).severity, isNull);
 
     // Verify lints.
     var lintNames = lints.map((lint) => lint.name);
@@ -419,9 +423,8 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     // Verify filter setup.
-    expect(errorFilters, isNotNull);
-    expect(errorFilters, hasLength(1));
-    expect(errorFilters.first(unused_local_variable), isTrue);
+    expect(errorProcessors, hasLength(1));
+    expect(getProcessor(unused_local_variable).severity, isNull);
   }
 
   test_error_filter_analysis_option_multiple_filters() async {
@@ -432,18 +435,16 @@ analyzer:
 analyzer:
   errors:
     invalid_assignment: ignore
-    unused_local_variable: ignore
+    unused_local_variable: error
 ''');
     // Setup context.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     // Verify filter setup.
-    expect(errorFilters, isNotNull);
-    expect(errorFilters, hasLength(2));
+    expect(errorProcessors, hasLength(2));
 
-    expect(errorFilters.any((filter) => filter(unused_local_variable)), isTrue);
-    expect(
-        errorFilters.any((filter) => filter(invalid_assignment_error)), isTrue);
+    expect(getProcessor(invalid_assignment_error).severity, isNull);
+    expect(getProcessor(unused_local_variable).severity, ErrorSeverity.ERROR);
   }
 
   test_error_filter_analysis_option_synonyms() async {
@@ -460,8 +461,8 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     // Verify filter setup.
-    expect(errorFilters, isNotNull);
-    expect(errorFilters, hasLength(2));
+    expect(errorProcessors, isNotNull);
+    expect(errorProcessors, hasLength(2));
   }
 
   test_error_filter_analysis_option_unpsecified() async {
@@ -477,7 +478,7 @@ analyzer:
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
 
     // Verify filter setup.
-    expect(errorFilters, isEmpty);
+    expect(errorProcessors, isEmpty);
   }
 
   test_ignoreFilesInPackagesFolder() {

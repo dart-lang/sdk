@@ -6,6 +6,7 @@ library analyzer.test.src.task.options_test;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
@@ -68,30 +69,36 @@ analyzer:
     expect(analysisOptions.enableSuperMixins, true);
   }
 
-  test_configure_error_filters() {
+  test_configure_error_processors() {
     configureContext('''
 analyzer:
   errors:
     invalid_assignment: ignore
-    unused_local_variable: ignore
+    unused_local_variable: error
 ''');
 
-    List<ErrorFilter> filters =
-        context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-    expect(filters, hasLength(2));
+    List<ErrorProcessor> processors =
+        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+    expect(processors, hasLength(2));
 
-    var unused_error = new AnalysisError(
+    var unused_local = new AnalysisError(
         new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
       ['x']
     ]);
-    var invalid_assignment_error =
+    var invalid_assignment =
         new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);
 
-    expect(filters.any((filter) => filter(unused_error)), isTrue);
-    expect(filters.any((filter) => filter(invalid_assignment_error)), isTrue);
+    // ignore
+    var invalidAssignment =
+        processors.firstWhere((p) => p.appliesTo(invalid_assignment));
+    expect(invalidAssignment.severity, isNull);
+
+    // error
+    var unusedLocal = processors.firstWhere((p) => p.appliesTo(unused_local));
+    expect(unusedLocal.severity, ErrorSeverity.ERROR);
   }
 
   test_configure_strong_mode() {

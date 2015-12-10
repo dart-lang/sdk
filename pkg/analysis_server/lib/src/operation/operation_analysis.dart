@@ -151,14 +151,18 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
   });
 }
 
-void sendAnalysisNotificationErrors(AnalysisServer server, String file,
-    LineInfo lineInfo, List<AnalysisError> errors) {
+void sendAnalysisNotificationErrors(
+    AnalysisServer server,
+    AnalysisContext context,
+    String file,
+    LineInfo lineInfo,
+    List<AnalysisError> errors) {
   _sendNotification(server, () {
     if (errors == null) {
       errors = <AnalysisError>[];
     }
     var serverErrors =
-        protocol.doAnalysisError_listFromEngine(lineInfo, errors);
+        protocol.doAnalysisError_listFromEngine(context, lineInfo, errors);
     var params = new protocol.AnalysisErrorsParams(file, serverErrors);
     server.sendNotification(params.toNotification());
   });
@@ -514,7 +518,7 @@ class _NotificationErrorsOperation extends _SingleFileOperation {
 
   @override
   void perform(AnalysisServer server) {
-    sendAnalysisNotificationErrors(server, file, lineInfo, errors);
+    sendAnalysisNotificationErrors(server, context, file, lineInfo, errors);
   }
 }
 

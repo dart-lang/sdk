@@ -102,10 +102,10 @@ main() {
     await waitForTasksFinished();
 
     // Verify options file.
-    expect(optionsFileErrors, hasLength(0));
+    expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
-    expect(testFileErrors, hasLength(0));
+    expect(testFileErrors, isEmpty);
   }
 
   test_error_filter_removed() async {
@@ -126,10 +126,10 @@ main() {
     await waitForTasksFinished();
 
     // Verify options file.
-    expect(optionsFileErrors, hasLength(0));
+    expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
-    expect(testFileErrors, hasLength(0));
+    expect(testFileErrors, isEmpty);
 
     addOptionsFile('''
 analyzer:
@@ -141,7 +141,7 @@ analyzer:
     await waitForTasksFinished();
 
     // Verify options file.
-    expect(optionsFileErrors, hasLength(0));
+    expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
     expect(testFileErrors, hasLength(1));
