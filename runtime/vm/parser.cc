@@ -8668,7 +8668,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
 
   // Parse stream expression.
   ExpectToken(Token::kIN);
-  const intptr_t stream_pos = TokenPos();
+  const intptr_t stream_expr_pos = TokenPos();
   AstNode* stream_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
@@ -8687,19 +8687,19 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       Function::ZoneHandle(Z, stream_iterator_cls.LookupFunction(
           Symbols::StreamIteratorConstructor()));
   ASSERT(!iterator_ctor.IsNull());
-  ArgumentListNode* ctor_args = new (Z) ArgumentListNode(Scanner::kNoSourcePos);
+  ArgumentListNode* ctor_args = new (Z) ArgumentListNode(stream_expr_pos);
   ctor_args->Add(stream_expr);
   ConstructorCallNode* ctor_call =
-      new (Z) ConstructorCallNode(Scanner::kNoSourcePos,
+      new (Z) ConstructorCallNode(stream_expr_pos,
                               TypeArguments::ZoneHandle(Z),
                               iterator_ctor,
                               ctor_args);
   const AbstractType& iterator_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* iterator_var = new(Z) LocalVariable(
-      stream_pos, Symbols::ForInIter(), iterator_type);
+      stream_expr_pos, Symbols::ForInIter(), iterator_type);
   current_block_->scope->AddVariable(iterator_var);
   AstNode* iterator_init =
-      new(Z) StoreLocalNode(stream_pos, iterator_var, ctor_call);
+      new(Z) StoreLocalNode(stream_expr_pos, iterator_var, ctor_call);
   current_block_->statements->Add(iterator_init);
 
   // We need to ensure that the stream is cancelled after the loop.
@@ -8737,15 +8737,15 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                          &async_saved_try_ctx,
                          &outer_saved_try_ctx,
                          &outer_async_saved_try_ctx);
-  ArgumentListNode* no_args = new(Z) ArgumentListNode(stream_pos);
+  ArgumentListNode* no_args = new(Z) ArgumentListNode(stream_expr_pos);
   AstNode* iterator_moveNext = new(Z) InstanceCallNode(
-      stream_pos,
-      new(Z) LoadLocalNode(stream_pos, iterator_var),
+      stream_expr_pos,
+      new(Z) LoadLocalNode(stream_expr_pos, iterator_var),
                            Symbols::MoveNext(),
                            no_args);
   OpenBlock();
   AstNode* await_moveNext =
-      new(Z) AwaitNode(stream_pos,
+      new(Z) AwaitNode(stream_expr_pos,
                        iterator_moveNext,
                        saved_try_ctx,
                        async_saved_try_ctx,
