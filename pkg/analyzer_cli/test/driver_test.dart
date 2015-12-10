@@ -297,15 +297,18 @@ linter:
         });
 
         test('filters', () {
-          var filters =
-              driver.context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-          expect(filters, hasLength(1));
+          var processors =
+              driver.context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+          expect(processors, hasLength(1));
 
-          var unused_error = new AnalysisError(
+          var unused_local_variable = new AnalysisError(
               new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
             ['x']
           ]);
-          expect(filters.any((filter) => filter(unused_error)), isTrue);
+
+          var unusedLocalVariable =
+              processors.firstWhere((p) => p.appliesTo(unused_local_variable));
+          expect(unusedLocalVariable.severity, isNull);
         });
 
         test('language config', () {
