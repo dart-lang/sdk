@@ -135,6 +135,5 @@ deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-
 tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
 regress_23408_test: RuntimeError
-issue21159_test: Pass, Crash, Timeout # Issue 24659 - missing stack overflow check
 
 stack_trace_test: Fail  # Issue 24783 - inlined frames missing
