@@ -17,7 +17,6 @@ import '../js_emitter.dart' hide Emitter;
 import '../js_emitter.dart' as js_emitter show Emitter;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
-import '../constant_ordering.dart' show deepCompareConstants;
 
 import '../../common.dart';
 import '../../common/names.dart' show
@@ -253,9 +252,11 @@ class Emitter implements js_emitter.Emitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-
-    // Resolve collisions in the long name by using a structural order.
-    return deepCompareConstants(a, b);
+    // Resolve collisions in the long name by using the constant name (i.e. JS
+    // name) which is unique.
+    // TODO(herhut): Find a better way to resolve collisions.
+    return namer.constantName(a).hashCode.compareTo(
+        namer.constantName(b).hashCode);
   }
 
   @override

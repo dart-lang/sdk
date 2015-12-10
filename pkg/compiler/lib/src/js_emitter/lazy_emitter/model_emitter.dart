@@ -21,7 +21,6 @@ import '../../js_backend/js_backend.dart' show
     ConstantEmitter;
 
 import '../js_emitter.dart' show NativeEmitter;
-import '../constant_ordering.dart' show deepCompareConstants;
 
 import 'package:js_runtime/shared/embedded_names.dart' show
     CREATE_NEW_ISOLATE,
@@ -109,9 +108,9 @@ class ModelEmitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-
-    // Resolve collisions in the long name by using a structural order.
-    return deepCompareConstants(a, b);
+    // Resolve collisions in the long name by using the constant name (i.e. JS
+    // name) which is unique.
+    return namer.constantName(a).compareTo(namer.constantName(b));
   }
 
   js.Expression generateStaticClosureAccess(FunctionElement element) {
