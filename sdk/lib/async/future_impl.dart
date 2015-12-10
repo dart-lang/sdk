@@ -187,20 +187,16 @@ class _Future<T> implements Future<T> {
     _asyncCompleteError(error, stackTrace);
   }
 
-  bool get _mayComplete => _state == _INCOMPLETE;
-  bool get _isChained => _state == _CHAINED;
-  bool get _isComplete => _state >= _VALUE;
-  bool get _hasValue => _state == _VALUE;
-  bool get _hasError => _state == _ERROR;
+  bool get _mayComplete       => _state == _INCOMPLETE;
+  bool get _isPendingComplete => _state == _PENDING_COMPLETE;
+  bool get _isChained         => _state == _CHAINED;
+  bool get _isComplete        => _state >= _VALUE;
+  bool get _hasValue          => _state == _VALUE;
+  bool get _hasError          => _state == _ERROR;
 
-  set _isChained(bool value) {
-    if (value) {
-      assert(!_isComplete);
-      _state = _CHAINED;
-    } else {
-      assert(_isChained);
-      _state = _INCOMPLETE;
-    }
+  void _setChained() {
+    assert(!_isComplete);
+    _state = _CHAINED;
   }
 
   Future then(f(T value), { Function onError }) {
@@ -304,14 +300,15 @@ class _Future<T> implements Future<T> {
   }
 
   // Take the value (when completed) of source and complete target with that
-  // value (or error). This function can chain all Futures, but is slower
-  // for _Future than _chainCoreFuture - Use _chainCoreFuture in that case.
+  // value (or error). This function could chain all Futures, but is slower
+  // for _Future than _chainCoreFuture, so you must use _chainCoreFuture
+  // in that case.
   static void _chainForeignFuture(Future source, _Future target) {
     assert(!target._isComplete);
     assert(source is! _Future);
 
     // Mark the target as chained (and as such half-completed).
-    target._isChained = true;
+    target._setChained();
     try {
       source.then((value) {
           assert(target._isChained);
@@ -343,7 +340,7 @@ class _Future<T> implements Future<T> {
     assert(source is _Future);
 
     // Mark the target as chained (and as such half-completed).
-    target._isChained = true;
+    target._setChained();
     _FutureListener listener = new _FutureListener.chain(target);
     if (source._isComplete) {
       _propagateToListeners(source, listener);
@@ -404,7 +401,7 @@ class _Future<T> implements Future<T> {
       Future<T> typedFuture = value;
       if (typedFuture is _Future) {
         _Future<T> coreFuture = typedFuture;
-        if (coreFuture._isComplete && coreFuture._hasError) {
+        if (coreFuture._hasError) {
           // Case 1 from above. Delay completion to enable the user to register
           // callbacks.
           _markPendingCompletion();
@@ -467,21 +464,16 @@ class _Future<T> implements Future<T> {
       }
       _FutureListener listener = listeners;
       // Do the actual propagation.
-      // Set initial state of listenerHasValue and listenerValueOrError. These
-      // variables are updated, with the outcome of potential callbacks.
-      bool listenerHasValue = true;
-      final sourceValue = hasError ? null : source._value;
-      var listenerValueOrError = sourceValue;
-      // Set to true if a whenComplete needs to wait for a future.
-      // The whenComplete action will resume the propagation by itself.
-      bool isPropagationAborted = false;
-      // TODO(floitsch): mark the listener as pending completion. Currently
-      // we can't do this, since the markPendingCompletion verifies that
-      // the future is not already marked (or chained).
+      // Set initial state of listenerHasError and listenerValueOrError. These
+      // variables are updated with the outcome of potential callbacks.
+      bool listenerHasError = hasError;
+      final sourceResult = source._resultOrListeners;
+      var listenerValueOrError = sourceResult;
+
       // Only if we either have an error or callbacks, go into this, somewhat
       // expensive, branch. Here we'll enter/leave the zone. Many futures
-      // doesn't have callbacks, so this is a significant optimization.
-      if (hasError || (listener.handlesValue || listener.handlesComplete)) {
+      // don't have callbacks, so this is a significant optimization.
+      if (hasError || listener.handlesValue || listener.handlesComplete) {
         Zone zone = listener._zone;
         if (hasError && !source._zone.inSameErrorZone(zone)) {
           // Don't cross zone boundaries with errors.
@@ -497,14 +489,15 @@ class _Future<T> implements Future<T> {
           oldZone = Zone._enter(zone);
         }
 
-        bool handleValueCallback() {
+        void handleValueCallback() {
+          assert(!hasError);
           try {
             listenerValueOrError = zone.runUnary(listener._onValue,
-                                                 sourceValue);
-            return true;
+                                                 sourceResult);
+            listenerHasError = false;
           } catch (e, s) {
             listenerValueOrError = new AsyncError(e, s);
-            return false;
+            listenerHasError = true;
           }
         }
 
@@ -516,9 +509,10 @@ class _Future<T> implements Future<T> {
             try {
               matchesTest = zone.runUnary(test, asyncError.error);
             } catch (e, s) {
-              listenerValueOrError = identical(asyncError.error, e) ?
-                  asyncError : new AsyncError(e, s);
-              listenerHasValue = false;
+              listenerValueOrError = identical(asyncError.error, e)
+                  ? asyncError
+                  : new AsyncError(e, s);
+              listenerHasError = true;
               return;
             }
           }
@@ -533,21 +527,18 @@ class _Future<T> implements Future<T> {
                 listenerValueOrError = zone.runUnary(errorCallback,
                                                      asyncError.error);
               }
+              listenerHasError = false;
             } catch (e, s) {
-              listenerValueOrError = identical(asyncError.error, e) ?
-                  asyncError : new AsyncError(e, s);
-              listenerHasValue = false;
-              return;
+              listenerValueOrError = identical(asyncError.error, e)
+                  ? asyncError
+                  : new AsyncError(e, s);
+              listenerHasError = true;
             }
-            listenerHasValue = true;
-          } else {
-            // Copy over the error from the source.
-            listenerValueOrError = asyncError;
-            listenerHasValue = false;
           }
         }
 
         void handleWhenCompleteCallback() {
+          assert(!listener.handlesError);
           var completeResult;
           try {
             completeResult = zone.run(listener._whenCompleteAction);
@@ -557,49 +548,50 @@ class _Future<T> implements Future<T> {
             } else {
               listenerValueOrError = new AsyncError(e, s);
             }
-            listenerHasValue = false;
+            listenerHasError = true;
             return;
           }
           if (completeResult is Future) {
-            _Future result = listener.result;
-            result._isChained = true;
-            isPropagationAborted = true;
-            completeResult.then((ignored) {
-              _propagateToListeners(source, new _FutureListener.chain(result));
-            }, onError: (error, [stackTrace]) {
-              // When there is an error, we have to make the error the new
-              // result of the current listener.
-              if (completeResult is! _Future) {
-                // This should be a rare case.
-                completeResult = new _Future();
-                completeResult._setError(error, stackTrace);
+            if (completeResult is _Future && completeResult._isComplete) {
+              if (completeResult._hasError) {
+                listenerValueOrError = completeResult._error;
+                listenerHasError = true;
               }
-              _propagateToListeners(completeResult,
-                                    new _FutureListener.chain(result));
-            });
+              // Otherwise use the existing result of source.
+              return;
+            }
+            // We have to wait for the completeResult future to complete
+            // before knowing if it's an error or we should use the result
+            // of source.
+            var originalSource = source;
+            listenerValueOrError = completeResult.then((_) => originalSource);
+            listenerHasError = false;
           }
         }
 
-        if (!hasError) {
+        if (listener.handlesComplete) {
+          // The whenComplete-handler is not combined with normal value/error
+          // handling. This means at most one handleX method is called per
+          // listener.
+          assert(!listener.handlesValue);
+          assert(!listener.handlesError);
+          handleWhenCompleteCallback();
+        } else if (!hasError) {
           if (listener.handlesValue) {
-            listenerHasValue = handleValueCallback();
+            handleValueCallback();
           }
         } else {
-          handleError();
+          if (listener.handlesError) {
+            handleError();
+          }
         }
-        if (listener.handlesComplete) {
-          handleWhenCompleteCallback();
-        }
+
         // If we changed zone, oldZone will not be null.
         if (oldZone != null) Zone._leave(oldZone);
 
-        if (isPropagationAborted) return;
         // If the listener's value is a future we need to chain it. Note that
-        // this can only happen if there is a callback. Since 'is' checks
-        // can be expensive, we're trying to avoid it.
-        if (listenerHasValue &&
-            !identical(sourceValue, listenerValueOrError) &&
-            listenerValueOrError is Future) {
+        // this can only happen if there is a callback.
+        if (listenerValueOrError is Future) {
           Future chainSource = listenerValueOrError;
           // Shortcut if the chain-source is already completed. Just continue
           // the loop.
@@ -607,7 +599,7 @@ class _Future<T> implements Future<T> {
           if (chainSource is _Future) {
             if (chainSource._isComplete) {
               // propagate the value (simulating a tail call).
-              result._isChained = true;
+              result._setChained();
               source = chainSource;
               listeners = new _FutureListener.chain(result);
               continue;
@@ -622,7 +614,7 @@ class _Future<T> implements Future<T> {
       }
       _Future result = listener.result;
       listeners = result._removeListeners();
-      if (listenerHasValue) {
+      if (!listenerHasError) {
         result._setValue(listenerValueOrError);
       } else {
         AsyncError asyncError = listenerValueOrError;
