@@ -2600,8 +2600,7 @@ analyzeIn(MockCompiler compiler,
   NodeListener listener = new NodeListener(
       const ScannerOptions(), compiler.reporter, null);
   Parser parser = new Parser(listener,
-      yieldIsKeyword: element.asyncMarker.isYielding,
-      awaitIsKeyword: element.asyncMarker.isAsync);
+      asyncAwaitKeywordsEnabled: element.asyncMarker != AsyncMarker.SYNC);
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   TreeElements elements = compiler.resolveNodeStatement(node, element);

@@ -98,11 +98,10 @@ class FormalParameterType {
 class Parser {
   final Listener listener;
   bool mayParseFunctionExpressions = true;
-  bool yieldIsKeyword;
-  bool awaitIsKeyword;
+  bool asyncAwaitKeywordsEnabled;
 
   Parser(this.listener,
-         {this.yieldIsKeyword: false, this.awaitIsKeyword: false});
+         {this.asyncAwaitKeywordsEnabled: false});
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -968,12 +967,10 @@ class Parser {
     Token token = parseIdentifier(name);
 
     token = parseFormalParametersOpt(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     token = parseFunctionBody(token, false, externalModifier != null);
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     Token endToken = token;
     token = token.next;
     if (token.kind == BAD_INPUT_TOKEN) {
@@ -1380,8 +1377,7 @@ class Parser {
     token = parseQualifiedRestOpt(token);
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
@@ -1389,8 +1385,7 @@ class Parser {
       token = parseFunctionBody(
           token, false, staticModifier == null || externalModifier != null);
     }
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     listener.endMethod(getOrSet, start, token);
     return token.next;
   }
@@ -1468,16 +1463,14 @@ class Parser {
     listener.endFunctionName(token);
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
     } else {
       token = parseFunctionBody(token, false, true);
     }
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     listener.endFunction(getOrSet, token);
     return token.next;
   }
@@ -1485,13 +1478,11 @@ class Parser {
   Token parseUnnamedFunction(Token token) {
     listener.beginUnnamedFunction(token);
     token = parseFormalParameters(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     listener.endUnnamedFunction(token);
     return isBlock ? token.next : token;
   }
@@ -1512,13 +1503,11 @@ class Parser {
     listener.endFunctionName(token);
     token = parseFormalParameters(token);
     listener.handleNoInitializers();
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
+    bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
     bool isBlock = optional('{', token);
     token = parseFunctionBody(token, true, false);
-    yieldIsKeyword = previousYieldIsKeyword;
-    awaitIsKeyword = previousAwaitIsKeyword;
+    asyncAwaitKeywordsEnabled = previousAsyncAwaitKeywordsEnabled;
     listener.endFunction(null, token);
     return isBlock ? token.next : token;
   }
@@ -1587,14 +1576,12 @@ class Parser {
   Token parseAsyncModifier(Token token) {
     Token async;
     Token star;
-    awaitIsKeyword = false;
-    yieldIsKeyword = false;
+    asyncAwaitKeywordsEnabled = false;
     if (optional('async', token)) {
-      awaitIsKeyword = true;
+      asyncAwaitKeywordsEnabled = true;
       async = token;
       token = token.next;
       if (optional('*', token)) {
-        yieldIsKeyword = true;
         star = token;
         token = token.next;
       }
@@ -1602,7 +1589,7 @@ class Parser {
       async = token;
       token = token.next;
       if (optional('*', token)) {
-        yieldIsKeyword = true;
+        asyncAwaitKeywordsEnabled = true;
         star = token;
         token = token.next;
       } else {
@@ -1626,7 +1613,7 @@ class Parser {
       return parseVariablesDeclaration(token);
     } else if (identical(value, 'if')) {
       return parseIfStatement(token);
-    } else if (awaitIsKeyword && identical(value, 'await')) {
+    } else if (asyncAwaitKeywordsEnabled && identical(value, 'await')) {
       if (identical(token.next.stringValue, 'for')) {
         return parseForStatement(token, token.next);
       } else {
@@ -1657,7 +1644,7 @@ class Parser {
       return parseAssertStatement(token);
     } else if (identical(value, ';')) {
       return parseEmptyStatement(token);
-    } else if (yieldIsKeyword && identical(value, 'yield')) {
+    } else if (asyncAwaitKeywordsEnabled && identical(value, 'yield')) {
       return parseYieldStatement(token);
     } else if (identical(value, 'const')) {
       return parseExpressionStatementOrConstDeclaration(token);
@@ -1939,7 +1926,7 @@ class Parser {
   Token parseUnaryExpression(Token token, bool allowCascades) {
     String value = token.stringValue;
     // Prefix:
-    if (awaitIsKeyword && optional('await', token)) {
+    if (asyncAwaitKeywordsEnabled && optional('await', token)) {
       return parseAwaitExpression(token, allowCascades);
     } else if (identical(value, '+')) {
       // Dart no longer allows prefix-plus.
@@ -1990,44 +1977,47 @@ class Parser {
 
   Token parsePrimary(Token token) {
     final kind = token.kind;
-    if (identical(kind, IDENTIFIER_TOKEN)) {
+    if (kind == IDENTIFIER_TOKEN) {
       return parseSendOrFunctionLiteral(token);
-    } else if (identical(kind, INT_TOKEN)
-        || identical(kind, HEXADECIMAL_TOKEN)) {
+    } else if (kind == INT_TOKEN
+        || kind == HEXADECIMAL_TOKEN) {
       return parseLiteralInt(token);
-    } else if (identical(kind, DOUBLE_TOKEN)) {
+    } else if (kind == DOUBLE_TOKEN) {
       return parseLiteralDouble(token);
-    } else if (identical(kind, STRING_TOKEN)) {
+    } else if (kind == STRING_TOKEN) {
       return parseLiteralString(token);
-    } else if (identical(kind, HASH_TOKEN)) {
+    } else if (kind == HASH_TOKEN) {
       return parseLiteralSymbol(token);
-    } else if (identical(kind, KEYWORD_TOKEN)) {
+    } else if (kind == KEYWORD_TOKEN) {
       final value = token.stringValue;
-      if ((identical(value, 'true')) || (identical(value, 'false'))) {
+      if (value == 'true' || value == 'false') {
         return parseLiteralBool(token);
-      } else if (identical(value, 'null')) {
+      } else if (value == 'null') {
         return parseLiteralNull(token);
-      } else if (identical(value, 'this')) {
+      } else if (value == 'this') {
         return parseThisExpression(token);
-      } else if (identical(value, 'super')) {
+      } else if (value == 'super') {
         return parseSuperExpression(token);
-      } else if (identical(value, 'new')) {
+      } else if (value == 'new') {
         return parseNewExpression(token);
-      } else if (identical(value, 'const')) {
+      } else if (value == 'const') {
         return parseConstExpression(token);
-      } else if (identical(value, 'void')) {
+      } else if (value == 'void') {
         return parseFunctionExpression(token);
+      } else if (asyncAwaitKeywordsEnabled &&
+                 (value == 'yield' || value == 'async')) {
+        return listener.expectedExpression(token);
       } else if (token.isIdentifier()) {
         return parseSendOrFunctionLiteral(token);
       } else {
         return listener.expectedExpression(token);
       }
-    } else if (identical(kind, OPEN_PAREN_TOKEN)) {
+    } else if (kind == OPEN_PAREN_TOKEN) {
       return parseParenthesizedExpressionOrFunctionLiteral(token);
-    } else if ((identical(kind, LT_TOKEN)) ||
-               (identical(kind, OPEN_SQUARE_BRACKET_TOKEN)) ||
-               (identical(kind, OPEN_CURLY_BRACKET_TOKEN)) ||
-               identical(token.stringValue, '[]')) {
+    } else if ((kind == LT_TOKEN) ||
+               (kind == OPEN_SQUARE_BRACKET_TOKEN) ||
+               (kind == OPEN_CURLY_BRACKET_TOKEN) ||
+               token.stringValue == '[]') {
       return parseLiteralListOrMap(token);
     } else {
       return listener.expectedExpression(token);

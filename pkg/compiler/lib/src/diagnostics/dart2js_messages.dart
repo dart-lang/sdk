@@ -3185,7 +3185,6 @@ below as well as the source location above).
   'INVALID_SYNC_MODIFIER': {
     'id': 'FNYUYU',
     'template': "Invalid modifier 'sync'.",
-    'options': ['--enable-async'],
     'howToFix': "Try replacing 'sync' with 'sync*'.",
     'examples': ["main() sync {}"],
   },
@@ -3193,13 +3192,55 @@ below as well as the source location above).
   'INVALID_AWAIT_FOR': {
     'id': 'IEYGCY',
     'template': "'await' is only supported on for-in loops.",
-    'options': ['--enable-async'],
     'howToFix': "Try rewriting the loop as a for-in loop or removing the "
         "'await' keyword.",
     'examples': [
       """
 main() async* {
 await for (int i = 0; i < 10; i++) {}
+}
+"""
+    ],
+  },
+
+  'INVALID_AWAIT_FOR_IN': {
+    'id': 'FIEYGC',
+    'template': "'await' is only supported in methods with an 'async' or "
+                "'async*' body modifier.",
+    'howToFix': "Try adding 'async' or 'async*' to the method body or "
+                "removing the 'await' keyword.",
+    'examples': [
+      """
+main(o) sync* {
+  await for (var e in o) {}
+}
+"""
+    ],
+  },
+
+  'INVALID_AWAIT': {
+    'id': 'IEYHYD',
+    'template': "'await' is only supported in methods with an 'async' or "
+                "'async*' body modifier.",
+    'howToFix': "Try adding 'async' or 'async*' to the method body.",
+    'examples': [
+      """
+main() sync* {
+  await null;
+}
+"""
+    ],
+  },
+
+  'INVALID_YIELD': {
+    'id': 'IPGGCY',
+    'template': "'yield' is only supported in methods with a 'sync*' or "
+                "'async*' body modifier.",
+    'howToFix': "Try adding 'sync*' or 'async*' to the method body.",
+    'examples': [
+      """
+main() async {
+  yield 0;
 }
 """
     ],

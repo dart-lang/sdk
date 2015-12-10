@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-sync_generator2_test/07: MissingCompileTimeError # Issue 22324
-sync_generator2_test/08: MissingCompileTimeError # Issue 22324
-sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 getter_setter_in_lib_test: Fail # Issue 23288
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
@@ -131,10 +128,6 @@ mixin_mixin_bound2_test: RuntimeError # Issue 12605
 symbol_conflict_test: RuntimeError # Issue 23857
 
 [ $compiler == dart2js ]
-async_await_syntax_test/a05h: Fail # 23716
-async_await_syntax_test/c11a: Fail # 23716
-async_await_syntax_test/c11b: Fail # 23716
-
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
 type_variable_conflict2_test/01: RuntimeError # Issue 19725

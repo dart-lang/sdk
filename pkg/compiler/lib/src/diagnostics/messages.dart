@@ -186,7 +186,9 @@ enum MessageKind {
   INTERNAL_LIBRARY,
   INTERNAL_LIBRARY_FROM,
   INVALID_ARGUMENT_AFTER_NAMED,
+  INVALID_AWAIT,
   INVALID_AWAIT_FOR,
+  INVALID_AWAIT_FOR_IN,
   INVALID_BREAK,
   INVALID_CASE_DEFAULT,
   INVALID_CONSTRUCTOR_ARGUMENTS,
@@ -219,6 +221,7 @@ enum MessageKind {
   INVALID_UNNAMED_CONSTRUCTOR_NAME,
   INVALID_URI,
   INVALID_USE_OF_SUPER,
+  INVALID_YIELD,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
@@ -603,7 +606,9 @@ const _KIND_TO_STRING_MAP = const <MessageKind, String>{
   MessageKind.INTERNAL_LIBRARY: "INTERNAL_LIBRARY",
   MessageKind.INTERNAL_LIBRARY_FROM: "INTERNAL_LIBRARY_FROM",
   MessageKind.INVALID_ARGUMENT_AFTER_NAMED: "INVALID_ARGUMENT_AFTER_NAMED",
+  MessageKind.INVALID_AWAIT: "INVALID_AWAIT",
   MessageKind.INVALID_AWAIT_FOR: "INVALID_AWAIT_FOR",
+  MessageKind.INVALID_AWAIT_FOR_IN: "INVALID_AWAIT_FOR_IN",
   MessageKind.INVALID_BREAK: "INVALID_BREAK",
   MessageKind.INVALID_CASE_DEFAULT: "INVALID_CASE_DEFAULT",
   MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS: "INVALID_CONSTRUCTOR_ARGUMENTS",
@@ -642,6 +647,7 @@ const _KIND_TO_STRING_MAP = const <MessageKind, String>{
       "INVALID_UNNAMED_CONSTRUCTOR_NAME",
   MessageKind.INVALID_URI: "INVALID_URI",
   MessageKind.INVALID_USE_OF_SUPER: "INVALID_USE_OF_SUPER",
+  MessageKind.INVALID_YIELD: "INVALID_YIELD",
   MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS:
       "JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS",
   MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER:
@@ -911,6 +917,9 @@ class MessageTemplate {
     Map<MessageKind, MessageTemplate> result = <MessageKind, MessageTemplate>{};
     for (MessageKind kind in MessageKind.values) {
       String name = _KIND_TO_STRING_MAP[kind];
+      if (name == null) {
+        throw new ArgumentError("No mapping for $kind in _KIND_TO_STRING_MAP");
+      }
       Map data =
           shared_messages.MESSAGES[name] ?? dart2js_messages.MESSAGES[name];
       if (data == null) throw new ArgumentError.value(name);

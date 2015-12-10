@@ -3687,8 +3687,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    coreClasses.streamClass.ensureResolved(resolution);
-    coreClasses.iterableClass.ensureResolved(resolution);
+    if (!currentAsyncMarker.isYielding) {
+      reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
+    }
+    if (currentAsyncMarker.isAsync) {
+      coreClasses.streamClass.ensureResolved(resolution);
+    } else {
+      coreClasses.iterableClass.ensureResolved(resolution);
+    }
     visit(node.expression);
     return const NoneResult();
   }
@@ -3825,6 +3831,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
+    if (!currentAsyncMarker.isAsync) {
+      reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
+    }
     coreClasses.futureClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
@@ -4350,6 +4359,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
+    if (!currentAsyncMarker.isAsync) {
+      reporter.reportErrorMessage(
+          node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
+    }
     registry.registerFeature(Feature.ASYNC_FOR_IN);
     registry.registerDynamicUse(
         new DynamicUse(Selectors.current, null));
