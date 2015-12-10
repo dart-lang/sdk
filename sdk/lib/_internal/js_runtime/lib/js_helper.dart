@@ -891,9 +891,9 @@ class Primitives {
         // an identifier, we use that instead of the very generic 'Object'.
         var objectConstructor = JS('', '#.constructor', object);
         if (JS('bool', 'typeof # == "function"', objectConstructor)) {
-          var decompiledName =
-              JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)[1]',
-                  JS('var', r'String(#)', objectConstructor));
+          var match = JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)',
+              JS('var', r'String(#)', objectConstructor));
+          var decompiledName = match == null ? null : JS('var', r'#[1]', match);
           if (decompiledName is String &&
               JS('bool', r'/^\w+$/.test(#)', decompiledName)) {
             name = decompiledName;
