@@ -1493,7 +1493,7 @@ abstract class StreamConsumer<S> {
   Future addStream(Stream<S> stream);
 
   /**
-   * Tells the consumer that no futher streams will be added.
+   * Tells the consumer that no further streams will be added.
    *
    * This allows the consumer to complete any remaining work and release
    * resources that are no longer needed
@@ -1527,7 +1527,7 @@ abstract class StreamConsumer<S> {
  */
 abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
   /**
-   * Tells the stream sink that no futher streams will be added.
+   * Tells the stream sink that no further streams will be added.
    *
    * This allows the stream sink to complete any remaining work and release
    * resources that are no longer needed
