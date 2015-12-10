@@ -1888,6 +1888,8 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitDeferred(DeferredConstantValue constant, [_]) {
+    // TODO(sra): Investigate that the use of hashCode here is probably a source
+    // of instability.
     int hash = constant.prefix.hashCode;
     return _combine(hash, _visit(constant.referenced));
   }
