@@ -8,14 +8,13 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
-import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
 
 /**
  * A contributor for calculating instance invocation / access suggestions
@@ -27,8 +26,7 @@ class TypeMemberContributor extends DartCompletionContributor {
       DartCompletionRequest request) async {
     // Determine if the target looks like a prefixed identifier,
     // a method invocation, or a property access
-    Expression parsedExpression =
-        _getTargetExpression(request.target, request.offset);
+    Expression parsedExpression = request.dotTarget;
     if (parsedExpression == null) {
       return EMPTY_LIST;
     }
@@ -43,8 +41,7 @@ class TypeMemberContributor extends DartCompletionContributor {
     }
 
     // Recompute the target since resolution may have changed it
-    Expression expression =
-        _getTargetExpression(request.target, request.offset);
+    Expression expression = request.dotTarget;
     if (expression == null || expression.isSynthetic) {
       return EMPTY_LIST;
     }
@@ -112,39 +109,6 @@ class TypeMemberContributor extends DartCompletionContributor {
       return builder.suggestions.toList();
     }
     return EMPTY_LIST;
-  }
-
-  /**
-   * Return the expression to the left of the 'dot' or `null` if none.
-   */
-  Expression _getTargetExpression(CompletionTarget target, int offset) {
-    AstNode node = target.containingNode;
-    if (node is MethodInvocation) {
-      if (identical(node.methodName, target.entity)) {
-        return node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == offset) {
-        return node.realTarget;
-      } else {
-        return null;
-      }
-    }
-    if (node is PropertyAccess) {
-      if (identical(node.propertyName, target.entity)) {
-        return node.realTarget;
-      } else if (node.isCascaded && node.operator.offset + 1 == offset) {
-        return node.realTarget;
-      } else {
-        return null;
-      }
-    }
-    if (node is PrefixedIdentifier) {
-      if (identical(node.identifier, target.entity)) {
-        return node.prefix;
-      } else {
-        return null;
-      }
-    }
-    return null;
   }
 }
 

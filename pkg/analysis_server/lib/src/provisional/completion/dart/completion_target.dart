@@ -91,6 +91,11 @@ class CompletionTarget {
   final CompilationUnit unit;
 
   /**
+   * The offset within the source at which the completion is being requested.
+   */
+  final int offset;
+
+  /**
    * The context in which the completion is occurring.  This is the AST node
    * which is a direct parent of [entity].
    */
@@ -162,11 +167,11 @@ class CompletionTarget {
             Token commentToken = _getContainingCommentToken(entity, offset);
             if (commentToken != null) {
               return new CompletionTarget._(
-                  compilationUnit, containingNode, commentToken, true);
+                  compilationUnit, offset, containingNode, commentToken, true);
             }
             // Target found.
             return new CompletionTarget._(
-                compilationUnit, containingNode, entity, false);
+                compilationUnit, offset, containingNode, entity, false);
           } else {
             // Since entity is a token, we don't need to look inside it; just
             // proceed to the next entity.
@@ -195,12 +200,12 @@ class CompletionTarget {
               if (docComment != null) {
                 containingNode = docComment;
               } else {
-                return new CompletionTarget._(
-                    compilationUnit, compilationUnit, commentToken, true);
+                return new CompletionTarget._(compilationUnit, offset,
+                    compilationUnit, commentToken, true);
               }
             }
             return new CompletionTarget._(
-                compilationUnit, containingNode, entity, false);
+                compilationUnit, offset, containingNode, entity, false);
           }
 
           // Otherwise, the completion target is somewhere inside the entity,
@@ -225,7 +230,7 @@ class CompletionTarget {
       // Since no completion target was found, we set the completion target
       // entity to null and use the compilationUnit as the parent.
       return new CompletionTarget._(
-          compilationUnit, compilationUnit, null, false);
+          compilationUnit, offset, compilationUnit, null, false);
     }
   }
 
@@ -233,11 +238,28 @@ class CompletionTarget {
    * Create a [CompletionTarget] holding the given [containingNode] and
    * [entity].
    */
-  CompletionTarget._(
-      this.unit, AstNode containingNode, Object entity, this.isCommentText)
+  CompletionTarget._(this.unit, this.offset, AstNode containingNode,
+      Object entity, this.isCommentText)
       : this.containingNode = containingNode,
         this.entity = entity,
         this.argIndex = _computeArgIndex(containingNode, entity);
+
+  /**
+   * Return `true` if the [containingNode] is a cascade
+   * and the completion insertion is not between the two dots.
+   * For example, `..d^` and `..^d` are considered a cascade
+   * from a completion standpoint, but `.^.d` is not.
+   */
+  bool get isCascade {
+    AstNode node = containingNode;
+    if (node is PropertyAccess) {
+      return node.isCascaded && offset > node.operator.offset + 1;
+    }
+    if (node is MethodInvocation) {
+      return node.isCascaded && offset > node.operator.offset + 1;
+    }
+    return false;
+  }
 
   /**
    * Return `true` if the target is a functional argument in an argument list.

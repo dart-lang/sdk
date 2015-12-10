@@ -61,6 +61,12 @@ abstract class DartCompletionContributor {
  */
 abstract class DartCompletionRequest extends CompletionRequest {
   /**
+   * Return the expression to the right of the "dot" or "dot dot",
+   * or `null` if this is not a "dot" completion (e.g. `foo.b`).
+   */
+  Expression get dotTarget;
+
+  /**
    * Return a [Future] that completes with the library element
    * which contains the unit in which the completion is occurring.
    * The [Future] may return `null` if the library cannot be determined

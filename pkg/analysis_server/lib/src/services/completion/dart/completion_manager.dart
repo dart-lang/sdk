@@ -68,11 +68,6 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   Source _librarySource;
 
   /**
-   * The cached completion target or `null` if not computed yet.
-   */
-  CompletionTarget _target;
-
-  /**
    * The [DartType] for Object in dart:core
    */
   InterfaceType _objectType;
@@ -82,6 +77,12 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
    * referenced by [target], else `false`.
    */
   bool _haveResolveDeclarationsInScope = false;
+
+  @override
+  Expression dotTarget;
+
+  @override
+  CompletionTarget target;
 
   /**
    * Initialize a newly created completion request based on the given request.
@@ -102,6 +103,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       Source source,
       int offset)
       : super(context, resourceProvider, searchEngine, source, offset) {
+    _updateTargets(context.computeResult(source, PARSED_UNIT));
     if (target.unit.directives.any((d) => d is PartOfDirective)) {
       List<Source> libraries = context.getLibrariesContaining(source);
       if (libraries.isNotEmpty) {
@@ -136,15 +138,6 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   }
 
   @override
-  CompletionTarget get target {
-    if (_target == null) {
-      CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
-      _target = new CompletionTarget.forOffset(unit, offset);
-    }
-    return _target;
-  }
-
-  @override
   Future<CompilationUnit> resolveDeclarationsInScope() async {
     CompilationUnit unit = target.unit;
     if (_haveResolveDeclarationsInScope) {
@@ -172,7 +165,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
     }
 
     // Recompute the target for the newly resolved unit
-    _target = new CompletionTarget.forOffset(resolvedUnit, offset);
+    _updateTargets(resolvedUnit);
     _haveResolveDeclarationsInScope = true;
     return resolvedUnit;
   }
@@ -183,12 +176,11 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
     if (_librarySource == source) {
       libUnit = await resolveDeclarationsInScope();
     } else if (_librarySource != null) {
-      libUnit =
-          await new AnalysisFutureHelper<CompilationUnit>(
-                  context,
-                  new LibrarySpecificUnit(_librarySource, _librarySource),
-                  RESOLVED_UNIT3)
-              .computeAsync();
+      libUnit = await new AnalysisFutureHelper<CompilationUnit>(
+              context,
+              new LibrarySpecificUnit(_librarySource, _librarySource),
+              RESOLVED_UNIT3)
+          .computeAsync();
     }
     return libUnit?.directives;
   }
@@ -219,7 +211,35 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
     }
 
     // Recompute the target for the newly resolved unit
-    _target = new CompletionTarget.forOffset(resolvedUnit, offset);
+    _updateTargets(resolvedUnit);
     _haveResolveDeclarationsInScope = true;
+  }
+
+  /**
+   * Update the completion [target] and [dotTarget] based on the given [unit].
+   */
+  void _updateTargets(CompilationUnit unit) {
+    dotTarget = null;
+    target = new CompletionTarget.forOffset(unit, offset);
+    AstNode node = target.containingNode;
+    if (node is MethodInvocation) {
+      if (identical(node.methodName, target.entity)) {
+        dotTarget = node.realTarget;
+      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
+        dotTarget = node.realTarget;
+      }
+    }
+    if (node is PropertyAccess) {
+      if (identical(node.propertyName, target.entity)) {
+        dotTarget = node.realTarget;
+      } else if (node.isCascaded && node.operator.offset + 1 == target.offset) {
+        dotTarget = node.realTarget;
+      }
+    }
+    if (node is PrefixedIdentifier) {
+      if (identical(node.identifier, target.entity)) {
+        dotTarget = node.prefix;
+      }
+    }
   }
 }

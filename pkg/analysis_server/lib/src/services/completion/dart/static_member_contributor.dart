@@ -7,7 +7,6 @@ library services.completion.contributor.dart.static_member;
 import 'dart:async';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -23,61 +22,33 @@ class StaticMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // Determine if the target looks like a prefixed identifier,
-    // a method invocation, or a property access
-    SimpleIdentifier targetId = _getTargetId(request.target);
-    if (targetId == null) {
+    // Determine if the target looks like a static method invocation,
+    // or a static property access
+    if (request.dotTarget is! Identifier || request.target.isCascade) {
       return EMPTY_LIST;
     }
 
     // Resolve the expression and the containing library
-    await request.resolveExpression(targetId);
-    LibraryElement containingLibrary = await request.libraryElement;
-    // Gracefully degrade if the library could not be determined
-    // e.g. detached part file or source change
-    if (containingLibrary == null) {
-      return EMPTY_LIST;
-    }
+    await request.resolveExpression(request.dotTarget);
 
     // Recompute the target since resolution may have changed it
-    targetId = _getTargetId(request.target);
-    if (targetId == null) {
-      return EMPTY_LIST;
-    }
+    Expression targetId = request.dotTarget;
+    if (targetId is Identifier && !request.target.isCascade) {
+      Element elem = targetId.bestElement;
+      if (elem is ClassElement) {
+        LibraryElement containingLibrary = await request.libraryElement;
+        // Gracefully degrade if the library could not be determined
+        // e.g. detached part file or source change
+        if (containingLibrary == null) {
+          return EMPTY_LIST;
+        }
 
-    // Build the suggestions
-    Element elem = targetId.bestElement;
-    if (elem is ClassElement) {
-      _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
-      elem.accept(builder);
-      return builder.suggestions;
+        _SuggestionBuilder builder = new _SuggestionBuilder(containingLibrary);
+        elem.accept(builder);
+        return builder.suggestions;
+      }
     }
     return EMPTY_LIST;
-  }
-
-  /**
-   * Return the identifier to the left of the 'dot' or `null` if none.
-   */
-  SimpleIdentifier _getTargetId(CompletionTarget target) {
-    AstNode node = target.containingNode;
-    if (node is MethodInvocation) {
-      if (identical(node.methodName, target.entity)) {
-        Expression target = node.realTarget;
-        if (target is SimpleIdentifier) {
-          return target;
-        }
-      } else {
-        return null;
-      }
-    }
-    if (node is PrefixedIdentifier) {
-      if (identical(node.identifier, target.entity)) {
-        return node.prefix;
-      } else {
-        return null;
-      }
-    }
-    return null;
   }
 }
 

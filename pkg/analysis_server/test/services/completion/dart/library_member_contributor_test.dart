@@ -32,6 +32,38 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('loadLibrary');
   }
 
+  test_libraryPrefix_cascade() async {
+    addTestSource('''
+    import "dart:math" as math;
+    main() {math..^}''');
+    await computeSuggestions();
+    assertNoSuggestions();
+  }
+
+  test_libraryPrefix_cascade2() async {
+    addTestSource('''
+    import "dart:math" as math;
+    main() {math.^.}''');
+    await computeSuggestions();
+    assertSuggestFunction('min', 'num');
+  }
+
+  test_libraryPrefix_cascade3() async {
+    addTestSource('''
+    import "dart:math" as math;
+    main() {math..^a}''');
+    await computeSuggestions();
+    assertNoSuggestions();
+  }
+
+  test_libraryPrefix_cascade4() async {
+    addTestSource('''
+    import "dart:math" as math;
+    main() {math.^.a}''');
+    await computeSuggestions();
+    assertSuggestFunction('min', 'num');
+  }
+
   test_libraryPrefix2() async {
     // SimpleIdentifier  MethodInvocation  ExpressionStatement
     addTestSource('import "dart:async" as bar; foo() {bar.^ print("f")}');
