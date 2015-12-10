@@ -6,7 +6,9 @@
 // Used to fail when methods contain a name starting with `get`
 import 'package:expect/expect.dart';
 
-confuse(x) { return x; return x; }
+@NoInline()
+@AssumeDynamic()
+confuse(x) => x;
 
 class MA {
   noSuchMethod(i) => Expect.equals(i.positionalArguments.length, 1);
