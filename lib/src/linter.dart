@@ -328,17 +328,7 @@ class PrintingReporter implements Reporter, Logger {
   }
 
   @override
-  void logError2(String message, Object exception) {
-    _print('ERROR: $message');
-  }
-
-  @override
   void logInformation(String message, [CaughtException exception]) {
-    _print('INFO: $message');
-  }
-
-  @override
-  void logInformation2(String message, Object exception) {
     _print('INFO: $message');
   }
 

@@ -134,7 +134,4 @@ defineTests() {
   });
 }
 
-class MockProcessResult extends Mock implements ProcessResult {
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockProcessResult extends Mock implements ProcessResult {}

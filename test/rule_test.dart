@@ -21,8 +21,6 @@ import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:unittest/unittest.dart';
 
-import 'mocks.dart';
-
 main() {
   groupSep = ' | ';
 

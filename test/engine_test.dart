@@ -43,11 +43,7 @@ void defineLinterEngineTests() {
       _test('exception', 'EXCEPTION: LinterException: foo',
           (r) => r.exception(new LinterException('foo')));
       _test('logError', 'ERROR: foo', (r) => r.logError('foo'));
-      _test('logError2', 'ERROR: foo',
-          (r) => r.logError2('foo', new Exception()));
       _test('logInformation', 'INFO: foo', (r) => r.logInformation('foo'));
-      _test('logInformation2', 'INFO: foo',
-          (r) => r.logInformation2('foo', new Exception()));
       _test('warn', 'WARN: foo', (r) => r.warn('foo'));
     });
 
