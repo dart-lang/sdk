@@ -141,7 +141,7 @@ double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
 left_shift_test: RuntimeError # Issue 1533
 regress_24283_test: RuntimeError # Issue 1533
-constructor_named_arguments_test/01: CompileTimeError # Issue 5519
+constructor_named_arguments_test/01: CompileTimeError # Issue 25225
 not_enough_positional_arguments_test/01: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/02: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/05: CompileTimeError # Issue 12838
