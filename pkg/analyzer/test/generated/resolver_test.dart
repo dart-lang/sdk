@@ -3762,6 +3762,22 @@ main() {
     verify([source]);
   }
 
+  void test_unusedElement_class_isUsed_fieldDeclaration() {
+    enableUnusedElement = true;
+    var src = r'''
+class Foo {
+  _Bar x;
+}
+
+class _Bar {
+}
+''';
+    Source source = addSource(src);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedElement_class_notUsed_variableDeclaration() {
     enableUnusedElement = true;
     Source source = addSource(r'''

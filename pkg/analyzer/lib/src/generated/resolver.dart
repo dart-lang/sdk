@@ -4921,7 +4921,10 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor {
           return;
         }
         if (parent2 is VariableDeclarationList) {
-          return;
+          // If it's a field's type, it still counts as used.
+          if (parent2.parent is! FieldDeclaration) {
+            return;
+          }
         }
       }
     }
