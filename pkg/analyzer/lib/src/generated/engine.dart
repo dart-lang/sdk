@@ -312,7 +312,7 @@ abstract class AnalysisContext {
    * Perform work until the given [result] has been computed for the given
    * [target]. Return the computed value.
    */
-  Object /*V*/ computeResult(
+  Object /*=V*/ computeResult /*<V>*/ (
       AnalysisTarget target, ResultDescriptor /*<V>*/ result);
 
   /**
@@ -474,7 +474,7 @@ abstract class AnalysisContext {
    * If the corresponding [target] does not exist, or the [result] is not
    * computed yet, then the default value is returned.
    */
-  Object /*V*/ getResult(
+  Object /*=V*/ getResult /*<V>*/ (
       AnalysisTarget target, ResultDescriptor /*<V>*/ result);
 
   /**

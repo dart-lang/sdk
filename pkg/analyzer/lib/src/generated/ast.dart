@@ -2873,8 +2873,8 @@ abstract class AstNode {
    * the same offset, and a positive value if the offset of the first node is
    * greater than the offset of the second node.
    */
-  static Comparator<AstNode> LEXICAL_ORDER = (AstNode first, AstNode second) =>
-      first.offset - second.offset;
+  static Comparator<AstNode> LEXICAL_ORDER =
+      (AstNode first, AstNode second) => first.offset - second.offset;
 
   /**
    * The parent of the node, or `null` if the node is the root of an AST
@@ -2974,7 +2974,7 @@ abstract class AstNode {
    * Use the given [visitor] to visit this node. Return the value returned by
    * the visitor as a result of visiting this node.
    */
-  /* <E> E */ accept(AstVisitor /*<E>*/ visitor);
+  dynamic /*=E*/ accept /*<E>*/ (AstVisitor /*<E>*/ visitor);
 
   /**
    * Return the most immediate ancestor of this node for which the [predicate]
@@ -6116,7 +6116,8 @@ class DeclaredIdentifier extends Declaration {
   /**
    * Return `true` if this variable was declared with the 'const' modifier.
    */
-  bool get isConst => (keyword is KeywordToken) &&
+  bool get isConst =>
+      (keyword is KeywordToken) &&
       (keyword as KeywordToken).keyword == Keyword.CONST;
 
   /**
@@ -6124,7 +6125,8 @@ class DeclaredIdentifier extends Declaration {
    * Variables that are declared with the 'const' modifier will return `false`
    * even though they are implicitly final.
    */
-  bool get isFinal => (keyword is KeywordToken) &&
+  bool get isFinal =>
+      (keyword is KeywordToken) &&
       (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**
@@ -7444,11 +7446,13 @@ class FieldFormalParameter extends NormalFormalParameter {
   }
 
   @override
-  bool get isConst => (keyword is KeywordToken) &&
+  bool get isConst =>
+      (keyword is KeywordToken) &&
       (keyword as KeywordToken).keyword == Keyword.CONST;
 
   @override
-  bool get isFinal => (keyword is KeywordToken) &&
+  bool get isFinal =>
+      (keyword is KeywordToken) &&
       (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**
@@ -8162,13 +8166,15 @@ class FunctionDeclaration extends NamedCompilationUnitMember {
   /**
    * Return `true` if this function declares a getter.
    */
-  bool get isGetter => propertyKeyword != null &&
+  bool get isGetter =>
+      propertyKeyword != null &&
       (propertyKeyword as KeywordToken).keyword == Keyword.GET;
 
   /**
    * Return `true` if this function declares a setter.
    */
-  bool get isSetter => propertyKeyword != null &&
+  bool get isSetter =>
+      propertyKeyword != null &&
       (propertyKeyword as KeywordToken).keyword == Keyword.SET;
 
   /**
@@ -11028,7 +11034,8 @@ class InstanceCreationExpression extends Expression {
    * Return `true` if this creation expression is used to invoke a constant
    * constructor.
    */
-  bool get isConst => keyword is KeywordToken &&
+  bool get isConst =>
+      keyword is KeywordToken &&
       (keyword as KeywordToken).keyword == Keyword.CONST;
 
   @override
@@ -11980,7 +11987,8 @@ class MethodDeclaration extends ClassMember {
   /**
    * Return `true` if this method declares a getter.
    */
-  bool get isGetter => propertyKeyword != null &&
+  bool get isGetter =>
+      propertyKeyword != null &&
       (propertyKeyword as KeywordToken).keyword == Keyword.GET;
 
   /**
@@ -11991,13 +11999,15 @@ class MethodDeclaration extends ClassMember {
   /**
    * Return `true` if this method declares a setter.
    */
-  bool get isSetter => propertyKeyword != null &&
+  bool get isSetter =>
+      propertyKeyword != null &&
       (propertyKeyword as KeywordToken).keyword == Keyword.SET;
 
   /**
    * Return `true` if this method is declared to be a static method.
    */
-  bool get isStatic => modifierKeyword != null &&
+  bool get isStatic =>
+      modifierKeyword != null &&
       (modifierKeyword as KeywordToken).keyword == Keyword.STATIC;
 
   /**
@@ -16435,11 +16445,13 @@ class SimpleFormalParameter extends NormalFormalParameter {
   Token get endToken => identifier.endToken;
 
   @override
-  bool get isConst => (keyword is KeywordToken) &&
+  bool get isConst =>
+      (keyword is KeywordToken) &&
       (keyword as KeywordToken).keyword == Keyword.CONST;
 
   @override
-  bool get isFinal => (keyword is KeywordToken) &&
+  bool get isFinal =>
+      (keyword is KeywordToken) &&
       (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**
@@ -20066,7 +20078,8 @@ class VariableDeclarationList extends AnnotatedNode {
    * Return `true` if the variables in this list were declared with the 'const'
    * modifier.
    */
-  bool get isConst => keyword is KeywordToken &&
+  bool get isConst =>
+      keyword is KeywordToken &&
       (keyword as KeywordToken).keyword == Keyword.CONST;
 
   /**
@@ -20075,7 +20088,8 @@ class VariableDeclarationList extends AnnotatedNode {
    * `false` even though they are implicitly final. (In other words, this is a
    * syntactic check rather than a semantic check.)
    */
-  bool get isFinal => keyword is KeywordToken &&
+  bool get isFinal =>
+      keyword is KeywordToken &&
       (keyword as KeywordToken).keyword == Keyword.FINAL;
 
   /**

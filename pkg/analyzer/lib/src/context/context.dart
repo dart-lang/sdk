@@ -375,9 +375,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Make _pendingFutureSources available to unit tests.
    */
-  HashMap<AnalysisTarget,
-      List<PendingFuture>> get pendingFutureSources_forTesting =>
-      _pendingFutureTargets;
+  HashMap<AnalysisTarget, List<PendingFuture>>
+      get pendingFutureSources_forTesting => _pendingFutureTargets;
 
   @override
   List<Source> get prioritySources => _priorityOrder;
@@ -619,14 +618,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         !AnalysisEngine.isDartFileName(librarySource.shortName)) {
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
-    return new AnalysisFutureHelper<CompilationUnit>(
-        this,
-        new LibrarySpecificUnit(librarySource, unitSource),
-        RESOLVED_UNIT).computeAsync();
+    return new AnalysisFutureHelper<CompilationUnit>(this,
+            new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT)
+        .computeAsync();
   }
 
   @override
-  Object /*V*/ computeResult(
+  Object /*=V*/ computeResult /*<V>*/ (
       AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
     // Make sure we are not trying to invoke the task model in a reentrant
     // fashion.
