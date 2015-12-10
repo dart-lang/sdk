@@ -37,17 +37,11 @@ void testMillisecondsSinceEpoch() {
 }
 
 void testMicrosecondsSinceEpoch() {
-  // We chose a millisecondSinceEpoch that is guaranteed to fit into 53
-  // bits when expressed as microseconds. Furthermore the microsecond part
-  // is equal to 0, which means that an implementation that discards (or
-  // rounds) microseconds should yield correct results for the following
-  // test.
   var dt1 = new DateTime.fromMillisecondsSinceEpoch(1);
   var microsecondsSinceEpoch = dt1.microsecondsSinceEpoch;
   var dt2 = new DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
   Expect.equals(microsecondsSinceEpoch, dt2.microsecondsSinceEpoch);
 
-  if (!supportsMicroseconds) return;
   dt1 = new DateTime.now();
   microsecondsSinceEpoch = dt1.microsecondsSinceEpoch;
   dt2 = new DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
