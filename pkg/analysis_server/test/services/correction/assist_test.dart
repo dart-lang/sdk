@@ -875,6 +875,32 @@ class A {}
         'AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK);
   }
 
+  test_convertDocumentationIntoBlock_OK_noSpaceBeforeText() async {
+    resolveTestUnit('''
+class A {
+  /// AAAAA
+  ///BBBBB
+  ///
+  /// CCCCC
+  mmm() {}
+}
+''');
+    await assertHasAssistAt(
+        'AAAAA',
+        DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK,
+        '''
+class A {
+  /**
+   * AAAAA
+   *BBBBB
+   *
+   * CCCCC
+   */
+  mmm() {}
+}
+''');
+  }
+
   test_convertDocumentationIntoBlock_OK_onReference() async {
     resolveTestUnit('''
 /// AAAAAAA [int] AAAAAAA

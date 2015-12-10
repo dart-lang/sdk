@@ -413,8 +413,8 @@ class AssistProcessor {
         if (token is DocumentationCommentToken &&
             token.type == TokenType.SINGLE_LINE_COMMENT) {
           sb.append(prefix);
-          sb.append(' * ');
-          sb.append(token.lexeme.substring('/// '.length));
+          sb.append(' *');
+          sb.append(token.lexeme.substring('///'.length));
           sb.append(eol);
         } else {
           return;
