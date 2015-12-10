@@ -24,6 +24,12 @@
 
 ### Tool changes
 
+* `dartfmt`
+
+  * Better line splitting in a variety of cases.
+
+  * Other optimizations and bug fixes.
+
 * Pub
 
   * **Breaking:** Pub now eagerly emits an error when a pubspec's "name" field
