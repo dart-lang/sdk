@@ -98,57 +98,6 @@ testExport() {
   testUnparseTopLevelWithMetadata('export "søhest";');
 }
 
-testConditionalImport() {
-  testUnparseTopLevelWithMetadata(
-      'import "søhest" if(some.dotted.id)"other";');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest" if(id=="some str")"other";');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest"'
-      ' if(id=="some str")"other"'
-      ' if(id)"other2";');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest" if(some.dotted.id)"other" as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest" if(id=="some str")"other" as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest"'
-      ' if(id=="some str")"other"'
-      ' if(id)"other2"'
-      ' as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest" if(some.dotted.id)"other" deferred as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest" if(id=="some str")"other" deferred as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest"'
-      ' if(id=="some str")"other"'
-      ' if(id)"other2"'
-      ' deferred as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest"'
-      ' if(id=="some str")"other"'
-      ' if(id)"other2"'
-      ' deferred as fiskehest'
-      ' show foo,bar;');
-}
-
-testConditionalExport() {
-  testUnparseTopLevelWithMetadata(
-      'export "søhest" if(some.dotted.id)"other";');
-  testUnparseTopLevelWithMetadata(
-      'export "søhest" if(id=="some str")"other";');
-  testUnparseTopLevelWithMetadata(
-      'export "søhest"'
-      ' if(id=="some str")"other"'
-      ' if(id)"other2";');
-  testUnparseTopLevelWithMetadata(
-      'export "søhest"'
-      ' if(id=="some str")"other"'
-      ' if(id)"other2"'
-      ' show foo,bar;');
-}
-
 testPart() {
   testUnparseTopLevelWithMetadata('part "søhest";');
 }
@@ -434,8 +383,6 @@ main() {
   testLibraryName();
   testImport();
   testExport();
-  testConditionalImport();
-  testConditionalExport();
   testPart();
   testPartOf();
   testCombinators();

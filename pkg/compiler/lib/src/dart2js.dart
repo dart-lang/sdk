@@ -317,7 +317,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler(Flags.allowMockCompilation, passThrough),
     new OptionHandler(Flags.fastStartup, passThrough),
-    new OptionHandler(Flags.conditionalDirectives, passThrough),
     new OptionHandler('${Flags.minify}|-m', implyCompilation),
     new OptionHandler(Flags.preserveUris, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),

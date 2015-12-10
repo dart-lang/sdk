@@ -150,32 +150,10 @@ class ElementListener extends Listener {
     if (asKeyword != null) {
       prefix = popNode();
     }
-    NodeList conditionalUris = popNode();
     StringNode uri = popLiteralString();
-    addLibraryTag(new Import(importKeyword, uri, conditionalUris,
-                             prefix, combinators,
+    addLibraryTag(new Import(importKeyword, uri, prefix, combinators,
                              popMetadata(compilationUnitElement),
                              isDeferred: isDeferred));
-  }
-
-  void endDottedName(int count, Token token) {
-    NodeList identifiers = makeNodeList(count, null, null, '.');
-    pushNode(new DottedName(token, identifiers));
-  }
-
-  void endConditionalUris(int count) {
-    if (count == 0) {
-      pushNode(null);
-    } else {
-      pushNode(makeNodeList(count, null, null, " "));
-    }
-  }
-
-  void endConditionalUri(Token ifToken, Token equalSign) {
-    StringNode uri = popNode();
-    LiteralString conditionValue = (equalSign != null) ? popNode() : null;
-    DottedName identifier = popNode();
-    pushNode(new ConditionalUri(ifToken, identifier, conditionValue, uri));
   }
 
   void endEnum(Token enumKeyword, Token endBrace, int count) {
@@ -191,9 +169,8 @@ class ElementListener extends Listener {
 
   void endExport(Token exportKeyword, Token semicolon) {
     NodeList combinators = popNode();
-    NodeList conditionalUris = popNode();
     StringNode uri = popNode();
-    addLibraryTag(new Export(exportKeyword, uri, conditionalUris, combinators,
+    addLibraryTag(new Export(exportKeyword, uri, combinators,
                              popMetadata(compilationUnitElement)));
   }
 

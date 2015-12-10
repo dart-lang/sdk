@@ -46,7 +46,4 @@ class Flags {
   static const String useCpsIr = '--use-cps-ir';
   static const String verbose = '--verbose';
   static const String version = '--version';
-
-  // Experimental flags.
-  static const String conditionalDirectives = '--conditional-directives';
 }

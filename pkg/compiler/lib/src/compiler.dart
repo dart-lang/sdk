@@ -454,7 +454,6 @@ abstract class Compiler {
             this.deferredMapUri: null,
             this.dumpInfo: false,
             bool useStartupEmitter: false,
-            bool enableConditionalDirectives: false,
             this.useContentSecurityPolicy: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
@@ -516,12 +515,9 @@ abstract class Compiler {
       libraryLoader = new LibraryLoaderTask(this),
       serialization = new SerializationTask(this),
       scanner = new ScannerTask(this),
-      dietParser = new DietParserTask(
-          this, enableConditionalDirectives: enableConditionalDirectives),
-      parser = new ParserTask(
-          this, enableConditionalDirectives: enableConditionalDirectives),
-      patchParser = new PatchParserTask(
-          this, enableConditionalDirectives: enableConditionalDirectives),
+      dietParser = new DietParserTask(this),
+      parser = new ParserTask(this),
+      patchParser = new PatchParserTask(this),
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),

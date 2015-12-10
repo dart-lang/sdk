@@ -159,11 +159,8 @@ import 'tokens/token.dart' show
 
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
-  final bool _enableConditionalDirectives;
 
-  PatchParserTask(Compiler compiler, {bool enableConditionalDirectives})
-      : this._enableConditionalDirectives = enableConditionalDirectives,
-        super(compiler);
+  PatchParserTask(Compiler compiler): super(compiler);
 
   /**
    * Scans a library patch file, applies the method patches and
@@ -198,9 +195,7 @@ class PatchParserTask extends CompilerTask {
                                                         compilationUnit,
                                                         idGenerator);
       try {
-        new PartialParser(patchListener,
-            enableConditionalDirectives: _enableConditionalDirectives)
-            .parseUnit(tokens);
+        new PartialParser(patchListener).parseUnit(tokens);
       } on ParserError catch (e) {
         // No need to recover from a parser error in platform libraries, user
         // will never see this if the libraries are tested correctly.
@@ -217,8 +212,7 @@ class PatchParserTask extends CompilerTask {
 
     measure(() => reporter.withCurrentElement(cls, () {
       MemberListener listener = new PatchMemberListener(compiler, cls);
-      Parser parser = new PatchClassElementParser(
-          listener, enableConditionalDirectives: _enableConditionalDirectives);
+      Parser parser = new PatchClassElementParser(listener);
       try {
         Token token = parser.parseTopLevelDeclaration(cls.beginToken);
         assert(identical(token, cls.endToken.next));
@@ -270,9 +264,7 @@ class PatchMemberListener extends MemberListener {
  * declarations.
  */
 class PatchClassElementParser extends PartialParser {
-  PatchClassElementParser(Listener listener, {bool enableConditionalDirectives})
-      : super(listener,
-          enableConditionalDirectives: enableConditionalDirectives);
+  PatchClassElementParser(Listener listener) : super(listener);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }

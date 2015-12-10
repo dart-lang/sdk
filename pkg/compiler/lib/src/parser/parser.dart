@@ -98,12 +98,10 @@ class FormalParameterType {
 class Parser {
   final Listener listener;
   bool mayParseFunctionExpressions = true;
-  final bool enableConditionalDirectives;
   bool asyncAwaitKeywordsEnabled;
 
   Parser(this.listener,
-      {this.enableConditionalDirectives: false,
-       this.asyncAwaitKeywordsEnabled: false});
+         {this.asyncAwaitKeywordsEnabled: false});
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -152,13 +150,12 @@ class Parser {
     return token;
   }
 
-  /// import uri (if (test) uri)* (as identifier)? combinator* ';'
+  /// import uri (as identifier)? combinator* ';'
   Token parseImport(Token token) {
     Token importKeyword = token;
     listener.beginImport(importKeyword);
     assert(optional('import', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
-    token = parseConditionalUris(token);
     Token deferredKeyword;
     if (optional('deferred', token)) {
       deferredKeyword = token;
@@ -176,57 +173,12 @@ class Parser {
     return token;
   }
 
-  /// if (test) uri
-  Token parseConditionalUris(Token token) {
-    listener.beginConditionalUris(token);
-    int count = 0;
-    if (enableConditionalDirectives) {
-      while (optional('if', token)) {
-        count++;
-        token = parseConditionalUri(token);
-      }
-    }
-    listener.endConditionalUris(count);
-    return token;
-  }
-
-  Token parseConditionalUri(Token token) {
-    listener.beginConditionalUri(token);
-    Token ifKeyword = token;
-    token = expect('if', token);
-    token = expect('(', token);
-    token = parseDottedName(token);
-    Token equalitySign;
-    if (optional('==', token)) {
-      equalitySign = token;
-      token = parseLiteralStringOrRecoverExpression(token.next);
-    }
-    token = expect(')', token);
-    token = parseLiteralStringOrRecoverExpression(token);
-    listener.endConditionalUri(ifKeyword, equalitySign);
-    return token;
-  }
-
-  Token parseDottedName(Token token) {
-    listener.beginDottedName(token);
-    Token firstIdentifier = token;
-    token = parseIdentifier(token);
-    int count = 1;
-    while (optional('.', token)) {
-      token = parseIdentifier(token.next);
-      count++;
-    }
-    listener.endDottedName(count, firstIdentifier);
-    return token;
-  }
-
-  /// export uri conditional-uris* combinator* ';'
+  /// export uri combinator* ';'
   Token parseExport(Token token) {
     Token exportKeyword = token;
     listener.beginExport(exportKeyword);
     assert(optional('export', token));
     token = parseLiteralStringOrRecoverExpression(token.next);
-    token = parseConditionalUris(token);
     token = parseCombinators(token);
     Token semicolon = token;
     token = expect(';', token);
