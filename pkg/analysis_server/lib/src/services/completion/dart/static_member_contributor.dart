@@ -36,7 +36,7 @@ class StaticMemberContributor extends DartCompletionContributor {
     if (targetId is Identifier && !request.target.isCascade) {
       Element elem = targetId.bestElement;
       if (elem is ClassElement) {
-        LibraryElement containingLibrary = await request.libraryElement;
+        LibraryElement containingLibrary = request.libraryElement;
         // Gracefully degrade if the library could not be determined
         // e.g. detached part file or source change
         if (containingLibrary == null) {

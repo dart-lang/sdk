@@ -37,17 +37,15 @@ class NamedConstructorContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    // Resolve the containing library element
-    LibraryElement libElem = await request.libraryElement;
-    if (libElem == null) {
-      return EMPTY_LIST;
-    }
-
     // Resolve the target to determine the type
     await request.resolveExpression(targetId);
 
     // Recompute the target since resolution may have changed it
     AstNode node = request.target.containingNode;
+    LibraryElement libElem = request.libraryElement;
+    if (libElem == null) {
+      return EMPTY_LIST;
+    }
 
     // Build the list of suggestions
     if (node is ConstructorName) {

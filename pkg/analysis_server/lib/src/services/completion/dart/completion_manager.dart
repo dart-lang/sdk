@@ -115,7 +115,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   CompletionTarget target;
 
   @override
-  Future<LibraryElement> get libraryElement async {
+  LibraryElement get libraryElement {
     //TODO(danrubel) build the library element rather than all the declarations
     CompilationUnit unit = target.unit;
     if (unit != null) {

@@ -68,14 +68,11 @@ abstract class DartCompletionRequest extends CompletionRequest {
   Expression get dotTarget;
 
   /**
-   * Return a [Future] that completes with the library element
-   * which contains the unit in which the completion is occurring.
-   * The [Future] may return `null` if the library cannot be determined
+   * Return the library element which contains the unit in which the completion
+   * is occurring. This may return `null` if the library cannot be determined
    * (e.g. unlinked part file).
-   * Any information obtained from [target] prior to calling this method
-   * should be discarded as it may have changed.
    */
-  Future<LibraryElement> get libraryElement;
+  LibraryElement get libraryElement;
 
   /**
    * The source for the library containing the completion request.

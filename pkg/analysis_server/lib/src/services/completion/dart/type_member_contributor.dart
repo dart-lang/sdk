@@ -33,7 +33,7 @@ class TypeMemberContributor extends DartCompletionContributor {
 
     // Resolve the expression and the containing library
     await request.resolveExpression(parsedExpression);
-    LibraryElement containingLibrary = await request.libraryElement;
+    LibraryElement containingLibrary = request.libraryElement;
     // Gracefully degrade if the library element could not be resolved
     // e.g. detached part file or source change
     if (containingLibrary == null) {

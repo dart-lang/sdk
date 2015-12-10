@@ -35,8 +35,8 @@ class LibraryMemberContributor extends DartCompletionContributor {
     if (targetId is SimpleIdentifier && !request.target.isCascade) {
       Element elem = targetId.bestElement;
       if (elem is PrefixElement) {
-        LibraryElement containingLibrary = await request.libraryElement;
         List<Directive> directives = await request.resolveDirectives();
+        LibraryElement containingLibrary = request.libraryElement;
         // Gracefully degrade if the library or directives
         // could not be determined (e.g. detached part file or source change)
         if (containingLibrary != null && directives != null) {
