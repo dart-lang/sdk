@@ -313,7 +313,8 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
       ];
       outputs[LINE_INFO] = new LineInfo(<int>[0]);
     } else {
-      HtmlParser parser = new HtmlParser(content, generateSpans: true);
+      HtmlParser parser = new HtmlParser(content,
+          generateSpans: true, lowercaseAttrName: false);
       parser.compatMode = 'quirks';
       Document document = parser.parse();
       //
