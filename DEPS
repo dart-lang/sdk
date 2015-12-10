@@ -65,7 +65,7 @@ vars = {
   "http_parser_tag" : "@1.1.0",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "idl_parser_rev": "@6316d5982dc24b34d09dd8b10fbeaaff28d83a48",
-  "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
+  "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
   "linter_rev": "@5a599fd32d3b6ef00ffa7c330d1f32bbad287228",
