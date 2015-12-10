@@ -26,20 +26,6 @@ class CombinatorContributor extends DartCompletionContributor {
       return EMPTY_LIST;
     }
 
-    // Partially resolve the compilation unit
-    CompilationUnit unit = await request.resolveDeclarationsInScope();
-    // Gracefully degrade if the compilation unit could not be resolved
-    // e.g. detached part file or source change
-    if (unit == null) {
-      return EMPTY_LIST;
-    }
-
-    // Check the target since resolution may have changed it
-    node = request.target.containingNode;
-    if (node is! Combinator) {
-      return EMPTY_LIST;
-    }
-
     // Build list of suggestions
     var directive = node.getAncestor((parent) => parent is NamespaceDirective);
     if (directive is NamespaceDirective) {

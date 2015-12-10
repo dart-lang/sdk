@@ -20,19 +20,6 @@ class FieldFormalContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    if (request.target.containingNode is! FieldFormalParameter) {
-      return EMPTY_LIST;
-    }
-
-    // Partially resolve the compilation unit
-    CompilationUnit unit = await request.resolveDeclarationsInScope();
-    // Gracefully degrade if the compilation unit could not be resolved
-    // e.g. detached part file or source change
-    if (unit == null) {
-      return EMPTY_LIST;
-    }
-
-    // Recompute the target since resolution may have changed it
     AstNode node = request.target.containingNode;
     if (node is! FieldFormalParameter) {
       return EMPTY_LIST;
