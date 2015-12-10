@@ -2643,16 +2643,15 @@ class TypePropagationVisitor implements Visitor {
     AbstractConstantValue receiver = getValue(node.receiver.definition);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
     if (receiver.isNothing) {
-      setResult(node, lattice.nothing);
-      return;  // And come back later.
+      return setResult(node, lattice.nothing);
     }
 
-    void finish(AbstractConstantValue result) {
+    void finish(AbstractConstantValue result, {bool canReplace: false}) {
       if (result == null) {
-        setResult(node, lattice.getInvokeReturnType(node.selector, node.mask));
-      } else {
-        setResult(node, result, canReplace: true);
+        canReplace = false;
+        result = lattice.getInvokeReturnType(node.selector, node.mask);
       }
+      setResult(node, result, canReplace: canReplace);
     }
 
     if (node.selector.isGetter) {
@@ -2661,42 +2660,34 @@ class TypePropagationVisitor implements Visitor {
         AbstractConstantValue object = getValue(node.dartReceiver);
         if (typeSystem.isDefinitelyIndexable(object.type, allowNull: true)) {
           AbstractConstantValue length = lattice.lengthSpecial(object);
-          if (length != null) {
-            setResult(node, length, canReplace: !object.isNullable);
-            return;
-          }
+          return finish(length, canReplace: !object.isNullable);
         }
       }
-      finish(null);
-      return;
+      return finish(null);
     }
 
     if (node.selector.isCall) {
-      AbstractConstantValue result;
       if (node.selector == Selectors.codeUnitAt) {
         AbstractConstantValue object = getValue(node.dartReceiver);
         AbstractConstantValue right = getValue(node.dartArgument(0));
-        result = lattice.codeUnitAtSpecial(object, right);
+        AbstractConstantValue result = lattice.codeUnitAtSpecial(object, right);
+        return finish(result, canReplace: !object.isNullable);
       }
-      finish(result);
-      return;
+      return finish(null);
     }
 
     if (node.selector == Selectors.index) {
       AbstractConstantValue object = getValue(node.dartReceiver);
       AbstractConstantValue right = getValue(node.dartArgument(0));
       AbstractConstantValue result = lattice.indexSpecial(object, right);
-      finish(result);
-      return;
+      return finish(result, canReplace: !object.isNullable);
     }
 
     if (!node.selector.isOperator) {
-      finish(null);
-      return;
+      return finish(null);
     }
 
     // Calculate the resulting constant if possible.
-    AbstractConstantValue result;
     String opname = node.selector.name;
     if (node.arguments.length == 1) {
       AbstractConstantValue argument = getValue(node.dartReceiver);
@@ -2705,15 +2696,17 @@ class TypePropagationVisitor implements Visitor {
         opname = "-";
       }
       UnaryOperator operator = UnaryOperator.parse(opname);
-      result = lattice.unaryOp(operator, argument);
+      AbstractConstantValue result = lattice.unaryOp(operator, argument);
+      return finish(result, canReplace: !argument.isNullable);
     } else if (node.arguments.length == 2) {
       // Binary operator.
       AbstractConstantValue left = getValue(node.dartReceiver);
       AbstractConstantValue right = getValue(node.dartArgument(0));
       BinaryOperator operator = BinaryOperator.parse(opname);
-      result = lattice.binaryOp(operator, left, right);
+      AbstractConstantValue result = lattice.binaryOp(operator, left, right);
+      return finish(result, canReplace: !left.isNullable);
     }
-    finish(result);
+    return finish(null);
   }
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
