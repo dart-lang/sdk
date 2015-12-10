@@ -1122,7 +1122,8 @@ class A<T extends T> {
     verify([source]);
   }
 
-  void test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() {
+  void
+      test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1151,7 +1152,8 @@ main(Object p) {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1162,7 +1164,8 @@ main(Object p) {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1442,6 +1445,18 @@ var a = A.B;''');
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  void test_undefinedGetter_typeLiteral_cascadeTarget() {
+    Source source = addSource(r'''
+class T {
+  static int get foo => 42;
+}
+main() {
+  T..foo;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
   void test_undefinedGetter_typeLiteral_conditionalAccess() {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance getters of Type.
@@ -1613,6 +1628,19 @@ main() {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
+  void test_undefinedMethod_typeLiteral_cascadeTarget() {
+    Source source = addSource('''
+class T {
+  static void foo() {}
+}
+main() {
+  T..foo();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   void test_undefinedMethod_typeLiteral_conditionalAccess() {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance methods of Type.
@@ -1709,6 +1737,18 @@ f(T e1) { e1.m = 0; }''');
     Source source = addSource(r'''
 class A {}
 f() { A.B = 0;}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+  }
+
+  void test_undefinedSetter_typeLiteral_cascadeTarget() {
+    Source source = addSource(r'''
+class T {
+  static void set foo(_) {}
+}
+main() {
+  T..foo = 42;
+}''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }
