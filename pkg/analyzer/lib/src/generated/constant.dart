@@ -2,25 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.constant;
+library analyzer.src.generated.constant;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisEngine, RecordingErrorListener;
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
+import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/generated/type_system.dart'
+    show TypeSystem, TypeSystemImpl;
+import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
-
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart' show AnalysisEngine, RecordingErrorListener;
-import 'error.dart';
-import 'java_core.dart';
-import 'resolver.dart' show TypeProvider;
-import 'scanner.dart' show Token, TokenType;
-import 'source.dart' show Source;
-import 'type_system.dart' show TypeSystem, TypeSystemImpl;
-import 'utilities_collection.dart';
-import 'utilities_dart.dart' show ParameterKind;
 
 /**
  * Callback used by [ReferenceFinder] to report that a dependency was found.

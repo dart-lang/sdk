@@ -2,30 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.incremental_resolver;
+library analyzer.src.generated.incremental_resolver;
 
 import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/generated/incremental_logger.dart'
+    show logger, LoggingTimer;
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart' show CONTENT, LINE_INFO;
 import 'package:analyzer/task/model.dart';
-
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart';
-import 'error.dart';
-import 'error_verifier.dart';
-import 'incremental_logger.dart' show logger, LoggingTimer;
-import 'java_engine.dart';
-import 'parser.dart';
-import 'resolver.dart';
-import 'scanner.dart';
-import 'source.dart';
-import 'utilities_dart.dart';
 
 /**
  * If `true`, an attempt to resolve API-changing modifications is made.

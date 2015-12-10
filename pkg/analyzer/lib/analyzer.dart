@@ -6,20 +6,19 @@ library analyzer;
 
 import 'dart:io';
 
+import 'package:analyzer/src/error.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:path/path.dart' as pathos;
 
-import 'src/error.dart';
-import 'src/generated/ast.dart';
-import 'src/generated/error.dart';
-import 'src/generated/parser.dart';
-import 'src/generated/scanner.dart';
-import 'src/generated/source_io.dart';
-import 'src/string_source.dart';
-
-export 'src/error.dart';
-export 'src/generated/ast.dart';
-export 'src/generated/error.dart';
-export 'src/generated/utilities_dart.dart';
+export 'package:analyzer/src/error.dart';
+export 'package:analyzer/src/generated/ast.dart';
+export 'package:analyzer/src/generated/error.dart';
+export 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// Parses a string of Dart code into an AST.
 ///

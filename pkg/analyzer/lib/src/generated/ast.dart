@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.ast;
+library analyzer.src.generated.ast;
 
 import 'dart:collection';
 
-import 'element.dart';
-import 'engine.dart' show AnalysisEngine;
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'parser.dart';
-import 'scanner.dart';
-import 'source.dart' show LineInfo, Source;
-import 'utilities_collection.dart' show TokenMap;
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
+import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Two or more string literals that are implicitly concatenated because of being

@@ -5,7 +5,7 @@
 // TODO(jmesserly): this file needs to be refactored, it's a port from
 // package:dev_compiler's tests
 /// General type checking tests
-library test.src.task.strong.checker_test;
+library analyzer.test.src.task.strong.checker_test;
 
 import 'package:unittest/unittest.dart';
 

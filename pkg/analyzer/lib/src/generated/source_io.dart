@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.source.io;
+library analyzer.src.generated.source_io;
 
 import 'dart:collection';
 
-import 'engine.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'java_io.dart';
-import 'source.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 
-export 'source.dart';
+export 'package:analyzer/src/generated/source.dart';
 
 /**
  * Instances of the class [DirectoryBasedSourceContainer] represent a source container that

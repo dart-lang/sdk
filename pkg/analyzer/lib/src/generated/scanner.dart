@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.scanner;
+library analyzer.src.generated.scanner;
 
 import 'dart:collection';
 
-import 'error.dart';
-import 'java_engine.dart';
-import 'source.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 /**
  * The opening half of a grouping pair of tokens. This is used for curly
@@ -245,7 +245,6 @@ class CommentToken extends StringToken {
   @override
   CommentToken copy() => new CommentToken(type, _value, offset);
 }
-
 
 /**
  * A documentation comment token.

@@ -2,15 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine;
+library analyzer.src.generated.engine;
 
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/plugin/command_line_plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/options_plugin.dart';
@@ -21,17 +31,6 @@ import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-
-import '../../instrumentation/instrumentation.dart';
-import 'ast.dart';
-import 'constant.dart';
-import 'element.dart';
-import 'error.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'resolver.dart';
-import 'source.dart';
-import 'utilities_general.dart';
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -1591,7 +1590,8 @@ class ChangeSet {
   /**
    * Return `true` if this change set does not contain any changes.
    */
-  bool get isEmpty => addedSources.isEmpty &&
+  bool get isEmpty =>
+      addedSources.isEmpty &&
       changedSources.isEmpty &&
       _changedContent.isEmpty &&
       changedRanges.isEmpty &&
@@ -2380,8 +2380,8 @@ class SourcesChangedEvent {
    */
   bool get wereSourcesRemovedOrDeleted =>
       _changeSet.removedSources.length > 0 ||
-          _changeSet.removedContainers.length > 0 ||
-          _changeSet.deletedSources.length > 0;
+      _changeSet.removedContainers.length > 0 ||
+      _changeSet.deletedSources.length > 0;
 }
 
 /**

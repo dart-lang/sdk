@@ -6,9 +6,9 @@ library analyzer.src.generated.type_system;
 
 import 'dart:collection';
 
-import 'element.dart';
-import 'engine.dart' show AnalysisContext;
-import 'resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
 typedef bool _SubtypeChecker<T>(T t1, T t2);

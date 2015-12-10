@@ -9,11 +9,10 @@ library analyzer.src.codegen.tools;
 
 import 'dart:io';
 
+import 'package:analyzer/src/codegen/html.dart';
+import 'package:analyzer/src/codegen/text_formatter.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart';
-
-import 'html.dart';
-import 'text_formatter.dart';
 
 final RegExp trailingSpacesInLineRegExp = new RegExp(r' +$', multiLine: true);
 final RegExp trailingWhitespaceRegExp = new RegExp(r'[\n ]+$');

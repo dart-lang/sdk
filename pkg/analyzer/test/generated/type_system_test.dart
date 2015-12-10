@@ -4,7 +4,7 @@
 
 // Tests related to the [TypeSystem] class.
 
-library engine.type_system_test;
+library analyzer.test.generated.type_system_test;
 
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';

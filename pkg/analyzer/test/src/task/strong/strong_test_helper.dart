@@ -4,7 +4,7 @@
 
 // TODO(jmesserly): this file needs to be refactored, it's a port from
 // package:dev_compiler's tests
-library test.src.task.strong.strong_test_helper;
+library analyzer.test.src.task.strong.strong_test_helper;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';

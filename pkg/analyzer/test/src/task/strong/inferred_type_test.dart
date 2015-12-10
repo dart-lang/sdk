@@ -5,7 +5,7 @@
 // TODO(jmesserly): this file needs to be refactored, it's a port from
 // package:dev_compiler's tests
 /// Tests for type inference.
-library test.src.task.strong.inferred_type_test;
+library analyzer.test.src.task.strong.inferred_type_test;
 
 import 'package:unittest/unittest.dart';
 

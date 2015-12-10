@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.testing.element_factory;
+library analyzer.src.generated.testing.element_factory;
 
 import 'dart:collection';
 

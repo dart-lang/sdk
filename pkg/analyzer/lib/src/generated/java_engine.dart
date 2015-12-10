@@ -1,7 +1,11 @@
-library java.engine;
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-import 'interner.dart';
-import 'java_core.dart';
+library analyzer.src.generated.java_engine;
+
+import 'package:analyzer/src/generated/interner.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 
 /**
  * A predicate is a one-argument function that returns a boolean value.

@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver.element_resolver;
+library analyzer.src.generated.element_resolver;
 
 import 'dart:collection';
 
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart';
-import 'error.dart';
-import 'resolver.dart';
-import 'scanner.dart' as sc;
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart' as sc;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * An object used by instances of [ResolverVisitor] to resolve references within

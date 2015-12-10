@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.util.yaml;
+library analyzer.src.test.util.yaml_test;
 
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:unittest/unittest.dart';

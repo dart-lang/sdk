@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.source.path_filter;
+library analyzer.test.source.path_filter_test;
 
 import 'package:analyzer/source/path_filter.dart';
 import 'package:path/path.dart';

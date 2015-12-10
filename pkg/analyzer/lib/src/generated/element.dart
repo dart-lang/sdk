@@ -2,26 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.element;
+library analyzer.src.generated.element;
 
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart'
+    show DartObject, EvaluationResultImpl;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, AnalysisEngine, AnalysisException;
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart' show Keyword;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/model.dart' show AnalysisTarget;
-
-import 'ast.dart';
-import 'constant.dart' show DartObject, EvaluationResultImpl;
-import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'resolver.dart';
-import 'scanner.dart' show Keyword;
-import 'sdk.dart' show DartSdk;
-import 'source.dart';
-import 'utilities_collection.dart';
-import 'utilities_dart.dart';
 
 /**
  * For AST nodes that could be in both the getter and setter contexts
@@ -2393,9 +2394,9 @@ abstract class Element implements AnalysisTarget {
    * Elements with a smaller offset will be sorted to be before elements with a
    * larger name offset.
    */
-  static final Comparator<Element> SORT_BY_OFFSET = (Element firstElement,
-          Element secondElement) =>
-      firstElement.nameOffset - secondElement.nameOffset;
+  static final Comparator<Element> SORT_BY_OFFSET =
+      (Element firstElement, Element secondElement) =>
+          firstElement.nameOffset - secondElement.nameOffset;
 
   /**
    * Return the analysis context in which this element is defined.
@@ -7650,7 +7651,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  bool operator ==(Object object) => object is LibraryElementImpl &&
+  bool operator ==(Object object) =>
+      object is LibraryElementImpl &&
       _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
@@ -9377,7 +9379,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool operator ==(Object object) => super == object &&
+  bool operator ==(Object object) =>
+      super == object &&
       isGetter == (object as PropertyAccessorElement).isGetter;
 
   @override

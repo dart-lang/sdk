@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.all_the_rest_test;
+library analyzer.test.generated.all_the_rest_test;
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;

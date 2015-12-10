@@ -2,28 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver;
+library analyzer.src.generated.resolver;
 
 import 'dart:collection';
 
-import '../task/strong/info.dart' show InferredType, StaticInfo;
-import 'ast.dart';
-import 'constant.dart';
-import 'element.dart';
-import 'element_resolver.dart';
-import 'engine.dart';
-import 'error.dart';
-import 'error_verifier.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'scanner.dart';
-import 'scanner.dart' as sc;
-import 'source.dart';
-import 'static_type_analyzer.dart';
-import 'type_system.dart';
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/element_resolver.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/static_type_analyzer.dart';
+import 'package:analyzer/src/generated/type_system.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/strong/info.dart' show InferredType, StaticInfo;
 
-export 'type_system.dart';
+export 'package:analyzer/src/generated/type_system.dart';
 
 /**
  * Instances of the class `BestPracticesVerifier` traverse an AST structure looking for
@@ -88,8 +87,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
-    sc.TokenType operatorType = node.operator.type;
-    if (operatorType == sc.TokenType.EQ) {
+    TokenType operatorType = node.operator.type;
+    if (operatorType == TokenType.EQ) {
       _checkForUseOfVoidResult(node.rightHandSide);
       _checkForInvalidAssignment(node.leftHandSide, node.rightHandSide);
     } else {
@@ -269,7 +268,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
     }
     String rhsNameStr = typeName.name.name;
     // if x is dynamic
-    if (rhsType.isDynamic && rhsNameStr == sc.Keyword.DYNAMIC.syntax) {
+    if (rhsType.isDynamic && rhsNameStr == Keyword.DYNAMIC.syntax) {
       if (node.notOperator == null) {
         // the is case
         _errorReporter.reportErrorForNode(
@@ -529,7 +528,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForDivisionOptimizationHint(BinaryExpression node) {
     // Return if the operator is not '/'
-    if (node.operator.type != sc.TokenType.SLASH) {
+    if (node.operator.type != TokenType.SLASH) {
       return false;
     }
     // Return if the '/' operator is not defined in core, or if we don't know
@@ -1671,9 +1670,9 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
-    sc.Token operator = node.operator;
-    bool isAmpAmp = operator.type == sc.TokenType.AMPERSAND_AMPERSAND;
-    bool isBarBar = operator.type == sc.TokenType.BAR_BAR;
+    Token operator = node.operator;
+    bool isAmpAmp = operator.type == TokenType.AMPERSAND_AMPERSAND;
+    bool isBarBar = operator.type == TokenType.BAR_BAR;
     if (isAmpAmp || isBarBar) {
       Expression lhsCondition = node.leftOperand;
       if (!_isDebugConstant(lhsCondition)) {
@@ -2168,7 +2167,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
       SimpleIdentifier functionName = node.name;
-      sc.Token property = node.propertyKeyword;
+      Token property = node.propertyKeyword;
       if (property == null) {
         if (_enclosingExecutable != null) {
           _enclosingExecutable =
@@ -2184,7 +2183,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElement accessor =
               _findIdentifier(_enclosingUnit.accessors, functionName);
-          if ((property as sc.KeywordToken).keyword == sc.Keyword.SET) {
+          if ((property as KeywordToken).keyword == Keyword.SET) {
             accessor = accessor.variable.setter;
             functionName.staticElement = accessor;
           }
@@ -2278,7 +2277,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   Object visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerExecutable = _enclosingExecutable;
     try {
-      sc.Token property = node.propertyKeyword;
+      Token property = node.propertyKeyword;
       SimpleIdentifier methodName = node.name;
       String nameOfMethod = methodName.name;
       if (property == null) {
@@ -2288,7 +2287,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       } else {
         PropertyAccessorElement accessor =
             _findIdentifier(_enclosingClass.accessors, methodName);
-        if ((property as sc.KeywordToken).keyword == sc.Keyword.SET) {
+        if ((property as KeywordToken).keyword == Keyword.SET) {
           accessor = accessor.variable.setter;
           methodName.staticElement = accessor;
         }
@@ -2918,7 +2917,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         _inFunction = wasInFunction;
       }
       FunctionBody body = expression.body;
-      sc.Token property = node.propertyKeyword;
+      Token property = node.propertyKeyword;
       if (property == null || _inFunction) {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
@@ -3147,12 +3146,12 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         _inFunction = wasInFunction;
       }
       bool isStatic = node.isStatic;
-      sc.Token property = node.propertyKeyword;
+      Token property = node.propertyKeyword;
       FunctionBody body = node.body;
       if (property == null) {
         SimpleIdentifier methodName = node.name;
         String nameOfMethod = methodName.name;
-        if (nameOfMethod == sc.TokenType.MINUS.lexeme &&
+        if (nameOfMethod == TokenType.MINUS.lexeme &&
             node.parameters.parameters.length == 0) {
           nameOfMethod = "unary-";
         }
@@ -4153,11 +4152,11 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     if (_nodeExits(leftHandSide)) {
       return true;
     }
-    if (node.operator.type == sc.TokenType.QUESTION_QUESTION_EQ) {
+    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
       return false;
     }
     if (leftHandSide is PropertyAccess &&
-        leftHandSide.operator.type == sc.TokenType.QUESTION_PERIOD) {
+        leftHandSide.operator.type == TokenType.QUESTION_PERIOD) {
       return false;
     }
     return _nodeExits(node.rightHandSide);
@@ -4171,13 +4170,13 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   bool visitBinaryExpression(BinaryExpression node) {
     Expression lhsExpression = node.leftOperand;
     Expression rhsExpression = node.rightOperand;
-    sc.TokenType operatorType = node.operator.type;
+    TokenType operatorType = node.operator.type;
     // If the operator is ||, then only consider the RHS of the binary
     // expression if the left hand side is the false literal.
     // TODO(jwren) Do we want to take constant expressions into account,
     // evaluate if(false) {} differently than if(<condition>), when <condition>
     // evaluates to a constant false value?
-    if (operatorType == sc.TokenType.BAR_BAR) {
+    if (operatorType == TokenType.BAR_BAR) {
       if (lhsExpression is BooleanLiteral) {
         BooleanLiteral booleanLiteral = lhsExpression;
         if (!booleanLiteral.value) {
@@ -4188,7 +4187,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
     // If the operator is &&, then only consider the RHS of the binary
     // expression if the left hand side is the true literal.
-    if (operatorType == sc.TokenType.AMPERSAND_AMPERSAND) {
+    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
       if (lhsExpression is BooleanLiteral) {
         BooleanLiteral booleanLiteral = lhsExpression;
         if (booleanLiteral.value) {
@@ -4199,7 +4198,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     }
     // If the operator is ??, then don't consider the RHS of the binary
     // expression.
-    if (operatorType == sc.TokenType.QUESTION_QUESTION) {
+    if (operatorType == TokenType.QUESTION_QUESTION) {
       return _nodeExits(lhsExpression);
     }
     return _nodeExits(lhsExpression) || _nodeExits(rhsExpression);
@@ -4400,7 +4399,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (target.accept(this)) {
         return true;
       }
-      if (node.operator.type == sc.TokenType.QUESTION_PERIOD) {
+      if (node.operator.type == TokenType.QUESTION_PERIOD) {
         return false;
       }
     }
@@ -6491,7 +6490,7 @@ class InheritanceManager {
       List<String> namedParameters) {
     DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
     SimpleIdentifier nameIdentifier = new SimpleIdentifier(
-        new sc.StringToken(sc.TokenType.IDENTIFIER, name, 0));
+        new StringToken(TokenType.IDENTIFIER, name, 0));
     ExecutableElementImpl executable;
     if (elementArrayToMerge[0] is MethodElement) {
       MultiplyInheritedMethodElementImpl unionedMethod =
@@ -8312,9 +8311,9 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     safelyVisit(node.leftHandSide);
-    sc.TokenType operator = node.operator.type;
-    if (operator == sc.TokenType.EQ ||
-        operator == sc.TokenType.QUESTION_QUESTION_EQ) {
+    TokenType operator = node.operator.type;
+    if (operator == TokenType.EQ ||
+        operator == TokenType.QUESTION_QUESTION_EQ) {
       InferenceContext.setType(
           node.rightHandSide, node.leftHandSide.staticType);
     }
@@ -8338,10 +8337,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
-    sc.TokenType operatorType = node.operator.type;
+    TokenType operatorType = node.operator.type;
     Expression leftOperand = node.leftOperand;
     Expression rightOperand = node.rightOperand;
-    if (operatorType == sc.TokenType.AMPERSAND_AMPERSAND) {
+    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
         _overrideManager.enterScope();
@@ -8364,7 +8363,7 @@ class ResolverVisitor extends ScopedVisitor {
           _overrideManager.exitScope();
         }
       }
-    } else if (operatorType == sc.TokenType.BAR_BAR) {
+    } else if (operatorType == TokenType.BAR_BAR) {
       safelyVisit(leftOperand);
       if (rightOperand != null) {
         _overrideManager.enterScope();
@@ -9607,7 +9606,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _promoteTypes(Expression condition) {
     if (condition is BinaryExpression) {
       BinaryExpression binary = condition;
-      if (binary.operator.type == sc.TokenType.AMPERSAND_AMPERSAND) {
+      if (binary.operator.type == TokenType.AMPERSAND_AMPERSAND) {
         Expression left = binary.leftOperand;
         Expression right = binary.rightOperand;
         _promoteTypes(left);
@@ -9633,7 +9632,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _propagateFalseState(Expression condition) {
     if (condition is BinaryExpression) {
       BinaryExpression binary = condition;
-      if (binary.operator.type == sc.TokenType.BAR_BAR) {
+      if (binary.operator.type == TokenType.BAR_BAR) {
         _propagateFalseState(binary.leftOperand);
         _propagateFalseState(binary.rightOperand);
       }
@@ -9647,7 +9646,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
-      if (prefix.operator.type == sc.TokenType.BANG) {
+      if (prefix.operator.type == TokenType.BANG) {
         _propagateTrueState(prefix.operand);
       }
     } else if (condition is ParenthesizedExpression) {
@@ -9674,7 +9673,7 @@ class ResolverVisitor extends ScopedVisitor {
   void _propagateTrueState(Expression condition) {
     if (condition is BinaryExpression) {
       BinaryExpression binary = condition;
-      if (binary.operator.type == sc.TokenType.AMPERSAND_AMPERSAND) {
+      if (binary.operator.type == TokenType.AMPERSAND_AMPERSAND) {
         _propagateTrueState(binary.leftOperand);
         _propagateTrueState(binary.rightOperand);
       }
@@ -9688,7 +9687,7 @@ class ResolverVisitor extends ScopedVisitor {
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
-      if (prefix.operator.type == sc.TokenType.BANG) {
+      if (prefix.operator.type == TokenType.BANG) {
         _propagateFalseState(prefix.operand);
       }
     } else if (condition is ParenthesizedExpression) {
@@ -10024,7 +10023,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  void reportErrorForToken(ErrorCode errorCode, sc.Token token,
+  void reportErrorForToken(ErrorCode errorCode, Token token,
       [List<Object> arguments]) {
     errorListener.onError(new AnalysisError(
         source, token.offset, token.length, errorCode, arguments));
@@ -10767,12 +10766,12 @@ class ToDoFinder {
    *
    * @param token the head of the list of tokens being searched
    */
-  void _gatherTodoComments(sc.Token token) {
-    while (token != null && token.type != sc.TokenType.EOF) {
-      sc.Token commentToken = token.precedingComments;
+  void _gatherTodoComments(Token token) {
+    while (token != null && token.type != TokenType.EOF) {
+      Token commentToken = token.precedingComments;
       while (commentToken != null) {
-        if (commentToken.type == sc.TokenType.SINGLE_LINE_COMMENT ||
-            commentToken.type == sc.TokenType.MULTI_LINE_COMMENT) {
+        if (commentToken.type == TokenType.SINGLE_LINE_COMMENT ||
+            commentToken.type == TokenType.MULTI_LINE_COMMENT) {
           _scrapeTodoComment(commentToken);
         }
         commentToken = commentToken.next;
@@ -10786,7 +10785,7 @@ class ToDoFinder {
    *
    * @param commentToken the comment token to analyze
    */
-  void _scrapeTodoComment(sc.Token commentToken) {
+  void _scrapeTodoComment(Token commentToken) {
     JavaPatternMatcher matcher =
         new JavaPatternMatcher(TodoCode.TODO_REGEX, commentToken.lexeme);
     if (matcher.find()) {
@@ -12661,7 +12660,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     // If the type is not an InterfaceType, then visitTypeName() sets the type
     // to be a DynamicTypeImpl
     Identifier name = typeName.name;
-    if (name.name == sc.Keyword.DYNAMIC.syntax) {
+    if (name.name == Keyword.DYNAMIC.syntax) {
       reportErrorForNode(dynamicTypeError, name, [name.name]);
     } else {
       reportErrorForNode(nonTypeError, name, [name.name]);
@@ -12734,8 +12733,8 @@ class TypeResolverVisitor extends ScopedVisitor {
    * @return `true` if the name of the given [TypeName] is an built-in identifier.
    */
   static bool _isBuiltInIdentifier(TypeName node) {
-    sc.Token token = node.name.beginToken;
-    return token.type == sc.TokenType.KEYWORD;
+    Token token = node.name.beginToken;
+    return token.type == TokenType.KEYWORD;
   }
 
   /**

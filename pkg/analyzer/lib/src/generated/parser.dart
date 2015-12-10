@@ -2,20 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.parser;
+library analyzer.src.generated.parser;
 
 import 'dart:collection';
 import "dart:math" as math;
 
-import 'ast.dart';
-import 'engine.dart' show AnalysisEngine, AnalysisOptionsImpl;
-import 'error.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'scanner.dart';
-import 'source.dart';
-import 'utilities_collection.dart' show TokenMap;
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisEngine, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'parseCompilationUnit_1': new MethodTrampoline(
