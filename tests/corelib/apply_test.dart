@@ -25,14 +25,9 @@ class Callable {
   int call(int x, int y) => x + y;
 }
 
-confuse() {
-  try {
-    throw [Function.apply];
-  } catch (e) {
-    return e[0];
-  }
-  return null;
-}
+@NoInline()
+@AssumeDynamic()
+confuse(x) => x;
 
 main() {
   testMap(res, func, map) {
@@ -62,7 +57,7 @@ main() {
   testList(42, cfoo, [32]);
 
   // Test that apply works even with a different name.
-  var app = confuse();
+  var app = confuse(Function.apply);
   Expect.equals(42, app(test2, [22, 20]));
 
   // Test that apply can itself be applied.
