@@ -51,6 +51,7 @@ class AbsolutePathContextPosixTest {
     expect(context.isValid(r'/foo/..bar'), isTrue);
     expect(context.isValid(r'/foo/.bar/baz'), isTrue);
     expect(context.isValid(r'/foo/...'), isTrue);
+    expect(context.isValid(r'/foo/bar..'), isTrue);
     expect(context.isValid(r'/foo/.../bar'), isTrue);
     expect(context.isValid(r'/foo/.bar/.'), isFalse);
     expect(context.isValid(r'/foo/bar/../baz'), isFalse);
@@ -113,6 +114,7 @@ class AbsolutePathContextWindowsTest {
     expect(context.isValid(r'C:\foo\..bar'), isTrue);
     expect(context.isValid(r'C:\foo\.bar\baz'), isTrue);
     expect(context.isValid(r'C:\foo\...'), isTrue);
+    expect(context.isValid(r'C:\foo\bar..'), isTrue);
     expect(context.isValid(r'C:\foo\...\bar'), isTrue);
     expect(context.isValid(r'C:\foo\.bar\.'), isFalse);
     expect(context.isValid(r'C:\foo\bar\..\baz'), isFalse);

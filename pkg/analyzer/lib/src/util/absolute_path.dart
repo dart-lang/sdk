@@ -7,7 +7,6 @@ library analyzer.src.util.absolute_path;
 /// The class for manipulating absolute, normalized paths.
 class AbsolutePathContext {
   static const int _COLON = 0x3A;
-  static const int _PERIOD = 0x2e;
   static const int _LOWER_A = 0x61;
   static const int _LOWER_Z = 0x7A;
   static const int _UPPER_A = 0x41;
@@ -16,10 +15,18 @@ class AbsolutePathContext {
   final bool _isWindows;
   String separator;
   int _separatorChar;
+  String _singlePeriodComponent;
+  String _doublePeriodComponent;
+  String _singlePeriodEnding;
+  String _doublePeriodEnding;
 
   AbsolutePathContext(this._isWindows) {
     separator = _isWindows ? r'\' : '/';
     _separatorChar = separator.codeUnitAt(0);
+    _singlePeriodComponent = separator + '.' + separator;
+    _doublePeriodComponent = separator + '..' + separator;
+    _singlePeriodEnding = separator + '.';
+    _doublePeriodEnding = separator + '..';
   }
 
   /// Append the given relative [suffix] to the given absolute [parent].
@@ -125,29 +132,19 @@ class AbsolutePathContext {
     }
   }
 
-
   /// Return `true` if the given absolute [path] is normalized.
   ///
   ///     _isNormalized('/foo/bar');        // -> true
   ///     _isNormalized('/foo/..bar');      // -> true
+  ///     _isNormalized('/foo/bar..');      // -> true
   ///     _isNormalized('/');               // -> true
   ///     _isNormalized('/foo/bar/../baz'); // -> false
   ///     _isNormalized('/foo/bar/..');     // -> false
   bool _isNormalized(String path) {
-    int periodCount = 0;
-    for (int c in path.codeUnits) {
-      if (c == _PERIOD) {
-        periodCount++;
-        continue;
-      }
-      if (c == _separatorChar) {
-        if (periodCount == 1 || periodCount == 2) {
-          return false;
-        }
-      }
-      periodCount = 0;
-    }
-    return periodCount != 1 && periodCount != 2;
+    return !path.contains(_singlePeriodComponent) &&
+        !path.contains(_doublePeriodComponent) &&
+        !path.endsWith(_singlePeriodEnding) &&
+        !path.endsWith(_doublePeriodEnding);
   }
 
   /// Returns whether [char] is the code for an ASCII letter (uppercase or
