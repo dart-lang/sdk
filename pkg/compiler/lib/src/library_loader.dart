@@ -384,7 +384,21 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       return reporter.withCurrentElement(library, () {
 
         Uri computeUri(LibraryDependency node) {
-          String tagUriString = node.uri.dartString.slowToString();
+          StringNode uriNode = node.uri;
+          if (node.conditionalUris != null) {
+            for (ConditionalUri conditionalUri in node.conditionalUris) {
+              String key = conditionalUri.key.slowNameString;
+              String value = conditionalUri.value == null
+                  ? "true"
+                  : conditionalUri.value.dartString.slowToString();
+              String actual = compiler.fromEnvironment(key);
+              if (value == actual) {
+                uriNode = conditionalUri.uri;
+                break;
+              }
+            }
+          }
+          String tagUriString = uriNode.dartString.slowToString();
           try {
             return Uri.parse(tagUriString);
           } on FormatException {
