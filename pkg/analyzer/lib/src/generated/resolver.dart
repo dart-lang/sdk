@@ -11745,6 +11745,8 @@ class TypeResolverVisitor extends ScopedVisitor {
     super.visitClassDeclaration(node);
     ClassElementImpl classElement = _getClassElement(node.name);
     if (classElement != null) {
+      // Clear this flag, as we just invalidated any inferred member types.
+      classElement.hasBeenInferred = false;
       classElement.hasReferenceToSuper = _hasReferenceToSuper;
     }
     return null;

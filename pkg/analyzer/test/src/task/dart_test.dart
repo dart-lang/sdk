@@ -1427,6 +1427,62 @@ library my_lib1;
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
   }
 
+  void test_library_cycle_override_inference_incremental() {
+    enableStrongMode();
+    Source lib1Source = newSource(
+        '/my_lib1.dart',
+        '''
+library my_lib1;
+import 'my_lib3.dart';
+''');
+    Source lib2Source = newSource(
+        '/my_lib2.dart',
+        '''
+library my_lib2;
+import 'my_lib1.dart';
+''');
+    Source lib3Source = newSource(
+        '/my_lib3.dart',
+        '''
+library my_lib3;
+import 'my_lib2.dart';
+
+class A {
+  int foo(int x) => null;
+}
+class B extends A {
+  foo(x) => null;
+}
+''');
+    AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
+    AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
+    AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
+
+    computeResult(lib1Target, RESOLVED_UNIT);
+    computeResult(lib2Target, RESOLVED_UNIT);
+    computeResult(lib3Target, RESOLVED_UNIT);
+    CompilationUnit unit = outputs[RESOLVED_UNIT];
+    ClassElement b = unit.declarations[1].element;
+    expect(b.getMethod('foo').returnType.toString(), 'int');
+
+    // add a dummy edit.
+    context.setContents(
+        lib1Source,
+        '''
+library my_lib1;
+import 'my_lib3.dart';
+var foo = 123;
+''');
+
+    computeResult(lib1Target, RESOLVED_UNIT);
+    computeResult(lib2Target, RESOLVED_UNIT);
+    computeResult(lib3Target, RESOLVED_UNIT);
+    unit = outputs[RESOLVED_UNIT];
+    b = unit.declarations[1].element;
+    expect(b.getMethod('foo').returnType.toString(), 'int',
+        reason: 'edit should not affect member inference');
+  }
+
   void test_library_cycle_incremental_partial() {
     enableStrongMode();
     Source lib1Source = newSource(
