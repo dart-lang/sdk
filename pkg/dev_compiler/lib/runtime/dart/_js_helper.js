@@ -31,7 +31,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     constructors: () => ({Native: [Native, [core.String]]})
   });
   class JsPeerInterface extends core.Object {
-    JsPeerInterface({name = null} = {}) {
+    JsPeerInterface(opts) {
+      let name = opts && 'name' in opts ? opts.name : null;
       this.name = name;
     }
   }
@@ -78,7 +79,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     toString() {
       return `RegExp/${this.pattern}/`;
     }
-    JSSyntaxRegExp(source, {multiLine = false, caseSensitive = true} = {}) {
+    JSSyntaxRegExp(source, opts) {
+      let multiLine = opts && 'multiLine' in opts ? opts.multiLine : false;
+      let caseSensitive = opts && 'caseSensitive' in opts ? opts.caseSensitive : true;
       this.pattern = source;
       this[_nativeRegExp] = JSSyntaxRegExp.makeNative(source, multiLine, caseSensitive, false);
       this[_nativeGlobalRegExp] = null;

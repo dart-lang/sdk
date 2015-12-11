@@ -65,14 +65,16 @@ dart_library.library('dart/convert', null, /* Imports */[
   });
   const _allowInvalid = Symbol('_allowInvalid');
   class AsciiCodec extends Encoding {
-    AsciiCodec({allowInvalid = false} = {}) {
+    AsciiCodec(opts) {
+      let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
       this[_allowInvalid] = allowInvalid;
       super.Encoding();
     }
     get name() {
       return "us-ascii";
     }
-    decode(bytes, {allowInvalid = null} = {}) {
+    decode(bytes, opts) {
+      let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : null;
       if (allowInvalid == null)
         allowInvalid = this[_allowInvalid];
       if (dart.notNull(allowInvalid)) {
@@ -276,7 +278,8 @@ dart_library.library('dart/convert', null, /* Imports */[
     })
   });
   class AsciiDecoder extends _UnicodeSubsetDecoder {
-    AsciiDecoder({allowInvalid = false} = {}) {
+    AsciiDecoder(opts) {
+      let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
       super._UnicodeSubsetDecoder(allowInvalid, _ASCII_MASK);
     }
     startChunkedConversion(sink) {
@@ -778,7 +781,8 @@ dart_library.library('dart/convert', null, /* Imports */[
     })
   });
   class JsonUnsupportedObjectError extends core.Error {
-    JsonUnsupportedObjectError(unsupportedObject, {cause = null} = {}) {
+    JsonUnsupportedObjectError(unsupportedObject, opts) {
+      let cause = opts && 'cause' in opts ? opts.cause : null;
       this.unsupportedObject = unsupportedObject;
       this.cause = cause;
       super.Error();
@@ -808,7 +812,9 @@ dart_library.library('dart/convert', null, /* Imports */[
   const _reviver = Symbol('_reviver');
   const _toEncodable$ = Symbol('_toEncodable');
   class JsonCodec extends Codec$(core.Object, core.String) {
-    JsonCodec({reviver = null, toEncodable = null} = {}) {
+    JsonCodec(opts) {
+      let reviver = opts && 'reviver' in opts ? opts.reviver : null;
+      let toEncodable = opts && 'toEncodable' in opts ? opts.toEncodable : null;
       this[_reviver] = reviver;
       this[_toEncodable$] = toEncodable;
       super.Codec();
@@ -816,14 +822,16 @@ dart_library.library('dart/convert', null, /* Imports */[
     withReviver(reviver) {
       this.JsonCodec({reviver: reviver});
     }
-    decode(source, {reviver = null} = {}) {
+    decode(source, opts) {
+      let reviver = opts && 'reviver' in opts ? opts.reviver : null;
       if (reviver == null)
         reviver = this[_reviver];
       if (reviver == null)
         return this.decoder.convert(source);
       return new JsonDecoder(reviver).convert(source);
     }
-    encode(value, {toEncodable = null} = {}) {
+    encode(value, opts) {
+      let toEncodable = opts && 'toEncodable' in opts ? opts.toEncodable : null;
       if (toEncodable == null)
         toEncodable = this[_toEncodable$];
       if (toEncodable == null)
@@ -1552,14 +1560,16 @@ dart_library.library('dart/convert', null, /* Imports */[
   const __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   const __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [core.Object]));
   class Latin1Codec extends Encoding {
-    Latin1Codec({allowInvalid = false} = {}) {
+    Latin1Codec(opts) {
+      let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
       this[_allowInvalid] = allowInvalid;
       super.Encoding();
     }
     get name() {
       return "iso-8859-1";
     }
-    decode(bytes, {allowInvalid = null} = {}) {
+    decode(bytes, opts) {
+      let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : null;
       if (allowInvalid == null)
         allowInvalid = this[_allowInvalid];
       if (dart.notNull(allowInvalid)) {
@@ -1590,7 +1600,8 @@ dart_library.library('dart/convert', null, /* Imports */[
     constructors: () => ({Latin1Encoder: [Latin1Encoder, []]})
   });
   class Latin1Decoder extends _UnicodeSubsetDecoder {
-    Latin1Decoder({allowInvalid = false} = {}) {
+    Latin1Decoder(opts) {
+      let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
       super._UnicodeSubsetDecoder(allowInvalid, _LATIN1_MASK);
     }
     startChunkedConversion(sink) {
@@ -2058,14 +2069,16 @@ dart_library.library('dart/convert', null, /* Imports */[
   const UNICODE_BOM_CHARACTER_RUNE = 65279;
   const _allowMalformed = Symbol('_allowMalformed');
   class Utf8Codec extends Encoding {
-    Utf8Codec({allowMalformed = false} = {}) {
+    Utf8Codec(opts) {
+      let allowMalformed = opts && 'allowMalformed' in opts ? opts.allowMalformed : false;
       this[_allowMalformed] = allowMalformed;
       super.Encoding();
     }
     get name() {
       return "utf-8";
     }
-    decode(codeUnits, {allowMalformed = null} = {}) {
+    decode(codeUnits, opts) {
+      let allowMalformed = opts && 'allowMalformed' in opts ? opts.allowMalformed : null;
       if (allowMalformed == null)
         allowMalformed = this[_allowMalformed];
       return new Utf8Decoder({allowMalformed: allowMalformed}).convert(codeUnits);
@@ -2321,7 +2334,8 @@ dart_library.library('dart/convert', null, /* Imports */[
     })
   });
   class Utf8Decoder extends Converter$(core.List$(core.int), core.String) {
-    Utf8Decoder({allowMalformed = false} = {}) {
+    Utf8Decoder(opts) {
+      let allowMalformed = opts && 'allowMalformed' in opts ? opts.allowMalformed : false;
       this[_allowMalformed] = allowMalformed;
       super.Converter();
     }

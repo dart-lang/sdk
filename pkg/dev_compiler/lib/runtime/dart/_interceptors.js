@@ -208,13 +208,15 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
       }
-      [dartx.firstWhere](test, {orElse = null} = {}) {
+      [dartx.firstWhere](test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
       }
-      [dartx.lastWhere](test, {orElse = null} = {}) {
+      [dartx.lastWhere](test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
       }
@@ -343,7 +345,8 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       toString() {
         return collection.ListBase.listToString(this);
       }
-      [dartx.toList]({growable = true} = {}) {
+      [dartx.toList](opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         let list = this.slice();
         if (!dart.notNull(growable))
           JSArray$().markFixedList(dart.as(list, core.List));
@@ -1002,7 +1005,9 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     [dartx.replaceAllMapped](from, convert) {
       return this[dartx.splitMapJoin](from, {onMatch: convert});
     }
-    [dartx.splitMapJoin](from, {onMatch = null, onNonMatch = null} = {}) {
+    [dartx.splitMapJoin](from, opts) {
+      let onMatch = opts && 'onMatch' in opts ? opts.onMatch : null;
+      let onNonMatch = opts && 'onNonMatch' in opts ? opts.onNonMatch : null;
       return dart.as(_js_helper.stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch), core.String);
     }
     [dartx.replaceFirst](from, to, startIndex) {

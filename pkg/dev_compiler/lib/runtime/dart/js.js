@@ -153,7 +153,8 @@ dart_library.library('dart/js', null, /* Imports */[
     _fromJs(jsObject) {
       super._fromJs(jsObject);
     }
-    apply(args, {thisArg = null} = {}) {
+    apply(args, opts) {
+      let thisArg = opts && 'thisArg' in opts ? opts.thisArg : null;
       return _convertToDart(this[_jsObject].apply(_convertToJS(thisArg), args == null ? null : core.List.from(args[dartx.map](_convertToJS))));
     }
   }

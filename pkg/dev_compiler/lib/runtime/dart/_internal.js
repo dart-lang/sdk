@@ -83,8 +83,9 @@ dart_library.library('dart/_internal', null, /* Imports */[
         }
         return false;
       }
-      firstWhere(test, {orElse = null} = {}) {
+      firstWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
@@ -99,8 +100,9 @@ dart_library.library('dart/_internal', null, /* Imports */[
           return orElse();
         dart.throw(IterableElementError.noElement());
       }
-      lastWhere(test, {orElse = null} = {}) {
+      lastWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         let length = this.length;
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
@@ -216,7 +218,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         return super.takeWhile(test);
       }
-      toList({growable = true} = {}) {
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (dart.notNull(growable)) {
           result = core.List$(E).new();
@@ -354,7 +357,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
           return new (SubListIterable$(E))(this[_iterable], this[_start], newEnd);
         }
       }
-      toList({growable = true} = {}) {
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         let start = this[_start];
         let end = this[_iterable][dartx.length];
         if (this[_endOrLength] != null && dart.notNull(this[_endOrLength]) < dart.notNull(end))
@@ -968,22 +972,25 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         return false;
       }
-      firstWhere(test, {orElse = null} = {}) {
+      firstWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         if (orElse != null)
           return orElse();
         dart.throw(IterableElementError.noElement());
       }
-      lastWhere(test, {orElse = null} = {}) {
+      lastWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         if (orElse != null)
           return orElse();
         dart.throw(IterableElementError.noElement());
       }
-      singleWhere(test, {orElse = null} = {}) {
+      singleWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         if (orElse != null)
           return orElse();
@@ -1026,7 +1033,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         return this;
       }
-      toList({growable = true} = {}) {
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         return dart.notNull(growable) ? dart.list([], E) : core.List$(E).new(0);
       }
       toSet() {

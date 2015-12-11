@@ -97,7 +97,11 @@ dart_library.library('dart/mirrors', null, /* Imports */[
     constructors: () => ({Comment: [Comment, [core.String, core.String, core.bool]]})
   });
   class MirrorsUsed extends core.Object {
-    MirrorsUsed({symbols = null, targets = null, metaTargets = null, override = null} = {}) {
+    MirrorsUsed(opts) {
+      let symbols = opts && 'symbols' in opts ? opts.symbols : null;
+      let targets = opts && 'targets' in opts ? opts.targets : null;
+      let metaTargets = opts && 'metaTargets' in opts ? opts.metaTargets : null;
+      let override = opts && 'override' in opts ? opts.override : null;
       this.symbols = symbols;
       this.targets = targets;
       this.metaTargets = metaTargets;
