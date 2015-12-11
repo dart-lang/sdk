@@ -409,7 +409,7 @@ LayoutTests/fast/forms/datetimelocal-multiple-fields/datetimelocal-multiple-fiel
 LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/focus-style-pending_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/focus_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/forms/form-submission-create-crash_t01.dart: Skip # Test reloads itself. Issue 18558.
+LayoutTests/fast/forms/form-submission-create-crash_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/formmethod-attribute-button-html_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/forms/formmethod-attribute-button-html_t01: Skip # Test reloads itself. Issue 18558.
 LayoutTests/fast/forms/formmethod-attribute-input-2_t01: Skip # Test reloads itself. Issue 18558.
