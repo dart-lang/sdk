@@ -853,9 +853,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     if (prim is! Constant && prim is! Refinement && prim.isSafeForElimination) {
       AbstractConstantValue value = getValue(prim);
       if (value.isConstant) {
-        prim.replaceWith(makeConstantPrimitive(value.constant));
-        push(node.body);
-        return;
+        if (constantIsSafeToCopy(value.constant)) {
+          prim.replaceWith(makeConstantPrimitive(value.constant));
+          push(node.body);
+          return;
+        }
       }
     }
 
@@ -885,6 +887,17 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
 
     push(node.body);
+  }
+
+  bool constantIsSafeToCopy(ConstantValue constant) {
+    // TODO(25230, 25231): We should refer to large shared strings by name.
+    // This number is chosen to prevent huge strings being copied. Don't make
+    // this too small, otherwise it will suppress otherwise harmless constant
+    // folding.
+    const int MAXIMUM_LENGTH_OF_DUPLICATED_STRING = 500;
+    return constant is StringConstantValue
+        ? constant.length < MAXIMUM_LENGTH_OF_DUPLICATED_STRING
+        : true;
   }
 
   bool isAlwaysThrowingOrDiverging(Primitive prim) {
