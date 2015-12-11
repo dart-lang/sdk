@@ -168,6 +168,25 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return true;
 }
 
+static int64_t GetCurrentTimeMicros() {
+  static const int64_t kTimeEpoc = 116444736000000000LL;
+  static const int64_t kTimeScaler = 10;  // 100 ns to us.
+
+  // Although win32 uses 64-bit integers for representing timestamps,
+  // these are packed into a FILETIME structure. The FILETIME
+  // structure is just a struct representing a 64-bit integer. The
+  // TimeStamp union allows access to both a FILETIME and an integer
+  // representation of the timestamp. The Windows timestamp is in
+  // 100-nanosecond intervals since January 1, 1601.
+  union TimeStamp {
+    FILETIME ft_;
+    int64_t t_;
+  };
+  TimeStamp time;
+  GetSystemTimeAsFileTime(&time.ft_);
+  return (time.t_ - kTimeEpoc) / kTimeScaler;
+}
+
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
