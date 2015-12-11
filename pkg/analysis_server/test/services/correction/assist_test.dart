@@ -10,8 +10,10 @@ import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -99,13 +101,21 @@ class AssistProcessorTest extends AbstractSingleUnitTest {
     }).toList();
   }
 
+  void processRequiredPlugins() {
+    plugin = new ServerPlugin();
+
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(plugin);
+
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+  }
+
   void setUp() {
     super.setUp();
     offset = 0;
     length = 0;
-    ExtensionManager manager = new ExtensionManager();
-    plugin = new ServerPlugin();
-    manager.processPlugins([plugin]);
   }
 
   test_addTypeAnnotation_BAD_privateType_closureParameter() async {
@@ -863,6 +873,32 @@ class A {}
 ''');
     await assertNoAssistAt(
         'AAA', DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK);
+  }
+
+  test_convertDocumentationIntoBlock_OK_noSpaceBeforeText() async {
+    resolveTestUnit('''
+class A {
+  /// AAAAA
+  ///BBBBB
+  ///
+  /// CCCCC
+  mmm() {}
+}
+''');
+    await assertHasAssistAt(
+        'AAAAA',
+        DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK,
+        '''
+class A {
+  /**
+   * AAAAA
+   *BBBBB
+   *
+   * CCCCC
+   */
+  mmm() {}
+}
+''');
   }
 
   test_convertDocumentationIntoBlock_OK_onReference() async {

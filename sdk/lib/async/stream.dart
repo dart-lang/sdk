@@ -906,7 +906,7 @@ abstract class Stream<T> {
    * Skips data events if they are equal to the previous data event.
    *
    * The returned stream provides the same events as this stream, except
-   * that it never provides two consequtive data events that are equal.
+   * that it never provides two consecutive data events that are equal.
    *
    * Equality is determined by the provided [equals] method. If that is
    * omitted, the '==' operator on the last provided data element is used.
@@ -1459,7 +1459,7 @@ class StreamView<T> extends Stream<T> {
 /**
  * Abstract interface for a "sink" accepting multiple entire streams.
  *
- * A consumer can accept a number of consequtive streams using [addStream],
+ * A consumer can accept a number of consecutive streams using [addStream],
  * and when no further data need to be added, the [close] method tells the
  * consumer to complete its work and shut down.
  *
@@ -1493,7 +1493,7 @@ abstract class StreamConsumer<S> {
   Future addStream(Stream<S> stream);
 
   /**
-   * Tells the consumer that no futher streams will be added.
+   * Tells the consumer that no further streams will be added.
    *
    * This allows the consumer to complete any remaining work and release
    * resources that are no longer needed
@@ -1527,7 +1527,7 @@ abstract class StreamConsumer<S> {
  */
 abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
   /**
-   * Tells the stream sink that no futher streams will be added.
+   * Tells the stream sink that no further streams will be added.
    *
    * This allows the stream sink to complete any remaining work and release
    * resources that are no longer needed

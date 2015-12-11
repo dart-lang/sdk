@@ -65,7 +65,8 @@ class AnalysisDomainHandler implements RequestHandler {
           if (errorInfo == null) {
             server.sendResponse(new Response.getErrorsInvalidFile(request));
           } else {
-            errors = doAnalysisError_listFromEngine(
+            engine.AnalysisContext context = server.getAnalysisContext(file);
+            errors = doAnalysisError_listFromEngine(context,
                 errorInfo.lineInfo, errorInfo.errors);
             server.sendResponse(
                 new AnalysisGetErrorsResult(errors).toResponse(request.id));
@@ -175,8 +176,9 @@ class AnalysisDomainHandler implements RequestHandler {
     if (pair.context == null || pair.source == null) {
       return new Response.getReachableSourcesInvalidFile(request);
     }
-    Map<String, List<String>> sources = new ReachableSourceCollector(
-        pair.source, pair.context).collectSources();
+    Map<String, List<String>> sources =
+        new ReachableSourceCollector(pair.source, pair.context)
+            .collectSources();
     return new AnalysisGetReachableSourcesResult(sources)
         .toResponse(request.id);
   }
@@ -245,9 +247,22 @@ class AnalysisDomainHandler implements RequestHandler {
    */
   Response setAnalysisRoots(Request request) {
     var params = new AnalysisSetAnalysisRootsParams.fromRequest(request);
+    List<String> includedPathList = params.included;
+    List<String> excludedPathList = params.excluded;
+    // validate
+    for (String path in includedPathList) {
+      if (!server.isValidFilePath(path)) {
+        return new Response.invalidFilePathFormat(request, path);
+      }
+    }
+    for (String path in excludedPathList) {
+      if (!server.isValidFilePath(path)) {
+        return new Response.invalidFilePathFormat(request, path);
+      }
+    }
     // continue in server
-    server.setAnalysisRoots(request.id, params.included, params.excluded,
-        params.packageRoots == null ? {} : params.packageRoots);
+    server.setAnalysisRoots(request.id, includedPathList, excludedPathList,
+        params.packageRoots ?? <String, String>{});
     return new AnalysisSetAnalysisRootsResult().toResponse(request.id);
   }
 
@@ -347,8 +362,8 @@ class AnalysisDomainHandler implements RequestHandler {
 class AnalysisDomainImpl implements AnalysisDomain {
   final AnalysisServer server;
 
-  final Map<ResultDescriptor,
-          StreamController<engine.ComputedResult>> controllers =
+  final Map<ResultDescriptor, StreamController<engine.ComputedResult>>
+      controllers =
       <ResultDescriptor, StreamController<engine.ComputedResult>>{};
 
   AnalysisDomainImpl(this.server) {

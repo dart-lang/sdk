@@ -15,7 +15,7 @@
  *   of exactly one task.
  * - Convert this tool to use package_config to find the package map.
  */
-library task_dependency_graph.generate;
+library analyzer.tool.task_dependency_graph.generate;
 
 import 'dart:io' hide File;
 import 'dart:io' as io;
@@ -120,6 +120,7 @@ class Driver {
    * Generate the task dependency graph and return it as a [String].
    */
   String generateFileContents() {
+    AnalysisEngine.instance.processRequiredPlugins();
     List<String> lines = <String>[];
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;

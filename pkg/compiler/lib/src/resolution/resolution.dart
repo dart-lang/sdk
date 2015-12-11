@@ -21,6 +21,11 @@ import '../compiler.dart' show
     Compiler;
 import '../compile_time_constants.dart' show
     ConstantCompiler;
+import '../constants/expressions.dart' show
+    ConstantExpression,
+    ConstantExpressionKind,
+    ConstructedConstantExpression,
+    ErroneousConstantExpression;
 import '../constants/values.dart' show
     ConstantValue;
 import '../core_types.dart' show
@@ -856,7 +861,7 @@ class ResolverTask extends CompilerTask {
     if (lookupElement == null) {
       reporter.internalError(member,
           "No abstract field for accessor");
-    } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
+    } else if (!lookupElement.isAbstractField) {
       if (lookupElement.isMalformed || lookupElement.isAmbiguous) return;
       reporter.internalError(member,
           "Inaccessible abstract field for accessor");
@@ -869,14 +874,14 @@ class ResolverTask extends CompilerTask {
     if (setter == null) return;
     int getterFlags = getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     int setterFlags = setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
-    if (!identical(getterFlags, setterFlags)) {
+    if (getterFlags != setterFlags) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
-      reporter.reportErrorMessage(
+      reporter.reportWarningMessage(
           field.getter,
           MessageKind.GETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
-      reporter.reportErrorMessage(
+      reporter.reportWarningMessage(
           field.setter,
           MessageKind.SETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
@@ -1061,8 +1066,29 @@ class ResolverTask extends CompilerTask {
       node.accept(visitor);
       // TODO(johnniwinther): Avoid passing the [TreeElements] to
       // [compileMetadata].
-      annotation.constant =
-          constantCompiler.compileMetadata(annotation, node, registry.mapping);
+      ConstantExpression constant = constantCompiler.compileMetadata(
+          annotation, node, registry.mapping);
+      switch (constant.kind) {
+        case ConstantExpressionKind.CONSTRUCTED:
+          ConstructedConstantExpression constructedConstant = constant;
+          if (constructedConstant.type.isGeneric) {
+            // Const constructor calls cannot have type arguments.
+            // TODO(24312): Remove this.
+            reporter.reportErrorMessage(
+                node, MessageKind.INVALID_METADATA_GENERIC);
+            constant = new ErroneousConstantExpression();
+          }
+          break;
+        case ConstantExpressionKind.VARIABLE:
+        case ConstantExpressionKind.ERRONEOUS:
+          break;
+        default:
+          reporter.reportErrorMessage(node, MessageKind.INVALID_METADATA);
+          constant = new ErroneousConstantExpression();
+          break;
+      }
+      annotation.constant = constant;
+
       constantCompiler.evaluate(annotation.constant);
       // TODO(johnniwinther): Register the relation between the annotation
       // and the annotated element instead. This will allow the backend to

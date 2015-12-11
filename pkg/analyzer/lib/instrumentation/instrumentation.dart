@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library instrumentation;
+library analyzer.instrumentation.instrumentation;
 
 import 'dart:async';
 import 'dart:convert';
@@ -104,9 +104,7 @@ class InstrumentationService {
    * Log that the given analysis [task] is being performed in the given
    * [context].
    */
-  void logAnalysisTask(String context, dynamic task) {
-    // TODO(brianwilkerson) When the old task model is removed, change the
-    // parameter type to AnalysisTask.
+  void logAnalysisTask(String context, AnalysisTask task) {
     if (_instrumentationServer != null) {
       String description =
           (task is AnalysisTask) ? task.description : task.toString();

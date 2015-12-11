@@ -9,6 +9,9 @@
   * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
     return type.
   * Added `growable` parameter to `List.filled` constructor.
+  * Added microsecond support to `DateTime`: `DateTime.microsecond`,
+    `DateTime.microsecondsSinceEpoch`, and
+    `new DateTime.fromMicrosecondsSinceEpoch`.
 
 * `dart:math`
   * `Random` added a `secure` constructor returning a cryptographically secure
@@ -20,6 +23,12 @@
     return `ios`.
 
 ### Tool changes
+
+* `dartfmt`
+
+  * Better line splitting in a variety of cases.
+
+  * Other optimizations and bug fixes.
 
 * Pub
 

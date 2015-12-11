@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.ast_test;
+library analyzer.test.generated.ast_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -1731,6 +1731,13 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitAssertStatement() {
     _assertSource(
         "assert (a);", AstFactory.assertStatement(AstFactory.identifier3("a")));
+  }
+
+  void test_visitAssertStatement_withMessage() {
+    _assertSource(
+        "assert (a, b);",
+        AstFactory.assertStatement(
+            AstFactory.identifier3("a"), AstFactory.identifier3('b')));
   }
 
   void test_visitAssignmentExpression() {

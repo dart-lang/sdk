@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver.element_resolver;
+library analyzer.src.generated.element_resolver;
 
 import 'dart:collection';
 
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart';
-import 'error.dart';
-import 'resolver.dart';
-import 'scanner.dart' as sc;
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart' as sc;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * An object used by instances of [ResolverVisitor] to resolve references within
@@ -102,7 +102,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   /**
    * The type representing the type 'type'.
    */
-  DartType _typeType;
+  InterfaceType _typeType;
 
   /**
    * A utility class for the resolver to answer the question of "what are my
@@ -594,8 +594,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     Element staticElement;
     Element propagatedElement;
-    DartType staticType = null;
-    DartType propagatedType = null;
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;
@@ -611,8 +609,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       methodName.staticElement = importedLibrary.loadLibraryFunction;
       return null;
     } else {
-      staticType = _getStaticType(target);
-      propagatedType = _getPropagatedType(target);
       //
       // If this method invocation is of the form 'C.m' where 'C' is a class,
       // then we don't call resolveInvokedElement(...) which walks up the class
@@ -622,8 +618,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
       ClassElementImpl typeReference = getTypeReference(target);
       if (typeReference != null) {
+        if (node.isCascaded) {
+          typeReference = _typeType.element;
+        }
         staticElement = _resolveElement(typeReference, methodName);
       } else {
+        DartType staticType = _getStaticType(target);
+        DartType propagatedType = _getPropagatedType(target);
         staticElement = _resolveInvokedElementWithTarget(
             target, staticType, methodName, isConditional);
         // If we have propagated type information use it (since it should
@@ -635,6 +636,46 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
     }
+    //
+    // Check for a generic method & apply type arguments if any were passed.
+    //
+    if (staticElement is MethodElement || staticElement is FunctionElement) {
+      FunctionType type = (staticElement as ExecutableElement).type;
+      List<TypeParameterElement> parameters = type.boundTypeParameters;
+
+      NodeList<TypeName> arguments = node.typeArguments?.arguments;
+      if (arguments != null && arguments.length != parameters.length) {
+        // Wrong number of type arguments. Ignore them
+        arguments = null;
+        _resolver.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+            methodName,
+            [type, parameters.length, arguments.length]);
+      }
+      if (parameters.isNotEmpty) {
+        List<DartType> typeArgs;
+        if (arguments == null) {
+          typeArgs = new List<DartType>.filled(
+              parameters.length, DynamicTypeImpl.instance);
+        } else {
+          typeArgs = new List<DartType>.from(arguments.map((n) => n.type));
+        }
+        type = type.instantiate(typeArgs);
+
+        if (staticElement is MethodMember) {
+          MethodMember member = staticElement;
+          staticElement =
+              new MethodMember(member.baseElement, member.definingType, type);
+        } else if (staticElement is MethodElement) {
+          ClassElement clazz = staticElement.enclosingElement;
+          staticElement = new MethodMember(staticElement, clazz.type, type);
+        } else {
+          staticElement =
+              new FunctionMember(staticElement as FunctionElement, type);
+        }
+      }
+    }
+
     staticElement = _convertSetterToGetter(staticElement);
     propagatedElement = _convertSetterToGetter(propagatedElement);
     //
@@ -733,17 +774,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 //          resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
           return null;
         }
-        ClassElementImpl typeReference = getTypeReference(target);
-        if (typeReference != null) {
-          ConstructorElement constructor =
-              typeReference.getNamedConstructor(methodName.name);
-          if (constructor != null) {
-            _recordUndefinedNode(
-                typeReference,
-                StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
-                methodName,
-                [methodName.name, typeReference.name]);
-            return null;
+        if (!node.isCascaded) {
+          ClassElementImpl typeReference = getTypeReference(target);
+          if (typeReference != null) {
+            ConstructorElement constructor =
+                typeReference.getNamedConstructor(methodName.name);
+            if (constructor != null) {
+              _recordUndefinedNode(
+                  typeReference,
+                  StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
+                  methodName,
+                  [methodName.name, typeReference.name]);
+              return null;
+            }
           }
         }
         targetTypeName = targetType == null ? null : targetType.displayName;
@@ -883,7 +926,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Otherwise, the prefix is really an expression that happens to be a simple
     // identifier and this is really equivalent to a property access node.
     //
-    _resolvePropertyAccess(prefix, identifier);
+    _resolvePropertyAccess(prefix, identifier, false);
     return null;
   }
 
@@ -939,7 +982,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     SimpleIdentifier propertyName = node.propertyName;
-    _resolvePropertyAccess(target, propertyName);
+    _resolvePropertyAccess(target, propertyName, node.isCascaded);
     return null;
   }
 
@@ -2211,7 +2254,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   void _resolvePropertyAccess(
-      Expression target, SimpleIdentifier propertyName) {
+      Expression target, SimpleIdentifier propertyName, bool isCascaded) {
     DartType staticType = _getStaticType(target);
     DartType propagatedType = _getPropagatedType(target);
     Element staticElement = null;
@@ -2224,6 +2267,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     ClassElementImpl typeReference = getTypeReference(target);
     if (typeReference != null) {
+      if (isCascaded) {
+        typeReference = _typeType.element;
+      }
       // TODO(brianwilkerson) Why are we setting the propagated element here?
       // It looks wrong.
       staticElement =

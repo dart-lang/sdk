@@ -4,9 +4,12 @@
 
 library analyzer.src.task.options;
 
+import 'dart:collection';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -28,9 +31,9 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
 final _OptionsProcessor _processor = new _OptionsProcessor();
 
 /// Configure this [context] based on configuration details specified in
-/// the given [options].
+/// the given [options].  If [options] is `null`, default values are applied.
 void configureContextOptions(
-        AnalysisContext context, Map<String, YamlNode> options) =>
+        AnalysisContext context, Map<String, Object> options) =>
     _processor.configure(context, options);
 
 /// `analyzer` analysis options constants.
@@ -46,6 +49,10 @@ class AnalyzerOptions {
 
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = const ['ignore', 'false'];
+
+  /// Valid error `severity`s.
+  static final List<String> severities =
+      ErrorSeverity.values.map((s) => s.name).toList();
 
   /// Ways to say `include`.
   static const List<String> includeSynonyms = const ['include', 'true'];
@@ -126,9 +133,20 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       new List.from(AnalyzerOptions.ignoreSynonyms)
         ..addAll(AnalyzerOptions.includeSynonyms));
 
-  bool recognizedErrorCode(String name) =>
-      ErrorCode.values.any((ErrorCode code) => code.name == name) ||
-          StaticInfo.names.contains(name);
+  /// Lazily populated set of error codes (hashed for speedy lookup).
+  static HashSet<String> _errorCodes;
+
+  /// Legal error code names.
+  static Set<String> get errorCodes {
+    if (_errorCodes == null) {
+      _errorCodes = new HashSet<String>();
+      // Engine codes.
+      _errorCodes.addAll(ErrorCode.values.map((ErrorCode code) => code.name));
+      // Strong-mode codes.
+      _errorCodes.addAll(StaticInfo.names);
+    }
+    return _errorCodes;
+  }
 
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
@@ -143,7 +161,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       filters.nodes.forEach((k, v) {
         if (k is YamlScalar) {
           value = toUpperCase(k.value);
-          if (!recognizedErrorCode(value)) {
+          if (!errorCodes.contains(value)) {
             reporter.reportErrorForSpan(
                 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                 k.span,
@@ -371,9 +389,13 @@ class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
 }
 
 class _OptionsProcessor {
-  void configure(AnalysisContext context, Map<String, YamlNode> options) {
+  static final Map<String, Object> defaults = {'analyzer': {}};
+
+  /// Configure [context] based on the given [options] (which can be `null`
+  /// to restore [defaults]).
+  void configure(AnalysisContext context, Map<String, Object> options) {
     if (options == null) {
-      return;
+      options = defaults;
     }
 
     var analyzer = options[AnalyzerOptions.analyzer];
@@ -387,31 +409,11 @@ class _OptionsProcessor {
 
     // Set filters.
     var filters = analyzer[AnalyzerOptions.errors];
-    setFilters(context, filters);
+    setProcessors(context, filters);
 
     // Process language options.
     var language = analyzer[AnalyzerOptions.language];
     setLanguageOptions(context, language);
-  }
-
-  void setFilters(AnalysisContext context, Object codes) {
-    List<ErrorFilter> filters = <ErrorFilter>[];
-    // If codes are enumerated, collect them as filters; else leave filters
-    // empty to overwrite previous value.
-    if (codes is YamlMap) {
-      String value;
-      codes.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          value = toLowerCase(v.value);
-          if (AnalyzerOptions.ignoreSynonyms.contains(value)) {
-            // Case-insensitive.
-            String code = toUpperCase(k.value);
-            filters.add((AnalysisError error) => error.errorCode.name == code);
-          }
-        }
-      });
-    }
-    context.setConfigurationData(CONFIGURED_ERROR_FILTERS, filters);
   }
 
   void setLanguageOption(
@@ -445,6 +447,11 @@ class _OptionsProcessor {
     } else if (configs is Map) {
       configs.forEach((k, v) => setLanguageOption(context, k, v));
     }
+  }
+
+  void setProcessors(AnalysisContext context, Object codes) {
+    ErrorConfig config = new ErrorConfig(codes);
+    context.setConfigurationData(CONFIGURED_ERROR_PROCESSORS, config.processors);
   }
 
   void setStrongMode(AnalysisContext context, Object strongMode) {

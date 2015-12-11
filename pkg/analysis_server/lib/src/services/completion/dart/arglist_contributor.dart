@@ -87,6 +87,23 @@ bool _isAppendingToArgList(DartCompletionRequest request) {
 }
 
 /**
+ * Determine if the completion target is the label for a named argument.
+ */
+bool _isEditingNamedArgLabel(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  if (node is ArgumentList) {
+    var entity = request.target.entity;
+    if (entity is NamedExpression) {
+      int offset = request.offset;
+      if (entity.offset <= offset && offset < entity.end) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Determine if the completion target is an emtpy argument list.
  */
 bool _isEmptyArgList(DartCompletionRequest request) {
@@ -134,7 +151,7 @@ class ArgListContributor extends DartCompletionContributor {
     }
 
     // Resolve the target expression to determine the arguments
-    await request.resolveIdentifier(targetId);
+    await request.resolveExpression(targetId);
     // Gracefully degrade if the element could not be resolved
     // e.g. target changed, completion aborted
     targetId = _getTargetId(request.target.containingNode);
@@ -171,32 +188,35 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   void _addArgListSuggestion(Iterable<ParameterElement> requiredParam) {
-    StringBuffer completion = new StringBuffer('(');
-    List<String> paramNames = new List<String>();
-    List<String> paramTypes = new List<String>();
-    for (ParameterElement param in requiredParam) {
-      String name = param.name;
-      if (name != null && name.length > 0) {
-        if (completion.length > 1) {
-          completion.write(', ');
-        }
-        completion.write(name);
-        paramNames.add(name);
-        paramTypes.add(_getParamType(param));
-      }
-    }
-    completion.write(')');
-    CompletionSuggestion suggestion = new CompletionSuggestion(
-        CompletionSuggestionKind.ARGUMENT_LIST,
-        DART_RELEVANCE_HIGH,
-        completion.toString(),
-        completion.length,
-        0,
-        false,
-        false);
-    suggestion.parameterNames = paramNames;
-    suggestion.parameterTypes = paramTypes;
-    suggestions.add(suggestion);
+    // DEPRECATED... argument lists are no longer suggested.
+    // See https://github.com/dart-lang/sdk/issues/25197
+
+    // StringBuffer completion = new StringBuffer('(');
+    // List<String> paramNames = new List<String>();
+    // List<String> paramTypes = new List<String>();
+    // for (ParameterElement param in requiredParam) {
+    //   String name = param.name;
+    //   if (name != null && name.length > 0) {
+    //     if (completion.length > 1) {
+    //       completion.write(', ');
+    //     }
+    //     completion.write(name);
+    //     paramNames.add(name);
+    //     paramTypes.add(_getParamType(param));
+    //   }
+    // }
+    // completion.write(')');
+    // CompletionSuggestion suggestion = new CompletionSuggestion(
+    //     CompletionSuggestionKind.ARGUMENT_LIST,
+    //     DART_RELEVANCE_HIGH,
+    //     completion.toString(),
+    //     completion.length,
+    //     0,
+    //     false,
+    //     false);
+    // suggestion.parameterNames = paramNames;
+    // suggestion.parameterTypes = paramTypes;
+    // suggestions.add(suggestion);
   }
 
   void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters) {
@@ -233,7 +253,7 @@ class ArgListContributor extends DartCompletionContributor {
       _addArgListSuggestion(requiredParam);
       return;
     }
-    if (_isAppendingToArgList(request)) {
+    if (_isEditingNamedArgLabel(request) || _isAppendingToArgList(request)) {
       if (requiredCount == 0 || requiredCount < _argCount(request)) {
         _addDefaultParamSuggestions(parameters);
       }

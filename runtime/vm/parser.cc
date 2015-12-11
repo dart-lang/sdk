@@ -453,6 +453,17 @@ void Parser::ParseCompilationUnit(const Library& library,
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread, parser_timer);
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
+  TimelineDurationScope tds(thread,
+                            thread->isolate()->GetCompilerStream(),
+                            "CompileTopLevel");
+  if (tds.enabled()) {
+    tds.SetNumArguments(1);
+    tds.CopyArgument(
+        0,
+        "script",
+        const_cast<char*>(String::Handle(script.url()).ToCString()));
+  }
+
   Parser parser(script, library, 0);
   parser.ParseTopLevel();
 }
@@ -1696,6 +1707,8 @@ void Parser::SkipToMatching() {
         is_match = opening_token == Token::kLBRACK;
         break;
       case Token::kEOS:
+        opening_token = token_stack.RemoveLast();
+        opening_pos = token_pos_stack.RemoveLast();
         unexpected_token_found = true;
         break;
       default:
@@ -3967,7 +3980,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (library_.is_dart_scheme() && library_.IsPrivate(*method->name)) {
     func.set_is_reflectable(false);
   }
-  if (method->metadata_pos > 0) {
+  if (FLAG_enable_mirrors && (method->metadata_pos > 0)) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
   }
   if (method->has_native) {
@@ -4067,7 +4080,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     class_field.set_has_initializer(has_initializer);
     members->AddField(class_field);
     field->field_ = &class_field;
-    if (field->metadata_pos >= 0) {
+    if (FLAG_enable_mirrors && (field->metadata_pos >= 0)) {
       library_.AddFieldMetadata(class_field, field->metadata_pos);
     }
 
@@ -4464,7 +4477,7 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
   library_.AddClass(cls);
   cls.set_is_synthesized_class();
   cls.set_is_enum_class();
-  if (metadata_pos >= 0) {
+  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
     library_.AddClassMetadata(cls, tl_owner, metadata_pos);
   }
   cls.set_super_type(Type::Handle(Z, Type::ObjectType()));
@@ -4587,7 +4600,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   if (is_abstract) {
     cls.set_is_abstract();
   }
-  if (metadata_pos >= 0) {
+  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
     library_.AddClassMetadata(cls, tl_owner, metadata_pos);
   }
 
@@ -5020,7 +5033,7 @@ void Parser::ParseMixinAppAlias(
   }
   ExpectSemicolon();
   pending_classes.Add(mixin_application, Heap::kOld);
-  if (metadata_pos >= 0) {
+  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
     library_.AddClassMetadata(mixin_application, tl_owner, metadata_pos);
   }
 }
@@ -5186,7 +5199,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   ASSERT(!function_type_alias.IsCanonicalSignatureClass());
   ASSERT(!function_type_alias.is_finalized());
   pending_classes.Add(function_type_alias, Heap::kOld);
-  if (metadata_pos >= 0) {
+  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
     library_.AddClassMetadata(function_type_alias,
                               tl_owner,
                               metadata_pos);
@@ -5309,7 +5322,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
                                           declaration_pos);
       type_parameters_array.Add(
           &AbstractType::ZoneHandle(Z, type_parameter.raw()));
-      if (metadata_pos >= 0) {
+      if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
         library_.AddTypeParameterMetadata(type_parameter, metadata_pos);
       }
       index++;
@@ -5468,7 +5481,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level,
     field.SetStaticValue(Object::null_instance(), true);
     top_level->AddField(field);
     library_.AddObject(field, var_name);
-    if (metadata_pos >= 0) {
+    if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
       library_.AddFieldMetadata(field, metadata_pos);
     }
     if (CurrentToken() == Token::kASSIGN) {
@@ -5659,7 +5672,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level,
     toplevel_cls.RemoveFunction(replaced_func);
     library_.ReplaceObject(func, func_name);
   }
-  if (metadata_pos >= 0) {
+  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
     library_.AddFunctionMetadata(func, metadata_pos);
   }
 }
@@ -5824,7 +5837,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level,
     toplevel_cls.RemoveFunction(replaced_func);
     library_.ReplaceObject(func, accessor_name);
   }
-  if (metadata_pos >= 0) {
+  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
     library_.AddFunctionMetadata(func, metadata_pos);
   }
 }
@@ -5986,7 +5999,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
 
   Namespace& ns = Namespace::Handle(Z,
       Namespace::New(library, show_names, hide_names));
-  if (metadata_pos >= 0) {
+  if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
     ns.AddMetadata(tl_owner, metadata_pos);
   }
 
@@ -6072,7 +6085,7 @@ void Parser::ParseLibraryDefinition(const Object& tl_owner) {
       ReportError("patch cannot override library name");
     }
     ParseLibraryName();
-    if (metadata_pos >= 0) {
+    if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
       library_.AddLibraryMetadata(tl_owner, metadata_pos);
     }
     rewind_pos = TokenPos();
@@ -7661,7 +7674,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
                                             innermost_function(),
                                             function_pos);
     function.set_result_type(result_type);
-    if (metadata_pos >= 0) {
+    if (FLAG_enable_mirrors && (metadata_pos >= 0)) {
       library_.AddFunctionMetadata(function, metadata_pos);
     }
   }
@@ -8655,7 +8668,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
 
   // Parse stream expression.
   ExpectToken(Token::kIN);
-  const intptr_t stream_pos = TokenPos();
+  const intptr_t stream_expr_pos = TokenPos();
   AstNode* stream_expr =
       ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
   ExpectToken(Token::kRPAREN);
@@ -8674,19 +8687,19 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       Function::ZoneHandle(Z, stream_iterator_cls.LookupFunction(
           Symbols::StreamIteratorConstructor()));
   ASSERT(!iterator_ctor.IsNull());
-  ArgumentListNode* ctor_args = new (Z) ArgumentListNode(Scanner::kNoSourcePos);
+  ArgumentListNode* ctor_args = new (Z) ArgumentListNode(stream_expr_pos);
   ctor_args->Add(stream_expr);
   ConstructorCallNode* ctor_call =
-      new (Z) ConstructorCallNode(Scanner::kNoSourcePos,
+      new (Z) ConstructorCallNode(stream_expr_pos,
                               TypeArguments::ZoneHandle(Z),
                               iterator_ctor,
                               ctor_args);
   const AbstractType& iterator_type = Type::ZoneHandle(Z, Type::DynamicType());
   LocalVariable* iterator_var = new(Z) LocalVariable(
-      stream_pos, Symbols::ForInIter(), iterator_type);
+      stream_expr_pos, Symbols::ForInIter(), iterator_type);
   current_block_->scope->AddVariable(iterator_var);
   AstNode* iterator_init =
-      new(Z) StoreLocalNode(stream_pos, iterator_var, ctor_call);
+      new(Z) StoreLocalNode(stream_expr_pos, iterator_var, ctor_call);
   current_block_->statements->Add(iterator_init);
 
   // We need to ensure that the stream is cancelled after the loop.
@@ -8724,15 +8737,15 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                          &async_saved_try_ctx,
                          &outer_saved_try_ctx,
                          &outer_async_saved_try_ctx);
-  ArgumentListNode* no_args = new(Z) ArgumentListNode(stream_pos);
+  ArgumentListNode* no_args = new(Z) ArgumentListNode(stream_expr_pos);
   AstNode* iterator_moveNext = new(Z) InstanceCallNode(
-      stream_pos,
-      new(Z) LoadLocalNode(stream_pos, iterator_var),
+      stream_expr_pos,
+      new(Z) LoadLocalNode(stream_expr_pos, iterator_var),
                            Symbols::MoveNext(),
                            no_args);
   OpenBlock();
   AstNode* await_moveNext =
-      new(Z) AwaitNode(stream_pos,
+      new(Z) AwaitNode(stream_expr_pos,
                        iterator_moveNext,
                        saved_try_ctx,
                        async_saved_try_ctx,

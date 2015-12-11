@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -67,6 +68,15 @@ class OpTypeTest {
     expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
   }
 
+  void processRequiredPlugins() {
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
+  }
+
+  void setUp() {
+    processRequiredPlugins();
+  }
+
   test_Annotation() {
     // SimpleIdentifier  Annotation  MethodDeclaration  ClassDeclaration
     addTestSource('class C { @A^ }');
@@ -96,6 +106,11 @@ class OpTypeTest {
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('class A {var b; X _c; foo() {var a; (a as ^).foo();}');
     assertOpType(typeNames: true);
+  }
+
+  test_Assert() {
+    addTestSource('main() {assert(^)}');
+    assertOpType(returnValue: true, typeNames: true);
   }
 
   test_AssignmentExpression_name() {

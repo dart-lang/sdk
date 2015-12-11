@@ -333,19 +333,35 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('main() {foo(() ^ {}}}');
     await computeSuggestions();
     assertSuggestKeywords([],
-        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_anonymous_function_async2() async {
     addTestSource('main() {foo(() a^ {}}}');
     await computeSuggestions();
-    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['async']);
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_anonymous_function_async3() async {
     addTestSource('main() {foo(() async ^ {}}}');
     await computeSuggestions();
     assertSuggestKeywords([]);
+  }
+
+  test_anonymous_function_async4() async {
+    addTestSource('main() {foo(() ^ => 2}}');
+    await computeSuggestions();
+    assertSuggestKeywords([],
+        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_anonymous_function_async5() async {
+    addTestSource('main() {foo(() ^}}');
+    await computeSuggestions();
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_argument() async {
@@ -651,35 +667,40 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     addTestSource('main()^');
     await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS,
-        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_function_async2() async {
     addTestSource('main()^{}');
     await computeSuggestions();
     assertSuggestKeywords([],
-        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_function_async3() async {
     addTestSource('main()a^');
     await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS,
-        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_function_async4() async {
     addTestSource('main()a^{}');
     await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS,
-        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_function_async5() async {
     addTestSource('main()a^ Foo foo;');
     await computeSuggestions();
     assertSuggestKeywords(DECLARATION_KEYWORDS,
-        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_function_body_inClass_constructorInitializer() async {
@@ -704,6 +725,19 @@ class A {
 ''');
     await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
+  }
+
+  test_function_body_inClass_constructorInitializer_async_star() async {
+    addTestSource(r'''
+  foo(p) {}
+  class A {
+    final f;
+    A() : f = foo(() async* {^});
+  }
+  ''');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   test_function_body_inClass_field() async {
@@ -756,6 +790,21 @@ class A {
     assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
   }
 
+  test_function_body_inClass_methodBody_inFunction_async_star() async {
+    addTestSource(r'''
+  class A {
+    m() {
+      f() {
+        f2() async* {^};
+      };
+    }
+  }
+  ''');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_IN_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
   test_function_body_inUnit() async {
     addTestSource('main() {^}');
     await computeSuggestions();
@@ -772,6 +821,34 @@ class A {
     addTestSource('main() async {^}');
     await computeSuggestions();
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
+  }
+
+  test_function_body_inUnit_async_star() async {
+    addTestSource('main() async* {n^}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
+  test_function_body_inUnit_async_star2() async {
+    addTestSource('main() async* {n^ foo}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
+  test_function_body_inUnit_sync_star() async {
+    addTestSource('main() sync* {n^}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
+  }
+
+  test_function_body_inUnit_sync_star2() async {
+    addTestSource('main() sync* {n^ foo}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_OUTSIDE_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   test_if_expression_in_class() async {
@@ -1098,38 +1175,44 @@ main() {
   test_method_async() async {
     addTestSource('class A { foo() ^}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_method_async2() async {
     addTestSource('class A { foo() ^{}}');
     await computeSuggestions();
     assertSuggestKeywords([],
-        pseudoKeywords: ['async'], relevance: DART_RELEVANCE_HIGH);
+        pseudoKeywords: ['async', 'async*', 'sync*'],
+        relevance: DART_RELEVANCE_HIGH);
   }
 
   test_method_async3() async {
     addTestSource('class A { foo() a^}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_method_async4() async {
     addTestSource('class A { foo() a^{}}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_method_async5() async {
     addTestSource('class A { foo() ^ Foo foo;}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_method_async6() async {
     addTestSource('class A { foo() a^ Foo foo;}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_method_async7() async {
@@ -1142,7 +1225,8 @@ main() {
   test_method_async8() async {
     addTestSource('class A { foo() a^ Foo foo;}');
     await computeSuggestions();
-    assertSuggestKeywords(CLASS_BODY_KEYWORDS, pseudoKeywords: ['async']);
+    assertSuggestKeywords(CLASS_BODY_KEYWORDS,
+        pseudoKeywords: ['async', 'async*', 'sync*']);
   }
 
   test_method_body() async {
@@ -1173,6 +1257,13 @@ main() {
     addTestSource('class A { foo() async {^}}');
     await computeSuggestions();
     assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
+  }
+
+  test_method_body_async_star() async {
+    addTestSource('class A { foo() async* {^}}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_IN_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   test_method_body_async2() async {

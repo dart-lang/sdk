@@ -420,13 +420,9 @@ class _LocationEqualsWrapper {
   }
 }
 
-class _MockFileManager extends TypedMock implements FileManager {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _MockFileManager extends TypedMock implements FileManager {}
 
-class _MockIndexNode extends TypedMock implements IndexNode {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _MockIndexNode extends TypedMock implements IndexNode {}
 
 @reflectiveTest
 class _RelationKeyDataTest {

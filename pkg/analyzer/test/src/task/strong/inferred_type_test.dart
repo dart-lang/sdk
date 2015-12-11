@@ -5,7 +5,7 @@
 // TODO(jmesserly): this file needs to be refactored, it's a port from
 // package:dev_compiler's tests
 /// Tests for type inference.
-library test.src.task.strong.inferred_type_test;
+library analyzer.test.src.task.strong.inferred_type_test;
 
 import 'package:unittest/unittest.dart';
 
@@ -346,6 +346,36 @@ void main() {
           j = /*severe:STATIC_TYPE_ERROR*/false;
           j = /*severe:STATIC_TYPE_ERROR*/[];
         }
+    '''
+  });
+
+  testChecker('infer list literal nested in map literal', {
+    '/main.dart': r'''
+class Resource {}
+class Folder extends Resource {}
+
+Resource getResource(String str) => null;
+
+class Foo<T> {
+  Foo(T t);
+}
+
+main() {
+  // List inside map
+  var map = <String, List<Folder>>{
+    'pkgA': /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/')],
+    'pkgB': /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgB/lib/')]
+  };
+  // Also try map inside list
+  var list = <Map<String, Folder>>[
+    /*info:INFERRED_TYPE_LITERAL*/{ 'pkgA': /*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/') },
+    /*info:INFERRED_TYPE_LITERAL*/{ 'pkgB': /*info:DOWN_CAST_IMPLICIT*/getResource('/pkgB/lib/') },
+  ];
+  // Instance creation too
+  var foo = new Foo<List<Folder>>(
+    /*info:INFERRED_TYPE_LITERAL*/[/*info:DOWN_CAST_IMPLICIT*/getResource('/pkgA/lib/')]
+  );
+}
     '''
   });
 
@@ -1120,6 +1150,63 @@ void main() {
       }
       ''';
     testChecker('infer downwards', {'/main.dart': code});
+
+    testChecker('infer if value types match context', {'/main.dart': r'''
+class DartType {}
+typedef void Asserter<T>(T type);
+typedef Asserter<T> AsserterBuilder<S, T>(S arg);
+
+Asserter<DartType> _isInt;
+Asserter<DartType> _isString;
+
+abstract class C {
+  static AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf;
+  static AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf;
+
+  AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
+  AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
+
+  method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
+    assertAOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+    assertBOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+    assertCOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+    assertDOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+    assertEOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+  }
+}
+
+abstract class G<T> {
+  AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
+  AsserterBuilder<List<Asserter<DartType>>, DartType> get assertDOf;
+
+  method(AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf) {
+    assertAOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+    this.assertAOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+    this.assertDOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+    assertEOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+  }
+}
+
+AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf;
+AsserterBuilder<List<Asserter<DartType>>, DartType> get assertCOf;
+
+main() {
+  AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf;
+  assertAOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+  assertBOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+  assertCOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+  C.assertBOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+  C.assertCOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+
+  C c;
+  c.assertAOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+  c.assertDOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+
+  G<int> g;
+  g.assertAOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+  g.assertDOf(/*info:INFERRED_TYPE_LITERAL*/[_isInt, _isString]);
+}
+    '''});
   });
 
   group('downwards inference on function arguments', () {

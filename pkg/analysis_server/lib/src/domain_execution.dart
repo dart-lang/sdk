@@ -161,8 +161,7 @@ class ExecutionDomainHandler implements RequestHandler {
       String filePath = source.fullName;
       // check files
       bool isDartFile = notice.resolvedDartUnit != null;
-      bool isHtmlFile = notice.resolvedHtmlUnit != null;
-      if (!isDartFile && !isHtmlFile) {
+      if (!isDartFile) {
         return;
       }
       // prepare context
@@ -184,10 +183,6 @@ class ExecutionDomainHandler implements RequestHandler {
         server.sendNotification(
             new ExecutionLaunchDataParams(filePath, kind: kind)
                 .toNotification());
-      } else if (isHtmlFile) {
-        List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
-        server.sendNotification(new ExecutionLaunchDataParams(filePath,
-            referencedFiles: _getFullNames(libraries)).toNotification());
       }
     });
   }

@@ -48,7 +48,7 @@ class OS {
   static int64_t GetCurrentTimeMicros();
 
   // Returns the current time used by the tracing infrastructure.
-  static int64_t GetCurrentTraceMicros();
+  static int64_t GetCurrentMonotonicMicros();
 
   // Returns a cleared aligned array of type T with n entries.
   // Alignment must be >= 16 and a power of two.

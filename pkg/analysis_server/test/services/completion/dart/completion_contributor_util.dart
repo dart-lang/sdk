@@ -368,6 +368,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     if (libraries.isNotEmpty) {
       return new Future.value(libraries);
     }
+    if (times == 0) {
+      fail('failed to determine libraries containing $testSource');
+    }
     context.performAnalysisTask();
     // We use a delayed future to allow microtask events to finish. The
     // Future.value or Future() constructors use scheduleMicrotask themselves and
@@ -380,23 +383,33 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   Future computeSuggestions([int times = 200]) async {
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
         context, provider, searchEngine, testSource, completionOffset);
-    request = new DartCompletionRequestImpl.forRequest(baseRequest);
+
+    // Build the request
+    Completer<DartCompletionRequest> requestCompleter =
+        new Completer<DartCompletionRequest>();
+    DartCompletionRequestImpl
+        .from(baseRequest)
+        .then((DartCompletionRequest request) {
+      requestCompleter.complete(request);
+    });
+    request = await performAnalysis(times, requestCompleter);
+
     var range = new ReplacementRange.compute(request.offset, request.target);
     replacementOffset = range.offset;
     replacementLength = range.length;
-    Completer<List<CompletionSuggestion>> completer =
+    Completer<List<CompletionSuggestion>> suggestionCompleter =
         new Completer<List<CompletionSuggestion>>();
 
     // Request completions
     contributor
         .computeSuggestions(request)
         .then((List<CompletionSuggestion> computedSuggestions) {
-      completer.complete(computedSuggestions);
+      suggestionCompleter.complete(computedSuggestions);
     });
 
     // Perform analysis until the suggestions have been computed
     // or the max analysis cycles ([times]) has been reached
-    suggestions = await performAnalysis(times, completer);
+    suggestions = await performAnalysis(times, suggestionCompleter);
     expect(suggestions, isNotNull, reason: 'expected suggestions');
   }
 

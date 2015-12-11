@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source.package_map_provider;
+library analyzer.source.package_map_provider;
 
 import 'package:analyzer/file_system/file_system.dart';
 

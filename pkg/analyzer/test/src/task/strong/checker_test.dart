@@ -5,7 +5,7 @@
 // TODO(jmesserly): this file needs to be refactored, it's a port from
 // package:dev_compiler's tests
 /// General type checking tests
-library test.src.task.strong.checker_test;
+library analyzer.test.src.task.strong.checker_test;
 
 import 'package:unittest/unittest.dart';
 
@@ -247,7 +247,7 @@ void main() {
       class B extends A {
         B() : super(/*severe:STATIC_TYPE_ERROR*/"hello");
 
-        B.c2(int x, String y) : super.c2(/*severe:STATIC_TYPE_ERROR*/y, 
+        B.c2(int x, String y) : super.c2(/*severe:STATIC_TYPE_ERROR*/y,
                                          /*severe:STATIC_TYPE_ERROR*/x);
 
         B.c3(num x, Object y) : super.c3(x, /*info:DOWN_CAST_IMPLICIT*/y);
@@ -1347,6 +1347,49 @@ void main() {
             C m4(A value) {}
             m5(value) {}
             /*severe:INVALID_METHOD_OVERRIDE*/dynamic m6(dynamic value) {}
+          }
+       '''
+  });
+
+  testChecker('generic class method override', {
+    '/main.dart': '''
+          class A {}
+          class B extends A {}
+
+          class Base<T extends B> {
+            T foo() => null;
+          }
+
+          class Derived<S extends A> extends Base<B> {
+            /*severe:INVALID_METHOD_OVERRIDE*/S foo() => null;
+          }
+
+          class Derived2<S extends B> extends Base<B> {
+            S foo() => null;
+          }
+       '''
+  });
+
+  testChecker('generic method override', {
+    '/main.dart': '''
+          class Future<T> {
+            /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
+          }
+
+          class DerivedFuture<T> extends Future<T> {
+            /*=S*/ then/*<S>*/(/*=S*/ onValue(T t)) => null;
+          }
+
+          class DerivedFuture2<A> extends Future<A> {
+            /*=B*/ then/*<B>*/(/*=B*/ onValue(A a)) => null;
+          }
+
+          class DerivedFuture3<T> extends Future<T> {
+            /*=S*/ then/*<S>*/(Object onValue(T t)) => null;
+          }
+
+          class DerivedFuture4<A> extends Future<A> {
+            /*=B*/ then/*<B>*/(Object onValue(A a)) => null;
           }
        '''
   });

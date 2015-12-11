@@ -820,7 +820,7 @@ static Sample* SetupSample(Thread* thread,
   Isolate* isolate = thread->isolate();
   ASSERT(sample_buffer != NULL);
   Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(isolate, OS::GetCurrentTraceMicros(), tid);
+  sample->Init(isolate, OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
 #if defined(USING_SIMULATOR)
   // When running in the simulator, the runtime entry function address
@@ -898,7 +898,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
       return;
     }
 
-    Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
     sample->SetAllocationCid(cid);
     ProfilerNativeStackWalker native_stack_walker(isolate,
                                                   sample,
@@ -910,7 +910,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
                                                   sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
-    Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
     sample->SetAllocationCid(cid);
     ProfilerDartExitStackWalker dart_exit_stack_walker(thread,
                                                        isolate,
@@ -920,7 +920,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   } else {
     // Fall back.
     uintptr_t pc = GetProgramCounter();
-    Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
     sample->SetAllocationCid(cid);
     sample->SetAt(0, pc);
   }
@@ -1000,7 +1000,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   // Setup sample.
-  Sample* sample = SetupSample(thread, sample_buffer, os_thread->id());
+  Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);

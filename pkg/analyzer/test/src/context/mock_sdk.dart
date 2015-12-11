@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.mock_sdk;
+library analyzer.test.src.context.mock_sdk;
 
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
@@ -321,6 +321,13 @@ class HtmlElement {}
   }
 }
 
+class _MockSdkFile {
+  final String path;
+  final String content;
+
+  const _MockSdkFile(this.path, this.content);
+}
+
 class _MockSdkLibrary implements SdkLibrary {
   final String shortName;
   final String path;
@@ -354,13 +361,6 @@ class _MockSdkLibrary implements SdkLibrary {
   UnimplementedError get unimplemented => new UnimplementedError();
 }
 
-class _MockSdkFile {
-  final String path;
-  final String content;
-
-  const _MockSdkFile(this.path, this.content);
-}
-
 /**
  * An [AnalysisContextImpl] that only contains sources for a Dart SDK.
  */
@@ -374,8 +374,7 @@ class _SdkAnalysisContext extends AnalysisContextImpl {
     if (factory == null) {
       return super.createCacheFromSourceFactory(factory);
     }
-    return new AnalysisCache(<CachePartition>[
-      AnalysisEngine.instance.partitionManager_new.forSdk(sdk)
-    ]);
+    return new AnalysisCache(
+        <CachePartition>[AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
   }
 }

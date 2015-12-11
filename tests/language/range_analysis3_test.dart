@@ -4,14 +4,9 @@
 
 import "package:expect/expect.dart";
 
-confuse(x) {
-  if (new DateTime.now().millisecondsSinceEpoch == 0) {
-    return confuse(x + 1);
-  } else if (new DateTime.now().millisecondsSinceEpoch == 0) {
-    return confuse(x - 1);
-  }
-  return x;
-}
+@NoInline()
+@AssumeDynamic()
+confuse(x) => x is int ? x : 0;
 
 test1() {
   int x = 0;

@@ -62,9 +62,7 @@ class ExpectedMatch {
   }
 }
 
-class MockIndex extends TypedMock implements Index {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockIndex extends TypedMock implements Index {}
 
 @reflectiveTest
 class SearchEngineImplTest extends AbstractSingleUnitTest {

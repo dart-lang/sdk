@@ -2,16 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.driver_test;
+library analyzer.test.src.task.driver_test;
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide
-        AnalysisCache,
-        AnalysisContextImpl,
-        AnalysisTask,
-        UniversalCachePartition,
-        WorkManager;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/inputs.dart';
@@ -761,8 +755,6 @@ class _InternalAnalysisContextMock extends TypedMock
     }
     return entry;
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -788,6 +780,4 @@ class _TestCycleAwareDependencyWalker extends CycleAwareDependencyWalker<int> {
   }
 }
 
-class _WorkManagerMock extends TypedMock implements WorkManager {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _WorkManagerMock extends TypedMock implements WorkManager {}

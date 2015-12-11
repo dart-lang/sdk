@@ -474,7 +474,7 @@ class DartWorkManager implements WorkManager {
   }
 
   bool _shouldErrorsBeComputed(Source source) =>
-      context.shouldErrorsBeAnalyzed(source, null);
+      context.shouldErrorsBeAnalyzed(source);
 
   static bool _isDartSource(AnalysisTarget target) {
     return target is Source && AnalysisEngine.isDartFileName(target.fullName);

@@ -702,6 +702,19 @@ class IrBuilder {
         target, selector, mask, arguments, sourceInformation);
   }
 
+  ir.Primitive buildStaticNoSuchMethod(Selector selector,
+                                       List<ir.Primitive> arguments) {
+    Element thrower = program.throwNoSuchMethod;
+    ir.Primitive receiver = buildStringConstant('');
+    ir.Primitive name = buildStringConstant(selector.name);
+    ir.Primitive argumentList = buildListLiteral(null, arguments);
+    ir.Primitive expectedArgumentNames = buildNullConstant();
+    return buildStaticFunctionInvocation(
+        thrower,
+        new CallStructure.unnamed(4),
+        [receiver, name, argumentList, expectedArgumentNames]);
+  }
+
 
   /// Create a [ir.Constant] from [value] and add it to the CPS term.
   ir.Constant buildConstant(ConstantValue value,
@@ -1433,11 +1446,18 @@ class IrBuilder {
     // TODO(johnniwinther): Extract this as a provided strategy.
     if (Elements.isLocal(variableElement)) {
       bodyBuilder.buildLocalVariableSet(variableElement, currentValue);
-    } else if (Elements.isMalformed(variableElement)) {
-      bodyBuilder.buildErroneousInvocation(variableElement,
-          new Selector.setter(
-              new Name(variableElement.name, variableElement.library)),
-          <ir.Primitive>[currentValue]);
+    } else if (Elements.isError(variableElement) ||
+               Elements.isMalformed(variableElement)) {
+      Selector selector = new Selector.setter(
+          new Name(variableElement.name, variableElement.library));
+      List<ir.Primitive> value = <ir.Primitive>[currentValue];
+      // Note the order of the comparisons below.  It can be the case that an
+      // element isError and isMalformed.
+      if (Elements.isError(variableElement)) {
+        bodyBuilder.buildStaticNoSuchMethod(selector, value);
+      } else {
+        bodyBuilder.buildErroneousInvocation(variableElement, selector, value);
+      }
     } else if (Elements.isStaticOrTopLevel(variableElement)) {
       if (variableElement.isField) {
         bodyBuilder.buildStaticFieldSet(variableElement, currentValue);

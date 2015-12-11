@@ -17,6 +17,7 @@ import '../js_emitter.dart' hide Emitter;
 import '../js_emitter.dart' as js_emitter show Emitter;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
+import '../constant_ordering.dart' show deepCompareConstants;
 
 import '../../common.dart';
 import '../../common/names.dart' show
@@ -252,11 +253,9 @@ class Emitter implements js_emitter.Emitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    // TODO(herhut): Find a better way to resolve collisions.
-    return namer.constantName(a).hashCode.compareTo(
-        namer.constantName(b).hashCode);
+
+    // Resolve collisions in the long name by using a structural order.
+    return deepCompareConstants(a, b);
   }
 
   @override
@@ -1371,6 +1370,16 @@ class Emitter implements js_emitter.Emitter {
     assembleTypedefs(program);
   }
 
+  jsAst.Statement buildDeferredHeader() {
+    /// For deferred loading we communicate the initializers via this global
+    /// variable. The deferred hunks will add their initialization to this.
+    /// The semicolon is important in minified mode, without it the
+    /// following parenthesis looks like a call to the object literal.
+    return js.statement('self.#deferredInitializers = '
+                        'self.#deferredInitializers || Object.create(null);',
+                        {'deferredInitializers': deferredInitializers});
+  }
+
   jsAst.Program buildOutputAstForMain(Program program,
       Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes) {
     MainFragment mainFragment = program.mainFragment;
@@ -1383,14 +1392,7 @@ class Emitter implements js_emitter.Emitter {
               ..add(js.comment(HOOKS_API_USAGE));
 
     if (isProgramSplit) {
-      /// For deferred loading we communicate the initializers via this global
-      /// variable. The deferred hunks will add their initialization to this.
-      /// The semicolon is important in minified mode, without it the
-      /// following parenthesis looks like a call to the object literal.
-      statements.add(
-          js.statement('self.#deferredInitializers = '
-                       'self.#deferredInitializers || Object.create(null);',
-                       {'deferredInitializers': deferredInitializers}));
+      statements.add(buildDeferredHeader());
     }
 
     // Collect the AST for the decriptors
@@ -1999,6 +2001,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       statements
           ..add(buildGeneratedBy())
+          ..add(buildDeferredHeader())
           ..add(js.statement('${deferredInitializers}.current = '
                              """function (#, ${namer.staticStateHolder}) {
                                   #

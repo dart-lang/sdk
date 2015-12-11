@@ -2,15 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.driver_test;
+library analyzer.test.src.context.cache_test;
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        CacheState,
-        InternalAnalysisContext,
-        RetentionPriority;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -34,9 +29,7 @@ main() {
   runReflectiveTests(ResultDataTest);
 }
 
-AnalysisCache createCache(
-    {AnalysisContext context,
-    RetentionPriority policy: RetentionPriority.LOW}) {
+AnalysisCache createCache({AnalysisContext context}) {
   CachePartition partition = new UniversalCachePartition(context);
   return new AnalysisCache(<CachePartition>[partition]);
 }
@@ -1121,9 +1114,7 @@ class UniversalCachePartitionTest extends CachePartitionTest {
 }
 
 class _InternalAnalysisContextMock extends TypedMock
-    implements InternalAnalysisContext {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+    implements InternalAnalysisContext {}
 
 /**
  * Keep the given [keepDescriptor], invalidate all the other results.

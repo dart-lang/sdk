@@ -32,7 +32,7 @@ DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
 
 
 DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0) {
-  return Integer::New(OS::GetCurrentTraceMicros(), Heap::kNew, true);
+  return Integer::New(OS::GetCurrentMonotonicMicros(), Heap::kNew, true);
 }
 
 

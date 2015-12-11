@@ -26,23 +26,7 @@ class InheritedContributor implements DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    // Determine if the target looks like a partial identifier
-    // inside a class declaration
     SimpleIdentifier targetId = _getTargetId(request.target);
-    if (targetId == null) {
-      return EMPTY_LIST;
-    }
-
-    // Partially resolve the compilation unit
-    CompilationUnit unit = await request.resolveDeclarationsInScope();
-    // Gracefully degrade if the compilation unit could not be resolved
-    // e.g. detached part file or source change
-    if (unit == null) {
-      return EMPTY_LIST;
-    }
-
-    // Recompute the target since resolution may have changed it
-    targetId = _getTargetId(request.target);
     if (targetId == null) {
       return EMPTY_LIST;
     }
@@ -65,7 +49,7 @@ class InheritedContributor implements DartCompletionContributor {
       // Gracefully degrade if the overridden element has not been resolved.
       if (element.returnType != null) {
         CompletionSuggestion suggestion =
-            _buildSuggestion(request, targetId, unit, element);
+            _buildSuggestion(request, targetId, element);
         if (suggestion != null) {
           suggestions.add(suggestion);
         }
@@ -119,13 +103,10 @@ class InheritedContributor implements DartCompletionContributor {
    * Build a suggestion to replace [targetId] in the given [unit]
    * with an override of the given [element].
    */
-  CompletionSuggestion _buildSuggestion(
-      DartCompletionRequest request,
-      SimpleIdentifier targetId,
-      CompilationUnit unit,
-      ExecutableElement element) {
-    String completion =
-        _buildRepacementText(request.source, targetId, unit, element);
+  CompletionSuggestion _buildSuggestion(DartCompletionRequest request,
+      SimpleIdentifier targetId, ExecutableElement element) {
+    String completion = _buildRepacementText(
+        request.source, targetId, request.target.unit, element);
     if (completion == null || completion.length == 0) {
       return null;
     }

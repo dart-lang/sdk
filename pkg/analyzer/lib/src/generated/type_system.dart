@@ -6,9 +6,9 @@ library analyzer.src.generated.type_system;
 
 import 'dart:collection';
 
-import 'element.dart';
-import 'engine.dart' show AnalysisContext;
-import 'resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
 typedef bool _SubtypeChecker<T>(T t1, T t2);
@@ -21,6 +21,22 @@ class StrongTypeSystemImpl implements TypeSystem {
   final _specTypeSystem = new TypeSystemImpl();
 
   StrongTypeSystemImpl();
+
+  bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
+    return ft.parameters.any((p) => predicate(p.type));
+  }
+
+  /**
+   * Given a type t, if t is an interface type with a call method
+   * defined, return the function type for the call method, otherwise
+   * return null.
+   */
+  FunctionType getCallMethodType(DartType t) {
+    if (t is InterfaceType) {
+      return t.lookUpInheritedMethod("call")?.type;
+    }
+    return null;
+  }
 
   @override
   DartType getLeastUpperBound(
@@ -128,9 +144,45 @@ class StrongTypeSystemImpl implements TypeSystem {
     return fnType.instantiate(inferredTypes);
   }
 
-  // TODO(leafp): Document the rules in play here
+  /**
+   * Given a [FunctionType] [function], of the form
+   * <T0 extends B0, ... Tn extends Bn>.F (where Bi is implicitly
+   * dynamic if absent, and F is a non-generic function type)
+   * compute {I0/T0, ..., In/Tn}F
+   * where I_(i+1) = {I0/T0, ..., Ii/Ti, dynamic/T_(i+1)}B_(i+1).
+   * That is, we instantiate the generic with its bounds, replacing
+   * each Ti in Bi with dynamic to get Ii, and then replacing Ti with
+   * Ii in all of the remaining bounds.
+   */
+  DartType instantiateToBounds(FunctionType function) {
+    int count = function.boundTypeParameters.length;
+    if (count == 0) {
+      return function;
+    }
+    // We build up a substitution replacing bound parameters with
+    // their instantiated bounds, {substituted/variables}
+    List<DartType> substituted = new List<DartType>();
+    List<DartType> variables = new List<DartType>();
+    for (int i = 0; i < count; i++) {
+      TypeParameterElement param = function.boundTypeParameters[i];
+      DartType bound = param.bound ?? DynamicTypeImpl.instance;
+      DartType variable = param.type;
+      // For each Ti extends Bi, first compute Ii by replacing
+      // Ti in Bi with dynamic (simultaneously replacing all
+      // of the previous Tj (j < i) with their instantiated bounds.
+      substituted.add(DynamicTypeImpl.instance);
+      variables.add(variable);
+      // Now update the substitution to replace Ti with Ii instead
+      // of dynamic in subsequent rounds.
+      substituted[i] = bound.substitute2(substituted, variables);
+    }
+    return function.instantiate(substituted);
+  }
+
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
+    // TODO(leafp): Document the rules in play here
+
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -138,8 +190,8 @@ class StrongTypeSystemImpl implements TypeSystem {
 
     // Don't allow implicit downcasts between function types
     // and call method objects, as these will almost always fail.
-    if ((fromType is FunctionType && _getCallMethodType(toType) != null) ||
-        (toType is FunctionType && _getCallMethodType(fromType) != null)) {
+    if ((fromType is FunctionType && getCallMethodType(toType) != null) ||
+        (toType is FunctionType && getCallMethodType(fromType) != null)) {
       return false;
     }
 
@@ -160,21 +212,40 @@ class StrongTypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  bool isGroundType(DartType t) {
+    // TODO(leafp): Revisit this.
+    if (t is TypeParameterType) return false;
+    if (_isTop(t)) return true;
+
+    if (t is FunctionType) {
+      if (!_isTop(t.returnType) ||
+          anyParameterType(t, (pt) => !_isBottom(pt, dynamicIsBottom: true))) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    if (t is InterfaceType) {
+      var typeArguments = t.typeArguments;
+      for (var typeArgument in typeArguments) {
+        if (!_isTop(typeArgument)) return false;
+      }
+      return true;
+    }
+
+    // We should not see any other type aside from malformed code.
+    return false;
+  }
+
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return _isSubtypeOf(leftType, rightType, null);
   }
 
-  // Given a type t, if t is an interface type with a call method
-  // defined, return the function type for the call method, otherwise
-  // return null.
-  FunctionType _getCallMethodType(DartType t) {
-    if (t is InterfaceType) {
-      return t.lookUpInheritedMethod("call")?.type;
-    }
-    return null;
-  }
-
+  /**
+   * Guard against loops in the class hierarchy
+   */
   _GuardedSubtypeChecker<DartType> _guard(
       _GuardedSubtypeChecker<DartType> check) {
     return (DartType t1, DartType t2, Set<Element> visited) {
@@ -205,7 +276,6 @@ class StrongTypeSystemImpl implements TypeSystem {
     return (t.isDynamic && dynamicIsBottom) || t.isBottom;
   }
 
-  // Guard against loops in the class hierarchy
   /**
    * Check that [f1] is a subtype of [f2].
    * [fuzzyArrows] indicates whether or not the f1 and f2 should be
@@ -214,14 +284,22 @@ class StrongTypeSystemImpl implements TypeSystem {
    */
   bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
       {bool fuzzyArrows: true}) {
-    final r1s = f1.normalParameterTypes;
-    final o1s = f1.optionalParameterTypes;
-    final n1s = f1.namedParameterTypes;
-    final r2s = f2.normalParameterTypes;
-    final o2s = f2.optionalParameterTypes;
-    final n2s = f2.namedParameterTypes;
-    final ret1 = f1.returnType;
-    final ret2 = f2.returnType;
+    if (!f1.boundTypeParameters.isEmpty) {
+      if (f2.boundTypeParameters.isEmpty) {
+        f1 = instantiateToBounds(f1);
+        return _isFunctionSubtypeOf(f1, f2);
+      } else {
+        return _isGenericFunctionSubtypeOf(f1, f2, fuzzyArrows: fuzzyArrows);
+      }
+    }
+    final List<DartType> r1s = f1.normalParameterTypes;
+    final List<DartType> r2s = f2.normalParameterTypes;
+    final List<DartType> o1s = f1.optionalParameterTypes;
+    final List<DartType> o2s = f2.optionalParameterTypes;
+    final Map<String, DartType> n1s = f1.namedParameterTypes;
+    final Map<String, DartType> n2s = f2.namedParameterTypes;
+    final DartType ret1 = f1.returnType;
+    final DartType ret2 = f2.returnType;
 
     // A -> B <: C -> D if C <: A and
     // either D is void or B <: D
@@ -291,6 +369,54 @@ class StrongTypeSystemImpl implements TypeSystem {
       }
     }
     return true;
+  }
+
+  /**
+   * Check that [f1] is a subtype of [f2] where f1 and f2 are known
+   * to be generic function types (both have type parameters)
+   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
+   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
+   * as bottom).
+   */
+  bool _isGenericFunctionSubtypeOf(FunctionType f1, FunctionType f2,
+      {bool fuzzyArrows: true}) {
+    List<TypeParameterElement> params1 = f1.boundTypeParameters;
+    List<TypeParameterElement> params2 = f2.boundTypeParameters;
+    int count = params1.length;
+    if (params2.length != count) {
+      return false;
+    }
+    // We build up a substitution matching up the type parameters
+    // from the two types, {variablesFresh/variables1} and
+    // {variablesFresh/variables2}
+    List<DartType> variables1 = new List<DartType>();
+    List<DartType> variables2 = new List<DartType>();
+    List<DartType> variablesFresh = new List<DartType>();
+    for (int i = 0; i < count; i++) {
+      TypeParameterElement p1 = params1[i];
+      TypeParameterElement p2 = params2[i];
+      TypeParameterElementImpl pFresh =
+          new TypeParameterElementImpl(p2.name, -1);
+
+      DartType variable1 = p1.type;
+      DartType variable2 = p2.type;
+      DartType variableFresh = new TypeParameterTypeImpl(pFresh);
+
+      variables1.add(variable1);
+      variables2.add(variable2);
+      variablesFresh.add(variableFresh);
+      DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
+      DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
+      bound1 = bound1.substitute2(variablesFresh, variables1);
+      bound2 = bound2.substitute2(variablesFresh, variables2);
+      pFresh.bound = bound2;
+      if (!isSubtypeOf(bound2, bound1)) {
+        return false;
+      }
+    }
+    return _isFunctionSubtypeOf(
+        f1.instantiate(variablesFresh), f2.instantiate(variablesFresh),
+        fuzzyArrows: fuzzyArrows);
   }
 
   bool _isInterfaceSubtypeOf(
@@ -407,7 +533,7 @@ class StrongTypeSystemImpl implements TypeSystem {
     // the interface type declares a call method with a type
     // which is a super type of the function type.
     if (t1 is InterfaceType && t2 is FunctionType) {
-      var callType = _getCallMethodType(t1);
+      var callType = getCallMethodType(t1);
       return (callType != null) && _isFunctionSubtypeOf(callType, t2);
     }
 
@@ -438,6 +564,15 @@ abstract class TypeSystem {
    */
   DartType getLeastUpperBound(
       TypeProvider typeProvider, DartType type1, DartType type2);
+
+  /**
+   * Given a [function] type, instantiate it with its bounds.
+   *
+   * The behavior of this method depends on the type system, for example, in
+   * classic Dart `dynamic` will be used for all type arguments, whereas
+   * strong mode prefers the actual bound type if it was specified.
+   */
+  FunctionType instantiateToBounds(FunctionType function);
 
   /**
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
@@ -545,6 +680,18 @@ class TypeSystemImpl implements TypeSystem {
       assert(false);
       return typeProvider.dynamicType;
     }
+  }
+
+  /**
+   * Instantiate the function type using `dynamic` for all generic parameters.
+   */
+  FunctionType instantiateToBounds(FunctionType function) {
+    int count = function.boundTypeParameters.length;
+    if (count == 0) {
+      return function;
+    }
+    return function.instantiate(
+        new List<DartType>.filled(count, DynamicTypeImpl.instance));
   }
 
   @override

@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library memory_file_system;
+library analyzer.file_system.memory_file_system;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core' hide Resource;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
-
-import 'file_system.dart';
 
 /**
  * An in-memory implementation of [ResourceProvider].
@@ -30,7 +29,7 @@ class MemoryResourceProvider implements ResourceProvider {
   int nextStamp = 0;
 
   final AbsolutePathContext absolutePathContext =
-      new AbsolutePathContext(posix.separator);
+      new AbsolutePathContext(false);
 
   @override
   Context get pathContext => posix;

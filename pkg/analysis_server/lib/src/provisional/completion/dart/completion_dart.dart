@@ -10,6 +10,8 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/source.dart';
 
 export 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show EMPTY_LIST;
@@ -60,27 +62,61 @@ abstract class DartCompletionContributor {
  */
 abstract class DartCompletionRequest extends CompletionRequest {
   /**
+   * Return the expression to the right of the "dot" or "dot dot",
+   * or `null` if this is not a "dot" completion (e.g. `foo.b`).
+   */
+  Expression get dotTarget;
+
+  /**
+   * Return `true` if free standing identifiers should be suggested
+   */
+  bool get includeIdentifiers;
+
+  /**
+   * Return the library element which contains the unit in which the completion
+   * is occurring. This may return `null` if the library cannot be determined
+   * (e.g. unlinked part file).
+   */
+  LibraryElement get libraryElement;
+
+  /**
+   * The source for the library containing the completion request.
+   * This may be different from the source in which the completion is requested
+   * if the completion is being requested in a part file.
+   * This may be `null` if the library for a part file cannot be determined.
+   */
+  Source get librarySource;
+
+  /**
+   * Answer the [DartType] for Object in dart:core
+   */
+  DartType get objectType;
+
+  /**
    * Return the completion target.  This determines what part of the parse tree
    * will receive the newly inserted text.
+   * At a minimum, all declarations in the completion scope in [target.unit]
+   * will be resolved if they can be resolved.
    */
   CompletionTarget get target;
 
   /**
-   * Return a [Future] that completes with a compilation unit in which
-   * all declarations in all scopes containing [target] have been resolved.
-   * The [Future] may return `null` if the unit cannot be resolved
+   * Return a [Future] that completes with a list of directives for the library
+   * in which in which the completion is occurring.
+   * The [Future] may return `null` if the library unit cannot be determined
    * (e.g. unlinked part file).
    * Any information obtained from [target] prior to calling this method
    * should be discarded as it may have changed.
    */
-  Future<CompilationUnit> resolveDeclarationsInScope();
+  Future<List<Directive>> resolveDirectives();
 
   /**
    * Return a [Future] that completes when the element associated with
-   * the given [identifier] is available or if the identifier cannot be resolved
+   * the given [expression] in the target compilation unit is available.
+   * It may also complete if the expression cannot be resolved
    * (e.g. unknown identifier, completion aborted, etc).
    * Any information obtained from [target] prior to calling this method
    * should be discarded as it may have changed.
    */
-  Future resolveIdentifier(SimpleIdentifier identifier);
+  Future resolveExpression(Expression expression);
 }

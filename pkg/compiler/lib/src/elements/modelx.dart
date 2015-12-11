@@ -785,9 +785,9 @@ class CompilationUnitElementX extends ElementX
   void setPartOf(PartOf tag, DiagnosticReporter reporter) {
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
+      // This compilation unit is loaded as a library. The error is reported by
+      // the library loader.
       partTag = tag;
-      reporter.reportErrorMessage(
-          tag, MessageKind.IMPORT_PART_OF);
       return;
     }
     if (!localMembers.isEmpty) {

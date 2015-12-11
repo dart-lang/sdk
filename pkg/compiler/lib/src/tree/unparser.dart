@@ -782,9 +782,33 @@ class Unparser extends Indentation implements Visitor {
     newline();
   }
 
+  visitConditionalUri(ConditionalUri node) {
+    write(node.ifToken.value);
+    space();
+    write('(');
+    visit(node.key);
+    if (node.value != null) {
+      space();
+      write("==");
+      space();
+      visit(node.value);
+    }
+    write(")");
+    space();
+    visit(node.uri);
+  }
+
+  visitDottedName(DottedName node) {
+    unparseNodeListOfIdentifiers(node.identifiers);
+  }
+
   visitImport(Import node) {
     addToken(node.importKeyword);
     visit(node.uri);
+    if (node.hasConditionalUris) {
+      write(' ');
+      visitNodeList(node.conditionalUris);
+    }
     if (node.isDeferred) {
       write(' deferred');
     }
@@ -803,6 +827,10 @@ class Unparser extends Indentation implements Visitor {
   visitExport(Export node) {
     addToken(node.exportKeyword);
     visit(node.uri);
+    if (node.hasConditionalUris) {
+      write(' ');
+      visitNodeList(node.conditionalUris);
+    }
     if (node.combinators != null) {
       write(' ');
       visit(node.combinators);

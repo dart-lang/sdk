@@ -116,10 +116,19 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
     if (resContext.isRelative(dirPath)) {
       String sourceDirPath = resContext.dirname(source.fullName);
       if (resContext.isAbsolute(sourceDirPath)) {
-        dirPath = resContext.join(sourceDirPath, dirPath);
+        dirPath = resContext.normalize(resContext.join(sourceDirPath, dirPath));
       } else {
         return;
       }
+      // Do not suggest relative paths reaching outside the 'lib' directory.
+      bool srcInLib = resContext.split(sourceDirPath).contains('lib');
+      bool dstInLib = resContext.split(dirPath).contains('lib');
+      if (srcInLib && !dstInLib) {
+        return;
+      }
+    }
+    if (dirPath.endsWith('\\.')) {
+      dirPath = dirPath.substring(0, dirPath.length - 1);
     }
 
     Resource dir = resProvider.getResource(dirPath);

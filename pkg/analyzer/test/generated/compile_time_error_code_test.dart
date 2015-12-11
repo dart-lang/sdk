@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.compile_time_error_code_test;
+library analyzer.test.generated.compile_time_error_code_test;
 
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -259,6 +259,19 @@ main() {
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS]);
+    verify([source]);
+  }
+
+  void test_assertWithExtraArgument() {
+    // TODO(paulberry): once DEP 37 is turned on by default, this test should
+    // be removed.
+    Source source = addSource('''
+f(bool x) {
+  assert(x, 'foo');
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT]);
     verify([source]);
   }
 

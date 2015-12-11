@@ -8,9 +8,8 @@
  */
 library analyzer.src.codegen.text_formatter;
 
+import 'package:analyzer/src/codegen/tools.dart';
 import 'package:html/dom.dart' as dom;
-
-import 'tools.dart';
 
 final RegExp whitespace = new RegExp(r'\s');
 

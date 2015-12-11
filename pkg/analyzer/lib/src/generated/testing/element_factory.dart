@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.testing.element_factory;
+library analyzer.src.generated.testing.element_factory;
 
 import 'dart:collection';
 
@@ -407,15 +407,6 @@ class ElementFactory {
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
     getter.type = getterType;
     return getter;
-  }
-
-  @deprecated
-  static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
-    Source source =
-        new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
-    HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
-    unit.source = source;
-    return unit;
   }
 
   static ImportElementImpl importFor(

@@ -7,8 +7,7 @@ library analyzer.src.context.cache;
 import 'dart:async';
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisEngine, CacheState, InternalAnalysisContext, RetentionPriority;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -41,9 +40,9 @@ class AnalysisCache {
   final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =
       new ReentrantSynchronousStream<InvalidatedResult>();
 
-  final List<
-      ReentrantSynchronousStreamSubscription> onResultInvalidatedPartitionSubscriptions = <
-      ReentrantSynchronousStreamSubscription>[];
+  final List<ReentrantSynchronousStreamSubscription>
+      onResultInvalidatedPartitionSubscriptions =
+      <ReentrantSynchronousStreamSubscription>[];
 
   /**
    * Initialize a newly created cache to have the given [_partitions]. The
@@ -385,7 +384,7 @@ class CacheEntry {
    * Return the value of the result represented by the given [descriptor], or
    * the default value for the result if this entry does not have a valid value.
    */
-  /*<V>*/ dynamic /*V*/ getValue(ResultDescriptor /*<V>*/ descriptor) {
+  dynamic /*=V*/ getValue /*<V>*/ (ResultDescriptor /*<V>*/ descriptor) {
     ResultData data = _resultMap[descriptor];
     if (data == null) {
       return descriptor.defaultValue;
@@ -483,11 +482,8 @@ class CacheEntry {
    * Set the value of the result represented by the given [descriptor] to the
    * given [value].
    */
-  /*<V>*/ void setValue(
-      ResultDescriptor /*<V>*/ descriptor,
-      dynamic /*V*/
-      value,
-      List<TargetedResult> dependedOn) {
+  void setValue /*<V>*/ (ResultDescriptor /*<V>*/ descriptor,
+      dynamic /*=V*/ value, List<TargetedResult> dependedOn) {
 //    {
 //      String valueStr = '$value';
 //      if (valueStr.length > 20) {

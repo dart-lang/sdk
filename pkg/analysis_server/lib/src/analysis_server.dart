@@ -72,7 +72,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.12.0';
+  static final String VERSION = '1.14.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -185,8 +185,8 @@ class AnalysisServer {
    * A table mapping [AnalysisContext]s to the completers that should be
    * completed when analysis of this context is finished.
    */
-  Map<AnalysisContext,
-          Completer<AnalysisDoneReason>> contextAnalysisDoneCompleters =
+  Map<AnalysisContext, Completer<AnalysisDoneReason>>
+      contextAnalysisDoneCompleters =
       new HashMap<AnalysisContext, Completer<AnalysisDoneReason>>();
 
   /**
@@ -729,6 +729,15 @@ class AnalysisServer {
    */
   bool isAnalysisComplete() {
     return operationQueue.isEmpty;
+  }
+
+  /**
+   * Return `true` if the given path is a valid `FilePath`.
+   *
+   * This means that it is absolute and normalized.
+   */
+  bool isValidFilePath(String path) {
+    return resourceProvider.absolutePathContext.isValid(path);
   }
 
   /**

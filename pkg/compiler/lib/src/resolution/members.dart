@@ -126,7 +126,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// When visiting the type declaration of the variable in a [ForIn] loop,
   /// the initializer of the variable is implicit and we should not emit an
   /// error when verifying that all final variables are initialized.
-  bool allowFinalWithoutInitializer = false;
+  bool inLoopVariable = false;
 
   /// The nodes for which variable access and mutation must be registered in
   /// order to determine when the static type of variables types is promoted.
@@ -3687,8 +3687,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    coreClasses.streamClass.ensureResolved(resolution);
-    coreClasses.iterableClass.ensureResolved(resolution);
+    if (!currentAsyncMarker.isYielding) {
+      reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
+    }
+    if (currentAsyncMarker.isAsync) {
+      coreClasses.streamClass.ensureResolved(resolution);
+    } else {
+      coreClasses.iterableClass.ensureResolved(resolution);
+    }
     visit(node.expression);
     return const NoneResult();
   }
@@ -3825,6 +3831,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
+    if (!currentAsyncMarker.isAsync) {
+      reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
+    }
     coreClasses.futureClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
@@ -4350,6 +4359,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
+    if (!currentAsyncMarker.isAsync) {
+      reporter.reportErrorMessage(
+          node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
+    }
     registry.registerFeature(Feature.ASYNC_FOR_IN);
     registry.registerDynamicUse(
         new DynamicUse(Selectors.current, null));
@@ -4387,10 +4400,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Scope blockScope) {
     LibraryElement library = enclosingElement.library;
 
-    bool oldAllowFinalWithoutInitializer = allowFinalWithoutInitializer;
-    allowFinalWithoutInitializer = true;
+    bool oldAllowFinalWithoutInitializer = inLoopVariable;
+    inLoopVariable = true;
     visitIn(declaration, blockScope);
-    allowFinalWithoutInitializer = oldAllowFinalWithoutInitializer;
+    inLoopVariable = oldAllowFinalWithoutInitializer;
 
     Send send = declaration.asSend();
     VariableDefinitions variableDefinitions =

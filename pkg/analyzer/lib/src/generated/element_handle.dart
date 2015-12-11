@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.element_handle;
+library analyzer.src.generated.element_handle;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -66,10 +66,6 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
 
   @override
   bool get isProxy => actualElement.isProxy;
-
-  @override
-  @deprecated
-  bool get isTypedef => actualElement.isMixinApplication;
 
   @override
   bool get isValidMixin => actualElement.isValidMixin;
@@ -379,10 +375,6 @@ abstract class ElementHandle implements Element {
 
   @override
   int get nameOffset => actualElement.nameOffset;
-
-  @deprecated
-  @override
-  AstNode get node => computeNode();
 
   @override
   Source get source => actualElement.source;

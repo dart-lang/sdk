@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.incremental_logger;
+library analyzer.src.generated.incremental_logger;
 
 /**
  * The shared instance of [Logger] used by several incremental resolution

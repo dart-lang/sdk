@@ -2,27 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.element;
+library analyzer.src.generated.element;
 
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart'
+    show DartObject, EvaluationResultImpl;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, AnalysisEngine, AnalysisException;
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart' show Keyword;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/model.dart' show AnalysisTarget;
-
-import 'ast.dart';
-import 'constant.dart' show DartObject, EvaluationResultImpl;
-import 'engine.dart' show AnalysisContext, AnalysisEngine;
-import 'html.dart' show XmlAttributeNode, XmlTagNode;
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'resolver.dart';
-import 'scanner.dart' show Keyword;
-import 'sdk.dart' show DartSdk;
-import 'source.dart';
-import 'utilities_collection.dart';
-import 'utilities_dart.dart';
 
 /**
  * For AST nodes that could be in both the getter and setter contexts
@@ -213,13 +213,6 @@ abstract class ClassElement
    * Return `true` if this element has an annotation of the form '@proxy'.
    */
   bool get isProxy;
-
-  /**
-   * Return `true` if this class is a mixin application.  Deprecated--please
-   * use [isMixinApplication] instead.
-   */
-  @deprecated
-  bool get isTypedef;
 
   /**
    * Return `true` if this class can validly be used as a mixin when defining
@@ -482,12 +475,6 @@ abstract class ClassElement
  * A concrete implementation of a [ClassElement].
  */
 class ClassElementImpl extends ElementImpl implements ClassElement {
-  /**
-   * An empty list of class elements.
-   */
-  @deprecated // Use ClassElement.EMPTY_LIST
-  static const List<ClassElement> EMPTY_ARRAY = const <ClassElement>[];
-
   /**
    * A list containing all of the accessors (getters and setters) contained in
    * this class.
@@ -763,10 +750,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     return false;
   }
-
-  @override
-  @deprecated
-  bool get isTypedef => isMixinApplication;
 
   @override
   bool get isValidMixin => hasModifier(Modifier.MIXIN);
@@ -1424,13 +1407,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
 class CompilationUnitElementImpl extends UriReferencedElementImpl
     implements CompilationUnitElement {
   /**
-   * An empty list of compilation unit elements.
-   */
-  @deprecated // Use CompilationUnitElement.EMPTY_LIST
-  static const List<CompilationUnitElement> EMPTY_ARRAY =
-      const <CompilationUnitElement>[];
-
-  /**
    * The source that corresponds to this compilation unit.
    */
   Source source;
@@ -1735,19 +1711,6 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /**
    * Initialize a newly created field element to have the given [name].
    */
-  @deprecated // Use new ConstFieldElementImpl.forNode(name)
-  ConstFieldElementImpl.con1(Identifier name) : super.forNode(name);
-
-  /**
-   * Initialize a newly created synthetic field element to have the given
-   * [name] and [offset].
-   */
-  @deprecated // Use new ConstFieldElementImpl(name, offset)
-  ConstFieldElementImpl.con2(String name, int offset) : super(name, offset);
-
-  /**
-   * Initialize a newly created field element to have the given [name].
-   */
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
@@ -1859,13 +1822,6 @@ abstract class ConstructorElement
  */
 class ConstructorElementImpl extends ExecutableElementImpl
     implements ConstructorElement {
-  /**
-   * An empty list of constructor elements.
-   */
-  @deprecated // Use ConstructorElement.EMPTY_LIST
-  static const List<ConstructorElement> EMPTY_ARRAY =
-      const <ConstructorElement>[];
-
   /**
    * The constructor to which this constructor is redirecting.
    */
@@ -1990,10 +1946,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
 class ConstructorMember extends ExecutableMember implements ConstructorElement {
   /**
    * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * [baseElement], defined by the [definingType]. If [type] is passed, it
+   * represents the full type of the member, and will take precedence over
+   * the [definingType].
    */
-  ConstructorMember(ConstructorElement baseElement, InterfaceType definingType)
-      : super(baseElement, definingType);
+  ConstructorMember(ConstructorElement baseElement, InterfaceType definingType,
+      [FunctionType type])
+      : super(baseElement, definingType, type);
 
   @override
   ConstructorElement get baseElement => super.baseElement as ConstructorElement;
@@ -2081,10 +2040,7 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     if (baseType == substitutedType) {
       return constructor;
     }
-    // TODO(brianwilkerson) Consider caching the substituted type in the
-    // instance. It would use more memory but speed up some operations.
-    // We need to see how often the type is being re-computed.
-    return new ConstructorMember(constructor, definingType);
+    return new ConstructorMember(constructor, definingType, substitutedType);
   }
 }
 
@@ -2200,17 +2156,6 @@ abstract class DartType {
    * such as when the type represents the type of an unnamed function.
    */
   String get name;
-
-  /**
-   * Return the least upper bound of this type and the given [type], or `null`
-   * if there is no least upper bound.
-   *
-   * Deprecated, since it is impossible to implement the correct algorithm
-   * without access to a [TypeProvider].  Please use
-   * [TypeSystem.getLeastUpperBound] instead.
-   */
-  @deprecated
-  DartType getLeastUpperBound(DartType type);
 
   /**
    * Return `true` if this type is assignable to the given [type]. A type
@@ -2449,9 +2394,9 @@ abstract class Element implements AnalysisTarget {
    * Elements with a smaller offset will be sorted to be before elements with a
    * larger name offset.
    */
-  static final Comparator<Element> SORT_BY_OFFSET = (Element firstElement,
-          Element secondElement) =>
-      firstElement.nameOffset - secondElement.nameOffset;
+  static final Comparator<Element> SORT_BY_OFFSET =
+      (Element firstElement, Element secondElement) =>
+          firstElement.nameOffset - secondElement.nameOffset;
 
   /**
    * Return the analysis context in which this element is defined.
@@ -2560,21 +2505,6 @@ abstract class Element implements AnalysisTarget {
    * have a name, or otherwise does not have an offset.
    */
   int get nameOffset;
-
-  /**
-   * **DEPRECATED** Use `computeNode()` instead.
-   *
-   * Return the resolved [AstNode] node that declares this element, or `null` if
-   * this element is synthetic or isn't contained in a compilation unit, such as
-   * a [LibraryElement].
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   *
-   * <b>Note:</b> This method cannot be used in an async environment.
-   */
-  @deprecated
-  AstNode get node;
 
   /**
    * Return the source that contains this element, or `null` if this element is
@@ -2701,13 +2631,6 @@ abstract class ElementAnnotation {
  * A concrete implementation of an [ElementAnnotation].
  */
 class ElementAnnotationImpl implements ElementAnnotation {
-  /**
-   * An empty list of annotations.
-   */
-  @deprecated // Use ElementAnnotation.EMPTY_LIST
-  static const List<ElementAnnotationImpl> EMPTY_ARRAY =
-      const <ElementAnnotationImpl>[];
-
   /**
    * The name of the class used to mark an element as being deprecated.
    */
@@ -3000,10 +2923,6 @@ abstract class ElementImpl implements Element {
     _cachedHashCode = null;
     _cachedLocation = null;
   }
-
-  @deprecated
-  @override
-  AstNode get node => computeNode();
 
   @override
   Source get source {
@@ -3475,13 +3394,7 @@ abstract class ElementVisitor<R> {
 
   R visitConstructorElement(ConstructorElement element);
 
-  @deprecated
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element);
-
   R visitExportElement(ExportElement element);
-
-  @deprecated
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element);
 
   R visitFieldElement(FieldElement element);
 
@@ -3490,9 +3403,6 @@ abstract class ElementVisitor<R> {
   R visitFunctionElement(FunctionElement element);
 
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
-
-  @deprecated
-  R visitHtmlElement(HtmlElement element);
 
   R visitImportElement(ImportElement element);
 
@@ -3518,62 +3428,10 @@ abstract class ElementVisitor<R> {
 }
 
 /**
- * A script tag in an HTML file having content that defines a Dart library.
- */
-@deprecated
-abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
-  /**
-   * Return the library element defined by the content of the script tag.
-   */
-  LibraryElement get scriptLibrary;
-}
-
-/**
- * A concrete implementation of an [EmbeddedHtmlScriptElement].
- */
-@deprecated
-class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl
-    implements EmbeddedHtmlScriptElement {
-  /**
-   * The library defined by the script tag's content.
-   */
-  LibraryElement _scriptLibrary;
-
-  /**
-   * Initialize a newly created script element to represent the given [node].
-   */
-  EmbeddedHtmlScriptElementImpl(XmlTagNode node) : super(node);
-
-  @override
-  ElementKind get kind => ElementKind.EMBEDDED_HTML_SCRIPT;
-
-  @override
-  LibraryElement get scriptLibrary => _scriptLibrary;
-
-  /**
-   * Set the script library defined by the script tag's content to the given
-   * [library].
-   */
-  void set scriptLibrary(LibraryElementImpl library) {
-    library.enclosingElement = this;
-    _scriptLibrary = library;
-  }
-
-  @override
-  accept(ElementVisitor visitor) =>
-      visitor.visitEmbeddedHtmlScriptElement(this);
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    safelyVisitChild(_scriptLibrary, visitor);
-  }
-}
-
-/**
  * An element representing an executable object, including functions, methods,
  * constructors, getters, and setters.
  */
-abstract class ExecutableElement implements TypeParameterizedElement {
+abstract class ExecutableElement implements FunctionTypedElement {
   /**
    * An empty list of executable elements.
    */
@@ -3649,24 +3507,6 @@ abstract class ExecutableElement implements TypeParameterizedElement {
    * executable element.
    */
   List<LocalVariableElement> get localVariables;
-
-  /**
-   * Return a list containing all of the parameters defined by this executable
-   * element.
-   */
-  List<ParameterElement> get parameters;
-
-  /**
-   * Return the return type defined by this executable element. If the element
-   * model is fully populated, then the [returnType] will not be `null`, even
-   * if no return type was explicitly specified.
-   */
-  DartType get returnType;
-
-  /**
-   * Return the type of function defined by this executable element.
-   */
-  FunctionType get type;
 }
 
 /**
@@ -3674,13 +3514,6 @@ abstract class ExecutableElement implements TypeParameterizedElement {
  */
 abstract class ExecutableElementImpl extends ElementImpl
     implements ExecutableElement {
-  /**
-   * An empty list of executable elements.
-   */
-  @deprecated // Use ExecutableElement.EMPTY_LIST
-  static const List<ExecutableElement> EMPTY_ARRAY =
-      const <ExecutableElement>[];
-
   /**
    * A list containing all of the functions defined within this executable
    * element.
@@ -3941,12 +3774,21 @@ abstract class ExecutableElementImpl extends ElementImpl
  * type parameters are known.
  */
 abstract class ExecutableMember extends Member implements ExecutableElement {
+  @override
+  final FunctionType type;
+
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * Initialize a newly created element to represent a callable element (like a
+   * method or function or property), based on the [baseElement], defined by the
+   * [definingType]. If [type] is passed, it represents the full type of the
+   * member, and will take precedence over the [definingType].
    */
-  ExecutableMember(ExecutableElement baseElement, InterfaceType definingType)
-      : super(baseElement, definingType);
+  ExecutableMember(ExecutableElement baseElement, InterfaceType definingType,
+      [FunctionType type])
+      : type = type ??
+            baseElement.type.substitute2(definingType.typeArguments,
+                TypeParameterTypeImpl.getTypes(definingType.typeParameters)),
+        super(baseElement, definingType);
 
   @override
   ExecutableElement get baseElement => super.baseElement as ExecutableElement;
@@ -3999,26 +3841,10 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
   }
 
   @override
-  List<ParameterElement> get parameters {
-    List<ParameterElement> baseParameters = baseElement.parameters;
-    int parameterCount = baseParameters.length;
-    if (parameterCount == 0) {
-      return baseParameters;
-    }
-    List<ParameterElement> parameterizedParameters =
-        new List<ParameterElement>(parameterCount);
-    for (int i = 0; i < parameterCount; i++) {
-      parameterizedParameters[i] =
-          ParameterMember.from(baseParameters[i], definingType);
-    }
-    return parameterizedParameters;
-  }
+  List<ParameterElement> get parameters => type.parameters;
 
   @override
-  DartType get returnType => substituteFor(baseElement.returnType);
-
-  @override
-  FunctionType get type => substituteFor(baseElement.type);
+  DartType get returnType => type.returnType;
 
   @override
   List<TypeParameterElement> get typeParameters => baseElement.typeParameters;
@@ -4039,12 +3865,6 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
  * An export directive within a library.
  */
 abstract class ExportElement implements Element, UriReferencedElement {
-  /**
-   * An empty list of export elements.
-   */
-  @deprecated // Use ExportElement.EMPTY_LIST
-  static const List<ExportElement> EMPTY_ARRAY = const <ExportElement>[];
-
   /**
    * An empty list of export elements.
    */
@@ -4101,44 +3921,6 @@ class ExportElementImpl extends UriReferencedElementImpl
 }
 
 /**
- * A script tag in an HTML file having a `source` attribute that references a
- * Dart library source file.
- */
-@deprecated
-abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
-  /**
-   * Return the source referenced by this element, or `null` if this element
-   * does not reference a Dart library source file.
-   */
-  Source get scriptSource;
-}
-
-/**
- * A concrete implementation of an [ExternalHtmlScriptElement].
- */
-@deprecated
-class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl
-    implements ExternalHtmlScriptElement {
-  /**
-   * The source specified in the `source` attribute or `null` if unspecified.
-   */
-  Source scriptSource;
-
-  /**
-   * Initialize a newly created script element to correspond to the given
-   * [node].
-   */
-  ExternalHtmlScriptElementImpl(XmlTagNode node) : super(node);
-
-  @override
-  ElementKind get kind => ElementKind.EXTERNAL_HTML_SCRIPT;
-
-  @override
-  accept(ElementVisitor visitor) =>
-      visitor.visitExternalHtmlScriptElement(this);
-}
-
-/**
  * A field defined within a type.
  */
 abstract class FieldElement
@@ -4169,12 +3951,6 @@ abstract class FieldElement
  */
 class FieldElementImpl extends PropertyInducingElementImpl
     implements FieldElement {
-  /**
-   * An empty list of field elements.
-   */
-  @deprecated // Use FieldElement.EMPTY_LIST
-  static const List<FieldElement> EMPTY_ARRAY = const <FieldElement>[];
-
   /**
    * Initialize a newly created synthetic field element to have the given [name]
    * at the given [offset].
@@ -4258,18 +4034,21 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 class FieldFormalParameterMember extends ParameterMember
     implements FieldFormalParameterElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * Initialize a newly created element to represent a field formal parameter,
+   * based on the [baseElement], defined by the [definingType]. If [type]
+   * is passed it will be used as the substituted type for this member.
    */
   FieldFormalParameterMember(
-      FieldFormalParameterElement baseElement, ParameterizedType definingType)
-      : super(baseElement, definingType);
+      FieldFormalParameterElement baseElement, ParameterizedType definingType,
+      [DartType type])
+      : super(baseElement, definingType, type);
 
   @override
   FieldElement get field {
     FieldElement field = (baseElement as FieldFormalParameterElement).field;
     if (field is FieldElement) {
-      return FieldMember.from(field, definingType);
+      return FieldMember.from(
+          field, substituteFor(field.enclosingElement.type));
     }
     return field;
   }
@@ -4285,7 +4064,7 @@ class FieldFormalParameterMember extends ParameterMember
  */
 class FieldMember extends VariableMember implements FieldElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
+   * Initialize a newly created element to represent a field, based on the
    * [baseElement], defined by the [definingType].
    */
   FieldMember(FieldElement baseElement, InterfaceType definingType)
@@ -4293,9 +4072,6 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   FieldElement get baseElement => super.baseElement as FieldElement;
-
-  @override
-  InterfaceType get definingType => super.definingType as InterfaceType;
 
   @override
   ClassElement get enclosingElement => baseElement.enclosingElement;
@@ -4330,7 +4106,7 @@ class FieldMember extends VariableMember implements FieldElement {
    * field. Return the member that was created, or the base field if no member
    * was created.
    */
-  static FieldElement from(FieldElement field, InterfaceType definingType) {
+  static FieldElement from(FieldElement field, ParameterizedType definingType) {
     if (!_isChangedByTypeSubstitution(field, definingType)) {
       return field;
     }
@@ -4346,11 +4122,12 @@ class FieldMember extends VariableMember implements FieldElement {
    * arguments from the defining type.
    */
   static bool _isChangedByTypeSubstitution(
-      FieldElement field, InterfaceType definingType) {
+      FieldElement field, ParameterizedType definingType) {
     List<DartType> argumentTypes = definingType.typeArguments;
     if (field != null && argumentTypes.length != 0) {
       DartType baseType = field.type;
-      List<DartType> parameterTypes = definingType.element.type.typeArguments;
+      List<DartType> parameterTypes =
+          TypeParameterTypeImpl.getTypes(definingType.typeParameters);
       if (baseType != null) {
         DartType substitutedType =
             baseType.substitute2(argumentTypes, parameterTypes);
@@ -4427,12 +4204,6 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
  */
 class FunctionElementImpl extends ExecutableElementImpl
     implements FunctionElement {
-  /**
-   * An empty list of function elements.
-   */
-  @deprecated // Use FunctionElement.EMPTY_LIST
-  static const List<FunctionElement> EMPTY_ARRAY = const <FunctionElement>[];
-
   /**
    * The offset to the beginning of the visible range for this element.
    */
@@ -4521,6 +4292,70 @@ class FunctionElementImpl extends ExecutableElementImpl
    */
   void shareParameters(List<ParameterElement> parameters) {
     this._parameters = parameters;
+  }
+}
+
+/**
+ * An element of a generic function, where the type parameters are known.
+ */
+// TODO(jmesserly): the term "function member" is a bit weird, but it allows
+// a certain consistency.
+class FunctionMember extends ExecutableMember implements FunctionElement {
+  /**
+   * Initialize a newly created element to represent a function, based on the
+   * [baseElement], with the corresponding function [type].
+   */
+  FunctionMember(FunctionElement baseElement, [DartType type])
+      : super(baseElement, null, type);
+
+  @override
+  FunctionElement get baseElement => super.baseElement as FunctionElement;
+
+  @override
+  Element get enclosingElement => baseElement.enclosingElement;
+
+  @override
+  bool get isEntryPoint => baseElement.isEntryPoint;
+
+  @override
+  SourceRange get visibleRange => baseElement.visibleRange;
+
+  @override
+  accept(ElementVisitor visitor) => visitor.visitFunctionElement(this);
+
+  @override
+  FunctionDeclaration computeNode() => baseElement.computeNode();
+
+  @override
+  String toString() {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(baseElement.displayName);
+    (type as FunctionTypeImpl).appendTo(buffer);
+    return buffer.toString();
+  }
+
+  /**
+   * If the given [method]'s type is different when any type parameters from the
+   * defining type's declaration are replaced with the actual type arguments
+   * from the [definingType], create a method member representing the given
+   * method. Return the member that was created, or the base method if no member
+   * was created.
+   */
+  static MethodElement from(
+      MethodElement method, ParameterizedType definingType) {
+    if (method == null || definingType.typeArguments.length == 0) {
+      return method;
+    }
+    FunctionType baseType = method.type;
+    List<DartType> argumentTypes = definingType.typeArguments;
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(definingType.typeParameters);
+    FunctionType substitutedType =
+        baseType.substitute2(argumentTypes, parameterTypes);
+    if (baseType == substitutedType) {
+      return method;
+    }
+    return new MethodMember(method, definingType, substitutedType);
   }
 }
 
@@ -4669,7 +4504,7 @@ abstract class FunctionType implements ParameterizedType {
  * A function type alias (`typedef`).
  */
 abstract class FunctionTypeAliasElement
-    implements TypeDefiningElement, TypeParameterizedElement {
+    implements TypeDefiningElement, FunctionTypedElement {
   /**
    * An empty array of type alias elements.
    */
@@ -4681,19 +4516,6 @@ abstract class FunctionTypeAliasElement
    */
   @override
   CompilationUnitElement get enclosingElement;
-
-  /**
-   * Return a list containing all of the parameters defined by this type alias.
-   */
-  List<ParameterElement> get parameters;
-
-  /**
-   * Return the return type defined by this type alias.
-   */
-  DartType get returnType;
-
-  @override
-  FunctionType get type;
 
   /**
    * Return the resolved function type alias node that declares this element.
@@ -4710,13 +4532,6 @@ abstract class FunctionTypeAliasElement
  */
 class FunctionTypeAliasElementImpl extends ElementImpl
     implements FunctionTypeAliasElement {
-  /**
-   * An empty array of type alias elements.
-   */
-  @deprecated // Use FunctionTypeAliasElement.EMPTY_LIST
-  static List<FunctionTypeAliasElement> EMPTY_ARRAY =
-      new List<FunctionTypeAliasElement>(0);
-
   /**
    * A list containing all of the parameters defined by this type alias.
    */
@@ -4853,6 +4668,31 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 }
 
 /**
+ * An element that has a [FunctionType] as its [type].
+ *
+ * This also provides convenient access to the parameters and return type.
+ */
+abstract class FunctionTypedElement implements TypeParameterizedElement {
+  /**
+   * Return a list containing all of the parameters defined by this executable
+   * element.
+   */
+  List<ParameterElement> get parameters;
+
+  /**
+   * Return the return type defined by this element. If the element model is
+   * fully populated, then the [returnType] will not be `null`, even
+   * if no return type was explicitly specified.
+   */
+  DartType get returnType;
+
+  /**
+   * Return the type of function defined by this element.
+   */
+  FunctionType get type;
+}
+
+/**
  * The type of a function, method, constructor, getter, or setter.
  */
 class FunctionTypeImpl extends TypeImpl implements FunctionType {
@@ -4885,21 +4725,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   FunctionTypeImpl(ExecutableElement element,
       [List<FunctionTypeAliasElement> prunedTypedefs])
       : this._(element, null, prunedTypedefs, null, null, null);
-
-  /**
-   * Initialize a newly created function type to be declared by the given
-   * [element].
-   */
-  @deprecated // Use new FunctionTypeImpl(element)
-  FunctionTypeImpl.con1(ExecutableElement element) : this(element);
-
-  /**
-   * Initialize a newly created function type to be declared by the given
-   * [element].
-   */
-  @deprecated // Use new FunctionTypeImpl.forTypedef(element)
-  FunctionTypeImpl.con2(FunctionTypeAliasElement element)
-      : this.forTypedef(element);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -4957,26 +4782,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
    * Return the base parameter elements of this function element.
    */
-  List<ParameterElement> get baseParameters {
-    Element element = this.element;
-    if (element is ExecutableElement) {
-      return element.parameters;
-    } else {
-      return (element as FunctionTypeAliasElement).parameters;
-    }
-  }
+  List<ParameterElement> get baseParameters => element.parameters;
 
   /**
    * Return the return type defined by this function's element.
    */
-  DartType get baseReturnType {
-    Element element = this.element;
-    if (element is ExecutableElement) {
-      return element.returnType;
-    } else {
-      return (element as FunctionTypeAliasElement).returnType;
-    }
-  }
+  DartType get baseReturnType => element.returnType;
 
   @override
   List<TypeParameterElement> get boundTypeParameters => _boundTypeParameters;
@@ -5053,6 +4864,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
+  FunctionTypedElement get element => super.element;
+
+  @override
   int get hashCode {
     if (element == null) {
       return 0;
@@ -5073,6 +4887,26 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       code = (code << 1) + (type as TypeImpl).hashCode;
     }
     return code;
+  }
+
+  /**
+   * The type arguments that were used to instantiate this function type, if
+   * any, otherwise this will return an empty list.
+   *
+   * Given a function type `f`:
+   *
+   *     f == f.originalFunction.instantiate(f.instantiatedTypeArguments)
+   *
+   * Will always hold.
+   */
+  List<DartType> get instantiatedTypeArguments {
+    int typeParameterCount = element.type.boundTypeParameters.length;
+    if (typeParameterCount == 0) {
+      return DartType.EMPTY_LIST;
+    }
+    // The substituted types at the end should be our bound type parameters.
+    int skipCount = typeArguments.length - typeParameterCount;
+    return new List<DartType>.from(typeArguments.skip(skipCount));
   }
 
   @override
@@ -5172,6 +5006,20 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return types;
   }
 
+  /**
+   * If this is an instantiation of a generic function type, this will get
+   * the original function from which it was instantiated.
+   *
+   * Otherwise, this will return `this`.
+   */
+  FunctionTypeImpl get originalFunction {
+    if (element.type.boundTypeParameters.isEmpty) {
+      return this;
+    }
+    return (element.type as FunctionTypeImpl).substitute2(typeArguments,
+        TypeParameterTypeImpl.getTypes(typeParameters), prunedTypedefs);
+  }
+
   @override
   List<ParameterElement> get parameters {
     List<ParameterElement> baseParameters = this.baseParameters;
@@ -5229,9 +5077,22 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // variables, and see if the result is equal.
     if (boundTypeParameters.isNotEmpty) {
       List<DartType> instantiateTypeArgs = new List<DartType>();
-      for (TypeParameterElement e in boundTypeParameters) {
-        instantiateTypeArgs.add(new TypeParameterTypeImpl(
-            new TypeParameterElementImpl(e.name, -1)));
+      List<DartType> variablesThis = new List<DartType>();
+      List<DartType> variablesOther = new List<DartType>();
+      for (int i = 0; i < boundTypeParameters.length; i++) {
+        TypeParameterElement pThis = boundTypeParameters[i];
+        TypeParameterElement pOther = otherType.boundTypeParameters[i];
+        TypeParameterTypeImpl pFresh = new TypeParameterTypeImpl(
+            new TypeParameterElementImpl(pThis.name, -1));
+        instantiateTypeArgs.add(pFresh);
+        variablesThis.add(pThis.type);
+        variablesOther.add(pOther.type);
+        // Check that the bounds are equal after equating the previous
+        // bound variables.
+        if (pThis.bound?.substitute2(instantiateTypeArgs, variablesThis) !=
+            pOther.bound?.substitute2(instantiateTypeArgs, variablesOther)) {
+          return false;
+        }
       }
       // After instantiation, they will no longer have boundTypeParameters,
       // so we will continue below.
@@ -5263,6 +5124,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       }
 
       List<DartType> instantiateTypeArgs = new List<DartType>();
+      List<DartType> variables = new List<DartType>();
       buffer.write("<");
       for (TypeParameterElement e in boundTypeParameters) {
         if (e != boundTypeParameters[0]) {
@@ -5283,6 +5145,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
             new TypeParameterTypeImpl(new TypeParameterElementImpl(name, -1));
         t.appendTo(buffer);
         instantiateTypeArgs.add(t);
+        variables.add(e.type);
+        if (e.bound != null) {
+          buffer.write(" extends ");
+          TypeImpl renamed =
+              e.bound.substitute2(instantiateTypeArgs, variables);
+          renamed.appendTo(buffer);
+        }
       }
       buffer.write(">");
 
@@ -5813,20 +5682,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
-  @override
-  @deprecated
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) =>
-      visitHtmlScriptElement(element);
-
   R visitExecutableElement(ExecutableElement element) => visitElement(element);
 
   @override
   R visitExportElement(ExportElement element) => visitElement(element);
-
-  @override
-  @deprecated
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) =>
-      visitHtmlScriptElement(element);
 
   @override
   R visitFieldElement(FieldElement element) =>
@@ -5842,13 +5701,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) =>
       visitElement(element);
-
-  @override
-  @deprecated
-  R visitHtmlElement(HtmlElement element) => visitElement(element);
-
-  @deprecated
-  R visitHtmlScriptElement(HtmlScriptElement element) => visitElement(element);
 
   @override
   R visitImportElement(ImportElement element) => visitElement(element);
@@ -5945,153 +5797,9 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 }
 
 /**
- * An HTML file.
- */
-@deprecated
-abstract class HtmlElement implements Element {
-  /**
-   * An empty list of HTML file elements.
-   */
-  static const List<HtmlElement> EMPTY_LIST = const <HtmlElement>[];
-
-  /**
-   * Return a list containing all of the script elements contained in the HTML
-   * file. This includes scripts with libraries that are defined by the content
-   * of a script tag as well as libraries that are referenced in the `source`
-   * attribute of a script tag.
-   */
-  List<HtmlScriptElement> get scripts;
-}
-
-/**
- * A concrete implementation of an [HtmlElement].
- */
-@deprecated
-class HtmlElementImpl extends ElementImpl implements HtmlElement {
-  /**
-   * An empty list of HTML file elements.
-   */
-  @deprecated // Use HtmlElement.EMPTY_LIST
-  static const List<HtmlElement> EMPTY_ARRAY = const <HtmlElement>[];
-
-  /**
-   * The analysis context in which this library is defined.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The scripts contained in or referenced from script tags in the HTML file.
-   */
-  List<HtmlScriptElement> _scripts = HtmlScriptElement.EMPTY_LIST;
-
-  /**
-   * The source that corresponds to this HTML file.
-   */
-  Source source;
-
-  /**
-   * Initialize a newly created HTML element in the given [context] to have the
-   * given [name].
-   */
-  HtmlElementImpl(this.context, String name) : super(name, -1);
-
-  @override
-  int get hashCode => source.hashCode;
-
-  @override
-  String get identifier => source.encoding;
-
-  @override
-  ElementKind get kind => ElementKind.HTML;
-
-  @override
-  List<HtmlScriptElement> get scripts => _scripts;
-
-  /**
-   * Set the scripts contained in the HTML file to the given [scripts].
-   */
-  void set scripts(List<HtmlScriptElement> scripts) {
-    if (scripts.length == 0) {
-      this._scripts = HtmlScriptElement.EMPTY_LIST;
-      return;
-    }
-    for (HtmlScriptElement script in scripts) {
-      (script as HtmlScriptElementImpl).enclosingElement = this;
-    }
-    this._scripts = scripts;
-  }
-
-  @override
-  bool operator ==(Object object) {
-    if (identical(object, this)) {
-      return true;
-    }
-    return object is HtmlElementImpl && source == object.source;
-  }
-
-  @override
-  accept(ElementVisitor visitor) => visitor.visitHtmlElement(this);
-
-  @override
-  void appendTo(StringBuffer buffer) {
-    if (source == null) {
-      buffer.write("{HTML file}");
-    } else {
-      buffer.write(source.fullName);
-    }
-  }
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChildren(_scripts, visitor);
-  }
-}
-
-/**
- * A script tag in an HTML file.
- *
- * See [EmbeddedHtmlScriptElement], and [ExternalHtmlScriptElement].
- */
-@deprecated
-abstract class HtmlScriptElement implements Element {
-  /**
-   * An empty list of HTML script elements.
-   */
-  static const List<HtmlScriptElement> EMPTY_LIST = const <HtmlScriptElement>[];
-}
-
-/**
- * A concrete implementation of an [HtmlScriptElement].
- */
-@deprecated
-abstract class HtmlScriptElementImpl extends ElementImpl
-    implements HtmlScriptElement {
-  /**
-   * An empty list of HTML script elements.
-   */
-  @deprecated // Use HtmlScriptElement.EMPTY_LIST
-  static const List<HtmlScriptElement> EMPTY_ARRAY =
-      const <HtmlScriptElement>[];
-
-  /**
-   * Initialize a newly created script element corresponding to the given
-   * [node].
-   */
-  HtmlScriptElementImpl(XmlTagNode node)
-      : super(node.tag, node.tagToken.offset);
-}
-
-/**
  * A single import directive within a library.
  */
 abstract class ImportElement implements Element, UriReferencedElement {
-  /**
-   * An empty list of import elements.
-   */
-  @deprecated // Use ImportElement.EMPTY_LIST
-  static const List<ImportElement> EMPTY_ARRAY = const <ImportElement>[];
-
   /**
    * An empty list of import elements.
    */
@@ -6203,12 +5911,6 @@ abstract class InterfaceType implements ParameterizedType {
   /**
    * An empty list of types.
    */
-  @deprecated // Use InterfaceType.EMPTY_LIST
-  static const List<InterfaceType> EMPTY_ARRAY = const <InterfaceType>[];
-
-  /**
-   * An empty list of types.
-   */
   static const List<InterfaceType> EMPTY_LIST = const <InterfaceType>[];
 
   /**
@@ -6262,24 +5964,6 @@ abstract class InterfaceType implements ParameterizedType {
    * with the given name.
    */
   PropertyAccessorElement getGetter(String name);
-
-  /**
-   * Return the least upper bound of this type and the given [type], or `null`
-   * if there is no least upper bound.
-   *
-   * Given two interfaces <i>I</i> and <i>J</i>, let <i>S<sub>I</sub></i> be the
-   * set of superinterfaces of <i>I<i>, let <i>S<sub>J</sub></i> be the set of
-   * superinterfaces of <i>J</i> and let <i>S = (I &cup; S<sub>I</sub>) &cap;
-   * (J &cup; S<sub>J</sub>)</i>. Furthermore, we define <i>S<sub>n</sub> =
-   * {T | T &isin; S &and; depth(T) = n}</i> for any finite <i>n</i>, where
-   * <i>depth(T)</i> is the number of steps in the longest inheritance path from
-   * <i>T</i> to <i>Object</i>. Let <i>q</i> be the largest number such that
-   * <i>S<sub>q</sub></i> has cardinality one. The least upper bound of <i>I</i>
-   * and <i>J</i> is the sole element of <i>S<sub>q</sub></i>.
-   */
-  @override
-  @deprecated
-  DartType getLeastUpperBound(DartType type);
 
   /**
    * Return the element representing the method with the given [name] that is
@@ -6551,7 +6235,9 @@ abstract class InterfaceType implements ParameterizedType {
     if (first.element == second.element) {
       return _leastUpperBound(first, second);
     }
-    return first.getLeastUpperBound(second);
+    AnalysisContext context = first.element.context;
+    return context.typeSystem
+        .getLeastUpperBound(context.typeProvider, first, second);
   }
 
   /**
@@ -6620,23 +6306,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   InterfaceTypeImpl(ClassElement element, [this.prunedTypedefs])
       : super(element, element.displayName);
-
-  /**
-   * Initialize a newly created type to be declared by the given [element].
-   */
-  @deprecated // Use new InterfaceTypeImpl(element)
-  InterfaceTypeImpl.con1(ClassElement element)
-      : prunedTypedefs = null,
-        super(element, element.displayName);
-
-  /**
-   * Initialize a newly created type to have the given [name]. This constructor
-   * should only be used in cases where there is no declaration of the type.
-   */
-  @deprecated // Use new InterfaceTypeImpl.named(name)
-  InterfaceTypeImpl.con2(String name)
-      : prunedTypedefs = null,
-        super(null, name);
 
   /**
    * Initialize a newly created type to have the given [name]. This constructor
@@ -6822,26 +6491,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement getGetter(String getterName) => PropertyAccessorMember
       .from((element as ClassElementImpl).getGetter(getterName), this);
-
-  @override
-  @deprecated
-  DartType getLeastUpperBound(DartType type) {
-    // quick check for self
-    if (identical(type, this)) {
-      return this;
-    }
-    // dynamic
-    DartType dynamicType = DynamicTypeImpl.instance;
-    if (identical(this, dynamicType) || identical(type, dynamicType)) {
-      return dynamicType;
-    }
-    // TODO (jwren) opportunity here for a better, faster algorithm if this
-    // turns out to be a bottle-neck
-    if (type is! InterfaceType) {
-      return null;
-    }
-    return computeLeastUpperBound(this, type);
-  }
 
   @override
   MethodElement getMethod(String methodName) => MethodMember.from(
@@ -7469,12 +7118,6 @@ abstract class LabelElement implements Element {
  */
 class LabelElementImpl extends ElementImpl implements LabelElement {
   /**
-   * An empty list of label elements.
-   */
-  @deprecated // Use LabelElement.EMPTY_LIST
-  static const List<LabelElement> EMPTY_ARRAY = const <LabelElement>[];
-
-  /**
    * A flag indicating whether this label is associated with a `switch`
    * statement.
    */
@@ -7662,12 +7305,6 @@ abstract class LibraryElement implements Element {
  * A concrete implementation of a [LibraryElement].
  */
 class LibraryElementImpl extends ElementImpl implements LibraryElement {
-  /**
-   * An empty list of library elements.
-   */
-  @deprecated // Use LibraryElement.EMPTY_LIST
-  static const List<LibraryElement> EMPTY_ARRAY = const <LibraryElement>[];
-
   /**
    * The analysis context in which this library is defined.
    */
@@ -8014,7 +7651,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  bool operator ==(Object object) => object is LibraryElementImpl &&
+  bool operator ==(Object object) =>
+      object is LibraryElementImpl &&
       _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
@@ -8253,16 +7891,6 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
    */
   static const List<LocalVariableElement> EMPTY_LIST =
       const <LocalVariableElement>[];
-
-  /**
-   * Return the resolved [VariableDeclaration] node that declares this
-   * [LocalVariableElement].
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   */
-  @override
-  VariableDeclaration computeNode();
 }
 
 /**
@@ -8270,13 +7898,6 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  */
 class LocalVariableElementImpl extends VariableElementImpl
     implements LocalVariableElement {
-  /**
-   * An empty list of field elements.
-   */
-  @deprecated // Use LocalVariableElement.EMPTY_LIST
-  static const List<LocalVariableElement> EMPTY_ARRAY =
-      const <LocalVariableElement>[];
-
   /**
    * The offset to the beginning of the visible range for this element.
    */
@@ -8380,7 +8001,7 @@ abstract class Member implements Element {
   final ParameterizedType _definingType;
 
   /**
-   * Initialize a newly created element to represent a constructor, based on the
+   * Initialize a newly created element to represent a member, based on the
    * [baseElement], defined by the [definingType].
    */
   Member(this._baseElement, this._definingType);
@@ -8442,10 +8063,6 @@ abstract class Member implements Element {
   @override
   int get nameOffset => _baseElement.nameOffset;
 
-  @deprecated
-  @override
-  AstNode get node => computeNode();
-
   @override
   Source get source => _baseElement.source;
 
@@ -8497,6 +8114,7 @@ abstract class Member implements Element {
    * Return the type that results from replacing the type parameters in the
    * given [type] with the type arguments associated with this member.
    */
+  @deprecated
   DartType substituteFor(DartType type) {
     if (type == null) {
       return null;
@@ -8505,20 +8123,6 @@ abstract class Member implements Element {
     List<DartType> parameterTypes =
         TypeParameterTypeImpl.getTypes(_definingType.typeParameters);
     return type.substitute2(argumentTypes, parameterTypes);
-  }
-
-  /**
-   * Return the list of types that results from replacing the type parameters in
-   * the given [types] with the type arguments associated with this member.
-   */
-  @deprecated
-  List<InterfaceType> substituteFor2(List<InterfaceType> types) {
-    int count = types.length;
-    List<InterfaceType> substitutedTypes = new List<InterfaceType>(count);
-    for (int i = 0; i < count; i++) {
-      substitutedTypes[i] = substituteFor(types[i]);
-    }
-    return substitutedTypes;
   }
 
   @override
@@ -8551,12 +8155,6 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
  * A concrete implementation of a [MethodElement].
  */
 class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
-  /**
-   * An empty list of method elements.
-   */
-  @deprecated // Use MethodElement.EMPTY_LIST
-  static const List<MethodElement> EMPTY_ARRAY = const <MethodElement>[];
-
   /**
    * Initialize a newly created method element to have the given [name] at the
    * given [offset].
@@ -8644,11 +8242,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
  */
 class MethodMember extends ExecutableMember implements MethodElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * Initialize a newly created element to represent a method, based on the
+   * [baseElement], defined by the [definingType]. If [type] is passed, it
+   * represents the full type of the member, and will take precedence over
+   * the [definingType].
    */
-  MethodMember(MethodElement baseElement, InterfaceType definingType)
-      : super(baseElement, definingType);
+  MethodMember(MethodElement baseElement, InterfaceType definingType,
+      [DartType type])
+      : super(baseElement, definingType, type);
 
   @override
   MethodElement get baseElement => super.baseElement as MethodElement;
@@ -8706,10 +8307,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
     if (baseType == substitutedType) {
       return method;
     }
-    // TODO(brianwilkerson) Consider caching the substituted type in the
-    // instance. It would use more memory but speed up some operations.
-    // We need to see how often the type is being re-computed.
-    return new MethodMember(method, definingType);
+    return new MethodMember(method, definingType, substitutedType);
   }
 }
 
@@ -8962,10 +8560,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   int get nameOffset => -1;
 
-  @deprecated
-  @override
-  AstNode get node => null;
-
   @override
   Source get source => null;
 
@@ -9142,13 +8736,6 @@ abstract class NamespaceCombinator {
   /**
    * An empty list of namespace combinators.
    */
-  @deprecated // Use NamespaceCombinator.EMPTY_LIST
-  static const List<NamespaceCombinator> EMPTY_ARRAY =
-      const <NamespaceCombinator>[];
-
-  /**
-   * An empty list of namespace combinators.
-   */
   static const List<NamespaceCombinator> EMPTY_LIST =
       const <NamespaceCombinator>[];
 }
@@ -9208,12 +8795,6 @@ abstract class ParameterElement
 class ParameterElementImpl extends VariableElementImpl
     with ParameterElementMixin
     implements ParameterElement {
-  /**
-   * An empty list of parameter elements.
-   */
-  @deprecated // Use ParameterElement.EMPTY_LIST
-  static const List<ParameterElement> EMPTY_ARRAY = const <ParameterElement>[];
-
   /**
    * A list containing all of the parameters defined by this parameter element.
    * There will only be parameters if this parameter is a function typed
@@ -9436,11 +9017,13 @@ class ParameterMember extends VariableMember
     with ParameterElementMixin
     implements ParameterElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
-   * [baseElement], defined by the [definingType].
+   * Initialize a newly created element to represent a parameter, based on the
+   * [baseElement], defined by the [definingType]. If [type] is passed it will
+   * represent the already substituted type.
    */
-  ParameterMember(ParameterElement baseElement, ParameterizedType definingType)
-      : super(baseElement, definingType);
+  ParameterMember(ParameterElement baseElement, ParameterizedType definingType,
+      [DartType type])
+      : super._(baseElement, definingType, type);
 
   @override
   ParameterElement get baseElement => super.baseElement as ParameterElement;
@@ -9462,18 +9045,11 @@ class ParameterMember extends VariableMember
 
   @override
   List<ParameterElement> get parameters {
-    List<ParameterElement> baseParameters = baseElement.parameters;
-    int parameterCount = baseParameters.length;
-    if (parameterCount == 0) {
-      return baseParameters;
+    DartType type = this.type;
+    if (type is FunctionType) {
+      return type.parameters;
     }
-    List<ParameterElement> parameterizedParameters =
-        new List<ParameterElement>(parameterCount);
-    for (int i = 0; i < parameterCount; i++) {
-      parameterizedParameters[i] =
-          ParameterMember.from(baseParameters[i], definingType);
-    }
-    return parameterizedParameters;
+    return ParameterElement.EMPTY_LIST;
   }
 
   @override
@@ -9482,6 +9058,8 @@ class ParameterMember extends VariableMember
   @override
   SourceRange get visibleRange => baseElement.visibleRange;
 
+  // TODO(jmesserly): this equality is broken. It should consider the defining
+  // type as well, otherwise we're dropping the substitution.
   @override
   bool operator ==(Object object) =>
       object is ParameterMember && baseElement == object.baseElement;
@@ -9548,8 +9126,9 @@ class ParameterMember extends VariableMember
     // Check if parameter type depends on defining type type arguments.
     // It is possible that we did not resolve field formal parameter yet,
     // so skip this check for it.
-    bool isFieldFormal = parameter is FieldFormalParameterElement;
-    if (!isFieldFormal) {
+    if (parameter is FieldFormalParameterElement) {
+      return new FieldFormalParameterMember(parameter, definingType);
+    } else {
       DartType baseType = parameter.type;
       List<DartType> argumentTypes = definingType.typeArguments;
       List<DartType> parameterTypes =
@@ -9559,15 +9138,8 @@ class ParameterMember extends VariableMember
       if (baseType == substitutedType) {
         return parameter;
       }
+      return new ParameterMember(parameter, definingType, substitutedType);
     }
-    // TODO(brianwilkerson) Consider caching the substituted type in the
-    // instance. It would use more memory but speed up some operations.
-    // We need to see how often the type is being re-computed.
-    if (isFieldFormal) {
-      return new FieldFormalParameterMember(
-          parameter as FieldFormalParameterElement, definingType);
-    }
-    return new ParameterMember(parameter, definingType);
   }
 }
 
@@ -9598,12 +9170,6 @@ abstract class PrefixElement implements Element {
  * A concrete implementation of a [PrefixElement].
  */
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
-  /**
-   * An empty list of prefix elements.
-   */
-  @deprecated // Use PrefixElement.EMPTY_LIST
-  static const List<PrefixElement> EMPTY_ARRAY = const <PrefixElement>[];
-
   /**
    * A list containing all of the libraries that are imported using this prefix.
    */
@@ -9712,13 +9278,6 @@ abstract class PropertyAccessorElement implements ExecutableElement {
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElement {
   /**
-   * An empty list of property accessor elements.
-   */
-  @deprecated // Use PropertyAccessorElement.EMPTY_LIST
-  static const List<PropertyAccessorElement> EMPTY_ARRAY =
-      const <PropertyAccessorElement>[];
-
-  /**
    * The variable associated with this accessor.
    */
   PropertyInducingElement variable;
@@ -9820,7 +9379,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool operator ==(Object object) => super == object &&
+  bool operator ==(Object object) =>
+      super == object &&
       isGetter == (object as PropertyAccessorElement).isGetter;
 
   @override
@@ -9855,7 +9415,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 class PropertyAccessorMember extends ExecutableMember
     implements PropertyAccessorElement {
   /**
-   * Initialize a newly created element to represent a constructor, based on the
+   * Initialize a newly created element to represent a property, based on the
    * [baseElement], defined by the [definingType].
    */
   PropertyAccessorMember(
@@ -10041,13 +9601,6 @@ abstract class PropertyInducingElement implements VariableElement {
 abstract class PropertyInducingElementImpl extends VariableElementImpl
     implements PropertyInducingElement {
   /**
-   * An empty list of elements.
-   */
-  @deprecated // Use PropertyInducingElement.EMPTY_LIST
-  static const List<PropertyInducingElement> EMPTY_ARRAY =
-      const <PropertyInducingElement>[];
-
-  /**
    * The getter associated with this element.
    */
   PropertyAccessorElement getter;
@@ -10108,21 +9661,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  @deprecated
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
   R visitExportElement(ExportElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  @deprecated
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -10147,13 +9686,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  @deprecated
-  R visitHtmlElement(HtmlElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -10301,15 +9833,7 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitConstructorElement(ConstructorElement element) => null;
 
   @override
-  @deprecated
-  R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => null;
-
-  @override
   R visitExportElement(ExportElement element) => null;
-
-  @override
-  @deprecated
-  R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => null;
 
   @override
   R visitFieldElement(FieldElement element) => null;
@@ -10323,10 +9847,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
-
-  @override
-  @deprecated
-  R visitHtmlElement(HtmlElement element) => null;
 
   @override
   R visitImportElement(ImportElement element) => null;
@@ -10382,13 +9902,6 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     implements TopLevelVariableElement {
   /**
-   * An empty list of top-level variable elements.
-   */
-  @deprecated // Use TopLevelVariableElement.EMPTY_LIST
-  static const List<TopLevelVariableElement> EMPTY_ARRAY =
-      const <TopLevelVariableElement>[];
-
-  /**
    * Initialize a newly created synthetic top-level variable element to have the
    * given [name] and [offset].
    */
@@ -10429,12 +9942,6 @@ abstract class TypeDefiningElement implements Element {
  * representing the declared type of elements in the element model.
  */
 abstract class TypeImpl implements DartType {
-  /**
-   * An empty list of types.
-   */
-  @deprecated // Use DartType.EMPTY_LIST
-  static const List<DartType> EMPTY_ARRAY = const <DartType>[];
-
   /**
    * The element representing the declaration of this type, or `null` if the
    * type has not, or cannot, be associated with an element.
@@ -10487,9 +9994,6 @@ abstract class TypeImpl implements DartType {
       buffer.write(name);
     }
   }
-
-  @override
-  DartType getLeastUpperBound(DartType type) => null;
 
   /**
    * Return `true` if this type is assignable to the given [type] (written in
@@ -10658,13 +10162,6 @@ abstract class TypeParameterElement implements TypeDefiningElement {
 class TypeParameterElementImpl extends ElementImpl
     implements TypeParameterElement {
   /**
-   * An empty list of type parameter elements.
-   */
-  @deprecated // Use TypeParameterElement.EMPTY_LIST
-  static const List<TypeParameterElement> EMPTY_ARRAY =
-      const <TypeParameterElement>[];
-
-  /**
    * The type defined by this type parameter.
    */
   TypeParameterType type;
@@ -10733,13 +10230,6 @@ abstract class TypeParameterType implements DartType {
  * A concrete implementation of a [TypeParameterType].
  */
 class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
-  /**
-   * An empty list of type parameter types.
-   */
-  @deprecated // Use TypeParameterType.EMPTY_LIST
-  static const List<TypeParameterType> EMPTY_ARRAY =
-      const <TypeParameterType>[];
-
   /**
    * Initialize a newly created type parameter type to be declared by the given
    * [element] and to have the given name.
@@ -11064,12 +10554,6 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
 abstract class VariableElementImpl extends ElementImpl
     implements VariableElement {
   /**
-   * An empty list of variable elements.
-   */
-  @deprecated // Use VariableElement.EMPTY_LIST
-  static const List<VariableElement> EMPTY_ARRAY = const <VariableElement>[];
-
-  /**
    * The declared type of this variable.
    */
   DartType type;
@@ -11194,12 +10678,25 @@ abstract class VariableElementImpl extends ElementImpl
  * type parameters are known.
  */
 abstract class VariableMember extends Member implements VariableElement {
+  @override
+  final DartType type;
+
   /**
-   * Initialize a newly created element to represent a constructor, based on the
+   * Initialize a newly created element to represent a variable, based on the
    * [baseElement], defined by the [definingType].
    */
-  VariableMember(VariableElement baseElement, ParameterizedType definingType)
-      : super(baseElement, definingType);
+  VariableMember(VariableElement baseElement, ParameterizedType definingType,
+      [DartType type])
+      : type = type ??
+            baseElement.type.substitute2(definingType.typeArguments,
+                TypeParameterTypeImpl.getTypes(definingType.typeParameters)),
+        super(baseElement, definingType);
+
+  // TODO(jmesserly): this is temporary to allow the ParameterMember subclass.
+  // Apparently mixins don't work with optional params.
+  VariableMember._(VariableElement baseElement, ParameterizedType definingType,
+      DartType type)
+      : this(baseElement, definingType, type);
 
   @override
   VariableElement get baseElement => super.baseElement as VariableElement;
@@ -11236,9 +10733,6 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   bool get isStatic => baseElement.isStatic;
-
-  @override
-  DartType get type => substituteFor(baseElement.type);
 
   @override
   void visitChildren(ElementVisitor visitor) {

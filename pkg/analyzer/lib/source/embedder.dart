@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source.embedder;
+library analyzer.source.embedder;
 
-import 'dart:core' hide Resource;
 import 'dart:collection' show HashMap;
+import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;

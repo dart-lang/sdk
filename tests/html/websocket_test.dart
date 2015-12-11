@@ -35,6 +35,16 @@ main() {
 
         return socket.onMessage.first.then((MessageEvent e) {
           expect(e.data, 'hello!');
+          socket.close();
+        });
+      });
+
+      test('error handling', () {
+        var socket = new WebSocket('ws://${window.location.host}/ws');
+        socket.onOpen.first.then((_) => socket.send('close-with-error'));
+        return socket.onError.first.then((e) {
+          print('$e was caught, yay!');
+          socket.close();
         });
       });
     }

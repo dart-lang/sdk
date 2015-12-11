@@ -519,13 +519,13 @@ final coreImports = [
     "kind": "class"
   },
   {
+    "name": "Match",
+    "kind": "class"
+  },
+  {
     "name": "print",
     "kind": "function",
     "type": "(Object) -> void"
-  },
-  {
-    "name": "Match",
-    "kind": "class"
   },
   {
     "name": "RegExp",

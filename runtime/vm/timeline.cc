@@ -189,44 +189,45 @@ void TimelineEvent::Reset() {
 
 void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
   Init(kAsyncBegin, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  set_timestamp0(OS::GetCurrentMonotonicMicros());
   // Overload timestamp1_ with the async_id.
-  timestamp1_ = async_id;
+  set_timestamp1(async_id);
 }
 
 
 void TimelineEvent::AsyncInstant(const char* label,
                                  int64_t async_id) {
   Init(kAsyncInstant, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  set_timestamp0(OS::GetCurrentMonotonicMicros());
   // Overload timestamp1_ with the async_id.
-  timestamp1_ = async_id;
+  set_timestamp1(async_id);
 }
 
 
 void TimelineEvent::AsyncEnd(const char* label,
                              int64_t async_id) {
   Init(kAsyncEnd, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  set_timestamp0(OS::GetCurrentMonotonicMicros());
   // Overload timestamp1_ with the async_id.
-  timestamp1_ = async_id;
+  set_timestamp1(async_id);
 }
 
 
 void TimelineEvent::DurationBegin(const char* label) {
   Init(kDuration, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  set_timestamp0(OS::GetCurrentMonotonicMicros());
 }
 
 
 void TimelineEvent::DurationEnd() {
-  timestamp1_ = OS::GetCurrentTraceMicros();
+  ASSERT(timestamp1_ == 0);
+  set_timestamp1(OS::GetCurrentMonotonicMicros());
 }
 
 
 void TimelineEvent::Instant(const char* label) {
   Init(kInstant, label);
-  timestamp0_ = OS::GetCurrentTraceMicros();
+  set_timestamp0(OS::GetCurrentMonotonicMicros());
 }
 
 
@@ -234,22 +235,22 @@ void TimelineEvent::Duration(const char* label,
                              int64_t start_micros,
                              int64_t end_micros) {
   Init(kDuration, label);
-  timestamp0_ = start_micros;
-  timestamp1_ = end_micros;
+  set_timestamp0(start_micros);
+  set_timestamp1(end_micros);
 }
 
 
 void TimelineEvent::Begin(const char* label,
                           int64_t micros) {
   Init(kBegin, label);
-  timestamp0_ = micros;
+  set_timestamp0(micros);
 }
 
 
 void TimelineEvent::End(const char* label,
                         int64_t micros) {
   Init(kEnd, label);
-  timestamp0_ = micros;
+  set_timestamp0(micros);
 }
 
 
@@ -453,7 +454,7 @@ int64_t TimelineEvent::AsyncId() const {
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
-    return OS::GetCurrentTraceMicros() - timestamp0_;
+    return OS::GetCurrentMonotonicMicros() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
 }
@@ -529,7 +530,7 @@ TimelineDurationScope::~TimelineDurationScope() {
     return;
   }
   ASSERT(event != NULL);
-  event->Duration(label_, timestamp_, OS::GetCurrentTraceMicros());
+  event->Duration(label_, timestamp_, OS::GetCurrentMonotonicMicros());
   event->StealArguments(arguments_length_, arguments_);
   event->Complete();
   arguments_length_ = 0;
@@ -545,7 +546,7 @@ void TimelineDurationScope::Init() {
     // Stream is not enabled, do nothing.
     return;
   }
-  timestamp_ = OS::GetCurrentTraceMicros();
+  timestamp_ = OS::GetCurrentMonotonicMicros();
   enabled_ = true;
 }
 
@@ -675,6 +676,12 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // We are accessing the thread's timeline block- so take the lock here.
   // This lock will be held until the call to |CompleteEvent| is made.
   thread_block_lock->Lock();
+#if defined(DEBUG)
+  Thread* T = Thread::Current();
+  if (T != NULL) {
+    T->IncrementNoSafepointScopeDepth();
+  }
+#endif  // defined(DEBUG)
 
   TimelineEventBlock* thread_block = thread->timeline_block();
 
@@ -699,6 +706,11 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
     return event;
   }
   // Drop lock here as no event is being handed out.
+#if defined(DEBUG)
+  if (T != NULL) {
+    T->DecrementNoSafepointScopeDepth();
+  }
+#endif  // defined(DEBUG)
   thread_block_lock->Unlock();
   return NULL;
 }
@@ -714,6 +726,12 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
   // Unlock the thread's block lock.
   Mutex* thread_block_lock = thread->timeline_block_lock();
   ASSERT(thread_block_lock != NULL);
+#if defined(DEBUG)
+  Thread* T = Thread::Current();
+  if (T != NULL) {
+    T->DecrementNoSafepointScopeDepth();
+  }
+#endif  // defined(DEBUG)
   thread_block_lock->Unlock();
 }
 

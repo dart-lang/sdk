@@ -1307,7 +1307,6 @@ final Matcher isCompletionSuggestionKind = new MatchesEnum("CompletionSuggestion
  *   "explicitFileCount": int
  *   "implicitFileCount": int
  *   "workItemQueueLength": int
- *   "workItemQueueLengthAverage": String
  *   "cacheEntryExceptions": List<String>
  * }
  */
@@ -1317,7 +1316,6 @@ final Matcher isContextData = new LazyMatcher(() => new MatchesJsonObject(
     "explicitFileCount": isInt,
     "implicitFileCount": isInt,
     "workItemQueueLength": isInt,
-    "workItemQueueLengthAverage": isString,
     "cacheEntryExceptions": isListOf(isString)
   }));
 
@@ -2104,6 +2102,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
+ *   INVALID_FILE_PATH_FORMAT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
@@ -2130,6 +2129,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "GET_REACHABLE_SOURCES_INVALID_FILE",
   "INVALID_ANALYSIS_ROOT",
   "INVALID_EXECUTION_CONTEXT",
+  "INVALID_FILE_PATH_FORMAT",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
   "INVALID_REQUEST",

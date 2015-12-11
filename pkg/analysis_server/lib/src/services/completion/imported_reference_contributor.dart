@@ -143,7 +143,6 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
     }
     DartCompletionCache cache = request.cache;
     _addFilteredSuggestions(filterText, cache.importedConstructorSuggestions);
-    _addFilteredSuggestions(filterText, cache.libraryPrefixSuggestions);
   }
 
   /**
@@ -258,7 +257,6 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
     DartCompletionCache cache = request.cache;
     if (optype.includeTypeNameSuggestions) {
       _addFilteredSuggestions(filterText, cache.importedTypeSuggestions);
-      _addFilteredSuggestions(filterText, cache.libraryPrefixSuggestions);
     }
     if (optype.includeReturnValueSuggestions) {
       _addFilteredSuggestions(filterText, cache.otherImportedSuggestions);

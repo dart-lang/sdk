@@ -169,7 +169,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
 
   var metadataList = fooClass.metadata;
   Expect.isNotNull(metadataList);
-  Expect.equals(16, metadataList.length);
+  Expect.equals(14, metadataList.length);
   var metadataListIndex = 0;
   var metadata;
 
@@ -192,28 +192,17 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals(
       "Singleline doc comment.", metadata.trimmedText);
 
-  // @Metadata
+  // @Metadata(null)
   metadata = metadataList[metadataListIndex++];
+  var metadataType = metadata.type;
   Expect.isTrue(metadata is InstanceMirror);
   Expect.isFalse(metadata.hasReflectee);
   Expect.throws(() => metadata.reflectee, (_) => true);
-  Expect.isTrue(metadata is TypeInstanceMirror);
-  var metadataType = metadata.representedType;
-  Expect.isNotNull(metadataType);
-  Expect.equals(#Metadata, metadataType.simpleName);
-
-  // // This is intentionally the type literal.
-  metadata = metadataList[metadataListIndex++];
-  Expect.isTrue(metadata is InstanceMirror);
-  Expect.isFalse(metadata.hasReflectee);
-  Expect.throws(() => metadata.reflectee, (_) => true);
-  Expect.isTrue(metadata is CommentInstanceMirror);
-  Expect.equals(commentType.originalDeclaration, metadata.type);
-  Expect.isFalse(metadata.isDocComment);
-  Expect.stringEquals(
-      "// This is intentionally the type literal.", metadata.text);
-  Expect.stringEquals(
-      "This is intentionally the type literal.", metadata.trimmedText);
+  Expect.isTrue(metadataType.isOriginalDeclaration);
+  InstanceMirror data = metadata.getField(#data);
+  Expect.isNotNull(data);
+  Expect.isTrue(data.hasReflectee);
+  Expect.isNull(data.reflectee);
 
   // Singleline comment 1.
   metadata = metadataList[metadataListIndex++];
@@ -240,17 +229,6 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
       "// Singleline comment 2.", metadata.text);
   Expect.stringEquals(
       "Singleline comment 2.", metadata.trimmedText);
-
-  // @Metadata(null)
-  metadata = metadataList[metadataListIndex++];
-  Expect.isTrue(metadata is InstanceMirror);
-  Expect.isFalse(metadata.hasReflectee);
-  Expect.throws(() => metadata.reflectee, (_) => true);
-  Expect.equals(metadataType.originalDeclaration, metadata.type);
-  InstanceMirror data = metadata.getField(#data);
-  Expect.isNotNull(data);
-  Expect.isTrue(data.hasReflectee);
-  Expect.isNull(data.reflectee);
 
   // @Metadata(true)
   metadata = metadataList[metadataListIndex++];
@@ -398,7 +376,7 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   // leading comment.
   Expect.equals(376, fooClassLocation.offset, "Unexpected offset");
   // Expect the location to end with the class body.
-  Expect.equals(351, fooClassLocation.length, "Unexpected length");
+  Expect.equals(298, fooClassLocation.length, "Unexpected length");
   Expect.equals(18, fooClassLocation.line, "Unexpected line");
   Expect.equals(1, fooClassLocation.column, "Unexpected column");
 

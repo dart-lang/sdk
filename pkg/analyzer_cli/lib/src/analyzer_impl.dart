@@ -20,10 +20,10 @@ import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
 
-DirectoryBasedDartSdk sdk;
-
 /// The maximum number of sources for which AST structures should be kept in the cache.
 const int _maxCacheSize = 512;
+
+DirectoryBasedDartSdk sdk;
 
 int currentTimeMillis() => new DateTime.now().millisecondsSinceEpoch;
 
@@ -278,26 +278,10 @@ class StdLogger extends Logger {
   }
 
   @override
-  void logError2(String message, Object exception) {
-    errorSink.writeln(message);
-    if (exception != null) {
-      errorSink.writeln(exception.toString());
-    }
-  }
-
-  @override
   void logInformation(String message, [CaughtException exception]) {
     outSink.writeln(message);
     if (exception != null) {
       outSink.writeln(exception);
-    }
-  }
-
-  @override
-  void logInformation2(String message, Object exception) {
-    outSink.writeln(message);
-    if (exception != null) {
-      outSink.writeln(exception.toString());
     }
   }
 }

@@ -3787,11 +3787,11 @@ bool Class::TypeTestNonRecursive(const Class& cls,
     }
     // Check for reflexivity.
     if (thsi.raw() == other.raw()) {
-      const intptr_t num_type_args = thsi.NumTypeArguments();
-      if (num_type_args == 0) {
+      const intptr_t num_type_params = thsi.NumTypeParameters();
+      if (num_type_params == 0) {
         return true;
       }
-      const intptr_t num_type_params = thsi.NumTypeParameters();
+      const intptr_t num_type_args = thsi.NumTypeArguments();
       const intptr_t from_index = num_type_args - num_type_params;
       // Since we do not truncate the type argument vector of a subclass (see
       // below), we only check a subvector of the proper length.
@@ -9370,9 +9370,7 @@ void Library::RemovePatchClass(const Class& cls) const {
   // Library::LoadedScripts() can find it without having to iterate
   // over the members of each class.
   ASSERT(i < num_classes);  // We must have found a class.
-  Class& pc = Class::Handle();
-  pc ^= patch_classes.At(i);
-  const Script& patch_script = Script::Handle(pc.script());
+  const Script& patch_script = Script::Handle(cls.script());
   patch_classes.SetAt(i, patch_script);
 }
 
@@ -9816,7 +9814,7 @@ RawArray* Library::LoadedScripts() const {
         owner_script = Class::Cast(entry).script();
       }  else {
         ASSERT(entry.IsScript());
-        owner_script ^= Script::Cast(entry).raw();
+        owner_script = Script::Cast(entry).raw();
       }
       AddScriptIfUnique(scripts, owner_script);
     }
@@ -13379,7 +13377,7 @@ RawCode* Code::FinalizeCode(const char* name,
   VerifiedMemory::Accept(region.start(), region.size());
   CPU::FlushICache(instrs.EntryPoint(), instrs.size());
 
-  code.set_compile_timestamp(OS::GetCurrentTraceMicros());
+  code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
   CodeObservers::NotifyAll(name,
                            instrs.EntryPoint(),
                            assembler->prologue_offset(),
@@ -15630,8 +15628,8 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
                             const AbstractType& other,
                             Error* bound_error,
                             Heap::Space space) const {
-  ASSERT(IsResolved());
-  ASSERT(other.IsResolved());
+  ASSERT(IsFinalized());
+  ASSERT(other.IsFinalized());
   if (IsMalformed() || other.IsMalformed()) {
     // Malformed types involved in subtype tests should be handled specially
     // by the caller. Malformed types should only be encountered here in a
@@ -15685,6 +15683,15 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
       }
     }
     const AbstractType& bound = AbstractType::Handle(type_param.bound());
+    // We may be checking bounds at finalization time and can encounter
+    // a still unfinalized bound.
+    if (!bound.IsFinalized() && !bound.IsBeingFinalized()) {
+      ClassFinalizer::FinalizeType(
+          Class::Handle(type_param.parameterized_class()),
+          bound,
+          ClassFinalizer::kCanonicalize);
+      type_param.set_bound(bound);
+    }
     if (bound.IsMoreSpecificThan(other, bound_error)) {
       return true;
     }

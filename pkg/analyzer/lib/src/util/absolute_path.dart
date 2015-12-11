@@ -4,18 +4,29 @@
 
 library analyzer.src.util.absolute_path;
 
-/// The class for manipulating absolute paths.
+/// The class for manipulating absolute, normalized paths.
 class AbsolutePathContext {
-  final String separator;
+  static const int _COLON = 0x3A;
+  static const int _LOWER_A = 0x61;
+  static const int _LOWER_Z = 0x7A;
+  static const int _UPPER_A = 0x41;
+  static const int _UPPER_Z = 0x5A;
 
+  final bool _isWindows;
+  String separator;
   int _separatorChar;
+  String _singlePeriodComponent;
+  String _doublePeriodComponent;
+  String _singlePeriodEnding;
+  String _doublePeriodEnding;
 
-  AbsolutePathContext(this.separator) {
-    if (separator.length != 1) {
-      throw new ArgumentError.value(
-          separator, 'separator', 'must be exactly one character long');
-    }
+  AbsolutePathContext(this._isWindows) {
+    separator = _isWindows ? r'\' : '/';
     _separatorChar = separator.codeUnitAt(0);
+    _singlePeriodComponent = separator + '.' + separator;
+    _doublePeriodComponent = separator + '..' + separator;
+    _singlePeriodEnding = separator + '.';
+    _doublePeriodEnding = separator + '..';
   }
 
   /// Append the given relative [suffix] to the given absolute [parent].
@@ -55,6 +66,14 @@ class AbsolutePathContext {
         : path.substring(0, lastIndex);
   }
 
+  /// Return `true` if the given [path] is valid.
+  ///
+  ///     context.isNormalized('/foo/bar');        // -> true
+  ///     context.isNormalized('/foo/bar/../baz'); // -> false
+  bool isValid(String path) {
+    return _isAbsolute(path) && _isNormalized(path);
+  }
+
   /// Return `true` if [child] is a path beneath [parent], and `false`
   /// otherwise. Both the [child] and [parent] paths must be absolute paths.
   ///
@@ -92,6 +111,47 @@ class AbsolutePathContext {
       return child.substring(parentPrefix.length);
     }
     return null;
+  }
+
+  /// Return `true` if the given [path] is absolute.
+  ///
+  ///     _isAbsolute('/foo/bar');   // -> true
+  ///     _isAbsolute('/');          // -> true
+  ///     _isAbsolute('foo/bar');    // -> false
+  ///     _isAbsolute('C:\foo\bar'); // -> true
+  ///     _isAbsolute('C:\');        // -> true
+  ///     _isAbsolute('foo\bar');    // -> false
+  bool _isAbsolute(String path) {
+    if (_isWindows) {
+      return path.length >= 3 &&
+          _isAlphabetic(path.codeUnitAt(0)) &&
+          path.codeUnitAt(1) == _COLON &&
+          path.codeUnitAt(2) == _separatorChar;
+    } else {
+      return path.isNotEmpty && path.codeUnitAt(0) == _separatorChar;
+    }
+  }
+
+  /// Return `true` if the given absolute [path] is normalized.
+  ///
+  ///     _isNormalized('/foo/bar');        // -> true
+  ///     _isNormalized('/foo/..bar');      // -> true
+  ///     _isNormalized('/foo/bar..');      // -> true
+  ///     _isNormalized('/');               // -> true
+  ///     _isNormalized('/foo/bar/../baz'); // -> false
+  ///     _isNormalized('/foo/bar/..');     // -> false
+  bool _isNormalized(String path) {
+    return !path.contains(_singlePeriodComponent) &&
+        !path.contains(_doublePeriodComponent) &&
+        !path.endsWith(_singlePeriodEnding) &&
+        !path.endsWith(_doublePeriodEnding);
+  }
+
+  /// Returns whether [char] is the code for an ASCII letter (uppercase or
+  /// lowercase).
+  static bool _isAlphabetic(int char) {
+    return char >= _UPPER_A && char <= _UPPER_Z ||
+        char >= _LOWER_A && char <= _LOWER_Z;
   }
 
   /// Return `true` if [str] starts with the given [prefix].

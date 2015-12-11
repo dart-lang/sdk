@@ -10,8 +10,7 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisCache, AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
@@ -30,7 +29,6 @@ import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
-import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -2299,19 +2297,11 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
       String inputName = result.name + '_input';
       errorLists.add(getRequiredInput(inputName));
     }
-
-    //
-    // Gather error filters.
-    //
-    List<ErrorFilter> filters =
-        context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
     for (ResultDescriptor result in enginePlugin.dartErrorsForUnit) {
       String inputName = result.name + '_input';
       Map<Source, List<AnalysisError>> errorMap = getRequiredInput(inputName);
       for (List<AnalysisError> errors in errorMap.values) {
-        errorLists.add(errors.where((AnalysisError error) {
-          return !filters.any((ErrorFilter filter) => filter(error));
-        }).toList());
+        errorLists.add(errors);
       }
     }
     //
@@ -3597,11 +3587,8 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     //
     // Resolve references and record outputs.
     //
-    InheritanceManager inheritanceManager =
-        new InheritanceManager(libraryElement);
     PartialResolverVisitor visitor = new PartialResolverVisitor(libraryElement,
-        unitElement.source, typeProvider, AnalysisErrorListener.NULL_LISTENER,
-        inheritanceManager: inheritanceManager);
+        unitElement.source, typeProvider, AnalysisErrorListener.NULL_LISTENER);
     unit.accept(visitor);
     //
     // Record outputs.
@@ -4387,14 +4374,11 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       // the size of the enclosing class, and hence incrementally resolving each
       // field was quadratic.  We may wish to revisit this if we can resolve
       // this performance issue.
-      InheritanceManager inheritanceManager =
-          new InheritanceManager(libraryElement);
       PartialResolverVisitor visitor = new PartialResolverVisitor(
           libraryElement,
           unitElement.source,
           typeProvider,
-          AnalysisErrorListener.NULL_LISTENER,
-          inheritanceManager: inheritanceManager);
+          AnalysisErrorListener.NULL_LISTENER);
       unit.accept(visitor);
     }
     //
@@ -5007,7 +4991,8 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     if (context.analysisOptions.strongMode) {
-      unit.accept(new CodeChecker(new TypeRules(typeProvider), errorListener));
+      unit.accept(new CodeChecker(
+          typeProvider, new StrongTypeSystemImpl(), errorListener));
     }
 
     //
@@ -5102,7 +5087,8 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
         libraryElement,
         typeProvider,
         new InheritanceManager(libraryElement),
-        context.analysisOptions.enableSuperMixins);
+        context.analysisOptions.enableSuperMixins,
+        context.analysisOptions.enableAssertMessage);
     unit.accept(errorVerifier);
 
     //

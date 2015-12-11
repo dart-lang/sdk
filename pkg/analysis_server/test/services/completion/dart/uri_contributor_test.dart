@@ -173,11 +173,32 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('../blat.dart');
   }
 
+  test_import_file_outside_lib() async {
+    testFile = '/proj/lib/completion.dart';
+    addSource('/proj/lib/other.dart', 'library other;');
+    addSource('/proj/lib/foo/bar.dart', 'library bar;');
+    addSource('/proj/blat.dart', 'library blat;');
+    addSource('/proj/bin/boo.dart', 'library boo;');
+    addTestSource('import "../^" import');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
+    assertNotSuggested('completion.dart');
+    assertNotSuggested('other.dart');
+    assertNotSuggested('foo');
+    assertNotSuggested('foo/');
+    assertNotSuggested('foo/bar.dart');
+    assertNotSuggested('../bin');
+    assertNotSuggested('../bin/');
+    assertNotSuggested('../blat.dart');
+  }
+
   test_import_file_parent() async {
     testFile = '/proj/completion.dart';
     addSource('/proj/other.dart', 'library other;');
     addSource('/proj/foo/bar.dart', 'library bar;');
     addSource('/blat.dart', 'library blat;');
+    addSource('/proj2/boo.dart', 'library boo;');
     addTestSource('import "../^" import');
     await computeSuggestions();
     expect(replacementOffset, completionOffset - 3);
@@ -188,6 +209,7 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('foo/');
     assertNotSuggested('foo/bar.dart');
     assertSuggest('../blat.dart', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('../proj2/', csKind: CompletionSuggestionKind.IMPORT);
   }
 
   test_import_file_parent2() async {

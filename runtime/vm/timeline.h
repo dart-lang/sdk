@@ -129,10 +129,10 @@ class TimelineEvent {
                 int64_t end_micros);
 
   void Begin(const char* label,
-             int64_t micros = OS::GetCurrentTraceMicros());
+             int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void End(const char* label,
-           int64_t micros = OS::GetCurrentTraceMicros());
+           int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void SerializedJSON(const char* json);
 
@@ -236,16 +236,6 @@ class TimelineEvent {
   const char* GetSerializedJSON() const;
 
  private:
-  int64_t timestamp0_;
-  int64_t timestamp1_;
-  TimelineEventArgument* arguments_;
-  intptr_t arguments_length_;
-  uword state_;
-  const char* label_;
-  const char* category_;
-  ThreadId thread_;
-  Dart_Port isolate_id_;
-
   void FreeArguments();
 
   void StreamInit(TimelineStream* stream);
@@ -257,12 +247,31 @@ class TimelineEvent {
     state_ = EventTypeField::update(event_type, state_);
   }
 
+  void set_timestamp0(int64_t value) {
+    ASSERT(timestamp0_ == 0);
+    timestamp0_ = value;
+  }
+  void set_timestamp1(int64_t value) {
+    ASSERT(timestamp1_ == 0);
+    timestamp1_ = value;
+  }
+
   enum StateBits {
     kEventTypeBit = 0,  // reserve 4 bits for type.
     kNextBit = 4,
   };
 
   class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
+
+  int64_t timestamp0_;
+  int64_t timestamp1_;
+  TimelineEventArgument* arguments_;
+  intptr_t arguments_length_;
+  uword state_;
+  const char* label_;
+  const char* category_;
+  ThreadId thread_;
+  Dart_Port isolate_id_;
 
   friend class TimelineEventRecorder;
   friend class TimelineEventEndlessRecorder;

@@ -64,11 +64,6 @@ public class ContextData {
   private final int workItemQueueLength;
 
   /**
-   * A rolling average of work items in the queue. (A double encoded as a String.)
-   */
-  private final String workItemQueueLengthAverage;
-
-  /**
    * Exceptions associated with cache entries.
    */
   private final List<String> cacheEntryExceptions;
@@ -76,12 +71,11 @@ public class ContextData {
   /**
    * Constructor for {@link ContextData}.
    */
-  public ContextData(String name, int explicitFileCount, int implicitFileCount, int workItemQueueLength, String workItemQueueLengthAverage, List<String> cacheEntryExceptions) {
+  public ContextData(String name, int explicitFileCount, int implicitFileCount, int workItemQueueLength, List<String> cacheEntryExceptions) {
     this.name = name;
     this.explicitFileCount = explicitFileCount;
     this.implicitFileCount = implicitFileCount;
     this.workItemQueueLength = workItemQueueLength;
-    this.workItemQueueLengthAverage = workItemQueueLengthAverage;
     this.cacheEntryExceptions = cacheEntryExceptions;
   }
 
@@ -94,7 +88,6 @@ public class ContextData {
         other.explicitFileCount == explicitFileCount &&
         other.implicitFileCount == implicitFileCount &&
         other.workItemQueueLength == workItemQueueLength &&
-        ObjectUtilities.equals(other.workItemQueueLengthAverage, workItemQueueLengthAverage) &&
         ObjectUtilities.equals(other.cacheEntryExceptions, cacheEntryExceptions);
     }
     return false;
@@ -105,9 +98,8 @@ public class ContextData {
     int explicitFileCount = jsonObject.get("explicitFileCount").getAsInt();
     int implicitFileCount = jsonObject.get("implicitFileCount").getAsInt();
     int workItemQueueLength = jsonObject.get("workItemQueueLength").getAsInt();
-    String workItemQueueLengthAverage = jsonObject.get("workItemQueueLengthAverage").getAsString();
     List<String> cacheEntryExceptions = JsonUtilities.decodeStringList(jsonObject.get("cacheEntryExceptions").getAsJsonArray());
-    return new ContextData(name, explicitFileCount, implicitFileCount, workItemQueueLength, workItemQueueLengthAverage, cacheEntryExceptions);
+    return new ContextData(name, explicitFileCount, implicitFileCount, workItemQueueLength, cacheEntryExceptions);
   }
 
   public static List<ContextData> fromJsonArray(JsonArray jsonArray) {
@@ -157,13 +149,6 @@ public class ContextData {
     return workItemQueueLength;
   }
 
-  /**
-   * A rolling average of work items in the queue. (A double encoded as a String.)
-   */
-  public String getWorkItemQueueLengthAverage() {
-    return workItemQueueLengthAverage;
-  }
-
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
@@ -171,7 +156,6 @@ public class ContextData {
     builder.append(explicitFileCount);
     builder.append(implicitFileCount);
     builder.append(workItemQueueLength);
-    builder.append(workItemQueueLengthAverage);
     builder.append(cacheEntryExceptions);
     return builder.toHashCode();
   }
@@ -182,7 +166,6 @@ public class ContextData {
     jsonObject.addProperty("explicitFileCount", explicitFileCount);
     jsonObject.addProperty("implicitFileCount", implicitFileCount);
     jsonObject.addProperty("workItemQueueLength", workItemQueueLength);
-    jsonObject.addProperty("workItemQueueLengthAverage", workItemQueueLengthAverage);
     JsonArray jsonArrayCacheEntryExceptions = new JsonArray();
     for (String elt : cacheEntryExceptions) {
       jsonArrayCacheEntryExceptions.add(new JsonPrimitive(elt));
@@ -203,8 +186,6 @@ public class ContextData {
     builder.append(implicitFileCount + ", ");
     builder.append("workItemQueueLength=");
     builder.append(workItemQueueLength + ", ");
-    builder.append("workItemQueueLengthAverage=");
-    builder.append(workItemQueueLengthAverage + ", ");
     builder.append("cacheEntryExceptions=");
     builder.append(StringUtils.join(cacheEntryExceptions, ", "));
     builder.append("]");

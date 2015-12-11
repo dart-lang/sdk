@@ -119,6 +119,22 @@ main() {
             expect(serverRef.getResolvedCompilationUnits(fileB), isEmpty);
           });
         });
+
+        test('not absolute', () async {
+          var response = testSetAnalysisRoots([], ['foo/bar']);
+          expect(
+              response,
+              isResponseFailure(
+                  '0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
+        });
+
+        test('not normalized', () async {
+          var response = testSetAnalysisRoots([], ['/foo/../bar']);
+          expect(
+              response,
+              isResponseFailure(
+                  '0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
+        });
       });
 
       group('included', () {
@@ -147,6 +163,22 @@ main() {
           await server.onAnalysisComplete;
           expect(serverRef.getResolvedCompilationUnits(fileB), hasLength(1));
         });
+
+        test('not absolute', () async {
+          var response = testSetAnalysisRoots(['foo/bar'], []);
+          expect(
+              response,
+              isResponseFailure(
+                  '0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
+        });
+
+        test('not normalized', () async {
+          var response = testSetAnalysisRoots(['/foo/../bar'], []);
+          expect(
+              response,
+              isResponseFailure(
+                  '0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
+        });
       });
     });
 
@@ -167,8 +199,9 @@ main() {
         resourceProvider.newFile('/p2/b.dart', 'library b;');
         resourceProvider.newFile('/p2/c.dart', 'library c;');
 
-        var setRootsRequest = new AnalysisSetAnalysisRootsParams(
-            ['/p1', '/p2'], []).toRequest('0');
+        var setRootsRequest =
+            new AnalysisSetAnalysisRootsParams(['/p1', '/p2'], [])
+                .toRequest('0');
         var setRootsResponse = handler.handleRequest(setRootsRequest);
         expect(setRootsResponse, isResponseSuccess('0'));
 

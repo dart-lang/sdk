@@ -72,23 +72,19 @@ typedef void MockServerOperationPerformFunction(AnalysisServer server);
 
 class MockAnalysisContext extends StringTypedMock implements AnalysisContext {
   MockAnalysisContext(String name) : super(name);
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockClassElement extends TypedMock implements ClassElement {
   final ElementKind kind = ElementKind.CLASS;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockCompilationUnitElement extends TypedMock
     implements CompilationUnitElement {
   final ElementKind kind = ElementKind.COMPILATION_UNIT;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockConstructorElement extends TypedMock implements ConstructorElement {
   final kind = ElementKind.CONSTRUCTOR;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockElement extends StringTypedMock implements Element {
@@ -99,55 +95,39 @@ class MockElement extends StringTypedMock implements Element {
 
   @override
   String get name => _toString;
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockFieldElement extends TypedMock implements FieldElement {
   final ElementKind kind = ElementKind.FIELD;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockFunctionElement extends TypedMock implements FunctionElement {
   final ElementKind kind = ElementKind.FUNCTION;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockFunctionTypeAliasElement extends TypedMock
     implements FunctionTypeAliasElement {
   final ElementKind kind = ElementKind.FUNCTION_TYPE_ALIAS;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class MockHtmlElement extends TypedMock implements HtmlElement {
-  final ElementKind kind = ElementKind.HTML;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockImportElement extends TypedMock implements ImportElement {
   final ElementKind kind = ElementKind.IMPORT;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockLibraryElement extends TypedMock implements LibraryElement {
   final ElementKind kind = ElementKind.LIBRARY;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockLocalVariableElement extends TypedMock
     implements LocalVariableElement {
   final ElementKind kind = ElementKind.LOCAL_VARIABLE;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class MockLogger extends TypedMock implements Logger {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class MockLogger extends TypedMock implements Logger {}
 
 class MockMethodElement extends StringTypedMock implements MethodElement {
   final kind = ElementKind.METHOD;
   MockMethodElement([String name = 'method']) : super(name);
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -192,14 +172,12 @@ class MockPackageMapProvider implements PubPackageMapProvider {
 
 class MockParameterElement extends TypedMock implements ParameterElement {
   final ElementKind kind = ElementKind.PARAMETER;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockPropertyAccessorElement extends TypedMock
     implements PropertyAccessorElement {
   final ElementKind kind;
   MockPropertyAccessorElement(this.kind);
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -255,7 +233,7 @@ class MockServerChannel implements ServerCommunicationChannel {
     if (_closed) {
       throw new Exception('sendRequest after connection closed');
     }
-    // Wrap send request in future to simulate websocket
+    // Wrap send request in future to simulate WebSocket.
     new Future(() => requestController.add(request));
     return waitForResponse(request);
   }
@@ -267,7 +245,7 @@ class MockServerChannel implements ServerCommunicationChannel {
       return;
     }
     responsesReceived.add(response);
-    // Wrap send response in future to simulate websocket
+    // Wrap send response in future to simulate WebSocket.
     new Future(() => responseController.add(response));
   }
 
@@ -342,19 +320,16 @@ class MockSocket<T> implements WebSocket {
 
 class MockSource extends StringTypedMock implements Source {
   MockSource([String name = 'mocked.dart']) : super(name);
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockTopLevelVariableElement extends TypedMock
     implements TopLevelVariableElement {
   final ElementKind kind = ElementKind.TOP_LEVEL_VARIABLE;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockTypeParameterElement extends TypedMock
     implements TypeParameterElement {
   final ElementKind kind = ElementKind.TYPE_PARAMETER;
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class NoResponseException implements Exception {

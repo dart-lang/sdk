@@ -8,7 +8,7 @@
  */
 library analyzer.plugin.task;
 
-import 'package:analyzer/src/generated/engine.dart' hide WorkManager;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';

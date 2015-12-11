@@ -43,7 +43,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deopt_reason_(ICData::kDeoptUnknown),
       deopt_flags_(0),
       thread_(Thread::Current()),
-      timeline_event_(NULL),
+      deopt_start_micros_(0),
       deferred_slots_(NULL),
       deferred_objects_count_(0),
       deferred_objects_(NULL),
@@ -99,14 +99,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   if (dest_options != kDestIsAllocated) {
     // kDestIsAllocated is used by the debugger to generate a stack trace
     // and does not signal a real deopt.
-    Isolate* isolate = Isolate::Current();
-    TimelineStream* compiler_stream = isolate->GetCompilerStream();
-    ASSERT(compiler_stream != NULL);
-    timeline_event_ = compiler_stream->StartEvent();
-    if (timeline_event_ != NULL) {
-      timeline_event_->DurationBegin("Deoptimize");
-      timeline_event_->SetNumArguments(3);
-    }
+    deopt_start_micros_ = OS::GetCurrentMonotonicMicros();
   }
 
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
@@ -143,24 +136,28 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
-  if (timeline_event_ != NULL) {
-    const Code& code = Code::Handle(zone(), code_);
-    const Function& function = Function::Handle(zone(), code.function());
-    timeline_event_->CopyArgument(
-        0,
-        "function",
-        const_cast<char*>(function.QualifiedUserVisibleNameCString()));
-    timeline_event_->CopyArgument(
-        1,
-        "reason",
-        const_cast<char*>(DeoptReasonToCString(deopt_reason())));
-    timeline_event_->FormatArgument(
-        2,
-        "deoptimizationCount",
-        "%d",
-        function.deoptimization_counter());
-    timeline_event_->DurationEnd();
-    timeline_event_->Complete();
+  if (deopt_start_micros_ != 0) {
+    Isolate* isolate = Isolate::Current();
+    TimelineStream* compiler_stream = isolate->GetCompilerStream();
+    ASSERT(compiler_stream != NULL);
+    if (compiler_stream->Enabled()) {
+      const Code& code = Code::Handle(zone(), code_);
+      const Function& function = Function::Handle(zone(), code.function());
+      const char* function_name = function.QualifiedUserVisibleNameCString();
+      const char* reason = DeoptReasonToCString(deopt_reason());
+      int counter = function.deoptimization_counter();
+      TimelineEvent* timeline_event = compiler_stream->StartEvent();
+      if (timeline_event != NULL) {
+        timeline_event->Duration("Deoptimize",
+                                 deopt_start_micros_,
+                                 OS::GetCurrentMonotonicMicros());
+        timeline_event->SetNumArguments(3);
+        timeline_event->CopyArgument(0, "function", function_name);
+        timeline_event->CopyArgument(1, "reason", reason);
+        timeline_event->FormatArgument(2, "deoptimizationCount", "%d", counter);
+        timeline_event->Complete();
+      }
+    }
   }
 }
 

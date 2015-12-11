@@ -31,6 +31,9 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 async_star_await_pauses_test: Skip # Times out. Issue 23996
 
+# Unsupported configuration specific imports.
+config_import_test: Fail # Issue 24581
+
 [ $compiler == none && $runtime == vm ]
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
@@ -135,6 +138,5 @@ deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-
 tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
 regress_23408_test: RuntimeError
-issue21159_test: Pass, Crash, Timeout # Issue 24659 - missing stack overflow check
 
 stack_trace_test: Fail  # Issue 24783 - inlined frames missing

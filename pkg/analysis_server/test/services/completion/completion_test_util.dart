@@ -16,7 +16,6 @@ import 'package:analysis_server/src/services/completion/dart/common_usage_sorter
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
-import 'package:analysis_server/src/services/completion/prefixed_element_contributor.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -356,29 +355,6 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestNamedConstructor(
-      String name, String returnType,
-      [int relevance = DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    if (contributor is PrefixedElementContributor) {
-      CompletionSuggestion cs =
-          assertSuggest(name, csKind: kind, relevance: relevance);
-      protocol.Element element = cs.element;
-      expect(element, isNotNull);
-      expect(element.kind, equals(protocol.ElementKind.CONSTRUCTOR));
-      expect(element.name, equals(name));
-      String param = element.parameters;
-      expect(param, isNotNull);
-      expect(param[0], equals('('));
-      expect(param[param.length - 1], equals(')'));
-      expect(element.returnType, equals(returnType));
-      assertHasParameterInfo(cs);
-      return cs;
-    } else {
-      return assertNotSuggested(name);
-    }
-  }
-
   CompletionSuggestion assertSuggestParameter(String name, String returnType,
       {int relevance: DART_RELEVANCE_PARAMETER}) {
     return assertNotSuggested(name);
@@ -660,11 +636,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
 
   CompletionSuggestion assertSuggestInvocationClass(String name,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestClass(name, relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationField(String name, String type,
@@ -675,42 +647,24 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
   CompletionSuggestion assertSuggestInvocationGetter(
       String name, String returnType,
       {int relevance: DART_RELEVANCE_DEFAULT, bool isDeprecated: false}) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestGetter(name, returnType,
-          relevance: relevance, isDeprecated: isDeprecated);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationMethod(
       String name, String declaringType, String returnType,
       {int relevance: DART_RELEVANCE_DEFAULT}) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestMethod(name, declaringType, returnType,
-          relevance: relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationSetter(String name,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestSetter(name);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestInvocationTopLevelVar(
       String name, String returnType,
       [int relevance = DART_RELEVANCE_DEFAULT]) {
-    if (contributor is PrefixedElementContributor) {
-      return assertSuggestTopLevelVar(name, returnType, relevance);
-    } else {
-      return assertNotSuggested(name);
-    }
+    return assertNotSuggested(name);
   }
 
   CompletionSuggestion assertSuggestLocalClass(String name,
@@ -1336,7 +1290,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
-      assertSuggestLibraryPrefix('g');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('g');
       assertNotSuggested('G');
       //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
@@ -1447,7 +1402,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
-      assertSuggestLibraryPrefix('g');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('g');
       assertNotSuggested('G');
       //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
@@ -1570,7 +1526,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
-      assertSuggestLibraryPrefix('g');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('g');
       assertNotSuggested('G');
       //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
@@ -1677,7 +1634,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
-      assertSuggestLibraryPrefix('g');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('g');
       assertNotSuggested('G');
       //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
@@ -2124,7 +2082,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(suggestionO.element.isPrivate, isFalse);
       }
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2147,7 +2106,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('Object');
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2170,7 +2130,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('String');
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2193,7 +2154,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('String');
       assertNotSuggested('Sew');
-      assertSuggestLibraryPrefix('Soo');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('Soo');
     });
   }
 
@@ -2216,7 +2178,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('Object');
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2239,7 +2202,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('Object');
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2452,7 +2416,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestNamedConstructor('c', 'X');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('c');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('_d');
@@ -2479,7 +2444,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestNamedConstructor('c', 'X');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('c');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('_d');
@@ -2497,7 +2463,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset - 2);
       expect(request.replacementLength, 13);
-      assertSuggestNamedConstructor('fromCharCodes', 'String');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('fromCharCodes');
       assertNotSuggested('isEmpty');
       assertNotSuggested('isNotEmpty');
       assertNotSuggested('length');
@@ -2518,8 +2485,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestNamedConstructor('c', 'X');
-      assertSuggestNamedConstructor('_d', 'X');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('c');
+      assertNotSuggested('_d');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('z');
@@ -2539,8 +2507,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestNamedConstructor('c', 'X');
-      assertSuggestNamedConstructor('_d', 'X');
+      // Suggested by NamedConstructorContributor
+      assertNotSuggested('c');
+      assertNotSuggested('_d');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('z');
@@ -3878,9 +3847,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationField('scA', 'String');
-      assertSuggestInvocationField('scB', 'int');
-      assertSuggestInvocationField('scI', null);
+      // Suggested by StaticMemberContributor
+      assertNotSuggested('scA');
+      assertNotSuggested('scB');
+      assertNotSuggested('scI');
       assertNotSuggested('b');
       assertNotSuggested('_c');
       assertNotSuggested('d');
@@ -4002,9 +3972,10 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationClass('X');
-      assertSuggestInvocationClass('Y');
-      assertSuggestInvocationTopLevelVar('T1', null);
+      // Suggested by LibraryMemberContributor
+      assertNotSuggested('X');
+      assertNotSuggested('Y');
+      assertNotSuggested('T1');
       assertNotSuggested('T2');
       assertNotSuggested('Object');
       assertNotSuggested('b');
@@ -4031,8 +4002,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationClass('X');
-      assertSuggestInvocationClass('Y');
+      // Suggested by LibraryMemberContributor
+      assertNotSuggested('X');
+      assertNotSuggested('Y');
       assertNotSuggested('T1');
       assertNotSuggested('T2');
       assertNotSuggested('Object');
@@ -4060,8 +4032,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestInvocationClass('X');
-      assertSuggestInvocationClass('Y');
+      // Suggested by LibraryMemberContributor
+      assertNotSuggested('X');
+      assertNotSuggested('Y');
       assertNotSuggested('T1');
       assertNotSuggested('T2');
       assertNotSuggested('Object');

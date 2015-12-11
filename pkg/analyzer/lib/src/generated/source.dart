@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.source;
+library analyzer.src.generated.source;
 
 import 'dart:collection';
 import "dart:math" as math;
@@ -10,17 +10,16 @@ import "dart:math" as math;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/task/model.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
-
-import 'engine.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'java_io.dart' show JavaFile;
-import 'sdk.dart' show DartSdk;
-import 'source_io.dart' show FileBasedSource;
 
 /**
  * A function that is used to visit [ContentCache] entries.
@@ -411,12 +410,6 @@ abstract class Source implements AnalysisTarget {
   /**
    * An empty list of sources.
    */
-  @deprecated // Use Source.EMPTY_LIST
-  static const List<Source> EMPTY_ARRAY = EMPTY_LIST;
-
-  /**
-   * An empty list of sources.
-   */
   static const List<Source> EMPTY_LIST = const <Source>[];
 
   /**
@@ -668,6 +661,17 @@ class SourceFactory {
   }
 
   /**
+   * Return a source factory that will resolve URI's in the same way that this
+   * source factory does.
+   */
+  SourceFactory clone() {
+    SourceFactory factory =
+        new SourceFactory(_resolvers, _packages, _resourceProvider);
+    factory.localSourcePredicate = _localSourcePredicate;
+    return factory;
+  }
+
+  /**
    * Return a source object representing the given absolute URI, or `null` if the URI is not a
    * valid URI or if it is not an absolute URI.
    *
@@ -734,14 +738,11 @@ class SourceFactory {
   bool isLocalSource(Source source) => _localSourcePredicate.isLocal(source);
 
   /**
-   * Return a source object representing the URI that results from resolving the given (possibly
-   * relative) contained URI against the URI associated with an existing source object, whether or
-   * not the resulting source exists, or `null` if either the contained URI is invalid or if
-   * it cannot be resolved against the source object's URI.
-   *
-   * @param containingSource the source containing the given URI
-   * @param containedUri the (possibly relative) URI to be resolved against the containing source
-   * @return the source representing the contained URI
+   * Return a source representing the URI that results from resolving the given
+   * (possibly relative) [containedUri] against the URI associated with the
+   * [containingSource], whether or not the resulting source exists, or `null`
+   * if either the [containedUri] is invalid or if it cannot be resolved against
+   * the [containingSource]'s URI.
    */
   Source resolveUri(Source containingSource, String containedUri) {
     if (containedUri == null || containedUri.isEmpty) {
@@ -751,6 +752,8 @@ class SourceFactory {
       // Force the creation of an escaped URI to deal with spaces, etc.
       return _internalResolveUri(
           containingSource, parseUriWithException(containedUri));
+    } on URISyntaxException {
+      return null;
     } catch (exception, stackTrace) {
       String containingFullName =
           containingSource != null ? containingSource.fullName : '<null>';

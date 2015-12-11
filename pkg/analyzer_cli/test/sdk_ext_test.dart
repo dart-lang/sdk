@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 /// Test that sdk extensions are properly detected in various scenarios.
 library analyzer_cli.test.sdk_ext;
 
@@ -17,7 +16,7 @@ import 'utils.dart';
 // TODO(pq): fix tests to run safely on the bots
 // https://github.com/dart-lang/sdk/issues/25001
 main() {}
-_main() {
+not_main() {
   group('Sdk extensions', () {
     StringSink savedOutSink, savedErrorSink;
     int savedExitCode;

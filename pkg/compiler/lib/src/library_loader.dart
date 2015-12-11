@@ -384,7 +384,21 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       return reporter.withCurrentElement(library, () {
 
         Uri computeUri(LibraryDependency node) {
-          String tagUriString = node.uri.dartString.slowToString();
+          StringNode uriNode = node.uri;
+          if (node.conditionalUris != null) {
+            for (ConditionalUri conditionalUri in node.conditionalUris) {
+              String key = conditionalUri.key.slowNameString;
+              String value = conditionalUri.value == null
+                  ? "true"
+                  : conditionalUri.value.dartString.slowToString();
+              String actual = compiler.fromEnvironment(key);
+              if (value == actual) {
+                uriNode = conditionalUri.uri;
+                break;
+              }
+            }
+          }
+          String tagUriString = uriNode.dartString.slowToString();
           try {
             return Uri.parse(tagUriString);
           } on FormatException {
@@ -610,6 +624,19 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         if (script == null) return null;
         LibraryElement element =
             createLibrarySync(handler, script, resolvedUri);
+        CompilationUnitElementX compilationUnit = element.entryCompilationUnit;
+        if (compilationUnit.partTag != null) {
+          DiagnosticMessage error = reporter.withCurrentElement(
+              compilationUnit,
+              () => reporter.createMessage(
+                  compilationUnit.partTag, MessageKind.IMPORT_PART_OF));
+          DiagnosticMessage info = reporter.withCurrentElement(
+              importingLibrary,
+              () => reporter.createMessage(
+                  node,
+                  MessageKind.IMPORT_PART_OF_HERE));
+          reporter.reportError(error, <DiagnosticMessage>[info]);
+        }
         return processLibraryTags(handler, element).then((_) {
           reporter.withCurrentElement(element, () {
             handler.registerLibraryExports(element);

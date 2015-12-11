@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver.static_type_analyzer;
+library analyzer.src.generated.static_type_analyzer;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-
-import 'ast.dart';
-import 'element.dart';
-import 'java_engine.dart';
-import 'resolver.dart';
-import 'scanner.dart' as sc;
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/scanner.dart' as sc;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -1823,31 +1822,51 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     Element element = node.methodName.staticElement;
     DartType fnType = node.methodName.staticType;
     TypeSystem ts = _typeSystem;
-    // TODO(jmesserly): once we allow explicitly passed typeArguments, we need
-    // to only do this if node.typeArguments == null.
-    if (element is ExecutableElement &&
+    if (node.typeArguments == null &&
+        element is ExecutableElement &&
         fnType is FunctionTypeImpl &&
         ts is StrongTypeSystemImpl) {
-      // We may have too many (or too few) arguments.  Only use arguments
-      // which have been matched up with a static parameter.
-      Iterable<Expression> arguments = node.argumentList.arguments
-          .where((e) => e.staticParameterElement != null);
-      List<DartType> argTypes = arguments.map((e) => e.staticType).toList();
-      List<DartType> paramTypes =
-          arguments.map((e) => e.staticParameterElement.type).toList();
+      FunctionTypeImpl genericFunction = fnType.originalFunction;
+      if (element is PropertyAccessorElement) {
+        genericFunction = element.type.returnType;
+      }
+      if (genericFunction.boundTypeParameters.isEmpty) {
+        return false;
+      }
+      for (DartType typeArg in fnType.instantiatedTypeArguments) {
+        if (!typeArg.isDynamic) {
+          return false;
+        }
+      }
+
+      List<ParameterElement> genericParameters = genericFunction.parameters;
+      List<DartType> argTypes = new List<DartType>();
+      List<DartType> paramTypes = new List<DartType>();
+      for (Expression arg in node.argumentList.arguments) {
+        // We may have too many (or too few) arguments.  Only use arguments
+        // which have been matched up with a static parameter.
+        ParameterElement p = arg.staticParameterElement;
+        if (p != null) {
+          int i = element.parameters.indexOf(p);
+          argTypes.add(arg.staticType);
+          paramTypes.add(genericParameters[i].type);
+        }
+      }
 
       FunctionType inferred = ts.inferCallFromArguments(
-          _typeProvider, fnType, paramTypes, argTypes);
+          _typeProvider, genericFunction, paramTypes, argTypes);
       if (inferred != fnType) {
-        // TODO(jmesserly): inference should be happening earlier, which would
-        // allow these parameters to be correct from the get-go.
-
+        // TODO(jmesserly): we need to fix up the parameter elements based on
+        // inferred method.
         List<ParameterElement> inferredParameters = inferred.parameters;
         List<ParameterElement> correspondingParams =
             new List<ParameterElement>();
-        for (Expression arg in arguments) {
-          int i = element.parameters.indexOf(arg.staticParameterElement);
-          correspondingParams.add(inferredParameters[i]);
+        for (Expression arg in node.argumentList.arguments) {
+          ParameterElement p = arg.staticParameterElement;
+          if (p != null) {
+            int i = element.parameters.indexOf(p);
+            correspondingParams.add(inferredParameters[i]);
+          }
         }
         node.argumentList.correspondingStaticParameters = correspondingParams;
         _recordStaticType(node.methodName, inferred);
@@ -1956,7 +1975,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * Return `true` if the given [Type] is the `Future` form the 'dart:async'
    * library.
    */
-  bool _isAsyncFutureType(DartType type) => type is InterfaceType &&
+  bool _isAsyncFutureType(DartType type) =>
+      type is InterfaceType &&
       type.name == "Future" &&
       _isAsyncLibrary(type.element.library);
 

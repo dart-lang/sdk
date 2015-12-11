@@ -4,7 +4,7 @@
 
 // Tests related to the [TypeSystem] class.
 
-library engine.type_system_test;
+library analyzer.test.generated.type_system_test;
 
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -66,7 +66,8 @@ class StrongAssignabilityTest {
         ElementFactory.methodElement("call", objectType, <DartType>[intType]);
     classBottom.methods = <MethodElement>[methodBottom];
 
-    DartType top = TypeBuilder.functionType(<DartType>[intType], objectType);
+    DartType top =
+        TypeBuilder.function(required: <DartType>[intType], result: objectType);
     InterfaceType bottom = classBottom.type;
 
     _checkIsStrictAssignableTo(bottom, top);
@@ -117,14 +118,14 @@ class StrongAssignabilityTest {
   }
 
   void test_isAssignableTo_fuzzy_arrows() {
-    FunctionType top =
-        TypeBuilder.functionType(<DartType>[dynamicType], objectType);
-    FunctionType left =
-        TypeBuilder.functionType(<DartType>[objectType], objectType);
-    FunctionType right =
-        TypeBuilder.functionType(<DartType>[dynamicType], bottomType);
-    FunctionType bottom =
-        TypeBuilder.functionType(<DartType>[objectType], bottomType);
+    FunctionType top = TypeBuilder.function(
+        required: <DartType>[dynamicType], result: objectType);
+    FunctionType left = TypeBuilder.function(
+        required: <DartType>[objectType], result: objectType);
+    FunctionType right = TypeBuilder.function(
+        required: <DartType>[dynamicType], result: bottomType);
+    FunctionType bottom = TypeBuilder.function(
+        required: <DartType>[objectType], result: bottomType);
 
     _checkCrossLattice(top, left, right, bottom);
   }
@@ -166,23 +167,36 @@ class StrongAssignabilityTest {
   }
 
   void test_isAssignableTo_named_optional() {
-    DartType r = TypeBuilder.functionType(<DartType>[intType], intType);
-    DartType o = TypeBuilder.functionType(<DartType>[], intType,
-        optional: <DartType>[intType]);
-    DartType n = TypeBuilder.functionType(<DartType>[], intType,
-        named: <String, DartType>{'x': intType});
-    DartType rr =
-        TypeBuilder.functionType(<DartType>[intType, intType], intType);
-    DartType ro = TypeBuilder.functionType(<DartType>[intType], intType,
-        optional: <DartType>[intType]);
-    DartType rn = TypeBuilder.functionType(<DartType>[intType], intType,
-        named: <String, DartType>{'x': intType});
-    DartType oo = TypeBuilder.functionType(<DartType>[], intType,
-        optional: <DartType>[intType, intType]);
-    DartType nn = TypeBuilder.functionType(<DartType>[], intType,
-        named: <String, DartType>{'x': intType, 'y': intType});
-    DartType nnn = TypeBuilder.functionType(<DartType>[], intType,
-        named: <String, DartType>{'x': intType, 'y': intType, 'z': intType});
+    DartType r =
+        TypeBuilder.function(required: <DartType>[intType], result: intType);
+    DartType o = TypeBuilder.function(
+        required: <DartType>[], optional: <DartType>[intType], result: intType);
+    DartType n = TypeBuilder.function(
+        required: <DartType>[],
+        named: <String, DartType>{'x': intType},
+        result: intType);
+    DartType rr = TypeBuilder.function(
+        required: <DartType>[intType, intType], result: intType);
+    DartType ro = TypeBuilder.function(
+        required: <DartType>[intType],
+        optional: <DartType>[intType],
+        result: intType);
+    DartType rn = TypeBuilder.function(
+        required: <DartType>[intType],
+        named: <String, DartType>{'x': intType},
+        result: intType);
+    DartType oo = TypeBuilder.function(
+        required: <DartType>[],
+        optional: <DartType>[intType, intType],
+        result: intType);
+    DartType nn = TypeBuilder.function(
+        required: <DartType>[],
+        named: <String, DartType>{'x': intType, 'y': intType},
+        result: intType);
+    DartType nnn = TypeBuilder.function(
+        required: <DartType>[],
+        named: <String, DartType>{'x': intType, 'y': intType, 'z': intType},
+        result: intType);
 
     _checkGroups(r,
         interassignable: [r, o, ro, rn, oo], unrelated: [n, rr, nn, nnn]);
@@ -220,20 +234,22 @@ class StrongAssignabilityTest {
 
   void test_isAssignableTo_simple_function() {
     FunctionType top =
-        TypeBuilder.functionType(<DartType>[intType], objectType);
-    FunctionType left = TypeBuilder.functionType(<DartType>[intType], intType);
-    FunctionType right =
-        TypeBuilder.functionType(<DartType>[objectType], objectType);
+        TypeBuilder.function(required: <DartType>[intType], result: objectType);
+    FunctionType left =
+        TypeBuilder.function(required: <DartType>[intType], result: intType);
+    FunctionType right = TypeBuilder.function(
+        required: <DartType>[objectType], result: objectType);
     FunctionType bottom =
-        TypeBuilder.functionType(<DartType>[objectType], intType);
+        TypeBuilder.function(required: <DartType>[objectType], result: intType);
 
     _checkCrossLattice(top, left, right, bottom);
   }
 
   void test_isAssignableTo_void_functions() {
-    FunctionType top = TypeBuilder.functionType(<DartType>[intType], voidType);
+    FunctionType top =
+        TypeBuilder.function(required: <DartType>[intType], result: voidType);
     FunctionType bottom =
-        TypeBuilder.functionType(<DartType>[objectType], intType);
+        TypeBuilder.function(required: <DartType>[objectType], result: intType);
 
     _checkEquivalent(bottom, top);
   }
@@ -320,9 +336,11 @@ class StrongGenericFunctionInferenceTest {
 
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
-    var tFrom = _typeParameter('TFrom');
-    var tTo = _typeParameter('TTo', iterableType.substitute4([tFrom]));
-    var cast = _functionType([tFrom, tTo], [tFrom], tTo);
+    var tFrom = TypeBuilder.variable('TFrom');
+    var tTo =
+        TypeBuilder.variable('TTo', bound: iterableType.substitute4([tFrom]));
+    var cast = TypeBuilder.function(
+        types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [stringType]), [
       stringType,
       iterableType.substitute4([stringType])
@@ -340,11 +358,11 @@ class StrongGenericFunctionInferenceTest {
     foo.supertype = clonable.type.substitute4([foo.type]);
 
     // <S extends Clonable<S>>
-    var s = _typeParameter('S');
+    var s = TypeBuilder.variable('S');
     (s.element as TypeParameterElementImpl).bound =
         clonable.type.substitute4([s]);
     // (S, S) -> S
-    var clone = _functionType([s], [s, s], s);
+    var clone = TypeBuilder.function(types: [s], required: [s, s], result: s);
     expect(_inferCall(clone, [foo.type, foo.type]), [foo.type]);
 
     // Something invalid...
@@ -355,131 +373,126 @@ class StrongGenericFunctionInferenceTest {
 
   void test_genericCastFunction() {
     // <TFrom, TTo>(TFrom) -> TTo
-    var tFrom = _typeParameter('TFrom');
-    var tTo = _typeParameter('TTo');
-    var cast = _functionType([tFrom, tTo], [tFrom], tTo);
+    var tFrom = TypeBuilder.variable('TFrom');
+    var tTo = TypeBuilder.variable('TTo');
+    var cast = TypeBuilder.function(
+        types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [intType]), [intType, dynamicType]);
   }
 
   void test_genericCastFunctionWithUpperBound() {
     // <TFrom, TTo extends TFrom>(TFrom) -> TTo
-    var tFrom = _typeParameter('TFrom');
-    var tTo = _typeParameter('TTo', tFrom);
-    var cast = _functionType([tFrom, tTo], [tFrom], tTo);
+    var tFrom = TypeBuilder.variable('TFrom');
+    var tTo = TypeBuilder.variable('TTo', bound: tFrom);
+    var cast = TypeBuilder.function(
+        types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [intType]), [intType, intType]);
   }
 
   void test_parametersToFunctionParam() {
     // <T>(f(T t)) -> T
-    var t = _typeParameter('T');
-    var cast = _functionType([
+    var t = TypeBuilder.variable('T');
+    var cast = TypeBuilder.function(types: [
       t
-    ], [
-      _functionType([], [t], dynamicType)
-    ], t);
+    ], required: [
+      TypeBuilder.function(required: [t], result: dynamicType)
+    ], result: t);
     expect(
         _inferCall(cast, [
-          _functionType([], [numType], dynamicType)
+          TypeBuilder.function(required: [numType], result: dynamicType)
         ]),
         [numType]);
   }
 
   void test_parametersUseLeastUpperBound() {
     // <T>(T x, T y) -> T
-    var t = _typeParameter('T');
-    var cast = _functionType([t], [t, t], t);
+    var t = TypeBuilder.variable('T');
+    var cast = TypeBuilder.function(types: [t], required: [t, t], result: t);
     expect(_inferCall(cast, [intType, doubleType]), [numType]);
   }
 
   void test_parameterTypeUsesUpperBound() {
     // <T extends num>(T) -> dynamic
-    var t = _typeParameter('T', numType);
-    var f = _functionType([t], [t], dynamicType);
+    var t = TypeBuilder.variable('T', bound: numType);
+    var f =
+        TypeBuilder.function(types: [t], required: [t], result: dynamicType);
     expect(_inferCall(f, [intType]), [intType]);
   }
 
   void test_returnFunctionWithGenericParameter() {
     // <T>(T -> T) -> (T -> void)
-    var t = _typeParameter('T');
-    var f = _functionType([
+    var t = TypeBuilder.variable('T');
+    var f = TypeBuilder.function(types: [
       t
-    ], [
-      _functionType([], [t], t)
-    ], _functionType([], [t], voidType));
+    ], required: [
+      TypeBuilder.function(required: [t], result: t)
+    ], result: TypeBuilder.function(required: [t], result: voidType));
     expect(
         _inferCall(f, [
-          _functionType([], [numType], intType)
+          TypeBuilder.function(required: [numType], result: intType)
         ]),
         [numType]);
   }
 
   void test_returnFunctionWithGenericParameterAndReturn() {
     // <T>(T -> T) -> (T -> T)
-    var t = _typeParameter('T');
-    var f = _functionType([
+    var t = TypeBuilder.variable('T');
+    var f = TypeBuilder.function(types: [
       t
-    ], [
-      _functionType([], [t], t)
-    ], _functionType([], [t], t));
+    ], required: [
+      TypeBuilder.function(required: [t], result: t)
+    ], result: TypeBuilder.function(required: [t], result: t));
     expect(
         _inferCall(f, [
-          _functionType([], [numType], intType)
+          TypeBuilder.function(required: [numType], result: intType)
         ]),
         [numType]);
   }
 
   void test_returnFunctionWithGenericReturn() {
     // <T>(T -> T) -> (() -> T)
-    var t = _typeParameter('T');
-    var f = _functionType([
+    var t = TypeBuilder.variable('T');
+    var f = TypeBuilder.function(types: [
       t
-    ], [
-      _functionType([], [t], t)
-    ], _functionType([], [], t));
+    ], required: [
+      TypeBuilder.function(required: [t], result: t)
+    ], result: TypeBuilder.function(required: [], result: t));
     expect(
         _inferCall(f, [
-          _functionType([], [numType], intType)
+          TypeBuilder.function(required: [numType], result: intType)
         ]),
         [intType]);
   }
 
   void test_unifyParametersToFunctionParam() {
     // <T>(f(T t), g(T t)) -> T
-    var t = _typeParameter('T');
-    var cast = _functionType([
+    var t = TypeBuilder.variable('T');
+    var cast = TypeBuilder.function(types: [
       t
-    ], [
-      _functionType([], [t], dynamicType),
-      _functionType([], [t], dynamicType)
-    ], t);
+    ], required: [
+      TypeBuilder.function(required: [t], result: dynamicType),
+      TypeBuilder.function(required: [t], result: dynamicType)
+    ], result: t);
     expect(
         _inferCall(cast, [
-          _functionType([], [intType], dynamicType),
-          _functionType([], [doubleType], dynamicType)
+          TypeBuilder.function(required: [intType], result: dynamicType),
+          TypeBuilder.function(required: [doubleType], result: dynamicType)
         ]),
         [dynamicType]);
   }
 
   void test_unusedReturnTypeIsDynamic() {
     // <T>() -> T
-    var t = _typeParameter('T');
-    var f = _functionType([t], [], t);
+    var t = TypeBuilder.variable('T');
+    var f = TypeBuilder.function(types: [t], required: [], result: t);
     expect(_inferCall(f, []), [dynamicType]);
   }
 
   void test_unusedReturnTypeWithUpperBound() {
     // <T extends num>() -> T
-    var t = _typeParameter('T', numType);
-    var f = _functionType([t], [], t);
+    var t = TypeBuilder.variable('T', bound: numType);
+    var f = TypeBuilder.function(types: [t], required: [], result: t);
     expect(_inferCall(f, []), [numType]);
-  }
-
-  FunctionTypeImpl _functionType(
-      List<DartType> typeParams, List<DartType> params, DartType result) {
-    FunctionElementImpl f = ElementFactory.functionElement8(params, result);
-    f.typeParameters =
-        new List<TypeParameterElement>.from(typeParams.map((t) => t.element));
-    return f.type = new FunctionTypeImpl(f);
   }
 
   List<DartType> _inferCall(FunctionTypeImpl ft, List<DartType> arguments) {
@@ -487,9 +500,6 @@ class StrongGenericFunctionInferenceTest {
         typeProvider, ft, ft.parameters.map((p) => p.type).toList(), arguments);
     return inferred.typeArguments;
   }
-
-  TypeParameterType _typeParameter(String name, [DartType bound]) =>
-      ElementFactory.typeParameterWithType(name, bound).type;
 }
 
 @reflectiveTest
@@ -513,7 +523,7 @@ class StrongSubtypingTest {
     typeSystem = new StrongTypeSystemImpl();
   }
 
-  void test_isSubtypeOf_bottom_isBottom() {
+  void test_bottom_isBottom() {
     DartType interfaceType = ElementFactory.classElement2('A', []).type;
     List<DartType> equivalents = <DartType>[bottomType];
     List<DartType> supertypes = <DartType>[
@@ -529,19 +539,20 @@ class StrongSubtypingTest {
     _checkGroups(bottomType, equivalents: equivalents, supertypes: supertypes);
   }
 
-  void test_isSubtypeOf_call_method() {
+  void test_call_method() {
     ClassElementImpl classBottom = ElementFactory.classElement2("Bottom");
     MethodElement methodBottom =
         ElementFactory.methodElement("call", objectType, <DartType>[intType]);
     classBottom.methods = <MethodElement>[methodBottom];
 
-    DartType top = TypeBuilder.functionType(<DartType>[intType], objectType);
+    DartType top =
+        TypeBuilder.function(required: <DartType>[intType], result: objectType);
     InterfaceType bottom = classBottom.type;
 
     _checkIsStrictSubtypeOf(bottom, top);
   }
 
-  void test_isSubtypeOf_classes() {
+  void test_classes() {
     ClassElement classTop = ElementFactory.classElement2("A");
     ClassElement classLeft = ElementFactory.classElement("B", classTop.type);
     ClassElement classRight = ElementFactory.classElement("C", classTop.type);
@@ -555,7 +566,7 @@ class StrongSubtypingTest {
     _checkLattice(top, left, right, bottom);
   }
 
-  void test_isSubtypeOf_double() {
+  void test_double() {
     List<DartType> equivalents = <DartType>[doubleType];
     List<DartType> supertypes = <DartType>[numType];
     List<DartType> unrelated = <DartType>[intType];
@@ -563,7 +574,7 @@ class StrongSubtypingTest {
         equivalents: equivalents, supertypes: supertypes, unrelated: unrelated);
   }
 
-  void test_isSubtypeOf_dynamic_isTop() {
+  void test_dynamic_isTop() {
     DartType interfaceType = ElementFactory.classElement2('A', []).type;
     List<DartType> equivalents = <DartType>[dynamicType, objectType];
     List<DartType> subtypes = <DartType>[
@@ -578,20 +589,98 @@ class StrongSubtypingTest {
     _checkGroups(dynamicType, equivalents: equivalents, subtypes: subtypes);
   }
 
-  void test_isSubtypeOf_fuzzy_arrows() {
-    FunctionType top =
-        TypeBuilder.functionType(<DartType>[dynamicType], objectType);
-    FunctionType left =
-        TypeBuilder.functionType(<DartType>[objectType], objectType);
-    FunctionType right =
-        TypeBuilder.functionType(<DartType>[dynamicType], bottomType);
-    FunctionType bottom =
-        TypeBuilder.functionType(<DartType>[objectType], bottomType);
+  void test_fuzzy_arrows() {
+    FunctionType top = TypeBuilder.function(
+        required: <DartType>[dynamicType], result: objectType);
+    FunctionType left = TypeBuilder.function(
+        required: <DartType>[objectType], result: objectType);
+    FunctionType right = TypeBuilder.function(
+        required: <DartType>[dynamicType], result: bottomType);
+    FunctionType bottom = TypeBuilder.function(
+        required: <DartType>[objectType], result: bottomType);
 
     _checkLattice(top, left, right, bottom);
   }
 
-  void test_isSubtypeOf_generics() {
+  void test_genericFunction_generic_monomorphic() {
+    DartType s = TypeBuilder.variable("S");
+    DartType t = TypeBuilder.variable("T", bound: s);
+    DartType u = TypeBuilder.variable("U", bound: intType);
+    DartType v = TypeBuilder.variable("V", bound: u);
+
+    _checkIsStrictSubtypeOf(
+        TypeBuilder.function(types: [s, t], required: [s], result: t),
+        TypeBuilder.function(required: [dynamicType], result: dynamicType));
+
+    _checkIsNotSubtypeOf(
+        TypeBuilder.function(types: [u, v], required: [u], result: v),
+        TypeBuilder.function(required: [objectType], result: objectType));
+
+    _checkIsStrictSubtypeOf(
+        TypeBuilder.function(types: [u, v], required: [u], result: v),
+        TypeBuilder.function(required: [intType], result: intType));
+  }
+
+  void test_genericFunction_simple() {
+    DartType s = TypeBuilder.variable("S");
+    DartType t = TypeBuilder.variable("T");
+
+    _checkEquivalent(
+        TypeBuilder.function(types: [t]), TypeBuilder.function(types: [s]));
+
+    _checkEquivalent(TypeBuilder.function(types: [t], required: [t], result: t),
+        TypeBuilder.function(types: [s], required: [s], result: s));
+  }
+
+  void test_genericFunction_simple_bounded() {
+    DartType s = TypeBuilder.variable("S");
+    DartType t = TypeBuilder.variable("T", bound: s);
+    DartType u = TypeBuilder.variable("U");
+    DartType v = TypeBuilder.variable("V", bound: u);
+
+    _checkEquivalent(TypeBuilder.function(types: [s, t]),
+        TypeBuilder.function(types: [u, v]));
+
+    _checkEquivalent(
+        TypeBuilder.function(types: [s, t], required: [s], result: t),
+        TypeBuilder.function(types: [u, v], required: [u], result: v));
+
+    {
+      DartType top =
+          TypeBuilder.function(types: [s, t], required: [t], result: s);
+      DartType left =
+          TypeBuilder.function(types: [u, v], required: [u], result: u);
+      DartType right =
+          TypeBuilder.function(types: [u, v], required: [v], result: v);
+      DartType bottom =
+          TypeBuilder.function(types: [s, t], required: [s], result: t);
+      _checkLattice(top, left, right, bottom);
+    }
+  }
+
+  void test_genericFunction_simple_fBounded() {
+    ClassElementImpl AClass = ElementFactory.classElement2('A', ["Q"]);
+    InterfaceType AType = AClass.type;
+    ClassElementImpl BClass = ElementFactory.classElement2('B', ["R"]);
+    BClass.supertype = AType.substitute4([BClass.typeParameters[0].type]);
+    InterfaceType BType = BClass.type;
+
+    DartType s = TypeBuilder.variable("S");
+    (s.element as TypeParameterElementImpl).bound = AType.substitute4([s]);
+    DartType t = TypeBuilder.variable("T", bound: s);
+    DartType u = TypeBuilder.variable("U");
+    (u.element as TypeParameterElementImpl).bound = BType.substitute4([u]);
+    DartType v = TypeBuilder.variable("V", bound: u);
+
+    _checkIsStrictSubtypeOf(
+        TypeBuilder.function(types: [s]), TypeBuilder.function(types: [u]));
+
+    _checkIsStrictSubtypeOf(
+        TypeBuilder.function(types: [s, t], required: [s], result: t),
+        TypeBuilder.function(types: [u, v], required: [u], result: v));
+  }
+
+  void test_generics() {
     ClassElementImpl LClass = ElementFactory.classElement2('L', ["T"]);
     InterfaceType LType = LClass.type;
     ClassElementImpl MClass = ElementFactory.classElement2('M', ["T"]);
@@ -608,7 +697,7 @@ class StrongSubtypingTest {
     _checkLattice(top, left, right, bottom);
   }
 
-  void test_isSubtypeOf_int() {
+  void test_int() {
     List<DartType> equivalents = <DartType>[intType];
     List<DartType> supertypes = <DartType>[numType];
     List<DartType> unrelated = <DartType>[doubleType];
@@ -616,24 +705,37 @@ class StrongSubtypingTest {
         equivalents: equivalents, supertypes: supertypes, unrelated: unrelated);
   }
 
-  void test_isSubtypeOf_named_optional() {
-    DartType r = TypeBuilder.functionType(<DartType>[intType], intType);
-    DartType o = TypeBuilder.functionType(<DartType>[], intType,
-        optional: <DartType>[intType]);
-    DartType n = TypeBuilder.functionType(<DartType>[], intType,
-        named: <String, DartType>{'x': intType});
-    DartType rr =
-        TypeBuilder.functionType(<DartType>[intType, intType], intType);
-    DartType ro = TypeBuilder.functionType(<DartType>[intType], intType,
-        optional: <DartType>[intType]);
-    DartType rn = TypeBuilder.functionType(<DartType>[intType], intType,
-        named: <String, DartType>{'x': intType});
-    DartType oo = TypeBuilder.functionType(<DartType>[], intType,
-        optional: <DartType>[intType, intType]);
-    DartType nn = TypeBuilder.functionType(<DartType>[], intType,
-        named: <String, DartType>{'x': intType, 'y': intType});
-    DartType nnn = TypeBuilder.functionType(<DartType>[], intType,
-        named: <String, DartType>{'x': intType, 'y': intType, 'z': intType});
+  void test_named_optional() {
+    DartType r =
+        TypeBuilder.function(required: <DartType>[intType], result: intType);
+    DartType o = TypeBuilder.function(
+        required: <DartType>[], optional: <DartType>[intType], result: intType);
+    DartType n = TypeBuilder.function(
+        required: <DartType>[],
+        named: <String, DartType>{'x': intType},
+        result: intType);
+    DartType rr = TypeBuilder.function(
+        required: <DartType>[intType, intType], result: intType);
+    DartType ro = TypeBuilder.function(
+        required: <DartType>[intType],
+        optional: <DartType>[intType],
+        result: intType);
+    DartType rn = TypeBuilder.function(
+        required: <DartType>[intType],
+        named: <String, DartType>{'x': intType},
+        result: intType);
+    DartType oo = TypeBuilder.function(
+        required: <DartType>[],
+        optional: <DartType>[intType, intType],
+        result: intType);
+    DartType nn = TypeBuilder.function(
+        required: <DartType>[],
+        named: <String, DartType>{'x': intType, 'y': intType},
+        result: intType);
+    DartType nnn = TypeBuilder.function(
+        required: <DartType>[],
+        named: <String, DartType>{'x': intType, 'y': intType, 'z': intType},
+        result: intType);
 
     _checkGroups(r,
         equivalents: [r],
@@ -663,7 +765,7 @@ class StrongSubtypingTest {
         equivalents: [nnn], subtypes: [], unrelated: [r, o, rr, ro, rn, oo]);
   }
 
-  void test_isSubtypeOf_num() {
+  void test_num() {
     List<DartType> equivalents = <DartType>[numType];
     List<DartType> supertypes = <DartType>[];
     List<DartType> unrelated = <DartType>[stringType];
@@ -675,29 +777,31 @@ class StrongSubtypingTest {
         subtypes: subtypes);
   }
 
-  // Regression test for https://github.com/dart-lang/sdk/issues/25069
-  void test_isSubtypeOf_simple_function_void() {
-    FunctionType functionType =
-        TypeBuilder.functionType(<DartType>[intType], objectType);
-    _checkIsNotSubtypeOf(voidType, functionType);
-  }
-
-  void test_isSubtypeOf_simple_function() {
+  void test_simple_function() {
     FunctionType top =
-        TypeBuilder.functionType(<DartType>[intType], objectType);
-    FunctionType left = TypeBuilder.functionType(<DartType>[intType], intType);
-    FunctionType right =
-        TypeBuilder.functionType(<DartType>[objectType], objectType);
+        TypeBuilder.function(required: <DartType>[intType], result: objectType);
+    FunctionType left =
+        TypeBuilder.function(required: <DartType>[intType], result: intType);
+    FunctionType right = TypeBuilder.function(
+        required: <DartType>[objectType], result: objectType);
     FunctionType bottom =
-        TypeBuilder.functionType(<DartType>[objectType], intType);
+        TypeBuilder.function(required: <DartType>[objectType], result: intType);
 
     _checkLattice(top, left, right, bottom);
   }
 
-  void test_isSubtypeOf_void_functions() {
-    FunctionType top = TypeBuilder.functionType(<DartType>[intType], voidType);
+  /// Regression test for https://github.com/dart-lang/sdk/issues/25069
+  void test_simple_function_void() {
+    FunctionType functionType =
+        TypeBuilder.function(required: <DartType>[intType], result: objectType);
+    _checkIsNotSubtypeOf(voidType, functionType);
+  }
+
+  void test_void_functions() {
+    FunctionType top =
+        TypeBuilder.function(required: <DartType>[intType], result: voidType);
     FunctionType bottom =
-        TypeBuilder.functionType(<DartType>[objectType], intType);
+        TypeBuilder.function(required: <DartType>[objectType], result: intType);
 
     _checkIsStrictSubtypeOf(bottom, top);
   }
@@ -774,14 +878,25 @@ class StrongSubtypingTest {
 }
 
 class TypeBuilder {
-  static FunctionType functionType(
-      List<DartType> parameters, DartType returnType,
-      {List<DartType> optional, Map<String, DartType> named}) {
-    return ElementFactory
-        .functionElement8(parameters, returnType,
-            optional: optional, named: named)
-        .type;
+  static FunctionTypeImpl function(
+      {List<DartType> types,
+      List<DartType> required,
+      List<DartType> optional,
+      Map<String, DartType> named,
+      DartType result}) {
+    result = result ?? VoidTypeImpl.instance;
+    required = required ?? [];
+    FunctionElementImpl f = ElementFactory.functionElement8(required, result,
+        optional: optional, named: named);
+    if (types != null) {
+      f.typeParameters =
+          new List<TypeParameterElement>.from(types.map((t) => t.element));
+    }
+    return f.type = new FunctionTypeImpl(f);
   }
+
+  static TypeParameterType variable(String name, {DartType bound}) =>
+      ElementFactory.typeParameterWithType(name, bound).type;
 }
 
 @reflectiveTest

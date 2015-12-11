@@ -1895,8 +1895,7 @@ class B extends A {
 main() {
   B.!1;
 }''',
-        <String>["1+FIELD_B", "1-FIELD_A", "1+methodB", "1-methodA"],
-        failingTests: '1');
+        <String>["1+FIELD_B", "1-FIELD_A", "1+methodB", "1-methodA"]);
 
     buildTests(
         'testCompletion_propertyAccess_whenInstanceTarget',

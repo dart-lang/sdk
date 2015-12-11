@@ -27,6 +27,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
+import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -206,11 +207,6 @@ class Driver implements ServerStarter {
    * The name of the option used to set the version for the client.
    */
   static const String CLIENT_VERSION = "client-version";
-
-  /**
-   * The name of the option used to disable the use of the new task model.
-   */
-  static const String DISABLE_NEW_TASK_MODEL = "disable-new-task-model";
 
   /**
    * The name of the option used to enable incremental resolution of API
@@ -398,25 +394,21 @@ class Driver implements ServerStarter {
         results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
     //
-    // Enable the new task model, if appropriate.
-    //
-    AnalysisEngine.instance.useTaskModel = !results[DISABLE_NEW_TASK_MODEL];
-    //
     // Process all of the plugins so that extensions are registered.
     //
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
-    plugins.addAll(_userDefinedPlugins);
     plugins.add(linterPlugin);
     plugins.add(linterServerPlugin);
     plugins.add(dartCompletionPlugin);
+    plugins.addAll(_userDefinedPlugins);
 
-    // Defer to the extension manager in AE for plugin registration.
-    AnalysisEngine.instance.userDefinedPlugins = plugins;
-    // Force registration.
-    AnalysisEngine.instance.taskManager;
-
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
     //
     // Create the sockets and start listening for requests.
     //
@@ -480,11 +472,6 @@ class Driver implements ServerStarter {
     parser.addOption(CLIENT_ID,
         help: "an identifier used to identify the client");
     parser.addOption(CLIENT_VERSION, help: "the version of the client");
-    parser.addFlag(DISABLE_NEW_TASK_MODEL,
-        help: "disable the use of the new task model",
-        defaultsTo: false,
-        hide: true,
-        negatable: false);
     parser.addFlag(ENABLE_INCREMENTAL_RESOLUTION_API,
         help: "enable using incremental resolution for API changes",
         defaultsTo: false,

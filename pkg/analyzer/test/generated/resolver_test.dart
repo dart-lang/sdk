@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver_test;
+library analyzer.test.generated.resolver_test;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/context/context.dart' as newContext;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -44,16 +44,6 @@ main() {
   runReflectiveTests(ScopeTest);
   runReflectiveTests(ElementResolverTest);
   runReflectiveTests(InheritanceManagerTest);
-  if (!AnalysisEngine.instance.useTaskModel) {
-    runReflectiveTests(LibraryElementBuilderTest);
-  }
-  if (!AnalysisEngine.instance.useTaskModel) {
-    runReflectiveTests(LibraryResolver2Test);
-  }
-  if (!AnalysisEngine.instance.useTaskModel) {
-    runReflectiveTests(LibraryResolverTest);
-  }
-  runReflectiveTests(LibraryTest);
   runReflectiveTests(StaticTypeAnalyzerTest);
   runReflectiveTests(StaticTypeAnalyzer2Test);
   runReflectiveTests(SubtypeManagerTest);
@@ -89,10 +79,6 @@ class AnalysisContextFactory {
    * Return the context that was created.
    */
   static InternalAnalysisContext contextWithCore() {
-    if (AnalysisEngine.instance.useTaskModel) {
-      NewAnalysisContextForTests context = new NewAnalysisContextForTests();
-      return initContextWithCore(context);
-    }
     AnalysisContextForTests context = new AnalysisContextForTests();
     return initContextWithCore(context);
   }
@@ -103,11 +89,6 @@ class AnalysisContextFactory {
    */
   static InternalAnalysisContext contextWithCoreAndOptions(
       AnalysisOptions options) {
-    if (AnalysisEngine.instance.useTaskModel) {
-      NewAnalysisContextForTests context = new NewAnalysisContextForTests();
-      context._internalSetAnalysisOptions(options);
-      return initContextWithCore(context);
-    }
     AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
     return initContextWithCore(context);
@@ -212,8 +193,8 @@ class AnalysisContextFactory {
         'onValue', futureThenR, [futureElement.typeParameters[0]], null);
 
     DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
-    MethodElementImpl thenMethod = ElementFactory.methodElementWithParameters(
-        futureElement, "then", futureRType, [
+    MethodElementImpl thenMethod = ElementFactory
+        .methodElementWithParameters(futureElement, "then", futureRType, [
       ElementFactory.requiredParameter2("onValue", thenOnValue.type),
       ElementFactory.namedParameter2("onError", provider.functionType)
     ]);
@@ -301,8 +282,8 @@ class AnalysisContextFactory {
     ClassElementImpl htmlDocumentElement =
         ElementFactory.classElement("HtmlDocument", documentElement.type);
     htmlDocumentElement.methods = <MethodElement>[
-      ElementFactory.methodElement(
-          "query", elementType, <DartType>[provider.stringType])
+      ElementFactory
+          .methodElement("query", elementType, <DartType>[provider.stringType])
     ];
     htmlUnit.types = <ClassElement>[
       ElementFactory.classElement("AnchorElement", elementType),
@@ -322,8 +303,8 @@ class AnalysisContextFactory {
       ElementFactory.functionElement3("query", elementElement,
           <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
     ];
-    TopLevelVariableElementImpl document = ElementFactory
-        .topLevelVariableElement3(
+    TopLevelVariableElementImpl document =
+        ElementFactory.topLevelVariableElement3(
             "document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
@@ -410,31 +391,11 @@ class AnalysisContextFactory {
     context.recordLibraryElements(elementMap);
     return context;
   }
-
-  /**
-   * Create an analysis context that has a fake core library already resolved.
-   * Return the context that was created.
-   */
-  static AnalysisContextImpl oldContextWithCore() {
-    AnalysisContextForTests context = new AnalysisContextForTests();
-    return initContextWithCore(context);
-  }
-
-  /**
-   * Create an analysis context that uses the given [options] and has a fake
-   * core library already resolved. Return the context that was created.
-   */
-  static AnalysisContextImpl oldContextWithCoreAndOptions(
-      AnalysisOptions options) {
-    AnalysisContextForTests context = new AnalysisContextForTests();
-    context._internalSetAnalysisOptions(options);
-    return initContextWithCore(context);
-  }
 }
 
 /**
- * Instances of the class `AnalysisContextForTests` implement an analysis context that has a
- * fake SDK that is much smaller and faster for testing purposes.
+ * An analysis context that has a fake SDK that is much smaller and faster for
+ * testing purposes.
  */
 class AnalysisContextForTests extends AnalysisContextImpl {
   @override
@@ -1303,6 +1264,7 @@ class ElementResolverTest extends EngineTestCase {
 
   @override
   void setUp() {
+    super.setUp();
     _listener = new GatheringErrorListener();
     _typeProvider = new TestTypeProvider();
     _resolver = _createResolver();
@@ -2003,12 +1965,9 @@ class ElementResolverTest extends EngineTestCase {
         definingCompilationUnit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    Library library = new Library(context, _listener, source);
-    library.libraryElement = _definingLibrary;
     _visitor = new ResolverVisitor(
-        library.libraryElement, source, _typeProvider, library.errorListener,
-        nameScope: library.libraryScope,
-        inheritanceManager: library.inheritanceManager);
+        _definingLibrary, source, _typeProvider, _listener,
+        nameScope: new LibraryScope(_definingLibrary, _listener));
     try {
       return _visitor.elementResolver;
     } catch (exception) {
@@ -3589,6 +3548,36 @@ m(num i) {
     verify([source]);
   }
 
+  void test_unnecessaryNoSuchMethod_blockBody() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) {
+    return super.noSuchMethod(y);
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_expressionBody() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) => super.noSuchMethod(y);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNNECESSARY_NO_SUCH_METHOD]);
+    verify([source]);
+  }
+
   void test_unnecessaryTypeCheck_null_is_Null() {
     Source source = addSource("bool b = null is Null;");
     computeLibrarySourceErrors(source);
@@ -3770,6 +3759,22 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
+    verify([source]);
+  }
+
+  void test_unusedElement_class_isUsed_fieldDeclaration() {
+    enableUnusedElement = true;
+    var src = r'''
+class Foo {
+  _Bar x;
+}
+
+class _Bar {
+}
+''';
+    Source source = addSource(src);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -4841,7 +4846,7 @@ class A {
 }
 
 @reflectiveTest
-class InheritanceManagerTest extends EngineTestCase {
+class InheritanceManagerTest {
   /**
    * The type provider used to access the types.
    */
@@ -4862,7 +4867,6 @@ class InheritanceManagerTest extends EngineTestCase {
    */
   int _numOfMembersInObject = 0;
 
-  @override
   void setUp() {
     _typeProvider = new TestTypeProvider();
     _inheritanceManager = _createInheritanceManager();
@@ -5099,7 +5103,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I2, I1 {}
@@ -5122,7 +5127,8 @@ class InheritanceManagerTest extends EngineTestCase {
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I1, I2 {}
@@ -5132,8 +5138,8 @@ class InheritanceManagerTest extends EngineTestCase {
         ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    MethodElement methodM2 = ElementFactory.methodElement(
-        methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM2 = ElementFactory
+        .methodElement(methodName, null, [_typeProvider.stringType]);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
@@ -5145,7 +5151,8 @@ class InheritanceManagerTest extends EngineTestCase {
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I1, I2 {}
@@ -5168,7 +5175,8 @@ class InheritanceManagerTest extends EngineTestCase {
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
     // class I1 { dynamic m(int, [int]); }
     // class I2 { dynamic m(int, int, int); }
     // class A implements I1, I2 {}
@@ -5217,14 +5225,15 @@ class InheritanceManagerTest extends EngineTestCase {
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I2, I1 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM1 = ElementFactory.methodElement(
-        methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM1 = ElementFactory
+        .methodElement(methodName, null, [_typeProvider.stringType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 =
@@ -5326,7 +5335,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
     // class I1 { int get g; }
     // class I2 { num get g; }
     // class A implements I1, I2 {}
@@ -5350,7 +5360,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
     // class I1 { dynamic m(int); }
     // class I2 { dynamic m(num); }
     // class A implements I1, I2 {}
@@ -5384,7 +5395,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
     // class I1 { set s(int); }
     // class I2 { set s(num); }
     // class A implements I1, I2 {}
@@ -5409,7 +5421,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5448,7 +5461,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classD);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5502,7 +5516,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classD);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5542,7 +5557,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classD);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class A implements I1, I2 {}
@@ -5569,7 +5585,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class I3 { int m([int, int]); }
@@ -5614,7 +5631,8 @@ class InheritanceManagerTest extends EngineTestCase {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
     // class I1 { int m(); }
     // class I2 { int m(); }
     // class I3 { int m([int]); }
@@ -6066,217 +6084,6 @@ class InheritanceManagerTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class LibraryElementBuilderTest extends EngineTestCase {
-  /**
-   * The analysis context used to analyze sources.
-   */
-  InternalAnalysisContext _context;
-
-  /**
-   * Add a source file to the content provider. The file path should be absolute.
-   *
-   * @param filePath the path of the file being added
-   * @param contents the contents to be returned by the content provider for the specified file
-   * @return the source object representing the added file
-   */
-  Source addSource(String filePath, String contents) {
-    Source source = new FileBasedSource(FileUtilities2.createFile(filePath));
-    _context.setContents(source, contents);
-    return source;
-  }
-
-  @override
-  void setUp() {
-    _context = AnalysisContextFactory.contextWithCore();
-  }
-
-  @override
-  void tearDown() {
-    _context = null;
-    super.tearDown();
-  }
-
-  void test_accessorsAcrossFiles() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-library lib;
-part 'first.dart';
-part 'second.dart';''');
-    addSource(
-        "/first.dart",
-        r'''
-part of lib;
-int get V => 0;''');
-    addSource(
-        "/second.dart",
-        r'''
-part of lib;
-void set V(int v) {}''');
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    List<CompilationUnitElement> sourcedUnits = element.parts;
-    expect(sourcedUnits, hasLength(2));
-    List<PropertyAccessorElement> firstAccessors = sourcedUnits[0].accessors;
-    expect(firstAccessors, hasLength(1));
-    List<PropertyAccessorElement> secondAccessors = sourcedUnits[1].accessors;
-    expect(secondAccessors, hasLength(1));
-    expect(secondAccessors[0].variable, same(firstAccessors[0].variable));
-  }
-
-  void test_empty() {
-    Source librarySource = addSource("/lib.dart", "library lib;");
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    expect(element.name, "lib");
-    expect(element.entryPoint, isNull);
-    expect(element.importedLibraries, hasLength(0));
-    expect(element.imports, hasLength(0));
-    expect(element.library, same(element));
-    expect(element.prefixes, hasLength(0));
-    expect(element.parts, hasLength(0));
-    CompilationUnitElement unit = element.definingCompilationUnit;
-    expect(unit, isNotNull);
-    expect(unit.name, "lib.dart");
-    expect(unit.library, element);
-    expect(unit.accessors, hasLength(0));
-    expect(unit.functions, hasLength(0));
-    expect(unit.functionTypeAliases, hasLength(0));
-    expect(unit.types, hasLength(0));
-    expect(unit.topLevelVariables, hasLength(0));
-  }
-
-  void test_libraryElement_docRange() {
-    String code = r'''
-/// My dart doc.
-library lib;
-
-class A {}''';
-    Source librarySource = addSource("/lib.dart", code);
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    SourceRange docRange = element.docRange;
-    expect(docRange, isNotNull);
-    expect(docRange.offset, code.indexOf('/// My dart doc.'));
-    expect(docRange.length, '/// My dart doc.'.length);
-  }
-
-  void test_missingLibraryDirectiveWithPart() {
-    addSource("/a.dart", "part of lib;");
-    Source librarySource = addSource("/lib.dart", "part 'a.dart';");
-    LibraryElement element = _buildLibrary(
-        librarySource, [ResolverErrorCode.MISSING_LIBRARY_DIRECTIVE_WITH_PART]);
-    expect(element, isNotNull);
-  }
-
-  void test_missingPartOfDirective() {
-    addSource("/a.dart", "class A {}");
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-library lib;
-
-part 'a.dart';''');
-    LibraryElement element =
-        _buildLibrary(librarySource, [CompileTimeErrorCode.PART_OF_NON_PART]);
-    expect(element, isNotNull);
-  }
-
-  void test_multipleFiles() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-library lib;
-part 'first.dart';
-part 'second.dart';
-
-class A {}''');
-    addSource(
-        "/first.dart",
-        r'''
-part of lib;
-class B {}''');
-    addSource(
-        "/second.dart",
-        r'''
-part of lib;
-class C {}''');
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    List<CompilationUnitElement> sourcedUnits = element.parts;
-    expect(sourcedUnits, hasLength(2));
-    _assertTypes(element.definingCompilationUnit, ["A"]);
-    if (sourcedUnits[0].name == "first.dart") {
-      _assertTypes(sourcedUnits[0], ["B"]);
-      _assertTypes(sourcedUnits[1], ["C"]);
-    } else {
-      _assertTypes(sourcedUnits[0], ["C"]);
-      _assertTypes(sourcedUnits[1], ["B"]);
-    }
-  }
-
-  void test_singleFile() {
-    Source librarySource = addSource(
-        "/lib.dart",
-        r'''
-/// My dart doc.
-library lib;
-
-class A {}''');
-    LibraryElement element = _buildLibrary(librarySource);
-    expect(element, isNotNull);
-    _assertTypes(element.definingCompilationUnit, ["A"]);
-  }
-
-  /**
-   * Ensure that there are elements representing all of the types in the given array of type names.
-   *
-   * @param unit the compilation unit containing the types
-   * @param typeNames the names of the types that should be found
-   */
-  void _assertTypes(CompilationUnitElement unit, List<String> typeNames) {
-    expect(unit, isNotNull);
-    List<ClassElement> types = unit.types;
-    expect(types, hasLength(typeNames.length));
-    for (ClassElement type in types) {
-      expect(type, isNotNull);
-      String actualTypeName = type.displayName;
-      bool wasExpected = false;
-      for (String expectedTypeName in typeNames) {
-        if (expectedTypeName == actualTypeName) {
-          wasExpected = true;
-        }
-      }
-      if (!wasExpected) {
-        fail("Found unexpected type $actualTypeName");
-      }
-    }
-  }
-
-  /**
-   * Build the element model for the library whose defining compilation unit has the given source.
-   *
-   * @param librarySource the source of the defining compilation unit for the library
-   * @param expectedErrorCodes the errors that are expected to be found while building the element
-   *          model
-   * @return the element model that was built for the library
-   * @throws Exception if the element model could not be built
-   */
-  LibraryElement _buildLibrary(Source librarySource,
-      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
-    LibraryResolver resolver = new LibraryResolver(_context);
-    LibraryElementBuilder builder = new LibraryElementBuilder(
-        resolver.analysisContext, resolver.errorListener);
-    Library library = resolver.createLibrary(librarySource);
-    LibraryElement element = builder.buildLibrary(library);
-    GatheringErrorListener listener = new GatheringErrorListener();
-    listener.addAll2(resolver.errorListener);
-    listener.assertErrorsWithCodes(expectedErrorCodes);
-    return element;
-  }
-}
-
-@reflectiveTest
 class LibraryImportScopeTest extends ResolverTestCase {
   void test_conflictingImports() {
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
@@ -6457,104 +6264,6 @@ class LibraryImportScopeTest extends ResolverTestCase {
 }
 
 @reflectiveTest
-class LibraryResolver2Test extends ResolverTestCase {
-  LibraryResolver2 _resolver;
-
-  Source _coreLibrarySource;
-
-  Source _asyncLibrarySource;
-
-  @override
-  void setUp() {
-    super.setUp();
-    _resolver = new LibraryResolver2(analysisContext2);
-    _coreLibrarySource =
-        analysisContext2.sourceFactory.forUri(DartSdk.DART_CORE);
-    _asyncLibrarySource =
-        analysisContext2.sourceFactory.forUri(DartSdk.DART_ASYNC);
-  }
-
-  void test_imports_relative() {
-    Source sourceA = addSource(r'''
-library libA;
-import 'libB.dart';
-class A {}''');
-    Source sourceB = addNamedSource(
-        "/libB.dart",
-        r'''
-library libB;
-import 'test.dart
-class B {}''');
-    List<ResolvableLibrary> cycle = new List<ResolvableLibrary>();
-    ResolvableLibrary coreLib = _createResolvableLibrary(_coreLibrarySource);
-    coreLib.libraryElement = analysisContext2
-        .computeLibraryElement(_coreLibrarySource) as LibraryElementImpl;
-    ResolvableLibrary asyncLib = _createResolvableLibrary(_asyncLibrarySource);
-    asyncLib.libraryElement = analysisContext2
-        .computeLibraryElement(_asyncLibrarySource) as LibraryElementImpl;
-    ResolvableLibrary libA = _createResolvableLibrary(sourceA);
-    ResolvableLibrary libB = _createResolvableLibrary(sourceB);
-    libA.importedLibraries = <ResolvableLibrary>[coreLib, asyncLib, libB];
-    libB.importedLibraries = <ResolvableLibrary>[coreLib, asyncLib, libA];
-    cycle.add(libA);
-    cycle.add(libB);
-    LibraryElement library = _resolver.resolveLibrary(sourceA, cycle);
-    List<LibraryElement> importedLibraries = library.importedLibraries;
-    assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-  }
-
-  ResolvableLibrary _createResolvableLibrary(Source source) {
-    CompilationUnit unit = analysisContext2.parseCompilationUnit(source);
-    ResolvableLibrary resolvableLibrary = new ResolvableLibrary(source);
-    resolvableLibrary.resolvableCompilationUnits = <ResolvableCompilationUnit>[
-      new ResolvableCompilationUnit(source, unit)
-    ];
-    return resolvableLibrary;
-  }
-}
-
-@reflectiveTest
-class LibraryResolverTest extends ResolverTestCase {
-  LibraryResolver _resolver;
-
-  @override
-  void setUp() {
-    super.setUp();
-    _resolver = new LibraryResolver(analysisContext2);
-  }
-
-  void test_imports_dart_html() {
-    Source source = addSource(r'''
-library libA;
-import 'dart:html';
-class A {}''');
-    LibraryElement library = _resolver.resolveLibrary(source, true);
-    List<LibraryElement> importedLibraries = library.importedLibraries;
-    assertNamedElements(importedLibraries, ["dart.core", "dart.dom.html"]);
-  }
-
-  void test_imports_none() {
-    Source source = addSource(r'''
-library libA;
-class A {}''');
-    LibraryElement library = _resolver.resolveLibrary(source, true);
-    List<LibraryElement> importedLibraries = library.importedLibraries;
-    assertNamedElements(importedLibraries, ["dart.core"]);
-  }
-
-  void test_imports_relative() {
-    addNamedSource("/libB.dart", "library libB;");
-    Source source = addSource(r'''
-library libA;
-import 'libB.dart';
-class A {}''');
-    LibraryElement library = _resolver.resolveLibrary(source, true);
-    List<LibraryElement> importedLibraries = library.importedLibraries;
-    assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-  }
-}
-
-@reflectiveTest
 class LibraryScopeTest extends ResolverTestCase {
   void test_creation_empty() {
     LibraryElement definingLibrary = createDefaultTestLibrary();
@@ -6588,112 +6297,6 @@ class LibraryScopeTest extends ResolverTestCase {
     LibraryScope scope = new LibraryScope(definingLibrary, errorListener);
     expect(scope.errorListener, errorListener);
   }
-}
-
-@reflectiveTest
-class LibraryTest extends EngineTestCase {
-  /**
-   * The error listener to which all errors will be reported.
-   */
-  GatheringErrorListener _errorListener;
-
-  /**
-   * The analysis context to pass in to all libraries created by the tests.
-   */
-  InternalAnalysisContext _analysisContext;
-
-  /**
-   * The library used by the tests.
-   */
-  Library _library;
-
-  @override
-  void setUp() {
-    _analysisContext = AnalysisContextFactory.contextWithCore();
-    _errorListener = new GatheringErrorListener();
-    _library = _createLibrary("/lib.dart");
-  }
-
-  @override
-  void tearDown() {
-    _errorListener = null;
-    _analysisContext = null;
-    _library = null;
-    super.tearDown();
-  }
-
-  void test_getExplicitlyImportsCore() {
-    expect(_library.explicitlyImportsCore, isFalse);
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getExports() {
-    expect(_library.exports, hasLength(0));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getImports() {
-    expect(_library.imports, hasLength(0));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getImportsAndExports() {
-    _library.importedLibraries = <Library>[_createLibrary("/imported.dart")];
-    _library.exportedLibraries = <Library>[_createLibrary("/exported.dart")];
-    expect(_library.importsAndExports, hasLength(2));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getLibraryScope() {
-    LibraryElementImpl element = new LibraryElementImpl.forNode(
-        _analysisContext, AstFactory.libraryIdentifier2(["lib"]));
-    element.definingCompilationUnit =
-        new CompilationUnitElementImpl("lib.dart");
-    _library.libraryElement = element;
-    expect(_library.libraryScope, isNotNull);
-    _errorListener.assertNoErrors();
-  }
-
-  void test_getLibrarySource() {
-    expect(_library.librarySource, isNotNull);
-  }
-
-  void test_setExplicitlyImportsCore() {
-    _library.explicitlyImportsCore = true;
-    expect(_library.explicitlyImportsCore, isTrue);
-    _errorListener.assertNoErrors();
-  }
-
-  void test_setExportedLibraries() {
-    Library exportLibrary = _createLibrary("/exported.dart");
-    _library.exportedLibraries = <Library>[exportLibrary];
-    List<Library> exports = _library.exports;
-    expect(exports, hasLength(1));
-    expect(exports[0], same(exportLibrary));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_setImportedLibraries() {
-    Library importLibrary = _createLibrary("/imported.dart");
-    _library.importedLibraries = <Library>[importLibrary];
-    List<Library> imports = _library.imports;
-    expect(imports, hasLength(1));
-    expect(imports[0], same(importLibrary));
-    _errorListener.assertNoErrors();
-  }
-
-  void test_setLibraryElement() {
-    LibraryElementImpl element = new LibraryElementImpl.forNode(
-        _analysisContext, AstFactory.libraryIdentifier2(["lib"]));
-    _library.libraryElement = element;
-    expect(_library.libraryElement, same(element));
-  }
-
-  Library _createLibrary(String definingCompilationUnitPath) => new Library(
-      _analysisContext,
-      _errorListener,
-      new FileBasedSource(
-          FileUtilities2.createFile(definingCompilationUnitPath)));
 }
 
 @reflectiveTest
@@ -6739,61 +6342,6 @@ class MemberMapTest {
     map.put(m1.name, m1);
     expect(map.size, 1);
     expect(map.get("m1"), m1);
-  }
-}
-
-/**
- * An analysis context that has a fake SDK that is much smaller and faster for
- * testing purposes.
- */
-class NewAnalysisContextForTests extends newContext.AnalysisContextImpl {
-  @override
-  void set analysisOptions(AnalysisOptions options) {
-    AnalysisOptions currentOptions = analysisOptions;
-    bool needsRecompute = currentOptions.analyzeFunctionBodiesPredicate !=
-            options.analyzeFunctionBodiesPredicate ||
-        currentOptions.generateImplicitErrors !=
-            options.generateImplicitErrors ||
-        currentOptions.generateSdkErrors != options.generateSdkErrors ||
-        currentOptions.dart2jsHint != options.dart2jsHint ||
-        (currentOptions.hint && !options.hint) ||
-        currentOptions.preserveComments != options.preserveComments ||
-        currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
-    if (needsRecompute) {
-      fail(
-          "Cannot set options that cause the sources to be reanalyzed in a test context");
-    }
-    super.analysisOptions = options;
-  }
-
-  @override
-  bool exists(Source source) =>
-      super.exists(source) || sourceFactory.dartSdk.context.exists(source);
-
-  @override
-  TimestampedData<String> getContents(Source source) {
-    if (source.isInSystemLibrary) {
-      return sourceFactory.dartSdk.context.getContents(source);
-    }
-    return super.getContents(source);
-  }
-
-  @override
-  int getModificationStamp(Source source) {
-    if (source.isInSystemLibrary) {
-      return sourceFactory.dartSdk.context.getModificationStamp(source);
-    }
-    return super.getModificationStamp(source);
-  }
-
-  /**
-   * Set the analysis options, even if they would force re-analysis. This method should only be
-   * invoked before the fake SDK is initialized.
-   *
-   * @param options the analysis options to be set
-   */
-  void _internalSetAnalysisOptions(AnalysisOptions options) {
-    super.analysisOptions = options;
   }
 }
 
@@ -7575,6 +7123,67 @@ void g(bool c) {
     Source source = addSource(r'''
 m(v) {
   var b = Object as dynamic;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_blockBody_notReturnStatement() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) {
+    print(y);
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_blockBody_notSingleStatement() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) {
+    print(y);
+    return super.noSuchMethod(y);
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_expressionBody_notNoSuchMethod() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) => super.hashCode;
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unnecessaryNoSuchMethod_expressionBody_notSuper() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(x) => super.noSuchMethod(x);
+}
+class B extends A {
+  mmm();
+  noSuchMethod(y) => 42;
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -8427,6 +8036,7 @@ class ResolverTestCase extends EngineTestCase {
 
   @override
   void setUp() {
+    super.setUp();
     reset();
   }
 
@@ -9724,7 +9334,9 @@ const A = null;
     expect(declarations, hasLength(2));
     Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
         .variables
-        .variables[0].name.staticElement;
+        .variables[0]
+        .name
+        .staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
         PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -9915,7 +9527,9 @@ const A = null;
     expect(declarations, hasLength(2));
     Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
         .variables
-        .variables[0].name.staticElement;
+        .variables[0]
+        .name
+        .staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
         PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -10363,6 +9977,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   @override
   void setUp() {
+    super.setUp();
     _listener = new GatheringErrorListener();
     _typeProvider = new TestTypeProvider();
     _analyzer = _createAnalyzer();
@@ -11630,12 +11245,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     LibraryElementImpl definingLibrary =
         new LibraryElementImpl.forNode(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
-    Library library = new Library(context, _listener, source);
-    library.libraryElement = definingLibrary;
     _visitor = new ResolverVisitor(
-        library.libraryElement, source, _typeProvider, library.errorListener,
-        nameScope: library.libraryScope,
-        inheritanceManager: library.inheritanceManager);
+        definingLibrary, source, _typeProvider, _listener,
+        nameScope: new LibraryScope(definingLibrary, _listener));
     _visitor.overrideManager.enterScope();
     try {
       return _visitor.typeAnalyzer;
@@ -12140,17 +11752,17 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
   AsserterBuilder<Element, DartType> _hasElement;
   AsserterBuilder<DartType, DartType> _isType;
-  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
-      DartType> _isFunction2Of;
-  AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>,
-      DartType> _isInstantiationOf;
+  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, DartType>
+      _isFunction2Of;
+  AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>, DartType>
+      _isInstantiationOf;
   Asserter<DartType> _isInt;
   Asserter<DartType> _isNum;
   Asserter<DartType> _isString;
   Asserter<DartType> _isDynamic;
   AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
-  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
-      InterfaceType> _isMapOf;
+  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, InterfaceType>
+      _isMapOf;
 
   @override
   void setUp() {
@@ -12594,7 +12206,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
         List<int> l0 = [];
      }
    ''');
-    LibraryElement library = resolve2(source);
+    resolve2(source);
     assertNoErrors(source);
     verify([source]);
   }
@@ -13153,9 +12765,6 @@ main() {
   }
 
   void test_genericFunction() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     _resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
     SimpleIdentifier f = _findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
@@ -13168,10 +12777,113 @@ main() {
     expect(ft.toString(), '(String) → String');
   }
 
-  void test_genericMethod() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
+  void test_genericFunction_bounds() {
+    _resolveTestUnit(r'/*=T*/ f/*<T extends num>*/(/*=T*/ x) => null;');
+    SimpleIdentifier f = _findIdentifier('f');
+    FunctionElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T extends num]');
+    expect(e.type.boundTypeParameters.toString(), '[T extends num]');
+    expect(e.type.typeParameters.toString(), '[]');
+    expect(e.type.toString(), '<T extends num>(T) → T');
+  }
+
+  void test_genericFunction_static() {
+    _resolveTestUnit(r'''
+class C<E> {
+  static /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f');
+    MethodElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.boundTypeParameters.toString(), '[T]');
+    // TODO(jmesserly): we could get rid of this {E/E} substitution, but it's
+    // probably harmless, as E won't be used in the function (error verifier
+    // checks this), and {E/E} is a no-op anyway.
+    expect(e.type.typeParameters.toString(), '[E]');
+    expect(e.type.typeArguments.toString(), '[E]');
+    expect(e.type.toString(), '<T>(T) → T');
+
+    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
+    expect(ft.toString(), '(String) → String');
+  }
+
+  void test_genericFunction_typedef() {
+    String code = r'''
+typedef T F<T>(T x);
+F f0;
+
+class C {
+  static F f1;
+  F f2;
+  void g(F f3) {
+    F f4;
+    f0(3);
+    f1(3);
+    f2(3);
+    f3(3);
+    f4(3);
+  }
+}
+
+class D<S> {
+  static F f1;
+  F f2;
+  void g(F f3) {
+    F f4;
+    f0(3);
+    f1(3);
+    f2(3);
+    f3(3);
+    f4(3);
+  }
+}
+''';
+    _resolveTestUnit(code);
+
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInMethod(testUnit, "C", "g");
+
+      ExpressionStatement exps0 = statements[1];
+      ExpressionStatement exps1 = statements[2];
+      ExpressionStatement exps2 = statements[3];
+      ExpressionStatement exps3 = statements[4];
+      ExpressionStatement exps4 = statements[5];
+      Expression exp0 = exps0.expression;
+      Expression exp1 = exps1.expression;
+      Expression exp2 = exps2.expression;
+      Expression exp3 = exps3.expression;
+      Expression exp4 = exps4.expression;
+      expect(exp0.staticType, typeProvider.dynamicType);
+      expect(exp1.staticType, typeProvider.dynamicType);
+      expect(exp2.staticType, typeProvider.dynamicType);
+      expect(exp3.staticType, typeProvider.dynamicType);
+      expect(exp4.staticType, typeProvider.dynamicType);
     }
+    {
+      List<Statement> statements =
+          AstFinder.getStatementsInMethod(testUnit, "D", "g");
+
+      ExpressionStatement exps0 = statements[1];
+      ExpressionStatement exps1 = statements[2];
+      ExpressionStatement exps2 = statements[3];
+      ExpressionStatement exps3 = statements[4];
+      ExpressionStatement exps4 = statements[5];
+      Expression exp0 = exps0.expression;
+      Expression exp1 = exps1.expression;
+      Expression exp2 = exps2.expression;
+      Expression exp3 = exps3.expression;
+      Expression exp4 = exps4.expression;
+      expect(exp0.staticType, typeProvider.dynamicType);
+      expect(exp1.staticType, typeProvider.dynamicType);
+      expect(exp2.staticType, typeProvider.dynamicType);
+      expect(exp3.staticType, typeProvider.dynamicType);
+      expect(exp4.staticType, typeProvider.dynamicType);
+    }
+  }
+
+  void test_genericMethod() {
     _resolveTestUnit(r'''
 class C<E> {
   List/*<T>*/ f/*<T>*/(E e) => null;
@@ -13196,10 +12908,27 @@ main() {
     expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
   }
 
+  void test_genericMethod_explicitTypeParams() {
+    _resolveTestUnit(r'''
+class C<E> {
+  List/*<T>*/ f/*<T>*/(E e) => null;
+}
+main() {
+  C<String> cOfString;
+  var x = cOfString.f/*<int>*/('hi');
+}
+''');
+    SimpleIdentifier f = _findIdentifier('f/*<int>*/');
+    FunctionType ft = f.staticType;
+    expect(ft.toString(), '(String) → List<int>');
+    expect('${ft.typeArguments}/${ft.typeParameters}', '[String, int]/[E, T]');
+
+    SimpleIdentifier x = _findIdentifier('x');
+    expect(x.staticType,
+        typeProvider.listType.substitute4([typeProvider.intType]));
+  }
+
   void test_genericMethod_functionTypedParameter() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     _resolveTestUnit(r'''
 class C<E> {
   List/*<T>*/ f/*<T>*/(/*=T*/ f(E e)) => null;
@@ -13221,6 +12950,28 @@ main() {
     expect(ft.toString(), '<T>((String) → T) → List<T>');
     ft = ft.instantiate([typeProvider.intType]);
     expect(ft.toString(), '((String) → int) → List<int>');
+  }
+
+  void test_genericMethod_implicitDynamic() {
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/25100#issuecomment-162047588
+    // These should not cause any hints or warnings.
+    _resolveTestUnit(r'''
+class List<E> {
+  /*=T*/ map/*<T>*/(/*=T*/ f(E e)) => null;
+}
+void foo() {
+  List list = null;
+  list.map((e) => e);
+  list.map((e) => 3);
+}''');
+
+    SimpleIdentifier map1 = _findIdentifier('map((e) => e);');
+    expect(map1.staticType.toString(), '((dynamic) → dynamic) → dynamic');
+    expect(map1.propagatedType, isNull);
+    SimpleIdentifier map2 = _findIdentifier('map((e) => 3);');
+    expect(map2.staticType.toString(), '((dynamic) → int) → int');
+    expect(map2.propagatedType, isNull);
   }
 
   void test_genericMethod_nestedCapture() {
@@ -13253,6 +13004,98 @@ class C<T> {
     expect(g.staticType.toString(), '<S>(S) → S');
     SimpleIdentifier f = _findIdentifier('g');
     expect(f.staticType.toString(), '<S>(S) → dynamic');
+  }
+
+  void test_genericMethod_override() {
+    _resolveTestUnit(r'''
+class C {
+  /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  /*=T*/ f/*<T>*/(/*=T*/ x) => null; // from D
+}
+''');
+    SimpleIdentifier f =
+        _findIdentifier('f/*<T>*/(/*=T*/ x) => null; // from D');
+    MethodElementImpl e = f.staticElement;
+    expect(e.typeParameters.toString(), '[T]');
+    expect(e.type.boundTypeParameters.toString(), '[T]');
+    expect(e.type.toString(), '<T>(T) → T');
+
+    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
+    expect(ft.toString(), '(String) → String');
+  }
+
+  void test_genericMethod_override_bounds() {
+    _resolveTestUnit(r'''
+class A {}
+class B extends A {}
+class C {
+  /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  /*=T*/ f/*<T extends A>*/(/*=T*/ x) => null;
+}
+''');
+  }
+
+  void test_genericMethod_override_invalidReturnType() {
+    Source source = addSource(r'''
+class C {
+  Iterable/*<T>*/ f/*<T>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  String f/*<S>*/(/*=S*/ x) => null;
+}''');
+    // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
+    // from CodeChecker don't have working equality.
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors.map((e) => e.errorCode.name), [
+      'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
+      'STRONG_MODE_INVALID_METHOD_OVERRIDE'
+    ]);
+    expect(errors[0].message, contains('Iterable<S>'),
+        reason: 'errors should be in terms of the type parameters '
+            'at the error location');
+    verify([source]);
+  }
+
+  void test_genericMethod_override_invalidTypeParamBounds() {
+    Source source = addSource(r'''
+class A {}
+class B extends A {}
+class C {
+  /*=T*/ f/*<T extends A>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
+}''');
+    // TODO(jmesserly): this is modified code from assertErrors, which we can't
+    // use directly because STRONG_MODE_* errors don't have working equality.
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors.map((e) => e.errorCode.name), [
+      'STRONG_MODE_INVALID_METHOD_OVERRIDE',
+      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND'
+    ]);
+    verify([source]);
+  }
+
+  void test_genericMethod_override_invalidTypeParamCount() {
+    Source source = addSource(r'''
+class C {
+  /*=T*/ f/*<T>*/(/*=T*/ x) => null;
+}
+class D extends C {
+  /*=S*/ f/*<T, S>*/(/*=T*/ x) => null;
+}''');
+    // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
+    // from CodeChecker don't have working equality.
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors.map((e) => e.errorCode.name), [
+      'STRONG_MODE_INVALID_METHOD_OVERRIDE',
+      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
+    ]);
+    verify([source]);
   }
 
   void test_pseudoGeneric_max_doubleDouble() {
@@ -13525,9 +13368,6 @@ main() {
   }
 
   void test_localVariableInference_transitive_field_inferred_lexical() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     String code = r'''
 class A {
   final x = 3;
@@ -13544,9 +13384,6 @@ main() {
   }
 
   void test_localVariableInference_transitive_field_inferred_reversed() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     String code = r'''
 class A {
   f() {
@@ -13617,9 +13454,6 @@ main() {
   }
 
   void test_localVariableInference_transitive_toplevel_inferred_lexical() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     String code = r'''
 final x = 3;
 main() {
@@ -13632,9 +13466,6 @@ main() {
   }
 
   void test_localVariableInference_transitive_toplevel_inferred_reversed() {
-    if (!AnalysisEngine.instance.useTaskModel) {
-      return;
-    }
     String code = r'''
 main() {
   var v = x;
@@ -13672,7 +13503,7 @@ int x = 3;
 }
 
 @reflectiveTest
-class SubtypeManagerTest extends EngineTestCase {
+class SubtypeManagerTest {
   /**
    * The inheritance manager being tested.
    */
@@ -13683,9 +13514,7 @@ class SubtypeManagerTest extends EngineTestCase {
    */
   CompilationUnitElementImpl _definingCompilationUnit;
 
-  @override
   void setUp() {
-    super.setUp();
     AnalysisContext context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
         new FileBasedSource(FileUtilities2.createFile("/test.dart"));
@@ -14131,8 +13960,6 @@ main(CanvasElement canvas) {
   }
 
   void test_finalPropertyInducingVariable_classMember_instance() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14149,8 +13976,6 @@ f(A a) {
   }
 
   void test_finalPropertyInducingVariable_classMember_instance_inherited() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14168,9 +13993,8 @@ class B extends A {
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
+  void
+      test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14189,8 +14013,6 @@ f(p) {
   }
 
   void test_finalPropertyInducingVariable_classMember_instance_unprefixed() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     String code = r'''
 class A {
   final v = 0;
@@ -14203,8 +14025,6 @@ class A {
   }
 
   void test_finalPropertyInducingVariable_classMember_static() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14221,8 +14041,6 @@ f() {
   }
 
   void test_finalPropertyInducingVariable_topLevelVariable_prefixed() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource("/lib.dart", "final V = 0;");
     String code = r'''
 import 'lib.dart' as p;
@@ -14234,8 +14052,6 @@ f() {
   }
 
   void test_finalPropertyInducingVariable_topLevelVariable_simple() {
-    // TODO(scheglov) remove after switching to the task model
-    if (!AnalysisEngine.instance.useTaskModel) return;
     addNamedSource("/lib.dart", "final V = 0;");
     String code = r'''
 import 'lib.dart';
@@ -14397,7 +14213,8 @@ f(MyMap<int, String> m) {
     expect(vParameter.identifier.propagatedType, same(stringType));
   }
 
-  void test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
+  void
+      test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
     String code = r'''
 main() {
   (f(String value)) {} ((v) {
@@ -15571,22 +15388,21 @@ class TypeProviderImplTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class TypeResolverVisitorTest extends EngineTestCase {
+class TypeResolverVisitorTest {
   /**
    * The error listener to which errors will be reported.
    */
   GatheringErrorListener _listener;
 
   /**
-   * The object representing the information about the library in which the types are being
-   * resolved.
-   */
-  Library _library;
-
-  /**
    * The type provider used to access the types.
    */
   TestTypeProvider _typeProvider;
+
+  /**
+   * The library scope in which types are to be resolved.
+   */
+  LibraryScope libraryScope;
 
   /**
    * The visitor used to resolve types needed to form the type hierarchy.
@@ -15613,22 +15429,20 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  @override
   void setUp() {
     _listener = new GatheringErrorListener();
     InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     Source librarySource =
         new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
-    _library = new Library(context, _listener, librarySource);
     LibraryElementImpl element = new LibraryElementImpl.forNode(
         context, AstFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
-    _library.libraryElement = element;
     _typeProvider = new TestTypeProvider();
-    _visitor = new TypeResolverVisitor(_library.libraryElement, librarySource,
-        _typeProvider, _library.errorListener,
-        nameScope: _library.libraryScope);
+    libraryScope = new LibraryScope(element, _listener);
+    _visitor = new TypeResolverVisitor(
+        element, librarySource, _typeProvider, _listener,
+        nameScope: libraryScope);
   }
 
   void test_visitCatchClause_exception() {
@@ -16188,7 +16002,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
     if (definedElements != null) {
       for (Element element in definedElements) {
-        _library.libraryScope.define(element);
+        libraryScope.define(element);
       }
     }
     node.accept(_visitor);

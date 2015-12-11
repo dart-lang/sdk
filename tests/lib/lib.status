@@ -64,12 +64,6 @@ mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
 mirrors/load_library_test: RuntimeError # Issue 6335
 mirrors/local_function_is_static_test: RuntimeError # Issue 6335
 mirrors/lru_test: Skip # dart2js_native/lru_test is used instead
-mirrors/metadata_allowed_values_test/01: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/05: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/10: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/11: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/13: MissingCompileTimeError # Issue 14548
-mirrors/metadata_allowed_values_test/14: MissingCompileTimeError # Issue 14548
 mirrors/metadata_scope_test/none: CompileTimeError # Issue 10905
 mirrors/method_mirror_name_test: RuntimeError # Issue 6335
 mirrors/method_mirror_properties_test: RuntimeError # Issue 11861

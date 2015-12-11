@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library physical_file_system;
+library analyzer.file_system.physical_file_system;
 
 import 'dart:async';
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
-
-import 'file_system.dart';
 
 /**
  * A `dart:io` based implementation of [ResourceProvider].
@@ -33,7 +32,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   static final String SERVER_DIR = ".dartServer";
 
   final AbsolutePathContext absolutePathContext =
-      new AbsolutePathContext(io.Platform.pathSeparator);
+      new AbsolutePathContext(io.Platform.isWindows);
 
   PhysicalResourceProvider(String fileReadMode(String s)) {
     if (fileReadMode != null) {

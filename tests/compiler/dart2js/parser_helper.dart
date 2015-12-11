@@ -102,7 +102,7 @@ Node parseBodyCode(String text, Function parseMethod,
   NodeListener listener = new NodeListener(
       new ScannerOptions(canUseNative: true),
       reporter, library.entryCompilationUnit);
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener, enableConditionalDirectives: true);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
   Node node = listener.popNode();

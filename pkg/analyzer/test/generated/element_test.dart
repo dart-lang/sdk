@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.element_test;
+library analyzer.test.generated.element_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -32,7 +32,6 @@ main() {
   runReflectiveTests(CompilationUnitElementImplTest);
   runReflectiveTests(ElementLocationImplTest);
   runReflectiveTests(ElementImplTest);
-  runReflectiveTests(HtmlElementImplTest);
   runReflectiveTests(LibraryElementImplTest);
   runReflectiveTests(MethodElementImplTest);
   runReflectiveTests(MultiplyDefinedElementImplTest);
@@ -1889,18 +1888,6 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(paramType.prunedTypedefs[0], same(f));
   }
 
-  void test_withTypeArguments() {
-    ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
-    MethodElementImpl methodElement =
-        new MethodElementImpl.forNode(AstFactory.identifier3("m"));
-    enclosingClass.methods = <MethodElement>[methodElement];
-    FunctionTypeImpl type = new FunctionTypeImpl(methodElement);
-    DartType expectedType = enclosingClass.typeParameters[0].type;
-    List<DartType> arguments = type.typeArguments;
-    expect(arguments, hasLength(1));
-    expect(arguments[0], expectedType);
-  }
-
   void test_substitute2_equal() {
     ClassElementImpl definingClass = ElementFactory.classElement2("C", ["E"]);
     TypeParameterType parameterType = definingClass.typeParameters[0].type;
@@ -1985,34 +1972,17 @@ class FunctionTypeImplTest extends EngineTestCase {
     f.returnType = c.type.substitute4([f.type]);
     expect(f.type.toString(), '() \u2192 C<...>');
   }
-}
 
-@reflectiveTest
-class HtmlElementImplTest extends EngineTestCase {
-  void test_equals_differentSource() {
-    AnalysisContext context = createAnalysisContext();
-    HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "indexA.html");
-    HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "indexB.html");
-    expect(elementA == elementB, isFalse);
-  }
-
-  void test_equals_null() {
-    AnalysisContext context = createAnalysisContext();
-    HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
-    expect(element == null, isFalse);
-  }
-
-  void test_equals_sameSource() {
-    AnalysisContext context = createAnalysisContext();
-    HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "index.html");
-    HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "index.html");
-    expect(elementA == elementB, isTrue);
-  }
-
-  void test_equals_self() {
-    AnalysisContext context = createAnalysisContext();
-    HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
-    expect(element == element, isTrue);
+  void test_withTypeArguments() {
+    ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
+    MethodElementImpl methodElement =
+        new MethodElementImpl.forNode(AstFactory.identifier3("m"));
+    enclosingClass.methods = <MethodElement>[methodElement];
+    FunctionTypeImpl type = new FunctionTypeImpl(methodElement);
+    DartType expectedType = enclosingClass.typeParameters[0].type;
+    List<DartType> arguments = type.typeArguments;
+    expect(arguments, hasLength(1));
+    expect(arguments[0], expectedType);
   }
 }
 
@@ -2025,6 +1995,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
 
   @override
   void setUp() {
+    super.setUp();
     _typeProvider = new TestTypeProvider();
   }
 
@@ -2491,241 +2462,6 @@ class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType result = interfaces[0];
     expect(result.element, same(classA));
     expect(result.typeArguments[0], same(typeI));
-  }
-
-  void test_getLeastUpperBound_directInterfaceCase() {
-    //
-    // class A
-    // class B implements A
-    // class C implements B
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeB];
-    expect(typeB.getLeastUpperBound(typeC), typeB);
-    expect(typeC.getLeastUpperBound(typeB), typeB);
-  }
-
-  void test_getLeastUpperBound_directSubclassCase() {
-    //
-    // class A
-    // class B extends A
-    // class C extends B
-    //
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    expect(typeB.getLeastUpperBound(typeC), typeB);
-    expect(typeC.getLeastUpperBound(typeB), typeB);
-  }
-
-  void test_getLeastUpperBound_functionType() {
-    DartType interfaceType = ElementFactory.classElement2("A").type;
-    FunctionTypeImpl functionType = new FunctionTypeImpl(
-        new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
-    expect(interfaceType.getLeastUpperBound(functionType), isNull);
-  }
-
-  void test_getLeastUpperBound_mixinCase() {
-    //
-    // class A
-    // class B extends A
-    // class C extends A
-    // class D extends B with M, N, O, P
-    //
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classA.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classD.mixins = <InterfaceType>[
-      ElementFactory.classElement2("M").type,
-      ElementFactory.classElement2("N").type,
-      ElementFactory.classElement2("O").type,
-      ElementFactory.classElement2("P").type
-    ];
-    expect(typeD.getLeastUpperBound(typeC), typeA);
-    expect(typeC.getLeastUpperBound(typeD), typeA);
-  }
-
-  void test_getLeastUpperBound_null() {
-    DartType interfaceType = ElementFactory.classElement2("A").type;
-    expect(interfaceType.getLeastUpperBound(null), isNull);
-  }
-
-  void test_getLeastUpperBound_object() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    DartType typeObject = typeA.element.supertype;
-    // assert that object does not have a super type
-    expect((typeObject.element as ClassElement).supertype, isNull);
-    // assert that both A and B have the same super type of Object
-    expect(typeB.element.supertype, typeObject);
-    // finally, assert that the only least upper bound of A and B is Object
-    expect(typeA.getLeastUpperBound(typeB), typeObject);
-  }
-
-  void test_getLeastUpperBound_self() {
-    ClassElement classA = ElementFactory.classElement2("A");
-    InterfaceType typeA = classA.type;
-    expect(typeA.getLeastUpperBound(typeA), typeA);
-  }
-
-  void test_getLeastUpperBound_sharedSuperclass1() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    expect(typeB.getLeastUpperBound(typeC), typeA);
-    expect(typeC.getLeastUpperBound(typeB), typeA);
-  }
-
-  void test_getLeastUpperBound_sharedSuperclass2() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classC.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeD = classD.type;
-    expect(typeB.getLeastUpperBound(typeD), typeA);
-    expect(typeD.getLeastUpperBound(typeB), typeA);
-  }
-
-  void test_getLeastUpperBound_sharedSuperclass3() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    expect(typeC.getLeastUpperBound(typeD), typeB);
-    expect(typeD.getLeastUpperBound(typeC), typeB);
-  }
-
-  void test_getLeastUpperBound_sharedSuperclass4() {
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classA2 = ElementFactory.classElement2("A2");
-    ClassElement classA3 = ElementFactory.classElement2("A3");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeA2 = classA2.type;
-    InterfaceType typeA3 = classA3.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA2];
-    classC.interfaces = <InterfaceType>[typeA3];
-    expect(typeB.getLeastUpperBound(typeC), typeA);
-    expect(typeC.getLeastUpperBound(typeB), typeA);
-  }
-
-  void test_getLeastUpperBound_sharedSuperinterface1() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeA];
-    expect(typeB.getLeastUpperBound(typeC), typeA);
-    expect(typeC.getLeastUpperBound(typeB), typeA);
-  }
-
-  void test_getLeastUpperBound_sharedSuperinterface2() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeA];
-    classD.interfaces = <InterfaceType>[typeC];
-    expect(typeB.getLeastUpperBound(typeD), typeA);
-    expect(typeD.getLeastUpperBound(typeB), typeA);
-  }
-
-  void test_getLeastUpperBound_sharedSuperinterface3() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeB];
-    classD.interfaces = <InterfaceType>[typeB];
-    expect(typeC.getLeastUpperBound(typeD), typeB);
-    expect(typeD.getLeastUpperBound(typeC), typeB);
-  }
-
-  void test_getLeastUpperBound_sharedSuperinterface4() {
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classA2 = ElementFactory.classElement2("A2");
-    ClassElement classA3 = ElementFactory.classElement2("A3");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeA2 = classA2.type;
-    InterfaceType typeA3 = classA3.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA, typeA2];
-    classC.interfaces = <InterfaceType>[typeA, typeA3];
-    expect(typeB.getLeastUpperBound(typeC), typeA);
-    expect(typeC.getLeastUpperBound(typeB), typeA);
-  }
-
-  void test_getLeastUpperBound_twoComparables() {
-    InterfaceType string = _typeProvider.stringType;
-    InterfaceType num = _typeProvider.numType;
-    expect(string.getLeastUpperBound(num), _typeProvider.objectType);
-  }
-
-  void test_getLeastUpperBound_typeParameters_different() {
-    //
-    // class List<int>
-    // class List<double>
-    //
-    InterfaceType listType = _typeProvider.listType;
-    InterfaceType intType = _typeProvider.intType;
-    InterfaceType doubleType = _typeProvider.doubleType;
-    InterfaceType listOfIntType = listType.substitute4(<DartType>[intType]);
-    InterfaceType listOfDoubleType =
-        listType.substitute4(<DartType>[doubleType]);
-    expect(listOfIntType.getLeastUpperBound(listOfDoubleType),
-        _typeProvider.objectType);
-  }
-
-  void test_getLeastUpperBound_typeParameters_same() {
-    //
-    // List<int>
-    // List<int>
-    //
-    InterfaceType listType = _typeProvider.listType;
-    InterfaceType intType = _typeProvider.intType;
-    InterfaceType listOfIntType = listType.substitute4(<DartType>[intType]);
-    expect(listOfIntType.getLeastUpperBound(listOfIntType), listOfIntType);
   }
 
   void test_getMethod_implemented() {

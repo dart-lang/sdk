@@ -9447,7 +9447,6 @@ class CompletionSuggestionKind implements Enum {
  *   "explicitFileCount": int
  *   "implicitFileCount": int
  *   "workItemQueueLength": int
- *   "workItemQueueLengthAverage": String
  *   "cacheEntryExceptions": List<String>
  * }
  *
@@ -9461,8 +9460,6 @@ class ContextData implements HasToJson {
   int _implicitFileCount;
 
   int _workItemQueueLength;
-
-  String _workItemQueueLengthAverage;
 
   List<String> _cacheEntryExceptions;
 
@@ -9519,21 +9516,6 @@ class ContextData implements HasToJson {
   }
 
   /**
-   * A rolling average of work items in the queue. (A double encoded as a
-   * String.)
-   */
-  String get workItemQueueLengthAverage => _workItemQueueLengthAverage;
-
-  /**
-   * A rolling average of work items in the queue. (A double encoded as a
-   * String.)
-   */
-  void set workItemQueueLengthAverage(String value) {
-    assert(value != null);
-    this._workItemQueueLengthAverage = value;
-  }
-
-  /**
    * Exceptions associated with cache entries.
    */
   List<String> get cacheEntryExceptions => _cacheEntryExceptions;
@@ -9546,12 +9528,11 @@ class ContextData implements HasToJson {
     this._cacheEntryExceptions = value;
   }
 
-  ContextData(String name, int explicitFileCount, int implicitFileCount, int workItemQueueLength, String workItemQueueLengthAverage, List<String> cacheEntryExceptions) {
+  ContextData(String name, int explicitFileCount, int implicitFileCount, int workItemQueueLength, List<String> cacheEntryExceptions) {
     this.name = name;
     this.explicitFileCount = explicitFileCount;
     this.implicitFileCount = implicitFileCount;
     this.workItemQueueLength = workItemQueueLength;
-    this.workItemQueueLengthAverage = workItemQueueLengthAverage;
     this.cacheEntryExceptions = cacheEntryExceptions;
   }
 
@@ -9584,19 +9565,13 @@ class ContextData implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "workItemQueueLength");
       }
-      String workItemQueueLengthAverage;
-      if (json.containsKey("workItemQueueLengthAverage")) {
-        workItemQueueLengthAverage = jsonDecoder.decodeString(jsonPath + ".workItemQueueLengthAverage", json["workItemQueueLengthAverage"]);
-      } else {
-        throw jsonDecoder.missingKey(jsonPath, "workItemQueueLengthAverage");
-      }
       List<String> cacheEntryExceptions;
       if (json.containsKey("cacheEntryExceptions")) {
         cacheEntryExceptions = jsonDecoder.decodeList(jsonPath + ".cacheEntryExceptions", json["cacheEntryExceptions"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "cacheEntryExceptions");
       }
-      return new ContextData(name, explicitFileCount, implicitFileCount, workItemQueueLength, workItemQueueLengthAverage, cacheEntryExceptions);
+      return new ContextData(name, explicitFileCount, implicitFileCount, workItemQueueLength, cacheEntryExceptions);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "ContextData", json);
     }
@@ -9608,7 +9583,6 @@ class ContextData implements HasToJson {
     result["explicitFileCount"] = explicitFileCount;
     result["implicitFileCount"] = implicitFileCount;
     result["workItemQueueLength"] = workItemQueueLength;
-    result["workItemQueueLengthAverage"] = workItemQueueLengthAverage;
     result["cacheEntryExceptions"] = cacheEntryExceptions;
     return result;
   }
@@ -9623,7 +9597,6 @@ class ContextData implements HasToJson {
           explicitFileCount == other.explicitFileCount &&
           implicitFileCount == other.implicitFileCount &&
           workItemQueueLength == other.workItemQueueLength &&
-          workItemQueueLengthAverage == other.workItemQueueLengthAverage &&
           listEqual(cacheEntryExceptions, other.cacheEntryExceptions, (String a, String b) => a == b);
     }
     return false;
@@ -9636,7 +9609,6 @@ class ContextData implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, explicitFileCount.hashCode);
     hash = JenkinsSmiHash.combine(hash, implicitFileCount.hashCode);
     hash = JenkinsSmiHash.combine(hash, workItemQueueLength.hashCode);
-    hash = JenkinsSmiHash.combine(hash, workItemQueueLengthAverage.hashCode);
     hash = JenkinsSmiHash.combine(hash, cacheEntryExceptions.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -14093,6 +14065,7 @@ class RequestError implements HasToJson {
  *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
+ *   INVALID_FILE_PATH_FORMAT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
@@ -14164,6 +14137,12 @@ class RequestErrorCode implements Enum {
    * The context root used to create an execution context does not exist.
    */
   static const INVALID_EXECUTION_CONTEXT = const RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
+
+  /**
+   * The format of the given file path is invalid, e.g. is not absolute and
+   * normalized.
+   */
+  static const INVALID_FILE_PATH_FORMAT = const RequestErrorCode._("INVALID_FILE_PATH_FORMAT");
 
   /**
    * An "analysis.updateContent" request contained a ChangeContentOverlay
@@ -14260,7 +14239,7 @@ class RequestErrorCode implements Enum {
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, GET_REACHABLE_SOURCES_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, GET_REACHABLE_SOURCES_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_FILE_PATH_FORMAT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -14286,6 +14265,8 @@ class RequestErrorCode implements Enum {
         return INVALID_ANALYSIS_ROOT;
       case "INVALID_EXECUTION_CONTEXT":
         return INVALID_EXECUTION_CONTEXT;
+      case "INVALID_FILE_PATH_FORMAT":
+        return INVALID_FILE_PATH_FORMAT;
       case "INVALID_OVERLAY_CHANGE":
         return INVALID_OVERLAY_CHANGE;
       case "INVALID_PARAMETER":

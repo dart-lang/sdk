@@ -5560,7 +5560,7 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 
 
 DART_EXPORT int64_t Dart_TimelineGetMicros() {
-  return OS::GetCurrentTraceMicros();
+  return OS::GetCurrentMonotonicMicros();
 }
 
 

@@ -396,6 +396,7 @@ RawReceivePort _packagesPort;
 void _handlePackagesReply(msg) {
   // Make sure to close the _packagePort before any other action.
   _packagesPort.close();
+  _packagesPort = null;
 
   if (_traceLoading) {
     _log("Got packages reply: $msg");

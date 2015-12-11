@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.context.context_test;
+library analyzer.test.src.context.context_test;
 
 import 'dart:async';
 
@@ -13,24 +13,7 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        AnalysisContextStatistics,
-        AnalysisDelta,
-        AnalysisEngine,
-        AnalysisErrorInfo,
-        AnalysisLevel,
-        AnalysisNotScheduledError,
-        AnalysisOptions,
-        AnalysisOptionsImpl,
-        AnalysisResult,
-        ApplyChangesStatus,
-        CacheState,
-        ChangeNotice,
-        ChangeSet,
-        IncrementalAnalysisCache,
-        TimestampedData;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -854,7 +837,7 @@ part of lib;
   }
 
   void test_exists_true() {
-    expect(context.exists(new AnalysisContextImplTest_Source_exists_true()),
+    expect(context.exists(new _AnalysisContextImplTest_Source_exists_true()),
         isTrue);
   }
 
@@ -1314,7 +1297,7 @@ main() {}''');
     int stamp = 42;
     expect(
         context.getModificationStamp(
-            new AnalysisContextImplTest_Source_getModificationStamp_fromSource(
+            new _AnalysisContextImplTest_Source_getModificationStamp_fromSource(
                 stamp)),
         stamp);
   }
@@ -1322,7 +1305,7 @@ main() {}''');
   void test_getModificationStamp_overridden() {
     int stamp = 42;
     Source source =
-        new AnalysisContextImplTest_Source_getModificationStamp_overridden(
+        new _AnalysisContextImplTest_Source_getModificationStamp_overridden(
             stamp);
     context.setContents(source, "");
     expect(stamp != context.getModificationStamp(source), isTrue);
@@ -1380,16 +1363,6 @@ main() {}''');
 
     context.applyChanges(changeSet);
     expect(context.getSourcesWithFullName(filePath), unorderedEquals(expected));
-  }
-
-  void test_getStatistics() {
-    AnalysisContextStatistics statistics = context.statistics;
-    expect(statistics, isNotNull);
-    // The following lines are fragile.
-    // The values depend on the number of libraries in the SDK.
-//    assertLength(0, statistics.getCacheRows());
-//    assertLength(0, statistics.getExceptions());
-//    assertLength(0, statistics.getSources());
   }
 
   void test_handleContentsChanged() {
@@ -2725,6 +2698,27 @@ class A {
       }
     }
   }
+}
+
+class _AnalysisContextImplTest_Source_exists_true extends TestSource {
+  @override
+  bool exists() => true;
+}
+
+class _AnalysisContextImplTest_Source_getModificationStamp_fromSource
+    extends TestSource {
+  int stamp;
+  _AnalysisContextImplTest_Source_getModificationStamp_fromSource(this.stamp);
+  @override
+  int get modificationStamp => stamp;
+}
+
+class _AnalysisContextImplTest_Source_getModificationStamp_overridden
+    extends TestSource {
+  int stamp;
+  _AnalysisContextImplTest_Source_getModificationStamp_overridden(this.stamp);
+  @override
+  int get modificationStamp => stamp;
 }
 
 class _AnalysisContextImplTest_test_applyChanges_removeContainer

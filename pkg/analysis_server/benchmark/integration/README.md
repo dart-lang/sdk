@@ -20,9 +20,7 @@ The required command line arguments are
 * **inputFile** = the instrumentation or log file
 
 Additional arguments are passed directly to main.dart.
-For example, you may want to specify --newTaskModel to measure performance
-with the new task model versus the old task model,
-or if the log was recorded on one machine and is played back on another,
+For example, if the log was recorded on one machine and is played back on another,
 then you might need to specify -m<oldSrcPath>,<newSrcPath>
 to map the source paths for playback.
 When specifying additional arguments, any occurrences of @tmpSrcDir@
@@ -49,7 +47,6 @@ WARNING: The contents of the target directory will be modified
 *  **-t, --tmpSrcDir         <dirPath>**
 The temporary directory containing source used during performance measurement.
 WARNING: The contents of the target directory will be modified
-*  **--newTaskModel**       enable the use of the new task model
 *  **-d, --diagnosticPort** localhost port on which server
                             will provide diagnostic web pages
 *  **-v, --verbose**        Verbose logging

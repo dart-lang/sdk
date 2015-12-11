@@ -167,15 +167,15 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
-        // Getters don't have a stack overflow check, so do one in C++.
-
         Isolate* isolate = Isolate::Current();
-#if defined(USING_SIMULATOR)
-        uword stack_pos = Simulator::Current()->get_register(SPREG);
-#else
-        uword stack_pos = Isolate::GetCurrentStackPointer();
+        uword c_stack_pos = Isolate::GetCurrentStackPointer();
+        uword c_stack_limit = OSThread::Current()->stack_base() -
+                              OSThread::GetSpecifiedStackSize();
+#if !defined(USING_SIMULATOR)
+        ASSERT(c_stack_limit == isolate->saved_stack_limit());
 #endif
-        if (stack_pos < isolate->saved_stack_limit()) {
+
+        if (c_stack_pos < c_stack_limit) {
           const Instance& exception =
             Instance::Handle(isolate->object_store()->stack_overflow());
           return UnhandledException::New(exception, Stacktrace::Handle());

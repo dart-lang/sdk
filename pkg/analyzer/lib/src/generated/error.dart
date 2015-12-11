@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.error;
+library analyzer.src.generated.error;
 
 import 'dart:collection';
 
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/ast.dart' show AstNode;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -18,18 +19,11 @@ import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 
 /**
- * The descriptor used to associate error filters with analysis contexts in
+ * The descriptor used to associate error processors with analysis contexts in
  * configuration data.
  */
-final ListResultDescriptor<List<ErrorFilter>> CONFIGURED_ERROR_FILTERS =
-    new ListResultDescriptorImpl('configured.errors', const <ErrorFilter>[]);
-
-/**
- * A predicate used to potentially filter an [error].
- *
- * Returns `true` if this error should be filtered from analysis results.
- */
-typedef bool ErrorFilter(AnalysisError error);
+final ListResultDescriptor<List<ErrorProcessor>> CONFIGURED_ERROR_PROCESSORS =
+    new ListResultDescriptorImpl('configured.errors', const <ErrorProcessor>[]);
 
 /**
  * An error discovered during the analysis of some Dart code.
@@ -122,27 +116,6 @@ class AnalysisError {
       this._correction = formatList(correctionTemplate, arguments);
     }
   }
-
-  /**
-   * Initialize a newly created analysis error for the specified [source]. The
-   * error will have the given [errorCode] and the list of [arguments] will be
-   * used to complete the message. The error has no location information.
-   */
-  @deprecated // Use new AnalysisError(source, 0, 0, errorCode, arguments)
-  AnalysisError.con1(Source source, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, 0, 0, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source] at the
-   * given [offset] with the given [length]. The error will have the given
-   * [errorCode] and the list of [arguments] will be used to complete the
-   * message.
-   */
-  @deprecated // Use new AnalysisError(source, offset, length, errorCode, arguments)
-  AnalysisError.con2(Source source, int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, offset, length, errorCode, arguments);
 
   /**
    * Return the template used to create the correction to be displayed for this
@@ -277,28 +250,6 @@ class AnalysisErrorWithProperties extends AnalysisError {
       Source source, int offset, int length, ErrorCode errorCode,
       [List<Object> arguments])
       : super(source, offset, length, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source]. The
-   * error will have the given [errorCode] and the list of [arguments] will be
-   * used to complete the message. The error has no location information.
-   */
-  @deprecated // Use new AnalysisErrorWithProperties(source, 0, 0, errorCode, arguments)
-  AnalysisErrorWithProperties.con1(Source source, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, 0, 0, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source] at the
-   * given [offset] with the given [length]. The error will have the given
-   * [errorCode] and the list of [arguments] will be used to complete the
-   * message.
-   */
-  @deprecated // Use new AnalysisErrorWithProperties(source, offset, length, errorCode, arguments)
-  AnalysisErrorWithProperties.con2(
-      Source source, int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, offset, length, errorCode, arguments);
 
   @override
   Object getProperty(ErrorProperty property) => _propertyMap[property];
@@ -1176,6 +1127,15 @@ class CompileTimeErrorCode extends ErrorCode {
   static const CompileTimeErrorCode EXTENDS_DEFERRED_CLASS =
       const CompileTimeErrorCode('EXTENDS_DEFERRED_CLASS',
           "This class cannot extend the deferred class '{0}'");
+
+  /**
+   * DEP 37 extends the syntax for assert() to allow a second "message"
+   * argument.  We issue this error if the user tries to supply a "message"
+   * argument but the DEP is not enabled.
+   */
+  static const CompileTimeErrorCode EXTRA_ARGUMENT_TO_ASSERT =
+      const CompileTimeErrorCode('EXTRA_ARGUMENT_TO_ASSERT',
+          "Assertions only accept a single argument");
 
   /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
@@ -3690,6 +3650,12 @@ class HintCode extends ErrorCode {
       const HintCode('UNNECESSARY_CAST', "Unnecessary cast");
 
   /**
+   * Unnecessary `noSuchMethod` declaration.
+   */
+  static const HintCode UNNECESSARY_NO_SUCH_METHOD = const HintCode(
+      'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration");
+
+  /**
    * Unnecessary type checks, the result is always true.
    */
   static const HintCode UNNECESSARY_TYPE_CHECK_FALSE = const HintCode(
@@ -4897,6 +4863,35 @@ class StaticWarningCode extends ErrorCode {
           "The parameter type '{0}' is not assignable to '{1}' as required by the method it is overriding from '{2}'");
 
   /**
+   * Generic Method DEP: number of type parameters must match.
+   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
+   *
+   * Parameters:
+   * 0: the number of type parameters in the method
+   * 1: the number of type parameters in the overridden method
+   * 2: the name of the class where the overridden method is declared
+   */
+  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
+      const StaticWarningCode('INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
+          "The method has {0} type parameters, but it is overriding a method with {1} type parameters from '{2}'");
+
+  /**
+   * Generic Method DEP: bounds of type parameters must be compatible.
+   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
+   *
+   * Parameters:
+   * 0: the type parameter name
+   * 1: the type parameter bound
+   * 2: the overridden type parameter name
+   * 3: the overridden type parameter bound
+   * 4: the name of the class where the overridden method is declared
+   */
+  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND =
+      const StaticWarningCode(
+          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
+          "The type parameter '{0}' extends '{1}', but that is stricter than '{2}' extends '{3}' in the overridden method from '{4}'");
+
+  /**
    * 7.1 Instance Methods: It is a static warning if an instance method
    * <i>m1</i> overrides an instance method <i>m2</i> and the type of <i>m1</i>
    * is not a subtype of the type of <i>m2</i>.
@@ -4974,11 +4969,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of named parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_NAMED = const StaticWarningCode(
       'INVALID_OVERRIDE_NAMED',
-      "Missing the named parameter '{0}' to match the overridden method from '{1}'");
+      "Missing the named parameter '{0}' to match the overridden method from '{1}' from '{2}'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -4987,11 +4983,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of positional parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_POSITIONAL =
       const StaticWarningCode('INVALID_OVERRIDE_POSITIONAL',
-          "Must have at least {0} parameters to match the overridden method from '{1}'");
+          "Must have at least {0} parameters to match the overridden method '{1}' from '{2}'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -5000,11 +4997,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of required parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_REQUIRED =
       const StaticWarningCode('INVALID_OVERRIDE_REQUIRED',
-          "Must have {0} required parameters or less to match the overridden method from '{1}'");
+          "Must have {0} required parameters or less to match the overridden method '{1}' from '{2}'");
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a
@@ -5477,7 +5475,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode TYPE_PARAMETER_REFERENCED_BY_STATIC =
       const StaticWarningCode('TYPE_PARAMETER_REFERENCED_BY_STATIC',
-          "Static members cannot reference type parameters");
+          "Static members cannot reference type parameters of the class");
 
   /**
    * 12.16.3 Static Invocation: A static method invocation <i>i</i> has the form

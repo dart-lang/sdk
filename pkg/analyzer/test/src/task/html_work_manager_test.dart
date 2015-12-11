@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.html_work_manager_test;
+library analyzer.test.src.task.html_work_manager_test;
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -110,8 +110,8 @@ class HtmlWorkManagerTest {
   }
 
   void test_applyPriorityTargets() {
-    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(true);
-    when(context.shouldErrorsBeAnalyzed(source3, null)).thenReturn(true);
+    when(context.shouldErrorsBeAnalyzed(source2)).thenReturn(true);
+    when(context.shouldErrorsBeAnalyzed(source3)).thenReturn(true);
     manager.priorityResultQueue.add(new TargetedResult(source1, HTML_ERRORS));
     manager.priorityResultQueue.add(new TargetedResult(source2, HTML_ERRORS));
     // -source1 +source3
@@ -346,6 +346,4 @@ class _InternalAnalysisContextMock extends TypedMock
     return _pendingNotices.putIfAbsent(
         source, () => new ChangeNoticeImpl(source));
   }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

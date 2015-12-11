@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
-sync_generator2_test/07: MissingCompileTimeError # Issue 22324
-sync_generator2_test/08: MissingCompileTimeError # Issue 22324
-sync_generator2_test/10: MissingCompileTimeError # Issue 22324
 getter_setter_in_lib_test: Fail # Issue 23288
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
@@ -21,6 +18,9 @@ call_function_apply_test: RuntimeError # Issue 23873
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+
+[ $compiler == dart2js && $browser ]
+config_import_test: Fail # Test flag is not passed to the compiler.
 
 [ $compiler == dart2js ]
 invocation_mirror_empty_arguments_test: Fail # Issue 24331
@@ -131,10 +131,6 @@ mixin_mixin_bound2_test: RuntimeError # Issue 12605
 symbol_conflict_test: RuntimeError # Issue 23857
 
 [ $compiler == dart2js ]
-async_await_syntax_test/a05h: Fail # 23716
-async_await_syntax_test/c11a: Fail # 23716
-async_await_syntax_test/c11b: Fail # 23716
-
 malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
 type_variable_conflict2_test/01: RuntimeError # Issue 19725
@@ -148,9 +144,7 @@ double_int_to_string_test: RuntimeError # Issue 1533
 mint_arithmetic_test: RuntimeError # Issue 1533
 left_shift_test: RuntimeError # Issue 1533
 regress_24283_test: RuntimeError # Issue 1533
-bad_override_test/01: CompileTimeError # Issue 11496
-bad_override_test/02: CompileTimeError # Issue 11496
-constructor_named_arguments_test/01: CompileTimeError # Issue 5519
+constructor_named_arguments_test/01: CompileTimeError # Issue 25225
 not_enough_positional_arguments_test/01: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/02: CompileTimeError # Issue 12838
 not_enough_positional_arguments_test/05: CompileTimeError # Issue 12838
@@ -224,7 +218,7 @@ generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 many_method_calls_test: Crash # Stack overflow in HGraphVisitor.visitPostDominatorTree.visitBasicBlockAndSuccessors
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && $runtime != drt && $runtime != dartium ]
 issue23244_test: RuntimeError # 23244
 
 [ $compiler == dart2js && $cps_ir ]
@@ -280,7 +274,6 @@ cha_deopt3_test: Crash # (d.make_u()): deferred access is not implemented
 closure_in_constructor_test: RuntimeError # Please triage this failure.
 closures_initializer_test: RuntimeError # Please triage this failure.
 constructor12_test: RuntimeError # Please triage this failure.
-crash_6725_test/01: Crash # unsupported operation on erroneous element
 deferred_call_empty_before_load_test: Crash # (lib1.thefun()): deferred access is not implemented
 deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
 deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function

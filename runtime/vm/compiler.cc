@@ -309,6 +309,17 @@ RawError* Compiler::CompileClass(const Class& cls) {
   // also allows us to reset the marked_for_parsing state in case we see an
   // error.
   VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
+  TimelineDurationScope tds(thread,
+                            thread->isolate()->GetCompilerStream(),
+                            "CompileClass");
+  if (tds.enabled()) {
+    tds.SetNumArguments(1);
+    tds.CopyArgument(
+        0,
+        "class",
+        const_cast<char*>(cls.ToCString()));
+  }
+
   GrowableHandlePtrArray<const Class> parse_list(thread->zone(), 4);
   GrowableHandlePtrArray<const Class> patch_list(thread->zone(), 4);
 

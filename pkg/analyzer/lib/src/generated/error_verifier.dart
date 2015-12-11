@@ -2,24 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver.error_verifier;
+library analyzer.src.generated.error_verifier;
 
 import 'dart:collection';
 import "dart:math" as math;
 
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/element_resolver.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/parser.dart'
+    show Parser, ParserErrorCode;
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart' as sc;
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
-
-import 'ast.dart';
-import 'constant.dart';
-import 'element.dart';
-import 'element_resolver.dart';
-import 'error.dart';
-import 'java_engine.dart';
-import 'parser.dart' show Parser, ParserErrorCode;
-import 'resolver.dart';
-import 'scanner.dart' as sc;
-import 'sdk.dart' show DartSdk, SdkLibrary;
-import 'utilities_dart.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -266,10 +266,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   final bool enableSuperMixins;
 
   /**
+   * If `true`, asserts are allowed to take a second argument representing the
+   * assertion failure message (see DEP 37).
+   */
+  final bool enableAssertMessage;
+
+  /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.enableSuperMixins) {
+  ErrorVerifier(
+      this._errorReporter,
+      this._currentLibrary,
+      this._typeProvider,
+      this._inheritanceManager,
+      this.enableSuperMixins,
+      this.enableAssertMessage) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -306,6 +317,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
+    _checkAssertMessage(node);
     return super.visitAssertStatement(node);
   }
 
@@ -1117,6 +1129,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * If the given assert [statement] specifies a message, verify that support
+   * for assertions with messages is enabled.
+   */
+  void _checkAssertMessage(AssertStatement statement) {
+    Expression expression = statement.message;
+    if (expression != null && !enableAssertMessage) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT, expression);
+      return;
+    }
+  }
+
+  /**
    * Verify that the given list of [typeArguments] contains exactly two
    * elements.
    *
@@ -1322,6 +1347,71 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (overridingFT == null || overriddenFT == null) {
       return false;
     }
+
+  // Handle generic function type parameters.
+    // TODO(jmesserly): this duplicates some code in isSubtypeOf and most of
+    // _isGenericFunctionSubtypeOf. Ideally, we'd let TypeSystem produce
+    // an error message once it's ready to "return false".
+    if (!overridingFT.boundTypeParameters.isEmpty) {
+      if (overriddenFT.boundTypeParameters.isEmpty) {
+        overriddenFT = _typeSystem.instantiateToBounds(overriddenFT);
+      } else {
+        List<TypeParameterElement> params1 = overridingFT.boundTypeParameters;
+        List<TypeParameterElement> params2 = overriddenFT.boundTypeParameters;
+        int count = params1.length;
+        if (params2.length != count) {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
+              errorNameTarget, [
+            count,
+            params2.length,
+            overriddenExecutable.enclosingElement.displayName
+          ]);
+          return true;
+        }
+        // We build up a substitution matching up the type parameters
+        // from the two types, {variablesFresh/variables1} and
+        // {variablesFresh/variables2}
+        List<DartType> variables1 = new List<DartType>();
+        List<DartType> variables2 = new List<DartType>();
+        List<DartType> variablesFresh = new List<DartType>();
+        for (int i = 0; i < count; i++) {
+          TypeParameterElement p1 = params1[i];
+          TypeParameterElement p2 = params2[i];
+          TypeParameterElementImpl pFresh =
+              new TypeParameterElementImpl(p1.name, -1);
+
+          DartType variable1 = p1.type;
+          DartType variable2 = p2.type;
+          DartType variableFresh = new TypeParameterTypeImpl(pFresh);
+
+          variables1.add(variable1);
+          variables2.add(variable2);
+          variablesFresh.add(variableFresh);
+          DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
+          DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
+          bound1 = bound1.substitute2(variablesFresh, variables1);
+          bound2 = bound2.substitute2(variablesFresh, variables2);
+          pFresh.bound = bound2;
+          if (!_typeSystem.isSubtypeOf(bound2, bound1)) {
+            _errorReporter.reportErrorForNode(
+                StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
+                errorNameTarget, [
+              p1.displayName,
+              p1.bound,
+              p2.displayName,
+              p2.bound,
+              overriddenExecutable.enclosingElement.displayName
+            ]);
+            return true;
+          }
+        }
+        // Proceed with the rest of the checks, using instantiated types.
+        overridingFT = overridingFT.instantiate(variablesFresh);
+        overriddenFT = overriddenFT.instantiate(variablesFresh);
+      }
+    }
+
     DartType overridingFTReturnType = overridingFT.returnType;
     DartType overriddenFTReturnType = overriddenFT.returnType;
     List<DartType> overridingNormalPT = overridingFT.normalParameterTypes;
@@ -1336,6 +1426,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.INVALID_OVERRIDE_REQUIRED, errorNameTarget, [
         overriddenNormalPT.length,
+        overriddenExecutable,
         overriddenExecutable.enclosingElement.displayName
       ]);
       return true;
@@ -1345,6 +1436,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.INVALID_OVERRIDE_POSITIONAL, errorNameTarget, [
         overriddenPositionalPT.length + overriddenNormalPT.length,
+        overriddenExecutable,
         overriddenExecutable.enclosingElement.displayName
       ]);
       return true;
@@ -1358,6 +1450,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.INVALID_OVERRIDE_NAMED, errorNameTarget, [
           overriddenParamName,
+          overriddenExecutable,
           overriddenExecutable.enclosingElement.displayName
         ]);
         return true;
@@ -5210,9 +5303,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInStaticMethod || _isInStaticVariableDeclaration) {
       DartType type = name.type;
       if (type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, name);
-        return true;
+        // The class's type parameters are not in scope for static methods.
+        // However all other type parameters are legal (e.g. the static method's
+        // type parameters, or a local function's type parameters).
+        if (type.element.enclosingElement is ClassElement) {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, name);
+          return true;
+        }
       }
     }
     return false;

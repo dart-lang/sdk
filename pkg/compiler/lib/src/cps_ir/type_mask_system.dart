@@ -579,4 +579,19 @@ class TypeMaskSystem implements AbstractValueDomain {
       return null;
     }
   }
+
+  /// Returns the type of the entry at a given index, `null` if unknown.
+  TypeMask indexWithConstant(TypeMask container, ConstantValue indexValue) {
+    if (container is DictionaryTypeMask) {
+      if (indexValue is StringConstantValue) {
+        String key = indexValue.primitiveValue.slowToString();
+        TypeMask result = container.typeMap[key];
+        if (result != null) return result;
+      }
+    }
+    if (container is ContainerTypeMask) {
+      return container.elementType;
+    }
+    return null;
+  }
 }
