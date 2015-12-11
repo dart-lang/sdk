@@ -260,7 +260,13 @@ class TestingServers {
       websocket.done.catchError((_) {});
       websocket.listen((data) {
         websocket.add(data);
-        websocket.close();
+        if (data == 'close-with-error') {
+          // Note: according to the web-sockets spec, a reason longer than 123
+          // bytes will produce a SyntaxError on the client.
+          websocket.close(WebSocketStatus.UNSUPPORTED_DATA, 'X' * 124);
+        } else {
+          websocket.close();
+        }
       }, onError: (e) {
         DebugLogger.warning('HttpServer: error while echoing to WebSocket', e);
       });
