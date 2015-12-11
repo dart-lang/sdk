@@ -119,9 +119,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
 
   @override
   bool get includeIdentifiers {
-    if (_opType == null) {
-      _opType = new OpType.forCompletion(target, offset);
-    }
+    opType; // <<< ensure _opType is initialized
     return !_opType.isPrefixed &&
         (_opType.includeReturnValueSuggestions ||
             _opType.includeTypeNameSuggestions ||
@@ -150,6 +148,14 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       _objectType = coreLib.getType('Object').type;
     }
     return _objectType;
+  }
+
+  // For internal use only
+  OpType get opType {
+    if (_opType == null) {
+      _opType = new OpType.forCompletion(target, offset);
+    }
+    return _opType;
   }
 
   @override

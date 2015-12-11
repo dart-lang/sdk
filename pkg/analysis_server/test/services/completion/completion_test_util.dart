@@ -305,23 +305,6 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
     return cs;
   }
 
-  CompletionSuggestion assertSuggestLabel(String name,
-      [int relevance = DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.IDENTIFIER]) {
-    CompletionSuggestion cs =
-        assertSuggest(name, csKind: kind, relevance: relevance);
-    expect(cs.returnType, isNull);
-    protocol.Element element = cs.element;
-    expect(element, isNotNull);
-    expect(element.flags, 0);
-    expect(element.kind, equals(protocol.ElementKind.LABEL));
-    expect(element.name, equals(name));
-    expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
-    assertHasNoParameterInfo(cs);
-    return cs;
-  }
-
   CompletionSuggestion assertSuggestLibraryPrefix(String prefix,
       [int relevance = DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {

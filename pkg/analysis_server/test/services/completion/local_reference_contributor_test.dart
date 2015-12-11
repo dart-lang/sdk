@@ -174,7 +174,7 @@ void main() {
 ''');
     expect(computeFast(), isTrue);
     // Labels in outer functions are never accessible.
-    assertSuggestLabel('bar');
+    assertNotSuggested('bar');
     assertNotSuggested('foo');
   }
 
@@ -190,7 +190,7 @@ void main() {
 ''');
     expect(computeFast(), isTrue);
     // Labels in outer functions are never accessible.
-    assertSuggestLabel('bar');
+    assertNotSuggested('bar');
     assertNotSuggested('foo');
   }
 
@@ -234,8 +234,8 @@ void main() {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestLabel('foo');
-    assertSuggestLabel('bar');
+    assertNotSuggested('foo');
+    assertNotSuggested('bar');
   }
 
   test_constructor_parameters_mixed_required_and_named() {
@@ -290,9 +290,9 @@ void main() {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestLabel('foo');
-    assertSuggestLabel('bar');
-    assertSuggestLabel('baz');
+    assertNotSuggested('foo');
+    assertNotSuggested('bar');
+    assertNotSuggested('baz');
   }
 
   test_continue_from_switch_to_loop() {
@@ -307,7 +307,7 @@ void main() {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestLabel('foo');
+    assertNotSuggested('foo');
   }
 
   test_continue_ignores_outer_functions_using_closure_with_loop() {
@@ -322,7 +322,7 @@ void main() {
 ''');
     expect(computeFast(), isTrue);
     // Labels in outer functions are never accessible.
-    assertSuggestLabel('bar');
+    assertNotSuggested('bar');
     assertNotSuggested('foo');
   }
 
@@ -339,7 +339,7 @@ void main() {
 ''');
     expect(computeFast(), isTrue);
     // Labels in outer functions are never accessible.
-    assertSuggestLabel('bar');
+    assertNotSuggested('bar');
     assertNotSuggested('foo');
   }
 
@@ -355,7 +355,7 @@ void main() {
 ''');
     expect(computeFast(), isTrue);
     // Labels in outer functions are never accessible.
-    assertSuggestLabel('bar');
+    assertNotSuggested('bar');
     assertNotSuggested('foo');
   }
 
@@ -372,7 +372,7 @@ void main() {
 ''');
     expect(computeFast(), isTrue);
     // Labels in outer functions are never accessible.
-    assertSuggestLabel('bar');
+    assertNotSuggested('bar');
     assertNotSuggested('foo');
   }
 
@@ -404,7 +404,7 @@ void main() {
       break;
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestLabel('foo');
+    assertNotSuggested('foo');
   }
 
   test_continue_to_enclosing_loop() {
@@ -418,8 +418,8 @@ void main() {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestLabel('foo');
-    assertSuggestLabel('bar');
+    assertNotSuggested('foo');
+    assertNotSuggested('bar');
   }
 
   test_continue_to_enclosing_switch() {
@@ -440,9 +440,9 @@ void main() {
 }
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestLabel('foo');
-    assertSuggestLabel('bar');
-    assertSuggestLabel('baz');
+    assertNotSuggested('foo');
+    assertNotSuggested('bar');
+    assertNotSuggested('baz');
   }
 
   test_continue_to_later_case() {
@@ -457,7 +457,7 @@ void main() {
       break;
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestLabel('foo');
+    assertNotSuggested('foo');
   }
 
   test_continue_to_same_case() {
@@ -472,7 +472,7 @@ void main() {
       break;
 ''');
     expect(computeFast(), isTrue);
-    assertSuggestLabel('foo');
+    assertNotSuggested('foo');
   }
 
   test_enum() {
