@@ -74,21 +74,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-
-    // FIXME(vsm): Once harmony is on by default, we can simply add the following:
-    //   browsers: ['Chrome'],
-    // and remove the custom launchers.
     customLaunchers: {
-      chrome_harmony: {
-        base: 'Chrome',
-        flags: [ harmony_flags ],
-      },
-
-      chrome_canary_harmony: {
-        base: 'ChromeCanary',
-        flags: [ harmony_flags ],
-      },
-
       chrome_travis: {
         base: 'Chrome',
         flags: [ '--no-sandbox', harmony_flags ]
@@ -99,8 +85,8 @@ module.exports = function(config) {
         flags: [ '--no-sandbox', harmony_flags ]
       },
     },
-    // TODO(jmesserly): 'chrome_harmony',
-    browsers: ['chrome_canary_harmony'],
+
+    browsers: ['Chrome'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
@@ -108,9 +94,11 @@ module.exports = function(config) {
   };
 
   if (process.env.TRAVIS) {
-    configuration.browsers = ['chrome_canary_travis'];
+    configuration.browsers = ['chrome_travis', 'chrome_canary_travis'];
     configuration.autoWatch = false;
-    configuration.logLevel = config.LOG_DEBUG;
+    // Enable this for more logging on Travis.  It is too much for Travis to
+    // automatically display, but still results in a downloadable raw log.
+    // configuration.logLevel = config.LOG_DEBUG;
     configuration.client.captureConsole = true;
   }
 

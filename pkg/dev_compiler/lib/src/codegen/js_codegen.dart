@@ -1990,8 +1990,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
   /// We cannot destructure named params that clash with JS reserved names:
   /// see discussion in https://github.com/dart-lang/dev_compiler/issues/392.
   bool _isDestructurableNamedParam(FormalParameter param) =>
-      _isNamedParam(param) && !invalidVariableName(param.identifier.name) &&
-      options.destructureNamedParams;
+      _isNamedParam(param) &&
+          !invalidVariableName(param.identifier.name) &&
+          options.destructureNamedParams;
 
   @override
   List<JS.Parameter> visitFormalParameterList(FormalParameterList node) =>

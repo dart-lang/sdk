@@ -37,8 +37,9 @@ dart_library.library('collection/wrappers', null, /* Imports */[
       get first() {
         return this[_base][dartx.first];
       }
-      firstWhere(test, {orElse = null} = {}) {
+      firstWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         return this[_base][dartx.firstWhere](test, {orElse: orElse});
       }
@@ -70,8 +71,9 @@ dart_library.library('collection/wrappers', null, /* Imports */[
       get last() {
         return this[_base][dartx.last];
       }
-      lastWhere(test, {orElse = null} = {}) {
+      lastWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         return this[_base][dartx.lastWhere](test, {orElse: orElse});
       }
@@ -107,7 +109,8 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         return this[_base][dartx.takeWhile](test);
       }
-      toList({growable = true} = {}) {
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
         return this[_base][dartx.toList]({growable: growable});
       }
       toSet() {

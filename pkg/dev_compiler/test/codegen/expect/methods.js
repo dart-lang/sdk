@@ -26,10 +26,12 @@ dart_library.library('methods', null, /* Imports */[
         b = 0;
       return b;
     }
-    w(a, {b = null} = {}) {
+    w(a, opts) {
+      let b = opts && 'b' in opts ? opts.b : null;
       return dart.asInt(dart.notNull(a) + dart.notNull(b));
     }
-    clashWithObjectProperty({constructor = null} = Object.create(null)) {
+    clashWithObjectProperty(opts) {
+      let constructor = opts && 'constructor' in opts ? opts.constructor : null;
       return constructor;
     }
     clashWithJsReservedName(opts) {

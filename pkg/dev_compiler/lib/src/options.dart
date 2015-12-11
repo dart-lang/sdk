@@ -15,7 +15,7 @@ import 'package:yaml/yaml.dart';
 
 const String _V8_BINARY_DEFAULT = 'node';
 const bool _CLOSURE_DEFAULT = false;
-const bool _DESTRUCTURE_NAMED_PARAMS_DEFAULT = true;
+const bool _DESTRUCTURE_NAMED_PARAMS_DEFAULT = false;
 
 /// Options used to set up Source URI resolution in the analysis context.
 class SourceResolverOptions {

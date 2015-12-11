@@ -26,7 +26,8 @@ dart_library.library('temps', null, /* Imports */[
       this[_opt] = opt;
       this.opt = null;
     }
-    named({opt = 456} = {}) {
+    named(opts) {
+      let opt = opts && 'opt' in opts ? opts.opt : 456;
       this.opt = opt;
       this[_opt] = null;
     }

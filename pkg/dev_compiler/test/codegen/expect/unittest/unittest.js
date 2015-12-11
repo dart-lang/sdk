@@ -16,7 +16,8 @@ dart_library.library('unittest/unittest', null, /* Imports */[
     return dart.dsend(dom.window, 'suite', name, body);
   }
   dart.fn(group, dart.void, [core.String, dart.functionType(dart.void, [])]);
-  function test(name, body, {skip = null} = {}) {
+  function test(name, body, opts) {
+    let skip = opts && 'skip' in opts ? opts.skip : null;
     if (skip != null) {
       core.print(`SKIP ${name}: ${skip}`);
       return;
@@ -46,7 +47,10 @@ dart_library.library('unittest/unittest', null, /* Imports */[
     constructors: () => ({TestFailure: [TestFailure, [core.String]]})
   });
   const ErrorFormatter = dart.typedef('ErrorFormatter', () => dart.functionType(core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]));
-  function expect(actual, matcher, {reason = null, verbose = false, formatter = null} = {}) {
+  function expect(actual, matcher, opts) {
+    let reason = opts && 'reason' in opts ? opts.reason : null;
+    let verbose = opts && 'verbose' in opts ? opts.verbose : false;
+    let formatter = opts && 'formatter' in opts ? opts.formatter : null;
     matcher = util.wrapMatcher(matcher);
     let matchState = dart.map();
     try {
