@@ -814,6 +814,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @override
   void appendTo(StringBuffer buffer) {
+    if (isAbstract) {
+      buffer.write('abstract ');
+    }
+    buffer.write('class ');
     String name = displayName;
     if (name == null) {
       buffer.write("{unnamed class}");
@@ -830,6 +834,18 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
       }
       buffer.write(">");
+    }
+    if (supertype != null && !supertype.isObject) {
+      buffer.write(' extends ');
+      buffer.write(supertype.displayName);
+    }
+    if (mixins.isNotEmpty) {
+      buffer.write(' with ');
+      buffer.write(mixins.map((t) => t.displayName).join(', '));
+    }
+    if (interfaces.isNotEmpty) {
+      buffer.write(' implements ');
+      buffer.write(interfaces.map((t) => t.displayName).join(', '));
     }
   }
 

@@ -102,7 +102,7 @@ class DartUnitHoverComputer {
           ClassElement containingClass =
               element.getAncestor((e) => e is ClassElement);
           if (containingClass != null) {
-            hover.containingClassDescription = containingClass.toString();
+            hover.containingClassDescription = containingClass.displayName;
           }
           // containing library
           LibraryElement library = element.library;
@@ -117,7 +117,9 @@ class DartUnitHoverComputer {
       // parameter
       hover.parameter = _safeToString(expression.bestParameterElement);
       // types
-      hover.staticType = _safeToString(expression.staticType);
+      if (element == null || element is VariableElement) {
+        hover.staticType = _safeToString(expression.staticType);
+      }
       hover.propagatedType = _safeToString(expression.propagatedType);
       // done
       return hover;
