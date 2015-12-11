@@ -31,6 +31,7 @@ namespace bin {
   V(Directory_Rename, 2)                                                       \
   V(Directory_List, 3)                                                         \
   V(EventHandler_SendData, 3)                                                  \
+  V(EventHandler_TimerMillisecondClock, 0)                                     \
   V(File_Open, 2)                                                              \
   V(File_Exists, 1)                                                            \
   V(File_GetFD, 1)                                                             \

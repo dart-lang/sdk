@@ -9,4 +9,5 @@ patch class _IOCrypto {
 
 _setupHooks() {
   VMLibraryHooks.eventHandlerSendData = _EventHandler._sendData;
+  VMLibraryHooks.timerMillisecondClock = _EventHandler._timerMillisecondClock;
 }

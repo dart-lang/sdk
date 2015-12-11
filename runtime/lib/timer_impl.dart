@@ -172,7 +172,7 @@ class _Timer implements Timer {
     // to nearest millisecond, not up, so that time + duration is before
     // duration milliseconds from now. Using microsecond timers like
     // Stopwatch allows detecting that the timer fires early.
-    int now = new DateTime.now().millisecondsSinceEpoch;
+    int now = VMLibraryHooks.timerMillisecondClock();
     int wakeupTime = (milliSeconds == 0) ? now : (now + 1 + milliSeconds);
 
     _Timer timer = new _Timer._internal(callback,
@@ -232,7 +232,7 @@ class _Timer implements Timer {
     if (_milliSeconds > 0) {
       _wakeupTime += _milliSeconds;
     } else {
-      _wakeupTime = new DateTime.now().millisecondsSinceEpoch;
+      _wakeupTime = VMLibraryHooks.timerMillisecondClock();
     }
   }
 
@@ -340,7 +340,7 @@ class _Timer implements Timer {
     } else {
       // Collect pending timers from the timer heap which have expired at this
       // time.
-      var currentTime = new DateTime.now().millisecondsSinceEpoch;
+      var currentTime = VMLibraryHooks.timerMillisecondClock();
       var timer;
       while (!_heap.isEmpty && (_heap.first._wakeupTime <= currentTime)) {
         timer = _heap.removeFirst();

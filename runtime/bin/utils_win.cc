@@ -168,27 +168,39 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return true;
 }
 
-int64_t TimerUtils::GetCurrentTimeMilliseconds() {
-  return GetCurrentTimeMicros() / 1000;
+int64_t TimerUtils::GetCurrentMonotonicMillis() {
+  return GetCurrentMonotonicMicros() / 1000;
 }
 
-int64_t TimerUtils::GetCurrentTimeMicros() {
-  static const int64_t kTimeEpoc = 116444736000000000LL;
-  static const int64_t kTimeScaler = 10;  // 100 ns to us.
+static int64_t qpc_ticks_per_second = 0;
 
-  // Although win32 uses 64-bit integers for representing timestamps,
-  // these are packed into a FILETIME structure. The FILETIME
-  // structure is just a struct representing a 64-bit integer. The
-  // TimeStamp union allows access to both a FILETIME and an integer
-  // representation of the timestamp. The Windows timestamp is in
-  // 100-nanosecond intervals since January 1, 1601.
-  union TimeStamp {
-    FILETIME ft_;
-    int64_t t_;
-  };
-  TimeStamp time;
-  GetSystemTimeAsFileTime(&time.ft_);
-  return (time.t_ - kTimeEpoc) / kTimeScaler;
+int64_t TimerUtils::GetCurrentMonotonicMicros() {
+  if (qpc_ticks_per_second == 0) {
+    // QueryPerformanceCounter not supported, fallback.
+    return GetCurrentTimeMicros();
+  }
+  // Grab performance counter value.
+  LARGE_INTEGER now;
+  QueryPerformanceCounter(&now);
+  int64_t qpc_value = static_cast<int64_t>(now.QuadPart);
+  // Convert to microseconds.
+  int64_t seconds = qpc_value / qpc_ticks_per_second;
+  int64_t leftover_ticks = qpc_value - (seconds * qpc_ticks_per_second);
+  int64_t result = seconds * kMicrosecondsPerSecond;
+  result += ((leftover_ticks * kMicrosecondsPerSecond) / qpc_ticks_per_second);
+  return result;
+}
+
+
+void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
+  const int kMinimumAlignment = 16;
+  ASSERT(Utils::IsPowerOfTwo(alignment));
+  ASSERT(alignment >= kMinimumAlignment);
+  void* p = _aligned_malloc(size, alignment);
+  if (p == NULL) {
+    UNREACHABLE();
+  }
+  return p;
 }
 
 void TimerUtils::Sleep(int64_t millis) {

@@ -1352,7 +1352,7 @@ int64_t EventHandlerImplementation::GetTimeout() {
     return kInfinityTimeout;
   }
   int64_t millis = timeout_queue_.CurrentTimeout() -
-      TimerUtils::GetCurrentTimeMilliseconds();
+      TimerUtils::GetCurrentMonotonicMillis();
   return (millis < 0) ? 0 : millis;
 }
 

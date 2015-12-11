@@ -69,17 +69,21 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
-int64_t TimerUtils::GetCurrentTimeMilliseconds() {
-  return GetCurrentTimeMicros() / 1000;
+int64_t TimerUtils::GetCurrentMonotonicMillis() {
+  return GetCurrentMonotonicMicros() / 1000;
 }
 
-int64_t TimerUtils::GetCurrentTimeMicros() {
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
+int64_t TimerUtils::GetCurrentMonotonicMicros() {
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
     UNREACHABLE();
     return 0;
   }
-  return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+  // Convert to microseconds.
+  int64_t result = ts.tv_sec;
+  result *= kMicrosecondsPerSecond;
+  result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
+  return result;
 }
 
 void TimerUtils::Sleep(int64_t millis) {

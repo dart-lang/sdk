@@ -9,5 +9,8 @@ patch class _EventHandler {
                                     SendPort sendPort,
                                     int data)
       native "EventHandler_SendData";
+
+  static int _timerMillisecondClock()
+      native "EventHandler_TimerMillisecondClock";
 }
 
