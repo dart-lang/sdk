@@ -21,37 +21,10 @@ import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/src/yaml_node.dart';
 
-// TODO(pq): fix tests to run safely on the bots
-// https://github.com/dart-lang/sdk/issues/25001
-main() {}
-const emptyOptionsFile = 'test/data/empty_options.yaml';
+import 'utils.dart';
 
-/// Start a driver for the given [source], optionally providing additional
-/// [args] and an [options] file path.  The value of [options] defaults to
-/// an empty options file to avoid unwanted configuration from an otherwise
-/// discovered options file.
-void drive(String source,
-        {String options: emptyOptionsFile,
-        List<String> args: const <String>[]}) =>
-    new Driver().start(['--options', options, source]..addAll(args));
-
-not_main() {
+main() {
   group('Driver', () {
-    StringSink savedOutSink, savedErrorSink;
-    int savedExitCode;
-    setUp(() {
-      savedOutSink = outSink;
-      savedErrorSink = errorSink;
-      savedExitCode = exitCode;
-      outSink = new StringBuffer();
-      errorSink = new StringBuffer();
-    });
-    tearDown(() {
-      outSink = savedOutSink;
-      errorSink = savedErrorSink;
-      exitCode = savedExitCode;
-    });
-
     group('options', () {
       test('custom processor', () {
         Driver driver = new Driver();
@@ -59,14 +32,15 @@ not_main() {
         driver.userDefinedPlugins = [new TestPlugin(processor)];
         driver.start([
           '--options',
-          'test/data/test_options.yaml',
-          'test/data/test_file.dart'
+          path.join(testDirectory, 'data/test_options.yaml'),
+          path.join(testDirectory, 'data/test_file.dart')
         ]);
         expect(processor.options['test_plugin'], isNotNull);
         expect(processor.exception, isNull);
       });
     });
 
+    //TODO(pq): refactor to NOT set actual error codes to play nice with bots
     group('exit codes', () {
       StringSink savedOutSink, savedErrorSink;
       int savedExitCode;
@@ -88,50 +62,50 @@ not_main() {
       });
 
       test('fatal hints', () {
-        drive('test/data/file_with_hint.dart', args: ['--fatal-hints']);
+        drive('data/file_with_hint.dart', args: ['--fatal-hints']);
         expect(exitCode, 3);
       });
 
       test('not fatal hints', () {
-        drive('test/data/file_with_hint.dart');
+        drive('data/file_with_hint.dart');
         expect(exitCode, 0);
       });
 
       test('fatal errors', () {
-        drive('test/data/file_with_error.dart');
+        drive('data/file_with_error.dart');
         expect(exitCode, 3);
       });
 
       test('not fatal warnings', () {
-        drive('test/data/file_with_warning.dart');
+        drive('data/file_with_warning.dart');
         expect(exitCode, 0);
       });
 
       test('fatal warnings', () {
-        drive('test/data/file_with_warning.dart', args: ['--fatal-warnings']);
+        drive('data/file_with_warning.dart', args: ['--fatal-warnings']);
         expect(exitCode, 3);
       });
 
       test('missing options file', () {
-        drive('test/data/test_file.dart', options: 'test/data/NO_OPTIONS_HERE');
+        drive('data/test_file.dart', options: 'data/NO_OPTIONS_HERE');
         expect(exitCode, 3);
       });
 
       test('missing dart file', () {
-        drive('test/data/NO_DART_FILE_HERE.dart');
+        drive('data/NO_DART_FILE_HERE.dart');
         expect(exitCode, 3);
       });
 
       test('part file', () {
-        drive('test/data/library_and_parts/part2.dart');
+        drive('data/library_and_parts/part2.dart');
         expect(exitCode, 3);
       });
 
       test('non-dangling part file', () {
         Driver driver = new Driver();
         driver.start([
-          'test/data/library_and_parts/lib.dart',
-          'test/data/library_and_parts/part1.dart',
+          path.join(testDirectory, 'data/library_and_parts/lib.dart'),
+          path.join(testDirectory, 'data/library_and_parts/part1.dart')
         ]);
         expect(exitCode, 0);
       });
@@ -139,9 +113,9 @@ not_main() {
       test('extra part file', () {
         Driver driver = new Driver();
         driver.start([
-          'test/data/library_and_parts/lib.dart',
-          'test/data/library_and_parts/part1.dart',
-          'test/data/library_and_parts/part2.dart',
+          path.join(testDirectory, 'data/library_and_parts/lib.dart'),
+          path.join(testDirectory, 'data/library_and_parts/part1.dart'),
+          path.join(testDirectory, 'data/library_and_parts/part2.dart')
         ]);
         expect(exitCode, 3);
       });
@@ -150,20 +124,16 @@ not_main() {
     group('linter', () {
       group('lints in options', () {
         StringSink savedOutSink;
-        Driver driver;
 
         setUp(() {
           savedOutSink = outSink;
           outSink = new StringBuffer();
 
-          driver = new Driver();
-          driver.start([
-            '--options',
-            'test/data/linter_project/.analysis_options',
-            '--lints',
-            'test/data/linter_project/test_file.dart'
-          ]);
+          drive('data/linter_project/test_file.dart',
+              options: 'data/linter_project/.analysis_options',
+              args: ['--lints']);
         });
+
         tearDown(() {
           outSink = savedOutSink;
         });
@@ -185,19 +155,14 @@ not_main() {
 
       group('default lints', () {
         StringSink savedOutSink;
-        Driver driver;
 
         setUp(() {
           savedOutSink = outSink;
           outSink = new StringBuffer();
 
-          driver = new Driver();
-          driver.start([
-            '--lints',
-            'test/data/linter_project/test_file.dart',
-            '--options',
-            'test/data/linter_project/.analysis_options'
-          ]);
+          drive('data/linter_project/test_file.dart',
+              options: 'data/linter_project/.analysis_options',
+              args: ['--lints']);
         });
         tearDown(() {
           outSink = savedOutSink;
@@ -220,18 +185,13 @@ not_main() {
 
       group('no `--lints` flag (none in options)', () {
         StringSink savedOutSink;
-        Driver driver;
 
         setUp(() {
           savedOutSink = outSink;
           outSink = new StringBuffer();
 
-          driver = new Driver();
-          driver.start([
-            'test/data/no_lints_project/test_file.dart',
-            '--options',
-            'test/data/no_lints_project/.analysis_options'
-          ]);
+          drive('data/no_lints_project/test_file.dart',
+              options: 'data/no_lints_project/.analysis_options');
         });
         tearDown(() {
           outSink = savedOutSink;
@@ -279,18 +239,13 @@ linter:
     group('options processing', () {
       group('error filters', () {
         StringSink savedOutSink;
-        Driver driver;
 
         setUp(() {
           savedOutSink = outSink;
           outSink = new StringBuffer();
 
-          driver = new Driver();
-          driver.start([
-            'test/data/options_tests_project/test_file.dart',
-            '--options',
-            'test/data/options_tests_project/.analysis_options'
-          ]);
+          drive('data/options_tests_project/test_file.dart',
+              options: 'data/options_tests_project/.analysis_options');
         });
         tearDown(() {
           outSink = savedOutSink;
@@ -398,8 +353,8 @@ main() {}
         BootLoader loader = new BootLoader();
         loader.createImage([
           '--options',
-          'test/data/bad_plugin_options.yaml',
-          'test/data/test_file.dart'
+          path.join(testDirectory, 'data/bad_plugin_options.yaml'),
+          path.join(testDirectory, 'data/test_file.dart')
         ]);
         expect(
             errorSink.toString(),
@@ -411,8 +366,8 @@ main() {}
         BootLoader loader = new BootLoader();
         Image image = loader.createImage([
           '--options',
-          'test/data/plugin_options.yaml',
-          'test/data/test_file.dart'
+          path.join(testDirectory, 'data/plugin_options.yaml'),
+          path.join(testDirectory, 'data/test_file.dart')
         ]);
         var plugins = image.config.plugins;
         expect(plugins, hasLength(1));
@@ -442,6 +397,26 @@ main() {}
       });
     });
   });
+}
+
+const emptyOptionsFile = 'data/empty_options.yaml';
+
+/// Shared driver.
+Driver driver;
+
+/// Start a driver for the given [source], optionally providing additional
+/// [args] and an [options] file path.  The value of [options] defaults to
+/// an empty options file to avoid unwanted configuration from an otherwise
+/// discovered options file.
+void drive(String source,
+    {String options: emptyOptionsFile, List<String> args: const <String>[]}) {
+  driver = new Driver();
+  var cmd = [
+    '--options',
+    path.join(testDirectory, options),
+    path.join(testDirectory, source)
+  ]..addAll(args);
+  driver.start(cmd);
 }
 
 Map<String, YamlNode> parseOptions(String src) =>

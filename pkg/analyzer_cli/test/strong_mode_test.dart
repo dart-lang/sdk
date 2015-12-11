@@ -21,10 +21,7 @@ import 'utils.dart';
 /// Generally we don't want a lot of cases here as it requires spinning up a
 /// full analysis context.
 ///
-// TODO(pq): fix tests to run safely on the bots
-// https://github.com/dart-lang/sdk/issues/25001
-main() {}
-not_main() {
+main() {
   group('--strong', () {
     StringSink savedOutSink, savedErrorSink;
     int savedExitCode;
@@ -42,8 +39,7 @@ not_main() {
     });
 
     test('produces stricter errors', () async {
-      var testPath = path.join(testDirectory, 'data/strong_example.dart');
-      new Driver().start(['--options', emptyOptionsFile, '--strong', testPath]);
+      drive('data/strong_example.dart', args: ['--strong']);
 
       expect(exitCode, 3);
       var stdout = outSink.toString();
