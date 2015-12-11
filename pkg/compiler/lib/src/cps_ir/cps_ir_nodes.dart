@@ -234,7 +234,14 @@ abstract class Primitive extends Variable<Primitive> {
   // TODO(johnniwinther): Require source information for all primitives.
   SourceInformation get sourceInformation => null;
 
-  /// If this is a [Refinement] node, returns the value being refined.
+  /// If this is a [Refinement], [BoundsCheck] or [NullCheck] node, returns the
+  /// value being refined, the indexable object being checked, or the value
+  /// that was checked to be non-null, respectively.
+  ///
+  /// Those instructions all return the corresponding operand directly, and
+  /// this getter can be used to get (closer to) where the value came from.
+  //
+  // TODO(asgerf): Also do this for [TypeCast]?
   Primitive get effectiveDefinition => this;
 
   /// True if the two primitives are (refinements of) the same value.
@@ -704,6 +711,54 @@ class Refinement extends Primitive {
   }
 }
 
+/// Throw an exception if [value] is `null`.
+///
+/// Returns [value] so this can be used to restrict code motion.
+///
+/// In the simplest form this compiles to `value.toString;`.
+///
+/// If [selector] is set, `toString` is replaced with the (possibly minified)
+/// invocation name of the selector.  This can be shorter and generate a more
+/// meaningful error message, but is expensive if [value] is non-null and does
+/// not have that property at runtime.
+///
+/// If [condition] is set, it is assumed that [condition] is true if and only
+/// if [value] is null.  The check then compiles to:
+///
+///     if (condition) value.toString;  (or .selector if non-null)
+///
+/// The latter form is useful when [condition] is a form understood by the JS
+/// runtime, such as a `typeof` test.
+class NullCheck extends Primitive {
+  final Reference<Primitive> value;
+  Selector selector;
+  Reference<Primitive> condition;
+  final SourceInformation sourceInformation;
+
+  NullCheck(Primitive value, this.sourceInformation)
+      : this.value = new Reference<Primitive>(value);
+
+  NullCheck.guarded(Primitive condition, Primitive value, this.selector,
+        this.sourceInformation)
+      : this.condition = new Reference<Primitive>(condition),
+        this.value = new Reference<Primitive>(value);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
+  bool get hasValue => true;
+
+  accept(Visitor visitor) => visitor.visitNullCheck(this);
+
+  void setParentPointers() {
+    value.parent = this;
+    if (condition != null) {
+      condition.parent = this;
+    }
+  }
+
+  Primitive get effectiveDefinition => value.definition.effectiveDefinition;
+}
+
 /// An "is" type test.
 ///
 /// Returns `true` if [value] is an instance of [type].
@@ -1093,10 +1148,10 @@ class GetLength extends Primitive {
   }
 }
 
-/// Read an entry from a string or native list.
+/// Read an entry from an indexable object.
 ///
-/// [object] must be null or a native list or a string, and [index] must be
-/// an integer.
+/// [object] must be null or an indexable object, and [index] must be
+/// an integer where `0 <= index < object.length`.
 class GetIndex extends Primitive {
   final Reference<Primitive> object;
   final Reference<Primitive> index;
@@ -1732,6 +1787,7 @@ abstract class Visitor<T> {
   T visitGetIndex(GetIndex node);
   T visitSetIndex(SetIndex node);
   T visitRefinement(Refinement node);
+  T visitNullCheck(NullCheck node);
 
   // Support for literal foreign code.
   T visitForeignCode(ForeignCode node);
@@ -2049,6 +2105,15 @@ class DeepRecursiveVisitor implements Visitor {
   visitRefinement(Refinement node) {
     processRefinement(node);
     processReference(node.value);
+  }
+
+  processNullCheck(NullCheck node) {}
+  visitNullCheck(NullCheck node) {
+    processNullCheck(node);
+    processReference(node.value);
+    if (node.condition != null) {
+      processReference(node.condition);
+    }
   }
 }
 

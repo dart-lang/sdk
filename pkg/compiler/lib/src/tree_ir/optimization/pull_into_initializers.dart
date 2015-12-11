@@ -168,6 +168,16 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Statement visitNullCheck(NullCheck node) {
+    if (node.condition != null) {
+      node.condition = visitExpression(node.condition);
+      // The value occurs in conditional context, so don't pull from that.
+    } else {
+      node.value = visitExpression(node.value);
+    }
+    return node;
+  }
+
   Expression visitAssign(Assign node) {
     bool inImpureContext = impureCounter > 0;
     bool inBranch = branchCounter > 0;

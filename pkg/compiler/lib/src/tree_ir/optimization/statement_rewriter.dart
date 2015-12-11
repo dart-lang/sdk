@@ -1185,6 +1185,23 @@ class StatementRewriter extends Transformer implements Pass {
     node.next = visitStatement(node.next);
     return node;
   }
+
+  @override
+  Statement visitNullCheck(NullCheck node) {
+    inEmptyEnvironment(() {
+      node.next = visitStatement(node.next);
+    });
+    if (node.condition != null) {
+      inEmptyEnvironment(() {
+        // Value occurs in conditional context.
+        node.value = visitExpression(node.value);
+      });
+      node.condition = visitExpression(node.condition);
+    } else {
+      node.value = visitExpression(node.value);
+    }
+    return node;
+  }
 }
 
 /// Result of combining two expressions, with the potential for reverting the

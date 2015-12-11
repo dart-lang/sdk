@@ -957,6 +957,25 @@ class Yield extends Statement {
   }
 }
 
+class NullCheck extends Statement {
+  Expression condition;
+  Expression value;
+  Selector selector;
+  Statement next;
+  SourceInformation sourceInformation;
+
+  NullCheck({this.condition, this.value, this.selector, this.next,
+      this.sourceInformation});
+
+  accept(StatementVisitor visitor) {
+    return visitor.visitNullCheck(this);
+  }
+
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitNullCheck(this, arg);
+  }
+}
+
 abstract class ExpressionVisitor<E> {
   E visitExpression(Expression node) => node.accept(this);
   E visitVariableUse(VariableUse node);
@@ -1047,6 +1066,7 @@ abstract class StatementVisitor<S> {
   S visitUnreachable(Unreachable node);
   S visitForeignStatement(ForeignStatement node);
   S visitYield(Yield node);
+  S visitNullCheck(NullCheck node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -1065,6 +1085,7 @@ abstract class StatementVisitor1<S, A> {
   S visitUnreachable(Unreachable node, A arg);
   S visitForeignStatement(ForeignStatement node, A arg);
   S visitYield(Yield node, A arg);
+  S visitNullCheck(NullCheck node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -1275,6 +1296,12 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitYield(Yield node) {
     visitExpression(node.input);
+    visitStatement(node.next);
+  }
+
+  visitNullCheck(NullCheck node) {
+    if (node.condition != null) visitExpression(node.condition);
+    visitExpression(node.value);
     visitStatement(node.next);
   }
 }
@@ -1531,6 +1558,15 @@ class RecursiveTransformer extends Transformer {
 
   visitYield(Yield node) {
     node.input = visitExpression(node.input);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  visitNullCheck(NullCheck node) {
+    if (node.condition != null) {
+      node.condition = visitExpression(node.condition);
+    }
+    node.value = visitExpression(node.value);
     node.next = visitStatement(node.next);
     return node;
   }

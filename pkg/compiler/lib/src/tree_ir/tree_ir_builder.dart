@@ -107,10 +107,16 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   /// This increments the reference count for the given variable, so the
   /// returned expression must be used in the tree.
   Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
-    if (thisParameter != null && reference.definition == thisParameter) {
+    cps_ir.Primitive prim = reference.definition.effectiveDefinition;
+    if (thisParameter != null && prim == thisParameter) {
       return new This();
     }
-    return new VariableUse(getVariable(reference.definition));
+    return new VariableUse(getVariable(prim));
+  }
+
+  Expression getVariableUseOrNull(
+        cps_ir.Reference<cps_ir.Primitive> reference) {
+    return reference == null ? null : getVariableUse(reference);
   }
 
   Label getLabel(cps_ir.Continuation cont) {
@@ -496,10 +502,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     );
   }
 
-  FunctionDefinition makeSubFunction(cps_ir.FunctionDefinition function) {
-    return createInnerBuilder().buildFunction(function);
-  }
-
   Expression visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     return new ReifyRuntimeType(
         getVariableUse(node.value), node.sourceInformation);
@@ -642,6 +644,15 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
       };
     }
   }
+
+  visitNullCheck(cps_ir.NullCheck node) => (Statement next) {
+    return new NullCheck(
+        condition: getVariableUseOrNull(node.condition),
+        value: getVariableUse(node.value),
+        selector: node.selector,
+        next: next,
+        sourceInformation: node.sourceInformation);
+  };
 
   Expression visitGetLazyStatic(cps_ir.GetLazyStatic node) {
     // In the tree IR, GetStatic handles lazy fields because we do not need

@@ -182,6 +182,11 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
     visitStatement(node.next);
   }
+
+  visitNullCheck(NullCheck node) {
+    _addStatement(node);
+    visitStatement(node.next);
+  }
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor {
@@ -345,6 +350,11 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   visitYield(Yield node) {
     String name = node.hasStar ? 'yield*' : 'yield';
     printStatement(null, '$name ${expr(node.input)}');
+  }
+
+  @override
+  visitNullCheck(NullCheck node) {
+    printStatement(null, 'NullCheck ${expr(node.value)}');
   }
 }
 

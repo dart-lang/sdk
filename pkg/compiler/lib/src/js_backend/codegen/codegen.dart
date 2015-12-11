@@ -945,6 +945,24 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  void visitNullCheck(tree_ir.NullCheck node) {
+    js.Expression value = visitExpression(node.value);
+    js.Expression access = node.selector != null
+        ? js.js('#.#', [value, glue.invocationName(node.selector)])
+        : js.js('#.toString', [value]);
+    if (node.condition != null) {
+      js.Expression condition = visitExpression(node.condition);
+      js.Statement body = isNullReturn(node.next)
+          ? new js.ExpressionStatement(access)
+          : new js.Return(access);
+      accumulator.add(new js.If.noElse(condition, body));
+    } else {
+      accumulator.add(new js.ExpressionStatement(access));
+    }
+    visitStatement(node.next);
+  }
+
+  @override
   js.Expression visitApplyBuiltinOperator(tree_ir.ApplyBuiltinOperator node) {
     List<js.Expression> args = visitExpressionList(node.arguments);
     switch (node.operator) {

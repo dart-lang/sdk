@@ -683,6 +683,12 @@ class ConstantPropagationLattice {
     if (constantValue != null) return constant(constantValue, mask);
     return nonConstant(mask);
   }
+
+  AbstractConstantValue nonNullable(AbstractConstantValue value) {
+    if (value.isNullConstant) return nothing;
+    if (!value.isNullable) return value;
+    return nonConstant(value.type.nonNullable());
+  }
 }
 
 /**
@@ -1073,41 +1079,35 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   specializeOperatorCall(InvokeMethod node) {
     bool trustPrimitives = compiler.trustPrimitives;
 
-    /// Checks that the the receiver satisfied the given predicate [guard],
-    /// otherwise ensures a [NoSuchMethodError] will be thrown.
+    /// Throws a [NoSuchMethodError] if the receiver is null, where [guard]
+    /// is a predicate that is true if and only if the receiver is null.
     ///
-    /// For example, if the [guard] is `IsNumber` for a call to `<`:
-    ///
-    ///     if (typeof x !== 'number') return x.$lt();
-    ///
-    /// The [guard] must accept all possible non-null values for the receiver,
-    /// but should be as specific as possible so the VM gets more information
-    /// from the check.
+    /// See [NullCheck.guarded].
     Primitive guardReceiver(CpsFragment cps, BuiltinOperator guard) {
       if (guard == null || getValue(node.dartReceiver).isDefinitelyNotNull) {
         return node.dartReceiver;
       }
       if (!trustPrimitives) {
+        // TODO(asgerf): Perhaps a separate optimization should decide that
+        // the guarded check is better based on the type?
         Primitive check = cps.applyBuiltin(guard, [node.dartReceiver]);
-        cps.ifFalsy(check)
-           ..invokeMethod(node.dartReceiver, node.selector,
-             typeSystem.nullType, [])
-           ..put(new Unreachable());
+        return cps.letPrim(new NullCheck.guarded(check, node.dartReceiver,
+          node.selector, node.sourceInformation));
+      } else {
+        // Refine the receiver to be non-null for use in the operator.
+        // This restricts code motion and improves the type computed for the
+        // built-in operator that depends on it.
+        // This must be done even if trusting primitives.
+        return cps.letPrim(
+            new Refinement(node.dartReceiver, typeSystem.nonNullType));
       }
-      // Refine the receiver to be non-null for use in the operator.
-      // This restricts code motion and improves the type computed for the
-      // built-in operator that depends on it.
-      // This must be done even if trusting primitives.
-      Primitive refined = cps.letPrim(
-          new Refinement(node.dartReceiver, typeSystem.nonNullType));
-      return refined;
     }
 
     /// Replaces the call with [operator], using the receiver and first argument
     /// as operands (in that order).
     ///
     /// If [guard] is given, the receiver is checked using [guardReceiver],
-    /// unless it is known kot to be null.
+    /// unless it is known not to be null.
     CpsFragment makeBinary(BuiltinOperator operator, {BuiltinOperator guard}) {
       CpsFragment cps = new CpsFragment(node.sourceInformation);
       Primitive left = guardReceiver(cps, guard);
@@ -1164,7 +1164,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           // Try to insert a numeric operator.
           BuiltinOperator operator = NumBinaryBuiltins[opname];
           if (operator != null) {
-            return makeBinary(operator, guard: BuiltinOperator.IsNumber);
+            return makeBinary(operator, guard: BuiltinOperator.IsNotNumber);
           }
           // Shift operators are not in [NumBinaryBuiltins] because Dart shifts
           // behave different to JS shifts, especially in the handling of the
@@ -1174,7 +1174,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               lattice.isDefinitelyInt(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
             return makeBinary(BuiltinOperator.NumShl,
-                guard: BuiltinOperator.IsNumber);
+                guard: BuiltinOperator.IsNotNumber);
           }
           // Try to insert a shift-right operator. JavaScript's right shift is
           // consistent with Dart's only for left operands in the unsigned
@@ -1183,7 +1183,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               lattice.isDefinitelyUint32(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 0, max: 31)) {
             return makeBinary(BuiltinOperator.NumShr,
-                guard: BuiltinOperator.IsNumber);
+                guard: BuiltinOperator.IsNotNumber);
           }
           // Try to use remainder for '%'. Both operands must be non-negative
           // and the divisor must be non-zero.
@@ -1192,14 +1192,14 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               lattice.isDefinitelyUint(right) &&
               lattice.isDefinitelyIntInRange(right, min: 1)) {
             return makeBinary(BuiltinOperator.NumRemainder,
-                guard: BuiltinOperator.IsNumber);
+                guard: BuiltinOperator.IsNotNumber);
           }
 
           if (opname == '~/' &&
               lattice.isDefinitelyUint32(left, allowNull: true) &&
               lattice.isDefinitelyIntInRange(right, min: 2)) {
             return makeBinary(BuiltinOperator.NumTruncatingDivideToSigned32,
-                guard: BuiltinOperator.IsNumber);
+                guard: BuiltinOperator.IsNotNumber);
           }
         }
         if (lattice.isDefinitelyString(left, allowNull: trustPrimitives) &&
@@ -1218,11 +1218,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         String opname = node.selector.name;
         if (opname == '~') {
           return makeUnary(BuiltinOperator.NumBitNot,
-              guard: BuiltinOperator.IsNumber);
+              guard: BuiltinOperator.IsNotNumber);
         }
         if (opname == 'unary-') {
           return makeUnary(BuiltinOperator.NumNegate,
-              guard: BuiltinOperator.IsNumber);
+              guard: BuiltinOperator.IsNotNumber);
         }
       }
     }
@@ -1238,7 +1238,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
               lattice.isDefinitelyInt(argValue) &&
               isIntNotZero(argValue)) {
             return makeBinary(BuiltinOperator.NumRemainder,
-                guard: BuiltinOperator.IsNumber);
+                guard: BuiltinOperator.IsNotNumber);
           }
         }
       } else if (name == 'codeUnitAt') {
@@ -1322,7 +1322,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         <Primitive>[index, cps.letPrim(new GetLength(list))]);
     cps.ifTruthy(isTooLarge).invokeContinuation(fail);
     cps.insideContinuation(fail).invokeStaticThrower(
-        helpers.throwIndexOutOfBoundsError,
+        helpers.throwIndexOutOfRangeException,
         <Primitive>[list, index]);
     return cps;
   }
@@ -1437,7 +1437,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             [length, cps.makeZero()]);
         CpsFragment fail = cps.ifTruthy(isEmpty);
         fail.invokeStaticThrower(
-            helpers.throwIndexOutOfBoundsError,
+            helpers.throwIndexOutOfRangeException,
             [list, fail.makeConstant(new IntConstantValue(-1))]);
         Primitive removedItem = cps.invokeBuiltin(BuiltinMethod.Pop,
             list,
@@ -2397,6 +2397,14 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     return true;
   }
+
+  visitNullCheck(NullCheck node) {
+    if (!getValue(node.value.definition).isNullable) {
+      node.replaceUsesWith(node.value.definition);
+      return new CpsFragment();
+    }
+    return null;
+  }
 }
 
 /**
@@ -3183,6 +3191,11 @@ class TypePropagationVisitor implements Visitor {
       setValue(node,
           nonConstant(value.type.intersection(node.refineType, classWorld)));
     }
+  }
+
+  @override
+  void visitNullCheck(NullCheck node) {
+    setValue(node, lattice.nonNullable(getValue(node.value.definition)));
   }
 }
 

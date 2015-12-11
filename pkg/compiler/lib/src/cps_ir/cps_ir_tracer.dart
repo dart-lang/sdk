@@ -242,6 +242,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   String formatReference(cps_ir.Reference ref) {
+    if (ref == null) return 'null';
     cps_ir.Definition target = ref.definition;
     if (target is cps_ir.Continuation && target.isReturnContinuation) {
       return "return"; // Do not generate a name for the return continuation
@@ -388,6 +389,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitRefinement(cps_ir.Refinement node) {
     String value = formatReference(node.value);
     return 'Refinement $value ${node.refineType}';
+  }
+
+  visitNullCheck(cps_ir.NullCheck node) {
+    String value = formatReference(node.value);
+    String condition = formatReference(node.condition);
+    return 'NullCheck $value condition:$condition selector:${node.selector}';
   }
 }
 
@@ -669,6 +676,10 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitRefinement(cps_ir.Refinement node) {
+    unexpectedNode(node);
+  }
+
+  visitNullCheck(cps_ir.NullCheck node) {
     unexpectedNode(node);
   }
 }
