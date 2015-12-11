@@ -34,7 +34,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   const _id = Symbol('_id');
   const _receivePort = Symbol('_receivePort');
   class _Serializer extends core.Object {
-    _Serializer({serializeSendPorts = true} = {}) {
+    _Serializer(opts) {
+      let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
       this.serializedObjectIds = core.Map$(dart.dynamic, core.int).identity();
       this[_serializeSendPorts] = dart.as(serializeSendPorts, core.bool);
     }
@@ -190,7 +191,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   });
   const _adjustSendPorts = Symbol('_adjustSendPorts');
   class _Deserializer extends core.Object {
-    _Deserializer({adjustSendPorts = true} = {}) {
+    _Deserializer(opts) {
+      let adjustSendPorts = opts && 'adjustSendPorts' in opts ? opts.adjustSendPorts : true;
       this.deserializedObjects = core.List.new();
       this[_adjustSendPorts] = dart.as(adjustSendPorts, core.bool);
     }
@@ -1406,7 +1408,10 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_controller] = async.StreamController.new({onCancel: dart.bind(this, 'close'), sync: true});
       this[_rawPort].handler = dart.bind(this[_controller], 'add');
     }
-    listen(onData, {onError = null, onDone = null, cancelOnError = null} = {}) {
+    listen(onData, opts) {
+      let onError = opts && 'onError' in opts ? opts.onError : null;
+      let onDone = opts && 'onDone' in opts ? opts.onDone : null;
+      let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
       return this[_controller].stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError});
     }
     close() {
