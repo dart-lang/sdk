@@ -191,18 +191,6 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
   return result;
 }
 
-
-void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
-  const int kMinimumAlignment = 16;
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  void* p = _aligned_malloc(size, alignment);
-  if (p == NULL) {
-    UNREACHABLE();
-  }
-  return p;
-}
-
 void TimerUtils::Sleep(int64_t millis) {
   ::Sleep(millis);
 }
