@@ -394,6 +394,7 @@ class _LibrarySerializer {
     b.isAbstract = executableElement.isAbstract;
     b.isStatic = executableElement.isStatic &&
         executableElement.enclosingElement is ClassElement;
+    b.hasImplicitReturnType = executableElement.hasImplicitReturnType;
     return b;
   }
 
@@ -496,6 +497,7 @@ class _LibrarySerializer {
       b.parameters = type.parameters.map(serializeParam).toList();
     } else {
       b.type = serializeTypeRef(type, parameter);
+      b.hasImplicitType = parameter.hasImplicitType;
     }
     return b;
   }
@@ -625,6 +627,7 @@ class _LibrarySerializer {
     b.isStatic = variable.isStatic && variable.enclosingElement is ClassElement;
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;
+    b.hasImplicitType = variable.hasImplicitType;
     return b;
   }
 }

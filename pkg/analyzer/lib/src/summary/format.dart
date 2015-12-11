@@ -472,6 +472,7 @@ class UnlinkedExecutable {
   bool _isStatic;
   bool _isConst;
   bool _isFactory;
+  bool _hasImplicitReturnType;
 
   UnlinkedExecutable.fromJson(Map json)
     : _name = json["name"],
@@ -483,7 +484,8 @@ class UnlinkedExecutable {
       _isAbstract = json["isAbstract"],
       _isStatic = json["isStatic"],
       _isConst = json["isConst"],
-      _isFactory = json["isFactory"];
+      _isFactory = json["isFactory"],
+      _hasImplicitReturnType = json["hasImplicitReturnType"];
 
   String get name => _name ?? '';
   int get unit => _unit ?? 0;
@@ -495,6 +497,7 @@ class UnlinkedExecutable {
   bool get isStatic => _isStatic ?? false;
   bool get isConst => _isConst ?? false;
   bool get isFactory => _isFactory ?? false;
+  bool get hasImplicitReturnType => _hasImplicitReturnType ?? false;
 }
 
 class UnlinkedExecutableBuilder {
@@ -572,10 +575,17 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  void set hasImplicitReturnType(bool _value) {
+    assert(!_json.containsKey("hasImplicitReturnType"));
+    if (_value != null) {
+      _json["hasImplicitReturnType"] = _value;
+    }
+  }
+
   Map finish() => _json;
 }
 
-UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builderContext, {String name, int unit, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory}) {
+UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builderContext, {String name, int unit, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType}) {
   UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder(builderContext);
   builder.name = name;
   builder.unit = unit;
@@ -587,6 +597,7 @@ UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builde
   builder.isStatic = isStatic;
   builder.isConst = isConst;
   builder.isFactory = isFactory;
+  builder.hasImplicitReturnType = hasImplicitReturnType;
   return builder;
 }
 
@@ -863,6 +874,7 @@ class UnlinkedParam {
   UnlinkedParamKind _kind;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
+  bool _hasImplicitType;
 
   UnlinkedParam.fromJson(Map json)
     : _name = json["name"],
@@ -870,7 +882,8 @@ class UnlinkedParam {
       _parameters = json["parameters"]?.map((x) => new UnlinkedParam.fromJson(x))?.toList(),
       _kind = json["kind"] == null ? null : UnlinkedParamKind.values[json["kind"]],
       _isFunctionTyped = json["isFunctionTyped"],
-      _isInitializingFormal = json["isInitializingFormal"];
+      _isInitializingFormal = json["isInitializingFormal"],
+      _hasImplicitType = json["hasImplicitType"];
 
   String get name => _name ?? '';
   UnlinkedTypeRef get type => _type;
@@ -878,6 +891,7 @@ class UnlinkedParam {
   UnlinkedParamKind get kind => _kind ?? UnlinkedParamKind.required;
   bool get isFunctionTyped => _isFunctionTyped ?? false;
   bool get isInitializingFormal => _isInitializingFormal ?? false;
+  bool get hasImplicitType => _hasImplicitType ?? false;
 }
 
 class UnlinkedParamBuilder {
@@ -927,10 +941,17 @@ class UnlinkedParamBuilder {
     }
   }
 
+  void set hasImplicitType(bool _value) {
+    assert(!_json.containsKey("hasImplicitType"));
+    if (_value != null) {
+      _json["hasImplicitType"] = _value;
+    }
+  }
+
   Map finish() => _json;
 }
 
-UnlinkedParamBuilder encodeUnlinkedParam(builder.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal}) {
+UnlinkedParamBuilder encodeUnlinkedParam(builder.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType}) {
   UnlinkedParamBuilder builder = new UnlinkedParamBuilder(builderContext);
   builder.name = name;
   builder.type = type;
@@ -938,6 +959,7 @@ UnlinkedParamBuilder encodeUnlinkedParam(builder.BuilderContext builderContext, 
   builder.kind = kind;
   builder.isFunctionTyped = isFunctionTyped;
   builder.isInitializingFormal = isInitializingFormal;
+  builder.hasImplicitType = hasImplicitType;
   return builder;
 }
 
@@ -1216,6 +1238,7 @@ class UnlinkedVariable {
   bool _isStatic;
   bool _isFinal;
   bool _isConst;
+  bool _hasImplicitType;
 
   UnlinkedVariable.fromJson(Map json)
     : _name = json["name"],
@@ -1223,7 +1246,8 @@ class UnlinkedVariable {
       _type = json["type"] == null ? null : new UnlinkedTypeRef.fromJson(json["type"]),
       _isStatic = json["isStatic"],
       _isFinal = json["isFinal"],
-      _isConst = json["isConst"];
+      _isConst = json["isConst"],
+      _hasImplicitType = json["hasImplicitType"];
 
   String get name => _name ?? '';
   int get unit => _unit ?? 0;
@@ -1231,6 +1255,7 @@ class UnlinkedVariable {
   bool get isStatic => _isStatic ?? false;
   bool get isFinal => _isFinal ?? false;
   bool get isConst => _isConst ?? false;
+  bool get hasImplicitType => _hasImplicitType ?? false;
 }
 
 class UnlinkedVariableBuilder {
@@ -1280,10 +1305,17 @@ class UnlinkedVariableBuilder {
     }
   }
 
+  void set hasImplicitType(bool _value) {
+    assert(!_json.containsKey("hasImplicitType"));
+    if (_value != null) {
+      _json["hasImplicitType"] = _value;
+    }
+  }
+
   Map finish() => _json;
 }
 
-UnlinkedVariableBuilder encodeUnlinkedVariable(builder.BuilderContext builderContext, {String name, int unit, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst}) {
+UnlinkedVariableBuilder encodeUnlinkedVariable(builder.BuilderContext builderContext, {String name, int unit, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
   UnlinkedVariableBuilder builder = new UnlinkedVariableBuilder(builderContext);
   builder.name = name;
   builder.unit = unit;
@@ -1291,6 +1323,7 @@ UnlinkedVariableBuilder encodeUnlinkedVariable(builder.BuilderContext builderCon
   builder.isStatic = isStatic;
   builder.isFinal = isFinal;
   builder.isConst = isConst;
+  builder.hasImplicitType = hasImplicitType;
   return builder;
 }
 

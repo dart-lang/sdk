@@ -349,6 +349,12 @@ class UnlinkedExecutable {
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   bool isFactory;
+
+  /**
+   * Indicates whether the executable lacks an explicit return type
+   * declaration.  False for constructors and setters.
+   */
+  bool hasImplicitReturnType;
 }
 
 /**
@@ -533,6 +539,12 @@ class UnlinkedParam {
    * declared using `this.` syntax).
    */
   bool isInitializingFormal;
+
+  /**
+   * Indicates whether this parameter lacks an explicit type declaration.
+   * Always false for a function-typed parameter.
+   */
+  bool hasImplicitType;
 }
 
 /**
@@ -730,4 +742,9 @@ class UnlinkedVariable {
    * Indicates whether the variable is declared using the `const` keyword.
    */
   bool isConst;
+
+  /**
+   * Indicates whether this variable lacks an explicit type declaration.
+   */
+  bool hasImplicitType;
 }

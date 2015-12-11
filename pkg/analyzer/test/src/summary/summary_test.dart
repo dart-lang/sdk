@@ -4,8 +4,6 @@
 
 library analyzer.test.src.summary.summary_test;
 
-import 'dart:typed_data';
-
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
@@ -760,6 +758,7 @@ class E {}
     UnlinkedExecutable executable =
         findExecutable('', cls: serializeClassText('class C { C(); }'));
     expect(executable.kind, UnlinkedExecutableKind.constructor);
+    expect(executable.hasImplicitReturnType, isFalse);
   }
 
   test_constructor_anonymous() {
@@ -819,6 +818,10 @@ class E {}
     UnlinkedExecutable executable = findExecutable('',
         cls: serializeClassText('class C { C(this.x()); Function x; }'));
     UnlinkedParam parameter = executable.parameters[0];
+    // Since the parameter is function-typed it is considered to have an
+    // explicit type, even though that explicit type itself has an implicit
+    // return type.
+    expect(parameter.hasImplicitType, isFalse);
     checkDynamicTypeRef(parameter.type);
   }
 
@@ -852,6 +855,7 @@ class E {}
         cls: serializeClassText('class C { C(this.x); int x; }'));
     UnlinkedParam parameter = executable.parameters[0];
     checkTypeRef(parameter.type, 'dart:core', 'dart:core', 'int');
+    expect(parameter.hasImplicitType, isTrue);
   }
 
   test_constructor_initializing_formal_name() {
@@ -1065,11 +1069,21 @@ typedef F();
     UnlinkedExecutable executable = serializeExecutableText('f() {}');
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.unit, 0);
+    expect(executable.hasImplicitReturnType, isTrue);
+    checkDynamicTypeRef(executable.returnType);
+  }
+
+  test_executable_function_explicit_return() {
+    UnlinkedExecutable executable =
+        serializeExecutableText('dynamic f() => null;');
+    expect(executable.hasImplicitReturnType, isFalse);
+    checkDynamicTypeRef(executable.returnType);
   }
 
   test_executable_getter() {
     UnlinkedExecutable executable = serializeExecutableText('int get f => 1;');
     expect(executable.kind, UnlinkedExecutableKind.getter);
+    expect(executable.hasImplicitReturnType, isFalse);
     expect(findVariable('f'), isNull);
     expect(findExecutable('f='), isNull);
   }
@@ -1083,6 +1097,7 @@ typedef F();
   test_executable_getter_type_implicit() {
     UnlinkedExecutable executable = serializeExecutableText('get f => 1;');
     checkDynamicTypeRef(executable.returnType);
+    expect(executable.hasImplicitReturnType, isTrue);
     expect(executable.parameters, isEmpty);
   }
 
@@ -1090,6 +1105,13 @@ typedef F();
     UnlinkedExecutable executable =
         findExecutable('f', cls: serializeClassText('class C { f() {} }'));
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
+    expect(executable.hasImplicitReturnType, isTrue);
+  }
+
+  test_executable_member_function_explicit_return() {
+    UnlinkedExecutable executable = findExecutable('f',
+        cls: serializeClassText('class C { dynamic f() => null; }'));
+    expect(executable.hasImplicitReturnType, isFalse);
   }
 
   test_executable_member_getter() {
@@ -1097,6 +1119,7 @@ typedef F();
     UnlinkedExecutable executable =
         findExecutable('f', cls: cls, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.getter);
+    expect(executable.hasImplicitReturnType, isFalse);
     expect(findVariable('f', cls: cls), isNull);
     expect(findExecutable('f=', cls: cls), isNull);
   }
@@ -1106,8 +1129,18 @@ typedef F();
     UnlinkedExecutable executable =
         findExecutable('f=', cls: cls, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.setter);
+    // For setters, hasImplicitReturnType is always false.
+    expect(executable.hasImplicitReturnType, isFalse);
     expect(findVariable('f', cls: cls), isNull);
     expect(findExecutable('f', cls: cls), isNull);
+  }
+
+  test_executable_member_setter_implicit_return() {
+    UnlinkedClass cls = serializeClassText('class C { set f(value) {} }');
+    UnlinkedExecutable executable =
+        findExecutable('f=', cls: cls, failIfAbsent: true);
+    expect(executable.hasImplicitReturnType, isFalse);
+    checkDynamicTypeRef(executable.returnType);
   }
 
   test_executable_name() {
@@ -1138,6 +1171,16 @@ typedef F();
   test_executable_param_function_typed() {
     UnlinkedExecutable executable = serializeExecutableText('f(g()) {}');
     expect(executable.parameters[0].isFunctionTyped, isTrue);
+    // Since the parameter is function-typed it is considered to have an
+    // explicit type, even though that explicit type itself has an implicit
+    // return type.
+    expect(executable.parameters[0].hasImplicitType, isFalse);
+  }
+
+  test_executable_param_function_typed_explicit_return_type() {
+    UnlinkedExecutable executable =
+        serializeExecutableText('f(dynamic g()) {}');
+    expect(executable.parameters[0].hasImplicitType, isFalse);
   }
 
   test_executable_param_function_typed_param() {
@@ -1217,19 +1260,28 @@ typedef F();
     expect(executable.parameters[1].name, 'y');
   }
 
+  test_executable_param_type_explicit() {
+    UnlinkedExecutable executable = serializeExecutableText('f(dynamic x) {}');
+    checkDynamicTypeRef(executable.parameters[0].type);
+    expect(executable.parameters[0].hasImplicitType, isFalse);
+  }
+
   test_executable_param_type_implicit() {
     UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
     checkDynamicTypeRef(executable.parameters[0].type);
+    expect(executable.parameters[0].hasImplicitType, isTrue);
   }
 
   test_executable_return_type() {
     UnlinkedExecutable executable = serializeExecutableText('int f() => 1;');
     checkTypeRef(executable.returnType, 'dart:core', 'dart:core', 'int');
+    expect(executable.hasImplicitReturnType, isFalse);
   }
 
   test_executable_return_type_implicit() {
     UnlinkedExecutable executable = serializeExecutableText('f() {}');
     checkDynamicTypeRef(executable.returnType);
+    expect(executable.hasImplicitReturnType, isTrue);
   }
 
   test_executable_return_type_void() {
@@ -1241,8 +1293,17 @@ typedef F();
     UnlinkedExecutable executable =
         serializeExecutableText('void set f(value) {}', 'f=');
     expect(executable.kind, UnlinkedExecutableKind.setter);
+    expect(executable.hasImplicitReturnType, isFalse);
     expect(findVariable('f'), isNull);
     expect(findExecutable('f'), isNull);
+  }
+
+  test_executable_setter_implicit_return() {
+    UnlinkedExecutable executable =
+        serializeExecutableText('set f(value) {}', 'f=');
+    // For setters, hasImplicitReturnType is always false.
+    expect(executable.hasImplicitReturnType, isFalse);
+    checkDynamicTypeRef(executable.returnType);
   }
 
   test_executable_setter_type() {
@@ -1793,6 +1854,12 @@ class C {
     expect(variable.isConst, isTrue);
   }
 
+  test_variable_explicit_dynamic() {
+    UnlinkedVariable variable = serializeVariableText('dynamic v;');
+    checkDynamicTypeRef(variable.type);
+    expect(variable.hasImplicitType, isFalse);
+  }
+
   test_variable_final_top_level() {
     UnlinkedVariable variable =
         serializeVariableText('final int i = 0;', variableName: 'i');
@@ -1802,6 +1869,7 @@ class C {
   test_variable_implicit_dynamic() {
     UnlinkedVariable variable = serializeVariableText('var v;');
     checkDynamicTypeRef(variable.type);
+    expect(variable.hasImplicitType, isTrue);
   }
 
   test_variable_name() {
