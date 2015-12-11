@@ -94,7 +94,7 @@ module.exports = function(config) {
   };
 
   if (process.env.TRAVIS) {
-    configuration.browsers = ['chrome_travis', 'chrome_canary_travis'];
+    configuration.browsers = ['chrome_canary_travis'];
     configuration.autoWatch = false;
     // Enable this for more logging on Travis.  It is too much for Travis to
     // automatically display, but still results in a downloadable raw log.
