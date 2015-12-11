@@ -15,6 +15,7 @@ import 'package:yaml/yaml.dart';
 
 const String _V8_BINARY_DEFAULT = 'node';
 const bool _CLOSURE_DEFAULT = false;
+const bool _DESTRUCTURE_NAMED_PARAMS_DEFAULT = true;
 
 /// Options used to set up Source URI resolution in the analysis context.
 class SourceResolverOptions {
@@ -69,6 +70,9 @@ class CodegenOptions {
   /// Emit Closure Compiler-friendly code.
   final bool closure;
 
+  /// Enable ES6 destructuring of named parameters.
+  final bool destructureNamedParams;
+
   /// Whether to emit a workaround for missing arrow function bind-this in
   /// other V8 builds
   final bool arrowFnBindThisWorkaround;
@@ -81,6 +85,7 @@ class CodegenOptions {
       {this.emitSourceMaps: true,
       this.forceCompile: false,
       this.closure: _CLOSURE_DEFAULT,
+      this.destructureNamedParams: _DESTRUCTURE_NAMED_PARAMS_DEFAULT,
       this.outputDir,
       this.arrowFnBindThisWorkaround: false,
       this.moduleFormat: 'dart'});
@@ -231,6 +236,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
           emitSourceMaps: args['source-maps'],
           forceCompile: args['force-compile'] || serverMode,
           closure: args['closure'],
+          destructureNamedParams: args['destructure-named-params'],
           outputDir: outputDir,
           arrowFnBindThisWorkaround: args['arrow-fn-bind-this'],
           moduleFormat: args['modules']),
@@ -327,6 +333,9 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('closure',
       help: 'Emit Closure Compiler-friendly code (experimental)',
       defaultsTo: _CLOSURE_DEFAULT)
+  ..addFlag('destructure-named-params',
+      help: 'Destructure named parameters (requires ES6-enabled runtime)',
+      defaultsTo: _DESTRUCTURE_NAMED_PARAMS_DEFAULT)
   ..addFlag('force-compile',
       abbr: 'f', help: 'Compile code with static errors', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level (defaults to warning)')
