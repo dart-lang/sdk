@@ -26,7 +26,13 @@ import 'parser.dart' show
     Parser;
 
 class ParserTask extends CompilerTask {
-  ParserTask(Compiler compiler) : super(compiler);
+  final bool _enableConditionalDirectives;
+
+  ParserTask(Compiler compiler,
+             {bool enableConditionalDirectives: false})
+      : this._enableConditionalDirectives = enableConditionalDirectives,
+        super(compiler);
+
   String get name => 'Parser';
 
   Node parse(ElementX element) {
@@ -37,7 +43,8 @@ class ParserTask extends CompilerTask {
     return measure(() {
       NodeListener listener = new NodeListener(
           const ScannerOptions(), reporter, null);
-      Parser parser = new Parser(listener);
+      Parser parser = new Parser(
+          listener, enableConditionalDirectives: _enableConditionalDirectives);
       try {
         parser.parseUnit(token);
       } on ParserError catch(_) {

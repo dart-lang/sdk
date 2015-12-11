@@ -22,7 +22,9 @@ abstract class Visitor<R> {
   R visitClassNode(ClassNode node) => visitNode(node);
   R visitCombinator(Combinator node) => visitNode(node);
   R visitConditional(Conditional node) => visitExpression(node);
+  R visitConditionalUri(ConditionalUri node) => visitNode(node);
   R visitContinueStatement(ContinueStatement node) => visitGotoStatement(node);
+  R visitDottedName(DottedName node) => visitExpression(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
   R visitEnum(Enum node) => visitNode(node);
@@ -34,8 +36,8 @@ abstract class Visitor<R> {
   R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
   R visitIdentifier(Identifier node) => visitExpression(node);
-  R visitIf(If node) => visitStatement(node);
   R visitImport(Import node) => visitLibraryDependency(node);
+  R visitIf(If node) => visitStatement(node);
   R visitLabel(Label node) => visitNode(node);
   R visitLabeledStatement(LabeledStatement node) => visitStatement(node);
   R visitLibraryDependency(LibraryDependency node) => visitLibraryTag(node);
@@ -159,7 +161,9 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   ClassNode asClassNode() => null;
   Combinator asCombinator() => null;
   Conditional asConditional() => null;
+  ConditionalUri asConditionalUri() => null;
   ContinueStatement asContinueStatement() => null;
+  DottedName asDottedName() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
   Enum asEnum() => null;
@@ -1022,6 +1026,7 @@ class LiteralList extends Expression {
 
 class LiteralSymbol extends Expression {
   final Token hashToken;
+  // TODO: this could be a DottedNamed.
   final NodeList identifiers;
 
   LiteralSymbol(this.hashToken, this.identifiers);
@@ -1065,6 +1070,32 @@ class Identifier extends Expression with StoredTreeElementMixin {
   Token getBeginToken() => token;
 
   Token getEndToken() => token;
+}
+
+// TODO(floitsch): a dotted identifier isn't really an expression. Should it
+// inherit from Node instead?
+class DottedName extends Expression {
+  final Token token;
+  final NodeList identifiers;
+
+  DottedName(this.token, this.identifiers);
+
+  DottedName asDottedName() => this;
+
+  void visitChildren(Visitor visitor) {
+    identifiers.accept(visitor);
+  }
+
+  accept(Visitor visitor) => visitor.visitDottedName(this);
+
+  Token getBeginToken() => token;
+  Token getEndToken() => identifiers.getEndToken();
+
+  String get slowNameString {
+    Unparser unparser = new Unparser();
+    unparser.unparseNodeListOfIdentifiers(identifiers);
+    return unparser.result;
+  }
 }
 
 class Operator extends Identifier {
@@ -1964,14 +1995,18 @@ class LibraryName extends LibraryTag {
  */
 abstract class LibraryDependency extends LibraryTag {
   final StringNode uri;
+  final NodeList conditionalUris;
   final NodeList combinators;
 
   LibraryDependency(this.uri,
+                    this.conditionalUris,
                     this.combinators,
                     List<MetadataAnnotation> metadata)
     : super(metadata);
 
   LibraryDependency asLibraryDependency() => this;
+
+  bool get hasConditionalUris => conditionalUris != null;
 }
 
 /**
@@ -1986,11 +2021,11 @@ class Import extends LibraryDependency {
   final Token importKeyword;
   final bool isDeferred;
 
-  Import(this.importKeyword, StringNode uri,
+  Import(this.importKeyword, StringNode uri, NodeList conditionalUris,
          this.prefix, NodeList combinators,
          List<MetadataAnnotation> metadata,
          {this.isDeferred})
-      : super(uri, combinators, metadata);
+      : super(uri, conditionalUris, combinators, metadata);
 
   bool get isImport => true;
 
@@ -2009,8 +2044,42 @@ class Import extends LibraryDependency {
   Token getEndToken() {
     if (combinators != null) return combinators.getEndToken().next;
     if (prefix != null) return prefix.getEndToken().next;
+    if (conditionalUris != null) return conditionalUris.getEndToken().next;
     return uri.getEndToken().next;
   }
+}
+
+/**
+ * A conditional uri inside an import or export clause.
+ *
+ * Example:
+ *
+ *     import 'foo.dart'
+ *       if (some.condition == "someValue") 'bar.dart'
+ *       if (other.condition) 'gee.dart';
+ */
+class ConditionalUri extends Node {
+  final Token ifToken;
+  final DottedName key;
+  // Value may be null.
+  final LiteralString value;
+  final StringNode uri;
+
+  ConditionalUri(this.ifToken, this.key, this.value, this.uri);
+
+  ConditionalUri asConditionalUri() => this;
+
+  accept(Visitor visitor) => visitor.visitConditionalUri(this);
+
+  visitChildren(Visitor visitor) {
+    key.accept(visitor);
+    if (value != null) value.accept(visitor);
+    uri.accept(visitor);
+  }
+
+  Token getBeginToken() => ifToken;
+
+  Token getEndToken() => uri.getEndToken();
 }
 
 /**
@@ -2052,9 +2121,10 @@ class Export extends LibraryDependency {
 
   Export(this.exportKeyword,
          StringNode uri,
+         NodeList conditionalUris,
          NodeList combinators,
          List<MetadataAnnotation> metadata)
-      : super(uri, combinators, metadata);
+      : super(uri, conditionalUris, combinators, metadata);
 
   bool get isExport => true;
 
@@ -2071,6 +2141,7 @@ class Export extends LibraryDependency {
 
   Token getEndToken() {
     if (combinators != null) return combinators.getEndToken().next;
+    if (conditionalUris != null) return conditionalUris.getEndToken().next;
     return uri.getEndToken().next;
   }
 }

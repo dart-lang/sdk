@@ -116,6 +116,8 @@ class CompilerImpl extends Compiler {
             useContentSecurityPolicy:
               hasOption(options, Flags.useContentSecurityPolicy),
             useStartupEmitter: hasOption(options, Flags.fastStartup),
+            enableConditionalDirectives:
+                hasOption(options, Flags.conditionalDirectives),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, Flags.incrementalSupport),
