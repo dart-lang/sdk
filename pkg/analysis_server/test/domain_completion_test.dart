@@ -472,7 +472,7 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
       assertNoResult('HtmlElement');
       assertNoResult('test');
     });

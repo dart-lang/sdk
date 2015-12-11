@@ -68,6 +68,11 @@ abstract class DartCompletionRequest extends CompletionRequest {
   Expression get dotTarget;
 
   /**
+   * Return `true` if free standing identifiers should be suggested
+   */
+  bool get includeIdentifiers;
+
+  /**
    * Return the library element which contains the unit in which the completion
    * is occurring. This may return `null` if the library cannot be determined
    * (e.g. unlinked part file).

@@ -31,12 +31,6 @@ class DartCompletionCache extends CompletionCache {
   String _importKey;
 
   /**
-   * Library prefix suggestions based upon imports,
-   * or `null` if nothing has been cached.
-   */
-  List<CompletionSuggestion> libraryPrefixSuggestions;
-
-  /**
    * Type suggestions based upon imports,
    * or `null` if nothing has been cached.
    */
@@ -114,7 +108,6 @@ class DartCompletionCache extends CompletionCache {
   Future<bool> computeImportInfo(CompilationUnit unit,
       SearchEngine searchEngine, bool shouldWaitForLowPrioritySuggestions) {
     importedTypeSuggestions = <CompletionSuggestion>[];
-    libraryPrefixSuggestions = <CompletionSuggestion>[];
     otherImportedSuggestions = <CompletionSuggestion>[];
     importedConstructorSuggestions = <CompletionSuggestion>[];
     importedVoidReturnSuggestions = <CompletionSuggestion>[];
@@ -240,8 +233,9 @@ class DartCompletionCache extends CompletionCache {
             } else {
               // Exclude elements from prefixed imports
               // because they are provided by PrefixedElementContributor
-              _addLibraryPrefixSuggestion(importElem);
-              excludedLibs.add(importElem.importedLibrary);
+              // Suggested by LibraryPrefixContributor
+              // _addLibraryPrefixSuggestion(importElem);
+              // excludedLibs.add(importElem.importedLibrary);
             }
           }
         } else if (directive is PartDirective) {
@@ -254,27 +248,6 @@ class DartCompletionCache extends CompletionCache {
       if (libSource != source) {
         libUnit.element.accept(new _NonLocalElementCacheVisitor(this));
       }
-    }
-  }
-
-  void _addLibraryPrefixSuggestion(ImportElement importElem) {
-    CompletionSuggestion suggestion = null;
-    String completion = importElem.prefix.displayName;
-    if (completion != null && completion.length > 0) {
-      suggestion = new CompletionSuggestion(
-          CompletionSuggestionKind.INVOCATION,
-          DART_RELEVANCE_DEFAULT,
-          completion,
-          completion.length,
-          0,
-          importElem.isDeprecated,
-          false);
-      LibraryElement lib = importElem.importedLibrary;
-      if (lib != null) {
-        suggestion.element = convertElement(lib);
-      }
-      libraryPrefixSuggestions.add(suggestion);
-      _importedCompletions.add(suggestion.completion);
     }
   }
 

@@ -4,8 +4,6 @@
 
 library test.services.completion.toplevel;
 
-import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
-    show Element, ElementKind;
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
@@ -33,7 +31,6 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     DartCompletionCache cache = request.cache;
     if (!isCached(cache.importedTypeSuggestions, completion) &&
         !isCached(cache.importedVoidReturnSuggestions, completion) &&
-        !isCached(cache.libraryPrefixSuggestions, completion) &&
         !isCached(cache.otherImportedSuggestions, completion)) {
       fail('expected $completion to be cached');
     }
@@ -116,7 +113,6 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     DartCompletionCache cache = request.cache;
     if (isCached(cache.importedTypeSuggestions, completion) ||
         isCached(cache.importedVoidReturnSuggestions, completion) ||
-        isCached(cache.libraryPrefixSuggestions, completion) ||
         isCached(cache.otherImportedSuggestions, completion)) {
       fail('expected $completion NOT to be cached');
     }
@@ -201,21 +197,6 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
       String importUri]) {
     return assertSuggestTopLevelVar(
         name, returnType, relevance, kind, importUri);
-  }
-
-  @override
-  CompletionSuggestion assertSuggestLibraryPrefix(String prefix,
-      [int relevance = DART_RELEVANCE_DEFAULT,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION]) {
-    CompletionSuggestion cs =
-        assertSuggest(prefix, csKind: kind, relevance: relevance);
-    protocol.Element element = cs.element;
-    expect(element, isNotNull);
-    expect(element.kind, equals(protocol.ElementKind.LIBRARY));
-    expect(element.parameters, isNull);
-    expect(element.returnType, isNull);
-    assertHasNoParameterInfo(cs);
-    return cs;
   }
 
   fail_enum_deprecated() {
@@ -552,7 +533,8 @@ main() {new ^ String x = "hello";}''');
       expect(suggestion.requiredParameterCount, 0);
       expect(suggestion.hasNamedParameters, true);
 
-      assertSuggestLibraryPrefix('math');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('math');
     });
   }
 

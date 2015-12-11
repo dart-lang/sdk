@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific
@@ -111,8 +112,22 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   @override
   Source librarySource;
 
+  OpType _opType;
+
   @override
   CompletionTarget target;
+
+  @override
+  bool get includeIdentifiers {
+    if (_opType == null) {
+      _opType = new OpType.forCompletion(target, offset);
+    }
+    return !_opType.isPrefixed &&
+        (_opType.includeReturnValueSuggestions ||
+            _opType.includeTypeNameSuggestions ||
+            _opType.includeVoidReturnSuggestions ||
+            _opType.includeConstructorSuggestions);
+  }
 
   @override
   LibraryElement get libraryElement {
@@ -190,6 +205,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
    * Update the completion [target] and [dotTarget] based on the given [unit].
    */
   void _updateTargets(CompilationUnit unit) {
+    _opType = null;
     dotTarget = null;
     target = new CompletionTarget.forOffset(unit, offset);
     AstNode node = target.containingNode;

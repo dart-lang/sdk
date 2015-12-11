@@ -1290,7 +1290,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
-      assertSuggestLibraryPrefix('g');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('g');
       assertNotSuggested('G');
       //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
@@ -1401,7 +1402,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
-      assertSuggestLibraryPrefix('g');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('g');
       assertNotSuggested('G');
       //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
@@ -1524,7 +1526,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
-      assertSuggestLibraryPrefix('g');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('g');
       assertNotSuggested('G');
       //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
@@ -1631,7 +1634,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedClass('EE');
       // hidden element suggested as low relevance
       //assertSuggestImportedClass('F', COMPLETION_RELEVANCE_LOW);
-      assertSuggestLibraryPrefix('g');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('g');
       assertNotSuggested('G');
       //assertSuggestImportedClass('H', COMPLETION_RELEVANCE_LOW);
       assertSuggestImportedClass('Object');
@@ -2078,7 +2082,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
         expect(suggestionO.element.isPrivate, isFalse);
       }
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2101,7 +2106,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('Object');
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2124,7 +2130,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('String');
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2147,7 +2154,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('String');
       assertNotSuggested('Sew');
-      assertSuggestLibraryPrefix('Soo');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('Soo');
     });
   }
 
@@ -2170,7 +2178,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('Object');
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
@@ -2193,7 +2202,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestLocalClass('_B');
       assertSuggestImportedClass('Object');
       assertNotSuggested('T');
-      assertSuggestLibraryPrefix('x');
+      // Suggested by LibraryPrefixContributor
+      assertNotSuggested('x');
     });
   }
 
