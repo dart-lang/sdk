@@ -664,11 +664,6 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return assertNotSuggested(name);
   }
 
-  CompletionSuggestion assertSuggestLocalConstructor(String name,
-      {int elemOffset}) {
-    return assertNotSuggested(name);
-  }
-
   CompletionSuggestion assertSuggestLocalField(String name, String type,
       {int relevance: DART_RELEVANCE_LOCAL_FIELD, bool deprecated: false}) {
     return assertNotSuggested(name);
@@ -3026,8 +3021,9 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedConstructor('Object');
       assertSuggestImportedConstructor('Future');
       assertSuggestImportedConstructor('A');
-      assertSuggestLocalConstructor('B');
-      assertSuggestLocalConstructor('C');
+      // Suggested by ConstructorContributor
+      assertNotSuggested('B');
+      assertNotSuggested('C');
       assertNotSuggested('f');
       assertNotSuggested('x');
       assertNotSuggested('foo');
@@ -3752,7 +3748,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestLocalConstructor('B.bar');
+      // Suggested by ConstructorContributor
+      assertNotSuggested('B.bar');
       assertSuggestImportedConstructor('Object');
       assertSuggestImportedConstructor('X.c');
       assertNotSuggested('X._d');
@@ -3790,7 +3787,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      assertSuggestLocalConstructor('A');
+      // Suggested by ConstructorContributor
+      assertNotSuggested('A');
       assertSuggestImportedConstructor('Object');
       assertSuggestImportedConstructor('X.c');
       assertNotSuggested('X._d');
