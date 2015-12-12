@@ -12,22 +12,22 @@ import '../utilities/server.dart';
 /**
  * An operation that will send an 'analysis.updateContent' request.
  */
-class AnalysisUpdateContent extends ServerOperation {
+class Analysis_UpdateContent extends ServerOperation {
   /**
    * The path of the file whose content is being updated.
    */
-  String filePath;
+  final String filePath;
 
   /**
    * The overlay used to update the content.
    */
-  dynamic overlay;
+  final dynamic overlay;
 
   /**
    * Initialize an operation to send an 'analysis.updateContent' request with
    * the given [filePath] and [overlay] as parameters.
    */
-  AnalysisUpdateContent(this.filePath, this.overlay);
+  Analysis_UpdateContent(this.filePath, this.overlay);
 
   @override
   void perform(Server server) {
@@ -42,6 +42,32 @@ class AnalysisUpdateContent extends ServerOperation {
 //        }
 //      }
 //    }
+  }
+}
+
+/**
+ * An operation that will send a 'completion.getSuggestions' request.
+ */
+class Completion_GetSuggestions extends ServerOperation {
+  /**
+   * The path of the file in which completions are being requested.
+   */
+  final String filePath;
+
+  /**
+   * The offset at which completions are being requested.
+   */
+  final int offset;
+
+  /**
+   * Initialize an operation to send a 'completion.getSuggestions' request with
+   * the given [filePath] and [offset] as parameters.
+   */
+  Completion_GetSuggestions(this.filePath, this.offset);
+
+  @override
+  void perform(Server server) {
+    server.sendCompletionGetSuggestions(filePath, offset);
   }
 }
 

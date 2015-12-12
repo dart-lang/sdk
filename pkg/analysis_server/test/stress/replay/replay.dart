@@ -11,7 +11,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analyzer/src/generated/error.dart' as error;
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:args/args.dart';
@@ -34,9 +36,29 @@ Future main(List<String> arguments) async {
  */
 class Driver {
   /**
+   * The value of the [OVERLAY_STYLE_OPTION_NAME] indicating that modifications
+   * to a file should be represented by an add overlay, followed by zero or more
+   * change overlays, followed by a remove overlay.
+   */
+  static String CHANGE_OVERLAY_STYLE = 'change';
+
+  /**
    * The name of the command-line flag that will print help text.
    */
   static String HELP_FLAG_NAME = 'help';
+
+  /**
+   * The value of the [OVERLAY_STYLE_OPTION_NAME] indicating that modifications
+   * to a file should be represented by an add overlay, followed by zero or more
+   * additional add overlays, followed by a remove overlay.
+   */
+  static String MULTIPLE_ADD_OVERLAY_STYLE = 'multipleAdd';
+
+  /**
+   * The name of the command-line option used to specify the style of
+   * interaction to use when making `analysis.updateContent` requests.
+   */
+  static String OVERLAY_STYLE_OPTION_NAME = 'overlay-style';
 
   /**
    * The name of the pubspec file.
@@ -47,6 +69,11 @@ class Driver {
    * The name of the branch used to clean-up after making temporary changes.
    */
   static const String TEMP_BRANCH_NAME = 'temp';
+
+  /**
+   * The style of interaction to use for analysis.updateContent requests.
+   */
+  OverlayStyle overlayStyle;
 
   /**
    * The absolute path of the repository.
@@ -87,75 +114,24 @@ class Driver {
   }
 
   /**
-   * Run the test based on the given command-line arguments ([args]).
+   * Run the simulation based on the given command-line arguments ([args]).
    */
   Future run(List<String> args) async {
     //
     // Process the command-line arguments.
     //
-    ArgParser parser = _createArgParser();
-    ArgResults results;
-    try {
-      results = parser.parse(args);
-    } catch (exception) {
-      _showUsage(parser);
+    if (!_processCommandLine(args)) {
       return null;
-    }
-
-    if (results[HELP_FLAG_NAME]) {
-      _showUsage(parser);
-      return null;
-    }
-
-    List<String> arguments = results.arguments;
-    if (arguments.length < 2) {
-      _showUsage(parser);
-      return null;
-    }
-    repositoryPath = path.normalize(arguments[0]);
-    repository = new GitRepository(repositoryPath);
-
-    analysisRoots = arguments
-        .sublist(1)
-        .map((String analysisRoot) => path.normalize(analysisRoot))
-        .toList();
-    for (String analysisRoot in analysisRoots) {
-      if (repositoryPath != analysisRoot &&
-          !path.isWithin(repositoryPath, analysisRoot)) {
-        _showUsage(parser,
-            'Analysis roots must be contained within the repository: $analysisRoot');
-        return null;
-      }
     }
     //
-    // Replay the commit history.
+    // Simulate interactions with the server.
     //
-    Stopwatch stopwatch = new Stopwatch();
-    statistics.stopwatch = stopwatch;
-    stopwatch.start();
-    await server.start();
-    server.sendServerSetSubscriptions([ServerService.STATUS]);
-    server.sendAnalysisSetGeneralSubscriptions(
-        [GeneralAnalysisService.ANALYZED_FILES]);
-    // TODO(brianwilkerson) Get the list of glob patterns from the server after
-    // an API for getting them has been implemented.
-    fileGlobs = <Glob>[
-      new Glob(path.context.separator, '**.dart'),
-      new Glob(path.context.separator, '**.html'),
-      new Glob(path.context.separator, '**.htm'),
-      new Glob(path.context.separator, '**/.analysisOptions')
-    ];
-    try {
-      _replayChanges();
-    } finally {
-      server.sendServerShutdown();
-      repository.checkout('master');
-    }
-    stopwatch.stop();
+    await _runSimulation();
     //
     // Print out statistics gathered while performing the simulation.
     //
     statistics.print();
+    exit(0);
     return null;
   }
 
@@ -170,24 +146,63 @@ class Driver {
         help: 'Print usage information',
         defaultsTo: false,
         negatable: false);
+
+    parser.addOption(OVERLAY_STYLE_OPTION_NAME,
+        help:
+            'The style of interaction to use for analysis.updateContent requests',
+        allowed: [CHANGE_OVERLAY_STYLE, MULTIPLE_ADD_OVERLAY_STYLE],
+        allowedHelp: {
+          CHANGE_OVERLAY_STYLE: '<add> <change>* <remove>',
+          MULTIPLE_ADD_OVERLAY_STYLE: '<add>+ <remove>'
+        },
+        defaultsTo: 'change');
     return parser;
   }
 
+  /**
+   * Add source edits to the given [fileEdit] based on the given [blobDiff].
+   */
   void _createSourceEdits(FileEdit fileEdit, BlobDiff blobDiff) {
     LineInfo info = fileEdit.lineInfo;
     for (DiffHunk hunk in blobDiff.hunks) {
-      List<SourceEdit> sourceEdits = <SourceEdit>[];
       int srcStart = info.getOffsetOfLine(hunk.srcLine);
       int srcEnd = info.getOffsetOfLine(hunk.srcLine + hunk.removeLines.length);
-      // TODO(brianwilkerson) Create multiple edits instead of a single edit.
-      sourceEdits.add(new SourceEdit(
-          srcStart, srcEnd - srcStart + 1, _join(hunk.addLines)));
+      String addedText = _join(hunk.addLines);
+      //
+      // Create the source edits.
+      //
+      List<int> breakOffsets = _getBreakOffsets(addedText);
+      int breakCount = breakOffsets.length;
+      List<SourceEdit> sourceEdits = <SourceEdit>[];
+      if (breakCount == 0) {
+        sourceEdits
+            .add(new SourceEdit(srcStart, srcEnd - srcStart + 1, addedText));
+      } else {
+        int previousOffset = breakOffsets[0];
+        String string = addedText.substring(0, previousOffset);
+        sourceEdits
+            .add(new SourceEdit(srcStart, srcEnd - srcStart + 1, string));
+        String reconstruction = string;
+        for (int i = 1; i < breakCount; i++) {
+          int offset = breakOffsets[i];
+          string = addedText.substring(previousOffset, offset);
+          reconstruction += string;
+          sourceEdits.add(new SourceEdit(srcStart + previousOffset, 0, string));
+          previousOffset = offset;
+        }
+        string = addedText.substring(previousOffset);
+        reconstruction += string;
+        sourceEdits.add(new SourceEdit(srcStart + previousOffset, 0, string));
+        if (reconstruction != addedText) {
+          throw new AssertionError();
+        }
+      }
       fileEdit.addSourceEdits(sourceEdits);
     }
   }
 
   /**
-   * Return athe absolute paths of all of the pubspec files in all of the
+   * Return the absolute paths of all of the pubspec files in all of the
    * analysis roots.
    */
   Iterable<String> _findPubspecsInAnalysisRoots() {
@@ -206,6 +221,33 @@ class Driver {
     return pubspecFiles;
   }
 
+  /**
+   * Return a list of offsets into the given [text] that represent good places
+   * to break the text when building edits.
+   */
+  List<int> _getBreakOffsets(String text) {
+    List<int> breakOffsets = <int>[];
+    Scanner scanner = new Scanner(null, new CharSequenceReader(text),
+        error.AnalysisErrorListener.NULL_LISTENER);
+    Token token = scanner.tokenize();
+    // TODO(brianwilkerson) Randomize. Sometimes add zero (0) as a break point.
+    while (token.type != TokenType.EOF) {
+      // TODO(brianwilkerson) Break inside comments?
+//      Token comment = token.precedingComments;
+      int offset = token.offset;
+      int length = token.length;
+      breakOffsets.add(offset);
+      if (token.type == TokenType.IDENTIFIER && length > 3) {
+        breakOffsets.add(offset + (length ~/ 2));
+      }
+      token = token.next;
+    }
+    return breakOffsets;
+  }
+
+  /**
+   * Join the given [lines] into a single string.
+   */
   String _join(List<String> lines) {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < lines.length; i++) {
@@ -215,9 +257,58 @@ class Driver {
   }
 
   /**
+   * Process the command-line [arguments]. Return `true` if the simulation
+   * should be run.
+   */
+  bool _processCommandLine(List<String> args) {
+    ArgParser parser = _createArgParser();
+    ArgResults results;
+    try {
+      results = parser.parse(args);
+    } catch (exception) {
+      _showUsage(parser);
+      return false;
+    }
+
+    if (results[HELP_FLAG_NAME]) {
+      _showUsage(parser);
+      return false;
+    }
+
+    String overlayStyleValue = results[OVERLAY_STYLE_OPTION_NAME];
+    if (overlayStyleValue == CHANGE_OVERLAY_STYLE) {
+      overlayStyle = OverlayStyle.change;
+    } else if (overlayStyleValue == MULTIPLE_ADD_OVERLAY_STYLE) {
+      overlayStyle = OverlayStyle.multipleAdd;
+    }
+
+    List<String> arguments = results.arguments;
+    if (arguments.length < 2) {
+      _showUsage(parser);
+      return false;
+    }
+    repositoryPath = path.normalize(arguments[0]);
+    repository = new GitRepository(repositoryPath);
+
+    analysisRoots = arguments
+        .sublist(1)
+        .map((String analysisRoot) => path.normalize(analysisRoot))
+        .toList();
+    for (String analysisRoot in analysisRoots) {
+      if (repositoryPath != analysisRoot &&
+          !path.isWithin(repositoryPath, analysisRoot)) {
+        _showUsage(parser,
+            'Analysis roots must be contained within the repository: $analysisRoot');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Replay the changes in each commit.
    */
-  void _replayChanges() {
+  Future _replayChanges() async {
     //
     // Get the revision history of the repo.
     //
@@ -228,17 +319,26 @@ class Driver {
     // Iterate over the history, applying changes.
     //
     bool firstCheckout = true;
-//    Map<String, List<AnalysisError>> expectedErrors = null;
+    ErrorMap expectedErrors = null;
     Iterable<String> changedPubspecs;
     while (iterator.moveNext()) {
       //
       // Checkout the commit on which the changes are based.
       //
-      repository.checkout(iterator.srcCommit);
-//      if (expectedErrors != null) {
-//        await server.analysisFinished;
-//        server.expectErrorState(expectedErrors);
-//      }
+      String commit = iterator.srcCommit;
+      repository.checkout(commit);
+      if (expectedErrors != null) {
+        ErrorMap actualErrors =
+            await server.computeErrorMap(server.analyzedDartFiles);
+        String difference = expectedErrors.expectErrorMap(actualErrors);
+        if (difference != null) {
+          stdout.write('Mismatched errors after commit ');
+          stdout.writeln(commit);
+          stdout.writeln();
+          stdout.writeln(difference);
+          return;
+        }
+      }
       if (firstCheckout) {
         changedPubspecs = _findPubspecsInAnalysisRoots();
         server.sendAnalysisSetAnalysisRoots(analysisRoots, []);
@@ -246,8 +346,7 @@ class Driver {
       } else {
         server.removeAllOverlays();
       }
-//      await server.analysisFinished;
-//      expectedErrors = server.errorMap;
+      expectedErrors = await server.computeErrorMap(server.analyzedDartFiles);
       for (String filePath in changedPubspecs) {
         _runPub(filePath);
       }
@@ -261,20 +360,28 @@ class Driver {
         _replayDiff(commitDelta);
       }
       changedPubspecs = commitDelta.filesMatching(PUBSPEC_FILE_NAME);
+      stdout.write('.');
     }
     server.removeAllOverlays();
+    stdout.writeln();
   }
 
+  /**
+   * Replay the changes between two commits, as represented by the given
+   * [commitDelta].
+   */
   void _replayDiff(CommitDelta commitDelta) {
     List<FileEdit> editList = <FileEdit>[];
     for (DiffRecord record in commitDelta.diffRecords) {
-      FileEdit edit = new FileEdit(record);
+      FileEdit edit = new FileEdit(overlayStyle, record);
       _createSourceEdits(edit, record.getBlobDiff());
       editList.add(edit);
     }
+    //
     // TODO(brianwilkerson) Randomize.
     // Randomly select operations from different files to simulate a user
     // editing multiple files simultaneously.
+    //
     for (FileEdit edit in editList) {
       List<String> currentFile = <String>[edit.filePath];
       server.sendAnalysisSetPriorityFiles(currentFile);
@@ -303,6 +410,34 @@ class Driver {
           '/Users/brianwilkerson/Dev/dart/dart-sdk/bin/pub', ['get'],
           workingDirectory: directoryPath);
     }
+  }
+
+  /**
+   * Run the simulation by starting up a server and sending it requests.
+   */
+  Future _runSimulation() async {
+    Stopwatch stopwatch = new Stopwatch();
+    statistics.stopwatch = stopwatch;
+    stopwatch.start();
+    await server.start();
+    server.sendServerSetSubscriptions([ServerService.STATUS]);
+    server.sendAnalysisSetGeneralSubscriptions(
+        [GeneralAnalysisService.ANALYZED_FILES]);
+    // TODO(brianwilkerson) Get the list of glob patterns from the server after
+    // an API for getting them has been implemented.
+    fileGlobs = <Glob>[
+      new Glob(path.context.separator, '**.dart'),
+      new Glob(path.context.separator, '**.html'),
+      new Glob(path.context.separator, '**.htm'),
+      new Glob(path.context.separator, '**/.analysisOptions')
+    ];
+    try {
+      await _replayChanges();
+    } finally {
+      server.sendServerShutdown();
+      repository.checkout('master');
+    }
+    stopwatch.stop();
   }
 
   /**
@@ -338,6 +473,11 @@ OPTIONS:''');
  */
 class FileEdit {
   /**
+   * The style of interaction to use for analysis.updateContent requests.
+   */
+  OverlayStyle overlayStyle;
+
+  /**
    * The absolute path of the file to be edited.
    */
   String filePath;
@@ -358,10 +498,16 @@ class FileEdit {
   List<List<SourceEdit>> editLists = <List<SourceEdit>>[];
 
   /**
+   * The current content of the file. This field is only used if the overlay
+   * style is [OverlayStyle.multipleAdd].
+   */
+  String currentContent;
+
+  /**
    * Initialize a collection of edits to be associated with the file at the
    * given [filePath].
    */
-  FileEdit(DiffRecord record) {
+  FileEdit(this.overlayStyle, DiffRecord record) {
     filePath = record.srcPath;
     if (record.isAddition) {
       content = '';
@@ -372,6 +518,7 @@ class FileEdit {
       content = new File(filePath).readAsStringSync();
       lineInfo = new LineInfo(StringUtilities.computeLineStarts(content));
     }
+    currentContent = content;
   }
 
   /**
@@ -386,23 +533,41 @@ class FileEdit {
    * Return a list of operations to be sent to the server.
    */
   List<ServerOperation> getOperations() {
+    List<ServerOperation> operations = <ServerOperation>[];
+    void addUpdateContent(var overlay) {
+      operations.add(new Analysis_UpdateContent(filePath, overlay));
+    }
+
     // TODO(brianwilkerson) Randomize.
     // Make the order of edits random. Doing so will require updating the
     // offsets of edits after the selected edit point.
-    List<ServerOperation> operations = <ServerOperation>[];
-    operations.add(
-        new AnalysisUpdateContent(filePath, new AddContentOverlay(content)));
+    addUpdateContent(new AddContentOverlay(content));
     for (List<SourceEdit> editList in editLists.reversed) {
       for (SourceEdit edit in editList.reversed) {
-        operations.add(new AnalysisUpdateContent(
-            filePath, new ChangeContentOverlay([edit])));
+        var overlay = null;
+        if (overlayStyle == OverlayStyle.change) {
+          overlay = new ChangeContentOverlay([edit]);
+        } else if (overlayStyle == OverlayStyle.multipleAdd) {
+          currentContent = edit.apply(currentContent);
+          overlay = new AddContentOverlay(currentContent);
+        } else {
+          throw new StateError(
+              'Failed to handle overlay style = $overlayStyle');
+        }
+        if (overlay != null) {
+          addUpdateContent(overlay);
+        }
       }
     }
-    operations
-        .add(new AnalysisUpdateContent(filePath, new RemoveContentOverlay()));
+    addUpdateContent(new RemoveContentOverlay());
     return operations;
   }
 }
+
+/**
+ * The possible styles of interaction to use for analysis.updateContent requests.
+ */
+enum OverlayStyle { change, multipleAdd }
 
 /**
  * A set of statistics related to the execution of the simulation.
@@ -434,6 +599,9 @@ class Statistics {
    */
   Statistics(this.driver);
 
+  /**
+   * Print the statistics to [stdout].
+   */
   void print() {
     stdout.write('Replay commits in ');
     stdout.writeln(driver.repositoryPath);
@@ -447,6 +615,10 @@ class Statistics {
     stdout.writeln(commitsWithChangeInRootCount);
   }
 
+  /**
+   * Return a textual representation of the given duration, represented in
+   * [milliseconds].
+   */
   String _printTime(int milliseconds) {
     int seconds = milliseconds ~/ 1000;
     milliseconds -= seconds * 1000;
