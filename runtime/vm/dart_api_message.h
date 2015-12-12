@@ -6,7 +6,10 @@
 #define VM_DART_API_MESSAGE_H_
 
 #include "include/dart_native_api.h"
+#include "platform/utils.h"
+#include "vm/allocation.h"
 #include "vm/dart_api_state.h"
+#include "vm/raw_object.h"
 #include "vm/snapshot.h"
 
 namespace dart {
@@ -199,6 +202,48 @@ class ApiMessageWriter : public BaseWriter {
   intptr_t forward_id_;
 
   DISALLOW_COPY_AND_ASSIGN(ApiMessageWriter);
+};
+
+
+// This class handles translation of certain RawObjects to CObjects for
+// NativeMessageHandlers.
+//
+// TODO(zra): Expand to support not only null, but also other VM heap objects
+// as well.
+class ApiObjectConverter : public AllStatic {
+ public:
+  static bool CanConvert(RawObject* raw_obj) {
+    return !raw_obj->IsHeapObject() || (raw_obj == Object::null());
+  }
+
+  static bool Convert(RawObject* raw_obj, Dart_CObject* c_obj) {
+    if (!raw_obj->IsHeapObject()) {
+      ConvertSmi(reinterpret_cast<RawSmi*>(raw_obj), c_obj);
+    } else if (raw_obj == Object::null()) {
+      ConvertNull(c_obj);
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+ private:
+  static void ConvertSmi(RawSmi* raw_smi, Dart_CObject* c_obj) {
+    ASSERT(!raw_smi->IsHeapObject());
+    intptr_t value = Smi::Value(raw_smi);
+    if (Utils::IsInt(31, value)) {
+      c_obj->type = Dart_CObject_kInt32;
+      c_obj->value.as_int32 = static_cast<int32_t>(value);
+    } else {
+      c_obj->type = Dart_CObject_kInt64;
+      c_obj->value.as_int64 = static_cast<int64_t>(value);
+    }
+  }
+
+  static void ConvertNull(Dart_CObject* c_obj) {
+    c_obj->type = Dart_CObject_kNull;
+    c_obj->value.as_int64 = 0;
+  }
 };
 
 }  // namespace dart

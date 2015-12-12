@@ -151,6 +151,34 @@ TEST_CASE(PortMap_PostMessage) {
 }
 
 
+TEST_CASE(PortMap_PostIntegerMessage) {
+  PortTestMessageHandler handler;
+  Dart_Port port = PortMap::CreatePort(&handler);
+  EXPECT_EQ(0, handler.notify_count);
+
+  EXPECT(PortMap::PostMessage(new Message(
+      port, Smi::New(42), Message::kNormalPriority)));
+
+  // Check that the message notify callback was called.
+  EXPECT_EQ(1, handler.notify_count);
+  PortMap::ClosePorts(&handler);
+}
+
+
+TEST_CASE(PortMap_PostNullMessage) {
+  PortTestMessageHandler handler;
+  Dart_Port port = PortMap::CreatePort(&handler);
+  EXPECT_EQ(0, handler.notify_count);
+
+  EXPECT(PortMap::PostMessage(new Message(
+      port, Object::null(), Message::kNormalPriority)));
+
+  // Check that the message notify callback was called.
+  EXPECT_EQ(1, handler.notify_count);
+  PortMap::ClosePorts(&handler);
+}
+
+
 TEST_CASE(PortMap_PostMessageClosedPort) {
   // Create a port id and make it invalid.
   PortTestMessageHandler handler;

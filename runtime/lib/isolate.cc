@@ -8,6 +8,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_message.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/lockers.h"
@@ -106,18 +107,22 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   // TODO(iposva): Allow for arbitrary messages to be sent.
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
-  uint8_t* data = NULL;
-
   const Dart_Port destination_port_id = port.Id();
   const bool can_send_any_object = isolate->origin_id() == port.origin_id();
 
-  MessageWriter writer(&data, &allocator, can_send_any_object);
-  writer.WriteMessage(obj);
+  if (ApiObjectConverter::CanConvert(obj.raw())) {
+    PortMap::PostMessage(new Message(
+        destination_port_id, obj.raw(), Message::kNormalPriority));
+  } else {
+    uint8_t* data = NULL;
+    MessageWriter writer(&data, &allocator, can_send_any_object);
+    writer.WriteMessage(obj);
 
-  // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(destination_port_id,
-                                   data, writer.BytesWritten(),
-                                   Message::kNormalPriority));
+    // TODO(turnidge): Throw an exception when the return value is false?
+    PortMap::PostMessage(new Message(destination_port_id,
+                                     data, writer.BytesWritten(),
+                                     Message::kNormalPriority));
+  }
   return Object::null();
 }
 

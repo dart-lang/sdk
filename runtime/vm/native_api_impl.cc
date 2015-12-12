@@ -56,6 +56,18 @@ DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
 }
 
 
+DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
+  if (Smi::IsValid(message)) {
+    return PortMap::PostMessage(new Message(
+        port_id, Smi::New(message), Message::kNormalPriority));
+  }
+  Dart_CObject cobj;
+  cobj.type = Dart_CObject_kInt64;
+  cobj.value.as_int64 = message;
+  return Dart_PostCObject(port_id, &cobj);
+}
+
+
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,
                                          bool handle_concurrently) {

@@ -1584,10 +1584,19 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 DART_EXPORT bool Dart_Post(Dart_Port port_id, Dart_Handle handle) {
   DARTSCOPE(Thread::Current());
+  NoSafepointScope no_safepoint_scope;
   if (port_id == ILLEGAL_PORT) {
     return false;
   }
-  const Object& object = Object::Handle(Z, Api::UnwrapHandle(handle));
+
+  // Smis and null can be sent without serialization.
+  RawObject* raw_obj = Api::UnwrapHandle(handle);
+  if (ApiObjectConverter::CanConvert(raw_obj)) {
+    return PortMap::PostMessage(new Message(
+        port_id, raw_obj, Message::kNormalPriority));
+  }
+
+  const Object& object = Object::Handle(Z, raw_obj);
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator, false);
   writer.WriteMessage(object);

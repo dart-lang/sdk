@@ -74,7 +74,7 @@ var tests = [
   for (var message in stack['messages']) {
     print('checking message $messageDepth');
     expect(message.index, equals(messageDepth++));
-    expect(message.size, greaterThanOrEqualTo(1));
+    expect(message.size, greaterThanOrEqualTo(0));
     expect(message.handler.type, equals('Function'));
     expect(message.location.type, equals('SourceLocation'));
     if (message.handler.name.contains('msgHandler')) {

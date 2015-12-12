@@ -42,9 +42,22 @@ MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
   // All allocation of objects for decoding the message is done in the
   // zone associated with this scope.
   ApiNativeScope scope;
-  ApiMessageReader reader(message->data(), message->len());
-  Dart_CObject* object = reader.ReadMessage();
-  (*func())(message->dest_port(), object);
+
+  if (message->IsRaw()) {
+    // TODO(zra): This should be folded into ApiMessageReader. This will likely
+    // require ApiMessageReader to have a constructor that takes a Message*.
+    ASSERT(ApiObjectConverter::CanConvert(message->raw_obj()));
+    Dart_CObject object;
+    bool success = ApiObjectConverter::Convert(message->raw_obj(), &object);
+    ASSERT(success);
+    (*func())(message->dest_port(), &object);
+  } else {
+    Dart_CObject* object;
+    ApiMessageReader reader(message->data(), message->len());
+    object = reader.ReadMessage();
+    (*func())(message->dest_port(), object);
+  }
+
   delete message;
   return kOK;
 }

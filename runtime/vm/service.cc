@@ -1445,10 +1445,14 @@ static RawObject* LookupHeapObjectMessage(Thread* thread,
     // The user may try to load an expired message.
     return Object::sentinel().raw();
   }
-  MessageSnapshotReader reader(message->data(),
-                               message->len(),
-                               thread);
-  return reader.ReadObject();
+  if (message->len() > 0) {
+    MessageSnapshotReader reader(message->data(),
+                                 message->len(),
+                                 thread);
+    return reader.ReadObject();
+  } else {
+    return message->raw_obj();
+  }
 }
 
 
