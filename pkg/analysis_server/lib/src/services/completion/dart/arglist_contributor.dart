@@ -24,14 +24,6 @@ int _argCount(DartCompletionRequest request) {
   return 0;
 }
 
-String _getParamType(ParameterElement param) {
-  DartType type = param.type;
-  if (type != null) {
-    return type.displayName;
-  }
-  return 'dynamic';
-}
-
 /**
  * If the containing [node] is an argument list
  * or named expression in an argument list
@@ -190,6 +182,14 @@ class ArgListContributor extends DartCompletionContributor {
   void _addArgListSuggestion(Iterable<ParameterElement> requiredParam) {
     // DEPRECATED... argument lists are no longer suggested.
     // See https://github.com/dart-lang/sdk/issues/25197
+
+    // String _getParamType(ParameterElement param) {
+    //   DartType type = param.type;
+    //   if (type != null) {
+    //     return type.displayName;
+    //   }
+    //   return 'dynamic';
+    // }
 
     // StringBuffer completion = new StringBuffer('(');
     // List<String> paramNames = new List<String>();

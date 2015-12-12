@@ -8130,7 +8130,6 @@ abstract class Member implements Element {
    * Return the type that results from replacing the type parameters in the
    * given [type] with the type arguments associated with this member.
    */
-  @deprecated
   DartType substituteFor(DartType type) {
     if (type == null) {
       return null;
