@@ -129,11 +129,8 @@ class EnumTest {
         .run(convertElementKind, exceptions: {
       // TODO(paulberry): do any of the exceptions below constitute bugs?
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
-      engine.ElementKind.EMBEDDED_HTML_SCRIPT: ElementKind.UNKNOWN,
       engine.ElementKind.ERROR: ElementKind.UNKNOWN,
       engine.ElementKind.EXPORT: ElementKind.UNKNOWN,
-      engine.ElementKind.EXTERNAL_HTML_SCRIPT: ElementKind.UNKNOWN,
-      engine.ElementKind.HTML: ElementKind.UNKNOWN,
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN
