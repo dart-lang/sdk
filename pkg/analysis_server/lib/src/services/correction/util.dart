@@ -726,7 +726,7 @@ class CorrectionUtils {
       result.offset = prevDirective.end;
       String eol = endOfLine;
       if (prevDirective is LibraryDirective) {
-        result.prefix = "${eol}${eol}";
+        result.prefix = "$eol$eol";
       } else {
         result.prefix = eol;
       }
@@ -753,7 +753,7 @@ class CorrectionUtils {
       if (prevDirective is PartDirective) {
         result.prefix = eol;
       } else {
-        result.prefix = "${eol}${eol}";
+        result.prefix = "$eol$eol";
       }
       return result;
     }
@@ -1133,7 +1133,7 @@ class CorrectionUtils {
       }
       // update line
       if (right) {
-        line = "${indent}${line}";
+        line = "$indent$line";
       } else {
         line = removeStart(line, indent);
       }
@@ -1204,7 +1204,7 @@ class CorrectionUtils {
       lineOffset += line.length + eol.length;
       // update line indent
       if (!inString) {
-        line = "${newIndent}${removeStart(line, oldIndent)}";
+        line = "$newIndent${removeStart(line, oldIndent)}";
       }
       // append line
       sb.write(line);
@@ -1300,10 +1300,10 @@ class CorrectionUtils {
       String typeSource = getNodeText(isExpression.type);
       if (isExpression.notOperator == null) {
         return _InvertedCondition
-            ._simple("${expressionSource} is! ${typeSource}");
+            ._simple("$expressionSource is! $typeSource");
       } else {
         return _InvertedCondition
-            ._simple("${expressionSource} is ${typeSource}");
+            ._simple("$expressionSource is $typeSource");
       }
     }
     if (expression is PrefixExpression) {
@@ -1460,7 +1460,7 @@ class _InvertedCondition {
       _InvertedCondition left, String operation, _InvertedCondition right) {
     // TODO(scheglov) consider merging with "_binary()" after testing
     return new _InvertedCondition(
-        1 << 20, "${left._source}${operation}${right._source}");
+        1 << 20, "${left._source}$operation${right._source}");
   }
 
   /**

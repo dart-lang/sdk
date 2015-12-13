@@ -142,7 +142,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
           haveIntersectingRanges(refactoring.element, nodeElement)) {
         conflictingLocals.add(nodeElement);
         String nodeKind = nodeElement.kind.displayName;
-        String message = "Duplicate ${nodeKind} '$newName'.";
+        String message = "Duplicate $nodeKind '$newName'.";
         result.addError(message, newLocation_fromElement(nodeElement));
         return;
       }

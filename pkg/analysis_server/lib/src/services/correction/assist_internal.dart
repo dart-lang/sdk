@@ -962,7 +962,7 @@ class AssistProcessor {
         variableList.type != null ? _getNodeText(variableList.type) + ' ' : '';
     String getterCode = '$eol2  ${typeNameCode}get $name => _$name;';
     String setterCode = '$eol2'
-        '  void set $name(${typeNameCode}$name) {$eol'
+        '  void set $name($typeNameCode$name) {$eol'
         '    _$name = $name;$eol'
         '  }';
     _addInsertEdit(fieldDeclaration.end, getterCode + setterCode);

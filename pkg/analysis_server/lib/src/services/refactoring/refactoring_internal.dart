@@ -101,5 +101,5 @@ class SourceReference {
   }
 
   @override
-  String toString() => '${file}@${range}';
+  String toString() => '$file@$range';
 }

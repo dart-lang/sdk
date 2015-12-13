@@ -1665,7 +1665,7 @@ main(A a, p) {
     for (RecordedRelation recordedRelation in recordedRelations) {
       if (_equalsRecordedRelation(
           recordedRelation, expectedIndexable, relationship, location)) {
-        fail('not expected: ${recordedRelation} in\n' +
+        fail('not expected: $recordedRelation in\n' +
             recordedRelations.join('\n'));
       }
     }

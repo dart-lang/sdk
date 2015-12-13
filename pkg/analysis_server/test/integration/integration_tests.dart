@@ -582,7 +582,7 @@ class Server {
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(UTF8.encoder.convert("${line}\n"));
+    _process.stdin.add(UTF8.encoder.convert("$line\n"));
     return completer.future;
   }
 

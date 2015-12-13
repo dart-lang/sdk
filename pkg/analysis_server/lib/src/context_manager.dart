@@ -1566,7 +1566,7 @@ class PackagesFileDisposition extends FolderDisposition {
   @override
   final Packages packages;
 
-  PackagesFileDisposition(this.packages) {}
+  PackagesFileDisposition(this.packages);
 
   @override
   String get packageRoot => null;

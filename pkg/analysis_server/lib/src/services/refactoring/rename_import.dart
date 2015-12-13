@@ -60,7 +60,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       } else {
         if (prefix == null) {
           SourceRange range = rangeStartLength(element.uriEnd, 0);
-          edit = newSourceEdit_range(range, " as ${newName}");
+          edit = newSourceEdit_range(range, " as $newName");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.nameLength;

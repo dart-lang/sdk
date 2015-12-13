@@ -523,7 +523,7 @@ class _ReferenceProcessor {
             ref._methodExpressionPart, _refUtils, usage, target, arguments);
         if (getExpressionPrecedence(ref._methodExpression) <
             getExpressionParentPrecedence(usage)) {
-          source = "(${source})";
+          source = "($source)";
         }
         // do replace
         SourceRange methodUsageRange = rangeNode(usage);

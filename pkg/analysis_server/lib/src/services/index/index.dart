@@ -307,7 +307,7 @@ class LocationImpl implements Location {
     if (isResolved) {
       flagsStr += ' resolved';
     }
-    return '[${offset} - ${(offset + length)}) $flagsStr in ${indexable}';
+    return '[$offset - ${offset + length}) $flagsStr in $indexable';
   }
 }
 

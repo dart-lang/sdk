@@ -92,7 +92,7 @@ class CommonUsageSorter implements DartContributionSorter {
   void _updateInvocationRelevance(DartType type, LibraryElement libElem,
       Iterable<CompletionSuggestion> suggestions) {
     String typeName = type.name;
-    List<String> selectors = selectorRelevance['${libElem.name}.${typeName}'];
+    List<String> selectors = selectorRelevance['${libElem.name}.$typeName'];
     if (selectors != null) {
       for (CompletionSuggestion suggestion in suggestions) {
         protocol.Element element = suggestion.element;

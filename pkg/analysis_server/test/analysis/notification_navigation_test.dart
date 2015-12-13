@@ -44,7 +44,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     }
     fail(
         'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
-        '${testRegion} in\n'
+        '$testRegion in\n'
         '${testTargets.join('\n')}');
   }
 

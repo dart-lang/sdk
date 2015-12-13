@@ -199,7 +199,7 @@ class DartUnitOutlineComputer {
     if (constructorNameNode != null) {
       String constructorName = constructorNameNode.name;
       isPrivate = Identifier.isPrivateName(constructorName);
-      name += '.${constructorName}';
+      name += '.$constructorName';
       offset = constructorNameNode.offset;
       length = constructorNameNode.length;
     }

@@ -88,7 +88,9 @@ abstract class RefactoringContributor {
  */
 abstract class RefactoringKind {
   factory RefactoringKind(String name, bool requiresOptions) {
-  } // TODO(brianwilkerson) Redirect to impl class.
+    // TODO(brianwilkerson) Redirect to impl class.
+    return null;
+  }
   bool get requiresOptions;
 }
 

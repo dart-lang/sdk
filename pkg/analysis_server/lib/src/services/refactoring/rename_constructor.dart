@@ -59,7 +59,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       // append declaration
       references.add(_createDeclarationReference());
       // update references
-      String replacement = newName.isEmpty ? '' : '.${newName}';
+      String replacement = newName.isEmpty ? '' : '.$newName';
       for (SourceReference reference in references) {
         reference.addEdit(change, replacement);
       }

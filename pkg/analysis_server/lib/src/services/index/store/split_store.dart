@@ -168,7 +168,7 @@ class DartUnitIndexObjectManager extends IndexObjectManager {
     String unitName = unit.fullName;
     int libraryNameIndex = site.encodeString(libraryName);
     int unitNameIndex = site.encodeString(unitName);
-    return 'DartUnitElement_${libraryNameIndex}_${unitNameIndex}.index';
+    return 'DartUnitElement_${libraryNameIndex}_$unitNameIndex.index';
   }
 
   void _recordLibraryWithUnit(
@@ -271,7 +271,7 @@ class FileNodeManager implements NodeManager {
       _DataInputStream stream = new _DataInputStream(bytes);
       return _readNode(stream);
     }).catchError((exception, stackTrace) {
-      _logger.logError('Exception during reading index file ${name}',
+      _logger.logError('Exception during reading index file $name',
           new CaughtException(exception, stackTrace));
     });
   }
@@ -305,7 +305,7 @@ class FileNodeManager implements NodeManager {
         return _fileManager.write(name, bytes);
       });
     }).catchError((exception, stackTrace) {
-      _logger.logError('Exception during reading index file ${name}',
+      _logger.logError('Exception during reading index file $name',
           new CaughtException(exception, stackTrace));
     });
   }
@@ -350,7 +350,7 @@ class FileNodeManager implements NodeManager {
       int version = stream.readInt();
       if (version != _VERSION) {
         throw new StateError(
-            'Version ${_VERSION} expected, but ${version} found.');
+            'Version $_VERSION expected, but $version found.');
       }
     }
     // context
