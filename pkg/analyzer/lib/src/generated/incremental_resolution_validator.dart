@@ -843,6 +843,11 @@ class _SameResolutionValidator implements AstVisitor {
     if (a.nameOffset != b.nameOffset) {
       _fail('Expected: ${b.nameOffset}\n  Actual: ${a.nameOffset}');
     }
+    if (a is LocalElement && b is LocalElement) {
+      if (a.visibleRange != b.visibleRange) {
+        _fail('Expected: ${b.visibleRange}\nActual: ${a.visibleRange}');
+      }
+    }
   }
 
   void _verifyType(DartType a, DartType b) {

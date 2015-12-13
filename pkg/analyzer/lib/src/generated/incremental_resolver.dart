@@ -1117,7 +1117,8 @@ class IncrementalResolver {
    *
    * [node] - the node being tested.
    */
-  bool _canBeResolved(AstNode node) => node is ClassDeclaration ||
+  bool _canBeResolved(AstNode node) =>
+      node is ClassDeclaration ||
       node is ClassTypeAlias ||
       node is CompilationUnit ||
       node is ConstructorDeclaration ||
@@ -1269,7 +1270,7 @@ class IncrementalResolver {
     LoggingTimer timer = logger.startTimer();
     try {
       _definingUnit
-          .accept(new _ElementNameOffsetUpdater(_updateOffset, _updateDelta));
+          .accept(new _ElementOffsetUpdater(_updateOffset, _updateDelta));
       _definingUnit.afterIncrementalResolution();
     } finally {
       timer.stop('update element offsets');
@@ -1987,17 +1988,33 @@ class ResolutionContextBuilder {
  */
 class _DeclarationMismatchException {}
 
-class _ElementNameOffsetUpdater extends GeneralizingElementVisitor {
+class _ElementOffsetUpdater extends GeneralizingElementVisitor {
   final int updateOffset;
   final int updateDelta;
 
-  _ElementNameOffsetUpdater(this.updateOffset, this.updateDelta);
+  _ElementOffsetUpdater(this.updateOffset, this.updateDelta);
 
   @override
   visitElement(Element element) {
+    // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
       (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+    }
+    // visible range
+    if (element is LocalElement) {
+      SourceRange visibleRange = element.visibleRange;
+      if (visibleRange != null && visibleRange.offset > updateOffset) {
+        int newOffset = visibleRange.offset + updateDelta;
+        int length = visibleRange.length;
+        if (element is FunctionElementImpl) {
+          element.setVisibleRange(newOffset, length);
+        } else if (element is LocalVariableElementImpl) {
+          element.setVisibleRange(newOffset, length);
+        } else if (element is ParameterElementImpl) {
+          element.setVisibleRange(newOffset, length);
+        }
+      }
     }
     super.visitElement(element);
   }
