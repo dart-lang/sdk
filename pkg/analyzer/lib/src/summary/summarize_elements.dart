@@ -540,12 +540,9 @@ class _LibrarySerializer {
   UnlinkedTypeRefBuilder serializeTypeRef(DartType type, Element context) {
     UnlinkedTypeRefBuilder b = new UnlinkedTypeRefBuilder(ctx);
     if (type is TypeParameterType) {
-      Element enclosingElement = type.element.enclosingElement;
       b.paramReference = findTypeParameterIndex(type, context);
     } else {
       Element element = type.element;
-      CompilationUnitElement dependentCompilationUnit =
-          element.getAncestor((Element e) => e is CompilationUnitElement);
       LibraryElement dependentLibrary = element.library;
       if (dependentLibrary == null) {
         assert(type.isDynamic);
