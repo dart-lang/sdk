@@ -28,36 +28,36 @@ final StrongModeError = JS('', '''(function() {
 })()''');
 
 /// This error indicates a strong mode specific failure.
-void throwStrongModeError(String message) => JS('', '''((message) => {
-  throw new StrongModeError(message);
-})(#)''', message);
+void throwStrongModeError(String message) => JS('', '''(() => {
+  throw new StrongModeError($message);
+})()''');
 
 /// This error indicates a bug in the runtime or the compiler.
-void throwInternalError(String message) => JS('', '''((message) => {
-  throw Error(message);
-})(#)''', message);
+void throwInternalError(String message) => JS('', '''(() => {
+  throw Error($message);
+})()''');
 
 // TODO(ochafik): Re-introduce a @JS annotation in the SDK (same as package:js)
 // so that this is named 'assert' in JavaScript.
-void assert_(bool condition) => JS('', '''((condition) => {
+void assert_(bool condition) => JS('', '''(() => {
   if (!condition) throwInternalError("The compiler is broken: failed assert");
-})(#)''', condition);
+})()''');
 
-getOwnNamesAndSymbols(obj) => JS('', '''((obj) => {
+getOwnNamesAndSymbols(obj) => JS('', '''(() => {
   return getOwnPropertyNames(obj).concat(getOwnPropertySymbols(obj));
-})(#)''', obj);
+})()''');
 
-safeGetOwnProperty(obj, String name) => JS('', '''((obj, name) => {
-  let desc = getOwnPropertyDescriptor(obj, name);
+safeGetOwnProperty(obj, String name) => JS('', '''(() => {
+  let desc = getOwnPropertyDescriptor($obj, $name);
   if (desc) return desc.value;
-})(#, #)''', obj, name);
+})()''');
 
 /// Defines a lazy property.
 /// After initial get or set, it will replace itself with a value property.
 // TODO(jmesserly): reusing descriptor objects has been shown to improve
 // performance in other projects (e.g. webcomponents.js ShadowDOM polyfill).
-defineLazyProperty(to, name, desc) => JS('', '''((to, name, desc) => {
-  let init = desc.get;
+defineLazyProperty(to, name, desc) => JS('', '''(() => {
+  let init = $desc.get;
     let value = null;
 
     function lazySetter(x) {
@@ -65,7 +65,7 @@ defineLazyProperty(to, name, desc) => JS('', '''((to, name, desc) => {
       value = x;
     }
     function circularInitError() {
-      throwInternalError('circular initialization for field ' + name);
+      throwInternalError('circular initialization for field ' + $name);
     }
     function lazyGetter() {
       if (init == null) return value;
@@ -76,51 +76,50 @@ defineLazyProperty(to, name, desc) => JS('', '''((to, name, desc) => {
       lazySetter(f());
       return value;
     }
-    desc.get = lazyGetter;
-    desc.configurable = true;
-    if (desc.set) desc.set = lazySetter;
-    return defineProperty(to, name, desc);
-})(#, #, #)''', to, name, desc);
+    $desc.get = lazyGetter;
+    $desc.configurable = true;
+    if ($desc.set) $desc.set = lazySetter;
+    return defineProperty($to, $name, $desc);
+})()''');
 
-void defineLazy(to, from) => JS('', '''((to, from) => {
-  for (let name of getOwnNamesAndSymbols(from)) {
-    defineLazyProperty(to, name, getOwnPropertyDescriptor(from, name));
+void defineLazy(to, from) => JS('', '''(() => {
+  for (let name of getOwnNamesAndSymbols($from)) {
+    defineLazyProperty($to, name, getOwnPropertyDescriptor($from, name));
   }
-})(#, #)''', to, from);
+})()''');
 
-defineMemoizedGetter(obj, String name, getter) =>
-    JS('', '''((obj, name, getter) => {
-  return defineLazyProperty(obj, name, {get: getter});
-})(#, #, #)''', obj, name, getter);
+defineMemoizedGetter(obj, String name, getter) => JS('', '''(() => {
+  return defineLazyProperty($obj, $name, {get: $getter});
+})()''');
 
-copyTheseProperties(to, from, names) => JS('', '''((to, from, names) => {
-  for (let name of names) {
-    var desc = getOwnPropertyDescriptor(from, name);
+copyTheseProperties(to, from, names) => JS('', '''(() => {
+  for (let name of $names) {
+    var desc = $getOwnPropertyDescriptor($from, name);
     if (desc != void 0) {
-      defineProperty(to, name, desc);
+      defineProperty($to, name, desc);
     } else {
-      defineLazyProperty(to, name, () => from[name]);
+      defineLazyProperty($to, name, () => $from[name]);
     }
   }
-  return to;
-})(#, #, #)''', to, from, names);
+  return $to;
+})()''');
 
 /// Copy properties from source to destination object.
 /// This operation is commonly called `mixin` in JS.
-copyProperties(to, from) => JS('', '''((to, from) => {
-  return copyTheseProperties(to, from, getOwnNamesAndSymbols(from));
-})(#, #)''', to, from);
+copyProperties(to, from) => JS('', '''(() => {
+  return $copyTheseProperties($to, $from, $getOwnNamesAndSymbols(from));
+})()''');
 
 /// Exports from one Dart module to another.
 // TODO(ochafik): Re-introduce a @JS annotation in the SDK (same as package:js)
 // so that this is named 'export' in JavaScript.
-export_(to, from, show, hide) => JS('', '''((to, from, show, hide) => {
-  if (show == void 0 || show.length == 0) {
-    show = getOwnNamesAndSymbols(from);
+export_(to, from, show, hide) => JS('', '''(() => {
+  if ($show == void 0 || $show.length == 0) {
+    $show = $getOwnNamesAndSymbols($from);
   }
-  if (hide != void 0) {
-    var hideMap = new Set(hide);
-    show = show.filter((k) => !hideMap.has(k));
+  if ($hide != void 0) {
+    var hideMap = new Set($hide);
+    $show = $show.filter((k) => !hideMap.has(k));
   }
-  return copyTheseProperties(to, from, show);
-})(#, #, #, #)''', to, from, show, hide);
+  return $copyTheseProperties($to, $from, $show);
+})()''');

@@ -1934,10 +1934,30 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
     if (isInlineJS(e)) {
       var args = node.argumentList.arguments;
       // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
-      var code = args[1] as StringLiteral;
+      var code = args[1];
+      var templateArgs;
+      var source;
+      if (code is StringInterpolation) {
+        if (args.length > 2) {
+          throw new ArgumentError(
+              "Can't mix template args and string interpolation in JS calls.");
+        }
+        templateArgs = <Expression>[];
+        source = code.elements.map((element) {
+          if (element is InterpolationExpression) {
+            templateArgs.add(element.expression);
+            return '#';
+          } else {
+            return (element as InterpolationString).value;
+          }
+        }).join();
+      } else {
+        templateArgs = args.skip(2);
+        source = (code as StringLiteral).stringValue;
+      }
 
-      var template = js.parseForeignJS(code.stringValue);
-      var result = template.instantiate(_visitList(args.skip(2)));
+      var template = js.parseForeignJS(source);
+      var result = template.instantiate(_visitList(templateArgs));
       // `throw` is emitted as a statement by `parseForeignJS`.
       assert(result is JS.Expression || node.parent is ExpressionStatement);
       return result;
