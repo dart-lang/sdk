@@ -1,5 +1,9 @@
 # dev_compiler changelog
 
+## 0.1.13
+- various fixes in js codegen
+- pinned to analyzer 0.26.2+1 to avoid breaking upstream changes
+
 ## 0.1.12
 - fixes for babel
 - fixes toward new js interop
