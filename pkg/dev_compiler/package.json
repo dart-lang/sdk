@@ -16,9 +16,11 @@
   },
   "devDependencies": {
     "chai": "^2.2.0",
+    "electron-prebuilt": "^0.36.0",
     "karma": "^0.12.31",
     "karma-chai": "^0.1.0",
     "karma-chrome-launcher": "^0.1.8",
+    "karma-electron-launcher": "^0.0.5",
     "karma-mocha": "^0.1.10",
     "karma-requirejs": "^0.2.2",
     "mocha": "^2.2.4",

@@ -51,7 +51,7 @@ var dart_library =
     handleImports(list, handler) {
       let results = [];
       for (let name of list) {
-        let lib = libraries[name];
+        let lib = libraries.get(name);
         if (!lib) {
           throwLibraryError('Library not available: ' + name);
         }
@@ -100,16 +100,18 @@ var dart_library =
 
   // Map from name to LibraryLoader
   let libraries = new Map();
+  dart_library.libraries = function() { return libraries.keys(); }
 
   function library(name, defaultValue, imports, lazyImports, loader) {
-    return libraries[name] =
-      new LibraryLoader(name, defaultValue, imports, lazyImports, loader);
+    let result = new LibraryLoader(name, defaultValue, imports, lazyImports, loader);
+    libraries.set(name, result);
+    return result;
   }
   dart_library.library = library;
 
   function import_(libraryName) {
     bootstrap();
-    let loader = libraries[libraryName];
+    let loader = libraries.get(libraryName);
     // TODO(vsm): A user might call this directly from JS (as we do in tests).
     // We may want a different error type.
     if (!loader) throwLibraryError('Library not found: ' + libraryName);

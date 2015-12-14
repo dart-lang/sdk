@@ -317,13 +317,23 @@
     'no_main_test_01_multi',
   ]);
 
+  let helpers = new Set([
+    'library_prefixes_test1',
+    'library_prefixes_test2',
+    'top_level_prefixed_library_test',
+  ]); 
 
   suite('language', () => {
-    let languageTestPattern = new RegExp('language/(.*_test.*)\\.js');
-    for (let testFile of Object.keys(window.__karma__.files)) {
+    let languageTestPattern = new RegExp('language/(.*_test.*)');
+    for (let testFile of dart_library.libraries()) {
       let match = languageTestPattern.exec(testFile);
       if (match != null) {
         let name = match[1];
+
+        if (helpers.has(name)) {
+          // These are not top-level tests.  They are used by other tests.
+          continue;
+        }
 
         // These two tests are special because they use package:unittest.
         // We run them below.
