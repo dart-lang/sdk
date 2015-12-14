@@ -10,11 +10,10 @@ import 'octagon.dart';
 import '../constants/values.dart';
 import 'cps_fragment.dart';
 import 'type_mask_system.dart';
+import '../types/types.dart';
 import '../world.dart';
 import '../elements/elements.dart';
 import 'loop_effects.dart';
-
-
 
 /// Eliminates bounds checks when they can be proven safe.
 ///
@@ -114,17 +113,24 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   }
 
   /// Get a constraint variable representing the length of [indexableObject] at
-  /// program locations with the given [effectCounter].
-  SignedVariable getLength(Primitive indexableObject, int effectCounter) {
+  /// program locations with the given [effectNumber].
+  SignedVariable getLength(Primitive indexableObject, int effectNumber) {
     indexableObject = indexableObject.effectiveDefinition;
-    if (indexableObject.type != null &&
-        types.isDefinitelyFixedLengthIndexable(indexableObject.type)) {
-      // Always use the same effect counter if the length is immutable.
-      effectCounter = 0;
+    TypeMask type = indexableObject.type.nonNullable();
+    if (types.isDefinitelyFixedLengthIndexable(type)) {
+      // Always use the same effect number if the length is immutable.
+      effectNumber = 0;
     }
     return lengthOf
         .putIfAbsent(indexableObject, () => <int, SignedVariable>{})
-        .putIfAbsent(effectCounter, () => octagon.makeVariable(0, MAX_UINT32));
+        .putIfAbsent(effectNumber, () {
+            int length = types.getContainerLength(type);
+            if (length != null) {
+              return octagon.makeVariable(length, length);
+            } else {
+              return octagon.makeVariable(0, MAX_UINT32);
+            }
+        });
   }
 
   // ------------- CONSTRAINT HELPERS -----------------
@@ -236,6 +242,11 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   /// Return true if we can prove that `v1 <= v2`.
   bool isDefinitelyLessThanOrEqualTo(SignedVariable v1, SignedVariable v2) {
     return testConstraint(v1, v2.negated, 0);
+  }
+
+  /// Return true if we can prove that `v1 < v2`.
+  bool isDefinitelyLessThan(SignedVariable v1, SignedVariable v2) {
+    return testConstraint(v1, v2.negated, -1);
   }
 
   /// Return true if we can prove that `v1 >= v2`.
@@ -466,8 +477,56 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   }
 
   @override
+  void visitRefinement(Refinement node) {
+    // In general we should get the container length of the refined type and
+    // add a constraint if we know the length after the refinement.
+    // However, our current type system removes container information when a
+    // type becomes part of a union, so this cannot happen.
+  }
+
+  @override
   void visitGetLength(GetLength node) {
     valueOf[node] = getLength(node.object.definition, currentEffectNumber);
+  }
+
+  @override
+  void visitBoundsCheck(BoundsCheck node) {
+    if (node.checks == BoundsCheck.NONE) return;
+    assert(node.index != null); // Because there is at least one check.
+    Primitive object = node.object.definition;
+    SignedVariable length = node.length == null
+        ? null
+        : getValue(node.length.definition);
+    SignedVariable index = getValue(node.index.definition);
+    if (node.hasUpperBoundCheck) {
+      if (isDefinitelyLessThan(index, length)) {
+        node.checks &= ~BoundsCheck.UPPER_BOUND;
+      } else {
+        makeLessThan(index, length);
+      }
+    }
+    if (node.hasLowerBoundCheck) {
+      if (isDefinitelyGreaterThanOrEqualToConstant(index, 0)) {
+        node.checks &= ~BoundsCheck.LOWER_BOUND;
+      } else {
+        makeGreaterThanOrEqualToConstant(index, 0);
+      }
+    }
+    if (node.hasEmptinessCheck) {
+      if (isDefinitelyGreaterThanOrEqualToConstant(length, 1)) {
+        node.checks &= ~BoundsCheck.EMPTINESS;
+      } else {
+        makeGreaterThanOrEqualToConstant(length, 1);
+      }
+    }
+    if (!node.lengthUsedInCheck && node.length != null) {
+      node..length.unlink()..length = null;
+    }
+    if (node.checks == BoundsCheck.NONE) {
+      // We can't remove the bounds check node because it may still be used to
+      // restrict code motion.  But the index is no longer needed.
+      node..index.unlink()..index = null;
+    }
   }
 
   void analyzeLoopEntry(InvokeContinuation node) {

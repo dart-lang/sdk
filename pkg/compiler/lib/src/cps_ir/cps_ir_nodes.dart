@@ -711,6 +711,106 @@ class Refinement extends Primitive {
   }
 }
 
+/// Checks that [index] is a valid index on a given indexable [object].
+///
+/// Compiles to the following, with a subset of the conditions in the `if`:
+///
+///     if (index < 0 || index >= object.length || object.length === 0)
+///         ThrowIndexOutOfRangeException(object, index);
+///
+/// [index] must be an integer, and [object] must refer to null or an indexable
+/// object, and [length] must be the length of [object] at the time of the
+/// check.
+///
+/// Returns [object] so the bounds check can be used to restrict code motion.
+/// It is possible to have a bounds check node that performs no checks but
+/// is retained to restrict code motion.
+///
+/// The [index] reference may be null if there are no checks to perform,
+/// and the [length] reference may be null if there is no upper bound or
+/// emptiness check.
+///
+/// If a separate code motion guard for the index is required, e.g. because it
+/// must be known to be non-negative in an operator that does not involve
+/// [object], a [Refinement] can be created for it with the non-negative integer
+/// type.
+class BoundsCheck extends Primitive {
+  final Reference<Primitive> object;
+  Reference<Primitive> index;
+  Reference<Primitive> length; // FIXME write docs for length
+  int checks;
+  final SourceInformation sourceInformation;
+
+  /// If true, check that `index >= 0`.
+  bool get hasLowerBoundCheck => checks & LOWER_BOUND != 0;
+
+  /// If true, check that `index < object.length`.
+  bool get hasUpperBoundCheck => checks & UPPER_BOUND != 0;
+
+  /// If true, check that `object.length !== 0`.
+  ///
+  /// Equivalent to a lower bound check with `object.length - 1` as the index,
+  /// but this check is faster.
+  ///
+  /// Although [index] is not used in the condition, it is used to generate
+  /// the thrown error.  Currently it is always `-1` for emptiness checks,
+  /// because that corresponds to `object.length - 1` in the error case.
+  bool get hasEmptinessCheck => checks & EMPTINESS != 0;
+
+  /// True if the [length] is needed to perform the check.
+  bool get lengthUsedInCheck => checks & (UPPER_BOUND | EMPTINESS) != 0;
+
+  bool get hasNoChecks => checks == NONE;
+
+  static const int UPPER_BOUND = 1 << 0;
+  static const int LOWER_BOUND = 1 << 1;
+  static const int EMPTINESS = 1 << 2; // See [hasEmptinessCheck].
+  static const int BOTH_BOUNDS = UPPER_BOUND | LOWER_BOUND;
+  static const int NONE = 0;
+
+  BoundsCheck(Primitive object, Primitive index, Primitive length,
+      [this.checks = BOTH_BOUNDS, this.sourceInformation])
+      : this.object = new Reference<Primitive>(object),
+        this.index = new Reference<Primitive>(index),
+        this.length = new Reference<Primitive>(length);
+
+  BoundsCheck.noCheck(Primitive object, [this.sourceInformation])
+      : this.object = new Reference<Primitive>(object),
+        this.checks = NONE;
+
+  accept(Visitor visitor) => visitor.visitBoundsCheck(this);
+
+  void setParentPointers() {
+    object.parent = this;
+    if (index != null) {
+      index.parent = this;
+    }
+    if (length != null) {
+      length.parent = this;
+    }
+  }
+
+  String get checkString {
+    if (hasUpperBoundCheck && hasLowerBoundCheck) {
+      return 'upper-lower-checks';
+    } else if (hasUpperBoundCheck) {
+      return 'upper-check';
+    } else if (hasLowerBoundCheck) {
+      return 'lower-check';
+    } else if (hasEmptinessCheck) {
+      return 'emptiness-check';
+    } else {
+      return 'no-check';
+    }
+  }
+
+  bool get isSafeForElimination => checks == NONE;
+  bool get isSafeForReordering => false;
+  bool get hasValue => true; // Can be referenced to restrict code motion.
+
+  Primitive get effectiveDefinition => object.definition.effectiveDefinition;
+}
+
 /// Throw an exception if [value] is `null`.
 ///
 /// Returns [value] so this can be used to restrict code motion.
@@ -1787,6 +1887,7 @@ abstract class Visitor<T> {
   T visitGetIndex(GetIndex node);
   T visitSetIndex(SetIndex node);
   T visitRefinement(Refinement node);
+  T visitBoundsCheck(BoundsCheck node);
   T visitNullCheck(NullCheck node);
 
   // Support for literal foreign code.
@@ -2105,6 +2206,18 @@ class DeepRecursiveVisitor implements Visitor {
   visitRefinement(Refinement node) {
     processRefinement(node);
     processReference(node.value);
+  }
+
+  processBoundsCheck(BoundsCheck node) {}
+  visitBoundsCheck(BoundsCheck node) {
+    processBoundsCheck(node);
+    processReference(node.object);
+    if (node.index != null) {
+      processReference(node.index);
+    }
+    if (node.length != null) {
+      processReference(node.length);
+    }
   }
 
   processNullCheck(NullCheck node) {}

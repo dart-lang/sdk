@@ -677,6 +677,11 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     throw 'Unexpected Refinement node in tree builder';
   }
 
+  @override
+  Expression visitBoundsCheck(cps_ir.BoundsCheck node) {
+    throw 'Unexpected BoundsCheck node in tree builder';
+  }
+
   /********** UNUSED VISIT METHODS *************/
 
   unexpectedNode(cps_ir.Node node) {

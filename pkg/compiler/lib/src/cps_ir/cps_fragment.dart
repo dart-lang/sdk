@@ -104,6 +104,7 @@ class CpsFragment {
 
   Primitive makeZero() => makeConstant(new IntConstantValue(0));
   Primitive makeOne() => makeConstant(new IntConstantValue(1));
+  Primitive makeMinusOne() => makeConstant(new IntConstantValue(-1));
   Primitive makeNull() => makeConstant(new NullConstantValue());
   Primitive makeTrue() => makeConstant(new TrueConstantValue());
   Primitive makeFalse() => makeConstant(new FalseConstantValue());
@@ -111,6 +112,10 @@ class CpsFragment {
   /// Invoke a built-in operator.
   Primitive applyBuiltin(BuiltinOperator op, List<Primitive> args) {
     return letPrim(new ApplyBuiltinOperator(op, args, sourceInformation));
+  }
+
+  Primitive refine(Primitive value, TypeMask type) {
+    return letPrim(new Refinement(value, type));
   }
 
   Primitive invokeBuiltin(BuiltinMethod method,

@@ -33,8 +33,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return decorator(r, namer.getName(r.definition));
   }
 
-  String optional(Reference<Definition> r) {
-    return r == null ? '()' : '(${access(r)})';
+  String optionalAccess(Reference<Definition> reference) {
+    return reference == null ? '()' : '(${access(reference)})';
   }
 
   String visitParameter(Parameter node) {
@@ -365,9 +365,16 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(Refinement $value ${node.type})';
   }
 
+  String visitBoundsCheck(BoundsCheck node) {
+    String object = access(node.object);
+    String index = optionalAccess(node.index);
+    String length = optionalAccess(node.length);
+    return '(BoundsCheck $object $index $length ${node.checkString})';
+  }
+
   String visitNullCheck(NullCheck node) {
     String value = access(node.value);
-    String condition = optional(node.condition);
+    String condition = optionalAccess(node.condition);
     return '(NullCheck $value $condition (${node.selector ?? ""}))';
   }
 }
