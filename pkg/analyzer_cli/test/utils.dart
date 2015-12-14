@@ -8,7 +8,16 @@ import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:path/path.dart' as path;
+import 'package:unittest/unittest.dart';
+
+/// Gets the test directory in a way that works with
+/// package:test and package:unittest.
+/// See <https://github.com/dart-lang/test/issues/110> for more info.
+final String testDirectory = pathos.dirname(
+    pathos.fromUri((reflectClass(_TestUtils).owner as LibraryMirror).uri));
 
 /// Returns the string representation of the [AnalyzerErrorGroup] thrown when
 /// parsing [contents] as a Dart file. If [contents] doesn't throw any errors,
@@ -34,6 +43,12 @@ String errorsForFile(String contents) {
   });
 }
 
+/// Test env setup (copied from `analyzer/test/utils.dart`).
+void initializeTestEnvironment() {
+  groupSep = ' | ';
+  JavaFile.pathContext = path.posix;
+}
+
 /// Creates a temporary directory and passes its path to [fn]. Once [fn]
 /// completes, the temporary directory and all its contents will be deleted.
 ///
@@ -46,11 +61,5 @@ dynamic withTempDir(fn(String path)) {
     new Directory(tempDir).deleteSync(recursive: true);
   }
 }
-
-/// Gets the test directory in a way that works with
-/// package:test and package:unittest.
-/// See <https://github.com/dart-lang/test/issues/110> for more info.
-final String testDirectory = pathos.dirname(
-    pathos.fromUri((reflectClass(_TestUtils).owner as LibraryMirror).uri));
 
 class _TestUtils {}

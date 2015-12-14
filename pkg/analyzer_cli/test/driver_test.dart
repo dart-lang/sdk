@@ -51,6 +51,8 @@ main() {
 
   tearDown(() => _tearDown());
 
+  initializeTestEnvironment();
+
   group('Driver', () {
     group('options', () {
       test('custom processor', () {

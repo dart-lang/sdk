@@ -146,10 +146,12 @@ class CommandLineOptions {
       // Check that SDK is specified.
       if (sdkPath == null) {
         printAndFail('No Dart SDK found.');
+        return null; // Only reachable in testing.
       }
       // Check that SDK is existing directory.
       if (!(new Directory(sdkPath)).existsSync()) {
         printAndFail('Invalid Dart SDK path: $sdkPath');
+        return null; // Only reachable in testing.
       }
     }
 
@@ -158,6 +160,7 @@ class CommandLineOptions {
       if (options.packageRootPath != null &&
           options.packageConfigPath != null) {
         printAndFail("Cannot specify both '--package-root' and '--packages.");
+        return null; // Only reachable in testing.
       }
     }
 
