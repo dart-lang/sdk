@@ -1,3 +1,6 @@
+## 0.27.1
+* Moved the public and private API's for the element model into their proper places.
+
 ## 0.27.0
 * Support for DEP 37 (Assert with optional message).
 * Lexical support for DEP 40 (Interface libraries). This does not include any semantic checking to ensure that the
