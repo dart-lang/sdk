@@ -168,9 +168,9 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
         Isolate* isolate = Isolate::Current();
-        uword c_stack_pos = Isolate::GetCurrentStackPointer();
-        uword c_stack_limit = OSThread::Current()->stack_base() -
-                              OSThread::GetSpecifiedStackSize();
+        volatile uword c_stack_pos = Isolate::GetCurrentStackPointer();
+        volatile uword c_stack_limit = OSThread::Current()->stack_base() -
+                                       OSThread::GetSpecifiedStackSize();
 #if !defined(USING_SIMULATOR)
         ASSERT(c_stack_limit == isolate->saved_stack_limit());
 #endif
