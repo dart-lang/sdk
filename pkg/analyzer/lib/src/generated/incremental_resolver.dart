@@ -916,6 +916,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ScanDartTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
+        isByTask(ResolveLibraryTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTypeNamesTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||

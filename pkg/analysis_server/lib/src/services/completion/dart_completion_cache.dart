@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
 
 /**
  * The `DartCompletionCache` contains cached information from a prior code
@@ -86,7 +87,7 @@ class DartCompletionCache extends CompletionCache {
   ClassElement get objectClassElement {
     if (_objectClassElement == null) {
       Source coreUri = context.sourceFactory.forUri('dart:core');
-      LibraryElement coreLib = context.getLibraryElement(coreUri);
+      LibraryElement coreLib = context.getResult(coreUri, LIBRARY_ELEMENT8);
       _objectClassElement = coreLib.getType('Object');
     }
     return _objectClassElement;
@@ -192,7 +193,7 @@ class DartCompletionCache extends CompletionCache {
    */
   void _addDartCoreSuggestions() {
     Source coreUri = context.sourceFactory.forUri('dart:core');
-    LibraryElement coreLib = context.getLibraryElement(coreUri);
+    LibraryElement coreLib = context.getResult(coreUri, LIBRARY_ELEMENT8);
     if (coreLib == null) {
       // If the core library has not been analyzed yet, then we cannot add any
       // suggestions from it.
@@ -262,7 +263,7 @@ class DartCompletionCache extends CompletionCache {
       if (lib.isInternal) {
         Source libUri = context.sourceFactory.forUri(lib.shortName);
         if (libUri != null) {
-          LibraryElement libElem = context.getLibraryElement(libUri);
+          LibraryElement libElem = context.getResult(libUri, LIBRARY_ELEMENT8);
           if (libElem != null) {
             excludedLibs.add(libElem);
           }

@@ -306,6 +306,17 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT7 =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * The partial [LibraryElement] associated with a library.
+ *
+ * The same as a [LIBRARY_ELEMENT7].
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT8 =
+    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT8', null,
+        cachingPolicy: ELEMENT_CACHING_POLICY);
+
+/**
  * The flag specifying whether all analysis errors are computed in a specific
  * library.
  *
@@ -2391,7 +2402,7 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      'libraryElement': LIBRARY_ELEMENT.of(unit.library),
+      'libraryElement': LIBRARY_ELEMENT8.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT10.of(unit),
       CONSTANT_VALUES:
           COMPILATION_UNIT_CONSTANTS.of(unit).toListOf(CONSTANT_VALUE)
@@ -3201,7 +3212,8 @@ class LibraryErrorsReadyTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      'allErrors': UNITS.of(source).toListOf(DART_ERRORS)
+      'allErrors': UNITS.of(source).toListOf(DART_ERRORS),
+      'libraryElement': LIBRARY_ELEMENT.of(source)
     };
   }
 
@@ -4426,11 +4438,11 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
 
 /**
  * A task that finishes resolution by requesting [RESOLVED_UNIT10] for every
- * unit in the libraries closure and produces [LIBRARY_ELEMENT].
+ * unit in the libraries closure and produces [LIBRARY_ELEMENT8].
  */
 class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT5] input.
+   * The name of the [LIBRARY_ELEMENT7] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -4446,7 +4458,7 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
       'ResolveLibraryReferencesTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT, REFERENCED_NAMES]);
+      <ResultDescriptor>[LIBRARY_ELEMENT8, REFERENCED_NAMES]);
 
   ResolveLibraryReferencesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -4470,7 +4482,7 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[LIBRARY_ELEMENT] = library;
+    outputs[LIBRARY_ELEMENT8] = library;
     outputs[REFERENCED_NAMES] = referencedNames;
   }
 
@@ -4482,7 +4494,7 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(source),
+      LIBRARY_INPUT: LIBRARY_ELEMENT7.of(source),
       UNITS_INPUT: LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT10),
       'thisLibraryClosureIsReady': READY_RESOLVED_UNIT10.of(source),
     };
@@ -4495,6 +4507,71 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   static ResolveLibraryReferencesTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ResolveLibraryReferencesTask(context, target);
+  }
+}
+
+/**
+ * A task that finishes resolution by requesting [RESOLVED_UNIT11] for every
+ * unit in the libraries closure and produces [LIBRARY_ELEMENT].
+ */
+class ResolveLibraryTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [LIBRARY_ELEMENT8] input.
+   */
+  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
+
+  /**
+   * The name of the list of [RESOLVED_UNIT11] input.
+   */
+  static const String UNITS_INPUT = 'UNITS_INPUT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'ResolveLibraryTask',
+      createTask,
+      buildInputs,
+      <ResultDescriptor>[LIBRARY_ELEMENT]);
+
+  ResolveLibraryTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
+    //
+    // Record outputs.
+    //
+    outputs[LIBRARY_ELEMENT] = library;
+  }
+
+/**
+ * Return a map from the names of the inputs of this kind of task to the task
+ * input descriptors describing those inputs for a task with the
+ * given [target].
+ */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      LIBRARY_INPUT: LIBRARY_ELEMENT8.of(source),
+      'thisLibraryClosureIsReady': READY_RESOLVED_UNIT.of(source),
+    };
+  }
+
+/**
+ * Create a [ResolveLibraryTask] based on the given [target] in the given
+ * [context].
+ */
+  static ResolveLibraryTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new ResolveLibraryTask(context, target);
   }
 }
 

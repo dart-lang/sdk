@@ -35,6 +35,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:path/path.dart';
 
 /**
@@ -1451,7 +1452,7 @@ class FixProcessor {
             sdkSourceFactory.resolveUri(unitSource, libraryUri);
         // prepare LibraryElement
         LibraryElement libraryElement =
-            context.getLibraryElement(librarySource);
+            context.getResult(librarySource, LIBRARY_ELEMENT8);
         if (libraryElement == null) {
           continue;
         }
@@ -1484,7 +1485,7 @@ class FixProcessor {
         }
         // prepare LibraryElement
         LibraryElement libraryElement =
-            context.getLibraryElement(librarySource);
+            context.getResult(librarySource, LIBRARY_ELEMENT8);
         if (libraryElement == null) {
           continue;
         }

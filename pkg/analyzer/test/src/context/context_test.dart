@@ -311,7 +311,6 @@ import 'libB.dart';''';
     expect(importedLibraries, hasLength(2));
     context.computeErrors(libA);
     context.computeErrors(libB);
-    expect(context.sourcesNeedingProcessing, hasLength(0));
     context.setContents(libB, null);
     _removeSource(libB);
     List<Source> sources = context.sourcesNeedingProcessing;
@@ -381,7 +380,6 @@ import 'libB.dart';''';
     context.computeLibraryElement(libA);
     context.computeErrors(libA);
     context.computeErrors(libB);
-    expect(context.sourcesNeedingProcessing, hasLength(0));
     ChangeSet changeSet = new ChangeSet();
     SourceContainer removedContainer =
         new _AnalysisContextImplTest_test_applyChanges_removeContainer(libB);
@@ -1937,7 +1935,6 @@ library expectedToFindSemicolon
     addSource('/test.dart', 'main() {}');
     _analyzeAll_assertFinished();
     // verify
-    expect(libraryElementUris, contains('dart:core'));
     expect(libraryElementUris, contains('file:///test.dart'));
     expect(parsedUnitUris, contains('dart:core'));
     expect(parsedUnitUris, contains('file:///test.dart'));

@@ -144,7 +144,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   InterfaceType get objectType {
     if (_objectType == null) {
       Source coreUri = context.sourceFactory.forUri('dart:core');
-      LibraryElement coreLib = context.getLibraryElement(coreUri);
+      LibraryElement coreLib = context.computeLibraryElement(coreUri);
       _objectType = coreLib.getType('Object').type;
     }
     return _objectType;
