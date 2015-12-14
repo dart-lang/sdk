@@ -9,6 +9,7 @@
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
+#include "vm/message.h"
 #include "vm/raw_object.h"
 #include "vm/snapshot.h"
 
@@ -48,6 +49,7 @@ class ApiMessageReader : public BaseReader {
   // Allocation of all C Heap objects is done in the zone associated with
   // the enclosing ApiNativeScope.
   ApiMessageReader(const uint8_t* buffer, intptr_t length);
+  explicit ApiMessageReader(Message* message);
   ~ApiMessageReader() { }
 
   Dart_CObject* ReadMessage();
@@ -212,13 +214,13 @@ class ApiMessageWriter : public BaseWriter {
 // as well.
 class ApiObjectConverter : public AllStatic {
  public:
-  static bool CanConvert(RawObject* raw_obj) {
+  static bool CanConvert(const RawObject* raw_obj) {
     return !raw_obj->IsHeapObject() || (raw_obj == Object::null());
   }
 
-  static bool Convert(RawObject* raw_obj, Dart_CObject* c_obj) {
+  static bool Convert(const RawObject* raw_obj, Dart_CObject* c_obj) {
     if (!raw_obj->IsHeapObject()) {
-      ConvertSmi(reinterpret_cast<RawSmi*>(raw_obj), c_obj);
+      ConvertSmi(reinterpret_cast<const RawSmi*>(raw_obj), c_obj);
     } else if (raw_obj == Object::null()) {
       ConvertNull(c_obj);
     } else {
@@ -228,7 +230,7 @@ class ApiObjectConverter : public AllStatic {
   }
 
  private:
-  static void ConvertSmi(RawSmi* raw_smi, Dart_CObject* c_obj) {
+  static void ConvertSmi(const RawSmi* raw_smi, Dart_CObject* c_obj) {
     ASSERT(!raw_smi->IsHeapObject());
     intptr_t value = Smi::Value(raw_smi);
     if (Utils::IsInt(31, value)) {

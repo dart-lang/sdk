@@ -18,15 +18,26 @@ ApiMessageReader::ApiMessageReader(const uint8_t* buffer, intptr_t length)
       backward_references_(kNumInitialReferences),
       vm_isolate_references_(kNumInitialReferences),
       vm_symbol_references_(NULL) {
-  // We need to have an enclosing ApiNativeScope.
-  ASSERT(ApiNativeScope::Current() != NULL);
-  zone_ = ApiNativeScope::Current()->zone();
-  ASSERT(zone_ != NULL);
-  Init();
+}
+
+
+ApiMessageReader::ApiMessageReader(Message* msg)
+    : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(msg->raw_obj())
+                              : msg->data(),
+                 msg->len()),
+      zone_(NULL),
+      backward_references_(kNumInitialReferences),
+      vm_isolate_references_(kNumInitialReferences),
+      vm_symbol_references_(NULL) {
 }
 
 
 void ApiMessageReader::Init() {
+  // We need to have an enclosing ApiNativeScope.
+  ASSERT(ApiNativeScope::Current() != NULL);
+  zone_ = ApiNativeScope::Current()->zone();
+  ASSERT(zone_ != NULL);
+
   // Initialize marker objects used to handle Lists.
   // TODO(sjesse): Remove this when message serialization format is
   // updated.
@@ -40,8 +51,19 @@ void ApiMessageReader::Init() {
 
 
 Dart_CObject* ApiMessageReader::ReadMessage() {
-  // Read the object out of the message.
-  return ReadObject();
+  Init();
+  if (PendingBytes() > 0) {
+    // Read the object out of the message.
+    return ReadObject();
+  } else {
+    const RawObject* raw_obj =
+        reinterpret_cast<const RawObject*>(CurrentBufferAddress());
+    ASSERT(ApiObjectConverter::CanConvert(raw_obj));
+    Dart_CObject* cobj =
+      reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));
+    ApiObjectConverter::Convert(raw_obj, cobj);
+    return cobj;
+  }
 }
 
 
