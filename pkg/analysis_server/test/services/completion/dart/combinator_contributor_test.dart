@@ -134,8 +134,8 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestClass('Clz',
         relevance: DART_RELEVANCE_DEFAULT,
         kind: CompletionSuggestionKind.IDENTIFIER);
-    assertSuggestFunctionTypeAlias('F2', null, false, DART_RELEVANCE_DEFAULT,
-        CompletionSuggestionKind.IDENTIFIER);
+    assertSuggestFunctionTypeAlias('F2', null,
+        kind: CompletionSuggestionKind.IDENTIFIER);
     assertNotSuggested('C');
     assertNotSuggested('D');
     assertNotSuggested('X');

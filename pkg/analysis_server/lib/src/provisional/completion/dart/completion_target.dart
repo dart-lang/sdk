@@ -266,14 +266,10 @@ class CompletionTarget {
    * The target [AstNode] hierarchy *must* be resolved for this to work.
    */
   bool isFunctionalArgument() {
-    if (argIndex == null) {
+    if (!maybeFunctionalArgument()) {
       return false;
     }
-    AstNode argList = containingNode;
-    if (argList is! ArgumentList) {
-      return false;
-    }
-    AstNode parent = argList.parent;
+    AstNode parent = containingNode.parent;
     if (parent is InstanceCreationExpression) {
       DartType instType = parent.bestType;
       if (instType != null) {
@@ -299,6 +295,21 @@ class CompletionTarget {
       }
     }
     return false;
+  }
+
+  /**
+   * Return `true` if the target is a functional argument in an argument list.
+   * The target [AstNode] hierarchy *must* be resolved for this to work.
+   */
+  bool maybeFunctionalArgument() {
+    if (argIndex == null) {
+      return false;
+    }
+    AstNode argList = containingNode;
+    if (argList is! ArgumentList) {
+      return false;
+    }
+    return true;
   }
 
   /**
