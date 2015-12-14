@@ -400,7 +400,11 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     if (isAbstract) {
       buffer.write('abstract ');
     }
-    buffer.write('class ');
+    if (isEnum) {
+      buffer.write('enum ');
+    } else {
+      buffer.write('class ');
+    }
     String name = displayName;
     if (name == null) {
       buffer.write("{unnamed class}");

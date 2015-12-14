@@ -96,6 +96,16 @@ main() {
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
+  test_enum() async {
+    addTestFile('''
+enum MyEnum {AAA, BBB, CCC}
+''');
+    HoverInformation hover = await prepareHover('MyEnum');
+    expect(hover.elementDescription, 'enum MyEnum');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
   test_expression_function() async {
     addTestFile('''
 library my.library;
