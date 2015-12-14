@@ -6,7 +6,10 @@
 
 library analyzer.test.generated.type_system_test;
 
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
@@ -118,14 +121,14 @@ class StrongAssignabilityTest {
   }
 
   void test_isAssignableTo_fuzzy_arrows() {
-    FunctionType top = TypeBuilder.function(
-        required: <DartType>[dynamicType], result: objectType);
-    FunctionType left = TypeBuilder.function(
-        required: <DartType>[objectType], result: objectType);
-    FunctionType right = TypeBuilder.function(
-        required: <DartType>[dynamicType], result: bottomType);
-    FunctionType bottom = TypeBuilder.function(
-        required: <DartType>[objectType], result: bottomType);
+    FunctionType top = TypeBuilder
+        .function(required: <DartType>[dynamicType], result: objectType);
+    FunctionType left = TypeBuilder
+        .function(required: <DartType>[objectType], result: objectType);
+    FunctionType right = TypeBuilder
+        .function(required: <DartType>[dynamicType], result: bottomType);
+    FunctionType bottom = TypeBuilder
+        .function(required: <DartType>[objectType], result: bottomType);
 
     _checkCrossLattice(top, left, right, bottom);
   }
@@ -175,8 +178,8 @@ class StrongAssignabilityTest {
         required: <DartType>[],
         named: <String, DartType>{'x': intType},
         result: intType);
-    DartType rr = TypeBuilder.function(
-        required: <DartType>[intType, intType], result: intType);
+    DartType rr = TypeBuilder
+        .function(required: <DartType>[intType, intType], result: intType);
     DartType ro = TypeBuilder.function(
         required: <DartType>[intType],
         optional: <DartType>[intType],
@@ -237,8 +240,8 @@ class StrongAssignabilityTest {
         TypeBuilder.function(required: <DartType>[intType], result: objectType);
     FunctionType left =
         TypeBuilder.function(required: <DartType>[intType], result: intType);
-    FunctionType right = TypeBuilder.function(
-        required: <DartType>[objectType], result: objectType);
+    FunctionType right = TypeBuilder
+        .function(required: <DartType>[objectType], result: objectType);
     FunctionType bottom =
         TypeBuilder.function(required: <DartType>[objectType], result: intType);
 
@@ -339,8 +342,8 @@ class StrongGenericFunctionInferenceTest {
     var tFrom = TypeBuilder.variable('TFrom');
     var tTo =
         TypeBuilder.variable('TTo', bound: iterableType.substitute4([tFrom]));
-    var cast = TypeBuilder.function(
-        types: [tFrom, tTo], required: [tFrom], result: tTo);
+    var cast = TypeBuilder
+        .function(types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [stringType]), [
       stringType,
       iterableType.substitute4([stringType])
@@ -375,8 +378,8 @@ class StrongGenericFunctionInferenceTest {
     // <TFrom, TTo>(TFrom) -> TTo
     var tFrom = TypeBuilder.variable('TFrom');
     var tTo = TypeBuilder.variable('TTo');
-    var cast = TypeBuilder.function(
-        types: [tFrom, tTo], required: [tFrom], result: tTo);
+    var cast = TypeBuilder
+        .function(types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [intType]), [intType, dynamicType]);
   }
 
@@ -384,8 +387,8 @@ class StrongGenericFunctionInferenceTest {
     // <TFrom, TTo extends TFrom>(TFrom) -> TTo
     var tFrom = TypeBuilder.variable('TFrom');
     var tTo = TypeBuilder.variable('TTo', bound: tFrom);
-    var cast = TypeBuilder.function(
-        types: [tFrom, tTo], required: [tFrom], result: tTo);
+    var cast = TypeBuilder
+        .function(types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [intType]), [intType, intType]);
   }
 
@@ -590,14 +593,14 @@ class StrongSubtypingTest {
   }
 
   void test_fuzzy_arrows() {
-    FunctionType top = TypeBuilder.function(
-        required: <DartType>[dynamicType], result: objectType);
-    FunctionType left = TypeBuilder.function(
-        required: <DartType>[objectType], result: objectType);
-    FunctionType right = TypeBuilder.function(
-        required: <DartType>[dynamicType], result: bottomType);
-    FunctionType bottom = TypeBuilder.function(
-        required: <DartType>[objectType], result: bottomType);
+    FunctionType top = TypeBuilder
+        .function(required: <DartType>[dynamicType], result: objectType);
+    FunctionType left = TypeBuilder
+        .function(required: <DartType>[objectType], result: objectType);
+    FunctionType right = TypeBuilder
+        .function(required: <DartType>[dynamicType], result: bottomType);
+    FunctionType bottom = TypeBuilder
+        .function(required: <DartType>[objectType], result: bottomType);
 
     _checkLattice(top, left, right, bottom);
   }
@@ -714,8 +717,8 @@ class StrongSubtypingTest {
         required: <DartType>[],
         named: <String, DartType>{'x': intType},
         result: intType);
-    DartType rr = TypeBuilder.function(
-        required: <DartType>[intType, intType], result: intType);
+    DartType rr = TypeBuilder
+        .function(required: <DartType>[intType, intType], result: intType);
     DartType ro = TypeBuilder.function(
         required: <DartType>[intType],
         optional: <DartType>[intType],
@@ -782,8 +785,8 @@ class StrongSubtypingTest {
         TypeBuilder.function(required: <DartType>[intType], result: objectType);
     FunctionType left =
         TypeBuilder.function(required: <DartType>[intType], result: intType);
-    FunctionType right = TypeBuilder.function(
-        required: <DartType>[objectType], result: objectType);
+    FunctionType right = TypeBuilder
+        .function(required: <DartType>[objectType], result: objectType);
     FunctionType bottom =
         TypeBuilder.function(required: <DartType>[objectType], result: intType);
 

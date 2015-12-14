@@ -4,8 +4,11 @@
 
 library analyzer.src.generated.incremental_resolution_validator;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 /**
  * Validates that the [actual] and the [expected] units have the same structure

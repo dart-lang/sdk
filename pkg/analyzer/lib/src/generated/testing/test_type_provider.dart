@@ -4,9 +4,12 @@
 
 library analyzer.src.generated.testing.test_type_provider;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -177,8 +180,8 @@ class TestTypeProvider implements TypeProvider {
     if (_deprecatedType == null) {
       ClassElementImpl deprecatedElement =
           ElementFactory.classElement2("Deprecated");
-      ConstructorElementImpl constructor = ElementFactory.constructorElement(
-          deprecatedElement, null, true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory
+          .constructorElement(deprecatedElement, null, true, [stringType]);
       constructor.constantInitializers = <ConstructorInitializer>[
         AstFactory.constructorFieldInitializer(
             true, 'expires', AstFactory.identifier3('expires'))
@@ -304,8 +307,8 @@ class TestTypeProvider implements TypeProvider {
       ]);
       listElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", eType, [intType]),
-        ElementFactory.methodElement(
-            "[]=", VoidTypeImpl.instance, [intType, eType]),
+        ElementFactory
+            .methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
         ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])
       ];
       _propagateTypeArguments(listElement);
@@ -326,8 +329,8 @@ class TestTypeProvider implements TypeProvider {
       ]);
       mapElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", vType, [objectType]),
-        ElementFactory.methodElement(
-            "[]=", VoidTypeImpl.instance, [kType, vType])
+        ElementFactory
+            .methodElement("[]=", VoidTypeImpl.instance, [kType, vType])
       ];
       mapElement.constructors = ConstructorElement.EMPTY_LIST;
       _propagateTypeArguments(mapElement);
@@ -450,8 +453,8 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType get symbolType {
     if (_symbolType == null) {
       ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
-      ConstructorElementImpl constructor = ElementFactory.constructorElement(
-          symbolClass, null, true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory
+          .constructorElement(symbolClass, null, true, [stringType]);
       constructor.factory = true;
       constructor.isCycleFree = true;
       symbolClass.constructors = <ConstructorElement>[constructor];
@@ -525,10 +528,10 @@ class TestTypeProvider implements TypeProvider {
       ElementFactory.methodElement("toInt", _intType),
       ElementFactory.methodElement("toDouble", _doubleType),
       ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
-      ElementFactory.methodElement(
-          "toStringAsExponential", _stringType, [_intType]),
-      ElementFactory.methodElement(
-          "toStringAsPrecision", _stringType, [_intType]),
+      ElementFactory
+          .methodElement("toStringAsExponential", _stringType, [_intType]),
+      ElementFactory
+          .methodElement("toStringAsPrecision", _stringType, [_intType]),
       ElementFactory.methodElement("toRadixString", _stringType, [_intType])
     ];
     intElement.methods = <MethodElement>[

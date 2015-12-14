@@ -4,8 +4,8 @@
 
 library analyzer.test.src.task.incremental_element_builder_test;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:unittest/unittest.dart';

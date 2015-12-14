@@ -5,7 +5,7 @@
 library analyzer.dart.element.type;
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/element.dart' show InterfaceTypeImpl;
+import 'package:analyzer/src/dart/element/type.dart' show InterfaceTypeImpl;
 
 /**
  * The type associated with elements in the element model.

@@ -4,8 +4,8 @@
 
 library analyzer.test.generated.non_error_resolver_test;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -1622,21 +1622,21 @@ export 'lib1.dart';''');
     verify([source]);
   }
 
-  void test_extraPositionalArguments_function() {
+  void test_extraPositionalArguments_Function() {
     Source source = addSource(r'''
-f(p1, p2) {}
-main() {
-  f(1, 2);
+f(Function a) {
+  a(1, 2);
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_extraPositionalArguments_Function() {
+  void test_extraPositionalArguments_function() {
     Source source = addSource(r'''
-f(Function a) {
-  a(1, 2);
+f(p1, p2) {}
+main() {
+  f(1, 2);
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3569,7 +3569,8 @@ f() {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_getter() {
     Source source = addSource(r'''
 class A {
   int get g => 0;
@@ -3583,7 +3584,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_method() {
     Source source = addSource(r'''
 class A {
   m(p) {}
@@ -3597,7 +3599,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_abstractsDontOverrideConcretes_setter() {
     Source source = addSource(r'''
 class A {
   set s(v) {}
@@ -3611,7 +3614,8 @@ class C extends B {}''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_interface() {
     // 15979
     Source source = addSource(r'''
 abstract class M {}
@@ -3638,7 +3642,8 @@ abstract class B = A with M;''');
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_classTypeAlias_superclass() {
     // 15979
     Source source = addSource(r'''
 class M {}
@@ -3736,7 +3741,8 @@ class B extends Object with A {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_superclass() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_superclass() {
     Source source = addSource(r'''
 class A {
   noSuchMethod(v) => '';
@@ -3749,7 +3755,8 @@ class B extends A {
     verify([source]);
   }
 
-  void test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() {
+  void
+      test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() {
     Source source = addSource(r'''
 class A {
   String toString([String prefix = '']) => '${prefix}Hello';
@@ -4979,7 +4986,8 @@ main(Object p) {
     verify([source]);
   }
 
-  void test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment() {
+  void
+      test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_noAssignment() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -5016,7 +5024,8 @@ main(Object p) {
     verify([source]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_noAssignment() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {

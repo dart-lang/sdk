@@ -4,8 +4,10 @@
 
 library analyzer.test.generated.parser_test;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
@@ -1070,8 +1072,8 @@ class Foo {
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
-    ParserTestCase.parseStatement(
-        "do {} (x);", [ParserErrorCode.EXPECTED_TOKEN]);
+    ParserTestCase
+        .parseStatement("do {} (x);", [ParserErrorCode.EXPECTED_TOKEN]);
   }
 
   void test_expectedTypeName_is() {
@@ -1253,8 +1255,8 @@ class Foo {
   }
 
   void test_getterInFunction_expression_noReturnType() {
-    ParserTestCase.parseStatement(
-        "get x => _x;", [ParserErrorCode.GETTER_IN_FUNCTION]);
+    ParserTestCase
+        .parseStatement("get x => _x;", [ParserErrorCode.GETTER_IN_FUNCTION]);
   }
 
   void test_getterInFunction_expression_returnType() {
@@ -1962,9 +1964,9 @@ class Foo {
         "parseSwitchStatement",
         "switch (a) {default: return 0; default: return 1; default: return 2;}",
         [
-      ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
-      ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES
-    ]);
+          ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES,
+          ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES
+        ]);
   }
 
   void test_topLevel_getter() {
@@ -2054,10 +2056,10 @@ class Foo {
 void main() {
   var x = "''',
         [
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN
+        ]);
   }
 
   void test_unterminatedString_at_eol() {
@@ -2083,10 +2085,10 @@ void main() {
 void main() {
   var x = """''',
         [
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN
+        ]);
   }
 
   void test_unterminatedString_multiline_at_eof_4_quotes() {
@@ -2098,10 +2100,10 @@ void main() {
 void main() {
   var x = """"''',
         [
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN
+        ]);
   }
 
   void test_unterminatedString_multiline_at_eof_5_quotes() {
@@ -2113,10 +2115,10 @@ void main() {
 void main() {
   var x = """""''',
         [
-      ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-      ParserErrorCode.EXPECTED_TOKEN,
-      ParserErrorCode.EXPECTED_TOKEN
-    ]);
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN
+        ]);
   }
 
   void test_useOfUnaryPlusOperator() {
@@ -2133,8 +2135,8 @@ void main() {
   }
 
   void test_varAndType_topLevelVariable() {
-    ParserTestCase.parseCompilationUnit(
-        "var int x;", [ParserErrorCode.VAR_AND_TYPE]);
+    ParserTestCase
+        .parseCompilationUnit("var int x;", [ParserErrorCode.VAR_AND_TYPE]);
   }
 
   void test_varAsTypeName_as() {
@@ -2142,13 +2144,13 @@ void main() {
   }
 
   void test_varClass() {
-    ParserTestCase.parseCompilationUnit(
-        "var class C {}", [ParserErrorCode.VAR_CLASS]);
+    ParserTestCase
+        .parseCompilationUnit("var class C {}", [ParserErrorCode.VAR_CLASS]);
   }
 
   void test_varEnum() {
-    ParserTestCase.parseCompilationUnit(
-        "var enum E {ONE}", [ParserErrorCode.VAR_ENUM]);
+    ParserTestCase
+        .parseCompilationUnit("var enum E {ONE}", [ParserErrorCode.VAR_ENUM]);
   }
 
   void test_varReturnType() {
@@ -2177,13 +2179,13 @@ void main() {
   }
 
   void test_voidVariable_parseCompilationUnit_initializer() {
-    ParserTestCase.parseCompilationUnit(
-        "void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
+    ParserTestCase
+        .parseCompilationUnit("void x = 0;", [ParserErrorCode.VOID_VARIABLE]);
   }
 
   void test_voidVariable_parseCompilationUnit_noInitializer() {
-    ParserTestCase.parseCompilationUnit(
-        "void x;", [ParserErrorCode.VOID_VARIABLE]);
+    ParserTestCase
+        .parseCompilationUnit("void x;", [ParserErrorCode.VOID_VARIABLE]);
   }
 
   void test_voidVariable_parseCompilationUnitMember_initializer() {
@@ -3483,8 +3485,8 @@ class B = Object with A {}''',
   }
 
   void test_incomplete_topLevelVariable() {
-    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
-        "String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
+    CompilationUnit unit = ParserTestCase
+        .parseCompilationUnit("String", [ParserErrorCode.EXPECTED_EXECUTABLE]);
     NodeList<CompilationUnitMember> declarations = unit.declarations;
     expect(declarations, hasLength(1));
     CompilationUnitMember member = declarations[0];
@@ -3633,8 +3635,8 @@ class C {
   }
 
   void test_incompleteLocalVariable_atTheEndOfBlock() {
-    Statement statement = ParserTestCase.parseStatement(
-        'String v }', [ParserErrorCode.EXPECTED_TOKEN]);
+    Statement statement = ParserTestCase
+        .parseStatement('String v }', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
@@ -3654,15 +3656,15 @@ class C {
   }
 
   void test_incompleteLocalVariable_beforeNextBlock() {
-    Statement statement = ParserTestCase.parseStatement(
-        'String v {}', [ParserErrorCode.EXPECTED_TOKEN]);
+    Statement statement = ParserTestCase
+        .parseStatement('String v {}', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'String v;');
   }
 
   void test_incompleteLocalVariable_parameterizedType() {
-    Statement statement = ParserTestCase.parseStatement(
-        'List<String> v {}', [ParserErrorCode.EXPECTED_TOKEN]);
+    Statement statement = ParserTestCase
+        .parseStatement('List<String> v {}', [ParserErrorCode.EXPECTED_TOKEN]);
     expect(statement, new isInstanceOf<VariableDeclarationStatement>());
     expect(statement.toSource(), 'List<String> v;');
   }
@@ -4817,28 +4819,34 @@ class SimpleParserTest extends ParserTestCase {
     ParserTestCase.parseCompilationUnit("var x = () {};");
   }
 
-  void test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_ArgumentList_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = f(() {}); }");
   }
 
-  void test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_IndexExpression_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = x[() {}]; }");
   }
 
-  void test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_ListLiteral_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = [() {}]; }");
   }
 
-  void test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_MapLiteral_in_ConstructorFieldInitializer() {
     ParserTestCase
         .parseCompilationUnit("class C { C() : a = {'key': () {}}; }");
   }
 
-  void test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_ParenthesizedExpression_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = (() {}); }");
   }
 
-  void test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
+  void
+      test_function_literal_allowed_in_StringInterpolation_in_ConstructorFieldInitializer() {
     ParserTestCase.parseCompilationUnit("class C { C() : a = \"\${(){}}\"; }");
   }
 
@@ -5218,7 +5226,8 @@ class SimpleParserTest extends ParserTestCase {
     expect(propertyAccess.propertyName, isNotNull);
   }
 
-  void test_parseAssignableExpression_expression_args_dot_typeParameterComments() {
+  void
+      test_parseAssignableExpression_expression_args_dot_typeParameterComments() {
     enableGenericMethodComments = true;
     PropertyAccess propertyAccess =
         parse("parseAssignableExpression", <Object>[false], "(x)/*<F>*/(y).z");
@@ -5292,7 +5301,8 @@ class SimpleParserTest extends ParserTestCase {
     expect(propertyAccess.propertyName, isNotNull);
   }
 
-  void test_parseAssignableExpression_identifier_args_dot_typeParameterComments() {
+  void
+      test_parseAssignableExpression_identifier_args_dot_typeParameterComments() {
     enableGenericMethodComments = true;
     PropertyAccess propertyAccess =
         parse("parseAssignableExpression", <Object>[false], "x/*<E>*/(y).z");
@@ -7770,7 +7780,8 @@ void''');
     expect(invocation.argumentList, isNotNull);
   }
 
-  void test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments() {
+  void
+      test_parseExpressionWithoutCascade_superMethodInvocation_typeArgumentComments() {
     enableGenericMethodComments = true;
     MethodInvocation invocation =
         parse4("parseExpressionWithoutCascade", "super.m/*<E>*/()");
@@ -7780,7 +7791,8 @@ void''');
     expect(invocation.argumentList, isNotNull);
   }
 
-  void test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
+  void
+      test_parseExpressionWithoutCascade_superMethodInvocation_typeArguments() {
     enableGenericMethods = true;
     MethodInvocation invocation =
         parse4("parseExpressionWithoutCascade", "super.m<E>()");
@@ -9630,7 +9642,8 @@ void''');
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
+  void
+      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArgumentComments() {
     enableGenericMethodComments = true;
     MethodInvocation expression =
         parse4('parsePostfixExpression', 'a?.m/*<E>*/()');
@@ -9641,7 +9654,8 @@ void''');
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
+  void
+      test_parsePostfixExpression_none_methodInvocation_question_dot_typeArguments() {
     enableGenericMethods = true;
     MethodInvocation expression = parse4('parsePostfixExpression', 'a?.m<E>()');
     expect(expression.target, isNotNull);
@@ -9651,7 +9665,8 @@ void''');
     expect(expression.argumentList, isNotNull);
   }
 
-  void test_parsePostfixExpression_none_methodInvocation_typeArgumentComments() {
+  void
+      test_parsePostfixExpression_none_methodInvocation_typeArgumentComments() {
     enableGenericMethodComments = true;
     MethodInvocation expression =
         parse4("parsePostfixExpression", "a.m/*<E>*/()");
@@ -10015,7 +10030,8 @@ void''');
     expect(statement.functionDeclaration, isNotNull);
   }
 
-  void test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
+  void
+      test_parseStatement_functionDeclaration_noReturnType_typeParameterComments() {
     enableGenericMethodComments = true;
     FunctionDeclarationStatement statement =
         parse4("parseStatement", "f/*<E>*/(a, b) {};");

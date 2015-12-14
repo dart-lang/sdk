@@ -6,9 +6,13 @@ library analyzer.test.generated.resolver_test;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -3643,6 +3647,22 @@ class B extends _A {}
     verify([source]);
   }
 
+  void test_unusedElement_class_isUsed_fieldDeclaration() {
+    enableUnusedElement = true;
+    var src = r'''
+class Foo {
+  _Bar x;
+}
+
+class _Bar {
+}
+''';
+    Source source = addSource(src);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedElement_class_isUsed_implements() {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -3759,22 +3779,6 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
-    verify([source]);
-  }
-
-  void test_unusedElement_class_isUsed_fieldDeclaration() {
-    enableUnusedElement = true;
-    var src = r'''
-class Foo {
-  _Bar x;
-}
-
-class _Bar {
-}
-''';
-    Source source = addSource(src);
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
     verify([source]);
   }
 
