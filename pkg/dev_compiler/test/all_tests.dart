@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'closure/closure_annotation_test.dart' as closure_annotation_test;
 import 'closure/closure_type_test.dart' as closure_type_test;
 import 'codegen_test.dart' as codegen_test;
+import 'js/builder_test.dart' as builder_test;
 import 'end_to_end_test.dart' as e2e;
 import 'report_test.dart' as report_test;
 import 'dependency_graph_test.dart' as dependency_graph_test;
@@ -23,4 +24,5 @@ void main() {
     closure_annotation_test.main();
     closure_type_test.main();
   });
+  group('js', builder_test.main);
 }

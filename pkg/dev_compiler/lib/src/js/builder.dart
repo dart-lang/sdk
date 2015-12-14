@@ -1152,11 +1152,19 @@ class MiniJsParser {
   }
 
   /** Parse a variable declaration list, with `var` or `let` [keyword] */
-  VariableDeclarationList parseVariableDeclarationList(String keyword)  {
+  VariableDeclarationList parseVariableDeclarationList(
+      String keyword, [String firstIdentifier])  {
     var initialization = [];
 
     do {
-      var declarator = parseVariableBinding();
+      var declarator;
+      if (firstIdentifier != null) {
+        declarator = new Identifier(firstIdentifier);
+        firstIdentifier = null;
+      } else {
+        declarator = parseVariableBinding();
+      }
+
       var initializer = acceptString("=") ? parseAssignment() : null;
       initialization.add(new VariableInitialization(declarator, initializer));
     } while (acceptCategory(COMMA));
@@ -1456,7 +1464,7 @@ class MiniJsParser {
             iterableExpression,
             body);
       }
-      var declarations = parseVariableDeclarationList(keyword);
+      var declarations = parseVariableDeclarationList(keyword, identifier);
       expectCategory(SEMICOLON);
       return finishFor(declarations);
     }
@@ -1588,10 +1596,18 @@ class MiniJsParser {
   Property parseMethodOrProperty({bool onlyMethods: false}) {
     bool isStatic = acceptString('static');
 
-    bool isGetter = false;
-    bool isSetter = false;
+    bool isGetter = lastToken == 'get';
+    bool isSetter = lastToken == 'set';
     Expression name = null;
-    bool propertyNameIsIdentifier = lastCategory == ALPHA;
+    if (isGetter || isSetter) {
+      var token = lastToken;
+      getToken();
+      if (lastCategory == COLON) {
+        // That wasn't a accessor but the 'get' or 'set' property: retropedal.
+        isGetter = isSetter = false;
+        name = new LiteralString('"$token"');
+      }
+    }
     if (acceptCategory(HASH)) {
       if (lastCategory != LPAREN && (onlyMethods || lastCategory != COLON)) {
         // Interpolated method
@@ -1601,18 +1617,7 @@ class MiniJsParser {
       }
       name = parseInterpolatedExpression();
     } else {
-      name = parsePropertyName();
-    }
-
-    // Allow get or set to be followed by another property name.
-    if (propertyNameIsIdentifier &&
-        (lastCategory == ALPHA || lastCategory == HASH)) {
-      LiteralString p = name;
-      isGetter = p.value == '"get"';
-      isSetter = p.value == '"set"';
-      if (isGetter || isSetter) {
-        name = parsePropertyName();
-      }
+      name ??= parsePropertyName();
     }
 
     if (!onlyMethods && acceptCategory(COLON)) {
