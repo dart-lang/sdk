@@ -13,6 +13,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart'
@@ -23,7 +24,6 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
-import 'package:analysis_server/src/services/completion/optype.dart';
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific
@@ -37,9 +37,15 @@ class DartCompletionManager implements CompletionContributor {
       return EMPTY_LIST;
     }
 
-    // Request Dart specific completions from each contributor
     DartCompletionRequestImpl dartRequest =
         await DartCompletionRequestImpl.from(request);
+
+    // Don't suggest in comments.
+    if (dartRequest.target.isCommentText) {
+      return EMPTY_LIST;
+    }
+
+    // Request Dart specific completions from each contributor
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     for (DartCompletionContributor c in dartCompletionPlugin.contributors) {
       suggestions.addAll(await c.computeSuggestions(dartRequest));

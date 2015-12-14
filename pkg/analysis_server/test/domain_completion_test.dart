@@ -342,8 +342,9 @@ class CompletionTest extends AbstractAnalysisTest {
 
   Future getSuggestions() {
     return waitForTasksFinished().then((_) {
-      Request request = new CompletionGetSuggestionsParams(
-          testFile, completionOffset).toRequest('0');
+      Request request =
+          new CompletionGetSuggestionsParams(testFile, completionOffset)
+              .toRequest('0');
       Response response = handleSuccessfulRequest(request);
       completionId = response.id;
       assertValidId(completionId);
@@ -530,6 +531,77 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
     });
+  }
+
+  test_inComment_block_beforeNode() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    /* text ^ */
+    print(42);
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inComment_endOfLine_beforeNode() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    // text ^
+    print(42);
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inComment_endOfLine_beforeToken() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    // text ^
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc1() async {
+    addTestFile('''
+  /// ^
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc2() async {
+    addTestFile('''
+  /// Some text^
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc_reference2() async {
+    addTestFile('''
+  /// The [^]
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'main',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+  }
+
+  test_inDartDoc_reference3() async {
+    addTestFile('''
+  /// The [m^]
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.INVOCATION, 'main',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 
   test_keyword() {
