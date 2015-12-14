@@ -960,6 +960,22 @@ main() {
 ''');
   }
 
+  test_singleExpression_string() {
+    indexTestUnit('''
+void main() {
+  print("1234");
+}
+''');
+    _createRefactoringAtString('34"');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void main() {
+  var res = "1234";
+  print(res);
+}
+''');
+  }
+
   test_singleExpression_trailingNotWhitespace() {
     indexTestUnit('''
 main() {
@@ -1090,6 +1106,16 @@ main() {
   void _createRefactoring(int offset, int length) {
     refactoring = new ExtractLocalRefactoring(testUnit, offset, length);
     refactoring.name = 'res';
+  }
+
+  /**
+   * Creates a new refactoring in [refactoring] at the offset of the given
+   * [search] pattern, and with the length `0`.
+   */
+  void _createRefactoringAtString(String search) {
+    int offset = findOffset(search);
+    int length = 0;
+    _createRefactoring(offset, length);
   }
 
   /**

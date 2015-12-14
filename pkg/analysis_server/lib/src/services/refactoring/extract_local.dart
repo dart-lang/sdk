@@ -281,7 +281,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
     // part of string literal
     if (coveringNode is StringLiteral) {
-      if (selectionRange.offset > coveringNode.offset &&
+      if (selectionRange.length != 0 &&
+          selectionRange.offset > coveringNode.offset &&
           selectionRange.end < coveringNode.end) {
         stringLiteralPart = selectionStr;
         return new RefactoringStatus();
