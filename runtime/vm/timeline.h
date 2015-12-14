@@ -334,17 +334,9 @@ class TimelineStream {
   }
 
 
-class TimelineDurationScope : public StackResource {
+// See |TimelineDurationScope| and |TimelineBeginEndScope|.
+class TimelineEventScope : public StackResource {
  public:
-  TimelineDurationScope(TimelineStream* stream,
-                        const char* label);
-
-  TimelineDurationScope(Thread* thread,
-                        TimelineStream* stream,
-                        const char* label);
-
-  ~TimelineDurationScope();
-
   bool enabled() const {
     return enabled_;
   }
@@ -359,18 +351,78 @@ class TimelineDurationScope : public StackResource {
                       const char* name,
                       const char* fmt, ...)  PRINTF_ATTRIBUTE(4, 5);
 
+ protected:
+  TimelineEventScope(TimelineStream* stream,
+                     const char* label);
+
+  TimelineEventScope(Thread* thread,
+                     TimelineStream* stream,
+                     const char* label);
+
+  bool ShouldEmitEvent() const {
+    return enabled_;
+  }
+
+  const char* label() const {
+    return label_;
+  }
+
+  TimelineStream* stream() const {
+    return stream_;
+  }
+
+  virtual ~TimelineEventScope();
+
+  void StealArguments(TimelineEvent* event);
+
  private:
   void Init();
   void FreeArguments();
 
-  int64_t timestamp_;
   TimelineStream* stream_;
   const char* label_;
   TimelineEventArgument* arguments_;
   intptr_t arguments_length_;
   bool enabled_;
 
+  DISALLOW_COPY_AND_ASSIGN(TimelineEventScope);
+};
+
+
+class TimelineDurationScope : public TimelineEventScope {
+ public:
+  TimelineDurationScope(TimelineStream* stream,
+                        const char* label);
+
+  TimelineDurationScope(Thread* thread,
+                        TimelineStream* stream,
+                        const char* label);
+
+  ~TimelineDurationScope();
+
+ private:
+  int64_t timestamp_;
+
   DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
+};
+
+
+class TimelineBeginEndScope : public TimelineEventScope {
+ public:
+  TimelineBeginEndScope(TimelineStream* stream,
+                        const char* label);
+
+  TimelineBeginEndScope(Thread* thread,
+                        TimelineStream* stream,
+                        const char* label);
+
+  ~TimelineBeginEndScope();
+
+ private:
+  void EmitBegin();
+  void EmitEnd();
+
+  DISALLOW_COPY_AND_ASSIGN(TimelineBeginEndScope);
 };
 
 

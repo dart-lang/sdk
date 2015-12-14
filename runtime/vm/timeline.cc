@@ -490,10 +490,9 @@ TimelineEvent* TimelineStream::StartEvent() {
 }
 
 
-TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
-                                             const char* label)
+TimelineEventScope::TimelineEventScope(TimelineStream* stream,
+                                       const char* label)
     : StackResource(reinterpret_cast<Thread*>(NULL)),
-      timestamp_(0),
       stream_(stream),
       label_(label),
       arguments_(NULL),
@@ -503,11 +502,10 @@ TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
 }
 
 
-TimelineDurationScope::TimelineDurationScope(Thread* thread,
-                                             TimelineStream* stream,
-                                             const char* label)
+TimelineEventScope::TimelineEventScope(Thread* thread,
+                                       TimelineStream* stream,
+                                       const char* label)
     : StackResource(thread),
-      timestamp_(0),
       stream_(stream),
       label_(label),
       arguments_(NULL),
@@ -518,27 +516,12 @@ TimelineDurationScope::TimelineDurationScope(Thread* thread,
 }
 
 
-TimelineDurationScope::~TimelineDurationScope() {
-  if (!enabled_) {
-    FreeArguments();
-    return;
-  }
-  TimelineEvent* event = stream_->StartEvent();
-  if (event == NULL) {
-    // Stream is now disabled.
-    FreeArguments();
-    return;
-  }
-  ASSERT(event != NULL);
-  event->Duration(label_, timestamp_, OS::GetCurrentMonotonicMicros());
-  event->StealArguments(arguments_length_, arguments_);
-  event->Complete();
-  arguments_length_ = 0;
-  arguments_ = NULL;
+TimelineEventScope::~TimelineEventScope() {
+  FreeArguments();
 }
 
 
-void TimelineDurationScope::Init() {
+void TimelineEventScope::Init() {
   ASSERT(enabled_ == false);
   ASSERT(label_ != NULL);
   ASSERT(stream_ != NULL);
@@ -546,12 +529,11 @@ void TimelineDurationScope::Init() {
     // Stream is not enabled, do nothing.
     return;
   }
-  timestamp_ = OS::GetCurrentMonotonicMicros();
   enabled_ = true;
 }
 
 
-void TimelineDurationScope::SetNumArguments(intptr_t length) {
+void TimelineEventScope::SetNumArguments(intptr_t length) {
   if (!enabled()) {
     return;
   }
@@ -567,9 +549,9 @@ void TimelineDurationScope::SetNumArguments(intptr_t length) {
 
 
 // |name| must be a compile time constant. Takes ownership of |argumentp|.
-void TimelineDurationScope::SetArgument(intptr_t i,
-                                        const char* name,
-                                        char* argument) {
+void TimelineEventScope::SetArgument(intptr_t i,
+                                     const char* name,
+                                     char* argument) {
   if (!enabled()) {
     return;
   }
@@ -581,9 +563,9 @@ void TimelineDurationScope::SetArgument(intptr_t i,
 
 
 // |name| must be a compile time constant. Copies |argument|.
-void TimelineDurationScope::CopyArgument(intptr_t i,
-                                         const char* name,
-                                         const char* argument) {
+void TimelineEventScope::CopyArgument(intptr_t i,
+                                      const char* name,
+                                      const char* argument) {
   if (!enabled()) {
     return;
   }
@@ -591,9 +573,9 @@ void TimelineDurationScope::CopyArgument(intptr_t i,
 }
 
 
-void TimelineDurationScope::FormatArgument(intptr_t i,
-                                           const char* name,
-                                           const char* fmt, ...) {
+void TimelineEventScope::FormatArgument(intptr_t i,
+                                        const char* name,
+                                        const char* fmt, ...) {
   if (!enabled()) {
     return;
   }
@@ -612,7 +594,7 @@ void TimelineDurationScope::FormatArgument(intptr_t i,
 }
 
 
-void TimelineDurationScope::FreeArguments() {
+void TimelineEventScope::FreeArguments() {
   if (arguments_ == NULL) {
     return;
   }
@@ -622,6 +604,101 @@ void TimelineDurationScope::FreeArguments() {
   free(arguments_);
   arguments_ = NULL;
   arguments_length_ = 0;
+}
+
+
+void TimelineEventScope::StealArguments(TimelineEvent* event) {
+  if (event == NULL) {
+    return;
+  }
+  event->StealArguments(arguments_length_, arguments_);
+  arguments_length_ = 0;
+  arguments_ = NULL;
+}
+
+
+TimelineDurationScope::TimelineDurationScope(TimelineStream* stream,
+                                             const char* label)
+    : TimelineEventScope(stream, label) {
+  timestamp_ = OS::GetCurrentMonotonicMicros();
+}
+
+
+TimelineDurationScope::TimelineDurationScope(Thread* thread,
+                                             TimelineStream* stream,
+                                             const char* label)
+    : TimelineEventScope(thread, stream, label) {
+  timestamp_ = OS::GetCurrentMonotonicMicros();
+}
+
+
+TimelineDurationScope::~TimelineDurationScope() {
+  if (!ShouldEmitEvent()) {
+    return;
+  }
+  TimelineEvent* event = stream()->StartEvent();
+  if (event == NULL) {
+    // Stream is now disabled.
+    return;
+  }
+  ASSERT(event != NULL);
+  // Emit a duration event.
+  event->Duration(label(), timestamp_, OS::GetCurrentMonotonicMicros());
+  StealArguments(event);
+  event->Complete();
+}
+
+
+TimelineBeginEndScope::TimelineBeginEndScope(TimelineStream* stream,
+                                             const char* label)
+    : TimelineEventScope(stream, label) {
+  EmitBegin();
+}
+
+
+TimelineBeginEndScope::TimelineBeginEndScope(Thread* thread,
+                                             TimelineStream* stream,
+                                             const char* label)
+    : TimelineEventScope(thread, stream, label) {
+  EmitBegin();
+}
+
+
+TimelineBeginEndScope::~TimelineBeginEndScope() {
+  EmitEnd();
+}
+
+
+void TimelineBeginEndScope::EmitBegin() {
+  if (!ShouldEmitEvent()) {
+    return;
+  }
+  TimelineEvent* event = stream()->StartEvent();
+  if (event == NULL) {
+    // Stream is now disabled.
+    return;
+  }
+  ASSERT(event != NULL);
+  // Emit a begin event.
+  event->Begin(label());
+  event->Complete();
+}
+
+
+void TimelineBeginEndScope::EmitEnd() {
+  if (!ShouldEmitEvent()) {
+    return;
+  }
+  TimelineEvent* event = stream()->StartEvent();
+  if (event == NULL) {
+    // Stream is now disabled.
+    return;
+  }
+  ASSERT(event != NULL);
+  // Emit an end event.
+  event->End(label());
+  StealArguments(event);
+  event->Complete();
 }
 
 
