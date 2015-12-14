@@ -14,7 +14,7 @@ export 'redundant_join.dart' show RedundantJoinEliminator;
 export 'shrinking_reductions.dart' show ShrinkingReducer;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
 export 'insert_refinements.dart' show InsertRefinements;
-export 'remove_refinements.dart' show RemoveRefinements;
+export 'update_refinements.dart' show UpdateRefinements;
 export 'redundant_refinement.dart' show RedundantRefinementEliminator;
 export 'optimize_interceptors.dart' show OptimizeInterceptors;
 export 'bounds_checker.dart' show BoundsChecker;

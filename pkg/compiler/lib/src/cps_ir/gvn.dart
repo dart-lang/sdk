@@ -97,6 +97,22 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
 
   // ------------------ GLOBAL VALUE NUMBERING ---------------------
 
+  /// True if [prim] can be eliminated if its value is already in scope.
+  bool canReplaceWithExistingValue(Primitive prim) {
+    // Primitives that have no side effects other than potentially throwing are
+    // known not the throw if the value is already in scope. Handling those
+    // specially is equivalent to updating refinements during GVN.
+    // GetLazyStatic cannot have side effects because the field has already
+    // been initialized.
+    // TODO(asgerf): Replace GetLazyStatic in an earlier pass so it does not
+    //   confuse the LoopSideEffects pre-analysis.
+    return prim.isSafeForElimination ||
+           prim is GetField ||
+           prim is GetLength ||
+           prim is GetIndex ||
+           prim is GetLazyStatic;
+  }
+
   @override
   Expression traverseLetPrim(LetPrim node) {
     Expression next = node.body;
@@ -131,7 +147,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     // Try to reuse a previously computed value with the same GVN.
     Primitive existing = environment[gvn];
     if (existing != null &&
-        (prim.isSafeForElimination || prim is GetLazyStatic) &&
+        canReplaceWithExistingValue(prim) &&
         !isTrivialPrimitive(prim)) {
       if (prim is Interceptor) {
         Interceptor interceptor = existing;

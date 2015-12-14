@@ -123,6 +123,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
           sourceInformation: interceptor.sourceInformation);
       CpsFragment cps = new CpsFragment(interceptor.sourceInformation);
       Parameter param = new Parameter(interceptor.hint);
+      param.type = interceptor.type;
       Continuation cont = cps.letCont(<Parameter>[param]);
       if (interceptor.interceptedClasses.every(hasNoFalsyValues)) {
         // If null is the only falsy value, compile as "x && CONST".

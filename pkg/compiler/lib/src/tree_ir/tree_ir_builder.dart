@@ -98,6 +98,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   /// Obtains the variable representing the given primitive. Returns null for
   /// primitives that have no reference and do not need a variable.
   Variable getVariable(cps_ir.Primitive primitive) {
+    primitive = primitive.effectiveDefinition;
     return primitive2variable.putIfAbsent(primitive,
         () => new Variable(currentElement, primitive.hint));
   }
@@ -458,7 +459,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   Expression visitGetField(cps_ir.GetField node) {
     return new GetField(getVariableUse(node.object), node.field,
-        objectIsNotNull: node.objectIsNotNull);
+        objectIsNotNull: !node.object.definition.type.isNullable);
   }
 
   Expression visitCreateBox(cps_ir.CreateBox node) {
@@ -555,7 +556,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new ApplyBuiltinMethod(node.method,
         getVariableUse(node.receiver),
         translateArguments(node.arguments),
-        receiverIsNotNull: node.receiverIsNotNull);
+        receiverIsNotNull: !node.receiver.definition.type.isNullable);
   }
 
   Expression visitGetLength(cps_ir.GetLength node) {
@@ -586,7 +587,15 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
         node.mask,
         translateArguments(node.arguments),
         node.sourceInformation);
-    invoke.receiverIsNotNull = node.receiverIsNotNull;
+    // Sometimes we know the Dart receiver is non-null because it has been
+    // refined, which implies that the JS receiver also can not be null at the
+    // use-site.  Interceptors are not refined, so this information is not
+    // always available on the JS receiver.
+    // Also check the JS receiver's type, however, because sometimes we know an
+    // interceptor is non-null because it intercepts JSNull.
+    invoke.receiverIsNotNull =
+        !node.dartReceiver.type.isNullable ||
+        !node.receiver.definition.type.isNullable;
     return invoke;
   }
 
@@ -673,8 +682,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   @override
-  Expression visitRefinement(cps_ir.Refinement node) {
-    throw 'Unexpected Refinement node in tree builder';
+  visitRefinement(cps_ir.Refinement node) {
+    return (Statement next) => next; // Compile to nothing.
   }
 
   @override
