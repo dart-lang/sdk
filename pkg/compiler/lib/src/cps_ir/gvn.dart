@@ -14,6 +14,7 @@ import '../world.dart';
 import '../compiler.dart' show Compiler;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../constants/values.dart';
+import 'type_mask_system.dart';
 
 /// Eliminates redundant primitives by reusing the value of another primitive
 /// that is known to have the same result.  Primitives are also hoisted out of
@@ -44,6 +45,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'GVN';
 
   final Compiler compiler;
+  final TypeMaskSystem types;
   JavaScriptBackend get backend => compiler.backend;
   World get world => compiler.world;
 
@@ -80,13 +82,13 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
 
   Continuation currentLoopHeader;
 
-  GVN(this.compiler);
+  GVN(this.compiler, this.types);
 
   int _usedEffectNumbers = 0;
   int makeNewEffect() => ++_usedEffectNumbers;
 
   void rewrite(FunctionDefinition node) {
-    gvnVectorBuilder = new GvnVectorBuilder(gvnFor, backend);
+    gvnVectorBuilder = new GvnVectorBuilder(gvnFor, compiler, types);
     loopHierarchy = new LoopHierarchy(node);
     loopEffects =
         new LoopSideEffects(node, world, loopHierarchy: loopHierarchy);
@@ -313,15 +315,20 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   /// True if [element] is a final or constant field or a function.
   bool isImmutable(Element element) {
     if (element.isField && backend.isNative(element)) return false;
-    return element.isField && (element.isFinal || element.isConst) ||
+    return element.isField && world.fieldNeverChanges(element) ||
            element.isFunction;
+  }
+
+  bool isImmutableLength(GetLength length) {
+    return types.isDefinitelyFixedLengthIndexable(length.object.definition.type,
+        allowNull: true);
   }
 
   /// Assuming [prim] has no side effects, returns true if it can safely
   /// be hoisted out of [loop] without changing its value.
   bool canHoistHeapDependencyOutOfLoop(Primitive prim, Continuation loop) {
     assert(prim.isSafeForElimination);
-    if (prim is GetLength) {
+    if (prim is GetLength && !isImmutableLength(prim)) {
       return !loopEffects.loopChangesLength(loop);
     } else if (prim is GetField && !isImmutable(prim.field)) {
       return !loopEffects.getSideEffectsInLoop(loop).changesInstanceProperty();
@@ -576,10 +583,13 @@ class GvnEntry {
 class GvnVectorBuilder extends DeepRecursiveVisitor {
   List vector;
   final Map<Primitive, int> gvnFor;
-  final JavaScriptBackend backend;
+  final Compiler compiler;
+  World get world => compiler.world;
+  JavaScriptBackend get backend => compiler.backend;
+  final TypeMaskSystem types;
   EffectNumbers effectNumbers;
 
-  GvnVectorBuilder(this.gvnFor, this.backend);
+  GvnVectorBuilder(this.gvnFor, this.compiler, this.types);
 
   List make(Primitive prim, EffectNumbers effectNumbers) {
     this.effectNumbers = effectNumbers;
@@ -609,13 +619,25 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
   }
 
   processGetLength(GetLength node) {
-    // TODO(asgerf): Take fixed lengths into account?
-    vector = [GvnCode.GET_LENGTH, effectNumbers.indexableLength];
+    if (isImmutableLength(node)) {
+      // Omit the effect number for fixed-length lists.  Note that if a the list
+      // gets refined to a fixed-length type, we still won't be able to GVN a
+      // GetLength across the refinement, because the first GetLength uses an
+      // effect number in its vector while the second one does not.
+      vector = [GvnCode.GET_LENGTH];
+    } else {
+      vector = [GvnCode.GET_LENGTH, effectNumbers.indexableLength];
+    }
   }
 
   bool isImmutable(Element element) {
     return element.isFunction ||
-           element.isField && (element.isFinal || element.isConst);
+           element.isField && world.fieldNeverChanges(element);
+  }
+
+  bool isImmutableLength(GetLength length) {
+    return types.isDefinitelyFixedLengthIndexable(length.object.definition.type,
+        allowNull: true);
   }
 
   bool isNativeField(FieldElement field) {

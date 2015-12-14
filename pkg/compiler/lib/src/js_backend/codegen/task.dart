@@ -208,7 +208,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new RedundantRefinementEliminator(typeSystem), cpsFunction);
-      applyCpsPass(new GVN(compiler), cpsFunction);
+      applyCpsPass(new GVN(compiler, typeSystem), cpsFunction);
       applyCpsPass(new RemoveRefinements(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new ScalarReplacer(compiler), cpsFunction);
