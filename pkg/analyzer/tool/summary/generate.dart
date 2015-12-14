@@ -307,6 +307,8 @@ class _CodeGenerator {
       indent(() {
         out('final Map _json = {};');
         out();
+        out('bool _finished = false;');
+        out();
         out('${name}Builder(builder.BuilderContext context);');
         cls.fields.forEach((String fieldName, idlModel.FieldType type) {
           out();
@@ -328,6 +330,7 @@ class _CodeGenerator {
           builderParams.add('${encodedType(type)} $fieldName');
           out('void set $fieldName(${encodedType(type)} _value) {');
           indent(() {
+            out('assert(!_finished);');
             out('assert(!_json.containsKey(${quoted(fieldName)}));');
             out('if (_value != null$condition) {');
             indent(() {
@@ -342,7 +345,13 @@ class _CodeGenerator {
           out('List<int> toBuffer() => UTF8.encode(JSON.encode(finish()));');
         }
         out();
-        out('Map finish() => _json;');
+        out('Map finish() {');
+        indent(() {
+          out('assert(!_finished);');
+          out('_finished = true;');
+          out('return _json;');
+        });
+        out('}');
       });
       out('}');
       out();
