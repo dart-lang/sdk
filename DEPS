@@ -77,7 +77,7 @@ vars = {
   "mustache4dart_rev" : "@5724cfd85151e5b6b53ddcd3380daf188fe47f92",
   "oauth2_tag": "@1.0.0",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
-  "observatory_pub_packages_rev": "@5c199c5954146747f75ed127871207718dc87786",
+  "observatory_pub_packages_rev": "@0e74202dd671265f12a3c80d223717b393f4feb9",
   "package_config_rev": "@0.1.3",
   "path_tag": "@1.3.6",
   "petitparser_rev" : "@37878",
