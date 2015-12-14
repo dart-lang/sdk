@@ -32,8 +32,8 @@ class CombinatorContributor extends DartCompletionContributor {
       LibraryElement library = directive.uriElement;
       if (library != null) {
         LibraryElementSuggestionBuilder builder =
-            new LibraryElementSuggestionBuilder(
-                library, CompletionSuggestionKind.IDENTIFIER, false, false);
+            new LibraryElementSuggestionBuilder(request.libraryElement,
+                CompletionSuggestionKind.IDENTIFIER, false, false);
         library.visitChildren(builder);
         return builder.suggestions;
       }

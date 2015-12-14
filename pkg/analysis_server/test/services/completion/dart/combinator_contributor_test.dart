@@ -94,7 +94,8 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
       library libAB;
       part '/partAB.dart';
       class A { }
-      class B { }''');
+      class B { }
+      class _AB''');
     addSource(
         '/partAB.dart',
         '''
@@ -124,6 +125,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertSuggestClass('B',
         relevance: DART_RELEVANCE_DEFAULT,
         kind: CompletionSuggestionKind.IDENTIFIER);
+    assertNotSuggested('_AB');
     assertSuggestClass('PB',
         relevance: DART_RELEVANCE_DEFAULT,
         kind: CompletionSuggestionKind.IDENTIFIER);
