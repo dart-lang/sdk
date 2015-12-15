@@ -19,6 +19,7 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/source_span.dart';
 import '../enqueue.dart' show
     ResolutionEnqueuer;
 import '../elements/elements.dart';
@@ -314,8 +315,8 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerTypeUse(typeUse);
   }
 
-  void registerSuperUse(Node node) {
-    mapping.addSuperUse(node);
+  void registerSuperUse(SourceSpan span) {
+    mapping.addSuperUse(span);
   }
 
   void registerTypeLiteral(Send node, DartType type) {

@@ -66,7 +66,9 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
-  reportDuplicateInitializerError(Element field, Node init, Node existing) {
+  reportDuplicateInitializerError(Element field,
+                                  Node init,
+                                  Spannable existing) {
     reporter.reportError(
         reporter.createMessage(
             init,
@@ -90,7 +92,9 @@ class InitializerResolver {
       field.parseNode(visitor.resolution.parsing);
       Expression initializer = field.initializer;
       if (initializer != null) {
-        reportDuplicateInitializerError(field, init, initializer);
+        reportDuplicateInitializerError(field, init,
+            reporter.withCurrentElement(field,
+                () => reporter.spanFromSpannable(initializer)));
       }
     }
     initialized[field] = init;

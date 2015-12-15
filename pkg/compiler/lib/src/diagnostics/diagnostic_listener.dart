@@ -69,6 +69,11 @@ abstract class DiagnosticReporter {
 
   internalError(Spannable spannable, message);
 
+  /// Creates a [SourceSpan] for [node] in scope of the current element.
+  ///
+  /// If [node] is a [Node] or [Token] we assert in checked mode that the
+  /// corresponding tokens can be found within the tokens of the current
+  /// element.
   SourceSpan spanFromSpannable(Spannable node);
 
   void reportErrorMessage(
@@ -109,10 +114,8 @@ abstract class DiagnosticReporter {
   void reportInfo(Spannable node, MessageKind errorCode,
                   [Map arguments = const {}]);
 
-  // TODO(ahe): We should not expose this here.  Perhaps a
-  // [SourceSpan] should implement [Spannable], and we should have a
-  // way to construct a [SourceSpan] from a [Spannable] and an
-  // [Element].
+  /// Set current element of this reporter to [element]. This is used for
+  /// creating [SourceSpan] in [spanFromSpannable].
   withCurrentElement(Element element, f());
 
   DiagnosticMessage createMessage(

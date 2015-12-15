@@ -1792,6 +1792,67 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
     }
     if (uri == null && currentElement != null) {
       uri = currentElement.compilationUnit.script.resourceUri;
+      assert(invariant(currentElement, () {
+
+        /// Check that [begin] and [end] can be found between [from] and [to].
+        validateToken(Token from, Token to) {
+          if (from == null || to == null) return true;
+          bool foundBegin = false;
+          bool foundEnd = false;
+          Token token = from;
+          while (true) {
+            if (token == begin) {
+              foundBegin = true;
+            }
+            if (token == end) {
+              foundEnd = true;
+            }
+            if (foundBegin && foundEnd) {
+              return true;
+            }
+            if (token == to || token == token.next || token.next == null) {
+              break;
+            }
+            token = token.next;
+          }
+
+          // Create a good message for when the tokens were not found.
+          StringBuffer sb = new StringBuffer();
+          sb.write('Invalid current element: $currentElement. ');
+          sb.write('Looking for ');
+          sb.write('[${begin} (${begin.hashCode}),');
+          sb.write('${end} (${end.hashCode})] in');
+
+          token = from;
+          while (true) {
+            sb.write('\n ${token} (${token.hashCode})');
+            if (token == to || token == token.next || token.next == null) {
+              break;
+            }
+            token = token.next;
+          }
+          return sb.toString();
+        }
+
+        if (currentElement.enclosingClass != null &&
+            currentElement.enclosingClass.isEnumClass) {
+          // Enums ASTs are synthesized (and give messed up messages).
+          return true;
+        }
+
+        if (currentElement is AstElement) {
+          AstElement astElement = currentElement;
+          if (astElement.hasNode) {
+            Token from = astElement.node.getBeginToken();
+            Token to = astElement.node.getEndToken();
+            if (astElement.metadata.isNotEmpty) {
+              from = astElement.metadata.first.beginToken;
+            }
+            return validateToken(from, to);
+          }
+        }
+        return true;
+      }, message: "Invalid current element: $currentElement [$begin,$end]."));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }

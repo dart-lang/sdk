@@ -802,7 +802,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       return new StaticAccess.invalid(error);
     }
-    registry.registerSuperUse(node);
+    registry.registerSuperUse(reporter.spanFromSpannable(node));
     return null;
   }
 

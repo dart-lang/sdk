@@ -7,6 +7,7 @@ library dart2js.resolution.tree_elements;
 import '../common.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/source_span.dart';
 import '../elements/elements.dart';
 import '../types/types.dart' show
     TypeMask;
@@ -22,7 +23,7 @@ import 'send_structure.dart';
 
 abstract class TreeElements {
   AnalyzableElement get analyzedElement;
-  Iterable<Node> get superUses;
+  Iterable<SourceSpan> get superUses;
 
   void forEachConstantNode(f(Node n, ConstantExpression c));
 
@@ -111,7 +112,7 @@ class TreeElementMapping extends TreeElements {
   Map<Spannable, TypeMask> _typeMasks;
   Map<Node, DartType> _types;
   Map<Node, DartType> typesCache = <Node, DartType>{};
-  Setlet<Node> _superUses;
+  Setlet<SourceSpan> _superUses;
   Map<Node, ConstantExpression> _constants;
   Map<VariableElement, List<Node>> _potentiallyMutated;
   Map<Node, Map<VariableElement, List<Node>>> _potentiallyMutatedIn;
@@ -191,15 +192,15 @@ class TreeElementMapping extends TreeElements {
 
   DartType getType(Node node) => _types != null ? _types[node] : null;
 
-  Iterable<Node> get superUses {
-    return _superUses != null ? _superUses : const <Node>[];
+  Iterable<SourceSpan> get superUses {
+    return _superUses != null ? _superUses : const <SourceSpan>[];
   }
 
-  void addSuperUse(Node node) {
+  void addSuperUse(SourceSpan span) {
     if (_superUses == null) {
-      _superUses = new Setlet<Node>();
+      _superUses = new Setlet<SourceSpan>();
     }
-    _superUses.add(node);
+    _superUses.add(span);
   }
 
   Selector _getSelector(Spannable node) {
