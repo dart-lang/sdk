@@ -19,8 +19,8 @@ import 'package:analysis_server/src/services/completion/imported_reference_contr
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
@@ -3307,6 +3307,14 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     });
   }
 
+  test_localVariableDeclarationName() {
+    addTestSource('main() {String m^}');
+    return computeFull((bool result) {
+      assertNotSuggested('main');
+      assertNotSuggested('min');
+    });
+  }
+
   test_MapLiteralEntry() {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     addSource(
@@ -4173,14 +4181,6 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     computeFast();
     return computeFull((bool result) {
       assertSuggestInvocationGetter('length', 'int');
-    });
-  }
-
-  test_localVariableDeclarationName() {
-    addTestSource('main() {String m^}');
-    return computeFull((bool result) {
-      assertNotSuggested('main');
-      assertNotSuggested('min');
     });
   }
 

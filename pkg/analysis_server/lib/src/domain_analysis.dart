@@ -22,9 +22,9 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/dependencies/reachable_source_collector.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
@@ -66,8 +66,8 @@ class AnalysisDomainHandler implements RequestHandler {
             server.sendResponse(new Response.getErrorsInvalidFile(request));
           } else {
             engine.AnalysisContext context = server.getAnalysisContext(file);
-            errors = doAnalysisError_listFromEngine(context,
-                errorInfo.lineInfo, errorInfo.errors);
+            errors = doAnalysisError_listFromEngine(
+                context, errorInfo.lineInfo, errorInfo.errors);
             server.sendResponse(
                 new AnalysisGetErrorsResult(errors).toResponse(request.id));
           }

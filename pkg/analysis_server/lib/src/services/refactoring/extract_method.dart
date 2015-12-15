@@ -20,8 +20,9 @@ import 'package:analysis_server/src/services/refactoring/rename_class_member.dar
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
@@ -332,8 +333,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
           declarationSource = '$annotations$signature$asyncKeyword {$eol';
           declarationSource += returnExpressionSource;
           if (_returnVariableName != null) {
-            declarationSource +=
-                '$prefix  return $_returnVariableName;$eol';
+            declarationSource += '$prefix  return $_returnVariableName;$eol';
           }
           declarationSource += '$prefix}';
         }
@@ -341,8 +341,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       // insert declaration
       if (declarationSource != null) {
         int offset = _parentMember.end;
-        SourceEdit edit = new SourceEdit(
-            offset, 0, '$eol$eol$prefix$declarationSource');
+        SourceEdit edit =
+            new SourceEdit(offset, 0, '$eol$eol$prefix$declarationSource');
         doSourceChange_addElementEdit(change, unitElement, edit);
       }
     }

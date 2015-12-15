@@ -9,9 +9,10 @@ import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart'
     as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/ast.dart' as engine;
-import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;

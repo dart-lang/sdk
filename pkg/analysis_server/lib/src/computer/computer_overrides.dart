@@ -6,8 +6,9 @@ library computer.overrides;
 
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart' as engine;
 
 /**
  * A computer for class member overrides in a Dart [CompilationUnit].

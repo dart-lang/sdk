@@ -7,11 +7,13 @@ library services.completion.dart.suggestion.builder;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' as path;
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 
 const String DYNAMIC = 'dynamic';
 
@@ -107,14 +109,14 @@ abstract class ElementSuggestionBuilder {
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   /**
-   * Return the kind of suggestions that should be built.
-   */
-  CompletionSuggestionKind get kind;
-
-  /**
    * Return the library in which the completion is requested.
    */
   LibraryElement get containingLibrary;
+
+  /**
+   * Return the kind of suggestions that should be built.
+   */
+  CompletionSuggestionKind get kind;
 
   /**
    * Add a suggestion based upon the given element.

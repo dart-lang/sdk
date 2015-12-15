@@ -5,8 +5,9 @@
 library test.services.correction.name_suggestion;
 
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 

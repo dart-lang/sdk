@@ -6,8 +6,10 @@ library test.computer.element;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/plugin/protocol/protocol_dart.dart';
+import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart' as engine;
+import 'package:analyzer/src/dart/element/element.dart' as engine;
 import 'package:analyzer/src/generated/ast.dart' as engine;
-import 'package:analyzer/src/generated/element.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:test_reflective_loader/test_reflective_loader.dart';

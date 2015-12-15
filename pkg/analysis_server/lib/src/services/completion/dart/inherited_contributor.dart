@@ -13,8 +13,8 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -56,27 +56,6 @@ class InheritedContributor implements DartCompletionContributor {
       }
     }
     return suggestions;
-  }
-
-  /**
-   * If the target looks like a partial identifier inside a class declaration
-   * then return that identifier, otherwise return `null`.
-   */
-  SimpleIdentifier _getTargetId(CompletionTarget target) {
-    AstNode node = target.containingNode;
-    if (node is ClassDeclaration) {
-      Object entity = target.entity;
-      if (entity is FieldDeclaration) {
-        NodeList<VariableDeclaration> variables = entity.fields.variables;
-        if (variables.length == 1) {
-          SimpleIdentifier targetId = variables[0].name;
-          if (targetId.name.isEmpty) {
-            return targetId;
-          }
-        }
-      }
-    }
-    return null;
   }
 
   /**
@@ -137,6 +116,27 @@ class InheritedContributor implements DartCompletionContributor {
       }
     }
     return memberNames;
+  }
+
+  /**
+   * If the target looks like a partial identifier inside a class declaration
+   * then return that identifier, otherwise return `null`.
+   */
+  SimpleIdentifier _getTargetId(CompletionTarget target) {
+    AstNode node = target.containingNode;
+    if (node is ClassDeclaration) {
+      Object entity = target.entity;
+      if (entity is FieldDeclaration) {
+        NodeList<VariableDeclaration> variables = entity.fields.variables;
+        if (variables.length == 1) {
+          SimpleIdentifier targetId = variables[0].name;
+          if (targetId.name.isEmpty) {
+            return targetId;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /**

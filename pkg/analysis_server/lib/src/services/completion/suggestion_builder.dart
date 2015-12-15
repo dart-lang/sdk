@@ -11,8 +11,8 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 export 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion;

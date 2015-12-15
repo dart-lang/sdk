@@ -14,8 +14,9 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_targe
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     show DART_RELEVANCE_COMMON_USAGE;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 
@@ -38,8 +39,8 @@ class CommonUsageSorter implements DartContributionSorter {
   CommonUsageSorter([this.selectorRelevance = defaultSelectorRelevance]);
 
   @override
-  Future sort(CompletionRequest request,
-      Iterable<CompletionSuggestion> suggestions) {
+  Future sort(
+      CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
     _update(request, suggestions);
     return new Future.value();
   }

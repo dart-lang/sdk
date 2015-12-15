@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 /**

@@ -10,8 +10,9 @@ import 'dart:collection';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
@@ -280,6 +281,44 @@ class _SuggestionBuilder {
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
   /**
+   * Return completion suggestions for 'dot' completions on the given [type].
+   * If the 'dot' completion is a super expression, then [containingMethodName]
+   * is the name of the method in which the completion is requested.
+   */
+  void buildSuggestions(InterfaceType type, String containingMethodName) {
+    // Visit all of the types in the class hierarchy, collecting possible
+    // completions.  If multiple elements are found that complete to the same
+    // identifier, addSuggestion will discard all but the first (with a few
+    // exceptions to handle getter/setter pairs).
+    List<InterfaceType> types = _getTypeOrdering(type);
+    for (InterfaceType targetType in types) {
+      for (MethodElement method in targetType.methods) {
+        // Exclude static methods when completion on an instance
+        if (!method.isStatic) {
+          // Boost the relevance of a super expression
+          // calling a method of the same name as the containing method
+          _addSuggestion(method,
+              relevance: method.name == containingMethodName
+                  ? DART_RELEVANCE_HIGH
+                  : DART_RELEVANCE_DEFAULT);
+        }
+      }
+      for (PropertyAccessorElement propertyAccessor in targetType.accessors) {
+        if (!propertyAccessor.isStatic) {
+          if (propertyAccessor.isSynthetic) {
+            // Avoid visiting a field twice
+            if (propertyAccessor.isGetter) {
+              _addSuggestion(propertyAccessor.variable);
+            }
+          } else {
+            _addSuggestion(propertyAccessor);
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Add a suggestion based upon the given element, provided that it is not
    * shadowed by a previously added suggestion.
    */
@@ -332,44 +371,6 @@ class _SuggestionBuilder {
         createSuggestion(element, relevance: relevance);
     if (suggestion != null) {
       _suggestionMap[suggestion.completion] = suggestion;
-    }
-  }
-
-  /**
-   * Return completion suggestions for 'dot' completions on the given [type].
-   * If the 'dot' completion is a super expression, then [containingMethodName]
-   * is the name of the method in which the completion is requested.
-   */
-  void buildSuggestions(InterfaceType type, String containingMethodName) {
-    // Visit all of the types in the class hierarchy, collecting possible
-    // completions.  If multiple elements are found that complete to the same
-    // identifier, addSuggestion will discard all but the first (with a few
-    // exceptions to handle getter/setter pairs).
-    List<InterfaceType> types = _getTypeOrdering(type);
-    for (InterfaceType targetType in types) {
-      for (MethodElement method in targetType.methods) {
-        // Exclude static methods when completion on an instance
-        if (!method.isStatic) {
-          // Boost the relevance of a super expression
-          // calling a method of the same name as the containing method
-          _addSuggestion(method,
-              relevance: method.name == containingMethodName
-                  ? DART_RELEVANCE_HIGH
-                  : DART_RELEVANCE_DEFAULT);
-        }
-      }
-      for (PropertyAccessorElement propertyAccessor in targetType.accessors) {
-        if (!propertyAccessor.isStatic) {
-          if (propertyAccessor.isSynthetic) {
-            // Avoid visiting a field twice
-            if (propertyAccessor.isGetter) {
-              _addSuggestion(propertyAccessor.variable);
-            }
-          } else {
-            _addSuggestion(propertyAccessor);
-          }
-        }
-      }
     }
   }
 

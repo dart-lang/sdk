@@ -13,8 +13,9 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -1299,11 +1300,9 @@ class CorrectionUtils {
       String expressionSource = getNodeText(isExpression.expression);
       String typeSource = getNodeText(isExpression.type);
       if (isExpression.notOperator == null) {
-        return _InvertedCondition
-            ._simple("$expressionSource is! $typeSource");
+        return _InvertedCondition._simple("$expressionSource is! $typeSource");
       } else {
-        return _InvertedCondition
-            ._simple("$expressionSource is $typeSource");
+        return _InvertedCondition._simple("$expressionSource is $typeSource");
       }
     }
     if (expression is PrefixExpression) {

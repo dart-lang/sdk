@@ -15,11 +15,12 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_targe
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -60,54 +61,6 @@ class DartCompletionManager implements CompletionContributor {
 class DartCompletionRequestImpl extends CompletionRequestImpl
     implements DartCompletionRequest {
   /**
-   * Return a [Future] that completes with a newly created completion request
-   * based on the given [request].
-   */
-  static Future<DartCompletionRequest> from(CompletionRequest request) async {
-    Source source = request.source;
-    AnalysisContext context = request.context;
-    CompilationUnit unit = request.context.computeResult(source, PARSED_UNIT);
-
-    Source libSource;
-    if (unit.directives.any((d) => d is PartOfDirective)) {
-      List<Source> libraries = context.getLibrariesContaining(source);
-      if (libraries.isNotEmpty) {
-        libSource = libraries[0];
-      }
-    } else {
-      libSource = source;
-    }
-
-    // Most (all?) contributors need declarations in scope to be resolved
-    if (libSource != null) {
-      unit = await new AnalysisFutureHelper<CompilationUnit>(context,
-              new LibrarySpecificUnit(libSource, source), RESOLVED_UNIT3)
-          .computeAsync();
-    }
-
-    return new DartCompletionRequestImpl._(
-        request.context,
-        request.resourceProvider,
-        request.searchEngine,
-        libSource,
-        request.source,
-        request.offset,
-        unit);
-  }
-
-  DartCompletionRequestImpl._(
-      AnalysisContext context,
-      ResourceProvider resourceProvider,
-      SearchEngine searchEngine,
-      this.librarySource,
-      Source source,
-      int offset,
-      CompilationUnit unit)
-      : super(context, resourceProvider, searchEngine, source, offset) {
-    _updateTargets(unit);
-  }
-
-  /**
    * The [DartType] for Object in dart:core
    */
   InterfaceType _objectType;
@@ -122,6 +75,18 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
 
   @override
   CompletionTarget target;
+
+  DartCompletionRequestImpl._(
+      AnalysisContext context,
+      ResourceProvider resourceProvider,
+      SearchEngine searchEngine,
+      this.librarySource,
+      Source source,
+      int offset,
+      CompilationUnit unit)
+      : super(context, resourceProvider, searchEngine, source, offset) {
+    _updateTargets(unit);
+  }
 
   @override
   bool get includeIdentifiers {
@@ -156,7 +121,6 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
     return _objectType;
   }
 
-  // For internal use only
   OpType get opType {
     if (_opType == null) {
       _opType = new OpType.forCompletion(target, offset);
@@ -164,6 +128,7 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
     return _opType;
   }
 
+  // For internal use only
   @override
   Future<List<Directive>> resolveDirectives() async {
     CompilationUnit libUnit;
@@ -240,5 +205,41 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
         dotTarget = node.prefix;
       }
     }
+  }
+
+  /**
+   * Return a [Future] that completes with a newly created completion request
+   * based on the given [request].
+   */
+  static Future<DartCompletionRequest> from(CompletionRequest request) async {
+    Source source = request.source;
+    AnalysisContext context = request.context;
+    CompilationUnit unit = request.context.computeResult(source, PARSED_UNIT);
+
+    Source libSource;
+    if (unit.directives.any((d) => d is PartOfDirective)) {
+      List<Source> libraries = context.getLibrariesContaining(source);
+      if (libraries.isNotEmpty) {
+        libSource = libraries[0];
+      }
+    } else {
+      libSource = source;
+    }
+
+    // Most (all?) contributors need declarations in scope to be resolved
+    if (libSource != null) {
+      unit = await new AnalysisFutureHelper<CompilationUnit>(context,
+              new LibrarySpecificUnit(libSource, source), RESOLVED_UNIT3)
+          .computeAsync();
+    }
+
+    return new DartCompletionRequestImpl._(
+        request.context,
+        request.resourceProvider,
+        request.searchEngine,
+        libSource,
+        request.source,
+        request.offset,
+        unit);
   }
 }

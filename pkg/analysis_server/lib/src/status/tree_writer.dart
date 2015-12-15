@@ -7,8 +7,9 @@ library analysis_server.src.status.tree_writer;
 import 'dart:convert';
 
 import 'package:analysis_server/src/status/get_handler.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 

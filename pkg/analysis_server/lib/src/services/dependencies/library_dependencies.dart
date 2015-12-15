@@ -4,8 +4,8 @@
 
 library services.dependencies.library;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -42,13 +42,6 @@ class LibraryDependencyCollector {
     return _dependencies;
   }
 
-  Map<AnalysisContext, Folder> _reverse(Map<Folder, AnalysisContext> map) {
-    Map<AnalysisContext, Folder> reverseMap =
-        new Map<AnalysisContext, Folder>();
-    map.forEach((Folder f, AnalysisContext c) => reverseMap[c] = f);
-    return reverseMap;
-  }
-
   void _addDependencies(LibraryElement libraryElement) {
     if (libraryElement == null) {
       return;
@@ -65,5 +58,12 @@ class LibraryDependencyCollector {
       libraryElement.exports.forEach(
           (ExportElement export) => _addDependencies(export.exportedLibrary));
     }
+  }
+
+  Map<AnalysisContext, Folder> _reverse(Map<Folder, AnalysisContext> map) {
+    Map<AnalysisContext, Folder> reverseMap =
+        new Map<AnalysisContext, Folder>();
+    map.forEach((Folder f, AnalysisContext c) => reverseMap[c] = f);
+    return reverseMap;
   }
 }
