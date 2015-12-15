@@ -429,7 +429,7 @@ class ScriptInsetElement extends ObservatoryElement {
           if (loc.tokenPos != null) {
             line = script.tokenToLine(loc.tokenPos);
           } else {
-            line = script.tokenToLine(loc.line);
+            line = loc.line;
           }
           if ((line >= _startLine) && (line <= _endLine)) {
             _updateTask.queue();
