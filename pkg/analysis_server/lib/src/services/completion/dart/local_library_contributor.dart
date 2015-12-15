@@ -66,7 +66,16 @@ class _Visitor extends GeneralizingElementVisitor {
 
   @override
   void visitClassElement(ClassElement element) {
-    _addSuggestion(element, DART_RELEVANCE_DEFAULT);
+    if (optype.includeTypeNameSuggestions) {
+      CompletionSuggestion suggestion =
+          createSuggestion(element, relevance: DART_RELEVANCE_DEFAULT);
+      if (suggestion != null) {
+        suggestions.add(suggestion);
+      }
+    }
+    if (optype.includeConstructorSuggestions) {
+      _addConstructorSuggestions(element, DART_RELEVANCE_DEFAULT);
+    }
   }
 
   @override
@@ -81,65 +90,48 @@ class _Visitor extends GeneralizingElementVisitor {
 
   @override
   void visitFunctionElement(FunctionElement element) {
-    _addSuggestion(element, DART_RELEVANCE_LOCAL_FUNCTION);
-  }
-
-  @override
-  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    _addSuggestion(element, DART_RELEVANCE_LOCAL_FUNCTION);
-  }
-
-  @override
-  void visitTopLevelVariableElement(TopLevelVariableElement element) {
-    _addSuggestion(element, DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
-  }
-
-  /**
-   * Add a suggestion for the given element.
-   */
-  void _addSuggestion(Element element, int relevance) {
-    if (element is ExecutableElement) {
-      // Do not suggest operators or local functions
-      if (element.isOperator) {
-        return;
-      }
-      if (element is FunctionElement) {
-        if (element.enclosingElement is! CompilationUnitElement) {
-          return;
-        }
-      }
+    // Do not suggest operators or local functions
+    if (element.isOperator) {
+      return;
     }
-
+    if (element.enclosingElement is! CompilationUnitElement) {
+      return;
+    }
+    int relevance = DART_RELEVANCE_LOCAL_FUNCTION;
     CompletionSuggestion suggestion =
         createSuggestion(element, relevance: relevance);
-
     if (suggestion != null) {
-      if (element is ExecutableElement) {
-        DartType returnType = element.returnType;
-        if (returnType != null && returnType.isVoid) {
-          if (optype.includeVoidReturnSuggestions) {
-            suggestions.add(suggestion);
-          }
-        } else {
-          if (optype.includeReturnValueSuggestions) {
-            suggestions.add(suggestion);
-          }
-        }
-      } else if (element is FunctionTypeAliasElement) {
-        if (optype.includeTypeNameSuggestions) {
+      DartType returnType = element.returnType;
+      if (returnType != null && returnType.isVoid) {
+        if (optype.includeVoidReturnSuggestions) {
           suggestions.add(suggestion);
-        }
-      } else if (element is ClassElement) {
-        if (optype.includeTypeNameSuggestions) {
-          suggestions.add(suggestion);
-        }
-        if (optype.includeConstructorSuggestions) {
-          _addConstructorSuggestions(element, relevance);
         }
       } else {
         if (optype.includeReturnValueSuggestions) {
           suggestions.add(suggestion);
         }
+      }
+    }
+  }
+
+  @override
+  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    if (optype.includeTypeNameSuggestions) {
+      CompletionSuggestion suggestion =
+          createSuggestion(element, relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+      if (suggestion != null) {
+        suggestions.add(suggestion);
+      }
+    }
+  }
+
+  @override
+  void visitTopLevelVariableElement(TopLevelVariableElement element) {
+    if (optype.includeReturnValueSuggestions) {
+      CompletionSuggestion suggestion = createSuggestion(element,
+          relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+      if (suggestion != null) {
+        suggestions.add(suggestion);
       }
     }
   }

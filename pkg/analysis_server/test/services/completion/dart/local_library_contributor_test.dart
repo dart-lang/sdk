@@ -79,6 +79,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         part "$testFile";
         class A { var a1; a2(){}}
         var m;
+        typedef t1(int blue);
         int af() {return 0;}''');
     addTestSource('''
         part of libA;
@@ -93,6 +94,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertSuggestTopLevelVar('m', null,
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+    assertSuggestFunctionTypeAlias('t1', null,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertNotSuggested('a1');
     assertNotSuggested('a2');
     // Suggested by LocalConstructorContributor
@@ -160,6 +163,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         part of libA;
         class B { var b1; b2(){}}
         int bf() => 0;
+        typedef t1(int blue);
         var n;''');
     addTestSource('''
         library libA;
@@ -177,6 +181,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertSuggestTopLevelVar('n', null,
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+    assertSuggestFunctionTypeAlias('t1', null,
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
     assertNotSuggested('b1');
     assertNotSuggested('b2');
     // Suggested by ConstructorContributor
