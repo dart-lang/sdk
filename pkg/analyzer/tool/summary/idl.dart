@@ -87,11 +87,6 @@ class PrelinkedLibrary {
   List<PrelinkedUnit> units;
 
   /**
-   * The unlinked library summary.
-   */
-  UnlinkedLibrary unlinked;
-
-  /**
    * The libraries that this library depends on (either via an explicit import
    * statement or via the implicit dependencies on `dart:core` and
    * `dart:async`).  The first element of this array is a pseudo-dependency
@@ -156,6 +151,11 @@ enum PrelinkedReferenceKind {
    * The entity is a variable or executable.
    */
   other,
+
+  /**
+   * The entity is a prefix.
+   */
+  prefix,
 
   /**
    * The entity being referred to does not exist.
@@ -410,12 +410,12 @@ class UnlinkedImport {
   int offset;
 
   /**
-   * Index into [UnlinkedLibrary.prefixes] of the prefix declared by this
+   * Index into [UnlinkedUnit.references] of the prefix declared by this
    * import declaration, or zero if this import declaration declares no prefix.
    *
    * Note that multiple imports can declare the same prefix.
    */
-  int prefix;
+  int prefixReference;
 
   /**
    * Combinators contained in this import declaration.
@@ -431,17 +431,6 @@ class UnlinkedImport {
    * Indicates whether the import declaration is implicit.
    */
   bool isImplicit;
-}
-
-/**
- * Unlinked summary of an entire library.
- */
-class UnlinkedLibrary {
-  /**
-   * Prefixes introduced by import declarations.  The first element in this
-   * array is a pseudo-prefix used by references made with no prefix.
-   */
-  List<UnlinkedPrefix> prefixes;
 }
 
 /**
@@ -520,14 +509,6 @@ class UnlinkedPart {
   String uri;
 }
 
-class UnlinkedPrefix {
-  /**
-   * The name of the prefix, or the empty string in the case of the
-   * pseudo-prefix which represents "no prefix".
-   */
-  String name;
-}
-
 /**
  * Unlinked summary information about a name referred to in one library that
  * might be defined in another.
@@ -540,10 +521,10 @@ class UnlinkedReference {
   String name;
 
   /**
-   * Prefix used to refer to the entity.  This is an index into
-   * [UnlinkedLibrary.prefixes].
+   * Prefix used to refer to the entity, or zero if no prefix is used.  This is
+   * an index into [UnlinkedUnit.references].
    */
-  int prefix;
+  int prefixReference;
 }
 
 /**

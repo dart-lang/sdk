@@ -105,11 +105,6 @@ abstract class SummaryTest {
   PrelinkedUnit get definingUnit => lib.units[0];
 
   /**
-   * Get access to the "unlinked" section of the summary.
-   */
-  UnlinkedLibrary get unlinked => lib.unlinked;
-
-  /**
    * Convert [path] to a suitably formatted absolute path URI for the current
    * platform.
    */
@@ -204,6 +199,21 @@ abstract class SummaryTest {
   }
 
   /**
+   * Verify that [prefixReference] is a valid reference to a prefix having the
+   * given [name].
+   */
+  void checkPrefix(int prefixReference, String name) {
+    expect(prefixReference, isNot(0));
+    expect(
+        definingUnit.unlinked.references[prefixReference].prefixReference, 0);
+    expect(definingUnit.unlinked.references[prefixReference].name, name);
+    expect(definingUnit.references[prefixReference].dependency, 0);
+    expect(definingUnit.references[prefixReference].kind,
+        PrelinkedReferenceKind.prefix);
+    expect(definingUnit.references[prefixReference].unit, 0);
+  }
+
+  /**
    * Verify that the given [typeRef] represents a reference to a type declared
    * in a file reachable via [absoluteUri] and [relativeUri], having name
    * [expectedName].  If [expectedPrefix] is supplied, verify that the type is
@@ -231,7 +241,7 @@ abstract class SummaryTest {
     if (index == 0) {
       // Index 0 is reserved for "dynamic".
       expect(reference.name, isEmpty);
-      expect(reference.prefix, 0);
+      expect(reference.prefixReference, 0);
     }
     if (absoluteUri == null) {
       expect(referenceResolution.dependency, 0);
@@ -248,11 +258,9 @@ abstract class SummaryTest {
     }
     if (checkAstDerivedData) {
       if (expectedPrefix == null) {
-        expect(reference.prefix, 0);
-        expect(unlinked.prefixes[reference.prefix].name, isEmpty);
+        expect(reference.prefixReference, 0);
       } else {
-        expect(reference.prefix, isNot(0));
-        expect(unlinked.prefixes[reference.prefix].name, expectedPrefix);
+        checkPrefix(reference.prefixReference, expectedPrefix);
       }
     }
     expect(referenceResolution.kind, expectedKind);
@@ -1495,7 +1503,7 @@ typedef F();
     expect(definingUnit.unlinked.imports, hasLength(1));
     checkDependency(lib.importDependencies[0], 'dart:core', 'dart:core');
     expect(definingUnit.unlinked.imports[0].uri, isEmpty);
-    expect(definingUnit.unlinked.imports[0].prefix, 0);
+    expect(definingUnit.unlinked.imports[0].prefixReference, 0);
     expect(definingUnit.unlinked.imports[0].combinators, isEmpty);
     expect(definingUnit.unlinked.imports[0].isImplicit, isTrue);
   }
@@ -1547,18 +1555,14 @@ typedef F();
     serializeLibraryText(libraryText);
     // Second import is the implicit import of dart:core
     expect(definingUnit.unlinked.imports, hasLength(2));
-    expect(definingUnit.unlinked.imports[0].prefix, isNot(0));
-    expect(
-        unlinked.prefixes[definingUnit.unlinked.imports[0].prefix].name, 'a');
+    checkPrefix(definingUnit.unlinked.imports[0].prefixReference, 'a');
   }
 
   test_import_prefix_none() {
     serializeLibraryText('import "dart:async"; Future x;');
     // Second import is the implicit import of dart:core
     expect(definingUnit.unlinked.imports, hasLength(2));
-    expect(definingUnit.unlinked.imports[0].prefix, 0);
-    expect(unlinked.prefixes[definingUnit.unlinked.imports[0].prefix].name,
-        isEmpty);
+    expect(definingUnit.unlinked.imports[0].prefixReference, 0);
   }
 
   test_import_prefix_reference() {

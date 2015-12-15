@@ -14,6 +14,7 @@ enum PrelinkedReferenceKind {
   classOrEnum,
   typedef,
   other,
+  prefix,
   unresolved,
 }
 
@@ -69,20 +70,17 @@ PrelinkedDependencyBuilder encodePrelinkedDependency(builder.BuilderContext buil
 
 class PrelinkedLibrary {
   List<PrelinkedUnit> _units;
-  UnlinkedLibrary _unlinked;
   List<PrelinkedDependency> _dependencies;
   List<int> _importDependencies;
 
   PrelinkedLibrary.fromJson(Map json)
     : _units = json["units"]?.map((x) => new PrelinkedUnit.fromJson(x))?.toList(),
-      _unlinked = json["unlinked"] == null ? null : new UnlinkedLibrary.fromJson(json["unlinked"]),
       _dependencies = json["dependencies"]?.map((x) => new PrelinkedDependency.fromJson(x))?.toList(),
       _importDependencies = json["importDependencies"];
 
   PrelinkedLibrary.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
   List<PrelinkedUnit> get units => _units ?? const <PrelinkedUnit>[];
-  UnlinkedLibrary get unlinked => _unlinked;
   List<PrelinkedDependency> get dependencies => _dependencies ?? const <PrelinkedDependency>[];
   List<int> get importDependencies => _importDependencies ?? const <int>[];
 }
@@ -99,14 +97,6 @@ class PrelinkedLibraryBuilder {
     assert(!_json.containsKey("units"));
     if (_value != null || _value.isEmpty) {
       _json["units"] = _value.map((b) => b.finish()).toList();
-    }
-  }
-
-  void set unlinked(UnlinkedLibraryBuilder _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("unlinked"));
-    if (_value != null) {
-      _json["unlinked"] = _value.finish();
     }
   }
 
@@ -135,10 +125,9 @@ class PrelinkedLibraryBuilder {
   }
 }
 
-PrelinkedLibraryBuilder encodePrelinkedLibrary(builder.BuilderContext builderContext, {List<PrelinkedUnitBuilder> units, UnlinkedLibraryBuilder unlinked, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies}) {
+PrelinkedLibraryBuilder encodePrelinkedLibrary(builder.BuilderContext builderContext, {List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies}) {
   PrelinkedLibraryBuilder builder = new PrelinkedLibraryBuilder(builderContext);
   builder.units = units;
-  builder.unlinked = unlinked;
   builder.dependencies = dependencies;
   builder.importDependencies = importDependencies;
   return builder;
@@ -756,7 +745,7 @@ UnlinkedExportBuilder encodeUnlinkedExport(builder.BuilderContext builderContext
 class UnlinkedImport {
   String _uri;
   int _offset;
-  int _prefix;
+  int _prefixReference;
   List<UnlinkedCombinator> _combinators;
   bool _isDeferred;
   bool _isImplicit;
@@ -764,14 +753,14 @@ class UnlinkedImport {
   UnlinkedImport.fromJson(Map json)
     : _uri = json["uri"],
       _offset = json["offset"],
-      _prefix = json["prefix"],
+      _prefixReference = json["prefixReference"],
       _combinators = json["combinators"]?.map((x) => new UnlinkedCombinator.fromJson(x))?.toList(),
       _isDeferred = json["isDeferred"],
       _isImplicit = json["isImplicit"];
 
   String get uri => _uri ?? '';
   int get offset => _offset ?? 0;
-  int get prefix => _prefix ?? 0;
+  int get prefixReference => _prefixReference ?? 0;
   List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
   bool get isDeferred => _isDeferred ?? false;
   bool get isImplicit => _isImplicit ?? false;
@@ -800,11 +789,11 @@ class UnlinkedImportBuilder {
     }
   }
 
-  void set prefix(int _value) {
+  void set prefixReference(int _value) {
     assert(!_finished);
-    assert(!_json.containsKey("prefix"));
+    assert(!_json.containsKey("prefixReference"));
     if (_value != null) {
-      _json["prefix"] = _value;
+      _json["prefixReference"] = _value;
     }
   }
 
@@ -839,51 +828,14 @@ class UnlinkedImportBuilder {
   }
 }
 
-UnlinkedImportBuilder encodeUnlinkedImport(builder.BuilderContext builderContext, {String uri, int offset, int prefix, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit}) {
+UnlinkedImportBuilder encodeUnlinkedImport(builder.BuilderContext builderContext, {String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit}) {
   UnlinkedImportBuilder builder = new UnlinkedImportBuilder(builderContext);
   builder.uri = uri;
   builder.offset = offset;
-  builder.prefix = prefix;
+  builder.prefixReference = prefixReference;
   builder.combinators = combinators;
   builder.isDeferred = isDeferred;
   builder.isImplicit = isImplicit;
-  return builder;
-}
-
-class UnlinkedLibrary {
-  List<UnlinkedPrefix> _prefixes;
-
-  UnlinkedLibrary.fromJson(Map json)
-    : _prefixes = json["prefixes"]?.map((x) => new UnlinkedPrefix.fromJson(x))?.toList();
-
-  List<UnlinkedPrefix> get prefixes => _prefixes ?? const <UnlinkedPrefix>[];
-}
-
-class UnlinkedLibraryBuilder {
-  final Map _json = {};
-
-  bool _finished = false;
-
-  UnlinkedLibraryBuilder(builder.BuilderContext context);
-
-  void set prefixes(List<UnlinkedPrefixBuilder> _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("prefixes"));
-    if (_value != null || _value.isEmpty) {
-      _json["prefixes"] = _value.map((b) => b.finish()).toList();
-    }
-  }
-
-  Map finish() {
-    assert(!_finished);
-    _finished = true;
-    return _json;
-  }
-}
-
-UnlinkedLibraryBuilder encodeUnlinkedLibrary(builder.BuilderContext builderContext, {List<UnlinkedPrefixBuilder> prefixes}) {
-  UnlinkedLibraryBuilder builder = new UnlinkedLibraryBuilder(builderContext);
-  builder.prefixes = prefixes;
   return builder;
 }
 
@@ -1033,53 +985,16 @@ UnlinkedPartBuilder encodeUnlinkedPart(builder.BuilderContext builderContext, {S
   return builder;
 }
 
-class UnlinkedPrefix {
-  String _name;
-
-  UnlinkedPrefix.fromJson(Map json)
-    : _name = json["name"];
-
-  String get name => _name ?? '';
-}
-
-class UnlinkedPrefixBuilder {
-  final Map _json = {};
-
-  bool _finished = false;
-
-  UnlinkedPrefixBuilder(builder.BuilderContext context);
-
-  void set name(String _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("name"));
-    if (_value != null) {
-      _json["name"] = _value;
-    }
-  }
-
-  Map finish() {
-    assert(!_finished);
-    _finished = true;
-    return _json;
-  }
-}
-
-UnlinkedPrefixBuilder encodeUnlinkedPrefix(builder.BuilderContext builderContext, {String name}) {
-  UnlinkedPrefixBuilder builder = new UnlinkedPrefixBuilder(builderContext);
-  builder.name = name;
-  return builder;
-}
-
 class UnlinkedReference {
   String _name;
-  int _prefix;
+  int _prefixReference;
 
   UnlinkedReference.fromJson(Map json)
     : _name = json["name"],
-      _prefix = json["prefix"];
+      _prefixReference = json["prefixReference"];
 
   String get name => _name ?? '';
-  int get prefix => _prefix ?? 0;
+  int get prefixReference => _prefixReference ?? 0;
 }
 
 class UnlinkedReferenceBuilder {
@@ -1097,11 +1012,11 @@ class UnlinkedReferenceBuilder {
     }
   }
 
-  void set prefix(int _value) {
+  void set prefixReference(int _value) {
     assert(!_finished);
-    assert(!_json.containsKey("prefix"));
+    assert(!_json.containsKey("prefixReference"));
     if (_value != null) {
-      _json["prefix"] = _value;
+      _json["prefixReference"] = _value;
     }
   }
 
@@ -1112,10 +1027,10 @@ class UnlinkedReferenceBuilder {
   }
 }
 
-UnlinkedReferenceBuilder encodeUnlinkedReference(builder.BuilderContext builderContext, {String name, int prefix}) {
+UnlinkedReferenceBuilder encodeUnlinkedReference(builder.BuilderContext builderContext, {String name, int prefixReference}) {
   UnlinkedReferenceBuilder builder = new UnlinkedReferenceBuilder(builderContext);
   builder.name = name;
-  builder.prefix = prefix;
+  builder.prefixReference = prefixReference;
   return builder;
 }
 

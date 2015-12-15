@@ -61,18 +61,6 @@ class _LibrarySerializer {
   final List<int> prelinkedImports = <int>[];
 
   /**
-   * Map from prefix [String] to the index of the entry in the "prefix" table
-   * that refers to it.  The empty prefix is not included in this map.
-   */
-  final Map<String, int> prefixMap = <String, int>{};
-
-  /**
-   * The "prefix table".  This is the list of objects which should be written
-   * to [UnlinkedLibrary.prefixes].
-   */
-  final List<UnlinkedPrefixBuilder> prefixes = <UnlinkedPrefixBuilder>[];
-
-  /**
    * Map from [Element] to the index of the entry in the "references table"
    * that refers to it.
    */
@@ -114,7 +102,6 @@ class _LibrarySerializer {
   _LibrarySerializer(this.ctx, this.libraryElement, this.typeProvider) {
     dependencies.add(encodePrelinkedDependency(ctx));
     dependencyMap[libraryElement] = 0;
-    prefixes.add(encodeUnlinkedPrefix(ctx));
   }
 
   /**
@@ -130,6 +117,12 @@ class _LibrarySerializer {
    */
   void addCompilationUnitElements(CompilationUnitElement element, int unitNum) {
     UnlinkedUnitBuilder b = new UnlinkedUnitBuilder(ctx);
+    unlinkedReferences = <UnlinkedReferenceBuilder>[
+      encodeUnlinkedReference(ctx)
+    ];
+    prelinkedReferences = <PrelinkedReferenceBuilder>[
+      encodePrelinkedReference(ctx, kind: PrelinkedReferenceKind.classOrEnum)
+    ];
     if (unitNum == 0) {
       // TODO(paulberry): we need to figure out a way to record library, part,
       // import, and export declarations that appear in non-defining
@@ -147,12 +140,6 @@ class _LibrarySerializer {
               (CompilationUnitElement e) => encodeUnlinkedPart(ctx, uri: e.uri))
           .toList();
     }
-    unlinkedReferences = <UnlinkedReferenceBuilder>[
-      encodeUnlinkedReference(ctx)
-    ];
-    prelinkedReferences = <PrelinkedReferenceBuilder>[
-      encodePrelinkedReference(ctx, kind: PrelinkedReferenceKind.classOrEnum)
-    ];
     b.classes = element.types.map(serializeClass).toList();
     b.enums = element.enums.map(serializeEnum).toList();
     b.typedefs = element.functionTypeAliases.map(serializeTypedef).toList();
@@ -382,12 +369,7 @@ class _LibrarySerializer {
     b.offset = importElement.nameOffset;
     b.combinators = importElement.combinators.map(serializeCombinator).toList();
     if (importElement.prefix != null) {
-      b.prefix = prefixMap.putIfAbsent(importElement.prefix.name, () {
-        int index = prefixes.length;
-        prefixes
-            .add(encodeUnlinkedPrefix(ctx, name: importElement.prefix.name));
-        return index;
-      });
+      b.prefixReference = serializePrefix(importElement.prefix);
     }
     if (importElement.isSynthetic) {
       b.isImplicit = true;
@@ -404,15 +386,12 @@ class _LibrarySerializer {
    * called exactly once for each instance of [_LibrarySerializer].
    */
   PrelinkedLibraryBuilder serializeLibrary() {
-    UnlinkedLibraryBuilder ub = new UnlinkedLibraryBuilder(ctx);
     PrelinkedLibraryBuilder pb = new PrelinkedLibraryBuilder(ctx);
     addCompilationUnitElements(libraryElement.definingCompilationUnit, 0);
     for (int i = 0; i < libraryElement.parts.length; i++) {
       addCompilationUnitElements(libraryElement.parts[i], i + 1);
     }
-    ub.prefixes = prefixes;
     pb.units = units;
-    pb.unlinked = ub;
     pb.dependencies = dependencies;
     pb.importDependencies = prelinkedImports;
     return pb;
@@ -448,6 +427,20 @@ class _LibrarySerializer {
       b.hasImplicitType = parameter.hasImplicitType;
     }
     return b;
+  }
+
+  /**
+   * Serialize the given [prefix] into an index into the references table.
+   */
+  int serializePrefix(PrefixElement element) {
+    return referenceMap.putIfAbsent(element, () {
+      assert(unlinkedReferences.length == prelinkedReferences.length);
+      int index = unlinkedReferences.length;
+      unlinkedReferences.add(encodeUnlinkedReference(ctx, name: element.name));
+      prelinkedReferences.add(
+          encodePrelinkedReference(ctx, kind: PrelinkedReferenceKind.prefix));
+      return index;
+    });
   }
 
   /**
