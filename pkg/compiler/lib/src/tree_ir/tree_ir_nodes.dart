@@ -867,17 +867,22 @@ class ForeignCode extends Node {
   final types.TypeMask type;
   final List<Expression> arguments;
   final native.NativeBehavior nativeBehavior;
+  final List<bool> nullableArguments;  // One 'bit' per argument.
   final Element dependency;
 
   ForeignCode(this.codeTemplate, this.type, this.arguments, this.nativeBehavior,
-      this.dependency);
+      this.nullableArguments, this.dependency) {
+    assert(arguments.length == nullableArguments.length);
+  }
 }
 
 class ForeignExpression extends ForeignCode implements Expression {
-  ForeignExpression(js.Template codeTemplate, types.TypeMask type,
+  ForeignExpression(
+      js.Template codeTemplate, types.TypeMask type,
       List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      List<bool> nullableArguments,
       Element dependency)
-      : super(codeTemplate, type, arguments, nativeBehavior,
+      : super(codeTemplate, type, arguments, nativeBehavior, nullableArguments,
           dependency);
 
   accept(ExpressionVisitor visitor) {
@@ -890,10 +895,12 @@ class ForeignExpression extends ForeignCode implements Expression {
 }
 
 class ForeignStatement extends ForeignCode implements Statement {
-  ForeignStatement(js.Template codeTemplate, types.TypeMask type,
+  ForeignStatement(
+      js.Template codeTemplate, types.TypeMask type,
       List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      List<bool> nullableArguments,
       Element dependency)
-      : super(codeTemplate, type, arguments, nativeBehavior,
+      : super(codeTemplate, type, arguments, nativeBehavior, nullableArguments,
           dependency);
 
   accept(StatementVisitor visitor) {

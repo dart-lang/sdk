@@ -625,21 +625,16 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visitForeignCode(cps_ir.ForeignCode node) {
     List<Expression> arguments =
         node.arguments.map(getVariableUse).toList(growable: false);
-    if (HasCapturedArguments.check(node.codeTemplate.ast)) {
-      for (Expression arg in arguments) {
-        if (arg is VariableUse) {
-          arg.variable.isCaptured = true;
-        } else {
-          // TODO(asgerf): Avoid capture of 'this'.
-        }
-      }
-    }
+    List<bool> nullableArguments = node.arguments
+        .map((argument) => argument.definition.type.isNullable)
+        .toList(growable: false);
     if (node.codeTemplate.isExpression) {
       return new ForeignExpression(
           node.codeTemplate,
           node.type,
           arguments,
           node.nativeBehavior,
+          nullableArguments,
           node.dependency);
     } else {
       return (Statement next) {
@@ -649,6 +644,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
             node.type,
             arguments,
             node.nativeBehavior,
+            nullableArguments,
             node.dependency);
       };
     }
@@ -701,29 +697,4 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visitParameter(cps_ir.Parameter node) => unexpectedNode(node);
   visitContinuation(cps_ir.Continuation node) => unexpectedNode(node);
   visitMutableVariable(cps_ir.MutableVariable node) => unexpectedNode(node);
-}
-
-class HasCapturedArguments extends js.BaseVisitor {
-  static bool check(js.Node node) {
-    HasCapturedArguments visitor = new HasCapturedArguments();
-    node.accept(visitor);
-    return visitor.found;
-  }
-
-  int enclosingFunctions = 0;
-  bool found = false;
-
-  @override
-  visitFun(js.Fun node) {
-    ++enclosingFunctions;
-    node.visitChildren(this);
-    --enclosingFunctions;
-  }
-
-  @override
-  visitInterpolatedNode(js.InterpolatedNode node) {
-    if (enclosingFunctions > 0) {
-      found = true;
-    }
-  }
 }

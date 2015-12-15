@@ -43,7 +43,8 @@ import '../constants/values.dart' show
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
 import '../native/native.dart' show
-    NativeBehavior;
+    NativeBehavior,
+    HasCapturedPlaceholders;
 
 // TODO(karlklose): remove.
 import '../js/js.dart' as js show js, Template, Expression, Name;
@@ -3489,6 +3490,20 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         // using [NativeBehavior]. We can ignore these arguments in the backend.
         List<ir.Primitive> arguments =
             argumentNodes.skip(2).mapToList(visit, growable: false);
+        if (behavior.codeTemplate.positionalArgumentCount != arguments.length) {
+          reporter.reportErrorMessage(
+              node, MessageKind.GENERIC,
+              {'text':
+                'Mismatch between number of placeholders'
+                ' and number of arguments.'});
+          return irBuilder.buildNullConstant();
+        }
+
+        if (HasCapturedPlaceholders.check(behavior.codeTemplate.ast)) {
+          reporter.reportErrorMessage(node, MessageKind.JS_PLACEHOLDER_CAPTURE);
+          return irBuilder.buildNullConstant();
+        }
+
         return irBuilder.buildForeignCode(behavior.codeTemplate, arguments,
             behavior);
 

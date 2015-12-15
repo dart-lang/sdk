@@ -1144,10 +1144,7 @@ class StatementRewriter extends Transformer implements Pass {
     // Some arguments will get inserted in a JS code template.  The arguments
     // will not always be evaluated (e.g. the second placeholder in the template
     // '# && #').
-
-    // TODO(sra): Find out which tree_ir expressions are not nullable. It helps
-    // a lot with templates like '#.push(#)'.
-    bool isNullable(e) => true;
+    bool isNullable(int position) => node.nullableArguments[position];
 
     int safeArguments =
       PlaceholderSafetyAnalysis.analyze(node.codeTemplate.ast, isNullable);
