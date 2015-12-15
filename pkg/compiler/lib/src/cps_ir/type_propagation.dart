@@ -3141,10 +3141,18 @@ class TypePropagationVisitor implements Visitor {
     AbstractConstantValue object = getValue(node.object.definition);
     if (object.isNothing || object.isNullConstant) {
       setValue(node, nothing);
-    } else {
-      node.objectIsNotNull = object.isDefinitelyNotNull;
-      setValue(node, lattice.fromMask(typeSystem.getFieldType(node.field)));
+      return;
     }
+    node.objectIsNotNull = object.isDefinitelyNotNull;
+    if (object.isConstant && object.constant.isConstructedObject) {
+      ConstructedConstantValue constructedConstant = object.constant;
+      ConstantValue value = constructedConstant.fields[node.field];
+      if (value != null) {
+        setValue(node, constantValue(value));
+        return;
+      }
+    }
+    setValue(node, lattice.fromMask(typeSystem.getFieldType(node.field)));
   }
 
   void visitSetField(SetField node) {}
