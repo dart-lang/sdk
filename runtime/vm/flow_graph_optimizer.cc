@@ -28,7 +28,7 @@ namespace dart {
 
 DEFINE_FLAG(int, getter_setter_ratio, 13,
     "Ratio of getter/setter usage used for double field unboxing heuristics");
-DEFINE_FLAG(bool, guess_other_cid, true,
+DEFINE_FLAG(bool, guess_icdata_cid, true,
     "Artificially create type feedback for arithmetic etc. operations"
     " by guessing the other unknown argument cid");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
@@ -196,7 +196,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       Token::IsBinaryOperator(op_kind)) {
     // Guess cid: if one of the inputs is a number assume that the other
     // is a number of same type.
-    if (FLAG_guess_other_cid) {
+    if (FLAG_guess_icdata_cid) {
       const intptr_t cid_0 = class_ids[0];
       const intptr_t cid_1 = class_ids[1];
       if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
@@ -254,9 +254,31 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     return true;
   }
 
+  if (Compiler::always_optimize() &&
+      (isolate()->object_store()->unique_dynamic_targets() != Array::null())) {
+    // Check if the target is unique.
+    Function& target_function = Function::Handle(Z);
+    Precompiler::GetUniqueDynamicTarget(
+        isolate(), call->function_name(), &target_function);
+    // Calls with named arguments must be resolved/checked at runtime.
+    String& error_message = String::Handle(Z);
+    if (!target_function.IsNull() &&
+        !target_function.HasOptionalNamedParameters() &&
+        target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
+                                               &error_message)) {
+      const intptr_t cid = Class::Handle(Z, target_function.Owner()).id();
+      const ICData& ic_data = ICData::ZoneHandle(Z,
+          ICData::NewFrom(*call->ic_data(), 1));
+      ic_data.AddReceiverCheck(cid, target_function);
+      call->set_ic_data(&ic_data);
+      return true;
+    }
+  }
+
   // Check if getter or setter in function's class and class is currently leaf.
-  if ((call->token_kind() == Token::kGET) ||
-      (call->token_kind() == Token::kSET)) {
+  if (FLAG_guess_icdata_cid &&
+      ((call->token_kind() == Token::kGET) ||
+          (call->token_kind() == Token::kSET))) {
     const Class& owner_class = Class::Handle(Z, function().Owner());
     if (!owner_class.is_abstract() &&
         !CHA::HasSubclasses(owner_class) &&
@@ -276,27 +298,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
         call->set_ic_data(&ic_data);
         return true;
       }
-    }
-  }
-
-  if (FLAG_precompilation &&
-      (isolate()->object_store()->unique_dynamic_targets() != Array::null())) {
-    // Check if the target is unique.
-    Function& target_function = Function::Handle(Z);
-    Precompiler::GetUniqueDynamicTarget(
-        isolate(), call->function_name(), &target_function);
-    // Calls with named arguments must be resolved/checked at runtime.
-    String& error_message = String::Handle(Z);
-    if (!target_function.IsNull() &&
-        !target_function.HasOptionalNamedParameters() &&
-        target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
-                                               &error_message)) {
-      const intptr_t cid = Class::Handle(Z, target_function.Owner()).id();
-      const ICData& ic_data = ICData::ZoneHandle(Z,
-          ICData::NewFrom(*call->ic_data(), 1));
-      ic_data.AddReceiverCheck(cid, target_function);
-      call->set_ic_data(&ic_data);
-      return true;
     }
   }
 

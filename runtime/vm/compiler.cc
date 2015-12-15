@@ -431,7 +431,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
-  volatile bool use_speculative_inlining = true;
+  volatile bool use_speculative_inlining =
+      FLAG_max_speculative_inlining_attempts > 0;
   GrowableArray<intptr_t> inlining_black_list;
 
   while (!done) {

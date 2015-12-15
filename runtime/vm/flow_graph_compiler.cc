@@ -56,7 +56,7 @@ DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, guess_other_cid);
+DECLARE_FLAG(bool, guess_icdata_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -98,7 +98,6 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_load_deferred_eagerly = true;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_guess_other_cid = true;
     Compiler::set_always_optimize(true);
     // Triggers assert if we try to recompile (e.g., because of deferred
     // loading, deoptimization, ...). Noopt mode simulates behavior
@@ -1773,16 +1772,17 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
   } else {
     // Instead of deoptimizing, do a megamorphic call when no matching
     // cid found.
-    Label megamorphic, ok;
+    Label ok;
+    MegamorphicSlowPath* slow_path =
+        new MegamorphicSlowPath(ic_data, argument_count, deopt_id,
+                                token_pos, locs, CurrentTryIndex());
+    AddSlowPathCode(slow_path);
     EmitTestAndCall(ic_data, argument_count, argument_names,
-                    &megamorphic,  // No cid match.
-                    &ok,           // Found cid.
+                    slow_path->entry_label(),  // No cid match.
+                    &ok,                       // Found cid.
                     deopt_id, token_pos, locs);
-    // Fall through if last test is match.
-    assembler()->Jump(&ok);
-    assembler()->Bind(&megamorphic);
-    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id,
-                                token_pos, locs);
+
+    assembler()->Bind(slow_path->exit_label());
     assembler()->Bind(&ok);
   }
 }
