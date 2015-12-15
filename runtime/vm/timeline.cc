@@ -82,6 +82,10 @@ void Timeline::InitOnce() {
   }
   vm_stream_ = new TimelineStream();
   vm_stream_->Init("VM", EnableStreamByDefault("VM"), NULL);
+  vm_api_stream_ = new TimelineStream();
+  vm_api_stream_->Init("API",
+                       EnableStreamByDefault("API"),
+                       &stream_API_enabled_);
   // Global overrides.
 #define ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                   \
   stream_##name##_enabled_ = EnableStreamByDefault(#name);
@@ -99,6 +103,8 @@ void Timeline::Shutdown() {
   recorder_ = NULL;
   delete vm_stream_;
   vm_stream_ = NULL;
+  delete vm_api_stream_;
+  vm_api_stream_ = NULL;
 }
 
 
@@ -116,6 +122,12 @@ bool Timeline::EnableStreamByDefault(const char* stream_name) {
 TimelineStream* Timeline::GetVMStream() {
   ASSERT(vm_stream_ != NULL);
   return vm_stream_;
+}
+
+
+TimelineStream* Timeline::GetVMApiStream() {
+  ASSERT(vm_api_stream_ != NULL);
+  return vm_api_stream_;
 }
 
 
@@ -153,6 +165,7 @@ void Timeline::Clear() {
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 TimelineStream* Timeline::vm_stream_ = NULL;
+TimelineStream* Timeline::vm_api_stream_ = NULL;
 
 #define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
   bool Timeline::stream_##name##_enabled_ = enabled_by_default;
@@ -511,7 +524,6 @@ TimelineEventScope::TimelineEventScope(Thread* thread,
       arguments_(NULL),
       arguments_length_(0),
       enabled_(false) {
-  ASSERT(thread != NULL);
   Init();
 }
 

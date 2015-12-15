@@ -50,6 +50,8 @@ class Timeline : public AllStatic {
 
   static TimelineStream* GetVMStream();
 
+  static TimelineStream* GetVMApiStream();
+
   // Reclaim all |TimelineEventBlocks|s that are cached by threads.
   static void ReclaimCachedBlocksFromThreads();
 
@@ -68,6 +70,7 @@ class Timeline : public AllStatic {
  private:
   static TimelineEventRecorder* recorder_;
   static TimelineStream* vm_stream_;
+  static TimelineStream* vm_api_stream_;
 
 #define ISOLATE_TIMELINE_STREAM_DECLARE_FLAG(name, not_used)                   \
   static bool stream_##name##_enabled_;
