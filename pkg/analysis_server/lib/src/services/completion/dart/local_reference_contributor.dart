@@ -11,7 +11,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl;
-import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart'
+import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';

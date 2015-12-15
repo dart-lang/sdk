@@ -8,8 +8,8 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
-import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 

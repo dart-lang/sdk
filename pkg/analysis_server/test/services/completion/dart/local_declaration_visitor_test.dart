@@ -4,7 +4,7 @@
 
 library test.services.completion.local_declaration_visitor_test;
 
-import 'package:analysis_server/src/services/completion/local_declaration_visitor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
@@ -12,7 +12,7 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
+import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();
