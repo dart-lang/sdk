@@ -414,7 +414,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   int32_t no_callback_scope_depth_;
 #if defined(DEBUG)
   HandleScope* top_handle_scope_;
-  intptr_t no_handle_scope_depth_;
+  int32_t no_handle_scope_depth_;
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;
