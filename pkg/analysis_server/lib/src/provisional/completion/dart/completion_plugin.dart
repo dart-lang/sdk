@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/completion/dart/label_contributor.d
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
@@ -92,6 +93,8 @@ class DartCompletionPlugin implements Plugin {
         () => new LibraryPrefixContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new LocalConstructorContributor());
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new LocalLibraryContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new LocalReferenceContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,

@@ -240,14 +240,16 @@ class DartCompletionCache extends CompletionCache {
             }
           }
         } else if (directive is PartDirective) {
-          CompilationUnitElement partElem = directive.element;
-          if (partElem != null && partElem.source != source) {
-            partElem.accept(new _NonLocalElementCacheVisitor(this));
-          }
+          // Suggested by LocalLibraryContributor
+          // CompilationUnitElement partElem = directive.element;
+          // if (partElem != null && partElem.source != source) {
+          //   partElem.accept(new _NonLocalElementCacheVisitor(this));
+          // }
         }
       });
       if (libSource != source) {
-        libUnit.element.accept(new _NonLocalElementCacheVisitor(this));
+        // Suggested by LocalLibraryContributor
+        // libUnit.element.accept(new _NonLocalElementCacheVisitor(this));
       }
     }
   }
@@ -351,46 +353,5 @@ class DartCompletionCache extends CompletionCache {
       return context.computeResolvedCompilationUnitAsync(libSource, libSource);
     }
     return new Future.value(null);
-  }
-}
-
-/**
- * A visitor for building suggestions based upon the elements defined by
- * a source file contained in the same library but not the same as
- * the source in which the completions are being requested.
- */
-class _NonLocalElementCacheVisitor extends GeneralizingElementVisitor {
-  final DartCompletionCache cache;
-
-  _NonLocalElementCacheVisitor(this.cache);
-
-  @override
-  void visitClassElement(ClassElement element) {
-    cache._addSuggestion(element, DART_RELEVANCE_DEFAULT);
-  }
-
-  @override
-  void visitCompilationUnitElement(CompilationUnitElement element) {
-    element.visitChildren(this);
-  }
-
-  @override
-  void visitElement(Element element) {
-    // ignored
-  }
-
-  @override
-  void visitFunctionElement(FunctionElement element) {
-    cache._addSuggestion(element, DART_RELEVANCE_DEFAULT);
-  }
-
-  @override
-  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    cache._addSuggestion(element, DART_RELEVANCE_DEFAULT);
-  }
-
-  @override
-  void visitTopLevelVariableElement(TopLevelVariableElement element) {
-    cache._addSuggestion(element, DART_RELEVANCE_DEFAULT);
   }
 }

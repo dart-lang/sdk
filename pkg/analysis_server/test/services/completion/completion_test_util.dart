@@ -3753,7 +3753,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedConstructor('Object');
       assertSuggestImportedConstructor('X.c');
       assertNotSuggested('X._d');
-      assertSuggestImportedConstructor('A');
+      // Suggested by LocalLibraryContributor
+      assertNotSuggested('A');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('_d');
@@ -3792,7 +3793,8 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
       assertSuggestImportedConstructor('Object');
       assertSuggestImportedConstructor('X.c');
       assertNotSuggested('X._d');
-      assertSuggestImportedConstructor('B');
+      // Suggested by LocalLibraryContributor
+      assertNotSuggested('B');
       assertNotSuggested('F1');
       assertNotSuggested('T1');
       assertNotSuggested('_d');
