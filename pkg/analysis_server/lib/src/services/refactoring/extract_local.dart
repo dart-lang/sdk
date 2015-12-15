@@ -76,11 +76,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     RefactoringStatus result = new RefactoringStatus();
-    if (excludedVariableNames.contains(name)) {
-      result.addWarning(format(
-          "A variable with name '{0}' is already defined in the visible scope.",
-          name));
-    }
+    result.addStatus(checkName());
     return new Future.value(result);
   }
 
@@ -105,7 +101,13 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   @override
   RefactoringStatus checkName() {
-    return validateVariableName(name);
+    RefactoringStatus result = new RefactoringStatus();
+    result.addStatus(validateVariableName(name));
+    if (excludedVariableNames.contains(name)) {
+      result.addError(
+          format("The name '{0}' is already used in the scope.", name));
+    }
+    return result;
   }
 
   @override

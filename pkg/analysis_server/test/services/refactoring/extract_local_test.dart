@@ -36,9 +36,8 @@ main() {
     _createRefactoringForString('1 + 2');
     // conflicting name
     RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
-        expectedMessage:
-            "A variable with name 'res' is already defined in the visible scope.");
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
   }
 
   test_checkFinalConditions_sameVariable_before() async {
@@ -51,9 +50,8 @@ main() {
     _createRefactoringForString('1 + 2');
     // conflicting name
     RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
-        expectedMessage:
-            "A variable with name 'res' is already defined in the visible scope.");
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
   }
 
   test_checkInitialConditions_assignmentLeftHandSize() async {
@@ -163,7 +161,7 @@ main() {
         expectedMessage: 'Cannot extract the void expression.');
   }
 
-  test_checkLocalName() {
+  test_checkName() {
     indexTestUnit('''
 main() {
   int a = 1 + 2;
@@ -184,6 +182,55 @@ main() {
     // OK
     refactoring.name = 'res';
     assertRefactoringStatusOK(refactoring.checkName());
+  }
+
+  test_checkName_conflict_withInvokedFunction() async {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+  res();
+}
+
+void res() {}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
+  }
+
+  test_checkName_conflict_withOtherLocal() async {
+    indexTestUnit('''
+main() {
+  var res;
+  int a = 1 + 2;
+}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
+  }
+
+  test_checkName_conflict_withTypeName() async {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+  Res b = null;
+}
+
+class Res {}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'Res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'Res' is already used in the scope.");
   }
 
   test_completeStatementExpression() {

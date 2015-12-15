@@ -12,7 +12,6 @@ import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -668,20 +667,9 @@ class CorrectionUtils {
     AstNode enclosingNode = findNode(offset);
     Block enclosingBlock = enclosingNode.getAncestor((node) => node is Block);
     if (enclosingBlock != null) {
-      SourceRange newRange = rangeStartEnd(offset, enclosingBlock.end);
-      ExecutableElement enclosingExecutable =
-          getEnclosingExecutableElement(enclosingNode);
-      if (enclosingExecutable != null) {
-        visitChildren(enclosingExecutable, (Element element) {
-          if (element is LocalElement) {
-            SourceRange elementRange = element.visibleRange;
-            if (elementRange != null && elementRange.intersects(newRange)) {
-              conflicts.add(element.displayName);
-            }
-          }
-          return true;
-        });
-      }
+      _CollectReferencedUnprefixedNames visitor = new _CollectReferencedUnprefixedNames();
+      enclosingBlock.accept(visitor);
+      return visitor.names;
     }
     return conflicts;
   }
@@ -1435,6 +1423,26 @@ class TokenUtils {
    */
   static bool hasOnly(List<Token> tokens, TokenType type) =>
       tokens.length == 1 && tokens[0].type == type;
+}
+
+class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
+  final Set<String> names = new Set<String>();
+
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (!_isPrefixed(node)) {
+      names.add(node.name);
+    }
+  }
+
+  static bool _isPrefixed(SimpleIdentifier node) {
+    AstNode parent = node.parent;
+    return parent is ConstructorName && parent.name == node ||
+        parent is MethodInvocation &&
+            parent.methodName == node &&
+            parent.realTarget != null ||
+        parent is PrefixedIdentifier && parent.identifier == node ||
+        parent is PropertyAccess && parent.target == node;
+  }
 }
 
 /**
