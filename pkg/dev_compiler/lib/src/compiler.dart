@@ -510,7 +510,10 @@ const corelibOrder = const [
   // are actually used by the application.
   'dart.mirrors',
   'dart._js_mirrors',
-  'dart.js'
+  'dart.js',
+  'dart._metadata',
+  'dart.dom.html_common',
+  'dart.dom.html'
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.
 ];
@@ -518,6 +521,15 @@ const corelibOrder = const [
 /// Runtime files added to all applications when running the compiler in the
 /// command line.
 final defaultRuntimeFiles = () {
+  String coreToFile(String name) {
+    var parts = name.split('.');
+    var length = parts.length;
+    if (length > 1) {
+      name = parts[0] + '/' + parts[length - 1];
+    }
+    return name + '.js';
+  }
+
   var files = [
     'harmony_feature_check.js',
     'dart_library.js',
@@ -530,7 +542,7 @@ final defaultRuntimeFiles = () {
     'dart/_operations.js',
     'dart/_runtime.js',
   ];
-  files.addAll(corelibOrder.map((l) => l.replaceAll('.', '/') + '.js'));
+  files.addAll(corelibOrder.map(coreToFile));
   return files;
 }();
 

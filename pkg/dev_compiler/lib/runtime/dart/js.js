@@ -7,9 +7,10 @@ dart_library.library('dart/js', null, /* Imports */[
 ], function(exports, dart, core, collection, _js_helper) {
   'use strict';
   let dartx = dart.dartx;
+  const _global = dart.global;
   dart.defineLazyProperties(exports, {
     get context() {
-      return _wrapToDart(dart.global);
+      return _wrapToDart(_global);
     }
   });
   const _jsObject = Symbol('_jsObject');
@@ -350,8 +351,12 @@ dart_library.library('dart/js', null, /* Imports */[
     return wrapper;
   }
   dart.fn(_wrapDartFunction);
-  function _convertToDart(o) {
-    if (o == null || typeof o == "string" || typeof o == "number" || typeof o == "boolean" || dart.notNull(_isBrowserType(o))) {
+  function _convertToDart(o, isBrowserType) {
+    if (isBrowserType === void 0)
+      isBrowserType = null;
+    if (isBrowserType == null)
+      isBrowserType = _isBrowserType;
+    if (o == null || typeof o == "string" || typeof o == "number" || typeof o == "boolean" || dart.notNull(dart.dcall(isBrowserType, o))) {
       return o;
     } else if (o instanceof Date) {
       let ms = o.getTime();
@@ -362,7 +367,7 @@ dart_library.library('dart/js', null, /* Imports */[
       return _putIfAbsent(_dartProxies, o, _wrapToDart);
     }
   }
-  dart.fn(_convertToDart, core.Object, [dart.dynamic]);
+  dart.fn(_convertToDart, core.Object, [dart.dynamic], [dart.functionType(core.bool, [dart.dynamic])]);
   function _wrapToDart(o) {
     if (typeof o == "function") {
       return new JsFunction._fromJs(o);

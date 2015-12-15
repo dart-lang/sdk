@@ -31,8 +31,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       "_blink/dartium/_blink_dartium.dart",
       category: "Client",
       implementation: true,
-      documented: false,
-      platforms: VM_PLATFORM),
+      documented: false),
 
   "_chrome": const LibraryInfo(
       "_chrome/dart2js/chrome_dart2js.dart",
@@ -55,24 +54,21 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       dart2jsPatchPath: "_internal/compiler/js_lib/core_patch.dart"),
 
   "html": const LibraryInfo(
-      "html/dartium/html_dartium.dart",
+      "html/ddc/html_ddc.dart",
       category: "Client",
-      maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "html/dart2js/html_dart2js.dart"),
+      maturity: Maturity.WEB_STABLE),
 
   "html_common": const LibraryInfo(
-      "html/html_common/html_common.dart",
+      "html/html_common/html_common_ddc.dart",
       category: "Client",
       maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "html/html_common/html_common_dart2js.dart",
       documented: false,
       implementation: true),
 
   "indexed_db": const LibraryInfo(
-      "indexed_db/dartium/indexed_db_dartium.dart",
+      "indexed_db/ddc/indexed_db_ddc.dart",
       category: "Client",
-      maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "indexed_db/dart2js/indexed_db_dart2js.dart"),
+      maturity: Maturity.WEB_STABLE),
 
   "io": const LibraryInfo(
       "io/io.dart",
@@ -125,28 +121,24 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       platforms: DART2JS_PLATFORM),
 
   "svg": const LibraryInfo(
-      "svg/dartium/svg_dartium.dart",
+      "svg/ddc/svg_ddc.dart",
       category: "Client",
-      maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "svg/dart2js/svg_dart2js.dart"),
+      maturity: Maturity.WEB_STABLE),
 
   "web_audio": const LibraryInfo(
-      "web_audio/dartium/web_audio_dartium.dart",
+      "web_audio/ddc/web_audio_ddc.dart",
       category: "Client",
-      maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "web_audio/dart2js/web_audio_dart2js.dart"),
+      maturity: Maturity.WEB_STABLE),
 
   "web_gl": const LibraryInfo(
-      "web_gl/dartium/web_gl_dartium.dart",
+      "web_gl/ddc/web_gl_ddc.dart",
       category: "Client",
-      maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "web_gl/dart2js/web_gl_dart2js.dart"),
+      maturity: Maturity.WEB_STABLE),
 
   "web_sql": const LibraryInfo(
-      "web_sql/dartium/web_sql_dartium.dart",
+      "web_sql/ddc/web_sql_ddc.dart",
       category: "Client",
-      maturity: Maturity.WEB_STABLE,
-      dart2jsPath: "web_sql/dart2js/web_sql_dart2js.dart"),
+      maturity: Maturity.WEB_STABLE),
 
   "_internal": const LibraryInfo(
       "internal/internal.dart",

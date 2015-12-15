@@ -1089,6 +1089,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ClosureAnnotator {
       }
     }
 
+    if (superCtor == null) {
+      print('Error generating: ${element.displayName}');
+    }
     if (superCtor.name == '' && !_shouldCallUnnamedSuperCtor(element)) {
       return null;
     }

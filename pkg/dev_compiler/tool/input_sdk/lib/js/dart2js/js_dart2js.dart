@@ -93,7 +93,8 @@ import 'dart:_interceptors' as _interceptors show JSArray;
 import 'dart:_js_helper' show Primitives;
 import 'dart:_foreign_helper' show JS;
 
-final JsObject context = _wrapToDart(JS('', 'dart.global'));
+final _global = JS('', 'dart.global');
+final JsObject context = _wrapToDart(_global);
 
 /**
  * Proxies a JavaScript object to Dart.
@@ -474,12 +475,13 @@ dynamic _wrapDartFunction(f) {
 
 // converts a Dart object to a reference to a native JS object
 // which might be a DartObject JS->Dart proxy
-Object _convertToDart(o) {
+Object _convertToDart(o, [bool isBrowserType(x)]) {
+  if (isBrowserType == null) isBrowserType = _isBrowserType;
   if (JS('bool', '# == null', o) ||
       JS('bool', 'typeof # == "string"', o) ||
       JS('bool', 'typeof # == "number"', o) ||
       JS('bool', 'typeof # == "boolean"', o) ||
-      _isBrowserType(o)) {
+      isBrowserType(o)) {
     return o;
   } else if (JS('bool', '# instanceof Date', o)) {
     var ms = JS('num', '#.getTime()', o);
