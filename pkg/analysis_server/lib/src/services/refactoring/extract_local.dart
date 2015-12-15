@@ -232,6 +232,21 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         node is Expression || node is ArgumentList;
         node = node.parent) {
       AstNode parent = node.parent;
+      // stop at void method invocations
+      if (node is MethodInvocation) {
+        MethodInvocation invocation = node;
+        Element element = invocation.methodName.bestElement;
+        if (element is ExecutableElement &&
+            element.returnType != null &&
+            element.returnType.isVoid) {
+          if (rootExpression == null) {
+            return new RefactoringStatus.fatal(
+                'Cannot extract the void expression.',
+                newLocation_fromNode(node));
+          }
+          break;
+        }
+      }
       // skip ArgumentList
       if (node is ArgumentList) {
         continue;

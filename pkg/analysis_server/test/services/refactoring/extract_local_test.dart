@@ -150,6 +150,19 @@ main() {
 ''');
   }
 
+  test_checkInitialConditions_voidExpression() async {
+    indexTestUnit('''
+main() {
+  print(42);
+}
+''');
+    _createRefactoringForString('print');
+    // check conditions
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Cannot extract the void expression.');
+  }
+
   test_checkLocalName() {
     indexTestUnit('''
 main() {
@@ -350,6 +363,20 @@ int foo(int x) => x;
     await refactoring.checkInitialConditions();
     List<String> subExpressions = _getCoveringExpressions();
     expect(subExpressions, ['111', '111 + 222', 'foo(111 + 222)']);
+  }
+
+  test_coveringExpressions_inInvocationOfVoidFunction() async {
+    indexTestUnit('''
+main() {
+  foo(111 + 222);
+}
+void foo(int x) {}
+''');
+    _createRefactoring(testCode.indexOf('11 +'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['111', '111 + 222']);
   }
 
   test_coveringExpressions_skipAssignments() async {
