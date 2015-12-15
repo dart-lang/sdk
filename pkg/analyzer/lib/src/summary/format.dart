@@ -72,14 +72,12 @@ class PrelinkedLibrary {
   UnlinkedLibrary _unlinked;
   List<PrelinkedDependency> _dependencies;
   List<int> _importDependencies;
-  List<PrelinkedReference> _references;
 
   PrelinkedLibrary.fromJson(Map json)
     : _units = json["units"]?.map((x) => new PrelinkedUnit.fromJson(x))?.toList(),
       _unlinked = json["unlinked"] == null ? null : new UnlinkedLibrary.fromJson(json["unlinked"]),
       _dependencies = json["dependencies"]?.map((x) => new PrelinkedDependency.fromJson(x))?.toList(),
-      _importDependencies = json["importDependencies"],
-      _references = json["references"]?.map((x) => new PrelinkedReference.fromJson(x))?.toList();
+      _importDependencies = json["importDependencies"];
 
   PrelinkedLibrary.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
@@ -87,7 +85,6 @@ class PrelinkedLibrary {
   UnlinkedLibrary get unlinked => _unlinked;
   List<PrelinkedDependency> get dependencies => _dependencies ?? const <PrelinkedDependency>[];
   List<int> get importDependencies => _importDependencies ?? const <int>[];
-  List<PrelinkedReference> get references => _references ?? const <PrelinkedReference>[];
 }
 
 class PrelinkedLibraryBuilder {
@@ -129,14 +126,6 @@ class PrelinkedLibraryBuilder {
     }
   }
 
-  void set references(List<PrelinkedReferenceBuilder> _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("references"));
-    if (_value != null || _value.isEmpty) {
-      _json["references"] = _value.map((b) => b.finish()).toList();
-    }
-  }
-
   List<int> toBuffer() => UTF8.encode(JSON.encode(finish()));
 
   Map finish() {
@@ -146,13 +135,12 @@ class PrelinkedLibraryBuilder {
   }
 }
 
-PrelinkedLibraryBuilder encodePrelinkedLibrary(builder.BuilderContext builderContext, {List<PrelinkedUnitBuilder> units, UnlinkedLibraryBuilder unlinked, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies, List<PrelinkedReferenceBuilder> references}) {
+PrelinkedLibraryBuilder encodePrelinkedLibrary(builder.BuilderContext builderContext, {List<PrelinkedUnitBuilder> units, UnlinkedLibraryBuilder unlinked, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies}) {
   PrelinkedLibraryBuilder builder = new PrelinkedLibraryBuilder(builderContext);
   builder.units = units;
   builder.unlinked = unlinked;
   builder.dependencies = dependencies;
   builder.importDependencies = importDependencies;
-  builder.references = references;
   return builder;
 }
 
@@ -219,11 +207,14 @@ PrelinkedReferenceBuilder encodePrelinkedReference(builder.BuilderContext builde
 
 class PrelinkedUnit {
   UnlinkedUnit _unlinked;
+  List<PrelinkedReference> _references;
 
   PrelinkedUnit.fromJson(Map json)
-    : _unlinked = json["unlinked"] == null ? null : new UnlinkedUnit.fromJson(json["unlinked"]);
+    : _unlinked = json["unlinked"] == null ? null : new UnlinkedUnit.fromJson(json["unlinked"]),
+      _references = json["references"]?.map((x) => new PrelinkedReference.fromJson(x))?.toList();
 
   UnlinkedUnit get unlinked => _unlinked;
+  List<PrelinkedReference> get references => _references ?? const <PrelinkedReference>[];
 }
 
 class PrelinkedUnitBuilder {
@@ -241,6 +232,14 @@ class PrelinkedUnitBuilder {
     }
   }
 
+  void set references(List<PrelinkedReferenceBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("references"));
+    if (_value != null || _value.isEmpty) {
+      _json["references"] = _value.map((b) => b.finish()).toList();
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -248,9 +247,10 @@ class PrelinkedUnitBuilder {
   }
 }
 
-PrelinkedUnitBuilder encodePrelinkedUnit(builder.BuilderContext builderContext, {UnlinkedUnitBuilder unlinked}) {
+PrelinkedUnitBuilder encodePrelinkedUnit(builder.BuilderContext builderContext, {UnlinkedUnitBuilder unlinked, List<PrelinkedReferenceBuilder> references}) {
   PrelinkedUnitBuilder builder = new PrelinkedUnitBuilder(builderContext);
   builder.unlinked = unlinked;
+  builder.references = references;
   return builder;
 }
 
@@ -851,14 +851,11 @@ UnlinkedImportBuilder encodeUnlinkedImport(builder.BuilderContext builderContext
 }
 
 class UnlinkedLibrary {
-  List<UnlinkedReference> _references;
   List<UnlinkedPrefix> _prefixes;
 
   UnlinkedLibrary.fromJson(Map json)
-    : _references = json["references"]?.map((x) => new UnlinkedReference.fromJson(x))?.toList(),
-      _prefixes = json["prefixes"]?.map((x) => new UnlinkedPrefix.fromJson(x))?.toList();
+    : _prefixes = json["prefixes"]?.map((x) => new UnlinkedPrefix.fromJson(x))?.toList();
 
-  List<UnlinkedReference> get references => _references ?? const <UnlinkedReference>[];
   List<UnlinkedPrefix> get prefixes => _prefixes ?? const <UnlinkedPrefix>[];
 }
 
@@ -868,14 +865,6 @@ class UnlinkedLibraryBuilder {
   bool _finished = false;
 
   UnlinkedLibraryBuilder(builder.BuilderContext context);
-
-  void set references(List<UnlinkedReferenceBuilder> _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("references"));
-    if (_value != null || _value.isEmpty) {
-      _json["references"] = _value.map((b) => b.finish()).toList();
-    }
-  }
 
   void set prefixes(List<UnlinkedPrefixBuilder> _value) {
     assert(!_finished);
@@ -892,9 +881,8 @@ class UnlinkedLibraryBuilder {
   }
 }
 
-UnlinkedLibraryBuilder encodeUnlinkedLibrary(builder.BuilderContext builderContext, {List<UnlinkedReferenceBuilder> references, List<UnlinkedPrefixBuilder> prefixes}) {
+UnlinkedLibraryBuilder encodeUnlinkedLibrary(builder.BuilderContext builderContext, {List<UnlinkedPrefixBuilder> prefixes}) {
   UnlinkedLibraryBuilder builder = new UnlinkedLibraryBuilder(builderContext);
-  builder.references = references;
   builder.prefixes = prefixes;
   return builder;
 }
@@ -1316,6 +1304,7 @@ UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(builder.BuilderContext builderConte
 
 class UnlinkedUnit {
   String _libraryName;
+  List<UnlinkedReference> _references;
   List<UnlinkedClass> _classes;
   List<UnlinkedEnum> _enums;
   List<UnlinkedExecutable> _executables;
@@ -1327,6 +1316,7 @@ class UnlinkedUnit {
 
   UnlinkedUnit.fromJson(Map json)
     : _libraryName = json["libraryName"],
+      _references = json["references"]?.map((x) => new UnlinkedReference.fromJson(x))?.toList(),
       _classes = json["classes"]?.map((x) => new UnlinkedClass.fromJson(x))?.toList(),
       _enums = json["enums"]?.map((x) => new UnlinkedEnum.fromJson(x))?.toList(),
       _executables = json["executables"]?.map((x) => new UnlinkedExecutable.fromJson(x))?.toList(),
@@ -1337,6 +1327,7 @@ class UnlinkedUnit {
       _variables = json["variables"]?.map((x) => new UnlinkedVariable.fromJson(x))?.toList();
 
   String get libraryName => _libraryName ?? '';
+  List<UnlinkedReference> get references => _references ?? const <UnlinkedReference>[];
   List<UnlinkedClass> get classes => _classes ?? const <UnlinkedClass>[];
   List<UnlinkedEnum> get enums => _enums ?? const <UnlinkedEnum>[];
   List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
@@ -1359,6 +1350,14 @@ class UnlinkedUnitBuilder {
     assert(!_json.containsKey("libraryName"));
     if (_value != null) {
       _json["libraryName"] = _value;
+    }
+  }
+
+  void set references(List<UnlinkedReferenceBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("references"));
+    if (_value != null || _value.isEmpty) {
+      _json["references"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -1433,9 +1432,10 @@ class UnlinkedUnitBuilder {
   }
 }
 
-UnlinkedUnitBuilder encodeUnlinkedUnit(builder.BuilderContext builderContext, {String libraryName, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
+UnlinkedUnitBuilder encodeUnlinkedUnit(builder.BuilderContext builderContext, {String libraryName, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
   UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder(builderContext);
   builder.libraryName = libraryName;
+  builder.references = references;
   builder.classes = classes;
   builder.enums = enums;
   builder.executables = executables;

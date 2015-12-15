@@ -60,7 +60,9 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
     }
     serializeLibraryElement(library);
     expect(definingUnit.unlinked.imports.length, lib.importDependencies.length);
-    expect(unlinked.references.length, lib.references.length);
+    for (PrelinkedUnit unit in lib.units) {
+      expect(unit.unlinked.references.length, unit.references.length);
+    }
   }
 
   @override
@@ -207,19 +209,25 @@ abstract class SummaryTest {
    * [expectedName].  If [expectedPrefix] is supplied, verify that the type is
    * reached via the given prefix.  If [allowTypeParameters] is true, allow the
    * type reference to supply type parameters.  [expectedKind] is the kind of
-   * object referenced.
+   * object referenced.  [sourceUnit] is the compilation unit within which the
+   * [typeRef] appears; if not specified it is assumed to be the defining
+   * compilation unit.  [expectedTargetUnit] is the index of the compilation
+   * unit in which the target of the [typeRef] is expected to appear; if not
+   * specified it is assumed to be the defining compilation unit.
    */
   void checkTypeRef(UnlinkedTypeRef typeRef, String absoluteUri,
       String relativeUri, String expectedName,
       {String expectedPrefix,
       bool allowTypeParameters: false,
       PrelinkedReferenceKind expectedKind: PrelinkedReferenceKind.classOrEnum,
-      int expectedUnit: 0}) {
+      int expectedTargetUnit: 0,
+      PrelinkedUnit sourceUnit}) {
+    sourceUnit ??= definingUnit;
     expect(typeRef, new isInstanceOf<UnlinkedTypeRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
-    UnlinkedReference reference = unlinked.references[index];
-    PrelinkedReference referenceResolution = lib.references[index];
+    UnlinkedReference reference = sourceUnit.unlinked.references[index];
+    PrelinkedReference referenceResolution = sourceUnit.references[index];
     if (absoluteUri == null) {
       expect(referenceResolution.dependency, 0);
     } else {
@@ -243,7 +251,7 @@ abstract class SummaryTest {
       }
     }
     expect(referenceResolution.kind, expectedKind);
-    expect(referenceResolution.unit, expectedUnit);
+    expect(referenceResolution.unit, expectedTargetUnit);
   }
 
   /**
@@ -451,8 +459,7 @@ abstract class SummaryTest {
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-            allowErrors: allowErrors)
-        .type;
+        allowErrors: allowErrors).type;
   }
 
   /**
@@ -1702,6 +1709,18 @@ a.Stream s;
     checkDynamicTypeRef(serializeTypeText('dynamic'));
   }
 
+  test_type_reference_from_part() {
+    addNamedSource('/a.dart', 'part of foo; C v;');
+    serializeLibraryText('library foo; part "a.dart"; class C {}');
+    checkTypeRef(
+        findVariable('v', variables: lib.units[1].unlinked.variables).type,
+        null,
+        null,
+        'C',
+        expectedKind: PrelinkedReferenceKind.classOrEnum,
+        sourceUnit: lib.units[1]);
+  }
+
   test_type_reference_to_class_argument() {
     UnlinkedClass cls = serializeClassText('class C<T, U> { T t; U u; }');
     {
@@ -1743,7 +1762,7 @@ a.Stream s;
         absUri('/a.dart'),
         'a.dart',
         'C',
-        expectedUnit: 1);
+        expectedTargetUnit: 1);
   }
 
   test_type_reference_to_imported_part_with_prefix() {
@@ -1756,7 +1775,7 @@ a.Stream s;
         'a.dart',
         'C',
         expectedPrefix: 'p',
-        expectedUnit: 1);
+        expectedTargetUnit: 1);
   }
 
   test_type_reference_to_internal_class() {
@@ -1786,13 +1805,25 @@ a.Stream s;
         null,
         null,
         'C',
-        expectedUnit: 1);
+        expectedTargetUnit: 1);
   }
 
   test_type_reference_to_nonexistent_file_via_prefix() {
     UnlinkedTypeRef typeRef = serializeTypeText('p.C',
         otherDeclarations: 'import "foo.dart" as p;', allowErrors: true);
     checkUnresolvedTypeRef(typeRef, 'p', 'C');
+  }
+
+  test_type_reference_to_part() {
+    addNamedSource('/a.dart', 'part of foo; class C {}');
+    checkTypeRef(
+        serializeTypeText('C',
+            otherDeclarations: 'library foo; part "a.dart";'),
+        null,
+        null,
+        'C',
+        expectedKind: PrelinkedReferenceKind.classOrEnum,
+        expectedTargetUnit: 1);
   }
 
   test_type_reference_to_typedef() {
@@ -1810,7 +1841,8 @@ a.Stream s;
     // The referenced unit should be 2, since unit 0 is a.dart and unit 1 is
     // b.dart.  a.dart and b.dart are counted even though nothing is imported
     // from them.
-    checkTypeRef(typeRef, absUri('/a.dart'), 'a.dart', 'C', expectedUnit: 2);
+    checkTypeRef(typeRef, absUri('/a.dart'), 'a.dart', 'C',
+        expectedTargetUnit: 2);
   }
 
   test_type_unresolved() {

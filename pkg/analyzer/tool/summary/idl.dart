@@ -110,12 +110,6 @@ class PrelinkedLibrary {
    * well, since there will effectively be a one-to-one mapping.
    */
   List<int> importDependencies;
-
-  /**
-   * For each reference in [UnlinkedLibrary.references], information about how
-   * that reference is resolved.
-   */
-  List<PrelinkedReference> references;
 }
 
 /**
@@ -177,6 +171,12 @@ class PrelinkedUnit {
    * The unlinked summary of the compilation unit
    */
   UnlinkedUnit unlinked;
+
+  /**
+   * For each reference in [UnlinkedUnit.references], information about how
+   * that reference is resolved.
+   */
+  List<PrelinkedReference> references;
 }
 
 /**
@@ -438,11 +438,6 @@ class UnlinkedImport {
  */
 class UnlinkedLibrary {
   /**
-   * Top level and prefixed names referred to by this library.
-   */
-  List<UnlinkedReference> references;
-
-  /**
    * Prefixes introduced by import declarations.  The first element in this
    * array is a pseudo-prefix used by references made with no prefix.
    */
@@ -597,11 +592,11 @@ class UnlinkedTypeParam {
  */
 class UnlinkedTypeRef {
   /**
-   * Index into [UnlinkedLibrary.references] for the type being referred to, or
+   * Index into [UnlinkedUnit.references] for the type being referred to, or
    * zero if this is a reference to a type parameter.
    *
    * Note that since zero is also a valid index into
-   * [UnlinkedLibrary.references], we cannot distinguish between references to
+   * [UnlinkedUnit.references], we cannot distinguish between references to
    * type parameters and references to types by checking [reference] against
    * zero.  To distinguish between references to type parameters and references
    * to types, check whether [paramReference] is zero.
@@ -637,17 +632,18 @@ class UnlinkedTypeRef {
 }
 
 /**
- * Unlinked summary information about a compilation unit ("part file").  Note
- * that since a declaration can be moved from one part file to another without
- * changing semantics, the declarations themselves aren't stored here; they are
- * stored in [UnlinkedLibrary] and they refer to [UnlinkedUnit]s via an index
- * into [UnlinkedLibrary.units].
+ * Unlinked summary information about a compilation unit ("part file").
  */
 class UnlinkedUnit {
   /**
    * Name of the library (from a "library" declaration, if present).
    */
   String libraryName;
+
+  /**
+   * Top level and prefixed names referred to by this compilation unit.
+   */
+  List<UnlinkedReference> references;
 
   /**
    * Classes declared in the compilation unit.

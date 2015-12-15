@@ -80,17 +80,15 @@ class _LibrarySerializer {
 
   /**
    * The unlinked portion of the "references table".  This is the list of
-   * objects which should be written to [UnlinkedLibrary.references].
+   * objects which should be written to [UnlinkedUnit.references].
    */
-  final List<UnlinkedReferenceBuilder> unlinkedReferences =
-      <UnlinkedReferenceBuilder>[];
+  List<UnlinkedReferenceBuilder> unlinkedReferences;
 
   /**
    * The prelinked portion of the "references table".  This is the list of
-   * objects which should be written to [PrelinkedLibrary.references].
+   * objects which should be written to [PrelinkedUnit.references].
    */
-  final List<PrelinkedReferenceBuilder> prelinkedReferences =
-      <PrelinkedReferenceBuilder>[];
+  List<PrelinkedReferenceBuilder> prelinkedReferences;
 
   //final Map<String, int> prefixIndices = <String, int>{};
 
@@ -156,6 +154,8 @@ class _LibrarySerializer {
               (CompilationUnitElement e) => encodeUnlinkedPart(ctx, uri: e.uri))
           .toList();
     }
+    unlinkedReferences = <UnlinkedReferenceBuilder>[];
+    prelinkedReferences = <PrelinkedReferenceBuilder>[];
     b.classes = element.types.map(serializeClass).toList();
     b.enums = element.enums.map(serializeEnum).toList();
     b.typedefs = element.functionTypeAliases.map(serializeTypedef).toList();
@@ -178,7 +178,11 @@ class _LibrarySerializer {
       }
     }
     b.variables = variables;
-    units.add(encodePrelinkedUnit(ctx, unlinked: b));
+    b.references = unlinkedReferences;
+    units.add(
+        encodePrelinkedUnit(ctx, unlinked: b, references: prelinkedReferences));
+    unlinkedReferences = null;
+    prelinkedReferences = null;
   }
 
   /**
@@ -420,12 +424,10 @@ class _LibrarySerializer {
       addCompilationUnitElements(libraryElement.parts[i], i + 1);
     }
     ub.prefixes = prefixes;
-    ub.references = unlinkedReferences;
     pb.units = units;
     pb.unlinked = ub;
     pb.dependencies = dependencies;
     pb.importDependencies = prelinkedImports;
-    pb.references = prelinkedReferences;
     return pb;
   }
 
