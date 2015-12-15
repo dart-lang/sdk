@@ -48,6 +48,7 @@ analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
 analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow # Issue 21628
+analyzer/test/generated/declaration_resolver_test: Pass, Slow # Issue 21628
 analyzer/test/generated/element_test: Pass, Slow # Issue 21628
 analyzer/test/generated/engine_test: SkipSlow
 analyzer/test/generated/incremental_resolver_test: Pass, Slow # Issue 21628
