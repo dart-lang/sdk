@@ -46,6 +46,10 @@ void allEventsHaveIsolateNumber(List<Map> events) {
       // Skip VM category events which don't have an isolate.
       continue;
     }
+    if (event['cat'] == 'API') {
+      // Skip API category events which sometimes don't have an isolate.
+      continue;
+    }
     Map arguments = event['args'];
     expect(arguments, new isInstanceOf<Map>());
     expect(arguments['isolateNumber'], new isInstanceOf<String>());
