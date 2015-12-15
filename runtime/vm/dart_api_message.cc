@@ -232,7 +232,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
       for (intptr_t i = 0; i < vm_isolate_references_.length(); i++) {
         object = vm_isolate_references_.At(i);
         if (object->type == Dart_CObject_kString) {
-          if (strcmp(str, const_cast<char*>(object->value.as_string)) == 0) {
+          if (strcmp(str, object->value.as_string) == 0) {
             return object;
           }
         }

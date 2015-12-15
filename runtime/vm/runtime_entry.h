@@ -47,7 +47,6 @@ class RuntimeEntry : public ValueObject {
         next_(NULL) {
     VMTag::RegisterRuntimeEntry(this);
   }
-  ~RuntimeEntry() {}
 
   const char* name() const { return name_; }
   RuntimeFunction function() const { return function_; }

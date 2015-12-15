@@ -330,7 +330,7 @@ class TimelineStream {
     tds.CopyArgument(                                                          \
         0,                                                                     \
         "function",                                                            \
-        const_cast<char*>(function.ToLibNamePrefixedQualifiedCString()));      \
+        function.ToLibNamePrefixedQualifiedCString());                         \
   }
 
 

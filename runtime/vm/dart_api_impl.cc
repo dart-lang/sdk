@@ -2906,7 +2906,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
 
 DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             intptr_t offset,
-                                            uint8_t* native_array,
+                                            const uint8_t* native_array,
                                             intptr_t length) {
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(list));

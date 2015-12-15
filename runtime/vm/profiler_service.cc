@@ -253,9 +253,9 @@ void ProfileCode::SetName(const char* name) {
     name_ = NULL;
   }
   intptr_t len = strlen(name);
-  name_ = Thread::Current()->zone()->Alloc<const char>(len + 1);
-  strncpy(const_cast<char*>(name_), name, len);
-  const_cast<char*>(name_)[len] = '\0';
+  name_ = Thread::Current()->zone()->Alloc<char>(len + 1);
+  strncpy(name_, name, len);
+  name_[len] = '\0';
 }
 
 

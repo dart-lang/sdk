@@ -207,7 +207,7 @@ class ProfileCode : public ZoneAllocated {
   intptr_t inclusive_serial_;
 
   const Code& code_;
-  const char* name_;
+  char* name_;
   int64_t compile_timestamp_;
   ProfileFunction* function_;
   intptr_t code_table_index_;

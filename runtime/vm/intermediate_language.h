@@ -810,7 +810,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
   // Get the block entry for this instruction.
-  virtual BlockEntryInstr* GetBlock() const;
+  virtual BlockEntryInstr* GetBlock();
 
   // Place identifiers used by the load optimization pass.
   intptr_t place_id() const { return place_id_; }
@@ -1181,8 +1181,8 @@ class BlockEntryInstr : public Instruction {
     loop_info_ = loop_info;
   }
 
-  virtual BlockEntryInstr* GetBlock() const {
-    return const_cast<BlockEntryInstr*>(this);
+  virtual BlockEntryInstr* GetBlock() {
+    return this;
   }
 
   // Helper to mutate the graph during inlining. This block should be
@@ -1886,7 +1886,7 @@ class PhiInstr : public Definition {
   }
 
   // Get the block entry for that instruction.
-  virtual BlockEntryInstr* GetBlock() const { return block(); }
+  virtual BlockEntryInstr* GetBlock() { return block(); }
   JoinEntryInstr* block() const { return block_; }
 
   virtual CompileType ComputeType() const;
@@ -1981,7 +1981,7 @@ class ParameterInstr : public Definition {
   Register base_reg() const { return base_reg_; }
 
   // Get the block entry for that instruction.
-  virtual BlockEntryInstr* GetBlock() const { return block_; }
+  virtual BlockEntryInstr* GetBlock() { return block_; }
 
   intptr_t InputCount() const { return 0; }
   Value* InputAt(intptr_t i) const {

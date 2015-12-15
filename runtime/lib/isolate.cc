@@ -257,7 +257,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
 }
 
 
-static char* String2UTF8(const String& str) {
+static const char* String2UTF8(const String& str) {
   intptr_t len = Utf8::Length(str);
   char* result = new char[len + 1];
   str.ToUTF8(reinterpret_cast<uint8_t*>(result), len);
@@ -267,11 +267,11 @@ static char* String2UTF8(const String& str) {
 }
 
 
-static char* CanonicalizeUri(Thread* thread,
-                             const Library& library,
-                             const String& uri,
-                             char** error) {
-  char* result = NULL;
+static const char* CanonicalizeUri(Thread* thread,
+                                   const Library& library,
+                                   const String& uri,
+                                   char** error) {
+  const char* result = NULL;
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
@@ -334,19 +334,19 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   const Library& root_lib =
       Library::Handle(isolate->object_store()->root_library());
   char* error = NULL;
-  char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
+  const char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
   if (canonical_uri == NULL) {
     const String& msg = String::Handle(String::New(error));
     ThrowIsolateSpawnException(msg);
   }
 
-  char* utf8_package_root =
+  const char* utf8_package_root =
       package_root.IsNull() ? NULL : String2UTF8(package_root);
 
-  char** utf8_package_map = NULL;
+  const char** utf8_package_map = NULL;
   if (!packages.IsNull()) {
     intptr_t len = packages.Length();
-    utf8_package_map = new char*[len + 1];
+    utf8_package_map = new const char*[len + 1];
 
     Object& entry = Object::Handle();
     for (intptr_t i = 0; i < len; i++) {
@@ -372,7 +372,7 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
           isolate->init_callback_data(),
           canonical_uri,
           utf8_package_root,
-          const_cast<const char**>(utf8_package_map),
+          utf8_package_map,
           args,
           message,
           paused.value(),

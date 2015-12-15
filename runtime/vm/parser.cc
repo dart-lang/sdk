@@ -458,10 +458,7 @@ void Parser::ParseCompilationUnit(const Library& library,
                             "CompileTopLevel");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
-    tds.CopyArgument(
-        0,
-        "script",
-        const_cast<char*>(String::Handle(script.url()).ToCString()));
+    tds.CopyArgument(0, "script", String::Handle(script.url()).ToCString());
   }
 
   Parser parser(script, library, 0);

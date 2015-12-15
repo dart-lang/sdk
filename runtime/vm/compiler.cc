@@ -314,10 +314,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
                             "CompileClass");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
-    tds.CopyArgument(
-        0,
-        "class",
-        const_cast<char*>(cls.ToCString()));
+    tds.CopyArgument(0, "class", cls.ToCString());
   }
 
   GrowableHandlePtrArray<const Class> parse_list(thread->zone(), 4);

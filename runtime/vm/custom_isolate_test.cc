@@ -243,7 +243,7 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
 }
 
 
-const char* saved_echo = NULL;
+char* saved_echo = NULL;
 static void native_echo(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle arg = Dart_GetNativeArgument(args, 0);
@@ -252,7 +252,7 @@ static void native_echo(Dart_NativeArguments args) {
   const char* c_str = NULL;
   EXPECT_VALID(Dart_StringToCString(toString, &c_str));
   if (saved_echo) {
-    free(const_cast<char*>(saved_echo));
+    free(saved_echo);
   }
   saved_echo = strdup(c_str);
   OS::Print("-- (isolate=%p) %s\n", Dart_CurrentIsolate(), c_str);
@@ -350,7 +350,7 @@ UNIT_TEST_CASE(CustomIsolates) {
   }
   OS::Print("-- Finished event loop --\n");
   EXPECT_STREQ("Received: 43", saved_echo);
-  free(const_cast<char*>(saved_echo));
+  free(saved_echo);
 
   delete event_queue;
   event_queue = NULL;
