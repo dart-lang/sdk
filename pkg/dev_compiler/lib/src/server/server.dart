@@ -89,6 +89,7 @@ class ServerCompiler extends AbstractCompiler {
   }
 
   bool _buildSource(SourceNode node) {
+    node.clearSummary();
     if (node is HtmlSourceNode) {
       _buildHtmlFile(node);
     } else if (node is DartSourceNode) {

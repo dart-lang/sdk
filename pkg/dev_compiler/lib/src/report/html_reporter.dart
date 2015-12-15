@@ -93,8 +93,10 @@ class HtmlReporter implements AnalysisErrorListener {
     keys = result.system.keys.toList()..sort();
     for (String name in keys) {
       LibrarySummary summary = result.system[name];
-      summaries.add(new SummaryInfo(
-          'Dart: code', name, 'dart:${name}', summary.messages));
+      if (summary.messages.isNotEmpty) {
+        summaries.add(new SummaryInfo(
+            'Dart: code', name, 'dart:${name}', summary.messages));
+      }
     }
 
     // Loose files

@@ -32,6 +32,7 @@ import '../compiler.dart' show defaultRuntimeFiles;
 import '../info.dart';
 import '../options.dart';
 import '../report.dart';
+import '../report/html_reporter.dart';
 
 /// Holds references to all source nodes in the import graph. This is mainly
 /// used as a level of indirection to ensure that each source has a canonical
@@ -146,6 +147,8 @@ abstract class SourceNode {
     }
   }
 
+  void clearSummary() {}
+
   void saveUpdatedContents() {}
 
   String toString() {
@@ -184,13 +187,19 @@ class HtmlSourceNode extends SourceNode {
         super(graph, uri, source);
 
   @override
+  void clearSummary() {
+    var reporter = graph._reporter;
+    if (reporter is HtmlReporter) {
+      reporter.reporter.clearHtml(uri);
+    } else if (reporter is SummaryReporter) {
+      reporter.clearHtml(uri);
+    }
+  }
+
+  @override
   void update() {
     super.update();
     if (needsRebuild) {
-      var reporter = graph._reporter;
-      if (reporter is SummaryReporter) {
-        reporter.clearHtml(uri);
-      }
       document = html.parse(contents, generateSpans: true);
       var newScripts = new Set<DartSourceNode>();
       var tags = document.querySelectorAll('script[type="application/dart"]');
@@ -291,15 +300,20 @@ class DartSourceNode extends SourceNode {
   }
 
   @override
+  void clearSummary() {
+    var reporter = graph._reporter;
+    if (reporter is HtmlReporter) {
+      reporter.reporter.clearLibrary(uri);
+    } else if (reporter is SummaryReporter) {
+      reporter.clearLibrary(uri);
+    }
+  }
+
+  @override
   void update() {
     super.update();
 
     if (needsRebuild) {
-      var reporter = graph._reporter;
-      if (reporter is SummaryReporter) {
-        reporter.clearLibrary(uri);
-      }
-
       // If the defining compilation-unit changed, the structure might have
       // changed.
       var unit = parseDirectives(contents, name: _source.fullName);
