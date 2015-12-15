@@ -744,14 +744,16 @@ class GetTypeTestProperty extends Expression {
       visitor.visitGetTypeTestProperty(this, arg);
 }
 
-
 /// Read the value of a field, possibly provoking its initializer to evaluate,
 /// or tear off a static method.
 class GetStatic extends Expression {
   Element element;
   SourceInformation sourceInformation;
+  bool useLazyGetter = false;
 
   GetStatic(this.element, this.sourceInformation);
+
+  GetStatic.lazy(this.element, this.sourceInformation) : useLazyGetter = true;
 
   accept(ExpressionVisitor visitor) => visitor.visitGetStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetStatic(this, arg);

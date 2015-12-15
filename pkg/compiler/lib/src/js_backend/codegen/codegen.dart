@@ -823,7 +823,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
           new StaticUse.staticTearOff(node.element.declaration));
       return glue.isolateStaticClosureAccess(node.element);
     }
-    if (glue.isLazilyInitialized(node.element)) {
+    if (node.useLazyGetter) {
       // Read a lazily initialized field.
       registry.registerStaticUse(
           new StaticUse.staticInit(node.element.declaration));

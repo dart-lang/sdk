@@ -1305,13 +1305,26 @@ class SetIndex extends Primitive {
 
 /// Reads the value of a static field or tears off a static method.
 ///
-/// Note that lazily initialized fields should be read using GetLazyStatic.
+/// If [GetStatic] is used to load a lazily initialized static field, it must
+/// have been initialized beforehand, and a [witness] must be set to restrict
+/// code motion.
 class GetStatic extends Primitive {
   /// Can be [FieldElement] or [FunctionElement].
   final Element element;
   final SourceInformation sourceInformation;
 
+  /// If reading a lazily initialized field, [witness] must refer to a node
+  /// that initializes the field or always occurs after the field initializer.
+  ///
+  /// The value of the witness is not used.
+  Reference<Primitive> witness;
+
   GetStatic(this.element, [this.sourceInformation]);
+
+  /// Read a lazily initialized static field that is known to have been
+  /// initialized by [witness] or earlier.
+  GetStatic.witnessed(this.element, Primitive witness, [this.sourceInformation])
+      : witness = witness == null ? null : new Reference<Primitive>(witness);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
 
@@ -1321,7 +1334,11 @@ class GetStatic extends Primitive {
     return element is FunctionElement || element.isFinal;
   }
 
-  void setParentPointers() {}
+  void setParentPointers() {
+    if (witness != null) {
+      witness.parent = this;
+    }
+  }
 }
 
 /// Sets the value of a static field.
@@ -2108,6 +2125,9 @@ class DeepRecursiveVisitor implements Visitor {
   processGetStatic(GetStatic node) {}
   visitGetStatic(GetStatic node) {
     processGetStatic(node);
+    if (node.witness != null) {
+      processReference(node.witness);
+    }
   }
 
   processSetStatic(SetStatic node) {}

@@ -104,8 +104,6 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     // specially is equivalent to updating refinements during GVN.
     // GetLazyStatic cannot have side effects because the field has already
     // been initialized.
-    // TODO(asgerf): Replace GetLazyStatic in an earlier pass so it does not
-    //   confuse the LoopSideEffects pre-analysis.
     return prim.isSafeForElimination ||
            prim is GetField ||
            prim is GetLength ||
@@ -127,13 +125,22 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
       return next;
     }
 
+    // Update effect numbers due to side effects from a static initializer.
+    // GetLazyStatic is GVN'ed like a GetStatic, but the effects of the static
+    // initializer occur before reading the field.
+    if (prim is GetLazyStatic) {
+      visit(prim);
+    }
+
     // Compute the GVN vector for this computation.
     List vector = gvnVectorBuilder.make(prim, effectNumbers);
 
     // Update effect numbers due to side effects.
     // Do this after computing the GVN vector so the primitive's GVN is not
-    // influenced by its own side effects.
-    visit(prim);
+    // influenced by its own side effects, except in the case of GetLazyStatic.
+    if (prim is! GetLazyStatic) {
+      visit(prim);
+    }
 
     if (vector == null) {
       // The primitive is not GVN'able. Move on.
@@ -675,12 +682,13 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
     vector = [GvnCode.GET_INDEX, effectNumbers.indexableContent];
   }
 
-  processGetStatic(GetStatic node) {
+  visitGetStatic(GetStatic node) {
     if (isImmutable(node.element)) {
       vector = [GvnCode.GET_STATIC, node.element];
     } else {
       vector = [GvnCode.GET_STATIC, node.element, effectNumbers.staticField];
     }
+    // Suppress visit to witness argument.
   }
 
   processGetLazyStatic(GetLazyStatic node) {

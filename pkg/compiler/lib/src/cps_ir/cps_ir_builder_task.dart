@@ -1725,7 +1725,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           switch (getterKind) {
             case CompoundGetter.FIELD:
               SourceInformation src = sourceInformationBuilder.buildGet(node);
-              return irBuilder.buildStaticFieldGet(getter, src);
+              return buildStaticFieldGet(getter, src);
             case CompoundGetter.GETTER:
               return irBuilder.buildStaticGetterGet(
                   getter, sourceInformationBuilder.buildGet(node));
@@ -1763,7 +1763,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           switch (getterKind) {
             case CompoundGetter.FIELD:
               SourceInformation src = sourceInformationBuilder.buildGet(node);
-              return irBuilder.buildStaticFieldGet(getter, src);
+              return buildStaticFieldGet(getter, src);
             case CompoundGetter.GETTER:
               return irBuilder.buildStaticGetterGet(
                   getter, sourceInformationBuilder.buildGet(node));

@@ -209,9 +209,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new RedundantRefinementEliminator(typeSystem), cpsFunction);
+      applyCpsPass(new EagerlyLoadStatics(), cpsFunction);
       applyCpsPass(new GVN(compiler, typeSystem), cpsFunction);
       applyCpsPass(new UpdateRefinements(typeSystem), cpsFunction);
-      applyCpsPass(new BoundsChecker(typeSystem, compiler.world), cpsFunction); // TODO: where to do bounds checking?
+      applyCpsPass(new BoundsChecker(typeSystem, compiler.world), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new ScalarReplacer(compiler), cpsFunction);
       applyCpsPass(new MutableVariableEliminator(), cpsFunction);

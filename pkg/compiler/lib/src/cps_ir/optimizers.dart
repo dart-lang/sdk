@@ -19,6 +19,7 @@ export 'redundant_refinement.dart' show RedundantRefinementEliminator;
 export 'optimize_interceptors.dart' show OptimizeInterceptors;
 export 'bounds_checker.dart' show BoundsChecker;
 export 'gvn.dart' show GVN;
+export 'eagerly_load_statics.dart' show EagerlyLoadStatics;
 export 'parent_visitor.dart' show ParentVisitor;
 
 /// An optimization pass over the CPS IR.

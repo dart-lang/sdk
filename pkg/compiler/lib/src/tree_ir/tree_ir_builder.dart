@@ -664,9 +664,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   };
 
   Expression visitGetLazyStatic(cps_ir.GetLazyStatic node) {
-    // In the tree IR, GetStatic handles lazy fields because we do not need
-    // as fine-grained control over side effects.
-    return new GetStatic(node.element, node.sourceInformation);
+    return new GetStatic.lazy(node.element, node.sourceInformation);
   }
 
   @override

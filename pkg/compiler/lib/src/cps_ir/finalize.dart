@@ -72,4 +72,10 @@ class Finalize extends TrampolineRecursiveVisitor implements Pass {
     node..replaceUsesWith(node.object.definition)..destroy();
     return cps;
   }
+
+  void visitGetStatic(GetStatic node) {
+    if (node.witness != null) {
+      node..witness.unlink()..witness = null;
+    }
+  }
 }
