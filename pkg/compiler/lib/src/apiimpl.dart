@@ -126,8 +126,8 @@ class CompilerImpl extends Compiler {
                 fatalWarnings: hasOption(options, Flags.fatalWarnings),
                 suppressHints: hasOption(options, Flags.suppressHints),
                 terseDiagnostics: hasOption(options, Flags.terse),
-                showPackageWarnings:
-                    hasOption(options, Flags.showPackageWarnings)),
+                shownPackageWarnings: extractOptionalCsvOption(
+                      options, Flags.showPackageWarnings)),
             enableExperimentalMirrors:
                 hasOption(options, Flags.enableExperimentalMirrors),
             enableAssertMessage:
@@ -189,6 +189,23 @@ class CompilerImpl extends Compiler {
       }
     }
     return const <String>[];
+  }
+
+  /// Extract list of comma separated values provided for [flag]. Returns an
+  /// empty list if [option] contain [flag] without arguments. Returns `null` if
+  /// [option] doesn't contain [flag] with or without arguments.
+  static List<String> extractOptionalCsvOption(
+      List<String> options, String flag) {
+    String prefix = '$flag=';
+    for (String option in options) {
+      if (option == flag) {
+        return const <String>[];
+      }
+      if (option.startsWith(flag)) {
+        return option.substring(prefix.length).split(',');
+      }
+    }
+    return null;
   }
 
   static Uri resolvePlatformConfig(Uri libraryRoot,

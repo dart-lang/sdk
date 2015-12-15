@@ -351,7 +351,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.dumpInfo, setDumpInfo),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
-    new OptionHandler(Flags.showPackageWarnings, passThrough),
+    new OptionHandler(Option.showPackageWarnings, passThrough),
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),

@@ -1694,7 +1694,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   void reportDiagnosticInternal(DiagnosticMessage message,
                                 List<DiagnosticMessage> infos,
                                 api.Diagnostic kind) {
-    if (!options.showPackageWarnings &&
+    if (!options.showAllPackageWarnings &&
         message.spannable != NO_LOCATION_SPANNABLE) {
       switch (kind) {
       case api.Diagnostic.WARNING:
@@ -1702,6 +1702,10 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
         Element element = elementFromSpannable(message.spannable);
         if (!compiler.inUserCode(element, assumeInUserCode: true)) {
           Uri uri = compiler.getCanonicalUri(element);
+          if (options.showPackageWarningsFor(uri)) {
+            reportDiagnostic(message, infos, kind);
+            return;
+          }
           SuppressionInfo info =
               suppressedWarnings.putIfAbsent(uri, () => new SuppressionInfo());
           if (kind == api.Diagnostic.WARNING) {
@@ -1962,7 +1966,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   }
 
   void reportSuppressedMessagesSummary() {
-    if (!options.showPackageWarnings && !options.suppressWarnings) {
+    if (!options.showAllPackageWarnings && !options.suppressWarnings) {
       suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
         MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
         if (info.warnings == 0) {
