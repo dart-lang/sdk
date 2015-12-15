@@ -123,20 +123,20 @@ class PrelinkedLibrary {
  */
 class PrelinkedReference {
   /**
-   * Index into [UnlinkedLibrary.dependencies] indicating which imported library
+   * Index into [PrelinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
    */
   int dependency;
 
   /**
    * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
-   * the kind if [PrelinkedReferenceKind.classOrEnum].
+   * the kind is [PrelinkedReferenceKind.classOrEnum].
    */
   PrelinkedReferenceKind kind;
 
   /**
    * Integer index indicating which unit in the imported library contains the
-   * definition of the entity.  As with indices into [UnlinkedLibrary.units],
+   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
@@ -201,7 +201,7 @@ class UnlinkedClass {
   UnlinkedTypeRef supertype;
 
   /**
-   * Mixins appering in a `with` clause, if any.
+   * Mixins appearing in a `with` clause, if any.
    */
   List<UnlinkedTypeRef> mixins;
 
