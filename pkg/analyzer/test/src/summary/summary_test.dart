@@ -59,7 +59,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
       assertNoErrors(source);
     }
     serializeLibraryElement(library);
-    expect(unlinked.imports.length, lib.importDependencies.length);
+    expect(definingUnit.unlinked.imports.length, lib.importDependencies.length);
     expect(unlinked.references.length, lib.references.length);
   }
 
@@ -96,6 +96,11 @@ abstract class SummaryTest {
    * that summaries need, so that this flag is no longer needed.
    */
   bool get checkAstDerivedData;
+
+  /**
+   * Get access to the prelinked defining compilation unit.
+   */
+  PrelinkedUnit get definingUnit => lib.units[0];
 
   /**
    * Get access to the "unlinked" section of the summary.
@@ -261,17 +266,20 @@ abstract class SummaryTest {
     // dependency tracking.
     serializeLibraryText('import "foo.dart";', allowErrors: true);
     // Second import is the implicit import of dart:core
-    expect(unlinked.imports, hasLength(2));
+    expect(definingUnit.unlinked.imports, hasLength(2));
     checkDependency(lib.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
   }
 
   /**
    * Find the class with the given [className] in the summary, and return its
-   * [UnlinkedClass] data structure.
+   * [UnlinkedClass] data structure.  If [unit] is not given, the class is
+   * looked for in the defining compilation unit.
    */
-  UnlinkedClass findClass(String className, {bool failIfAbsent: false}) {
+  UnlinkedClass findClass(String className,
+      {bool failIfAbsent: false, PrelinkedUnit unit}) {
+    unit ??= definingUnit;
     UnlinkedClass result;
-    for (UnlinkedClass cls in unlinked.classes) {
+    for (UnlinkedClass cls in unit.unlinked.classes) {
       if (cls.name == className) {
         if (result != null) {
           fail('Duplicate class $className');
@@ -287,11 +295,14 @@ abstract class SummaryTest {
 
   /**
    * Find the enum with the given [enumName] in the summary, and return its
-   * [UnlinkedEnum] data structure.
+   * [UnlinkedEnum] data structure.  If [unit] is not given, the enum is looked
+   * for in the defining compilation unit.
    */
-  UnlinkedEnum findEnum(String enumName, {bool failIfAbsent: false}) {
+  UnlinkedEnum findEnum(String enumName,
+      {bool failIfAbsent: false, PrelinkedUnit unit}) {
+    unit ??= definingUnit;
     UnlinkedEnum result;
-    for (UnlinkedEnum e in unlinked.enums) {
+    for (UnlinkedEnum e in unit.unlinked.enums) {
       if (e.name == enumName) {
         if (result != null) {
           fail('Duplicate enum $enumName');
@@ -307,16 +318,13 @@ abstract class SummaryTest {
 
   /**
    * Find the executable with the given [executableName] in the summary, and
-   * return its [UnlinkedExecutable] data structure.
+   * return its [UnlinkedExecutable] data structure.  If [executables] is not
+   * given, then the executable is searched for in the defining compilation
+   * unit.
    */
   UnlinkedExecutable findExecutable(String executableName,
-      {UnlinkedClass cls, bool failIfAbsent: false}) {
-    List<UnlinkedExecutable> executables;
-    if (cls == null) {
-      executables = unlinked.executables;
-    } else {
-      executables = cls.executables;
-    }
+      {List<UnlinkedExecutable> executables, bool failIfAbsent: false}) {
+    executables ??= definingUnit.unlinked.executables;
     UnlinkedExecutable result;
     for (UnlinkedExecutable executable in executables) {
       if (executable.name == executableName) {
@@ -334,11 +342,14 @@ abstract class SummaryTest {
 
   /**
    * Find the typedef with the given [typedefName] in the summary, and return
-   * its [UnlinkedTypedef] data structure.
+   * its [UnlinkedTypedef] data structure.  If [unit] is not given, the typedef
+   * is looked for in the defining compilation unit.
    */
-  UnlinkedTypedef findTypedef(String typedefName, {bool failIfAbsent: false}) {
+  UnlinkedTypedef findTypedef(String typedefName,
+      {bool failIfAbsent: false, PrelinkedUnit unit}) {
+    unit ??= definingUnit;
     UnlinkedTypedef result;
-    for (UnlinkedTypedef type in unlinked.typedefs) {
+    for (UnlinkedTypedef type in unit.unlinked.typedefs) {
       if (type.name == typedefName) {
         if (result != null) {
           fail('Duplicate typedef $typedefName');
@@ -354,16 +365,12 @@ abstract class SummaryTest {
 
   /**
    * Find the top level variable with the given [variableName] in the summary,
-   * and return its [UnlinkedVariable] data structure.
+   * and return its [UnlinkedVariable] data structure.  If [variables] is not
+   * specified, the variable is looked for in the defining compilation unit.
    */
   UnlinkedVariable findVariable(String variableName,
-      {UnlinkedClass cls, bool failIfAbsent: false}) {
-    List<UnlinkedVariable> variables;
-    if (cls == null) {
-      variables = unlinked.variables;
-    } else {
-      variables = cls.fields;
-    }
+      {List<UnlinkedVariable> variables, bool failIfAbsent: false}) {
+    variables ??= definingUnit.unlinked.variables;
     UnlinkedVariable result;
     for (UnlinkedVariable variable in variables) {
       if (variable.name == variableName) {
@@ -421,7 +428,8 @@ abstract class SummaryTest {
       [String executableName = 'f']) {
     serializeLibraryText('class C { $text }');
     return findExecutable(executableName,
-        cls: findClass('C', failIfAbsent: true), failIfAbsent: true);
+        executables: findClass('C', failIfAbsent: true).executables,
+        failIfAbsent: true);
   }
 
   /**
@@ -687,7 +695,6 @@ class E {}
     var classText = 'class C {}';
     UnlinkedClass cls = serializeClassText(classText);
     expect(cls.name, 'C');
-    expect(cls.unit, 0);
   }
 
   test_class_no_flags() {
@@ -756,68 +763,76 @@ class E {}
   }
 
   test_constructor() {
-    UnlinkedExecutable executable =
-        findExecutable('', cls: serializeClassText('class C { C(); }'));
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText('class C { C(); }').executables);
     expect(executable.kind, UnlinkedExecutableKind.constructor);
     expect(executable.hasImplicitReturnType, isFalse);
   }
 
   test_constructor_anonymous() {
-    UnlinkedExecutable executable =
-        findExecutable('', cls: serializeClassText('class C { C(); }'));
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText('class C { C(); }').executables);
     expect(executable.name, isEmpty);
   }
 
   test_constructor_const() {
-    UnlinkedExecutable executable =
-        findExecutable('', cls: serializeClassText('class C { const C(); }'));
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText('class C { const C(); }').executables);
     expect(executable.isConst, isTrue);
   }
 
   test_constructor_factory() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { factory C() => null; }'));
+        executables:
+            serializeClassText('class C { factory C() => null; }').executables);
     expect(executable.isFactory, isTrue);
   }
 
   test_constructor_implicit() {
     // Implicit constructors are not serialized.
     UnlinkedExecutable executable = findExecutable(null,
-        cls: serializeClassText('class C { C(); }'), failIfAbsent: false);
+        executables: serializeClassText('class C { C(); }').executables,
+        failIfAbsent: false);
     expect(executable, isNull);
   }
 
   test_constructor_initializing_formal() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x); final x; }'));
+        executables:
+            serializeClassText('class C { C(this.x); final x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.isInitializingFormal, isTrue);
   }
 
   test_constructor_initializing_formal_explicit_type() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(int this.x); final x; }'));
+        executables: serializeClassText('class C { C(int this.x); final x; }')
+            .executables);
     UnlinkedParam parameter = executable.parameters[0];
     checkTypeRef(parameter.type, 'dart:core', 'dart:core', 'int');
   }
 
   test_constructor_initializing_formal_function_typed() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x()); final x; }'));
+        executables: serializeClassText('class C { C(this.x()); final x; }')
+            .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.isFunctionTyped, isTrue);
   }
 
   test_constructor_initializing_formal_function_typed_explicit_return_type() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(int this.x()); Function x; }'));
+        executables:
+            serializeClassText('class C { C(int this.x()); Function x; }')
+                .executables);
     UnlinkedParam parameter = executable.parameters[0];
     checkTypeRef(parameter.type, 'dart:core', 'dart:core', 'int');
   }
 
   test_constructor_initializing_formal_function_typed_implicit_return_type() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x()); Function x; }'));
+        executables: serializeClassText('class C { C(this.x()); Function x; }')
+            .executables);
     UnlinkedParam parameter = executable.parameters[0];
     // Since the parameter is function-typed it is considered to have an
     // explicit type, even though that explicit type itself has an implicit
@@ -828,21 +843,24 @@ class E {}
 
   test_constructor_initializing_formal_function_typed_no_prameters() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x()); final x; }'));
+        executables: serializeClassText('class C { C(this.x()); final x; }')
+            .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.parameters, isEmpty);
   }
 
   test_constructor_initializing_formal_function_typed_prameter() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x(a)); final x; }'));
+        executables: serializeClassText('class C { C(this.x(a)); final x; }')
+            .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.parameters, hasLength(1));
   }
 
   test_constructor_initializing_formal_function_typed_prameter_order() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x(a, b)); final x; }'));
+        executables: serializeClassText('class C { C(this.x(a, b)); final x; }')
+            .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.parameters, hasLength(2));
     expect(parameter.parameters[0].name, 'a');
@@ -853,7 +871,8 @@ class E {}
     // Note: the implicit type of an initializing formal is the type of the
     // field.
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x); int x; }'));
+        executables:
+            serializeClassText('class C { C(this.x); int x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
     checkTypeRef(parameter.type, 'dart:core', 'dart:core', 'int');
     expect(parameter.hasImplicitType, isTrue);
@@ -861,7 +880,8 @@ class E {}
 
   test_constructor_initializing_formal_name() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x); final x; }'));
+        executables:
+            serializeClassText('class C { C(this.x); final x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.name, 'x');
   }
@@ -869,14 +889,16 @@ class E {}
   test_constructor_initializing_formal_named() {
     // TODO(paulberry): also test default value
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C({this.x}); final x; }'));
+        executables: serializeClassText('class C { C({this.x}); final x; }')
+            .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.named);
   }
 
   test_constructor_initializing_formal_non_function_typed() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x); final x; }'));
+        executables:
+            serializeClassText('class C { C(this.x); final x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.isFunctionTyped, isFalse);
   }
@@ -884,45 +906,47 @@ class E {}
   test_constructor_initializing_formal_positional() {
     // TODO(paulberry): also test default value
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C([this.x]); final x; }'));
+        executables: serializeClassText('class C { C([this.x]); final x; }')
+            .executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.positional);
   }
 
   test_constructor_initializing_formal_required() {
     UnlinkedExecutable executable = findExecutable('',
-        cls: serializeClassText('class C { C(this.x); final x; }'));
+        executables:
+            serializeClassText('class C { C(this.x); final x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.required);
   }
 
   test_constructor_named() {
-    UnlinkedExecutable executable =
-        findExecutable('foo', cls: serializeClassText('class C { C.foo(); }'));
+    UnlinkedExecutable executable = findExecutable('foo',
+        executables: serializeClassText('class C { C.foo(); }').executables);
     expect(executable.name, 'foo');
   }
 
   test_constructor_non_const() {
-    UnlinkedExecutable executable =
-        findExecutable('', cls: serializeClassText('class C { C(); }'));
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText('class C { C(); }').executables);
     expect(executable.isConst, isFalse);
   }
 
   test_constructor_non_factory() {
-    UnlinkedExecutable executable =
-        findExecutable('', cls: serializeClassText('class C { C(); }'));
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText('class C { C(); }').executables);
     expect(executable.isFactory, isFalse);
   }
 
   test_constructor_return_type() {
-    UnlinkedExecutable executable =
-        findExecutable('', cls: serializeClassText('class C { C(); }'));
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText('class C { C(); }').executables);
     checkTypeRef(executable.returnType, null, null, 'C');
   }
 
   test_constructor_return_type_parameterized() {
-    UnlinkedExecutable executable =
-        findExecutable('', cls: serializeClassText('class C<T, U> { C(); }'));
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText('class C<T, U> { C(); }').executables);
     checkTypeRef(executable.returnType, null, null, 'C',
         allowTypeParameters: true);
     expect(executable.returnType.typeArguments, hasLength(2));
@@ -1032,11 +1056,13 @@ f() {}
 typedef F();
 ''');
     serializeLibraryText('library my.lib; part "part1.dart";');
-    expect(findClass('C', failIfAbsent: true).unit, 1);
-    expect(findEnum('E', failIfAbsent: true).unit, 1);
-    expect(findVariable('v', failIfAbsent: true).unit, 1);
-    expect(findExecutable('f', failIfAbsent: true).unit, 1);
-    expect(findTypedef('F', failIfAbsent: true).unit, 1);
+    PrelinkedUnit unit = lib.units[1];
+    expect(findClass('C', unit: unit), isNotNull);
+    expect(findEnum('E', unit: unit), isNotNull);
+    expect(findVariable('v', variables: unit.unlinked.variables), isNotNull);
+    expect(
+        findExecutable('f', executables: unit.unlinked.executables), isNotNull);
+    expect(findTypedef('F', unit: unit), isNotNull);
   }
 
   test_enum() {
@@ -1044,7 +1070,6 @@ typedef F();
     expect(e.name, 'E');
     expect(e.values, hasLength(1));
     expect(e.values[0].name, 'v1');
-    expect(e.unit, 0);
   }
 
   test_enum_order() {
@@ -1069,7 +1094,6 @@ typedef F();
   test_executable_function() {
     UnlinkedExecutable executable = serializeExecutableText('f() {}');
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
-    expect(executable.unit, 0);
     expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
   }
@@ -1103,43 +1127,44 @@ typedef F();
   }
 
   test_executable_member_function() {
-    UnlinkedExecutable executable =
-        findExecutable('f', cls: serializeClassText('class C { f() {} }'));
+    UnlinkedExecutable executable = findExecutable('f',
+        executables: serializeClassText('class C { f() {} }').executables);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.hasImplicitReturnType, isTrue);
   }
 
   test_executable_member_function_explicit_return() {
     UnlinkedExecutable executable = findExecutable('f',
-        cls: serializeClassText('class C { dynamic f() => null; }'));
+        executables:
+            serializeClassText('class C { dynamic f() => null; }').executables);
     expect(executable.hasImplicitReturnType, isFalse);
   }
 
   test_executable_member_getter() {
     UnlinkedClass cls = serializeClassText('class C { int get f => 1; }');
     UnlinkedExecutable executable =
-        findExecutable('f', cls: cls, failIfAbsent: true);
+        findExecutable('f', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.getter);
     expect(executable.hasImplicitReturnType, isFalse);
-    expect(findVariable('f', cls: cls), isNull);
-    expect(findExecutable('f=', cls: cls), isNull);
+    expect(findVariable('f', variables: cls.fields), isNull);
+    expect(findExecutable('f=', executables: cls.executables), isNull);
   }
 
   test_executable_member_setter() {
     UnlinkedClass cls = serializeClassText('class C { void set f(value) {} }');
     UnlinkedExecutable executable =
-        findExecutable('f=', cls: cls, failIfAbsent: true);
+        findExecutable('f=', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.setter);
     // For setters, hasImplicitReturnType is always false.
     expect(executable.hasImplicitReturnType, isFalse);
-    expect(findVariable('f', cls: cls), isNull);
-    expect(findExecutable('f', cls: cls), isNull);
+    expect(findVariable('f', variables: cls.fields), isNull);
+    expect(findExecutable('f', executables: cls.executables), isNull);
   }
 
   test_executable_member_setter_implicit_return() {
     UnlinkedClass cls = serializeClassText('class C { set f(value) {} }');
     UnlinkedExecutable executable =
-        findExecutable('f=', cls: cls, failIfAbsent: true);
+        findExecutable('f=', executables: cls.executables, failIfAbsent: true);
     expect(executable.hasImplicitReturnType, isFalse);
     checkDynamicTypeRef(executable.returnType);
   }
@@ -1353,28 +1378,32 @@ typedef F();
 
   test_export_hide_order() {
     serializeLibraryText('export "dart:async" hide Future, Stream;');
-    expect(unlinked.exports, hasLength(1));
-    expect(unlinked.exports[0].combinators, hasLength(1));
-    expect(unlinked.exports[0].combinators[0].shows, isEmpty);
-    expect(unlinked.exports[0].combinators[0].hides, hasLength(2));
-    checkCombinatorName(unlinked.exports[0].combinators[0].hides[0], 'Future');
-    checkCombinatorName(unlinked.exports[0].combinators[0].hides[1], 'Stream');
+    expect(definingUnit.unlinked.exports, hasLength(1));
+    expect(definingUnit.unlinked.exports[0].combinators, hasLength(1));
+    expect(definingUnit.unlinked.exports[0].combinators[0].shows, isEmpty);
+    expect(definingUnit.unlinked.exports[0].combinators[0].hides, hasLength(2));
+    checkCombinatorName(
+        definingUnit.unlinked.exports[0].combinators[0].hides[0], 'Future');
+    checkCombinatorName(
+        definingUnit.unlinked.exports[0].combinators[0].hides[1], 'Stream');
   }
 
   test_export_no_combinators() {
     serializeLibraryText('export "dart:async";');
-    expect(unlinked.exports, hasLength(1));
-    expect(unlinked.exports[0].combinators, isEmpty);
+    expect(definingUnit.unlinked.exports, hasLength(1));
+    expect(definingUnit.unlinked.exports[0].combinators, isEmpty);
   }
 
   test_export_show_order() {
     serializeLibraryText('export "dart:async" show Future, Stream;');
-    expect(unlinked.exports, hasLength(1));
-    expect(unlinked.exports[0].combinators, hasLength(1));
-    expect(unlinked.exports[0].combinators[0].shows, hasLength(2));
-    expect(unlinked.exports[0].combinators[0].hides, isEmpty);
-    checkCombinatorName(unlinked.exports[0].combinators[0].shows[0], 'Future');
-    checkCombinatorName(unlinked.exports[0].combinators[0].shows[1], 'Stream');
+    expect(definingUnit.unlinked.exports, hasLength(1));
+    expect(definingUnit.unlinked.exports[0].combinators, hasLength(1));
+    expect(definingUnit.unlinked.exports[0].combinators[0].shows, hasLength(2));
+    expect(definingUnit.unlinked.exports[0].combinators[0].hides, isEmpty);
+    checkCombinatorName(
+        definingUnit.unlinked.exports[0].combinators[0].shows[0], 'Future');
+    checkCombinatorName(
+        definingUnit.unlinked.exports[0].combinators[0].shows[1], 'Stream');
   }
 
   test_export_uri() {
@@ -1382,15 +1411,15 @@ typedef F();
     String uriString = '"a.dart"';
     String libraryText = 'export $uriString;';
     serializeLibraryText(libraryText);
-    expect(unlinked.exports, hasLength(1));
-    expect(unlinked.exports[0].uri, 'a.dart');
+    expect(definingUnit.unlinked.exports, hasLength(1));
+    expect(definingUnit.unlinked.exports[0].uri, 'a.dart');
   }
 
   test_field() {
     UnlinkedClass cls = serializeClassText('class C { int i; }');
-    expect(findVariable('i', cls: cls), isNotNull);
-    expect(findExecutable('i', cls: cls), isNull);
-    expect(findExecutable('i=', cls: cls), isNull);
+    expect(findVariable('i', variables: cls.fields), isNotNull);
+    expect(findExecutable('i', executables: cls.executables), isNull);
+    expect(findExecutable('i=', executables: cls.executables), isNull);
   }
 
   test_field_final() {
@@ -1418,62 +1447,64 @@ typedef F();
   test_import_deferred() {
     serializeLibraryText(
         'import "dart:async" deferred as a; main() { print(a.Future); }');
-    expect(unlinked.imports[0].isDeferred, isTrue);
+    expect(definingUnit.unlinked.imports[0].isDeferred, isTrue);
   }
 
   test_import_dependency() {
     serializeLibraryText('import "dart:async"; Future x;');
     // Second import is the implicit import of dart:core
-    expect(unlinked.imports, hasLength(2));
+    expect(definingUnit.unlinked.imports, hasLength(2));
     checkDependency(lib.importDependencies[0], 'dart:async', 'dart:async');
   }
 
   test_import_explicit() {
     serializeLibraryText('import "dart:core"; int i;');
-    expect(unlinked.imports, hasLength(1));
-    expect(unlinked.imports[0].isImplicit, isFalse);
+    expect(definingUnit.unlinked.imports, hasLength(1));
+    expect(definingUnit.unlinked.imports[0].isImplicit, isFalse);
   }
 
   test_import_hide_order() {
     serializeLibraryText(
         'import "dart:async" hide Future, Stream; Completer c;');
     // Second import is the implicit import of dart:core
-    expect(unlinked.imports, hasLength(2));
-    expect(unlinked.imports[0].combinators, hasLength(1));
-    expect(unlinked.imports[0].combinators[0].shows, isEmpty);
-    expect(unlinked.imports[0].combinators[0].hides, hasLength(2));
-    checkCombinatorName(unlinked.imports[0].combinators[0].hides[0], 'Future');
-    checkCombinatorName(unlinked.imports[0].combinators[0].hides[1], 'Stream');
+    expect(definingUnit.unlinked.imports, hasLength(2));
+    expect(definingUnit.unlinked.imports[0].combinators, hasLength(1));
+    expect(definingUnit.unlinked.imports[0].combinators[0].shows, isEmpty);
+    expect(definingUnit.unlinked.imports[0].combinators[0].hides, hasLength(2));
+    checkCombinatorName(
+        definingUnit.unlinked.imports[0].combinators[0].hides[0], 'Future');
+    checkCombinatorName(
+        definingUnit.unlinked.imports[0].combinators[0].hides[1], 'Stream');
   }
 
   test_import_implicit() {
     // The implicit import of dart:core is represented in the model.
     serializeLibraryText('');
-    expect(unlinked.imports, hasLength(1));
+    expect(definingUnit.unlinked.imports, hasLength(1));
     checkDependency(lib.importDependencies[0], 'dart:core', 'dart:core');
-    expect(unlinked.imports[0].uri, isEmpty);
-    expect(unlinked.imports[0].prefix, 0);
-    expect(unlinked.imports[0].combinators, isEmpty);
-    expect(unlinked.imports[0].isImplicit, isTrue);
+    expect(definingUnit.unlinked.imports[0].uri, isEmpty);
+    expect(definingUnit.unlinked.imports[0].prefix, 0);
+    expect(definingUnit.unlinked.imports[0].combinators, isEmpty);
+    expect(definingUnit.unlinked.imports[0].isImplicit, isTrue);
   }
 
   test_import_no_combinators() {
     serializeLibraryText('import "dart:async"; Future x;');
     // Second import is the implicit import of dart:core
-    expect(unlinked.imports, hasLength(2));
-    expect(unlinked.imports[0].combinators, isEmpty);
+    expect(definingUnit.unlinked.imports, hasLength(2));
+    expect(definingUnit.unlinked.imports[0].combinators, isEmpty);
   }
 
   test_import_no_flags() {
     serializeLibraryText('import "dart:async"; Future x;');
-    expect(unlinked.imports[0].isImplicit, isFalse);
-    expect(unlinked.imports[0].isDeferred, isFalse);
+    expect(definingUnit.unlinked.imports[0].isImplicit, isFalse);
+    expect(definingUnit.unlinked.imports[0].isDeferred, isFalse);
   }
 
   test_import_non_deferred() {
     serializeLibraryText(
         'import "dart:async" as a; main() { print(a.Future); }');
-    expect(unlinked.imports[0].isDeferred, isFalse);
+    expect(definingUnit.unlinked.imports[0].isDeferred, isFalse);
   }
 
   test_import_of_file_with_missing_part() {
@@ -1495,24 +1526,27 @@ typedef F();
   test_import_offset() {
     String libraryText = '    import "dart:async"; Future x;';
     serializeLibraryText(libraryText);
-    expect(unlinked.imports[0].offset, libraryText.indexOf('import'));
+    expect(
+        definingUnit.unlinked.imports[0].offset, libraryText.indexOf('import'));
   }
 
   test_import_prefix_name() {
     String libraryText = 'import "dart:async" as a; a.Future x;';
     serializeLibraryText(libraryText);
     // Second import is the implicit import of dart:core
-    expect(unlinked.imports, hasLength(2));
-    expect(unlinked.imports[0].prefix, isNot(0));
-    expect(unlinked.prefixes[unlinked.imports[0].prefix].name, 'a');
+    expect(definingUnit.unlinked.imports, hasLength(2));
+    expect(definingUnit.unlinked.imports[0].prefix, isNot(0));
+    expect(
+        unlinked.prefixes[definingUnit.unlinked.imports[0].prefix].name, 'a');
   }
 
   test_import_prefix_none() {
     serializeLibraryText('import "dart:async"; Future x;');
     // Second import is the implicit import of dart:core
-    expect(unlinked.imports, hasLength(2));
-    expect(unlinked.imports[0].prefix, 0);
-    expect(unlinked.prefixes[unlinked.imports[0].prefix].name, isEmpty);
+    expect(definingUnit.unlinked.imports, hasLength(2));
+    expect(definingUnit.unlinked.imports[0].prefix, 0);
+    expect(unlinked.prefixes[definingUnit.unlinked.imports[0].prefix].name,
+        isEmpty);
   }
 
   test_import_prefix_reference() {
@@ -1559,12 +1593,14 @@ a.Stream s;
         'import "dart:async" show Future, Stream; Future x; Stream y;';
     serializeLibraryText(libraryText);
     // Second import is the implicit import of dart:core
-    expect(unlinked.imports, hasLength(2));
-    expect(unlinked.imports[0].combinators, hasLength(1));
-    expect(unlinked.imports[0].combinators[0].shows, hasLength(2));
-    expect(unlinked.imports[0].combinators[0].hides, isEmpty);
-    checkCombinatorName(unlinked.imports[0].combinators[0].shows[0], 'Future');
-    checkCombinatorName(unlinked.imports[0].combinators[0].shows[1], 'Stream');
+    expect(definingUnit.unlinked.imports, hasLength(2));
+    expect(definingUnit.unlinked.imports[0].combinators, hasLength(1));
+    expect(definingUnit.unlinked.imports[0].combinators[0].shows, hasLength(2));
+    expect(definingUnit.unlinked.imports[0].combinators[0].hides, isEmpty);
+    checkCombinatorName(
+        definingUnit.unlinked.imports[0].combinators[0].shows[0], 'Future');
+    checkCombinatorName(
+        definingUnit.unlinked.imports[0].combinators[0].shows[1], 'Stream');
   }
 
   test_import_uri() {
@@ -1572,42 +1608,25 @@ a.Stream s;
     String libraryText = 'import $uriString; Future x;';
     serializeLibraryText(libraryText);
     // Second import is the implicit import of dart:core
-    expect(unlinked.imports, hasLength(2));
-    expect(unlinked.imports[0].uri, 'dart:async');
+    expect(definingUnit.unlinked.imports, hasLength(2));
+    expect(definingUnit.unlinked.imports[0].uri, 'dart:async');
   }
 
   test_library_named() {
     String text = 'library foo.bar;';
     serializeLibraryText(text);
-    expect(unlinked.name, 'foo.bar');
+    expect(definingUnit.unlinked.libraryName, 'foo.bar');
   }
 
   test_library_unnamed() {
     serializeLibraryText('');
-    expect(unlinked.name, isEmpty);
-  }
-
-  test_nested_elements_have_no_part() {
-    addNamedSource(
-        '/part1.dart',
-        '''
-part of my.lib;
-
-class C {
-  var v;
-  f() {}
-}
-''');
-    serializeLibraryText('library my.lib; part "part1.dart";');
-    UnlinkedClass cls = findClass('C');
-    expect(findVariable('v', cls: cls).unit, 0);
-    expect(findExecutable('f', cls: cls).unit, 0);
+    expect(definingUnit.unlinked.libraryName, isEmpty);
   }
 
   test_parts_defining_compilation_unit() {
     serializeLibraryText('');
-    expect(unlinked.units, hasLength(1));
-    expect(unlinked.units[0].uri, isEmpty);
+    expect(lib.units, hasLength(1));
+    expect(definingUnit.unlinked.parts, isEmpty);
   }
 
   test_parts_included() {
@@ -1615,8 +1634,9 @@ class C {
     String partString = '"part1.dart"';
     String libraryText = 'library my.lib; part $partString;';
     serializeLibraryText(libraryText);
-    expect(unlinked.units, hasLength(2));
-    expect(unlinked.units[1].uri, 'part1.dart');
+    expect(lib.units, hasLength(2));
+    expect(definingUnit.unlinked.parts, hasLength(1));
+    expect(definingUnit.unlinked.parts[0].uri, 'part1.dart');
   }
 
   test_type_arguments_explicit() {
@@ -1686,12 +1706,12 @@ class C {
     UnlinkedClass cls = serializeClassText('class C<T, U> { T t; U u; }');
     {
       UnlinkedTypeRef typeRef =
-          findVariable('t', cls: cls, failIfAbsent: true).type;
+          findVariable('t', variables: cls.fields, failIfAbsent: true).type;
       checkParamTypeRef(typeRef, 2);
     }
     {
       UnlinkedTypeRef typeRef =
-          findVariable('u', cls: cls, failIfAbsent: true).type;
+          findVariable('u', variables: cls.fields, failIfAbsent: true).type;
       checkParamTypeRef(typeRef, 1);
     }
   }
@@ -1801,7 +1821,6 @@ class C {
   test_typedef_name() {
     UnlinkedTypedef type = serializeTypedefText('typedef F();');
     expect(type.name, 'F');
-    expect(type.unit, 0);
   }
 
   test_typedef_param_none() {
@@ -1877,7 +1896,6 @@ class C {
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
     expect(variable.name, 'i');
-    expect(variable.unit, 0);
   }
 
   test_variable_no_flags() {

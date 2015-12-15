@@ -79,6 +79,14 @@ class PrelinkedDependency {
 @topLevel
 class PrelinkedLibrary {
   /**
+   * The pre-linked summary of all the compilation units constituting the
+   * library.  The summary of the defining compilation unit is listed first,
+   * followed by the summary of each part, in the order of the `part`
+   * declarations in the defining compilation unit.
+   */
+  List<PrelinkedUnit> units;
+
+  /**
    * The unlinked library summary.
    */
   UnlinkedLibrary unlinked;
@@ -162,6 +170,16 @@ enum PrelinkedReferenceKind {
 }
 
 /**
+ * Pre-linked summary of a compilation unit.
+ */
+class PrelinkedUnit {
+  /**
+   * The unlinked summary of the compilation unit
+   */
+  UnlinkedUnit unlinked;
+}
+
+/**
  * Unlinked summary information about a class declaration.
  */
 class UnlinkedClass {
@@ -169,13 +187,6 @@ class UnlinkedClass {
    * Name of the class.
    */
   String name;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * class is declared in.
-   */
-  @informative
-  int unit;
 
   /**
    * Type parameters of the class, if any.
@@ -260,13 +271,6 @@ class UnlinkedEnum {
    * Values listed in the enum declaration, in declaration order.
    */
   List<UnlinkedEnumValue> values;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * enum is declared in.
-   */
-  @informative
-  int unit;
 }
 
 /**
@@ -291,14 +295,6 @@ class UnlinkedExecutable {
    * For unnamed constructors, this is the empty string.
    */
   String name;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * executable is declared in.  Zero for executables which are nested inside
-   * another declaration (i.e. local functions and method declarations).
-   */
-  @informative
-  int unit;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -447,54 +443,6 @@ class UnlinkedLibrary {
   List<UnlinkedReference> references;
 
   /**
-   * Information about the units constituting this library.  The first unit
-   * listed is always the defining compilation unit.  The remaining units are
-   * listed in the order of their corresponding `part` declarations.
-   */
-  List<UnlinkedUnit> units;
-
-  /**
-   * Name of the library (from a "library" declaration, if present).
-   */
-  String name;
-
-  /**
-   * Classes declared in the library.
-   */
-  List<UnlinkedClass> classes;
-
-  /**
-   * Enums declared in the library.
-   */
-  List<UnlinkedEnum> enums;
-
-  /**
-   * Top level executable objects (functions, getters, and setters) declared in
-   * the library.
-   */
-  List<UnlinkedExecutable> executables;
-
-  /**
-   * Export declarations in the library.
-   */
-  List<UnlinkedExport> exports;
-
-  /**
-   * Import declarations in the library.
-   */
-  List<UnlinkedImport> imports;
-
-  /**
-   * Typedefs declared in the library.
-   */
-  List<UnlinkedTypedef> typedefs;
-
-  /**
-   * Top level variables declared in the library.
-   */
-  List<UnlinkedVariable> variables;
-
-  /**
    * Prefixes introduced by import declarations.  The first element in this
    * array is a pseudo-prefix used by references made with no prefix.
    */
@@ -567,6 +515,16 @@ enum UnlinkedParamKind {
   named
 }
 
+/**
+ * Unlinked summary information about a part declaration.
+ */
+class UnlinkedPart {
+  /**
+   * String used in the compilation unit to refer to the part file.
+   */
+  String uri;
+}
+
 class UnlinkedPrefix {
   /**
    * The name of the prefix, or the empty string in the case of the
@@ -601,13 +559,6 @@ class UnlinkedTypedef {
    * Name of the typedef.
    */
   String name;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * typedef is declared in.
-   */
-  @informative
-  int unit;
 
   /**
    * Type parameters of the typedef, if any.
@@ -694,10 +645,50 @@ class UnlinkedTypeRef {
  */
 class UnlinkedUnit {
   /**
-   * String used in the defining compilation unit to reference the part file.
-   * Empty for the defining compilation unit itself.
+   * Name of the library (from a "library" declaration, if present).
    */
-  String uri;
+  String libraryName;
+
+  /**
+   * Classes declared in the compilation unit.
+   */
+  List<UnlinkedClass> classes;
+
+  /**
+   * Enums declared in the compilation unit.
+   */
+  List<UnlinkedEnum> enums;
+
+  /**
+   * Top level executable objects (functions, getters, and setters) declared in
+   * the compilation unit.
+   */
+  List<UnlinkedExecutable> executables;
+
+  /**
+   * Export declarations in the compilation unit.
+   */
+  List<UnlinkedExport> exports;
+
+  /**
+   * Import declarations in the compilation unit.
+   */
+  List<UnlinkedImport> imports;
+
+  /**
+   * Part declarations in the compilation unit.
+   */
+  List<UnlinkedPart> parts;
+
+  /**
+   * Typedefs declared in the compilation unit.
+   */
+  List<UnlinkedTypedef> typedefs;
+
+  /**
+   * Top level variables declared in the compilation unit.
+   */
+  List<UnlinkedVariable> variables;
 }
 
 /**
@@ -709,14 +700,6 @@ class UnlinkedVariable {
    * Name of the variable.
    */
   String name;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * variable is declared in.  Zero for variables which are nested inside
-   * another declaration (i.e. local variables and fields).
-   */
-  @informative
-  int unit;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the
