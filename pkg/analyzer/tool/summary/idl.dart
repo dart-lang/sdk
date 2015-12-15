@@ -641,7 +641,9 @@ class UnlinkedUnit {
   String libraryName;
 
   /**
-   * Top level and prefixed names referred to by this compilation unit.
+   * Top level and prefixed names referred to by this compilation unit.  The
+   * zeroth element of this array is always populated and always represents a
+   * reference to the pseudo-type "dynamic".
    */
   List<UnlinkedReference> references;
 

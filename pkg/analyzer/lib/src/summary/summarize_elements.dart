@@ -93,13 +93,6 @@ class _LibrarySerializer {
   //final Map<String, int> prefixIndices = <String, int>{};
 
   /**
-   * Index into the "references table" representing `dynamic`, if such an index
-   * exists.  `null` if no such entry has been made in the references table
-   * yet.
-   */
-  int dynamicReferenceIndex = null;
-
-  /**
    * Index into the "references table" representing an unresolved reference, if
    * such an index exists.  `null` if no such entry has been made in the
    * references table yet.
@@ -154,8 +147,12 @@ class _LibrarySerializer {
               (CompilationUnitElement e) => encodeUnlinkedPart(ctx, uri: e.uri))
           .toList();
     }
-    unlinkedReferences = <UnlinkedReferenceBuilder>[];
-    prelinkedReferences = <PrelinkedReferenceBuilder>[];
+    unlinkedReferences = <UnlinkedReferenceBuilder>[
+      encodeUnlinkedReference(ctx)
+    ];
+    prelinkedReferences = <PrelinkedReferenceBuilder>[
+      encodePrelinkedReference(ctx, kind: PrelinkedReferenceKind.classOrEnum)
+    ];
     b.classes = element.types.map(serializeClass).toList();
     b.enums = element.enums.map(serializeEnum).toList();
     b.typedefs = element.functionTypeAliases.map(serializeTypedef).toList();
@@ -310,19 +307,9 @@ class _LibrarySerializer {
   /**
    * Return the index of the entry in the references table
    * ([UnlinkedLibrary.references] and [PrelinkedLibrary.references])
-   * representing the pseudo-type `dynamic`.  A new entry is added to the table
-   * if necessary to satisfy the request.
+   * representing the pseudo-type `dynamic`.
    */
-  int serializeDynamicReference() {
-    if (dynamicReferenceIndex == null) {
-      assert(unlinkedReferences.length == prelinkedReferences.length);
-      dynamicReferenceIndex = unlinkedReferences.length;
-      unlinkedReferences.add(encodeUnlinkedReference(ctx));
-      prelinkedReferences.add(encodePrelinkedReference(ctx,
-          kind: PrelinkedReferenceKind.classOrEnum));
-    }
-    return dynamicReferenceIndex;
-  }
+  int serializeDynamicReference() => 0;
 
   /**
    * Serialize the given [enumElement], creating an [UnlinkedEnum].

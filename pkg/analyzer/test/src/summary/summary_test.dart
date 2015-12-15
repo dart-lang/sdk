@@ -228,6 +228,11 @@ abstract class SummaryTest {
     int index = typeRef.reference;
     UnlinkedReference reference = sourceUnit.unlinked.references[index];
     PrelinkedReference referenceResolution = sourceUnit.references[index];
+    if (index == 0) {
+      // Index 0 is reserved for "dynamic".
+      expect(reference.name, isEmpty);
+      expect(reference.prefix, 0);
+    }
     if (absoluteUri == null) {
       expect(referenceResolution.dependency, 0);
     } else {
