@@ -817,6 +817,16 @@ void Parser::ParseClass(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const int64_t num_tokes_before = STAT_VALUE(thread, num_tokens_consumed);
+  TimelineDurationScope tds(thread,
+                            thread->isolate()->GetCompilerStream(),
+                            "ParseClass");
+  if (tds.enabled()) {
+    tds.SetNumArguments(1);
+    tds.CopyArgument(
+        0,
+        "class",
+        const_cast<char*>(String::Handle(cls.Name()).ToCString()));
+  }
   if (!cls.is_synthesized_class()) {
     ASSERT(thread->long_jump_base()->IsSafeToJump());
     CSTAT_TIMER_SCOPE(thread, parser_timer);
@@ -926,12 +936,21 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   INC_STAT(thread, num_functions_parsed, 1);
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
-
+  TimelineDurationScope tds(thread,
+                            thread->isolate()->GetCompilerStream(),
+                            "ParseFunction");
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Script& script = Script::Handle(zone, func.script());
   Parser parser(script, parsed_function, func.token_pos());
+  if (tds.enabled()) {
+    tds.SetNumArguments(1);
+    tds.CopyArgument(
+        0,
+        "function",
+        const_cast<char*>(String::Handle(func.name()).ToCString()));
+  }
   SequenceNode* node_sequence = NULL;
   switch (func.kind()) {
     case RawFunction::kClosureFunction:

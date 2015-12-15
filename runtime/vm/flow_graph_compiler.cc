@@ -25,6 +25,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -250,6 +251,9 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 
 
 void FlowGraphCompiler::InitCompiler() {
+  TimelineDurationScope tds(thread(),
+                            isolate()->GetCompilerStream(),
+                            "InitCompiler");
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
   exception_handlers_list_ = new(zone())ExceptionHandlerList();
   block_info_.Clear();

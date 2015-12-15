@@ -21,6 +21,12 @@ DECLARE_FLAG(bool, fields_may_be_reset);
 
 
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
+  Thread* thread = flow_graph->thread();
+  Isolate* const isolate = flow_graph->isolate();
+  TimelineStream* compiler_timeline = isolate->GetCompilerStream();
+  TimelineDurationScope tds2(thread,
+                             compiler_timeline,
+                             "FlowGraphTypePropagator");
   FlowGraphTypePropagator propagator(flow_graph);
   propagator.Propagate();
 }
