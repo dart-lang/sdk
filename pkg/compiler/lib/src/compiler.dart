@@ -1250,6 +1250,32 @@ abstract class Compiler {
     _reporter.onCrashInUserCode(message, exception, stackTrace);
   }
 
+  /// Messages for which compile-time errors are reported but compilation
+  /// continues regardless.
+  static const List<MessageKind> BENIGN_ERRORS = const <MessageKind>[
+      MessageKind.INVALID_METADATA,
+      MessageKind.INVALID_METADATA_GENERIC,
+  ];
+
+  bool markCompilationAsFailed(DiagnosticMessage message, api.Diagnostic kind) {
+    if (testMode) {
+      // When in test mode, i.e. on the build-bot, we always stop compilation.
+      return true;
+    }
+    if (reporter.options.fatalWarnings) {
+      return true;
+    }
+    return !BENIGN_ERRORS.contains(message.message.kind);
+  }
+
+  void fatalDiagnosticReported(DiagnosticMessage message,
+                               List<DiagnosticMessage> infos,
+                               api.Diagnostic kind) {
+    if (markCompilationAsFailed(message, kind)) {
+      compilationFailed = true;
+    }
+  }
+
   /**
    * Translates the [resolvedUri] into a readable URI.
    *
@@ -1701,13 +1727,13 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
+    compiler.reportDiagnostic(message, infos, kind);
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings &&
          kind == api.Diagnostic.WARNING)) {
-      compiler.compilationFailed = true;
+      compiler.fatalDiagnosticReported(message, infos, kind);
     }
-    compiler.reportDiagnostic(message, infos, kind);
   }
 
   /**
