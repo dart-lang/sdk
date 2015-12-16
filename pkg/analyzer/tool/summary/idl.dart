@@ -351,6 +351,11 @@ class UnlinkedExecutable {
    * declaration.  False for constructors and setters.
    */
   bool hasImplicitReturnType;
+
+  /**
+   * Indicates whether the executable is declared using the `external` keyword.
+   */
+  bool isExternal;
 }
 
 /**

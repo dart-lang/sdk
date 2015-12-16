@@ -559,6 +559,7 @@ class UnlinkedExecutable {
   bool _isConst;
   bool _isFactory;
   bool _hasImplicitReturnType;
+  bool _isExternal;
 
   UnlinkedExecutable.fromJson(Map json)
     : _name = json["name"],
@@ -570,7 +571,8 @@ class UnlinkedExecutable {
       _isStatic = json["isStatic"],
       _isConst = json["isConst"],
       _isFactory = json["isFactory"],
-      _hasImplicitReturnType = json["hasImplicitReturnType"];
+      _hasImplicitReturnType = json["hasImplicitReturnType"],
+      _isExternal = json["isExternal"];
 
   String get name => _name ?? '';
   List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
@@ -582,6 +584,7 @@ class UnlinkedExecutable {
   bool get isConst => _isConst ?? false;
   bool get isFactory => _isFactory ?? false;
   bool get hasImplicitReturnType => _hasImplicitReturnType ?? false;
+  bool get isExternal => _isExternal ?? false;
 }
 
 class UnlinkedExecutableBuilder {
@@ -671,6 +674,14 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  void set isExternal(bool _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("isExternal"));
+    if (_value != null) {
+      _json["isExternal"] = _value;
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -678,7 +689,7 @@ class UnlinkedExecutableBuilder {
   }
 }
 
-UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType}) {
+UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
   UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder(builderContext);
   builder.name = name;
   builder.typeParameters = typeParameters;
@@ -690,6 +701,7 @@ UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builde
   builder.isConst = isConst;
   builder.isFactory = isFactory;
   builder.hasImplicitReturnType = hasImplicitReturnType;
+  builder.isExternal = isExternal;
   return builder;
 }
 

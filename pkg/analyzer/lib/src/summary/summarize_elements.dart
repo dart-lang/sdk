@@ -346,6 +346,7 @@ class _LibrarySerializer {
     b.isStatic = executableElement.isStatic &&
         executableElement.enclosingElement is ClassElement;
     b.hasImplicitReturnType = executableElement.hasImplicitReturnType;
+    b.isExternal = executableElement.isExternal;
     return b;
   }
 

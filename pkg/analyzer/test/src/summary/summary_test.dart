@@ -787,6 +787,7 @@ class E {}
         executables: serializeClassText('class C { C(); }').executables);
     expect(executable.kind, UnlinkedExecutableKind.constructor);
     expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.isExternal, isFalse);
   }
 
   test_constructor_anonymous() {
@@ -799,6 +800,22 @@ class E {}
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { const C(); }').executables);
     expect(executable.isConst, isTrue);
+    expect(executable.isExternal, isFalse);
+  }
+
+  test_constructor_const_external() {
+    UnlinkedExecutable executable = findExecutable('',
+        executables:
+            serializeClassText('class C { external const C(); }').executables);
+    expect(executable.isConst, isTrue);
+    expect(executable.isExternal, isTrue);
+  }
+
+  test_constructor_external() {
+    UnlinkedExecutable executable = findExecutable('',
+        executables:
+            serializeClassText('class C { external C(); }').executables);
+    expect(executable.isExternal, isTrue);
   }
 
   test_constructor_factory() {
@@ -1116,6 +1133,7 @@ typedef F();
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
+    expect(executable.isExternal, isFalse);
   }
 
   test_executable_function_explicit_return() {
@@ -1125,12 +1143,24 @@ typedef F();
     checkDynamicTypeRef(executable.returnType);
   }
 
+  test_executable_function_external() {
+    UnlinkedExecutable executable = serializeExecutableText('external f();');
+    expect(executable.isExternal, isTrue);
+  }
+
   test_executable_getter() {
     UnlinkedExecutable executable = serializeExecutableText('int get f => 1;');
     expect(executable.kind, UnlinkedExecutableKind.getter);
     expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.isExternal, isFalse);
     expect(findVariable('f'), isNull);
     expect(findExecutable('f='), isNull);
+  }
+
+  test_executable_getter_external() {
+    UnlinkedExecutable executable =
+        serializeExecutableText('external int get f;');
+    expect(executable.isExternal, isTrue);
   }
 
   test_executable_getter_type() {
@@ -1151,6 +1181,7 @@ typedef F();
         executables: serializeClassText('class C { f() {} }').executables);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.hasImplicitReturnType, isTrue);
+    expect(executable.isExternal, isFalse);
   }
 
   test_executable_member_function_explicit_return() {
@@ -1160,14 +1191,29 @@ typedef F();
     expect(executable.hasImplicitReturnType, isFalse);
   }
 
+  test_executable_member_function_external() {
+    UnlinkedExecutable executable = findExecutable('f',
+        executables:
+            serializeClassText('class C { external f(); }').executables);
+    expect(executable.isExternal, isTrue);
+  }
+
   test_executable_member_getter() {
     UnlinkedClass cls = serializeClassText('class C { int get f => 1; }');
     UnlinkedExecutable executable =
         findExecutable('f', executables: cls.executables, failIfAbsent: true);
     expect(executable.kind, UnlinkedExecutableKind.getter);
     expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.isExternal, isFalse);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f=', executables: cls.executables), isNull);
+  }
+
+  test_executable_member_getter_external() {
+    UnlinkedClass cls = serializeClassText('class C { external int get f; }');
+    UnlinkedExecutable executable =
+        findExecutable('f', executables: cls.executables, failIfAbsent: true);
+    expect(executable.isExternal, isTrue);
   }
 
   test_executable_member_setter() {
@@ -1177,8 +1223,17 @@ typedef F();
     expect(executable.kind, UnlinkedExecutableKind.setter);
     // For setters, hasImplicitReturnType is always false.
     expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.isExternal, isFalse);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f', executables: cls.executables), isNull);
+  }
+
+  test_executable_member_setter_external() {
+    UnlinkedClass cls =
+        serializeClassText('class C { external void set f(value); }');
+    UnlinkedExecutable executable =
+        findExecutable('f=', executables: cls.executables, failIfAbsent: true);
+    expect(executable.isExternal, isTrue);
   }
 
   test_executable_member_setter_implicit_return() {
@@ -1212,6 +1267,30 @@ typedef F();
     // Top level executables are considered non-static.
     UnlinkedExecutable executable = serializeExecutableText('f() {}');
     expect(executable.isStatic, isFalse);
+  }
+
+  test_executable_operator() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { C operator+(C c) => null; }').executables[
+            0];
+    expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
+    expect(executable.name, '+');
+    expect(executable.hasImplicitReturnType, false);
+    expect(executable.isAbstract, false);
+    expect(executable.isConst, false);
+    expect(executable.isFactory, false);
+    expect(executable.isStatic, false);
+    expect(executable.parameters, hasLength(1));
+    checkTypeRef(executable.returnType, null, null, 'C');
+    expect(executable.typeParameters, isEmpty);
+    expect(executable.isExternal, false);
+  }
+
+  test_executable_operator_external() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { external C operator+(C c); }')
+            .executables[0];
+    expect(executable.isExternal, true);
   }
 
   test_executable_operator_index() {
@@ -1371,8 +1450,15 @@ typedef F();
         serializeExecutableText('void set f(value) {}', 'f=');
     expect(executable.kind, UnlinkedExecutableKind.setter);
     expect(executable.hasImplicitReturnType, isFalse);
+    expect(executable.isExternal, isFalse);
     expect(findVariable('f'), isNull);
     expect(findExecutable('f'), isNull);
+  }
+
+  test_executable_setter_external() {
+    UnlinkedExecutable executable =
+        serializeExecutableText('external void set f(value);', 'f=');
+    expect(executable.isExternal, isTrue);
   }
 
   test_executable_setter_implicit_return() {

@@ -533,6 +533,10 @@ class E {
     checkLibrary('class C { const C(); }');
   }
 
+  test_class_constructor_const_external() {
+    checkLibrary('class C { external const C(); }');
+  }
+
   test_class_constructor_explicit_named() {
     checkLibrary('class C { C.foo(); }');
   }
@@ -543,6 +547,10 @@ class E {
 
   test_class_constructor_explicit_unnamed() {
     checkLibrary('class C { C(); }');
+  }
+
+  test_class_constructor_external() {
+    checkLibrary('class C { external C(); }');
   }
 
   test_class_constructor_factory() {
@@ -577,6 +585,10 @@ class E {
     checkLibrary('class C { int i; int j; }');
   }
 
+  test_class_getter_external() {
+    checkLibrary('class C { external int get x; }');
+  }
+
   test_class_getter_static() {
     checkLibrary('class C { static int get x => null; }');
   }
@@ -587,6 +599,10 @@ class E {
 
   test_class_interfaces() {
     checkLibrary('class C implements D, E {} class D {} class E {}');
+  }
+
+  test_class_method_external() {
+    checkLibrary('class C { external f(); }');
   }
 
   test_class_method_params() {
@@ -603,6 +619,10 @@ class E {
 
   test_class_mixins() {
     checkLibrary('class C extends Object with D, E {} class D {} class E {}');
+  }
+
+  test_class_setter_external() {
+    checkLibrary('class C { external void set x(int value); }');
   }
 
   test_class_setter_static() {
@@ -666,6 +686,10 @@ class E {
     checkLibrary('export "a.dart"; export "b.dart";');
   }
 
+  test_function_external() {
+    checkLibrary('external f();');
+  }
+
   test_function_parameter_kind_named() {
     // TODO(paulberry): also test default value.
     checkLibrary('f({x}) {}');
@@ -714,6 +738,10 @@ class E {
 
   test_functions() {
     checkLibrary('f() {} g() {}');
+  }
+
+  test_getter_external() {
+    checkLibrary('external int get x;');
   }
 
   test_getters() {
@@ -766,6 +794,14 @@ class E {
     checkLibrary('class C { f(void g()) {} }');
   }
 
+  test_operator() {
+    checkLibrary('class C { C operator+(C other) => null; }');
+  }
+
+  test_operator_external() {
+    checkLibrary('class C { external C operator+(C other); }');
+  }
+
   test_operator_index() {
     checkLibrary('class C { bool operator[](int i) => null; }');
   }
@@ -778,6 +814,10 @@ class E {
     addNamedSource('/a.dart', 'part of my.lib;');
     addNamedSource('/b.dart', 'part of my.lib;');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
+  }
+
+  test_setter_external() {
+    checkLibrary('external void set x(int value);');
   }
 
   test_setters() {

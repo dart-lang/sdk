@@ -467,6 +467,7 @@ class _LibraryResynthesizer {
     executableElement.type = new FunctionTypeImpl(executableElement);
     executableElement.hasImplicitReturnType =
         serializedExecutable.hasImplicitReturnType;
+    executableElement.external = serializedExecutable.isExternal;
   }
 
   /**
