@@ -6778,6 +6778,30 @@ void''');
     expect(reference.offset, 24);
   }
 
+  void test_parseCommentReferences_skipCodeBlock_gitHub() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** `a[i]` and [b] */", 0)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "");
+    expect(references, hasLength(1));
+    CommentReference reference = references[0];
+    expect(reference, isNotNull);
+    expect(reference.identifier, isNotNull);
+    expect(reference.offset, 16);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_gitHub_notTerminated() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.MULTI_LINE_COMMENT, "/** `a[i] and [b] */", 0)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "");
+    expect(references, hasLength(2));
+  }
+
   void test_parseCommentReferences_skipCodeBlock_spaces() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
