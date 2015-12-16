@@ -36,12 +36,14 @@ class IsolateData {
       this->packages_file = strdup(packages_file);
     }
   }
+#if 0
   ~IsolateData() {
     free(script_url);
     free(package_root);
     free(packages_file);
     free(udp_receive_buffer);
   }
+#endif
 
   char* script_url;
   char* package_root;

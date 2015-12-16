@@ -77,6 +77,7 @@ const char* CanonicalFunction(const char* func) {
   }
 }
 
+#if 0
 #define API_TIMELINE_DURATION                                                  \
   TimelineDurationScope tds(Thread::Current(),                                 \
                             Timeline::GetVMApiStream(),                        \
@@ -86,6 +87,10 @@ const char* CanonicalFunction(const char* func) {
   TimelineBeginEndScope tbes(Thread::Current(),                                \
                              Timeline::GetVMApiStream(),                       \
                              CURRENT_FUNC)
+#else
+#define API_TIMELINE_DURATION ASSERT(true)
+#define API_TIMELINE_BEGIN_END ASSERT(true)
+#endif
 
 #if defined(DEBUG)
 // An object visitor which will iterate over all the function objects in the
