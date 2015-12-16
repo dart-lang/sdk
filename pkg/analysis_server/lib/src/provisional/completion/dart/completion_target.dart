@@ -265,6 +265,7 @@ class CompletionTarget {
   /**
    * Return `true` if the target is a functional argument in an argument list.
    * The target [AstNode] hierarchy *must* be resolved for this to work.
+   * See [maybeFunctionalArgument].
    */
   bool isFunctionalArgument() {
     if (!maybeFunctionalArgument()) {
@@ -299,8 +300,9 @@ class CompletionTarget {
   }
 
   /**
-   * Return `true` if the target is a functional argument in an argument list.
-   * The target [AstNode] hierarchy *must* be resolved for this to work.
+   * Return `true` if the target maybe a functional argument in an argument list.
+   * This is used in determining whether the target [AstNode] hierarchy
+   * needs to be resolved so that [isFunctionalArgument] will work.
    */
   bool maybeFunctionalArgument() {
     if (argIndex == null) {

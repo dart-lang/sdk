@@ -38,18 +38,6 @@ class LocalReferenceContributor extends DartCompletionContributor {
       DartCompletionRequest request) async {
     OpType optype = (request as DartCompletionRequestImpl).opType;
 
-    // Resolve the expression in which the completion occurs
-    // to properly determine if identifiers should be suggested
-    // rather than invocations.
-    if (request.target.maybeFunctionalArgument()) {
-      Expression expression =
-          request.target.containingNode.getAncestor((p) => p is Expression);
-      if (expression != null) {
-        await request.resolveExpression(expression);
-        optype = (request as DartCompletionRequestImpl).opType;
-      }
-    }
-
     // Collect suggestions from the specific child [AstNode] that contains
     // the completion offset and all of its parents recursively.
     if (!optype.isPrefixed) {

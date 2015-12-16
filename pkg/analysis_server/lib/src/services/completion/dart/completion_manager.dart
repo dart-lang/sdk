@@ -231,9 +231,10 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       unit = await new AnalysisFutureHelper<CompilationUnit>(context,
               new LibrarySpecificUnit(libSource, source), RESOLVED_UNIT3)
           .computeAsync();
+
     }
 
-    return new DartCompletionRequestImpl._(
+    DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(
         request.context,
         request.resourceProvider,
         request.searchEngine,
@@ -241,5 +242,17 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
         request.source,
         request.offset,
         unit);
+
+    // Resolve the expression in which the completion occurs
+    // to properly determine if identifiers should be suggested
+    // rather than invocations.
+    if (dartRequest.target.maybeFunctionalArgument()) {
+      AstNode node = dartRequest.target.containingNode.parent;
+      if (node is Expression) {
+        await dartRequest.resolveExpression(node);
+      }
+    }
+
+    return dartRequest;
   }
 }
