@@ -386,7 +386,7 @@ class _LibraryResynthesizer {
       holder = unitHolder;
     }
     String name = serializedExecutable.name;
-    if (name.endsWith('=')) {
+    if (name.endsWith('=') && name != '[]=') {
       name = name.substring(0, name.length - 1);
     }
     UnlinkedExecutableKind kind = serializedExecutable.kind;

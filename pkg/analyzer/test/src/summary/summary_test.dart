@@ -1214,6 +1214,37 @@ typedef F();
     expect(executable.isStatic, isFalse);
   }
 
+  test_executable_operator_index() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { bool operator[](int i) => null; }')
+            .executables[0];
+    expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
+    expect(executable.name, '[]');
+    expect(executable.hasImplicitReturnType, false);
+    expect(executable.isAbstract, false);
+    expect(executable.isConst, false);
+    expect(executable.isFactory, false);
+    expect(executable.isStatic, false);
+    expect(executable.parameters, hasLength(1));
+    checkTypeRef(executable.returnType, 'dart:core', 'dart:core', 'bool');
+    expect(executable.typeParameters, isEmpty);
+  }
+
+  test_executable_operator_index_set() {
+    UnlinkedExecutable executable = serializeClassText(
+        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
+    expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
+    expect(executable.name, '[]=');
+    expect(executable.hasImplicitReturnType, false);
+    expect(executable.isAbstract, false);
+    expect(executable.isConst, false);
+    expect(executable.isFactory, false);
+    expect(executable.isStatic, false);
+    expect(executable.parameters, hasLength(2));
+    expect(executable.returnType, isNull);
+    expect(executable.typeParameters, isEmpty);
+  }
+
   test_executable_param_function_typed() {
     UnlinkedExecutable executable = serializeExecutableText('f(g()) {}');
     expect(executable.parameters[0].isFunctionTyped, isTrue);

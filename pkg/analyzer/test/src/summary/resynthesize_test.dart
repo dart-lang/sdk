@@ -766,6 +766,14 @@ class E {
     checkLibrary('class C { f(void g()) {} }');
   }
 
+  test_operator_index() {
+    checkLibrary('class C { bool operator[](int i) => null; }');
+  }
+
+  test_operator_index_set() {
+    checkLibrary('class C { void operator[]=(int i, bool v) {} }');
+  }
+
   test_parts() {
     addNamedSource('/a.dart', 'part of my.lib;');
     addNamedSource('/b.dart', 'part of my.lib;');
