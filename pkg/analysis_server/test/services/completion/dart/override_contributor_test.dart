@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.services.completion.dart.inherited_computer_test;
+library test.services.completion.dart.override;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/inherited_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
     hide DartCompletionContributor;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -23,10 +23,10 @@ main() {
 }
 
 @reflectiveTest
-class InheritedContributorTest extends DartCompletionContributorTest {
+class OverrideContributorTest extends DartCompletionContributorTest {
   @override
   DartCompletionContributor createContributor() {
-    return new InheritedContributor();
+    return new OverrideContributor();
   }
 
   test_fromMultipleSuperclasses() async {

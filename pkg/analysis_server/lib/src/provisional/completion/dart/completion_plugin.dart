@@ -99,6 +99,10 @@ class DartCompletionPlugin implements Plugin {
         () => new LocalReferenceContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new NamedConstructorContributor());
+    // Revisit this contributor and these tests
+    // once DartChangeBuilder API has solidified.
+    // registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+    //     () => new OverrideContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new StaticMemberContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
