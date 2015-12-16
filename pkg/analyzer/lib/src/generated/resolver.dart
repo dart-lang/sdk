@@ -8497,9 +8497,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitComment(Comment node) {
-    if (node.parent is FunctionDeclaration ||
-        node.parent is ConstructorDeclaration ||
-        node.parent is MethodDeclaration) {
+    AstNode parent = node.parent;
+    if (parent is FunctionDeclaration ||
+        parent is FunctionTypeAlias ||
+        parent is ConstructorDeclaration ||
+        parent is MethodDeclaration) {
       if (!identical(node, _commentBeforeFunction)) {
         _commentBeforeFunction = node;
         return null;
@@ -8924,6 +8926,16 @@ class ResolverVisitor extends ScopedVisitor {
       super.visitFunctionTypeAlias(node);
     } finally {
       _enclosingFunctionTypeAlias = outerAlias;
+    }
+    return null;
+  }
+
+  @override
+  Object visitFormalParameterList(FormalParameterList node) {
+    super.visitFormalParameterList(node);
+    if (_commentBeforeFunction != null) {
+      safelyVisit(_commentBeforeFunction);
+      _commentBeforeFunction = null;
     }
     return null;
   }

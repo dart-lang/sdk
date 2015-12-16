@@ -1001,6 +1001,40 @@ foo(int p) => null;''';
         (obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
   }
 
+  void test_commentReference_beforeFunctionTypeAlias() {
+    String code = r'''
+/// [p]
+typedef Foo(int p);
+''';
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
+    SimpleIdentifier ref = EngineTestCase.findNode(
+        unit, code, "p]", (node) => node is SimpleIdentifier);
+    EngineTestCase.assertInstanceOf(
+        (obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+  }
+
+  void test_commentReference_beforeGetter() {
+    String code = r'''
+abstract class A {
+  /// [int]
+  get g => null;
+}''';
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
+    {
+      SimpleIdentifier ref = EngineTestCase.findNode(
+          unit, code, "int]", (node) => node is SimpleIdentifier);
+      expect(ref.staticElement, isNotNull);
+    }
+  }
+
   void test_commentReference_beforeMethod() {
     String code = r'''
 abstract class A {
