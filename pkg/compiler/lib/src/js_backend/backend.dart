@@ -2425,6 +2425,12 @@ class JavaScriptBackend extends Backend {
   }
 
   void onElementResolved(Element element, TreeElements elements) {
+    if (element.isMalformed) {
+      // Elements that are marker as malformed during parsing or resolution
+      // might be registered here. These should just be ignored.
+      return;
+    }
+
     if ((element.isFunction || element.isConstructor) &&
         annotations.noInline(element)) {
       inlineCache.markAsNonInlinable(element);
