@@ -9,6 +9,7 @@ class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
+  final bool allowSingleLineIfStatements;
 
   /// True to allow keywords in properties, such as `obj.var` or `obj.function`
   /// Modern JS engines support this.
@@ -22,6 +23,7 @@ class JavaScriptPrintingOptions {
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
        this.allowKeywordsInProperties: false,
+       this.allowSingleLineIfStatements: false,
        this.arrowFnBindThisWorkaround: false});
 }
 
@@ -71,6 +73,8 @@ class Printer implements NodeVisitor {
   int _indentLevel = 0;
   // A cache of all indentation strings used so far.
   List<String> _indentList = <String>[""];
+  /// Whether the next call to [indent] should just be a no-op.
+  bool _skipNextIndent = false;
 
   static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
   static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
@@ -181,7 +185,16 @@ class Printer implements NodeVisitor {
 
   void outIndent(String str) { indent(); out(str); }
   void outIndentLn(String str) { indent(); outLn(str); }
+
+  void skipNextIndent() {
+    _skipNextIndent = true;
+  }
+
   void indent() {
+    if (_skipNextIndent) {
+      _skipNextIndent = false;
+      return;
+    }
     if (!shouldCompressOutput) {
       out(indentation);
     }
@@ -299,8 +312,16 @@ class Printer implements NodeVisitor {
     visitNestedExpression(node.condition, EXPRESSION,
                           newInForInit: false, newAtStatementBegin: false);
     out(")");
-    bool thenWasBlock =
-        blockBody(then, needsSeparation: false, needsNewline: !hasElse);
+    bool thenWasBlock;
+    if (options.allowSingleLineIfStatements && !hasElse && then is! Block) {
+      thenWasBlock = false;
+      spaceOut();
+      skipNextIndent();
+      visit(then);
+    } else {
+      thenWasBlock =
+          blockBody(then, needsSeparation: false, needsNewline: !hasElse);
+    }
     if (hasElse) {
       if (thenWasBlock) {
         spaceOut();

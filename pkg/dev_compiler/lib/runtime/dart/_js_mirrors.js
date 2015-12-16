@@ -67,8 +67,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       return new JsInstanceMirror._(value);
     }
     invoke(symbol, args, namedArgs) {
-      if (namedArgs === void 0)
-        namedArgs = null;
+      if (namedArgs === void 0) namedArgs = null;
       let name = getName(symbol);
       if (namedArgs != null) {
         args = core.List.from(args);
@@ -118,8 +117,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       this[_declarations].set(this.simpleName, new JsMethodMirror._(this, this[_cls]));
     }
     newInstance(constructorName, args, namedArgs) {
-      if (namedArgs === void 0)
-        namedArgs = null;
+      if (namedArgs === void 0) namedArgs = null;
       dart.assert(getName(constructorName) == "");
       dart.assert(namedArgs == null || dart.notNull(namedArgs.isEmpty));
       let instance = new this[_cls](...args);
@@ -138,8 +136,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       return dart.throw(new core.UnimplementedError("ClassMirror.getField unimplemented"));
     }
     invoke(memberName, positionalArguments, namedArguments) {
-      if (namedArguments === void 0)
-        namedArguments = null;
+      if (namedArguments === void 0) namedArguments = null;
       return dart.throw(new core.UnimplementedError("ClassMirror.invoke unimplemented"));
     }
     isAssignableTo(other) {

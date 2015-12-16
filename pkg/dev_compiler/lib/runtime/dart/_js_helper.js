@@ -88,13 +88,11 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       this[_nativeAnchoredRegExp] = null;
     }
     get [_nativeGlobalVersion]() {
-      if (this[_nativeGlobalRegExp] != null)
-        return this[_nativeGlobalRegExp];
+      if (this[_nativeGlobalRegExp] != null) return this[_nativeGlobalRegExp];
       return this[_nativeGlobalRegExp] = JSSyntaxRegExp.makeNative(this.pattern, this[_isMultiLine], this[_isCaseSensitive], true);
     }
     get [_nativeAnchoredVersion]() {
-      if (this[_nativeAnchoredRegExp] != null)
-        return this[_nativeAnchoredRegExp];
+      if (this[_nativeAnchoredRegExp] != null) return this[_nativeAnchoredRegExp];
       return this[_nativeAnchoredRegExp] = JSSyntaxRegExp.makeNative(`${this.pattern}|()`, this[_isMultiLine], this[_isCaseSensitive], true);
     }
     get [_isMultiLine]() {
@@ -116,15 +114,13 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
         }
 
       })();
-      if (regexp instanceof RegExp)
-        return regexp;
+      if (regexp instanceof RegExp) return regexp;
       let errorMessage = String(regexp);
       dart.throw(new core.FormatException(`Illegal RegExp pattern: ${source}, ${errorMessage}`));
     }
     firstMatch(string) {
       let m = dart.as(this[_nativeRegExp].exec(checkString(string)), core.List$(core.String));
-      if (m == null)
-        return null;
+      if (m == null) return null;
       return new _MatchImplementation(this, m);
     }
     hasMatch(string) {
@@ -132,13 +128,11 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     stringMatch(string) {
       let match = this.firstMatch(string);
-      if (match != null)
-        return match.group(0);
+      if (match != null) return match.group(0);
       return null;
     }
     allMatches(string, start) {
-      if (start === void 0)
-        start = 0;
+      if (start === void 0) start = 0;
       checkString(string);
       checkInt(start);
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string[dartx.length])) {
@@ -150,24 +144,20 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       let regexp = this[_nativeGlobalVersion];
       regexp.lastIndex = start;
       let match = dart.as(regexp.exec(string), core.List);
-      if (match == null)
-        return null;
+      if (match == null) return null;
       return new _MatchImplementation(this, dart.as(match, core.List$(core.String)));
     }
     [_execAnchored](string, start) {
       let regexp = this[_nativeAnchoredVersion];
       regexp.lastIndex = start;
       let match = dart.as(regexp.exec(string), core.List);
-      if (match == null)
-        return null;
-      if (match[dartx.get](dart.notNull(match[dartx.length]) - 1) != null)
-        return null;
+      if (match == null) return null;
+      if (match[dartx.get](dart.notNull(match[dartx.length]) - 1) != null) return null;
       match[dartx.length] = dart.notNull(match[dartx.length]) - 1;
       return new _MatchImplementation(this, dart.as(match, core.List$(core.String)));
     }
     matchAsPrefix(string, start) {
-      if (start === void 0)
-        start = 0;
+      if (start === void 0) start = 0;
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string[dartx.length])) {
         dart.throw(new core.RangeError.range(start, 0, string[dartx.length]));
       }
@@ -271,8 +261,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       return this[_current];
     }
     moveNext() {
-      if (this[_string] == null)
-        return false;
+      if (this[_string] == null) return false;
       if (dart.notNull(this[_nextIndex]) <= dart.notNull(this[_string][dartx.length])) {
         let match = this[_regExp][_execGlobal](this[_string], this[_nextIndex]);
         if (match != null) {
@@ -377,8 +366,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   dart.fn(stringReplaceJS);
   function stringReplaceFirstRE(receiver, regexp, to, startIndex) {
     let match = dart.dsend(regexp, _execGlobal, receiver, startIndex);
-    if (match == null)
-      return receiver;
+    if (match == null) return receiver;
     let start = dart.dload(match, 'start');
     let end = dart.dload(match, 'end');
     return `${dart.dsend(receiver, 'substring', 0, start)}${to}${dart.dsend(receiver, 'substring', end)}`;
@@ -428,10 +416,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     if (!dart.is(pattern, core.Pattern)) {
       dart.throw(new core.ArgumentError(`${pattern} is not a Pattern`));
     }
-    if (onMatch == null)
-      onMatch = _matchString;
-    if (onNonMatch == null)
-      onNonMatch = _stringIdentity;
+    if (onMatch == null) onMatch = _matchString;
+    if (onNonMatch == null) onNonMatch = _stringIdentity;
     if (typeof pattern == 'string') {
       return stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch);
     }
@@ -492,12 +478,10 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   }
   dart.fn(stringReplaceAllStringFuncUnchecked);
   function stringReplaceFirstUnchecked(receiver, from, to, startIndex) {
-    if (startIndex === void 0)
-      startIndex = 0;
+    if (startIndex === void 0) startIndex = 0;
     if (typeof from == 'string') {
       let index = dart.dsend(receiver, 'indexOf', from, startIndex);
-      if (dart.notNull(dart.as(dart.dsend(index, '<', 0), core.bool)))
-        return receiver;
+      if (dart.notNull(dart.as(dart.dsend(index, '<', 0), core.bool))) return receiver;
       return `${dart.dsend(receiver, 'substring', 0, index)}${to}` + `${dart.dsend(receiver, 'substring', dart.dsend(index, '+', dart.dload(from, 'length')))}`;
     } else if (dart.is(from, JSSyntaxRegExp)) {
       return startIndex == 0 ? stringReplaceJS(receiver, regExpGetNative(dart.as(from, JSSyntaxRegExp)), to) : stringReplaceFirstRE(receiver, from, to, startIndex);
@@ -555,8 +539,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       dart.throw(new core.FormatException(string));
     }
     static parseInt(source, radix, handleError) {
-      if (handleError == null)
-        handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.int), core.int, [dart.dynamic]);
+      if (handleError == null) handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.int), core.int, [dart.dynamic]);
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -575,8 +558,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
           return handleError(source);
         }
       } else {
-        if (!(typeof radix == 'number'))
-          dart.throw(new core.ArgumentError("Radix is not an integer"));
+        if (!(typeof radix == 'number')) dart.throw(new core.ArgumentError("Radix is not an integer"));
         if (dart.notNull(radix) < 2 || dart.notNull(radix) > 36) {
           dart.throw(new core.RangeError(`Radix ${radix} not in range 2..36`));
         }
@@ -601,14 +583,12 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
           }
         }
       }
-      if (match == null)
-        return handleError(source);
+      if (match == null) return handleError(source);
       return parseInt(source, radix);
     }
     static parseDouble(source, handleError) {
       checkString(source);
-      if (handleError == null)
-        handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.double), core.double, [dart.dynamic]);
+      if (handleError == null) handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.double), core.double, [dart.dynamic]);
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -633,20 +613,15 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       return Date.now();
     }
     static initTicker() {
-      if (Primitives.timerFrequency != null)
-        return;
+      if (Primitives.timerFrequency != null) return;
       Primitives.timerFrequency = 1000;
       Primitives.timerTicks = Primitives.dateNow;
-      if (typeof window == "undefined")
-        return;
+      if (typeof window == "undefined") return;
       let jsWindow = window;
-      if (jsWindow == null)
-        return;
+      if (jsWindow == null) return;
       let performance = jsWindow.performance;
-      if (performance == null)
-        return;
-      if (typeof performance.now != "function")
-        return;
+      if (performance == null) return;
+      if (typeof performance.now != "function") return;
       Primitives.timerFrequency = 1000000;
       Primitives.timerTicks = dart.fn(() => (1000 * performance.now())[dartx.floor](), core.int, []);
     }
@@ -680,8 +655,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     static stringFromCodePoints(codePoints) {
       let a = dart.list([], core.int);
       for (let i of dart.as(codePoints, core.Iterable)) {
-        if (!(typeof i == 'number'))
-          dart.throw(new core.ArgumentError(i));
+        if (!(typeof i == 'number')) dart.throw(new core.ArgumentError(i));
         if (dart.notNull(dart.as(dart.dsend(i, '<=', 65535), core.bool))) {
           a[dartx.add](dart.as(i, core.int));
         } else if (dart.notNull(dart.as(dart.dsend(i, '<=', 1114111), core.bool))) {
@@ -695,12 +669,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     static stringFromCharCodes(charCodes) {
       for (let i of dart.as(charCodes, core.Iterable)) {
-        if (!(typeof i == 'number'))
-          dart.throw(new core.ArgumentError(i));
-        if (dart.notNull(dart.as(dart.dsend(i, '<', 0), core.bool)))
-          dart.throw(new core.ArgumentError(i));
-        if (dart.notNull(dart.as(dart.dsend(i, '>', 65535), core.bool)))
-          return Primitives.stringFromCodePoints(charCodes);
+        if (!(typeof i == 'number')) dart.throw(new core.ArgumentError(i));
+        if (dart.notNull(dart.as(dart.dsend(i, '<', 0), core.bool))) dart.throw(new core.ArgumentError(i));
+        if (dart.notNull(dart.as(dart.dsend(i, '>', 65535), core.bool))) return Primitives.stringFromCodePoints(charCodes);
       }
       return Primitives._fromCharCodeApply(dart.as(charCodes, core.List$(core.int)));
     }
@@ -727,14 +698,11 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     static getTimeZoneName(receiver) {
       let d = Primitives.lazyAsJsDate(receiver);
       let match = dart.as(/\((.*)\)/.exec(d.toString()), core.List);
-      if (match != null)
-        return dart.as(match[dartx.get](1), core.String);
+      if (match != null) return dart.as(match[dartx.get](1), core.String);
       match = dart.as(/^[A-Z,a-z]{3}\s[A-Z,a-z]{3}\s\d+\s\d{2}:\d{2}:\d{2}\s([A-Z]{3,5})\s\d{4}$/.exec(d.toString()), core.List);
-      if (match != null)
-        return dart.as(match[dartx.get](1), core.String);
+      if (match != null) return dart.as(match[dartx.get](1), core.String);
       match = dart.as(/(?:GMT|UTC)[+-]\d{4}/.exec(d.toString()), core.List);
-      if (match != null)
-        return dart.as(match[dartx.get](0), core.String);
+      if (match != null) return dart.as(match[dartx.get](0), core.String);
       return "";
     }
     static getTimeZoneOffsetInMinutes(receiver) {
@@ -760,8 +728,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       if (dart.notNull(dart.as(dart.dload(value, 'isNaN'), core.bool)) || dart.notNull(dart.as(dart.dsend(value, '<', -dart.notNull(MAX_MILLISECONDS_SINCE_EPOCH)), core.bool)) || dart.notNull(dart.as(dart.dsend(value, '>', MAX_MILLISECONDS_SINCE_EPOCH), core.bool))) {
         return null;
       }
-      if (dart.notNull(dart.as(dart.dsend(years, '<=', 0), core.bool)) || dart.notNull(dart.as(dart.dsend(years, '<', 100), core.bool)))
-        return Primitives.patchUpY2K(value, years, isUtc);
+      if (dart.notNull(dart.as(dart.dsend(years, '<=', 0), core.bool)) || dart.notNull(dart.as(dart.dsend(years, '<', 100), core.bool))) return Primitives.patchUpY2K(value, years, isUtc);
       return value;
     }
     static patchUpY2K(value, years, isUtc) {
@@ -805,11 +772,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       return (dart.notNull(weekday) + 6) % 7 + 1;
     }
     static valueFromDateString(str) {
-      if (!(typeof str == 'string'))
-        dart.throw(new core.ArgumentError(str));
+      if (!(typeof str == 'string')) dart.throw(new core.ArgumentError(str));
       let value = Date.parse(str);
-      if (dart.notNull(value[dartx.isNaN]))
-        dart.throw(new core.ArgumentError(str));
+      if (dart.notNull(value[dartx.isNaN])) dart.throw(new core.ArgumentError(str));
       return value;
     }
     static getProperty(object, key) {
@@ -880,8 +845,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   }
   dart.fn(stringLastIndexOfUnchecked);
   function checkNull(object) {
-    if (object == null)
-      dart.throw(new core.ArgumentError(null));
+    if (object == null) dart.throw(new core.ArgumentError(null));
     return object;
   }
   dart.fn(checkNull);
@@ -930,8 +894,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       super.Error();
     }
     toString() {
-      if (this[_method] == null)
-        return `NullError: ${this[_message]}`;
+      if (this[_method] == null) return `NullError: ${this[_message]}`;
       return `NullError: Cannot call "${this[_method]}" on null`;
     }
   }
@@ -948,8 +911,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       super.Error();
     }
     toString() {
-      if (this[_method] == null)
-        return `NoSuchMethodError: ${this[_message]}`;
+      if (this[_method] == null) return `NoSuchMethodError: ${this[_message]}`;
       if (this[_receiver] == null) {
         return `NoSuchMethodError: Cannot call "${this[_method]}" (${this[_message]})`;
       }
@@ -984,8 +946,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       this[_trace] = null;
     }
     toString() {
-      if (this[_trace] != null)
-        return this[_trace];
+      if (this[_trace] != null) return this[_trace];
       let trace = null;
       if (typeof this[_exception] === "object") {
         trace = dart.as(this[_exception].stack, core.String);

@@ -13,8 +13,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
       let mid = dart.notNull(min) + (dart.notNull(max) - dart.notNull(min) >> 1);
       let element = list[dartx.get](mid);
       let comp = element[dartx.compareTo](key);
-      if (comp == 0)
-        return mid;
+      if (comp == 0) return mid;
       if (dart.notNull(comp) < 0) {
         min = dart.notNull(mid) + 1;
       } else {
@@ -35,8 +34,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
       let mid = dart.notNull(min) + (dart.notNull(max) - dart.notNull(min) >> 1);
       let element = sortedList[dartx.get](mid);
       let comp = dart.dcall(compare, element, key);
-      if (comp == 0)
-        return mid;
+      if (comp == 0) return mid;
       if (dart.notNull(comp) < 0) {
         min = dart.notNull(mid) + 1;
       } else {
@@ -47,13 +45,10 @@ dart_library.library('collection/algorithms', null, /* Imports */[
   }
   dart.fn(binarySearch, core.int, [core.List, dart.dynamic], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])});
   function shuffle(list, start, end) {
-    if (start === void 0)
-      start = 0;
-    if (end === void 0)
-      end = null;
+    if (start === void 0) start = 0;
+    if (end === void 0) end = null;
     let random = math.Random.new();
-    if (end == null)
-      end = list[dartx.length];
+    if (end == null) end = list[dartx.length];
     let length = dart.notNull(end) - dart.notNull(start);
     while (dart.notNull(length) > 1) {
       let pos = random.nextInt(length);
@@ -65,12 +60,9 @@ dart_library.library('collection/algorithms', null, /* Imports */[
   }
   dart.fn(shuffle, dart.void, [core.List], [core.int, core.int]);
   function reverse(list, start, end) {
-    if (start === void 0)
-      start = 0;
-    if (end === void 0)
-      end = null;
-    if (end == null)
-      end = list[dartx.length];
+    if (start === void 0) start = 0;
+    if (end === void 0) end = null;
+    if (end == null) end = list[dartx.length];
     _reverse(list, start, end);
   }
   dart.fn(reverse, dart.void, [core.List], [core.int, core.int]);
@@ -86,10 +78,8 @@ dart_library.library('collection/algorithms', null, /* Imports */[
     let compare = opts && 'compare' in opts ? opts.compare : null;
     let start = opts && 'start' in opts ? opts.start : 0;
     let end = opts && 'end' in opts ? opts.end : null;
-    if (end == null)
-      end = list[dartx.length];
-    if (compare == null)
-      compare = core.Comparable.compare;
+    if (end == null) end = list[dartx.length];
+    if (compare == null) compare = core.Comparable.compare;
     _insertionSort(list, compare, start, end, dart.notNull(start) + 1);
   }
   dart.fn(insertionSort, dart.void, [core.List], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic]), start: core.int, end: core.int});
@@ -117,13 +107,10 @@ dart_library.library('collection/algorithms', null, /* Imports */[
     let start = opts && 'start' in opts ? opts.start : 0;
     let end = opts && 'end' in opts ? opts.end : null;
     let compare = opts && 'compare' in opts ? opts.compare : null;
-    if (end == null)
-      end = list[dartx.length];
-    if (compare == null)
-      compare = core.Comparable.compare;
+    if (end == null) end = list[dartx.length];
+    if (compare == null) compare = core.Comparable.compare;
     let length = dart.notNull(end) - dart.notNull(start);
-    if (dart.notNull(length) < 2)
-      return;
+    if (dart.notNull(length) < 2) return;
     if (dart.notNull(length) < dart.notNull(_MERGE_SORT_LIMIT)) {
       _insertionSort(list, compare, start, end, dart.notNull(start) + 1);
       return;
@@ -140,8 +127,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
   dart.fn(mergeSort, dart.void, [core.List], {start: core.int, end: core.int, compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])});
   function _movingInsertionSort(list, compare, start, end, target, targetOffset) {
     let length = dart.notNull(end) - dart.notNull(start);
-    if (length == 0)
-      return;
+    if (length == 0) return;
     target[dartx.set](targetOffset, list[dartx.get](start));
     for (let i = 1; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
       let element = list[dartx.get](dart.notNull(start) + dart.notNull(i));
@@ -197,8 +183,7 @@ dart_library.library('collection/algorithms', null, /* Imports */[
           targetOffset = dart.notNull(x) + 1;
           return x;
         })(), firstElement);
-        if (cursor1 == firstEnd)
-          break;
+        if (cursor1 == firstEnd) break;
         firstElement = firstList[dartx.get]((() => {
           let x = cursor1;
           cursor1 = dart.notNull(x) + 1;

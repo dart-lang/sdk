@@ -32,27 +32,22 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return this.length == 0;
       }
       get first() {
-        if (this.length == 0)
-          dart.throw(IterableElementError.noElement());
+        if (this.length == 0) dart.throw(IterableElementError.noElement());
         return this.elementAt(0);
       }
       get last() {
-        if (this.length == 0)
-          dart.throw(IterableElementError.noElement());
+        if (this.length == 0) dart.throw(IterableElementError.noElement());
         return this.elementAt(dart.notNull(this.length) - 1);
       }
       get single() {
-        if (this.length == 0)
-          dart.throw(IterableElementError.noElement());
-        if (dart.notNull(this.length) > 1)
-          dart.throw(IterableElementError.tooMany());
+        if (this.length == 0) dart.throw(IterableElementError.noElement());
+        if (dart.notNull(this.length) > 1) dart.throw(IterableElementError.tooMany());
         return this.elementAt(0);
       }
       contains(element) {
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (dart.equals(this.elementAt(i), element))
-            return true;
+          if (dart.equals(this.elementAt(i), element)) return true;
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
@@ -63,8 +58,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (!dart.notNull(test(this.elementAt(i))))
-            return false;
+          if (!dart.notNull(test(this.elementAt(i)))) return false;
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
@@ -75,8 +69,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (dart.notNull(test(this.elementAt(i))))
-            return true;
+          if (dart.notNull(test(this.elementAt(i)))) return true;
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
@@ -90,14 +83,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this.elementAt(i);
-          if (dart.notNull(test(element)))
-            return element;
+          if (dart.notNull(test(element))) return element;
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
         }
-        if (orElse != null)
-          return orElse();
+        if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
       }
       lastWhere(test, opts) {
@@ -107,14 +98,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
         let length = this.length;
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = this.elementAt(i);
-          if (dart.notNull(test(element)))
-            return element;
+          if (dart.notNull(test(element))) return element;
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
         }
-        if (orElse != null)
-          return orElse();
+        if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
       }
       singleWhere(test) {
@@ -135,17 +124,14 @@ dart_library.library('dart/_internal', null, /* Imports */[
             dart.throw(new core.ConcurrentModificationError(this));
           }
         }
-        if (dart.notNull(matchFound))
-          return match;
+        if (dart.notNull(matchFound)) return match;
         dart.throw(IterableElementError.noElement());
       }
       join(separator) {
-        if (separator === void 0)
-          separator = "";
+        if (separator === void 0) separator = "";
         let length = this.length;
         if (!dart.notNull(separator[dartx.isEmpty])) {
-          if (length == 0)
-            return "";
+          if (length == 0) return "";
           let first = `${this.elementAt(0)}`;
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
@@ -181,8 +167,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       reduce(combine) {
         dart.as(combine, dart.functionType(E, [dart.dynamic, E]));
         let length = this.length;
-        if (length == 0)
-          dart.throw(IterableElementError.noElement());
+        if (length == 0) dart.throw(IterableElementError.noElement());
         let value = this.elementAt(0);
         for (let i = 1; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           value = dart.dcall(combine, value, this.elementAt(i));
@@ -312,20 +297,17 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       get [_endIndex]() {
         let length = this[_iterable][dartx.length];
-        if (this[_endOrLength] == null || dart.notNull(this[_endOrLength]) > dart.notNull(length))
-          return length;
+        if (this[_endOrLength] == null || dart.notNull(this[_endOrLength]) > dart.notNull(length)) return length;
         return this[_endOrLength];
       }
       get [_startIndex]() {
         let length = this[_iterable][dartx.length];
-        if (dart.notNull(this[_start]) > dart.notNull(length))
-          return length;
+        if (dart.notNull(this[_start]) > dart.notNull(length)) return length;
         return this[_start];
       }
       get length() {
         let length = this[_iterable][dartx.length];
-        if (dart.notNull(this[_start]) >= dart.notNull(length))
-          return 0;
+        if (dart.notNull(this[_start]) >= dart.notNull(length)) return 0;
         if (this[_endOrLength] == null || dart.notNull(this[_endOrLength]) >= dart.notNull(length)) {
           return dart.notNull(length) - dart.notNull(this[_start]);
         }
@@ -352,8 +334,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
           return new (SubListIterable$(E))(this[_iterable], this[_start], dart.notNull(this[_start]) + dart.notNull(count));
         } else {
           let newEnd = dart.notNull(this[_start]) + dart.notNull(count);
-          if (dart.notNull(this[_endOrLength]) < dart.notNull(newEnd))
-            return this;
+          if (dart.notNull(this[_endOrLength]) < dart.notNull(newEnd)) return this;
           return new (SubListIterable$(E))(this[_iterable], this[_start], newEnd);
         }
       }
@@ -361,11 +342,9 @@ dart_library.library('dart/_internal', null, /* Imports */[
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let start = this[_start];
         let end = this[_iterable][dartx.length];
-        if (this[_endOrLength] != null && dart.notNull(this[_endOrLength]) < dart.notNull(end))
-          end = this[_endOrLength];
+        if (this[_endOrLength] != null && dart.notNull(this[_endOrLength]) < dart.notNull(end)) end = this[_endOrLength];
         let length = dart.notNull(end) - dart.notNull(start);
-        if (dart.notNull(length) < 0)
-          length = 0;
+        if (dart.notNull(length) < 0) length = 0;
         let result = dart.notNull(growable) ? (() => {
           let _ = core.List$(E).new();
           _[dartx.length] = length;
@@ -373,8 +352,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         })() : core.List$(E).new(length);
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           result[dartx.set](i, this[_iterable][dartx.elementAt](dart.notNull(start) + dart.notNull(i)));
-          if (dart.notNull(this[_iterable][dartx.length]) < dart.notNull(end))
-            dart.throw(new core.ConcurrentModificationError(this));
+          if (dart.notNull(this[_iterable][dartx.length]) < dart.notNull(end)) dart.throw(new core.ConcurrentModificationError(this));
         }
         return dart.as(result, core.List$(E));
       }
@@ -645,8 +623,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return this[_current];
       }
       moveNext() {
-        if (this[_currentExpansion] == null)
-          return false;
+        if (this[_currentExpansion] == null) return false;
         while (!dart.notNull(this[_currentExpansion].moveNext())) {
           this[_current] = null;
           if (dart.notNull(this[_iterator].moveNext())) {
@@ -710,8 +687,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       get length() {
         let iterableLength = this[_iterable][dartx.length];
-        if (dart.notNull(iterableLength) > dart.notNull(this[_takeCount]))
-          return this[_takeCount];
+        if (dart.notNull(iterableLength) > dart.notNull(this[_takeCount])) return this[_takeCount];
         return iterableLength;
       }
     }
@@ -740,8 +716,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return false;
       }
       get current() {
-        if (dart.notNull(this[_remaining]) < 0)
-          return null;
+        if (dart.notNull(this[_remaining]) < 0) return null;
         return this[_iterator].current;
       }
     }
@@ -779,8 +754,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         this[_isFinished] = false;
       }
       moveNext() {
-        if (dart.notNull(this[_isFinished]))
-          return false;
+        if (dart.notNull(this[_isFinished])) return false;
         if (!dart.notNull(this[_iterator].moveNext()) || !dart.notNull(this[_f](this[_iterator].current))) {
           this[_isFinished] = true;
           return false;
@@ -788,8 +762,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return true;
       }
       get current() {
-        if (dart.notNull(this[_isFinished]))
-          return null;
+        if (dart.notNull(this[_isFinished])) return null;
         return this[_iterator].current;
       }
     }
@@ -848,8 +821,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       get length() {
         let length = dart.notNull(this[_iterable][dartx.length]) - dart.notNull(this[_skipCount]);
-        if (dart.notNull(length) >= 0)
-          return length;
+        if (dart.notNull(length) >= 0) return length;
         return 0;
       }
     }
@@ -915,8 +887,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         if (!dart.notNull(this[_hasSkipped])) {
           this[_hasSkipped] = true;
           while (dart.notNull(this[_iterator].moveNext())) {
-            if (!dart.notNull(this[_f](this[_iterator].current)))
-              return true;
+            if (!dart.notNull(this[_f](this[_iterator].current))) return true;
           }
         }
         return this[_iterator].moveNext();
@@ -976,29 +947,25 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
-        if (orElse != null)
-          return orElse();
+        if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
       }
       lastWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
-        if (orElse != null)
-          return orElse();
+        if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
       }
       singleWhere(test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
-        if (orElse != null)
-          return orElse();
+        if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
       }
       join(separator) {
-        if (separator === void 0)
-          separator = "";
+        if (separator === void 0) separator = "";
         return "";
       }
       where(test) {
@@ -1123,8 +1090,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     class IterableMixinWorkaround extends core.Object {
       static contains(iterable, element) {
         for (let e of iterable) {
-          if (dart.equals(e, element))
-            return true;
+          if (dart.equals(e, element)) return true;
         }
         return false;
       }
@@ -1137,24 +1103,21 @@ dart_library.library('dart/_internal', null, /* Imports */[
       static any(iterable, f) {
         dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
-          if (dart.notNull(dart.dcall(f, e)))
-            return true;
+          if (dart.notNull(dart.dcall(f, e))) return true;
         }
         return false;
       }
       static every(iterable, f) {
         dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
-          if (!dart.notNull(dart.dcall(f, e)))
-            return false;
+          if (!dart.notNull(dart.dcall(f, e))) return false;
         }
         return true;
       }
       static reduce(iterable, combine) {
         dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
         let iterator = iterable[dartx.iterator];
-        if (!dart.notNull(iterator.moveNext()))
-          dart.throw(IterableElementError.noElement());
+        if (!dart.notNull(iterator.moveNext())) dart.throw(IterableElementError.noElement());
         let value = iterator.current;
         while (dart.notNull(iterator.moveNext())) {
           value = dart.dcall(combine, value, iterator.current);
@@ -1181,8 +1144,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
             dart.throw(new core.ConcurrentModificationError(list));
           }
         }
-        if (retained[dartx.length] == length)
-          return;
+        if (retained[dartx.length] == length) return;
         list[dartx.length] = retained[dartx.length];
         for (let i = 0; dart.notNull(i) < dart.notNull(retained[dartx.length]); i = dart.notNull(i) + 1) {
           list[dartx.set](i, retained[dartx.get](i));
@@ -1211,22 +1173,18 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       static single(iterable) {
         let it = iterable[dartx.iterator];
-        if (!dart.notNull(it.moveNext()))
-          dart.throw(IterableElementError.noElement());
+        if (!dart.notNull(it.moveNext())) dart.throw(IterableElementError.noElement());
         let result = it.current;
-        if (dart.notNull(it.moveNext()))
-          dart.throw(IterableElementError.tooMany());
+        if (dart.notNull(it.moveNext())) dart.throw(IterableElementError.tooMany());
         return result;
       }
       static firstWhere(iterable, test, orElse) {
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let element of iterable) {
-          if (dart.notNull(dart.dcall(test, element)))
-            return element;
+          if (dart.notNull(dart.dcall(test, element))) return element;
         }
-        if (orElse != null)
-          return orElse();
+        if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
       }
       static lastWhere(iterable, test, orElse) {
@@ -1240,10 +1198,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
             foundMatching = true;
           }
         }
-        if (dart.notNull(foundMatching))
-          return result;
-        if (orElse != null)
-          return orElse();
+        if (dart.notNull(foundMatching)) return result;
+        if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
       }
       static lastWhereList(list, test, orElse) {
@@ -1251,11 +1207,9 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let i = dart.notNull(list[dartx.length]) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = list[dartx.get](i);
-          if (dart.notNull(dart.dcall(test, element)))
-            return element;
+          if (dart.notNull(dart.dcall(test, element))) return element;
         }
-        if (orElse != null)
-          return orElse();
+        if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
       }
       static singleWhere(iterable, test) {
@@ -1271,36 +1225,29 @@ dart_library.library('dart/_internal', null, /* Imports */[
             foundMatching = true;
           }
         }
-        if (dart.notNull(foundMatching))
-          return result;
+        if (dart.notNull(foundMatching)) return result;
         dart.throw(IterableElementError.noElement());
       }
       static elementAt(iterable, index) {
-        if (!(typeof index == 'number'))
-          dart.throw(new core.ArgumentError.notNull("index"));
+        if (!(typeof index == 'number')) dart.throw(new core.ArgumentError.notNull("index"));
         core.RangeError.checkNotNegative(index, "index");
         let elementIndex = 0;
         for (let element of iterable) {
-          if (index == elementIndex)
-            return element;
+          if (index == elementIndex) return element;
           elementIndex = dart.notNull(elementIndex) + 1;
         }
         dart.throw(core.RangeError.index(index, iterable, "index", null, elementIndex));
       }
       static join(iterable, separator) {
-        if (separator === void 0)
-          separator = null;
+        if (separator === void 0) separator = null;
         let buffer = new core.StringBuffer();
         buffer.writeAll(iterable, separator);
         return dart.toString(buffer);
       }
       static joinList(list, separator) {
-        if (separator === void 0)
-          separator = null;
-        if (dart.notNull(list[dartx.isEmpty]))
-          return "";
-        if (list[dartx.length] == 1)
-          return `${list[dartx.get](0)}`;
+        if (separator === void 0) separator = null;
+        if (dart.notNull(list[dartx.isEmpty])) return "";
+        if (list[dartx.length] == 1) return `${list[dartx.get](0)}`;
         let buffer = new core.StringBuffer();
         if (dart.notNull(separator[dartx.isEmpty])) {
           for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
@@ -1350,13 +1297,11 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       static sortList(list, compare) {
         dart.as(compare, dart.functionType(core.int, [dart.dynamic, dart.dynamic]));
-        if (compare == null)
-          compare = core.Comparable.compare;
+        if (compare == null) compare = core.Comparable.compare;
         Sort.sort(list, compare);
       }
       static shuffleList(list, random) {
-        if (random == null)
-          random = math.Random.new();
+        if (random == null) random = math.Random.new();
         let length = list[dartx.length];
         while (dart.notNull(length) > 1) {
           let pos = random.nextInt(length);
@@ -1370,8 +1315,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return Lists.indexOf(list, element, start, list[dartx.length]);
       }
       static lastIndexOfList(list, element, start) {
-        if (start == null)
-          start = dart.notNull(list[dartx.length]) - 1;
+        if (start == null) start = dart.notNull(list[dartx.length]) - 1;
         return Lists.lastIndexOf(list, element, start);
       }
       static _rangeCheck(list, start, end) {
@@ -1384,10 +1328,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
       static setRangeList(list, start, end, from, skipCount) {
         IterableMixinWorkaround$()._rangeCheck(list, start, end);
         let length = dart.notNull(end) - dart.notNull(start);
-        if (length == 0)
-          return;
-        if (dart.notNull(skipCount) < 0)
-          dart.throw(new core.ArgumentError(skipCount));
+        if (length == 0) return;
+        if (dart.notNull(skipCount) < 0) dart.throw(new core.ArgumentError(skipCount));
         let otherList = null;
         let otherStart = null;
         if (dart.is(from, core.List)) {
@@ -1464,8 +1406,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       static setContainsAll(set, other) {
         for (let element of other) {
-          if (!dart.notNull(set.contains(element)))
-            return false;
+          if (!dart.notNull(set.contains(element))) return false;
         }
         return true;
       }
@@ -1692,14 +1633,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Cannot remove from an unmodifiable list"));
       }
       sort(compare) {
-        if (compare === void 0)
-          compare = null;
+        if (compare === void 0) compare = null;
         dart.as(compare, core.Comparator$(E));
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable list"));
       }
       shuffle(random) {
-        if (random === void 0)
-          random = null;
+        if (random === void 0) random = null;
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable list"));
       }
       clear() {
@@ -1713,8 +1652,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       setRange(start, end, iterable, skipCount) {
         dart.as(iterable, core.Iterable$(E));
-        if (skipCount === void 0)
-          skipCount = 0;
+        if (skipCount === void 0) skipCount = 0;
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable list"));
       }
       removeRange(start, end) {
@@ -1725,8 +1663,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Cannot remove from an unmodifiable list"));
       }
       fillRange(start, end, fillValue) {
-        if (fillValue === void 0)
-          fillValue = null;
+        if (fillValue === void 0) fillValue = null;
         dart.as(fillValue, E);
         dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable list"));
       }
@@ -1977,16 +1914,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
     }
     static areEqual(a, b) {
-      if (dart.notNull(core.identical(a, b)))
-        return true;
-      if (!dart.is(b, core.List))
-        return false;
+      if (dart.notNull(core.identical(a, b))) return true;
+      if (!dart.is(b, core.List)) return false;
       let length = a[dartx.length];
-      if (!dart.equals(length, dart.dload(b, 'length')))
-        return false;
+      if (!dart.equals(length, dart.dload(b, 'length'))) return false;
       for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-        if (!dart.notNull(core.identical(a[dartx.get](i), dart.dindex(b, i))))
-          return false;
+        if (!dart.notNull(core.identical(a[dartx.get](i), dart.dindex(b, i)))) return false;
       }
       return true;
     }
@@ -2147,8 +2080,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         for (let k = less; dart.notNull(k) <= dart.notNull(great); k = dart.notNull(k) + 1) {
           let ak = a[dartx.get](k);
           let comp = dart.dcall(compare, ak, pivot);
-          if (comp == 0)
-            continue;
+          if (comp == 0) continue;
           if (dart.notNull(comp) < 0) {
             if (k != less) {
               a[dartx.set](k, a[dartx.get](less));
@@ -2203,8 +2135,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
                 let comp = dart.dcall(compare, a[dartx.get](great), pivot2);
                 if (dart.notNull(comp) > 0) {
                   great = dart.notNull(great) - 1;
-                  if (dart.notNull(great) < dart.notNull(k))
-                    break;
+                  if (dart.notNull(great) < dart.notNull(k)) break;
                   continue;
                 } else {
                   comp = dart.dcall(compare, a[dartx.get](great), pivot1);
@@ -2267,8 +2198,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
                 let comp = dart.dcall(compare, a[dartx.get](great), pivot2);
                 if (comp == 0) {
                   great = dart.notNull(great) - 1;
-                  if (dart.notNull(great) < dart.notNull(k))
-                    break;
+                  if (dart.notNull(great) < dart.notNull(k)) break;
                   continue;
                 } else {
                   comp = dart.dcall(compare, a[dartx.get](great), pivot1);
@@ -2340,8 +2270,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       return symbol[_name];
     }
     static validatePublicSymbol(name) {
-      if (dart.notNull(name[dartx.isEmpty]) || dart.notNull(Symbol.publicSymbolPattern.hasMatch(name)))
-        return name;
+      if (dart.notNull(name[dartx.isEmpty]) || dart.notNull(Symbol.publicSymbolPattern.hasMatch(name))) return name;
       if (dart.notNull(name[dartx.startsWith]('_'))) {
         dart.throw(new core.ArgumentError(`"${name}" is a private identifier`));
       }

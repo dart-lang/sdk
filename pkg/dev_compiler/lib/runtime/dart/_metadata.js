@@ -7,8 +7,7 @@ dart_library.library('dart/_metadata', null, /* Imports */[
   let dartx = dart.dartx;
   class SupportedBrowser extends core.Object {
     SupportedBrowser(browserName, minimumVersion) {
-      if (minimumVersion === void 0)
-        minimumVersion = null;
+      if (minimumVersion === void 0) minimumVersion = null;
       this.browserName = browserName;
       this.minimumVersion = minimumVersion;
     }

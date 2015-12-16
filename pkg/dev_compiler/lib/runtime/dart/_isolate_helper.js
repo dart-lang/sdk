@@ -40,41 +40,28 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_serializeSendPorts] = dart.as(serializeSendPorts, core.bool);
     }
     serialize(x) {
-      if (dart.notNull(this.isPrimitive(x)))
-        return this.serializePrimitive(x);
+      if (dart.notNull(this.isPrimitive(x))) return this.serializePrimitive(x);
       let serializationId = this.serializedObjectIds.get(x);
-      if (serializationId != null)
-        return this.makeRef(serializationId);
+      if (serializationId != null) return this.makeRef(serializationId);
       serializationId = this.serializedObjectIds.length;
       this.serializedObjectIds.set(x, serializationId);
-      if (dart.is(x, _native_typed_data.NativeByteBuffer))
-        return this.serializeByteBuffer(dart.as(x, _native_typed_data.NativeByteBuffer));
-      if (dart.is(x, _native_typed_data.NativeTypedData))
-        return this.serializeTypedData(dart.as(x, _native_typed_data.NativeTypedData));
-      if (dart.is(x, _interceptors.JSIndexable))
-        return this.serializeJSIndexable(dart.as(x, _interceptors.JSIndexable));
-      if (dart.is(x, _js_helper.InternalMap))
-        return this.serializeMap(dart.as(x, core.Map));
-      if (dart.is(x, _interceptors.JSObject))
-        return this.serializeJSObject(dart.as(x, _interceptors.JSObject));
-      if (dart.is(x, _interceptors.Interceptor))
-        this.unsupported(x);
+      if (dart.is(x, _native_typed_data.NativeByteBuffer)) return this.serializeByteBuffer(dart.as(x, _native_typed_data.NativeByteBuffer));
+      if (dart.is(x, _native_typed_data.NativeTypedData)) return this.serializeTypedData(dart.as(x, _native_typed_data.NativeTypedData));
+      if (dart.is(x, _interceptors.JSIndexable)) return this.serializeJSIndexable(dart.as(x, _interceptors.JSIndexable));
+      if (dart.is(x, _js_helper.InternalMap)) return this.serializeMap(dart.as(x, core.Map));
+      if (dart.is(x, _interceptors.JSObject)) return this.serializeJSObject(dart.as(x, _interceptors.JSObject));
+      if (dart.is(x, _interceptors.Interceptor)) this.unsupported(x);
       if (dart.is(x, isolate.RawReceivePort)) {
         this.unsupported(x, "RawReceivePorts can't be transmitted:");
       }
-      if (dart.is(x, _NativeJsSendPort))
-        return this.serializeJsSendPort(dart.as(x, _NativeJsSendPort));
-      if (dart.is(x, _WorkerSendPort))
-        return this.serializeWorkerSendPort(dart.as(x, _WorkerSendPort));
-      if (dart.is(x, core.Function))
-        return this.serializeClosure(dart.as(x, core.Function));
+      if (dart.is(x, _NativeJsSendPort)) return this.serializeJsSendPort(dart.as(x, _NativeJsSendPort));
+      if (dart.is(x, _WorkerSendPort)) return this.serializeWorkerSendPort(dart.as(x, _WorkerSendPort));
+      if (dart.is(x, core.Function)) return this.serializeClosure(dart.as(x, core.Function));
       return this.serializeDartObject(x);
     }
     unsupported(x, message) {
-      if (message === void 0)
-        message = null;
-      if (message == null)
-        message = "Can't transmit:";
+      if (message === void 0) message = null;
+      if (message == null) message = "Can't transmit:";
       dart.throw(new core.UnsupportedError(`${message} ${x}`));
     }
     makeRef(serializationId) {
@@ -95,14 +82,10 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     serializeJSIndexable(indexable) {
       dart.assert(!(typeof indexable == 'string'));
       let serialized = dart.as(this.serializeArray(dart.as(indexable, _interceptors.JSArray)), core.List);
-      if (dart.is(indexable, _interceptors.JSFixedArray))
-        return ["fixed", serialized];
-      if (dart.is(indexable, _interceptors.JSExtendableArray))
-        return ["extendable", serialized];
-      if (dart.is(indexable, _interceptors.JSMutableArray))
-        return ["mutable", serialized];
-      if (dart.is(indexable, _interceptors.JSArray))
-        return ["const", serialized];
+      if (dart.is(indexable, _interceptors.JSFixedArray)) return ["fixed", serialized];
+      if (dart.is(indexable, _interceptors.JSExtendableArray)) return ["extendable", serialized];
+      if (dart.is(indexable, _interceptors.JSMutableArray)) return ["mutable", serialized];
+      if (dart.is(indexable, _interceptors.JSArray)) return ["const", serialized];
       this.unsupported(indexable, "Can't serialize indexable: ");
       return null;
     }
@@ -197,10 +180,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_adjustSendPorts] = dart.as(adjustSendPorts, core.bool);
     }
     deserialize(x) {
-      if (dart.notNull(this.isPrimitive(x)))
-        return this.deserializePrimitive(x);
-      if (!dart.is(x, _interceptors.JSArray))
-        dart.throw(new core.ArgumentError(`Bad serialized message: ${x}`));
+      if (dart.notNull(this.isPrimitive(x))) return this.deserializePrimitive(x);
+      if (!dart.is(x, _interceptors.JSArray)) dart.throw(new core.ArgumentError(`Bad serialized message: ${x}`));
       switch (dart.dload(x, 'first')) {
         case "ref":
         {
@@ -333,11 +314,9 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       let result = null;
       if (managerId == exports._globalState.currentManagerId) {
         let isolate = exports._globalState.isolates.get(isolateId);
-        if (isolate == null)
-          return null;
+        if (isolate == null) return null;
         let receivePort = isolate.lookup(receivePortId);
-        if (receivePort == null)
-          return null;
+        if (receivePort == null) return null;
         result = new _NativeJsSendPort(receivePort, isolateId);
       } else {
         result = new _WorkerSendPort(managerId, isolateId, receivePortId);
@@ -432,14 +411,12 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   dart.fn(_currentIsolate, () => dart.definiteFunctionType(_IsolateContext, []));
   function startRootIsolate(entry, args) {
     args = args;
-    if (args == null)
-      args = [];
+    if (args == null) args = [];
     if (!dart.is(args, core.List)) {
       dart.throw(new core.ArgumentError(`Arguments to main must be a List: ${args}`));
     }
     exports._globalState = new _Manager(dart.as(entry, core.Function));
-    if (dart.notNull(exports._globalState.isWorker))
-      return;
+    if (dart.notNull(exports._globalState.isWorker)) return;
     let rootContext = new _IsolateContext();
     exports._globalState.rootContext = rootContext;
     exports._globalState.currentContext = rootContext;
@@ -568,16 +545,14 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this.registerWeak(this.controlPort[_id], this.controlPort);
     }
     addPause(authentification, resume) {
-      if (!dart.equals(this.pauseCapability, authentification))
-        return;
+      if (!dart.equals(this.pauseCapability, authentification)) return;
       if (dart.notNull(this.pauseTokens.add(resume)) && !dart.notNull(this.isPaused)) {
         this.isPaused = true;
       }
       this[_updateGlobalState]();
     }
     removePause(resume) {
-      if (!dart.notNull(this.isPaused))
-        return;
+      if (!dart.notNull(this.isPaused)) return;
       this.pauseTokens.remove(resume);
       if (dart.notNull(this.pauseTokens.isEmpty)) {
         while (dart.notNull(this.delayedEvents[dartx.isNotEmpty])) {
@@ -592,18 +567,15 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       if (this.doneHandlers == null) {
         this.doneHandlers = [];
       }
-      if (dart.notNull(dart.as(dart.dsend(this.doneHandlers, 'contains', responsePort), core.bool)))
-        return;
+      if (dart.notNull(dart.as(dart.dsend(this.doneHandlers, 'contains', responsePort), core.bool))) return;
       dart.dsend(this.doneHandlers, 'add', responsePort);
     }
     removeDoneListener(responsePort) {
-      if (this.doneHandlers == null)
-        return;
+      if (this.doneHandlers == null) return;
       dart.dsend(this.doneHandlers, 'remove', responsePort);
     }
     setErrorsFatal(authentification, errorsAreFatal) {
-      if (!dart.equals(this.terminateCapability, authentification))
-        return;
+      if (!dart.equals(this.terminateCapability, authentification)) return;
       this.errorsAreFatal = errorsAreFatal;
     }
     handlePing(responsePort, pingType) {
@@ -626,8 +598,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       dart.dsend(this[_scheduledControlEvents], 'addLast', respond);
     }
     handleKill(authentification, priority) {
-      if (!dart.equals(this.terminateCapability, authentification))
-        return;
+      if (!dart.equals(this.terminateCapability, authentification)) return;
       if (priority == isolate.Isolate.IMMEDIATE || priority == isolate.Isolate.BEFORE_NEXT_EVENT && !dart.notNull(this[_isExecutingEvent])) {
         this.kill();
         return;
@@ -657,8 +628,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
           self.console.error(error, stackTrace);
         } else {
           core.print(error);
-          if (stackTrace != null)
-            core.print(stackTrace);
+          if (stackTrace != null) core.print(stackTrace);
         }
         return;
       }
@@ -689,8 +659,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
  finally {
         this[_isExecutingEvent] = false;
         exports._globalState.currentContext = old;
-        if (old != null)
-          old[_setGlobals]();
+        if (old != null) old[_setGlobals]();
         if (this[_scheduledControlEvents] != null) {
           while (dart.notNull(dart.as(dart.dload(this[_scheduledControlEvents], 'isNotEmpty'), core.bool))) {
             dart.dcall(dart.dsend(this[_scheduledControlEvents], 'removeFirst'));
@@ -839,8 +808,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this.events.addFirst(event);
     }
     dequeue() {
-      if (dart.notNull(this.events.isEmpty))
-        return null;
+      if (dart.notNull(this.events.isEmpty)) return null;
       return this.events.removeFirst();
     }
     checkOpenReceivePortsFromCommandLine() {
@@ -861,8 +829,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     [_runHelper]() {
       if (exports.globalWindow != null) {
         const next = (function() {
-          if (!dart.notNull(this.runIteration()))
-            return;
+          if (!dart.notNull(this.runIteration())) return;
           async.Timer.run(next);
         }).bind(this);
         dart.fn(next);
@@ -947,10 +914,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       if (currentScript != null) {
         return String(currentScript.src);
       }
-      if (dart.notNull(_js_helper.Primitives.isD8))
-        return IsolateNatives.computeThisScriptD8();
-      if (dart.notNull(_js_helper.Primitives.isJsshell))
-        return IsolateNatives.computeThisScriptJsshell();
+      if (dart.notNull(_js_helper.Primitives.isD8)) return IsolateNatives.computeThisScriptD8();
+      if (dart.notNull(_js_helper.Primitives.isJsshell)) return IsolateNatives.computeThisScriptJsshell();
       if (exports._globalState != null && dart.notNull(exports._globalState.isWorker)) {
         return IsolateNatives.computeThisScriptFromTrace();
       }
@@ -973,18 +938,15 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
           }
 
         })();
-        if (stack == null)
-          dart.throw(new core.UnsupportedError('No stack trace'));
+        if (stack == null) dart.throw(new core.UnsupportedError('No stack trace'));
       }
       let pattern = null, matches = null;
       pattern = new RegExp("^ *at [^(]*\\((.*):[0-9]*:[0-9]*\\)$", "m");
       matches = stack.match(pattern);
-      if (matches != null)
-        return matches[1];
+      if (matches != null) return matches[1];
       pattern = new RegExp("^[^@]*@(.*):[0-9]*$", "m");
       matches = stack.match(pattern);
-      if (matches != null)
-        return matches[1];
+      if (matches != null) return matches[1];
       dart.throw(new core.UnsupportedError(`Cannot extract URI from "${stack}"`));
     }
     static _getEventData(e) {
@@ -1013,8 +975,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         }
         case 'spawn-worker':
         {
-          if (IsolateNatives.enableSpawnWorker != null)
-            IsolateNatives.handleSpawnWorkerRequest(msg);
+          if (IsolateNatives.enableSpawnWorker != null) IsolateNatives.handleSpawnWorkerRequest(msg);
           break;
         }
         case 'message':
@@ -1126,8 +1087,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return completer.future;
     }
     static _startWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError) {
-      if (args != null)
-        args = core.List$(core.String).from(args);
+      if (args != null) args = core.List$(core.String).from(args);
       if (dart.notNull(exports._globalState.isWorker)) {
         exports._globalState.mainManager.postMessage(_serializeMessage(dart.map({command: 'spawn-worker', functionName: functionName, args: args, msg: message, uri: uri, isSpawnUri: isSpawnUri, startPaused: startPaused, replyPort: replyPort})));
       } else {
@@ -1139,8 +1099,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Currently spawnUri is not supported without web workers."));
       }
       message = _clone(message);
-      if (args != null)
-        args = core.List$(core.String).from(args);
+      if (args != null) args = core.List$(core.String).from(args);
       exports._globalState.topEventLoop.enqueue(new _IsolateContext(), dart.fn(() => {
         let func = IsolateNatives._getJSFunctionFromName(functionName);
         IsolateNatives._startIsolate(dart.as(func, core.Function), args, message, isSpawnUri, startPaused, replyPort);
@@ -1175,8 +1134,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       }
     }
     static _spawnWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort, onError) {
-      if (uri == null)
-        uri = IsolateNatives.thisScript;
+      if (uri == null) uri = IsolateNatives.thisScript;
       let worker = new Worker(uri);
       let onerrorTrampoline = (function(f, u, c) {
         return function(e) {
@@ -1270,10 +1228,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     send(message) {
       let isolate = exports._globalState.isolates.get(this[_isolateId]);
-      if (isolate == null)
-        return;
-      if (dart.notNull(this[_receivePort][_isClosed]))
-        return;
+      if (isolate == null) return;
+      if (dart.notNull(this[_receivePort][_isClosed])) return;
       let msg = _clone(message);
       if (dart.equals(isolate.controlPort, this[_receivePort])) {
         isolate.handleControlMessage(msg);
@@ -1361,15 +1317,13 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_handler] = null;
     }
     close() {
-      if (dart.notNull(this[_isClosed]))
-        return;
+      if (dart.notNull(this[_isClosed])) return;
       this[_isClosed] = true;
       this[_handler] = null;
       exports._globalState.currentContext.unregister(this[_id]);
     }
     [_add](dataEvent) {
-      if (dart.notNull(this[_isClosed]))
-        return;
+      if (dart.notNull(this[_isClosed])) return;
       dart.dcall(this[_handler], dataEvent);
     }
     get sendPort() {
@@ -1485,8 +1439,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         if (dart.notNull(this[_inEventLoop])) {
           dart.throw(new core.UnsupportedError("Timer in event loop cannot be canceled."));
         }
-        if (this[_handle] == null)
-          return;
+        if (this[_handle] == null) return;
         leaveJsAsync();
         if (dart.notNull(this[_once])) {
           self.clearTimeout(this[_handle]);
@@ -1534,8 +1487,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return hash;
     }
     ['=='](other) {
-      if (dart.notNull(core.identical(other, this)))
-        return true;
+      if (dart.notNull(core.identical(other, this))) return true;
       if (dart.is(other, CapabilityImpl)) {
         return core.identical(this[_id], other[_id]);
       }

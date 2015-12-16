@@ -43,8 +43,7 @@ dart_library.library('dart/math', null, /* Imports */[
         return `Point(${this.x}, ${this.y})`;
       }
       ['=='](other) {
-        if (!dart.is(other, Point$()))
-          return false;
+        if (!dart.is(other, Point$())) return false;
         return dart.equals(this.x, dart.dload(other, 'x')) && dart.equals(this.y, dart.dload(other, 'y'));
       }
       get hashCode() {
@@ -92,8 +91,7 @@ dart_library.library('dart/math', null, /* Imports */[
   let Point = Point$();
   class Random extends core.Object {
     static new(seed) {
-      if (seed === void 0)
-        seed = null;
+      if (seed === void 0) seed = null;
       return seed == null ? dart.const(new _JSRandom()) : new _Random(seed);
     }
   }
@@ -114,8 +112,7 @@ dart_library.library('dart/math', null, /* Imports */[
         return `Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
       }
       ['=='](other) {
-        if (!dart.is(other, Rectangle))
-          return false;
+        if (!dart.is(other, Rectangle)) return false;
         return dart.equals(this.left, dart.dload(other, 'left')) && dart.equals(this.top, dart.dload(other, 'top')) && dart.equals(this.right, dart.dload(other, 'right')) && dart.equals(this.bottom, dart.dload(other, 'bottom'));
       }
       get hashCode() {
@@ -226,8 +223,7 @@ dart_library.library('dart/math', null, /* Imports */[
       }
       set width(width) {
         dart.as(width, T);
-        if (dart.notNull(width) < 0)
-          width = _clampToZero(width);
+        if (dart.notNull(width) < 0) width = _clampToZero(width);
         this[_width] = width;
       }
       get height() {
@@ -235,8 +231,7 @@ dart_library.library('dart/math', null, /* Imports */[
       }
       set height(height) {
         dart.as(height, T);
-        if (dart.notNull(height) < 0)
-          height = _clampToZero(height);
+        if (dart.notNull(height) < 0) height = _clampToZero(height);
         this[_height] = height;
       }
     }
@@ -264,48 +259,37 @@ dart_library.library('dart/math', null, /* Imports */[
   const SQRT1_2 = 0.7071067811865476;
   const SQRT2 = 1.4142135623730951;
   function min(a, b) {
-    if (!(typeof a == 'number'))
-      dart.throw(new core.ArgumentError(a));
-    if (!(typeof b == 'number'))
-      dart.throw(new core.ArgumentError(b));
-    if (dart.notNull(a) > dart.notNull(b))
-      return b;
-    if (dart.notNull(a) < dart.notNull(b))
-      return a;
+    if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
+    if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
+    if (dart.notNull(a) > dart.notNull(b)) return b;
+    if (dart.notNull(a) < dart.notNull(b)) return a;
     if (typeof b == 'number') {
       if (typeof a == 'number') {
         if (a == 0.0) {
           return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
         }
       }
-      if (a == 0 && dart.notNull(b[dartx.isNegative]) || dart.notNull(b[dartx.isNaN]))
-        return b;
+      if (a == 0 && dart.notNull(b[dartx.isNegative]) || dart.notNull(b[dartx.isNaN])) return b;
       return a;
     }
     return a;
   }
   dart.fn(min, core.num, [core.num, core.num]);
   function max(a, b) {
-    if (!(typeof a == 'number'))
-      dart.throw(new core.ArgumentError(a));
-    if (!(typeof b == 'number'))
-      dart.throw(new core.ArgumentError(b));
-    if (dart.notNull(a) > dart.notNull(b))
-      return a;
-    if (dart.notNull(a) < dart.notNull(b))
-      return b;
+    if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
+    if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
+    if (dart.notNull(a) > dart.notNull(b)) return a;
+    if (dart.notNull(a) < dart.notNull(b)) return b;
     if (typeof b == 'number') {
       if (typeof a == 'number') {
         if (a == 0.0) {
           return dart.notNull(a) + dart.notNull(b);
         }
       }
-      if (dart.notNull(b[dartx.isNaN]))
-        return b;
+      if (dart.notNull(b[dartx.isNaN])) return b;
       return a;
     }
-    if (b == 0 && dart.notNull(a[dartx.isNegative]))
-      return b;
+    if (b == 0 && dart.notNull(a[dartx.isNegative])) return b;
     return a;
   }
   dart.fn(max, core.num, [core.num, core.num]);

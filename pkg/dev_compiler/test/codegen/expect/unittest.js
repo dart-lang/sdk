@@ -54,8 +54,7 @@ dart_library.library('unittest', null, /* Imports */[
     matcher = util.wrapMatcher(matcher);
     let matchState = dart.map();
     try {
-      if (dart.notNull(dart.as(dart.dsend(matcher, 'matches', actual, matchState), core.bool)))
-        return;
+      if (dart.notNull(dart.as(dart.dsend(matcher, 'matches', actual, matchState), core.bool))) return;
     } catch (e) {
       let trace = dart.stackTrace(e);
       if (reason == null) {
@@ -63,8 +62,7 @@ dart_library.library('unittest', null, /* Imports */[
       }
     }
 
-    if (formatter == null)
-      formatter = _defaultFailFormatter;
+    if (formatter == null) formatter = _defaultFailFormatter;
     fail(dart.dcall(formatter, actual, matcher, reason, matchState, verbose));
   }
   dart.fn(expect, dart.void, [dart.dynamic, dart.dynamic], {reason: core.String, verbose: core.bool, formatter: ErrorFormatter});
@@ -81,8 +79,7 @@ dart_library.library('unittest', null, /* Imports */[
     if (dart.notNull(mismatchDescription.length) > 0) {
       description.add(`   Which: ${mismatchDescription}\n`);
     }
-    if (reason != null)
-      description.add(reason).add('\n');
+    if (reason != null) description.add(reason).add('\n');
     return dart.toString(description);
   }
   dart.fn(_defaultFailFormatter, core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]);

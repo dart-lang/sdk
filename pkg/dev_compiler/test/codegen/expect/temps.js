@@ -21,8 +21,7 @@ dart_library.library('temps', null, /* Imports */[
   const _opt = Symbol('_opt');
   class OptionalArg extends core.Object {
     OptionalArg(opt) {
-      if (opt === void 0)
-        opt = 123;
+      if (opt === void 0) opt = 123;
       this[_opt] = opt;
       this.opt = null;
     }

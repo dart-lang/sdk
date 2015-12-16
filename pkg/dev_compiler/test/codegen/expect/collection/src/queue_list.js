@@ -16,8 +16,7 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
   const QueueList$ = dart.generic(function(E) {
     class QueueList extends dart.mixin(core.Object, collection.ListMixin$(E)) {
       QueueList(initialCapacity) {
-        if (initialCapacity === void 0)
-          initialCapacity = null;
+        if (initialCapacity === void 0) initialCapacity = null;
         this[_head] = 0;
         this[_tail] = 0;
         this[_table] = null;
@@ -86,20 +85,17 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
         dart.as(element, E);
         this[_head] = dart.notNull(this[_head]) - 1 & dart.notNull(this[_table][dartx.length]) - 1;
         this[_table][dartx.set](this[_head], element);
-        if (this[_head] == this[_tail])
-          this[_grow]();
+        if (this[_head] == this[_tail]) this[_grow]();
       }
       removeFirst() {
-        if (this[_head] == this[_tail])
-          dart.throw(new core.StateError("No element"));
+        if (this[_head] == this[_tail]) dart.throw(new core.StateError("No element"));
         let result = this[_table][dartx.get](this[_head]);
         this[_table][dartx.set](this[_head], null);
         this[_head] = dart.notNull(this[_head]) + 1 & dart.notNull(this[_table][dartx.length]) - 1;
         return result;
       }
       removeLast() {
-        if (this[_head] == this[_tail])
-          dart.throw(new core.StateError("No element"));
+        if (this[_head] == this[_tail]) dart.throw(new core.StateError("No element"));
         this[_tail] = dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table][dartx.length]) - 1;
         let result = this[_table][dartx.get](this[_tail]);
         this[_table][dartx.set](this[_tail], null);
@@ -109,8 +105,7 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
         return dart.notNull(this[_tail]) - dart.notNull(this[_head]) & dart.notNull(this[_table][dartx.length]) - 1;
       }
       set length(value) {
-        if (dart.notNull(value) < 0)
-          dart.throw(new core.RangeError(`Length ${value} may not be negative.`));
+        if (dart.notNull(value) < 0) dart.throw(new core.RangeError(`Length ${value} may not be negative.`));
         let delta = dart.notNull(value) - dart.notNull(this.length);
         if (dart.notNull(delta) >= 0) {
           if (dart.notNull(this[_table][dartx.length]) <= dart.notNull(value)) {
@@ -151,8 +146,7 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
         number = (dart.notNull(number) << 1) - 1;
         for (;;) {
           let nextNumber = dart.notNull(number) & dart.notNull(number) - 1;
-          if (nextNumber == 0)
-            return number;
+          if (nextNumber == 0) return number;
           number = nextNumber;
         }
       }
@@ -160,8 +154,7 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
         dart.as(element, E);
         this[_table][dartx.set](this[_tail], element);
         this[_tail] = dart.notNull(this[_tail]) + 1 & dart.notNull(this[_table][dartx.length]) - 1;
-        if (this[_head] == this[_tail])
-          this[_grow]();
+        if (this[_head] == this[_tail]) this[_grow]();
       }
       [_grow]() {
         let newTable = core.List$(E).new(dart.notNull(this[_table][dartx.length]) * 2);

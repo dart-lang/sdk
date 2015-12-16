@@ -30,10 +30,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeByteData.new(length);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asByteData(offsetInBytes, length);
     }
   }
@@ -52,10 +50,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeInt8List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asInt8List(offsetInBytes, length);
     }
   }
@@ -76,10 +72,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeUint8List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asUint8List(offsetInBytes, length);
     }
   }
@@ -100,10 +94,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeUint8ClampedList.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asUint8ClampedList(offsetInBytes, length);
     }
   }
@@ -124,10 +116,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeInt16List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asInt16List(offsetInBytes, length);
     }
   }
@@ -148,10 +138,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeUint16List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asUint16List(offsetInBytes, length);
     }
   }
@@ -172,10 +160,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeInt32List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asInt32List(offsetInBytes, length);
     }
   }
@@ -196,10 +182,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeUint32List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asUint32List(offsetInBytes, length);
     }
   }
@@ -220,10 +204,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Int64List not supported by dart2js."));
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asInt64List(offsetInBytes, length);
     }
   }
@@ -244,10 +226,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       dart.throw(new core.UnsupportedError("Uint64List not supported by dart2js."));
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asUint64List(offsetInBytes, length);
     }
   }
@@ -268,10 +248,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeFloat32List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asFloat32List(offsetInBytes, length);
     }
   }
@@ -292,10 +270,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeFloat64List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asFloat64List(offsetInBytes, length);
     }
   }
@@ -316,10 +292,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeFloat32x4List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asFloat32x4List(offsetInBytes, length);
     }
   }
@@ -340,10 +314,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeInt32x4List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asInt32x4List(offsetInBytes, length);
     }
   }
@@ -364,10 +336,8 @@ dart_library.library('dart/typed_data', null, /* Imports */[
       return _native_typed_data.NativeFloat64x2List.fromList(elements);
     }
     static view(buffer, offsetInBytes, length) {
-      if (offsetInBytes === void 0)
-        offsetInBytes = 0;
-      if (length === void 0)
-        length = null;
+      if (offsetInBytes === void 0) offsetInBytes = 0;
+      if (length === void 0) length = null;
       return buffer.asFloat64x2List(offsetInBytes, length);
     }
   }

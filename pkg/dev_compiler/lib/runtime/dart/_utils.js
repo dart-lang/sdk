@@ -23,16 +23,14 @@ dart_library.library('dart/_utils', null, /* Imports */[
     throw Error(message);
   }
   function assert_(condition) {
-    if (!condition)
-      throwInternalError("The compiler is broken: failed assert");
+    if (!condition) throwInternalError("The compiler is broken: failed assert");
   }
   function getOwnNamesAndSymbols(obj) {
     return getOwnPropertyNames(obj).concat(getOwnPropertySymbols(obj));
   }
   function safeGetOwnProperty(obj, name) {
     let desc = getOwnPropertyDescriptor(obj, name);
-    if (desc)
-      return desc.value;
+    if (desc) return desc.value;
   }
   function defineLazyProperty(to, name, desc) {
     let init = desc.get;
@@ -45,8 +43,7 @@ dart_library.library('dart/_utils', null, /* Imports */[
       throwInternalError('circular initialization for field ' + name);
     }
     function lazyGetter() {
-      if (init == null)
-        return value;
+      if (init == null) return value;
       let f = init;
       init = circularInitError;
       lazySetter(f());
@@ -54,8 +51,7 @@ dart_library.library('dart/_utils', null, /* Imports */[
     }
     desc.get = lazyGetter;
     desc.configurable = true;
-    if (desc.set)
-      desc.set = lazySetter;
+    if (desc.set) desc.set = lazySetter;
     return defineProperty(to, name, desc);
   }
   function defineLazy(to, from) {

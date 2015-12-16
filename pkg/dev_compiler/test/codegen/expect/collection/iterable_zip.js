@@ -29,8 +29,7 @@ dart_library.library('collection/iterable_zip', null, /* Imports */[
       this[_current] = null;
     }
     moveNext() {
-      if (dart.notNull(this[_iterators][dartx.isEmpty]))
-        return false;
+      if (dart.notNull(this[_iterators][dartx.isEmpty])) return false;
       for (let i = 0; dart.notNull(i) < dart.notNull(this[_iterators][dartx.length]); i = dart.notNull(i) + 1) {
         if (!dart.notNull(this[_iterators][dartx.get](i).moveNext())) {
           this[_current] = null;

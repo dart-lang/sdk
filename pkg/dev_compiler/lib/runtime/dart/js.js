@@ -20,8 +20,7 @@ dart_library.library('dart/js', null, /* Imports */[
       dart.assert(this[_jsObject] != null);
     }
     static new(constructor, arguments$) {
-      if (arguments$ === void 0)
-        arguments$ = null;
+      if (arguments$ === void 0) arguments$ = null;
       let ctor = constructor[_jsObject];
       if (arguments$ == null) {
         return _wrapToDart(new ctor());
@@ -108,13 +107,11 @@ dart_library.library('dart/js', null, /* Imports */[
 
     }
     callMethod(method, args) {
-      if (args === void 0)
-        args = null;
+      if (args === void 0) args = null;
       if (!(typeof method == 'string') && !(typeof method == 'number')) {
         dart.throw(new core.ArgumentError("method is not a String or num"));
       }
-      if (args != null)
-        args = core.List.from(args[dartx.map](_convertToJS));
+      if (args != null) args = core.List.from(args[dartx.map](_convertToJS));
       let fn = this[_jsObject][method];
       if (!(fn instanceof Function)) {
         dart.throw(new core.NoSuchMethodError(this[_jsObject], core.Symbol.new(dart.as(method, core.String)), args, dart.map()));
@@ -245,8 +242,7 @@ dart_library.library('dart/js', null, /* Imports */[
         return dart.as(dart.dindex(this.callMethod('splice', [index, 1]), 0), E);
       }
       removeLast() {
-        if (this.length == 0)
-          dart.throw(new core.RangeError(-1));
+        if (this.length == 0) dart.throw(new core.RangeError(-1));
         return dart.as(this.callMethod('pop'), E);
       }
       removeRange(start, end) {
@@ -255,21 +251,17 @@ dart_library.library('dart/js', null, /* Imports */[
       }
       setRange(start, end, iterable, skipCount) {
         dart.as(iterable, core.Iterable$(E));
-        if (skipCount === void 0)
-          skipCount = 0;
+        if (skipCount === void 0) skipCount = 0;
         JsArray$()._checkRange(start, end, this.length);
         let length = dart.notNull(end) - dart.notNull(start);
-        if (length == 0)
-          return;
-        if (dart.notNull(skipCount) < 0)
-          dart.throw(new core.ArgumentError(skipCount));
+        if (length == 0) return;
+        if (dart.notNull(skipCount) < 0) dart.throw(new core.ArgumentError(skipCount));
         let args = [start, length];
         args[dartx.addAll](iterable[dartx.skip](skipCount)[dartx.take](length));
         this.callMethod('splice', args);
       }
       sort(compare) {
-        if (compare === void 0)
-          compare = null;
+        if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
         this.callMethod('sort', compare == null ? [] : [compare]);
       }
@@ -352,10 +344,8 @@ dart_library.library('dart/js', null, /* Imports */[
   }
   dart.fn(_wrapDartFunction);
   function _convertToDart(o, isBrowserType) {
-    if (isBrowserType === void 0)
-      isBrowserType = null;
-    if (isBrowserType == null)
-      isBrowserType = _isBrowserType;
+    if (isBrowserType === void 0) isBrowserType = null;
+    if (isBrowserType == null) isBrowserType = _isBrowserType;
     if (o == null || typeof o == "string" || typeof o == "number" || typeof o == "boolean" || dart.notNull(dart.dcall(isBrowserType, o))) {
       return o;
     } else if (o instanceof Date) {

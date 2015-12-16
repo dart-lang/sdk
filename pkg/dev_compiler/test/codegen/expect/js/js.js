@@ -9,8 +9,7 @@ dart_library.library('js/js', null, /* Imports */[
   dart.export_(exports, js, ['allowInterop', 'allowInteropCaptureThis'], []);
   class JS extends core.Object {
     JS(name) {
-      if (name === void 0)
-        name = null;
+      if (name === void 0) name = null;
       this.name = name;
     }
   }

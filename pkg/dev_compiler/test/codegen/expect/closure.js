@@ -56,10 +56,8 @@ dart_library.library('closure', null, /* Imports */[
        * @param {?=} c
        */
       optional_params(a, b, c) {
-        if (b === void 0)
-          b = null;
-        if (c === void 0)
-          c = null;
+        if (b === void 0) b = null;
+        if (c === void 0) c = null;
       }
       /**
        * @param {?} a

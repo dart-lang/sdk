@@ -14,8 +14,7 @@ dart_library.library('dart/mirrors', null, /* Imports */[
       return _js_mirrors.getName(symbol);
     }
     static getSymbol(name, library) {
-      if (library === void 0)
-        library = null;
+      if (library === void 0) library = null;
       return _js_mirrors.getSymbol(name, library);
     }
   }

@@ -52,8 +52,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
     static spawnUri(uri, args, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       let packageRoot = opts && 'packageRoot' in opts ? opts.packageRoot : null;
-      if (packageRoot != null)
-        dart.throw(new core.UnimplementedError("packageRoot"));
+      if (packageRoot != null) dart.throw(new core.UnimplementedError("packageRoot"));
       try {
         if (dart.is(args, core.List)) {
           for (let i = 0; dart.notNull(i) < dart.notNull(args[dartx.length]); i = dart.notNull(i) + 1) {
@@ -72,10 +71,8 @@ dart_library.library('dart/isolate', null, /* Imports */[
 
     }
     pause(resumeCapability) {
-      if (resumeCapability === void 0)
-        resumeCapability = null;
-      if (resumeCapability == null)
-        resumeCapability = Capability.new();
+      if (resumeCapability === void 0) resumeCapability = null;
+      if (resumeCapability == null) resumeCapability = Capability.new();
       this[_pause](resumeCapability);
       return resumeCapability;
     }
@@ -112,13 +109,11 @@ dart_library.library('dart/isolate', null, /* Imports */[
       this.controlPort.send(message);
     }
     kill(priority) {
-      if (priority === void 0)
-        priority = Isolate.BEFORE_NEXT_EVENT;
+      if (priority === void 0) priority = Isolate.BEFORE_NEXT_EVENT;
       this.controlPort.send(["kill", this.terminateCapability, priority]);
     }
     ping(responsePort, pingType) {
-      if (pingType === void 0)
-        pingType = Isolate.IMMEDIATE;
+      if (pingType === void 0) pingType = Isolate.IMMEDIATE;
       let message = core.List.new(3);
       message[dartx.set](0, "ping");
       message[dartx.set](1, responsePort);
@@ -205,8 +200,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
   });
   class RawReceivePort extends core.Object {
     static new(handler) {
-      if (handler === void 0)
-        handler = null;
+      if (handler === void 0) handler = null;
       return new _isolate_helper.RawReceivePortImpl(handler);
     }
   }

@@ -61,8 +61,7 @@ dart_library.library('constructors', null, /* Imports */[
   });
   class G extends core.Object {
     G(p1) {
-      if (p1 === void 0)
-        p1 = null;
+      if (p1 === void 0) p1 = null;
     }
   }
   dart.setSignature(G, {

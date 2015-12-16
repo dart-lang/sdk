@@ -34,6 +34,7 @@ String writeJsLibrary(JS.Program jsTree, String outputPath,
 
   var opts = new JS.JavaScriptPrintingOptions(
       allowKeywordsInProperties: true,
+      allowSingleLineIfStatements: true,
       arrowFnBindThisWorkaround: arrowFnBindThisWorkaround);
   var jsNamer = new TemporaryNamer(jsTree);
   jsTree.accept(new JS.Printer(opts, context, localNamer: jsNamer));

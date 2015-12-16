@@ -22,8 +22,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
   const HeapPriorityQueue$ = dart.generic(function(E) {
     class HeapPriorityQueue extends core.Object {
       HeapPriorityQueue(comparison) {
-        if (comparison === void 0)
-          comparison = null;
+        if (comparison === void 0) comparison = null;
         this[_queue] = core.List$(E).new(HeapPriorityQueue$()._INITIAL_CAPACITY);
         this.comparison = comparison != null ? comparison : core.Comparable.compare;
         this[_length] = 0;
@@ -47,8 +46,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         return dart.notNull(this[_locate](object)) >= 0;
       }
       get first() {
-        if (this[_length] == 0)
-          dart.throw(new core.StateError("No such element"));
+        if (this[_length] == 0) dart.throw(new core.StateError("No such element"));
         return this[_queue][dartx.get](0);
       }
       get isEmpty() {
@@ -63,8 +61,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
       remove(element) {
         dart.as(element, E);
         let index = this[_locate](element);
-        if (dart.notNull(index) < 0)
-          return false;
+        if (dart.notNull(index) < 0) return false;
         let last = this[_removeLast]();
         if (dart.notNull(index) < dart.notNull(this[_length])) {
           let comp = dart.dcall(this.comparison, last, element);
@@ -84,8 +81,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         return result[dartx.take](length);
       }
       removeFirst() {
-        if (this[_length] == 0)
-          dart.throw(new core.StateError("No such element"));
+        if (this[_length] == 0) dart.throw(new core.StateError("No such element"));
         let result = this[_queue][dartx.get](0);
         let last = this[_removeLast]();
         if (dart.notNull(this[_length]) > 0) {
@@ -112,8 +108,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
       }
       [_add](element) {
         dart.as(element, E);
-        if (this[_length] == this[_queue][dartx.length])
-          this[_grow]();
+        if (this[_length] == this[_queue][dartx.length]) this[_grow]();
         this[_bubbleUp](element, (() => {
           let x = this[_length];
           this[_length] = dart.notNull(x) + 1;
@@ -122,15 +117,13 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
       }
       [_locate](object) {
         dart.as(object, E);
-        if (this[_length] == 0)
-          return -1;
+        if (this[_length] == 0) return -1;
         let position = 1;
         do {
           let index = dart.notNull(position) - 1;
           let element = this[_queue][dartx.get](index);
           let comp = dart.dcall(this.comparison, element, object);
-          if (comp == 0)
-            return index;
+          if (comp == 0) return index;
           if (dart.notNull(comp) < 0) {
             let leftChildPosition = dart.notNull(position) * 2;
             if (dart.notNull(leftChildPosition) <= dart.notNull(this[_length])) {
@@ -159,8 +152,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
         while (dart.notNull(index) > 0) {
           let parentIndex = ((dart.notNull(index) - 1) / 2)[dartx.truncate]();
           let parent = this[_queue][dartx.get](parentIndex);
-          if (dart.notNull(dart.dcall(this.comparison, element, parent)) > 0)
-            break;
+          if (dart.notNull(dart.dcall(this.comparison, element, parent)) > 0) break;
           this[_queue][dartx.set](index, parent);
           index = parentIndex;
         }
@@ -205,8 +197,7 @@ dart_library.library('collection/priority_queue', null, /* Imports */[
       }
       [_grow]() {
         let newCapacity = dart.notNull(this[_queue][dartx.length]) * 2 + 1;
-        if (dart.notNull(newCapacity) < dart.notNull(HeapPriorityQueue$()._INITIAL_CAPACITY))
-          newCapacity = HeapPriorityQueue$()._INITIAL_CAPACITY;
+        if (dart.notNull(newCapacity) < dart.notNull(HeapPriorityQueue$()._INITIAL_CAPACITY)) newCapacity = HeapPriorityQueue$()._INITIAL_CAPACITY;
         let newQueue = core.List$(E).new(newCapacity);
         newQueue[dartx.setRange](0, this[_length], this[_queue]);
         this[_queue] = newQueue;

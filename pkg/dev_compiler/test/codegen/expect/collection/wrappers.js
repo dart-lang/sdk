@@ -64,8 +64,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return new dart.JsIterator(this.iterator);
       }
       join(separator) {
-        if (separator === void 0)
-          separator = "";
+        if (separator === void 0) separator = "";
         return this[_base][dartx.join](separator);
       }
       get last() {
@@ -228,8 +227,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         this[_listBase][dartx.clear]();
       }
       fillRange(start, end, fillValue) {
-        if (fillValue === void 0)
-          fillValue = null;
+        if (fillValue === void 0) fillValue = null;
         dart.as(fillValue, E);
         this[_listBase][dartx.fillRange](start, end, fillValue);
       }
@@ -238,8 +236,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
       }
       indexOf(element, start) {
         dart.as(element, E);
-        if (start === void 0)
-          start = 0;
+        if (start === void 0) start = 0;
         return this[_listBase][dartx.indexOf](element, start);
       }
       insert(index, element) {
@@ -252,8 +249,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
       }
       lastIndexOf(element, start) {
         dart.as(element, E);
-        if (start === void 0)
-          start = null;
+        if (start === void 0) start = null;
         return this[_listBase][dartx.lastIndexOf](element, start);
       }
       set length(newLength) {
@@ -292,24 +288,20 @@ dart_library.library('collection/wrappers', null, /* Imports */[
       }
       setRange(start, end, iterable, skipCount) {
         dart.as(iterable, core.Iterable$(E));
-        if (skipCount === void 0)
-          skipCount = 0;
+        if (skipCount === void 0) skipCount = 0;
         this[_listBase][dartx.setRange](start, end, iterable, skipCount);
       }
       shuffle(random) {
-        if (random === void 0)
-          random = null;
+        if (random === void 0) random = null;
         this[_listBase][dartx.shuffle](random);
       }
       sort(compare) {
-        if (compare === void 0)
-          compare = null;
+        if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
         this[_listBase][dartx.sort](compare);
       }
       sublist(start, end) {
-        if (end === void 0)
-          end = null;
+        if (end === void 0) end = null;
         return this[_listBase][dartx.sublist](start, end);
       }
     }
@@ -677,8 +669,7 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return this[_baseMap].values;
       }
       contains(element) {
-        if (element != null && !dart.is(element, V))
-          return false;
+        if (element != null && !dart.is(element, V)) return false;
         return this[_baseMap].containsKey(dart.dcall(this[_keyForValue], element));
       }
       get isEmpty() {
@@ -724,11 +715,9 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         return this[_baseMap].get(dart.dcall(this[_keyForValue], element));
       }
       remove(value) {
-        if (value != null && !dart.is(value, V))
-          return false;
+        if (value != null && !dart.is(value, V)) return false;
         let key = dart.dcall(this[_keyForValue], value);
-        if (!dart.notNull(this[_baseMap].containsKey(key)))
-          return false;
+        if (!dart.notNull(this[_baseMap].containsKey(key))) return false;
         this[_baseMap].remove(key);
         return true;
       }
@@ -739,25 +728,21 @@ dart_library.library('collection/wrappers', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [V]));
         let toRemove = [];
         this[_baseMap].forEach(dart.fn((key, value) => {
-          if (dart.notNull(test(dart.as(value, V))))
-            toRemove[dartx.add](key);
+          if (dart.notNull(test(dart.as(value, V)))) toRemove[dartx.add](key);
         }));
         toRemove[dartx.forEach](dart.bind(this[_baseMap], 'remove'));
       }
       retainAll(elements) {
         let valuesToRetain = core.Set$(V).identity();
         for (let element of elements) {
-          if (element != null && !dart.is(element, V))
-            continue;
+          if (element != null && !dart.is(element, V)) continue;
           let key = dart.dcall(this[_keyForValue], element);
-          if (!dart.notNull(this[_baseMap].containsKey(key)))
-            continue;
+          if (!dart.notNull(this[_baseMap].containsKey(key))) continue;
           valuesToRetain.add(this[_baseMap].get(key));
         }
         let keysToRemove = [];
         this[_baseMap].forEach(dart.fn((k, v) => {
-          if (!dart.notNull(valuesToRetain.contains(v)))
-            keysToRemove[dartx.add](k);
+          if (!dart.notNull(valuesToRetain.contains(v))) keysToRemove[dartx.add](k);
         }));
         keysToRemove[dartx.forEach](dart.bind(this[_baseMap], 'remove'));
       }

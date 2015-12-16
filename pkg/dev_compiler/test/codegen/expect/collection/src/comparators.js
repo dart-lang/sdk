@@ -12,15 +12,12 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
   const _lowerCaseZ = 122;
   const _asciiCaseBit = 32;
   function equalsIgnoreAsciiCase(a, b) {
-    if (a[dartx.length] != b[dartx.length])
-      return false;
+    if (a[dartx.length] != b[dartx.length]) return false;
     for (let i = 0; dart.notNull(i) < dart.notNull(a[dartx.length]); i = dart.notNull(i) + 1) {
       let aChar = a[dartx.codeUnitAt](i);
       let bChar = b[dartx.codeUnitAt](i);
-      if (aChar == bChar)
-        continue;
-      if ((dart.notNull(aChar) ^ dart.notNull(bChar)) != _asciiCaseBit)
-        return false;
+      if (aChar == bChar) continue;
+      if ((dart.notNull(aChar) ^ dart.notNull(bChar)) != _asciiCaseBit) return false;
       let aCharUpperCase = dart.notNull(aChar) | dart.notNull(_asciiCaseBit);
       if (dart.notNull(_upperCaseA) <= dart.notNull(aCharUpperCase) && dart.notNull(aCharUpperCase) <= dart.notNull(_upperCaseZ)) {
         continue;
@@ -49,12 +46,10 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
   function compareAsciiUpperCase(a, b) {
     let defaultResult = 0;
     for (let i = 0; dart.notNull(i) < dart.notNull(a[dartx.length]); i = dart.notNull(i) + 1) {
-      if (dart.notNull(i) >= dart.notNull(b[dartx.length]))
-        return 1;
+      if (dart.notNull(i) >= dart.notNull(b[dartx.length])) return 1;
       let aChar = a[dartx.codeUnitAt](i);
       let bChar = b[dartx.codeUnitAt](i);
-      if (aChar == bChar)
-        continue;
+      if (aChar == bChar) continue;
       let aUpperCase = aChar;
       let bUpperCase = bChar;
       if (dart.notNull(_lowerCaseA) <= dart.notNull(aChar) && dart.notNull(aChar) <= dart.notNull(_lowerCaseZ)) {
@@ -63,25 +58,20 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
       if (dart.notNull(_lowerCaseA) <= dart.notNull(bChar) && dart.notNull(bChar) <= dart.notNull(_lowerCaseZ)) {
         bUpperCase = dart.notNull(bUpperCase) - dart.notNull(_asciiCaseBit);
       }
-      if (aUpperCase != bUpperCase)
-        return (dart.notNull(aUpperCase) - dart.notNull(bUpperCase))[dartx.sign];
-      if (defaultResult == 0)
-        defaultResult = dart.notNull(aChar) - dart.notNull(bChar);
+      if (aUpperCase != bUpperCase) return (dart.notNull(aUpperCase) - dart.notNull(bUpperCase))[dartx.sign];
+      if (defaultResult == 0) defaultResult = dart.notNull(aChar) - dart.notNull(bChar);
     }
-    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length]))
-      return -1;
+    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length])) return -1;
     return defaultResult[dartx.sign];
   }
   dart.fn(compareAsciiUpperCase, core.int, [core.String, core.String]);
   function compareAsciiLowerCase(a, b) {
     let defaultResult = 0;
     for (let i = 0; dart.notNull(i) < dart.notNull(a[dartx.length]); i = dart.notNull(i) + 1) {
-      if (dart.notNull(i) >= dart.notNull(b[dartx.length]))
-        return 1;
+      if (dart.notNull(i) >= dart.notNull(b[dartx.length])) return 1;
       let aChar = a[dartx.codeUnitAt](i);
       let bChar = b[dartx.codeUnitAt](i);
-      if (aChar == bChar)
-        continue;
+      if (aChar == bChar) continue;
       let aLowerCase = aChar;
       let bLowerCase = bChar;
       if (dart.notNull(_upperCaseA) <= dart.notNull(bChar) && dart.notNull(bChar) <= dart.notNull(_upperCaseZ)) {
@@ -90,40 +80,33 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
       if (dart.notNull(_upperCaseA) <= dart.notNull(aChar) && dart.notNull(aChar) <= dart.notNull(_upperCaseZ)) {
         aLowerCase = dart.notNull(aLowerCase) + dart.notNull(_asciiCaseBit);
       }
-      if (aLowerCase != bLowerCase)
-        return (dart.notNull(aLowerCase) - dart.notNull(bLowerCase))[dartx.sign];
-      if (defaultResult == 0)
-        defaultResult = dart.notNull(aChar) - dart.notNull(bChar);
+      if (aLowerCase != bLowerCase) return (dart.notNull(aLowerCase) - dart.notNull(bLowerCase))[dartx.sign];
+      if (defaultResult == 0) defaultResult = dart.notNull(aChar) - dart.notNull(bChar);
     }
-    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length]))
-      return -1;
+    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length])) return -1;
     return defaultResult[dartx.sign];
   }
   dart.fn(compareAsciiLowerCase, core.int, [core.String, core.String]);
   function compareNatural(a, b) {
     for (let i = 0; dart.notNull(i) < dart.notNull(a[dartx.length]); i = dart.notNull(i) + 1) {
-      if (dart.notNull(i) >= dart.notNull(b[dartx.length]))
-        return 1;
+      if (dart.notNull(i) >= dart.notNull(b[dartx.length])) return 1;
       let aChar = a[dartx.codeUnitAt](i);
       let bChar = b[dartx.codeUnitAt](i);
       if (aChar != bChar) {
         return _compareNaturally(a, b, i, aChar, bChar);
       }
     }
-    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length]))
-      return -1;
+    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length])) return -1;
     return 0;
   }
   dart.fn(compareNatural, core.int, [core.String, core.String]);
   function compareAsciiLowerCaseNatural(a, b) {
     let defaultResult = 0;
     for (let i = 0; dart.notNull(i) < dart.notNull(a[dartx.length]); i = dart.notNull(i) + 1) {
-      if (dart.notNull(i) >= dart.notNull(b[dartx.length]))
-        return 1;
+      if (dart.notNull(i) >= dart.notNull(b[dartx.length])) return 1;
       let aChar = a[dartx.codeUnitAt](i);
       let bChar = b[dartx.codeUnitAt](i);
-      if (aChar == bChar)
-        continue;
+      if (aChar == bChar) continue;
       let aLowerCase = aChar;
       let bLowerCase = bChar;
       if (dart.notNull(_upperCaseA) <= dart.notNull(aChar) && dart.notNull(aChar) <= dart.notNull(_upperCaseZ)) {
@@ -135,23 +118,19 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
       if (aLowerCase != bLowerCase) {
         return _compareNaturally(a, b, i, aLowerCase, bLowerCase);
       }
-      if (defaultResult == 0)
-        defaultResult = dart.notNull(aChar) - dart.notNull(bChar);
+      if (defaultResult == 0) defaultResult = dart.notNull(aChar) - dart.notNull(bChar);
     }
-    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length]))
-      return -1;
+    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length])) return -1;
     return defaultResult[dartx.sign];
   }
   dart.fn(compareAsciiLowerCaseNatural, core.int, [core.String, core.String]);
   function compareAsciiUpperCaseNatural(a, b) {
     let defaultResult = 0;
     for (let i = 0; dart.notNull(i) < dart.notNull(a[dartx.length]); i = dart.notNull(i) + 1) {
-      if (dart.notNull(i) >= dart.notNull(b[dartx.length]))
-        return 1;
+      if (dart.notNull(i) >= dart.notNull(b[dartx.length])) return 1;
       let aChar = a[dartx.codeUnitAt](i);
       let bChar = b[dartx.codeUnitAt](i);
-      if (aChar == bChar)
-        continue;
+      if (aChar == bChar) continue;
       let aUpperCase = aChar;
       let bUpperCase = bChar;
       if (dart.notNull(_lowerCaseA) <= dart.notNull(aChar) && dart.notNull(aChar) <= dart.notNull(_lowerCaseZ)) {
@@ -163,11 +142,9 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
       if (aUpperCase != bUpperCase) {
         return _compareNaturally(a, b, i, aUpperCase, bUpperCase);
       }
-      if (defaultResult == 0)
-        defaultResult = dart.notNull(aChar) - dart.notNull(bChar);
+      if (defaultResult == 0) defaultResult = dart.notNull(aChar) - dart.notNull(bChar);
     }
-    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length]))
-      return -1;
+    if (dart.notNull(b[dartx.length]) > dart.notNull(a[dartx.length])) return -1;
     return defaultResult[dartx.sign];
   }
   dart.fn(compareAsciiUpperCaseNatural, core.int, [core.String, core.String]);
@@ -190,8 +167,7 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
   function _compareNumerically(a, b, aChar, bChar, index) {
     if (dart.notNull(_isNonZeroNumberSuffix(a, index))) {
       let result = _compareDigitCount(a, b, index, index);
-      if (result != 0)
-        return result;
+      if (result != 0) return result;
       return (dart.notNull(aChar) - dart.notNull(bChar))[dartx.sign];
     }
     let aIndex = index;
@@ -199,26 +175,21 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
     if (aChar == _zero) {
       do {
         aIndex = dart.notNull(aIndex) + 1;
-        if (aIndex == a[dartx.length])
-          return -1;
+        if (aIndex == a[dartx.length]) return -1;
         aChar = a[dartx.codeUnitAt](aIndex);
       } while (aChar == _zero);
-      if (!dart.notNull(_isDigit(aChar)))
-        return -1;
+      if (!dart.notNull(_isDigit(aChar))) return -1;
     } else if (bChar == _zero) {
       do {
         bIndex = dart.notNull(bIndex) + 1;
-        if (bIndex == b[dartx.length])
-          return 1;
+        if (bIndex == b[dartx.length]) return 1;
         bChar = b[dartx.codeUnitAt](bIndex);
       } while (bChar == _zero);
-      if (!dart.notNull(_isDigit(bChar)))
-        return 1;
+      if (!dart.notNull(_isDigit(bChar))) return 1;
     }
     if (aChar != bChar) {
       let result = _compareDigitCount(a, b, aIndex, bIndex);
-      if (result != 0)
-        return result;
+      if (result != 0) return result;
       return (dart.notNull(aChar) - dart.notNull(bChar))[dartx.sign];
     }
     while (true) {
@@ -236,8 +207,7 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
       }
       if (dart.notNull(aIsDigit)) {
         if (dart.notNull(bIsDigit)) {
-          if (aChar == bChar)
-            continue;
+          if (aChar == bChar) continue;
           break;
         }
         return 1;
@@ -248,20 +218,17 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
       }
     }
     let result = _compareDigitCount(a, b, aIndex, bIndex);
-    if (result != 0)
-      return result;
+    if (result != 0) return result;
     return (dart.notNull(aChar) - dart.notNull(bChar))[dartx.sign];
   }
   dart.fn(_compareNumerically, core.int, [core.String, core.String, core.int, core.int, core.int]);
   function _compareDigitCount(a, b, i, j) {
     while ((i = dart.notNull(i) + 1) < dart.notNull(a[dartx.length])) {
       let aIsDigit = _isDigit(a[dartx.codeUnitAt](i));
-      if ((j = dart.notNull(j) + 1) == b[dartx.length])
-        return dart.notNull(aIsDigit) ? 1 : 0;
+      if ((j = dart.notNull(j) + 1) == b[dartx.length]) return dart.notNull(aIsDigit) ? 1 : 0;
       let bIsDigit = _isDigit(b[dartx.codeUnitAt](j));
       if (dart.notNull(aIsDigit)) {
-        if (dart.notNull(bIsDigit))
-          continue;
+        if (dart.notNull(bIsDigit)) continue;
         return 1;
       } else if (dart.notNull(bIsDigit)) {
         return -1;
@@ -282,8 +249,7 @@ dart_library.library('collection/src/comparators', null, /* Imports */[
   function _isNonZeroNumberSuffix(string, index) {
     while ((index = dart.notNull(index) - 1) >= 0) {
       let char = string[dartx.codeUnitAt](index);
-      if (char != _zero)
-        return _isDigit(char);
+      if (char != _zero) return _isDigit(char);
     }
     return false;
   }

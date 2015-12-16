@@ -17,13 +17,11 @@ dart_library.library('methods', null, /* Imports */[
       return a;
     }
     z(b) {
-      if (b === void 0)
-        b = null;
+      if (b === void 0) b = null;
       return dart.asInt(b);
     }
     zz(b) {
-      if (b === void 0)
-        b = 0;
+      if (b === void 0) b = 0;
       return b;
     }
     w(a, opts) {

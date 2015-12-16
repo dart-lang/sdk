@@ -48,15 +48,13 @@ dart_library.library('dart/html', null, /* Imports */[
       return new Events(this);
     }
     addEventListener(type, listener, useCapture) {
-      if (useCapture === void 0)
-        useCapture = null;
+      if (useCapture === void 0) useCapture = null;
       if (listener != null) {
         this[_addEventListener](type, listener, useCapture);
       }
     }
     removeEventListener(type, listener, useCapture) {
-      if (useCapture === void 0)
-        useCapture = null;
+      if (useCapture === void 0) useCapture = null;
       if (listener != null) {
         this[_removeEventListener](type, listener, useCapture);
       }
@@ -77,12 +75,9 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.hashCode(unwrap_jso(this));
     }
     [_addEventListener](type, listener, useCapture) {
-      if (type === void 0)
-        type = null;
-      if (listener === void 0)
-        listener = null;
-      if (useCapture === void 0)
-        useCapture = null;
+      if (type === void 0) type = null;
+      if (listener === void 0) listener = null;
+      if (useCapture === void 0) useCapture = null;
       if (useCapture != null) {
         this[_addEventListener_1](type, listener, useCapture);
         return;
@@ -117,12 +112,9 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.dispatchEvent(unwrap_jso(event))), core.bool);
     }
     [_removeEventListener](type, listener, useCapture) {
-      if (type === void 0)
-        type = null;
-      if (listener === void 0)
-        listener = null;
-      if (useCapture === void 0)
-        useCapture = null;
+      if (type === void 0) type = null;
+      if (listener === void 0) listener = null;
+      if (useCapture === void 0) useCapture = null;
       if (useCapture != null) {
         this[_removeEventListener_1](type, listener, useCapture);
         return;
@@ -445,8 +437,7 @@ dart_library.library('dart/html', null, /* Imports */[
       super._created();
     }
     static tag(tag, typeExtention) {
-      if (typeExtention === void 0)
-        typeExtention = null;
+      if (typeExtention === void 0) typeExtention = null;
       return _ElementFactoryProvider.createElement_tag(tag, typeExtention);
     }
     static a() {
@@ -586,8 +577,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return new _NamespacedAttributeMap(this, namespace);
     }
     getComputedStyle(pseudoElement) {
-      if (pseudoElement === void 0)
-        pseudoElement = null;
+      if (pseudoElement === void 0) pseudoElement = null;
       if (pseudoElement == null) {
         pseudoElement = '';
       }
@@ -636,8 +626,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.localName;
     }
     scrollIntoView(alignment) {
-      if (alignment === void 0)
-        alignment = null;
+      if (alignment === void 0) alignment = null;
       let hasScrollIntoViewIfNeeded = true;
       if (dart.equals(alignment, ScrollAlignment.TOP)) {
         this[_scrollIntoView](true);
@@ -700,8 +689,7 @@ dart_library.library('dart/html', null, /* Imports */[
     matchesWithAncestors(selectors) {
       let elem = this;
       do {
-        if (dart.notNull(elem.matches(selectors)))
-          return true;
+        if (dart.notNull(elem.matches(selectors))) return true;
         elem = elem.parent;
       } while (elem != null);
       return false;
@@ -728,8 +716,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let sameAsParent = dart.equals(current, parent);
       let foundAsParent = dart.notNull(sameAsParent) || parent.tagName == 'HTML';
       if (current == null || dart.notNull(sameAsParent)) {
-        if (dart.notNull(foundAsParent))
-          return new math.Point(0, 0);
+        if (dart.notNull(foundAsParent)) return new math.Point(0, 0);
         dart.throw(new core.ArgumentError("Specified element is not a transitive offset " + "parent of this element."));
       }
       let parentOffset = current.offsetParent;
@@ -1147,8 +1134,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.requestPointerLock());
     }
     [_scrollIntoView](alignWithTop) {
-      if (alignWithTop === void 0)
-        alignWithTop = null;
+      if (alignWithTop === void 0) alignWithTop = null;
       if (alignWithTop != null) {
         this[_scrollIntoView_1](alignWithTop);
         return;
@@ -1163,8 +1149,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.scrollIntoView());
     }
     [_scrollIntoViewIfNeeded](centerIfNeeded) {
-      if (centerIfNeeded === void 0)
-        centerIfNeeded = null;
+      if (centerIfNeeded === void 0) centerIfNeeded = null;
       if (centerIfNeeded != null) {
         this[_scrollIntoViewIfNeeded_1](centerIfNeeded);
         return;
@@ -1408,8 +1393,7 @@ dart_library.library('dart/html', null, /* Imports */[
     static new(opts) {
       let href = opts && 'href' in opts ? opts.href : null;
       let e = dart.as(exports.document.createElement("a"), AnchorElement);
-      if (href != null)
-        e.href = href;
+      if (href != null) e.href = href;
       return e;
     }
     static internalCreateAnchorElement() {
@@ -1675,8 +1659,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let target = dart.as(this.target, Element);
       let matchedTarget = null;
       do {
-        if (dart.notNull(target.matches(this[_selector])))
-          return target;
+        if (dart.notNull(target.matches(this[_selector]))) return target;
         target = target.parent;
       } while (target != null && !dart.equals(target, currentTarget.parent));
       dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
@@ -2069,8 +2052,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.throw(new core.StateError('getProperty not overridden in dart:html'));
     }
     setProperty(propertyName, value, priority) {
-      if (priority === void 0)
-        priority = null;
+      if (priority === void 0) priority = null;
       return dart.throw(new core.StateError('setProperty not overridden in dart:html'));
     }
     get alignContent() {
@@ -4172,14 +4154,12 @@ dart_library.library('dart/html', null, /* Imports */[
       return propertyName in this.raw;
     }
     setProperty(propertyName, value, priority) {
-      if (priority === void 0)
-        priority = null;
+      if (priority === void 0) priority = null;
       return this[_setPropertyHelper](this[_browserPropertyName](propertyName), value, priority);
     }
     [_browserPropertyName](propertyName) {
       let name = CssStyleDeclaration._readCache(propertyName);
-      if (typeof name == 'string')
-        return name;
+      if (typeof name == 'string') return name;
       if (dart.notNull(this[_supportsProperty](CssStyleDeclaration._camelCase(propertyName)))) {
         name = propertyName;
       } else {
@@ -4196,12 +4176,9 @@ dart_library.library('dart/html', null, /* Imports */[
       return hyphenated[dartx.replaceFirst](core.RegExp.new('^-ms-'), 'ms-')[dartx.replaceAllMapped](core.RegExp.new('-([a-z]+)', {caseSensitive: false}), dart.fn(match => dart.as(dart.dsend(dart.dsend(dart.dindex(dart.dindex(match, 0), 1), 'toUpperCase'), '+', dart.dsend(dart.dindex(match, 0), 'substring', 2)), core.String), core.String, [dart.dynamic]));
     }
     [_setPropertyHelper](propertyName, value, priority) {
-      if (priority === void 0)
-        priority = null;
-      if (value == null)
-        value = '';
-      if (priority == null)
-        priority = '';
+      if (priority === void 0) priority = null;
+      if (value == null) value = '';
+      if (priority == null) priority = '';
       this.raw.setProperty(propertyName, value, priority);
     }
     static get supportsTransitions() {
@@ -4317,8 +4294,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return this[_elementCssStyleDeclarationSetIterable][dartx.first].getPropertyValue(propertyName);
     }
     setProperty(propertyName, value, priority) {
-      if (priority === void 0)
-        priority = null;
+      if (priority === void 0) priority = null;
       this[_elementCssStyleDeclarationSetIterable][dartx.forEach](dart.fn(e => dart.dsend(e, 'setProperty', propertyName, value, priority)));
     }
   }
@@ -4517,8 +4493,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.createDocumentFragment()), DocumentFragment);
     }
     [_createElement](localName_OR_tagName, typeExtension) {
-      if (typeExtension === void 0)
-        typeExtension = null;
+      if (typeExtension === void 0) typeExtension = null;
       if (typeExtension == null) {
         return this[_createElement_1](localName_OR_tagName);
       }
@@ -4534,8 +4509,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.createElement(unwrap_jso(localName), unwrap_jso(typeExtension))), Element);
     }
     [_createElementNS](namespaceURI, qualifiedName, typeExtension) {
-      if (typeExtension === void 0)
-        typeExtension = null;
+      if (typeExtension === void 0) typeExtension = null;
       if (typeExtension == null) {
         return this[_createElementNS_1](namespaceURI, qualifiedName);
       }
@@ -4625,8 +4599,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.getElementsByTagName(unwrap_jso(localName))), HtmlCollection);
     }
     importNode(node, deep) {
-      if (deep === void 0)
-        deep = null;
+      if (deep === void 0) deep = null;
       if (deep != null) {
         return this[_importNode_1](node, deep);
       }
@@ -4764,13 +4737,11 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.supportsRegisterElement;
     }
     createElement(tagName, typeExtension) {
-      if (typeExtension === void 0)
-        typeExtension = null;
+      if (typeExtension === void 0) typeExtension = null;
       return this[_createElement](tagName, typeExtension);
     }
     createElementNS(namespaceURI, qualifiedName, typeExtension) {
-      if (typeExtension === void 0)
-        typeExtension = null;
+      if (typeExtension === void 0) typeExtension = null;
       return this[_createElementNS](namespaceURI, qualifiedName, typeExtension);
     }
   }
@@ -5095,8 +5066,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.remove(unwrap_jso(tokens)));
     }
     toggle(token, force) {
-      if (force === void 0)
-        force = null;
+      if (force === void 0) force = null;
       if (force != null) {
         return this[_toggle_1](token, force);
       }
@@ -5175,13 +5145,11 @@ dart_library.library('dart/html', null, /* Imports */[
       }
     }
     sort(compare) {
-      if (compare === void 0)
-        compare = null;
+      if (compare === void 0) compare = null;
       dart.throw(new core.UnsupportedError('Cannot sort element lists'));
     }
     shuffle(random) {
-      if (random === void 0)
-        random = null;
+      if (random === void 0) random = null;
       dart.throw(new core.UnsupportedError('Cannot shuffle element lists'));
     }
     removeWhere(test) {
@@ -5201,16 +5169,14 @@ dart_library.library('dart/html', null, /* Imports */[
         dart.dsend(e, 'remove');
     }
     setRange(start, end, iterable, skipCount) {
-      if (skipCount === void 0)
-        skipCount = 0;
+      if (skipCount === void 0) skipCount = 0;
       dart.throw(new core.UnimplementedError());
     }
     replaceRange(start, end, iterable) {
       dart.throw(new core.UnimplementedError());
     }
     fillRange(start, end, fillValue) {
-      if (fillValue === void 0)
-        fillValue = null;
+      if (fillValue === void 0) fillValue = null;
       dart.throw(new core.UnimplementedError());
     }
     remove(object) {
@@ -5255,19 +5221,16 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     get first() {
       let result = this[_element][_firstElementChild];
-      if (result == null)
-        dart.throw(new core.StateError("No elements"));
+      if (result == null) dart.throw(new core.StateError("No elements"));
       return result;
     }
     get last() {
       let result = this[_element][_lastElementChild];
-      if (result == null)
-        dart.throw(new core.StateError("No elements"));
+      if (result == null) dart.throw(new core.StateError("No elements"));
       return result;
     }
     get single() {
-      if (dart.notNull(this.length) > 1)
-        dart.throw(new core.StateError("More than one element"));
+      if (dart.notNull(this.length) > 1) dart.throw(new core.StateError("More than one element"));
       return this.first;
     }
     get rawList() {
@@ -5349,13 +5312,11 @@ dart_library.library('dart/html', null, /* Imports */[
       dart.throw(new core.UnsupportedError('Cannot modify list'));
     }
     sort(compare) {
-      if (compare === void 0)
-        compare = null;
+      if (compare === void 0) compare = null;
       dart.throw(new core.UnsupportedError('Cannot sort list'));
     }
     shuffle(random) {
-      if (random === void 0)
-        random = null;
+      if (random === void 0) random = null;
       dart.throw(new core.UnsupportedError('Cannot shuffle list'));
     }
     get first() {
@@ -5603,8 +5564,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.go(unwrap_jso(distance)));
     }
     pushState(data, title, url) {
-      if (url === void 0)
-        url = null;
+      if (url === void 0) url = null;
       if (url != null) {
         let data_1 = html_common.convertDartToNative_SerializedScriptValue(data);
         this[_pushState_1](data_1, title, url);
@@ -5621,8 +5581,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.pushState(unwrap_jso(data), unwrap_jso(title)));
     }
     replaceState(data, title, url) {
-      if (url === void 0)
-        url = null;
+      if (url === void 0) url = null;
       if (url != null) {
         let data_1 = html_common.convertDartToNative_SerializedScriptValue(data);
         this[_replaceState_1](data_1, title, url);
@@ -5681,14 +5640,12 @@ dart_library.library('dart/html', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Cannot add to immutable List."));
       }
       sort(compare) {
-        if (compare === void 0)
-          compare = null;
+        if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
         dart.throw(new core.UnsupportedError("Cannot sort immutable List."));
       }
       shuffle(random) {
-        if (random === void 0)
-          random = null;
+        if (random === void 0) random = null;
         dart.throw(new core.UnsupportedError("Cannot shuffle immutable List."));
       }
       insert(index, element) {
@@ -5722,8 +5679,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       setRange(start, end, iterable, skipCount) {
         dart.as(iterable, core.Iterable$(E));
-        if (skipCount === void 0)
-          skipCount = 0;
+        if (skipCount === void 0) skipCount = 0;
         dart.throw(new core.UnsupportedError("Cannot setRange on immutable List."));
       }
       removeRange(start, end) {
@@ -5734,8 +5690,7 @@ dart_library.library('dart/html', null, /* Imports */[
         dart.throw(new core.UnsupportedError("Cannot modify an immutable List."));
       }
       fillRange(start, end, fillValue) {
-        if (fillValue === void 0)
-          fillValue = null;
+        if (fillValue === void 0) fillValue = null;
         dart.as(fillValue, E);
         dart.throw(new core.UnsupportedError("Cannot modify an immutable List."));
       }
@@ -5804,8 +5759,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.length), core.int);
     }
     get(index) {
-      if (index >>> 0 !== index || index >= this.length)
-        dart.throw(core.RangeError.index(index, this));
+      if (index >>> 0 !== index || index >= this.length) dart.throw(core.RangeError.index(index, this));
       return dart.as(wrap_jso(this.raw[index]), Node);
     }
     set(index, value) {
@@ -5833,8 +5787,7 @@ dart_library.library('dart/html', null, /* Imports */[
       if (len == 1) {
         return dart.as(wrap_jso(this.raw[0]), Node);
       }
-      if (len == 0)
-        dart.throw(new core.StateError("No elements"));
+      if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
     }
     elementAt(index) {
@@ -6291,8 +6244,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.overrideMimeType(unwrap_jso(override)));
     }
     send(data) {
-      if (data === void 0)
-        data = null;
+      if (data === void 0) data = null;
       if (data == null) {
         this[_send_1]();
         return;
@@ -6750,8 +6702,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.setRangeText(unwrap_jso(replacement), unwrap_jso(start), unwrap_jso(end), unwrap_jso(selectionMode)));
     }
     setSelectionRange(start, end, direction) {
-      if (direction === void 0)
-        direction = null;
+      if (direction === void 0) direction = null;
       if (direction != null) {
         this[_setSelectionRange_1](start, end, direction);
         return;
@@ -6766,8 +6717,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.setSelectionRange(unwrap_jso(start), unwrap_jso(end)));
     }
     stepDown(n) {
-      if (n === void 0)
-        n = null;
+      if (n === void 0) n = null;
       if (n != null) {
         this[_stepDown_1](n);
         return;
@@ -6782,8 +6732,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.stepDown());
     }
     stepUp(n) {
-      if (n === void 0)
-        n = null;
+      if (n === void 0) n = null;
       if (n != null) {
         this[_stepUp_1](n);
         return;
@@ -7351,8 +7300,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.raw.search = unwrap_jso(val);
     }
     assign(url) {
-      if (url === void 0)
-        url = null;
+      if (url === void 0) url = null;
       if (url != null) {
         this[_assign_1](url);
         return;
@@ -7606,22 +7554,18 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     get first() {
       let result = this[_this].firstChild;
-      if (result == null)
-        dart.throw(new core.StateError("No elements"));
+      if (result == null) dart.throw(new core.StateError("No elements"));
       return result;
     }
     get last() {
       let result = this[_this].lastChild;
-      if (result == null)
-        dart.throw(new core.StateError("No elements"));
+      if (result == null) dart.throw(new core.StateError("No elements"));
       return result;
     }
     get single() {
       let l = this.length;
-      if (l == 0)
-        dart.throw(new core.StateError("No elements"));
-      if (dart.notNull(l) > 1)
-        dart.throw(new core.StateError("More than one element"));
+      if (l == 0) dart.throw(new core.StateError("No elements"));
+      if (dart.notNull(l) > 1) dart.throw(new core.StateError("More than one element"));
       return this[_this].firstChild;
     }
     add(value) {
@@ -7677,11 +7621,9 @@ dart_library.library('dart/html', null, /* Imports */[
       return result;
     }
     remove(object) {
-      if (!dart.is(object, Node))
-        return false;
+      if (!dart.is(object, Node)) return false;
       let node = dart.as(object, Node);
-      if (!dart.equals(this[_this], node.parentNode))
-        return false;
+      if (!dart.equals(this[_this], node.parentNode)) return false;
       this[_this][_removeChild](node);
       return true;
     }
@@ -7712,23 +7654,19 @@ dart_library.library('dart/html', null, /* Imports */[
       return this[_this].childNodes[dartx.iterator];
     }
     sort(compare) {
-      if (compare === void 0)
-        compare = null;
+      if (compare === void 0) compare = null;
       dart.throw(new core.UnsupportedError("Cannot sort Node list"));
     }
     shuffle(random) {
-      if (random === void 0)
-        random = null;
+      if (random === void 0) random = null;
       dart.throw(new core.UnsupportedError("Cannot shuffle Node list"));
     }
     setRange(start, end, iterable, skipCount) {
-      if (skipCount === void 0)
-        skipCount = 0;
+      if (skipCount === void 0) skipCount = 0;
       dart.throw(new core.UnsupportedError("Cannot setRange on Node list"));
     }
     fillRange(start, end, fill) {
-      if (fill === void 0)
-        fill = null;
+      if (fill === void 0) fill = null;
       dart.throw(new core.UnsupportedError("Cannot fillRange on Node list"));
     }
     get length() {
@@ -7823,8 +7761,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.length), core.int);
     }
     get(index) {
-      if (index >>> 0 !== index || index >= this.length)
-        dart.throw(core.RangeError.index(index, this));
+      if (index >>> 0 !== index || index >= this.length) dart.throw(core.RangeError.index(index, this));
       return dart.as(wrap_jso(this.raw[index]), Node);
     }
     set(index, value) {
@@ -7852,8 +7789,7 @@ dart_library.library('dart/html', null, /* Imports */[
       if (len == 1) {
         return dart.as(wrap_jso(this.raw[0]), Node);
       }
-      if (len == 0)
-        dart.throw(new core.StateError("No elements"));
+      if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
     }
     elementAt(index) {
@@ -8000,8 +7936,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.cloneRange()), Range);
     }
     collapse(toStart) {
-      if (toStart === void 0)
-        toStart = null;
+      if (toStart === void 0) toStart = null;
       if (toStart != null) {
         this[_collapse_1](toStart);
         return;
@@ -8570,8 +8505,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.open(url, name, options)), WindowBase);
     }
     open(url, name, options) {
-      if (options === void 0)
-        options = null;
+      if (options === void 0) options = null;
       if (options == null) {
         return _DOMWindowCrossFrame._createSafe(this[_open2](url, name));
       } else {
@@ -8605,16 +8539,14 @@ dart_library.library('dart/html', null, /* Imports */[
       this.raw.cancelAnimationFrame(id);
     }
     [_ensureRequestAnimationFrame]() {
-      if (!!(this.raw.requestAnimationFrame && this.raw.cancelAnimationFrame))
-        return;
+      if (!!(this.raw.requestAnimationFrame && this.raw.cancelAnimationFrame)) return;
       (function($this) {
         var vendors = ['ms', 'moz', 'webkit', 'o'];
         for (var i = 0; i < vendors.length && !$this.requestAnimationFrame; ++i) {
           $this.requestAnimationFrame = $this[vendors[i] + 'RequestAnimationFrame'];
           $this.cancelAnimationFrame = $this[vendors[i] + 'CancelAnimationFrame'] || $this[vendors[i] + 'CancelRequestAnimationFrame'];
         }
-        if ($this.requestAnimationFrame && $this.cancelAnimationFrame)
-          return;
+        if ($this.requestAnimationFrame && $this.cancelAnimationFrame) return;
         $this.requestAnimationFrame = function(callback) {
           return window.setTimeout(function() {
             callback(Date.now());
@@ -8758,8 +8690,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.__getter__(unwrap_jso(name)));
     }
     alert(message) {
-      if (message === void 0)
-        message = null;
+      if (message === void 0) message = null;
       if (message != null) {
         this[_alert_1](message);
         return;
@@ -8781,8 +8712,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.close());
     }
     confirm(message) {
-      if (message === void 0)
-        message = null;
+      if (message === void 0) message = null;
       if (message != null) {
         return this[_confirm_1](message);
       }
@@ -8842,8 +8772,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.resizeTo(unwrap_jso(width), unwrap_jso(height)));
     }
     scroll(x, y, scrollOptions) {
-      if (scrollOptions === void 0)
-        scrollOptions = null;
+      if (scrollOptions === void 0) scrollOptions = null;
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
         this[_scroll_1](dart.as(x, core.num), dart.as(y, core.num));
         return;
@@ -8877,8 +8806,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.scroll(unwrap_jso(x), unwrap_jso(y), unwrap_jso(scrollOptions)));
     }
     scrollBy(x, y, scrollOptions) {
-      if (scrollOptions === void 0)
-        scrollOptions = null;
+      if (scrollOptions === void 0) scrollOptions = null;
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
         this[_scrollBy_1](dart.as(x, core.num), dart.as(y, core.num));
         return;
@@ -8912,8 +8840,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.scrollBy(unwrap_jso(x), unwrap_jso(y), unwrap_jso(scrollOptions)));
     }
     scrollTo(x, y, scrollOptions) {
-      if (scrollOptions === void 0)
-        scrollOptions = null;
+      if (scrollOptions === void 0) scrollOptions = null;
       if (typeof y == 'number' && typeof x == 'number' && scrollOptions == null) {
         this[_scrollTo_1](dart.as(x, core.num), dart.as(y, core.num));
         return;
@@ -8947,10 +8874,8 @@ dart_library.library('dart/html', null, /* Imports */[
       return wrap_jso(this.raw.scrollTo(unwrap_jso(x), unwrap_jso(y), unwrap_jso(scrollOptions)));
     }
     showModalDialog(url, dialogArgs, featureArgs) {
-      if (dialogArgs === void 0)
-        dialogArgs = null;
-      if (featureArgs === void 0)
-        featureArgs = null;
+      if (dialogArgs === void 0) dialogArgs = null;
+      if (featureArgs === void 0) featureArgs = null;
       if (featureArgs != null) {
         return this[_showModalDialog_1](url, dialogArgs, featureArgs);
       }
@@ -8997,8 +8922,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return "scrollY" in this.raw ? this.raw.scrollY[dartx.round]() : this.document.documentElement.scrollTop;
     }
     postMessage(message, targetOrigin, messagePorts) {
-      if (messagePorts === void 0)
-        messagePorts = null;
+      if (messagePorts === void 0) messagePorts = null;
       if (messagePorts != null) {
         dart.throw('postMessage unsupported');
       }
@@ -9118,8 +9042,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return `Rectangle (${this.left}, ${this.top}) ${this.width} x ${this.height}`;
     }
     ['=='](other) {
-      if (!dart.is(other, math.Rectangle))
-        return false;
+      if (!dart.is(other, math.Rectangle)) return false;
       return dart.equals(this.left, dart.dload(other, 'left')) && dart.equals(this.top, dart.dload(other, 'top')) && dart.equals(this.width, dart.dload(other, 'width')) && dart.equals(this.height, dart.dload(other, 'height'));
     }
     get hashCode() {
@@ -9264,8 +9187,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(wrap_jso(this.raw.length), core.int);
     }
     get(index) {
-      if (index >>> 0 !== index || index >= this.length)
-        dart.throw(core.RangeError.index(index, this));
+      if (index >>> 0 !== index || index >= this.length) dart.throw(core.RangeError.index(index, this));
       return dart.as(wrap_jso(this.raw[index]), Node);
     }
     set(index, value) {
@@ -9293,8 +9215,7 @@ dart_library.library('dart/html', null, /* Imports */[
       if (len == 1) {
         return dart.as(wrap_jso(this.raw[0]), Node);
       }
-      if (len == 0)
-        dart.throw(new core.StateError("No elements"));
+      if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
     }
     elementAt(index) {
@@ -9655,8 +9576,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let sb = new core.StringBuffer();
       for (let i = 0; dart.notNull(i) < dart.notNull(word[dartx.length]); i = dart.notNull(i) + 1) {
         let lower = word[dartx.get](i)[dartx.toLowerCase]();
-        if (word[dartx.get](i) != lower && dart.notNull(i) > 0)
-          sb.write('-');
+        if (word[dartx.get](i) != lower && dart.notNull(i) > 0) sb.write('-');
         sb.write(lower);
       }
       return dart.toString(sb);
@@ -9874,8 +9794,7 @@ dart_library.library('dart/html', null, /* Imports */[
           this[_sets][dartx.forEach](dart.fn(e => e.modify(f), dart.dynamic, [html_common.CssClassSetImpl]));
         }
         toggle(value, shouldAdd) {
-          if (shouldAdd === void 0)
-            shouldAdd = null;
+          if (shouldAdd === void 0) shouldAdd = null;
           return this[_sets][dartx.fold](false, dart.fn((changed, e) => dart.notNull(e.toggle(value, shouldAdd)) || dart.notNull(changed), core.bool, [core.bool, html_common.CssClassSetImpl]));
         }
         remove(value) {
@@ -9938,8 +9857,7 @@ dart_library.library('dart/html', null, /* Imports */[
           return typeof value == 'string' && dart.notNull(exports._ElementCssClassSet._remove(this[_element], value));
         }
         toggle(value, shouldAdd) {
-          if (shouldAdd === void 0)
-            shouldAdd = null;
+          if (shouldAdd === void 0) shouldAdd = null;
           return exports._ElementCssClassSet._toggle(this[_element], value, shouldAdd);
         }
         addAll(iterable) {
@@ -10110,8 +10028,7 @@ dart_library.library('dart/html', null, /* Imports */[
     css(cssValue) {
       this[_value] = null;
       this[_unit] = null;
-      if (cssValue == '')
-        cssValue = '0px';
+      if (cssValue == '') cssValue = '0px';
       if (dart.notNull(cssValue[dartx.endsWith]('%'))) {
         this[_unit] = '%';
       } else {
@@ -10303,8 +10220,7 @@ dart_library.library('dart/html', null, /* Imports */[
         this[_tryResume]();
       }
       cancel() {
-        if (dart.notNull(this[_canceled]))
-          return null;
+        if (dart.notNull(this[_canceled])) return null;
         this[_unlisten]();
         this[_target] = null;
         this[_onData] = null;
@@ -10327,10 +10243,8 @@ dart_library.library('dart/html', null, /* Imports */[
         dart.as(handleDone, dart.functionType(dart.void, []));
       }
       pause(resumeSignal) {
-        if (resumeSignal === void 0)
-          resumeSignal = null;
-        if (dart.notNull(this[_canceled]))
-          return;
+        if (resumeSignal === void 0) resumeSignal = null;
+        if (dart.notNull(this[_canceled])) return;
         this[_pauseCount] = dart.notNull(this[_pauseCount]) + 1;
         this[_unlisten]();
         if (resumeSignal != null) {
@@ -10341,8 +10255,7 @@ dart_library.library('dart/html', null, /* Imports */[
         return dart.notNull(this[_pauseCount]) > 0;
       }
       resume() {
-        if (dart.notNull(this[_canceled]) || !dart.notNull(this.isPaused))
-          return;
+        if (dart.notNull(this[_canceled]) || !dart.notNull(this.isPaused)) return;
         this[_pauseCount] = dart.notNull(this[_pauseCount]) - 1;
         this[_tryResume]();
       }
@@ -10357,8 +10270,7 @@ dart_library.library('dart/html', null, /* Imports */[
         }
       }
       asFuture(futureValue) {
-        if (futureValue === void 0)
-          futureValue = null;
+        if (futureValue === void 0) futureValue = null;
         let completer = async.Completer.new();
         return completer.future;
       }
@@ -10417,8 +10329,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       add(event) {
         dart.as(event, T);
-        if (event.type == this[_type])
-          this[_streamController].add(event);
+        if (event.type == this[_type]) this[_streamController].add(event);
       }
     }
     _CustomEventStreamImpl[dart.implements] = () => [CustomStream$(T)];
@@ -10485,8 +10396,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let target = this.target;
       let matchedTarget = null;
       do {
-        if (dart.notNull(dart.as(dart.dcall(target.matches, this[_selector]), core.bool)))
-          return dart.as(target, Element);
+        if (dart.notNull(dart.as(dart.dcall(target.matches, this[_selector]), core.bool))) return dart.as(target, Element);
         target = dart.as(target.parent, EventTarget);
       } while (target != null && !dart.equals(target, currentTarget.parent));
       dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
@@ -10751,15 +10661,13 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       add(stream) {
         dart.as(stream, async.Stream$(T));
-        if (dart.notNull(this[_subscriptions].containsKey(stream)))
-          return;
+        if (dart.notNull(this[_subscriptions].containsKey(stream))) return;
         this[_subscriptions].set(stream, stream.listen(dart.bind(this[_controller], 'add'), {onError: dart.bind(this[_controller], 'addError'), onDone: dart.fn((() => this.remove(stream)).bind(this), dart.void, [])}));
       }
       remove(stream) {
         dart.as(stream, async.Stream$(T));
         let subscription = this[_subscriptions].remove(stream);
-        if (subscription != null)
-          subscription.cancel();
+        if (subscription != null) subscription.cancel();
       }
       close() {
         for (let subscription of this[_subscriptions].values) {
@@ -11606,16 +11514,14 @@ dart_library.library('dart/html', null, /* Imports */[
       this.allowTemplating();
     }
     allowNavigation(uriPolicy) {
-      if (uriPolicy === void 0)
-        uriPolicy = null;
+      if (uriPolicy === void 0) uriPolicy = null;
       if (uriPolicy == null) {
         uriPolicy = UriPolicy.new();
       }
       this.add(_SimpleNodeValidator.allowNavigation(uriPolicy));
     }
     allowImages(uriPolicy) {
-      if (uriPolicy === void 0)
-        uriPolicy = null;
+      if (uriPolicy === void 0) uriPolicy = null;
       if (uriPolicy == null) {
         uriPolicy = UriPolicy.new();
       }
@@ -11869,19 +11775,16 @@ dart_library.library('dart/html', null, /* Imports */[
         this[_list][dartx.length] = newLength;
       }
       sort(compare) {
-        if (compare === void 0)
-          compare = null;
+        if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
         this[_list][dartx.sort](compare);
       }
       indexOf(element, start) {
-        if (start === void 0)
-          start = 0;
+        if (start === void 0) start = 0;
         return this[_list][dartx.indexOf](element, start);
       }
       lastIndexOf(element, start) {
-        if (start === void 0)
-          start = null;
+        if (start === void 0) start = null;
         return this[_list][dartx.lastIndexOf](element, start);
       }
       insert(index, element) {
@@ -11893,8 +11796,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       setRange(start, end, iterable, skipCount) {
         dart.as(iterable, core.Iterable$(E));
-        if (skipCount === void 0)
-          skipCount = 0;
+        if (skipCount === void 0) skipCount = 0;
         this[_list][dartx.setRange](start, end, iterable, skipCount);
       }
       removeRange(start, end) {
@@ -11905,8 +11807,7 @@ dart_library.library('dart/html', null, /* Imports */[
         this[_list][dartx.replaceRange](start, end, iterable);
       }
       fillRange(start, end, fillValue) {
-        if (fillValue === void 0)
-          fillValue = null;
+        if (fillValue === void 0) fillValue = null;
         dart.as(fillValue, E);
         this[_list][dartx.fillRange](start, end, fillValue);
       }
@@ -12056,8 +11957,7 @@ dart_library.library('dart/html', null, /* Imports */[
   });
   let _VariableSizeListIterator = _VariableSizeListIterator$();
   function _convertNativeToDart_Window(win) {
-    if (win == null)
-      return null;
+    if (win == null) return null;
     return _DOMWindowCrossFrame._createSafe(win);
   }
   dart.fn(_convertNativeToDart_Window, WindowBase, [dart.dynamic]);
@@ -12114,8 +12014,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return this[_window].close();
     }
     postMessage(message, targetOrigin, messagePorts) {
-      if (messagePorts === void 0)
-        messagePorts = null;
+      if (messagePorts === void 0) messagePorts = null;
       if (messagePorts == null) {
         this[_window].postMessage(html_common.convertDartToNative_SerializedScriptValue(message), targetOrigin);
       } else {
@@ -12136,34 +12035,26 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
     [_addEventListener](type, listener, useCapture) {
-      if (type === void 0)
-        type = null;
-      if (listener === void 0)
-        listener = null;
-      if (useCapture === void 0)
-        useCapture = null;
+      if (type === void 0) type = null;
+      if (listener === void 0) listener = null;
+      if (useCapture === void 0) useCapture = null;
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
     addEventListener(type, listener, useCapture) {
-      if (useCapture === void 0)
-        useCapture = null;
+      if (useCapture === void 0) useCapture = null;
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
     dispatchEvent(event) {
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
     [_removeEventListener](type, listener, useCapture) {
-      if (type === void 0)
-        type = null;
-      if (listener === void 0)
-        listener = null;
-      if (useCapture === void 0)
-        useCapture = null;
+      if (type === void 0) type = null;
+      if (listener === void 0) listener = null;
+      if (useCapture === void 0) useCapture = null;
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
     removeEventListener(type, listener, useCapture) {
-      if (useCapture === void 0)
-        useCapture = null;
+      if (useCapture === void 0) useCapture = null;
       return dart.throw(new core.UnsupportedError('You can only attach EventListeners to your own window.'));
     }
   }
@@ -12263,18 +12154,14 @@ dart_library.library('dart/html', null, /* Imports */[
   const supportsTypedData = !!window.ArrayBuffer;
   Platform.supportsSimd = false;
   function _wrapZone(callback) {
-    if (dart.equals(async.Zone.current, async.Zone.ROOT))
-      return callback;
-    if (callback == null)
-      return null;
+    if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
+    if (callback == null) return null;
     return async.Zone.current.bindUnaryCallback(callback, {runGuarded: true});
   }
   dart.fn(_wrapZone, dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic])]);
   function _wrapBinaryZone(callback) {
-    if (dart.equals(async.Zone.current, async.Zone.ROOT))
-      return callback;
-    if (callback == null)
-      return null;
+    if (dart.equals(async.Zone.current, async.Zone.ROOT)) return callback;
+    if (callback == null) return null;
     return async.Zone.current.bindBinaryCallback(callback, {runGuarded: true});
   }
   dart.fn(_wrapBinaryZone, dart.dynamic, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]);

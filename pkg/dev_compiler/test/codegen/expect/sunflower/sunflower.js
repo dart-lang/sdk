@@ -56,11 +56,9 @@ dart_library.library('sunflower/sunflower', null, /* Imports */[
   dart.fn(draw, dart.void, []);
   class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {
     SunflowerSeed(x, y, radius, color) {
-      if (color === void 0)
-        color = null;
+      if (color === void 0) color = null;
       super.Circle(x, y, radius);
-      if (color != null)
-        this.color = color;
+      if (color != null) this.color = color;
     }
   }
   dart.setSignature(SunflowerSeed, {

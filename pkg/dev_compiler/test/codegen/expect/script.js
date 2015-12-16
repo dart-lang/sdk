@@ -7,8 +7,7 @@ dart_library.library('script', null, /* Imports */[
   let dartx = dart.dartx;
   function main(args) {
     let name = args[dartx.join](' ');
-    if (name == '')
-      name = 'world';
+    if (name == '') name = 'world';
     core.print(`hello ${name}`);
   }
   dart.fn(main, dart.void, [core.List$(core.String)]);

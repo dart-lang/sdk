@@ -27,8 +27,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         this.addAll(other);
       }
       get(key) {
-        if (!dart.notNull(this[_isValidKey](key)))
-          return null;
+        if (!dart.notNull(this[_isValidKey](key))) return null;
         let pair = this[_base].get(dart.dcall(this[_canonicalize], key));
         return pair == null ? null : pair.last;
       }
@@ -46,8 +45,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         this[_base].clear();
       }
       containsKey(key) {
-        if (!dart.notNull(this[_isValidKey](key)))
-          return false;
+        if (!dart.notNull(this[_isValidKey](key))) return false;
         return this[_base].containsKey(dart.dcall(this[_canonicalize], key));
       }
       containsValue(value) {
@@ -75,8 +73,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return this[_base].putIfAbsent(dart.as(dart.dcall(this[_canonicalize], key), C), dart.fn(() => new (utils.Pair$(K, V))(key, ifAbsent()), utils.Pair$(K, V), [])).last;
       }
       remove(key) {
-        if (!dart.notNull(this[_isValidKey](key)))
-          return null;
+        if (!dart.notNull(this[_isValidKey](key))) return null;
         let pair = this[_base].remove(dart.dcall(this[_canonicalize], key));
         return pair == null ? null : pair.last;
       }

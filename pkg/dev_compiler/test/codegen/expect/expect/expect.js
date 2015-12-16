@@ -11,20 +11,15 @@ dart_library.library('expect/expect', null, /* Imports */[
         end = dart.notNull(start) + dart.notNull(length);
       } else if (dart.notNull(end) - dart.notNull(start) < dart.notNull(length)) {
         let overflow = dart.notNull(length) - (dart.notNull(end) - dart.notNull(start));
-        if (dart.notNull(overflow) > 10)
-          overflow = 10;
+        if (dart.notNull(overflow) > 10) overflow = 10;
         start = dart.notNull(start) - ((dart.notNull(overflow) + 1) / 2)[dartx.truncate]();
         end = dart.notNull(end) + (dart.notNull(overflow) / 2)[dartx.truncate]();
-        if (dart.notNull(start) < 0)
-          start = 0;
-        if (dart.notNull(end) > dart.notNull(string[dartx.length]))
-          end = string[dartx.length];
+        if (dart.notNull(start) < 0) start = 0;
+        if (dart.notNull(end) > dart.notNull(string[dartx.length])) end = string[dartx.length];
       }
-      if (start == 0 && end == string[dartx.length])
-        return string;
+      if (start == 0 && end == string[dartx.length]) return string;
       let buf = new core.StringBuffer();
-      if (dart.notNull(start) > 0)
-        buf.write("...");
+      if (dart.notNull(start) > 0) buf.write("...");
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
         let code = string[dartx.codeUnitAt](i);
         if (dart.notNull(code) < 32) {
@@ -35,20 +30,17 @@ dart_library.library('expect/expect', null, /* Imports */[
           buf.writeCharCode(string[dartx.codeUnitAt](i));
         }
       }
-      if (dart.notNull(end) < dart.notNull(string[dartx.length]))
-        buf.write("...");
+      if (dart.notNull(end) < dart.notNull(string[dartx.length])) buf.write("...");
       return dart.toString(buf);
     }
     static _stringDifference(expected, actual) {
-      if (dart.notNull(expected[dartx.length]) < 20 && dart.notNull(actual[dartx.length]) < 20)
-        return null;
+      if (dart.notNull(expected[dartx.length]) < 20 && dart.notNull(actual[dartx.length]) < 20) return null;
       for (let i = 0; dart.notNull(i) < dart.notNull(expected[dartx.length]) && dart.notNull(i) < dart.notNull(actual[dartx.length]); i = dart.notNull(i) + 1) {
         if (expected[dartx.codeUnitAt](i) != actual[dartx.codeUnitAt](i)) {
           let start = i;
           i = dart.notNull(i) + 1;
           while (dart.notNull(i) < dart.notNull(expected[dartx.length]) && dart.notNull(i) < dart.notNull(actual[dartx.length])) {
-            if (expected[dartx.codeUnitAt](i) == actual[dartx.codeUnitAt](i))
-              break;
+            if (expected[dartx.codeUnitAt](i) == actual[dartx.codeUnitAt](i)) break;
             i = dart.notNull(i) + 1;
           }
           let end = i;
@@ -60,10 +52,8 @@ dart_library.library('expect/expect', null, /* Imports */[
       return null;
     }
     static equals(expected, actual, reason) {
-      if (reason === void 0)
-        reason = null;
-      if (dart.equals(expected, actual))
-        return;
+      if (reason === void 0) reason = null;
+      if (dart.equals(expected, actual)) return;
       let msg = Expect._getMessage(reason);
       if (typeof expected == 'string' && typeof actual == 'string') {
         let stringDifference = Expect._stringDifference(dart.as(expected, core.String), dart.as(actual, core.String));
@@ -74,42 +64,32 @@ dart_library.library('expect/expect', null, /* Imports */[
       Expect._fail(`Expect.equals(expected: <${expected}>, actual: <${actual}>${msg}) fails.`);
     }
     static isTrue(actual, reason) {
-      if (reason === void 0)
-        reason = null;
-      if (dart.notNull(_identical(actual, true)))
-        return;
+      if (reason === void 0) reason = null;
+      if (dart.notNull(_identical(actual, true))) return;
       let msg = Expect._getMessage(reason);
       Expect._fail(`Expect.isTrue(${actual}${msg}) fails.`);
     }
     static isFalse(actual, reason) {
-      if (reason === void 0)
-        reason = null;
-      if (dart.notNull(_identical(actual, false)))
-        return;
+      if (reason === void 0) reason = null;
+      if (dart.notNull(_identical(actual, false))) return;
       let msg = Expect._getMessage(reason);
       Expect._fail(`Expect.isFalse(${actual}${msg}) fails.`);
     }
     static isNull(actual, reason) {
-      if (reason === void 0)
-        reason = null;
-      if (null == actual)
-        return;
+      if (reason === void 0) reason = null;
+      if (null == actual) return;
       let msg = Expect._getMessage(reason);
       Expect._fail(`Expect.isNull(actual: <${actual}>${msg}) fails.`);
     }
     static isNotNull(actual, reason) {
-      if (reason === void 0)
-        reason = null;
-      if (null != actual)
-        return;
+      if (reason === void 0) reason = null;
+      if (null != actual) return;
       let msg = Expect._getMessage(reason);
       Expect._fail(`Expect.isNotNull(actual: <${actual}>${msg}) fails.`);
     }
     static identical(expected, actual, reason) {
-      if (reason === void 0)
-        reason = null;
-      if (dart.notNull(_identical(expected, actual)))
-        return;
+      if (reason === void 0) reason = null;
+      if (dart.notNull(_identical(expected, actual))) return;
       let msg = Expect._getMessage(reason);
       Expect._fail(`Expect.identical(expected: <${expected}>, actual: <${actual}>${msg}) ` + "fails.");
     }
@@ -117,29 +97,23 @@ dart_library.library('expect/expect', null, /* Imports */[
       Expect._fail(`Expect.fail('${msg}')`);
     }
     static approxEquals(expected, actual, tolerance, reason) {
-      if (tolerance === void 0)
-        tolerance = null;
-      if (reason === void 0)
-        reason = null;
+      if (tolerance === void 0) tolerance = null;
+      if (reason === void 0) reason = null;
       if (tolerance == null) {
         tolerance = (dart.notNull(expected) / 10000.0)[dartx.abs]();
       }
-      if (dart.notNull((dart.notNull(expected) - dart.notNull(actual))[dartx.abs]()) <= dart.notNull(tolerance))
-        return;
+      if (dart.notNull((dart.notNull(expected) - dart.notNull(actual))[dartx.abs]()) <= dart.notNull(tolerance)) return;
       let msg = Expect._getMessage(reason);
       Expect._fail(`Expect.approxEquals(expected:<${expected}>, actual:<${actual}>, ` + `tolerance:<${tolerance}>${msg}) fails`);
     }
     static notEquals(unexpected, actual, reason) {
-      if (reason === void 0)
-        reason = null;
-      if (!dart.equals(unexpected, actual))
-        return;
+      if (reason === void 0) reason = null;
+      if (!dart.equals(unexpected, actual)) return;
       let msg = Expect._getMessage(reason);
       Expect._fail(`Expect.notEquals(unexpected: <${unexpected}>, actual:<${actual}>${msg}) ` + "fails.");
     }
     static listEquals(expected, actual, reason) {
-      if (reason === void 0)
-        reason = null;
+      if (reason === void 0) reason = null;
       let msg = Expect._getMessage(reason);
       let n = dart.notNull(expected[dartx.length]) < dart.notNull(actual[dartx.length]) ? expected[dartx.length] : actual[dartx.length];
       for (let i = 0; dart.notNull(i) < dart.notNull(n); i = dart.notNull(i) + 1) {
@@ -152,8 +126,7 @@ dart_library.library('expect/expect', null, /* Imports */[
       }
     }
     static mapEquals(expected, actual, reason) {
-      if (reason === void 0)
-        reason = null;
+      if (reason === void 0) reason = null;
       let msg = Expect._getMessage(reason);
       for (let key of expected.keys) {
         if (!dart.notNull(actual.containsKey(key))) {
@@ -168,10 +141,8 @@ dart_library.library('expect/expect', null, /* Imports */[
       }
     }
     static stringEquals(expected, actual, reason) {
-      if (reason === void 0)
-        reason = null;
-      if (expected == actual)
-        return;
+      if (reason === void 0) reason = null;
+      if (expected == actual) return;
       let msg = Expect._getMessage(reason);
       let defaultMessage = `Expect.stringEquals(expected: <${expected}>", <${actual}>${msg}) fails`;
       if (expected == null || actual == null) {
@@ -208,22 +179,18 @@ dart_library.library('expect/expect', null, /* Imports */[
       }
       let leftLead = "...";
       let rightTail = "...";
-      if (dart.notNull(left) <= 10)
-        leftLead = "";
-      if (dart.notNull(right) <= 10)
-        rightTail = "";
+      if (dart.notNull(left) <= 10) leftLead = "";
+      if (dart.notNull(right) <= 10) rightTail = "";
       let diff = `\nDiff (${left}..${dart.notNull(eLen) - dart.notNull(right)}/${dart.notNull(aLen) - dart.notNull(right)}):\n` + `${leftLead}${leftSnippet}[ ${eSnippet} ]${rightSnippet}${rightTail}\n` + `${leftLead}${leftSnippet}[ ${aSnippet} ]${rightSnippet}${rightTail}`;
       Expect._fail(`${defaultMessage}${diff}`);
     }
     static setEquals(expected, actual, reason) {
-      if (reason === void 0)
-        reason = null;
+      if (reason === void 0) reason = null;
       let missingSet = core.Set.from(expected);
       missingSet.removeAll(actual);
       let extraSet = core.Set.from(actual);
       extraSet.removeAll(expected);
-      if (dart.notNull(extraSet.isEmpty) && dart.notNull(missingSet.isEmpty))
-        return;
+      if (dart.notNull(extraSet.isEmpty) && dart.notNull(missingSet.isEmpty)) return;
       let msg = Expect._getMessage(reason);
       let sb = new core.StringBuffer(`Expect.setEquals(${msg}) fails`);
       if (!dart.notNull(missingSet.isEmpty)) {
@@ -241,10 +208,8 @@ dart_library.library('expect/expect', null, /* Imports */[
       Expect._fail(dart.toString(sb));
     }
     static throws(f, check, reason) {
-      if (check === void 0)
-        check = null;
-      if (reason === void 0)
-        reason = null;
+      if (check === void 0) check = null;
+      if (reason === void 0) reason = null;
       let msg = reason == null ? "" : `(${reason})`;
       if (!dart.is(f, _Nullary)) {
         Expect._fail(`Expect.throws${msg}: Function f not callable with zero arguments`);
