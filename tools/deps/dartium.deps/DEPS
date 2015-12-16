@@ -71,7 +71,6 @@ vars.update({
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
 
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
-  "fake_async_rev": "@38614",
 })
 
 def massage_deps(deps):
@@ -188,10 +187,6 @@ deps.update({
 
   "src/dart/third_party/WebCore":
     "http://dart.googlecode.com/svn/third_party/WebCore",
-
-  "src/dart/third_party/pkg/fake_async":
-    "http://dart.googlecode.com/svn/third_party/fake_async" +
-    Var("fake_async_rev"),
 
   "src/dart/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),

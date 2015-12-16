@@ -55,7 +55,6 @@ vars = {
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.2",
   "dev_compiler_rev": "@0.1.9",
-  "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "gsutil_rev" : "@33376",
@@ -155,8 +154,6 @@ deps = {
      Var("third_party") + "/7zip" + Var("7zip_rev"),
   Var("dart_root") + "/third_party/chrome":
       Var("third_party") + "/chrome" + Var("chrome_rev"),
-  Var("dart_root") + "/third_party/pkg/fake_async":
-      Var("third_party") + "/fake_async" + Var("fake_async_rev"),
   Var("dart_root") + "/third_party/firefox_jsshell":
       Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
   Var("dart_root") + "/third_party/font-awesome":
