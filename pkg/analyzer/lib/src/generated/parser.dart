@@ -3867,6 +3867,16 @@ class Parser {
         index = 3;
       }
     }
+    if (StringUtilities.startsWith4(comment, index, 0x20, 0x20, 0x20, 0x20)) {
+      int end = index + 4;
+      while (end < length &&
+          comment.codeUnitAt(end) != 0xD &&
+          comment.codeUnitAt(end) != 0xA) {
+        end = end + 1;
+      }
+      ranges.add(<int>[index, end]);
+      index = end;
+    }
     while (index < length) {
       int currentChar = comment.codeUnitAt(index);
       if (currentChar == 0xD || currentChar == 0xA) {
@@ -5043,7 +5053,7 @@ class Parser {
     List<CommentReference> references = new List<CommentReference>();
     for (DocumentationCommentToken token in tokens) {
       String comment = token.lexeme;
-      comment = _removeGitHubCodeBlocks(comment);
+      comment = _removeCodeBlocksGitHub(comment);
       int length = comment.length;
       List<List<int>> codeBlockRanges = _getCodeBlockRanges(comment);
       int leftIndex = comment.indexOf('[');
@@ -8233,7 +8243,7 @@ class Parser {
     return token;
   }
 
-  String _removeGitHubCodeBlocks(String comment) {
+  String _removeCodeBlocksGitHub(String comment) {
     int index = 0;
     while (true) {
       int beginIndex = comment.indexOf('`', index);

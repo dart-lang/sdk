@@ -6764,6 +6764,28 @@ void''');
     expect(reference.offset, 35);
   }
 
+  void test_parseCommentReferences_skipCodeBlock_4spaces_block() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(TokenType.MULTI_LINE_COMMENT,
+          "/**\n *     a[i]\n * non-code line\n */", 3)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "");
+    expect(references, isEmpty);
+  }
+
+  void test_parseCommentReferences_skipCodeBlock_4spaces_lines() {
+    List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
+      new DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "/// Code block:", 0),
+      new DocumentationCommentToken(
+          TokenType.SINGLE_LINE_COMMENT, "///     a[i] == b[i]", 0)
+    ];
+    List<CommentReference> references =
+        parse("parseCommentReferences", <Object>[tokens], "");
+    expect(references, isEmpty);
+  }
+
   void test_parseCommentReferences_skipCodeBlock_bracketed() {
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[
       new DocumentationCommentToken(
