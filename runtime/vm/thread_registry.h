@@ -58,6 +58,8 @@ class ThreadRegistry {
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
  private:
+  void AddThreadToActiveList(Thread* thread);
+  void RemoveThreadFromActiveList(Thread* thread);
   Thread* GetThreadFromFreelist(Isolate* isolate);
   void ReturnThreadToFreelist(Thread* thread);
 
