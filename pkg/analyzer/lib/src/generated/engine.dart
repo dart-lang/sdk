@@ -824,8 +824,7 @@ class AnalysisEngine {
   TaskManager get taskManager {
     if (_taskManager == null) {
       if (enginePlugin.taskExtensionPoint == null) {
-        throw new IllegalStateException(
-            'The analysis engine plugin has not been registered');
+        processRequiredPlugins();
       }
       _taskManager = new TaskManager();
       _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
@@ -858,7 +857,7 @@ class AnalysisEngine {
    */
   void processRequiredPlugins() {
     ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(AnalysisEngine.instance.requiredPlugins);
+    manager.processPlugins(requiredPlugins);
   }
 
   /**
