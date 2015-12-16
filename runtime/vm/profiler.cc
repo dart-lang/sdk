@@ -1193,9 +1193,9 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
       continue;
     }
     if (!sample->head_sample()) {
-        // An inner sample in a chain of samples.
-        continue;
-      }
+      // An inner sample in a chain of samples.
+      continue;
+    }
     if (sample->isolate() != filter->isolate()) {
       // Another isolate.
       continue;
@@ -1228,6 +1228,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
 
   // Copy state bits from sample.
   processed_sample->set_timestamp(sample->timestamp());
+  processed_sample->set_tid(sample->tid());
   processed_sample->set_vm_tag(sample->vm_tag());
   processed_sample->set_user_tag(sample->user_tag());
   if (sample->is_allocation_sample()) {
@@ -1287,7 +1288,8 @@ ProcessedSample::ProcessedSample()
       vm_tag_(0),
       user_tag_(0),
       allocation_cid_(-1),
-      truncated_(false) {
+      truncated_(false),
+      timeline_trie_(NULL) {
 }
 
 

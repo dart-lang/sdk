@@ -32,10 +32,15 @@ class TimelinePageElement extends ObservatoryElement {
 
   Future postMessage(String method) {
     IFrameElement e = $['root'];
+    var isolateIds = new List();
+    for (var isolate in app.vm.isolates) {
+      isolateIds.add(isolate.id);
+    }
     var message = {
       'method': method,
       'params': {
-        'vmAddress': (app.vm as WebSocketVM).target.networkAddress
+        'vmAddress': (app.vm as WebSocketVM).target.networkAddress,
+        'isolateIds': isolateIds
       }
     };
     e.contentWindow.postMessage(JSON.encode(message), window.location.href);

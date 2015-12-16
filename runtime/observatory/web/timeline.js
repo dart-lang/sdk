@@ -40,18 +40,50 @@ function fetchUri(uri, onLoad, onError) {
   console.log('GET ' + uri);
 }
 
+
+var traceObject;
+var pendingRequests;
+
+function gotReponse() {
+  pendingRequests--;
+  if (pendingRequests == 0) {
+    console.log("Got all timeline parts");
+    updateTimeline(traceObject);
+  }
+}
+
 function fetchTimelineOnLoad(event) {
   var xhr = event.target;
   var response = JSON.parse(xhr.responseText);
   var result = response['result'];
-  var traceEvents = result['traceEvents'];
-  updateTimeline(traceEvents);
+  var newStackFrames = result['stackFrames'];  // Map.
+  var newTraceEvents = result['traceEvents'];  // List.
+
+  // Merge in timeline events.
+  traceObject.traceEvents = traceObject.traceEvents.concat(newTraceEvents);
+  for (var key in newStackFrames) {
+    if (newStackFrames.hasOwnProperty(key)) {
+      traceObject.stackFrames[key] = newStackFrames[key];
+    }
+  }
+
+  gotReponse();
 }
 
 function fetchTimelineOnError(event) {
+  var xhr = event.target;
+  console.log(xhr.statusText);
+  gotReponse();
 }
 
-function fetchTimeline(vmAddress) {
+function fetchTimeline(vmAddress, isolateIds) {
+  // Reset combined timeline.
+  traceObject = {
+    'stackFrames': {},
+    'traceEvents': []
+  };
+  pendingRequests = 1 + isolateIds.length;
+
   var parser = document.createElement('a');
   parser.href = vmAddress;
   var requestUri = 'http://' +
@@ -60,6 +92,17 @@ function fetchTimeline(vmAddress) {
                    parser.port +
                    '/_getVMTimeline';
   fetchUri(requestUri, fetchTimelineOnLoad, fetchTimelineOnError);
+
+  for (var i = 0; i < isolateIds.length; i++) {
+    var isolateId = isolateIds[i];
+    var requestUri = 'http://' +
+                     parser.hostname +
+                     ':' +
+                     parser.port +
+                     '/_getCpuProfileTimeline?tags=VMUser&isolateId=' +
+                     isolateId;
+    fetchUri(requestUri, fetchTimelineOnLoad, fetchTimelineOnError);
+  }
 }
 
 function onMessage(event) {
@@ -68,7 +111,7 @@ function onMessage(event) {
   var params = request['params'];
   switch (method) {
     case 'refresh':
-      fetchTimeline(params['vmAddress']);
+      fetchTimeline(params['vmAddress'], params['isolateIds']);
     break;
     case 'clear':
       clearTimeline();

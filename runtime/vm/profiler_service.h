@@ -28,6 +28,7 @@ class ProfileCodeTable;
 class RawCode;
 class RawFunction;
 class SampleFilter;
+class ProcessedSampleBuffer;
 
 // Profile data related to a |Function|.
 class ProfileFunction : public ZoneAllocated {
@@ -250,6 +251,12 @@ class ProfileTrieNode : public ZoneAllocated {
 
   intptr_t IndexOf(ProfileTrieNode* node);
 
+  intptr_t frame_id() const { return frame_id_; }
+  void set_frame_id(intptr_t id) {
+    ASSERT(frame_id_ == -1);
+    frame_id_ = id;
+  }
+
  protected:
   void SortChildren();
 
@@ -264,6 +271,7 @@ class ProfileTrieNode : public ZoneAllocated {
   intptr_t table_index_;
   intptr_t count_;
   ZoneGrowableArray<ProfileTrieNode*> children_;
+  intptr_t frame_id_;
 
   friend class ProfileBuilder;
 };
@@ -315,10 +323,19 @@ class Profile : public ValueObject {
   ProfileCode* GetCode(intptr_t index);
   ProfileTrieNode* GetTrieRoot(TrieKind trie_kind);
 
-  void PrintJSON(JSONStream* stream);
+  void PrintProfileJSON(JSONStream* stream);
+  void PrintTimelineJSON(JSONStream* stream);
 
  private:
+  void PrintHeaderJSON(JSONObject* obj);
+  void PrintTimelineFrameJSON(JSONObject* frames,
+                              ProfileTrieNode* current,
+                              ProfileTrieNode* parent,
+                              intptr_t* next_id);
+
   Isolate* isolate_;
+  Zone* zone_;
+  ProcessedSampleBuffer* samples_;
   ProfileCodeTable* live_code_;
   ProfileCodeTable* dead_code_;
   ProfileCodeTable* tag_code_;
@@ -385,6 +402,9 @@ class ProfilerService : public AllStatic {
                                   Profile::TagOrder tag_order,
                                   const Class& cls);
 
+  static void PrintTimelineJSON(JSONStream* stream,
+                                Profile::TagOrder tag_order);
+
   static void ClearSamples();
 
  private:
@@ -392,7 +412,8 @@ class ProfilerService : public AllStatic {
                             JSONStream* stream,
                             Profile::TagOrder tag_order,
                             intptr_t extra_tags,
-                            SampleFilter* filter);
+                            SampleFilter* filter,
+                            bool as_timline);
 };
 
 }  // namespace dart

@@ -2617,7 +2617,6 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
   ASSERT(timeline_recorder != NULL);
   TimelineEventFilter filter;
   timeline_recorder->PrintJSON(js, &filter);
-
   return true;
 }
 
@@ -2745,6 +2744,21 @@ static bool GetCpuProfile(Thread* thread, JSONStream* js) {
     extra_tags |= ProfilerService::kCodeTransitionTagsBit;
   }
   ProfilerService::PrintJSON(js, tag_order, extra_tags);
+  return true;
+}
+
+
+static const MethodParameter* get_cpu_profile_timeline_params[] = {
+  ISOLATE_PARAMETER,
+  new EnumParameter("tags", true, tags_enum_names),
+  NULL,
+};
+
+
+static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
+  Profile::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  ProfilerService::PrintTimelineJSON(js, tag_order);
   return true;
 }
 
@@ -3481,6 +3495,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_coverage_params },
   { "_getCpuProfile", GetCpuProfile,
     get_cpu_profile_params },
+  { "_getCpuProfileTimeline", GetCpuProfileTimeline,
+    get_cpu_profile_timeline_params },
   { "getFlagList", GetFlagList,
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,

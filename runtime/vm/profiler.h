@@ -25,6 +25,7 @@ class ProcessedSampleBuffer;
 
 class Sample;
 class SampleBuffer;
+class ProfileTrieNode;
 
 class Profiler : public AllStatic {
  public:
@@ -533,6 +534,9 @@ class ProcessedSample : public ZoneAllocated {
   int64_t timestamp() const { return timestamp_; }
   void set_timestamp(int64_t timestamp) { timestamp_ = timestamp; }
 
+  ThreadId tid() const { return tid_; }
+  void set_tid(ThreadId tid) { tid_ = tid; }
+
   // The VM tag.
   uword vm_tag() const { return vm_tag_; }
   void set_vm_tag(uword tag) { vm_tag_ = tag; }
@@ -559,6 +563,12 @@ class ProcessedSample : public ZoneAllocated {
     first_frame_executing_ = first_frame_executing;
   }
 
+  ProfileTrieNode* timeline_trie() const { return timeline_trie_; }
+  void set_timeline_trie(ProfileTrieNode* trie) {
+    ASSERT(timeline_trie_ == NULL);
+    timeline_trie_ = trie;
+  }
+
  private:
   void FixupCaller(const CodeLookupTable& clt,
                    uword pc_marker,
@@ -571,11 +581,13 @@ class ProcessedSample : public ZoneAllocated {
 
   ZoneGrowableArray<uword> pcs_;
   int64_t timestamp_;
+  ThreadId tid_;
   uword vm_tag_;
   uword user_tag_;
   intptr_t allocation_cid_;
   bool truncated_;
   bool first_frame_executing_;
+  ProfileTrieNode* timeline_trie_;
 
   friend class SampleBuffer;
   DISALLOW_COPY_AND_ASSIGN(ProcessedSample);
