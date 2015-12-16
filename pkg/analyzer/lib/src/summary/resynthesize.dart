@@ -385,11 +385,12 @@ class _LibraryResynthesizer {
     if (holder == null) {
       holder = unitHolder;
     }
+    UnlinkedExecutableKind kind = serializedExecutable.kind;
     String name = serializedExecutable.name;
-    if (name.endsWith('=') && name != '[]=') {
+    if (kind == UnlinkedExecutableKind.setter) {
+      assert(name.endsWith('='));
       name = name.substring(0, name.length - 1);
     }
-    UnlinkedExecutableKind kind = serializedExecutable.kind;
     switch (kind) {
       case UnlinkedExecutableKind.functionOrMethod:
         if (isTopLevel) {

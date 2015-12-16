@@ -1286,11 +1286,25 @@ typedef F();
     expect(executable.isExternal, false);
   }
 
+  test_executable_operator_equal() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { bool operator==(C other) => false; }')
+            .executables[0];
+    expect(executable.name, '==');
+  }
+
   test_executable_operator_external() {
     UnlinkedExecutable executable =
         serializeClassText('class C { external C operator+(C c); }')
             .executables[0];
     expect(executable.isExternal, true);
+  }
+
+  test_executable_operator_greater_equal() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { bool operator>=(C other) => false; }')
+            .executables[0];
+    expect(executable.name, '>=');
   }
 
   test_executable_operator_index() {
@@ -1322,6 +1336,13 @@ typedef F();
     expect(executable.parameters, hasLength(2));
     expect(executable.returnType, isNull);
     expect(executable.typeParameters, isEmpty);
+  }
+
+  test_executable_operator_less_equal() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { bool operator<=(C other) => false; }')
+            .executables[0];
+    expect(executable.name, '<=');
   }
 
   test_executable_param_function_typed() {

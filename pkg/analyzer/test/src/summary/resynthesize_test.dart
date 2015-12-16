@@ -798,8 +798,16 @@ class E {
     checkLibrary('class C { C operator+(C other) => null; }');
   }
 
+  test_operator_equal() {
+    checkLibrary('class C { bool operator==(C other) => false; }');
+  }
+
   test_operator_external() {
     checkLibrary('class C { external C operator+(C other); }');
+  }
+
+  test_operator_greater_equal() {
+    checkLibrary('class C { bool operator>=(C other) => false; }');
   }
 
   test_operator_index() {
@@ -808,6 +816,10 @@ class E {
 
   test_operator_index_set() {
     checkLibrary('class C { void operator[]=(int i, bool v) {} }');
+  }
+
+  test_operator_less_equal() {
+    checkLibrary('class C { bool operator<=(C other) => false; }');
   }
 
   test_parts() {
