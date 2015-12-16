@@ -48,7 +48,7 @@ var tests = [
       expect(event['pid'], isInt);
       expect(event['tid'], isInt);
       expect(event['ts'], isInt);
-      expect(event['category'], equals("Dart"));
+      expect(event['cat'], equals("Dart"));
       expect(frames.containsKey(event['sf']), isTrue);
     }
   },
