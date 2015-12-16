@@ -225,6 +225,14 @@ const char* Dart::Cleanup() {
   // Shut down profiling.
   Profiler::Shutdown();
 
+  {
+    // Set the VM isolate as current isolate when shutting down
+    // Metrics so that we can use a StackZone.
+    Thread::EnterIsolate(vm_isolate_);
+    Metric::Cleanup();
+    Thread::ExitIsolate();
+  }
+
   if (FLAG_shutdown) {
     // Disable the creation of new isolates.
     Isolate::DisableIsolateCreation();
@@ -266,7 +274,6 @@ const char* Dart::Cleanup() {
 
   CodeObservers::DeleteAll();
   Timeline::Shutdown();
-  Metric::Cleanup();
 
   return NULL;
 }
