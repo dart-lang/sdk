@@ -20,7 +20,7 @@ main(x) {
 """,
 r"""
 function(x) {
-  P.print(J.getInterceptor$ns(x).$add(x, "1"));
+  P.print(J.$add$ns(x, "1"));
 }"""),
 
   const TestEntry("""
@@ -37,7 +37,7 @@ r"""
 function(x) {
   var _box_0 = {}, a = new V.main_a(_box_0);
   _box_0.x = x;
-  _box_0.x = J.getInterceptor$ns(x = _box_0.x).$add(x, "1");
+  _box_0.x = J.$add$ns(_box_0.x, "1");
   P.print(a.call$0());
   return a;
 }"""),

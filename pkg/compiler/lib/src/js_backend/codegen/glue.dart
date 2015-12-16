@@ -292,4 +292,12 @@ class Glue {
   }
 
   FunctionElement get closureFromTearOff => _backend.helpers.closureFromTearOff;
+
+  js.Name registerOneShotInterceptor(Selector selector) {
+    return _backend.registerOneShotInterceptor(selector);
+  }
+
+  bool mayGenerateInstanceofCheck(DartType type) {
+    return _backend.mayGenerateInstanceofCheck(type);
+  }
 }

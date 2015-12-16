@@ -281,29 +281,19 @@ class CodeGenerator extends tree_ir.StatementVisitor
         sourceInformation: node.sourceInformation);
   }
 
-  void registerMethodInvoke(tree_ir.InvokeMethod node) {
-    Selector selector = node.selector;
-    TypeMask mask = node.mask;
-    mask = glue.extendMaskIfReachesAll(selector, mask);
-    if (selector.isGetter) {
-      registry.registerDynamicUse(new DynamicUse(selector, mask));
-    } else if (selector.isSetter) {
-      registry.registerDynamicUse(new DynamicUse(selector, mask));
-    } else {
-      assert(invariant(CURRENT_ELEMENT_SPANNABLE,
-          selector.isCall || selector.isOperator ||
-          selector.isIndex || selector.isIndexSet,
-          message: 'unexpected kind ${selector.kind}'));
+  void registerMethodInvoke(Selector selector, TypeMask receiverType) {
+    registry.registerDynamicUse(new DynamicUse(selector, receiverType));
+    if (!selector.isGetter && !selector.isSetter) {
       // TODO(sigurdm): We should find a better place to register the call.
       Selector call = new Selector.callClosureFrom(selector);
       registry.registerDynamicUse(new DynamicUse(call, null));
-      registry.registerDynamicUse(new DynamicUse(selector, mask));
     }
   }
 
   @override
   js.Expression visitInvokeMethod(tree_ir.InvokeMethod node) {
-    registerMethodInvoke(node);
+    TypeMask mask = glue.extendMaskIfReachesAll(node.selector, node.mask);
+    registerMethodInvoke(node.selector, mask);
     return js.propertyCall(visitExpression(node.receiver),
                            glue.invocationName(node.selector),
                            visitExpressionList(node.arguments))
@@ -355,6 +345,17 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  js.Expression visitOneShotInterceptor(tree_ir.OneShotInterceptor node) {
+    registerMethodInvoke(node.selector, node.mask);
+    registry.registerUseInterceptor();
+    return js.js('#.#(#)',
+        [glue.getInterceptorLibrary(),
+         glue.registerOneShotInterceptor(node.selector),
+         visitExpressionList(node.arguments)])
+        .withSourceInformation(node.sourceInformation);
+  }
+
+  @override
   js.Expression visitLiteralList(tree_ir.LiteralList node) {
     registry.registerInstantiatedClass(glue.listClass);
     List<js.Expression> entries = visitExpressionList(node.values);
@@ -399,6 +400,19 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return new js.This();
   }
 
+  /// Ensure that 'instanceof' checks may be performed against [class_].
+  ///
+  /// Even if the class is never instantiated, a JS constructor must be emitted
+  /// so the 'instanceof' expression does not throw an exception at runtime.
+  ///
+  /// It does not help to ask the class world if the class is instantiated,
+  /// because it could still get tree-shaken if it is unused after optimization.
+  void registerInstanceofCheck(ClassElement class_) {
+    // TODO(asgerf): This is the only hook we have to ensure the JS constructor
+    //   gets emitted, but it is very imprecise. We should do better.
+    registry.registerInstantiatedClass(class_);
+  }
+
   @override
   js.Expression visitTypeOperator(tree_ir.TypeOperator node) {
     js.Expression value = visitExpression(node.value);
@@ -406,7 +420,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     DartType type = node.type;
     if (type is InterfaceType) {
       registry.registerTypeUse(new TypeUse.isCheck(type));
-      //glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
       if (glue.isStringClass(clazz)) {
@@ -419,6 +432,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
           return js.js(r'typeof # === "boolean"', <js.Expression>[value]);
         }
         // TODO(sra): Implement fast cast via calling 'boolTypeCast'.
+      } else if (node.isTypeTest &&
+                 node.typeArguments.isEmpty &&
+                 glue.mayGenerateInstanceofCheck(type)) {
+        registerInstanceofCheck(clazz);
+        return js.js('# instanceof #', [value, glue.constructorAccess(clazz)]);
       }
 
       // The helper we use needs the JSArray class to exist, but for some

@@ -581,6 +581,14 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   Expression visitInvokeMethod(cps_ir.InvokeMethod node) {
+    if (node.callingConvention == cps_ir.CallingConvention.OneShotIntercepted) {
+      List<Expression> arguments = new List.generate(
+          1 + node.arguments.length,
+          (n) => getVariableUse(n == 0 ? node.receiver : node.arguments[n - 1]),
+          growable: false);
+      return new OneShotInterceptor(node.selector, node.mask, arguments,
+          node.sourceInformation);
+    }
     InvokeMethod invoke = new InvokeMethod(
         getVariableUse(node.receiver),
         node.selector,

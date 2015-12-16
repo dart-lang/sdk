@@ -411,6 +411,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "$keyword $callName($args)";
   }
 
+  String visitOneShotInterceptor(OneShotInterceptor node) {
+    String name = node.selector.name;
+    String args = formatArguments(node);
+    return "oneshot $name($args)";
+  }
+
   String visitLiteralList(LiteralList node) {
     String values = node.values.map(visitExpression).join(', ');
     return "list [$values]";

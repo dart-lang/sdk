@@ -513,6 +513,11 @@ enum CallingConvention {
   ///
   /// For example: `foo.bar$1(0, x)`
   DummyIntercepted,
+
+  /// JS receiver is the Dart receiver, there are no extra arguments.
+  ///
+  /// Compiles to a one-shot interceptor, e.g: `J.bar$1(foo, x)`
+  OneShotIntercepted,
 }
 
 /// Invoke a method on an object.
@@ -542,9 +547,15 @@ class InvokeMethod extends UnsafePrimitive {
   Primitive get dartReceiver => dartReceiverReference.definition;
 
   Reference<Primitive> dartArgumentReference(int n) {
-    return callingConvention == CallingConvention.Normal
-        ? arguments[n]
-        : arguments[n + 1];
+    switch (callingConvention) {
+      case CallingConvention.Normal:
+      case CallingConvention.OneShotIntercepted:
+        return arguments[n];
+
+      case CallingConvention.Intercepted:
+      case CallingConvention.DummyIntercepted:
+        return arguments[n + 1];
+    }
   }
 
   Primitive dartArgument(int n) => dartArgumentReference(n).definition;
@@ -861,7 +872,7 @@ class NullCheck extends Primitive {
 
 /// An "is" type test.
 ///
-/// Returns `true` if [value] is an instance of [type].
+/// Returns `true` if [value] is an instance of [dartType].
 ///
 /// [type] must not be the [Object], `dynamic` or [Null] types (though it might
 /// be a type variable containing one of these types). This design is chosen

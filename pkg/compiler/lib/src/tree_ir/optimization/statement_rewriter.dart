@@ -503,6 +503,11 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  Expression visitOneShotInterceptor(OneShotInterceptor node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
+
   Expression visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     if (node.receiverIsNotNull) {
       _rewriteList(node.arguments);

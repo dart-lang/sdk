@@ -14,6 +14,7 @@ import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart' show TypeMask;
 import '../io/source_information.dart' show SourceInformation;
+import '../universe/selector.dart';
 
 /// Replaces `getInterceptor` calls with interceptor constants when possible,
 /// or with "almost constant" expressions like "x && CONST" when the input
@@ -30,6 +31,8 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
   OptimizeInterceptors(this.backend);
 
   BackendHelpers get helpers => backend.helpers;
+
+  Map<Interceptor, Continuation> loopHeaderFor = <Interceptor, Continuation>{};
 
   void rewrite(FunctionDefinition node) {
     // TODO(asgerf): Computing the LoopHierarchy here may be overkill when all
@@ -101,11 +104,11 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     return prim;
   }
 
-  void constifyInterceptor(Interceptor interceptor) {
+  bool constifyInterceptor(Interceptor interceptor) {
     LetPrim let = interceptor.parent;
     InterceptorConstantValue constant = getInterceptorConstant(interceptor);
 
-    if (constant == null) return;
+    if (constant == null) return false;
 
     if (interceptor.isAlwaysIntercepted) {
       Primitive constantPrim = makeConstantFor(constant,
@@ -141,15 +144,53 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
       interceptor..replaceUsesWith(param)..destroy();
       let.remove();
     }
+    return true;
   }
 
   @override
   Expression traverseLetPrim(LetPrim node) {
     Expression next = node.body;
-    if (node.primitive is Interceptor) {
-      constifyInterceptor(node.primitive);
-    }
+    visit(node.primitive);
     return next;
+  }
+
+  @override
+  void visitInterceptor(Interceptor node) {
+    if (constifyInterceptor(node)) return;
+    if (node.hasExactlyOneUse) {
+      // Set the loop header on single-use interceptors so [visitInvokeMethod]
+      // can determine if it should become a one-shot interceptor.
+      loopHeaderFor[node] = currentLoopHeader;
+    }
+  }
+
+  @override
+  void visitInvokeMethod(InvokeMethod node) {
+    if (node.callingConvention != CallingConvention.Intercepted) return;
+    Primitive interceptor = node.receiver.definition;
+    if (interceptor is! Interceptor ||
+        interceptor.hasMultipleUses ||
+        loopHeaderFor[interceptor] != currentLoopHeader) {
+      return;
+    }
+    // TODO(asgerf): Consider heuristics for when to use one-shot interceptors.
+    //   E.g. using only one-shot interceptors with a fast path.
+    node.callingConvention = CallingConvention.OneShotIntercepted;
+    node..receiver.unlink()..receiver = node.arguments.removeAt(0);
+  }
+
+  @override
+  void visitTypeTestViaFlag(TypeTestViaFlag node) {
+    Primitive interceptor = node.interceptor.definition;
+    if (interceptor is! Interceptor ||
+        interceptor.hasMultipleUses ||
+        loopHeaderFor[interceptor] != currentLoopHeader ||
+        !backend.mayGenerateInstanceofCheck(node.dartType)) {
+      return;
+    }
+    Interceptor inter = interceptor;
+    Primitive value = inter.input.definition;
+    node.replaceWith(new TypeTest(value, node.dartType, [])..type = node.type);
   }
 }
 
