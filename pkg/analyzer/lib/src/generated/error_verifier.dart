@@ -5171,6 +5171,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForStaticAccessToInstanceMember(
       ClassElement typeReference, SimpleIdentifier name) {
+    // OK, in comment
+    if (_isInComment) {
+      return false;
+    }
     // OK, target is not a type
     if (typeReference == null) {
       return false;

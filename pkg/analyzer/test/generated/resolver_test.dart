@@ -1422,6 +1422,47 @@ class ElementResolverTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitCommentReference_prefixedIdentifier_class_getter() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    // set accessors
+    String propName = "p";
+    PropertyAccessorElement getter =
+        ElementFactory.getterElement(propName, false, _typeProvider.intType);
+    PropertyAccessorElement setter =
+        ElementFactory.setterElement(propName, false, _typeProvider.intType);
+    classA.accessors = <PropertyAccessorElement>[getter, setter];
+    // set name scope
+    _visitor.nameScope = new EnclosedScope(null)
+      ..defineNameWithoutChecking('A', classA);
+    // prepare "A.p"
+    PrefixedIdentifier prefixed = AstFactory.identifier5('A', 'p');
+    CommentReference commentReference = new CommentReference(null, prefixed);
+    // resolve
+    _resolveNode(commentReference);
+    expect(prefixed.prefix.staticElement, classA);
+    expect(prefixed.identifier.staticElement, getter);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitCommentReference_prefixedIdentifier_class_method() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    // set method
+    MethodElement method =
+        ElementFactory.methodElement("m", _typeProvider.intType);
+    classA.methods = <MethodElement>[method];
+    // set name scope
+    _visitor.nameScope = new EnclosedScope(null)
+      ..defineNameWithoutChecking('A', classA);
+    // prepare "A.m"
+    PrefixedIdentifier prefixed = AstFactory.identifier5('A', 'm');
+    CommentReference commentReference = new CommentReference(null, prefixed);
+    // resolve
+    _resolveNode(commentReference);
+    expect(prefixed.prefix.staticElement, classA);
+    expect(prefixed.identifier.staticElement, method);
+    _listener.assertNoErrors();
+  }
+
   void test_visitConstructorName_named() {
     ClassElementImpl classA = ElementFactory.classElement2("A");
     String constructorName = "a";

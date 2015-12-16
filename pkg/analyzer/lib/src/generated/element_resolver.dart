@@ -263,8 +263,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (element == null) {
 //        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
       } else {
+        prefix.staticElement = element;
         if (element is PrefixElement) {
-          prefix.staticElement = element;
           // TODO(brianwilkerson) Report this error?
           element = _resolver.nameScope.lookup(identifier, _definingLibrary);
           name.staticElement = element;
@@ -279,7 +279,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else if (library != _definingLibrary) {
           // TODO(brianwilkerson) Report this error.
         }
-        name.staticElement = element;
         if (node.newKeyword == null) {
           if (element is ClassElement) {
             Element memberElement =
