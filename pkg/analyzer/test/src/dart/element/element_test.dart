@@ -18,14 +18,14 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
-import 'resolver_test.dart' show TestTypeProvider, AnalysisContextHelper;
-import 'test_support.dart';
+import '../../../generated/resolver_test.dart'
+    show TestTypeProvider, AnalysisContextHelper;
+import '../../../generated/test_support.dart';
+import '../../../reflective_tests.dart';
+import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(ElementKindTest);
   runReflectiveTests(FieldElementImplTest);
   runReflectiveTests(FunctionTypeImplTest);
   runReflectiveTests(InterfaceTypeImplTest);
@@ -1163,18 +1163,6 @@ class ElementImplTest extends EngineTestCase {
     expect(Element.SORT_BY_OFFSET(classElementA, classElementA), 0);
     expect(Element.SORT_BY_OFFSET(classElementA, classElementB) < 0, isTrue);
     expect(Element.SORT_BY_OFFSET(classElementB, classElementA) > 0, isTrue);
-  }
-}
-
-@reflectiveTest
-class ElementKindTest extends EngineTestCase {
-  void test_of_nonNull() {
-    expect(ElementKind.of(ElementFactory.classElement2("A")),
-        same(ElementKind.CLASS));
-  }
-
-  void test_of_null() {
-    expect(ElementKind.of(null), same(ElementKind.ERROR));
   }
 }
 
