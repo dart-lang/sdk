@@ -246,9 +246,7 @@ class _LibraryResynthesizer {
       }
       ClassElementImpl classElement =
           new ClassElementImpl(serializedClass.name, -1);
-      if (serializedClass.isMixinApplication) {
-        classElement.setModifier(Modifier.MIXIN_APPLICATION, true);
-      }
+      classElement.mixinApplication = serializedClass.isMixinApplication;
       InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
       if (serializedClass.supertype != null) {
         classElement.supertype = buildType(serializedClass.supertype);
@@ -284,7 +282,7 @@ class _LibraryResynthesizer {
           // Synthesize implicit constructors.
           ConstructorElementImpl constructor =
               new ConstructorElementImpl('', -1);
-          constructor.setModifier(Modifier.SYNTHETIC, true);
+          constructor.synthetic = true;
           constructor.returnType = correspondingType;
           constructor.type = new FunctionTypeImpl(constructor);
           memberHolder.addConstructor(constructor);
@@ -331,12 +329,8 @@ class _LibraryResynthesizer {
     ConstructorElementImpl constructorElement =
         new ConstructorElementImpl(serializedExecutable.name, -1);
     buildExecutableCommonParts(constructorElement, serializedExecutable);
-    if (serializedExecutable.isFactory) {
-      constructorElement.setModifier(Modifier.FACTORY, true);
-    }
-    if (serializedExecutable.isConst) {
-      constructorElement.setModifier(Modifier.CONST, true);
-    }
+    constructorElement.factory = serializedExecutable.isFactory;
+    constructorElement.const2 = serializedExecutable.isConst;
     holder.addConstructor(constructorElement);
   }
 
@@ -348,21 +342,21 @@ class _LibraryResynthesizer {
     // TODO(paulberry): add offset support (for this element type and others)
     ClassElementImpl classElement =
         new ClassElementImpl(serializedEnum.name, -1);
-    classElement.setModifier(Modifier.ENUM, true);
+    classElement.enum2 = true;
     InterfaceType enumType = new InterfaceTypeImpl(classElement);
     classElement.type = enumType;
     classElement.supertype = summaryResynthesizer.typeProvider.objectType;
     ElementHolder memberHolder = new ElementHolder();
     FieldElementImpl indexField = new FieldElementImpl('index', -1);
-    indexField.setModifier(Modifier.FINAL, true);
-    indexField.setModifier(Modifier.SYNTHETIC, true);
+    indexField.final2 = true;
+    indexField.synthetic = true;
     indexField.type = summaryResynthesizer.typeProvider.intType;
     memberHolder.addField(indexField);
     buildImplicitAccessors(indexField, memberHolder);
     FieldElementImpl valuesField = new ConstFieldElementImpl('values', -1);
-    valuesField.setModifier(Modifier.SYNTHETIC, true);
-    valuesField.setModifier(Modifier.CONST, true);
-    valuesField.setModifier(Modifier.STATIC, true);
+    valuesField.synthetic = true;
+    valuesField.const3 = true;
+    valuesField.static = true;
     valuesField.type = summaryResynthesizer.typeProvider.listType
         .substitute4(<DartType>[enumType]);
     memberHolder.addField(valuesField);
@@ -370,8 +364,8 @@ class _LibraryResynthesizer {
     for (UnlinkedEnumValue serializedEnumValue in serializedEnum.values) {
       ConstFieldElementImpl valueField =
           new ConstFieldElementImpl(serializedEnumValue.name, -1);
-      valueField.setModifier(Modifier.CONST, true);
-      valueField.setModifier(Modifier.STATIC, true);
+      valueField.const3 = true;
+      valueField.static = true;
       valueField.type = enumType;
       memberHolder.addField(valueField);
       buildImplicitAccessors(valueField, memberHolder);
@@ -406,8 +400,7 @@ class _LibraryResynthesizer {
         } else {
           MethodElementImpl executableElement = new MethodElementImpl(name, -1);
           buildExecutableCommonParts(executableElement, serializedExecutable);
-          executableElement.setModifier(
-              Modifier.STATIC, serializedExecutable.isStatic);
+          executableElement.static = serializedExecutable.isStatic;
           holder.addMethod(executableElement);
         }
         break;
@@ -416,18 +409,17 @@ class _LibraryResynthesizer {
         PropertyAccessorElementImpl executableElement =
             new PropertyAccessorElementImpl(name, -1);
         if (isTopLevel) {
-          executableElement.setModifier(Modifier.STATIC, true);
+          executableElement.static = true;
         } else {
-          executableElement.setModifier(
-              Modifier.STATIC, serializedExecutable.isStatic);
+          executableElement.static = serializedExecutable.isStatic;
         }
         buildExecutableCommonParts(executableElement, serializedExecutable);
         DartType type;
         if (kind == UnlinkedExecutableKind.getter) {
-          executableElement.setModifier(Modifier.GETTER, true);
+          executableElement.getter = true;
           type = executableElement.returnType;
         } else {
-          executableElement.setModifier(Modifier.SETTER, true);
+          executableElement.setter = true;
           type = executableElement.parameters[0].type;
         }
         holder.addAccessor(executableElement);
@@ -438,9 +430,9 @@ class _LibraryResynthesizer {
         if (isTopLevel) {
           implicitVariable = buildImplicitTopLevelVariable(name, kind, holder);
         } else {
-          implicitVariable = buildImplicitField(name, type, kind, holder);
-          implicitVariable.setModifier(
-              Modifier.STATIC, serializedExecutable.isStatic);
+          FieldElementImpl field = buildImplicitField(name, type, kind, holder);
+          field.static = serializedExecutable.isStatic;
+          implicitVariable = field;
         }
         executableElement.variable = implicitVariable;
         if (kind == UnlinkedExecutableKind.getter) {
@@ -473,9 +465,8 @@ class _LibraryResynthesizer {
       executableElement.returnType = VoidTypeImpl.instance;
     }
     executableElement.type = new FunctionTypeImpl(executableElement);
-    if (serializedExecutable.hasImplicitReturnType) {
-      executableElement.setModifier(Modifier.IMPLICIT_TYPE, true);
-    }
+    executableElement.hasImplicitReturnType =
+        serializedExecutable.hasImplicitReturnType;
   }
 
   /**
@@ -503,9 +494,7 @@ class _LibraryResynthesizer {
     FieldElementImpl fieldElement =
         new FieldElementImpl(serializedField.name, -1);
     fieldElement.type = buildType(serializedField.type);
-    if (serializedField.isConst) {
-      fieldElement.setModifier(Modifier.CONST, true);
-    }
+    fieldElement.const3 = serializedField.isConst;
     return fieldElement;
   }
 
@@ -519,9 +508,9 @@ class _LibraryResynthesizer {
     DartType type = element.type;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl(name, -1);
-    getter.setModifier(Modifier.GETTER, true);
-    getter.setModifier(Modifier.STATIC, element.isStatic);
-    getter.setModifier(Modifier.SYNTHETIC, true);
+    getter.getter = true;
+    getter.static = element.isStatic;
+    getter.synthetic = true;
     getter.returnType = type;
     getter.type = new FunctionTypeImpl(getter);
     getter.variable = element;
@@ -530,12 +519,12 @@ class _LibraryResynthesizer {
     if (!(element.isConst || element.isFinal)) {
       PropertyAccessorElementImpl setter =
           new PropertyAccessorElementImpl(name, -1);
-      setter.setModifier(Modifier.SETTER, true);
-      setter.setModifier(Modifier.STATIC, element.isStatic);
-      setter.setModifier(Modifier.SYNTHETIC, true);
+      setter.setter = true;
+      setter.static = element.isStatic;
+      setter.synthetic = true;
       setter.parameters = <ParameterElement>[
         new ParameterElementImpl('_$name', -1)
-          ..setModifier(Modifier.SYNTHETIC, true)
+          ..synthetic = true
           ..type = type
           ..parameterKind = ParameterKind.REQUIRED
       ];
@@ -551,14 +540,12 @@ class _LibraryResynthesizer {
    * Build the implicit field associated with a getter or setter, and place it
    * in [holder].
    */
-  PropertyInducingElementImpl buildImplicitField(String name, DartType type,
+  FieldElementImpl buildImplicitField(String name, DartType type,
       UnlinkedExecutableKind kind, ElementHolder holder) {
     if (holder.getField(name) == null) {
       FieldElementImpl field = new FieldElementImpl(name, -1);
-      field.setModifier(Modifier.SYNTHETIC, true);
-      if (kind == UnlinkedExecutableKind.getter) {
-        field.setModifier(Modifier.FINAL, true);
-      }
+      field.synthetic = true;
+      field.final2 = kind == UnlinkedExecutableKind.getter;
       field.type = type;
       holder.addField(field);
       return field;
@@ -579,10 +566,8 @@ class _LibraryResynthesizer {
     if (holder.getTopLevelVariable(name) == null) {
       TopLevelVariableElementImpl variable =
           new TopLevelVariableElementImpl(name, -1);
-      variable.setModifier(Modifier.SYNTHETIC, true);
-      if (kind == UnlinkedExecutableKind.getter) {
-        variable.setModifier(Modifier.FINAL, true);
-      }
+      variable.synthetic = true;
+      variable.final2 = kind == UnlinkedExecutableKind.getter;
       holder.addTopLevelVariable(variable);
       return variable;
     } else {
@@ -611,7 +596,7 @@ class _LibraryResynthesizer {
         summaryResynthesizer,
         new ElementLocationImpl.con3(<String>[absoluteUri]));
     if (isSynthetic) {
-      importElement.setModifier(Modifier.SYNTHETIC, true);
+      importElement.synthetic = true;
     } else {
       importElement.uri = serializedImport.uri;
     }
@@ -676,7 +661,7 @@ class _LibraryResynthesizer {
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
           new FunctionElementImpl('', -1);
-      parameterTypeElement.setModifier(Modifier.SYNTHETIC, true);
+      parameterTypeElement.synthetic = true;
       parameterElement.parameters =
           serializedParameter.parameters.map(buildParameter).toList();
       parameterTypeElement.enclosingElement = parameterElement;
@@ -689,9 +674,7 @@ class _LibraryResynthesizer {
       parameterElement.type = new FunctionTypeImpl(parameterTypeElement);
     } else {
       parameterElement.type = buildType(serializedParameter.type);
-      if (serializedParameter.hasImplicitType) {
-        parameterElement.setModifier(Modifier.IMPLICIT_TYPE, true);
-      }
+      parameterElement.hasImplicitType = serializedParameter.hasImplicitType;
     }
     switch (serializedParameter.kind) {
       case UnlinkedParamKind.named:
@@ -874,6 +857,7 @@ class _LibraryResynthesizer {
       FieldElementImpl element =
           new FieldElementImpl(serializedVariable.name, -1);
       buildVariableCommonParts(element, serializedVariable);
+      element.static = serializedVariable.isStatic;
       holder.addField(element);
       buildImplicitAccessors(element, holder);
     }
@@ -885,8 +869,7 @@ class _LibraryResynthesizer {
   void buildVariableCommonParts(PropertyInducingElementImpl element,
       UnlinkedVariable serializedVariable) {
     element.type = buildType(serializedVariable.type);
-    element.setModifier(Modifier.CONST, serializedVariable.isConst);
-    element.setModifier(Modifier.STATIC, serializedVariable.isStatic);
+    element.const3 = serializedVariable.isConst;
   }
 
   /**
