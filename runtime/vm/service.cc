@@ -3242,7 +3242,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("targetCPU", CPU::Id());
   jsobj.AddProperty("hostCPU", HostCPUFeatures::hardware());
   jsobj.AddProperty("version", Version::String());
-  jsobj.AddProperty("pid", OS::ProcessId());
+  jsobj.AddProperty64("pid", OS::ProcessId());
   int64_t start_time_millis = (vm_isolate->start_time() /
                                kMicrosecondsPerMillisecond);
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);

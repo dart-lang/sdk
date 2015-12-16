@@ -31,6 +31,7 @@ var tests = [
     expect(result['type'], equals('_CpuProfileTimeline'));
 
     var isString = new isInstanceOf<String>();
+    var isInt = new isInstanceOf<int>();
 
     Map frames = result['stackFrames'];
     for (Map frame in frames.values) {
@@ -44,9 +45,9 @@ var tests = [
     List events = result['traceEvents'];
     for (Map event in events) {
       expect(event['ph'], equals('P'));
-      expect(event['pid'], isString);
-      expect(event['tid'], isString);
-      expect(event['ts'], isString);
+      expect(event['pid'], isInt);
+      expect(event['tid'], isInt);
+      expect(event['ts'], isInt);
       expect(event['category'], equals("Dart"));
       expect(frames.containsKey(event['sf']), isTrue);
     }
