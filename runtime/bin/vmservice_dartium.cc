@@ -106,7 +106,7 @@ void VmServiceServer::DecompressAssets(const uint8_t* input,
   *output = NULL;
   *output_length = 0;
 
-  const intptr_t kChunkSize = 256 * 1024;
+  const unsigned int kChunkSize = 256 * 1024;
   uint8_t chunk_out[kChunkSize];
   z_stream strm;
   strm.zalloc = Z_NULL;
