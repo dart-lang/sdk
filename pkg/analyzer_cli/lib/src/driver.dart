@@ -39,10 +39,6 @@ import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:yaml/yaml.dart';
 
-/// The maximum number of sources for which AST structures should be kept in the
-/// cache.
-const int _maxCacheSize = 512;
-
 /// Shared IO sink for standard error reporting.
 ///
 /// *Visible for testing.*
@@ -410,7 +406,6 @@ class Driver {
 
     // Set context options.
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.cacheSize = _maxCacheSize;
     contextOptions.hint = !options.disableHints;
     contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
     contextOptions.enableSuperMixins = options.enableSuperMixins;
