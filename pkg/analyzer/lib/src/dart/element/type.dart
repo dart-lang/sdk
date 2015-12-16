@@ -195,6 +195,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   /**
    * Initialize a newly created function type to be declared by the given
+   * [element], with the given [name].
+   */
+  FunctionTypeImpl.elementWithName(Element element, String name)
+      : prunedTypedefs = null,
+        super(element, name);
+
+  /**
+   * Initialize a newly created function type to be declared by the given
    * [element].
    */
   FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
@@ -1096,6 +1104,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    */
   InterfaceTypeImpl(ClassElement element, [this.prunedTypedefs])
       : super(element, element.displayName);
+
+  /**
+   * Initialize a newly created type to be declared by the given [element],
+   * with the given [name].
+   */
+  InterfaceTypeImpl.elementWithName(ClassElement element, String name)
+      : prunedTypedefs = null,
+        super(element, name);
 
   /**
    * Initialize a newly created type to have the given [name]. This constructor

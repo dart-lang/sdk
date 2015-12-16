@@ -538,9 +538,9 @@ abstract class Element implements AnalysisTarget {
    * Elements with a smaller offset will be sorted to be before elements with a
    * larger name offset.
    */
-  static final Comparator<Element> SORT_BY_OFFSET =
-      (Element firstElement, Element secondElement) =>
-          firstElement.nameOffset - secondElement.nameOffset;
+  static final Comparator<Element> SORT_BY_OFFSET = (Element firstElement,
+          Element secondElement) =>
+      firstElement.nameOffset - secondElement.nameOffset;
 
   /**
    * Return the analysis context in which this element is defined.
@@ -1305,6 +1305,12 @@ abstract class LibraryElement implements Element {
    * `loadLibrary`.
    */
   bool get hasLoadLibraryFunction;
+
+  /**
+   * Return an identifier that uniquely identifies this element among the
+   * children of this element's parent.
+   */
+  String get identifier;
 
   /**
    * Return a list containing all of the libraries that are imported into this

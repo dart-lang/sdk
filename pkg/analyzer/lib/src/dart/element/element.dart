@@ -2812,8 +2812,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  String get identifier =>
-      "${(importedLibrary as LibraryElementImpl).identifier}@$nameOffset";
+  String get identifier => "${importedLibrary.identifier}@$nameOffset";
 
   @override
   bool get isDeferred => hasModifier(Modifier.DEFERRED);
@@ -3237,8 +3236,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  bool operator ==(Object object) =>
-      object is LibraryElementImpl &&
+  bool operator ==(Object object) => object is LibraryElementImpl &&
       _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
@@ -4127,6 +4125,12 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   /**
    * Initialize a newly created property accessor element to have the given
+   * [name] and [offset].
+   */
+  PropertyAccessorElementImpl(String name, int offset) : super(name, offset);
+
+  /**
+   * Initialize a newly created property accessor element to have the given
    * [name].
    */
   PropertyAccessorElementImpl.forNode(Identifier name) : super.forNode(name);
@@ -4222,8 +4226,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool operator ==(Object object) =>
-      super == object &&
+  bool operator ==(Object object) => super == object &&
       isGetter == (object as PropertyAccessorElement).isGetter;
 
   @override

@@ -1437,9 +1437,19 @@ typedef F();
 
   test_field() {
     UnlinkedClass cls = serializeClassText('class C { int i; }');
-    expect(findVariable('i', variables: cls.fields), isNotNull);
+    UnlinkedVariable variable = findVariable('i', variables: cls.fields);
+    expect(variable, isNotNull);
+    expect(variable.isConst, isFalse);
+    expect(variable.isStatic, isFalse);
+    expect(variable.isFinal, isFalse);
     expect(findExecutable('i', executables: cls.executables), isNull);
     expect(findExecutable('i=', executables: cls.executables), isNull);
+  }
+
+  test_field_const() {
+    UnlinkedVariable variable =
+        serializeClassText('class C { static const int i = 0; }').fields[0];
+    expect(variable.isConst, isTrue);
   }
 
   test_field_final() {
@@ -1448,10 +1458,10 @@ typedef F();
     expect(variable.isFinal, isTrue);
   }
 
-  test_field_non_final() {
+  test_field_static() {
     UnlinkedVariable variable =
-        serializeClassText('class C { int i; }').fields[0];
-    expect(variable.isFinal, isFalse);
+        serializeClassText('class C { static int i; }').fields[0];
+    expect(variable.isStatic, isTrue);
   }
 
   test_generic_method_in_generic_class() {
