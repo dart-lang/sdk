@@ -313,9 +313,17 @@ abstract class Stream<T> {
    * Creates a new stream that converts each element of this stream
    * to a new value using the [convert] function.
    *
+   * For each data event, `o`, in this stream, the returned stream
+   * provides a data event with the value `convert(o)`.
+   * If [convert] throws, the returned stream reports the exception as an error
+   * event instead.
+   *
+   * Error and done events are passed through unchanged to the returned stream.
+   *
    * The returned stream is a broadcast stream if this stream is.
+   * The [convert] function is called once per data event per listener.
    * If a broadcast stream is listened to more than once, each subscription
-   * will individually execute `map` for each event.
+   * will individually call [convert] on each data event.
    */
   Stream/*<S>*/ map/*<S>*/(/*=S*/ convert(T event)) {
     return new _MapStream<T, dynamic/*=S*/>(this, convert);
