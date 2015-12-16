@@ -253,6 +253,7 @@ class UnlinkedClass {
   List<UnlinkedExecutable> _executables;
   bool _isAbstract;
   bool _isMixinApplication;
+  bool _hasNoSupertype;
 
   UnlinkedClass.fromJson(Map json)
     : _name = json["name"],
@@ -263,7 +264,8 @@ class UnlinkedClass {
       _fields = json["fields"]?.map((x) => new UnlinkedVariable.fromJson(x))?.toList(),
       _executables = json["executables"]?.map((x) => new UnlinkedExecutable.fromJson(x))?.toList(),
       _isAbstract = json["isAbstract"],
-      _isMixinApplication = json["isMixinApplication"];
+      _isMixinApplication = json["isMixinApplication"],
+      _hasNoSupertype = json["hasNoSupertype"];
 
   String get name => _name ?? '';
   List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
@@ -274,6 +276,7 @@ class UnlinkedClass {
   List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
   bool get isAbstract => _isAbstract ?? false;
   bool get isMixinApplication => _isMixinApplication ?? false;
+  bool get hasNoSupertype => _hasNoSupertype ?? false;
 }
 
 class UnlinkedClassBuilder {
@@ -355,6 +358,14 @@ class UnlinkedClassBuilder {
     }
   }
 
+  void set hasNoSupertype(bool _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("hasNoSupertype"));
+    if (_value != null) {
+      _json["hasNoSupertype"] = _value;
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -362,7 +373,7 @@ class UnlinkedClassBuilder {
   }
 }
 
-UnlinkedClassBuilder encodeUnlinkedClass(builder.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication}) {
+UnlinkedClassBuilder encodeUnlinkedClass(builder.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
   UnlinkedClassBuilder builder = new UnlinkedClassBuilder(builderContext);
   builder.name = name;
   builder.typeParameters = typeParameters;
@@ -373,6 +384,7 @@ UnlinkedClassBuilder encodeUnlinkedClass(builder.BuilderContext builderContext, 
   builder.executables = executables;
   builder.isAbstract = isAbstract;
   builder.isMixinApplication = isMixinApplication;
+  builder.hasNoSupertype = hasNoSupertype;
   return builder;
 }
 

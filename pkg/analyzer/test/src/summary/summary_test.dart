@@ -76,6 +76,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   test_class_no_superclass() {
     UnlinkedClass cls = serializeClassElement(typeProvider.objectType.element);
     expect(cls.supertype, isNull);
+    expect(cls.hasNoSupertype, isTrue);
   }
 }
 
@@ -664,6 +665,7 @@ class E {}
     UnlinkedClass cls =
         serializeClassText('class C = D with E; class D {} class E {}');
     checkTypeRef(cls.supertype, null, null, 'D');
+    expect(cls.hasNoSupertype, isFalse);
   }
 
   test_class_concrete() {
@@ -746,12 +748,14 @@ class E {}
   test_class_superclass() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.supertype, isNull);
+    expect(cls.hasNoSupertype, isFalse);
   }
 
   test_class_superclass_explicit() {
     UnlinkedClass cls = serializeClassText('class C extends D {} class D {}');
     expect(cls.supertype, isNotNull);
     checkTypeRef(cls.supertype, null, null, 'D');
+    expect(cls.hasNoSupertype, isFalse);
   }
 
   test_class_type_param_bound() {

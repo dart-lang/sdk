@@ -220,7 +220,9 @@ class _LibrarySerializer {
     b.name = classElement.name;
     b.typeParameters =
         classElement.typeParameters.map(serializeTypeParam).toList();
-    if (classElement.supertype != null && !classElement.supertype.isObject) {
+    if (classElement.supertype == null) {
+      b.hasNoSupertype = true;
+    } else if (!classElement.supertype.isObject) {
       b.supertype = serializeTypeRef(classElement.supertype, classElement);
     }
     b.mixins = classElement.mixins

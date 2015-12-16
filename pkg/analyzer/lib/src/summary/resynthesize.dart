@@ -250,8 +250,7 @@ class _LibraryResynthesizer {
       InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
       if (serializedClass.supertype != null) {
         classElement.supertype = buildType(serializedClass.supertype);
-      } else {
-        // TODO(paulberry): don't make Object point to itself.
+      } else if (!serializedClass.hasNoSupertype) {
         classElement.supertype = summaryResynthesizer.typeProvider.objectType;
       }
       classElement.interfaces =

@@ -229,6 +229,12 @@ class UnlinkedClass {
    * Indicates whether the class is declared using mixin application syntax.
    */
   bool isMixinApplication;
+
+  /**
+   * Indicates whether this class is the core "Object" class (and hence has no
+   * supertype)
+   */
+  bool hasNoSupertype;
 }
 
 /**
