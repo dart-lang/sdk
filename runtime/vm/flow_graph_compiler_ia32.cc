@@ -480,7 +480,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
         FieldAddress(EDX, TypeArguments::type_at_offset(type_param.index())));
     // EDI: concrete type of type.
     // Check if type argument is dynamic.
-    __ CompareObject(EDI, Type::ZoneHandle(zone(), Type::DynamicType()));
+    __ CompareObject(EDI, Object::dynamic_type());
     __ j(EQUAL,  is_instance_lbl);
     __ CompareObject(EDI, Type::ZoneHandle(zone(), Type::ObjectType()));
     __ j(EQUAL,  is_instance_lbl);

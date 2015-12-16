@@ -99,7 +99,7 @@ LocalVariable* LetNode::AddInitializer(AstNode* node) {
   LocalVariable* temp_var =
       new LocalVariable(token_pos(),
                         String::ZoneHandle(Symbols::New(name)),
-                        Type::ZoneHandle(Type::DynamicType()));
+                        Object::dynamic_type());
   vars_.Add(temp_var);
   return temp_var;
 }

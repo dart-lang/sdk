@@ -71,7 +71,7 @@ LocalVariable* AwaitTransformer::EnsureCurrentTempVar() {
   if (await_tmp == NULL) {
     // We need a new temp variable; add it to the function's top scope.
     await_tmp = new (Z) LocalVariable(
-        Scanner::kNoSourcePos, symbol, Type::ZoneHandle(Type::DynamicType()));
+        Scanner::kNoSourcePos, symbol, Object::dynamic_type());
     async_temp_scope_->AddVariable(await_tmp);
     // After adding it to the top scope, we can look it up from the preamble.
     // The following call includes an ASSERT check.

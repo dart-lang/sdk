@@ -464,7 +464,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
         R2, R1, TypeArguments::type_at_offset(type_param.index()));
     // R2: concrete type of type.
     // Check if type argument is dynamic.
-    __ CompareObject(R2, Type::ZoneHandle(zone(), Type::DynamicType()));
+    __ CompareObject(R2, Object::dynamic_type());
     __ b(is_instance_lbl, EQ);
     __ CompareObject(R2, Type::ZoneHandle(zone(), Type::ObjectType()));
     __ b(is_instance_lbl, EQ);

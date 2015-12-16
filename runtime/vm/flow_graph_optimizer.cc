@@ -1727,7 +1727,7 @@ intptr_t FlowGraphOptimizer::PrepareInlineIndexedOp(Instruction* call,
         new(Z) LoadFieldInstr(
             new(Z) Value(*array),
             GrowableObjectArray::data_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             call->token_pos());
     elements->set_result_cid(kArrayCid);
     *cursor = flow_graph()->AppendTo(*cursor,

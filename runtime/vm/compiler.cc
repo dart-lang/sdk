@@ -1591,7 +1591,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         Class::Handle(Type::Handle(Type::Function()).type_class()),
         fragment->token_pos()));
 
-    func.set_result_type(Type::Handle(Type::DynamicType()));
+    func.set_result_type(Object::dynamic_type());
     func.set_num_fixed_parameters(0);
     func.SetNumOptionalParameters(0, true);
     // Manually generated AST, do not recompile.

@@ -576,7 +576,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     if (context_scope.IsConstAt(i)) {
       variable = new LocalVariable(context_scope.TokenIndexAt(i),
           String::ZoneHandle(context_scope.NameAt(i)),
-          AbstractType::ZoneHandle(Type::DynamicType()));
+          Object::dynamic_type());
       variable->SetConstValue(
           Instance::ZoneHandle(context_scope.ConstValueAt(i)));
     } else {

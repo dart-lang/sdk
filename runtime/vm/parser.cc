@@ -138,7 +138,7 @@ LocalVariable* ParsedFunction::EnsureExpressionTemp() {
     LocalVariable* temp =
         new (Z) LocalVariable(function_.token_pos(),
                               Symbols::ExprTemp(),
-                              Type::ZoneHandle(Type::DynamicType()));
+                              Object::dynamic_type());
     ASSERT(temp != NULL);
     set_expression_temp_var(temp);
   }
@@ -152,7 +152,7 @@ void ParsedFunction::EnsureFinallyReturnTemp(bool is_async) {
     LocalVariable* temp = new(Z) LocalVariable(
         function_.token_pos(),
         String::ZoneHandle(Z, Symbols::New(":finally_ret_val")),
-        Type::ZoneHandle(Z, Type::DynamicType()));
+        Object::dynamic_type());
     ASSERT(temp != NULL);
     temp->set_is_final();
     if (is_async) {
@@ -607,6 +607,7 @@ struct MemberDesc {
   MemberDesc() {
     Clear();
   }
+
   void Clear() {
     has_abstract = false;
     has_external = false;
@@ -628,6 +629,7 @@ struct MemberDesc {
     kind = RawFunction::kRegularFunction;
     field_ = NULL;
   }
+
   bool IsConstructor() const {
     return (kind == RawFunction::kConstructor) && !has_static;
   }
@@ -1374,7 +1376,7 @@ SequenceNode* Parser::ParseConstructorClosure(const Function& func) {
   // argument.
   params.AddFinalParameter(token_pos,
                            &Symbols::ClosureParameter(),
-                           &Type::ZoneHandle(Z, Type::DynamicType()));
+                           &Object::dynamic_type());
   bool params_ok = ParseFormalParameters(constructor, &params);
   USE(params_ok);
   ASSERT(params_ok);
@@ -1424,7 +1426,7 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
   params.AddFinalParameter(
       token_pos,
       &Symbols::ClosureParameter(),
-      &Type::ZoneHandle(Type::DynamicType()));
+      &Object::dynamic_type());
 
   const Function& parent = Function::ZoneHandle(func.parent_function());
   if (parent.IsImplicitSetterFunction()) {
@@ -1522,7 +1524,7 @@ void Parser::BuildDispatcherScope(const Function& func,
     char name[64];
     OS::SNPrint(name, 64, ":p%" Pd, i);
     p.name = &String::ZoneHandle(Z, Symbols::New(name));
-    p.type = &Type::ZoneHandle(Z, Type::DynamicType());
+    p.type = &Object::dynamic_type();
     params.parameters->Add(p);
     params.num_fixed_parameters++;
   }
@@ -1533,7 +1535,7 @@ void Parser::BuildDispatcherScope(const Function& func,
     ParamDesc p;
     intptr_t index = i - desc.PositionalCount();
     p.name = &String::ZoneHandle(Z, desc.NameAt(index));
-    p.type = &Type::ZoneHandle(Z, Type::DynamicType());
+    p.type = &Object::dynamic_type();
     p.default_value = &Object::null_instance();
     params.parameters->Add(p);
     params.num_optional_parameters++;
@@ -1784,7 +1786,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     // The parameter type is the 'dynamic' type.
     // If this is an initializing formal, its type will be set to the type of
     // the respective field when the constructor is fully parsed.
-    parameter.type = &Type::ZoneHandle(Z, Type::DynamicType());
+    parameter.type = &Object::dynamic_type();
   }
   if (CurrentToken() == Token::kTHIS) {
     ConsumeToken();
@@ -1797,7 +1799,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     // This must later be changed to a closure type if we recognize
     // a closure/function type parameter. We check this at the end
     // of ParseFormalParameter.
-    parameter.type = &Type::ZoneHandle(Z, Type::VoidType());
+    parameter.type = &Object::void_type();
   }
   if (parameter.type == NULL) {
     // At this point, we must see an identifier for the type or the
@@ -1824,7 +1826,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     } else {
       // If this is an initializing formal, its type will be set to the type of
       // the respective field when the constructor is fully parsed.
-      parameter.type = &Type::ZoneHandle(Z, Type::DynamicType());
+      parameter.type = &Object::dynamic_type();
     }
   }
   if (!this_seen && (CurrentToken() == Token::kTHIS)) {
@@ -1873,7 +1875,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       func_params.AddFinalParameter(
           TokenPos(),
           &Symbols::ClosureParameter(),
-          &Type::ZoneHandle(Z, Type::DynamicType()));
+          &Object::dynamic_type());
 
       const bool no_explicit_default_values = false;
       ParseFormalParameterList(no_explicit_default_values, false, &func_params);
@@ -2946,7 +2948,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
       LocalVariable* param = new LocalVariable(
           Scanner::kNoSourcePos,
           String::ZoneHandle(Z, func.ParameterNameAt(i)),
-          Type::ZoneHandle(Z, Type::DynamicType()));
+          Object::dynamic_type());
       current_block_->scope->InsertParameterAt(i, param);
       forwarding_args->Add(new LoadLocalNode(Scanner::kNoSourcePos, param));
     }
@@ -3331,7 +3333,7 @@ SequenceNode* Parser::ParseFunc(const Function& func) {
     params.AddFinalParameter(
         TokenPos(),
         &Symbols::ClosureParameter(),
-        &Type::ZoneHandle(Z, Type::DynamicType()));
+        &Object::dynamic_type());
   } else if (!func.is_static()) {
     // Static functions do not have a receiver.
     ASSERT(current_class().raw() == func.Owner());
@@ -3342,7 +3344,7 @@ SequenceNode* Parser::ParseFunc(const Function& func) {
     params.AddFinalParameter(
         TokenPos(),
         &Symbols::TypeArgumentsParameter(),
-        &Type::ZoneHandle(Z, Type::DynamicType()));
+        &Object::dynamic_type());
   }
   // Expect the parameter list unless this is a getter function, or the
   // body closure of an async or generator getter function.
@@ -3705,7 +3707,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     method->params.AddFinalParameter(
         formal_param_pos,
         &Symbols::TypeArgumentsParameter(),
-        &Type::ZoneHandle(Z, Type::DynamicType()));
+        &Object::dynamic_type());
   }
   // Constructors have an implicit parameter for the construction phase.
   if (method->IsConstructor()) {
@@ -4172,7 +4174,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
         params.AddFinalParameter(TokenPos(),
                                  &Symbols::Value(),
                                  field->type);
-        setter.set_result_type(Type::Handle(Z, Type::VoidType()));
+        setter.set_result_type(Object::void_type());
         setter.set_is_debuggable(false);
         if (library_.is_dart_scheme() && library_.IsPrivate(*field->name)) {
           setter.set_is_reflectable(false);
@@ -4276,7 +4278,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     ConsumeToken();
     member.has_var = true;
     // The member type is the 'dynamic' type.
-    member.type = &Type::ZoneHandle(Z, Type::DynamicType());
+    member.type = &Object::dynamic_type();
   } else if (CurrentToken() == Token::kFACTORY) {
     ConsumeToken();
     if (member.has_static) {
@@ -4293,7 +4295,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     }
     ConsumeToken();
     ASSERT(member.type == NULL);
-    member.type = &Type::ZoneHandle(Z, Type::VoidType());
+    member.type = &Object::void_type();
   } else if (CurrentToken() == Token::kIDENT) {
     // This is either a type name or the name of a method/constructor/field.
     if ((member.type == NULL) && !member.has_factory) {
@@ -4388,7 +4390,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     // The grammar allows a return type, so member.type is not always NULL here.
     // If no return type is specified, the return type of the setter is dynamic.
     if (member.type == NULL) {
-      member.type = &Type::ZoneHandle(Z, Type::DynamicType());
+      member.type = &Object::dynamic_type();
     }
   } else if ((CurrentToken() == Token::kOPERATOR) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
@@ -4421,7 +4423,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
   if (CurrentToken() == Token::kLPAREN || member.IsGetter()) {
     // Constructor or method.
     if (member.type == NULL) {
-      member.type = &Type::ZoneHandle(Z, Type::DynamicType());
+      member.type = &Object::dynamic_type();
     }
     ASSERT(member.IsFactory() == member.has_factory);
     ParseMethodOrConstructor(members, &member);
@@ -4435,7 +4437,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members,
     }
     if (member.type == NULL) {
       if (member.has_final) {
-        member.type = &Type::ZoneHandle(Z, Type::DynamicType());
+        member.type = &Object::dynamic_type();
       } else {
         ReportError("missing 'var', 'final', 'const' or type"
                     " in field declaration");
@@ -5162,7 +5164,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
   func_params.AddFinalParameter(
       TokenPos(),
       &Symbols::ClosureParameter(),
-      &Type::ZoneHandle(Z, Type::DynamicType()));
+      &Object::dynamic_type());
 
   const bool no_explicit_default_values = false;
   ParseFormalParameterList(no_explicit_default_values, false, &func_params);
@@ -6656,7 +6658,7 @@ RawFunction* Parser::OpenSyncGeneratorFunction(intptr_t func_pos) {
                                         innermost_function(),
                                         func_pos);
     body.set_is_generated_body(true);
-    body.set_result_type(AbstractType::Handle(Type::DynamicType()));
+    body.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
 
@@ -6794,7 +6796,7 @@ RawFunction* Parser::OpenAsyncFunction(intptr_t async_func_pos) {
         innermost_function(),
         async_func_pos);
     closure.set_is_generated_body(true);
-    closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
+    closure.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
   // Create the parameter list for the async body closure.
@@ -6928,7 +6930,7 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
         innermost_function(),
         async_func_pos);
     closure.set_is_generated_body(true);
-    closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
+    closure.set_result_type(Object::dynamic_type());
     is_new_closure = true;
   }
 
@@ -8710,7 +8712,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                               TypeArguments::ZoneHandle(Z),
                               iterator_ctor,
                               ctor_args);
-  const AbstractType& iterator_type = Type::ZoneHandle(Z, Type::DynamicType());
+  const AbstractType& iterator_type = Object::dynamic_type();
   LocalVariable* iterator_var = new(Z) LocalVariable(
       stream_expr_pos, Symbols::ForInIter(), iterator_type);
   current_block_->scope->AddVariable(iterator_var);
@@ -8975,7 +8977,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   // would refer to the compiler generated iterator and could confuse the user.
   // It is better to leave the iterator untyped and postpone the type error
   // until the loop variable is assigned to.
-  const AbstractType& iterator_type = Type::ZoneHandle(Z, Type::DynamicType());
+  const AbstractType& iterator_type = Object::dynamic_type();
   LocalVariable* iterator_var = new(Z) LocalVariable(
       collection_pos, Symbols::ForInIter(), iterator_type);
   current_block_->scope->AddVariable(iterator_var);
@@ -9404,7 +9406,7 @@ SequenceNode* Parser::ParseCatchClauses(
       exception_param.type = &AbstractType::ZoneHandle(Z,
           ParseType(ClassFinalizer::kCanonicalize));
     } else {
-      exception_param.type = &AbstractType::ZoneHandle(Z, Type::DynamicType());
+      exception_param.type = &Object::dynamic_type();
     }
     if (CurrentToken() == Token::kCATCH) {
       ConsumeToken();  // Consume the 'catch'.
@@ -9413,8 +9415,7 @@ SequenceNode* Parser::ParseCatchClauses(
       exception_param.name = ExpectIdentifier("identifier expected");
       if (CurrentToken() == Token::kCOMMA) {
         ConsumeToken();
-        stack_trace_param.type =
-            &AbstractType::ZoneHandle(Z, Type::DynamicType());
+        stack_trace_param.type = &Object::dynamic_type();
         stack_trace_param.token_pos = TokenPos();
         stack_trace_param.name = ExpectIdentifier("identifier expected");
       }
@@ -9595,7 +9596,7 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
   LocalVariable* async_saved_try_ctx = new (Z) LocalVariable(
       Scanner::kNoSourcePos,
       async_saved_try_ctx_name,
-      Type::ZoneHandle(Z, Type::DynamicType()));
+      Object::dynamic_type());
   ASSERT(async_temp_scope_ != NULL);
   async_temp_scope_->AddVariable(async_saved_try_ctx);
   ASSERT(saved_try_context != NULL);
@@ -10559,7 +10560,7 @@ LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
   LocalVariable* temp = new(Z) LocalVariable(
       token_pos,
       String::ZoneHandle(Z, Symbols::New(name)),
-      Type::ZoneHandle(Z, Type::DynamicType()));
+      Object::dynamic_type());
   temp->set_is_final();
   current_block_->scope->AddVariable(temp);
   return temp;
@@ -13194,7 +13195,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   ParamList params;
   params.AddFinalParameter(token_pos,
                            &Symbols::ClosureParameter(),
-                           &Type::ZoneHandle(Z, Type::DynamicType()));
+                           &Object::dynamic_type());
 
   ParseFormalParameters(ctr, &params);
   // Per language spec, the type of the closure parameters is dynamic.
@@ -13207,7 +13208,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(const Function& ctr,
   closure.set_is_generated_body(true);
   closure.set_is_debuggable(false);
   closure.set_is_visible(false);
-  closure.set_result_type(AbstractType::Handle(Type::DynamicType()));
+  closure.set_result_type(Object::dynamic_type());
   AddFormalParamsToFunction(&params, closure);
 
   // Create and set the signature class of the closure.

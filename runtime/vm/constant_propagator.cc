@@ -867,7 +867,7 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
   if (IsConstant(object)) {
     if (instr->type().IsTypeParameter()) {
       if (object.IsNull()) {
-        SetValue(instr, Type::ZoneHandle(Z, Type::DynamicType()));
+        SetValue(instr, Object::dynamic_type());
         return;
       }
       // We could try to instantiate the type parameter and return it if no

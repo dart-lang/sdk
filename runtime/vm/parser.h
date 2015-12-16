@@ -63,7 +63,7 @@ class ParsedFunction : public ZoneAllocated {
     LocalVariable* temp = new(zone()) LocalVariable(
         function.token_pos(),
         Symbols::CurrentContextVar(),
-        Type::ZoneHandle(zone(), Type::DynamicType()));
+        Object::dynamic_type());
     ASSERT(temp != NULL);
     current_context_var_ = temp;
   }
