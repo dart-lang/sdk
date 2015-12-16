@@ -7,34 +7,45 @@ library analyzer_cli.src.error_formatter;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/options.dart';
 
-/// Allows any [AnalysisError].
-bool _anyError(AnalysisError error) => true;
+/// Returns the given error's severity.
+ProcessedSeverity _identity(AnalysisError error) =>
+    new ProcessedSeverity(error.errorCode.errorSeverity);
 
-/// Returns `true` if [AnalysisError] should be printed.
-typedef bool _ErrorFilter(AnalysisError error);
+/// Returns desired severity for the given [error] (or `null` if it's to be
+/// suppressed).
+typedef ProcessedSeverity _SeverityProcessor(AnalysisError error);
 
 /// Helper for formatting [AnalysisError]s.
-/// The two format options are a user consumable format and a machine consumable format.
+/// The two format options are a user consumable format and a machine consumable
+/// format.
 class ErrorFormatter {
   final StringSink out;
   final CommandLineOptions options;
-  final _ErrorFilter errorFilter;
+  final _SeverityProcessor processSeverity;
 
-  ErrorFormatter(this.out, this.options, [this.errorFilter = _anyError]);
+  ErrorFormatter(this.out, this.options, [this.processSeverity = _identity]);
+
+  /// Compute the severity for this [error] or `null` if this error should be
+  /// filtered.
+  ErrorSeverity computeSeverity(AnalysisError error) =>
+      processSeverity(error)?.severity;
 
   void formatError(
       Map<AnalysisError, LineInfo> errorToLine, AnalysisError error) {
     Source source = error.source;
     LineInfo_Location location = errorToLine[error].getLocation(error.offset);
     int length = error.length;
-    ErrorSeverity severity =
-        AnalyzerImpl.computeSeverity(error, options);
+
+    ProcessedSeverity processedSeverity = processSeverity(error);
+    ErrorSeverity severity = processedSeverity.severity;
+
     if (options.machineFormat) {
-      if (severity == ErrorSeverity.WARNING && options.warningsAreFatal) {
-        severity = ErrorSeverity.ERROR;
+      if (!processedSeverity.overridden) {
+        if (severity == ErrorSeverity.WARNING && options.warningsAreFatal) {
+          severity = ErrorSeverity.ERROR;
+        }
       }
       out.write(severity);
       out.write('|');
@@ -52,11 +63,17 @@ class ErrorFormatter {
       out.write('|');
       out.write(escapePipe(error.message));
     } else {
+      // Get display name.
       String errorType = severity.displayName;
-      if (error.errorCode.type == ErrorType.HINT ||
-          error.errorCode.type == ErrorType.LINT) {
-        errorType = error.errorCode.type.displayName;
+
+      // Translate INFOs into LINTS and HINTS.
+      if (severity == ErrorSeverity.INFO) {
+        if (error.errorCode.type == ErrorType.HINT ||
+            error.errorCode.type == ErrorType.LINT) {
+          errorType = error.errorCode.type.displayName;
+        }
       }
+
       // [warning] 'foo' is not a... (/Users/.../tmp/foo.dart, line 1, col 2)
       out.write('[$errorType] ${error.message} ');
       out.write('(${source.fullName}');
@@ -70,7 +87,7 @@ class ErrorFormatter {
     var errorToLine = new Map<AnalysisError, LineInfo>();
     for (AnalysisErrorInfo errorInfo in errorInfos) {
       for (AnalysisError error in errorInfo.errors) {
-        if (errorFilter(error)) {
+        if (computeSeverity(error) != null) {
           errors.add(error);
           errorToLine[error] = errorInfo.lineInfo;
         }
@@ -79,10 +96,8 @@ class ErrorFormatter {
     // Sort errors.
     errors.sort((AnalysisError error1, AnalysisError error2) {
       // Severity.
-      ErrorSeverity severity1 =
-          AnalyzerImpl.computeSeverity(error1, options);
-      ErrorSeverity severity2 =
-          AnalyzerImpl.computeSeverity(error2, options);
+      ErrorSeverity severity1 = computeSeverity(error1);
+      ErrorSeverity severity2 = computeSeverity(error2);
       int compare = severity2.compareTo(severity1);
       if (compare != 0) {
         return compare;
@@ -102,12 +117,14 @@ class ErrorFormatter {
     int hintCount = 0;
     int lintCount = 0;
     for (AnalysisError error in errors) {
-      ErrorSeverity severity =
-          AnalyzerImpl.computeSeverity(error, options);
+      ProcessedSeverity processedSeverity = processSeverity(error);
+      ErrorSeverity severity = processedSeverity.severity;
       if (severity == ErrorSeverity.ERROR) {
         errorCount++;
       } else if (severity == ErrorSeverity.WARNING) {
-        if (options.warningsAreFatal) {
+        /// Only treat a warning as an error if it's not been set by a
+        /// proccesser.
+        if (!processedSeverity.overridden && options.warningsAreFatal) {
           errorCount++;
         } else {
           warnCount++;
@@ -193,4 +210,11 @@ class ErrorFormatter {
       return word + "s";
     }
   }
+}
+
+/// A severity with awareness of whether it was overriden by a processor.
+class ProcessedSeverity {
+  ErrorSeverity severity;
+  bool overridden;
+  ProcessedSeverity(this.severity, [this.overridden = false]);
 }

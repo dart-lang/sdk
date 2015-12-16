@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -69,7 +70,6 @@ main() {
       });
     });
 
-    //TODO(pq): refactor to NOT set actual error codes to play nice with bots
     group('exit codes', () {
       test('fatal hints', () {
         drive('data/file_with_hint.dart', args: ['--fatal-hints']);
@@ -228,30 +228,62 @@ linter:
     });
 
     group('options processing', () {
-      // Shared driver command.
-      var doDrive = () => drive('data/options_tests_project/test_file.dart',
-          options: 'data/options_tests_project/.analysis_options');
+      group('basic config', () {
+        // Shared driver command.
+        var doDrive = () => drive('data/options_tests_project/test_file.dart',
+            options: 'data/options_tests_project/.analysis_options');
 
-      group('error filters', () {
         test('filters', () {
           doDrive();
-          var processors =
-              driver.context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
-          expect(processors, hasLength(1));
+          expect(processors, hasLength(3));
 
+          // unused_local_variable: ignore
           var unused_local_variable = new AnalysisError(
               new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
             ['x']
           ]);
+          expect(processorFor(unused_local_variable).severity, isNull);
 
-          var unusedLocalVariable =
-              processors.firstWhere((p) => p.appliesTo(unused_local_variable));
-          expect(unusedLocalVariable.severity, isNull);
+          // missing_return: error
+          var missing_return = new AnalysisError(
+              new TestSource(), 0, 1, HintCode.MISSING_RETURN, [
+            ['x']
+          ]);
+          expect(processorFor(missing_return).severity, ErrorSeverity.ERROR);
+          expect(
+              outSink.toString(),
+              contains(
+                  "[error] This function declares a return type of 'int'"));
+          expect(outSink.toString(),
+              contains("1 error and 1 warning found."));
         });
 
-        test('language config', () {
+        test('language', () {
           doDrive();
           expect(driver.context.analysisOptions.enableSuperMixins, isTrue);
+        });
+      });
+
+      group('with flags', () {
+        // Shared driver command.
+        var doDrive = () => drive('data/options_tests_project/test_file.dart',
+            args: ['--fatal-warnings'],
+            options: 'data/options_tests_project/.analysis_options');
+
+        test('override fatal warning', () {
+          doDrive();
+          // missing_return: error
+          var undefined_function = new AnalysisError(new TestSource(), 0, 1,
+              StaticTypeWarningCode.UNDEFINED_FUNCTION, [
+            ['x']
+          ]);
+          expect(
+              processorFor(undefined_function).severity, ErrorSeverity.WARNING);
+          // Should not be made fatal by `--fatal-warnings`.
+          expect(outSink.toString(),
+              contains("[warning] The function 'baz' is not defined"));
+          expect(outSink.toString(),
+              contains("1 error and 1 warning found."));
         });
       });
     });
@@ -375,6 +407,12 @@ const emptyOptionsFile = 'data/empty_options.yaml';
 
 /// Shared driver.
 Driver driver;
+
+List<ErrorProcessor> get processors =>
+    driver.context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+
+ErrorProcessor processorFor(AnalysisError error) =>
+    processors.firstWhere((p) => p.appliesTo(error));
 
 /// Start a driver for the given [source], optionally providing additional
 /// [args] and an [options] file path.  The value of [options] defaults to

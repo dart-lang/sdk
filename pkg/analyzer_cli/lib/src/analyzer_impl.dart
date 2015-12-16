@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -59,7 +60,7 @@ class AnalyzerImpl {
     var status = ErrorSeverity.NONE;
     for (AnalysisErrorInfo errorInfo in errorInfos) {
       for (AnalysisError error in errorInfo.errors) {
-        if (!_isDesiredError(error)) {
+        if (_processError(error) == null) {
           continue;
         }
         var severity = computeSeverity(error, options);
@@ -175,17 +176,6 @@ class AnalyzerImpl {
     return status;
   }
 
-  bool _isDesiredError(AnalysisError error) {
-    if (error.errorCode.type == ErrorType.TODO) {
-      return false;
-    }
-    if (computeSeverity(error, options) == ErrorSeverity.INFO &&
-        options.disableHints) {
-      return false;
-    }
-    return true;
-  }
-
   /// Determine whether the given URI refers to a package other than the package
   /// being analyzed.
   bool _isOtherPackage(Uri uri) {
@@ -225,9 +215,38 @@ class AnalyzerImpl {
     StringSink sink = options.machineFormat ? errorSink : outSink;
 
     // Print errors.
-    ErrorFormatter formatter =
-        new ErrorFormatter(sink, options, _isDesiredError);
+    ErrorFormatter formatter = new ErrorFormatter(sink, options, _processError);
     formatter.formatErrors(errorInfos);
+  }
+
+  /// Check various configuration options to get a desired severity for this
+  /// [error] (or `null` if it's to be suppressed).
+  ProcessedSeverity _processError(AnalysisError error) {
+    ErrorSeverity severity = computeSeverity(error, options, context);
+    bool isOverridden = false;
+
+    // First check for a filter.
+    if (severity == null) {
+      // Null severity means the error has been explicitly ignored.
+      return null;
+    } else {
+      isOverridden = true;
+    }
+
+    // If not overridden, some "natural" severities get globally filtered.
+    if (!isOverridden) {
+      // Check for global hint filtering.
+      if (severity == ErrorSeverity.INFO && options.disableHints) {
+        return null;
+      }
+
+      // Skip TODOs.
+      if (severity == ErrorType.TODO) {
+        return null;
+      }
+    }
+
+    return new ProcessedSeverity(severity, isOverridden);
   }
 
   /// Compute the severity of the error; however:
@@ -235,14 +254,25 @@ class AnalyzerImpl {
   ///   compile time errors to a severity of [ErrorSeverity.INFO].
   ///   * if [options.hintsAreFatal] is true, escalate hints to errors.
   static ErrorSeverity computeSeverity(
-      AnalysisError error, CommandLineOptions options) {
+      AnalysisError error, CommandLineOptions options,
+      [AnalysisContext context]) {
+    if (context != null) {
+      ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
+      // If there is a processor for this error, defer to it.
+      if (processor != null) {
+        return processor.severity;
+      }
+    }
+
     if (!options.enableTypeChecks &&
         error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
       return ErrorSeverity.INFO;
     }
+
     if (options.hintsAreFatal && error.errorCode is HintCode) {
       return ErrorSeverity.ERROR;
     }
+
     return error.errorCode.errorSeverity;
   }
 
