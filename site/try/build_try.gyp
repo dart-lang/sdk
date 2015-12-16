@@ -48,7 +48,6 @@
           '../../third_party/pkg/args/lib',
           '../../third_party/pkg/http/lib',
           '../../third_party/pkg/http_parser/lib',
-          '../../third_party/pkg/intl/lib',
           '../../third_party/pkg/logging/lib',
           '../../third_party/pkg/path/lib',
           '../../third_party/pkg/stack_trace/lib',

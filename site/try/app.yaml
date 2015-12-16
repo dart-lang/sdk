@@ -52,10 +52,6 @@ handlers:
   static_dir: packages/http_parser
   secure: always
 
-- url: /packages/intl
-  static_dir: packages/intl
-  secure: always
-
 - url: /packages/logging
   static_dir: packages/logging
   secure: always
