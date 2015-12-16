@@ -1,5 +1,6 @@
 ## 0.27.1
 * Moved the public and private API's for the element model into their proper places.
+* Added back support for auto-processing of plugins.
 
 ## 0.27.0
 * Support for DEP 37 (Assert with optional message).
