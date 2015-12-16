@@ -75,7 +75,7 @@ vars = {
   "mustache4dart_rev" : "@5724cfd85151e5b6b53ddcd3380daf188fe47f92",
   "oauth2_tag": "@1.0.0",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
-  "observatory_pub_packages_rev": "@0e74202dd671265f12a3c80d223717b393f4feb9",
+  "observatory_pub_packages_rev": "@cf90eb9077177d3d6b3fd5e8289477c2385c026a",
   "package_config_rev": "@0.1.3",
   "path_tag": "@1.3.6",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
