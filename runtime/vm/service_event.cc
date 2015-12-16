@@ -40,6 +40,7 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       embedder_stream_id_(NULL),
       breakpoint_(NULL),
       top_frame_(NULL),
+      extension_rpc_(NULL),
       exception_(NULL),
       async_continuation_(NULL),
       at_async_jump_(false),
@@ -62,6 +63,7 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       kind_(TranslateEventKind(debugger_event->type())),
       breakpoint_(NULL),
       top_frame_(NULL),
+      extension_rpc_(NULL),
       exception_(NULL),
       async_continuation_(NULL),
       inspectee_(NULL),
@@ -101,6 +103,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "IsolateExit";
     case kIsolateUpdate:
       return "IsolateUpdate";
+    case kServiceExtensionAdded:
+      return "ServiceExtensionAdded";
     case kPauseStart:
       return "PauseStart";
     case kPauseExit:
@@ -147,6 +151,7 @@ const char* ServiceEvent::stream_id() const {
     case kIsolateRunnable:
     case kIsolateExit:
     case kIsolateUpdate:
+    case kServiceExtensionAdded:
       return Service::isolate_stream.id();
 
     case kPauseStart:
@@ -181,6 +186,10 @@ const char* ServiceEvent::stream_id() const {
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
   PrintJSONHeader(&jsobj);
+  if (kind() == kServiceExtensionAdded) {
+    ASSERT(extension_rpc_ != NULL);
+    jsobj.AddProperty("extensionRPC", extension_rpc_->ToCString());
+  }
   if (kind() == kPauseBreakpoint) {
     JSONArray jsarr(&jsobj, "pauseBreakpoints");
     // TODO(rmacnak): If we are paused at more than one breakpoint,

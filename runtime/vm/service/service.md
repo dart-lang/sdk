@@ -715,7 +715,7 @@ The _streamId_ parameter may have the following published values:
 streamId | event types provided
 -------- | -----------
 VM | VMUpdate
-Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate
+Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
 
@@ -1139,6 +1139,11 @@ class Event extends Response {
   //
   // This is provided for the Inspect event.
   @Instance inspectee [optional];
+
+  // The RPC name of the extension that was added.
+  //
+  // This is provided for the ServiceExtensionAdded.
+  string extensionRPC [optional];
 }
 ```
 
@@ -1169,6 +1174,9 @@ enum EventKind {
   // Currently used to notify of changes to the isolate debugging name
   // via setName.
   IsolateUpdate,
+
+  // Notification that an extension RPC was registered on an isolate.
+  ServiceExtensionAdded,
 
   // An isolate has paused at start, before executing code.
   PauseStart,
@@ -1815,6 +1823,9 @@ class Isolate extends Response {
 
   // The current pause on exception mode for this isolate.
   ExceptionPauseMode exceptionPauseMode;
+
+  // The list of service extension RPCs that are registered for this isolate.
+  string[] extensionRPCs;
 }
 ```
 
@@ -2281,7 +2292,7 @@ version | comments
 ------- | --------
 1.0 | initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance.
+3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -21,6 +21,8 @@ class ServiceEvent {
     kIsolateExit,        // Isolate has exited
     kIsolateUpdate,      // Isolate identity information has changed
 
+    kServiceExtensionAdded,  // A service extension was registered
+
     kPauseStart,         // --pause-isolates-on-start
     kPauseExit,          // --pause-isolates-on-exit
     kPauseBreakpoint,
@@ -97,6 +99,13 @@ class ServiceEvent {
     top_frame_ = frame;
   }
 
+  const String* extension_rpc() const {
+    return extension_rpc_;
+  }
+  void set_extension_rpc(const String* extension_rpc) {
+    extension_rpc_ = extension_rpc;
+  }
+
   const Object* exception() const {
     return exception_;
   }
@@ -168,6 +177,7 @@ class ServiceEvent {
   const char* embedder_stream_id_;
   Breakpoint* breakpoint_;
   ActivationFrame* top_frame_;
+  const String* extension_rpc_;
   const Object* exception_;
   const Object* async_continuation_;
   bool at_async_jump_;

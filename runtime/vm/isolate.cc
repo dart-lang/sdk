@@ -1859,6 +1859,19 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     debugger()->PrintSettingsToJSONObject(&jssettings);
   }
+
+  {
+    GrowableObjectArray& handlers =
+        GrowableObjectArray::Handle(registered_service_extension_handlers());
+    if (!handlers.IsNull()) {
+      JSONArray extensions(&jsobj, "extensionRPCs");
+      String& handler_name = String::Handle();
+      for (intptr_t i = 0; i < handlers.Length(); i += kRegisteredEntrySize) {
+        handler_name ^= handlers.At(i + kRegisteredNameIndex);
+        extensions.AddValue(handler_name.ToCString());
+      }
+    }
+  }
 }
 
 
@@ -2042,6 +2055,12 @@ void Isolate::RegisterServiceExtensionHandler(const String& name,
   handlers.Add(name, Heap::kOld);
   ASSERT(kRegisteredHandlerIndex == 1);
   handlers.Add(closure, Heap::kOld);
+  {
+    // Fire off an event.
+    ServiceEvent event(this, ServiceEvent::kServiceExtensionAdded);
+    event.set_extension_rpc(&name);
+    Service::HandleEvent(&event);
+  }
 }
 
 

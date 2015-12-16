@@ -81,13 +81,17 @@ class ServiceExtensionResponse {
 ///
 /// Must complete to a [ServiceExtensionResponse].
 ///
-/// [method] - the method name.
-/// [parameters] - the parameters.
+/// [method] - the method name of the service protocol request.
+/// [parameters] - A map holding the parameters to the service protocol request.
+///
+/// *NOTE*: All parameter names and values are **encoded as strings**.
 typedef Future<ServiceExtensionResponse>
-    ServiceExtensionHandler(String method, Map parameters);
+    ServiceExtensionHandler(String method, Map<String, String> parameters);
 
 /// Register a [ServiceExtensionHandler] that will be invoked in this isolate
-/// for [method].
+/// for [method]. *NOTE*: Service protocol extensions must be registered
+/// in each isolate and users of extensions must always specify a target
+/// isolate.
 void registerExtension(String method, ServiceExtensionHandler handler) {
   if (method is! String) {
     throw new ArgumentError.value(method,
