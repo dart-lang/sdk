@@ -565,15 +565,7 @@ class B extends A {
 }
 ''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion =
-          assertSuggestImportedMethod('m', 'A', 'void');
-      expect(suggestion.parameterNames, hasLength(2));
-      expect(suggestion.parameterNames[0], 'x');
-      expect(suggestion.parameterTypes[0], 'dynamic');
-      expect(suggestion.parameterNames[1], 'y');
-      expect(suggestion.parameterTypes[1], 'int');
-      expect(suggestion.requiredParameterCount, 1);
-      expect(suggestion.hasNamedParameters, true);
+      assertNotSuggested('m');
     });
   }
 
@@ -592,15 +584,7 @@ class B extends A {
 }
 ''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion =
-          assertSuggestImportedMethod('m', 'A', 'void');
-      expect(suggestion.parameterNames, hasLength(2));
-      expect(suggestion.parameterNames[0], 'x');
-      expect(suggestion.parameterTypes[0], 'dynamic');
-      expect(suggestion.parameterNames[1], 'y');
-      expect(suggestion.parameterTypes[1], 'int');
-      expect(suggestion.requiredParameterCount, 1);
-      expect(suggestion.hasNamedParameters, false);
+      assertNotSuggested('m');
     });
   }
 
@@ -619,15 +603,7 @@ class B extends A {
 }
 ''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion =
-          assertSuggestImportedMethod('m', 'A', 'void');
-      expect(suggestion.parameterNames, hasLength(2));
-      expect(suggestion.parameterNames[0], 'x');
-      expect(suggestion.parameterTypes[0], 'dynamic');
-      expect(suggestion.parameterNames[1], 'y');
-      expect(suggestion.parameterTypes[1], 'int');
-      expect(suggestion.requiredParameterCount, 0);
-      expect(suggestion.hasNamedParameters, true);
+      assertNotSuggested('m');
     });
   }
 
@@ -647,12 +623,7 @@ class B extends A {
 ''');
     computeFast();
     return computeFull((bool result) {
-      CompletionSuggestion suggestion =
-          assertSuggestImportedMethod('m', 'A', 'void');
-      expect(suggestion.parameterNames, isEmpty);
-      expect(suggestion.parameterTypes, isEmpty);
-      expect(suggestion.requiredParameterCount, 0);
-      expect(suggestion.hasNamedParameters, false);
+      assertNotSuggested('m');
     });
   }
 
@@ -671,15 +642,7 @@ class B extends A {
 }
 ''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion =
-          assertSuggestImportedMethod('m', 'A', 'void');
-      expect(suggestion.parameterNames, hasLength(2));
-      expect(suggestion.parameterNames[0], 'x');
-      expect(suggestion.parameterTypes[0], 'dynamic');
-      expect(suggestion.parameterNames[1], 'y');
-      expect(suggestion.parameterTypes[1], 'int');
-      expect(suggestion.requiredParameterCount, 0);
-      expect(suggestion.hasNamedParameters, false);
+      assertNotSuggested('m');
     });
   }
 
@@ -698,15 +661,7 @@ class B extends A {
 }
 ''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion =
-          assertSuggestImportedMethod('m', 'A', 'void');
-      expect(suggestion.parameterNames, hasLength(2));
-      expect(suggestion.parameterNames[0], 'x');
-      expect(suggestion.parameterTypes[0], 'dynamic');
-      expect(suggestion.parameterNames[1], 'y');
-      expect(suggestion.parameterTypes[1], 'int');
-      expect(suggestion.requiredParameterCount, 2);
-      expect(suggestion.hasNamedParameters, false);
+      assertNotSuggested('m');
     });
   }
 
@@ -731,7 +686,7 @@ class C extends B with M1, M2 {
 }
 ''');
     return computeFull((bool result) {
-      assertSuggestImportedMethod('m', 'M2', 'void');
+      assertNotSuggested('m');
     });
   }
 
@@ -798,8 +753,7 @@ class B extends A {
 }
 ''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion = assertSuggestImportedField('x', 'int');
-      assertHasNoParameterInfo(suggestion);
+      assertNotSuggested('x');
     });
   }
 
@@ -818,8 +772,7 @@ class B extends A {
 }
 ''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion = assertSuggestImportedGetter('x', 'int');
-      assertHasNoParameterInfo(suggestion);
+      assertNotSuggested('x');
     });
   }
 
@@ -838,8 +791,7 @@ class B extends A {
 }
 ''');
     return computeFull((bool result) {
-      CompletionSuggestion suggestion = assertSuggestImportedSetter('x');
-      assertHasNoParameterInfo(suggestion);
+      assertNotSuggested('x');
     });
   }
 

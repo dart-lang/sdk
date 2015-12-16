@@ -5,7 +5,6 @@
 library services.completion.contributor.dart.toplevel;
 
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
@@ -13,8 +12,6 @@ import 'package:analysis_server/src/services/completion/dart_completion_cache.da
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 
 /**
@@ -147,30 +144,6 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
   }
 
   /**
-   * Add imported element suggestions.
-   */
-  void _addElementSuggestions(List<Element> elements,
-      {int relevance: DART_RELEVANCE_DEFAULT}) {
-    for (Element elem in elements) {
-      if (elem is! ClassElement) {
-        if (optype.includeOnlyTypeNameSuggestions) {
-          return;
-        }
-        if (elem is ExecutableElement) {
-          DartType returnType = elem.returnType;
-          if (returnType != null && returnType.isVoid) {
-            if (!optype.includeVoidReturnSuggestions) {
-              return;
-            }
-          }
-        }
-      }
-      addSuggestion(elem, relevance: relevance);
-    }
-    ;
-  }
-
-  /**
    * Add suggestions which start with the given text.
    */
   _addFilteredSuggestions(
@@ -193,39 +166,42 @@ class _ImportedSuggestionBuilder extends ElementSuggestionBuilder
    * Add suggestions for any inherited imported members.
    */
   void _addInheritedSuggestions(AstNode node) {
-    var classDecl = node.getAncestor((p) => p is ClassDeclaration);
-    if (classDecl is ClassDeclaration && !optype.inStaticMethodBody) {
-      // Build a list of inherited types that are imported
-      // and include any inherited imported members
-      List<String> inheritedTypes = new List<String>();
-      // local declarations are handled by the local reference contributor
-      visitInheritedTypes(classDecl, importedTypeName: (String typeName) {
-        inheritedTypes.add(typeName);
-      });
-      HashSet<String> visited = new HashSet<String>();
-      while (inheritedTypes.length > 0) {
-        String name = inheritedTypes.removeLast();
-        ClassElement elem = cache.importedClassMap[name];
-        if (visited.add(name) && elem != null) {
-          _addElementSuggestions(elem.fields,
-              relevance: DART_RELEVANCE_INHERITED_FIELD);
-          _addElementSuggestions(elem.accessors,
-              relevance: DART_RELEVANCE_INHERITED_ACCESSOR);
-          _addElementSuggestions(elem.methods,
-              relevance: DART_RELEVANCE_INHERITED_METHOD);
-          elem.allSupertypes.forEach((InterfaceType type) {
-            if (visited.add(type.name) && type.element != null) {
-              _addElementSuggestions(type.element.fields,
-                  relevance: DART_RELEVANCE_INHERITED_FIELD);
-              _addElementSuggestions(type.element.accessors,
-                  relevance: DART_RELEVANCE_INHERITED_ACCESSOR);
-              _addElementSuggestions(type.element.methods,
-                  relevance: DART_RELEVANCE_INHERITED_METHOD);
-            }
-          });
-        }
-      }
-    }
+    //
+    // Replaced by InheritedReferenceContributor
+    //
+    // var classDecl = node.getAncestor((p) => p is ClassDeclaration);
+    // if (classDecl is ClassDeclaration && !optype.inStaticMethodBody) {
+    //   // Build a list of inherited types that are imported
+    //   // and include any inherited imported members
+    //   List<String> inheritedTypes = new List<String>();
+    //   // local declarations are handled by the local reference contributor
+    //   visitInheritedTypes(classDecl, importedTypeName: (String typeName) {
+    //     inheritedTypes.add(typeName);
+    //   });
+    //   HashSet<String> visited = new HashSet<String>();
+    //   while (inheritedTypes.length > 0) {
+    //     String name = inheritedTypes.removeLast();
+    //     ClassElement elem = cache.importedClassMap[name];
+    //     if (visited.add(name) && elem != null) {
+    //       _addElementSuggestions(elem.fields,
+    //           relevance: DART_RELEVANCE_INHERITED_FIELD);
+    //       _addElementSuggestions(elem.accessors,
+    //           relevance: DART_RELEVANCE_INHERITED_ACCESSOR);
+    //       _addElementSuggestions(elem.methods,
+    //           relevance: DART_RELEVANCE_INHERITED_METHOD);
+    //       elem.allSupertypes.forEach((InterfaceType type) {
+    //         if (visited.add(type.name) && type.element != null) {
+    //           _addElementSuggestions(type.element.fields,
+    //               relevance: DART_RELEVANCE_INHERITED_FIELD);
+    //           _addElementSuggestions(type.element.accessors,
+    //               relevance: DART_RELEVANCE_INHERITED_ACCESSOR);
+    //           _addElementSuggestions(type.element.methods,
+    //               relevance: DART_RELEVANCE_INHERITED_METHOD);
+    //         }
+    //       });
+    //     }
+    //   }
+    // }
   }
 
   /**

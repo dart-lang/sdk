@@ -67,7 +67,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   bool targetIsFunctionalArgument;
 
   _LocalVisitor(this.request, int offset, this.optype) : super(offset) {
-    includeLocalInheritedTypes = !optype.inStaticMethodBody;
+    // Suggestions for inherited members provided by InheritedReferenceContributor
+    includeLocalInheritedTypes = false; // !optype.inStaticMethodBody;
     targetIsFunctionalArgument = request.target.isFunctionalArgument();
 
     // If user typed identifier starting with '_'

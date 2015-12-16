@@ -1749,19 +1749,16 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     return computeFull((bool result) {
       expect(request.replacementOffset, completionOffset);
       expect(request.replacementLength, 0);
-      // TODO (danrubel) prefer fields over getters
-      // If add `get e1;` to interface I
-      // then suggestions include getter e1 rather than field e1
-      assertSuggestImportedField('e1', null);
-      assertSuggestImportedField('f1', null);
-      assertSuggestImportedField('i1', 'int');
-      assertSuggestImportedField('m1', null);
-      assertSuggestImportedGetter('f3', null);
-      assertSuggestImportedSetter('f4');
-      assertSuggestImportedMethod('e2', 'E', null);
-      assertSuggestImportedMethod('f2', 'F', null);
-      assertSuggestImportedMethod('i2', 'I', null);
-      //assertSuggestImportedMethod('m2', null, null);
+      assertNotSuggested('e1');
+      assertNotSuggested('f1');
+      assertNotSuggested('i1');
+      assertNotSuggested('m1');
+      assertNotSuggested('f3');
+      assertNotSuggested('f4');
+      assertNotSuggested('e2');
+      assertNotSuggested('f2');
+      assertNotSuggested('i2');
+      assertNotSuggested('m2');
       assertNotSuggested('==');
     });
   }

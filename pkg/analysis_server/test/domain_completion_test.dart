@@ -604,6 +604,21 @@ class CompletionTest extends AbstractAnalysisTest {
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 
+  test_inherited() {
+    addFile('/libA.dart', 'class A {m() {}}');
+    addTestFile('''
+import '/libA.dart';
+class B extends A {
+  x() {^}
+}
+''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
+    });
+  }
+
   test_keyword() {
     addTestFile('library A; cl^');
     return getSuggestions().then((_) {
@@ -623,6 +638,22 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'c');
       assertNoResult('A');
+    });
+  }
+
+  test_local_override() {
+    addFile('/libA.dart', 'class A {m() {}}');
+    addTestFile('''
+import '/libA.dart';
+class B extends A {
+  m() {}
+  x() {^}
+}
+''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 
@@ -661,8 +692,7 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
-          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 

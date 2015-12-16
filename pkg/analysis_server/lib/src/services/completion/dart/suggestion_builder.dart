@@ -109,6 +109,17 @@ abstract class ElementSuggestionBuilder {
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   /**
+   * A set of existing completions used to prevent duplicate suggestions.
+   */
+  final Set<String> _completions = new Set<String>();
+
+  /**
+   * A map of element names to suggestions for synthetic getters and setters.
+   */
+  final Map<String, CompletionSuggestion> _syntheticMap =
+      <String, CompletionSuggestion>{};
+
+  /**
    * Return the library in which the completion is requested.
    */
   LibraryElement get containingLibrary;
@@ -128,12 +139,6 @@ abstract class ElementSuggestionBuilder {
         return;
       }
     }
-    if (prefix == null && element.isSynthetic) {
-      if ((element is PropertyAccessorElement) ||
-          element is FieldElement && !_isSpecialEnumField(element)) {
-        return;
-      }
-    }
     String completion = element.displayName;
     if (prefix != null && prefix.length > 0) {
       if (completion == null || completion.length <= 0) {
@@ -148,22 +153,45 @@ abstract class ElementSuggestionBuilder {
     CompletionSuggestion suggestion = createSuggestion(element,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
-      suggestions.add(suggestion);
-    }
-  }
+      if (element.isSynthetic && element is PropertyAccessorElement) {
+        String cacheKey;
+        if (element.isGetter) {
+          cacheKey = element.name;
+        }
+        if (element.isSetter) {
+          cacheKey = element.name;
+          cacheKey = cacheKey.substring(0, cacheKey.length - 1);
+        }
+        if (cacheKey != null) {
+          CompletionSuggestion existingSuggestion = _syntheticMap[cacheKey];
 
-  /**
-   * Determine if the given element is one of the synthetic enum accessors
-   * for which we should generate a suggestion.
-   */
-  bool _isSpecialEnumField(FieldElement element) {
-    Element parent = element.enclosingElement;
-    if (parent is ClassElement && parent.isEnum) {
-      if (element.name == 'values') {
-        return true;
+          // Pair getter/setter by updating the existing suggestion
+          if (existingSuggestion != null) {
+            CompletionSuggestion getter =
+                element.isGetter ? suggestion : existingSuggestion;
+            protocol.ElementKind elemKind =
+                element.enclosingElement is ClassElement
+                    ? protocol.ElementKind.FIELD
+                    : protocol.ElementKind.TOP_LEVEL_VARIABLE;
+            existingSuggestion.element = new protocol.Element(
+                elemKind,
+                existingSuggestion.element.name,
+                existingSuggestion.element.flags,
+                location: getter.element.location,
+                typeParameters: getter.element.typeParameters,
+                parameters: null,
+                returnType: getter.returnType);
+            return;
+          }
+
+          // Cache lone getter/setter so that it can be paired
+          _syntheticMap[cacheKey] = suggestion;
+        }
+      }
+      if (_completions.add(suggestion.completion)) {
+        suggestions.add(suggestion);
       }
     }
-    return false;
   }
 }
 
@@ -222,7 +250,10 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   visitFunctionElement(FunctionElement element) {
     if (!typesOnly) {
-      addSuggestion(element);
+      int relevance = element.library == containingLibrary
+          ? DART_RELEVANCE_LOCAL_FUNCTION
+          : DART_RELEVANCE_DEFAULT;
+      addSuggestion(element, relevance: relevance);
     }
   }
 
@@ -236,7 +267,10 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!typesOnly) {
-      addSuggestion(element);
+      int relevance = element.library == containingLibrary
+          ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
+          : DART_RELEVANCE_DEFAULT;
+      addSuggestion(element, relevance: relevance);
     }
   }
 }

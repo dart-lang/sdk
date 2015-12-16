@@ -21,6 +21,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../abstract_context.dart';
@@ -42,6 +43,15 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   DartCompletionContributor contributor;
   DartCompletionRequest request;
   List<CompletionSuggestion> suggestions;
+
+  /**
+   * If `true` and `null` is specified as the suggestion's expected returnType
+   * then the actual suggestion is expected to have a `dynamic` returnType.
+   * Newer tests return `false` so that they can distinguish between
+   * `dynamic` and `null`.
+   * Eventually all tests should be converted and this getter removed.
+   */
+  bool get isNullExpectedReturnTypeConsideredDynamic => true;
 
   void addTestSource(String content) {
     expect(completionOffset, isNull, reason: 'Call addTestUnit exactly once');
@@ -142,6 +152,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       bool isDeprecated: false,
       String elemFile,
+      String elemName,
       int elemOffset}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind,
@@ -153,7 +164,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.CLASS));
-    expect(element.name, equals(name));
+    expect(element.name, equals(elemName ?? name));
     expect(element.parameters, isNull);
     expect(element.returnType, isNull);
     assertHasNoParameterInfo(cs);
@@ -241,7 +252,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         relevance: relevance,
         importUri: importUri,
         isDeprecated: isDeprecated);
-    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    if (returnType != null) {
+      expect(cs.returnType, returnType);
+    } else if (isNullExpectedReturnTypeConsideredDynamic) {
+      expect(cs.returnType, 'dynamic');
+    } else {
+      expect(cs.returnType, isNull);
+    }
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.FUNCTION));
@@ -251,14 +268,20 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(param, isNotNull);
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
-    expect(element.returnType,
-        equals(returnType != null ? returnType : 'dynamic'));
+    if (returnType != null) {
+      expect(element.returnType, returnType);
+    } else if (isNullExpectedReturnTypeConsideredDynamic) {
+      expect(element.returnType, 'dynamic');
+    } else {
+      expect(element.returnType, isNull);
+    }
     assertHasParameterInfo(cs);
     return cs;
   }
 
   CompletionSuggestion assertSuggestFunctionTypeAlias(
-      String name, String returnType, {bool isDeprecated: false,
+      String name, String returnType,
+      {bool isDeprecated: false,
       int relevance: DART_RELEVANCE_DEFAULT,
       CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION,
       String importUri}) {
@@ -267,7 +290,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         relevance: relevance,
         importUri: importUri,
         isDeprecated: isDeprecated);
-    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    if (returnType != null) {
+      expect(cs.returnType, returnType);
+    } else if (isNullExpectedReturnTypeConsideredDynamic) {
+      expect(cs.returnType, 'dynamic');
+    } else {
+      expect(cs.returnType, isNull);
+    }
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.FUNCTION_TYPE_ALIAS));
@@ -363,13 +392,25 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       String importUri}) {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: kind, relevance: relevance, importUri: importUri);
-    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    if (returnType != null) {
+      expect(cs.returnType, returnType);
+    } else if (isNullExpectedReturnTypeConsideredDynamic) {
+      expect(cs.returnType, 'dynamic');
+    } else {
+      expect(cs.returnType, isNull);
+    }
     protocol.Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(protocol.ElementKind.TOP_LEVEL_VARIABLE));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
-    expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    if (returnType != null) {
+      expect(element.returnType, returnType);
+    } else if (isNullExpectedReturnTypeConsideredDynamic) {
+      expect(element.returnType, 'dynamic');
+    } else {
+      expect(element.returnType, isNull);
+    }
     assertHasNoParameterInfo(cs);
     return cs;
   }
@@ -484,6 +525,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     // invoking this method.
     return new Future.delayed(
         Duration.ZERO, () => performAnalysis(times - 1, completer));
+  }
+
+  void resolveSource(String path, String content) {
+    Source libSource = addSource(path, content);
+    var target = new LibrarySpecificUnit(libSource, libSource);
+    context.computeResult(target, RESOLVED_UNIT);
   }
 
   @override

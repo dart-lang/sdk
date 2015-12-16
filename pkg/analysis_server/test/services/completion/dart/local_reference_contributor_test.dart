@@ -291,15 +291,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 1);
-    expect(suggestion.hasNamedParameters, true);
+    assertNotSuggested('m');
   }
 
   test_method_parameters_mixed_required_and_positional() async {
@@ -312,15 +304,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 1);
-    expect(suggestion.hasNamedParameters, false);
+    assertNotSuggested('m');
   }
 
   test_method_parameters_named() async {
@@ -333,15 +317,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, true);
+    assertNotSuggested('m');
   }
 
   test_method_parameters_none() async {
@@ -354,12 +330,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    expect(suggestion.parameterNames, isEmpty);
-    expect(suggestion.parameterTypes, isEmpty);
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, false);
+    assertNotSuggested('m');
   }
 
   test_method_parameters_positional() async {
@@ -372,15 +343,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, false);
+    assertNotSuggested('m');
   }
 
   test_method_parameters_required() async {
@@ -393,15 +356,7 @@ class B extends A {
 }
 ''');
     await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'A', 'void',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 2);
-    expect(suggestion.hasNamedParameters, false);
+    assertNotSuggested('m');
   }
 
   test_missing_params_constructor() async {
@@ -872,6 +827,24 @@ main() async {A a; await ^}''');
     assertSuggestLocalVariable('a', 'A');
     assertSuggestFunction('main', null,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertSuggestClass('A');
+    assertNotSuggested('Object');
+  }
+
+  test_AwaitExpression2() async {
+    // SimpleIdentifier  AwaitExpression  ExpressionStatement
+    addTestSource('''
+        class A {
+          int x;
+          Future y() async {return 0;}
+          foo() async {await ^ await y();}
+        }
+        ''');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestMethod('y', 'A', 'Future',
+        relevance: DART_RELEVANCE_LOCAL_METHOD);
     assertSuggestClass('A');
     assertNotSuggested('Object');
   }
@@ -1433,7 +1406,7 @@ class Z { }''');
 
   test_Block_inherited_imported() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
-    addSource(
+    resolveSource(
         '/testB.dart',
         '''
 lib B;
@@ -1476,20 +1449,16 @@ class A extends E implements I with M {a() {^}}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    assertSuggestField('e1', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestField('f1', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestField('i1', 'int', relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestField('m1', null, relevance: DART_RELEVANCE_LOCAL_FIELD);
-    assertSuggestGetter('f3', null, relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
-    assertSuggestSetter('f4', relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
-    assertSuggestMethod('e2', 'E', null,
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    assertSuggestMethod('f2', 'F', null,
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    assertSuggestMethod('i2', 'I', null,
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-    assertSuggestMethod('m2', 'M', 'int',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
+    assertNotSuggested('e1');
+    assertNotSuggested('f1');
+    assertNotSuggested('i1');
+    assertNotSuggested('m1');
+    assertNotSuggested('f3');
+    assertNotSuggested('f4');
+    assertNotSuggested('e2');
+    assertNotSuggested('f2');
+    assertNotSuggested('i2');
+    assertNotSuggested('m2');
   }
 
   test_Block_local_function() async {
