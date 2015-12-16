@@ -111,7 +111,6 @@ vars = {
   "WebCore_rev" : "@44061",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
-  "font_awesome_rev": "@31824",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
@@ -156,8 +155,6 @@ deps = {
       Var("third_party") + "/chrome" + Var("chrome_rev"),
   Var("dart_root") + "/third_party/firefox_jsshell":
       Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
-  Var("dart_root") + "/third_party/font-awesome":
-      Var("third_party") + "/font-awesome" + Var("font_awesome_rev"),
   Var("dart_root") + "/third_party/gsutil":
       Var("third_party") + "/gsutil" + Var("gsutil_rev"),
   Var("dart_root") + "/third_party/pkg/petitparser":
