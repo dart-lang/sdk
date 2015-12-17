@@ -417,12 +417,6 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test initializer
   }
 
-  PrelinkedLibrary getSummaryFor(LibraryElement lib) {
-    BuilderContext ctx = new BuilderContext();
-    List<int> summary = serializeLibrary(ctx, lib, typeProvider).toBuffer();
-    return new PrelinkedLibrary.fromBuffer(summary);
-  }
-
   LibraryElementImpl resynthesizeLibrary(
       Source source, LibraryElementImpl original, bool allowErrors) {
     if (!allowErrors) {
@@ -435,23 +429,43 @@ class ResynthTest extends ResolverTestCase {
 
   LibraryElementImpl resynthesizeLibraryElement(
       String uri, LibraryElementImpl original) {
-    Map<String, PrelinkedLibrary> summaries = <String, PrelinkedLibrary>{
-      uri: getSummaryFor(original)
-    };
+    Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
+    PrelinkedLibrary getPrelinkedSummaryFor(LibraryElement lib) {
+      BuilderContext ctx = new BuilderContext();
+      LibrarySerializationResult serialized =
+          serializeLibrary(ctx, lib, typeProvider);
+      for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
+        unlinkedSummaries[serialized.unitUris[i]] =
+            new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
+      }
+      return new PrelinkedLibrary.fromBuffer(serialized.prelinked.toBuffer());
+    }
+    Map<String, PrelinkedLibrary> prelinkedSummaries =
+        <String, PrelinkedLibrary>{uri: getPrelinkedSummaryFor(original)};
     for (Source source in otherLibrarySources) {
       LibraryElement original = resolve2(source);
       String uri = source.uri.toString();
-      summaries[uri] = getSummaryFor(original);
+      prelinkedSummaries[uri] = getPrelinkedSummaryFor(original);
     }
-    PrelinkedLibrary getSummary(String uri) {
-      PrelinkedLibrary serializedLibrary = summaries[uri];
+    PrelinkedLibrary getPrelinkedSummary(String uri) {
+      PrelinkedLibrary serializedLibrary = prelinkedSummaries[uri];
       if (serializedLibrary == null) {
-        fail('Unexpectedly tried to get serialized library for $uri');
+        fail('Unexpectedly tried to get prelinked summary for $uri');
       }
       return serializedLibrary;
     }
+    UnlinkedUnit getUnlinkedSummary(String uri) {
+      UnlinkedUnit serializedUnit = unlinkedSummaries[uri];
+      if (serializedUnit == null) {
+        fail('Unexpectedly tried to get unlinked summary for $uri');
+      }
+      return serializedUnit;
+    }
     SummaryResynthesizer resynthesizer = new SummaryResynthesizer(
-        analysisContext, getSummary, analysisContext.sourceFactory);
+        analysisContext,
+        getPrelinkedSummary,
+        getUnlinkedSummary,
+        analysisContext.sourceFactory);
     LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
     // Check that no other summaries needed to be resynthesized to resynthesize
     // the library element.

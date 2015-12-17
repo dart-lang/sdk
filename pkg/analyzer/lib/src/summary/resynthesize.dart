@@ -13,10 +13,16 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
 
 /**
- * Callback used by [SummaryResynthesizer] to obtain the summary for a given
- * URI.
+ * Callback used by [SummaryResynthesizer] to obtain the prelinked summary for
+ * a given URI.
  */
-typedef PrelinkedLibrary GetSummaryCallback(String uri);
+typedef PrelinkedLibrary GetPrelinkedSummaryCallback(String uri);
+
+/**
+ * Callback used by [SummaryResynthesizer] to obtain the unlinked summary for a
+ * given URI.
+ */
+typedef UnlinkedUnit GetUnlinkedSummaryCallback(String uri);
 
 /**
  * Specialization of [FunctionTypeImpl] used for function types resynthesized
@@ -84,9 +90,14 @@ abstract class ResynthesizedType implements DartType {
  */
 class SummaryResynthesizer extends ElementResynthesizer {
   /**
-   * Callback used to obtain the summary for a given URI.
+   * Callback used to obtain the prelinked summary for a given URI.
    */
-  final GetSummaryCallback getSummary;
+  final GetPrelinkedSummaryCallback getPrelinkedSummary;
+
+  /**
+   * Callback used to obtain the unlinked summary for a given URI.
+   */
+  final GetUnlinkedSummaryCallback getUnlinkedSummary;
 
   /**
    * Source factory used to convert URIs to [Source] objects.
@@ -122,8 +133,8 @@ class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(
-      AnalysisContext context, this.getSummary, this.sourceFactory)
+  SummaryResynthesizer(AnalysisContext context, this.getPrelinkedSummary,
+      this.getUnlinkedSummary, this.sourceFactory)
       : super(context),
         typeProvider = context.typeProvider;
 
@@ -165,9 +176,18 @@ class SummaryResynthesizer extends ElementResynthesizer {
    */
   LibraryElement getLibraryElement(String uri) {
     return _resynthesizedLibraries.putIfAbsent(uri, () {
-      PrelinkedLibrary serializedLibrary = getSummary(uri);
-      _LibraryResynthesizer libraryResynthesizer =
-          new _LibraryResynthesizer(this, serializedLibrary, _getSource(uri));
+      PrelinkedLibrary serializedLibrary = getPrelinkedSummary(uri);
+      List<UnlinkedUnit> serializedUnits = <UnlinkedUnit>[
+        getUnlinkedSummary(uri)
+      ];
+      Source librarySource = _getSource(uri);
+      for (UnlinkedPart part in serializedUnits[0].parts) {
+        String partAbsUri =
+            sourceFactory.resolveUri(librarySource, part.uri).uri.toString();
+        serializedUnits.add(getUnlinkedSummary(partAbsUri));
+      }
+      _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
+          this, serializedLibrary, serializedUnits, librarySource);
       LibraryElement library = libraryResynthesizer.buildLibrary();
       _resynthesizedElements[uri] = libraryResynthesizer.resummarizedElements;
       return library;
@@ -193,9 +213,14 @@ class _LibraryResynthesizer {
   final SummaryResynthesizer summaryResynthesizer;
 
   /**
-   * The library to be resynthesized.
+   * Prelinked summary of the library to be resynthesized.
    */
   final PrelinkedLibrary prelinkedLibrary;
+
+  /**
+   * Unlinked compilation units constituting the library to be resynthesized.
+   */
+  final List<UnlinkedUnit> unlinkedUnits;
 
   /**
    * [Source] object for the library to be resynthesized.
@@ -215,6 +240,11 @@ class _LibraryResynthesizer {
   PrelinkedUnit prelinkedUnit;
 
   /**
+   * The [UnlinkedUnit] from which elements are currently being resynthesized.
+   */
+  UnlinkedUnit unlinkedUnit;
+
+  /**
    * Map of top level elements that have been resynthesized so far.  The first
    * key is the URI of the compilation unit; the second is the name of the top
    * level element.
@@ -229,9 +259,8 @@ class _LibraryResynthesizer {
    */
   List<TypeParameterElement> currentTypeParameters;
 
-  _LibraryResynthesizer(this.summaryResynthesizer,
-      PrelinkedLibrary serializedLibrary, this.librarySource)
-      : prelinkedLibrary = serializedLibrary;
+  _LibraryResynthesizer(this.summaryResynthesizer, this.prelinkedLibrary,
+      this.unlinkedUnits, this.librarySource);
 
   /**
    * Resynthesize a [ClassElement] and place it in [unitHolder].
@@ -602,9 +631,8 @@ class _LibraryResynthesizer {
       importElement.uri = serializedImport.uri;
     }
     if (serializedImport.prefixReference != 0) {
-      UnlinkedReference serializedPrefix = prelinkedLibrary.units[0]
-          .unlinked
-          .references[serializedImport.prefixReference];
+      UnlinkedReference serializedPrefix =
+          unlinkedUnits[0].references[serializedImport.prefixReference];
       importElement.prefix = new PrefixElementImpl(serializedPrefix.name, -1);
     }
     importElement.combinators =
@@ -618,23 +646,19 @@ class _LibraryResynthesizer {
   LibraryElement buildLibrary() {
     // TODO(paulberry): is it ok to pass -1 for offset and nameLength?
     LibraryElementImpl libraryElement = new LibraryElementImpl(
-        summaryResynthesizer.context,
-        prelinkedLibrary.units[0].unlinked.libraryName,
-        -1,
-        -1);
+        summaryResynthesizer.context, unlinkedUnits[0].libraryName, -1, -1);
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl(librarySource.shortName);
     libraryElement.definingCompilationUnit = definingCompilationUnit;
     definingCompilationUnit.source = librarySource;
     definingCompilationUnit.librarySource = librarySource;
     List<CompilationUnitElement> parts = <CompilationUnitElement>[];
-    UnlinkedUnit unlinkedDefiningUnit = prelinkedLibrary.units[0].unlinked;
+    UnlinkedUnit unlinkedDefiningUnit = unlinkedUnits[0];
     assert(
         unlinkedDefiningUnit.parts.length + 1 == prelinkedLibrary.units.length);
     for (int i = 1; i < prelinkedLibrary.units.length; i++) {
-      CompilationUnitElementImpl part = buildPart(
-          unlinkedDefiningUnit.parts[i - 1].uri,
-          prelinkedLibrary.units[i].unlinked);
+      CompilationUnitElementImpl part =
+          buildPart(unlinkedDefiningUnit.parts[i - 1].uri, unlinkedUnits[i]);
       parts.add(part);
     }
     libraryElement.parts = parts;
@@ -724,8 +748,7 @@ class _LibraryResynthesizer {
       // TODO(paulberry): test reference to something inside a part.
       // TODO(paulberry): test reference to something inside a part of the
       // current lib.
-      UnlinkedReference reference =
-          prelinkedUnit.unlinked.references[type.reference];
+      UnlinkedReference reference = unlinkedUnit.references[type.reference];
       PrelinkedReference referenceResolution =
           prelinkedUnit.references[type.reference];
       String referencedLibraryUri;
@@ -736,13 +759,13 @@ class _LibraryResynthesizer {
         Source referencedLibrarySource = summaryResynthesizer.sourceFactory
             .resolveUri(librarySource, dependency.uri);
         referencedLibraryUri = referencedLibrarySource.uri.toString();
-        PrelinkedLibrary referencedLibrary =
-            summaryResynthesizer.getSummary(referencedLibraryUri);
         // TODO(paulberry): consider changing Location format so that this is
         // not necessary (2nd string in location should just be the unit
         // number).
         if (referenceResolution.unit != 0) {
-          String uri = referencedLibrary.units[0].unlinked.parts[0].uri;
+          UnlinkedUnit referencedLibraryDefiningUnit =
+              summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
+          String uri = referencedLibraryDefiningUnit.parts[0].uri;
           Source partSource = summaryResynthesizer.sourceFactory
               .resolveUri(referencedLibrarySource, uri);
           partUri = partSource.uri.toString();
@@ -757,8 +780,7 @@ class _LibraryResynthesizer {
       } else {
         referencedLibraryUri = librarySource.uri.toString();
         if (referenceResolution.unit != 0) {
-          String uri = prelinkedLibrary.units[0].unlinked.parts[
-              referenceResolution.unit - 1].uri;
+          String uri = unlinkedUnits[0].parts[referenceResolution.unit - 1].uri;
           Source partSource =
               summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
           partUri = partSource.uri.toString();
@@ -889,8 +911,8 @@ class _LibraryResynthesizer {
    */
   void populateUnit(CompilationUnitElementImpl unit, int unitNum) {
     prelinkedUnit = prelinkedLibrary.units[unitNum];
+    unlinkedUnit = unlinkedUnits[unitNum];
     unitHolder = new ElementHolder();
-    UnlinkedUnit unlinkedUnit = prelinkedUnit.unlinked;
     unlinkedUnit.classes.forEach(buildClass);
     unlinkedUnit.enums.forEach(buildEnum);
     unlinkedUnit.executables.forEach(buildExecutable);
@@ -922,5 +944,6 @@ class _LibraryResynthesizer {
     resummarizedElements[absoluteUri] = elementMap;
     unitHolder = null;
     prelinkedUnit = null;
+    unlinkedUnit = null;
   }
 }

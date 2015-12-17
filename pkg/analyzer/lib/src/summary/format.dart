@@ -195,14 +195,11 @@ PrelinkedReferenceBuilder encodePrelinkedReference(builder.BuilderContext builde
 }
 
 class PrelinkedUnit {
-  UnlinkedUnit _unlinked;
   List<PrelinkedReference> _references;
 
   PrelinkedUnit.fromJson(Map json)
-    : _unlinked = json["unlinked"] == null ? null : new UnlinkedUnit.fromJson(json["unlinked"]),
-      _references = json["references"]?.map((x) => new PrelinkedReference.fromJson(x))?.toList();
+    : _references = json["references"]?.map((x) => new PrelinkedReference.fromJson(x))?.toList();
 
-  UnlinkedUnit get unlinked => _unlinked;
   List<PrelinkedReference> get references => _references ?? const <PrelinkedReference>[];
 }
 
@@ -212,14 +209,6 @@ class PrelinkedUnitBuilder {
   bool _finished = false;
 
   PrelinkedUnitBuilder(builder.BuilderContext context);
-
-  void set unlinked(UnlinkedUnitBuilder _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("unlinked"));
-    if (_value != null) {
-      _json["unlinked"] = _value.finish();
-    }
-  }
 
   void set references(List<PrelinkedReferenceBuilder> _value) {
     assert(!_finished);
@@ -236,9 +225,8 @@ class PrelinkedUnitBuilder {
   }
 }
 
-PrelinkedUnitBuilder encodePrelinkedUnit(builder.BuilderContext builderContext, {UnlinkedUnitBuilder unlinked, List<PrelinkedReferenceBuilder> references}) {
+PrelinkedUnitBuilder encodePrelinkedUnit(builder.BuilderContext builderContext, {List<PrelinkedReferenceBuilder> references}) {
   PrelinkedUnitBuilder builder = new PrelinkedUnitBuilder(builderContext);
-  builder.unlinked = unlinked;
   builder.references = references;
   return builder;
 }
@@ -1265,6 +1253,8 @@ class UnlinkedUnit {
       _typedefs = json["typedefs"]?.map((x) => new UnlinkedTypedef.fromJson(x))?.toList(),
       _variables = json["variables"]?.map((x) => new UnlinkedVariable.fromJson(x))?.toList();
 
+  UnlinkedUnit.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
+
   String get libraryName => _libraryName ?? '';
   List<UnlinkedReference> get references => _references ?? const <UnlinkedReference>[];
   List<UnlinkedClass> get classes => _classes ?? const <UnlinkedClass>[];
@@ -1363,6 +1353,8 @@ class UnlinkedUnitBuilder {
       _json["variables"] = _value.map((b) => b.finish()).toList();
     }
   }
+
+  List<int> toBuffer() => UTF8.encode(JSON.encode(finish()));
 
   Map finish() {
     assert(!_finished);

@@ -16,9 +16,37 @@ import 'package:analyzer/src/summary/format.dart';
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
  * for building the summary, and using [typeProvider] to find built-in types.
  */
-PrelinkedLibraryBuilder serializeLibrary(
+LibrarySerializationResult serializeLibrary(
     BuilderContext ctx, LibraryElement lib, TypeProvider typeProvider) {
-  return new _LibrarySerializer(ctx, lib, typeProvider).serializeLibrary();
+  var serializer = new _LibrarySerializer(ctx, lib, typeProvider);
+  PrelinkedLibraryBuilder prelinked = serializer.serializeLibrary();
+  return new LibrarySerializationResult(
+      prelinked, serializer.unlinkedUnits, serializer.unitUris);
+}
+
+/**
+ * Data structure holding the result of serializing a [LibraryElement].
+ */
+class LibrarySerializationResult {
+  /**
+   * Pre-linked information the given library.
+   */
+  final PrelinkedLibraryBuilder prelinked;
+
+  /**
+   * Unlinked information for the compilation units constituting the library.
+   * The zeroth entry in the list is the defining compilation unit; the
+   * remaining entries are the parts, in the order listed in the defining
+   * compilation unit's part declarations.
+   */
+  final List<UnlinkedUnitBuilder> unlinkedUnits;
+
+  /**
+   * Absolute URI of each compilation unit appearing in the library.
+   */
+  final List<String> unitUris;
+
+  LibrarySerializationResult(this.prelinked, this.unlinkedUnits, this.unitUris);
 }
 
 /**
@@ -39,7 +67,18 @@ class _LibrarySerializer {
   /**
    * List of objects which should be written to [PrelinkedLibrary.units].
    */
-  final List<PrelinkedUnitBuilder> units = <PrelinkedUnitBuilder>[];
+  final List<PrelinkedUnitBuilder> prelinkedUnits = <PrelinkedUnitBuilder>[];
+
+  /**
+   * List of unlinked units corresponding to the pre-linked units in
+   * [prelinkedUnits],
+   */
+  final List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
+
+  /**
+   * List of absolute URIs of the compilation units in the library.
+   */
+  final List<String> unitUris = <String>[];
 
   /**
    * Map from [LibraryElement] to the index of the entry in the "dependency
@@ -163,8 +202,10 @@ class _LibrarySerializer {
     }
     b.variables = variables;
     b.references = unlinkedReferences;
-    units.add(
-        encodePrelinkedUnit(ctx, unlinked: b, references: prelinkedReferences));
+    unlinkedUnits.add(b);
+    prelinkedUnits
+        .add(encodePrelinkedUnit(ctx, references: prelinkedReferences));
+    unitUris.add(element.source.uri.toString());
     unlinkedReferences = null;
     prelinkedReferences = null;
   }
@@ -387,6 +428,9 @@ class _LibrarySerializer {
   /**
    * Serialize the whole library element into a [PrelinkedLibrary].  Should be
    * called exactly once for each instance of [_LibrarySerializer].
+   *
+   * The unlinked compilation units are stored in [unlinkedUnits], and their
+   * absolute URIs are stored in [unitUris].
    */
   PrelinkedLibraryBuilder serializeLibrary() {
     PrelinkedLibraryBuilder pb = new PrelinkedLibraryBuilder(ctx);
@@ -394,7 +438,7 @@ class _LibrarySerializer {
     for (int i = 0; i < libraryElement.parts.length; i++) {
       addCompilationUnitElements(libraryElement.parts[i], i + 1);
     }
-    pb.units = units;
+    pb.units = prelinkedUnits;
     pb.dependencies = dependencies;
     pb.importDependencies = prelinkedImports;
     return pb;

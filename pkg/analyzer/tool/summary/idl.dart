@@ -168,11 +168,6 @@ enum PrelinkedReferenceKind {
  */
 class PrelinkedUnit {
   /**
-   * The unlinked summary of the compilation unit
-   */
-  UnlinkedUnit unlinked;
-
-  /**
    * For each reference in [UnlinkedUnit.references], information about how
    * that reference is resolved.
    */
@@ -626,6 +621,7 @@ class UnlinkedTypeRef {
 /**
  * Unlinked summary information about a compilation unit ("part file").
  */
+@topLevel
 class UnlinkedUnit {
   /**
    * Name of the library (from a "library" declaration, if present).

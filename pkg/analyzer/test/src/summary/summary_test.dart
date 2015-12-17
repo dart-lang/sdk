@@ -45,10 +45,15 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
    */
   void serializeLibraryElement(LibraryElement library) {
     BuilderContext builderContext = new BuilderContext();
-    PrelinkedLibraryBuilder serializedLib = summarize_elements.serializeLibrary(
-        builderContext, library, typeProvider);
-    List<int> encodedLib = serializedLib.toBuffer();
-    lib = new PrelinkedLibrary.fromBuffer(encodedLib);
+    summarize_elements.LibrarySerializationResult serializedLib =
+        summarize_elements.serializeLibrary(
+            builderContext, library, typeProvider);
+    prelinked =
+        new PrelinkedLibrary.fromBuffer(serializedLib.prelinked.toBuffer());
+    unlinkedUnits = serializedLib.unlinkedUnits
+        .map((UnlinkedUnitBuilder b) =>
+            new UnlinkedUnit.fromBuffer(b.toBuffer()))
+        .toList();
   }
 
   @override
@@ -59,9 +64,12 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
       assertNoErrors(source);
     }
     serializeLibraryElement(library);
-    expect(definingUnit.unlinked.imports.length, lib.importDependencies.length);
-    for (PrelinkedUnit unit in lib.units) {
-      expect(unit.unlinked.references.length, unit.references.length);
+    expect(
+        unlinkedUnits[0].imports.length, prelinked.importDependencies.length);
+    expect(prelinked.units.length, unlinkedUnits.length);
+    for (int i = 0; i < prelinked.units.length; i++) {
+      expect(unlinkedUnits[i].references.length,
+          prelinked.units[i].references.length);
     }
   }
 
@@ -88,9 +96,16 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
  */
 abstract class SummaryTest {
   /**
-   * The result of serializing and then deserializing the library under test.
+   * Prelinked summary that results from serializing and then deserializing the
+   * library under test.
    */
-  PrelinkedLibrary lib;
+  PrelinkedLibrary prelinked;
+
+  /**
+   * Unlinked compilation unit summaries that result from serializing and
+   * deserializing the library under test.
+   */
+  List<UnlinkedUnit> unlinkedUnits;
 
   /**
    * `true` if the summary was created directly from the AST (and hence
@@ -103,7 +118,7 @@ abstract class SummaryTest {
   /**
    * Get access to the prelinked defining compilation unit.
    */
-  PrelinkedUnit get definingUnit => lib.units[0];
+  PrelinkedUnit get definingUnit => prelinked.units[0];
 
   /**
    * Convert [path] to a suitably formatted absolute path URI for the current
@@ -141,7 +156,7 @@ abstract class SummaryTest {
       relativeUri = absoluteUri;
     }
     expect(dependency, new isInstanceOf<int>());
-    expect(lib.dependencies[dependency].uri, relativeUri);
+    expect(prelinked.dependencies[dependency].uri, relativeUri);
   }
 
   /**
@@ -162,7 +177,7 @@ abstract class SummaryTest {
       // TODO(paulberry): fix this.
       relativeUri = absoluteUri;
     }
-    for (PrelinkedDependency dep in lib.dependencies) {
+    for (PrelinkedDependency dep in prelinked.dependencies) {
       if (dep.uri == relativeUri) {
         return;
       }
@@ -181,7 +196,7 @@ abstract class SummaryTest {
       // TODO(paulberry): fix this.
       relativeUri = absoluteUri;
     }
-    for (PrelinkedDependency dep in lib.dependencies) {
+    for (PrelinkedDependency dep in prelinked.dependencies) {
       if (dep.uri == relativeUri) {
         fail('Unexpected dependency found: $relativeUri');
       }
@@ -205,9 +220,8 @@ abstract class SummaryTest {
    */
   void checkPrefix(int prefixReference, String name) {
     expect(prefixReference, isNot(0));
-    expect(
-        definingUnit.unlinked.references[prefixReference].prefixReference, 0);
-    expect(definingUnit.unlinked.references[prefixReference].name, name);
+    expect(unlinkedUnits[0].references[prefixReference].prefixReference, 0);
+    expect(unlinkedUnits[0].references[prefixReference].name, name);
     expect(definingUnit.references[prefixReference].dependency, 0);
     expect(definingUnit.references[prefixReference].kind,
         PrelinkedReferenceKind.prefix);
@@ -220,11 +234,12 @@ abstract class SummaryTest {
    * [expectedName].  If [expectedPrefix] is supplied, verify that the type is
    * reached via the given prefix.  If [allowTypeParameters] is true, allow the
    * type reference to supply type parameters.  [expectedKind] is the kind of
-   * object referenced.  [sourceUnit] is the compilation unit within which the
-   * [typeRef] appears; if not specified it is assumed to be the defining
-   * compilation unit.  [expectedTargetUnit] is the index of the compilation
-   * unit in which the target of the [typeRef] is expected to appear; if not
-   * specified it is assumed to be the defining compilation unit.
+   * object referenced.  [prelinkedSourceUnit] and [unlinkedSourceUnit] refer
+   * to the compilation unit within which the [typeRef] appears; if not
+   * specified they are assumed to refer to the defining compilation unit.
+   * [expectedTargetUnit] is the index of the compilation unit in which the
+   * target of the [typeRef] is expected to appear; if not specified it is
+   * assumed to be the defining compilation unit.
    */
   void checkTypeRef(UnlinkedTypeRef typeRef, String absoluteUri,
       String relativeUri, String expectedName,
@@ -232,13 +247,16 @@ abstract class SummaryTest {
       bool allowTypeParameters: false,
       PrelinkedReferenceKind expectedKind: PrelinkedReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
-      PrelinkedUnit sourceUnit}) {
-    sourceUnit ??= definingUnit;
+      PrelinkedUnit prelinkedSourceUnit,
+      UnlinkedUnit unlinkedSourceUnit}) {
+    prelinkedSourceUnit ??= definingUnit;
+    unlinkedSourceUnit ??= unlinkedUnits[0];
     expect(typeRef, new isInstanceOf<UnlinkedTypeRef>());
     expect(typeRef.paramReference, 0);
     int index = typeRef.reference;
-    UnlinkedReference reference = sourceUnit.unlinked.references[index];
-    PrelinkedReference referenceResolution = sourceUnit.references[index];
+    UnlinkedReference reference = unlinkedSourceUnit.references[index];
+    PrelinkedReference referenceResolution =
+        prelinkedSourceUnit.references[index];
     if (index == 0) {
       // Index 0 is reserved for "dynamic".
       expect(reference.name, isEmpty);
@@ -288,8 +306,9 @@ abstract class SummaryTest {
     // dependency tracking.
     serializeLibraryText('import "foo.dart";', allowErrors: true);
     // Second import is the implicit import of dart:core
-    expect(definingUnit.unlinked.imports, hasLength(2));
-    checkDependency(lib.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    checkDependency(
+        prelinked.importDependencies[0], absUri('/foo.dart'), 'foo.dart');
   }
 
   /**
@@ -298,10 +317,10 @@ abstract class SummaryTest {
    * looked for in the defining compilation unit.
    */
   UnlinkedClass findClass(String className,
-      {bool failIfAbsent: false, PrelinkedUnit unit}) {
-    unit ??= definingUnit;
+      {bool failIfAbsent: false, UnlinkedUnit unit}) {
+    unit ??= unlinkedUnits[0];
     UnlinkedClass result;
-    for (UnlinkedClass cls in unit.unlinked.classes) {
+    for (UnlinkedClass cls in unit.classes) {
       if (cls.name == className) {
         if (result != null) {
           fail('Duplicate class $className');
@@ -321,10 +340,10 @@ abstract class SummaryTest {
    * for in the defining compilation unit.
    */
   UnlinkedEnum findEnum(String enumName,
-      {bool failIfAbsent: false, PrelinkedUnit unit}) {
-    unit ??= definingUnit;
+      {bool failIfAbsent: false, UnlinkedUnit unit}) {
+    unit ??= unlinkedUnits[0];
     UnlinkedEnum result;
-    for (UnlinkedEnum e in unit.unlinked.enums) {
+    for (UnlinkedEnum e in unit.enums) {
       if (e.name == enumName) {
         if (result != null) {
           fail('Duplicate enum $enumName');
@@ -346,7 +365,7 @@ abstract class SummaryTest {
    */
   UnlinkedExecutable findExecutable(String executableName,
       {List<UnlinkedExecutable> executables, bool failIfAbsent: false}) {
-    executables ??= definingUnit.unlinked.executables;
+    executables ??= unlinkedUnits[0].executables;
     UnlinkedExecutable result;
     for (UnlinkedExecutable executable in executables) {
       if (executable.name == executableName) {
@@ -368,10 +387,10 @@ abstract class SummaryTest {
    * is looked for in the defining compilation unit.
    */
   UnlinkedTypedef findTypedef(String typedefName,
-      {bool failIfAbsent: false, PrelinkedUnit unit}) {
-    unit ??= definingUnit;
+      {bool failIfAbsent: false, UnlinkedUnit unit}) {
+    unit ??= unlinkedUnits[0];
     UnlinkedTypedef result;
-    for (UnlinkedTypedef type in unit.unlinked.typedefs) {
+    for (UnlinkedTypedef type in unit.typedefs) {
       if (type.name == typedefName) {
         if (result != null) {
           fail('Duplicate typedef $typedefName');
@@ -392,7 +411,7 @@ abstract class SummaryTest {
    */
   UnlinkedVariable findVariable(String variableName,
       {List<UnlinkedVariable> variables, bool failIfAbsent: false}) {
-    variables ??= definingUnit.unlinked.variables;
+    variables ??= unlinkedUnits[0].variables;
     UnlinkedVariable result;
     for (UnlinkedVariable variable in variables) {
       if (variable.name == variableName) {
@@ -1097,12 +1116,11 @@ f() {}
 typedef F();
 ''');
     serializeLibraryText('library my.lib; part "part1.dart";');
-    PrelinkedUnit unit = lib.units[1];
+    UnlinkedUnit unit = unlinkedUnits[1];
     expect(findClass('C', unit: unit), isNotNull);
     expect(findEnum('E', unit: unit), isNotNull);
-    expect(findVariable('v', variables: unit.unlinked.variables), isNotNull);
-    expect(
-        findExecutable('f', executables: unit.unlinked.executables), isNotNull);
+    expect(findVariable('v', variables: unit.variables), isNotNull);
+    expect(findExecutable('f', executables: unit.executables), isNotNull);
     expect(findTypedef('F', unit: unit), isNotNull);
   }
 
@@ -1540,32 +1558,32 @@ typedef F();
 
   test_export_hide_order() {
     serializeLibraryText('export "dart:async" hide Future, Stream;');
-    expect(definingUnit.unlinked.exports, hasLength(1));
-    expect(definingUnit.unlinked.exports[0].combinators, hasLength(1));
-    expect(definingUnit.unlinked.exports[0].combinators[0].shows, isEmpty);
-    expect(definingUnit.unlinked.exports[0].combinators[0].hides, hasLength(2));
+    expect(unlinkedUnits[0].exports, hasLength(1));
+    expect(unlinkedUnits[0].exports[0].combinators, hasLength(1));
+    expect(unlinkedUnits[0].exports[0].combinators[0].shows, isEmpty);
+    expect(unlinkedUnits[0].exports[0].combinators[0].hides, hasLength(2));
     checkCombinatorName(
-        definingUnit.unlinked.exports[0].combinators[0].hides[0], 'Future');
+        unlinkedUnits[0].exports[0].combinators[0].hides[0], 'Future');
     checkCombinatorName(
-        definingUnit.unlinked.exports[0].combinators[0].hides[1], 'Stream');
+        unlinkedUnits[0].exports[0].combinators[0].hides[1], 'Stream');
   }
 
   test_export_no_combinators() {
     serializeLibraryText('export "dart:async";');
-    expect(definingUnit.unlinked.exports, hasLength(1));
-    expect(definingUnit.unlinked.exports[0].combinators, isEmpty);
+    expect(unlinkedUnits[0].exports, hasLength(1));
+    expect(unlinkedUnits[0].exports[0].combinators, isEmpty);
   }
 
   test_export_show_order() {
     serializeLibraryText('export "dart:async" show Future, Stream;');
-    expect(definingUnit.unlinked.exports, hasLength(1));
-    expect(definingUnit.unlinked.exports[0].combinators, hasLength(1));
-    expect(definingUnit.unlinked.exports[0].combinators[0].shows, hasLength(2));
-    expect(definingUnit.unlinked.exports[0].combinators[0].hides, isEmpty);
+    expect(unlinkedUnits[0].exports, hasLength(1));
+    expect(unlinkedUnits[0].exports[0].combinators, hasLength(1));
+    expect(unlinkedUnits[0].exports[0].combinators[0].shows, hasLength(2));
+    expect(unlinkedUnits[0].exports[0].combinators[0].hides, isEmpty);
     checkCombinatorName(
-        definingUnit.unlinked.exports[0].combinators[0].shows[0], 'Future');
+        unlinkedUnits[0].exports[0].combinators[0].shows[0], 'Future');
     checkCombinatorName(
-        definingUnit.unlinked.exports[0].combinators[0].shows[1], 'Stream');
+        unlinkedUnits[0].exports[0].combinators[0].shows[1], 'Stream');
   }
 
   test_export_uri() {
@@ -1573,8 +1591,8 @@ typedef F();
     String uriString = '"a.dart"';
     String libraryText = 'export $uriString;';
     serializeLibraryText(libraryText);
-    expect(definingUnit.unlinked.exports, hasLength(1));
-    expect(definingUnit.unlinked.exports[0].uri, 'a.dart');
+    expect(unlinkedUnits[0].exports, hasLength(1));
+    expect(unlinkedUnits[0].exports[0].uri, 'a.dart');
   }
 
   test_field() {
@@ -1619,64 +1637,65 @@ typedef F();
   test_import_deferred() {
     serializeLibraryText(
         'import "dart:async" deferred as a; main() { print(a.Future); }');
-    expect(definingUnit.unlinked.imports[0].isDeferred, isTrue);
+    expect(unlinkedUnits[0].imports[0].isDeferred, isTrue);
   }
 
   test_import_dependency() {
     serializeLibraryText('import "dart:async"; Future x;');
     // Second import is the implicit import of dart:core
-    expect(definingUnit.unlinked.imports, hasLength(2));
-    checkDependency(lib.importDependencies[0], 'dart:async', 'dart:async');
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    checkDependency(
+        prelinked.importDependencies[0], 'dart:async', 'dart:async');
   }
 
   test_import_explicit() {
     serializeLibraryText('import "dart:core"; int i;');
-    expect(definingUnit.unlinked.imports, hasLength(1));
-    expect(definingUnit.unlinked.imports[0].isImplicit, isFalse);
+    expect(unlinkedUnits[0].imports, hasLength(1));
+    expect(unlinkedUnits[0].imports[0].isImplicit, isFalse);
   }
 
   test_import_hide_order() {
     serializeLibraryText(
         'import "dart:async" hide Future, Stream; Completer c;');
     // Second import is the implicit import of dart:core
-    expect(definingUnit.unlinked.imports, hasLength(2));
-    expect(definingUnit.unlinked.imports[0].combinators, hasLength(1));
-    expect(definingUnit.unlinked.imports[0].combinators[0].shows, isEmpty);
-    expect(definingUnit.unlinked.imports[0].combinators[0].hides, hasLength(2));
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].combinators, hasLength(1));
+    expect(unlinkedUnits[0].imports[0].combinators[0].shows, isEmpty);
+    expect(unlinkedUnits[0].imports[0].combinators[0].hides, hasLength(2));
     checkCombinatorName(
-        definingUnit.unlinked.imports[0].combinators[0].hides[0], 'Future');
+        unlinkedUnits[0].imports[0].combinators[0].hides[0], 'Future');
     checkCombinatorName(
-        definingUnit.unlinked.imports[0].combinators[0].hides[1], 'Stream');
+        unlinkedUnits[0].imports[0].combinators[0].hides[1], 'Stream');
   }
 
   test_import_implicit() {
     // The implicit import of dart:core is represented in the model.
     serializeLibraryText('');
-    expect(definingUnit.unlinked.imports, hasLength(1));
-    checkDependency(lib.importDependencies[0], 'dart:core', 'dart:core');
-    expect(definingUnit.unlinked.imports[0].uri, isEmpty);
-    expect(definingUnit.unlinked.imports[0].prefixReference, 0);
-    expect(definingUnit.unlinked.imports[0].combinators, isEmpty);
-    expect(definingUnit.unlinked.imports[0].isImplicit, isTrue);
+    expect(unlinkedUnits[0].imports, hasLength(1));
+    checkDependency(prelinked.importDependencies[0], 'dart:core', 'dart:core');
+    expect(unlinkedUnits[0].imports[0].uri, isEmpty);
+    expect(unlinkedUnits[0].imports[0].prefixReference, 0);
+    expect(unlinkedUnits[0].imports[0].combinators, isEmpty);
+    expect(unlinkedUnits[0].imports[0].isImplicit, isTrue);
   }
 
   test_import_no_combinators() {
     serializeLibraryText('import "dart:async"; Future x;');
     // Second import is the implicit import of dart:core
-    expect(definingUnit.unlinked.imports, hasLength(2));
-    expect(definingUnit.unlinked.imports[0].combinators, isEmpty);
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].combinators, isEmpty);
   }
 
   test_import_no_flags() {
     serializeLibraryText('import "dart:async"; Future x;');
-    expect(definingUnit.unlinked.imports[0].isImplicit, isFalse);
-    expect(definingUnit.unlinked.imports[0].isDeferred, isFalse);
+    expect(unlinkedUnits[0].imports[0].isImplicit, isFalse);
+    expect(unlinkedUnits[0].imports[0].isDeferred, isFalse);
   }
 
   test_import_non_deferred() {
     serializeLibraryText(
         'import "dart:async" as a; main() { print(a.Future); }');
-    expect(definingUnit.unlinked.imports[0].isDeferred, isFalse);
+    expect(unlinkedUnits[0].imports[0].isDeferred, isFalse);
   }
 
   test_import_of_file_with_missing_part() {
@@ -1698,23 +1717,22 @@ typedef F();
   test_import_offset() {
     String libraryText = '    import "dart:async"; Future x;';
     serializeLibraryText(libraryText);
-    expect(
-        definingUnit.unlinked.imports[0].offset, libraryText.indexOf('import'));
+    expect(unlinkedUnits[0].imports[0].offset, libraryText.indexOf('import'));
   }
 
   test_import_prefix_name() {
     String libraryText = 'import "dart:async" as a; a.Future x;';
     serializeLibraryText(libraryText);
     // Second import is the implicit import of dart:core
-    expect(definingUnit.unlinked.imports, hasLength(2));
-    checkPrefix(definingUnit.unlinked.imports[0].prefixReference, 'a');
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    checkPrefix(unlinkedUnits[0].imports[0].prefixReference, 'a');
   }
 
   test_import_prefix_none() {
     serializeLibraryText('import "dart:async"; Future x;');
     // Second import is the implicit import of dart:core
-    expect(definingUnit.unlinked.imports, hasLength(2));
-    expect(definingUnit.unlinked.imports[0].prefixReference, 0);
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].prefixReference, 0);
   }
 
   test_import_prefix_reference() {
@@ -1761,14 +1779,14 @@ a.Stream s;
         'import "dart:async" show Future, Stream; Future x; Stream y;';
     serializeLibraryText(libraryText);
     // Second import is the implicit import of dart:core
-    expect(definingUnit.unlinked.imports, hasLength(2));
-    expect(definingUnit.unlinked.imports[0].combinators, hasLength(1));
-    expect(definingUnit.unlinked.imports[0].combinators[0].shows, hasLength(2));
-    expect(definingUnit.unlinked.imports[0].combinators[0].hides, isEmpty);
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].combinators, hasLength(1));
+    expect(unlinkedUnits[0].imports[0].combinators[0].shows, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].combinators[0].hides, isEmpty);
     checkCombinatorName(
-        definingUnit.unlinked.imports[0].combinators[0].shows[0], 'Future');
+        unlinkedUnits[0].imports[0].combinators[0].shows[0], 'Future');
     checkCombinatorName(
-        definingUnit.unlinked.imports[0].combinators[0].shows[1], 'Stream');
+        unlinkedUnits[0].imports[0].combinators[0].shows[1], 'Stream');
   }
 
   test_import_uri() {
@@ -1776,25 +1794,25 @@ a.Stream s;
     String libraryText = 'import $uriString; Future x;';
     serializeLibraryText(libraryText);
     // Second import is the implicit import of dart:core
-    expect(definingUnit.unlinked.imports, hasLength(2));
-    expect(definingUnit.unlinked.imports[0].uri, 'dart:async');
+    expect(unlinkedUnits[0].imports, hasLength(2));
+    expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
   test_library_named() {
     String text = 'library foo.bar;';
     serializeLibraryText(text);
-    expect(definingUnit.unlinked.libraryName, 'foo.bar');
+    expect(unlinkedUnits[0].libraryName, 'foo.bar');
   }
 
   test_library_unnamed() {
     serializeLibraryText('');
-    expect(definingUnit.unlinked.libraryName, isEmpty);
+    expect(unlinkedUnits[0].libraryName, isEmpty);
   }
 
   test_parts_defining_compilation_unit() {
     serializeLibraryText('');
-    expect(lib.units, hasLength(1));
-    expect(definingUnit.unlinked.parts, isEmpty);
+    expect(prelinked.units, hasLength(1));
+    expect(unlinkedUnits[0].parts, isEmpty);
   }
 
   test_parts_included() {
@@ -1802,9 +1820,9 @@ a.Stream s;
     String partString = '"part1.dart"';
     String libraryText = 'library my.lib; part $partString;';
     serializeLibraryText(libraryText);
-    expect(lib.units, hasLength(2));
-    expect(definingUnit.unlinked.parts, hasLength(1));
-    expect(definingUnit.unlinked.parts[0].uri, 'part1.dart');
+    expect(prelinked.units, hasLength(2));
+    expect(unlinkedUnits[0].parts, hasLength(1));
+    expect(unlinkedUnits[0].parts[0].uri, 'part1.dart');
   }
 
   test_type_arguments_explicit() {
@@ -1873,13 +1891,11 @@ a.Stream s;
   test_type_reference_from_part() {
     addNamedSource('/a.dart', 'part of foo; C v;');
     serializeLibraryText('library foo; part "a.dart"; class C {}');
-    checkTypeRef(
-        findVariable('v', variables: lib.units[1].unlinked.variables).type,
-        null,
-        null,
-        'C',
+    checkTypeRef(findVariable('v', variables: unlinkedUnits[1].variables).type,
+        null, null, 'C',
         expectedKind: PrelinkedReferenceKind.classOrEnum,
-        sourceUnit: lib.units[1]);
+        prelinkedSourceUnit: prelinked.units[1],
+        unlinkedSourceUnit: unlinkedUnits[1]);
   }
 
   test_type_reference_to_class_argument() {
