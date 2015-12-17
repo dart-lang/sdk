@@ -258,6 +258,7 @@ class B extends A {
 main(aaa, bbb) {}''');
     await computeSuggestions();
     assertSuggestFunction('main', null,
+        kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 
@@ -267,6 +268,7 @@ main(aaa, bbb) {}''');
 main(aaa, bbb) {}''');
     await computeSuggestions();
     assertSuggestFunction('main', null,
+        kind: CompletionSuggestionKind.IDENTIFIER,
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 

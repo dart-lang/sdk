@@ -306,7 +306,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       int relevance: DART_RELEVANCE_DEFAULT}) {
     CompletionSuggestionKind kind = targetIsFunctionalArgument
         ? CompletionSuggestionKind.IDENTIFIER
-        : CompletionSuggestionKind.INVOCATION;
+        : optype.suggestKind;
     CompletionSuggestion suggestion = _createLocalSuggestion(
         id, kind, isDeprecated, relevance, typeName,
         classDecl: classDecl);

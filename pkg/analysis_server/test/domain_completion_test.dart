@@ -583,24 +583,34 @@ class CompletionTest extends AbstractAnalysisTest {
     expect(suggestions, isEmpty);
   }
 
-  test_inDartDoc_reference2() async {
+  test_inDartDoc_reference1() async {
+    addFile(
+        '/testA.dart',
+        '''
+  part of libA;
+  foo(bar) => 0;''');
     addTestFile('''
+  library libA;
+  part "/testA.dart";
+  import "dart:math";
   /// The [^]
   main(aaa, bbb) {}
   ''');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'main',
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'min');
   }
 
-  test_inDartDoc_reference3() async {
+  test_inDartDoc_reference2() async {
     addTestFile('''
   /// The [m^]
   main(aaa, bbb) {}
   ''');
     await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.INVOCATION, 'main',
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main',
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 

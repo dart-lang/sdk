@@ -70,7 +70,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   LibraryElementSuggestionBuilder(this.request, this.optype, [this.prefix]) {
     this.kind = request.target.isFunctionalArgument()
         ? CompletionSuggestionKind.IDENTIFIER
-        : CompletionSuggestionKind.INVOCATION;
+        : optype.suggestKind;
   }
 
   @override

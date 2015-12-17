@@ -15,6 +15,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import '../../utils.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 
 main() {
   initializeTestEnvironment();
@@ -52,7 +53,8 @@ class OpTypeTest {
       bool statementLabel: false,
       bool staticMethodBody: false,
       bool typeNames: false,
-      bool voidReturn: false}) {
+      bool voidReturn: false,
+      CompletionSuggestionKind kind: CompletionSuggestionKind.INVOCATION}) {
     expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
     expect(visitor.includeConstructorSuggestions, constructors,
         reason: 'constructors');
@@ -66,6 +68,7 @@ class OpTypeTest {
     expect(visitor.inStaticMethodBody, staticMethodBody,
         reason: 'staticMethodBody');
     expect(visitor.isPrefixed, prefixed, reason: 'prefixed');
+    expect(visitor.suggestKind, kind, reason: 'suggestion kind');
   }
 
   void processRequiredPlugins() {
@@ -405,7 +408,11 @@ class OpTypeTest {
   test_CommentReference() {
     // SimpleIdentifier  CommentReference  Comment  MethodDeclaration
     addTestSource('class A {/** [^] */ mth() {}');
-    assertOpType(returnValue: true, typeNames: true, voidReturn: true);
+    assertOpType(
+        returnValue: true,
+        typeNames: true,
+        voidReturn: true,
+        kind: CompletionSuggestionKind.IDENTIFIER);
   }
 
   test_ConditionalExpression_elseExpression() {

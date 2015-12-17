@@ -7,6 +7,7 @@ library services.completion.dart.optype;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation
@@ -55,6 +56,11 @@ class OpType {
    * Indicates whether the completion target is prefixed.
    */
   bool isPrefixed = false;
+
+  /**
+   * The suggested completion kind.
+   */
+  CompletionSuggestionKind suggestKind = CompletionSuggestionKind.INVOCATION;
 
   /**
    * Determine the suggestions that should be made based upon the given
@@ -206,6 +212,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
     optype.includeVoidReturnSuggestions = true;
+    optype.suggestKind = CompletionSuggestionKind.IDENTIFIER;
   }
 
   void visitCompilationUnit(CompilationUnit node) {
