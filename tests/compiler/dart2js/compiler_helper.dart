@@ -43,7 +43,8 @@ import 'memory_compiler.dart' hide compilerFor;
 import 'output_collector.dart';
 export 'output_collector.dart';
 
-/// Compile [code] and returns the code for [entry].
+/// Compile [code] and returns either the code for [entry] or, if [returnAll] is
+/// true, the code for the entire program.
 ///
 /// If [check] is provided, it is executed on the code for [entry] before
 /// returning. If [useMock] is `true` the [MockCompiler] is used for
@@ -54,8 +55,11 @@ Future<String> compile(String code,
                         bool minify: false,
                         bool analyzeAll: false,
                         bool disableInlining: true,
+                        bool trustJSInteropTypeAnnotations: false,
                         bool useMock: false,
-                        void check(String generated)}) async {
+                        void check(String generatedEntry),
+                        bool returnAll: false}) async {
+  OutputCollector outputCollector = returnAll ? new OutputCollector() : null;
   if (useMock) {
     // TODO(johnniwinther): Remove this when no longer needed by
     // `arithmetic_simplication_test.dart`.
@@ -65,7 +69,9 @@ Future<String> compile(String code,
         // compiling a method.
         disableTypeInference: true,
         enableMinification: minify,
-        disableInlining: disableInlining);
+        disableInlining: disableInlining,
+        trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
+        outputProvider: outputCollector);
     await compiler.init();
     compiler.parseScript(code);
     lego.Element element = compiler.mainApp.find(entry);
@@ -89,7 +95,7 @@ Future<String> compile(String code,
     if (check != null) {
       check(generated);
     }
-    return generated;
+    return returnAll ? outputCollector.getOutput('', 'js') : generated;
   } else {
     List<String> options = <String>[
         Flags.disableTypeInference];
@@ -102,6 +108,9 @@ Future<String> compile(String code,
     if (analyzeAll) {
       options.add(Flags.analyzeAll);
     }
+    if (trustJSInteropTypeAnnotations) {
+      options.add(Flags.trustJSInteropTypeAnnotations);
+    }
 
     Map<String, String> source;
     if (entry != 'main') {
@@ -113,6 +122,7 @@ Future<String> compile(String code,
     CompilationResult result = await runCompiler(
         memorySourceFiles: source,
         options: options,
+        outputProvider: outputCollector,
         beforeRun: (compiler) {
           if (disableInlining) {
             compiler.disableInlining = true;
@@ -126,7 +136,7 @@ Future<String> compile(String code,
     if (check != null) {
       check(generated);
     }
-    return generated;
+    return returnAll ? outputCollector.getOutput('', 'js') : generated;
   }
 }
 
