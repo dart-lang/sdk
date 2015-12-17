@@ -2581,8 +2581,7 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
 
   set_current_class(Class::Handle(Z, field.origin()));
   set_library(Library::Handle(Z, current_class().library()));
-  SetScript(Script::Handle(Z, current_class().script()),
-            field.token_pos());
+  SetScript(Script::Handle(Z, current_class().script()), field.token_pos());
 
   ASSERT(IsIdentifier());
   ConsumeToken();

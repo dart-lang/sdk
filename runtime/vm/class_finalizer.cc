@@ -2069,6 +2069,7 @@ void ClassFinalizer::ApplyMixinType(const Class& mixin_app_class,
 
 void ClassFinalizer::CreateForwardingConstructors(
     const Class& mixin_app,
+    const Class& mixin_cls,
     const GrowableObjectArray& cloned_funcs) {
   const String& mixin_name = String::Handle(mixin_app.Name());
   const Class& super_class = Class::Handle(mixin_app.SuperClass());
@@ -2091,6 +2092,13 @@ void ClassFinalizer::CreateForwardingConstructors(
                   ctor_name.ToCString(),
                   clone_name.ToCString());
       }
+
+      // The owner of the forwarding constructor is the mixin application
+      // class. The source is the mixin class. The source may be needed
+      // to parse field initializer expressions in the mixin class.
+      const PatchClass& owner =
+          PatchClass::Handle(PatchClass::New(mixin_app, mixin_cls));
+
       const Function& clone = Function::Handle(
           Function::New(clone_name,
                         func.kind(),
@@ -2099,9 +2107,8 @@ void ClassFinalizer::CreateForwardingConstructors(
                         false,  // Not abstract.
                         false,  // Not external.
                         false,  // Not native.
-                        mixin_app,
-                        mixin_app.token_pos()));
-
+                        owner,
+                        mixin_cls.token_pos()));
       clone.set_num_fixed_parameters(func.num_fixed_parameters());
       clone.SetNumOptionalParameters(func.NumOptionalParameters(),
                                      func.HasOptionalPositionalParameters());
@@ -2151,7 +2158,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
   const GrowableObjectArray& cloned_funcs =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
 
-  CreateForwardingConstructors(cls, cloned_funcs);
+  CreateForwardingConstructors(cls, mixin_cls, cloned_funcs);
 
   Array& functions = Array::Handle(zone);
   Function& func = Function::Handle(zone);
@@ -2381,7 +2388,12 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
       (cls.functions() == Object::empty_array().raw())) {
     const GrowableObjectArray& cloned_funcs =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
-    CreateForwardingConstructors(cls, cloned_funcs);
+
+    const Class& mixin_app_class = Class::Handle(cls.SuperClass());
+    const Type& mixin_type = Type::Handle(mixin_app_class.mixin());
+    const Class& mixin_cls = Class::Handle(mixin_type.type_class());
+
+    CreateForwardingConstructors(cls, mixin_cls, cloned_funcs);
     const Array& functions = Array::Handle(Array::MakeArray(cloned_funcs));
     cls.SetFunctions(functions);
   }

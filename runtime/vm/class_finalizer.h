@@ -123,6 +123,7 @@ class ClassFinalizer : public AllStatic {
   static void ApplyMixinMembers(const Class& cls);
   static void CreateForwardingConstructors(
       const Class& mixin_app,
+      const Class& mixin_cls,
       const GrowableObjectArray& cloned_funcs);
   static void CollectTypeArguments(const Class& cls,
                                    const Type& type,
