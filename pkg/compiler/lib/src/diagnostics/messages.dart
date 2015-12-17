@@ -4,13 +4,14 @@
 
 library dart2js.messages;
 
+import 'package:dart_messages/shared_messages.dart' as shared_messages;
+
 import '../tokens/token.dart' show ErrorToken, Token;
 
 import 'invariant.dart' show invariant;
 import 'spannable.dart' show CURRENT_ELEMENT_SPANNABLE;
 
 import 'dart2js_messages.dart' as dart2js_messages;
-import 'shared_messages.dart' as shared_messages;
 
 /// Keys for the [MessageTemplate]s.
 enum MessageKind {

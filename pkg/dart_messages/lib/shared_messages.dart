@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// This file is parsed by JavaScript and must not use fancy Dart constructs.
-// It can contain JSON like constructs and "//" comments (but not "/*" "*/").
-// It must have one assignment (`final MESSAGES =`).
-// All strings must be raw strings.
+// An update to this file must be followed by regenerating the corresponding
+// json file. Use `json_converter.dart` in the bin directory.
+//
+// Every message in this file must have an id. Use `message_id.dart` in the
+// bin directory to generate a fresh one.
 
 // The messages in this file should meet the following guide lines:
 //
@@ -57,5 +58,5 @@
 // 1. what is wrong, 2. why is it wrong, 3. how do I fix it. However, we
 // combine the first two in [template] and the last in [howToFix].
 
-final MESSAGES = {
+final Map<String, Map> MESSAGES = {
 };
