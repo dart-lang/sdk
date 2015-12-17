@@ -64,6 +64,7 @@ vars = {
   "http_parser_tag" : "@1.1.0",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
   "idl_parser_rev": "@6316d5982dc24b34d09dd8b10fbeaaff28d83a48",
+  "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
   "linter_rev": "@5a599fd32d3b6ef00ffa7c330d1f32bbad287228",
@@ -78,6 +79,7 @@ vars = {
   "observatory_pub_packages_rev": "@cf90eb9077177d3d6b3fd5e8289477c2385c026a",
   "package_config_rev": "@0.1.3",
   "path_tag": "@1.3.6",
+  "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
@@ -155,6 +157,8 @@ deps = {
       Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
   Var("dart_root") + "/third_party/gsutil":
       Var("third_party") + "/gsutil" + Var("gsutil_rev"),
+  Var("dart_root") + "/third_party/pkg/petitparser":
+      Var("third_party") + "/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/WebCore":
       Var("third_party") + "/WebCore" + Var("WebCore_rev"),
 
@@ -202,6 +206,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/http_throttle":
       (Var("github_mirror") % "http_throttle") +
       Var("http_throttle_rev"),
+  Var("dart_root") + "/third_party/pkg/intl":
+      (Var("github_mirror") % "intl") + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":
