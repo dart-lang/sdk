@@ -80,7 +80,7 @@ final ListResultDescriptor<AnalysisError> BUILD_LIBRARY_ERRORS =
  * A list of the [ConstantEvaluationTarget]s defined in a unit.  This includes
  * constants defined at top level, statically inside classes, and local to
  * functions, as well as constant constructors, annotations, and default values
- * of parameters to constant constructors.
+ * of parameters.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */

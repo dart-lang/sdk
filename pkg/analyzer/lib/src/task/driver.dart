@@ -46,8 +46,8 @@ class AnalysisDriver {
   /**
    * The map of [ComputedResult] controllers.
    */
-  final Map<ResultDescriptor,
-          StreamController<ComputedResult>> resultComputedControllers =
+  final Map<ResultDescriptor, StreamController<ComputedResult>>
+      resultComputedControllers =
       <ResultDescriptor, StreamController<ComputedResult>>{};
 
   /**
@@ -168,7 +168,7 @@ class AnalysisDriver {
     TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
     try {
       WorkItem workItem =
-          new WorkItem(context, target, taskDescriptor, result, null);
+          new WorkItem(context, target, taskDescriptor, result, 0, null);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -550,6 +550,11 @@ class WorkItem {
   final ResultDescriptor spawningResult;
 
   /**
+   * The level of this item in its [WorkOrder].
+   */
+  final int level;
+
+  /**
    * The work order that this item is part of, may be `null`.
    */
   WorkOrder workOrder;
@@ -593,11 +598,12 @@ class WorkItem {
    * described by the given descriptor.
    */
   WorkItem(this.context, this.target, this.descriptor, this.spawningResult,
-      this.workOrder) {
+      this.level, this.workOrder) {
     AnalysisTarget actualTarget =
         identical(target, AnalysisContextTarget.request)
             ? new AnalysisContextTarget(context)
             : target;
+//    print('${'\t' * level}$spawningResult of $actualTarget');
     Map<String, TaskInput> inputDescriptors =
         descriptor.createTaskInputs(actualTarget);
     builder = new TopLevelTaskInputBuilder(inputDescriptors);
@@ -699,8 +705,8 @@ class WorkItem {
         try {
           TaskDescriptor descriptor =
               taskManager.findTask(inputTarget, inputResult);
-          return new WorkItem(
-              context, inputTarget, descriptor, inputResult, workOrder);
+          return new WorkItem(context, inputTarget, descriptor, inputResult,
+              level + 1, workOrder);
         } on AnalysisException catch (exception, stackTrace) {
           this.exception = new CaughtException(exception, stackTrace);
           return null;

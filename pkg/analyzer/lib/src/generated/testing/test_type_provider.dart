@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 
@@ -592,9 +593,13 @@ class TestTypeProvider implements TypeProvider {
       ElementFactory.constructorElement(doubleElement, null, false)
         ..synthetic = true
     ];
+    ConstFieldElementImpl varINFINITY =
+        ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType);
+    varINFINITY.constantInitializer = AstFactory.binaryExpression(
+        AstFactory.integer(1), TokenType.SLASH, AstFactory.integer(0));
     List<FieldElement> fields = <FieldElement>[
       ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
-      ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType),
+      varINFINITY,
       ElementFactory.fieldElement(
           "NEGATIVE_INFINITY", true, false, true, _doubleType),
       ElementFactory.fieldElement(

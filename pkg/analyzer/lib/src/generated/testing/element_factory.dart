@@ -199,7 +199,9 @@ class ElementFactory {
 
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type) {
-    FieldElementImpl field = new FieldElementImpl(name, 0);
+    FieldElementImpl field = isConst
+        ? new ConstFieldElementImpl(name, 0)
+        : new FieldElementImpl(name, 0);
     field.const3 = isConst;
     field.final2 = isFinal;
     field.static = isStatic;

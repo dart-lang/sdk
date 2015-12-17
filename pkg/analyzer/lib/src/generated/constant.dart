@@ -189,6 +189,13 @@ class ConstantAstCloner extends AstCloner {
     invocation.staticElement = node.staticElement;
     return invocation;
   }
+
+  @override
+  TypeName visitTypeName(TypeName node) {
+    TypeName typeName = super.visitTypeName(node);
+    typeName.type = node.type;
+    return typeName;
+  }
 }
 
 /**
@@ -1279,6 +1286,16 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
         constantsToCompute.add(element);
         constantsToCompute.addAll(element.parameters);
       }
+    }
+    return null;
+  }
+
+  @override
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    super.visitDefaultFormalParameter(node);
+    Expression defaultValue = node.defaultValue;
+    if (defaultValue != null && node.element != null) {
+      constantsToCompute.add(node.element);
     }
     return null;
   }

@@ -8678,16 +8678,10 @@ class ResolverVisitor extends ScopedVisitor {
       (element.initializer as FunctionElementImpl).returnType =
           node.defaultValue.staticType;
     }
-    FormalParameterList parent = node.parent;
-    AstNode grandparent = parent.parent;
-    if (grandparent is ConstructorDeclaration &&
-        grandparent.constKeyword != null) {
-      // For const constructors, we need to clone the ASTs for default formal
-      // parameters, so that we can use them during constant evaluation.
-      ParameterElement element = node.element;
-      (element as ConstVariableElement).constantInitializer =
-          new ConstantAstCloner().cloneNode(node.defaultValue);
-    }
+    // Clone the ASTs for default formal parameters, so that we can use them
+    // during constant evaluation.
+    (element as ConstVariableElement).constantInitializer =
+        new ConstantAstCloner().cloneNode(node.defaultValue);
     return null;
   }
 

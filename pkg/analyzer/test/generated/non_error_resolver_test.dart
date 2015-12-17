@@ -3891,6 +3891,15 @@ bool f(dynamic left, right) {
     verify([source]);
   }
 
+  void test_nonConstantDefaultValue_constField() {
+    Source source = addSource(r'''
+f([a = double.INFINITY]) {
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonConstantDefaultValue_function_named() {
     Source source = addSource("f({x : 2 + 3}) {}");
     computeLibrarySourceErrors(source);
@@ -3939,6 +3948,19 @@ class A {
     Source source = addSource(r'''
 class A {
   m([x = 2 + 3]) {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonConstantDefaultValue_typedConstList() {
+    Source source = addSource(r'''
+class A {
+  m([p111 = const <String>[]]) {}
+}
+class B extends A {
+  m([p222 = const <String>[]]) {}
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
