@@ -80,6 +80,10 @@ class CommandLineOptions {
   /// The path to a `.packages` configuration file
   final String packageConfigPath;
 
+  /// The path to a file to write a performance log.
+  /// (Or null if not enabled.)
+  final String perfReport;
+
   /// Batch mode (for unit testing)
   final bool shouldBatch;
 
@@ -117,6 +121,7 @@ class CommandLineOptions {
         machineFormat = args['machine'] || args['format'] == 'machine',
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
+        perfReport = args['x-perf-report'],
         shouldBatch = args['batch'],
         showPackageWarnings =
             args['show-package-warnings'] || args['package-warnings'],
@@ -248,6 +253,8 @@ class CommandLineOptions {
           help: 'Show warnings from SDK imports (deprecated).',
           defaultsTo: false,
           negatable: false)
+      ..addOption('x-perf-report',
+          help: 'Writes a performance report to the given file (experimental).')
       ..addFlag('help',
           abbr: 'h',
           help: 'Display this help message.',

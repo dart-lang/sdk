@@ -25,10 +25,13 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/utilities_general.dart'
+    show PerformanceTag;
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:package_config/discovery.dart' as pkgDiscovery;
 import 'package:package_config/packages.dart' show Packages;
@@ -58,6 +61,9 @@ bool containsLintRuleEntry(Map<String, YamlNode> options) {
 typedef ErrorSeverity _BatchRunnerHandler(List<String> args);
 
 class Driver {
+  static final PerformanceTag _analyzeAllTag =
+      new PerformanceTag("Driver._analyzeAll");
+
   /// The plugins that are defined outside the `analyzer_cli` package.
   List<Plugin> _userDefinedPlugins = <Plugin>[];
 
@@ -84,6 +90,8 @@ class Driver {
 
   /// Use the given command-line [args] to start this analysis driver.
   void start(List<String> args) {
+    int startTime = new DateTime.now().millisecondsSinceEpoch;
+
     StringUtilities.INTERNER = new MappedInterner();
 
     _processPlugins();
@@ -107,10 +115,21 @@ class Driver {
         exitCode = severity.ordinal;
       }
     }
+
+    if (options.perfReport != null) {
+      String json = makePerfReport(startTime, currentTimeMillis(), options);
+      new File(options.perfReport).writeAsStringSync(json);
+    }
+  }
+
+  ErrorSeverity _analyzeAll(CommandLineOptions options) {
+    return _analyzeAllTag.makeCurrentWhile(() {
+      return _analyzeAllImpl(options);
+    });
   }
 
   /// Perform analysis according to the given [options].
-  ErrorSeverity _analyzeAll(CommandLineOptions options) {
+  ErrorSeverity _analyzeAllImpl(CommandLineOptions options) {
     if (!options.machineFormat) {
       outSink.writeln("Analyzing ${options.sourceFiles}...");
     }

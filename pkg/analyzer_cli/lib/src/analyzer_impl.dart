@@ -30,10 +30,16 @@ int currentTimeMillis() => new DateTime.now().millisecondsSinceEpoch;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
+  static final PerformanceTag _prepareErrorsTag =
+      new PerformanceTag("AnalyzerImpl.prepareErrors");
+  static final PerformanceTag _resolveLibraryTag =
+      new PerformanceTag("AnalyzerImpl._resolveLibrary");
+
   final CommandLineOptions options;
   final int startTime;
 
   final AnalysisContext context;
+
   final Source librarySource;
 
   /// All [Source]s references by the analyzed library.
@@ -122,11 +128,12 @@ class AnalyzerImpl {
 
   /// Fills [errorInfos] using [sources].
   void prepareErrors() {
-    for (Source source in sources) {
-      context.computeErrors(source);
-
-      errorInfos.add(context.getErrors(source));
-    }
+    return _prepareErrorsTag.makeCurrentWhile(() {
+      for (Source source in sources) {
+        context.computeErrors(source);
+        errorInfos.add(context.getErrors(source));
+      }
+    });
   }
 
   /// Fills [sources].
@@ -155,15 +162,13 @@ class AnalyzerImpl {
           "${librarySource.fullName} is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
     }
-    // Resolve library.
-    var libraryElement = context.computeLibraryElement(librarySource);
-    // Prepare source and errors.
+    var libraryElement = _resolveLibrary();
     prepareSources(libraryElement);
     prepareErrors();
 
     // Print errors and performance numbers.
     if (printMode == 1) {
-      _printErrorsAndPerf();
+      _printErrors();
     } else if (printMode == 2) {
       _printColdPerf();
     }
@@ -205,7 +210,7 @@ class AnalyzerImpl {
     outSink.writeln("total-cold:$totalTime");
   }
 
-  _printErrorsAndPerf() {
+  _printErrors() {
     // The following is a hack. We currently print out to stderr to ensure that
     // when in batch mode we print to stderr, this is because the prints from
     // batch are made to stderr. The reason that options.shouldBatch isn't used
@@ -247,6 +252,12 @@ class AnalyzerImpl {
     }
 
     return new ProcessedSeverity(severity, isOverridden);
+  }
+
+  LibraryElement _resolveLibrary() {
+    return _resolveLibraryTag.makeCurrentWhile(() {
+      return context.computeLibraryElement(librarySource);
+    });
   }
 
   /// Compute the severity of the error; however:
