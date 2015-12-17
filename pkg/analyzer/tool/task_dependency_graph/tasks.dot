@@ -31,6 +31,8 @@ digraph G {
   COMPILATION_UNIT_ELEMENT [shape=box]
   CONSTANT_DEPENDENCIES -> ComputeConstantValueTask
   CONSTANT_DEPENDENCIES [shape=box]
+  CONSTANT_EXPRESSIONS_DEPENDENCIES -> EvaluateUnitConstantsTask
+  CONSTANT_EXPRESSIONS_DEPENDENCIES [shape=box]
   CONSTANT_VALUE -> ComputeConstantValueTask
   CONSTANT_VALUE -> EvaluateUnitConstantsTask
   CONSTANT_VALUE [shape=box]
@@ -257,6 +259,7 @@ digraph G {
   ResolveLibraryReferencesTask -> REFERENCED_NAMES
   ResolveLibraryTask -> LIBRARY_ELEMENT
   ResolveLibraryTypeNamesTask -> LIBRARY_ELEMENT5
+  ResolveUnitTask -> CONSTANT_EXPRESSIONS_DEPENDENCIES
   ResolveUnitTask -> RESOLVED_UNIT10
   ResolveUnitTask -> RESOLVE_UNIT_ERRORS
   ResolveUnitTypeNamesTask -> RESOLVED_UNIT3

@@ -1230,6 +1230,50 @@ class ConstantEvaluator {
 
 /**
  * A visitor used to traverse the AST structures of all of the compilation units
+ * being resolved and build the full set of dependencies for all constant
+ * expressions.
+ */
+class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
+  /**
+   * The constants whose values need to be computed.
+   */
+  HashSet<ConstantEvaluationTarget> dependencies =
+      new HashSet<ConstantEvaluationTarget>();
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.constKeyword != null) {
+      _find(node);
+    } else {
+      super.visitListLiteral(node);
+    }
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    if (node.constKeyword != null) {
+      _find(node);
+    } else {
+      super.visitMapLiteral(node);
+    }
+  }
+
+  @override
+  void visitSwitchCase(SwitchCase node) {
+    _find(node.expression);
+    node.statements.accept(this);
+  }
+
+  void _find(Expression node) {
+    if (node != null) {
+      ReferenceFinder referenceFinder = new ReferenceFinder(dependencies.add);
+      node.accept(referenceFinder);
+    }
+  }
+}
+
+/**
+ * A visitor used to traverse the AST structures of all of the compilation units
  * being resolved and build tables of the constant variables, constant
  * constructors, constant constructor invocations, and annotations found in
  * those compilation units.

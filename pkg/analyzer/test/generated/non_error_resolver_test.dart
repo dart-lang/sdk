@@ -1652,21 +1652,21 @@ export 'lib1.dart';''');
     verify([source]);
   }
 
-  void test_extraPositionalArguments_Function() {
+  void test_extraPositionalArguments_function() {
     Source source = addSource(r'''
-f(Function a) {
-  a(1, 2);
+f(p1, p2) {}
+main() {
+  f(1, 2);
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
   }
 
-  void test_extraPositionalArguments_function() {
+  void test_extraPositionalArguments_Function() {
     Source source = addSource(r'''
-f(p1, p2) {}
-main() {
-  f(1, 2);
+f(Function a) {
+  a(1, 2);
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3977,7 +3977,23 @@ class B extends A {
     verify([source]);
   }
 
-  void test_nonConstCaseExpression() {
+  void test_nonConstCaseExpression_constField() {
+    Source source = addSource(r'''
+f(double p) {
+  switch (p) {
+    case double.INFINITY:
+      return true;
+    default:
+      return false;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  void test_nonConstCaseExpression_typeLiteral() {
     Source source = addSource(r'''
 f(Type t) {
   switch (t) {
@@ -3987,6 +4003,16 @@ f(Type t) {
     default:
       return false;
   }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonConstListElement_constField() {
+    Source source = addSource(r'''
+main() {
+  const [double.INFINITY];
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -4017,6 +4043,27 @@ f() {
     Source source = addSource(r'''
 f() {
   <String, int> {'a' : 0, 'b' : 1};
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonConstMapKey_constField() {
+    Source source = addSource(r'''
+main() {
+  const {double.INFINITY: 0};
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS]);
+    verify([source]);
+  }
+
+  void test_nonConstMapValue_constField() {
+    Source source = addSource(r'''
+main() {
+  const {0: double.INFINITY};
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);

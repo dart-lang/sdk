@@ -84,8 +84,8 @@ final ListResultDescriptor<AnalysisError> BUILD_LIBRARY_ERRORS =
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
-final ListResultDescriptor<
-        ConstantEvaluationTarget> COMPILATION_UNIT_CONSTANTS =
+final ListResultDescriptor<ConstantEvaluationTarget>
+    COMPILATION_UNIT_CONSTANTS =
     new ListResultDescriptor<ConstantEvaluationTarget>(
         'COMPILATION_UNIT_CONSTANTS', null,
         cachingPolicy: ELEMENT_CACHING_POLICY);
@@ -111,6 +111,18 @@ final ResultDescriptor<CompilationUnitElement> COMPILATION_UNIT_ELEMENT =
 final ListResultDescriptor<ConstantEvaluationTarget> CONSTANT_DEPENDENCIES =
     new ListResultDescriptor<ConstantEvaluationTarget>(
         'CONSTANT_DEPENDENCIES', const <ConstantEvaluationTarget>[]);
+
+/**
+ * The list of [ConstantEvaluationTarget]s on which constant expressions of a
+ * unit depend.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<ConstantEvaluationTarget>
+    CONSTANT_EXPRESSIONS_DEPENDENCIES =
+    new ListResultDescriptor<ConstantEvaluationTarget>(
+        'CONSTANT_EXPRESSIONS_DEPENDENCIES',
+        const <ConstantEvaluationTarget>[]);
 
 /**
  * A [ConstantEvaluationTarget] that has been successfully constant-evaluated.
@@ -159,8 +171,8 @@ final ListResultDescriptor<AnalysisError> HINTS =
  * The result is only available for [VariableElement]s, and only when strong
  * mode is enabled.
  */
-final ListResultDescriptor<
-        VariableElement> INFERABLE_STATIC_VARIABLE_DEPENDENCIES =
+final ListResultDescriptor<VariableElement>
+    INFERABLE_STATIC_VARIABLE_DEPENDENCIES =
     new ListResultDescriptor<VariableElement>(
         'INFERABLE_STATIC_VARIABLE_DEPENDENCIES', null);
 
@@ -769,8 +781,9 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     ConstantFinder constantFinder =
         new ConstantFinder(context, source, librarySpecificUnit.library);
     unit.accept(constantFinder);
-    List<ConstantEvaluationTarget> constants = new List<
-        ConstantEvaluationTarget>.from(constantFinder.constantsToCompute);
+    List<ConstantEvaluationTarget> constants =
+        new List<ConstantEvaluationTarget>.from(
+            constantFinder.constantsToCompute);
     //
     // Record outputs.
     //
@@ -1888,7 +1901,8 @@ class ComputeInferableStaticVariableDependenciesTask
    * Return `true` if the given [variable] is a static variable whose type
    * should be inferred.
    */
-  bool _isInferableStatic(VariableElement variable) => variable.isStatic &&
+  bool _isInferableStatic(VariableElement variable) =>
+      variable.isStatic &&
       variable.hasImplicitType &&
       variable.initializer != null;
 
@@ -2073,9 +2087,9 @@ class ComputePropagableVariableDependenciesTask
    */
   bool _isPropagable(VariableElement variable) =>
       variable is PropertyInducingElement &&
-          (variable.isConst || variable.isFinal) &&
-          variable.hasImplicitType &&
-          variable.initializer != null;
+      (variable.isConst || variable.isFinal) &&
+      variable.hasImplicitType &&
+      variable.initializer != null;
 
   /**
    * Return a map from the names of the inputs of this kind of task to the task
@@ -2407,7 +2421,9 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
       'libraryElement': LIBRARY_ELEMENT8.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT10.of(unit),
       CONSTANT_VALUES:
-          COMPILATION_UNIT_CONSTANTS.of(unit).toListOf(CONSTANT_VALUE)
+          COMPILATION_UNIT_CONSTANTS.of(unit).toListOf(CONSTANT_VALUE),
+      'constantExpressionsDependencies':
+          CONSTANT_EXPRESSIONS_DEPENDENCIES.of(unit).toListOf(CONSTANT_VALUE)
     };
   }
 
@@ -4671,10 +4687,11 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
   static const String UNIT_INPUT = 'UNIT_INPUT';
 
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'ResolveUnitTask',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[RESOLVE_UNIT_ERRORS, RESOLVED_UNIT10]);
+      'ResolveUnitTask', createTask, buildInputs, <ResultDescriptor>[
+    CONSTANT_EXPRESSIONS_DEPENDENCIES,
+    RESOLVE_UNIT_ERRORS,
+    RESOLVED_UNIT10
+  ]);
 
   ResolveUnitTask(
       InternalAnalysisContext context, LibrarySpecificUnit compilationUnit)
@@ -4688,6 +4705,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     //
     // Prepare inputs.
     //
+    LibrarySpecificUnit target = this.target;
     LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
@@ -4700,12 +4718,23 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
         libraryElement, unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
+    // Compute constant expressions' dependencies.
+    //
+    List<ConstantEvaluationTarget> constExprDependencies;
+    {
+      ConstantExpressionsDependenciesFinder finder =
+          new ConstantExpressionsDependenciesFinder();
+      unit.accept(finder);
+      constExprDependencies = finder.dependencies.toList();
+    }
+    //
     // Record outputs.
     //
     // TODO(brianwilkerson) This task modifies the element model (by copying the
     // AST's for constructor initializers into it) but does not produce an
     // updated version of the element model.
     //
+    outputs[CONSTANT_EXPRESSIONS_DEPENDENCIES] = constExprDependencies;
     outputs[RESOLVE_UNIT_ERRORS] = getTargetSourceErrors(errorListener, target);
     outputs[RESOLVED_UNIT10] = unit;
   }
