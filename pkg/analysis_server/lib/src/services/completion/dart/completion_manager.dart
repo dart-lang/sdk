@@ -47,11 +47,21 @@ class DartCompletionManager implements CompletionContributor {
     }
 
     // Request Dart specific completions from each contributor
-    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
-    for (DartCompletionContributor c in dartCompletionPlugin.contributors) {
-      suggestions.addAll(await c.computeSuggestions(dartRequest));
+    Map<String, CompletionSuggestion> suggestionMap =
+        <String, CompletionSuggestion>{};
+    for (DartCompletionContributor contributor
+        in dartCompletionPlugin.contributors) {
+      for (CompletionSuggestion newSuggestion
+          in await contributor.computeSuggestions(dartRequest)) {
+        var oldSuggestion = suggestionMap.putIfAbsent(
+            newSuggestion.completion, () => newSuggestion);
+        if (newSuggestion != oldSuggestion &&
+            newSuggestion.relevance > oldSuggestion.relevance) {
+          suggestionMap[newSuggestion.completion] = newSuggestion;
+        }
+      }
     }
-    return suggestions;
+    return suggestionMap.values.toList();
   }
 }
 

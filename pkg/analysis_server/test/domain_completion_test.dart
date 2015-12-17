@@ -664,7 +664,8 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
     });
   }
 
@@ -703,7 +704,8 @@ class B extends A {m() {^}}
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
     });
   }
 
