@@ -135,7 +135,7 @@ Language/Statements/Local_Function_Declaration/reference_before_declaration_t01:
 Language/Statements/Local_Function_Declaration/reference_before_declaration_t03: MissingCompileTimeError # Issue 21050
 Language/Types/Interface_Types/subtype_t27: Skip # Times out or crashes. Issue 21174
 Language/Types/Interface_Types/subtype_t30: fail # Issue 14654
-Language/Types/Interface_Types/subtype_t28: Fail # Stack overflow. Issue 25282
+Language/Types/Interface_Types/subtype_t28: Pass, Fail # Stack overflow. Issue 25282
 Language/Variables/final_t01: fail # Issue 21093
 Language/Variables/final_t02: fail # Issue 21093
 Language/Variables/local_variable_t01: MissingCompileTimeError # Issue 21050
