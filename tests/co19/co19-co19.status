@@ -32,7 +32,7 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot
 # These tests are broken in both Javascript and Dart (co19 folks contacted to fix).
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-004_t01: Skip # Issue 21115
 
-[ $compiler != dartanalyzer && $compiler != dart2analyzer ]
+[ $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
 
 LibTest/async/Future/Future.error_A01_t01: RuntimeError # co19 issue 712
@@ -93,7 +93,7 @@ LibTest/async/Future/Future.delayed_A01_t02: Pass, Fail # Issue 15524
 
 ### CHECKED MODE FAILURES ###
 
-[ $compiler != dartanalyzer && $compiler != dart2analyzer && $checked ]
+[ $compiler != dart2analyzer && $checked ]
 LibTest/collection/DoubleLinkedQueue/removeFirst_A01_t01: RuntimeError # co19-roll r607: Please triage this failure
 LibTest/collection/LinkedList/LinkedList_A01_t01: RuntimeError # co19-roll r623: Please triage this failure
 LibTest/collection/LinkedList/lastWhere_A02_t01: RuntimeError # co19 issue 737

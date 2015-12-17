@@ -122,7 +122,7 @@ typed_data/test/typed_buffers_test/none: Fail # Issue   17607 (I put this here e
 # Unexplained errors only occuring on Safari 6.1 and earlier.
 typed_data/test/typed_buffers_test: RuntimeError
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 compiler/samples/compile_loop/compile_loop: CompileTimeError  # Issue 16524
 lookup_map/test/version_check_test: StaticWarning # https://github.com/dart-lang/http_parser/issues/6
 lookup_map/test/lookup_map_test: StaticWarning # https://github.com/dart-lang/http_parser/issues/6

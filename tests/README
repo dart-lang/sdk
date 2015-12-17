@@ -39,5 +39,5 @@ example,
   int x = "not an int"; /// 01: static type warning
   ...
 
-as part of a test will only pass the "--compiler dartanalyzer" test if
+as part of a test will only pass the "--compiler dart2analyzer" test if
 the assignment generates a static type warning.

@@ -64,11 +64,10 @@ class TestOptionsParser {
          safari, ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
          none (compile only)),
 
-   dartanalyzer: Perform static analysis on Dart code by running the analyzer on Java.
-   dart2analyzer: Perform static analysis on Dart code by running the analyzer on Dart.
+   dart2analyzer: Perform static analysis on Dart code by running the analyzer
           (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2js', 'dartanalyzer', 'dart2analyzer'],
+              ['none', 'dart2js', 'dart2analyzer'],
               'none'),
           // TODO(antonm): fix the option drt.
           new _TestOptionSpecification(
@@ -93,7 +92,7 @@ class TestOptionsParser {
     [ff | chrome | safari | ie9 | ie10 | ie11 | opera | chromeOnAndroid]:
         Run JavaScript in the specified browser.
 
-    none: No runtime, compile only (for example, used for dartanalyzer static
+    none: No runtime, compile only (for example, used for dart2analyzer static
           analysis tests).''',
               ['-r', '--runtime'],
               ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
@@ -642,7 +641,6 @@ Note: currently only implemented for dart2js.''',
                                'ff', 'chrome', 'safari', 'ie9', 'ie10', 'ie11',
                                'opera', 'chromeOnAndroid', 'safarimobilesim'];
         break;
-      case 'dartanalyzer':
       case 'dart2analyzer':
         validRuntimes = const ['none'];
         break;

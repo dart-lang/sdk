@@ -31,8 +31,8 @@ swarm/test/swarm_test: Fail # Issue 4517
 
 [ $compiler == dart2analyzer ]
 swarm/test/swarm_test: StaticWarning
-swarm/test/swarm_ui_lib/layout/layout_test: StaticWarning	
-swarm/test/swarm_ui_lib/observable/observable_test: StaticWarning	
+swarm/test/swarm_ui_lib/layout/layout_test: StaticWarning
+swarm/test/swarm_ui_lib/observable/observable_test: StaticWarning
 swarm/test/swarm_ui_lib/touch/touch_test: StaticWarning
 swarm/test/swarm_ui_lib/util/util_test: StaticWarning
 swarm/test/swarm_ui_lib/view/view_test: StaticWarning

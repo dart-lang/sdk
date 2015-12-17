@@ -133,7 +133,7 @@ error_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFu
 exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
 
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 
