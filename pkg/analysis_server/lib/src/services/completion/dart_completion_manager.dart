@@ -132,12 +132,6 @@ class DartCompletionManager extends CompletionManager {
       CompilationUnit unit = context.parseCompilationUnit(source);
       request.unit = unit;
       request.target = new CompletionTarget.forOffset(unit, request.offset);
-      if (request.offset < 0 || request.offset > unit.end) {
-        request.replacementOffset = request.offset;
-        request.replacementLength = 0;
-        sendResults(request, true);
-        return [];
-      }
 
       ReplacementRange range =
           new ReplacementRange.compute(request.offset, request.target);

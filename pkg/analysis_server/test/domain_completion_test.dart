@@ -685,12 +685,12 @@ class B extends A {
 
   test_offset_past_eof() {
     addTestFile('main() { }', offset: 300);
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(300));
-      expect(replacementLength, equals(0));
-      expect(suggestionsDone, true);
-      expect(suggestions.length, 0);
-    });
+    Request request =
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response.id, '0');
+    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
   test_overrides() {
