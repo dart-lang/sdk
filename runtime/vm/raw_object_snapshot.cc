@@ -13,6 +13,7 @@
 namespace dart {
 
 DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, use_field_guards);
 
 #define NEW_OBJECT(type)                                                       \
   ((kind == Snapshot::kFull) ? reader->New##type() : type::New())
@@ -798,8 +799,9 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   // Set all non object fields.
   if (reader->snapshot_code()) {
     field.set_token_pos(0);
-    field.set_guarded_cid(kIllegalCid);
-    field.set_is_nullable(kIllegalCid);
+    ASSERT(!FLAG_use_field_guards);
+    field.set_guarded_cid(kDynamicCid);
+    field.set_is_nullable(true);
   } else {
     field.set_token_pos(reader->Read<int32_t>());
     field.set_guarded_cid(reader->Read<int32_t>());
@@ -815,7 +817,13 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
                      field.raw()->from(), toobj,
                      kAsReference);
 
-  field.InitializeGuardedListLengthInObjectOffset();
+  if (reader->snapshot_code()) {
+    ASSERT(!FLAG_use_field_guards);
+    field.set_guarded_list_length(Field::kNoFixedLength);
+    field.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
+  } else {
+    field.InitializeGuardedListLengthInObjectOffset();
+  }
 
   return field.raw();
 }
