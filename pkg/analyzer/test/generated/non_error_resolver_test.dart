@@ -926,10 +926,9 @@ abstract class A {
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "p]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement,
-          ParameterElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, "p]");
+      expect(ref.staticElement, new isInstanceOf<ParameterElement>());
     }
   }
 
@@ -948,22 +947,22 @@ enum Samurai {
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "Samurai]", (node) => node is SimpleIdentifier);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'Samurai]');
       ClassElement refElement = ref.staticElement;
       expect(refElement, isNotNull);
       expect(refElement.name, 'Samurai');
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "int]", (node) => node is SimpleIdentifier);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'int]');
       ClassElement refElement = ref.staticElement;
       expect(refElement, isNotNull);
       expect(refElement.name, 'int');
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "WITH_SWORD]", (node) => node is SimpleIdentifier);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'WITH_SWORD]');
       PropertyAccessorElement refElement = ref.staticElement;
       expect(refElement, isNotNull);
       expect(refElement.name, 'WITH_SWORD');
@@ -980,10 +979,9 @@ foo(int p) {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(
-        unit, code, "p]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
+    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
   }
 
   void test_commentReference_beforeFunction_expressionBody() {
@@ -995,10 +993,9 @@ foo(int p) => null;''';
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(
-        unit, code, "p]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
+    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
   }
 
   void test_commentReference_beforeFunctionTypeAlias() {
@@ -1011,10 +1008,9 @@ typedef Foo(int p);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(
-        unit, code, "p]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is ParameterElement, ParameterElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findSimpleIdentifier(unit, code, 'p]');
+    expect(ref.staticElement, new isInstanceOf<ParameterElement>());
   }
 
   void test_commentReference_beforeGetter() {
@@ -1029,8 +1025,8 @@ abstract class A {
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "int]", (node) => node is SimpleIdentifier);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'int]');
       expect(ref.staticElement, isNotNull);
     }
   }
@@ -1042,24 +1038,27 @@ abstract class A {
   ma(int p1) {}
   /// [p2]
   mb(int p2);
+  /// [p3] and [p4]
+  mc(int p3, p4());
+  /// [p5]
+  md(int p5, {int p6});
 }''';
     Source source = addSource(code);
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "p1]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement,
-          ParameterElement, ref.staticElement);
+    assertIsParameter(String search) {
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, search);
+      expect(ref.staticElement, new isInstanceOf<ParameterElement>());
     }
-    {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "p2]", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is ParameterElement,
-          ParameterElement, ref.staticElement);
-    }
+    assertIsParameter('p1');
+    assertIsParameter('p2');
+    assertIsParameter('p3');
+    assertIsParameter('p4');
+    assertIsParameter('p5');
+    assertIsParameter('p6');
   }
 
   void test_commentReference_class() {
@@ -1073,10 +1072,9 @@ class A {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
-    SimpleIdentifier ref = EngineTestCase.findNode(
-        unit, code, "foo]", (node) => node is SimpleIdentifier);
-    EngineTestCase.assertInstanceOf(
-        (obj) => obj is MethodElement, MethodElement, ref.staticElement);
+    SimpleIdentifier ref =
+        EngineTestCase.findSimpleIdentifier(unit, code, 'foo]');
+    expect(ref.staticElement, new isInstanceOf<MethodElement>());
   }
 
   void test_commentReference_setter() {
@@ -1097,16 +1095,14 @@ class B extends A {
     verify([source]);
     CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "x] in A", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
-          PropertyAccessorElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, "x] in A");
+      expect(ref.staticElement, new isInstanceOf<PropertyAccessorElement>());
     }
     {
-      SimpleIdentifier ref = EngineTestCase.findNode(
-          unit, code, "x] in B", (node) => node is SimpleIdentifier);
-      EngineTestCase.assertInstanceOf((obj) => obj is PropertyAccessorElement,
-          PropertyAccessorElement, ref.staticElement);
+      SimpleIdentifier ref =
+          EngineTestCase.findSimpleIdentifier(unit, code, 'x] in B');
+      expect(ref.staticElement, new isInstanceOf<PropertyAccessorElement>());
     }
   }
 

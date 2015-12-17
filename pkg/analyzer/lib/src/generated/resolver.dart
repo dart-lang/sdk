@@ -7956,12 +7956,6 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ExecutableElement _enclosingFunction = null;
 
-  /**
-   * The [Comment] before a [FunctionDeclaration] or a [MethodDeclaration] that
-   * cannot be resolved where we visited it, because it should be resolved in the scope of the body.
-   */
-  Comment _commentBeforeFunction = null;
-
   InferenceContext inferenceContext = null;
 
   /**
@@ -8122,7 +8116,6 @@ class ResolverVisitor extends ScopedVisitor {
       if (element is ExecutableElement) {
         _enclosingFunction = element;
       }
-      _commentBeforeFunction = declaration.documentationComment;
     }
     _overrideManager.enterScope();
   }
@@ -8255,6 +8248,15 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // OK
     expression.propagatedType = type;
+  }
+
+  /**
+   * Visit the given [comment] if it is not `null`.
+   */
+  void safelyVisitComment(Comment comment) {
+    if (comment != null) {
+      super.visitComment(comment);
+    }
   }
 
   @override
@@ -8417,7 +8419,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
-    safelyVisit(_commentBeforeFunction);
     _overrideManager.enterScope();
     try {
       inferenceContext.pushReturnContext(InferenceContext.getType(node));
@@ -8502,13 +8503,9 @@ class ResolverVisitor extends ScopedVisitor {
         parent is FunctionTypeAlias ||
         parent is ConstructorDeclaration ||
         parent is MethodDeclaration) {
-      if (!identical(node, _commentBeforeFunction)) {
-        _commentBeforeFunction = node;
-        return null;
-      }
+      return null;
     }
     super.visitComment(node);
-    _commentBeforeFunction = null;
     return null;
   }
 
@@ -8633,6 +8630,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
+    super.visitConstructorDeclarationInScope(node);
+    safelyVisitComment(node.documentationComment);
+  }
+
+  @override
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     //
     // We visit the expression, but do not visit the field name because it needs
@@ -8700,7 +8703,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitEmptyFunctionBody(EmptyFunctionBody node) {
-    safelyVisit(_commentBeforeFunction);
     if (resolveOnlyCommentInFunctionBody) {
       return null;
     }
@@ -8738,7 +8740,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    safelyVisit(_commentBeforeFunction);
     if (resolveOnlyCommentInFunctionBody) {
       return null;
     }
@@ -8876,6 +8877,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitFunctionDeclarationInScope(FunctionDeclaration node) {
+    super.visitFunctionDeclarationInScope(node);
+    safelyVisitComment(node.documentationComment);
+  }
+
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -8925,13 +8932,9 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  Object visitFormalParameterList(FormalParameterList node) {
-    super.visitFormalParameterList(node);
-    if (_commentBeforeFunction != null) {
-      safelyVisit(_commentBeforeFunction);
-      _commentBeforeFunction = null;
-    }
-    return null;
+  void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
+    super.visitFunctionTypeAliasInScope(node);
+    safelyVisitComment(node.documentationComment);
   }
 
   @override
@@ -9100,6 +9103,12 @@ class ResolverVisitor extends ScopedVisitor {
       _enclosingFunction = outerFunction;
     }
     return null;
+  }
+
+  @override
+  void visitMethodDeclarationInScope(MethodDeclaration node) {
+    super.visitMethodDeclarationInScope(node);
+    safelyVisitComment(node.documentationComment);
   }
 
   @override
@@ -10201,11 +10210,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       } else {
         nameScope = new FunctionScope(nameScope, constructorElement);
       }
-      super.visitConstructorDeclaration(node);
+      visitConstructorDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
     return null;
+  }
+
+  void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
+    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -10359,11 +10372,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       } else {
         nameScope = new FunctionScope(nameScope, functionElement);
       }
-      super.visitFunctionDeclaration(node);
+      visitFunctionDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
     return null;
+  }
+
+  void visitFunctionDeclarationInScope(FunctionDeclaration node) {
+    super.visitFunctionDeclaration(node);
   }
 
   @override
@@ -10408,11 +10425,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope outerScope = nameScope;
     try {
       nameScope = new FunctionTypeScope(nameScope, node.element);
-      super.visitFunctionTypeAlias(node);
+      visitFunctionTypeAliasInScope(node);
     } finally {
       nameScope = outerScope;
     }
     return null;
+  }
+
+  void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
+    super.visitFunctionTypeAlias(node);
   }
 
   @override
@@ -10469,11 +10490,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       } else {
         nameScope = new FunctionScope(nameScope, methodElement);
       }
-      super.visitMethodDeclaration(node);
+      visitMethodDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
     return null;
+  }
+
+  void visitMethodDeclarationInScope(MethodDeclaration node) {
+    super.visitMethodDeclaration(node);
   }
 
   /**
