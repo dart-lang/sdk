@@ -12,7 +12,6 @@ import 'package:analysis_server/src/analysis_server.dart'
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -105,7 +104,6 @@ class CommonUsageSorterTest extends AbstractAnalysisTest {
         context,
         server.searchEngine,
         source,
-        new DartCompletionCache(context, source),
         null,
         server.serverPlugin.completionContributors,
         new CommonUsageSorter(selectorRelevance));

@@ -14,7 +14,6 @@ import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -77,13 +76,12 @@ class DartCompletionManager extends CompletionManager {
       new CommonUsageSorter();
 
   final SearchEngine searchEngine;
-  final DartCompletionCache cache;
   List<DartCompletionContributor> contributors;
   Iterable<CompletionContributor> newContributors;
   DartContributionSorter contributionSorter;
 
   DartCompletionManager(
-      AnalysisContext context, this.searchEngine, Source source, this.cache,
+      AnalysisContext context, this.searchEngine, Source source,
       [this.contributors, this.newContributors, this.contributionSorter])
       : super(context, source) {
     if (contributors == null) {
@@ -119,19 +117,8 @@ class DartCompletionManager extends CompletionManager {
       SearchEngine searchEngine,
       Source source,
       Iterable<CompletionContributor> newContributors) {
-    return new DartCompletionManager(context, searchEngine, source,
-        new DartCompletionCache(context, source), null, newContributors);
-  }
-
-  @override
-  Future<bool> computeCache() {
-    return waitForAnalysis().then((CompilationUnit unit) {
-      if (unit != null && !cache.isImportInfoCached(unit)) {
-        return cache.computeImportInfo(unit, searchEngine, true);
-      } else {
-        return new Future.value(false);
-      }
-    });
+    return new DartCompletionManager(
+        context, searchEngine, source, null, newContributors);
   }
 
   /**
@@ -249,7 +236,7 @@ class DartCompletionManager extends CompletionManager {
   @override
   void computeSuggestions(CompletionRequest completionRequest) {
     DartCompletionRequest request =
-        new DartCompletionRequest.from(completionRequest, cache);
+        new DartCompletionRequest.from(completionRequest);
     CompletionPerformance performance = new CompletionPerformance();
     performance.logElapseTime('compute', () {
       List<DartCompletionContributor> todo = computeFast(request, performance);
@@ -299,11 +286,6 @@ class DartCompletionManager extends CompletionManager {
  */
 class DartCompletionRequest extends CompletionRequestImpl {
   /**
-   * Cached information from a prior code completion operation.
-   */
-  final DartCompletionCache cache;
-
-  /**
    * The compilation unit in which the completion was requested. This unit
    * may or may not be resolved when [DartCompletionContributor.computeFast]
    * is called but is resolved when [DartCompletionContributor.computeFull].
@@ -352,14 +334,12 @@ class DartCompletionRequest extends CompletionRequestImpl {
       ResourceProvider resourceProvider,
       SearchEngine searchEngine,
       Source source,
-      int offset,
-      this.cache)
+      int offset)
       : super(context, resourceProvider, searchEngine, source, offset);
 
-  factory DartCompletionRequest.from(
-          CompletionRequestImpl request, DartCompletionCache cache) =>
+  factory DartCompletionRequest.from(CompletionRequestImpl request) =>
       new DartCompletionRequest(request.context, request.resourceProvider,
-          request.searchEngine, request.source, request.offset, cache);
+          request.searchEngine, request.source, request.offset);
 
   /**
    * Return the original text from the [replacementOffset] to the [offset]
