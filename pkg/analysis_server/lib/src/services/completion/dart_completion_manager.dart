@@ -22,25 +22,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-export 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart'
-    show
-        DART_RELEVANCE_COMMON_USAGE,
-        DART_RELEVANCE_DEFAULT,
-        DART_RELEVANCE_HIGH,
-        DART_RELEVANCE_INHERITED_ACCESSOR,
-        DART_RELEVANCE_INHERITED_FIELD,
-        DART_RELEVANCE_INHERITED_METHOD,
-        DART_RELEVANCE_KEYWORD,
-        DART_RELEVANCE_LOCAL_ACCESSOR,
-        DART_RELEVANCE_LOCAL_FIELD,
-        DART_RELEVANCE_LOCAL_FUNCTION,
-        DART_RELEVANCE_LOCAL_METHOD,
-        DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE,
-        DART_RELEVANCE_LOCAL_VARIABLE,
-        DART_RELEVANCE_LOW,
-        DART_RELEVANCE_NAMED_PARAMETER,
-        DART_RELEVANCE_PARAMETER;
-
 /**
  * The base class for contributing code completion suggestions.
  */
@@ -76,31 +57,13 @@ class DartCompletionManager extends CompletionManager {
       new CommonUsageSorter();
 
   final SearchEngine searchEngine;
-  List<DartCompletionContributor> contributors;
   Iterable<CompletionContributor> newContributors;
   DartContributionSorter contributionSorter;
 
   DartCompletionManager(
       AnalysisContext context, this.searchEngine, Source source,
-      [this.contributors, this.newContributors, this.contributionSorter])
+      [this.newContributors, this.contributionSorter])
       : super(context, source) {
-    if (contributors == null) {
-      contributors = [
-        // LocalReferenceContributor before ImportedReferenceContributor
-        // because local suggestions take precedence
-        // and can hide other suggestions with the same name
-        //new LocalReferenceContributor(),
-        //new ImportedReferenceContributor(),
-        //new KeywordContributor(),
-        //new ArgListContributor(),
-        // new CombinatorContributor(),
-        // new PrefixedElementContributor(),
-        //new UriContributor(),
-        // TODO(brianwilkerson) Use the completion contributor extension point
-        // to add the contributor below (and eventually, all the contributors).
-//        new NewCompletionWrapper(new InheritedContributor())
-      ];
-    }
     if (newContributors == null) {
       newContributors = <CompletionContributor>[];
     }
@@ -118,7 +81,7 @@ class DartCompletionManager extends CompletionManager {
       Source source,
       Iterable<CompletionContributor> newContributors) {
     return new DartCompletionManager(
-        context, searchEngine, source, null, newContributors);
+        context, searchEngine, source, newContributors);
   }
 
   /**
@@ -138,7 +101,7 @@ class DartCompletionManager extends CompletionManager {
       request.replacementOffset = range.offset;
       request.replacementLength = range.length;
 
-      List<DartCompletionContributor> todo = new List.from(contributors);
+      List<DartCompletionContributor> todo = [];
       todo.removeWhere((DartCompletionContributor c) {
         return performance.logElapseTime('computeFast ${c.runtimeType}', () {
           return c.computeFast(request);
@@ -172,59 +135,16 @@ class DartCompletionManager extends CompletionManager {
     performance.logElapseTime('computeSuggestions');
     performance.logStartTime('waitForAnalysis');
 
-    if (todo.isEmpty) {
-      // TODO(danrubel) current sorter requires no additional analysis,
-      // but need to handle the returned future the same way that futures
-      // returned from contributors are handled once this method is refactored
-      // to be async.
-      /* await */ contributionSorter.sort(request, request.suggestions);
-      // TODO (danrubel) if request is obsolete
-      // (processAnalysisRequest returns false)
-      // then send empty results
-      sendResults(request, true);
-    }
-
-    // Compute the other suggestions
-    return waitForAnalysis().then((CompilationUnit unit) {
-      if (controller.isClosed) {
-        return;
-      }
-      performance.logElapseTime('waitForAnalysis');
-      if (unit == null) {
-        sendResults(request, true);
-        return;
-      }
-      performance.logElapseTime('computeFull', () {
-        request.unit = unit;
-        // TODO(paulberry): Do we need to invoke _ReplacementOffsetBuilder
-        // again?
-        request.target = new CompletionTarget.forOffset(unit, request.offset);
-        int count = todo.length;
-        todo.forEach((DartCompletionContributor c) {
-          String name = c.runtimeType.toString();
-          String completeTag = 'computeFull $name complete';
-          performance.logStartTime(completeTag);
-          performance.logElapseTime('computeFull $name', () {
-            c.computeFull(request).then((bool changed) {
-              performance.logElapseTime(completeTag);
-              bool last = --count == 0;
-              if (changed || last) {
-                // TODO(danrubel) current sorter requires no additional analysis,
-                // but need to handle the returned future the same way that futures
-                // returned from contributors are handled once this method is refactored
-                // to be async.
-                /* await */ contributionSorter.sort(
-                    request, request.suggestions);
-                // TODO (danrubel) if request is obsolete
-                // (processAnalysisRequest returns false)
-                // then send empty results
-                sendResults(request, last);
-              }
-            });
-          });
-        });
-      });
-    });
+    // TODO(danrubel) current sorter requires no additional analysis,
+    // but need to handle the returned future the same way that futures
+    // returned from contributors are handled once this method is refactored
+    // to be async.
+    /* await */ contributionSorter.sort(request, request.suggestions);
+    // TODO (danrubel) if request is obsolete
+    // (processAnalysisRequest returns false)
+    // then send empty results
+    sendResults(request, true);
+    return new Future.value();
   }
 
   @override

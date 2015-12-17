@@ -7,8 +7,6 @@ library test.services.completion;
 import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
-import 'completion_computer_test.dart' as completion_computer_test;
-import 'completion_manager_test.dart' as completion_manager_test;
 import 'completion_target_test.dart' as completion_target_test;
 import 'dart/test_all.dart' as dart_contributor_tests;
 import 'optype_test.dart' as optype_test;
@@ -17,8 +15,6 @@ import 'optype_test.dart' as optype_test;
 main() {
   initializeTestEnvironment();
   group('completion', () {
-    completion_computer_test.main();
-    completion_manager_test.main();
     completion_target_test.main();
     dart_contributor_tests.main();
     optype_test.main();

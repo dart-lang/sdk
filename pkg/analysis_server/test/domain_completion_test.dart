@@ -16,6 +16,7 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionRequest, CompletionResult;
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
@@ -791,10 +792,6 @@ class B extends A {m() {^}}
       assertNoResult('HtmlElement');
     });
   }
-}
-
-class MockCache extends CompletionCache {
-  MockCache(AnalysisContext context, Source source) : super(context, source);
 }
 
 class MockCompletionManager implements CompletionManager {

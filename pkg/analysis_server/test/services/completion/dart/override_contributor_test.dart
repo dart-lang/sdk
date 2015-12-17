@@ -8,8 +8,6 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
-    hide DartCompletionContributor;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
