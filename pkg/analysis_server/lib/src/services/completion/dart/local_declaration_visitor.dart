@@ -4,7 +4,6 @@
 
 library services.completion.dart.local.declaration.visitor;
 
-import 'package:analysis_server/src/services/completion/suggestion_builder.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -20,11 +19,6 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
       null);
 
   final int offset;
-
-  /**
-   * `true` if local inherited types should be visited.
-   */
-  bool includeLocalInheritedTypes = true;
 
   LocalDeclarationVisitor(this.offset);
 
@@ -119,12 +113,6 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     _visitClassDeclarationMembers(node);
-    // imported types are handled by the imported reference contributor
-    if (includeLocalInheritedTypes) {
-      visitInheritedTypes(node, localDeclaration: (ClassDeclaration classNode) {
-        _visitClassDeclarationMembers(classNode);
-      });
-    }
     visitNode(node);
   }
 
