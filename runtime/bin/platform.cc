@@ -14,7 +14,6 @@ namespace bin {
 
 const char* Platform::executable_name_ = NULL;
 const char* Platform::resolved_executable_name_ = NULL;
-const char* Platform::package_root_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
@@ -73,15 +72,6 @@ void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
     }
   }
   Dart_SetReturnValue(args, result);
-}
-
-
-void FUNCTION_NAME(Platform_PackageRoot)(Dart_NativeArguments args) {
-  const char* package_root = Platform::GetPackageRoot();
-  if (package_root == NULL) {
-    package_root = "";
-  }
-  Dart_SetReturnValue(args, Dart_NewStringFromCString(package_root));
 }
 
 

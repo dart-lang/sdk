@@ -764,8 +764,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
     }
 
-    Platform::SetPackageRoot(package_root);
-
     result = DartUtils::SetupIOLibrary(script_uri);
     CHECK_RESULT(result);
   }
