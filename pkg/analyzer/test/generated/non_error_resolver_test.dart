@@ -1462,6 +1462,19 @@ class A {
     verify([source]);
   }
 
+  void test_constWithNonConstantArgument_constField() {
+    Source source = addSource(r'''
+class A {
+  const A(x);
+}
+main() {
+  const A(double.INFINITY);
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_constWithNonConstantArgument_literals() {
     Source source = addSource(r'''
 class A {

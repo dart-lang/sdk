@@ -1241,6 +1241,15 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
       new HashSet<ConstantEvaluationTarget>();
 
   @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
   void visitListLiteral(ListLiteral node) {
     if (node.constKeyword != null) {
       _find(node);
