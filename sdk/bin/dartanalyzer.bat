@@ -40,8 +40,8 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set ANALYZER=%DART_ROOT%\pkg\analyzer_cli\bin\analyzer.dart
 
-rem DART_CONFIGURATION defaults to ReleaseIA32
-if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseIA32
+rem DART_CONFIGURATION defaults to ReleaseX64
+if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
 
 set BUILD_DIR=%DART_ROOT%\build\%DART_CONFIGURATION%
 
