@@ -87,6 +87,7 @@ class MockCompiler extends Compiler {
        // affected by inlining support.
        bool disableInlining: true,
        bool trustTypeAnnotations: false,
+       bool trustJSInteropTypeAnnotations: false,
        bool enableAsyncAwait: false,
        int this.expectedWarnings,
        int this.expectedErrors,
@@ -106,6 +107,7 @@ class MockCompiler extends Compiler {
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
+              trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
               diagnosticOptions:
                   new DiagnosticOptions(showPackageWarnings: true),
               outputProvider: new LegacyCompilerOutput(outputProvider)) {

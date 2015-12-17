@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @JS()
-library js_typed_interop_test;
+library js_dart_to_string_test;
 
 import 'dart:html';
 

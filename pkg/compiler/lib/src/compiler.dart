@@ -181,6 +181,7 @@ abstract class Compiler {
   final bool enableUserAssertions;
   final bool trustTypeAnnotations;
   final bool trustPrimitives;
+  final bool trustJSInteropTypeAnnotations;
   final bool disableTypeInferenceFlag;
   final Uri deferredMapUri;
   final bool dumpInfo;
@@ -432,6 +433,7 @@ abstract class Compiler {
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.trustPrimitives: false,
+            this.trustJSInteropTypeAnnotations: false,
             bool disableTypeInferenceFlag: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
