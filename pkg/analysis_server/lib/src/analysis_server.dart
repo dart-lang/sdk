@@ -1331,7 +1331,7 @@ class AnalysisServer {
     }
     // if library has not been resolved yet, the unit will be resolved later
     Source librarySource = librarySources[0];
-    if (context.getResult(librarySource, LIBRARY_ELEMENT8) == null) {
+    if (context.getResult(librarySource, LIBRARY_ELEMENT5) == null) {
       return null;
     }
     // if library has been already resolved, resolve unit

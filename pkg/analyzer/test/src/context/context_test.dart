@@ -1944,9 +1944,7 @@ library expectedToFindSemicolon
     _analyzeAll_assertFinished();
     // verify
     expect(libraryElementUris, contains('file:///test.dart'));
-    expect(parsedUnitUris, contains('dart:core'));
     expect(parsedUnitUris, contains('file:///test.dart'));
-    expect(resolvedUnitUris, contains('dart:core'));
     expect(resolvedUnitUris, contains('file:///test.dart'));
   }
 

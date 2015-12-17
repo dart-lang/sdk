@@ -1460,7 +1460,7 @@ class FixProcessor {
             sdkSourceFactory.resolveUri(unitSource, libraryUri);
         // prepare LibraryElement
         LibraryElement libraryElement =
-            context.getResult(librarySource, LIBRARY_ELEMENT8);
+            context.getResult(librarySource, LIBRARY_ELEMENT1);
         if (libraryElement == null) {
           continue;
         }

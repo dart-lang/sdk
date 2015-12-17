@@ -441,7 +441,7 @@ final ResultDescriptor<bool> READY_LIBRARY_ELEMENT6 =
 
 /**
  * The flag specifying that [RESOLVED_UNIT] is ready for all of the units of a
- * library and its import/export closure.
+ * library.
  *
  * The result is only available for [Source]s representing a library.
  */
@@ -4230,10 +4230,6 @@ class ReadyResolvedUnitTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'thisLibraryUnitsReady':
           LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT),
-      'directlyImportedLibrariesReady':
-          IMPORTED_LIBRARIES.of(source).toListOf(READY_RESOLVED_UNIT),
-      'directlyExportedLibrariesReady':
-          EXPORTED_LIBRARIES.of(source).toListOf(READY_RESOLVED_UNIT),
     };
   }
 
@@ -4514,7 +4510,6 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT7.of(source),
       UNITS_INPUT: LIBRARY_SPECIFIC_UNITS.of(source).toListOf(RESOLVED_UNIT10),
-      'thisLibraryClosureIsReady': READY_RESOLVED_UNIT10.of(source),
     };
   }
 
@@ -5120,7 +5115,6 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       UNIT_INPUT: RESOLVED_UNIT11.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
-      'thisLibraryClosureIsReady': READY_RESOLVED_UNIT11.of(unit.library),
     };
   }
 
