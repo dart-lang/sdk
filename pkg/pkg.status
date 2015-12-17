@@ -64,6 +64,7 @@ analyzer/test/generated/static_warning_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
+analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 21628
 analyzer/test/src/summary/summary_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_work_manager_test: Pass, Slow # Issue 21628
@@ -77,6 +78,7 @@ analyzer/test/src/task/manager_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/model_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/options_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/options_work_manager_test: Pass, Slow # Issue 21628
+analyzer/test/src/task/strong/checker_test: Pass, Slow # Issue 21628
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
 collection/test/equality_test/03: Fail # Issue 1533
