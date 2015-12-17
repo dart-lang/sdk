@@ -148,8 +148,6 @@ deps = {
 
   Var("dart_root") + "/third_party/7zip":
      Var("third_party") + "/7zip" + Var("7zip_rev"),
-  Var("dart_root") + "/third_party/chrome":
-      Var("third_party") + "/chrome" + Var("chrome_rev"),
   Var("dart_root") + "/third_party/firefox_jsshell":
       Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
   Var("dart_root") + "/third_party/gsutil":
