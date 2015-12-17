@@ -41,6 +41,8 @@ class ServiceEvent {
 
     kLogging,
 
+    kExtension,
+
     kIllegal,
   };
 
@@ -53,6 +55,11 @@ class ServiceEvent {
     const Instance* zone;
     const Object* error;
     const Instance* stack_trace;
+  };
+
+  struct ExtensionEvent {
+    const String* event_kind;
+    const String* event_data;
   };
 
   ServiceEvent(Isolate* isolate, EventKind event_kind);
@@ -162,6 +169,10 @@ class ServiceEvent {
     log_record_ = log_record;
   }
 
+  void set_extension_event(const ExtensionEvent& extension_event) {
+    extension_event_ = extension_event;
+  }
+
   int64_t timestamp() const {
     return timestamp_;
   }
@@ -186,6 +197,7 @@ class ServiceEvent {
   const uint8_t* bytes_;
   intptr_t bytes_length_;
   LogRecord log_record_;
+  ExtensionEvent extension_event_;
   int64_t timestamp_;
 };
 

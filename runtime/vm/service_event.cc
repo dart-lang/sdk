@@ -135,6 +135,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "_DebuggerSettingsUpdate";
     case kIllegal:
       return "Illegal";
+    case kExtension:
+      return "Extension";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -175,6 +177,9 @@ const char* ServiceEvent::stream_id() const {
 
     case kLogging:
       return Service::logging_stream.id();
+
+    case kExtension:
+      return Service::extension_stream.id();
 
     default:
       UNREACHABLE();
@@ -241,6 +246,10 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     logRecord.AddProperty("error", *(log_record_.error));
     logRecord.AddProperty("stackTrace", *(log_record_.stack_trace));
   }
+  if (kind() == kExtension) {
+    js->AppendSerializedObject("extensionData",
+                               extension_event_.event_data->ToCString());
+  }
 }
 
 
@@ -248,6 +257,11 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(jsobj != NULL);
   jsobj->AddProperty("type", "Event");
   jsobj->AddProperty("kind", KindAsCString());
+  if (kind() == kExtension) {
+    ASSERT(extension_event_.event_kind != NULL);
+    jsobj->AddProperty("extensionKind",
+                       extension_event_.event_kind->ToCString());
+  }
   if (kind() == kVMUpdate) {
     jsobj->AddPropertyVM("vm");
   } else {

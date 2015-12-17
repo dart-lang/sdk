@@ -58,6 +58,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [ErrorKind](#errorkind)
 	- [Event](#event)
 	- [EventKind](#eventkind)
+  - [ExtensionData](#extensiondata)
 	- [Field](#field)
 	- [Flag](#flag)
 	- [FlagList](#flaglist)
@@ -718,6 +719,7 @@ VM | VMUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
+Extension | Extension
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -1142,8 +1144,18 @@ class Event extends Response {
 
   // The RPC name of the extension that was added.
   //
-  // This is provided for the ServiceExtensionAdded.
+  // This is provided for the ServiceExtensionAdded event.
   string extensionRPC [optional];
+
+  // The extension event kind.
+  //
+  // This is provided for the Extension event.
+  string extensionKind [optional];
+
+  // The extension event data.
+  //
+  // This is provided for the Extension event.
+  ExtensionData extensionData [optional];
 }
 ```
 
@@ -1212,12 +1224,24 @@ enum EventKind {
   WriteEvent,
 
   // Notification from dart:developer.inspect.
-  Inspect
+  Inspect,
+
+  // Event from dart:developer.postEvent.
+  Extension
 }
 ```
 
 Adding new values to _EventKind_ is considered a backwards compatible
 change. Clients should ignore unrecognized events.
+
+### ExtensionData
+
+```
+class ExtensionData {
+}
+```
+
+An _ExtensionData_ is an arbitrary map that can have any contents.
 
 ### Field
 

@@ -113,6 +113,7 @@ StreamInfo Service::gc_stream("GC");
 StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::graph_stream("_Graph");
 StreamInfo Service::logging_stream("_Logging");
+StreamInfo Service::extension_stream("Extension");
 
 static StreamInfo* streams_[] = {
   &Service::vm_stream,
@@ -122,6 +123,7 @@ static StreamInfo* streams_[] = {
   &Service::echo_stream,
   &Service::graph_stream,
   &Service::logging_stream,
+  &Service::extension_stream,
 };
 
 
@@ -2952,6 +2954,9 @@ void Service::SendLogEvent(Isolate* isolate,
                            const Instance& zone,
                            const Object& error,
                            const Instance& stack_trace) {
+  if (!Service::logging_stream.enabled()) {
+    return;
+  }
   ServiceEvent::LogRecord log_record;
   log_record.sequence_number = sequence_number;
   log_record.timestamp = timestamp;
@@ -2963,6 +2968,21 @@ void Service::SendLogEvent(Isolate* isolate,
   log_record.stack_trace = &stack_trace;
   ServiceEvent event(isolate, ServiceEvent::kLogging);
   event.set_log_record(log_record);
+  Service::HandleEvent(&event);
+}
+
+
+void Service::SendExtensionEvent(Isolate* isolate,
+                                 const String& event_kind,
+                                 const String& event_data) {
+  if (!Service::extension_stream.enabled()) {
+    return;
+  }
+  ServiceEvent::ExtensionEvent extension_event;
+  extension_event.event_kind = &event_kind;
+  extension_event.event_data = &event_data;
+  ServiceEvent event(isolate, ServiceEvent::kExtension);
+  event.set_extension_event(extension_event);
   Service::HandleEvent(&event);
 }
 

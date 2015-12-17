@@ -60,6 +60,14 @@ DEFINE_NATIVE_ENTRY(Developer_log, 8) {
 }
 
 
+DEFINE_NATIVE_ENTRY(Developer_postEvent, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(String, event_kind, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(String, event_data, arguments->NativeArgAt(1));
+  Service::SendExtensionEvent(isolate, event_kind, event_data);
+  return Object::null();
+}
+
+
 DEFINE_NATIVE_ENTRY(Developer_lookupExtension, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   return isolate->LookupServiceExtensionHandler(name);

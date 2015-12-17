@@ -52,6 +52,9 @@ _log(String message,
      Object error,
      StackTrace stackTrace) native "Developer_log";
 
+patch void _postEvent(String eventKind, String eventData)
+    native "Developer_postEvent";
+
 patch ServiceExtensionHandler _lookupExtension(String method)
     native "Developer_lookupExtension";
 

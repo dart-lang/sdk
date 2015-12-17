@@ -1137,6 +1137,8 @@ class HeapSnapshot {
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner with Coverage {
   static const kLoggingStream = '_Logging';
+  static const kExtensionStream = 'Extension';
+
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable int number;
@@ -1907,6 +1909,7 @@ class ServiceEvent extends ServiceObject {
   static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
   static const kConnectionClosed       = 'ConnectionClosed';
   static const kLogging                = '_Logging';
+  static const kExtension              = 'Extension';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1929,6 +1932,8 @@ class ServiceEvent extends ServiceObject {
   @observable String exceptions;
   @observable String bytesAsString;
   @observable Map logRecord;
+  @observable String extensionKind;
+  @observable Map extensionData;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -2005,6 +2010,10 @@ class ServiceEvent extends ServiceObject {
       logRecord['time'] =
           new DateTime.fromMillisecondsSinceEpoch(logRecord['time']);
       logRecord['level'] = _findLogLevel(logRecord['level']);
+    }
+    if (map['extensionKind'] != null) {
+      extensionKind = map['extensionKind'];
+      extensionData = map['extensionData'];
     }
   }
 

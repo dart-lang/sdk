@@ -262,6 +262,13 @@ void JSONStream::AppendSerializedObject(const char* serialized_object) {
 }
 
 
+void JSONStream::AppendSerializedObject(const char* property_name,
+                                        const char* serialized_object) {
+  PrintCommaIfNeeded();
+  PrintPropertyName(property_name);
+  buffer_.AddString(serialized_object);
+}
+
 void JSONStream::Clear() {
   buffer_.Clear();
   open_objects_ = 0;

@@ -109,6 +109,25 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
   _registerExtension(method, handler);
 }
 
+/// Post an event of [eventKind] with payload of [eventData] to the `Extension`
+/// event stream.
+void postEvent(String eventKind, Map eventData) {
+  if (eventKind is! String) {
+    throw new ArgumentError.value(eventKind,
+                                  'eventKind',
+                                  'Must be a String');
+  }
+  if (eventData is! Map) {
+    throw new ArgumentError.value(eventData,
+                                  'eventData',
+                                  'Must be a Map');
+  }
+  String eventDataAsString = JSON.encode(eventData);
+  _postEvent(eventKind, eventDataAsString);
+}
+
+external _postEvent(String eventKind, String eventData);
+
 // Both of these functions are written inside C++ to avoid updating the data
 // structures in Dart, getting an OOB, and observing stale state. Do not move
 // these into Dart code unless you can ensure that the operations will can be
