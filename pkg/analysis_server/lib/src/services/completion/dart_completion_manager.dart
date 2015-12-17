@@ -9,17 +9,14 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionContributor, CompletionRequest;
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
-import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -91,24 +88,7 @@ class DartCompletionManager extends CompletionManager {
    */
   List<DartCompletionContributor> computeFast(
       DartCompletionRequest request, CompletionPerformance performance) {
-    return performance.logElapseTime('computeFast', () {
-      CompilationUnit unit = context.parseCompilationUnit(source);
-      request.unit = unit;
-      request.target = new CompletionTarget.forOffset(unit, request.offset);
-
-      ReplacementRange range =
-          new ReplacementRange.compute(request.offset, request.target);
-      request.replacementOffset = range.offset;
-      request.replacementLength = range.length;
-
-      List<DartCompletionContributor> todo = [];
-      todo.removeWhere((DartCompletionContributor c) {
-        return performance.logElapseTime('computeFast ${c.runtimeType}', () {
-          return c.computeFast(request);
-        });
-      });
-      return todo;
-    });
+    return [];
   }
 
   /**
@@ -200,40 +180,6 @@ class DartCompletionManager extends CompletionManager {
  */
 class DartCompletionRequest extends CompletionRequestImpl {
   /**
-   * The compilation unit in which the completion was requested. This unit
-   * may or may not be resolved when [DartCompletionContributor.computeFast]
-   * is called but is resolved when [DartCompletionContributor.computeFull].
-   */
-  CompilationUnit unit;
-
-  /**
-   * The completion target.  This determines what part of the parse tree
-   * will receive the newly inserted text.
-   */
-  CompletionTarget target;
-
-  /**
-   * Information about the types of suggestions that should be included.
-   */
-  OpType _optype;
-
-  /**
-   * The offset of the start of the text to be replaced.
-   * This will be different than the offset used to request the completion
-   * suggestions if there was a portion of an identifier before the original
-   * offset. In particular, the replacementOffset will be the offset of the
-   * beginning of said identifier.
-   */
-  int replacementOffset;
-
-  /**
-   * The length of the text to be replaced if the remainder of the identifier
-   * containing the cursor is to be replaced when the suggestion is applied
-   * (that is, the number of characters in the existing identifier).
-   */
-  int replacementLength;
-
-  /**
    * The list of suggestions to be sent to the client.
    */
   final List<CompletionSuggestion> _suggestions = <CompletionSuggestion>[];
@@ -256,28 +202,6 @@ class DartCompletionRequest extends CompletionRequestImpl {
           request.searchEngine, request.source, request.offset);
 
   /**
-   * Return the original text from the [replacementOffset] to the [offset]
-   * that can be used to filter the suggestions on the server side.
-   */
-  String get filterText {
-    return context
-        .getContents(source)
-        .data
-        .substring(replacementOffset, offset);
-  }
-
-  /**
-   * Information about the types of suggestions that should be included.
-   * The [target] must be set first.
-   */
-  OpType get optype {
-    if (_optype == null) {
-      _optype = new OpType.forCompletion(target, offset);
-    }
-    return _optype;
-  }
-
-  /**
    * The list of suggestions to be sent to the client.
    */
   Iterable<CompletionSuggestion> get suggestions => _suggestions;
@@ -290,92 +214,5 @@ class DartCompletionRequest extends CompletionRequestImpl {
     if (_completions.add(suggestion.completion)) {
       _suggestions.add(suggestion);
     }
-  }
-
-  /**
-   * Convert all [CompletionSuggestionKind.INVOCATION] suggestions
-   * to [CompletionSuggestionKind.IDENTIFIER] suggestions.
-   */
-  void convertInvocationsToIdentifiers() {
-    for (int index = _suggestions.length - 1; index >= 0; --index) {
-      CompletionSuggestion suggestion = _suggestions[index];
-      if (suggestion.kind == CompletionSuggestionKind.INVOCATION) {
-        // Create a copy rather than just modifying the existing suggestion
-        // because [DartCompletionCache] may be caching that suggestion
-        // for future completion requests
-        _suggestions[index] = new CompletionSuggestion(
-            CompletionSuggestionKind.IDENTIFIER,
-            suggestion.relevance,
-            suggestion.completion,
-            suggestion.selectionOffset,
-            suggestion.selectionLength,
-            suggestion.isDeprecated,
-            suggestion.isPotential,
-            declaringType: suggestion.declaringType,
-            parameterNames: suggestion.parameterNames,
-            parameterTypes: suggestion.parameterTypes,
-            requiredParameterCount: suggestion.requiredParameterCount,
-            hasNamedParameters: suggestion.hasNamedParameters,
-            returnType: suggestion.returnType,
-            element: suggestion.element);
-      }
-    }
-  }
-}
-
-/**
- * Utility class for computing the code completion replacement range
- */
-class ReplacementRange {
-  int offset;
-  int length;
-
-  ReplacementRange(this.offset, this.length);
-
-  factory ReplacementRange.compute(int requestOffset, CompletionTarget target) {
-    bool isKeywordOrIdentifier(Token token) =>
-        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
-
-    //TODO(danrubel) Ideally this needs to be pushed down into the contributors
-    // but that implies that each suggestion can have a different
-    // replacement offsent/length which would mean an API change
-
-    var entity = target.entity;
-    Token token = entity is AstNode ? entity.beginToken : entity;
-    if (token != null && requestOffset < token.offset) {
-      token = token.previous;
-    }
-    if (token != null) {
-      if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
-        // If the insertion point is at the beginning of the current token
-        // and the current token is not an identifier
-        // then check the previous token to see if it should be replaced
-        token = token.previous;
-      }
-      if (token != null && isKeywordOrIdentifier(token)) {
-        if (token.offset <= requestOffset && requestOffset <= token.end) {
-          // Replacement range for typical identifier completion
-          return new ReplacementRange(token.offset, token.length);
-        }
-      }
-      if (token is StringToken) {
-        SimpleStringLiteral uri = new SimpleStringLiteral(token, token.lexeme);
-        Token previous = token.previous;
-        if (previous is KeywordToken) {
-          Keyword keyword = previous.keyword;
-          if (keyword == Keyword.IMPORT ||
-              keyword == Keyword.EXPORT ||
-              keyword == Keyword.PART) {
-            int start = uri.contentsOffset;
-            var end = uri.contentsEnd;
-            if (start <= requestOffset && requestOffset <= end) {
-              // Replacement range for import URI
-              return new ReplacementRange(start, end - start);
-            }
-          }
-        }
-      }
-    }
-    return new ReplacementRange(requestOffset, 0);
   }
 }

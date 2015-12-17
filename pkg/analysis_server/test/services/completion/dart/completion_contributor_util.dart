@@ -14,9 +14,7 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
-    show DartCompletionRequestImpl;
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
-    show DART_RELEVANCE_DEFAULT, DART_RELEVANCE_LOW, ReplacementRange;
+    show DartCompletionRequestImpl, ReplacementRange;
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';

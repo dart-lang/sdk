@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific
@@ -40,6 +41,11 @@ class DartCompletionManager implements CompletionContributor {
 
     DartCompletionRequestImpl dartRequest =
         await DartCompletionRequestImpl.from(request);
+    ReplacementRange range =
+        new ReplacementRange.compute(dartRequest.offset, dartRequest.target);
+    (request as CompletionRequestImpl)
+      ..replacementOffset = range.offset
+      ..replacementLength = range.length;
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
@@ -253,7 +259,6 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
       unit = await new AnalysisFutureHelper<CompilationUnit>(context,
               new LibrarySpecificUnit(libSource, source), RESOLVED_UNIT3)
           .computeAsync();
-
     }
 
     DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(
@@ -276,5 +281,62 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
     }
 
     return dartRequest;
+  }
+}
+
+/**
+ * Utility class for computing the code completion replacement range
+ */
+class ReplacementRange {
+  int offset;
+  int length;
+
+  ReplacementRange(this.offset, this.length);
+
+  factory ReplacementRange.compute(int requestOffset, CompletionTarget target) {
+    bool isKeywordOrIdentifier(Token token) =>
+        token.type == TokenType.KEYWORD || token.type == TokenType.IDENTIFIER;
+
+    //TODO(danrubel) Ideally this needs to be pushed down into the contributors
+    // but that implies that each suggestion can have a different
+    // replacement offsent/length which would mean an API change
+
+    var entity = target.entity;
+    Token token = entity is AstNode ? entity.beginToken : entity;
+    if (token != null && requestOffset < token.offset) {
+      token = token.previous;
+    }
+    if (token != null) {
+      if (requestOffset == token.offset && !isKeywordOrIdentifier(token)) {
+        // If the insertion point is at the beginning of the current token
+        // and the current token is not an identifier
+        // then check the previous token to see if it should be replaced
+        token = token.previous;
+      }
+      if (token != null && isKeywordOrIdentifier(token)) {
+        if (token.offset <= requestOffset && requestOffset <= token.end) {
+          // Replacement range for typical identifier completion
+          return new ReplacementRange(token.offset, token.length);
+        }
+      }
+      if (token is StringToken) {
+        SimpleStringLiteral uri = new SimpleStringLiteral(token, token.lexeme);
+        Token previous = token.previous;
+        if (previous is KeywordToken) {
+          Keyword keyword = previous.keyword;
+          if (keyword == Keyword.IMPORT ||
+              keyword == Keyword.EXPORT ||
+              keyword == Keyword.PART) {
+            int start = uri.contentsOffset;
+            var end = uri.contentsEnd;
+            if (start <= requestOffset && requestOffset <= end) {
+              // Replacement range for import URI
+              return new ReplacementRange(start, end - start);
+            }
+          }
+        }
+      }
+    }
+    return new ReplacementRange(requestOffset, 0);
   }
 }
