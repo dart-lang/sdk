@@ -61,28 +61,6 @@ class LocalReferenceContributorTest extends DartCompletionContributorTest {
     return new LocalReferenceContributor();
   }
 
-  fail_mixin_ordering() async {
-    // TODO(paulberry): Duplicates aren't being removed, so we see both M1.m()
-    // and M2.m().
-    addTestSource('''
-class B {}
-class M1 {
-  void m() {}
-}
-class M2 {
-  void m() {}
-}
-class C extends B with M1, M2 {
-  void f() {
-    ^
-  }
-}
-''');
-    await computeSuggestions();
-    assertSuggestMethod('m', 'M2', 'void',
-        relevance: DART_RELEVANCE_LOCAL_METHOD);
-  }
-
   test_constructor_parameters_mixed_required_and_named() async {
     addTestSource('class A {A(x, {int y}) {^}}');
     await computeSuggestions();

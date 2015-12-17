@@ -26,12 +26,20 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific
  * and forwards those requests to all [DartCompletionContributor]s.
  */
 class DartCompletionManager implements CompletionContributor {
+  /**
+   * The [contributionSorter] is a long-lived object that isn't allowed
+   * to maintain state between calls to [DartContributionSorter#sort(...)].
+   */
+  static DartContributionSorter contributionSorter = new CommonUsageSorter();
+
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request) async {
@@ -57,8 +65,10 @@ class DartCompletionManager implements CompletionContributor {
         <String, CompletionSuggestion>{};
     for (DartCompletionContributor contributor
         in dartCompletionPlugin.contributors) {
-      for (CompletionSuggestion newSuggestion
-          in await contributor.computeSuggestions(dartRequest)) {
+      List<CompletionSuggestion> contributorSuggestions =
+          await contributor.computeSuggestions(dartRequest);
+
+      for (CompletionSuggestion newSuggestion in contributorSuggestions) {
         var oldSuggestion = suggestionMap.putIfAbsent(
             newSuggestion.completion, () => newSuggestion);
         if (newSuggestion != oldSuggestion &&
@@ -67,7 +77,11 @@ class DartCompletionManager implements CompletionContributor {
         }
       }
     }
-    return suggestionMap.values.toList();
+
+    // Adjust suggestion relevance before returning
+    List<CompletionSuggestion> suggestions = suggestionMap.values.toList();
+    await contributionSorter.sort(dartRequest, suggestions);
+    return suggestions;
   }
 }
 

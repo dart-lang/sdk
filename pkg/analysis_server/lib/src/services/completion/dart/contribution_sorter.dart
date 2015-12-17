@@ -7,7 +7,7 @@ library services.completion.dart.sorter;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 
 /**
  * The abstract class [DartContributionSorter] defines the behavior of objects
@@ -21,6 +21,6 @@ abstract class DartContributionSorter {
    * this method is called to adjust the relevance of those suggestions.
    * Return a [Future] that completes when the suggestions have been updated.
    */
-  Future sort(
-      CompletionRequest request, Iterable<CompletionSuggestion> suggestions);
+  Future sort(DartCompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions);
 }

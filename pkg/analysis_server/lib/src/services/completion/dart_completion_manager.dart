@@ -11,8 +11,6 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionContributor, CompletionRequest;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -46,26 +44,15 @@ abstract class DartCompletionContributor {
  * Manages code completion for a given Dart file completion request.
  */
 class DartCompletionManager extends CompletionManager {
-  /**
-   * The [defaultContributionSorter] is a long-lived object that isn't allowed
-   * to maintain state between calls to [ContributionSorter#sort(...)].
-   */
-  static DartContributionSorter defaultContributionSorter =
-      new CommonUsageSorter();
-
   final SearchEngine searchEngine;
   Iterable<CompletionContributor> newContributors;
-  DartContributionSorter contributionSorter;
 
   DartCompletionManager(
       AnalysisContext context, this.searchEngine, Source source,
-      [this.newContributors, this.contributionSorter])
+      [this.newContributors])
       : super(context, source) {
     if (newContributors == null) {
       newContributors = <CompletionContributor>[];
-    }
-    if (contributionSorter == null) {
-      contributionSorter = defaultContributionSorter;
     }
   }
 
@@ -115,11 +102,6 @@ class DartCompletionManager extends CompletionManager {
     performance.logElapseTime('computeSuggestions');
     performance.logStartTime('waitForAnalysis');
 
-    // TODO(danrubel) current sorter requires no additional analysis,
-    // but need to handle the returned future the same way that futures
-    // returned from contributors are handled once this method is refactored
-    // to be async.
-    /* await */ contributionSorter.sort(request, request.suggestions);
     // TODO (danrubel) if request is obsolete
     // (processAnalysisRequest returns false)
     // then send empty results

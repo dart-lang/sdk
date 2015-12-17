@@ -38,8 +38,8 @@ class CommonUsageSorter implements DartContributionSorter {
   CommonUsageSorter([this.selectorRelevance = defaultSelectorRelevance]);
 
   @override
-  Future sort(
-      CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
+  Future sort(DartCompletionRequest request,
+      Iterable<CompletionSuggestion> suggestions) {
     _update(request, suggestions);
     return new Future.value();
   }
