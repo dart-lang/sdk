@@ -796,14 +796,23 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   reader->AddBackRef(object_id, &field, kIsDeserialized);
 
   // Set all non object fields.
-  field.set_token_pos(reader->Read<int32_t>());
-  field.set_guarded_cid(reader->Read<int32_t>());
-  field.set_is_nullable(reader->Read<int32_t>());
+  if (reader->snapshot_code()) {
+    field.set_token_pos(0);
+    field.set_guarded_cid(kIllegalCid);
+    field.set_is_nullable(kIllegalCid);
+  } else {
+    field.set_token_pos(reader->Read<int32_t>());
+    field.set_guarded_cid(reader->Read<int32_t>());
+    field.set_is_nullable(reader->Read<int32_t>());
+  }
   field.set_kind_bits(reader->Read<uint8_t>());
 
   // Set all the object fields.
+  RawObject** toobj = reader->snapshot_code()
+      ? field.raw()->to_precompiled_snapshot()
+      : field.raw()->to();
   READ_OBJECT_FIELDS(field,
-                     field.raw()->from(), field.raw()->to(),
+                     field.raw()->from(), toobj,
                      kAsReference);
 
   field.InitializeGuardedListLengthInObjectOffset();
@@ -827,9 +836,11 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->Write<int32_t>(ptr()->token_pos_);
-  writer->Write<int32_t>(ptr()->guarded_cid_);
-  writer->Write<int32_t>(ptr()->is_nullable_);
+  if (!writer->snapshot_code()) {
+    writer->Write<int32_t>(ptr()->token_pos_);
+    writer->Write<int32_t>(ptr()->guarded_cid_);
+    writer->Write<int32_t>(ptr()->is_nullable_);
+  }
   writer->Write<uint8_t>(ptr()->kind_bits_);
 
   // Write out the name.
@@ -851,16 +862,18 @@ void RawField::WriteTo(SnapshotWriter* writer,
   } else {
     writer->WriteObjectImpl(ptr()->value_.offset_, kAsReference);
   }
-  // Write out the dependent code.
-  writer->WriteObjectImpl(ptr()->dependent_code_, kAsReference);
   // Write out the initializer function or saved initial value.
   if (writer->snapshot_code()) {
     writer->WriteObjectImpl(ptr()->initializer_.precompiled_, kAsReference);
   } else {
     writer->WriteObjectImpl(ptr()->initializer_.saved_value_, kAsReference);
   }
-  // Write out the guarded list length.
-  writer->WriteObjectImpl(ptr()->guarded_list_length_, kAsReference);
+  if (!writer->snapshot_code()) {
+    // Write out the dependent code.
+    writer->WriteObjectImpl(ptr()->dependent_code_, kAsReference);
+    // Write out the guarded list length.
+    writer->WriteObjectImpl(ptr()->guarded_list_length_, kAsReference);
+  }
 }
 
 
