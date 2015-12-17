@@ -180,8 +180,8 @@ class TestTypeProvider implements TypeProvider {
     if (_deprecatedType == null) {
       ClassElementImpl deprecatedElement =
           ElementFactory.classElement2("Deprecated");
-      ConstructorElementImpl constructor = ElementFactory
-          .constructorElement(deprecatedElement, null, true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory.constructorElement(
+          deprecatedElement, null, true, [stringType]);
       constructor.constantInitializers = <ConstructorInitializer>[
         AstFactory.constructorFieldInitializer(
             true, 'expires', AstFactory.identifier3('expires'))
@@ -211,7 +211,11 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get functionType {
     if (_functionType == null) {
-      _functionType = ElementFactory.classElement2("Function").type;
+      ClassElementImpl functionClass = ElementFactory.classElement2("Function");
+      functionClass.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(functionClass, null, false)
+      ];
+      _functionType = functionClass.type;
     }
     return _functionType;
   }
@@ -268,7 +272,10 @@ class TestTypeProvider implements TypeProvider {
             "iterator", false, iteratorType.substitute4(<DartType>[eType])),
         ElementFactory.getterElement("last", false, eType)
       ]);
-      iterableElement.constructors = ConstructorElement.EMPTY_LIST;
+      iterableElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(iterableElement, null, true)
+          ..isCycleFree = true
+      ];
       _propagateTypeArguments(iterableElement);
     }
     return _iterableType;
@@ -283,7 +290,9 @@ class TestTypeProvider implements TypeProvider {
       _setAccessors(iteratorElement, <PropertyAccessorElement>[
         ElementFactory.getterElement("current", false, eType)
       ]);
-      iteratorElement.constructors = ConstructorElement.EMPTY_LIST;
+      iteratorElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(iteratorElement, null, false)
+      ];
       _propagateTypeArguments(iteratorElement);
     }
     return _iteratorType;
@@ -307,8 +316,8 @@ class TestTypeProvider implements TypeProvider {
       ]);
       listElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", eType, [intType]),
-        ElementFactory
-            .methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
+        ElementFactory.methodElement(
+            "[]=", VoidTypeImpl.instance, [intType, eType]),
         ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])
       ];
       _propagateTypeArguments(listElement);
@@ -329,10 +338,14 @@ class TestTypeProvider implements TypeProvider {
       ]);
       mapElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", vType, [objectType]),
-        ElementFactory
-            .methodElement("[]=", VoidTypeImpl.instance, [kType, vType])
+        ElementFactory.methodElement(
+            "[]=", VoidTypeImpl.instance, [kType, vType])
       ];
-      mapElement.constructors = ConstructorElement.EMPTY_LIST;
+      mapElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(mapElement, null, false)
+          ..external = true
+          ..factory = true
+      ];
       _propagateTypeArguments(mapElement);
     }
     return _mapType;
@@ -360,7 +373,10 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType get nullType {
     if (_nullType == null) {
       ClassElementImpl nullElement = ElementFactory.classElement2("Null");
-      nullElement.constructors = ConstructorElement.EMPTY_LIST;
+      nullElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(
+            nullElement, '_uninstantiatable', false)..factory = true
+      ];
       _nullType = nullElement.type;
     }
     return _nullType;
@@ -399,7 +415,12 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get stackTraceType {
     if (_stackTraceType == null) {
-      _stackTraceType = ElementFactory.classElement2("StackTrace").type;
+      ClassElementImpl stackTraceElement =
+          ElementFactory.classElement2("StackTrace");
+      stackTraceElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(stackTraceElement, null, false)
+      ];
+      _stackTraceType = stackTraceElement.type;
     }
     return _stackTraceType;
   }
@@ -453,8 +474,8 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType get symbolType {
     if (_symbolType == null) {
       ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
-      ConstructorElementImpl constructor = ElementFactory
-          .constructorElement(symbolClass, null, true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory.constructorElement(
+          symbolClass, null, true, [stringType]);
       constructor.factory = true;
       constructor.isCycleFree = true;
       symbolClass.constructors = <ConstructorElement>[constructor];
@@ -466,7 +487,12 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get typeType {
     if (_typeType == null) {
-      _typeType = ElementFactory.classElement2("Type").type;
+      ClassElementImpl typeClass = ElementFactory.classElement2("Type");
+      typeClass.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(typeClass, null, false)
+          ..synthetic = true
+      ];
+      _typeType = typeClass.type;
     }
     return _typeType;
   }
@@ -528,10 +554,10 @@ class TestTypeProvider implements TypeProvider {
       ElementFactory.methodElement("toInt", _intType),
       ElementFactory.methodElement("toDouble", _doubleType),
       ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
-      ElementFactory
-          .methodElement("toStringAsExponential", _stringType, [_intType]),
-      ElementFactory
-          .methodElement("toStringAsPrecision", _stringType, [_intType]),
+      ElementFactory.methodElement(
+          "toStringAsExponential", _stringType, [_intType]),
+      ElementFactory.methodElement(
+          "toStringAsPrecision", _stringType, [_intType]),
       ElementFactory.methodElement("toRadixString", _stringType, [_intType])
     ];
     intElement.methods = <MethodElement>[
@@ -557,9 +583,15 @@ class TestTypeProvider implements TypeProvider {
     ];
     fromEnvironment.factory = true;
     fromEnvironment.isCycleFree = true;
-    numElement.constructors = ConstructorElement.EMPTY_LIST;
+    numElement.constructors = <ConstructorElement>[
+      ElementFactory.constructorElement(numElement, null, false)
+        ..synthetic = true
+    ];
     intElement.constructors = <ConstructorElement>[fromEnvironment];
-    doubleElement.constructors = ConstructorElement.EMPTY_LIST;
+    doubleElement.constructors = <ConstructorElement>[
+      ElementFactory.constructorElement(doubleElement, null, false)
+        ..synthetic = true
+    ];
     List<FieldElement> fields = <FieldElement>[
       ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
       ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType),

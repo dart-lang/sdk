@@ -401,8 +401,10 @@ class ElementFactory {
     field.static = isStatic;
     field.synthetic = true;
     field.type = type;
+    field.final2 = true;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl.forVariable(field);
+    getter.synthetic = false;
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;

@@ -69,11 +69,12 @@ class ResynthTest extends ResolverTestCase {
   void compareClassElements(
       ClassElementImpl resynthesized, ClassElementImpl original, String desc) {
     compareElements(resynthesized, original, desc);
-    expect(resynthesized.fields.length, original.fields.length);
+    expect(resynthesized.fields.length, original.fields.length,
+        reason: '$desc fields.length');
     for (int i = 0; i < resynthesized.fields.length; i++) {
       String name = original.fields[i].name;
-      compareFieldElements(
-          resynthesized.getField(name), original.fields[i], '$desc.$name');
+      compareFieldElements(resynthesized.getField(name), original.fields[i],
+          '$desc.field $name');
     }
     compareTypes(
         resynthesized.supertype, original.supertype, '$desc supertype');
@@ -173,7 +174,7 @@ class ResynthTest extends ResolverTestCase {
       ElementImpl resynthesized, ElementImpl original, String desc) {
     expect(resynthesized, isNotNull);
     expect(resynthesized.kind, original.kind);
-    expect(resynthesized.location, original.location);
+    expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
     for (Modifier modifier in Modifier.values) {
       if (modifier == Modifier.MIXIN) {
@@ -362,7 +363,7 @@ class ResynthTest extends ResolverTestCase {
 
   void compareTypes(DartType resynthesized, DartType original, String desc) {
     if (original == null) {
-      expect(resynthesized, isNull);
+      expect(resynthesized, isNull, reason: desc);
     } else if (resynthesized is InterfaceTypeImpl &&
         original is InterfaceTypeImpl) {
       compareTypeImpls(resynthesized, original);
@@ -414,19 +415,6 @@ class ResynthTest extends ResolverTestCase {
     compareElements(resynthesized, original, desc);
     compareTypes(resynthesized.type, original.type, desc);
     // TODO(paulberry): test initializer
-  }
-
-  fail_core() {
-    // TODO(paulberry): figure out why this test is failing.  It's possible
-    // some of the elements in the core library fail to resynthesize properly
-    // because of flaws in the mock SDK; it's also possible that there are bugs
-    // in the summary logic which are not caught by other tests.
-    String uri = 'dart:core';
-    LibraryElementImpl original =
-        resolve2(analysisContext2.sourceFactory.forUri(uri));
-    LibraryElementImpl resynthesized =
-        resynthesizeLibraryElement(uri, original);
-    checkLibraryElements(original, resynthesized);
   }
 
   PrelinkedLibrary getSummaryFor(LibraryElement lib) {
@@ -655,6 +643,15 @@ class E {
 
   test_classes() {
     checkLibrary('class C {} class D {}');
+  }
+
+  test_core() {
+    String uri = 'dart:core';
+    LibraryElementImpl original =
+        resolve2(analysisContext2.sourceFactory.forUri(uri));
+    LibraryElementImpl resynthesized =
+        resynthesizeLibraryElement(uri, original);
+    checkLibraryElements(original, resynthesized);
   }
 
   test_enum_values() {

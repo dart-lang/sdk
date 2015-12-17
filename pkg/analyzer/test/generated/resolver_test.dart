@@ -122,6 +122,10 @@ class AnalysisContextFactory {
     coreContext.setContents(coreSource, "");
     coreUnit.librarySource = coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
+    proxyClassElement.constructors = <ConstructorElement>[
+      ElementFactory.constructorElement(proxyClassElement, null, true)
+        ..isCycleFree = true
+    ];
     ClassElement objectClassElement = provider.objectType.element;
     coreUnit.types = <ClassElement>[
       provider.boolType.element,
