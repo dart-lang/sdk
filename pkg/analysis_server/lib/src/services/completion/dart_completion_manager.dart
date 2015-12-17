@@ -15,7 +15,6 @@ import 'package:analysis_server/src/services/completion/completion_manager.dart'
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_cache.dart';
-import 'package:analysis_server/src/services/completion/imported_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -93,7 +92,7 @@ class DartCompletionManager extends CompletionManager {
         // because local suggestions take precedence
         // and can hide other suggestions with the same name
         //new LocalReferenceContributor(),
-        new ImportedReferenceContributor(),
+        //new ImportedReferenceContributor(),
         //new KeywordContributor(),
         //new ArgListContributor(),
         // new CombinatorContributor(),

@@ -11,6 +11,7 @@ import 'arglist_contributor_test.dart' as arglist_test;
 import 'combinator_contributor_test.dart' as combinator_test;
 import 'common_usage_sorter_test.dart' as common_usage_test;
 import 'field_formal_contributor_test.dart' as field_formal_contributor_test;
+import 'imported_reference_contributor_test.dart' as imported_ref_test;
 import 'inherited_reference_contributor_test.dart' as inherited_ref_test;
 import 'keyword_contributor_test.dart' as keyword_test;
 import 'label_contributor_test.dart' as label_contributor_test;
@@ -34,6 +35,7 @@ main() {
     combinator_test.main();
     common_usage_test.main();
     field_formal_contributor_test.main();
+    imported_ref_test.main();
     inherited_ref_test.main();
     keyword_test.main();
     label_contributor_test.main();

@@ -191,6 +191,36 @@ class OpTypeTest {
     assertOpType(returnValue: true, typeNames: true);
   }
 
+  test_AwaitExpression2() {
+    addTestSource('main() async {A a; await c^ await}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_AwaitExpression3() {
+    addTestSource('main() async {A a; await ^ await foo;}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_AwaitExpression4() {
+    addTestSource('main() async {A a; await ^ await bar();}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_AwaitExpression_assignment() {
+    addTestSource('main() async {A a; int x = await ^}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_AwaitExpression_assignment2() {
+    addTestSource('main() async {A a; int x = await ^ await foo;}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_AwaitExpression_assignment3() {
+    addTestSource('main() async {A a; int x = await v^ int y = await foo;}');
+    assertOpType(returnValue: true, typeNames: true);
+  }
+
   test_BinaryExpression_LHS() {
     // SimpleIdentifier  BinaryExpression  VariableDeclaration
     // VariableDeclarationList  VariableDeclarationStatement

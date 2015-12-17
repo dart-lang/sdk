@@ -16,7 +16,6 @@ import 'package:analyzer/src/generated/element.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
-import 'package:analyzer/src/generated/resolver.dart';
 
 /**
  * A contributor for calculating suggestions for inherited references.

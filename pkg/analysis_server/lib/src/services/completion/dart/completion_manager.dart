@@ -61,6 +61,11 @@ class DartCompletionManager implements CompletionContributor {
 class DartCompletionRequestImpl extends CompletionRequestImpl
     implements DartCompletionRequest {
   /**
+   * The [LibraryElement] representing dart:core
+   */
+  LibraryElement _coreLib;
+
+  /**
    * The [DartType] for Object in dart:core
    */
   InterfaceType _objectType;
@@ -89,6 +94,15 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   }
 
   @override
+  LibraryElement get coreLib {
+    if (_coreLib == null) {
+      Source coreUri = context.sourceFactory.forUri('dart:core');
+      _coreLib = context.computeLibraryElement(coreUri);
+    }
+    return _coreLib;
+  }
+
+  @override
   bool get includeIdentifiers {
     opType; // <<< ensure _opType is initialized
     return !_opType.isPrefixed &&
@@ -114,8 +128,6 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
   @override
   InterfaceType get objectType {
     if (_objectType == null) {
-      Source coreUri = context.sourceFactory.forUri('dart:core');
-      LibraryElement coreLib = context.computeLibraryElement(coreUri);
       _objectType = coreLib.getType('Object').type;
     }
     return _objectType;

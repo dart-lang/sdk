@@ -102,15 +102,24 @@ class LibraryMemberContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     assertSuggestClass('Future');
     assertSuggestFunction('loadLibrary', 'Future<dynamic>');
+    assertNotSuggested('foo');
   }
 
   test_libraryPrefix_with_exports() async {
     addSource('/libA.dart', 'library libA; class A { }');
-    addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
+    addSource(
+        '/libB.dart',
+        '''
+        library libB;
+        export "/libA.dart";
+        class B { }
+        @deprecated class B1 { }''');
     addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
     await computeSuggestions();
     assertSuggestClass('B');
+    assertSuggestClass('B1', relevance: DART_RELEVANCE_LOW, isDeprecated: true);
     assertSuggestClass('A');
+    assertNotSuggested('C');
   }
 
   test_PrefixedIdentifier_library() async {
