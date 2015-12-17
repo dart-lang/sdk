@@ -58,7 +58,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [ErrorKind](#errorkind)
 	- [Event](#event)
 	- [EventKind](#eventkind)
-  - [ExtensionData](#extensiondata)
+	- [ExtensionData](#extensiondata)
 	- [Field](#field)
 	- [Flag](#flag)
 	- [FlagList](#flaglist)
@@ -1586,7 +1586,7 @@ class Instance extends Object {
   //   List
   (@Instance|Sentinel)[] elements [optional];
 
-  // The elements of a List instance.
+  // The elements of a Map instance.
   //
   // Provided for instance kinds:
   //   Map
