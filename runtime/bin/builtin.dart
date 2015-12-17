@@ -234,6 +234,9 @@ _setPackageRoot(String packageRoot) {
     packageRoot = _trimWindowsPath(packageRoot);
     _packageRoot = _workingDirectory.resolveUri(new Uri.file(packageRoot));
   }
+  // Now that we have determined the packageRoot value being used, set it
+  // up for use in Platform.packageRoot.
+  VMLibraryHooks.packageRoot = _packageRoot.toString();
   if (_traceLoading) {
     _log('Package root URI: $_packageRoot');
   }
@@ -482,6 +485,7 @@ void _loadPackagesMap(String packagesParam) {
     // resolve it against the working directory.
     packagesUri = _workingDirectory.resolveUri(packagesUri);
   }
+  VMLibraryHooks.packageConfig = packagesUri.toString();
   if (_traceLoading) {
     _log('Resolved packages map to: $packagesUri');
   }
