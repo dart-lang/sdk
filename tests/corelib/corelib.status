@@ -245,6 +245,6 @@ regexp/pcre_test: Crash # Stack Overflow
 [ $noopt ]
 apply3_test: CompileTimeError # Imports dart:mirrors
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-big_integer_huge_mul_vm_test: Pass, Timeout
-big_integer_parsed_mul_div_vm_test: Pass, Timeout
-int_parse_radix_test: Pass, Timeout
+big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
+big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
+int_parse_radix_test: Pass, Timeout # --no_intrinsify
