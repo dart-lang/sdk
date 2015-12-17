@@ -94,26 +94,31 @@ class UnionTypeMask implements TypeMask {
     bool useSubclass = masks.every((e) => !e.isSubtype);
     bool isNullable = masks.any((e) => e.isNullable);
 
+    List<ClassElement> masksBases = masks.map((mask) => mask.base).toList();
     Iterable<ClassElement> candidates =
-        classWorld.commonSupertypesOf(masks.map((mask) => mask.base));
+        classWorld.commonSupertypesOf(masksBases);
 
     // Compute the best candidate and its kind.
     ClassElement bestElement;
     int bestKind;
     int bestSize;
     for (ClassElement candidate in candidates) {
-      Iterable<ClassElement> subclasses = useSubclass
-          ? classWorld.strictSubclassesOf(candidate)
-          : const <ClassElement>[];
+      bool isInstantiatedStrictSubclass(cls) => cls != candidate &&
+          classWorld.isDirectlyInstantiated(cls) &&
+          classWorld.isSubclassOf(cls, candidate);
+
       int size;
       int kind;
-      if (masks.every((t) => subclasses.contains(t.base))) {
+      if (useSubclass && masksBases.every(isInstantiatedStrictSubclass)) {
         // If both [this] and [other] are subclasses of the supertype,
         // then we prefer to construct a subclass type mask because it
         // will always be at least as small as the corresponding
         // subtype type mask.
         kind = FlatTypeMask.SUBCLASS;
-        size = subclasses.length;
+        // TODO(sigmund, johnniwinther): computing length here (and below) is
+        // expensive. If we can't prevent `flatten` from being called a lot, it
+        // might be worth caching results.
+        size = classWorld.strictSubclassesOf(candidate).length;
         assert(size <= classWorld.strictSubtypesOf(candidate).length);
       } else {
         kind = FlatTypeMask.SUBTYPE;

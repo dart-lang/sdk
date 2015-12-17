@@ -310,6 +310,8 @@ class World implements ClassWorld {
   /// Returns `true` if all directly instantiated classes that implement [cls]
   /// extend it.
   bool hasOnlySubclasses(ClassElement cls) {
+    // TODO(johnniwinther): move this to ClassSet?
+    if (cls == objectClass) return true;
     Iterable<ClassElement> subtypes = strictSubtypesOf(cls);
     if (subtypes == null) return true;
     Iterable<ClassElement> subclasses = strictSubclassesOf(cls);
