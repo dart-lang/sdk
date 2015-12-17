@@ -10,9 +10,6 @@ vars = {
   # The svn location to pull out dependencies from
   "third_party": "http://dart.googlecode.com/svn/third_party",
 
-  # The svn location for pulling pinned revisions of bleeding edge dependencies.
-  "bleeding_edge": "http://dart.googlecode.com/svn/branches/bleeding_edge",
-
   # Use this googlecode_url variable only if there is an internal mirror for it.
   # If you do not know, use the full path while defining your new deps entry.
   "googlecode_url": "http://%s.googlecode.com/svn",
@@ -300,18 +297,6 @@ deps = {
       (Var("github_mirror") % "which") + Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       (Var("github_mirror") % "yaml") + Var("yaml_tag"),
-
-  # These specific versions of barback and source_maps are used for testing and
-  # should be pulled from bleeding_edge even on channels.
-  Var("dart_root") + "/third_party/pkg/barback-0.13.0":
-      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.13.0_rev"),
-  Var("dart_root") + "/third_party/pkg/barback-0.14.0+3":
-      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.14.0_rev"),
-  Var("dart_root") + "/third_party/pkg/barback-0.14.1+4":
-      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.14.1_rev"),
-  Var("dart_root") + "/third_party/pkg/source_maps-0.9.4":
-      Var("bleeding_edge") + "/dart/pkg/source_maps" +
-      Var("source_maps-0.9.4_rev"),
 }
 
 deps_os = {
