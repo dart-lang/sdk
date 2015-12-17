@@ -1017,7 +1017,7 @@ RawObject* ActivationFrame::GetReceiver() {
       return value.raw();
     }
   }
-  return Object::null();
+  return Symbols::OptimizedOut().raw();
 }
 
 
@@ -1054,8 +1054,8 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
                         Array::Handle(Array::MakeArray(param_values)));
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
-    ASSERT(receiver.IsInstance());
-    if (!receiver.IsInstance()) {
+    ASSERT(receiver.IsInstance() || receiver.IsNull());
+    if (!(receiver.IsInstance() || receiver.IsNull())) {
       return Object::null();
     }
     const Instance& inst = Instance::Cast(receiver);
