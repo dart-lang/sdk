@@ -613,7 +613,7 @@ class Server {
       arguments.add('--observe');
       arguments.add('--pause-isolates-on-exit');
     }
-    if (Platform.packageRoot.isNotEmpty) {
+    if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
     arguments.add('--checked');

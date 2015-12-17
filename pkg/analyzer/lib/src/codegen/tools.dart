@@ -311,7 +311,7 @@ abstract class GeneratedContent {
       print('Please regenerate using:');
       String executable = Platform.executable;
       String packageRoot = '';
-      if (Platform.packageRoot.isNotEmpty) {
+      if (Platform.packageRoot != null) {
         packageRoot = ' --package-root=${Platform.packageRoot}';
       }
       String generateScript =

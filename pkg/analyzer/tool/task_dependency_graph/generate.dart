@@ -128,7 +128,8 @@ class Driver {
     context = AnalysisEngine.instance.createAnalysisContext();
     String packageRootPath;
     if (Platform.packageRoot.isNotEmpty) {
-      packageRootPath = Platform.packageRoot;
+      Uri packageRootUri = Uri.parse(Platform.packageRoot);
+      packageRootPath = packageRootUri.toFilePath();
     } else {
       packageRootPath = path.join(rootDir, 'packages');
     }

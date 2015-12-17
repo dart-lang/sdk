@@ -154,7 +154,7 @@ Future analyze(List<Uri> uriList,
 
   var libraryRoot = currentDirectory.resolve('sdk/');
   var packageRoot =
-      currentDirectory.resolveUri(new Uri.file('${Platform.packageRoot}/'));
+      currentDirectory.resolveUri(Uri.parse(Platform.packageRoot));
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
   var options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
