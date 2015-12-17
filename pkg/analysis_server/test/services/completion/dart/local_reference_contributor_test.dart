@@ -2324,6 +2324,39 @@ class A {a(^) { }}''');
     assertNotSuggested('bar');
   }
 
+  test_ForEachStatement() async {
+    // SimpleIdentifier  ForEachStatement
+    addTestSource('main() {List<int> values; for (int index in ^)}');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestLocalVariable('values', 'List');
+    assertNotSuggested('index');
+  }
+
+  test_ForEachStatement2() async {
+    // SimpleIdentifier  ForEachStatement
+    addTestSource('main() {List<int> values; for (int index in i^)}');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('values', 'List');
+    assertNotSuggested('index');
+  }
+
+  test_ForEachStatement3() async {
+    // SimpleIdentifier ParenthesizedExpression  ForEachStatement
+    addTestSource('main() {List<int> values; for (int index in (i^))}');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggestLocalVariable('values', 'List');
+    assertNotSuggested('index');
+  }
+
   test_ForStatement_body() async {
     // Block  ForStatement
     addTestSource('main(args) {for (int i; i < 10; ++i) {^}}');

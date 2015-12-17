@@ -46,7 +46,20 @@ class LocalReferenceContributor extends DartCompletionContributor {
           optype.includeVoidReturnSuggestions) {
         _LocalVisitor visitor =
             new _LocalVisitor(request, request.offset, optype);
-        visitor.visit(request.target.containingNode);
+        AstNode node = request.target.containingNode;
+
+        // Do not suggest local vars within the current expression
+        while (node is Expression) {
+          node = node.parent;
+        }
+
+        // Do not suggest loop variable of a ForEachStatement
+        // when completing the expression of the ForEachStatement
+        if (node is ForEachStatement) {
+          node = node.parent;
+        }
+
+        visitor.visit(node);
         return visitor.suggestions;
       }
     }
