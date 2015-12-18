@@ -876,7 +876,12 @@ Isolate* Isolate::Init(const char* name_prefix,
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
-  Thread::EnterIsolate(result);
+  if (!Thread::EnterIsolate(result)) {
+    // We failed to enter the isolate, it is possible the VM is shutting down,
+    // return back a NULL so that CreateIsolate reports back an error.
+    delete result;
+    return NULL;
+  }
 
   // Setup the isolate message handler.
   MessageHandler* handler = new IsolateMessageHandler(result);

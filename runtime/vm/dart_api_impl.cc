@@ -1311,7 +1311,9 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   if (iso->HasMutatorThread()) {
     FATAL("Multiple mutators within one isolate is not supported.");
   }
-  Thread::EnterIsolate(iso);
+  if (!Thread::EnterIsolate(iso)) {
+    FATAL("Unable to Enter Isolate as Dart VM is shutting down");
+  }
 }
 
 
@@ -1527,7 +1529,9 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     while (!data.done) {
       ml.Wait();
     }
-    Thread::EnterIsolate(I);
+    if (!Thread::EnterIsolate(I)) {
+      FATAL("Inconsistent state, VM shutting down while in run loop.");
+    }
   }
   if (I->object_store()->sticky_error() != Object::null()) {
     Dart_Handle error = Api::NewHandle(T, I->object_store()->sticky_error());

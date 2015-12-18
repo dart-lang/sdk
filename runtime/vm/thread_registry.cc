@@ -75,28 +75,29 @@ Thread* ThreadRegistry::Schedule(Isolate* isolate,
   }
   Thread* thread = NULL;
   OSThread* os_thread = OSThread::Current();
-  ASSERT(os_thread != NULL);
-  ASSERT(isolate->heap() != NULL);
-  // First get a Thread structure. (we special case the mutator thread
-  // by reusing the cached structure, see comment in 'thread_registry.h').
-  if (is_mutator) {
-    if (mutator_thread_ == NULL) {
-      mutator_thread_ = GetThreadFromFreelist(isolate);
+  if (os_thread != NULL) {
+    ASSERT(isolate->heap() != NULL);
+    // First get a Thread structure. (we special case the mutator thread
+    // by reusing the cached structure, see comment in 'thread_registry.h').
+    if (is_mutator) {
+      if (mutator_thread_ == NULL) {
+        mutator_thread_ = GetThreadFromFreelist(isolate);
+      }
+      thread = mutator_thread_;
+    } else {
+      thread = GetThreadFromFreelist(isolate);
+      ASSERT(thread->api_top_scope() == NULL);
     }
-    thread = mutator_thread_;
-  } else {
-    thread = GetThreadFromFreelist(isolate);
-    ASSERT(thread->api_top_scope() == NULL);
+    // Now add this Thread to the active list for the isolate.
+    AddThreadToActiveList(thread);
+    // Set up other values and set the TLS value.
+    thread->isolate_ = isolate;
+    thread->heap_ = isolate->heap();
+    thread->set_os_thread(os_thread);
+    os_thread->set_thread(thread);
+    Thread::SetCurrent(thread);
+    os_thread->EnableThreadInterrupts();
   }
-  // Now add this Thread to the active list for the isolate.
-  AddThreadToActiveList(thread);
-  // Set up other values and set the TLS value.
-  thread->isolate_ = isolate;
-  thread->heap_ = isolate->heap();
-  thread->set_os_thread(os_thread);
-  os_thread->set_thread(thread);
-  Thread::SetCurrent(thread);
-  os_thread->EnableThreadInterrupts();
   return thread;
 }
 

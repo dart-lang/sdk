@@ -596,7 +596,8 @@ class MarkTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, true);
+    bool result = Thread::EnterIsolateAsHelper(isolate_, true);
+    ASSERT(result);
     {
       StackZone stack_zone(Thread::Current());
       Zone* zone = stack_zone.GetZone();

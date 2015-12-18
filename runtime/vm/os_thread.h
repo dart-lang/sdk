@@ -50,7 +50,10 @@ class BaseThread {
 // Low-level operations on OS platform threads.
 class OSThread : public BaseThread {
  public:
-  OSThread();
+  // The constructor of OSThread is never called directly, instead we call
+  // this factory style method 'CreateOSThread' to create OSThread structures.
+  // The method can return a NULL if the Dart VM is in shutdown mode.
+  static OSThread* CreateOSThread();
   ~OSThread();
 
   ThreadId id() const {
@@ -175,12 +178,19 @@ class OSThread : public BaseThread {
 
   static bool IsThreadInList(ThreadJoinId join_id);
 
+  static void DisableOSThreadCreation();
+  static void EnableOSThreadCreation();
+
   static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
 
   static const ThreadId kInvalidThreadId;
   static const ThreadJoinId kInvalidThreadJoinId;
 
  private:
+  // The constructor is private as CreateOSThread should be used
+  // to create a new OSThread structure.
+  OSThread();
+
   // These methods should not be used in a generic way and hence
   // are private, they have been added to solve the problem of
   // accessing the VM thread structure from an OSThread object
@@ -196,7 +206,7 @@ class OSThread : public BaseThread {
   static ThreadId GetCurrentThreadTraceId();
   static ThreadJoinId GetCurrentThreadJoinId();
   static OSThread* GetOSThreadFromThread(Thread* thread);
-  static void AddThreadToList(OSThread* thread);
+  static void AddThreadToListLocked(OSThread* thread);
   static void RemoveThreadFromList(OSThread* thread);
   static OSThread* CreateAndSetUnknownThread();
 
@@ -220,6 +230,7 @@ class OSThread : public BaseThread {
 
   static OSThread* thread_list_head_;
   static Mutex* thread_list_lock_;
+  static bool creation_enabled_;
 
   friend class OSThreadIterator;
   friend class ThreadInterrupterWin;

@@ -172,16 +172,20 @@ RawGrowableObjectArray* Thread::pending_functions() {
 }
 
 
-void Thread::EnterIsolate(Isolate* isolate) {
+bool Thread::EnterIsolate(Isolate* isolate) {
   const bool kIsMutatorThread = true;
   const bool kDontBypassSafepoints = false;
   ThreadRegistry* tr = isolate->thread_registry();
   Thread* thread = tr->Schedule(
       isolate, kIsMutatorThread, kDontBypassSafepoints);
-  isolate->MakeCurrentThreadMutator(thread);
-  thread->set_vm_tag(VMTag::kVMTagId);
-  ASSERT(thread->store_buffer_block_ == NULL);
-  thread->StoreBufferAcquire();
+  if (thread != NULL) {
+    isolate->MakeCurrentThreadMutator(thread);
+    thread->set_vm_tag(VMTag::kVMTagId);
+    ASSERT(thread->store_buffer_block_ == NULL);
+    thread->StoreBufferAcquire();
+    return true;
+  }
+  return false;
 }
 
 
@@ -210,16 +214,21 @@ void Thread::ExitIsolate() {
 }
 
 
-void Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
+bool Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
   const bool kIsNotMutatorThread = false;
   ThreadRegistry* tr = isolate->thread_registry();
   Thread* thread = tr->Schedule(isolate, kIsNotMutatorThread, bypass_safepoint);
-  ASSERT(thread->store_buffer_block_ == NULL);
-  // TODO(koda): Use StoreBufferAcquire once we properly flush before Scavenge.
-  thread->store_buffer_block_ =
-      thread->isolate()->store_buffer()->PopEmptyBlock();
-  // This thread should not be the main mutator.
-  ASSERT(!thread->IsMutatorThread());
+  if (thread != NULL) {
+    ASSERT(thread->store_buffer_block_ == NULL);
+    // TODO(koda): Use StoreBufferAcquire once we properly flush
+    // before Scavenge.
+    thread->store_buffer_block_ =
+        thread->isolate()->store_buffer()->PopEmptyBlock();
+    // This thread should not be the main mutator.
+    ASSERT(!thread->IsMutatorThread());
+    return true;
+  }
+  return false;
 }
 
 

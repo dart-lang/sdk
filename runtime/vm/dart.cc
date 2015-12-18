@@ -222,13 +222,18 @@ const char* Dart::Cleanup() {
     return "VM already terminated.";
   }
 
+  // Disable creation of any new OSThread structures which means no more new
+  // threads can do an EnterIsolate.
+  OSThread::DisableOSThreadCreation();
+
   // Shut down profiling.
   Profiler::Shutdown();
 
   {
     // Set the VM isolate as current isolate when shutting down
     // Metrics so that we can use a StackZone.
-    Thread::EnterIsolate(vm_isolate_);
+    bool result = Thread::EnterIsolate(vm_isolate_);
+    ASSERT(result);
     Metric::Cleanup();
     Thread::ExitIsolate();
   }
@@ -252,7 +257,8 @@ const char* Dart::Cleanup() {
     thread_pool_ = NULL;
 
     // Set the VM isolate as current isolate.
-    Thread::EnterIsolate(vm_isolate_);
+    bool result = Thread::EnterIsolate(vm_isolate_);
+    ASSERT(result);
 
     ShutdownIsolate();
     vm_isolate_ = NULL;
@@ -407,7 +413,8 @@ void Dart::RunShutdownCallback() {
 void Dart::ShutdownIsolate(Isolate* isolate) {
   ASSERT(Isolate::Current() == NULL);
   // We need to enter the isolate in order to shut it down.
-  Thread::EnterIsolate(isolate);
+  bool result = Thread::EnterIsolate(isolate);
+  ASSERT(result);
   ShutdownIsolate();
   // Since the isolate is shutdown and deleted, there is no need to
   // exit the isolate here.
