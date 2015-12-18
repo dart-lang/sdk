@@ -77,11 +77,10 @@ main() {
   """,
   """
 function() {
-  var a = 10, b = 1;
-  P.print(b);
-  P.print(a);
-  P.print(a);
-  P.print(V.foo(b));
+  P.print(1);
+  P.print(10);
+  P.print(10);
+  P.print(V.foo(1));
 }"""),
   const TestEntry(
   """
@@ -149,9 +148,8 @@ var foo = 0;
 main() { print(foo = 42); }
 """, r"""
 function() {
-  var v0 = 42;
-  $.foo = v0;
-  P.print(v0);
+  $.foo = 42;
+  P.print(42);
 }"""),
   const TestEntry("""
 set foo(x) { print(x); }
