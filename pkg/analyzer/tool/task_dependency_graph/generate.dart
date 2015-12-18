@@ -127,9 +127,8 @@ class Driver {
     DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
     context = AnalysisEngine.instance.createAnalysisContext();
     String packageRootPath;
-    if (Platform.packageRoot.isNotEmpty) {
-      Uri packageRootUri = Uri.parse(Platform.packageRoot);
-      packageRootPath = packageRootUri.toFilePath();
+    if (Platform.packageRoot != null) {
+      packageRootPath = Uri.parse(Platform.packageRoot).toFilePath();
     } else {
       packageRootPath = path.join(rootDir, 'packages');
     }
