@@ -8,11 +8,14 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show AnalysisRequest, CompletionContributor, CompletionRequest;
+    show
+        AnalysisRequest,
+        CompletionContributor,
+        CompletionRequest,
+        CompletionResult;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -44,62 +47,27 @@ class DartCompletionManager extends CompletionManager {
         context, searchEngine, source, newContributors);
   }
 
-  /**
-   * If there is remaining work to be done, then wait for the unit to be
-   * resolved and request that each remaining contributor finish their work.
-   * Return a [Future] that completes when the last notification has been sent.
-   */
-  Future computeFull(
-      CompletionRequestImpl request, CompletionPerformance performance) async {
+  @override
+  Future<CompletionResult> computeSuggestions(
+      CompletionRequestImpl request) async {
+    CompletionPerformance performance = new CompletionPerformance();
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
-    performance.logStartTime('computeSuggestions');
+    const COMPUTE_SUGGESTIONS_TAG = 'computeSuggestions';
+    performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
     for (CompletionContributor contributor in newContributors) {
       String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
       performance.logStartTime(contributorTag);
       suggestions.addAll(await contributor.computeSuggestions(request));
       performance.logElapseTime(contributorTag);
     }
-    performance.logElapseTime('computeSuggestions');
+    performance.logElapseTime(COMPUTE_SUGGESTIONS_TAG);
 
     // TODO (danrubel) if request is obsolete
     // (processAnalysisRequest returns false)
     // then send empty results
 
-    if (controller != null && !controller.isClosed) {
-      controller.add(new CompletionResultImpl(request.replacementOffset,
-          request.replacementLength, suggestions, true));
-      controller.close();
-    }
-  }
-
-  @override
-  void computeSuggestions(CompletionRequest request) {
-    CompletionPerformance performance = new CompletionPerformance();
-    performance.logElapseTime('compute', () {
-      computeFull(request, performance);
-    });
-  }
-
-  /**
-   * Return a future that either (a) completes with the resolved compilation
-   * unit when analysis is complete, or (b) completes with null if the
-   * compilation unit is never going to be resolved.
-   */
-  Future<CompilationUnit> waitForAnalysis() {
-    List<Source> libraries = context.getLibrariesContaining(source);
-    assert(libraries != null);
-    if (libraries.length == 0) {
-      return new Future.value(null);
-    }
-    Source libSource = libraries[0];
-    assert(libSource != null);
-    return context
-        .computeResolvedCompilationUnitAsync(source, libSource)
-        .catchError((_) {
-      // This source file is not scheduled for analysis, so a resolved
-      // compilation unit is never going to get computed.
-      return null;
-    }, test: (e) => e is AnalysisNotScheduledError);
+    return new CompletionResultImpl(
+        request.replacementOffset, request.replacementLength, suggestions);
   }
 }

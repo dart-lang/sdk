@@ -8,7 +8,11 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionContributor, CompletionContributorFactory, CompletionRequest, CompletionResult;
+    show
+        CompletionContributor,
+        CompletionContributorFactory,
+        CompletionRequest,
+        CompletionResult;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -27,11 +31,6 @@ abstract class CompletionManager {
    * The source in which the completion was computed.
    */
   final Source source;
-
-  /**
-   * The controller used for returning completion results.
-   */
-  StreamController<CompletionResult> controller;
 
   CompletionManager(this.context, this.source);
 
@@ -71,25 +70,13 @@ abstract class CompletionManager {
    * Subclasses should override this method, append at least one result
    * to the [controller], and close the controller stream once complete.
    */
-  void computeSuggestions(CompletionRequest request);
+  Future<CompletionResult> computeSuggestions(CompletionRequest request);
 
   /**
    * Discard any pending operations.
    * Subclasses may override but should call super.dispose
    */
   void dispose() {}
-
-  /**
-   * Generate a stream of code completion results.
-   */
-  Stream<CompletionResult> results(CompletionRequest request) {
-    controller = new StreamController<CompletionResult>(onListen: () {
-      scheduleMicrotask(() {
-        computeSuggestions(request);
-      });
-    });
-    return controller.stream;
-  }
 }
 
 /**
@@ -220,27 +207,16 @@ class CompletionResultImpl implements CompletionResult {
    */
   final List<CompletionSuggestion> suggestions;
 
-  /**
-   * `true` if this is that last set of results that will be returned
-   * for the indicated completion.
-   */
-  final bool last;
-
-  CompletionResultImpl(this.replacementOffset, this.replacementLength,
-      this.suggestions, this.last);
-
-  /**
-   * Return `true` if this is the last completion result that will be produced.
-   */
-  bool get isLast => last;
+  CompletionResultImpl(
+      this.replacementOffset, this.replacementLength, this.suggestions);
 }
 
 class NoOpCompletionManager extends CompletionManager {
   NoOpCompletionManager(Source source) : super(null, source);
 
   @override
-  void computeSuggestions(CompletionRequest request) {
-    controller.add(new CompletionResultImpl(request.offset, 0, [], true));
+  Future<CompletionResult> computeSuggestions(CompletionRequest request) async {
+    return new CompletionResultImpl(request.offset, 0, []);
   }
 }
 

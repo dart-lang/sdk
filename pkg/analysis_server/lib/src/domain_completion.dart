@@ -207,24 +207,21 @@ class CompletionDomainHandler implements RequestHandler {
     }
     CompletionRequest completionRequest = new CompletionRequestImpl(context,
         server.resourceProvider, server.searchEngine, source, params.offset);
-    int notificationCount = 0;
     String completionId = (_nextCompletionId++).toString();
-    manager.results(completionRequest).listen((CompletionResult result) {
-      ++notificationCount;
-      bool isLast = result is CompletionResultImpl ? result.isLast : true;
-      performance.logElapseTime("notification $notificationCount send", () {
-        sendCompletionNotification(completionId, result.replacementOffset,
-            result.replacementLength, result.suggestions, isLast);
-      });
-      if (notificationCount == 1) {
-        performance.logFirstNotificationComplete('notification 1 complete');
-        performance.suggestionCountFirst = result.suggestions.length;
-      }
-      if (isLast) {
-        performance.notificationCount = notificationCount;
-        performance.suggestionCountLast = result.suggestions.length;
-        performance.complete();
-      }
+    manager
+        .computeSuggestions(completionRequest)
+        .then((CompletionResult result) {
+      const SEND_NOTIFICATION_TAG = 'send notification';
+      performance.logStartTime(SEND_NOTIFICATION_TAG);
+      sendCompletionNotification(completionId, result.replacementOffset,
+          result.replacementLength, result.suggestions);
+      performance.logElapseTime(SEND_NOTIFICATION_TAG);
+
+      performance.notificationCount = 1;
+      performance.logFirstNotificationComplete('notification 1 complete');
+      performance.suggestionCountFirst = result.suggestions.length;
+      performance.suggestionCountLast = result.suggestions.length;
+      performance.complete();
     });
     // initial response without results
     return new CompletionGetSuggestionsResult(completionId)
@@ -255,14 +252,10 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Send completion notification results.
    */
-  void sendCompletionNotification(
-      String completionId,
-      int replacementOffset,
-      int replacementLength,
-      Iterable<CompletionSuggestion> results,
-      bool isLast) {
+  void sendCompletionNotification(String completionId, int replacementOffset,
+      int replacementLength, Iterable<CompletionSuggestion> results) {
     server.sendNotification(new CompletionResultsParams(
-            completionId, replacementOffset, replacementLength, results, isLast)
+            completionId, replacementOffset, replacementLength, results, true)
         .toNotification());
   }
 
