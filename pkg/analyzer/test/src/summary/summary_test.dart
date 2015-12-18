@@ -492,7 +492,8 @@ abstract class SummaryTest {
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-        allowErrors: allowErrors).type;
+            allowErrors: allowErrors)
+        .type;
   }
 
   /**
@@ -901,7 +902,7 @@ class E {}
     checkDynamicTypeRef(parameter.type);
   }
 
-  test_constructor_initializing_formal_function_typed_no_prameters() {
+  test_constructor_initializing_formal_function_typed_no_parameters() {
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C(this.x()); final x; }')
             .executables);
@@ -909,7 +910,7 @@ class E {}
     expect(parameter.parameters, isEmpty);
   }
 
-  test_constructor_initializing_formal_function_typed_prameter() {
+  test_constructor_initializing_formal_function_typed_parameter() {
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C(this.x(a)); final x; }')
             .executables);
@@ -917,7 +918,7 @@ class E {}
     expect(parameter.parameters, hasLength(1));
   }
 
-  test_constructor_initializing_formal_function_typed_prameter_order() {
+  test_constructor_initializing_formal_function_typed_parameter_order() {
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C(this.x(a, b)); final x; }')
             .executables);
@@ -978,6 +979,15 @@ class E {}
             serializeClassText('class C { C(this.x); final x; }').executables);
     UnlinkedParam parameter = executable.parameters[0];
     expect(parameter.kind, UnlinkedParamKind.required);
+  }
+
+  test_constructor_initializing_formal_typedef() {
+    UnlinkedExecutable executable = findExecutable('',
+        executables: serializeClassText(
+                'typedef F<T>(T x); class C<X> { C(this.f); F<X> f; }')
+            .executables);
+    UnlinkedParam parameter = executable.parameters[0];
+    expect(parameter.parameters, hasLength(1));
   }
 
   test_constructor_named() {
@@ -1347,7 +1357,8 @@ typedef F();
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
+            'class C { void operator[]=(int i, bool v) => null; }')
+        .executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);

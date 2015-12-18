@@ -447,7 +447,9 @@ class _LibrarySerializer {
   /**
    * Serialize the given [parameter] into an [UnlinkedParam].
    */
-  UnlinkedParamBuilder serializeParam(ParameterElement parameter) {
+  UnlinkedParamBuilder serializeParam(ParameterElement parameter,
+      [Element context]) {
+    context ??= parameter;
     UnlinkedParamBuilder b = new UnlinkedParamBuilder(ctx);
     b.name = parameter.name;
     switch (parameter.parameterKind) {
@@ -468,9 +470,11 @@ class _LibrarySerializer {
       if (!type.returnType.isVoid) {
         b.type = serializeTypeRef(type.returnType, parameter);
       }
-      b.parameters = type.parameters.map(serializeParam).toList();
+      b.parameters = type.parameters
+          .map((parameter) => serializeParam(parameter, context))
+          .toList();
     } else {
-      b.type = serializeTypeRef(type, parameter);
+      b.type = serializeTypeRef(type, context);
       b.hasImplicitType = parameter.hasImplicitType;
     }
     return b;
