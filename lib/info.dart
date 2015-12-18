@@ -52,7 +52,7 @@ abstract class BasicInfo implements Info {
   int size;
   Info parent;
 
-  String get serializedId => '${_kindToString(kind)}/$id';
+  String get serializedId => '${kindToString(kind)}/$id';
 
   String name;
 
@@ -419,7 +419,7 @@ enum InfoKind {
   typedef,
 }
 
-String _kindToString(InfoKind kind) {
+String kindToString(InfoKind kind) {
   switch (kind) {
     case InfoKind.library:
       return 'library';
@@ -444,9 +444,9 @@ int _idFromSerializedId(String serializedId) =>
     int.parse(serializedId.substring(serializedId.indexOf('/') + 1));
 
 InfoKind _kindFromSerializedId(String serializedId) =>
-    _kindFromString(serializedId.substring(0, serializedId.indexOf('/')));
+    kindFromString(serializedId.substring(0, serializedId.indexOf('/')));
 
-InfoKind _kindFromString(String kind) {
+InfoKind kindFromString(String kind) {
   switch (kind) {
     case 'library':
       return InfoKind.library;

@@ -300,7 +300,7 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
   Map _visitBasicInfo(BasicInfo info) {
     var res = {
       'id': info.serializedId,
-      'kind': _kindToString(info.kind),
+      'kind': kindToString(info.kind),
       'name': info.name,
       'size': info.size,
     };

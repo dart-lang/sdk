@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5
+- Changed the `deferred_library_check` tool to allow parts to exclude packages
+  and to not assume that unspecified packages are in the main part.
+
 ## 0.2.4
 - Added `imports` field for `OutputUnitInfo`
 

@@ -6,31 +6,36 @@
 /// given in a YAML file. The format of the YAML file is:
 ///
 ///     main:
-///       packages:
+///       include:
 ///         - some_package
 ///         - other_package
 ///
 ///     foo:
-///       packages:
+///       include:
 ///         - foo
 ///         - bar
 ///
 ///     baz:
-///       packages:
+///       include:
 ///         - baz
 ///         - quux
+///       exclude:
+///         - zardoz
 ///
 /// The YAML file consists of a list of declarations, one for each deferred
 /// part expected in the output. At least one of these parts must be named
 /// "main"; this is the main part that contains the program entrypoint. Each
 /// top-level part contains a list of package names that are expected to be
-/// contained in that part. Any package that is not explicitly listed is
-/// expected to be in the main part. For instance, in the example YAML above
-/// the part named "baz" is expected to contain the packages "baz" and "quux".
+/// contained in that part, a list of package names that are expected to be in
+/// another part, or both. For instance, in the example YAML above the part
+/// named "baz" is expected to contain the packages "baz" and "quux" and not to
+/// contain the package "zardoz".
 ///
 /// The names for parts given in the specification YAML file (besides "main")
-/// are arbitrary and just used for reporting when the output does not meet the
-/// specification.
+/// are the same as the name given to the deferred import in the dart file. For
+/// instance, if you have `import 'package:foo/bar.dart' deferred as baz;` in
+/// your dart file, then the corresponding name in the specification file is
+/// 'baz'.
 library dart2js_info.deferred_library_check;
 
 import 'info.dart';
@@ -38,51 +43,64 @@ import 'package:quiver/collection.dart';
 
 List<ManifestComplianceFailure> checkDeferredLibraryManifest(
     AllInfo info, Map manifest) {
-  // For each part in the manifest, record the expected "packages" for that
-  // part.
-  var packages = <String, String>{};
+  var includedPackages = new Multimap<String, String>();
+  var excludedPackages = new Multimap<String, String>();
   for (var part in manifest.keys) {
-    for (var package in manifest[part]['packages']) {
-      if (packages.containsKey(package)) {
-        throw new ArgumentError.value(
-            manifest,
-            'manifest',
-            'You cannot specify that package "$package" maps to both parts '
-            '"$part" and "${packages[package]}".');
-      }
-      packages[package] = part;
+    for (var package in manifest[part]['include'] ?? []) {
+      includedPackages.add(part, package);
+    }
+    for (var package in manifest[part]['exclude'] ?? []) {
+      excludedPackages.add(part, package);
     }
   }
 
-  var guessedPartMapping = new BiMap<String, String>();
-  guessedPartMapping['main'] = 'main';
+  // There are 2 types of parts that are valid to mention in the specification
+  // file. These are the main part and directly imported deferred parts. The
+  // main part is always named 'main'; the directly imported deferred parts are
+  // the outputUnits whose list of 'imports' contains a single import. If the
+  // part is shared, it will have more than one import since it will include the
+  // imports of all the top-level deferred parts that will load the shared part.
+  List<String> validParts = ['main']
+    ..addAll(info.outputUnits
+        .where((unit) => unit.imports.length == 1)
+        .map((unit) => unit.imports.single));
+  List<String> mentionedParts = []
+    ..addAll(includedPackages.keys)
+    ..addAll(excludedPackages.keys);
+  var partNameFailures = <_InvalidPartName>[];
+  for (var part in mentionedParts) {
+    if (!validParts.contains(part)) {
+      partNameFailures.add(new _InvalidPartName(part, validParts));
+    }
+  }
+  if (partNameFailures.isNotEmpty) {
+    return partNameFailures;
+  }
+
+  var mentionedPackages = new Set()
+    ..addAll(includedPackages.values)
+    ..addAll(excludedPackages.values);
+  var actualIncludedPackages = new Multimap<String, String>();
 
   var failures = <ManifestComplianceFailure>[];
 
   checkInfo(BasicInfo info) {
+    if (info.size == 0) return;
     var lib = _getLibraryOf(info);
     if (lib != null && _isPackageUri(lib.uri)) {
       var packageName = _getPackageName(lib.uri);
-      var outputUnitName = info.outputUnit.name;
-      var expectedPart;
-      if (packages.containsKey(packageName)) {
-        expectedPart = packages[packageName];
+      if (!mentionedPackages.contains(packageName)) return;
+      var containingParts = <String>[];
+      if (info.outputUnit.name == 'main') {
+        containingParts.add('main');
       } else {
-        expectedPart = 'main';
+        containingParts.addAll(info.outputUnit.imports);
       }
-      var expectedOutputUnit = guessedPartMapping[expectedPart];
-      if (expectedOutputUnit == null) {
-        guessedPartMapping[expectedPart] = outputUnitName;
-      } else {
-        if (expectedOutputUnit != outputUnitName) {
-          // TODO(het): add options for how to treat unspecified packages
-          if (!packages.containsKey(packageName)) {
-            failures.add(new ManifestComplianceFailure(info.name, packageName));
-          } else {
-            var actualPart = guessedPartMapping.inverse[outputUnitName];
-            failures.add(new ManifestComplianceFailure(
-                info.name, packageName, expectedPart, actualPart));
-          }
+      for (var part in containingParts) {
+        actualIncludedPackages.add(part, packageName);
+        if (excludedPackages[part].contains(packageName)) {
+          failures
+              .add(new _PartContainedExcludedPackage(part, packageName, info));
         }
       }
     }
@@ -91,6 +109,12 @@ List<ManifestComplianceFailure> checkDeferredLibraryManifest(
   info.functions.forEach(checkInfo);
   info.fields.forEach(checkInfo);
 
+  includedPackages.forEach((part, package) {
+    if (!actualIncludedPackages.containsKey(part) ||
+        !actualIncludedPackages[part].contains(package)) {
+      failures.add(new _PartDidNotContainPackage(part, package));
+    }
+  });
   return failures;
 }
 
@@ -113,21 +137,40 @@ String _getPackageName(Uri uri) {
 }
 
 class ManifestComplianceFailure {
-  final String infoName;
-  final String packageName;
-  final String expectedPart;
-  final String actualPart;
+  const ManifestComplianceFailure();
+}
 
-  const ManifestComplianceFailure(this.infoName, this.packageName,
-      [this.expectedPart, this.actualPart]);
+class _InvalidPartName extends ManifestComplianceFailure {
+  final String part;
+  final List<String> validPartNames;
+  const _InvalidPartName(this.part, this.validPartNames);
 
   String toString() {
-    if (expectedPart == null && actualPart == null) {
-      return '"$infoName" from package "$packageName" was not declared '
-          'to be in an explicit part but was not in the main part';
-    } else {
-      return '"$infoName" from package "$packageName" was specified to '
-          'be in part $expectedPart but is in part $actualPart';
-    }
+    return 'Manifest file declares invalid part "$part". '
+        'Valid part names are: $validPartNames';
+  }
+}
+
+class _PartContainedExcludedPackage extends ManifestComplianceFailure {
+  final String part;
+  final String package;
+  final BasicInfo info;
+  const _PartContainedExcludedPackage(this.part, this.package, this.info);
+
+  String toString() {
+    return 'Part "$part" was specified to exclude package "$package" but it '
+        'actually contains ${kindToString(info.kind)} "${info.name}" which '
+        'is from package "$package"';
+  }
+}
+
+class _PartDidNotContainPackage extends ManifestComplianceFailure {
+  final String part;
+  final String package;
+  const _PartDidNotContainPackage(this.part, this.package);
+
+  String toString() {
+    return 'Part "$part" was specified to include package "$package" but it '
+        'does not contain any elements from that package.';
   }
 }

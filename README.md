@@ -207,32 +207,38 @@ The format of the YAML file is:
 
 ```yaml
 main:
-  packages:
+  include:
     - some_package
     - other_package
+  exclude:
+    - some_other_package
 
 foo:
-  packages:
+  include:
     - foo
     - bar
 
 baz:
-  packages:
+  include:
     - baz
     - quux
+  exclude:
+    - zardoz
 ```
 
 The YAML file consists of a list of declarations, one for each deferred
 part expected in the output. At least one of these parts must be named
 "main"; this is the main part that contains the program entrypoint. Each
 top-level part contains a list of package names that are expected to be
-contained in that part. Any package that is not explicitly listed is
-expected to be in the main part. For instance, in the example YAML above
-the part named "baz" is expected to contain the packages "baz" and "quux".
+contained in that part, a list of package names that are expected to be in
+another part, or both. For instance, in the example YAML above the part named
+"baz" is expected to contain the packages "baz" and "quux" and exclude the
+package "zardoz".
 
 The names for parts given in the specification YAML file (besides "main")
-are arbitrary and just used for reporting when the output does not meet the
-specification.
+are the same as the name given to the deferred import in the dart file. For
+instance, if you have `import 'package:foo/bar.dart' deferred as baz;` in your
+dart file, then the corresponding name in the specification file is 'baz'.
 
 ### Function size analysis tool
 
