@@ -38,6 +38,10 @@
     when being written to a `.packages` file, this is unlikely to break many
     people in practice.
 
+  * **Breaking:** Support for `barback` versions prior to 0.15.0 (released July
+    2014) has been dropped. Pub will no longer install these older barback
+    versions.
+
   * `pub serve` now GZIPs the assets it serves to make load times more similar
     to real-world use-cases.
 
