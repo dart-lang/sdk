@@ -292,6 +292,9 @@ developer/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
 
+[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+mirrors/metadata_allowed_values_test/29: Crash # Issue 25287
+
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
 

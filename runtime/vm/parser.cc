@@ -1065,6 +1065,7 @@ RawObject* Parser::ParseMetadata(const Field& meta_data) {
         new ParsedFunction(thread, fake_function);
     Parser parser(script, parsed_function, token_pos);
     parser.set_current_class(owner_class);
+    parser.OpenFunctionBlock(fake_function);
 
     RawObject* metadata = parser.EvaluateMetadata();
     return metadata;
