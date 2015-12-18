@@ -1463,6 +1463,7 @@ void main(int argc, char** argv) {
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Start event handler.
+  TimerUtils::InitOnce();
   EventHandler::Start();
 
   const uint8_t* instructions_snapshot = NULL;

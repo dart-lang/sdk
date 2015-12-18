@@ -71,6 +71,9 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
+void TimerUtils::InitOnce() {
+}
+
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }

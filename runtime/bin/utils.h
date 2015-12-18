@@ -98,6 +98,7 @@ class ShellUtils {
 
 class TimerUtils {
  public:
+  static void InitOnce();
   static int64_t GetCurrentMonotonicMicros();
   static int64_t GetCurrentMonotonicMillis();
   static void Sleep(int64_t millis);

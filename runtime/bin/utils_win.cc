@@ -187,11 +187,20 @@ static int64_t GetCurrentTimeMicros() {
   return (time.t_ - kTimeEpoc) / kTimeScaler;
 }
 
+static int64_t qpc_ticks_per_second = 0;
+
+void TimerUtils::InitOnce() {
+  LARGE_INTEGER ticks_per_sec;
+  if (!QueryPerformanceFrequency(&ticks_per_sec)) {
+    qpc_ticks_per_second = 0;
+  } else {
+    qpc_ticks_per_second = static_cast<int64_t>(ticks_per_sec.QuadPart);
+  }
+}
+
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
-
-static int64_t qpc_ticks_per_second = 0;
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
   if (qpc_ticks_per_second == 0) {
