@@ -220,6 +220,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new OptimizeInterceptors(backend), cpsFunction);
+      applyCpsPass(new BackwardNullCheckRemover(typeSystem), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
     });
     return cpsFunction;

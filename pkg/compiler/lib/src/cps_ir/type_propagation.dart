@@ -1786,18 +1786,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     return null;
   }
 
-  void destroyRefinementsOfDeadPrimitive(Primitive prim) {
-    while (prim.firstRef != null) {
-      Refinement refine = prim.firstRef.parent;
-      destroyRefinementsOfDeadPrimitive(refine);
-      LetPrim letPrim = refine.parent;
-      InteriorNode parent = letPrim.parent;
-      parent.body = letPrim.body;
-      letPrim.body.parent = parent;
-      prim.firstRef.unlink();
-    }
-  }
-
   /// Inlines a single-use closure if it leaves the closure object with only
   /// field accesses.  This is optimized later by [ScalarReplacer].
   CpsFragment specializeSingleUseClosureCall(InvokeMethod node) {
