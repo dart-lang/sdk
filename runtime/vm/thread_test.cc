@@ -570,7 +570,7 @@ TEST_CASE(HelperAllocAndGC) {
   // TODO(koda): Currently, the GC only does this for the current thread, (i.e,
   // the helper, in this test), but it should be done for all *threads*
   // while reaching a safepoint.
-  Thread::PrepareForGC();
+  isolate->thread_registry()->PrepareForGC();
   Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
   {
     while (true) {

@@ -134,10 +134,8 @@ class Thread : public BaseThread {
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
-  // Called when the current thread transitions from mutator to collector.
   // Empties the store buffer block into the isolate.
-  // TODO(koda): Always run GC in separate thread.
-  static void PrepareForGC();
+  void PrepareForGC();
 
   // OSThread corresponding to this thread.
   OSThread* os_thread() const { return os_thread_; }

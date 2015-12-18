@@ -46,7 +46,6 @@ void ThreadRegistry::SafepointThreads() {
   Isolate* isolate = Isolate::Current();
   // We only expect this method to be called from within the isolate itself.
   ASSERT(isolate->thread_registry() == this);
-  // TODO(koda): Rename Thread::PrepareForGC and call it here?
   --remaining_;  // Exclude this thread from the count.
   // Ensure the main mutator will reach a safepoint (could be running Dart).
   if (!Thread::Current()->IsMutatorThread()) {
@@ -154,6 +153,16 @@ void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 
+void ThreadRegistry::PrepareForGC() {
+  MonitorLocker ml(monitor_);
+  Thread* thread = active_list_;
+  while (thread != NULL) {
+    thread->PrepareForGC();
+    thread = thread->next_;
+  }
+}
+
+
 void ThreadRegistry::AddThreadToActiveList(Thread* thread) {
   ASSERT(thread != NULL);
   ASSERT(monitor_->IsOwnedByCurrentThread());
@@ -215,7 +224,6 @@ void ThreadRegistry::CheckSafepointLocked() {
       ASSERT((last_round == -1) || (round_ == (last_round + 1)));
       last_round = round_;
       // Participate in this round.
-      // TODO(koda): Rename Thread::PrepareForGC and call it here?
       if (--remaining_ == 0) {
         // Ensure the organizing thread is notified.
         // TODO(koda): Use separate condition variables and plain 'Notify'.

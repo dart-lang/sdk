@@ -449,7 +449,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
-  Thread::PrepareForGC();
+  isolate->thread_registry()->PrepareForGC();
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   SemiSpace* from = to_;
