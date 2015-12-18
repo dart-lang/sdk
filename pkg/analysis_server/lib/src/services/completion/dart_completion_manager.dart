@@ -12,33 +12,9 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-/**
- * The base class for contributing code completion suggestions.
- */
-abstract class DartCompletionContributor {
-  /**
-   * Computes the initial set of [CompletionSuggestion]s based on
-   * the given completion context. The compilation unit and completion node
-   * in the given completion context may not be resolved.
-   * This method should execute quickly and not block waiting for any analysis.
-   * Returns `true` if the contributor's work is complete
-   * or `false` if [computeFull] should be called to complete the work.
-   */
-  bool computeFast(DartCompletionRequest request);
-
-  /**
-   * Computes the complete set of [CompletionSuggestion]s based on
-   * the given completion context.  The compilation unit and completion node
-   * in the given completion context are resolved.
-   * Returns `true` if the receiver modified the list of suggestions.
-   */
-  Future<bool> computeFull(DartCompletionRequest request);
-}
 
 /**
  * Manages code completion for a given Dart file completion request.
@@ -69,69 +45,40 @@ class DartCompletionManager extends CompletionManager {
   }
 
   /**
-   * Compute suggestions based upon cached information only
-   * then send an initial response to the client.
-   * Return a list of contributors for which [computeFull] should be called
-   */
-  List<DartCompletionContributor> computeFast(
-      DartCompletionRequest request, CompletionPerformance performance) {
-    return [];
-  }
-
-  /**
    * If there is remaining work to be done, then wait for the unit to be
    * resolved and request that each remaining contributor finish their work.
    * Return a [Future] that completes when the last notification has been sent.
    */
   Future computeFull(
-      DartCompletionRequest request,
-      CompletionPerformance performance,
-      List<DartCompletionContributor> todo) async {
-    // Compute suggestions using the new API
+      CompletionRequestImpl request, CompletionPerformance performance) async {
+    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
+
     performance.logStartTime('computeSuggestions');
     for (CompletionContributor contributor in newContributors) {
       String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
       performance.logStartTime(contributorTag);
-      List<CompletionSuggestion> newSuggestions =
-          await contributor.computeSuggestions(request);
-      for (CompletionSuggestion suggestion in newSuggestions) {
-        request.addSuggestion(suggestion);
-      }
+      suggestions.addAll(await contributor.computeSuggestions(request));
       performance.logElapseTime(contributorTag);
     }
     performance.logElapseTime('computeSuggestions');
-    performance.logStartTime('waitForAnalysis');
 
     // TODO (danrubel) if request is obsolete
     // (processAnalysisRequest returns false)
     // then send empty results
-    sendResults(request, true);
-    return new Future.value();
+
+    if (controller != null && !controller.isClosed) {
+      controller.add(new CompletionResultImpl(request.replacementOffset,
+          request.replacementLength, suggestions, true));
+      controller.close();
+    }
   }
 
   @override
-  void computeSuggestions(CompletionRequest completionRequest) {
-    DartCompletionRequest request =
-        new DartCompletionRequest.from(completionRequest);
+  void computeSuggestions(CompletionRequest request) {
     CompletionPerformance performance = new CompletionPerformance();
     performance.logElapseTime('compute', () {
-      List<DartCompletionContributor> todo = computeFast(request, performance);
-      computeFull(request, performance, todo);
+      computeFull(request, performance);
     });
-  }
-
-  /**
-   * Send the current list of suggestions to the client.
-   */
-  void sendResults(DartCompletionRequest request, bool last) {
-    if (controller == null || controller.isClosed) {
-      return;
-    }
-    controller.add(new CompletionResultImpl(request.replacementOffset,
-        request.replacementLength, request.suggestions, last));
-    if (last) {
-      controller.close();
-    }
   }
 
   /**
@@ -154,47 +101,5 @@ class DartCompletionManager extends CompletionManager {
       // compilation unit is never going to get computed.
       return null;
     }, test: (e) => e is AnalysisNotScheduledError);
-  }
-}
-
-/**
- * The context in which the completion is requested.
- */
-class DartCompletionRequest extends CompletionRequestImpl {
-  /**
-   * The list of suggestions to be sent to the client.
-   */
-  final List<CompletionSuggestion> _suggestions = <CompletionSuggestion>[];
-
-  /**
-   * The set of completions used to prevent duplicates
-   */
-  final Set<String> _completions = new Set<String>();
-
-  DartCompletionRequest(
-      AnalysisContext context,
-      ResourceProvider resourceProvider,
-      SearchEngine searchEngine,
-      Source source,
-      int offset)
-      : super(context, resourceProvider, searchEngine, source, offset);
-
-  factory DartCompletionRequest.from(CompletionRequestImpl request) =>
-      new DartCompletionRequest(request.context, request.resourceProvider,
-          request.searchEngine, request.source, request.offset);
-
-  /**
-   * The list of suggestions to be sent to the client.
-   */
-  Iterable<CompletionSuggestion> get suggestions => _suggestions;
-
-  /**
-   * Add the given suggestion to the list that is returned to the client as long
-   * as a suggestion with an identical completion has not already been added.
-   */
-  void addSuggestion(CompletionSuggestion suggestion) {
-    if (_completions.add(suggestion.completion)) {
-      _suggestions.add(suggestion);
-    }
   }
 }
