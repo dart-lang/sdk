@@ -212,6 +212,19 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  String get dartPrecompiledBinaryFileName {
+    // Controlled by user with the option "--dart_precompiled".
+    String dartExecutable = configuration['dart_precompiled'];
+
+    if (dartExecutable == null || dartExecutable == '') {
+      String suffix = executableBinarySuffix;
+      dartExecutable = '$buildDir/dart_precompiled$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, configuration);
+    return dartExecutable;
+  }
+
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
     var d8Dir = TestUtils.dartDir.append('third_party/d8');
@@ -1009,9 +1022,10 @@ class StandardTestSuite extends TestSuite {
     List<String> compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
-      compileTimeArguments
-          ..addAll(sharedOptions)
-          ..addAll(args);
+      compileTimeArguments =
+          compilerConfiguration.computeCompilerArguments(vmOptions,
+                                                         sharedOptions,
+                                                         args);
       // Avoid doing this for analyzer.
       tempDir = createCompilationOutputDirectory(info.filePath);
     }
@@ -1772,8 +1786,8 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none'];
-    var RUNTIMES = const ['none', 'vm', 'drt', 'dartium',
+    var COMPILERS = const ['none', 'precompiler'];
+    var RUNTIMES = const ['none', 'dart_precompiled', 'vm', 'drt', 'dartium',
                           'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);

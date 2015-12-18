@@ -67,13 +67,16 @@ class TestOptionsParser {
    dart2analyzer: Perform static analysis on Dart code by running the analyzer
           (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2js', 'dart2analyzer'],
+              ['none', 'precompiler', 'dart2js', 'dart2analyzer'],
               'none'),
           // TODO(antonm): fix the option drt.
           new _TestOptionSpecification(
               'runtime',
               '''Where the tests should be run.
     vm: Run Dart code on the standalone dart vm.
+
+    dart_precompiled: Run a precompiled snapshot on a variant of the standalone
+                      dart vm lacking a JIT.
 
     d8: Run JavaScript from the command line using v8.
 
@@ -95,7 +98,8 @@ class TestOptionsParser {
     none: No runtime, compile only (for example, used for dart2analyzer static
           analysis tests).''',
               ['-r', '--runtime'],
-              ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
+              ['vm', 'dart_precompiled', 'd8', 'jsshell', 'drt', 'dartium',
+               'ff', 'firefox',
                'chrome', 'safari', 'ie9', 'ie10', 'ie11', 'opera',
                'chromeOnAndroid', 'safarimobilesim',
                'ContentShellOnAndroid', 'DartiumOnAndroid', 'none'],
@@ -643,6 +647,9 @@ Note: currently only implemented for dart2js.''',
         break;
       case 'dart2analyzer':
         validRuntimes = const ['none'];
+        break;
+      case 'precompiler':
+        validRuntimes = const ['dart_precompiled'];
         break;
       case 'none':
         validRuntimes = const ['vm', 'drt', 'dartium',

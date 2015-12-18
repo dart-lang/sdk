@@ -1087,6 +1087,7 @@ void Precompiler::VisitFunctions(FunctionVisitor* visitor) {
   for (intptr_t j = 0; j < closures.Length(); j++) {
     function ^= closures.At(j);
     visitor->VisitFunction(function);
+    ASSERT(!function.HasImplicitClosureFunction());
   }
 }
 

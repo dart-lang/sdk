@@ -5974,4 +5974,9 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
   return Api::Success();
 }
 
+
+DART_EXPORT bool Dart_IsRunningPrecompiledCode() {
+  return Dart::IsRunningPrecompiledCode();
+}
+
 }  // namespace dart

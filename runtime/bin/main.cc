@@ -71,6 +71,12 @@ static bool has_gen_precompiled_snapshot = false;
 static bool has_run_precompiled_snapshot = false;
 
 
+// Value of the --gen/run_precompiled_snapshot flag.
+// (This pointer points into an argv buffer and does not need to be
+// free'd.)
+static const char* precompiled_snapshot_directory = NULL;
+
+
 // Global flag that is used to indicate that we want to compile everything in
 // the same way as precompilation before main, then continue running in the
 // same process.
@@ -304,15 +310,17 @@ static bool ProcessCompileAllOption(const char* arg,
 static bool ProcessGenPrecompiledSnapshotOption(
     const char* arg,
     CommandLineOptions* vm_options) {
-  ASSERT(arg != NULL);
-  if (*arg != '\0') {
-    return false;
-  }
   // Ensure that we are not already running using a full snapshot.
   if (isolate_snapshot_buffer != NULL) {
     Log::PrintErr("Precompiled snapshots must be generated with"
                   " dart_no_snapshot.\n");
     return false;
+  }
+  ASSERT(arg != NULL);
+  if ((arg[0] == '=') || (arg[0] == ':')) {
+    precompiled_snapshot_directory = &arg[1];
+  } else {
+    precompiled_snapshot_directory = arg;
   }
   has_gen_precompiled_snapshot = true;
   vm_options->AddArgument("--precompilation");
@@ -324,8 +332,10 @@ static bool ProcessRunPrecompiledSnapshotOption(
     const char* arg,
     CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
-  if (*arg != '\0') {
-    return false;
+  precompiled_snapshot_directory = arg;
+  if ((precompiled_snapshot_directory[0] == '=') ||
+      (precompiled_snapshot_directory[0] == ':')) {
+    precompiled_snapshot_directory = &precompiled_snapshot_directory[1];
   }
   has_run_precompiled_snapshot = true;
   vm_options->AddArgument("--precompilation");
@@ -1009,34 +1019,67 @@ static void ServiceStreamCancelCallback(const char* stream_id) {
 }
 
 
-static void WriteSnapshotFile(const char* filename,
-                              const uint8_t* buffer,
-                              const intptr_t size) {
-  File* file = File::Open(filename, File::kWriteTruncate);
+static void WritePrecompiledSnapshotFile(const char* filename,
+                                         const uint8_t* buffer,
+                                         const intptr_t size) {
+  char* concat = NULL;
+  const char* qualified_filename;
+  if (strlen(precompiled_snapshot_directory) > 0) {
+    intptr_t len = snprintf(NULL, 0, "%s/%s",
+                            precompiled_snapshot_directory, filename);
+    concat = new char[len + 1];
+    snprintf(concat, len + 1, "%s/%s",
+             precompiled_snapshot_directory, filename);
+    qualified_filename = concat;
+  } else {
+    qualified_filename = filename;
+  }
+
+  File* file = File::Open(qualified_filename, File::kWriteTruncate);
   ASSERT(file != NULL);
   if (!file->WriteFully(buffer, size)) {
     ErrorExit(kErrorExitCode,
               "Unable to open file %s for writing snapshot\n",
-              filename);
+              qualified_filename);
   }
   delete file;
+  if (concat != NULL) {
+    delete concat;
+  }
 }
 
 
-static void ReadSnapshotFile(const char* filename,
-                             const uint8_t** buffer) {
-  void* file = DartUtils::OpenFile(filename, false);
+static void ReadPrecompiledSnapshotFile(const char* filename,
+                                        const uint8_t** buffer) {
+  char* concat = NULL;
+  const char* qualified_filename;
+  if (strlen(precompiled_snapshot_directory) > 0) {
+    intptr_t len = snprintf(NULL, 0, "%s/%s",
+                            precompiled_snapshot_directory, filename);
+    concat = new char[len + 1];
+    snprintf(concat, len + 1, "%s/%s",
+             precompiled_snapshot_directory, filename);
+    qualified_filename = concat;
+  } else {
+    qualified_filename = filename;
+  }
+
+  void* file = DartUtils::OpenFile(qualified_filename, false);
   if (file == NULL) {
     ErrorExit(kErrorExitCode,
-              "Error: Unable to open file %s for reading snapshot\n", filename);
+              "Error: Unable to open file %s for reading snapshot\n",
+              qualified_filename);
   }
   intptr_t len = -1;
   DartUtils::ReadFile(buffer, &len, file);
   if (*buffer == NULL || len == -1) {
     ErrorExit(kErrorExitCode,
-              "Error: Unable to read snapshot file %s\n", filename);
+              "Error: Unable to read snapshot file %s\n", qualified_filename);
   }
   DartUtils::CloseFile(file);
+  if (concat != NULL) {
+    delete concat;
+  }
 }
 
 
@@ -1215,15 +1258,15 @@ bool RunMainIsolate(const char* script_name,
                                               &instructions_buffer,
                                               &instructions_size);
       CHECK_RESULT(result);
-      WriteSnapshotFile(kPrecompiledVmIsolateName,
-                        vm_isolate_buffer,
-                        vm_isolate_size);
-      WriteSnapshotFile(kPrecompiledIsolateName,
-                        isolate_buffer,
-                        isolate_size);
-      WriteSnapshotFile(kPrecompiledInstructionsName,
-                        instructions_buffer,
-                        instructions_size);
+      WritePrecompiledSnapshotFile(kPrecompiledVmIsolateName,
+                                   vm_isolate_buffer,
+                                   vm_isolate_size);
+      WritePrecompiledSnapshotFile(kPrecompiledIsolateName,
+                                   isolate_buffer,
+                                   isolate_size);
+      WritePrecompiledSnapshotFile(kPrecompiledInstructionsName,
+                                   instructions_buffer,
+                                   instructions_size);
     } else {
       if (has_compile_all) {
         result = Dart_CompileAll();
@@ -1426,8 +1469,10 @@ void main(int argc, char** argv) {
   if (has_run_precompiled_snapshot) {
     instructions_snapshot = reinterpret_cast<const uint8_t*>(
         LoadLibrarySymbol(kPrecompiledLibraryName, kPrecompiledSymbolName));
-    ReadSnapshotFile(kPrecompiledVmIsolateName, &vm_isolate_snapshot_buffer);
-    ReadSnapshotFile(kPrecompiledIsolateName, &isolate_snapshot_buffer);
+    ReadPrecompiledSnapshotFile(kPrecompiledVmIsolateName,
+                                &vm_isolate_snapshot_buffer);
+    ReadPrecompiledSnapshotFile(kPrecompiledIsolateName,
+                                &isolate_snapshot_buffer);
   }
 
   // Initialize the Dart VM.

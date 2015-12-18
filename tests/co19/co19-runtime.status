@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 
-[ $compiler == none && ($runtime == vm || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 22200
@@ -38,7 +38,7 @@ LibTest/isolate/Isolate/spawn_A02_t02: RuntimeError # Dart issue 15617
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
 
-[ $compiler == none && $runtime == vm ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) ]
 LibTest/typed_data/Float32x4/reciprocalSqrt_A01_t01: Pass, Fail # co19 issue 599
 LibTest/typed_data/Float32x4/reciprocal_A01_t01: Pass, Fail # co19 issue 599
 Language/Expressions/Instance_Creation/Const/abstract_class_t01: MissingCompileTimeError # Issue 22007
@@ -48,16 +48,16 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Fail
 Language/Libraries_and_Scripts/Exports/invalid_uri_t02: Fail
 Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Pass, RuntimeError # co19-roll r607: Please triage this failure
 
-[ $compiler == none && $runtime == vm && $mode == debug ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 
-[ $compiler == none && $runtime == vm && ($arch != x64 && $arch != simarm64) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch != x64 && $arch != simarm64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
-[ $compiler == none && $runtime == vm && $arch == mips ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == mips ]
 LibTest/core/double/toInt_A01_t01: Fail
 # These tests take too much memory (300 MB) for our 1 GB test machine.
 # co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673
@@ -65,30 +65,30 @@ LibTest/core/List/List_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip # co19 issue 673
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # co19 issue 673
 
-[ $compiler == none && $runtime == vm && $arch == mips && $mode == debug ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
 LibTest/isolate/Isolate/spawnUri_A01_t04: Crash, Pass # Issue 17440
 LibTest/isolate/Isolate/spawn_A01_t04: Crash, Pass # Issue 17440
 
-[ $compiler == none && $runtime == vm && ($arch == simarm || $arch == simarmv5te || $arch == simmips || $arch == simarm64) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == simarm || $arch == simarmv5te || $arch == simmips || $arch == simarm64) ]
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 LibTest/isolate/Isolate/spawn_A02_t01: Skip # co19 issue 667
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
 LayoutTests/fast/*: SkipByDesign # DOM not supported on VM.
 WebPlatformTest/*: SkipByDesign # dart:html not supported on VM.
 
-[ $runtime == vm && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 Language/Types/Interface_Types/subtype_t27: Skip  # Issue 21174.
 
-[ $runtime == vm && $arch == arm ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == arm ]
 LibTest/typed_data/Float32x4/operator_multiplication_A01_t01: Fail # Dart issue 24416
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 # co19 update Sep 29, 2015 (3ed795ea02e022ef19c77cf1b6095b7c8f5584d0)
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: MissingCompileTimeError # Please triage this failure
 Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: MissingCompileTimeError # Please triage this failure
@@ -131,10 +131,10 @@ Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # Please tria
 Language/Mixins/not_object_superclass_t01: MissingCompileTimeError # Please triage this failure
 Language/Mixins/reference_to_super_t01: MissingCompileTimeError # Please triage this failure
 
-[ $runtime == vm && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug ]
 Language/Mixins/Mixin_Application/wrong_type_t02: Crash # Please triage this failure
 
-[ $runtime == vm && $checked ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 Language/Errors_and_Warnings/static_warning_t01: RuntimeError # Please triage this failure
 Language/Errors_and_Warnings/static_warning_t02: RuntimeError # Please triage this failure
 Language/Errors_and_Warnings/static_warning_t03: RuntimeError # Please triage this failure
@@ -142,7 +142,7 @@ Language/Errors_and_Warnings/static_warning_t04: RuntimeError # Please triage th
 Language/Errors_and_Warnings/static_warning_t05: RuntimeError # Please triage this failure
 Language/Errors_and_Warnings/static_warning_t06: RuntimeError # Please triage this failure
 
-[ $runtime == vm && $noopt ]
+[ ($noopt || $compiler == precompiler) ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
@@ -152,3 +152,6 @@ Language/Mixins/Mixin_Application/error_t02: Pass
 Language/Mixins/declaring_constructor_t01: Pass
 Language/Expressions/Property_Extraction/Named_Constructor_Extraction/deferred_type_t01: Pass
 Language/Metadata/*: Skip # Uses dart:mirrors
+
+[ $runtime == dart_precompiled ]
+LibTest/isolate/Isolate/spawnUri*: RuntimeError # Isolate.spawnUri

@@ -382,7 +382,7 @@ mediasource_test/functional: RuntimeError # Issue 24838
 
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $runtime == vm ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 *: Skip
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
