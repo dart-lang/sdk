@@ -147,6 +147,19 @@ class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   Source source;
   LibrarySpecificUnit target;
 
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT1);
+    expect(outputs[RESOLVED_UNIT1], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT1], isTrue);
+  }
+
   test_perform_find_constants() {
     _performBuildTask('''
 const x = 1;
@@ -189,10 +202,11 @@ class A {
 }
 class B = Object with A;
 ''');
-    expect(outputs, hasLength(3));
+    expect(outputs, hasLength(4));
     expect(outputs[COMPILATION_UNIT_CONSTANTS], isNotNull);
     expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
     expect(outputs[RESOLVED_UNIT1], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT1], isTrue);
   }
 
   test_perform_reuseElement() {
@@ -470,6 +484,19 @@ library libC;
 
 @reflectiveTest
 class BuildEnumMemberElementsTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT2);
+    expect(outputs[RESOLVED_UNIT2], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT2], isTrue);
+  }
+
   test_perform() {
     Source source = newSource(
         '/test.dart',
@@ -1344,6 +1371,19 @@ class ComputeInferableStaticVariableDependenciesTaskTest
     enableStrongMode();
   }
 
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    expect(outputs[RESOLVED_UNIT5], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT5], isTrue);
+  }
+
   test_perform() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -2024,6 +2064,19 @@ class DartErrorsTaskTest extends _AbstractDartTaskTest {
 
 @reflectiveTest
 class EvaluateUnitConstantsTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT11);
+    expect(outputs[RESOLVED_UNIT11], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT11], isTrue);
+  }
+
   test_perform() {
     Source source = newSource(
         '/test.dart',
@@ -2488,6 +2541,19 @@ class GenerateLintsTaskTest_TestLinter extends Linter {
 
 @reflectiveTest
 class InferInstanceMembersInUnitTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT9);
+    expect(outputs[RESOLVED_UNIT9], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT9], isTrue);
+  }
+
   void test_perform() {
     enableStrongMode();
     AnalysisTarget source = newSource(
@@ -2589,6 +2655,19 @@ class C {
 
 @reflectiveTest
 class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT7);
+    expect(outputs[RESOLVED_UNIT7], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT7], isTrue);
+  }
+
   void test_perform_const_field() {
     enableStrongMode();
     AnalysisTarget source = newSource(
@@ -3204,6 +3283,19 @@ class C {
 
 @reflectiveTest
 class PropagateVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT6);
+    expect(outputs[RESOLVED_UNIT6], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT6], isTrue);
+  }
+
   void test_perform_cycle() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -3329,6 +3421,19 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     enableStrongMode();
   }
 
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT8);
+    expect(outputs[RESOLVED_UNIT8], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT8], isTrue);
+  }
+
   // Test inference of instance fields across units
   void test_perform_inference_cross_unit_instance() {
     List<Source> sources = newSources({
@@ -3423,7 +3528,7 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     computeResult(
         new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
 
-    // A.a2 should now be fully resolved and inferred.
+    // A.a2 should now be fully resolved and inferred (but not re-resolved).
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
   }
@@ -3535,7 +3640,7 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     computeResult(
         new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT8);
 
-    // A.a2 should now be fully resolved and inferred.
+    // A.a2 should now be fully resolved and inferred (but not re-resolved).
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
 
@@ -3634,6 +3739,19 @@ class B {}
 
 @reflectiveTest
 class ResolveUnitTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT10);
+    expect(outputs[RESOLVED_UNIT10], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT10], isTrue);
+  }
+
   void test_perform() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -3697,6 +3815,19 @@ main(A a) {
 
 @reflectiveTest
 class ResolveUnitTypeNamesTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT3);
+    expect(outputs[RESOLVED_UNIT3], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT3], isTrue);
+  }
+
   test_perform() {
     Source source = newSource(
         '/test.dart',
@@ -3794,6 +3925,19 @@ class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
       Matcher mutatedInScope) {
     expect(variable.isPotentiallyMutatedInClosure, mutatedInClosure);
     expect(variable.isPotentiallyMutatedInScope, mutatedInScope);
+  }
+
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT4);
+    expect(outputs[RESOLVED_UNIT4], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT4], isTrue);
   }
 
   test_perform_buildClosureLibraryElements() {
@@ -4412,6 +4556,19 @@ class StrongModeVerifyUnitTaskTest extends _AbstractDartTaskTest {
   void setUp() {
     super.setUp();
     enableStrongMode();
+  }
+
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT);
+    expect(outputs[RESOLVED_UNIT], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT], isTrue);
   }
 
   void test_perform_recordDynamicInvoke() {

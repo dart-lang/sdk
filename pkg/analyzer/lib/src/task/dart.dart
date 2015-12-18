@@ -145,6 +145,114 @@ final ListResultDescriptor<Source> CONTAINING_LIBRARIES =
     new ListResultDescriptor<Source>('CONTAINING_LIBRARIES', Source.EMPTY_LIST);
 
 /**
+ * The flag specifying that [RESOLVED_UNIT] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT1] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT1 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT1', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT10] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT10 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT10', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT11] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT11 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT11', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT2] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT2 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT2', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT3] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT3 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT3', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT4] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT4 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT4', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT5] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT5 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT5', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT6] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT6 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT6', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT7] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT7 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT7', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT8] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT8 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT8', false);
+
+/**
+ * The flag specifying that [RESOLVED_UNIT9] has been been computed for this
+ * compilation unit (without requiring that the AST for it still be in cache).
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ResultDescriptor<bool> CREATED_RESOLVED_UNIT9 =
+    new ResultDescriptor<bool>('CREATED_RESOLVED_UNIT9', false);
+
+/**
  * The sources representing the export closure of a library.
  * The [Source]s include only library sources, not their units.
  *
@@ -738,6 +846,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
       buildInputs, <ResultDescriptor>[
     COMPILATION_UNIT_CONSTANTS,
     COMPILATION_UNIT_ELEMENT,
+    CREATED_RESOLVED_UNIT1,
     RESOLVED_UNIT1
   ]);
 
@@ -790,6 +899,7 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     outputs[COMPILATION_UNIT_CONSTANTS] = constants;
     outputs[COMPILATION_UNIT_ELEMENT] = element;
     outputs[RESOLVED_UNIT1] = unit;
+    outputs[CREATED_RESOLVED_UNIT1] = true;
   }
 
   /**
@@ -1099,7 +1209,7 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
       'BuildEnumMemberElementsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT2]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT2, RESOLVED_UNIT2]);
 
   BuildEnumMemberElementsTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -1120,6 +1230,7 @@ class BuildEnumMemberElementsTask extends SourceBasedAnalysisTask {
     //
     EnumMemberBuilder builder = new EnumMemberBuilder(typeProvider);
     unit.accept(builder);
+    outputs[CREATED_RESOLVED_UNIT2] = true;
     outputs[RESOLVED_UNIT2] = unit;
   }
 
@@ -2398,7 +2509,7 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
       'EvaluateUnitConstantsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT11]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT11, RESOLVED_UNIT11]);
 
   EvaluateUnitConstantsTask(AnalysisContext context, LibrarySpecificUnit target)
       : super(context, target);
@@ -2412,6 +2523,7 @@ class EvaluateUnitConstantsTask extends SourceBasedAnalysisTask {
     // all constants are evaluated before this method is called.
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     outputs[RESOLVED_UNIT11] = unit;
+    outputs[CREATED_RESOLVED_UNIT11] = true;
   }
 
   /**
@@ -2891,7 +3003,7 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
       'InferInstanceMembersInUnitTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT9]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT9, RESOLVED_UNIT9]);
 
   /**
    * Initialize a newly created task to build a library element for the given
@@ -2923,6 +3035,7 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[RESOLVED_UNIT9] = unit;
+    outputs[CREATED_RESOLVED_UNIT9] = true;
   }
 
   /**
@@ -2941,12 +3054,12 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
       // Require that field re-resolution be complete for all units in the
       // current library cycle.
       'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => RESOLVED_UNIT8
+          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT8
               .of(new LibrarySpecificUnit(unit.librarySource, unit.source))),
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
       'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => RESOLVED_UNIT9
+          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
               .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
     };
   }
@@ -3012,7 +3125,7 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
       'InferStaticVariableTypesInUnitTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT7]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT7, RESOLVED_UNIT7]);
 
   /**
    * Initialize a newly created task to build a library element for the given
@@ -3037,6 +3150,7 @@ class InferStaticVariableTypesInUnitTask extends SourceBasedAnalysisTask {
     // preparing all of the inputs.
     //
     outputs[RESOLVED_UNIT7] = unit;
+    outputs[CREATED_RESOLVED_UNIT7] = true;
   }
 
   /**
@@ -3186,7 +3300,7 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
       'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => RESOLVED_UNIT9
+          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
               .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
     };
   }
@@ -3599,6 +3713,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
       buildInputs, <ResultDescriptor>[
     INFERABLE_STATIC_VARIABLES_IN_UNIT,
     PROPAGABLE_VARIABLES_IN_UNIT,
+    CREATED_RESOLVED_UNIT5,
     RESOLVED_UNIT5
   ]);
 
@@ -3634,6 +3749,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     }
     outputs[PROPAGABLE_VARIABLES_IN_UNIT] = visitor.propagableVariables;
     outputs[RESOLVED_UNIT5] = unit;
+    outputs[CREATED_RESOLVED_UNIT5] = true;
   }
 
   /**
@@ -3654,7 +3770,7 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
       'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => RESOLVED_UNIT9
+          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
               .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
     };
   }
@@ -3799,7 +3915,7 @@ class PropagateVariableTypesInUnitTask extends SourceBasedAnalysisTask {
       'PropagateVariableTypesInUnitTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT6]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT6, RESOLVED_UNIT6]);
 
   PropagateVariableTypesInUnitTask(
       InternalAnalysisContext context, LibrarySpecificUnit unit)
@@ -3820,6 +3936,7 @@ class PropagateVariableTypesInUnitTask extends SourceBasedAnalysisTask {
     // preparing all of the inputs.
     //
     outputs[RESOLVED_UNIT6] = unit;
+    outputs[CREATED_RESOLVED_UNIT6] = true;
   }
 
   /**
@@ -4369,7 +4486,7 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       'ResolveInstanceFieldsInUnitTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT8]);
+      <ResultDescriptor>[CREATED_RESOLVED_UNIT8, RESOLVED_UNIT8]);
 
   /**
    * Initialize a newly created task to build a library element for the given
@@ -4415,6 +4532,7 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[RESOLVED_UNIT8] = unit;
+    outputs[CREATED_RESOLVED_UNIT8] = true;
   }
 
   /**
@@ -4434,12 +4552,12 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       // Require that static variable inference  be complete for all units in
       // the current library cycle.
       'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => RESOLVED_UNIT7
+          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT7
               .of(new LibrarySpecificUnit(unit.librarySource, unit.source))),
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
       'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => RESOLVED_UNIT9
+          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
               .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
     };
   }
@@ -4689,6 +4807,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
       'ResolveUnitTask', createTask, buildInputs, <ResultDescriptor>[
     CONSTANT_EXPRESSIONS_DEPENDENCIES,
     RESOLVE_UNIT_ERRORS,
+    CREATED_RESOLVED_UNIT10,
     RESOLVED_UNIT10
   ]);
 
@@ -4736,6 +4855,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
     outputs[CONSTANT_EXPRESSIONS_DEPENDENCIES] = constExprDependencies;
     outputs[RESOLVE_UNIT_ERRORS] = getTargetSourceErrors(errorListener, target);
     outputs[RESOLVED_UNIT10] = unit;
+    outputs[CREATED_RESOLVED_UNIT10] = true;
   }
 
   /**
@@ -4755,7 +4875,7 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
       // Require that inference be complete for all units in the
       // current library cycle.
       'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => RESOLVED_UNIT9
+          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
               .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
     };
   }
@@ -4793,10 +4913,11 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'ResolveUnitTypeNamesTask',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[RESOLVE_TYPE_NAMES_ERRORS, RESOLVED_UNIT3]);
+      'ResolveUnitTypeNamesTask', createTask, buildInputs, <ResultDescriptor>[
+    RESOLVE_TYPE_NAMES_ERRORS,
+    CREATED_RESOLVED_UNIT3,
+    RESOLVED_UNIT3
+  ]);
 
   ResolveUnitTypeNamesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -4827,6 +4948,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     outputs[RESOLVE_TYPE_NAMES_ERRORS] =
         getTargetSourceErrors(errorListener, target);
     outputs[RESOLVED_UNIT3] = unit;
+    outputs[CREATED_RESOLVED_UNIT3] = true;
   }
 
   /**
@@ -4883,8 +5005,11 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ResolveVariableReferencesTask',
       createTask,
-      buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT4, VARIABLE_REFERENCE_ERRORS]);
+      buildInputs, <ResultDescriptor>[
+    CREATED_RESOLVED_UNIT4,
+    RESOLVED_UNIT4,
+    VARIABLE_REFERENCE_ERRORS
+  ]);
 
   ResolveVariableReferencesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -4915,6 +5040,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[RESOLVED_UNIT4] = unit;
+    outputs[CREATED_RESOLVED_UNIT4] = true;
     outputs[VARIABLE_REFERENCE_ERRORS] =
         getTargetSourceErrors(errorListener, target);
   }
@@ -5077,10 +5203,11 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'StrongModeVerifyUnitTask',
-      createTask,
-      buildInputs,
-      <ResultDescriptor>[STRONG_MODE_ERRORS, RESOLVED_UNIT]);
+      'StrongModeVerifyUnitTask', createTask, buildInputs, <ResultDescriptor>[
+    STRONG_MODE_ERRORS,
+    CREATED_RESOLVED_UNIT,
+    RESOLVED_UNIT
+  ]);
 
   StrongModeVerifyUnitTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -5101,11 +5228,11 @@ class StrongModeVerifyUnitTask extends SourceBasedAnalysisTask {
       unit.accept(new CodeChecker(
           typeProvider, new StrongTypeSystemImpl(), errorListener));
     }
-
     //
     // Record outputs.
     //
     outputs[STRONG_MODE_ERRORS] = getUniqueErrors(errorListener.errors);
+    outputs[CREATED_RESOLVED_UNIT] = true;
     outputs[RESOLVED_UNIT] = unit;
   }
 
