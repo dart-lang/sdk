@@ -9,12 +9,10 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show CompletionRequest, CompletionResult;
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -37,25 +35,9 @@ class CompletionDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
-   * The [SearchEngine] for this server.
-   */
-  SearchEngine searchEngine;
-
-  /**
    * The next completion response id.
    */
   int _nextCompletionId = 0;
-
-  /**
-   * The completion manager for most recent [Source] and [AnalysisContext],
-   * or `null` if none.
-   */
-  CompletionManager _manager;
-
-  /**
-   * The subscription for the cached context's source change stream.
-   */
-  StreamSubscription<SourcesChangedEvent> _sourcesChangedSubscription;
 
   /**
    * Code completion performance for the last completion operation.
@@ -77,17 +59,7 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Initialize a new request handler for the given [server].
    */
-  CompletionDomainHandler(this.server) {
-    server.onContextsChanged.listen(contextsChanged);
-    server.onPriorityChange.listen(priorityChanged);
-    searchEngine = server.searchEngine;
-  }
-
-  /**
-   * Return the completion manager for most recent [Source] and [AnalysisContext],
-   * or `null` if none.
-   */
-  CompletionManager get manager => _manager;
+  CompletionDomainHandler(this.server);
 
   /**
    * Return the [CompletionManager] for the given [context] and [source],
@@ -95,31 +67,7 @@ class CompletionDomainHandler implements RequestHandler {
    */
   CompletionManager completionManagerFor(
       AnalysisContext context, Source source) {
-    if (_manager != null) {
-      if (_manager.context == context && _manager.source == source) {
-        return _manager;
-      }
-      _discardManager();
-    }
-    _manager = createCompletionManager(server, context, source);
-    if (context != null) {
-      _sourcesChangedSubscription =
-          context.onSourcesChanged.listen(sourcesChanged);
-    }
-    return _manager;
-  }
-
-  /**
-   * If the context associated with the cache has changed or been removed
-   * then discard the cache.
-   */
-  void contextsChanged(ContextsChangedEvent event) {
-    if (_manager != null) {
-      AnalysisContext context = _manager.context;
-      if (event.changed.contains(context) || event.removed.contains(context)) {
-        _discardManager();
-      }
-    }
+    return createCompletionManager(server, context, source);
   }
 
   CompletionManager createCompletionManager(
@@ -130,7 +78,7 @@ class CompletionDomainHandler implements RequestHandler {
 
   @override
   Response handleRequest(Request request) {
-    if (searchEngine == null) {
+    if (server.searchEngine == null) {
       return new Response.noIndexGenerated(request);
     }
     return runZoned(() {
@@ -149,31 +97,6 @@ class CompletionDomainHandler implements RequestHandler {
           exception,
           stackTrace);
     });
-  }
-
-  /**
-   * If the set the priority files has changed, then pre-cache completion
-   * information related to the first priority file.
-   */
-  void priorityChanged(PriorityChangeEvent event) {
-    Source source = event.firstSource;
-    CompletionPerformance performance = new CompletionPerformance();
-    computeCachePerformance = performance;
-    if (source == null) {
-      performance.complete('priorityChanged caching: no source');
-      return;
-    }
-    performance.source = source;
-    AnalysisContext context = server.getAnalysisContextForSource(source);
-    if (context != null) {
-      String computeTag = 'computeCache';
-      performance.logStartTime(computeTag);
-      CompletionManager manager = completionManagerFor(context, source);
-      manager.computeCache().catchError((_) => false).then((bool success) {
-        performance.logElapseTime(computeTag);
-        performance.complete('priorityChanged caching: $success');
-      });
-    }
   }
 
   /**
@@ -257,42 +180,5 @@ class CompletionDomainHandler implements RequestHandler {
     server.sendNotification(new CompletionResultsParams(
             completionId, replacementOffset, replacementLength, results, true)
         .toNotification());
-  }
-
-  /**
-   * Discard the cache if a source other than the source referenced by
-   * the cache changes or if any source is added, removed, or deleted.
-   */
-  void sourcesChanged(SourcesChangedEvent event) {
-    bool shouldDiscardManager(SourcesChangedEvent event) {
-      if (_manager == null) {
-        return false;
-      }
-      if (event.wereSourcesAdded || event.wereSourcesRemovedOrDeleted) {
-        return true;
-      }
-      var changedSources = event.changedSources;
-      return changedSources.length > 2 ||
-          (changedSources.length == 1 &&
-              !changedSources.contains(_manager.source));
-    }
-
-    if (shouldDiscardManager(event)) {
-      _discardManager();
-    }
-  }
-
-  /**
-   * Discard the sourcesChanged subscription if any
-   */
-  void _discardManager() {
-    if (_sourcesChangedSubscription != null) {
-      _sourcesChangedSubscription.cancel();
-      _sourcesChangedSubscription = null;
-    }
-    if (_manager != null) {
-      _manager.dispose();
-      _manager = null;
-    }
   }
 }
