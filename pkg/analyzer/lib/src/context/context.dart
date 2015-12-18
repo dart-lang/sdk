@@ -558,22 +558,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  String computeDocumentationComment(Element element) {
-    if (element == null) {
-      return null;
-    }
-    Source source = element.source;
-    if (source == null) {
-      return null;
-    }
-    SourceRange docRange = element.docRange;
-    if (docRange == null) {
-      return null;
-    }
-    String code = getContents(source).data;
-    String comment = code.substring(docRange.offset, docRange.end);
-    return comment.replaceAll('\r\n', '\n');
-  }
+  String computeDocumentationComment(Element element) =>
+      element?.documentationComment;
 
   @override
   List<AnalysisError> computeErrors(Source source) {

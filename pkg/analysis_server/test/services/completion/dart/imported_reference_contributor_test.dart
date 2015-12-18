@@ -45,6 +45,71 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('two');
   }
 
+  test_doc_class() async {
+    addSource(
+        '/libA.dart',
+        r'''
+library A;
+/// My class.
+/// Short description.
+///
+/// Longer description.
+class A {}
+''');
+    addTestSource('import "/libA.dart"; main() {^}');
+
+    await computeSuggestions();
+
+    CompletionSuggestion suggestion = assertSuggestClass('A');
+    expect(suggestion.docSummary, 'My class.\nShort description.');
+    expect(suggestion.docComplete,
+        'My class.\nShort description.\n\nLonger description.');
+  }
+
+  test_doc_function() async {
+    resolveSource(
+        '/libA.dart',
+        r'''
+library A;
+/// My function.
+/// Short description.
+///
+/// Longer description.
+int myFunc() {}
+''');
+    addTestSource('import "/libA.dart"; main() {^}');
+
+    await computeSuggestions();
+
+    CompletionSuggestion suggestion = assertSuggestFunction('myFunc', 'int');
+    expect(suggestion.docSummary, 'My function.\nShort description.');
+    expect(suggestion.docComplete,
+        'My function.\nShort description.\n\nLonger description.');
+  }
+
+  test_doc_function_c_style() async {
+    resolveSource(
+        '/libA.dart',
+        r'''
+library A;
+/**
+ * My function.
+ * Short description.
+ *
+ * Longer description.
+ */
+int myFunc() {}
+''');
+    addTestSource('import "/libA.dart"; main() {^}');
+
+    await computeSuggestions();
+
+    CompletionSuggestion suggestion = assertSuggestFunction('myFunc', 'int');
+    expect(suggestion.docSummary, 'My function.\nShort description.');
+    expect(suggestion.docComplete,
+        'My function.\nShort description.\n\nLonger description.');
+  }
+  
   test_enum() async {
     addSource('/libA.dart', 'library A; enum E { one, two }');
     addTestSource('import "/libA.dart"; main() {^}');

@@ -8,6 +8,7 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
@@ -44,6 +45,12 @@ CompletionSuggestion createSuggestion(Element element,
       0,
       isDeprecated,
       false);
+
+  // Attach docs.
+  String doc = removeDartDocDelimiters(element.documentationComment);
+  suggestion.docComplete = doc;
+  suggestion.docSummary = getDartDocSummary(doc);
+
   suggestion.element = protocol.convertElement(element);
   Element enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {

@@ -538,9 +538,9 @@ abstract class Element implements AnalysisTarget {
    * Elements with a smaller offset will be sorted to be before elements with a
    * larger name offset.
    */
-  static final Comparator<Element> SORT_BY_OFFSET = (Element firstElement,
-          Element secondElement) =>
-      firstElement.nameOffset - secondElement.nameOffset;
+  static final Comparator<Element> SORT_BY_OFFSET =
+      (Element firstElement, Element secondElement) =>
+          firstElement.nameOffset - secondElement.nameOffset;
 
   /**
    * Return the analysis context in which this element is defined.
@@ -558,9 +558,19 @@ abstract class Element implements AnalysisTarget {
   String get displayName;
 
   /**
+   * Return the content of the documentation comment (including delimiters) for
+   * this element, or `null` if this element does not or cannot have
+   * documentation.
+   */
+  String get documentationComment;
+
+  /**
    * Return the source range of the documentation comment for this element,
    * or `null` if this element does not or cannot have a documentation.
+   *
+   * Deprecated.  Use [documentationComment] instead.
    */
+  @deprecated
   SourceRange get docRange;
 
   /**
@@ -677,7 +687,10 @@ abstract class Element implements AnalysisTarget {
    *
    * Throws [AnalysisException] if the documentation comment could not be
    * determined because the analysis could not be performed
+   *
+   * Deprecated.  Use [documentationComment] instead.
    */
+  @deprecated
   String computeDocumentationComment();
 
   /**

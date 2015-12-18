@@ -339,6 +339,9 @@ abstract class ElementHandle implements Element {
   SourceRange get docRange => actualElement.docRange;
 
   @override
+  String get documentationComment => actualElement.documentationComment;
+
+  @override
   Element get enclosingElement => actualElement.enclosingElement;
 
   @override
@@ -392,8 +395,7 @@ abstract class ElementHandle implements Element {
   accept(ElementVisitor visitor) => actualElement.accept(visitor);
 
   @override
-  String computeDocumentationComment() =>
-      actualElement.computeDocumentationComment();
+  String computeDocumentationComment() => documentationComment;
 
   @override
   AstNode computeNode() => actualElement.computeNode();

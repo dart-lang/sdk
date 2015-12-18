@@ -920,7 +920,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
             importElement.deferred = importDirective.deferredKeyword != null;
             importElement.combinators = _buildCombinators(importDirective);
             importElement.importedLibrary = importedLibrary;
-            _setDocRange(importElement, importDirective);
+            _setDoc(importElement, importDirective);
             SimpleIdentifier prefixNode = directive.prefix;
             if (prefixNode != null) {
               importElement.prefixOffset = prefixNode.offset;
@@ -962,7 +962,7 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
             exportElement.uri = exportDirective.uriContent;
             exportElement.combinators = _buildCombinators(exportDirective);
             exportElement.exportedLibrary = exportedLibrary;
-            _setDocRange(exportElement, exportDirective);
+            _setDoc(exportElement, exportDirective);
             directive.element = exportElement;
             exports.add(exportElement);
             if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
@@ -1003,12 +1003,14 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
   }
 
   /**
-   * If the given [node] has a documentation comment, remember its range
-   * into the given [element].
+   * If the given [node] has a documentation comment, remember its content
+   * and range into the given [element].
    */
-  void _setDocRange(ElementImpl element, AnnotatedNode node) {
+  void _setDoc(ElementImpl element, AnnotatedNode node) {
     Comment comment = node.documentationComment;
     if (comment != null && comment.isDocumentation) {
+      element.documentationComment =
+          comment.tokens.map((Token t) => t.lexeme).join('\n');
       element.setDocRange(comment.offset, comment.length);
     }
   }
@@ -1379,7 +1381,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       _patchTopLevelAccessors(libraryElement);
     }
     if (libraryDirective != null) {
-      _setDocRange(libraryElement, libraryDirective);
+      _setDoc(libraryElement, libraryDirective);
     }
     //
     // Record outputs.
@@ -1467,12 +1469,14 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   }
 
   /**
-   * If the given [node] has a documentation comment, remember its range
-   * into the given [element].
+   * If the given [node] has a documentation comment, remember its content
+   * and range into the given [element].
    */
-  void _setDocRange(ElementImpl element, AnnotatedNode node) {
+  void _setDoc(ElementImpl element, AnnotatedNode node) {
     Comment comment = node.documentationComment;
     if (comment != null && comment.isDocumentation) {
+      element.documentationComment =
+          comment.tokens.map((Token t) => t.lexeme).join('\n');
       element.setDocRange(comment.offset, comment.length);
     }
   }

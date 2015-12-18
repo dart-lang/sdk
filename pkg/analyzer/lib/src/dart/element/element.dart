@@ -1673,6 +1673,11 @@ abstract class ElementImpl implements Element {
   ElementLocation _cachedLocation;
 
   /**
+   * The documentation comment for this element.
+   */
+  String _docComment;
+
+  /**
    * The offset to the beginning of the documentation comment,
    * or `null` if this element does not have a documentation comment.
    */
@@ -1714,6 +1719,16 @@ abstract class ElementImpl implements Element {
       return new SourceRange(_docRangeOffset, _docRangeLength);
     }
     return null;
+  }
+
+  @override
+  String get documentationComment => _docComment;
+
+  /**
+   * The documentation comment source for this element.
+   */
+  void set documentationComment(String doc) {
+    _docComment = doc?.replaceAll('\r\n', '\n');
   }
 
   @override
@@ -1866,13 +1881,7 @@ abstract class ElementImpl implements Element {
   }
 
   @override
-  String computeDocumentationComment() {
-    AnalysisContext context = this.context;
-    if (context == null) {
-      return null;
-    }
-    return context.computeDocumentationComment(this);
-  }
+  String computeDocumentationComment() => documentationComment;
 
   @override
   AstNode computeNode() => getNodeMatching((node) => node is AstNode);
@@ -3236,7 +3245,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  bool operator ==(Object object) => object is LibraryElementImpl &&
+  bool operator ==(Object object) =>
+      object is LibraryElementImpl &&
       _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
@@ -3656,6 +3666,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   SourceRange get docRange => null;
+
+  @override
+  String get documentationComment => null;
 
   @override
   Element get enclosingElement => null;
@@ -4226,7 +4239,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  bool operator ==(Object object) => super == object &&
+  bool operator ==(Object object) =>
+      super == object &&
       isGetter == (object as PropertyAccessorElement).isGetter;
 
   @override

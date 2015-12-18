@@ -442,6 +442,9 @@ abstract class Member implements Element {
   @override
   SourceRange get docRange => _baseElement.docRange;
 
+  @override
+  String get documentationComment => _baseElement.documentationComment;
+
   int get id => _baseElement.id;
 
   @override
@@ -487,8 +490,7 @@ abstract class Member implements Element {
   CompilationUnit get unit => _baseElement.unit;
 
   @override
-  String computeDocumentationComment() =>
-      _baseElement.computeDocumentationComment();
+  String computeDocumentationComment() => documentationComment;
 
   @override
   AstNode computeNode() => _baseElement.computeNode();

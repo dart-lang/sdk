@@ -2696,7 +2696,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
     element.typeParameters = typeParameters;
-    _setDocRange(element, node);
+    _setDoc(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
     List<ConstructorElement> constructors = holder.constructors;
@@ -2768,7 +2768,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
-    _setDocRange(element, node);
+    _setDoc(element, node);
     if (node.externalKeyword != null) {
       element.external = true;
     }
@@ -2873,7 +2873,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier enumName = node.name;
     ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
     enumElement.enum2 = true;
-    _setDocRange(enumElement, node);
+    _setDoc(enumElement, node);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
     // The equivalent code for enums in the spec shows a single constructor,
@@ -2946,7 +2946,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
-        _setDocRange(element, node);
+        _setDoc(element, node);
         if (node.externalKeyword != null) {
           element.external = true;
         }
@@ -2993,7 +2993,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setDocRange(getter, node);
+          _setDoc(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -3019,7 +3019,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setDocRange(setter, node);
+          _setDoc(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -3110,7 +3110,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     FunctionTypeAliasElementImpl element =
         new FunctionTypeAliasElementImpl.forNode(aliasName);
-    _setDocRange(element, node);
+    _setDoc(element, node);
     element.parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
@@ -3181,7 +3181,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
-        _setDocRange(element, node);
+        _setDoc(element, node);
         element.abstract = node.isAbstract;
         if (node.externalKeyword != null) {
           element.external = true;
@@ -3218,7 +3218,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setDocRange(getter, node);
+          _setDoc(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -3244,7 +3244,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setDocRange(setter, node);
+          _setDoc(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -3382,7 +3382,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = field;
       if (node.parent.parent is FieldDeclaration) {
-        _setDocRange(element, node.parent.parent);
+        _setDoc(element, node.parent.parent);
       }
       if ((node.parent as VariableDeclarationList).type == null) {
         field.hasImplicitType = true;
@@ -3417,7 +3417,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = variable;
       if (node.parent.parent is TopLevelVariableDeclaration) {
-        _setDocRange(element, node.parent.parent);
+        _setDoc(element, node.parent.parent);
       }
       if ((node.parent as VariableDeclarationList).type == null) {
         variable.hasImplicitType = true;
@@ -3551,12 +3551,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * If the given [node] has a documentation comment, remember its range
-   * into the given [element].
+   * If the given [node] has a documentation comment, remember its content
+   * and range into the given [element].
    */
-  void _setDocRange(ElementImpl element, AnnotatedNode node) {
+  void _setDoc(ElementImpl element, AnnotatedNode node) {
     Comment comment = node.documentationComment;
     if (comment != null && comment.isDocumentation) {
+      element.documentationComment =
+          comment.tokens.map((Token t) => t.lexeme).join('\n');
       element.setDocRange(comment.offset, comment.length);
     }
   }
