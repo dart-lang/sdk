@@ -95,7 +95,7 @@ class PrelinkedLibraryBuilder {
   void set units(List<PrelinkedUnitBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("units"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["units"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -103,7 +103,7 @@ class PrelinkedLibraryBuilder {
   void set dependencies(List<PrelinkedDependencyBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("dependencies"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["dependencies"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -111,7 +111,7 @@ class PrelinkedLibraryBuilder {
   void set importDependencies(List<int> _value) {
     assert(!_finished);
     assert(!_json.containsKey("importDependencies"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["importDependencies"] = _value.toList();
     }
   }
@@ -166,7 +166,7 @@ class PrelinkedReferenceBuilder {
   void set kind(PrelinkedReferenceKind _value) {
     assert(!_finished);
     assert(!_json.containsKey("kind"));
-    if (_value != null || _value == PrelinkedReferenceKind.classOrEnum) {
+    if (!(_value == null || _value == PrelinkedReferenceKind.classOrEnum)) {
       _json["kind"] = _value.index;
     }
   }
@@ -213,7 +213,7 @@ class PrelinkedUnitBuilder {
   void set references(List<PrelinkedReferenceBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("references"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["references"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -252,7 +252,7 @@ class SdkBundleBuilder {
   void set libraries(List<SdkBundleLibraryBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("libraries"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["libraries"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -313,7 +313,7 @@ class SdkBundleLibraryBuilder {
   void set unlinkedUnits(List<UnlinkedUnitBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("unlinkedUnits"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["unlinkedUnits"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -387,7 +387,7 @@ class UnlinkedClassBuilder {
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typeParameters"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["typeParameters"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -403,7 +403,7 @@ class UnlinkedClassBuilder {
   void set mixins(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("mixins"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["mixins"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -411,7 +411,7 @@ class UnlinkedClassBuilder {
   void set interfaces(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("interfaces"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["interfaces"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -419,7 +419,7 @@ class UnlinkedClassBuilder {
   void set fields(List<UnlinkedVariableBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("fields"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["fields"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -427,7 +427,7 @@ class UnlinkedClassBuilder {
   void set executables(List<UnlinkedExecutableBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("executables"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["executables"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -500,7 +500,7 @@ class UnlinkedCombinatorBuilder {
   void set shows(List<UnlinkedCombinatorNameBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("shows"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["shows"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -508,7 +508,7 @@ class UnlinkedCombinatorBuilder {
   void set hides(List<UnlinkedCombinatorNameBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("hides"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["hides"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -594,7 +594,7 @@ class UnlinkedEnumBuilder {
   void set values(List<UnlinkedEnumValueBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("values"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["values"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -707,7 +707,7 @@ class UnlinkedExecutableBuilder {
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typeParameters"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["typeParameters"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -723,7 +723,7 @@ class UnlinkedExecutableBuilder {
   void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parameters"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["parameters"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -731,7 +731,7 @@ class UnlinkedExecutableBuilder {
   void set kind(UnlinkedExecutableKind _value) {
     assert(!_finished);
     assert(!_json.containsKey("kind"));
-    if (_value != null || _value == UnlinkedExecutableKind.functionOrMethod) {
+    if (!(_value == null || _value == UnlinkedExecutableKind.functionOrMethod)) {
       _json["kind"] = _value.index;
     }
   }
@@ -837,7 +837,7 @@ class UnlinkedExportBuilder {
   void set combinators(List<UnlinkedCombinatorBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("combinators"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["combinators"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -914,7 +914,7 @@ class UnlinkedImportBuilder {
   void set combinators(List<UnlinkedCombinatorBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("combinators"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["combinators"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1006,7 +1006,7 @@ class UnlinkedParamBuilder {
   void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parameters"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["parameters"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1014,7 +1014,7 @@ class UnlinkedParamBuilder {
   void set kind(UnlinkedParamKind _value) {
     assert(!_finished);
     assert(!_json.containsKey("kind"));
-    if (_value != null || _value == UnlinkedParamKind.required) {
+    if (!(_value == null || _value == UnlinkedParamKind.required)) {
       _json["kind"] = _value.index;
     }
   }
@@ -1184,7 +1184,7 @@ class UnlinkedTypedefBuilder {
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typeParameters"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["typeParameters"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1200,7 +1200,7 @@ class UnlinkedTypedefBuilder {
   void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parameters"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["parameters"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1311,7 +1311,7 @@ class UnlinkedTypeRefBuilder {
   void set typeArguments(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typeArguments"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["typeArguments"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1387,7 +1387,7 @@ class UnlinkedUnitBuilder {
   void set references(List<UnlinkedReferenceBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("references"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["references"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1395,7 +1395,7 @@ class UnlinkedUnitBuilder {
   void set classes(List<UnlinkedClassBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("classes"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["classes"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1403,7 +1403,7 @@ class UnlinkedUnitBuilder {
   void set enums(List<UnlinkedEnumBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("enums"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["enums"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1411,7 +1411,7 @@ class UnlinkedUnitBuilder {
   void set executables(List<UnlinkedExecutableBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("executables"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["executables"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1419,7 +1419,7 @@ class UnlinkedUnitBuilder {
   void set exports(List<UnlinkedExportBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("exports"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["exports"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1427,7 +1427,7 @@ class UnlinkedUnitBuilder {
   void set imports(List<UnlinkedImportBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("imports"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["imports"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1435,7 +1435,7 @@ class UnlinkedUnitBuilder {
   void set parts(List<UnlinkedPartBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parts"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["parts"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1443,7 +1443,7 @@ class UnlinkedUnitBuilder {
   void set typedefs(List<UnlinkedTypedefBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typedefs"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["typedefs"] = _value.map((b) => b.finish()).toList();
     }
   }
@@ -1451,7 +1451,7 @@ class UnlinkedUnitBuilder {
   void set variables(List<UnlinkedVariableBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("variables"));
-    if (_value != null || _value.isEmpty) {
+    if (!(_value == null || _value.isEmpty)) {
       _json["variables"] = _value.map((b) => b.finish()).toList();
     }
   }

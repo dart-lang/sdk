@@ -332,7 +332,11 @@ class _CodeGenerator {
           indent(() {
             out('assert(!_finished);');
             out('assert(!_json.containsKey(${quoted(fieldName)}));');
-            out('if (_value != null$condition) {');
+            if (condition.isEmpty) {
+              out('if (_value != null) {');
+            } else {
+              out('if (!(_value == null$condition)) {');
+            }
             indent(() {
               out('_json[${quoted(fieldName)}] = $conversion;');
             });
