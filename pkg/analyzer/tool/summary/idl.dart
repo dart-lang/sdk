@@ -98,7 +98,7 @@ class PrelinkedLibrary {
   List<PrelinkedDependency> dependencies;
 
   /**
-   * For each import in [UnlinkedLibrary.imports], an index into [dependencies]
+   * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
    *
    * TODO(paulberry): if [dependencies] is removed, this can be removed as
@@ -172,6 +172,40 @@ class PrelinkedUnit {
    * that reference is resolved.
    */
   List<PrelinkedReference> references;
+}
+
+/**
+ * Information about SDK.
+ */
+@topLevel
+class SdkBundle {
+  /**
+   * Information for the libraries units constituting the SDK.
+   */
+  List<SdkBundleLibrary> libraries;
+}
+
+/**
+ * Information about a single library in SDK.
+ */
+class SdkBundleLibrary {
+  /**
+   * The URI of the library, including `dart:`, e.g. `dart:core`.
+   */
+  String uri;
+
+  /**
+   * Pre-linked information the library.
+   */
+  PrelinkedLibrary prelinked;
+
+  /**
+   * Unlinked information for the compilation units constituting the library.
+   * The zeroth entry in the list is the defining compilation unit; the
+   * remaining entries are the parts, in the order listed in the defining
+   * compilation unit's part declarations.
+   */
+  List<UnlinkedUnit> unlinkedUnits;
 }
 
 /**
