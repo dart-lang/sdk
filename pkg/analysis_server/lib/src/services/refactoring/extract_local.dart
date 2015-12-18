@@ -17,8 +17,8 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -76,11 +76,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     RefactoringStatus result = new RefactoringStatus();
-    if (excludedVariableNames.contains(name)) {
-      result.addWarning(format(
-          "A variable with name '{0}' is already defined in the visible scope.",
-          name));
-    }
+    result.addStatus(checkName());
     return new Future.value(result);
   }
 
@@ -105,7 +101,13 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   @override
   RefactoringStatus checkName() {
-    return validateVariableName(name);
+    RefactoringStatus result = new RefactoringStatus();
+    result.addStatus(validateVariableName(name));
+    if (excludedVariableNames.contains(name)) {
+      result.addError(
+          format("The name '{0}' is already used in the scope.", name));
+    }
+    return result;
   }
 
   @override
@@ -232,6 +234,21 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         node is Expression || node is ArgumentList;
         node = node.parent) {
       AstNode parent = node.parent;
+      // stop at void method invocations
+      if (node is MethodInvocation) {
+        MethodInvocation invocation = node;
+        Element element = invocation.methodName.bestElement;
+        if (element is ExecutableElement &&
+            element.returnType != null &&
+            element.returnType.isVoid) {
+          if (rootExpression == null) {
+            return new RefactoringStatus.fatal(
+                'Cannot extract the void expression.',
+                newLocation_fromNode(node));
+          }
+          break;
+        }
+      }
       // skip ArgumentList
       if (node is ArgumentList) {
         continue;
@@ -281,7 +298,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     }
     // part of string literal
     if (coveringNode is StringLiteral) {
-      if (selectionRange.offset > coveringNode.offset &&
+      if (selectionRange.length != 0 &&
+          selectionRange.offset > coveringNode.offset &&
           selectionRange.end < coveringNode.end) {
         stringLiteralPart = selectionStr;
         return new RefactoringStatus();

@@ -127,16 +127,15 @@ super_call4_test: CompileTimeError
 super_getter_setter_test: CompileTimeError
 vm/reflect_core_vm_test: CompileTimeError
 redirecting_factory_reflection_test: CompileTimeError
+deferred_constraints_constants_test: Skip # multitest gets confused
 
-# Deferred loading - Issue 24676
-deferred_load_constants_test: Skip
-deferred_constraints_constants_test: Skip
-deferred_global_test: Skip
+# Deferred loading happens eagerly
+regress_23408_test: RuntimeError
+deferred_global_test: RuntimeError
 deferred_inheritance_constraints_test: Skip
+deferred_load_constants_test: Skip # multitest gets confused
 
 deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-alot
 tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
-regress_23408_test: RuntimeError
-
 stack_trace_test: Fail  # Issue 24783 - inlined frames missing

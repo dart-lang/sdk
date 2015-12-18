@@ -10,12 +10,12 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart'
-    show DART_RELEVANCE_COMMON_USAGE;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 
@@ -38,7 +38,7 @@ class CommonUsageSorter implements DartContributionSorter {
   CommonUsageSorter([this.selectorRelevance = defaultSelectorRelevance]);
 
   @override
-  Future sort(CompletionRequest request,
+  Future sort(DartCompletionRequest request,
       Iterable<CompletionSuggestion> suggestions) {
     _update(request, suggestions);
     return new Future.value();
@@ -92,7 +92,7 @@ class CommonUsageSorter implements DartContributionSorter {
   void _updateInvocationRelevance(DartType type, LibraryElement libElem,
       Iterable<CompletionSuggestion> suggestions) {
     String typeName = type.name;
-    List<String> selectors = selectorRelevance['${libElem.name}.${typeName}'];
+    List<String> selectors = selectorRelevance['${libElem.name}.$typeName'];
     if (selectors != null) {
       for (CompletionSuggestion suggestion in suggestions) {
         protocol.Element element = suggestion.element;

@@ -236,16 +236,14 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
 }
 
 
-// TODO(koda): Make non-static and invoke in SafepointThreads.
 void Thread::PrepareForGC() {
-  Thread* thread = Thread::Current();
-  // Prevent scheduling another GC.
-  thread->StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
+  ASSERT(isolate()->thread_registry()->AtSafepoint());
+  // Prevent scheduling another GC by ignoring the threshold.
+  StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
   // Make sure to get an *empty* block; the isolate needs all entries
   // at GC time.
   // TODO(koda): Replace with an epilogue (PrepareAfterGC) that acquires.
-  thread->store_buffer_block_ =
-      thread->isolate()->store_buffer()->PopEmptyBlock();
+  store_buffer_block_ = isolate()->store_buffer()->PopEmptyBlock();
 }
 
 
@@ -274,7 +272,7 @@ void Thread::StoreBufferAddObjectGC(RawObject* obj) {
 void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
   StoreBufferBlock* block = store_buffer_block_;
   store_buffer_block_ = NULL;
-  isolate_->store_buffer()->PushBlock(block, policy);
+  isolate()->store_buffer()->PushBlock(block, policy);
 }
 
 

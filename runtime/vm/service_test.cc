@@ -35,10 +35,15 @@ class ServiceTestMessageHandler : public MessageHandler {
     }
 
     // Parse the message.
-    Thread* thread = Thread::Current();
-    MessageSnapshotReader reader(message->data(), message->len(), thread);
-    const Object& response_obj = Object::Handle(reader.ReadObject());
     String& response = String::Handle();
+    Object& response_obj = Object::Handle();
+    if (message->IsRaw()) {
+      response_obj = message->raw_obj();
+    } else {
+      Thread* thread = Thread::Current();
+      MessageSnapshotReader reader(message->data(), message->len(), thread);
+      response_obj = reader.ReadObject();
+    }
     response ^= response_obj.raw();
     _msg = strdup(response.ToCString());
     return kOK;

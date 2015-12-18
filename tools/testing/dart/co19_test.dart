@@ -28,7 +28,6 @@ const List<String> COMMON_ARGUMENTS =
 const List<List<String>> COMMAND_LINES = const <List<String>>[
     const <String>['-mrelease,debug', '-rvm', '-cnone'],
     const <String>['-mrelease,debug', '-rvm', '-cnone', '--checked'],
-    const <String>['-mrelease', '-rnone', '-cdartanalyzer'],
     const <String>['-mrelease', '-rnone', '-cdart2analyzer'],
     const <String>['-mrelease', '-rd8', '-cdart2js', '--use-sdk'],
     const <String>['-mrelease', '-rd8,jsshell', '-cdart2js', '--use-sdk',

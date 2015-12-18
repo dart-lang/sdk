@@ -6,9 +6,13 @@ library analyzer.test.generated.resolver_test;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -118,6 +122,10 @@ class AnalysisContextFactory {
     coreContext.setContents(coreSource, "");
     coreUnit.librarySource = coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
+    proxyClassElement.constructors = <ConstructorElement>[
+      ElementFactory.constructorElement(proxyClassElement, null, true)
+        ..isCycleFree = true
+    ];
     ClassElement objectClassElement = provider.objectType.element;
     coreUnit.types = <ClassElement>[
       provider.boolType.element,
@@ -193,8 +201,8 @@ class AnalysisContextFactory {
         'onValue', futureThenR, [futureElement.typeParameters[0]], null);
 
     DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
-    MethodElementImpl thenMethod = ElementFactory
-        .methodElementWithParameters(futureElement, "then", futureRType, [
+    MethodElementImpl thenMethod = ElementFactory.methodElementWithParameters(
+        futureElement, "then", futureRType, [
       ElementFactory.requiredParameter2("onValue", thenOnValue.type),
       ElementFactory.namedParameter2("onError", provider.functionType)
     ]);
@@ -245,7 +253,8 @@ class AnalysisContextFactory {
     asyncUnit.types = <ClassElement>[
       completerElement,
       futureElement,
-      streamElement
+      streamElement,
+      streamSubscriptionElement
     ];
     LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
         coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
@@ -282,8 +291,8 @@ class AnalysisContextFactory {
     ClassElementImpl htmlDocumentElement =
         ElementFactory.classElement("HtmlDocument", documentElement.type);
     htmlDocumentElement.methods = <MethodElement>[
-      ElementFactory
-          .methodElement("query", elementType, <DartType>[provider.stringType])
+      ElementFactory.methodElement(
+          "query", elementType, <DartType>[provider.stringType])
     ];
     htmlUnit.types = <ClassElement>[
       ElementFactory.classElement("AnchorElement", elementType),
@@ -303,8 +312,8 @@ class AnalysisContextFactory {
       ElementFactory.functionElement3("query", elementElement,
           <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
     ];
-    TopLevelVariableElementImpl document =
-        ElementFactory.topLevelVariableElement3(
+    TopLevelVariableElementImpl document = ElementFactory
+        .topLevelVariableElement3(
             "document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
@@ -1414,6 +1423,47 @@ class ElementResolverTest extends EngineTestCase {
   void test_visitBreakStatement_withoutLabel() {
     BreakStatement statement = AstFactory.breakStatement();
     _resolveStatement(statement, null, null);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitCommentReference_prefixedIdentifier_class_getter() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    // set accessors
+    String propName = "p";
+    PropertyAccessorElement getter =
+        ElementFactory.getterElement(propName, false, _typeProvider.intType);
+    PropertyAccessorElement setter =
+        ElementFactory.setterElement(propName, false, _typeProvider.intType);
+    classA.accessors = <PropertyAccessorElement>[getter, setter];
+    // set name scope
+    _visitor.nameScope = new EnclosedScope(null)
+      ..defineNameWithoutChecking('A', classA);
+    // prepare "A.p"
+    PrefixedIdentifier prefixed = AstFactory.identifier5('A', 'p');
+    CommentReference commentReference = new CommentReference(null, prefixed);
+    // resolve
+    _resolveNode(commentReference);
+    expect(prefixed.prefix.staticElement, classA);
+    expect(prefixed.identifier.staticElement, getter);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitCommentReference_prefixedIdentifier_class_method() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    // set method
+    MethodElement method =
+        ElementFactory.methodElement("m", _typeProvider.intType);
+    classA.methods = <MethodElement>[method];
+    // set name scope
+    _visitor.nameScope = new EnclosedScope(null)
+      ..defineNameWithoutChecking('A', classA);
+    // prepare "A.m"
+    PrefixedIdentifier prefixed = AstFactory.identifier5('A', 'm');
+    CommentReference commentReference = new CommentReference(null, prefixed);
+    // resolve
+    _resolveNode(commentReference);
+    expect(prefixed.prefix.staticElement, classA);
+    expect(prefixed.identifier.staticElement, method);
     _listener.assertNoErrors();
   }
 
@@ -3643,6 +3693,22 @@ class B extends _A {}
     verify([source]);
   }
 
+  void test_unusedElement_class_isUsed_fieldDeclaration() {
+    enableUnusedElement = true;
+    var src = r'''
+class Foo {
+  _Bar x;
+}
+
+class _Bar {
+}
+''';
+    Source source = addSource(src);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_unusedElement_class_isUsed_implements() {
     enableUnusedElement = true;
     Source source = addSource(r'''
@@ -3759,22 +3825,6 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_ELEMENT]);
-    verify([source]);
-  }
-
-  void test_unusedElement_class_isUsed_fieldDeclaration() {
-    enableUnusedElement = true;
-    var src = r'''
-class Foo {
-  _Bar x;
-}
-
-class _Bar {
-}
-''';
-    Source source = addSource(src);
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
     verify([source]);
   }
 
@@ -5103,8 +5153,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I2, I1 {}
@@ -5127,8 +5176,7 @@ class InheritanceManagerTest {
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I1, I2 {}
@@ -5138,8 +5186,8 @@ class InheritanceManagerTest {
         ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    MethodElement methodM2 = ElementFactory
-        .methodElement(methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM2 = ElementFactory.methodElement(
+        methodName, null, [_typeProvider.stringType]);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
@@ -5151,8 +5199,7 @@ class InheritanceManagerTest {
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I1, I2 {}
@@ -5175,8 +5222,7 @@ class InheritanceManagerTest {
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
     // class I1 { dynamic m(int, [int]); }
     // class I2 { dynamic m(int, int, int); }
     // class A implements I1, I2 {}
@@ -5225,15 +5271,14 @@ class InheritanceManagerTest {
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
+  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I2, I1 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM1 = ElementFactory
-        .methodElement(methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM1 = ElementFactory.methodElement(
+        methodName, null, [_typeProvider.stringType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 =
@@ -5335,8 +5380,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
     // class I1 { int get g; }
     // class I2 { num get g; }
     // class A implements I1, I2 {}
@@ -5360,8 +5404,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
     // class I1 { dynamic m(int); }
     // class I2 { dynamic m(num); }
     // class A implements I1, I2 {}
@@ -5395,8 +5438,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
     // class I1 { set s(int); }
     // class I2 { set s(num); }
     // class A implements I1, I2 {}
@@ -5421,8 +5463,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5461,8 +5502,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classD);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5516,8 +5556,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classD);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5557,8 +5596,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classD);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class A implements I1, I2 {}
@@ -5585,8 +5623,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class I3 { int m([int, int]); }
@@ -5631,8 +5668,7 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void
-      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
+  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
     // class I1 { int m(); }
     // class I2 { int m(); }
     // class I3 { int m([int]); }
@@ -9334,9 +9370,7 @@ const A = null;
     expect(declarations, hasLength(2));
     Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
         .variables
-        .variables[0]
-        .name
-        .staticElement;
+        .variables[0].name.staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
         PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -9527,9 +9561,7 @@ const A = null;
     expect(declarations, hasLength(2));
     Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
         .variables
-        .variables[0]
-        .name
-        .staticElement;
+        .variables[0].name.staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
         PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -11752,17 +11784,17 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
   AsserterBuilder<Element, DartType> _hasElement;
   AsserterBuilder<DartType, DartType> _isType;
-  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, DartType>
-      _isFunction2Of;
-  AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>, DartType>
-      _isInstantiationOf;
+  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
+      DartType> _isFunction2Of;
+  AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>,
+      DartType> _isInstantiationOf;
   Asserter<DartType> _isInt;
   Asserter<DartType> _isNum;
   Asserter<DartType> _isString;
   Asserter<DartType> _isDynamic;
   AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
-  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, InterfaceType>
-      _isMapOf;
+  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
+      InterfaceType> _isMapOf;
 
   @override
   void setUp() {
@@ -13993,8 +14025,7 @@ class B extends A {
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void
-      test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
+  void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14213,8 +14244,7 @@ f(MyMap<int, String> m) {
     expect(vParameter.identifier.propagatedType, same(stringType));
   }
 
-  void
-      test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
+  void test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
     String code = r'''
 main() {
   (f(String value)) {} ((v) {

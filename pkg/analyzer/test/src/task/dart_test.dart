@@ -4,10 +4,12 @@
 
 library analyzer.test.src.task.dart_test;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/error.dart';
@@ -62,6 +64,7 @@ main() {
   runReflectiveTests(PropagateVariableTypesInUnitTaskTest);
   runReflectiveTests(PropagateVariableTypeTaskTest);
   runReflectiveTests(ResolveInstanceFieldsInUnitTaskTest);
+  runReflectiveTests(ResolveLibraryTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
   runReflectiveTests(ResolveUnitTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
@@ -124,6 +127,7 @@ isInstanceOf isPropagateVariableTypesInUnitTask =
     new isInstanceOf<PropagateVariableTypesInUnitTask>();
 isInstanceOf isPropagateVariableTypeTask =
     new isInstanceOf<PropagateVariableTypeTask>();
+isInstanceOf isResolveLibraryTask = new isInstanceOf<ResolveLibraryTask>();
 isInstanceOf isResolveLibraryTypeNamesTask =
     new isInstanceOf<ResolveLibraryTypeNamesTask>();
 isInstanceOf isResolveUnitTask = new isInstanceOf<ResolveUnitTask>();
@@ -1427,62 +1431,6 @@ library my_lib1;
     expect(outputs[LIBRARY_CYCLE], hasLength(1));
   }
 
-  void test_library_cycle_override_inference_incremental() {
-    enableStrongMode();
-    Source lib1Source = newSource(
-        '/my_lib1.dart',
-        '''
-library my_lib1;
-import 'my_lib3.dart';
-''');
-    Source lib2Source = newSource(
-        '/my_lib2.dart',
-        '''
-library my_lib2;
-import 'my_lib1.dart';
-''');
-    Source lib3Source = newSource(
-        '/my_lib3.dart',
-        '''
-library my_lib3;
-import 'my_lib2.dart';
-
-class A {
-  int foo(int x) => null;
-}
-class B extends A {
-  foo(x) => null;
-}
-''');
-    AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
-    AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
-    AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
-
-    computeResult(lib1Target, RESOLVED_UNIT);
-    computeResult(lib2Target, RESOLVED_UNIT);
-    computeResult(lib3Target, RESOLVED_UNIT);
-    CompilationUnit unit = outputs[RESOLVED_UNIT];
-    ClassElement b = unit.declarations[1].element;
-    expect(b.getMethod('foo').returnType.toString(), 'int');
-
-    // add a dummy edit.
-    context.setContents(
-        lib1Source,
-        '''
-library my_lib1;
-import 'my_lib3.dart';
-var foo = 123;
-''');
-
-    computeResult(lib1Target, RESOLVED_UNIT);
-    computeResult(lib2Target, RESOLVED_UNIT);
-    computeResult(lib3Target, RESOLVED_UNIT);
-    unit = outputs[RESOLVED_UNIT];
-    b = unit.declarations[1].element;
-    expect(b.getMethod('foo').returnType.toString(), 'int',
-        reason: 'edit should not affect member inference');
-  }
-
   void test_library_cycle_incremental_partial() {
     enableStrongMode();
     Source lib1Source = newSource(
@@ -1590,6 +1538,62 @@ import 'a.dart';
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
     expect(dep2, hasLength(1)); // dart:core
+  }
+
+  void test_library_cycle_override_inference_incremental() {
+    enableStrongMode();
+    Source lib1Source = newSource(
+        '/my_lib1.dart',
+        '''
+library my_lib1;
+import 'my_lib3.dart';
+''');
+    Source lib2Source = newSource(
+        '/my_lib2.dart',
+        '''
+library my_lib2;
+import 'my_lib1.dart';
+''');
+    Source lib3Source = newSource(
+        '/my_lib3.dart',
+        '''
+library my_lib3;
+import 'my_lib2.dart';
+
+class A {
+  int foo(int x) => null;
+}
+class B extends A {
+  foo(x) => null;
+}
+''');
+    AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
+    AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
+    AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
+
+    computeResult(lib1Target, RESOLVED_UNIT);
+    computeResult(lib2Target, RESOLVED_UNIT);
+    computeResult(lib3Target, RESOLVED_UNIT);
+    CompilationUnit unit = outputs[RESOLVED_UNIT];
+    ClassElement b = unit.declarations[1].element;
+    expect(b.getMethod('foo').returnType.toString(), 'int');
+
+    // add a dummy edit.
+    context.setContents(
+        lib1Source,
+        '''
+library my_lib1;
+import 'my_lib3.dart';
+var foo = 123;
+''');
+
+    computeResult(lib1Target, RESOLVED_UNIT);
+    computeResult(lib2Target, RESOLVED_UNIT);
+    computeResult(lib3Target, RESOLVED_UNIT);
+    unit = outputs[RESOLVED_UNIT];
+    b = unit.declarations[1].element;
+    expect(b.getMethod('foo').returnType.toString(), 'int',
+        reason: 'edit should not affect member inference');
   }
 
   void test_library_cycle_self_loop() {
@@ -3538,6 +3542,32 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     // B.b2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "B", "b2"), intType, intType);
+  }
+}
+
+@reflectiveTest
+class ResolveLibraryTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source sourceLib = newSource(
+        '/my_lib.dart',
+        '''
+library my_lib;
+const a = new A();
+class A {
+  const A();
+}
+@a
+class C {}
+''');
+    computeResult(sourceLib, LIBRARY_ELEMENT, matcher: isResolveLibraryTask);
+    // validate
+    LibraryElement library = outputs[LIBRARY_ELEMENT];
+    ClassElement classC = library.getType('C');
+    List<ElementAnnotation> metadata = classC.metadata;
+    expect(metadata, hasLength(1));
+    ElementAnnotation annotation = metadata[0];
+    expect(annotation, isNotNull);
+    expect((annotation as ElementAnnotationImpl).evaluationResult, isNotNull);
   }
 }
 

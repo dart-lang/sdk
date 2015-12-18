@@ -16,9 +16,10 @@ import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart'
     show AnalysisRequest, CompletionRequest, CompletionResult;
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/index/index.dart' show Index;
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -34,6 +35,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
+import 'domain_completion_util.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
 import 'utils.dart';
@@ -275,109 +277,7 @@ class CompletionManagerTest extends AbstractAnalysisTest {
 }
 
 @reflectiveTest
-class CompletionTest extends AbstractAnalysisTest {
-  String completionId;
-  int completionOffset;
-  int replacementOffset;
-  int replacementLength;
-  List<CompletionSuggestion> suggestions = [];
-  bool suggestionsDone = false;
-
-  String addTestFile(String content, {int offset}) {
-    completionOffset = content.indexOf('^');
-    if (offset != null) {
-      expect(completionOffset, -1, reason: 'cannot supply offset and ^');
-      completionOffset = offset;
-      return super.addTestFile(content);
-    }
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-    return super.addTestFile(content.substring(0, completionOffset) +
-        content.substring(completionOffset + 1));
-  }
-
-  void assertHasResult(CompletionSuggestionKind kind, String completion,
-      {int relevance: DART_RELEVANCE_DEFAULT,
-      bool isDeprecated: false,
-      bool isPotential: false,
-      int selectionOffset}) {
-    var cs;
-    suggestions.forEach((s) {
-      if (s.completion == completion) {
-        if (cs == null) {
-          cs = s;
-        } else {
-          fail('expected exactly one $completion but found > 1');
-        }
-      }
-    });
-    if (cs == null) {
-      var completions = suggestions.map((s) => s.completion).toList();
-      fail('expected "$completion" but found\n $completions');
-    }
-    expect(cs.kind, equals(kind));
-    expect(cs.relevance, equals(relevance));
-    expect(cs.selectionOffset, selectionOffset ?? completion.length);
-    expect(cs.selectionLength, equals(0));
-    expect(cs.isDeprecated, equals(isDeprecated));
-    expect(cs.isPotential, equals(isPotential));
-  }
-
-  void assertNoResult(String completion) {
-    if (suggestions.any((cs) => cs.completion == completion)) {
-      fail('did not expect completion: $completion');
-    }
-  }
-
-  void assertValidId(String id) {
-    expect(id, isNotNull);
-    expect(id.isNotEmpty, isTrue);
-  }
-
-  @override
-  Index createIndex() {
-    return createLocalMemoryIndex();
-  }
-
-  Future getSuggestions() {
-    return waitForTasksFinished().then((_) {
-      Request request = new CompletionGetSuggestionsParams(
-          testFile, completionOffset).toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      completionId = response.id;
-      assertValidId(completionId);
-      return pumpEventQueue().then((_) {
-        expect(suggestionsDone, isTrue);
-      });
-    });
-  }
-
-  void processNotification(Notification notification) {
-    if (notification.event == COMPLETION_RESULTS) {
-      var params = new CompletionResultsParams.fromNotification(notification);
-      String id = params.id;
-      assertValidId(id);
-      if (id == completionId) {
-        expect(suggestionsDone, isFalse);
-        replacementOffset = params.replacementOffset;
-        replacementLength = params.replacementLength;
-        suggestionsDone = params.isLast;
-        expect(suggestionsDone, isNotNull);
-        suggestions = params.results;
-      }
-    } else if (notification.event == SERVER_ERROR) {
-      fail('server error: ${notification.toJson()}');
-    }
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    createProject();
-    handler = new CompletionDomainHandler(server);
-  }
-
+class CompletionTest extends AbstractCompletionDomainTest {
   test_html() {
     testFile = '/project/web/test.html';
     addTestFile('''
@@ -501,15 +401,15 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   test_invocation_sdk_relevancy_off() {
-    var originalSorter = DartCompletionManager.defaultContributionSorter;
+    var originalSorter = DartCompletionManager.contributionSorter;
     var mockSorter = new MockRelevancySorter();
-    DartCompletionManager.defaultContributionSorter = mockSorter;
+    DartCompletionManager.contributionSorter = mockSorter;
     addTestFile('main() {Map m; m.^}');
     return getSuggestions().then((_) {
       // Assert that the CommonUsageComputer has been replaced
       expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
           isFalse);
-      DartCompletionManager.defaultContributionSorter = originalSorter;
+      DartCompletionManager.contributionSorter = originalSorter;
       mockSorter.enabled = false;
     });
   }
@@ -529,6 +429,102 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+    });
+  }
+
+  test_inComment_block_beforeNode() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    /* text ^ */
+    print(42);
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inComment_endOfLine_beforeNode() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    // text ^
+    print(42);
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inComment_endOfLine_beforeToken() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    // text ^
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc1() async {
+    addTestFile('''
+  /// ^
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc2() async {
+    addTestFile('''
+  /// Some text^
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc_reference1() async {
+    addFile(
+        '/testA.dart',
+        '''
+  part of libA;
+  foo(bar) => 0;''');
+    addTestFile('''
+  library libA;
+  part "/testA.dart";
+  import "dart:math";
+  /// The [^]
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'min');
+  }
+
+  test_inDartDoc_reference2() async {
+    addTestFile('''
+  /// The [m^]
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+  }
+
+  test_inherited() {
+    addFile('/libA.dart', 'class A {m() {}}');
+    addTestFile('''
+import '/libA.dart';
+class B extends A {
+  x() {^}
+}
+''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 
@@ -554,6 +550,23 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_local_override() {
+    addFile('/libA.dart', 'class A {m() {}}');
+    addTestFile('''
+import '/libA.dart';
+class B extends A {
+  m() {}
+  x() {^}
+}
+''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
+    });
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}} class DateTime { }');
     return getSuggestions().then((_) {
@@ -572,12 +585,12 @@ class CompletionTest extends AbstractAnalysisTest {
 
   test_offset_past_eof() {
     addTestFile('main() { }', offset: 300);
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(300));
-      expect(replacementLength, equals(0));
-      expect(suggestionsDone, true);
-      expect(suggestions.length, 0);
-    });
+    Request request =
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response.id, '0');
+    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
   test_overrides() {
@@ -679,10 +692,6 @@ class B extends A {m() {^}}
       assertNoResult('HtmlElement');
     });
   }
-}
-
-class MockCache extends CompletionCache {
-  MockCache(AnalysisContext context, Source source) : super(context, source);
 }
 
 class MockCompletionManager implements CompletionManager {

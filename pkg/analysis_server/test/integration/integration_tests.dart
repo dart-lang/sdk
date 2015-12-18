@@ -582,7 +582,7 @@ class Server {
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(UTF8.encoder.convert("${line}\n"));
+    _process.stdin.add(UTF8.encoder.convert("$line\n"));
     return completer.future;
   }
 
@@ -613,7 +613,7 @@ class Server {
       arguments.add('--observe');
       arguments.add('--pause-isolates-on-exit');
     }
-    if (Platform.packageRoot.isNotEmpty) {
+    if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
     arguments.add('--checked');

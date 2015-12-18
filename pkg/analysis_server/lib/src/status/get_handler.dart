@@ -26,12 +26,13 @@ import 'package:analysis_server/src/status/ast_writer.dart';
 import 'package:analysis_server/src/status/element_writer.dart';
 import 'package:analysis_server/src/status/validator.dart';
 import 'package:analysis_server/src/utilities/average.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -56,6 +57,141 @@ import 'package:plugin/plugin.dart';
  * encoded).
  */
 typedef void HtmlGenerator(StringBuffer buffer);
+
+class ElementCounter extends RecursiveElementVisitor {
+  Map<Type, int> counts = new HashMap<Type, int>();
+  int elementsWithDocs = 0;
+  int totalDocSpan = 0;
+
+  void visit(Element element) {
+    SourceRange docRange = element.docRange;
+    if (docRange != null) {
+      ++elementsWithDocs;
+      totalDocSpan += docRange.length;
+    }
+
+    Type type = element.runtimeType;
+    if (counts[type] == null) {
+      counts[type] = 1;
+    } else {
+      counts[type]++;
+    }
+  }
+
+  @override
+  visitClassElement(ClassElement element) {
+    visit(element);
+    super.visitClassElement(element);
+  }
+
+  @override
+  visitCompilationUnitElement(CompilationUnitElement element) {
+    visit(element);
+    super.visitCompilationUnitElement(element);
+  }
+
+  @override
+  visitConstructorElement(ConstructorElement element) {
+    visit(element);
+    super.visitConstructorElement(element);
+  }
+
+  @override
+  visitExportElement(ExportElement element) {
+    visit(element);
+    super.visitExportElement(element);
+  }
+
+  @override
+  visitFieldElement(FieldElement element) {
+    visit(element);
+    super.visitFieldElement(element);
+  }
+
+  @override
+  visitFieldFormalParameterElement(FieldFormalParameterElement element) {
+    visit(element);
+    super.visitFieldFormalParameterElement(element);
+  }
+
+  @override
+  visitFunctionElement(FunctionElement element) {
+    visit(element);
+    super.visitFunctionElement(element);
+  }
+
+  @override
+  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    visit(element);
+    super.visitFunctionTypeAliasElement(element);
+  }
+
+  @override
+  visitImportElement(ImportElement element) {
+    visit(element);
+    super.visitImportElement(element);
+  }
+
+  @override
+  visitLabelElement(LabelElement element) {
+    visit(element);
+    super.visitLabelElement(element);
+  }
+
+  @override
+  visitLibraryElement(LibraryElement element) {
+    visit(element);
+    super.visitLibraryElement(element);
+  }
+
+  @override
+  visitLocalVariableElement(LocalVariableElement element) {
+    visit(element);
+    super.visitLocalVariableElement(element);
+  }
+
+  @override
+  visitMethodElement(MethodElement element) {
+    visit(element);
+    super.visitMethodElement(element);
+  }
+
+  @override
+  visitMultiplyDefinedElement(MultiplyDefinedElement element) {
+    visit(element);
+    super.visitMultiplyDefinedElement(element);
+  }
+
+  @override
+  visitParameterElement(ParameterElement element) {
+    visit(element);
+    super.visitParameterElement(element);
+  }
+
+  @override
+  visitPrefixElement(PrefixElement element) {
+    visit(element);
+    super.visitPrefixElement(element);
+  }
+
+  @override
+  visitPropertyAccessorElement(PropertyAccessorElement element) {
+    visit(element);
+    super.visitPropertyAccessorElement(element);
+  }
+
+  @override
+  visitTopLevelVariableElement(TopLevelVariableElement element) {
+    visit(element);
+    super.visitTopLevelVariableElement(element);
+  }
+
+  @override
+  visitTypeParameterElement(TypeParameterElement element) {
+    visit(element);
+    super.visitTypeParameterElement(element);
+  }
+}
 
 /**
  * Instances of the class [GetHandler] handle GET requests.
@@ -1693,6 +1829,13 @@ class GetHandler {
     var json = response.toJson()[Response.RESULT];
     List contexts = json['contexts'];
     contexts.sort((first, second) => first['name'].compareTo(second['name']));
+
+    // Track visited libraries.
+    Set<LibraryElement> libraries = new HashSet<LibraryElement>();
+
+    // Count SDK elements separately.
+    ElementCounter sdkCounter = new ElementCounter();
+
     for (var context in contexts) {
       buffer.write('<p><h3>');
       buffer.write(context['name']);
@@ -1706,10 +1849,52 @@ class GetHandler {
       buffer.write('<p>workItemQueueLength: ');
       buffer.write(context['workItemQueueLength']);
       buffer.write('</p>');
-      buffer.write('<p>workItemQueueLengthAverage: ');
-      buffer.write(context['workItemQueueLengthAverage']);
-      buffer.write('</p>');
+
+      AnalysisServer server = _server.analysisServer;
+
+      if (server != null) {
+        Folder folder = _findFolder(server, context['name']);
+        InternalAnalysisContext ac = _server.analysisServer.folderMap[folder];
+        ElementCounter counter = new ElementCounter();
+
+        for (Source source in ac.librarySources) {
+          LibraryElement libraryElement = ac.getLibraryElement(source);
+          if (libraries.add(libraryElement)) {
+            if (libraryElement != null) {
+              if (libraryElement.isInSdk) {
+                libraryElement.accept(sdkCounter);
+              } else {
+                libraryElement.accept(counter);
+              }
+            }
+          }
+        }
+        buffer.write('<p>element count: ');
+        buffer.write(
+            counter.counts.values.fold(0, (prev, element) => prev + element));
+        buffer.write('</p>');
+        buffer.write('<p>  (w/docs): ');
+        buffer.write(counter.elementsWithDocs);
+        buffer.write('</p>');
+        buffer.write('<p>total doc span: ');
+        buffer.write(counter.totalDocSpan);
+        buffer.write('</p>');
+      }
     }
+
+    buffer.write('<p><h3>');
+    buffer.write('SDK');
+    buffer.write('</h3></p>');
+    buffer.write('<p>element count: ');
+    buffer.write(
+        sdkCounter.counts.values.fold(0, (prev, element) => prev + element));
+    buffer.write('</p>');
+    buffer.write('<p>  (w/docs): ');
+    buffer.write(sdkCounter.elementsWithDocs);
+    buffer.write('</p>');
+    buffer.write('<p>total doc span: ');
+    buffer.write(sdkCounter.totalDocSpan);
+    buffer.write('</p>');
   }
 
   /**

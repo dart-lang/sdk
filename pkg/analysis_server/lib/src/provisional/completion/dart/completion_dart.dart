@@ -9,8 +9,9 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 export 'package:analysis_server/src/provisional/completion/completion_core.dart'
@@ -61,6 +62,11 @@ abstract class DartCompletionContributor {
  * Clients may not extend, implement or mix-in this class.
  */
 abstract class DartCompletionRequest extends CompletionRequest {
+  /**
+   * Return the dart:core library element
+   */
+  LibraryElement get coreLib;
+
   /**
    * Return the expression to the right of the "dot" or "dot dot",
    * or `null` if this is not a "dot" completion (e.g. `foo.b`).

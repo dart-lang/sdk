@@ -109,7 +109,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (status == -1) {
     FATAL("Failed adding interrupt fd to epoll instance");
   }
-  timer_fd_ = NO_RETRY_EXPECTED(timerfd_create(CLOCK_REALTIME, TFD_CLOEXEC));
+  timer_fd_ = NO_RETRY_EXPECTED(timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC));
   if (timer_fd_ == -1) {
     FATAL1("Failed creating timerfd file descriptor: %i", errno);
   }

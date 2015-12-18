@@ -1137,6 +1137,8 @@ class HeapSnapshot {
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner with Coverage {
   static const kLoggingStream = '_Logging';
+  static const kExtensionStream = 'Extension';
+
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable int number;
@@ -1170,6 +1172,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable bool loading = true;
 
   @observable bool ioEnabled = false;
+
+  final List<String> extensionRPCs = new List<String>();
 
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
   final TagProfile tagProfile = new TagProfile(20);
@@ -1435,6 +1439,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
     libraries.sort(ServiceObject.LexicalSortName);
     if (savedStartTime == null) {
       vm._buildIsolateList();
+    }
+
+    extensionRPCs.clear();
+    if (map['extensionRPCs'] != null) {
+      extensionRPCs.addAll(map['extensionRPCs']);
     }
   }
 
@@ -1884,6 +1893,7 @@ class ServiceEvent extends ServiceObject {
   static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
+  static const kServiceExtensionAdded  = 'ServiceExtensionAdded';
   static const kPauseStart             = 'PauseStart';
   static const kPauseExit              = 'PauseExit';
   static const kPauseBreakpoint        = 'PauseBreakpoint';
@@ -1899,6 +1909,7 @@ class ServiceEvent extends ServiceObject {
   static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
   static const kConnectionClosed       = 'ConnectionClosed';
   static const kLogging                = '_Logging';
+  static const kExtension              = 'Extension';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1910,6 +1921,7 @@ class ServiceEvent extends ServiceObject {
   @observable DateTime timestamp;
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
+  @observable String extensionRPC;
   @observable Instance exception;
   @observable Instance asyncContinuation;
   @observable bool atAsyncJump;
@@ -1920,6 +1932,8 @@ class ServiceEvent extends ServiceObject {
   @observable String exceptions;
   @observable String bytesAsString;
   @observable Map logRecord;
+  @observable String extensionKind;
+  @observable Map extensionData;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -1951,6 +1965,9 @@ class ServiceEvent extends ServiceObject {
       if (pauseBpts.length > 0) {
         breakpoint = pauseBpts[0];
       }
+    }
+    if (map['extensionRPC'] != null) {
+      extensionRPC = map['extensionRPC'];
     }
     topFrame = map['topFrame'];
     if (map['exception'] != null) {
@@ -1993,6 +2010,10 @@ class ServiceEvent extends ServiceObject {
       logRecord['time'] =
           new DateTime.fromMillisecondsSinceEpoch(logRecord['time']);
       logRecord['level'] = _findLogLevel(logRecord['level']);
+    }
+    if (map['extensionKind'] != null) {
+      extensionKind = map['extensionKind'];
+      extensionData = map['extensionData'];
     }
   }
 

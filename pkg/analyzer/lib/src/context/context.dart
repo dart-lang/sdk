@@ -7,14 +7,15 @@ library analyzer.src.context.context;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
@@ -557,22 +558,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  String computeDocumentationComment(Element element) {
-    if (element == null) {
-      return null;
-    }
-    Source source = element.source;
-    if (source == null) {
-      return null;
-    }
-    SourceRange docRange = element.docRange;
-    if (docRange == null) {
-      return null;
-    }
-    String code = getContents(source).data;
-    String comment = code.substring(docRange.offset, docRange.end);
-    return comment.replaceAll('\r\n', '\n');
-  }
+  String computeDocumentationComment(Element element) =>
+      element?.documentationComment;
 
   @override
   List<AnalysisError> computeErrors(Source source) {
@@ -1093,6 +1080,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(LIBRARY_ELEMENT5, library);
       setValue(LIBRARY_ELEMENT6, library);
       setValue(LIBRARY_ELEMENT7, library);
+      setValue(LIBRARY_ELEMENT8, library);
       setValue(LINE_INFO, new LineInfo(<int>[0]));
       setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(PARSED_UNIT, CacheState.FLUSHED);

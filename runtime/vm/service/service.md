@@ -58,6 +58,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [ErrorKind](#errorkind)
 	- [Event](#event)
 	- [EventKind](#eventkind)
+	- [ExtensionData](#extensiondata)
 	- [Field](#field)
 	- [Flag](#flag)
 	- [FlagList](#flaglist)
@@ -715,9 +716,10 @@ The _streamId_ parameter may have the following published values:
 streamId | event types provided
 -------- | -----------
 VM | VMUpdate
-Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate
+Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
+Extension | Extension
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -1139,6 +1141,21 @@ class Event extends Response {
   //
   // This is provided for the Inspect event.
   @Instance inspectee [optional];
+
+  // The RPC name of the extension that was added.
+  //
+  // This is provided for the ServiceExtensionAdded event.
+  string extensionRPC [optional];
+
+  // The extension event kind.
+  //
+  // This is provided for the Extension event.
+  string extensionKind [optional];
+
+  // The extension event data.
+  //
+  // This is provided for the Extension event.
+  ExtensionData extensionData [optional];
 }
 ```
 
@@ -1169,6 +1186,9 @@ enum EventKind {
   // Currently used to notify of changes to the isolate debugging name
   // via setName.
   IsolateUpdate,
+
+  // Notification that an extension RPC was registered on an isolate.
+  ServiceExtensionAdded,
 
   // An isolate has paused at start, before executing code.
   PauseStart,
@@ -1204,12 +1224,24 @@ enum EventKind {
   WriteEvent,
 
   // Notification from dart:developer.inspect.
-  Inspect
+  Inspect,
+
+  // Event from dart:developer.postEvent.
+  Extension
 }
 ```
 
 Adding new values to _EventKind_ is considered a backwards compatible
 change. Clients should ignore unrecognized events.
+
+### ExtensionData
+
+```
+class ExtensionData {
+}
+```
+
+An _ExtensionData_ is an arbitrary map that can have any contents.
 
 ### Field
 
@@ -1554,7 +1586,7 @@ class Instance extends Object {
   //   List
   (@Instance|Sentinel)[] elements [optional];
 
-  // The elements of a List instance.
+  // The elements of a Map instance.
   //
   // Provided for instance kinds:
   //   Map
@@ -1815,6 +1847,9 @@ class Isolate extends Response {
 
   // The current pause on exception mode for this isolate.
   ExceptionPauseMode exceptionPauseMode;
+
+  // The list of service extension RPCs that are registered for this isolate.
+  string[] extensionRPCs;
 }
 ```
 
@@ -2281,7 +2316,7 @@ version | comments
 ------- | --------
 1.0 | initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance.
+3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

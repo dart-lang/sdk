@@ -1250,6 +1250,32 @@ abstract class Compiler {
     _reporter.onCrashInUserCode(message, exception, stackTrace);
   }
 
+  /// Messages for which compile-time errors are reported but compilation
+  /// continues regardless.
+  static const List<MessageKind> BENIGN_ERRORS = const <MessageKind>[
+      MessageKind.INVALID_METADATA,
+      MessageKind.INVALID_METADATA_GENERIC,
+  ];
+
+  bool markCompilationAsFailed(DiagnosticMessage message, api.Diagnostic kind) {
+    if (testMode) {
+      // When in test mode, i.e. on the build-bot, we always stop compilation.
+      return true;
+    }
+    if (reporter.options.fatalWarnings) {
+      return true;
+    }
+    return !BENIGN_ERRORS.contains(message.message.kind);
+  }
+
+  void fatalDiagnosticReported(DiagnosticMessage message,
+                               List<DiagnosticMessage> infos,
+                               api.Diagnostic kind) {
+    if (markCompilationAsFailed(message, kind)) {
+      compilationFailed = true;
+    }
+  }
+
   /**
    * Translates the [resolvedUri] into a readable URI.
    *
@@ -1668,7 +1694,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   void reportDiagnosticInternal(DiagnosticMessage message,
                                 List<DiagnosticMessage> infos,
                                 api.Diagnostic kind) {
-    if (!options.showPackageWarnings &&
+    if (!options.showAllPackageWarnings &&
         message.spannable != NO_LOCATION_SPANNABLE) {
       switch (kind) {
       case api.Diagnostic.WARNING:
@@ -1676,6 +1702,10 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
         Element element = elementFromSpannable(message.spannable);
         if (!compiler.inUserCode(element, assumeInUserCode: true)) {
           Uri uri = compiler.getCanonicalUri(element);
+          if (options.showPackageWarningsFor(uri)) {
+            reportDiagnostic(message, infos, kind);
+            return;
+          }
           SuppressionInfo info =
               suppressedWarnings.putIfAbsent(uri, () => new SuppressionInfo());
           if (kind == api.Diagnostic.WARNING) {
@@ -1701,13 +1731,13 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
+    compiler.reportDiagnostic(message, infos, kind);
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings &&
          kind == api.Diagnostic.WARNING)) {
-      compiler.compilationFailed = true;
+      compiler.fatalDiagnosticReported(message, infos, kind);
     }
-    compiler.reportDiagnostic(message, infos, kind);
   }
 
   /**
@@ -1762,6 +1792,67 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
     }
     if (uri == null && currentElement != null) {
       uri = currentElement.compilationUnit.script.resourceUri;
+      assert(invariant(currentElement, () {
+
+        /// Check that [begin] and [end] can be found between [from] and [to].
+        validateToken(Token from, Token to) {
+          if (from == null || to == null) return true;
+          bool foundBegin = false;
+          bool foundEnd = false;
+          Token token = from;
+          while (true) {
+            if (token == begin) {
+              foundBegin = true;
+            }
+            if (token == end) {
+              foundEnd = true;
+            }
+            if (foundBegin && foundEnd) {
+              return true;
+            }
+            if (token == to || token == token.next || token.next == null) {
+              break;
+            }
+            token = token.next;
+          }
+
+          // Create a good message for when the tokens were not found.
+          StringBuffer sb = new StringBuffer();
+          sb.write('Invalid current element: $currentElement. ');
+          sb.write('Looking for ');
+          sb.write('[${begin} (${begin.hashCode}),');
+          sb.write('${end} (${end.hashCode})] in');
+
+          token = from;
+          while (true) {
+            sb.write('\n ${token} (${token.hashCode})');
+            if (token == to || token == token.next || token.next == null) {
+              break;
+            }
+            token = token.next;
+          }
+          return sb.toString();
+        }
+
+        if (currentElement.enclosingClass != null &&
+            currentElement.enclosingClass.isEnumClass) {
+          // Enums ASTs are synthesized (and give messed up messages).
+          return true;
+        }
+
+        if (currentElement is AstElement) {
+          AstElement astElement = currentElement;
+          if (astElement.hasNode) {
+            Token from = astElement.node.getBeginToken();
+            Token to = astElement.node.getEndToken();
+            if (astElement.metadata.isNotEmpty) {
+              from = astElement.metadata.first.beginToken;
+            }
+            return validateToken(from, to);
+          }
+        }
+        return true;
+      }, message: "Invalid current element: $currentElement [$begin,$end]."));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }
@@ -1936,7 +2027,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   }
 
   void reportSuppressedMessagesSummary() {
-    if (!options.showPackageWarnings && !options.suppressWarnings) {
+    if (!options.showAllPackageWarnings && !options.suppressWarnings) {
       suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
         MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
         if (info.warnings == 0) {

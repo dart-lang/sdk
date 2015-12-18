@@ -6,8 +6,12 @@ library analyzer.src.generated.element_resolver;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -259,8 +263,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (element == null) {
 //        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
       } else {
+        prefix.staticElement = element;
         if (element is PrefixElement) {
-          prefix.staticElement = element;
           // TODO(brianwilkerson) Report this error?
           element = _resolver.nameScope.lookup(identifier, _definingLibrary);
           name.staticElement = element;
@@ -275,7 +279,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else if (library != _definingLibrary) {
           // TODO(brianwilkerson) Report this error.
         }
-        name.staticElement = element;
         if (node.newKeyword == null) {
           if (element is ClassElement) {
             Element memberElement =

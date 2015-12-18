@@ -868,7 +868,6 @@ class RawField : public RawObject {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;  // Offset in words for instance fields.
   } value_;
-  RawArray* dependent_code_;
   union {
     // When precompiling we need to save the static initializer function here
     // so that code for it can be generated.
@@ -878,6 +877,10 @@ class RawField : public RawObject {
     // restore the value back to the original initial value.
     RawInstance* saved_value_;  // Saved initial value - static fields.
   } initializer_;
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->initializer_);
+  }
+  RawArray* dependent_code_;
   RawSmi* guarded_list_length_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);

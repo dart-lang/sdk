@@ -9,8 +9,8 @@ import 'dart:async';
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -22,14 +22,6 @@ int _argCount(DartCompletionRequest request) {
     return node.arguments.length;
   }
   return 0;
-}
-
-String _getParamType(ParameterElement param) {
-  DartType type = param.type;
-  if (type != null) {
-    return type.displayName;
-  }
-  return 'dynamic';
 }
 
 /**
@@ -190,6 +182,14 @@ class ArgListContributor extends DartCompletionContributor {
   void _addArgListSuggestion(Iterable<ParameterElement> requiredParam) {
     // DEPRECATED... argument lists are no longer suggested.
     // See https://github.com/dart-lang/sdk/issues/25197
+
+    // String _getParamType(ParameterElement param) {
+    //   DartType type = param.type;
+    //   if (type != null) {
+    //     return type.displayName;
+    //   }
+    //   return 'dynamic';
+    // }
 
     // StringBuffer completion = new StringBuffer('(');
     // List<String> paramNames = new List<String>();

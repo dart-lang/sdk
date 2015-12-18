@@ -233,6 +233,10 @@ class _Platform {
     throw new UnsupportedError("Platform._packageRoot");
   }
   @patch
+  static String _packageConfig() {
+    throw new UnsupportedError("Platform._packageConfig");
+  }
+  @patch
   static _environment() {
     throw new UnsupportedError("Platform._environment");
   }

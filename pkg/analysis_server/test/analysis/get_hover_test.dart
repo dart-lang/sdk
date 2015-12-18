@@ -41,6 +41,35 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
     createProject();
   }
 
+  test_class() async {
+    addTestFile('''
+class A<E> {}
+class I1<K, V> {}
+class I2<E> {}
+class M1 {}
+class M2<E> {}
+class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
+''');
+    HoverInformation hover = await prepareHover('B<T>');
+    expect(
+        hover.elementDescription,
+        'class B<T> extends A<T> with M1, M2<int> '
+        'implements I1<int, String>, I2');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  test_class_abstract() async {
+    addTestFile('''
+class A {}
+abstract class B extends A {}
+''');
+    HoverInformation hover = await prepareHover('B extends');
+    expect(hover.elementDescription, 'abstract class B extends A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
   test_dartdoc_clunky() async {
     addTestFile('''
 library my.library;
@@ -67,6 +96,16 @@ main() {
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
+  test_enum() async {
+    addTestFile('''
+enum MyEnum {AAA, BBB, CCC}
+''');
+    HoverInformation hover = await prepareHover('MyEnum');
+    expect(hover.elementDescription, 'enum MyEnum');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
   test_expression_function() async {
     addTestFile('''
 library my.library;
@@ -84,7 +123,7 @@ List<String> fff(int a, String b) {
     expect(hover.elementDescription, 'fff(int a, String b) → List<String>');
     expect(hover.elementKind, 'function');
     // types
-    expect(hover.staticType, '(int, String) → List<String>');
+    expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -128,7 +167,7 @@ class A {
     expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
     expect(hover.elementKind, 'method');
     // types
-    expect(hover.staticType, '(int, String) → List<String>');
+    expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -185,7 +224,7 @@ class A {
     expect(hover.parameter, isNull);
   }
 
-  test_expression_syntheticGetter() async {
+  test_expression_syntheticGetter_invocation() async {
     addTestFile('''
 library my.library;
 class A {
@@ -275,7 +314,7 @@ main() {
     expect(hover.elementDescription, 'A() → A');
     expect(hover.elementKind, 'constructor');
     // types
-    expect(hover.staticType, 'A');
+    expect(hover.staticType, isNull);
     expect(hover.propagatedType, isNull);
     // no parameter
     expect(hover.parameter, isNull);
@@ -300,7 +339,7 @@ main() {
       expect(hover.elementDescription, 'A() → A<String>');
       expect(hover.elementKind, 'constructor');
       // types
-      expect(hover.staticType, 'A<String>');
+      expect(hover.staticType, isNull);
       expect(hover.propagatedType, isNull);
       // no parameter
       expect(hover.parameter, isNull);

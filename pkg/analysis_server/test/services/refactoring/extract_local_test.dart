@@ -36,9 +36,8 @@ main() {
     _createRefactoringForString('1 + 2');
     // conflicting name
     RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
-        expectedMessage:
-            "A variable with name 'res' is already defined in the visible scope.");
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
   }
 
   test_checkFinalConditions_sameVariable_before() async {
@@ -51,9 +50,8 @@ main() {
     _createRefactoringForString('1 + 2');
     // conflicting name
     RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
-        expectedMessage:
-            "A variable with name 'res' is already defined in the visible scope.");
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
   }
 
   test_checkInitialConditions_assignmentLeftHandSize() async {
@@ -150,7 +148,20 @@ main() {
 ''');
   }
 
-  test_checkLocalName() {
+  test_checkInitialConditions_voidExpression() async {
+    indexTestUnit('''
+main() {
+  print(42);
+}
+''');
+    _createRefactoringForString('print');
+    // check conditions
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Cannot extract the void expression.');
+  }
+
+  test_checkName() {
     indexTestUnit('''
 main() {
   int a = 1 + 2;
@@ -171,6 +182,55 @@ main() {
     // OK
     refactoring.name = 'res';
     assertRefactoringStatusOK(refactoring.checkName());
+  }
+
+  test_checkName_conflict_withInvokedFunction() async {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+  res();
+}
+
+void res() {}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
+  }
+
+  test_checkName_conflict_withOtherLocal() async {
+    indexTestUnit('''
+main() {
+  var res;
+  int a = 1 + 2;
+}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
+  }
+
+  test_checkName_conflict_withTypeName() async {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+  Res b = null;
+}
+
+class Res {}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'Res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'Res' is already used in the scope.");
   }
 
   test_completeStatementExpression() {
@@ -350,6 +410,20 @@ int foo(int x) => x;
     await refactoring.checkInitialConditions();
     List<String> subExpressions = _getCoveringExpressions();
     expect(subExpressions, ['111', '111 + 222', 'foo(111 + 222)']);
+  }
+
+  test_coveringExpressions_inInvocationOfVoidFunction() async {
+    indexTestUnit('''
+main() {
+  foo(111 + 222);
+}
+void foo(int x) {}
+''');
+    _createRefactoring(testCode.indexOf('11 +'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['111', '111 + 222']);
   }
 
   test_coveringExpressions_skipAssignments() async {
@@ -960,6 +1034,22 @@ main() {
 ''');
   }
 
+  test_singleExpression_string() {
+    indexTestUnit('''
+void main() {
+  print("1234");
+}
+''');
+    _createRefactoringAtString('34"');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void main() {
+  var res = "1234";
+  print(res);
+}
+''');
+  }
+
   test_singleExpression_trailingNotWhitespace() {
     indexTestUnit('''
 main() {
@@ -1090,6 +1180,16 @@ main() {
   void _createRefactoring(int offset, int length) {
     refactoring = new ExtractLocalRefactoring(testUnit, offset, length);
     refactoring.name = 'res';
+  }
+
+  /**
+   * Creates a new refactoring in [refactoring] at the offset of the given
+   * [search] pattern, and with the length `0`.
+   */
+  void _createRefactoringAtString(String search) {
+    int offset = findOffset(search);
+    int length = 0;
+    _createRefactoring(offset, length);
   }
 
   /**

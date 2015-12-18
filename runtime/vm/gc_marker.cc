@@ -18,6 +18,7 @@
 #include "vm/store_buffer.h"
 #include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
+#include "vm/thread_registry.h"
 #include "vm/visitor.h"
 #include "vm/object_id_ring.h"
 
@@ -484,7 +485,7 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
-  Thread::PrepareForGC();
+  isolate->thread_registry()->PrepareForGC();
   // The store buffers will be rebuilt as part of marking, reset them now.
   isolate->store_buffer()->Reset();
 }

@@ -134,10 +134,8 @@ class Thread : public BaseThread {
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
-  // Called when the current thread transitions from mutator to collector.
   // Empties the store buffer block into the isolate.
-  // TODO(koda): Always run GC in separate thread.
-  static void PrepareForGC();
+  void PrepareForGC();
 
   // OSThread corresponding to this thread.
   OSThread* os_thread() const { return os_thread_; }
@@ -414,7 +412,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   int32_t no_callback_scope_depth_;
 #if defined(DEBUG)
   HandleScope* top_handle_scope_;
-  intptr_t no_handle_scope_depth_;
+  int32_t no_handle_scope_depth_;
   int32_t no_safepoint_scope_depth_;
 #endif
   VMHandles reusable_handles_;

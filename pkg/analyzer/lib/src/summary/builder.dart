@@ -7,8 +7,6 @@
  */
 library analyzer.src.summary.builder;
 
-import 'dart:convert';
-
 /**
  * Instances of this class encapsulate the necessary state to keep track of a
  * serialized summary that is in the process of being built.

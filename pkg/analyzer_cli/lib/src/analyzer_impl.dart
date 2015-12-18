@@ -7,7 +7,8 @@ library analyzer_cli.src.analyzer_impl;
 import 'dart:collection';
 import 'dart:io';
 
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -29,10 +30,16 @@ int currentTimeMillis() => new DateTime.now().millisecondsSinceEpoch;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
+  static final PerformanceTag _prepareErrorsTag =
+      new PerformanceTag("AnalyzerImpl.prepareErrors");
+  static final PerformanceTag _resolveLibraryTag =
+      new PerformanceTag("AnalyzerImpl._resolveLibrary");
+
   final CommandLineOptions options;
   final int startTime;
 
   final AnalysisContext context;
+
   final Source librarySource;
 
   /// All [Source]s references by the analyzed library.
@@ -59,7 +66,7 @@ class AnalyzerImpl {
     var status = ErrorSeverity.NONE;
     for (AnalysisErrorInfo errorInfo in errorInfos) {
       for (AnalysisError error in errorInfo.errors) {
-        if (!_isDesiredError(error)) {
+        if (_processError(error) == null) {
           continue;
         }
         var severity = computeSeverity(error, options);
@@ -121,11 +128,12 @@ class AnalyzerImpl {
 
   /// Fills [errorInfos] using [sources].
   void prepareErrors() {
-    for (Source source in sources) {
-      context.computeErrors(source);
-
-      errorInfos.add(context.getErrors(source));
-    }
+    return _prepareErrorsTag.makeCurrentWhile(() {
+      for (Source source in sources) {
+        context.computeErrors(source);
+        errorInfos.add(context.getErrors(source));
+      }
+    });
   }
 
   /// Fills [sources].
@@ -154,15 +162,13 @@ class AnalyzerImpl {
           "${librarySource.fullName} is a part and can not be analyzed.");
       return ErrorSeverity.ERROR;
     }
-    // Resolve library.
-    var libraryElement = context.computeLibraryElement(librarySource);
-    // Prepare source and errors.
+    var libraryElement = _resolveLibrary();
     prepareSources(libraryElement);
     prepareErrors();
 
     // Print errors and performance numbers.
     if (printMode == 1) {
-      _printErrorsAndPerf();
+      _printErrors();
     } else if (printMode == 2) {
       _printColdPerf();
     }
@@ -173,17 +179,6 @@ class AnalyzerImpl {
       status = ErrorSeverity.ERROR;
     }
     return status;
-  }
-
-  bool _isDesiredError(AnalysisError error) {
-    if (error.errorCode.type == ErrorType.TODO) {
-      return false;
-    }
-    if (computeSeverity(error, options) == ErrorSeverity.INFO &&
-        options.disableHints) {
-      return false;
-    }
-    return true;
   }
 
   /// Determine whether the given URI refers to a package other than the package
@@ -215,7 +210,7 @@ class AnalyzerImpl {
     outSink.writeln("total-cold:$totalTime");
   }
 
-  _printErrorsAndPerf() {
+  _printErrors() {
     // The following is a hack. We currently print out to stderr to ensure that
     // when in batch mode we print to stderr, this is because the prints from
     // batch are made to stderr. The reason that options.shouldBatch isn't used
@@ -225,9 +220,44 @@ class AnalyzerImpl {
     StringSink sink = options.machineFormat ? errorSink : outSink;
 
     // Print errors.
-    ErrorFormatter formatter =
-        new ErrorFormatter(sink, options, _isDesiredError);
+    ErrorFormatter formatter = new ErrorFormatter(sink, options, _processError);
     formatter.formatErrors(errorInfos);
+  }
+
+  /// Check various configuration options to get a desired severity for this
+  /// [error] (or `null` if it's to be suppressed).
+  ProcessedSeverity _processError(AnalysisError error) {
+    ErrorSeverity severity = computeSeverity(error, options, context);
+    bool isOverridden = false;
+
+    // First check for a filter.
+    if (severity == null) {
+      // Null severity means the error has been explicitly ignored.
+      return null;
+    } else {
+      isOverridden = true;
+    }
+
+    // If not overridden, some "natural" severities get globally filtered.
+    if (!isOverridden) {
+      // Check for global hint filtering.
+      if (severity == ErrorSeverity.INFO && options.disableHints) {
+        return null;
+      }
+
+      // Skip TODOs.
+      if (severity == ErrorType.TODO) {
+        return null;
+      }
+    }
+
+    return new ProcessedSeverity(severity, isOverridden);
+  }
+
+  LibraryElement _resolveLibrary() {
+    return _resolveLibraryTag.makeCurrentWhile(() {
+      return context.computeLibraryElement(librarySource);
+    });
   }
 
   /// Compute the severity of the error; however:
@@ -235,14 +265,25 @@ class AnalyzerImpl {
   ///   compile time errors to a severity of [ErrorSeverity.INFO].
   ///   * if [options.hintsAreFatal] is true, escalate hints to errors.
   static ErrorSeverity computeSeverity(
-      AnalysisError error, CommandLineOptions options) {
+      AnalysisError error, CommandLineOptions options,
+      [AnalysisContext context]) {
+    if (context != null) {
+      ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
+      // If there is a processor for this error, defer to it.
+      if (processor != null) {
+        return processor.severity;
+      }
+    }
+
     if (!options.enableTypeChecks &&
         error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
       return ErrorSeverity.INFO;
     }
+
     if (options.hintsAreFatal && error.errorCode is HintCode) {
       return ErrorSeverity.ERROR;
     }
+
     return error.errorCode.errorSeverity;
   }
 

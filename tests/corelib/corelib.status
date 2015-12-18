@@ -139,35 +139,6 @@ string_case_test/01: Fail, OK  # Bug in Firefox.
 string_case_test/02: Fail, OK  # Bug in dartium version of V8.
 string_case_test/03: Fail, OK  # Bug in dartium version of V8.
 
-[ $compiler == dartanalyzer ]
-from_environment_const_type_test: Skip # The -D option that defines a constant
-# for the Dart vm is not accepted by the deprecated java dartanalyzer.
-int_parse_radix_test: Fail, OK # Test contains errors but doesn’t mark them as expected
-list_insert_test: Fail, OK # Test contains errors but doesn’t mark them as expected
-list_removeat_test: Fail, OK # Test contains errors but doesn’t mark them as expected
-
-# Issue 16391. These tests are supposed to produce a compile time
-# error in checked mode, but they don't:
-[ $compiler == dartanalyzer && $checked ]
-from_environment_const_type_test/02: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/03: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/04: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/06: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/07: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/08: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/09: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/11: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/12: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/13: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/14: MissingCompileTimeError # Issue 16391
-from_environment_const_type_test/16: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/02: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/03: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/04: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/06: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/07: MissingCompileTimeError # Issue 16391
-from_environment_const_type_undefined_test/08: MissingCompileTimeError # Issue 16391
-
 # Analyzer's implementation of fromEnvironment assumes that undefined
 # environment variables have an unspecified value (rather than being
 # null) because it is expected that the user will supply a value when
@@ -185,8 +156,6 @@ from_environment_const_type_undefined_test/16: CompileTimeError
 int_parse_radix_test: fail
 list_insert_test: fail
 list_removeat_test: fail
-
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 hash_set_type_check_test: StaticWarning, OK # Tests failing type tests.
 error_stack_trace_test: StaticWarning, OK # Test generates errors on purpose.
 iterable_element_at_test: StaticWarning, OK # Test generates errors on purpose.
@@ -204,7 +173,7 @@ regexp/*: Skip
 [ $runtime == vm ]
 regexp/global_test: Skip # Timeout. Issue 21709 and 21708
 
-[ $runtime != vm && $compiler != dartanalyzer && $compiler != dart2analyzer]
+[ $runtime != vm && $compiler != dart2analyzer]
 package_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 data_resource_test: RuntimeError # Issue 23825 (not implemented yet).
 file_resource_test: Skip, OK # VM specific test, uses dart:io.
@@ -245,6 +214,6 @@ regexp/pcre_test: Crash # Stack Overflow
 [ $noopt ]
 apply3_test: CompileTimeError # Imports dart:mirrors
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-big_integer_huge_mul_vm_test: Pass, Timeout
-big_integer_parsed_mul_div_vm_test: Pass, Timeout
-int_parse_radix_test: Pass, Timeout
+big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
+big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
+int_parse_radix_test: Pass, Timeout # --no_intrinsify

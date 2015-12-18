@@ -131,5 +131,12 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   event_handler->SendData(id, dart_port, data);
 }
 
+
+void FUNCTION_NAME(EventHandler_TimerMillisecondClock)(
+    Dart_NativeArguments args) {
+  int64_t now = TimerUtils::GetCurrentMonotonicMillis();
+  Dart_SetReturnValue(args, Dart_NewInteger(now));
+}
+
 }  // namespace bin
 }  // namespace dart

@@ -98,6 +98,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   /// Obtains the variable representing the given primitive. Returns null for
   /// primitives that have no reference and do not need a variable.
   Variable getVariable(cps_ir.Primitive primitive) {
+    primitive = primitive.effectiveDefinition;
     return primitive2variable.putIfAbsent(primitive,
         () => new Variable(currentElement, primitive.hint));
   }
@@ -107,10 +108,16 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   /// This increments the reference count for the given variable, so the
   /// returned expression must be used in the tree.
   Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
-    if (thisParameter != null && reference.definition == thisParameter) {
+    cps_ir.Primitive prim = reference.definition.effectiveDefinition;
+    if (thisParameter != null && prim == thisParameter) {
       return new This();
     }
-    return new VariableUse(getVariable(reference.definition));
+    return new VariableUse(getVariable(prim));
+  }
+
+  Expression getVariableUseOrNull(
+        cps_ir.Reference<cps_ir.Primitive> reference) {
+    return reference == null ? null : getVariableUse(reference);
   }
 
   Label getLabel(cps_ir.Continuation cont) {
@@ -452,7 +459,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   Expression visitGetField(cps_ir.GetField node) {
     return new GetField(getVariableUse(node.object), node.field,
-        objectIsNotNull: node.objectIsNotNull);
+        objectIsNotNull: !node.object.definition.type.isNullable);
   }
 
   Expression visitCreateBox(cps_ir.CreateBox node) {
@@ -494,10 +501,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
               getVariableUse(node.entries[index].value));
         })
     );
-  }
-
-  FunctionDefinition makeSubFunction(cps_ir.FunctionDefinition function) {
-    return createInnerBuilder().buildFunction(function);
   }
 
   Expression visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
@@ -553,7 +556,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new ApplyBuiltinMethod(node.method,
         getVariableUse(node.receiver),
         translateArguments(node.arguments),
-        receiverIsNotNull: node.receiverIsNotNull);
+        receiverIsNotNull: !node.receiver.definition.type.isNullable);
   }
 
   Expression visitGetLength(cps_ir.GetLength node) {
@@ -578,13 +581,29 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   Expression visitInvokeMethod(cps_ir.InvokeMethod node) {
+    if (node.callingConvention == cps_ir.CallingConvention.OneShotIntercepted) {
+      List<Expression> arguments = new List.generate(
+          1 + node.arguments.length,
+          (n) => getVariableUse(n == 0 ? node.receiver : node.arguments[n - 1]),
+          growable: false);
+      return new OneShotInterceptor(node.selector, node.mask, arguments,
+          node.sourceInformation);
+    }
     InvokeMethod invoke = new InvokeMethod(
         getVariableUse(node.receiver),
         node.selector,
         node.mask,
         translateArguments(node.arguments),
         node.sourceInformation);
-    invoke.receiverIsNotNull = node.receiverIsNotNull;
+    // Sometimes we know the Dart receiver is non-null because it has been
+    // refined, which implies that the JS receiver also can not be null at the
+    // use-site.  Interceptors are not refined, so this information is not
+    // always available on the JS receiver.
+    // Also check the JS receiver's type, however, because sometimes we know an
+    // interceptor is non-null because it intercepts JSNull.
+    invoke.receiverIsNotNull =
+        !node.dartReceiver.type.isNullable ||
+        !node.receiver.definition.type.isNullable;
     return invoke;
   }
 
@@ -614,21 +633,16 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visitForeignCode(cps_ir.ForeignCode node) {
     List<Expression> arguments =
         node.arguments.map(getVariableUse).toList(growable: false);
-    if (HasCapturedArguments.check(node.codeTemplate.ast)) {
-      for (Expression arg in arguments) {
-        if (arg is VariableUse) {
-          arg.variable.isCaptured = true;
-        } else {
-          // TODO(asgerf): Avoid capture of 'this'.
-        }
-      }
-    }
+    List<bool> nullableArguments = node.arguments
+        .map((argument) => argument.definition.type.isNullable)
+        .toList(growable: false);
     if (node.codeTemplate.isExpression) {
       return new ForeignExpression(
           node.codeTemplate,
           node.type,
           arguments,
           node.nativeBehavior,
+          nullableArguments,
           node.dependency);
     } else {
       return (Statement next) {
@@ -638,15 +652,23 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
             node.type,
             arguments,
             node.nativeBehavior,
+            nullableArguments,
             node.dependency);
       };
     }
   }
 
+  visitNullCheck(cps_ir.NullCheck node) => (Statement next) {
+    return new NullCheck(
+        condition: getVariableUseOrNull(node.condition),
+        value: getVariableUse(node.value),
+        selector: node.selector,
+        next: next,
+        sourceInformation: node.sourceInformation);
+  };
+
   Expression visitGetLazyStatic(cps_ir.GetLazyStatic node) {
-    // In the tree IR, GetStatic handles lazy fields because we do not need
-    // as fine-grained control over side effects.
-    return new GetStatic(node.element, node.sourceInformation);
+    return new GetStatic.lazy(node.element, node.sourceInformation);
   }
 
   @override
@@ -662,8 +684,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   @override
-  Expression visitRefinement(cps_ir.Refinement node) {
-    throw 'Unexpected Refinement node in tree builder';
+  visitRefinement(cps_ir.Refinement node) {
+    return (Statement next) => next; // Compile to nothing.
+  }
+
+  @override
+  Expression visitBoundsCheck(cps_ir.BoundsCheck node) {
+    throw 'Unexpected BoundsCheck node in tree builder';
   }
 
   /********** UNUSED VISIT METHODS *************/
@@ -678,29 +705,4 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visitParameter(cps_ir.Parameter node) => unexpectedNode(node);
   visitContinuation(cps_ir.Continuation node) => unexpectedNode(node);
   visitMutableVariable(cps_ir.MutableVariable node) => unexpectedNode(node);
-}
-
-class HasCapturedArguments extends js.BaseVisitor {
-  static bool check(js.Node node) {
-    HasCapturedArguments visitor = new HasCapturedArguments();
-    node.accept(visitor);
-    return visitor.found;
-  }
-
-  int enclosingFunctions = 0;
-  bool found = false;
-
-  @override
-  visitFun(js.Fun node) {
-    ++enclosingFunctions;
-    node.visitChildren(this);
-    --enclosingFunctions;
-  }
-
-  @override
-  visitInterpolatedNode(js.InterpolatedNode node) {
-    if (enclosingFunctions > 0) {
-      found = true;
-    }
-  }
 }

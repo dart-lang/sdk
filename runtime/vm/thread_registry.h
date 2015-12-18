@@ -56,8 +56,11 @@ class ThreadRegistry {
   Thread* Schedule(Isolate* isolate, bool is_mutator, bool bypass_safepoint);
   void Unschedule(Thread* thread, bool is_mutator, bool bypass_safepoint);
   void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
+  void PrepareForGC();
 
  private:
+  void AddThreadToActiveList(Thread* thread);
+  void RemoveThreadFromActiveList(Thread* thread);
   Thread* GetThreadFromFreelist(Isolate* isolate);
   void ReturnThreadToFreelist(Thread* thread);
 

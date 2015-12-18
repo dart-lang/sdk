@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart' hide ElementKind;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../utils.dart';

@@ -27,6 +27,7 @@ import '../../cps_ir/cps_ir_integrity.dart';
 import '../../cps_ir/optimizers.dart';
 import '../../cps_ir/optimizers.dart' as cps_opt;
 import '../../cps_ir/type_mask_system.dart';
+import '../../cps_ir/finalize.dart' show Finalize;
 import '../../diagnostics/invariant.dart' show
     DEBUG_MODE;
 import '../../elements/elements.dart';
@@ -208,14 +209,15 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new RedundantRefinementEliminator(typeSystem), cpsFunction);
-      applyCpsPass(new GVN(compiler), cpsFunction);
-      applyCpsPass(new RemoveRefinements(), cpsFunction);
+      applyCpsPass(new EagerlyLoadStatics(), cpsFunction);
+      applyCpsPass(new GVN(compiler, typeSystem), cpsFunction);
+      applyCpsPass(new UpdateRefinements(typeSystem), cpsFunction);
+      applyCpsPass(new BoundsChecker(typeSystem, compiler.world), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new ScalarReplacer(compiler), cpsFunction);
       applyCpsPass(new MutableVariableEliminator(), cpsFunction);
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
-      applyCpsPass(new BoundsChecker(typeSystem, compiler.world), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
       applyCpsPass(new OptimizeInterceptors(backend), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
@@ -224,6 +226,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIr(cps.FunctionDefinition cpsNode) {
+    applyCpsPass(new Finalize(backend), cpsNode);
     tree_builder.Builder builder = new tree_builder.Builder(
         reporter.internalError);
     tree_ir.FunctionDefinition treeNode =

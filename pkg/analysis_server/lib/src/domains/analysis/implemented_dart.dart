@@ -7,7 +7,7 @@ library domains.analysis.implemented_dart;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 class ImplementedComputer {
   final SearchEngine searchEngine;

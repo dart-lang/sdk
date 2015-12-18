@@ -3492,7 +3492,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LoadFieldInstr* data_load = new(Z) LoadFieldInstr(
             receiver,
             Array::data_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             node->token_pos());
         data_load->set_result_cid(kArrayCid);
         Value* data = Bind(data_load);
@@ -3520,7 +3520,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kBigint_getDigits: {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, Bigint::digits_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             kTypedDataUint32ArrayCid));
       }
       case MethodRecognizer::kBigint_getUsed: {
@@ -3531,7 +3531,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kLinkedHashMap_getIndex: {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, LinkedHashMap::index_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             kDynamicCid));
       }
       case MethodRecognizer::kLinkedHashMap_setIndex: {
@@ -3541,7 +3541,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kLinkedHashMap_getData: {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, LinkedHashMap::data_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             kArrayCid));
       }
       case MethodRecognizer::kLinkedHashMap_setData: {
@@ -4030,7 +4030,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           LocalVariable* temp_local = new(Z) LocalVariable(
               0,  // Token index.
               temp_name,
-              Type::ZoneHandle(Z, Type::DynamicType()));  // Type.
+              Object::dynamic_type());  // Type.
           temp_local->set_index(param_frame_index);
 
           // Mark this local as captured parameter so that the optimizer
@@ -4339,7 +4339,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     ASSERT(!for_finally.is_open());
 
     const Array& types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
-    types.SetAt(0, Type::Handle(Z, Type::DynamicType()));
+    types.SetAt(0, Object::dynamic_type());
     CatchBlockEntryInstr* finally_entry =
         new(Z) CatchBlockEntryInstr(owner()->AllocateBlockId(),
                                     original_handler_index,

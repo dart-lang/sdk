@@ -77,7 +77,7 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
     // Check if it's dynamic.
     // Get type at index 0.
     __ movl(EAX, FieldAddress(EBX, TypeArguments::type_at_offset(0)));
-    __ CompareObject(EAX, Type::ZoneHandle(Type::DynamicType()));
+    __ CompareObject(EAX, Object::dynamic_type());
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
     // Check for int and num.
     __ testl(EDI, Immediate(kSmiTagMask));  // Value is Smi?

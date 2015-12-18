@@ -297,7 +297,9 @@ class PartialFieldList extends VariableList with PartialElement {
     // TODO(johnniwinther): Compute this in the resolver.
     VariableDefinitions node = parseNode(element, resolution.parsing);
     if (node.type != null) {
-      type = resolution.resolveTypeAnnotation(element, node.type);
+      type = resolution.reporter.withCurrentElement(element, () {
+        return resolution.resolveTypeAnnotation(element, node.type);
+      });
     } else {
       type = const DynamicType();
     }

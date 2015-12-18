@@ -11,9 +11,15 @@ import 'package:analysis_server/src/services/completion/dart/arglist_contributor
 import 'package:analysis_server/src/services/completion/dart/combinator_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/inherited_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/label_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_constructor_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
@@ -80,13 +86,29 @@ class DartCompletionPlugin implements Plugin {
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new FieldFormalContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new ImportedReferenceContributor());
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new InheritedReferenceContributor());
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new KeywordContributor());
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new LabelContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new LibraryMemberContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new LibraryPrefixContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new LocalConstructorContributor());
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new LocalLibraryContributor());
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+        () => new LocalReferenceContributor());
+    registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new NamedConstructorContributor());
+    // Revisit this contributor and these tests
+    // once DartChangeBuilder API has solidified.
+    // registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
+    //     () => new OverrideContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,
         () => new StaticMemberContributor());
     registerExtension(DART_COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID,

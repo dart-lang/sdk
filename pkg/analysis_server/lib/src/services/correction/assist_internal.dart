@@ -17,8 +17,9 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -962,7 +963,7 @@ class AssistProcessor {
         variableList.type != null ? _getNodeText(variableList.type) + ' ' : '';
     String getterCode = '$eol2  ${typeNameCode}get $name => _$name;';
     String setterCode = '$eol2'
-        '  void set $name(${typeNameCode}$name) {$eol'
+        '  void set $name($typeNameCode$name) {$eol'
         '    _$name = $name;$eol'
         '  }';
     _addInsertEdit(fieldDeclaration.end, getterCode + setterCode);

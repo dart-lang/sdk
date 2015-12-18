@@ -181,17 +181,26 @@ class CompletionDomainHandler implements RequestHandler {
    */
   Response processRequest(Request request, [CompletionManager manager]) {
     performance = new CompletionPerformance();
-    // extract params
+
+    // extract and validate params
     CompletionGetSuggestionsParams params =
         new CompletionGetSuggestionsParams.fromRequest(request);
-    // schedule completion analysis
-    String completionId = (_nextCompletionId++).toString();
     ContextSourcePair contextSource = server.getContextSourcePair(params.file);
     AnalysisContext context = contextSource.context;
     Source source = contextSource.source;
     if (context == null || !context.exists(source)) {
       return new Response.unknownSource(request);
     }
+    TimestampedData<String> contents = context.getContents(source);
+    if (params.offset < 0 || params.offset > contents.data.length) {
+      return new Response.invalidParameter(
+          request,
+          'params.offset',
+          'Expected offset between 0 and source length inclusive,'
+          ' but found ${params.offset}');
+    }
+
+    // schedule completion analysis
     recordRequest(performance, context, source, params.offset);
     if (manager == null) {
       manager = completionManagerFor(context, source);
@@ -199,6 +208,7 @@ class CompletionDomainHandler implements RequestHandler {
     CompletionRequest completionRequest = new CompletionRequestImpl(context,
         server.resourceProvider, server.searchEngine, source, params.offset);
     int notificationCount = 0;
+    String completionId = (_nextCompletionId++).toString();
     manager.results(completionRequest).listen((CompletionResult result) {
       ++notificationCount;
       bool isLast = result is CompletionResultImpl ? result.isLast : true;

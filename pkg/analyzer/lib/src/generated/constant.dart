@@ -6,8 +6,11 @@ library analyzer.src.generated.constant;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
@@ -185,6 +188,13 @@ class ConstantAstCloner extends AstCloner {
         super.visitSuperConstructorInvocation(node);
     invocation.staticElement = node.staticElement;
     return invocation;
+  }
+
+  @override
+  TypeName visitTypeName(TypeName node) {
+    TypeName typeName = super.visitTypeName(node);
+    typeName.type = node.type;
+    return typeName;
   }
 }
 
@@ -714,7 +724,8 @@ class ConstantEvaluationEngine {
         DartObjectImpl fieldValue = evaluationResult.value;
         if (fieldValue != null && !runtimeTypeMatch(fieldValue, fieldType)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+              CheckedModeCompileTimeErrorCode
+                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
               node,
               [fieldValue.type, field.name, fieldType]);
         }
@@ -762,7 +773,8 @@ class ConstantEvaluationEngine {
       if (argumentValue != null) {
         if (!runtimeTypeMatch(argumentValue, parameter.type)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+              CheckedModeCompileTimeErrorCode
+                  .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               errorTarget,
               [argumentValue.type, parameter.type]);
         }
@@ -776,7 +788,8 @@ class ConstantEvaluationEngine {
               // the field.
               if (!runtimeTypeMatch(argumentValue, fieldType)) {
                 errorReporter.reportErrorForNode(
-                    CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+                    CheckedModeCompileTimeErrorCode
+                        .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
                     errorTarget,
                     [argumentValue.type, fieldType]);
               }
@@ -818,7 +831,8 @@ class ConstantEvaluationEngine {
             PropertyInducingElement field = getter.variable;
             if (!runtimeTypeMatch(evaluationResult, field.type)) {
               errorReporter.reportErrorForNode(
-                  CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+                  CheckedModeCompileTimeErrorCode
+                      .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                   node,
                   [evaluationResult.type, fieldName, field.type]);
             }
@@ -992,7 +1006,8 @@ class ConstantEvaluationEngine {
    * Determine whether the given string is a valid name for a public symbol
    * (i.e. whether it is allowed for a call to the Symbol constructor).
    */
-  static bool isValidPublicSymbol(String name) => name.isEmpty ||
+  static bool isValidPublicSymbol(String name) =>
+      name.isEmpty ||
       name == "void" ||
       new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
 
@@ -1215,6 +1230,59 @@ class ConstantEvaluator {
 
 /**
  * A visitor used to traverse the AST structures of all of the compilation units
+ * being resolved and build the full set of dependencies for all constant
+ * expressions.
+ */
+class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
+  /**
+   * The constants whose values need to be computed.
+   */
+  HashSet<ConstantEvaluationTarget> dependencies =
+      new HashSet<ConstantEvaluationTarget>();
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.constKeyword != null) {
+      _find(node);
+    } else {
+      super.visitListLiteral(node);
+    }
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    if (node.constKeyword != null) {
+      _find(node);
+    } else {
+      super.visitMapLiteral(node);
+    }
+  }
+
+  @override
+  void visitSwitchCase(SwitchCase node) {
+    _find(node.expression);
+    node.statements.accept(this);
+  }
+
+  void _find(Expression node) {
+    if (node != null) {
+      ReferenceFinder referenceFinder = new ReferenceFinder(dependencies.add);
+      node.accept(referenceFinder);
+    }
+  }
+}
+
+/**
+ * A visitor used to traverse the AST structures of all of the compilation units
  * being resolved and build tables of the constant variables, constant
  * constructors, constant constructor invocations, and annotations found in
  * those compilation units.
@@ -1271,6 +1339,16 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
         constantsToCompute.add(element);
         constantsToCompute.addAll(element.parameters);
       }
+    }
+    return null;
+  }
+
+  @override
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    super.visitDefaultFormalParameter(node);
+    Expression defaultValue = node.defaultValue;
+    if (defaultValue != null && node.element != null) {
+      constantsToCompute.add(node.element);
     }
     return null;
   }

@@ -13,7 +13,8 @@ const List<TestEntry> tests = const [
 foo(x, list) {
   var sum = 0;
   for (int k = 0; k < 10; k++) {
-    // Everything can be hoisted out, except the bounds check and sum += z.
+    // Everything can be hoisted out up to the index access which is
+    // blocked by the bounds check.
     var a = x.left.left;
     var b = x.left.right;
     var c = x.right.left;
@@ -51,10 +52,16 @@ main() {
 }
 """,r"""
 function(x, list) {
-  var v0 = x.left, a = v0.left, b = v0.right, sum = 0, k = 0, c = (v0 = x.right).left, d = v0.right, i = a.value + c.value, v1 = list[v0 = i * (b.value + d.value)];
-  for (; k < 10; sum = sum + (v1 + i), k = k + 1)
-    if (v0 < 0 || v0 >= 10)
-      return H.ioore(list, v0);
+  var v0 = x.left, a = v0.left, b = v0.right, sum = 0, k = 0, c = (v0 = x.right).left, d = v0.right, v1, v2, v3, i, v4;
+  v0 = a.value;
+  v1 = c.value;
+  v2 = b.value;
+  for (v3 = d.value; k < 10; sum = sum + (i + list[v4]), k = k + 1) {
+    i = v0 + v1;
+    v4 = i * (v2 + v3);
+    if (v4 < 0 || v4 >= 10)
+      return H.ioore(list, v4);
+  }
   return sum;
 }"""),
 ];

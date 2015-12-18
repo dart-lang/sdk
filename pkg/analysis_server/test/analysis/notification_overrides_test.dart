@@ -71,6 +71,20 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   }
 
   /**
+   * Validates that there is no [Override] at the offset of [search].
+   *
+   * If [length] is not specified explicitly, then length of an identifier
+   * from [search] is used.
+   */
+  void assertNoOverride(String search, [int length = -1]) {
+    int offset = findOffset(search);
+    if (length == -1) {
+      length = findIdentifierLength(search);
+    }
+    findOverride(offset, length, false);
+  }
+
+  /**
    * Asserts that there are no overridden member from the superclass.
    */
   void assertNoSuperMember() {
@@ -135,6 +149,110 @@ class B implements A {
     assertHasOverride('m() {} // in B');
     assertNoSuperMember();
     assertHasInterfaceMember('m() {} // in A');
+  }
+
+  test_BAD_fieldByMethod() async {
+    addTestFile('''
+class A {
+  int fff; // in A
+}
+class B extends A {
+  fff() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff() {} // in B');
+  }
+
+  test_BAD_getterByMethod() async {
+    addTestFile('''
+class A {
+  get fff => null;
+}
+class B extends A {
+  fff() {}
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff() {}');
+  }
+
+  test_BAD_getterBySetter() async {
+    addTestFile('''
+class A {
+  get fff => null;
+}
+class B extends A {
+  set fff(x) {}
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff(x) {}');
+  }
+
+  test_BAD_methodByField() async {
+    addTestFile('''
+class A {
+  fff() {} // in A
+}
+class B extends A {
+  int fff; // in B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff; // in B');
+  }
+
+  test_BAD_methodByGetter() async {
+    addTestFile('''
+class A {
+  fff() {}
+}
+class B extends A {
+  int get fff => null;
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff => null');
+  }
+
+  test_BAD_methodBySetter() async {
+    addTestFile('''
+class A {
+  fff(x) {} // A
+}
+class B extends A {
+  set fff(x) {} // B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff(x) {} // B');
+  }
+
+  test_BAD_setterByGetter() async {
+    addTestFile('''
+class A {
+  set fff(x) {}
+}
+class B extends A {
+  get fff => null;
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff => null;');
+  }
+
+  test_BAD_setterByMethod() async {
+    addTestFile('''
+class A {
+  set fff(x) {} // A
+}
+class B extends A {
+  fff(x) {} // B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff(x) {} // B');
   }
 
   test_definedInInterface_ofInterface() async {
@@ -314,21 +432,6 @@ class B extends A {
 ''');
     await prepareOverrides();
     assertHasOverride('fff => 0; // in B');
-    assertHasSuperElement('fff; // in A');
-    assertNoInterfaceMembers();
-  }
-
-  test_super_fieldByMethod() async {
-    addTestFile('''
-class A {
-  int fff; // in A
-}
-class B extends A {
-  fff() {} // in B
-}
-''');
-    await prepareOverrides();
-    assertHasOverride('fff() {} // in B');
     assertHasSuperElement('fff; // in A');
     assertNoInterfaceMembers();
   }

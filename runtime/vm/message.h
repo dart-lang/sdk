@@ -8,6 +8,7 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
+#include "vm/raw_object.h"
 
 // Duplicated from dart_api.h to avoid including the whole header.
 typedef int64_t Dart_Port;
@@ -57,17 +58,46 @@ class Message {
     ASSERT((priority == kNormalPriority) ||
            (delivery_failure_port == kIllegalPort));
   }
+
+  // Message objects can also carry RawObject pointers for Smis and objects in
+  // the VM heap. This is indicated by setting the len_ field to 0.
+  Message(Dart_Port dest_port,
+          RawObject* raw_obj,
+          Priority priority,
+          Dart_Port delivery_failure_port = kIllegalPort)
+      : next_(NULL),
+        dest_port_(dest_port),
+        delivery_failure_port_(delivery_failure_port),
+        data_(reinterpret_cast<uint8_t*>(raw_obj)),
+        len_(0),
+        priority_(priority) {
+    ASSERT(!raw_obj->IsHeapObject() || raw_obj->IsVMHeapObject());
+    ASSERT((priority == kNormalPriority) ||
+           (delivery_failure_port == kIllegalPort));
+  }
   ~Message() {
     ASSERT(delivery_failure_port_ == kIllegalPort);
-    free(data_);
+    if (len_ > 0) {
+      free(data_);
+    }
   }
 
   Dart_Port dest_port() const { return dest_port_; }
-  uint8_t* data() const { return data_; }
-  intptr_t len() const { return len_; }
+  uint8_t* data() const {
+    ASSERT(len_ > 0);
+    return data_;
+  }
+  intptr_t len() const {
+    return len_;
+  }
+  RawObject* raw_obj() const {
+    ASSERT(len_ == 0);
+    return reinterpret_cast<RawObject*>(data_);
+  }
   Priority priority() const { return priority_; }
 
   bool IsOOB() const { return priority_ == Message::kOOBPriority; }
+  bool IsRaw() const { return len_ == 0; }
 
   bool RedirectToDeliveryFailurePort();
 

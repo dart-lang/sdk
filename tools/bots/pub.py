@@ -33,7 +33,7 @@ def PubConfig(name, is_buildbot):
   mode = 'release'
   if system == 'win': system = 'windows'
 
-  return bot.BuildInfo('none', 'vm', mode, system, checked=True)
+  return bot.BuildInfo('none', 'vm', mode, system, checked=True, arch='x64')
 
 def PubSteps(build_info):
   pub_location = os.path.join('third_party', 'pkg', 'pub')

@@ -7,11 +7,14 @@ library services.completion.dart.suggestion.builder;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/utilities/documentation.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart' as path;
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 
 const String DYNAMIC = 'dynamic';
 
@@ -42,6 +45,12 @@ CompletionSuggestion createSuggestion(Element element,
       0,
       isDeprecated,
       false);
+
+  // Attach docs.
+  String doc = removeDartDocDelimiters(element.documentationComment);
+  suggestion.docComplete = doc;
+  suggestion.docSummary = getDartDocSummary(doc);
+
   suggestion.element = protocol.convertElement(element);
   Element enclosingElement = element.enclosingElement;
   if (enclosingElement is ClassElement) {
@@ -107,14 +116,25 @@ abstract class ElementSuggestionBuilder {
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   /**
-   * Return the kind of suggestions that should be built.
+   * A set of existing completions used to prevent duplicate suggestions.
    */
-  CompletionSuggestionKind get kind;
+  final Set<String> _completions = new Set<String>();
+
+  /**
+   * A map of element names to suggestions for synthetic getters and setters.
+   */
+  final Map<String, CompletionSuggestion> _syntheticMap =
+      <String, CompletionSuggestion>{};
 
   /**
    * Return the library in which the completion is requested.
    */
   LibraryElement get containingLibrary;
+
+  /**
+   * Return the kind of suggestions that should be built.
+   */
+  CompletionSuggestionKind get kind;
 
   /**
    * Add a suggestion based upon the given element.
@@ -123,12 +143,6 @@ abstract class ElementSuggestionBuilder {
       {String prefix, int relevance: DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
-        return;
-      }
-    }
-    if (prefix == null && element.isSynthetic) {
-      if ((element is PropertyAccessorElement) ||
-          element is FieldElement && !_isSpecialEnumField(element)) {
         return;
       }
     }
@@ -146,22 +160,45 @@ abstract class ElementSuggestionBuilder {
     CompletionSuggestion suggestion = createSuggestion(element,
         completion: completion, kind: kind, relevance: relevance);
     if (suggestion != null) {
-      suggestions.add(suggestion);
-    }
-  }
+      if (element.isSynthetic && element is PropertyAccessorElement) {
+        String cacheKey;
+        if (element.isGetter) {
+          cacheKey = element.name;
+        }
+        if (element.isSetter) {
+          cacheKey = element.name;
+          cacheKey = cacheKey.substring(0, cacheKey.length - 1);
+        }
+        if (cacheKey != null) {
+          CompletionSuggestion existingSuggestion = _syntheticMap[cacheKey];
 
-  /**
-   * Determine if the given element is one of the synthetic enum accessors
-   * for which we should generate a suggestion.
-   */
-  bool _isSpecialEnumField(FieldElement element) {
-    Element parent = element.enclosingElement;
-    if (parent is ClassElement && parent.isEnum) {
-      if (element.name == 'values') {
-        return true;
+          // Pair getter/setter by updating the existing suggestion
+          if (existingSuggestion != null) {
+            CompletionSuggestion getter =
+                element.isGetter ? suggestion : existingSuggestion;
+            protocol.ElementKind elemKind =
+                element.enclosingElement is ClassElement
+                    ? protocol.ElementKind.FIELD
+                    : protocol.ElementKind.TOP_LEVEL_VARIABLE;
+            existingSuggestion.element = new protocol.Element(
+                elemKind,
+                existingSuggestion.element.name,
+                existingSuggestion.element.flags,
+                location: getter.element.location,
+                typeParameters: getter.element.typeParameters,
+                parameters: null,
+                returnType: getter.returnType);
+            return;
+          }
+
+          // Cache lone getter/setter so that it can be paired
+          _syntheticMap[cacheKey] = suggestion;
+        }
+      }
+      if (_completions.add(suggestion.completion)) {
+        suggestions.add(suggestion);
       }
     }
-    return false;
   }
 }
 
@@ -220,7 +257,10 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   visitFunctionElement(FunctionElement element) {
     if (!typesOnly) {
-      addSuggestion(element);
+      int relevance = element.library == containingLibrary
+          ? DART_RELEVANCE_LOCAL_FUNCTION
+          : DART_RELEVANCE_DEFAULT;
+      addSuggestion(element, relevance: relevance);
     }
   }
 
@@ -234,7 +274,10 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   visitTopLevelVariableElement(TopLevelVariableElement element) {
     if (!typesOnly) {
-      addSuggestion(element);
+      int relevance = element.library == containingLibrary
+          ? DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE
+          : DART_RELEVANCE_DEFAULT;
+      addSuggestion(element, relevance: relevance);
     }
   }
 }

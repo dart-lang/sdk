@@ -3867,6 +3867,16 @@ class Parser {
         index = 3;
       }
     }
+    if (StringUtilities.startsWith4(comment, index, 0x20, 0x20, 0x20, 0x20)) {
+      int end = index + 4;
+      while (end < length &&
+          comment.codeUnitAt(end) != 0xD &&
+          comment.codeUnitAt(end) != 0xA) {
+        end = end + 1;
+      }
+      ranges.add(<int>[index, end]);
+      index = end;
+    }
     while (index < length) {
       int currentChar = comment.codeUnitAt(index);
       if (currentChar == 0xD || currentChar == 0xA) {
@@ -4052,7 +4062,8 @@ class Parser {
   /**
    * Return `true` if the given [character] is a valid hexadecimal digit.
    */
-  bool _isHexDigit(int character) => (0x30 <= character && character <= 0x39) ||
+  bool _isHexDigit(int character) =>
+      (0x30 <= character && character <= 0x39) ||
       (0x41 <= character && character <= 0x46) ||
       (0x61 <= character && character <= 0x66);
 
@@ -4326,7 +4337,7 @@ class Parser {
    */
   bool _matchesString(String identifier) =>
       _currentToken.type == TokenType.IDENTIFIER &&
-          _currentToken.lexeme == identifier;
+      _currentToken.lexeme == identifier;
 
   /**
    * If the current token has the given [type], then advance to the next token
@@ -5042,6 +5053,7 @@ class Parser {
     List<CommentReference> references = new List<CommentReference>();
     for (DocumentationCommentToken token in tokens) {
       String comment = token.lexeme;
+      comment = _removeCodeBlocksGitHub(comment);
       int length = comment.length;
       List<List<int>> codeBlockRanges = _getCodeBlockRanges(comment);
       int leftIndex = comment.indexOf('[');
@@ -8008,7 +8020,8 @@ class Parser {
    * was parsed.
    */
   StringLiteral _parseUri() {
-    bool iskeywordAfterUri(Token token) => token.lexeme == Keyword.AS.syntax ||
+    bool iskeywordAfterUri(Token token) =>
+        token.lexeme == Keyword.AS.syntax ||
         token.lexeme == _HIDE ||
         token.lexeme == _SHOW;
     if (!_matches(TokenType.STRING) &&
@@ -8228,6 +8241,25 @@ class Parser {
       token = token.next;
     }
     return token;
+  }
+
+  String _removeCodeBlocksGitHub(String comment) {
+    int index = 0;
+    while (true) {
+      int beginIndex = comment.indexOf('`', index);
+      if (beginIndex == -1) {
+        break;
+      }
+      int endIndex = comment.indexOf('`', beginIndex + 1);
+      if (endIndex == -1) {
+        break;
+      }
+      comment = comment.substring(0, beginIndex + 1) +
+          ' ' * (endIndex - beginIndex - 1) +
+          comment.substring(endIndex);
+      index = endIndex + 1;
+    }
+    return comment;
   }
 
   /**
@@ -8741,21 +8773,21 @@ class Parser {
    */
   bool _tokenMatchesIdentifier(Token token) =>
       _tokenMatches(token, TokenType.IDENTIFIER) ||
-          _tokenMatchesPseudoKeyword(token);
+      _tokenMatchesPseudoKeyword(token);
 
   /**
    * Return `true` if the given [token] matches the given [keyword].
    */
   bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
       token.type == TokenType.KEYWORD &&
-          (token as KeywordToken).keyword == keyword;
+      (token as KeywordToken).keyword == keyword;
 
   /**
    * Return `true` if the given [token] matches a pseudo keyword.
    */
   bool _tokenMatchesPseudoKeyword(Token token) =>
       _tokenMatches(token, TokenType.KEYWORD) &&
-          (token as KeywordToken).keyword.isPseudoKeyword;
+      (token as KeywordToken).keyword.isPseudoKeyword;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].

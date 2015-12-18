@@ -43,7 +43,7 @@ class IsolateSaver {
 };
 
 
-DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
+static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, allocator);
   bool success = writer.WriteCMessage(message);
@@ -53,6 +53,23 @@ DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(
       port_id, buffer, writer.BytesWritten(), Message::kNormalPriority));
+}
+
+
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
+  return PostCObjectHelper(port_id, message);
+}
+
+
+DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
+  if (Smi::IsValid(message)) {
+    return PortMap::PostMessage(new Message(
+        port_id, Smi::New(message), Message::kNormalPriority));
+  }
+  Dart_CObject cobj;
+  cobj.type = Dart_CObject_kInt64;
+  cobj.value.as_int64 = message;
+  return PostCObjectHelper(port_id, &cobj);
 }
 
 

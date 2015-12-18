@@ -115,7 +115,7 @@ CompilerImpl compilerFor(
   if (packageRoot == null &&
       packageConfig == null &&
       packagesDiscoveryProvider == null) {
-    packageRoot = Uri.base.resolveUri(new Uri.file('${Platform.packageRoot}/'));
+    packageRoot = Uri.base.resolve(Platform.packageRoot);
   }
 
   MemorySourceFileProvider provider;

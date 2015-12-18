@@ -124,6 +124,10 @@ class Service : public AllStatic {
                            const Object& error,
                            const Instance& stack_trace);
 
+  static void SendExtensionEvent(Isolate* isolate,
+                                 const String& event_kind,
+                                 const String& event_data);
+
   static void PostError(const String& method_name,
                         const Array& parameter_keys,
                         const Array& parameter_values,
@@ -139,6 +143,7 @@ class Service : public AllStatic {
   static StreamInfo echo_stream;
   static StreamInfo graph_stream;
   static StreamInfo logging_stream;
+  static StreamInfo extension_stream;
 
   static bool ListenStream(const char* stream_id);
   static void CancelStream(const char* stream_id);

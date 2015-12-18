@@ -4,9 +4,10 @@
 
 library analyzer.test.generated.incremental_resolver_test;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart' as log;
@@ -4444,8 +4445,10 @@ foo(int p) {}
     CacheEntry cacheEntry = cache.get(target);
     expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(2));
     cacheEntry.setState(VERIFY_ERRORS, CacheState.INVALID);
-    // Don't run tasks, so don't recompute VERIFY_ERRORS before incremental.
-    _updateAndValidate(
+    // Perform incremental resolution.
+    _resetWithIncremental(true);
+    analysisContext2.setContents(
+        source,
         r'''
 main() {
   foo(0);
@@ -4454,10 +4457,12 @@ main2() {
   foo('bbb');
 }
 foo(int p) {}
-''',
-        runTasksBeforeIncremental: false);
-    // Incremental analysis should have left VERIFY_ERRORS invalid,
-    // so it was correctly recomputed later during the full analysis.
+''');
+    // VERIFY_ERRORS is still invalid.
+    expect(cacheEntry.getState(VERIFY_ERRORS), CacheState.INVALID);
+    // Continue analysis - run tasks, so recompute VERIFY_ERRORS.
+    _runTasks();
+    expect(cacheEntry.getState(VERIFY_ERRORS), CacheState.VALID);
     expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(1));
   }
 
@@ -4519,6 +4524,47 @@ f2() {
 }
 f3() {
   print(333)
+}
+''');
+  }
+
+  void test_visibleRange() {
+    _resolveUnit(r'''
+class Test {
+  method1(p1) {
+    var v1;
+    f1() {}
+    return 1;
+  }
+  method2(p2) {
+    var v2;
+    f2() {}
+    return 2;
+  }
+  method3(p3) {
+    var v3;
+    f3() {}
+    return 3;
+  }
+}
+''');
+    _updateAndValidate(r'''
+class Test {
+  method1(p1) {
+    var v1;
+    f1() {}
+    return 1;
+  }
+  method2(p2) {
+    var v2;
+    f2() {}
+    return 2222;
+  }
+  method3(p3) {
+    var v3;
+    f3() {}
+    return 3;
+  }
 }
 ''');
   }
@@ -4628,6 +4674,7 @@ class B extends A {}
     // Resolve "newCode" from scratch.
     if (compareWithFull) {
       _resetWithIncremental(false);
+      changeSource(source, '');
       changeSource(source, newCode);
       _runTasks();
       LibraryElement library = resolve2(source);

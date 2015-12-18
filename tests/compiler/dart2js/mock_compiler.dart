@@ -101,7 +101,7 @@ class MockCompiler extends Compiler {
               trustTypeAnnotations: trustTypeAnnotations,
               trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
               diagnosticOptions:
-                  new DiagnosticOptions(showPackageWarnings: true),
+                  new DiagnosticOptions(shownPackageWarnings: const []),
               outputProvider: new LegacyCompilerOutput(outputProvider)) {
     this.disableInlining = disableInlining;
 

@@ -4,8 +4,11 @@
 
 library analyzer.src.generated.incremental_resolution_validator;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 /**
  * Validates that the [actual] and the [expected] units have the same structure
@@ -842,6 +845,11 @@ class _SameResolutionValidator implements AstVisitor {
     }
     if (a.nameOffset != b.nameOffset) {
       _fail('Expected: ${b.nameOffset}\n  Actual: ${a.nameOffset}');
+    }
+    if (a is LocalElement && b is LocalElement) {
+      if (a.visibleRange != b.visibleRange) {
+        _fail('Expected: ${b.visibleRange}\nActual: ${a.visibleRange}');
+      }
     }
   }
 

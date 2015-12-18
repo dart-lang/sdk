@@ -513,7 +513,7 @@ class ResolverTask extends CompilerTask {
    * called by [resolveClass] and [ClassSupertypeResolver].
    */
   void loadSupertypes(BaseClassElementX cls, Spannable from) {
-    reporter.withCurrentElement(cls, () => measure(() {
+    measure(() {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
         reporter.reportErrorMessage(
@@ -540,7 +540,7 @@ class ResolverTask extends CompilerTask {
           cls.supertypeLoadState = STATE_DONE;
         }
       });
-    }));
+    });
   }
 
   // TODO(johnniwinther): Remove this queue when resolution has been split into
@@ -763,7 +763,7 @@ class ResolverTask extends CompilerTask {
                            ClassElement mixin) {
     // TODO(johnniwinther): Avoid the use of [TreeElements] here.
     if (resolutionTree == null) return;
-    Iterable<Node> superUses = resolutionTree.superUses;
+    Iterable<SourceSpan> superUses = resolutionTree.superUses;
     if (superUses.isEmpty) return;
     DiagnosticMessage error = reporter.createMessage(
         mixinApplication,
@@ -771,7 +771,7 @@ class ResolverTask extends CompilerTask {
         {'className': mixin.name});
     // Show the user the problematic uses of 'super' in the mixin.
     List<DiagnosticMessage> infos = <DiagnosticMessage>[];
-    for (Node use in superUses) {
+    for (SourceSpan use in superUses) {
       infos.add(reporter.createMessage(
           use,
           MessageKind.ILLEGAL_MIXIN_SUPER_USE));

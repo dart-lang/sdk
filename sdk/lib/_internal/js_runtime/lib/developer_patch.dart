@@ -46,6 +46,12 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
 }
 
 @patch
+_postEvent(String eventKind, String eventData) {
+  // TODO.
+}
+
+
+@patch
 int _getTraceClock() {
   // TODO.
   return _clockValue++;

@@ -392,8 +392,7 @@ Future<Element> runPoi(
     api.DiagnosticHandler handler) {
   Stopwatch sw = new Stopwatch()..start();
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolveUri(
-      new Uri.file('${io.Platform.packageRoot}/'));
+  Uri packageRoot = Uri.base.resolve(io.Platform.packageRoot);
 
   var options = [
       '--analyze-main',

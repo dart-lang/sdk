@@ -134,6 +134,19 @@ static void SerializeObject(const Instance& obj,
   *obj_len = writer.BytesWritten();
 }
 
+// TODO(zra): Allocation of Message objects should be centralized.
+static Message* SerializeMessage(
+    Dart_Port dest_port, const Instance& obj) {
+  if (ApiObjectConverter::CanConvert(obj.raw())) {
+    return new Message(dest_port, obj.raw(), Message::kNormalPriority);
+  } else {
+    uint8_t* obj_data;
+    intptr_t obj_len;
+    SerializeObject(obj, &obj_data, &obj_len, false);
+    return new Message(dest_port, obj_data, obj_len, Message::kNormalPriority);
+  }
+}
+
 
 void Isolate::RegisterClass(const Class& cls) {
   class_table()->Register(cls);
@@ -260,12 +273,8 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
       const Instance& response =
           obj4.IsNull() ? Instance::null_instance() : Instance::Cast(obj4);
       if (priority == Isolate::kImmediateAction) {
-        uint8_t* data = NULL;
-        intptr_t len = 0;
-        SerializeObject(response, &data, &len, false);
-        PortMap::PostMessage(new Message(send_port.Id(),
-                                         data, len,
-                                         Message::kNormalPriority));
+        PortMap::PostMessage(SerializeMessage(
+            send_port.Id(), response));
       } else {
         ASSERT((priority == Isolate::kBeforeNextEventAction) ||
                (priority == Isolate::kAsEventAction));
@@ -275,13 +284,8 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
             Smi::New(Message::kDelayedIsolateLibOOBMsg)));
         message.SetAt(3, Smi::Handle(zone,
             Smi::New(Isolate::kImmediateAction)));
-        uint8_t* data = NULL;
-        intptr_t len = 0;
-        SerializeObject(message, &data, &len, false);
-        this->PostMessage(
-            new Message(Message::kIllegalPort,
-                        data, len,
-                        Message::kNormalPriority),
+        this->PostMessage(SerializeMessage(
+            Message::kIllegalPort, message),
             priority == Isolate::kBeforeNextEventAction /* at_head */);
       }
       break;
@@ -334,13 +338,8 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
             Smi::New(Message::kDelayedIsolateLibOOBMsg)));
         message.SetAt(3, Smi::Handle(zone,
             Smi::New(Isolate::kImmediateAction)));
-        uint8_t* data = NULL;
-        intptr_t len = 0;
-        SerializeObject(message, &data, &len, false);
-        this->PostMessage(
-            new Message(Message::kIllegalPort,
-                        data, len,
-                        Message::kNormalPriority),
+        this->PostMessage(SerializeMessage(
+            Message::kIllegalPort, message),
             priority == Isolate::kBeforeNextEventAction /* at_head */);
       }
       break;
@@ -468,8 +467,15 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   }
 
   // Parse the message.
-  MessageSnapshotReader reader(message->data(), message->len(), thread);
-  const Object& msg_obj = Object::Handle(zone, reader.ReadObject());
+  Object& msg_obj = Object::Handle(zone);
+  if (message->IsRaw()) {
+    msg_obj = message->raw_obj();
+    // We should only be sending RawObjects that can be converted to CObjects.
+    ASSERT(ApiObjectConverter::CanConvert(msg_obj.raw()));
+  } else {
+    MessageSnapshotReader reader(message->data(), message->len(), thread);
+    msg_obj = reader.ReadObject();
+  }
   if (msg_obj.IsError()) {
     // An error occurred while reading the message.
     delete message;
@@ -483,7 +489,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     // always true for now, then this should never occur.
     UNREACHABLE();
   }
-
   Instance& msg = Instance::Handle(zone);
   msg ^= msg_obj.raw();  // Can't use Instance::Cast because may be null.
 
@@ -1203,12 +1208,8 @@ void Isolate::NotifyExitListeners() {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
-      uint8_t* data = NULL;
-      intptr_t len = 0;
       response ^= listeners.At(i + 1);
-      SerializeObject(response, &data, &len, false);
-      Message* msg = new Message(port_id, data, len, Message::kNormalPriority);
-      PortMap::PostMessage(msg);
+      PortMap::PostMessage(SerializeMessage(port_id, response));
     }
   }
 }
@@ -1276,11 +1277,7 @@ bool Isolate::NotifyErrorListeners(const String& msg,
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
-      uint8_t* data = NULL;
-      intptr_t len = 0;
-      SerializeObject(arr, &data, &len, false);
-      Message* msg = new Message(port_id, data, len, Message::kNormalPriority);
-      PortMap::PostMessage(msg);
+      PortMap::PostMessage(SerializeMessage(port_id, arr));
     }
   }
   return listeners.Length() > 0;
@@ -1862,6 +1859,19 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     debugger()->PrintSettingsToJSONObject(&jssettings);
   }
+
+  {
+    GrowableObjectArray& handlers =
+        GrowableObjectArray::Handle(registered_service_extension_handlers());
+    if (!handlers.IsNull()) {
+      JSONArray extensions(&jsobj, "extensionRPCs");
+      String& handler_name = String::Handle();
+      for (intptr_t i = 0; i < handlers.Length(); i += kRegisteredEntrySize) {
+        handler_name ^= handlers.At(i + kRegisteredNameIndex);
+        extensions.AddValue(handler_name.ToCString());
+      }
+    }
+  }
 }
 
 
@@ -2045,6 +2055,12 @@ void Isolate::RegisterServiceExtensionHandler(const String& name,
   handlers.Add(name, Heap::kOld);
   ASSERT(kRegisteredHandlerIndex == 1);
   handlers.Add(closure, Heap::kOld);
+  {
+    // Fire off an event.
+    ServiceEvent event(this, ServiceEvent::kServiceExtensionAdded);
+    event.set_extension_rpc(&name);
+    Service::HandleEvent(&event);
+  }
 }
 
 

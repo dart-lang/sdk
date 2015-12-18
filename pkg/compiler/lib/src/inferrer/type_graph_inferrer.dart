@@ -538,11 +538,28 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeMask joinTypeMasks(Iterable<TypeMask> masks) {
-    TypeMask newType = const TypeMask.nonNullEmpty();
+    var dynamicType = compiler.typesTask.dynamicType;
+    // Optimization: we are iterating over masks twice, but because `masks` is a
+    // mapped iterable, we save the intermediate results to avoid computing them
+    // again.
+    var list = [];
     for (TypeMask mask in masks) {
-      newType = newType.union(mask, classWorld);
+      // Don't do any work on computing unions if we know that after all that
+      // work the result will be `dynamic`.
+      // TODO(sigmund): change to `mask == dynamicType` so we can continue to
+      // track the non-nullable bit.
+      if (mask.containsAll(classWorld)) return dynamicType;
+      list.add(mask);
     }
-    return newType.containsAll(classWorld) ? dynamicType.type : newType;
+
+    TypeMask newType = null;
+    for (TypeMask mask in masks) {
+      newType = newType == null ? mask : newType.union(mask, classWorld);
+      // Likewise - stop early if we already reach dynamic.
+      if (newType.containsAll(classWorld)) return dynamicType;
+    }
+
+    return newType ?? const TypeMask.nonNullEmpty();
   }
 }
 

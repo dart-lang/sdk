@@ -107,7 +107,7 @@ void checkAttributes(
   for (String expectedAttribute in requiredAttributes) {
     if (!attributesFound.contains(expectedAttribute)) {
       throw new Exception(
-          '$context: ${element.localName} must contain attribute ${expectedAttribute}');
+          '$context: ${element.localName} must contain attribute $expectedAttribute');
     }
   }
 }

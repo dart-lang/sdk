@@ -12,9 +12,9 @@ import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -667,20 +667,9 @@ class CorrectionUtils {
     AstNode enclosingNode = findNode(offset);
     Block enclosingBlock = enclosingNode.getAncestor((node) => node is Block);
     if (enclosingBlock != null) {
-      SourceRange newRange = rangeStartEnd(offset, enclosingBlock.end);
-      ExecutableElement enclosingExecutable =
-          getEnclosingExecutableElement(enclosingNode);
-      if (enclosingExecutable != null) {
-        visitChildren(enclosingExecutable, (Element element) {
-          if (element is LocalElement) {
-            SourceRange elementRange = element.visibleRange;
-            if (elementRange != null && elementRange.intersects(newRange)) {
-              conflicts.add(element.displayName);
-            }
-          }
-          return true;
-        });
-      }
+      _CollectReferencedUnprefixedNames visitor = new _CollectReferencedUnprefixedNames();
+      enclosingBlock.accept(visitor);
+      return visitor.names;
     }
     return conflicts;
   }
@@ -726,7 +715,7 @@ class CorrectionUtils {
       result.offset = prevDirective.end;
       String eol = endOfLine;
       if (prevDirective is LibraryDirective) {
-        result.prefix = "${eol}${eol}";
+        result.prefix = "$eol$eol";
       } else {
         result.prefix = eol;
       }
@@ -753,7 +742,7 @@ class CorrectionUtils {
       if (prevDirective is PartDirective) {
         result.prefix = eol;
       } else {
-        result.prefix = "${eol}${eol}";
+        result.prefix = "$eol$eol";
       }
       return result;
     }
@@ -1133,7 +1122,7 @@ class CorrectionUtils {
       }
       // update line
       if (right) {
-        line = "${indent}${line}";
+        line = "$indent$line";
       } else {
         line = removeStart(line, indent);
       }
@@ -1204,7 +1193,7 @@ class CorrectionUtils {
       lineOffset += line.length + eol.length;
       // update line indent
       if (!inString) {
-        line = "${newIndent}${removeStart(line, oldIndent)}";
+        line = "$newIndent${removeStart(line, oldIndent)}";
       }
       // append line
       sb.write(line);
@@ -1299,11 +1288,9 @@ class CorrectionUtils {
       String expressionSource = getNodeText(isExpression.expression);
       String typeSource = getNodeText(isExpression.type);
       if (isExpression.notOperator == null) {
-        return _InvertedCondition
-            ._simple("${expressionSource} is! ${typeSource}");
+        return _InvertedCondition._simple("$expressionSource is! $typeSource");
       } else {
-        return _InvertedCondition
-            ._simple("${expressionSource} is ${typeSource}");
+        return _InvertedCondition._simple("$expressionSource is $typeSource");
       }
     }
     if (expression is PrefixExpression) {
@@ -1438,6 +1425,26 @@ class TokenUtils {
       tokens.length == 1 && tokens[0].type == type;
 }
 
+class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
+  final Set<String> names = new Set<String>();
+
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (!_isPrefixed(node)) {
+      names.add(node.name);
+    }
+  }
+
+  static bool _isPrefixed(SimpleIdentifier node) {
+    AstNode parent = node.parent;
+    return parent is ConstructorName && parent.name == node ||
+        parent is MethodInvocation &&
+            parent.methodName == node &&
+            parent.realTarget != null ||
+        parent is PrefixedIdentifier && parent.identifier == node ||
+        parent is PropertyAccess && parent.target == node;
+  }
+}
+
 /**
  * A container with a source and its precedence.
  */
@@ -1460,7 +1467,7 @@ class _InvertedCondition {
       _InvertedCondition left, String operation, _InvertedCondition right) {
     // TODO(scheglov) consider merging with "_binary()" after testing
     return new _InvertedCondition(
-        1 << 20, "${left._source}${operation}${right._source}");
+        1 << 20, "${left._source}$operation${right._source}");
   }
 
   /**

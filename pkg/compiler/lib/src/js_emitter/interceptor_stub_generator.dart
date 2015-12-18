@@ -217,17 +217,22 @@ class InterceptorStubGenerator {
     } else if (selector.isIndex || selector.isIndexSet) {
       // For an index operation, this code generates:
       //
-      //    if (receiver.constructor == Array || typeof receiver == "string") {
-      //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
-      //        return receiver[a0];
+      //    if (typeof a0 === "number") {
+      //      if (receiver.constructor == Array ||
+      //          typeof receiver == "string") {
+      //        if (a0 >>> 0 === a0 && a0 < receiver.length) {
+      //          return receiver[a0];
+      //        }
       //      }
       //    }
       //
       // For an index set operation, this code generates:
       //
-      //    if (receiver.constructor == Array && !receiver.immutable$list) {
-      //      if (a0 >>> 0 === a0 && a0 < receiver.length) {
-      //        return receiver[a0] = a1;
+      //    if (typeof a0 === "number") {
+      //      if (receiver.constructor == Array && !receiver.immutable$list) {
+      //        if (a0 >>> 0 === a0 && a0 < receiver.length) {
+      //          return receiver[a0] = a1;
+      //        }
       //      }
       //    }
       bool containsArray = classes.contains(helpers.jsArrayClass);
@@ -270,9 +275,10 @@ class InterceptorStubGenerator {
         }
 
         return js.statement('''
-          if (#)
-            if ((a0 >>> 0) === a0 && a0 < receiver.length)
-              return receiver[a0];
+          if (typeof a0 === "number")
+            if (#)
+              if ((a0 >>> 0) === a0 && a0 < receiver.length)
+                return receiver[a0];
           ''', typeCheck);
       } else {
         jsAst.Expression typeCheck;
@@ -285,9 +291,10 @@ class InterceptorStubGenerator {
         }
 
         return js.statement(r'''
-          if (# && !receiver.immutable$list &&
-              (a0 >>> 0) === a0 && a0 < receiver.length)
-            return receiver[a0] = a1;
+          if (typeof a0 === "number")
+            if (# && !receiver.immutable$list &&
+                (a0 >>> 0) === a0 && a0 < receiver.length)
+              return receiver[a0] = a1;
           ''', typeCheck);
       }
     }

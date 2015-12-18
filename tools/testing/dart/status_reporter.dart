@@ -9,8 +9,8 @@ List<Map> LINUX_COMBINATIONS = [
     {
       'runtimes' : ['none'],
       'modes' : ['release'],
-      'archs' : ['ia32'],
-      'compiler' : 'dartanalyzer'
+      'archs' : ['x64'],
+      'compiler' : 'dart2analyzer'
     },
     {
       'runtimes' : ['vm'],

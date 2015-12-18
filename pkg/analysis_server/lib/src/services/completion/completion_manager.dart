@@ -15,24 +15,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
- * [CompletionCache] contains information about the prior code completion
- * for use in the next code completion.
- */
-abstract class CompletionCache {
-  /**
-   * The context in which the completion was computed.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The source in which the completion was computed.
-   */
-  final Source source;
-
-  CompletionCache(this.context, this.source);
-}
-
-/**
  * Manages completion contributors for a given completion request.
  */
 abstract class CompletionManager {

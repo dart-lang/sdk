@@ -79,9 +79,12 @@ class PrelinkedDependency {
 @topLevel
 class PrelinkedLibrary {
   /**
-   * The unlinked library summary.
+   * The pre-linked summary of all the compilation units constituting the
+   * library.  The summary of the defining compilation unit is listed first,
+   * followed by the summary of each part, in the order of the `part`
+   * declarations in the defining compilation unit.
    */
-  UnlinkedLibrary unlinked;
+  List<PrelinkedUnit> units;
 
   /**
    * The libraries that this library depends on (either via an explicit import
@@ -102,12 +105,6 @@ class PrelinkedLibrary {
    * well, since there will effectively be a one-to-one mapping.
    */
   List<int> importDependencies;
-
-  /**
-   * For each reference in [UnlinkedLibrary.references], information about how
-   * that reference is resolved.
-   */
-  List<PrelinkedReference> references;
 }
 
 /**
@@ -115,20 +112,20 @@ class PrelinkedLibrary {
  */
 class PrelinkedReference {
   /**
-   * Index into [UnlinkedLibrary.dependencies] indicating which imported library
+   * Index into [PrelinkedLibrary.dependencies] indicating which imported library
    * declares the entity being referred to.
    */
   int dependency;
 
   /**
    * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
-   * the kind if [PrelinkedReferenceKind.classOrEnum].
+   * the kind is [PrelinkedReferenceKind.classOrEnum].
    */
   PrelinkedReferenceKind kind;
 
   /**
    * Integer index indicating which unit in the imported library contains the
-   * definition of the entity.  As with indices into [UnlinkedLibrary.units],
+   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
@@ -156,9 +153,25 @@ enum PrelinkedReferenceKind {
   other,
 
   /**
+   * The entity is a prefix.
+   */
+  prefix,
+
+  /**
    * The entity being referred to does not exist.
    */
   unresolved
+}
+
+/**
+ * Pre-linked summary of a compilation unit.
+ */
+class PrelinkedUnit {
+  /**
+   * For each reference in [UnlinkedUnit.references], information about how
+   * that reference is resolved.
+   */
+  List<PrelinkedReference> references;
 }
 
 /**
@@ -169,13 +182,6 @@ class UnlinkedClass {
    * Name of the class.
    */
   String name;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * class is declared in.
-   */
-  @informative
-  int unit;
 
   /**
    * Type parameters of the class, if any.
@@ -190,7 +196,7 @@ class UnlinkedClass {
   UnlinkedTypeRef supertype;
 
   /**
-   * Mixins appering in a `with` clause, if any.
+   * Mixins appearing in a `with` clause, if any.
    */
   List<UnlinkedTypeRef> mixins;
 
@@ -218,6 +224,12 @@ class UnlinkedClass {
    * Indicates whether the class is declared using mixin application syntax.
    */
   bool isMixinApplication;
+
+  /**
+   * Indicates whether this class is the core "Object" class (and hence has no
+   * supertype)
+   */
+  bool hasNoSupertype;
 }
 
 /**
@@ -260,13 +272,6 @@ class UnlinkedEnum {
    * Values listed in the enum declaration, in declaration order.
    */
   List<UnlinkedEnumValue> values;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * enum is declared in.
-   */
-  @informative
-  int unit;
 }
 
 /**
@@ -291,14 +296,6 @@ class UnlinkedExecutable {
    * For unnamed constructors, this is the empty string.
    */
   String name;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * executable is declared in.  Zero for executables which are nested inside
-   * another declaration (i.e. local functions and method declarations).
-   */
-  @informative
-  int unit;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -349,6 +346,17 @@ class UnlinkedExecutable {
    * Indicates whether the executable is declared using the `factory` keyword.
    */
   bool isFactory;
+
+  /**
+   * Indicates whether the executable lacks an explicit return type
+   * declaration.  False for constructors and setters.
+   */
+  bool hasImplicitReturnType;
+
+  /**
+   * Indicates whether the executable is declared using the `external` keyword.
+   */
+  bool isExternal;
 }
 
 /**
@@ -408,12 +416,12 @@ class UnlinkedImport {
   int offset;
 
   /**
-   * Index into [UnlinkedLibrary.prefixes] of the prefix declared by this
+   * Index into [UnlinkedUnit.references] of the prefix declared by this
    * import declaration, or zero if this import declaration declares no prefix.
    *
    * Note that multiple imports can declare the same prefix.
    */
-  int prefix;
+  int prefixReference;
 
   /**
    * Combinators contained in this import declaration.
@@ -429,70 +437,6 @@ class UnlinkedImport {
    * Indicates whether the import declaration is implicit.
    */
   bool isImplicit;
-}
-
-/**
- * Unlinked summary of an entire library.
- */
-class UnlinkedLibrary {
-  /**
-   * Top level and prefixed names referred to by this library.
-   */
-  List<UnlinkedReference> references;
-
-  /**
-   * Information about the units constituting this library.  The first unit
-   * listed is always the defining compilation unit.  The remaining units are
-   * listed in the order of their corresponding `part` declarations.
-   */
-  List<UnlinkedUnit> units;
-
-  /**
-   * Name of the library (from a "library" declaration, if present).
-   */
-  String name;
-
-  /**
-   * Classes declared in the library.
-   */
-  List<UnlinkedClass> classes;
-
-  /**
-   * Enums declared in the library.
-   */
-  List<UnlinkedEnum> enums;
-
-  /**
-   * Top level executable objects (functions, getters, and setters) declared in
-   * the library.
-   */
-  List<UnlinkedExecutable> executables;
-
-  /**
-   * Export declarations in the library.
-   */
-  List<UnlinkedExport> exports;
-
-  /**
-   * Import declarations in the library.
-   */
-  List<UnlinkedImport> imports;
-
-  /**
-   * Typedefs declared in the library.
-   */
-  List<UnlinkedTypedef> typedefs;
-
-  /**
-   * Top level variables declared in the library.
-   */
-  List<UnlinkedVariable> variables;
-
-  /**
-   * Prefixes introduced by import declarations.  The first element in this
-   * array is a pseudo-prefix used by references made with no prefix.
-   */
-  List<UnlinkedPrefix> prefixes;
 }
 
 /**
@@ -533,6 +477,12 @@ class UnlinkedParam {
    * declared using `this.` syntax).
    */
   bool isInitializingFormal;
+
+  /**
+   * Indicates whether this parameter lacks an explicit type declaration.
+   * Always false for a function-typed parameter.
+   */
+  bool hasImplicitType;
 }
 
 /**
@@ -555,12 +505,14 @@ enum UnlinkedParamKind {
   named
 }
 
-class UnlinkedPrefix {
+/**
+ * Unlinked summary information about a part declaration.
+ */
+class UnlinkedPart {
   /**
-   * The name of the prefix, or the empty string in the case of the
-   * pseudo-prefix which represents "no prefix".
+   * String used in the compilation unit to refer to the part file.
    */
-  String name;
+  String uri;
 }
 
 /**
@@ -575,10 +527,10 @@ class UnlinkedReference {
   String name;
 
   /**
-   * Prefix used to refer to the entity.  This is an index into
-   * [UnlinkedLibrary.prefixes].
+   * Prefix used to refer to the entity, or zero if no prefix is used.  This is
+   * an index into [UnlinkedUnit.references].
    */
-  int prefix;
+  int prefixReference;
 }
 
 /**
@@ -589,13 +541,6 @@ class UnlinkedTypedef {
    * Name of the typedef.
    */
   String name;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * typedef is declared in.
-   */
-  @informative
-  int unit;
 
   /**
    * Type parameters of the typedef, if any.
@@ -634,11 +579,11 @@ class UnlinkedTypeParam {
  */
 class UnlinkedTypeRef {
   /**
-   * Index into [UnlinkedLibrary.references] for the type being referred to, or
+   * Index into [UnlinkedUnit.references] for the type being referred to, or
    * zero if this is a reference to a type parameter.
    *
    * Note that since zero is also a valid index into
-   * [UnlinkedLibrary.references], we cannot distinguish between references to
+   * [UnlinkedUnit.references], we cannot distinguish between references to
    * type parameters and references to types by checking [reference] against
    * zero.  To distinguish between references to type parameters and references
    * to types, check whether [paramReference] is zero.
@@ -674,18 +619,62 @@ class UnlinkedTypeRef {
 }
 
 /**
- * Unlinked summary information about a compilation unit ("part file").  Note
- * that since a declaration can be moved from one part file to another without
- * changing semantics, the declarations themselves aren't stored here; they are
- * stored in [UnlinkedLibrary] and they refer to [UnlinkedUnit]s via an index
- * into [UnlinkedLibrary.units].
+ * Unlinked summary information about a compilation unit ("part file").
  */
+@topLevel
 class UnlinkedUnit {
   /**
-   * String used in the defining compilation unit to reference the part file.
-   * Empty for the defining compilation unit itself.
+   * Name of the library (from a "library" declaration, if present).
    */
-  String uri;
+  String libraryName;
+
+  /**
+   * Top level and prefixed names referred to by this compilation unit.  The
+   * zeroth element of this array is always populated and always represents a
+   * reference to the pseudo-type "dynamic".
+   */
+  List<UnlinkedReference> references;
+
+  /**
+   * Classes declared in the compilation unit.
+   */
+  List<UnlinkedClass> classes;
+
+  /**
+   * Enums declared in the compilation unit.
+   */
+  List<UnlinkedEnum> enums;
+
+  /**
+   * Top level executable objects (functions, getters, and setters) declared in
+   * the compilation unit.
+   */
+  List<UnlinkedExecutable> executables;
+
+  /**
+   * Export declarations in the compilation unit.
+   */
+  List<UnlinkedExport> exports;
+
+  /**
+   * Import declarations in the compilation unit.
+   */
+  List<UnlinkedImport> imports;
+
+  /**
+   * Part declarations in the compilation unit.
+   */
+  List<UnlinkedPart> parts;
+
+  /**
+   * Typedefs declared in the compilation unit.
+   */
+  List<UnlinkedTypedef> typedefs;
+
+  /**
+   * Top level variables declared in the compilation unit.
+   */
+  List<UnlinkedVariable> variables;
 }
 
 /**
@@ -697,14 +686,6 @@ class UnlinkedVariable {
    * Name of the variable.
    */
   String name;
-
-  /**
-   * Index into [UnlinkedLibrary.units] indicating which compilation unit the
-   * variable is declared in.  Zero for variables which are nested inside
-   * another declaration (i.e. local variables and fields).
-   */
-  @informative
-  int unit;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the
@@ -730,4 +711,9 @@ class UnlinkedVariable {
    * Indicates whether the variable is declared using the `const` keyword.
    */
   bool isConst;
+
+  /**
+   * Indicates whether this variable lacks an explicit type declaration.
+   */
+  bool hasImplicitType;
 }

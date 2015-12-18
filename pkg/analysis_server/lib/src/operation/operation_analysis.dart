@@ -17,8 +17,8 @@ import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -350,7 +350,8 @@ class PerformAnalysisOperation extends ServerOperation {
     }
   }
 
-  bool get _isPriorityContext => context is InternalAnalysisContext &&
+  bool get _isPriorityContext =>
+      context is InternalAnalysisContext &&
       (context as InternalAnalysisContext).prioritySources.isNotEmpty;
 
   @override

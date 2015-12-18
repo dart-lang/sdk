@@ -15684,13 +15684,9 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
     }
     const AbstractType& bound = AbstractType::Handle(type_param.bound());
     // We may be checking bounds at finalization time and can encounter
-    // a still unfinalized bound.
-    if (!bound.IsFinalized() && !bound.IsBeingFinalized()) {
-      ClassFinalizer::FinalizeType(
-          Class::Handle(type_param.parameterized_class()),
-          bound,
-          ClassFinalizer::kCanonicalize);
-      type_param.set_bound(bound);
+    // a still unfinalized bound. Finalizing the bound here may lead to cycles.
+    if (!bound.IsFinalized()) {
+      return false;    // TODO(regis): Return "maybe after instantiation".
     }
     if (bound.IsMoreSpecificThan(other, bound_error)) {
       return true;

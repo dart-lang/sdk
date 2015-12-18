@@ -566,11 +566,6 @@ TEST_CASE(HelperAllocAndGC) {
   Monitor done_monitor;
   bool done = false;
   Isolate* isolate = Thread::Current()->isolate();
-  // Flush store buffers, etc.
-  // TODO(koda): Currently, the GC only does this for the current thread, (i.e,
-  // the helper, in this test), but it should be done for all *threads*
-  // while reaching a safepoint.
-  Thread::PrepareForGC();
   Dart::thread_pool()->Run(new AllocAndGCTask(isolate, &done_monitor, &done));
   {
     while (true) {

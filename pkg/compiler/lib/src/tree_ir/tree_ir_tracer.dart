@@ -182,6 +182,11 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
     visitStatement(node.next);
   }
+
+  visitNullCheck(NullCheck node) {
+    _addStatement(node);
+    visitStatement(node.next);
+  }
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor {
@@ -346,6 +351,11 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     String name = node.hasStar ? 'yield*' : 'yield';
     printStatement(null, '$name ${expr(node.input)}');
   }
+
+  @override
+  visitNullCheck(NullCheck node) {
+    printStatement(null, 'NullCheck ${expr(node.value)}');
+  }
 }
 
 class SubexpressionVisitor extends ExpressionVisitor<String> {
@@ -399,6 +409,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String args = formatArguments(node);
     String keyword = node.constant != null ? 'const' : 'new';
     return "$keyword $callName($args)";
+  }
+
+  String visitOneShotInterceptor(OneShotInterceptor node) {
+    String name = node.selector.name;
+    String args = formatArguments(node);
+    return "oneshot $name($args)";
   }
 
   String visitLiteralList(LiteralList node) {

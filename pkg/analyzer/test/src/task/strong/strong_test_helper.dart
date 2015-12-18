@@ -6,11 +6,11 @@
 // package:dev_compiler's tests
 library analyzer.test.src.task.strong.strong_test_helper;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart' show SdkAnalysisContext;
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -240,8 +240,8 @@ void testChecker(String name, Map<String, String> testFiles) {
         context.resolveCompilationUnit2(mainSource, mainSource);
 
     var collector = new _ErrorCollector();
-    var checker = new CodeChecker(context.typeProvider,
-        new StrongTypeSystemImpl(), collector,
+    var checker = new CodeChecker(
+        context.typeProvider, new StrongTypeSystemImpl(), collector,
         hints: true);
 
     // Extract expectations from the comments in the test files, and

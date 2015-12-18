@@ -4,7 +4,8 @@
 
 library services.search.element_visitors;
 
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 
 /**
  * Uses [processor] to visit all of the children of [element].

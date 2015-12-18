@@ -8,8 +8,10 @@
 // refactored to fit into analyzer.
 library analyzer.src.task.strong.info;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 
@@ -83,8 +85,7 @@ abstract class CoercionInfo extends StaticInfo {
 abstract class DownCast extends CoercionInfo {
   Cast _cast;
 
-  DownCast._internal(
-      TypeSystem rules, Expression expression, this._cast)
+  DownCast._internal(TypeSystem rules, Expression expression, this._cast)
       : super(rules, expression) {
     assert(_cast.toType != baseType &&
         _cast.fromType == baseType &&
@@ -183,8 +184,7 @@ abstract class DownCast extends CoercionInfo {
 // A down cast to a non-ground type.  These behave differently from standard
 // Dart and may be more likely to fail at runtime.
 class DownCastComposite extends DownCast {
-  DownCastComposite(
-      TypeSystem rules, Expression expression, Cast cast)
+  DownCastComposite(TypeSystem rules, Expression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
   @override
@@ -276,8 +276,7 @@ class InferredType extends InferredTypeBase {
 
 // An inferred type for a non-literal allocation site.
 class InferredTypeAllocation extends InferredTypeBase {
-  InferredTypeAllocation(
-      TypeSystem rules, Expression expression, DartType type)
+  InferredTypeAllocation(TypeSystem rules, Expression expression, DartType type)
       : super._internal(rules, expression, type);
 
   @override
@@ -303,8 +302,7 @@ abstract class InferredTypeBase extends CoercionInfo {
 
 // An inferred type for a closure expression
 class InferredTypeClosure extends InferredTypeBase {
-  InferredTypeClosure(
-      TypeSystem rules, Expression expression, DartType type)
+  InferredTypeClosure(TypeSystem rules, Expression expression, DartType type)
       : super._internal(rules, expression, type);
 
   @override
@@ -313,8 +311,7 @@ class InferredTypeClosure extends InferredTypeBase {
 
 // An inferred type for a literal expression.
 class InferredTypeLiteral extends InferredTypeBase {
-  InferredTypeLiteral(
-      TypeSystem rules, Expression expression, DartType type)
+  InferredTypeLiteral(TypeSystem rules, Expression expression, DartType type)
       : super._internal(rules, expression, type);
 
   @override
@@ -391,8 +388,8 @@ abstract class InvalidOverride extends StaticError {
 class InvalidParameterDeclaration extends StaticError {
   final DartType expectedType;
 
-  InvalidParameterDeclaration(TypeSystem rules,
-      FormalParameter declaration, this.expectedType)
+  InvalidParameterDeclaration(
+      TypeSystem rules, FormalParameter declaration, this.expectedType)
       : super(declaration);
 
   @override List<Object> get arguments => [node, expectedType];
@@ -539,8 +536,7 @@ class StaticTypeError extends StaticError {
   final DartType expectedType;
   String reason = null;
 
-  StaticTypeError(
-      TypeSystem rules, Expression expression, this.expectedType,
+  StaticTypeError(TypeSystem rules, Expression expression, this.expectedType,
       {this.reason})
       : baseType = expression.staticType ?? DynamicTypeImpl.instance,
         super(expression);
@@ -548,7 +544,7 @@ class StaticTypeError extends StaticError {
   @override List<Object> get arguments => [node, baseType, expectedType];
   @override String get message =>
       'Type check failed: {0} ({1}) is not of type {2}' +
-          ((reason == null) ? '' : ' because $reason');
+      ((reason == null) ? '' : ' because $reason');
 
   @override
   String get name => 'STRONG_MODE_STATIC_TYPE_ERROR';
@@ -565,8 +561,7 @@ class StaticTypeError extends StaticError {
 //
 // TODO(vsm,leafp): Remove this.
 class UninferredClosure extends DownCast {
-  UninferredClosure(
-      TypeSystem rules, FunctionExpression expression, Cast cast)
+  UninferredClosure(TypeSystem rules, FunctionExpression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
   @override

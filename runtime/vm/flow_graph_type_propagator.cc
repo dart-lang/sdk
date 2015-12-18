@@ -21,6 +21,12 @@ DECLARE_FLAG(bool, fields_may_be_reset);
 
 
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
+  Thread* thread = flow_graph->thread();
+  Isolate* const isolate = flow_graph->isolate();
+  TimelineStream* compiler_timeline = isolate->GetCompilerStream();
+  TimelineDurationScope tds2(thread,
+                             compiler_timeline,
+                             "FlowGraphTypePropagator");
   FlowGraphTypePropagator propagator(flow_graph);
   propagator.Propagate();
 }
@@ -413,7 +419,7 @@ void CompileType::Union(CompileType* other) {
   // Nothing to do.
   } else {
   // Can't unify.
-  type_ = &Type::ZoneHandle(Type::DynamicType());
+  type_ = &Object::dynamic_type();
   }
 }
 
@@ -441,7 +447,7 @@ CompileType CompileType::FromCid(intptr_t cid) {
 
 
 CompileType CompileType::Dynamic() {
-  return Create(kDynamicCid, Type::ZoneHandle(Type::DynamicType()));
+  return Create(kDynamicCid, Object::dynamic_type());
 }
 
 
@@ -534,14 +540,14 @@ const AbstractType* CompileType::ToAbstractType() {
   if (type_ == NULL) {
     // Type propagation has not run. Return dynamic-type.
     if (cid_ == kIllegalCid) {
-      type_ = &Type::ZoneHandle(Type::DynamicType());
+      type_ = &Object::dynamic_type();
       return type_;
     }
 
     // VM-internal objects don't have a compile-type. Return dynamic-type
     // in this case.
     if (cid_ < kInstanceCid) {
-      type_ = &Type::ZoneHandle(Type::DynamicType());
+      type_ = &Object::dynamic_type();
       return type_;
     }
 
@@ -549,7 +555,7 @@ const AbstractType* CompileType::ToAbstractType() {
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
 
     if (type_class.NumTypeArguments() > 0) {
-      type_ = &Type::ZoneHandle(Type::DynamicType());
+      type_ = &Object::dynamic_type();
       return type_;
     }
 
@@ -859,28 +865,28 @@ CompileType RelationalOpInstr::ComputeType() const {
 CompileType CurrentContextInstr::ComputeType() const {
   return CompileType(CompileType::kNonNullable,
                      kContextCid,
-                     &AbstractType::ZoneHandle(Type::DynamicType()));
+                     &Object::dynamic_type());
 }
 
 
 CompileType CloneContextInstr::ComputeType() const {
   return CompileType(CompileType::kNonNullable,
                      kContextCid,
-                     &AbstractType::ZoneHandle(Type::DynamicType()));
+                     &Object::dynamic_type());
 }
 
 
 CompileType AllocateContextInstr::ComputeType() const {
   return CompileType(CompileType::kNonNullable,
                      kContextCid,
-                     &AbstractType::ZoneHandle(Type::DynamicType()));
+                     &Object::dynamic_type());
 }
 
 
 CompileType AllocateUninitializedContextInstr::ComputeType() const {
   return CompileType(CompileType::kNonNullable,
                      kContextCid,
-                     &AbstractType::ZoneHandle(Type::DynamicType()));
+                     &Object::dynamic_type());
 }
 
 

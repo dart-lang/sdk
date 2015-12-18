@@ -17,6 +17,8 @@ dependencies:
     path: ../../../../dart2js_info
   lookup_map:
     path: ../lookup_map
+  dart_messages:
+    path: ../dart_messages
 
 # Uncomment if running gclient, so you can depend directly on the downloaded
 # versions of dart2js's transitive dependencies:

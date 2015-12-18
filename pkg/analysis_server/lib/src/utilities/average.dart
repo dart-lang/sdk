@@ -26,5 +26,5 @@ class Average {
   }
 
   @override
-  String toString() => 'average: ${value}';
+  String toString() => 'average: $value';
 }

@@ -608,7 +608,7 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
   }
 
   if (buffer_copy != NULL) {
-    free(const_cast<uint8_t *>(buffer_copy));
+    free(buffer_copy);
   }
 
   if (Dart_IsError(result)) {

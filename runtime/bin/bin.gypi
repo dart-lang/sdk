@@ -503,6 +503,7 @@
             '--outer_namespace', 'dart',
             '--inner_namespace', 'bin',
             '--name', 'observatory_assets_archive',
+            '--compress',
             '--client_root', '<(PRODUCT_DIR)/observatory/deployed/web/',
           ],
           'message': 'Generating ''<(observatory_assets_cc_file)'' file.'
@@ -587,6 +588,7 @@
       ],
       'include_dirs': [
         '..',
+        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',
@@ -639,6 +641,7 @@
       ],
       'include_dirs': [
         '..',
+        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',
@@ -682,6 +685,7 @@
       ],
       'include_dirs': [
         '..',
+        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',
@@ -737,6 +741,7 @@
       ],
       'include_dirs': [
         '..',
+        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',

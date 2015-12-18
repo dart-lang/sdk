@@ -15,7 +15,7 @@ evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 *: SkipByDesign
 
 # Tests with known analyzer issues
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
 
 [ $arch == arm ]

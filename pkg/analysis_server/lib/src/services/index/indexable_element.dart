@@ -7,7 +7,7 @@ library src.services.index;
 import 'dart:collection';
 
 import 'package:analysis_server/src/provisional/index/index_core.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';

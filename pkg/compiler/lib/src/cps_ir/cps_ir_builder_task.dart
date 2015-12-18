@@ -43,7 +43,8 @@ import '../constants/values.dart' show
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
 import '../native/native.dart' show
-    NativeBehavior;
+    NativeBehavior,
+    HasCapturedPlaceholders;
 
 // TODO(karlklose): remove.
 import '../js/js.dart' as js show js, Template, Expression, Name;
@@ -1725,7 +1726,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           switch (getterKind) {
             case CompoundGetter.FIELD:
               SourceInformation src = sourceInformationBuilder.buildGet(node);
-              return irBuilder.buildStaticFieldGet(getter, src);
+              return buildStaticFieldGet(getter, src);
             case CompoundGetter.GETTER:
               return irBuilder.buildStaticGetterGet(
                   getter, sourceInformationBuilder.buildGet(node));
@@ -1763,7 +1764,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           switch (getterKind) {
             case CompoundGetter.FIELD:
               SourceInformation src = sourceInformationBuilder.buildGet(node);
-              return irBuilder.buildStaticFieldGet(getter, src);
+              return buildStaticFieldGet(getter, src);
             case CompoundGetter.GETTER:
               return irBuilder.buildStaticGetterGet(
                   getter, sourceInformationBuilder.buildGet(node));
@@ -3489,6 +3490,20 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         // using [NativeBehavior]. We can ignore these arguments in the backend.
         List<ir.Primitive> arguments =
             argumentNodes.skip(2).mapToList(visit, growable: false);
+        if (behavior.codeTemplate.positionalArgumentCount != arguments.length) {
+          reporter.reportErrorMessage(
+              node, MessageKind.GENERIC,
+              {'text':
+                'Mismatch between number of placeholders'
+                ' and number of arguments.'});
+          return irBuilder.buildNullConstant();
+        }
+
+        if (HasCapturedPlaceholders.check(behavior.codeTemplate.ast)) {
+          reporter.reportErrorMessage(node, MessageKind.JS_PLACEHOLDER_CAPTURE);
+          return irBuilder.buildNullConstant();
+        }
+
         return irBuilder.buildForeignCode(behavior.codeTemplate, arguments,
             behavior);
 

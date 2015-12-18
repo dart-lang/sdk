@@ -73,7 +73,7 @@ final GeneratedDirectory targetDir =
         if (_typeRenames.containsKey(typeNameInSpec)) {
           typeNameInJava = _typeRenames[typeNameInSpec];
         }
-        map['${typeNameInJava}.java'] = (String pkgPath) {
+        map['$typeNameInJava.java'] = (String pkgPath) {
           String superclassName = null;
           if (isRefactoringFeedback) {
             superclassName = 'RefactoringFeedback';
@@ -156,11 +156,11 @@ class CodegenJavaType extends CodegenJavaVisitor {
   String _getEqualsLogicForField(TypeObjectField field, String other) {
     String name = javaName(field.name);
     if (isPrimitive(field.type) && !field.optional) {
-      return '${other}.${name} == ${name}';
+      return '$other.$name == $name';
     } else if (isArray(field.type)) {
-      return 'Arrays.equals(other.${name}, ${name})';
+      return 'Arrays.equals(other.$name, $name)';
     } else {
-      return 'ObjectUtilities.equals(${other}.${name}, ${name})';
+      return 'ObjectUtilities.equals($other.$name, $name)';
     }
   }
 
@@ -171,7 +171,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
   String _getToStringForField(TypeObjectField field) {
     String name = javaName(field.name);
     if (isArray(field.type) || isList(field.type)) {
-      return 'StringUtils.join(${name}, ", ")';
+      return 'StringUtils.join($name, ", ")';
     } else {
       return name;
     }
@@ -199,7 +199,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     //
     _extraFieldsOnElement.forEach((String name, String value) {
       publicField(javaName(name), () {
-        writeln('private static final int ${name} = ${value};');
+        writeln('private static final int $name = $value;');
       });
     });
 
@@ -211,8 +211,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
     //
     _extraMethodsOnElement.forEach((String methodName, String fieldName) {
       publicMethod(methodName, () {
-        writeln('public boolean ${methodName}() {');
-        writeln('  return (flags & ${fieldName}) != 0;');
+        writeln('public boolean $methodName() {');
+        writeln('  return (flags & $fieldName) != 0;');
         writeln('}');
       });
     });
@@ -225,23 +225,23 @@ class CodegenJavaType extends CodegenJavaVisitor {
   void _writeOutJsonObjectAddStatement(TypeObjectField field) {
     String name = javaName(field.name);
     if (isDeclaredInSpec(field.type)) {
-      writeln('jsonObject.add("${name}", ${name}.toJson());');
+      writeln('jsonObject.add("$name", $name.toJson());');
     } else if (field.type is TypeList) {
       TypeDecl listItemType = (field.type as TypeList).itemType;
       String jsonArrayName = 'jsonArray${capitalize(name)}';
-      writeln('JsonArray ${jsonArrayName} = new JsonArray();');
-      writeln('for (${javaType(listItemType)} elt : ${name}) {');
+      writeln('JsonArray $jsonArrayName = new JsonArray();');
+      writeln('for (${javaType(listItemType)} elt : $name) {');
       indent(() {
         if (isDeclaredInSpec(listItemType)) {
-          writeln('${jsonArrayName}.add(elt.toJson());');
+          writeln('$jsonArrayName.add(elt.toJson());');
         } else {
-          writeln('${jsonArrayName}.add(new JsonPrimitive(elt));');
+          writeln('$jsonArrayName.add(new JsonPrimitive(elt));');
         }
       });
       writeln('}');
-      writeln('jsonObject.add("${name}", ${jsonArrayName});');
+      writeln('jsonObject.add("$name", $jsonArrayName);');
     } else {
-      writeln('jsonObject.addProperty("${name}", ${name});');
+      writeln('jsonObject.addProperty("$name", $name);');
     }
   }
 
@@ -251,7 +251,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       toHtmlVisitor.br();
       toHtmlVisitor.write('@coverage dart.server.generated.types');
     }));
-    makeClass('public class ${className}', () {
+    makeClass('public class $className', () {
       TypeEnum typeEnum = type as TypeEnum;
       List<TypeEnumValue> values = typeEnum.values;
       //
@@ -291,7 +291,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       toHtmlVisitor.write('@coverage dart.server.generated.types');
     }));
     writeln('@SuppressWarnings("unused")');
-    String header = 'public class ${className}';
+    String header = 'public class $className';
     if (superclassName != null) {
       header += ' extends $superclassName';
     }
@@ -304,7 +304,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       publicField(javaName("EMPTY_ARRAY"), () {
         writeln(
-            'public static final ${className}[] EMPTY_ARRAY = new ${className}[0];');
+            'public static final $className[] EMPTY_ARRAY = new $className[0];');
       });
 
       //
@@ -312,7 +312,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       publicField(javaName("EMPTY_LIST"), () {
         writeln(
-            'public static final List<${className}> EMPTY_LIST = Lists.newArrayList();');
+            'public static final List<$className> EMPTY_LIST = Lists.newArrayList();');
       });
 
       //
@@ -361,9 +361,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       constructor(className, () {
         javadocComment(toHtmlVisitor.collectHtml(() {
-          toHtmlVisitor.write('Constructor for {@link ${className}}.');
+          toHtmlVisitor.write('Constructor for {@link $className}.');
         }));
-        write('public ${className}(');
+        write('public $className(');
         // write out parameters to constructor
         List<String> parameters = new List();
         if (className == 'Outline') {
@@ -481,7 +481,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       if (className != 'Outline') {
         publicMethod('fromJson', () {
           writeln(
-              'public static ${className} fromJson(JsonObject jsonObject) {');
+              'public static $className fromJson(JsonObject jsonObject) {');
           indent(() {
             for (TypeObjectField field in fields) {
               write('${javaFieldType(field)} ${javaName(field.name)} = ');
@@ -514,7 +514,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
               }
               writeln(';');
             }
-            write('return new ${className}(');
+            write('return new $className(');
             List<String> parameters = new List();
             for (TypeObjectField field in fields) {
               if (!_isTypeFieldInUpdateContentUnionType(
@@ -568,13 +568,13 @@ class CodegenJavaType extends CodegenJavaVisitor {
           className != 'RefactoringOptions') {
         publicMethod('fromJsonArray', () {
           writeln(
-              'public static List<${className}> fromJsonArray(JsonArray jsonArray) {');
+              'public static List<$className> fromJsonArray(JsonArray jsonArray) {');
           indent(() {
             writeln('if (jsonArray == null) {');
             writeln('  return EMPTY_LIST;');
             writeln('}');
             writeln(
-                'ArrayList<${className}> list = new ArrayList<${className}>(jsonArray.size());');
+                'ArrayList<$className> list = new ArrayList<$className>(jsonArray.size());');
             writeln('Iterator<JsonElement> iterator = jsonArray.iterator();');
             writeln('while (iterator.hasNext()) {');
             writeln('  list.add(fromJson(iterator.next().getAsJsonObject()));');
@@ -624,9 +624,9 @@ class CodegenJavaType extends CodegenJavaVisitor {
         writeln('@Override');
         writeln('public boolean equals(Object obj) {');
         indent(() {
-          writeln('if (obj instanceof ${className}) {');
+          writeln('if (obj instanceof $className) {');
           indent(() {
-            writeln('${className} other = (${className}) obj;');
+            writeln('$className other = ($className) obj;');
             writeln('return');
             indent(() {
               List<String> equalsForField = new List<String>();

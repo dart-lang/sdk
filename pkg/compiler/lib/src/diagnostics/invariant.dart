@@ -48,6 +48,10 @@ bool invariant(Spannable spannable, var condition, {var message: null}) {
   }
   if (condition is Function){
     condition = condition();
+    if (condition is String) {
+      message = condition;
+      condition = false;
+    }
   }
   if (!condition) {
     if (message is Function) {

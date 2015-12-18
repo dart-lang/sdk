@@ -15,6 +15,7 @@ patch class _Platform {
   /* patch */ static _environment() native "Platform_Environment";
   /* patch */ static List<String> _executableArguments()
        native "Platform_ExecutableArguments";
-  /* patch */ static String _packageRoot() native "Platform_PackageRoot";
+  /* patch */ static String _packageRoot() => VMLibraryHooks.packageRoot;
+  /* patch */ static String _packageConfig() => VMLibraryHooks.packageConfig;
   /* patch */ static String _version() native "Platform_GetVersion";
 }

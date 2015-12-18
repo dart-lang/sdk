@@ -503,6 +503,11 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  Expression visitOneShotInterceptor(OneShotInterceptor node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
+
   Expression visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     if (node.receiverIsNotNull) {
       _rewriteList(node.arguments);
@@ -1144,10 +1149,7 @@ class StatementRewriter extends Transformer implements Pass {
     // Some arguments will get inserted in a JS code template.  The arguments
     // will not always be evaluated (e.g. the second placeholder in the template
     // '# && #').
-
-    // TODO(sra): Find out which tree_ir expressions are not nullable. It helps
-    // a lot with templates like '#.push(#)'.
-    bool isNullable(e) => true;
+    bool isNullable(int position) => node.nullableArguments[position];
 
     int safeArguments =
       PlaceholderSafetyAnalysis.analyze(node.codeTemplate.ast, isNullable);
@@ -1183,6 +1185,23 @@ class StatementRewriter extends Transformer implements Pass {
   Statement visitYield(Yield node) {
     node.input = visitExpression(node.input);
     node.next = visitStatement(node.next);
+    return node;
+  }
+
+  @override
+  Statement visitNullCheck(NullCheck node) {
+    inEmptyEnvironment(() {
+      node.next = visitStatement(node.next);
+    });
+    if (node.condition != null) {
+      inEmptyEnvironment(() {
+        // Value occurs in conditional context.
+        node.value = visitExpression(node.value);
+      });
+      node.condition = visitExpression(node.condition);
+    } else {
+      node.value = visitExpression(node.value);
+    }
     return node;
   }
 }

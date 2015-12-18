@@ -234,7 +234,14 @@ abstract class Primitive extends Variable<Primitive> {
   // TODO(johnniwinther): Require source information for all primitives.
   SourceInformation get sourceInformation => null;
 
-  /// If this is a [Refinement] node, returns the value being refined.
+  /// If this is a [Refinement], [BoundsCheck] or [NullCheck] node, returns the
+  /// value being refined, the indexable object being checked, or the value
+  /// that was checked to be non-null, respectively.
+  ///
+  /// Those instructions all return the corresponding operand directly, and
+  /// this getter can be used to get (closer to) where the value came from.
+  //
+  // TODO(asgerf): Also do this for [TypeCast]?
   Primitive get effectiveDefinition => this;
 
   /// True if the two primitives are (refinements of) the same value.
@@ -506,6 +513,11 @@ enum CallingConvention {
   ///
   /// For example: `foo.bar$1(0, x)`
   DummyIntercepted,
+
+  /// JS receiver is the Dart receiver, there are no extra arguments.
+  ///
+  /// Compiles to a one-shot interceptor, e.g: `J.bar$1(foo, x)`
+  OneShotIntercepted,
 }
 
 /// Invoke a method on an object.
@@ -535,9 +547,15 @@ class InvokeMethod extends UnsafePrimitive {
   Primitive get dartReceiver => dartReceiverReference.definition;
 
   Reference<Primitive> dartArgumentReference(int n) {
-    return callingConvention == CallingConvention.Normal
-        ? arguments[n]
-        : arguments[n + 1];
+    switch (callingConvention) {
+      case CallingConvention.Normal:
+      case CallingConvention.OneShotIntercepted:
+        return arguments[n];
+
+      case CallingConvention.Intercepted:
+      case CallingConvention.DummyIntercepted:
+        return arguments[n + 1];
+    }
   }
 
   Primitive dartArgument(int n) => dartArgumentReference(n).definition;
@@ -704,9 +722,157 @@ class Refinement extends Primitive {
   }
 }
 
+/// Checks that [index] is a valid index on a given indexable [object].
+///
+/// Compiles to the following, with a subset of the conditions in the `if`:
+///
+///     if (index < 0 || index >= object.length || object.length === 0)
+///         ThrowIndexOutOfRangeException(object, index);
+///
+/// [index] must be an integer, and [object] must refer to null or an indexable
+/// object, and [length] must be the length of [object] at the time of the
+/// check.
+///
+/// Returns [object] so the bounds check can be used to restrict code motion.
+/// It is possible to have a bounds check node that performs no checks but
+/// is retained to restrict code motion.
+///
+/// The [index] reference may be null if there are no checks to perform,
+/// and the [length] reference may be null if there is no upper bound or
+/// emptiness check.
+///
+/// If a separate code motion guard for the index is required, e.g. because it
+/// must be known to be non-negative in an operator that does not involve
+/// [object], a [Refinement] can be created for it with the non-negative integer
+/// type.
+class BoundsCheck extends Primitive {
+  final Reference<Primitive> object;
+  Reference<Primitive> index;
+  Reference<Primitive> length; // FIXME write docs for length
+  int checks;
+  final SourceInformation sourceInformation;
+
+  /// If true, check that `index >= 0`.
+  bool get hasLowerBoundCheck => checks & LOWER_BOUND != 0;
+
+  /// If true, check that `index < object.length`.
+  bool get hasUpperBoundCheck => checks & UPPER_BOUND != 0;
+
+  /// If true, check that `object.length !== 0`.
+  ///
+  /// Equivalent to a lower bound check with `object.length - 1` as the index,
+  /// but this check is faster.
+  ///
+  /// Although [index] is not used in the condition, it is used to generate
+  /// the thrown error.  Currently it is always `-1` for emptiness checks,
+  /// because that corresponds to `object.length - 1` in the error case.
+  bool get hasEmptinessCheck => checks & EMPTINESS != 0;
+
+  /// True if the [length] is needed to perform the check.
+  bool get lengthUsedInCheck => checks & (UPPER_BOUND | EMPTINESS) != 0;
+
+  bool get hasNoChecks => checks == NONE;
+
+  static const int UPPER_BOUND = 1 << 0;
+  static const int LOWER_BOUND = 1 << 1;
+  static const int EMPTINESS = 1 << 2; // See [hasEmptinessCheck].
+  static const int BOTH_BOUNDS = UPPER_BOUND | LOWER_BOUND;
+  static const int NONE = 0;
+
+  BoundsCheck(Primitive object, Primitive index, Primitive length,
+      [this.checks = BOTH_BOUNDS, this.sourceInformation])
+      : this.object = new Reference<Primitive>(object),
+        this.index = new Reference<Primitive>(index),
+        this.length = new Reference<Primitive>(length);
+
+  BoundsCheck.noCheck(Primitive object, [this.sourceInformation])
+      : this.object = new Reference<Primitive>(object),
+        this.checks = NONE;
+
+  accept(Visitor visitor) => visitor.visitBoundsCheck(this);
+
+  void setParentPointers() {
+    object.parent = this;
+    if (index != null) {
+      index.parent = this;
+    }
+    if (length != null) {
+      length.parent = this;
+    }
+  }
+
+  String get checkString {
+    if (hasUpperBoundCheck && hasLowerBoundCheck) {
+      return 'upper-lower-checks';
+    } else if (hasUpperBoundCheck) {
+      return 'upper-check';
+    } else if (hasLowerBoundCheck) {
+      return 'lower-check';
+    } else if (hasEmptinessCheck) {
+      return 'emptiness-check';
+    } else {
+      return 'no-check';
+    }
+  }
+
+  bool get isSafeForElimination => checks == NONE;
+  bool get isSafeForReordering => false;
+  bool get hasValue => true; // Can be referenced to restrict code motion.
+
+  Primitive get effectiveDefinition => object.definition.effectiveDefinition;
+}
+
+/// Throw an exception if [value] is `null`.
+///
+/// Returns [value] so this can be used to restrict code motion.
+///
+/// In the simplest form this compiles to `value.toString;`.
+///
+/// If [selector] is set, `toString` is replaced with the (possibly minified)
+/// invocation name of the selector.  This can be shorter and generate a more
+/// meaningful error message, but is expensive if [value] is non-null and does
+/// not have that property at runtime.
+///
+/// If [condition] is set, it is assumed that [condition] is true if and only
+/// if [value] is null.  The check then compiles to:
+///
+///     if (condition) value.toString;  (or .selector if non-null)
+///
+/// The latter form is useful when [condition] is a form understood by the JS
+/// runtime, such as a `typeof` test.
+class NullCheck extends Primitive {
+  final Reference<Primitive> value;
+  Selector selector;
+  Reference<Primitive> condition;
+  final SourceInformation sourceInformation;
+
+  NullCheck(Primitive value, this.sourceInformation)
+      : this.value = new Reference<Primitive>(value);
+
+  NullCheck.guarded(Primitive condition, Primitive value, this.selector,
+        this.sourceInformation)
+      : this.condition = new Reference<Primitive>(condition),
+        this.value = new Reference<Primitive>(value);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
+  bool get hasValue => true;
+
+  accept(Visitor visitor) => visitor.visitNullCheck(this);
+
+  void setParentPointers() {
+    value.parent = this;
+    if (condition != null) {
+      condition.parent = this;
+    }
+  }
+
+  Primitive get effectiveDefinition => value.definition.effectiveDefinition;
+}
+
 /// An "is" type test.
 ///
-/// Returns `true` if [value] is an instance of [type].
+/// Returns `true` if [value] is an instance of [dartType].
 ///
 /// [type] must not be the [Object], `dynamic` or [Null] types (though it might
 /// be a type variable containing one of these types). This design is chosen
@@ -1093,10 +1259,10 @@ class GetLength extends Primitive {
   }
 }
 
-/// Read an entry from a string or native list.
+/// Read an entry from an indexable object.
 ///
-/// [object] must be null or a native list or a string, and [index] must be
-/// an integer.
+/// [object] must be null or an indexable object, and [index] must be
+/// an integer where `0 <= index < object.length`.
 class GetIndex extends Primitive {
   final Reference<Primitive> object;
   final Reference<Primitive> index;
@@ -1150,13 +1316,26 @@ class SetIndex extends Primitive {
 
 /// Reads the value of a static field or tears off a static method.
 ///
-/// Note that lazily initialized fields should be read using GetLazyStatic.
+/// If [GetStatic] is used to load a lazily initialized static field, it must
+/// have been initialized beforehand, and a [witness] must be set to restrict
+/// code motion.
 class GetStatic extends Primitive {
   /// Can be [FieldElement] or [FunctionElement].
   final Element element;
   final SourceInformation sourceInformation;
 
+  /// If reading a lazily initialized field, [witness] must refer to a node
+  /// that initializes the field or always occurs after the field initializer.
+  ///
+  /// The value of the witness is not used.
+  Reference<Primitive> witness;
+
   GetStatic(this.element, [this.sourceInformation]);
+
+  /// Read a lazily initialized static field that is known to have been
+  /// initialized by [witness] or earlier.
+  GetStatic.witnessed(this.element, Primitive witness, [this.sourceInformation])
+      : witness = witness == null ? null : new Reference<Primitive>(witness);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
 
@@ -1166,7 +1345,11 @@ class GetStatic extends Primitive {
     return element is FunctionElement || element.isFinal;
   }
 
-  void setParentPointers() {}
+  void setParentPointers() {
+    if (witness != null) {
+      witness.parent = this;
+    }
+  }
 }
 
 /// Sets the value of a static field.
@@ -1732,6 +1915,8 @@ abstract class Visitor<T> {
   T visitGetIndex(GetIndex node);
   T visitSetIndex(SetIndex node);
   T visitRefinement(Refinement node);
+  T visitBoundsCheck(BoundsCheck node);
+  T visitNullCheck(NullCheck node);
 
   // Support for literal foreign code.
   T visitForeignCode(ForeignCode node);
@@ -1951,6 +2136,9 @@ class DeepRecursiveVisitor implements Visitor {
   processGetStatic(GetStatic node) {}
   visitGetStatic(GetStatic node) {
     processGetStatic(node);
+    if (node.witness != null) {
+      processReference(node.witness);
+    }
   }
 
   processSetStatic(SetStatic node) {}
@@ -2049,6 +2237,27 @@ class DeepRecursiveVisitor implements Visitor {
   visitRefinement(Refinement node) {
     processRefinement(node);
     processReference(node.value);
+  }
+
+  processBoundsCheck(BoundsCheck node) {}
+  visitBoundsCheck(BoundsCheck node) {
+    processBoundsCheck(node);
+    processReference(node.object);
+    if (node.index != null) {
+      processReference(node.index);
+    }
+    if (node.length != null) {
+      processReference(node.length);
+    }
+  }
+
+  processNullCheck(NullCheck node) {}
+  visitNullCheck(NullCheck node) {
+    processNullCheck(node);
+    processReference(node.value);
+    if (node.condition != null) {
+      processReference(node.condition);
+    }
   }
 }
 

@@ -630,7 +630,7 @@ Instruction* Instruction::AppendInstruction(Instruction* tail) {
 }
 
 
-BlockEntryInstr* Instruction::GetBlock() const {
+BlockEntryInstr* Instruction::GetBlock() {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.
   ASSERT(previous() != NULL);

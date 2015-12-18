@@ -314,10 +314,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
                             "CompileClass");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
-    tds.CopyArgument(
-        0,
-        "class",
-        const_cast<char*>(cls.ToCString()));
+    tds.CopyArgument(0, "class", cls.ToCString());
   }
 
   GrowableHandlePtrArray<const Class> parse_list(thread->zone(), 4);
@@ -414,6 +411,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   Isolate* const isolate = thread->isolate();
+  TimelineStream* compiler_timeline = isolate->GetCompilerStream();
   CSTAT_TIMER_SCOPE(thread, codegen_timer);
   HANDLESCOPE(thread);
 
@@ -433,7 +431,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   bool done = false;
   // volatile because the variable may be clobbered by a longjmp.
   volatile bool use_far_branches = false;
-  volatile bool use_speculative_inlining = true;
+  volatile bool use_speculative_inlining =
+      FLAG_max_speculative_inlining_attempts > 0;
   GrowableArray<intptr_t> inlining_black_list;
 
   while (!done) {
@@ -475,6 +474,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           }
         }
 
+        TimelineDurationScope tds(thread,
+                                  compiler_timeline,
+                                  "BuildFlowGraph");
         flow_graph = pipeline->BuildFlowGraph(zone,
                                               parsed_function,
                                               *ic_data_array,
@@ -498,10 +500,16 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       const bool reorder_blocks =
           FlowGraph::ShouldReorderBlocks(function, optimized);
       if (reorder_blocks) {
+        TimelineDurationScope tds(thread,
+                                  compiler_timeline,
+                                  "BlockScheduler::AssignEdgeWeights");
         block_scheduler.AssignEdgeWeights();
       }
 
       if (optimized) {
+        TimelineDurationScope tds(thread,
+                                  compiler_timeline,
+                                  "ComputeSSA");
         CSTAT_TIMER_SCOPE(thread, ssa_timer);
         // Transform to SSA (virtual register 0 and no inlining arguments).
         flow_graph->ComputeSSA(0, NULL);
@@ -520,6 +528,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
       if (optimized) {
+        TimelineDurationScope tds(thread,
+                                  compiler_timeline,
+                                  "OptimizationPasses");
         inline_id_to_function.Add(&function);
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
@@ -549,6 +560,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "Inlining");
           CSTAT_TIMER_SCOPE(thread, graphinliner_timer);
           // Propagate types to create more inlining opportunities.
           FlowGraphTypePropagator::Propagate(flow_graph);
@@ -572,9 +586,14 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         FlowGraphTypePropagator::Propagate(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        // Use propagated class-ids to optimize further.
-        optimizer.ApplyClassIds();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "ApplyClassIds");
+          // Use propagated class-ids to optimize further.
+          optimizer.ApplyClassIds();
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
 
         // Propagate types for potentially newly added instructions by
         // ApplyClassIds(). Must occur before canonicalization.
@@ -589,13 +608,21 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        BranchSimplifier::Simplify(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "BranchSimplifier");
+          BranchSimplifier::Simplify(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        IfConverter::Simplify(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+          IfConverter::Simplify(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
 
         if (FLAG_constant_propagation) {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "ConstantPropagation");
           ConstantPropagator::Optimize(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
           // A canonicalization pass to remove e.g. smi checks on smi constants.
@@ -621,43 +648,54 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         FlowGraphTypePropagator::Propagate(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        // Where beneficial convert Smi operations into Int32 operations.
-        // Only meanigful for 32bit platforms right now.
-        optimizer.WidenSmiToInt32();
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "SelectRepresentations");
+          // Where beneficial convert Smi operations into Int32 operations.
+          // Only meanigful for 32bit platforms right now.
+          optimizer.WidenSmiToInt32();
 
-        // Unbox doubles. Performed after constant propagation to minimize
-        // interference from phis merging double values and tagged
-        // values coming from dead paths.
-        optimizer.SelectRepresentations();
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
-
-        if (FLAG_common_subexpression_elimination ||
-            FLAG_loop_invariant_code_motion) {
-          flow_graph->ComputeBlockEffects();
-        }
-
-        if (FLAG_common_subexpression_elimination) {
-          if (DominatorBasedCSE::Optimize(flow_graph)) {
-            DEBUG_ASSERT(flow_graph->VerifyUseLists());
-            optimizer.Canonicalize();
-            // Do another round of CSE to take secondary effects into account:
-            // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
-            // TODO(fschneider): Change to a one-pass optimization pass.
-            if (DominatorBasedCSE::Optimize(flow_graph)) {
-              optimizer.Canonicalize();
-            }
-            DEBUG_ASSERT(flow_graph->VerifyUseLists());
-          }
-        }
-
-        // Run loop-invariant code motion right after load elimination since it
-        // depends on the numbering of loads from the previous load-elimination.
-        if (FLAG_loop_invariant_code_motion) {
-          LICM licm(flow_graph);
-          licm.Optimize();
+          // Unbox doubles. Performed after constant propagation to minimize
+          // interference from phis merging double values and tagged
+          // values coming from dead paths.
+          optimizer.SelectRepresentations();
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
         }
-        flow_graph->RemoveRedefinitions();
+
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "CommonSubexpressionElinination");
+          if (FLAG_common_subexpression_elimination ||
+              FLAG_loop_invariant_code_motion) {
+            flow_graph->ComputeBlockEffects();
+          }
+
+          if (FLAG_common_subexpression_elimination) {
+            if (DominatorBasedCSE::Optimize(flow_graph)) {
+              DEBUG_ASSERT(flow_graph->VerifyUseLists());
+              optimizer.Canonicalize();
+              // Do another round of CSE to take secondary effects into account:
+              // e.g. when eliminating dependent loads (a.x[0] + a.x[0])
+              // TODO(fschneider): Change to a one-pass optimization pass.
+              if (DominatorBasedCSE::Optimize(flow_graph)) {
+                optimizer.Canonicalize();
+              }
+              DEBUG_ASSERT(flow_graph->VerifyUseLists());
+            }
+          }
+
+          // Run loop-invariant code motion right after load elimination since
+          // it depends on the numbering of loads from the previous
+          // load-elimination.
+          if (FLAG_loop_invariant_code_motion) {
+            LICM licm(flow_graph);
+            licm.Optimize();
+            DEBUG_ASSERT(flow_graph->VerifyUseLists());
+          }
+          flow_graph->RemoveRedefinitions();
+        }
 
         // Optimize (a << b) & c patterns, merge operations.
         // Run after CSE in order to have more opportunity to merge
@@ -665,9 +703,17 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         optimizer.TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        DeadStoreElimination::Optimize(flow_graph);
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "DeadStoreElimination");
+          DeadStoreElimination::Optimize(flow_graph);
+        }
 
         if (FLAG_range_analysis) {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "RangeAnalysis");
           // Propagate types after store-load-forwarding. Some phis may have
           // become smi phis that can be processed by range analysis.
           FlowGraphTypePropagator::Propagate(flow_graph);
@@ -681,6 +727,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
 
         if (FLAG_constant_propagation) {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "ConstantPropagator::OptimizeBranches");
           // Constant propagation can use information from range analysis to
           // find unreachable branch targets and eliminate branches that have
           // the same true- and false-target.
@@ -693,16 +742,26 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         FlowGraphTypePropagator::Propagate(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        // Optimize try-blocks.
-        TryCatchAnalyzer::Optimize(flow_graph);
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "TryCatchAnalyzer::Optimize");
+          // Optimize try-blocks.
+          TryCatchAnalyzer::Optimize(flow_graph);
+        }
 
         // Detach environments from the instructions that can't deoptimize.
         // Do it before we attempt to perform allocation sinking to minimize
         // amount of materializations it has to perform.
         optimizer.EliminateEnvironments();
 
-        DeadCodeElimination::EliminateDeadPhis(flow_graph);
-        DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "EliminateDeadPhis");
+          DeadCodeElimination::EliminateDeadPhis(flow_graph);
+          DEBUG_ASSERT(flow_graph->VerifyUseLists());
+        }
 
         if (optimizer.Canonicalize()) {
           optimizer.Canonicalize();
@@ -713,6 +772,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         AllocationSinking* sinking = NULL;
         if (FLAG_allocation_sinking &&
             (flow_graph->graph_entry()->SuccessorCount()  == 1)) {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "AllocationSinking::Optimize");
           // TODO(fschneider): Support allocation sinking with try-catch.
           sinking = new AllocationSinking(flow_graph);
           sinking->Optimize();
@@ -725,9 +787,14 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         FlowGraphTypePropagator::Propagate(flow_graph);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
-        // Ensure that all phis inserted by optimization passes have consistent
-        // representations.
-        optimizer.SelectRepresentations();
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "SelectRepresentations");
+          // Ensure that all phis inserted by optimization passes have
+          // consistent representations.
+          optimizer.SelectRepresentations();
+        }
 
         if (optimizer.Canonicalize()) {
           // To fully remove redundant boxing (e.g. BoxDouble used only in
@@ -740,6 +807,10 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         if (sinking != NULL) {
+          TimelineDurationScope tds2(
+              thread,
+              compiler_timeline,
+              "AllocationSinking::DetachMaterializations");
           // Remove all MaterializeObject instructions inserted by allocation
           // sinking from the flow graph and let them float on the side
           // referenced only from environments. Register allocator will consider
@@ -751,10 +822,21 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         // to be later used by the inliner.
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
 
-        // Perform register allocation on the SSA graph.
-        FlowGraphAllocator allocator(*flow_graph);
-        allocator.AllocateRegisters();
-        if (reorder_blocks) block_scheduler.ReorderBlocks();
+        {
+          TimelineDurationScope tds2(thread,
+                                     compiler_timeline,
+                                     "AllocateRegisters");
+          // Perform register allocation on the SSA graph.
+          FlowGraphAllocator allocator(*flow_graph);
+          allocator.AllocateRegisters();
+        }
+
+        if (reorder_blocks) {
+          TimelineDurationScope tds(thread,
+                                    compiler_timeline,
+                                    "BlockScheduler::ReorderBlocks");
+          block_scheduler.ReorderBlocks();
+        }
 
         if (print_flow_graph) {
           FlowGraphPrinter::PrintGraph("After Optimizations", flow_graph);
@@ -769,10 +851,16 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
                                        caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread, graphcompiler_timer);
+        TimelineDurationScope tds(thread,
+                                  compiler_timeline,
+                                  "CompileGraph");
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation();
       }
       {
+        TimelineDurationScope tds(thread,
+                                  compiler_timeline,
+                                  "FinalizeCompilation");
         // This part of compilation must be at a safepoint.
         if (!Thread::Current()->IsMutatorThread()) {
           // Stop mutator thread before creating the instruction object and
@@ -1503,7 +1591,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         Class::Handle(Type::Handle(Type::Function()).type_class()),
         fragment->token_pos()));
 
-    func.set_result_type(Type::Handle(Type::DynamicType()));
+    func.set_result_type(Object::dynamic_type());
     func.set_num_fixed_parameters(0);
     func.SetNumOptionalParameters(0, true);
     // Manually generated AST, do not recompile.

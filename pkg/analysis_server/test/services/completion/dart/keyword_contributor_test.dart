@@ -1114,27 +1114,6 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
   }
 
-  test_inComment_block() async {
-    addTestSource('''
-main() {
-  /* text ^ */
-  print(42);
-}
-''');
-    await computeSuggestions();
-    expect(suggestions, isEmpty);
-  }
-
-  test_inComment_endOfLine() async {
-    addTestSource('''
-main() {
-  // text ^
-}
-''');
-    await computeSuggestions();
-    expect(suggestions, isEmpty);
-  }
-
   test_is_expression() async {
     addTestSource('main() {if (x is^)}');
     await computeSuggestions();

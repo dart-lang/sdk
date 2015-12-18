@@ -17,7 +17,7 @@ const _binaryName = 'dartanalyzer';
 /// *Visible for testing.*
 ExitHandler exitHandler = exit;
 
-/// Print the given message to stderr and exit with the given [exitCode]
+/// Print the given [message] to stderr and exit with the given [exitCode].
 void printAndFail(String message, {int exitCode: 15}) {
   errorSink.writeln(message);
   exitHandler(exitCode);
@@ -80,6 +80,10 @@ class CommandLineOptions {
   /// The path to a `.packages` configuration file
   final String packageConfigPath;
 
+  /// The path to a file to write a performance log.
+  /// (Or null if not enabled.)
+  final String perfReport;
+
   /// Batch mode (for unit testing)
   final bool shouldBatch;
 
@@ -117,6 +121,7 @@ class CommandLineOptions {
         machineFormat = args['machine'] || args['format'] == 'machine',
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
+        perfReport = args['x-perf-report'],
         shouldBatch = args['batch'],
         showPackageWarnings =
             args['show-package-warnings'] || args['package-warnings'],
@@ -146,10 +151,12 @@ class CommandLineOptions {
       // Check that SDK is specified.
       if (sdkPath == null) {
         printAndFail('No Dart SDK found.');
+        return null; // Only reachable in testing.
       }
       // Check that SDK is existing directory.
       if (!(new Directory(sdkPath)).existsSync()) {
         printAndFail('Invalid Dart SDK path: $sdkPath');
+        return null; // Only reachable in testing.
       }
     }
 
@@ -158,13 +165,15 @@ class CommandLineOptions {
       if (options.packageRootPath != null &&
           options.packageConfigPath != null) {
         printAndFail("Cannot specify both '--package-root' and '--packages.");
+        return null; // Only reachable in testing.
       }
     }
 
     // OK.  Report deprecated options.
     if (options.enableNullAwareOperators) {
-      stderr.writeln(
-          "Info: Option '--enable-null-aware-operators' is no longer needed. Null aware operators are supported by default.");
+      errorSink.writeln(
+          "Info: Option '--enable-null-aware-operators' is no longer needed. "
+          "Null aware operators are supported by default.");
     }
 
     return options;
@@ -194,11 +203,13 @@ class CommandLineOptions {
       ..addOption('dart-sdk', help: 'The path to the Dart SDK.')
       ..addOption('packages',
           help:
-              'Path to the package resolution configuration file, which supplies a mapping of package names to paths.  This option cannot be used with --package-root.')
+              'Path to the package resolution configuration file, which supplies '
+              'a mapping of package names to paths.  This option cannot be '
+              'used with --package-root.')
       ..addOption('package-root',
           abbr: 'p',
-          help:
-              'Path to a package root directory (deprecated). This option cannot be used with --packages.')
+          help: 'Path to a package root directory (deprecated). This option '
+              'cannot be used with --packages.')
       ..addOption('options', help: 'Path to an analysis options file.')
       ..addOption('format',
           help: 'Specifies the format in which errors are displayed.')
@@ -242,6 +253,8 @@ class CommandLineOptions {
           help: 'Show warnings from SDK imports (deprecated).',
           defaultsTo: false,
           negatable: false)
+      ..addOption('x-perf-report',
+          help: 'Writes a performance report to the given file (experimental).')
       ..addFlag('help',
           abbr: 'h',
           help: 'Display this help message.',
@@ -308,45 +321,50 @@ class CommandLineOptions {
       // Help requests.
       if (results['help']) {
         _showUsage(parser);
-        exit(0);
+        exitHandler(0);
+        return null; // Only reachable in testing.
       }
       // Batch mode and input files.
       if (results['batch']) {
         if (results.rest.isNotEmpty) {
-          stderr.writeln('No source files expected in the batch mode.');
+          errorSink.writeln('No source files expected in the batch mode.');
           _showUsage(parser);
-          exit(15);
+          exitHandler(15);
+          return null; // Only reachable in testing.
         }
       } else if (results['version']) {
-        print('$_binaryName version ${_getVersion()}');
-        exit(0);
+        outSink.write('$_binaryName version ${_getVersion()}');
+        exitHandler(0);
+        return null; // Only reachable in testing.
       } else {
         if (results.rest.isEmpty) {
           _showUsage(parser);
-          exit(15);
+          exitHandler(15);
+          return null; // Only reachable in testing.
         }
       }
       return new CommandLineOptions._fromArgs(results, definedVariables);
     } on FormatException catch (e) {
-      stderr.writeln(e.message);
+      errorSink.writeln(e.message);
       _showUsage(parser);
-      exit(15);
+      exitHandler(15);
+      return null; // Only reachable in testing.
     }
   }
 
   static _showUsage(parser) {
-    stderr
+    errorSink
         .writeln('Usage: $_binaryName [options...] <libraries to analyze...>');
-    stderr.writeln(parser.getUsage());
-    stderr.writeln('');
-    stderr.writeln(
+    errorSink.writeln(parser.getUsage());
+    errorSink.writeln('');
+    errorSink.writeln(
         'For more information, see http://www.dartlang.org/tools/analyzer.');
   }
 }
 
 /// Commandline argument parser.
 ///
-/// TODO(pquitslund): when the args package supports ignoring unrecognized
+/// TODO(pq): when the args package supports ignoring unrecognized
 /// options/flags, this class can be replaced with a simple [ArgParser]
 /// instance.
 class CommandLineParser {

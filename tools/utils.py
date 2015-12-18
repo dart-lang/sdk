@@ -634,8 +634,9 @@ def CheckedInSdkCheckExecutable():
   canary_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                'canary.dart')
   try:
-    if 42 == subprocess.call([executable, canary_script]):
-      return True
+    with open(os.devnull, 'wb') as silent_sink:
+      if 0 == subprocess.call([executable, canary_script], stdout=silent_sink):
+        return True
   except OSError as e:
     pass
   return False

@@ -14,8 +14,8 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring_internal.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -60,7 +60,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       } else {
         if (prefix == null) {
           SourceRange range = rangeStartLength(element.uriEnd, 0);
-          edit = newSourceEdit_range(range, " as ${newName}");
+          edit = newSourceEdit_range(range, " as $newName");
         } else {
           int offset = element.prefixOffset;
           int length = prefix.nameLength;

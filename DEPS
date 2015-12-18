@@ -10,9 +10,6 @@ vars = {
   # The svn location to pull out dependencies from
   "third_party": "http://dart.googlecode.com/svn/third_party",
 
-  # The svn location for pulling pinned revisions of bleeding edge dependencies.
-  "bleeding_edge": "http://dart.googlecode.com/svn/branches/bleeding_edge",
-
   # Use this googlecode_url variable only if there is an internal mirror for it.
   # If you do not know, use the full path while defining your new deps entry.
   "googlecode_url": "http://%s.googlecode.com/svn",
@@ -55,7 +52,6 @@ vars = {
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.2",
   "dev_compiler_rev": "@0.1.9",
-  "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "gsutil_rev" : "@33376",
@@ -77,14 +73,14 @@ vars = {
   "mustache4dart_rev" : "@5724cfd85151e5b6b53ddcd3380daf188fe47f92",
   "oauth2_tag": "@1.0.0",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
-  "observatory_pub_packages_rev": "@5c199c5954146747f75ed127871207718dc87786",
+  "observatory_pub_packages_rev": "@cf90eb9077177d3d6b3fd5e8289477c2385c026a",
   "package_config_rev": "@0.1.3",
   "path_tag": "@1.3.6",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
-  "pub_rev": "@3000544b752bbc89e5e01559eed7f70e9401632b",
+  "pub_rev": "@a1dd3484795b2bc221aaa8d007f3162251b3c08e",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
@@ -112,7 +108,6 @@ vars = {
   "WebCore_rev" : "@44061",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
-  "font_awesome_rev": "@31824",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
@@ -153,14 +148,8 @@ deps = {
 
   Var("dart_root") + "/third_party/7zip":
      Var("third_party") + "/7zip" + Var("7zip_rev"),
-  Var("dart_root") + "/third_party/chrome":
-      Var("third_party") + "/chrome" + Var("chrome_rev"),
-  Var("dart_root") + "/third_party/pkg/fake_async":
-      Var("third_party") + "/fake_async" + Var("fake_async_rev"),
   Var("dart_root") + "/third_party/firefox_jsshell":
       Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
-  Var("dart_root") + "/third_party/font-awesome":
-      Var("third_party") + "/font-awesome" + Var("font_awesome_rev"),
   Var("dart_root") + "/third_party/gsutil":
       Var("third_party") + "/gsutil" + Var("gsutil_rev"),
   Var("dart_root") + "/third_party/pkg/petitparser":
@@ -306,18 +295,6 @@ deps = {
       (Var("github_mirror") % "which") + Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       (Var("github_mirror") % "yaml") + Var("yaml_tag"),
-
-  # These specific versions of barback and source_maps are used for testing and
-  # should be pulled from bleeding_edge even on channels.
-  Var("dart_root") + "/third_party/pkg/barback-0.13.0":
-      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.13.0_rev"),
-  Var("dart_root") + "/third_party/pkg/barback-0.14.0+3":
-      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.14.0_rev"),
-  Var("dart_root") + "/third_party/pkg/barback-0.14.1+4":
-      Var("bleeding_edge") + "/dart/pkg/barback" + Var("barback-0.14.1_rev"),
-  Var("dart_root") + "/third_party/pkg/source_maps-0.9.4":
-      Var("bleeding_edge") + "/dart/pkg/source_maps" +
-      Var("source_maps-0.9.4_rev"),
 }
 
 deps_os = {

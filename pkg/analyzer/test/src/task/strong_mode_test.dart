@@ -4,8 +4,9 @@
 
 library analyzer.test.src.task.strong_mode_test;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 import 'package:unittest/unittest.dart';
@@ -338,6 +339,29 @@ class B extends A {
     expect(getterB.returnType, getterA.returnType);
   }
 
+  void test_inferCompilationUnit_fieldFormal() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String fieldName = 'f';
+    CompilationUnitElement unit = resolve('''
+class A {
+  final $fieldName = 0;
+  A([this.$fieldName = 'hello']);
+}
+''');
+    ClassElement classA = unit.getType('A');
+    FieldElement fieldA = classA.getField(fieldName);
+    FieldFormalParameterElement paramA =
+        classA.unnamedConstructor.parameters[0];
+    expect(fieldA.type.isDynamic, isTrue);
+    expect(paramA.type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    DartType intType = inferrer.typeProvider.intType;
+    expect(fieldA.type, intType);
+    expect(paramA.type, intType);
+  }
+
   void test_inferCompilationUnit_getter_multiple_different() {
     InstanceMemberInferrer inferrer = createInferrer;
     String getterName = 'g';
@@ -498,87 +522,6 @@ class B extends A {
     expect(getterB.returnType, getterA.returnType);
   }
 
-  void test_inferCompilationUnit_setter_single() {
-    InstanceMemberInferrer inferrer = createInferrer;
-    String setterName = 'g';
-    CompilationUnitElement unit = resolve('''
-class A {
-  set $setterName(int x) {}
-}
-class B extends A {
-  set $setterName(x) {}
-}
-''');
-    ClassElement classA = unit.getType('A');
-    FieldElement fieldA = classA.getField(setterName);
-    PropertyAccessorElement setterA = classA.getSetter(setterName);
-    ClassElement classB = unit.getType('B');
-    FieldElement fieldB = classB.getField(setterName);
-    PropertyAccessorElement setterB = classB.getSetter(setterName);
-    expect(fieldB.type.isDynamic, isTrue);
-    expect(setterB.parameters[0].type.isDynamic, isTrue);
-
-    inferrer.inferCompilationUnit(unit);
-
-    expect(fieldB.type, fieldA.type);
-    expect(setterB.parameters[0].type, setterA.parameters[0].type);
-  }
-
-  void test_inferCompilationUnit_setter_single_generic() {
-    InstanceMemberInferrer inferrer = createInferrer;
-    String setterName = 'g';
-    CompilationUnitElement unit = resolve('''
-class A<E> {
-  set $setterName(E x) {}
-}
-class B<E> extends A<E> {
-  set $setterName(x) {}
-}
-''');
-    ClassElement classB = unit.getType('B');
-    DartType typeBE = classB.typeParameters[0].type;
-    FieldElement fieldB = classB.getField(setterName);
-    PropertyAccessorElement setterB = classB.getSetter(setterName);
-    expect(fieldB.type.isDynamic, isTrue);
-    expect(setterB.parameters[0].type.isDynamic, isTrue);
-
-    inferrer.inferCompilationUnit(unit);
-
-    expect(fieldB.type, typeBE);
-    expect(setterB.parameters[0].type, typeBE);
-  }
-
-  void test_inferCompilationUnit_setter_single_inconsistentAccessors() {
-    InstanceMemberInferrer inferrer = createInferrer;
-    String getterName = 'g';
-    CompilationUnitElement unit = resolve('''
-class A {
-  int get $getterName => 0;
-  set $getterName(String value) {}
-}
-class B extends A {
-  set $getterName(x) {}
-}
-''');
-    ClassElement classA = unit.getType('A');
-    PropertyAccessorElement setterA = classA.getSetter(getterName);
-    ClassElement classB = unit.getType('B');
-    FieldElement fieldB = classB.getField(getterName);
-    PropertyAccessorElement setterB = classB.getSetter(getterName);
-    expect(fieldB.type.isDynamic, isTrue);
-    expect(setterB.parameters[0].type.isDynamic, isTrue);
-
-    inferrer.inferCompilationUnit(unit);
-
-    // Expected behavior is that the getter is inferred: getters and setters
-    // are treated as independent methods.
-    expect(setterB.parameters[0].type, setterA.parameters[0].type);
-
-    // Note that B's synthetic field type will be String. This matches what
-    // resolver would do if we explicitly typed the parameter as 'String'
-    expect(fieldB.type, setterB.parameters[0].type);
-  }
-
   void test_inferCompilationUnit_invalid_inheritanceCycle() {
     InstanceMemberInferrer inferrer = createInferrer;
     CompilationUnitElement unit = resolve('''
@@ -689,7 +632,8 @@ class C implements A, B {
     expect(parameterC.type.isDynamic, isTrue);
   }
 
-  void test_inferCompilationUnit_method_parameter_multiple_optionalAndRequired() {
+  void
+      test_inferCompilationUnit_method_parameter_multiple_optionalAndRequired() {
     InstanceMemberInferrer inferrer = createInferrer;
     String methodName = 'm';
     CompilationUnitElement unit = resolve('''
@@ -955,27 +899,85 @@ class B<E> extends A<E> {
         reason: 'function type should still have type arguments');
   }
 
-  void test_inferCompilationUnit_fieldFormal() {
+  void test_inferCompilationUnit_setter_single() {
     InstanceMemberInferrer inferrer = createInferrer;
-    String fieldName = 'f';
+    String setterName = 'g';
     CompilationUnitElement unit = resolve('''
 class A {
-  final $fieldName = 0;
-  A([this.$fieldName = 'hello']);
+  set $setterName(int x) {}
+}
+class B extends A {
+  set $setterName(x) {}
 }
 ''');
     ClassElement classA = unit.getType('A');
-    FieldElement fieldA = classA.getField(fieldName);
-    FieldFormalParameterElement paramA =
-        classA.unnamedConstructor.parameters[0];
-    expect(fieldA.type.isDynamic, isTrue);
-    expect(paramA.type.isDynamic, isTrue);
+    FieldElement fieldA = classA.getField(setterName);
+    PropertyAccessorElement setterA = classA.getSetter(setterName);
+    ClassElement classB = unit.getType('B');
+    FieldElement fieldB = classB.getField(setterName);
+    PropertyAccessorElement setterB = classB.getSetter(setterName);
+    expect(fieldB.type.isDynamic, isTrue);
+    expect(setterB.parameters[0].type.isDynamic, isTrue);
 
     inferrer.inferCompilationUnit(unit);
 
-    DartType intType = inferrer.typeProvider.intType;
-    expect(fieldA.type, intType);
-    expect(paramA.type, intType);
+    expect(fieldB.type, fieldA.type);
+    expect(setterB.parameters[0].type, setterA.parameters[0].type);
+  }
+
+  void test_inferCompilationUnit_setter_single_generic() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String setterName = 'g';
+    CompilationUnitElement unit = resolve('''
+class A<E> {
+  set $setterName(E x) {}
+}
+class B<E> extends A<E> {
+  set $setterName(x) {}
+}
+''');
+    ClassElement classB = unit.getType('B');
+    DartType typeBE = classB.typeParameters[0].type;
+    FieldElement fieldB = classB.getField(setterName);
+    PropertyAccessorElement setterB = classB.getSetter(setterName);
+    expect(fieldB.type.isDynamic, isTrue);
+    expect(setterB.parameters[0].type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    expect(fieldB.type, typeBE);
+    expect(setterB.parameters[0].type, typeBE);
+  }
+
+  void test_inferCompilationUnit_setter_single_inconsistentAccessors() {
+    InstanceMemberInferrer inferrer = createInferrer;
+    String getterName = 'g';
+    CompilationUnitElement unit = resolve('''
+class A {
+  int get $getterName => 0;
+  set $getterName(String value) {}
+}
+class B extends A {
+  set $getterName(x) {}
+}
+''');
+    ClassElement classA = unit.getType('A');
+    PropertyAccessorElement setterA = classA.getSetter(getterName);
+    ClassElement classB = unit.getType('B');
+    FieldElement fieldB = classB.getField(getterName);
+    PropertyAccessorElement setterB = classB.getSetter(getterName);
+    expect(fieldB.type.isDynamic, isTrue);
+    expect(setterB.parameters[0].type.isDynamic, isTrue);
+
+    inferrer.inferCompilationUnit(unit);
+
+    // Expected behavior is that the getter is inferred: getters and setters
+    // are treated as independent methods.
+    expect(setterB.parameters[0].type, setterA.parameters[0].type);
+
+    // Note that B's synthetic field type will be String. This matches what
+    // resolver would do if we explicitly typed the parameter as 'String'
+    expect(fieldB.type, setterB.parameters[0].type);
   }
 }
 

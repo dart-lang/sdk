@@ -49,7 +49,7 @@ vars.update({
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
-  "observatory_pub_packages_rev": "@5c199c5954146747f75ed127871207718dc87786",
+  "observatory_pub_packages_rev": "@cf90eb9077177d3d6b3fd5e8289477c2385c026a",
   "package_config_rev": "@0.1.3",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
@@ -71,7 +71,6 @@ vars.update({
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
 
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
-  "fake_async_rev": "@38614",
 })
 
 def massage_deps(deps):
@@ -188,10 +187,6 @@ deps.update({
 
   "src/dart/third_party/WebCore":
     "http://dart.googlecode.com/svn/third_party/WebCore",
-
-  "src/dart/third_party/pkg/fake_async":
-    "http://dart.googlecode.com/svn/third_party/fake_async" +
-    Var("fake_async_rev"),
 
   "src/dart/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),

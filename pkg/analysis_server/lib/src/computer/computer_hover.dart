@@ -6,52 +6,10 @@ library computer.hover;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     show HoverInformation;
+import 'package:analysis_server/src/utilities/documentation.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-
-/**
- * Converts [str] from a Dart Doc string with slashes and stars to a plain text
- * representation of the comment.
- */
-String _removeDartDocDelimiters(String str) {
-  if (str == null) {
-    return null;
-  }
-  // remove /** */
-  if (str.startsWith('/**')) {
-    str = str.substring(3);
-  }
-  if (str.endsWith("*/")) {
-    str = str.substring(0, str.length - 2);
-  }
-  str = str.trim();
-  // remove leading '* '
-  List<String> lines = str.split('\n');
-  StringBuffer sb = new StringBuffer();
-  bool firstLine = true;
-  for (String line in lines) {
-    line = line.trim();
-    if (line.startsWith("*")) {
-      line = line.substring(1);
-      if (line.startsWith(" ")) {
-        line = line.substring(1);
-      }
-    } else if (line.startsWith("///")) {
-      line = line.substring(3);
-      if (line.startsWith(" ")) {
-        line = line.substring(1);
-      }
-    }
-    if (!firstLine) {
-      sb.write('\n');
-    }
-    firstLine = false;
-    sb.write(line);
-  }
-  str = sb.toString();
-  // done
-  return str;
-}
 
 /**
  * A computer for the hover at the specified offset of a Dart [CompilationUnit].
@@ -102,7 +60,7 @@ class DartUnitHoverComputer {
           ClassElement containingClass =
               element.getAncestor((e) => e is ClassElement);
           if (containingClass != null) {
-            hover.containingClassDescription = containingClass.toString();
+            hover.containingClassDescription = containingClass.displayName;
           }
           // containing library
           LibraryElement library = element.library;
@@ -111,13 +69,16 @@ class DartUnitHoverComputer {
             hover.containingLibraryPath = library.source.fullName;
           }
         }
+
         // documentation
         hover.dartdoc = _computeDocumentation(element);
       }
       // parameter
       hover.parameter = _safeToString(expression.bestParameterElement);
       // types
-      hover.staticType = _safeToString(expression.staticType);
+      if (element == null || element is VariableElement) {
+        hover.staticType = _safeToString(expression.staticType);
+      }
       hover.propagatedType = _safeToString(expression.propagatedType);
       // done
       return hover;
@@ -130,8 +91,7 @@ class DartUnitHoverComputer {
     if (element is ParameterElement) {
       element = element.enclosingElement;
     }
-    String dartDoc = element.computeDocumentationComment();
-    return _removeDartDocDelimiters(dartDoc);
+    return removeDartDocDelimiters(element.documentationComment);
   }
 
   static _safeToString(obj) => obj != null ? obj.toString() : null;

@@ -15,8 +15,8 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart' show Identifier;
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
 /**
@@ -26,7 +26,8 @@ import 'package:analyzer/src/generated/java_core.dart';
 Future<RefactoringStatus> validateCreateFunction(
     SearchEngine searchEngine, LibraryElement library, String name) {
   return new _RenameUnitMemberValidator.forCreate(
-      searchEngine, library, ElementKind.FUNCTION, name).validate();
+          searchEngine, library, ElementKind.FUNCTION, name)
+      .validate();
 }
 
 /**

@@ -1968,8 +1968,7 @@ class C = a.A with M;'''
     Source source = addSource("class A extends double {}");
     computeLibrarySourceErrors(source);
     assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
     ]);
     verify([source]);
   }
@@ -1998,8 +1997,7 @@ class C = a.A with M;'''
     Source source = addSource("class A extends num {}");
     computeLibrarySourceErrors(source);
     assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT
+      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
     ]);
     verify([source]);
   }

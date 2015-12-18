@@ -1092,7 +1092,7 @@ class LibraryDependencyNode {
         if (element == null) {
           if (combinator.isHide) {
             if (library.isPackageLibrary &&
-                !reporter.options.showPackageWarnings) {
+                reporter.options.hidePackageWarnings) {
               // Only report hide hint on packages if we show warnings on these:
               // The hide may be non-empty in some versions of the package, in
               // which case you shouldn't remove the combinator.

@@ -4,8 +4,9 @@
 
 library analysis_server.src.provisional.completion.dart.completion_target;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -264,16 +265,13 @@ class CompletionTarget {
   /**
    * Return `true` if the target is a functional argument in an argument list.
    * The target [AstNode] hierarchy *must* be resolved for this to work.
+   * See [maybeFunctionalArgument].
    */
   bool isFunctionalArgument() {
-    if (argIndex == null) {
+    if (!maybeFunctionalArgument()) {
       return false;
     }
-    AstNode argList = containingNode;
-    if (argList is! ArgumentList) {
-      return false;
-    }
-    AstNode parent = argList.parent;
+    AstNode parent = containingNode.parent;
     if (parent is InstanceCreationExpression) {
       DartType instType = parent.bestType;
       if (instType != null) {
@@ -299,6 +297,22 @@ class CompletionTarget {
       }
     }
     return false;
+  }
+
+  /**
+   * Return `true` if the target maybe a functional argument in an argument list.
+   * This is used in determining whether the target [AstNode] hierarchy
+   * needs to be resolved so that [isFunctionalArgument] will work.
+   */
+  bool maybeFunctionalArgument() {
+    if (argIndex == null) {
+      return false;
+    }
+    AstNode argList = containingNode;
+    if (argList is! ArgumentList) {
+      return false;
+    }
+    return true;
   }
 
   /**

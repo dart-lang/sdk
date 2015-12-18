@@ -55,6 +55,11 @@ Future<ServiceExtensionResponse> LanguageErrorHandler(String method,
 
 void test() {
   registerExtension('__delay', Handler);
+  debugger();
+  postEvent('ALPHA', {
+    'cat': 'dog'
+  });
+  debugger();
   registerExtension('__error', Handler);
   registerExtension('__exception', Handler);
   registerExtension('__null', Handler);
@@ -71,6 +76,24 @@ void test() {
 }
 
 var tests = [
+  hasStoppedAtBreakpoint,
+  (Isolate isolate) async {
+    await isolate.load();
+    expect(isolate.extensionRPCs.length, 1);
+    expect(isolate.extensionRPCs[0], equals('__delay'));
+  },
+  resumeIsolateAndAwaitEvent(Isolate.kExtensionStream, (ServiceEvent event) {
+    expect(event.kind, equals(ServiceEvent.kExtension));
+    expect(event.extensionKind, equals('ALPHA'));
+    expect(event.extensionData, new isInstanceOf<Map>());
+    expect(event.extensionData['cat'], equals('dog'));
+  }),
+  hasStoppedAtBreakpoint,
+  resumeIsolateAndAwaitEvent(VM.kIsolateStream, (ServiceEvent event) {
+    // Check that we received an event when '__error' was registered.
+    expect(event.kind, equals(ServiceEvent.kServiceExtensionAdded));
+    expect(event.extensionRPC, equals('__error'));
+  }),
   // Initial.
   (Isolate isolate) async {
     var result;
@@ -130,4 +153,4 @@ var tests = [
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeBefore:test);
+main(args) async => runIsolateTests(args, tests, testeeConcurrent:test);

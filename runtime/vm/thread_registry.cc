@@ -13,12 +13,10 @@ ThreadRegistry::~ThreadRegistry() {
   // Go over the free thread list and delete the thread objects.
   {
     MonitorLocker ml(monitor_);
-    // At this point the mutator thread should be the only thread
-    // in the active list, delete it.
-    ASSERT(active_list_->next_ == NULL);
-    ASSERT(active_list_ == mutator_thread_);
+    // At this point the active list should be empty.
+    ASSERT(active_list_ == NULL);
+    // We have cached the mutator thread, delete it.
     delete mutator_thread_;
-    active_list_ = NULL;
     mutator_thread_ = NULL;
     // Now delete all the threads in the free list.
     while (free_list_ != NULL) {
@@ -48,7 +46,6 @@ void ThreadRegistry::SafepointThreads() {
   Isolate* isolate = Isolate::Current();
   // We only expect this method to be called from within the isolate itself.
   ASSERT(isolate->thread_registry() == this);
-  // TODO(koda): Rename Thread::PrepareForGC and call it here?
   --remaining_;  // Exclude this thread from the count.
   // Ensure the main mutator will reach a safepoint (could be running Dart).
   if (!Thread::Current()->IsMutatorThread()) {
@@ -80,6 +77,8 @@ Thread* ThreadRegistry::Schedule(Isolate* isolate,
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != NULL);
   ASSERT(isolate->heap() != NULL);
+  // First get a Thread structure. (we special case the mutator thread
+  // by reusing the cached structure, see comment in 'thread_registry.h').
   if (is_mutator) {
     if (mutator_thread_ == NULL) {
       mutator_thread_ = GetThreadFromFreelist(isolate);
@@ -89,6 +88,9 @@ Thread* ThreadRegistry::Schedule(Isolate* isolate,
     thread = GetThreadFromFreelist(isolate);
     ASSERT(thread->api_top_scope() == NULL);
   }
+  // Now add this Thread to the active list for the isolate.
+  AddThreadToActiveList(thread);
+  // Set up other values and set the TLS value.
   thread->isolate_ = isolate;
   thread->heap_ = isolate->heap();
   thread->set_os_thread(os_thread);
@@ -111,6 +113,10 @@ void ThreadRegistry::Unschedule(Thread* thread,
   thread->isolate_ = NULL;
   thread->heap_ = NULL;
   thread->set_os_thread(NULL);
+  // Remove thread from the active list for the isolate.
+  RemoveThreadFromActiveList(thread);
+  // Return thread to the free list (we special case the mutator
+  // thread by holding on to it, see comment in 'thread_registry.h').
   if (!is_mutator) {
     ASSERT(thread->api_top_scope() == NULL);
     ReturnThreadToFreelist(thread);
@@ -147,29 +153,27 @@ void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
 }
 
 
-Thread* ThreadRegistry::GetThreadFromFreelist(Isolate* isolate) {
-  ASSERT(monitor_->IsOwnedByCurrentThread());
-  Thread* thread = NULL;
-  // Get thread structure from free list or create a new one.
-  if (free_list_ == NULL) {
-    thread = new Thread(isolate);
-  } else {
-    thread = free_list_;
-    free_list_ = thread->next_;
+void ThreadRegistry::PrepareForGC() {
+  MonitorLocker ml(monitor_);
+  Thread* thread = active_list_;
+  while (thread != NULL) {
+    thread->PrepareForGC();
+    thread = thread->next_;
   }
-  // Add thread to active list.
-  thread->next_ = active_list_;
-  active_list_ = thread;
-  return thread;
 }
 
-void ThreadRegistry::ReturnThreadToFreelist(Thread* thread) {
+
+void ThreadRegistry::AddThreadToActiveList(Thread* thread) {
   ASSERT(thread != NULL);
-  ASSERT(thread->os_thread_ == NULL);
-  ASSERT(thread->isolate_ == NULL);
-  ASSERT(thread->heap_ == NULL);
   ASSERT(monitor_->IsOwnedByCurrentThread());
-  // First remove the thread from the active list.
+  thread->next_ = active_list_;
+  active_list_ = thread;
+}
+
+
+void ThreadRegistry::RemoveThreadFromActiveList(Thread* thread) {
+  ASSERT(thread != NULL);
+  ASSERT(monitor_->IsOwnedByCurrentThread());
   Thread* prev = NULL;
   Thread* current = active_list_;
   while (current != NULL) {
@@ -184,7 +188,29 @@ void ThreadRegistry::ReturnThreadToFreelist(Thread* thread) {
     prev = current;
     current = current->next_;
   }
-  // Now add thread to the free list.
+}
+
+
+Thread* ThreadRegistry::GetThreadFromFreelist(Isolate* isolate) {
+  ASSERT(monitor_->IsOwnedByCurrentThread());
+  Thread* thread = NULL;
+  // Get thread structure from free list or create a new one.
+  if (free_list_ == NULL) {
+    thread = new Thread(isolate);
+  } else {
+    thread = free_list_;
+    free_list_ = thread->next_;
+  }
+  return thread;
+}
+
+void ThreadRegistry::ReturnThreadToFreelist(Thread* thread) {
+  ASSERT(thread != NULL);
+  ASSERT(thread->os_thread_ == NULL);
+  ASSERT(thread->isolate_ == NULL);
+  ASSERT(thread->heap_ == NULL);
+  ASSERT(monitor_->IsOwnedByCurrentThread());
+  // Add thread to the free list.
   thread->next_ = free_list_;
   free_list_ = thread;
 }
@@ -198,7 +224,6 @@ void ThreadRegistry::CheckSafepointLocked() {
       ASSERT((last_round == -1) || (round_ == (last_round + 1)));
       last_round = round_;
       // Participate in this round.
-      // TODO(koda): Rename Thread::PrepareForGC and call it here?
       if (--remaining_ == 0) {
         // Ensure the organizing thread is notified.
         // TODO(koda): Use separate condition variables and plain 'Notify'.

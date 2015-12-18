@@ -14,8 +14,11 @@ from datetime import date
 import tarfile
 import tempfile
 
-def makeArchive(tar_path, client_root, files):
-  tar = tarfile.open(tar_path, mode='w')
+def makeArchive(tar_path, client_root, compress, files):
+  mode_string = 'w'
+  if compress:
+    mode_string = 'w:gz'
+  tar = tarfile.open(tar_path, mode=mode_string)
   for input_file_name in files:
     # Chop off client_root.
     archive_file_name = input_file_name[ len(client_root) : ]
@@ -98,6 +101,7 @@ def main(args):
     parser.add_option("--name",
                       action="store", type="string",
                       help="name of tar archive symbol")
+    parser.add_option("--compress", action="store_true", default=False)
     parser.add_option("--client_root",
                       action="store", type="string",
                       help="root directory client resources")
@@ -129,7 +133,10 @@ def main(args):
         files.append(src_path)
 
     # Write out archive.
-    makeArchive(options.tar_output, options.client_root, files)
+    makeArchive(options.tar_output,
+                options.client_root,
+                options.compress,
+                files)
 
     # Read it back in.
     with open(options.tar_output, 'rb') as tar_file:

@@ -433,10 +433,6 @@ class BackendHelpers {
     return findHelper('throwConcurrentModificationError');
   }
 
-  Element get throwIndexOutOfBoundsError {
-    return findHelper('ioore');
-  }
-
   Element get stringInterpolationHelper {
     return findHelper('S');
   }

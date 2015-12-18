@@ -33,10 +33,6 @@
           'dart-iphone5.png', # iPhone 5 splash screen.
           'dart-icon-196px.png', # Android icon.
           'try-dart-screenshot.png', # Google+ screen shot.
-
-          '../../third_party/font-awesome/font-awesome-4.0.3/'
-          'fonts/fontawesome-webfont.woff',
-
           'favicon.ico',
 
           '<(SHARED_INTERMEDIATE_DIR)/leap.dart.js',

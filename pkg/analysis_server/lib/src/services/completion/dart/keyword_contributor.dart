@@ -27,9 +27,6 @@ class KeywordContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request) async {
-    if (request.target.isCommentText) {
-      return EMPTY_LIST;
-    }
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
     request.target.containingNode
         .accept(new _KeywordVisitor(request, suggestions));

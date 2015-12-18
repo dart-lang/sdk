@@ -6980,6 +6980,7 @@ void NewNativePort_send321(Dart_Port dest_port_id,
                            Dart_CObject* message) {
   // Gets a null message.
   EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kArray, message->type);
   EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
 
   // Post integer value.
@@ -7064,6 +7065,194 @@ UNIT_TEST_CASE(NewNativePort) {
   // Delete the native ports.
   EXPECT(Dart_CloseNativePort(port_id1));
   EXPECT(Dart_CloseNativePort(port_id2));
+}
+
+
+void NewNativePort_sendInteger123(Dart_Port dest_port_id,
+                                  Dart_CObject *message) {
+  // Gets a send port message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kArray, message->type);
+  EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
+
+  // Post integer value.
+  Dart_PostInteger(
+      message->value.as_array.values[0]->value.as_send_port.id, 123);
+}
+
+
+void NewNativePort_sendInteger321(Dart_Port dest_port_id,
+                                  Dart_CObject* message) {
+  // Gets a null message.
+  EXPECT_NOTNULL(message);
+  EXPECT_EQ(Dart_CObject_kArray, message->type);
+  EXPECT_EQ(Dart_CObject_kSendPort, message->value.as_array.values[0]->type);
+
+  // Post integer value.
+  Dart_PostInteger(
+      message->value.as_array.values[0]->value.as_send_port.id, 321);
+}
+
+
+TEST_CASE(NativePortPostInteger) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port) {\n"
+      "  var receivePort = new RawReceivePort();\n"
+      "  var replyPort = receivePort.sendPort;\n"
+      "  port.send([replyPort]);\n"
+      "  receivePort.handler = (message) {\n"
+      "    receivePort.close();\n"
+      "    throw new Exception(message);\n"
+      "  };\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id1 =
+      Dart_NewNativePort("Port123", NewNativePort_sendInteger123, true);
+  Dart_Port port_id2 =
+      Dart_NewNativePort("Port321", NewNativePort_sendInteger321, true);
+
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+  Dart_Handle send_port2 = Dart_NewSendPort(port_id2);
+  EXPECT_VALID(send_port2);
+
+  // Test first port.
+  Dart_Handle dart_args[1];
+  dart_args[0] = send_port1;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
+
+  // result second port.
+  dart_args[0] = send_port2;
+  result = Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 321\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
+  EXPECT(Dart_CloseNativePort(port_id2));
+}
+
+
+void NewNativePort_nativeReceiveNull(Dart_Port dest_port_id,
+                                     Dart_CObject *message) {
+  EXPECT_NOTNULL(message);
+
+  if ((message->type == Dart_CObject_kArray) &&
+      (message->value.as_array.values[0]->type == Dart_CObject_kSendPort)) {
+    // Post integer value.
+    Dart_PostInteger(
+        message->value.as_array.values[0]->value.as_send_port.id, 123);
+  } else {
+    EXPECT_EQ(message->type, Dart_CObject_kNull);
+  }
+}
+
+
+TEST_CASE(NativePortReceiveNull) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port) {\n"
+      "  var receivePort = new RawReceivePort();\n"
+      "  var replyPort = receivePort.sendPort;\n"
+      "  port.send(null);\n"
+      "  port.send([replyPort]);\n"
+      "  receivePort.handler = (message) {\n"
+      "    receivePort.close();\n"
+      "    throw new Exception(message);\n"
+      "  };\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id1 =
+      Dart_NewNativePort("PortNull", NewNativePort_nativeReceiveNull, true);
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+
+  // Test first port.
+  Dart_Handle dart_args[1];
+  dart_args[0] = send_port1;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
+}
+
+
+void NewNativePort_nativeReceiveInteger(Dart_Port dest_port_id,
+                                        Dart_CObject *message) {
+  EXPECT_NOTNULL(message);
+
+  if ((message->type == Dart_CObject_kArray) &&
+      (message->value.as_array.values[0]->type == Dart_CObject_kSendPort)) {
+    // Post integer value.
+    Dart_PostInteger(
+        message->value.as_array.values[0]->value.as_send_port.id, 123);
+  } else {
+    EXPECT_EQ(message->type, Dart_CObject_kInt32);
+    EXPECT_EQ(message->value.as_int32, 321);
+  }
+}
+
+
+TEST_CASE(NativePortReceiveInteger) {
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "void callPort(SendPort port) {\n"
+      "  var receivePort = new RawReceivePort();\n"
+      "  var replyPort = receivePort.sendPort;\n"
+      "  port.send(321);\n"
+      "  port.send([replyPort]);\n"
+      "  receivePort.handler = (message) {\n"
+      "    receivePort.close();\n"
+      "    throw new Exception(message);\n"
+      "  };\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_EnterScope();
+
+  Dart_Port port_id1 =
+      Dart_NewNativePort("PortNull", NewNativePort_nativeReceiveInteger, true);
+  Dart_Handle send_port1 = Dart_NewSendPort(port_id1);
+  EXPECT_VALID(send_port1);
+
+  // Test first port.
+  Dart_Handle dart_args[1];
+  dart_args[0] = send_port1;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("callPort"), 1, dart_args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 123\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+
+  // Delete the native ports.
+  EXPECT(Dart_CloseNativePort(port_id1));
 }
 
 

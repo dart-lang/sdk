@@ -6,13 +6,14 @@ library analyzer.test.src.context.context_test;
 
 import 'dart:async';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -240,8 +241,9 @@ int b = aa;''';
     Element declarationElement = declaration.variables.variables[0].element;
     TopLevelVariableDeclaration use =
         partUnit.declarations[0] as TopLevelVariableDeclaration;
-    Element useElement = (use.variables.variables[0].initializer
-        as SimpleIdentifier).staticElement;
+    Element useElement =
+        (use.variables.variables[0].initializer as SimpleIdentifier)
+            .staticElement;
     expect((useElement as PropertyAccessorElement).variable,
         same(declarationElement));
     return pumpEventQueue().then((_) {
@@ -311,7 +313,6 @@ import 'libB.dart';''';
     expect(importedLibraries, hasLength(2));
     context.computeErrors(libA);
     context.computeErrors(libB);
-    expect(context.sourcesNeedingProcessing, hasLength(0));
     context.setContents(libB, null);
     _removeSource(libB);
     List<Source> sources = context.sourcesNeedingProcessing;
@@ -381,7 +382,6 @@ import 'libB.dart';''';
     context.computeLibraryElement(libA);
     context.computeErrors(libA);
     context.computeErrors(libB);
-    expect(context.sourcesNeedingProcessing, hasLength(0));
     ChangeSet changeSet = new ChangeSet();
     SourceContainer removedContainer =
         new _AnalysisContextImplTest_test_applyChanges_removeContainer(libB);
@@ -604,12 +604,15 @@ main() {}''');
       expect(unit, isNotNull);
       completed = true;
     });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
+    return pumpEventQueue()
+        .then((_) {
+          expect(completed, isFalse);
+          _performPendingAnalysisTasks();
+        })
+        .then((_) => pumpEventQueue())
+        .then((_) {
+          expect(completed, isTrue);
+        });
   }
 
   Future test_computeResolvedCompilationUnitAsync_afterDispose() {
@@ -698,12 +701,15 @@ main() {}''');
       expect(unit, isNotNull);
       completed = true;
     });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
+    return pumpEventQueue()
+        .then((_) {
+          expect(completed, isFalse);
+          _performPendingAnalysisTasks();
+        })
+        .then((_) => pumpEventQueue())
+        .then((_) {
+          expect(completed, isTrue);
+        });
   }
 
   void test_configurationData() {
@@ -1937,11 +1943,8 @@ library expectedToFindSemicolon
     addSource('/test.dart', 'main() {}');
     _analyzeAll_assertFinished();
     // verify
-    expect(libraryElementUris, contains('dart:core'));
     expect(libraryElementUris, contains('file:///test.dart'));
-    expect(parsedUnitUris, contains('dart:core'));
     expect(parsedUnitUris, contains('file:///test.dart'));
-    expect(resolvedUnitUris, contains('dart:core'));
     expect(resolvedUnitUris, contains('file:///test.dart'));
   }
 

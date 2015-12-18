@@ -6,9 +6,14 @@ library analyzer.src.generated.resolver;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -20,7 +25,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/strong/info.dart' show InferredType, StaticInfo;
+import 'package:analyzer/src/task/strong/info.dart'
+    show InferredType, StaticInfo;
 
 export 'package:analyzer/src/generated/type_system.dart';
 
@@ -1133,8 +1139,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         result =
             _validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
         if (result != null) {
-          _reportErrorIfFromDeferredLibrary(element,
-              CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
+          _reportErrorIfFromDeferredLibrary(
+              element,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY);
         }
       }
     }
@@ -1157,8 +1165,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         DartObjectImpl valueResult = _validate(
             valueExpression, CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
         if (valueResult != null) {
-          _reportErrorIfFromDeferredLibrary(valueExpression,
-              CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
+          _reportErrorIfFromDeferredLibrary(
+              valueExpression,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY);
         }
         if (keyResult != null) {
           _reportErrorIfFromDeferredLibrary(key,
@@ -1171,7 +1181,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           DartType type = keyResult.type;
           if (_implementsEqualsWhenNotAllowed(type)) {
             _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+                CompileTimeErrorCode
+                    .CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
                 key,
                 [type.displayName]);
           }
@@ -1228,8 +1239,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
         DartObjectImpl caseResult = _validate(
             expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
         if (caseResult != null) {
-          _reportErrorIfFromDeferredLibrary(expression,
-              CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
+          _reportErrorIfFromDeferredLibrary(
+              expression,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
           DartObject value = caseResult;
           if (firstType == null) {
             firstType = value.type;
@@ -1269,8 +1282,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
       }
       _reportErrors(result.errors,
           CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
-      _reportErrorIfFromDeferredLibrary(initializer,
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
+      _reportErrorIfFromDeferredLibrary(
+          initializer,
+          CompileTimeErrorCode
+              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
     return null;
   }
@@ -1363,10 +1378,14 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           identical(dataErrorCode, CompileTimeErrorCode.CONST_EVAL_TYPE_NUM) ||
           identical(dataErrorCode,
               CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT) ||
-          identical(dataErrorCode,
-              CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
-          identical(dataErrorCode,
-              CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
+          identical(
+              dataErrorCode,
+              CheckedModeCompileTimeErrorCode
+                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH) ||
+          identical(
+              dataErrorCode,
+              CheckedModeCompileTimeErrorCode
+                  .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
           identical(dataErrorCode,
               CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
         _errorReporter.reportError(data);
@@ -1463,8 +1482,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
           result = _validate(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
           if (result != null) {
-            _reportErrorIfFromDeferredLibrary(defaultValue,
-                CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
+            _reportErrorIfFromDeferredLibrary(
+                defaultValue,
+                CompileTimeErrorCode
+                    .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
           }
         }
         VariableElementImpl element = parameter.element as VariableElementImpl;
@@ -1504,7 +1525,8 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
                   subErrorReporter));
               if (result == null) {
                 _errorReporter.reportErrorForNode(
-                    CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+                    CompileTimeErrorCode
+                        .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
                     errorSite,
                     [variableDeclaration.name.name]);
               }
@@ -1534,8 +1556,10 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
     _reportErrors(errorListener.errors,
         CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER);
     if (result != null) {
-      _reportErrorIfFromDeferredLibrary(expression,
-          CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
+      _reportErrorIfFromDeferredLibrary(
+          expression,
+          CompileTimeErrorCode
+              .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY);
     }
   }
 
@@ -2672,7 +2696,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
     element.typeParameters = typeParameters;
-    _setDocRange(element, node);
+    _setDoc(element, node);
     element.abstract = node.isAbstract;
     element.accessors = holder.accessors;
     List<ConstructorElement> constructors = holder.constructors;
@@ -2744,7 +2768,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
-    _setDocRange(element, node);
+    _setDoc(element, node);
     if (node.externalKeyword != null) {
       element.external = true;
     }
@@ -2849,7 +2873,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier enumName = node.name;
     ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
     enumElement.enum2 = true;
-    _setDocRange(enumElement, node);
+    _setDoc(enumElement, node);
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
     // The equivalent code for enums in the spec shows a single constructor,
@@ -2922,7 +2946,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
-        _setDocRange(element, node);
+        _setDoc(element, node);
         if (node.externalKeyword != null) {
           element.external = true;
         }
@@ -2969,7 +2993,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setDocRange(getter, node);
+          _setDoc(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -2995,7 +3019,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setDocRange(setter, node);
+          _setDoc(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -3086,7 +3110,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     FunctionTypeAliasElementImpl element =
         new FunctionTypeAliasElementImpl.forNode(aliasName);
-    _setDocRange(element, node);
+    _setDoc(element, node);
     element.parameters = parameters;
     element.typeParameters = typeParameters;
     _createTypeParameterTypes(typeParameters);
@@ -3157,7 +3181,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
-        _setDocRange(element, node);
+        _setDoc(element, node);
         element.abstract = node.isAbstract;
         if (node.externalKeyword != null) {
           element.external = true;
@@ -3194,7 +3218,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setDocRange(getter, node);
+          _setDoc(getter, node);
           if (node.externalKeyword != null) {
             getter.external = true;
           }
@@ -3220,7 +3244,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setDocRange(setter, node);
+          _setDoc(setter, node);
           if (node.externalKeyword != null) {
             setter.external = true;
           }
@@ -3358,7 +3382,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = field;
       if (node.parent.parent is FieldDeclaration) {
-        _setDocRange(element, node.parent.parent);
+        _setDoc(element, node.parent.parent);
       }
       if ((node.parent as VariableDeclarationList).type == null) {
         field.hasImplicitType = true;
@@ -3393,7 +3417,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = variable;
       if (node.parent.parent is TopLevelVariableDeclaration) {
-        _setDocRange(element, node.parent.parent);
+        _setDoc(element, node.parent.parent);
       }
       if ((node.parent as VariableDeclarationList).type == null) {
         variable.hasImplicitType = true;
@@ -3527,12 +3551,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * If the given [node] has a documentation comment, remember its range
-   * into the given [element].
+   * If the given [node] has a documentation comment, remember its content
+   * and range into the given [element].
    */
-  void _setDocRange(ElementImpl element, AnnotatedNode node) {
+  void _setDoc(ElementImpl element, AnnotatedNode node) {
     Comment comment = node.documentationComment;
     if (comment != null && comment.isDocumentation) {
+      element.documentationComment =
+          comment.tokens.map((Token t) => t.lexeme).join('\n');
       element.setDocRange(comment.offset, comment.length);
     }
   }
@@ -5673,8 +5699,9 @@ class InheritanceManager {
     if (memberName == null || memberName.isEmpty) {
       return null;
     }
-    ExecutableElement executable = _computeClassChainLookupMap(
-        classElt, new HashSet<ClassElement>()).get(memberName);
+    ExecutableElement executable =
+        _computeClassChainLookupMap(classElt, new HashSet<ClassElement>())
+            .get(memberName);
     if (executable == null) {
       return _computeInterfaceLookupMap(classElt, new HashSet<ClassElement>())
           .get(memberName);
@@ -6329,8 +6356,9 @@ class InheritanceManager {
               // Tests: test_getMapOfMembersInheritedFromInterfaces_
               // union_multipleSubtypes_*
               //
-              List<ExecutableElement> elementArrayToMerge = new List<
-                  ExecutableElement>(subtypesOfAllOtherTypesIndexes.length);
+              List<ExecutableElement> elementArrayToMerge =
+                  new List<ExecutableElement>(
+                      subtypesOfAllOtherTypesIndexes.length);
               for (int i = 0; i < elementArrayToMerge.length; i++) {
                 elementArrayToMerge[i] =
                     elements[subtypesOfAllOtherTypesIndexes[i]];
@@ -6345,7 +6373,8 @@ class InheritanceManager {
               classElt,
               classElt.nameOffset,
               classElt.nameLength,
-              StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
+              StaticWarningCode
+                  .INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD,
               [key]);
         }
       }
@@ -6492,8 +6521,8 @@ class InheritanceManager {
       int numOfPositionalParameters,
       List<String> namedParameters) {
     DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
-    SimpleIdentifier nameIdentifier = new SimpleIdentifier(
-        new StringToken(TokenType.IDENTIFIER, name, 0));
+    SimpleIdentifier nameIdentifier =
+        new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
     ExecutableElementImpl executable;
     if (elementArrayToMerge[0] is MethodElement) {
       MultiplyInheritedMethodElementImpl unionedMethod =
@@ -6582,7 +6611,7 @@ class InheritanceManager {
   static int _getNumOfPositionalParameters(
           ExecutableElement executableElement) =>
       _getNumOfParameters(executableElement, ParameterKind.REQUIRED) +
-          _getNumOfParameters(executableElement, ParameterKind.POSITIONAL);
+      _getNumOfParameters(executableElement, ParameterKind.POSITIONAL);
 
   /**
    * Given some [ExecutableElement] return the number of required parameters.
@@ -7929,12 +7958,6 @@ class ResolverVisitor extends ScopedVisitor {
    */
   ExecutableElement _enclosingFunction = null;
 
-  /**
-   * The [Comment] before a [FunctionDeclaration] or a [MethodDeclaration] that
-   * cannot be resolved where we visited it, because it should be resolved in the scope of the body.
-   */
-  Comment _commentBeforeFunction = null;
-
   InferenceContext inferenceContext = null;
 
   /**
@@ -8095,7 +8118,6 @@ class ResolverVisitor extends ScopedVisitor {
       if (element is ExecutableElement) {
         _enclosingFunction = element;
       }
-      _commentBeforeFunction = declaration.documentationComment;
     }
     _overrideManager.enterScope();
   }
@@ -8228,6 +8250,15 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // OK
     expression.propagatedType = type;
+  }
+
+  /**
+   * Visit the given [comment] if it is not `null`.
+   */
+  void safelyVisitComment(Comment comment) {
+    if (comment != null) {
+      super.visitComment(comment);
+    }
   }
 
   @override
@@ -8390,7 +8421,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
-    safelyVisit(_commentBeforeFunction);
     _overrideManager.enterScope();
     try {
       inferenceContext.pushReturnContext(InferenceContext.getType(node));
@@ -8470,16 +8500,14 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitComment(Comment node) {
-    if (node.parent is FunctionDeclaration ||
-        node.parent is ConstructorDeclaration ||
-        node.parent is MethodDeclaration) {
-      if (!identical(node, _commentBeforeFunction)) {
-        _commentBeforeFunction = node;
-        return null;
-      }
+    AstNode parent = node.parent;
+    if (parent is FunctionDeclaration ||
+        parent is FunctionTypeAlias ||
+        parent is ConstructorDeclaration ||
+        parent is MethodDeclaration) {
+      return null;
     }
     super.visitComment(node);
-    _commentBeforeFunction = null;
     return null;
   }
 
@@ -8604,6 +8632,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
+    super.visitConstructorDeclarationInScope(node);
+    safelyVisitComment(node.documentationComment);
+  }
+
+  @override
   Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     //
     // We visit the expression, but do not visit the field name because it needs
@@ -8649,16 +8683,10 @@ class ResolverVisitor extends ScopedVisitor {
       (element.initializer as FunctionElementImpl).returnType =
           node.defaultValue.staticType;
     }
-    FormalParameterList parent = node.parent;
-    AstNode grandparent = parent.parent;
-    if (grandparent is ConstructorDeclaration &&
-        grandparent.constKeyword != null) {
-      // For const constructors, we need to clone the ASTs for default formal
-      // parameters, so that we can use them during constant evaluation.
-      ParameterElement element = node.element;
-      (element as ConstVariableElement).constantInitializer =
-          new ConstantAstCloner().cloneNode(node.defaultValue);
-    }
+    // Clone the ASTs for default formal parameters, so that we can use them
+    // during constant evaluation.
+    (element as ConstVariableElement).constantInitializer =
+        new ConstantAstCloner().cloneNode(node.defaultValue);
     return null;
   }
 
@@ -8677,7 +8705,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitEmptyFunctionBody(EmptyFunctionBody node) {
-    safelyVisit(_commentBeforeFunction);
     if (resolveOnlyCommentInFunctionBody) {
       return null;
     }
@@ -8715,7 +8742,6 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    safelyVisit(_commentBeforeFunction);
     if (resolveOnlyCommentInFunctionBody) {
       return null;
     }
@@ -8853,6 +8879,12 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitFunctionDeclarationInScope(FunctionDeclaration node) {
+    super.visitFunctionDeclarationInScope(node);
+    safelyVisitComment(node.documentationComment);
+  }
+
+  @override
   Object visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -8899,6 +8931,12 @@ class ResolverVisitor extends ScopedVisitor {
       _enclosingFunctionTypeAlias = outerAlias;
     }
     return null;
+  }
+
+  @override
+  void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
+    super.visitFunctionTypeAliasInScope(node);
+    safelyVisitComment(node.documentationComment);
   }
 
   @override
@@ -9067,6 +9105,12 @@ class ResolverVisitor extends ScopedVisitor {
       _enclosingFunction = outerFunction;
     }
     return null;
+  }
+
+  @override
+  void visitMethodDeclarationInScope(MethodDeclaration node) {
+    super.visitMethodDeclarationInScope(node);
+    safelyVisitComment(node.documentationComment);
   }
 
   @override
@@ -10168,11 +10212,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       } else {
         nameScope = new FunctionScope(nameScope, constructorElement);
       }
-      super.visitConstructorDeclaration(node);
+      visitConstructorDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
     return null;
+  }
+
+  void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
+    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -10326,11 +10374,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       } else {
         nameScope = new FunctionScope(nameScope, functionElement);
       }
-      super.visitFunctionDeclaration(node);
+      visitFunctionDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
     return null;
+  }
+
+  void visitFunctionDeclarationInScope(FunctionDeclaration node) {
+    super.visitFunctionDeclaration(node);
   }
 
   @override
@@ -10375,11 +10427,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     Scope outerScope = nameScope;
     try {
       nameScope = new FunctionTypeScope(nameScope, node.element);
-      super.visitFunctionTypeAlias(node);
+      visitFunctionTypeAliasInScope(node);
     } finally {
       nameScope = outerScope;
     }
     return null;
+  }
+
+  void visitFunctionTypeAliasInScope(FunctionTypeAlias node) {
+    super.visitFunctionTypeAlias(node);
   }
 
   @override
@@ -10436,11 +10492,15 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
       } else {
         nameScope = new FunctionScope(nameScope, methodElement);
       }
-      super.visitMethodDeclaration(node);
+      visitMethodDeclarationInScope(node);
     } finally {
       nameScope = outerScope;
     }
     return null;
+  }
+
+  void visitMethodDeclarationInScope(MethodDeclaration node) {
+    super.visitMethodDeclaration(node);
   }
 
   /**
@@ -12132,10 +12192,10 @@ class TypeResolverVisitor extends ScopedVisitor {
       } else if ((redirectingConstructorKind =
               _getRedirectingConstructorKind(node)) !=
           null) {
-        ErrorCode errorCode = (redirectingConstructorKind ==
-                RedirectingConstructorKind.CONST
-            ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
-            : StaticWarningCode.REDIRECT_TO_NON_CLASS);
+        ErrorCode errorCode =
+            (redirectingConstructorKind == RedirectingConstructorKind.CONST
+                ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
+                : StaticWarningCode.REDIRECT_TO_NON_CLASS);
         reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,
@@ -12192,10 +12252,10 @@ class TypeResolverVisitor extends ScopedVisitor {
       } else if ((redirectingConstructorKind =
               _getRedirectingConstructorKind(node)) !=
           null) {
-        ErrorCode errorCode = (redirectingConstructorKind ==
-                RedirectingConstructorKind.CONST
-            ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
-            : StaticWarningCode.REDIRECT_TO_NON_CLASS);
+        ErrorCode errorCode =
+            (redirectingConstructorKind == RedirectingConstructorKind.CONST
+                ? CompileTimeErrorCode.REDIRECT_TO_NON_CLASS
+                : StaticWarningCode.REDIRECT_TO_NON_CLASS);
         reportErrorForNode(errorCode, typeName, [typeName.name]);
       } else if (_isTypeNameInTypeArgumentList(node)) {
         reportErrorForNode(StaticTypeWarningCode.NON_TYPE_AS_TYPE_ARGUMENT,

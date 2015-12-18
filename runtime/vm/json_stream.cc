@@ -161,16 +161,8 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 
 void JSONStream::PostNullReply(Dart_Port port) {
-  const Object& reply = Object::Handle(Object::null());
-  ASSERT(reply.IsNull());
-
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(reply);
-  PortMap::PostMessage(new Message(port,
-                                   data,
-                                   writer.BytesWritten(),
-                                   Message::kNormalPriority));
+  PortMap::PostMessage(new Message(
+      port, Object::null(), Message::kNormalPriority));
 }
 
 
@@ -269,6 +261,13 @@ void JSONStream::AppendSerializedObject(const char* serialized_object) {
   buffer_.AddString(serialized_object);
 }
 
+
+void JSONStream::AppendSerializedObject(const char* property_name,
+                                        const char* serialized_object) {
+  PrintCommaIfNeeded();
+  PrintPropertyName(property_name);
+  buffer_.AddString(serialized_object);
+}
 
 void JSONStream::Clear() {
   buffer_.Clear();

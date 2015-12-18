@@ -6,9 +6,12 @@ library analyzer.src.generated.testing.element_factory;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -196,7 +199,9 @@ class ElementFactory {
 
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type) {
-    FieldElementImpl field = new FieldElementImpl(name, 0);
+    FieldElementImpl field = isConst
+        ? new ConstFieldElementImpl(name, 0)
+        : new FieldElementImpl(name, 0);
     field.const3 = isConst;
     field.final2 = isFinal;
     field.static = isStatic;
@@ -398,8 +403,10 @@ class ElementFactory {
     field.static = isStatic;
     field.synthetic = true;
     field.type = type;
+    field.final2 = true;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl.forVariable(field);
+    getter.synthetic = false;
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;

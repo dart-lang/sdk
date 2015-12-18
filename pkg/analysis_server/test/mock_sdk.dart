@@ -269,7 +269,7 @@ external void printToConsole(String line);
       }
       if (filePath.startsWith("$libraryPath/")) {
         String pathInLibrary = filePath.substring(libraryPath.length + 1);
-        String path = '${library.shortName}/${pathInLibrary}';
+        String path = '${library.shortName}/$pathInLibrary';
         try {
           resource.File file = provider.getResource(uri.path);
           Uri dartUri = new Uri(scheme: 'dart', path: path);

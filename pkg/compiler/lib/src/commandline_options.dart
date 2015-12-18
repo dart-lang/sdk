@@ -50,3 +50,8 @@ class Flags {
   // Experimental flags.
   static const String conditionalDirectives = '--conditional-directives';
 }
+
+class Option {
+  static const String showPackageWarnings =
+      '${Flags.showPackageWarnings}|${Flags.showPackageWarnings}=.*';
+}
