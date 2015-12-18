@@ -176,6 +176,8 @@ dart_library.library('dart/_operations', null, /* Imports */[
         isSubtype(type, core.Map) && isSubtype(actual, core.Map) ||
         isSubtype(type, core.Function) && isSubtype(actual, core.Function) ||
         isSubtype(type, async.Stream) && isSubtype(actual, async.Stream) ||
+        isSubtype(type, async.StreamController) &&
+            isSubtype(actual, async.StreamController) ||
         isSubtype(type, async.StreamSubscription) &&
             isSubtype(actual, async.StreamSubscription)) {
       console.warn('Ignoring cast fail from ' + types.typeName(actual) +
