@@ -10,10 +10,16 @@ built_in_identifier_prefix_test: Fail # Issue 6970
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
 
 # These bugs refer currently ongoing language discussions.
-constructor_initializer_test/none: Fail # Issue 12633
 constructor5_test: Fail # Issue 6422
 constructor6_test: Fail # Issue 6422
-closure_in_initializer_test: Fail # Issue 6422
+
+# Failures related to super call in ctor initializer list
+super_test: Fail, OK
+final_field_initialization_order_test: Fail, OK
+field_initialization_order_test: Fail, OK
+example_constructor_test: Fail, OK
+constructor3_test: Fail, OK
+constructor2_test: Fail, OK
 
 # Regular bugs which should be fixed.
 duplicate_export_negative_test: Fail # Issue 6134

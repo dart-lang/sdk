@@ -5,6 +5,11 @@
 
 [ ($compiler == none || $compiler == precompiler) && (($runtime == vm || $runtime == dart_precompiled) || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 
+# Failures ok in tests below. VM moves super initializer to end of list.
+Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
+Language/Expressions/Instance_Creation/New/execution_t04: Fail, OK
+Language/Expressions/Instance_Creation/New/execution_t06: Fail, OK
+
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 22200
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 22200

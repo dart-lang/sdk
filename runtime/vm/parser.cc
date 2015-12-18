@@ -48,7 +48,9 @@ DEFINE_FLAG(bool, load_deferred_eagerly, false,
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
-DEFINE_FLAG(bool, move_super, false, "Move super initializer to end of list");
+DEFINE_FLAG(bool, move_super, true, "Move super initializer to end of list.");
+DEFINE_FLAG(bool, warn_super, false,
+    "Warning if super initializer not last in initializer list.");
 
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -2816,7 +2818,9 @@ void Parser::ParseInitializers(const Class& cls,
     // A(x) : super(x), f = x++ { ... }
     // is transformed to:
     // A(x) : temp = x, f = x++, super(temp) { ... }
-    ReportWarning("Super initizlizer not at end");
+    if (FLAG_warn_super) {
+      ReportWarning("Super initializer not at end");
+    }
     ASSERT(super_init_index >= 0);
     ArgumentListNode* ctor_args = super_init_call->arguments();
     LetNode* saved_args = new(Z) LetNode(super_init_call->token_pos());
