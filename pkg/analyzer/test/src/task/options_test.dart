@@ -237,6 +237,9 @@ class OptionsFileValidatorTest {
 analyzer:
   errors:
     unused_local_variable: ignore
+    invalid_assignment: warning
+    missing_return: error
+    dead_code: info
 ''',
         []);
   }

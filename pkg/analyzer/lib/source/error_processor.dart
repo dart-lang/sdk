@@ -54,19 +54,15 @@ class ErrorConfig {
     }
   }
 
-  ErrorSeverity _toSeverity(String severity) {
-    switch (severity) {
-      case 'error':
-        return ErrorSeverity.ERROR;
-      case 'info':
-        return ErrorSeverity.INFO;
-      case 'warning':
-        return ErrorSeverity.WARNING;
-    }
-    return null;
-  }
-
+  ErrorSeverity _toSeverity(String severity) => severityMap[severity];
 }
+
+/// String identifiers mapped to associated severities.
+const Map<String, ErrorSeverity> severityMap = const {
+  'error': ErrorSeverity.ERROR,
+  'info': ErrorSeverity.INFO,
+  'warning': ErrorSeverity.WARNING
+};
 
 /// Process errors by filtering or changing associated [ErrorSeverity].
 class ErrorProcessor {

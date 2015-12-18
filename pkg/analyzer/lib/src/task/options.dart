@@ -52,7 +52,7 @@ class AnalyzerOptions {
 
   /// Valid error `severity`s.
   static final List<String> severities =
-      ErrorSeverity.values.map((s) => s.name).toList();
+      new List.unmodifiable(severityMap.keys);
 
   /// Ways to say `include`.
   static const List<String> includeSynonyms = const ['include', 'true'];
@@ -121,17 +121,22 @@ class ErrorBuilder {
 
   /// Report an unsupported [node] value, defined in the given [scopeName].
   void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
-    reporter.reportErrorForSpan(
-        code, node.span, [scopeName, node.value, proposal]);
+    reporter
+        .reportErrorForSpan(code, node.span, [scopeName, node.value, proposal]);
   }
 }
 
 /// Validates `analyzer` error filter options.
 class ErrorFilterOptionValidator extends OptionsValidator {
-  /// Pretty list of legal includes.
-  static final String legalIncludes = StringUtilities.printListOfQuotedNames(
+  /// Legal values.
+  static final List<String> legalValues =
       new List.from(AnalyzerOptions.ignoreSynonyms)
-        ..addAll(AnalyzerOptions.includeSynonyms));
+        ..addAll(AnalyzerOptions.includeSynonyms)
+        ..addAll(AnalyzerOptions.severities);
+
+  /// Pretty String listing legal values.
+  static final String legalValueString =
+      StringUtilities.printListOfQuotedNames(legalValues);
 
   /// Lazily populated set of error codes (hashed for speedy lookup).
   static HashSet<String> _errorCodes;
@@ -170,12 +175,14 @@ class ErrorFilterOptionValidator extends OptionsValidator {
         }
         if (v is YamlScalar) {
           value = toLowerCase(v.value);
-          if (!AnalyzerOptions.ignoreSynonyms.contains(value) &&
-              !AnalyzerOptions.includeSynonyms.contains(value)) {
+          if (!legalValues.contains(value)) {
             reporter.reportErrorForSpan(
                 AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
-                v.span,
-                [AnalyzerOptions.errors, v.value?.toString(), legalIncludes]);
+                v.span, [
+              AnalyzerOptions.errors,
+              v.value?.toString(),
+              legalValueString
+            ]);
           }
         }
       });
@@ -451,7 +458,8 @@ class _OptionsProcessor {
 
   void setProcessors(AnalysisContext context, Object codes) {
     ErrorConfig config = new ErrorConfig(codes);
-    context.setConfigurationData(CONFIGURED_ERROR_PROCESSORS, config.processors);
+    context.setConfigurationData(
+        CONFIGURED_ERROR_PROCESSORS, config.processors);
   }
 
   void setStrongMode(AnalysisContext context, Object strongMode) {
