@@ -88,8 +88,31 @@ class DartCompletionManager implements CompletionContributor {
 /**
  * The information about a requested list of completions within a Dart file.
  */
-class DartCompletionRequestImpl extends CompletionRequestImpl
-    implements DartCompletionRequest {
+class DartCompletionRequestImpl implements DartCompletionRequest {
+  @override
+  final AnalysisContext context;
+
+  @override
+  final Source source;
+
+  @override
+  final int offset;
+
+  @override
+  Expression dotTarget;
+
+  @override
+  Source librarySource;
+
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final SearchEngine searchEngine;
+
+  @override
+  CompletionTarget target;
+
   /**
    * The [LibraryElement] representing dart:core
    */
@@ -100,26 +123,16 @@ class DartCompletionRequestImpl extends CompletionRequestImpl
    */
   InterfaceType _objectType;
 
-  @override
-  Expression dotTarget;
-
-  @override
-  Source librarySource;
-
   OpType _opType;
 
-  @override
-  CompletionTarget target;
-
   DartCompletionRequestImpl._(
-      AnalysisContext context,
-      ResourceProvider resourceProvider,
-      SearchEngine searchEngine,
+      this.context,
+      this.resourceProvider,
+      this.searchEngine,
       this.librarySource,
-      Source source,
-      int offset,
-      CompilationUnit unit)
-      : super(context, resourceProvider, searchEngine, source, offset) {
+      this.source,
+      this.offset,
+      CompilationUnit unit) {
     _updateTargets(unit);
   }
 

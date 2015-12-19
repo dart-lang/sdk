@@ -8,8 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show AnalysisRequest, CompletionRequest, CompletionResult;
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';

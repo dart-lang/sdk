@@ -9,15 +9,11 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-export 'package:analysis_server/src/services/completion/completion_manager.dart'
-    show CompletionPerformance, CompletionRequest, OperationPerformance;
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -62,18 +58,36 @@ class CompletionDomainHandler implements RequestHandler {
   CompletionDomainHandler(this.server);
 
   /**
-   * Return the [CompletionManager] for the given [context] and [source],
-   * creating a new manager or returning an existing manager as necessary.
+   * Compute completion results for the given reqeust and append them to the stream.
+   * Clients should not call this method directly as it is automatically called
+   * when a client listens to the stream returned by [results].
+   * Subclasses should override this method, append at least one result
+   * to the [controller], and close the controller stream once complete.
    */
-  CompletionManager completionManagerFor(
-      AnalysisContext context, Source source) {
-    return createCompletionManager(server, context, source);
-  }
+  Future<CompletionResult> computeSuggestions(
+      CompletionRequestImpl request) async {
+    Iterable<CompletionContributor> newContributors =
+        server.serverPlugin.completionContributors;
+    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
-  CompletionManager createCompletionManager(
-      AnalysisServer server, AnalysisContext context, Source source) {
-    return new CompletionManager.create(context, source, server.searchEngine,
-        server.serverPlugin.completionContributors);
+    const COMPUTE_SUGGESTIONS_TAG = 'computeSuggestions';
+    performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
+
+    for (CompletionContributor contributor in newContributors) {
+      String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
+      performance.logStartTime(contributorTag);
+      suggestions.addAll(await contributor.computeSuggestions(request));
+      performance.logElapseTime(contributorTag);
+    }
+
+    performance.logElapseTime(COMPUTE_SUGGESTIONS_TAG);
+
+    // TODO (danrubel) if request is obsolete
+    // (processAnalysisRequest returns false)
+    // then send empty results
+
+    return new CompletionResult(
+        request.replacementOffset, request.replacementLength, suggestions);
   }
 
   @override
@@ -102,7 +116,7 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Process a `completion.getSuggestions` request.
    */
-  Response processRequest(Request request, [CompletionManager manager]) {
+  Response processRequest(Request request) {
     performance = new CompletionPerformance();
 
     // extract and validate params
@@ -123,17 +137,14 @@ class CompletionDomainHandler implements RequestHandler {
           ' but found ${params.offset}');
     }
 
-    // schedule completion analysis
     recordRequest(performance, context, source, params.offset);
-    if (manager == null) {
-      manager = completionManagerFor(context, source);
-    }
+
     CompletionRequest completionRequest = new CompletionRequestImpl(context,
         server.resourceProvider, server.searchEngine, source, params.offset);
     String completionId = (_nextCompletionId++).toString();
-    manager
-        .computeSuggestions(completionRequest)
-        .then((CompletionResult result) {
+
+    // Compute suggestions in the background
+    computeSuggestions(completionRequest).then((CompletionResult result) {
       const SEND_NOTIFICATION_TAG = 'send notification';
       performance.logStartTime(SEND_NOTIFICATION_TAG);
       sendCompletionNotification(completionId, result.replacementOffset,
@@ -146,6 +157,7 @@ class CompletionDomainHandler implements RequestHandler {
       performance.suggestionCountLast = result.suggestions.length;
       performance.complete();
     });
+
     // initial response without results
     return new CompletionGetSuggestionsResult(completionId)
         .toResponse(request.id);
@@ -181,4 +193,32 @@ class CompletionDomainHandler implements RequestHandler {
             completionId, replacementOffset, replacementLength, results, true)
         .toNotification());
   }
+}
+
+/**
+ * The result of computing suggestions for code completion.
+ */
+class CompletionResult {
+  /**
+   * The length of the text to be replaced if the remainder of the identifier
+   * containing the cursor is to be replaced when the suggestion is applied
+   * (that is, the number of characters in the existing identifier).
+   */
+  final int replacementLength;
+
+  /**
+   * The offset of the start of the text to be replaced. This will be different
+   * than the offset used to request the completion suggestions if there was a
+   * portion of an identifier before the original offset. In particular, the
+   * replacementOffset will be the offset of the beginning of said identifier.
+   */
+  final int replacementOffset;
+
+  /**
+   * The suggested completions.
+   */
+  final List<CompletionSuggestion> suggestions;
+
+  CompletionResult(
+      this.replacementOffset, this.replacementLength, this.suggestions);
 }

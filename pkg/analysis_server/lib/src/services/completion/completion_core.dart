@@ -25,9 +25,9 @@ class CompletionRequestImpl implements CompletionRequest {
 
   /**
    * The offset of the start of the text to be replaced.
-   * This will be different than the offset used to request the completion
+   * This will be different than the [offset] used to request the completion
    * suggestions if there was a portion of an identifier before the original
-   * offset. In particular, the replacementOffset will be the offset of the
+   * [offset]. In particular, the [replacementOffset] will be the offset of the
    * beginning of said identifier.
    */
   int replacementOffset;
@@ -36,6 +36,8 @@ class CompletionRequestImpl implements CompletionRequest {
    * The length of the text to be replaced if the remainder of the identifier
    * containing the cursor is to be replaced when the suggestion is applied
    * (that is, the number of characters in the existing identifier).
+   * This will be different than the [replacementOffset] - [offset]
+   * if the [offset] is in the middle of an existing identifier.
    */
   int replacementLength;
 
