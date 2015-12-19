@@ -13,7 +13,9 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
-import 'package:analysis_server/src/services/completion/optype.dart';
+import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
+import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -22,12 +24,10 @@ import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific
