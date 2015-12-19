@@ -13,6 +13,7 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/common_usage_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
@@ -47,26 +48,36 @@ class DartCompletionManager implements CompletionContributor {
       return EMPTY_LIST;
     }
 
+    CompletionPerformance performance =
+        (request as CompletionRequestImpl).performance;
+    const BUILD_REQUEST_TAG = 'build DartCompletionRequestImpl';
+    performance.logStartTime(BUILD_REQUEST_TAG);
     DartCompletionRequestImpl dartRequest =
         await DartCompletionRequestImpl.from(request);
-    ReplacementRange range =
-        new ReplacementRange.compute(dartRequest.offset, dartRequest.target);
-    (request as CompletionRequestImpl)
-      ..replacementOffset = range.offset
-      ..replacementLength = range.length;
+    performance.logElapseTime(BUILD_REQUEST_TAG);
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
       return EMPTY_LIST;
     }
 
+    ReplacementRange range =
+        new ReplacementRange.compute(dartRequest.offset, dartRequest.target);
+    (request as CompletionRequestImpl)
+      ..replacementOffset = range.offset
+      ..replacementLength = range.length;
+
     // Request Dart specific completions from each contributor
     Map<String, CompletionSuggestion> suggestionMap =
         <String, CompletionSuggestion>{};
     for (DartCompletionContributor contributor
         in dartCompletionPlugin.contributors) {
+      String contributorTag =
+          'DartCompletionManager - ${contributor.runtimeType}';
+      performance.logStartTime(contributorTag);
       List<CompletionSuggestion> contributorSuggestions =
           await contributor.computeSuggestions(dartRequest);
+      performance.logElapseTime(contributorTag);
 
       for (CompletionSuggestion newSuggestion in contributorSuggestions) {
         var oldSuggestion = suggestionMap.putIfAbsent(
@@ -80,7 +91,10 @@ class DartCompletionManager implements CompletionContributor {
 
     // Adjust suggestion relevance before returning
     List<CompletionSuggestion> suggestions = suggestionMap.values.toList();
+    const SORT_TAG = 'DartCompletionManager - sort';
+    performance.logStartTime(SORT_TAG);
     await contributionSorter.sort(dartRequest, suggestions);
+    performance.logElapseTime(SORT_TAG);
     return suggestions;
   }
 }
@@ -125,6 +139,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   OpType _opType;
 
+  final CompletionPerformance performance;
+
   DartCompletionRequestImpl._(
       this.context,
       this.resourceProvider,
@@ -132,7 +148,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.librarySource,
       this.source,
       this.offset,
-      CompilationUnit unit) {
+      CompilationUnit unit,
+      this.performance) {
     _updateTargets(unit);
   }
 
@@ -191,11 +208,14 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       libUnit = target.unit;
     } else if (librarySource != null) {
       // TODO(danrubel) only resolve the directives
+      const RESOLVE_DIRECTIVES_TAG = 'resolve directives';
+      performance.logStartTime(RESOLVE_DIRECTIVES_TAG);
       libUnit = await new AnalysisFutureHelper<CompilationUnit>(
               context,
               new LibrarySpecificUnit(librarySource, librarySource),
               RESOLVED_UNIT3)
           .computeAsync();
+      performance.logElapseTime(RESOLVE_DIRECTIVES_TAG);
     }
     return libUnit?.directives;
   }
@@ -215,10 +235,13 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     // Resolve declarations in the target unit
     // TODO(danrubel) resolve the expression or containing method
     // rather than the entire complilation unit
+    const RESOLVE_EXPRESSION_TAG = 'resolve expression';
+    performance.logStartTime(RESOLVE_EXPRESSION_TAG);
     CompilationUnit resolvedUnit =
         await new AnalysisFutureHelper<CompilationUnit>(context,
                 new LibrarySpecificUnit(librarySource, source), RESOLVED_UNIT)
             .computeAsync();
+    performance.logElapseTime(RESOLVE_EXPRESSION_TAG);
 
     // TODO(danrubel) determine if the underlying source has been modified
     // in a way that invalidates the completion request
@@ -267,9 +290,18 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    * based on the given [request].
    */
   static Future<DartCompletionRequest> from(CompletionRequest request) async {
+    CompletionPerformance performance =
+        (request as CompletionRequestImpl).performance;
+    const BUILD_REQUEST_TAG = 'build DartCompletionRequest';
+    performance.logStartTime(BUILD_REQUEST_TAG);
+
     Source source = request.source;
     AnalysisContext context = request.context;
+
+    const PARSE_TAG = 'parse unit';
+    performance.logStartTime(PARSE_TAG);
     CompilationUnit unit = request.context.computeResult(source, PARSED_UNIT);
+    performance.logElapseTime(PARSE_TAG);
 
     Source libSource;
     if (unit.directives.any((d) => d is PartOfDirective)) {
@@ -283,9 +315,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     // Most (all?) contributors need declarations in scope to be resolved
     if (libSource != null) {
+      const RESOLVE_DECLARATIONS_TAG = 'resolve declarations';
+      performance.logStartTime(RESOLVE_DECLARATIONS_TAG);
       unit = await new AnalysisFutureHelper<CompilationUnit>(context,
               new LibrarySpecificUnit(libSource, source), RESOLVED_UNIT3)
           .computeAsync();
+      performance.logElapseTime(RESOLVE_DECLARATIONS_TAG);
     }
 
     DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(
@@ -295,7 +330,8 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         libSource,
         request.source,
         request.offset,
-        unit);
+        unit,
+        performance);
 
     // Resolve the expression in which the completion occurs
     // to properly determine if identifiers should be suggested
@@ -303,10 +339,14 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     if (dartRequest.target.maybeFunctionalArgument()) {
       AstNode node = dartRequest.target.containingNode.parent;
       if (node is Expression) {
+        const FUNCTIONAL_ARG_TAG = 'resolve expression for isFunctionalArg';
+        performance.logStartTime(FUNCTIONAL_ARG_TAG);
         await dartRequest.resolveExpression(node);
+        performance.logElapseTime(FUNCTIONAL_ARG_TAG);
       }
     }
 
+    performance.logElapseTime(BUILD_REQUEST_TAG);
     return dartRequest;
   }
 }

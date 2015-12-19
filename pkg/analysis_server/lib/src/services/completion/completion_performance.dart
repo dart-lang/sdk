@@ -45,23 +45,14 @@ class CompletionPerformance {
     _logDuration(tag != null ? tag : 'total time', _stopwatch.elapsed);
   }
 
-  logElapseTime(String tag, [f() = null]) {
-    Duration start;
+  void logElapseTime(String tag) {
     Duration end = _stopwatch.elapsed;
-    var result;
-    if (f == null) {
-      start = _startTimes[tag];
-      if (start == null) {
-        _logDuration(tag, null);
-        return null;
-      }
-    } else {
-      result = f();
-      start = end;
-      end = _stopwatch.elapsed;
+    Duration start = _startTimes[tag];
+    if (start == null) {
+      _logDuration(tag, null);
+      return null;
     }
     _logDuration(tag, end - start);
-    return result;
   }
 
   void logFirstNotificationComplete(String tag) {

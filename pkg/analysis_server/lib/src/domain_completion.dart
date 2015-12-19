@@ -139,8 +139,13 @@ class CompletionDomainHandler implements RequestHandler {
 
     recordRequest(performance, context, source, params.offset);
 
-    CompletionRequest completionRequest = new CompletionRequestImpl(context,
-        server.resourceProvider, server.searchEngine, source, params.offset);
+    CompletionRequest completionRequest = new CompletionRequestImpl(
+        context,
+        server.resourceProvider,
+        server.searchEngine,
+        source,
+        params.offset,
+        performance);
     String completionId = (_nextCompletionId++).toString();
 
     // Compute suggestions in the background

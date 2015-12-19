@@ -5,6 +5,7 @@
 library analysis_server.src.services.completion.completion_core;
 
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -47,11 +48,13 @@ class CompletionRequestImpl implements CompletionRequest {
   @override
   final SearchEngine searchEngine;
 
+  final CompletionPerformance performance;
+
   /**
    * Initialize a newly created completion request based on the given arguments.
    */
   CompletionRequestImpl(this.context, this.resourceProvider, this.searchEngine,
-      this.source, this.offset) {
+      this.source, this.offset, this.performance) {
     replacementOffset = offset;
     replacementLength = 0;
   }
