@@ -2129,7 +2129,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * given [propertyName], return the element that represents the property.
    */
   Element _resolveElement(
-      ClassElementImpl classElement, SimpleIdentifier propertyName) {
+      ClassElement classElement, SimpleIdentifier propertyName) {
     String name = propertyName.name;
     Element element = null;
     if (propertyName.inSetterContext()) {

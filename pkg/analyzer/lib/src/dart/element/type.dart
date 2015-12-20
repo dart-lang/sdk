@@ -1295,16 +1295,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  PropertyAccessorElement getGetter(String getterName) => PropertyAccessorMember
-      .from((element as ClassElementImpl).getGetter(getterName), this);
+  PropertyAccessorElement getGetter(String getterName) =>
+      PropertyAccessorMember.from(element.getGetter(getterName), this);
 
   @override
-  MethodElement getMethod(String methodName) => MethodMember.from(
-      (element as ClassElementImpl).getMethod(methodName), this);
+  MethodElement getMethod(String methodName) =>
+      MethodMember.from(element.getMethod(methodName), this);
 
   @override
-  PropertyAccessorElement getSetter(String setterName) => PropertyAccessorMember
-      .from((element as ClassElementImpl).getSetter(setterName), this);
+  PropertyAccessorElement getSetter(String setterName) =>
+      PropertyAccessorMember.from(element.getSetter(setterName), this);
 
   @override
   bool isDirectSupertypeOf(InterfaceType type) {
