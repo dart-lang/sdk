@@ -13,7 +13,7 @@
  * - A "builder" class which can be used to generate serialized summary data.
  *   This class has write-only semantics.
  *
- * Each of the "builder" classess has a single `finish` method which finalizes
+ * Each of the "builder" classes has a single `finish` method which finalizes
  * the entity being built and returns it as an [Object].  This object should
  * only be passed to other builders (or to [BuilderContext.getBuffer]);
  * otherwise the client should treat it as opaque, since it exposes
@@ -89,6 +89,8 @@ class _CodeGenerator {
             // List of classes is ok
           } else if (type.typeName == 'int') {
             // List of ints is ok
+          } else if (type.typeName == 'String') {
+            // List of strings is ok
           } else {
             throw new Exception(
                 '$name.$fieldName: illegal type (list of ${type.typeName})');
@@ -195,7 +197,7 @@ class _CodeGenerator {
           enm.values.add(constDecl.name.name);
         }
       } else if (decl is TopLevelVariableDeclaration) {
-        // Ignore top leve variable declarations; they are present just to make
+        // Ignore top level variable declarations; they are present just to make
         // the IDL analyze without warnings.
       } else {
         throw new Exception('Unexpected declaration `$decl`');
@@ -269,11 +271,13 @@ class _CodeGenerator {
           List<String> initializers = <String>[];
           cls.fields.forEach((String fieldName, idlModel.FieldType type) {
             String convert = 'json[${quoted(fieldName)}]';
-            if (type.isList && type.typeName == 'int') {
-              // No conversion necessary.
-            } else if (type.isList) {
-              convert =
-                  '$convert?.map((x) => new ${type.typeName}.fromJson(x))?.toList()';
+            if (type.isList) {
+              if (type.typeName == 'int' || type.typeName == 'String') {
+                // No conversion necessary.
+              } else {
+                convert =
+                    '$convert?.map((x) => new ${type.typeName}.fromJson(x))?.toList()';
+              }
             } else if (_idl.classes.containsKey(type.typeName)) {
               convert =
                   '$convert == null ? null : new ${type.typeName}.fromJson($convert)';
