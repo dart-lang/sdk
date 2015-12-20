@@ -2003,15 +2003,14 @@ a.Stream s;
   }
 
   test_type_reference_to_part() {
-    addNamedSource('/a.dart', 'part of foo; class C {}');
-    checkTypeRef(
-        serializeTypeText('C',
-            otherDeclarations: 'library foo; part "a.dart";'),
-        null,
-        null,
-        'C',
+    addNamedSource('/a.dart', 'part of foo; class C { C(); }');
+    serializeLibraryText('library foo; part "a.dart"; C c;');
+    UnlinkedClass classA = findClass('C', unit: unlinkedUnits[1]);
+    checkTypeRef(classA.executables.single.returnType, null, null, 'C',
         expectedKind: PrelinkedReferenceKind.classOrEnum,
-        expectedTargetUnit: 1);
+        expectedTargetUnit: 1,
+        prelinkedSourceUnit: prelinked.units[1],
+        unlinkedSourceUnit: unlinkedUnits[1]);
   }
 
   test_type_reference_to_typedef() {

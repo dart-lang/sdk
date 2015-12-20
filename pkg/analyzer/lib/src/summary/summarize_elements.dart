@@ -156,6 +156,7 @@ class _LibrarySerializer {
    */
   void addCompilationUnitElements(CompilationUnitElement element, int unitNum) {
     UnlinkedUnitBuilder b = new UnlinkedUnitBuilder(ctx);
+    referenceMap.clear();
     unlinkedReferences = <UnlinkedReferenceBuilder>[
       encodeUnlinkedReference(ctx)
     ];
