@@ -180,30 +180,22 @@ class PrelinkedUnit {
 @topLevel
 class SdkBundle {
   /**
-   * Information for the libraries units constituting the SDK.
+   * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
    */
-  List<SdkBundleLibrary> libraries;
-}
-
-/**
- * Information about a single library in SDK.
- */
-class SdkBundleLibrary {
-  /**
-   * The URI of the library, including `dart:`, e.g. `dart:core`.
-   */
-  String uri;
+  List<String> prelinkedLibraryUris;
 
   /**
-   * Pre-linked information the library.
+   * Pre-linked libraries.
    */
-  PrelinkedLibrary prelinked;
+  List<PrelinkedLibrary> prelinkedLibraries;
 
   /**
-   * Unlinked information for the compilation units constituting the library.
-   * The zeroth entry in the list is the defining compilation unit; the
-   * remaining entries are the parts, in the order listed in the defining
-   * compilation unit's part declarations.
+   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
+   */
+  List<String> unlinkedUnitUris;
+
+  /**
+   * Unlinked information for the compilation units constituting the SDK.
    */
   List<UnlinkedUnit> unlinkedUnits;
 }

@@ -46,8 +46,12 @@ main(List<String> args) {
   //
   // Serialize each SDK library.
   //
+  List<String> prelinkedLibraryUris = <String>[];
+  List<PrelinkedLibraryBuilder> prelinkedLibraries =
+      <PrelinkedLibraryBuilder>[];
+  List<String> unlinkedUnitUris = <String>[];
+  List<UnlinkedUnitBuilder> unlinkedUnits = <UnlinkedUnitBuilder>[];
   BuilderContext builderContext = new BuilderContext();
-  List<SdkBundleLibraryBuilder> libraryBuilders = <SdkBundleLibraryBuilder>[];
   for (SdkLibrary lib in sdk.sdkLibraries) {
     print('Resolving and serializing: ${lib.shortName}');
     Source librarySource = sdk.mapDartUri(lib.shortName);
@@ -55,18 +59,19 @@ main(List<String> args) {
         context.computeLibraryElement(librarySource);
     LibrarySerializationResult libraryResult =
         serializeLibrary(builderContext, libraryElement, context.typeProvider);
-    SdkBundleLibraryBuilder libraryBuilder = encodeSdkBundleLibrary(
-        builderContext,
-        uri: lib.shortName,
-        prelinked: libraryResult.prelinked,
-        unlinkedUnits: libraryResult.unlinkedUnits);
-    libraryBuilders.add(libraryBuilder);
+    prelinkedLibraryUris.add(lib.shortName);
+    prelinkedLibraries.add(libraryResult.prelinked);
+    unlinkedUnitUris.addAll(libraryResult.unitUris);
+    unlinkedUnits.addAll(libraryResult.unlinkedUnits);
   }
   //
   // Write the whole SDK bundle.
   //
-  SdkBundleBuilder sdkBundle =
-      encodeSdkBundle(builderContext, libraries: libraryBuilders);
+  SdkBundleBuilder sdkBundle = encodeSdkBundle(builderContext,
+      prelinkedLibraryUris: prelinkedLibraryUris,
+      prelinkedLibraries: prelinkedLibraries,
+      unlinkedUnitUris: unlinkedUnitUris,
+      unlinkedUnits: unlinkedUnits);
   File file = new File(outputFilePath);
   file.writeAsBytesSync(sdkBundle.toBuffer(), mode: FileMode.WRITE_ONLY);
 }

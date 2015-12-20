@@ -232,14 +232,23 @@ PrelinkedUnitBuilder encodePrelinkedUnit(builder.BuilderContext builderContext, 
 }
 
 class SdkBundle {
-  List<SdkBundleLibrary> _libraries;
+  List<String> _prelinkedLibraryUris;
+  List<PrelinkedLibrary> _prelinkedLibraries;
+  List<String> _unlinkedUnitUris;
+  List<UnlinkedUnit> _unlinkedUnits;
 
   SdkBundle.fromJson(Map json)
-    : _libraries = json["libraries"]?.map((x) => new SdkBundleLibrary.fromJson(x))?.toList();
+    : _prelinkedLibraryUris = json["prelinkedLibraryUris"],
+      _prelinkedLibraries = json["prelinkedLibraries"]?.map((x) => new PrelinkedLibrary.fromJson(x))?.toList(),
+      _unlinkedUnitUris = json["unlinkedUnitUris"],
+      _unlinkedUnits = json["unlinkedUnits"]?.map((x) => new UnlinkedUnit.fromJson(x))?.toList();
 
   SdkBundle.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
-  List<SdkBundleLibrary> get libraries => _libraries ?? const <SdkBundleLibrary>[];
+  List<String> get prelinkedLibraryUris => _prelinkedLibraryUris ?? const <String>[];
+  List<PrelinkedLibrary> get prelinkedLibraries => _prelinkedLibraries ?? const <PrelinkedLibrary>[];
+  List<String> get unlinkedUnitUris => _unlinkedUnitUris ?? const <String>[];
+  List<UnlinkedUnit> get unlinkedUnits => _unlinkedUnits ?? const <UnlinkedUnit>[];
 }
 
 class SdkBundleBuilder {
@@ -249,11 +258,35 @@ class SdkBundleBuilder {
 
   SdkBundleBuilder(builder.BuilderContext context);
 
-  void set libraries(List<SdkBundleLibraryBuilder> _value) {
+  void set prelinkedLibraryUris(List<String> _value) {
     assert(!_finished);
-    assert(!_json.containsKey("libraries"));
+    assert(!_json.containsKey("prelinkedLibraryUris"));
     if (!(_value == null || _value.isEmpty)) {
-      _json["libraries"] = _value.map((b) => b.finish()).toList();
+      _json["prelinkedLibraryUris"] = _value.toList();
+    }
+  }
+
+  void set prelinkedLibraries(List<PrelinkedLibraryBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("prelinkedLibraries"));
+    if (!(_value == null || _value.isEmpty)) {
+      _json["prelinkedLibraries"] = _value.map((b) => b.finish()).toList();
+    }
+  }
+
+  void set unlinkedUnitUris(List<String> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("unlinkedUnitUris"));
+    if (!(_value == null || _value.isEmpty)) {
+      _json["unlinkedUnitUris"] = _value.toList();
+    }
+  }
+
+  void set unlinkedUnits(List<UnlinkedUnitBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("unlinkedUnits"));
+    if (!(_value == null || _value.isEmpty)) {
+      _json["unlinkedUnits"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -266,69 +299,11 @@ class SdkBundleBuilder {
   }
 }
 
-SdkBundleBuilder encodeSdkBundle(builder.BuilderContext builderContext, {List<SdkBundleLibraryBuilder> libraries}) {
+SdkBundleBuilder encodeSdkBundle(builder.BuilderContext builderContext, {List<String> prelinkedLibraryUris, List<PrelinkedLibraryBuilder> prelinkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits}) {
   SdkBundleBuilder builder = new SdkBundleBuilder(builderContext);
-  builder.libraries = libraries;
-  return builder;
-}
-
-class SdkBundleLibrary {
-  String _uri;
-  PrelinkedLibrary _prelinked;
-  List<UnlinkedUnit> _unlinkedUnits;
-
-  SdkBundleLibrary.fromJson(Map json)
-    : _uri = json["uri"],
-      _prelinked = json["prelinked"] == null ? null : new PrelinkedLibrary.fromJson(json["prelinked"]),
-      _unlinkedUnits = json["unlinkedUnits"]?.map((x) => new UnlinkedUnit.fromJson(x))?.toList();
-
-  String get uri => _uri ?? '';
-  PrelinkedLibrary get prelinked => _prelinked;
-  List<UnlinkedUnit> get unlinkedUnits => _unlinkedUnits ?? const <UnlinkedUnit>[];
-}
-
-class SdkBundleLibraryBuilder {
-  final Map _json = {};
-
-  bool _finished = false;
-
-  SdkBundleLibraryBuilder(builder.BuilderContext context);
-
-  void set uri(String _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("uri"));
-    if (_value != null) {
-      _json["uri"] = _value;
-    }
-  }
-
-  void set prelinked(PrelinkedLibraryBuilder _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("prelinked"));
-    if (_value != null) {
-      _json["prelinked"] = _value.finish();
-    }
-  }
-
-  void set unlinkedUnits(List<UnlinkedUnitBuilder> _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("unlinkedUnits"));
-    if (!(_value == null || _value.isEmpty)) {
-      _json["unlinkedUnits"] = _value.map((b) => b.finish()).toList();
-    }
-  }
-
-  Map finish() {
-    assert(!_finished);
-    _finished = true;
-    return _json;
-  }
-}
-
-SdkBundleLibraryBuilder encodeSdkBundleLibrary(builder.BuilderContext builderContext, {String uri, PrelinkedLibraryBuilder prelinked, List<UnlinkedUnitBuilder> unlinkedUnits}) {
-  SdkBundleLibraryBuilder builder = new SdkBundleLibraryBuilder(builderContext);
-  builder.uri = uri;
-  builder.prelinked = prelinked;
+  builder.prelinkedLibraryUris = prelinkedLibraryUris;
+  builder.prelinkedLibraries = prelinkedLibraries;
+  builder.unlinkedUnitUris = unlinkedUnitUris;
   builder.unlinkedUnits = unlinkedUnits;
   return builder;
 }
