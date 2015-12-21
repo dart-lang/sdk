@@ -6,4 +6,5 @@
 !pkg
 !pkg_tested
 !boringssl
+!drt_resources
 !d8

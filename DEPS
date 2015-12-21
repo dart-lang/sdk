@@ -10,10 +10,6 @@ vars = {
   # The svn location to pull out dependencies from
   "third_party": "http://dart.googlecode.com/svn/third_party",
 
-  # Use this googlecode_url variable only if there is an internal mirror for it.
-  # If you do not know, use the full path while defining your new deps entry.
-  "googlecode_url": "http://%s.googlecode.com/svn",
-
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
   # We need the mirrors to not have 100+ bots pulling github constantly.
@@ -30,7 +26,6 @@ vars = {
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
-  "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "https://chromium.googlesource.com",
 
   # Revisions of /third_party/* dependencies.
@@ -307,9 +302,6 @@ deps_os = {
     Var("dart_root") + "/third_party/cygwin":
       Var("chromium_git") + "/chromium/deps/cygwin.git" +
       "@c89e446b273697fadf3a10ff1007a97c0b7de6df",
-    Var("dart_root") + "/third_party/drt_resources":
-      Var("chromium_url") +
-      "/trunk/src/webkit/tools/test_shell/resources@157099",
   },
   "unix": {
     Var("dart_root") + "/third_party/clang":
@@ -366,6 +358,20 @@ hooks = [
       "--extract",
       "--directory",
       Var('dart_root') + "/tools/sdks",
+    ],
+  },
+  {
+    "name": "drt_resources",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--platform=win32",
+      "--directory",
+      Var('dart_root') + "/third_party/drt_resources",
     ],
   },
 ]
