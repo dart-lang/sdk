@@ -15,6 +15,12 @@
 #include <unistd.h>  /* NOLINT */
 #endif
 
+#if defined(__linux__) || defined(ANDROID)
+extern "C" {
+void __clear_cache(char*, char*);
+}
+#endif
+
 namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
@@ -32,10 +38,9 @@ void CPU::FlushICache(uword start, uword size) {
   // ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
   // blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
   #if defined(__linux__) || defined(ANDROID)
-    extern void __clear_cache(char*, char*);
     char* beg = reinterpret_cast<char*>(start);
     char* end = reinterpret_cast<char*>(start + size);
-    ::__clear_cache(beg, end);
+    __clear_cache(beg, end);
   #else
     #error FlushICache only tested/supported on Linux and Android
   #endif
