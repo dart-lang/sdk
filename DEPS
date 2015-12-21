@@ -46,7 +46,6 @@ vars = {
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.2",
   "dev_compiler_rev": "@0.1.9",
-  "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "gsutil_rev" : "@4af393661a48e69dab038bf6440e7750ea49b085",
   "html_tag" : "@0.12.1+1",
@@ -140,8 +139,6 @@ deps = {
       Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
       Var("idl_parser_rev"),
 
-  Var("dart_root") + "/third_party/firefox_jsshell":
-      Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
   Var("dart_root") + "/third_party/pkg/petitparser":
       Var("third_party") + "/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/WebCore":
@@ -354,6 +351,22 @@ hooks = [
       "--extract",
       "--directory",
       Var('dart_root') + "/tools/sdks",
+    ],
+  },
+  {
+    "name": "firefox_jsshell",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--recursive",
+      "--auto_platform",
+      "--extract",
+      "--directory",
+      Var('dart_root') + "/third_party/firefox_jsshell",
     ],
   },
   {
