@@ -1402,10 +1402,10 @@ class RawICData : public RawObject {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->owner_);
   }
-  RawFunction* owner_;         // Parent/calling function of this IC.
-  RawString* target_name_;     // Name of target function.
+  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
+  RawString* target_name_;  // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
-  RawArray* ic_data_;          // Contains class-ids, target and count.
+  RawArray* ic_data_;  // Contains class-ids, target and count.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }

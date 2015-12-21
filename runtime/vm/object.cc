@@ -7033,7 +7033,9 @@ void Function::RestoreICDataMap(
       ICData& ic_data = ICData::ZoneHandle(zone);
       ic_data ^= saved_ic_data.At(i);
       if (clone_descriptors) {
+        ICData& original_ic_data = ICData::Handle(zone, ic_data.raw());
         ic_data = ICData::CloneDescriptor(ic_data);
+        ic_data.SetOriginal(original_ic_data);
       }
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
     }
@@ -12176,9 +12178,41 @@ const char* ICData::ToCString() const {
 }
 
 
+RawFunction* ICData::Owner() const {
+  Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).raw();
+  } else {
+    ICData& original = ICData::Handle();
+    original ^= obj.raw();
+    return original.Owner();
+  }
+}
+
+
+RawICData* ICData::Original() const {
+  if (IsNull()) {
+    return ICData::null();
+  }
+  Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsFunction()) {
+    return this->raw();
+  } else {
+    return ICData::RawCast(obj.raw());
+  }
+}
+
+
+void ICData::SetOriginal(const ICData& value) const {
+  ASSERT(value.IsOriginal());
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
+}
+
+
 void ICData::set_owner(const Function& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->owner_, value.raw());
+  StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
 }
 
 
@@ -12817,7 +12851,7 @@ RawICData* ICData::New(const Function& owner,
 
 RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
   const ICData& result = ICData::Handle(ICData::New(
-      Function::Handle(from.owner()),
+      Function::Handle(from.Owner()),
       String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()),
       from.deopt_id(),
@@ -12832,7 +12866,7 @@ RawICData* ICData::CloneDescriptor(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(ICData::NewDescriptor(
       zone,
-      Function::Handle(zone, from.owner()),
+      Function::Handle(zone, from.Owner()),
       String::Handle(zone, from.target_name()),
       Array::Handle(zone, from.arguments_descriptor()),
       from.deopt_id(),
@@ -12849,7 +12883,7 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
   jsobj.AddServiceId(*this);
-  jsobj.AddProperty("_owner", Object::Handle(owner()));
+  jsobj.AddProperty("_owner", Object::Handle(Owner()));
   jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
   if (ref) {
     return;

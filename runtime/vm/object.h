@@ -1748,11 +1748,20 @@ class PatchClass : public Object {
 
 
 // Object holding information about an IC: test classes and their
-// corresponding targets.
+// corresponding targets. The owner of the ICData can be either the function
+// or the original ICData object. In case of background compilation we
+// copy the ICData in a child object, thus freezing it during background
+// compilation. Code may contain only original ICData objects.
 class ICData : public Object {
  public:
-  RawFunction* owner() const {
-    return raw_ptr()->owner_;
+  RawFunction* Owner() const;
+
+  RawICData* Original() const;
+
+  void SetOriginal(const ICData& value) const;
+
+  bool IsOriginal() const {
+    return Original() == this->raw();
   }
 
   RawString* target_name() const {

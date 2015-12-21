@@ -1692,7 +1692,7 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     }
     const ICData& old_checks = call_->ic_data();
     const ICData& new_checks = ICData::ZoneHandle(
-        ICData::New(Function::Handle(old_checks.owner()),
+        ICData::New(Function::Handle(old_checks.Owner()),
                     String::Handle(old_checks.target_name()),
                     Array::Handle(old_checks.arguments_descriptor()),
                     old_checks.deopt_id(),

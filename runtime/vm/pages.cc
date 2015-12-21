@@ -361,10 +361,10 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
 
 
 uword PageSpace::TryAllocateInternal(intptr_t size,
-                            HeapPage::PageType type,
-                            GrowthPolicy growth_policy,
-                            bool is_protected,
-                            bool is_locked) {
+                                     HeapPage::PageType type,
+                                     GrowthPolicy growth_policy,
+                                     bool is_protected,
+                                     bool is_locked) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 #ifdef DEBUG

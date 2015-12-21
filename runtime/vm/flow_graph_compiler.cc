@@ -1118,7 +1118,8 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t token_pos,
     intptr_t argument_count,
     LocationSummary* locs,
-    const ICData& ic_data) {
+    const ICData& ic_data_in) {
+  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   if (Compiler::always_optimize()) {
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
@@ -1185,7 +1186,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            intptr_t argument_count,
                                            const Array& argument_names,
                                            LocationSummary* locs,
-                                           const ICData& ic_data) {
+                                           const ICData& ic_data_in) {
+  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   const Array& arguments_descriptor = Array::ZoneHandle(
       ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
                                                   argument_names)

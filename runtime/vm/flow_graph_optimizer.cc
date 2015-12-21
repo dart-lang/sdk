@@ -319,7 +319,7 @@ const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
   // not found in the ICData.
   if (!function.IsNull()) {
     const ICData& new_ic_data = ICData::ZoneHandle(Z, ICData::New(
-        Function::Handle(Z, ic_data.owner()),
+        Function::Handle(Z, ic_data.Owner()),
         String::Handle(Z, ic_data.target_name()),
         Object::empty_array(),  // Dummy argument descriptor.
         ic_data.deopt_id(),
