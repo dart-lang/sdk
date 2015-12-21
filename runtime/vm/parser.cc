@@ -3129,7 +3129,10 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
   }
 
   SequenceNode* init_statements = CloseBlock();
-  if (is_redirecting_constructor) {
+  if (FLAG_move_super) {
+    // Ignore the phase parameter.
+    current_block_->statements->Add(init_statements);
+  } else if (is_redirecting_constructor) {
     // A redirecting super constructor simply passes the phase parameter on to
     // the target which executes the corresponding phase.
     current_block_->statements->Add(init_statements);
@@ -3276,24 +3279,29 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 
   SequenceNode* ctor_block = CloseBlock();
   if (ctor_block->length() > 0) {
-    // Generate guard around the constructor body code.
-    LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value =
-        new LoadLocalNode(Scanner::kNoSourcePos, phase_param);
-    AstNode* phase_check =
-        new BinaryOpNode(Scanner::kNoSourcePos, Token::kBIT_AND,
-            phase_value,
-            new LiteralNode(Scanner::kNoSourcePos,
-                Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
-    AstNode* comparison =
-        new ComparisonNode(Scanner::kNoSourcePos,
-                           Token::kNE_STRICT,
-                           phase_check,
-                           new LiteralNode(body_pos,
-                                           Smi::ZoneHandle(Smi::New(0))));
-    AstNode* guarded_block_statements =
-        new IfNode(Scanner::kNoSourcePos, comparison, ctor_block, NULL);
-    current_block_->statements->Add(guarded_block_statements);
+    if (FLAG_move_super) {
+      // Ignore the phase parameter.
+      current_block_->statements->Add(ctor_block);
+    } else {
+      // Generate guard around the constructor body code.
+      LocalVariable* phase_param = LookupPhaseParameter();
+      AstNode* phase_value =
+          new LoadLocalNode(Scanner::kNoSourcePos, phase_param);
+      AstNode* phase_check =
+          new BinaryOpNode(Scanner::kNoSourcePos, Token::kBIT_AND,
+              phase_value,
+              new LiteralNode(Scanner::kNoSourcePos,
+                  Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
+      AstNode* comparison =
+          new ComparisonNode(Scanner::kNoSourcePos,
+                             Token::kNE_STRICT,
+                             phase_check,
+                             new LiteralNode(body_pos,
+                                             Smi::ZoneHandle(Smi::New(0))));
+      AstNode* guarded_block_statements =
+          new IfNode(Scanner::kNoSourcePos, comparison, ctor_block, NULL);
+      current_block_->statements->Add(guarded_block_statements);
+    }
   }
   current_block_->statements->Add(new ReturnNode(func.end_token_pos()));
   SequenceNode* statements = CloseBlock();
