@@ -91,7 +91,12 @@ class SampleVisitor : public ValueObject {
 
 class SampleFilter : public ValueObject {
  public:
-  explicit SampleFilter(Isolate* isolate) : isolate_(isolate) { }
+  SampleFilter(Isolate* isolate,
+               int64_t time_origin_micros,
+               int64_t time_extent_micros)
+      : isolate_(isolate),
+        time_origin_micros_(time_origin_micros),
+        time_extent_micros_(time_extent_micros) { }
   virtual ~SampleFilter() { }
 
   // Override this function.
@@ -104,8 +109,14 @@ class SampleFilter : public ValueObject {
     return isolate_;
   }
 
+  // Returns |true| if |sample| passes the time filter.
+  bool TimeFilterSample(Sample* sample);
+
  private:
   Isolate* isolate_;
+
+  int64_t time_origin_micros_;
+  int64_t time_extent_micros_;
 };
 
 

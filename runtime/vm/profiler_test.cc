@@ -149,8 +149,13 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 
 class AllocationFilter : public SampleFilter {
  public:
-  explicit AllocationFilter(Isolate* isolate, intptr_t cid)
-      : SampleFilter(isolate),
+  AllocationFilter(Isolate* isolate,
+                   intptr_t cid,
+                   int64_t time_origin_micros = -1,
+                   int64_t time_extent_micros = -1)
+      : SampleFilter(isolate,
+                     time_origin_micros,
+                     time_extent_micros),
         cid_(cid),
         enable_vm_ticks_(false) {
   }
@@ -196,6 +201,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
 
+  const int64_t before_allocations_micros = Dart_TimelineGetMicros();
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
   class_a.SetTraceAllocation(true);
@@ -203,14 +209,20 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-
+  const int64_t after_allocations_micros = Dart_TimelineGetMicros();
+  const int64_t allocation_extent_micros =
+      after_allocations_micros - before_allocations_micros;
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    AllocationFilter filter(isolate, class_a.id());
+    // Filter for the class in the time range.
+    AllocationFilter filter(isolate,
+                            class_a.id(),
+                            before_allocations_micros,
+                            allocation_extent_micros);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
@@ -251,6 +263,23 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(!walker.Down());
+  }
+
+  // Query with a time filter where no allocations occurred.
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate,
+                            class_a.id(),
+                            Dart_TimelineGetMicros(),
+                            16000);
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have no allocation samples because none occured within
+    // the specified time range.
+    EXPECT_EQ(0, profile.sample_count());
   }
 }
 
