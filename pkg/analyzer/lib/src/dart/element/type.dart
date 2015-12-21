@@ -1299,8 +1299,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       PropertyAccessorMember.from(element.getGetter(getterName), this);
 
   @override
-  MethodElement getMethod(String methodName) =>
-      MethodMember.from(element.getMethod(methodName), this);
+  MethodElement getMethod(String methodName) => MethodMember.from(
+      (element as ClassElementImpl).getMethod(methodName), this);
 
   @override
   PropertyAccessorElement getSetter(String setterName) =>
