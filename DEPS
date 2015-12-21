@@ -47,7 +47,6 @@ vars = {
   "dart_style_tag": "@0.2.2",
   "dev_compiler_rev": "@0.1.9",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
-  "gsutil_rev" : "@4af393661a48e69dab038bf6440e7750ea49b085",
   "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
   "http_multi_server_tag" : "@2.0.0",
@@ -175,8 +174,6 @@ deps = {
       (Var("github_mirror") % "dev_compiler") + Var("dev_compiler_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_rev"),
-  Var("dart_root") + "/third_party/gsutil":
-      "https://github.com/GoogleCloudPlatform/gsutil.git" + Var("gsutil_rev"),
   Var("dart_root") + "/third_party/pkg/html":
       (Var("github_mirror") % "html") + Var("html_tag"),
   Var("dart_root") + "/third_party/pkg/http":
@@ -396,6 +393,20 @@ hooks = [
       "--extract",
       "-s",
       Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
+    ],
+  },
+  {
+    "name": "gsutil",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--extract",
+      "-s",
+      Var('dart_root') + "/third_party/gsutil.tar.gz.sha1",
     ],
   },
 ]
