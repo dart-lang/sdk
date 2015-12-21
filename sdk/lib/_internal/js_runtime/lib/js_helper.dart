@@ -2369,20 +2369,19 @@ invokeClosure(Function closure,
               var arg2,
               var arg3,
               var arg4) {
-  if (numberOfArguments == 0) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure());
-  } else if (numberOfArguments == 1) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1));
-  } else if (numberOfArguments == 2) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2));
-  } else if (numberOfArguments == 3) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3));
-  } else if (numberOfArguments == 4) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3, arg4));
-  } else {
-    throw new Exception(
-        'Unsupported number of arguments for wrapped closure');
+  switch (numberOfArguments) {
+    case 0:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure());
+    case 1:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1));
+    case 2:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2));
+    case 3:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3));
+    case 4:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3, arg4));
   }
+  throw new Exception('Unsupported number of arguments for wrapped closure');
 }
 
 /**
@@ -2394,21 +2393,18 @@ convertDartClosureToJS(closure, int arity) {
   var function = JS('var', r'#.$identity', closure);
   if (JS('bool', r'!!#', function)) return function;
 
-  // We use $0 and $1 to not clash with variable names used by the
-  // compiler and/or minifier.
-  function = JS('var',
-                '(function(closure, arity, context, invoke) {'
-                '  return function(a1, a2, a3, a4) {'
-                '     return invoke(closure, context, arity, a1, a2, a3, a4);'
-                '  };'
-                '})(#,#,#,#)',
-                closure,
-                arity,
-                // Capture the current isolate now.  Remember that "#"
-                // in JS is simply textual substitution of compiled
-                // expressions.
-                JS_CURRENT_ISOLATE_CONTEXT(),
-                DART_CLOSURE_TO_JS(invokeClosure));
+  function = JS(
+      'var',
+      r'''
+        (function(closure, arity, context, invoke) {
+          return function(a1, a2, a3, a4) {
+            return invoke(closure, context, arity, a1, a2, a3, a4);
+          };
+        })(#,#,#,#)''',
+      closure,
+      arity,
+      JS_CURRENT_ISOLATE_CONTEXT(),
+      DART_CLOSURE_TO_JS(invokeClosure));
 
   JS('void', r'#.$identity = #', closure, function);
   return function;

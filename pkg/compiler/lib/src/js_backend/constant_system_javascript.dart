@@ -355,7 +355,7 @@ class JavaScriptMapConstant extends MapConstantValue {
   static const String DART_STRING_CLASS = "ConstantStringMap";
   static const String DART_PROTO_CLASS = "ConstantProtoMap";
   static const String DART_GENERAL_CLASS = "GeneralConstantMap";
-  static const String LENGTH_NAME = "length";
+  static const String LENGTH_NAME = "_length";
   static const String JS_OBJECT_NAME = "_jsObject";
   static const String KEYS_NAME = "_keys";
   static const String PROTO_VALUE = "_protoValue";
