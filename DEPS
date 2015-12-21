@@ -68,7 +68,6 @@ vars = {
   "observatory_pub_packages_rev": "@cf90eb9077177d3d6b3fd5e8289477c2385c026a",
   "package_config_rev": "@0.1.3",
   "path_tag": "@1.3.6",
-  "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
@@ -138,8 +137,6 @@ deps = {
       Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
       Var("idl_parser_rev"),
 
-  Var("dart_root") + "/third_party/pkg/petitparser":
-      Var("third_party") + "/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/WebCore":
       Var("third_party") + "/WebCore" + Var("WebCore_rev"),
 
@@ -378,6 +375,20 @@ hooks = [
       "--platform=win32",
       "--directory",
       Var('dart_root') + "/third_party/drt_resources",
+    ],
+  },
+  {
+    "name": "petitparser",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--extract",
+      "-s",
+      Var('dart_root') + "/third_party/pkg/petitparser.tar.gz.sha1",
     ],
   },
   {
