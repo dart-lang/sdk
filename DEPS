@@ -48,7 +48,7 @@ vars = {
   "dev_compiler_rev": "@0.1.9",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
-  "gsutil_rev" : "@33376",
+  "gsutil_rev" : "@4af393661a48e69dab038bf6440e7750ea49b085",
   "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
   "http_multi_server_tag" : "@2.0.0",
@@ -142,16 +142,10 @@ deps = {
 
   Var("dart_root") + "/third_party/firefox_jsshell":
       Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
-  Var("dart_root") + "/third_party/gsutil":
-      Var("third_party") + "/gsutil" + Var("gsutil_rev"),
   Var("dart_root") + "/third_party/pkg/petitparser":
       Var("third_party") + "/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/WebCore":
       Var("third_party") + "/WebCore" + Var("WebCore_rev"),
-
-  Var("dart_root") + "/third_party/dart-services":
-      (Var("github_mirror") % "dart-services") +
-      Var("dart_services_rev"),
 
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
@@ -171,6 +165,9 @@ deps = {
       (Var("github_mirror") % "crypto") + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
+  Var("dart_root") + "/third_party/dart-services":
+      (Var("github_mirror") % "dart-services") +
+      Var("dart_services_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
@@ -181,6 +178,8 @@ deps = {
       (Var("github_mirror") % "dev_compiler") + Var("dev_compiler_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_rev"),
+  Var("dart_root") + "/third_party/gsutil":
+      "https://github.com/GoogleCloudPlatform/gsutil.git" + Var("gsutil_rev"),
   Var("dart_root") + "/third_party/pkg/html":
       (Var("github_mirror") % "html") + Var("html_tag"),
   Var("dart_root") + "/third_party/pkg/http":
