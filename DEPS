@@ -29,7 +29,6 @@ vars = {
   "chromium_git": "https://chromium.googlesource.com",
 
   # Revisions of /third_party/* dependencies.
-  "7zip_rev" : "@19997",
   "args_tag": "@0.13.0",
   "async_tag": "@1.4.0",
   "barback_tag" : "@0.15.2+7",
@@ -141,8 +140,6 @@ deps = {
       Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
       Var("idl_parser_rev"),
 
-  Var("dart_root") + "/third_party/7zip":
-     Var("third_party") + "/7zip" + Var("7zip_rev"),
   Var("dart_root") + "/third_party/firefox_jsshell":
       Var("third_party") + "/firefox_jsshell" + Var("firefox_jsshell_rev"),
   Var("dart_root") + "/third_party/gsutil":
@@ -372,6 +369,21 @@ hooks = [
       "--platform=win32",
       "--directory",
       Var('dart_root') + "/third_party/drt_resources",
+    ],
+  },
+  {
+    "name": "7zip",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--platform=win32",
+      "--extract",
+      "-s",
+      Var('dart_root') + "/third_party/7zip.tar.gz.sha1",
     ],
   },
 ]
