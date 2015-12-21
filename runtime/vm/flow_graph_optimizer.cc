@@ -1303,7 +1303,6 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     // the index is not a smi.
     const AbstractType& value_type =
         AbstractType::ZoneHandle(Z, target.ParameterTypeAt(2));
-    Definition* instantiator = NULL;
     Definition* type_args = NULL;
     switch (array_cid) {
       case kArrayCid:
@@ -1321,7 +1320,6 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                         NULL,
                                         FlowGraph::kValue);
 
-        instantiator = array;
         type_args = load_type_args;
         break;
       }
@@ -1339,7 +1337,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
         // Fall through.
       case kTypedDataFloat32ArrayCid:
       case kTypedDataFloat64ArrayCid: {
-        type_args = instantiator = flow_graph_->constant_null();
+        type_args = flow_graph_->constant_null();
         ASSERT((array_cid != kTypedDataFloat32ArrayCid &&
                 array_cid != kTypedDataFloat64ArrayCid) ||
                value_type.IsDoubleType());
@@ -1347,14 +1345,14 @@ bool FlowGraphOptimizer::InlineSetIndexed(
         break;
       }
       case kTypedDataFloat32x4ArrayCid: {
-        type_args = instantiator = flow_graph_->constant_null();
+        type_args = flow_graph_->constant_null();
         ASSERT((array_cid != kTypedDataFloat32x4ArrayCid) ||
                value_type.IsFloat32x4Type());
         ASSERT(value_type.IsInstantiated());
         break;
       }
       case kTypedDataFloat64x2ArrayCid: {
-        type_args = instantiator = flow_graph_->constant_null();
+        type_args = flow_graph_->constant_null();
         ASSERT((array_cid != kTypedDataFloat64x2ArrayCid) ||
                value_type.IsFloat64x2Type());
         ASSERT(value_type.IsInstantiated());
@@ -1367,7 +1365,6 @@ bool FlowGraphOptimizer::InlineSetIndexed(
     AssertAssignableInstr* assert_value =
         new(Z) AssertAssignableInstr(token_pos,
                                      new(Z) Value(stored_value),
-                                     new(Z) Value(instantiator),
                                      new(Z) Value(type_args),
                                      value_type,
                                      Symbols::Value(),
@@ -4051,12 +4048,10 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* instantiator = NULL;
   Definition* type_args = NULL;
   AbstractType& type = AbstractType::ZoneHandle(Z);
   bool negate = false;
   if (call->ArgumentCount() == 2) {
-    instantiator = flow_graph()->constant_null();
     type_args = flow_graph()->constant_null();
     if (call->function_name().raw() ==
         Library::PrivateCoreLibName(Symbols::_instanceOfNum()).raw()) {
@@ -4079,10 +4074,9 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     negate = Bool::Cast(call->ArgumentAt(1)->OriginalDefinition()
         ->AsConstant()->value()).value();
   } else {
-    instantiator = call->ArgumentAt(1);
-    type_args = call->ArgumentAt(2);
-    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).raw();
-    negate = Bool::Cast(call->ArgumentAt(4)->OriginalDefinition()
+    type_args = call->ArgumentAt(1);
+    type = AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value()).raw();
+    negate = Bool::Cast(call->ArgumentAt(3)->OriginalDefinition()
         ->AsConstant()->value()).value();
   }
   const ICData& unary_checks =
@@ -4159,7 +4153,6 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   InstanceOfInstr* instance_of =
       new(Z) InstanceOfInstr(call->token_pos(),
                              new(Z) Value(left),
-                             new(Z) Value(instantiator),
                              new(Z) Value(type_args),
                              type,
                              negate,
@@ -4172,10 +4165,9 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
-  Definition* instantiator = call->ArgumentAt(1);
-  Definition* type_args = call->ArgumentAt(2);
+  Definition* type_args = call->ArgumentAt(1);
   const AbstractType& type =
-      AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value());
+      AbstractType::Cast(call->ArgumentAt(2)->AsConstant()->value());
   ASSERT(!type.IsMalformedOrMalbounded());
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks());
@@ -4214,7 +4206,6 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   AssertAssignableInstr* assert_as =
       new(Z) AssertAssignableInstr(call->token_pos(),
                                    new(Z) Value(left),
-                                   new(Z) Value(instantiator),
                                    new(Z) Value(type_args),
                                    type,
                                    dst_name,

@@ -2590,11 +2590,10 @@ class UnboxedConstantInstr : public ConstantInstr {
 };
 
 
-class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
+class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
  public:
   AssertAssignableInstr(intptr_t token_pos,
                         Value* value,
-                        Value* instantiator,
                         Value* instantiator_type_arguments,
                         const AbstractType& dst_type,
                         const String& dst_name,
@@ -2606,8 +2605,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
-    SetInputAt(1, instantiator);
-    SetInputAt(2, instantiator_type_arguments);
+    SetInputAt(1, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
@@ -2615,8 +2613,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   virtual bool RecomputeType();
 
   Value* value() const { return inputs_[0]; }
-  Value* instantiator() const { return inputs_[1]; }
-  Value* instantiator_type_arguments() const { return inputs_[2]; }
+  Value* instantiator_type_arguments() const { return inputs_[1]; }
 
   virtual intptr_t token_pos() const { return token_pos_; }
   const AbstractType& dst_type() const { return dst_type_; }
@@ -4010,11 +4007,10 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
 };
 
 
-class InstanceOfInstr : public TemplateDefinition<3, Throws> {
+class InstanceOfInstr : public TemplateDefinition<2, Throws> {
  public:
   InstanceOfInstr(intptr_t token_pos,
                   Value* value,
-                  Value* instantiator,
                   Value* instantiator_type_arguments,
                   const AbstractType& type,
                   bool negate_result,
@@ -4025,16 +4021,14 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
         negate_result_(negate_result) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
-    SetInputAt(1, instantiator);
-    SetInputAt(2, instantiator_type_arguments);
+    SetInputAt(1, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
   virtual CompileType ComputeType() const;
 
   Value* value() const { return inputs_[0]; }
-  Value* instantiator() const { return inputs_[1]; }
-  Value* instantiator_type_arguments() const { return inputs_[2]; }
+  Value* instantiator_type_arguments() const { return inputs_[1]; }
 
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
@@ -4049,7 +4043,6 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
  private:
   const intptr_t token_pos_;
   Value* value_;
-  Value* instantiator_;
   Value* type_arguments_;
   const AbstractType& type_;
   const bool negate_result_;

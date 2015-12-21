@@ -338,11 +338,9 @@ static void PrintTypeCheck(
 // case it contains just the result of the class subtype test, not including
 // the evaluation of type arguments.
 // This operation is currently very slow (lookup of code is not efficient yet).
-// 'instantiator' can be null, in which case inst_targ
 static void UpdateTypeTestCache(
     const Instance& instance,
     const AbstractType& type,
-    const Instance& instantiator,
     const TypeArguments& instantiator_type_arguments,
     const Bool& result,
     const SubtypeTestCache& new_cache) {
@@ -447,18 +445,16 @@ static void UpdateTypeTestCache(
 // Tested instance may not be null, because the null test is inlined.
 // Arg0: instance being checked.
 // Arg1: type.
-// Arg2: instantiator (or null).
-// Arg3: type arguments of the instantiator of the type.
-// Arg4: SubtypeTestCache.
+// Arg2: type arguments of the instantiator of the type.
+// Arg3: SubtypeTestCache.
 // Return value: true or false, or may throw a type error in checked mode.
-DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
+DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
   const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
   const AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(1));
-  const Instance& instantiator = Instance::CheckedHandle(arguments.ArgAt(2));
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(3));
+      TypeArguments::CheckedHandle(arguments.ArgAt(2));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
+      SubtypeTestCache::CheckedHandle(arguments.ArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsDynamicType());  // No need to check assignment.
   ASSERT(!type.IsMalformed());  // Already checked in code generator.
@@ -482,8 +478,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
         Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
-  UpdateTypeTestCache(instance, type, instantiator,
-                      instantiator_type_arguments, result, cache);
+  UpdateTypeTestCache(
+      instance, type, instantiator_type_arguments, result, cache);
   arguments.SetReturn(result);
 }
 
@@ -492,22 +488,19 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 // can therefore be assigned.
 // Arg0: instance being assigned.
 // Arg1: type being assigned to.
-// Arg2: instantiator (or null).
-// Arg3: type arguments of the instantiator of the type being assigned to.
-// Arg4: name of variable being assigned to.
-// Arg5: SubtypeTestCache.
+// Arg2: type arguments of the instantiator of the type being assigned to.
+// Arg3: name of variable being assigned to.
+// Arg4: SubtypeTestCache.
 // Return value: instance if a subtype, otherwise throw a TypeError.
-DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
+DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
   const AbstractType& dst_type =
       AbstractType::CheckedHandle(arguments.ArgAt(1));
-  const Instance& dst_instantiator =
-      Instance::CheckedHandle(arguments.ArgAt(2));
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(3));
-  const String& dst_name = String::CheckedHandle(arguments.ArgAt(4));
+      TypeArguments::CheckedHandle(arguments.ArgAt(2));
+  const String& dst_name = String::CheckedHandle(arguments.ArgAt(3));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.ArgAt(5));
+      SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!dst_type.IsMalbounded());  // Already checked in code generator.
@@ -565,9 +558,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
                                         dst_name, bound_error_message);
     UNREACHABLE();
   }
-  UpdateTypeTestCache(src_instance, dst_type,
-                      dst_instantiator, instantiator_type_arguments,
-                      Bool::True(), cache);
+  UpdateTypeTestCache(
+      src_instance, dst_type, instantiator_type_arguments, Bool::True(), cache);
   arguments.SetReturn(src_instance);
 }
 

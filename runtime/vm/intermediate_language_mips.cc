@@ -394,13 +394,12 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(A0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(A2));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(A1));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(A1));  // Type arguments.
   summary->set_out(0, Location::RegisterLocation(A0));
   return summary;
 }
@@ -2128,13 +2127,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(A0));
-  summary->set_in(1, Location::RegisterLocation(A2));
-  summary->set_in(2, Location::RegisterLocation(A1));
+  summary->set_in(1, Location::RegisterLocation(A1));
   summary->set_out(0, Location::RegisterLocation(V0));
   return summary;
 }
@@ -2142,8 +2140,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == A0);  // Value.
-  ASSERT(locs()->in(1).reg() == A2);  // Instantiator.
-  ASSERT(locs()->in(2).reg() == A1);  // Instantiator type arguments.
+  ASSERT(locs()->in(1).reg() == A1);  // Instantiator type arguments.
 
   __ Comment("InstanceOfInstr");
   compiler->GenerateInstanceOf(token_pos(),

@@ -463,7 +463,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    // Load instantiator (or null) and instantiator type arguments on stack.
+    // Load instantiator type arguments on stack.
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
     // RDX: instantiator type arguments.
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
@@ -589,8 +589,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Inputs:
 // - RAX: object.
 // - RDX: instantiator type arguments or raw_null.
-// - RCX: instantiator or raw_null.
-// Clobbers RCX and RDX.
+// Clobbers RDX.
 // Returns:
 // - true or false in RAX.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
@@ -601,7 +600,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
 
   Label is_instance, is_not_instance;
-  __ pushq(RCX);  // Store instantiator on stack.
   __ pushq(RDX);  // Store instantiator type arguments.
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
@@ -627,22 +625,20 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   if (!test_cache.IsNull()) {
     // Generate runtime call.
     __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
-    __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
     __ PushObject(Object::null_object());  // Make room for the result.
     __ pushq(RAX);  // Push the instance.
     __ PushObject(type);  // Push the type.
-    __ pushq(RCX);  // TODO(srdjan): Pass instantiator instead of null.
     __ pushq(RDX);  // Instantiator type arguments.
     __ LoadUniqueObject(RAX, test_cache);
     __ pushq(RAX);
     GenerateRuntimeCall(token_pos,
                         deopt_id,
                         kInstanceofRuntimeEntry,
-                        5,
+                        4,
                         locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
+    __ Drop(4);
     if (negate_result) {
       __ popq(RDX);
       __ LoadObject(RAX, Bool::True());
@@ -662,7 +658,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   __ LoadObject(RAX, Bool::Get(!negate_result));
   __ Bind(&done);
   __ popq(RDX);  // Remove pushed instantiator type arguments.
-  __ popq(RCX);  // Remove pushed instantiator.
 }
 
 
@@ -673,7 +668,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 // Inputs:
 // - RAX: object.
 // - RDX: instantiator type arguments or raw_null.
-// - RCX: instantiator or raw_null.
 // Returns:
 // - object in RAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
@@ -689,7 +683,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  __ pushq(RCX);  // Store instantiator.
   __ pushq(RDX);  // Store instantiator type arguments.
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
@@ -712,7 +705,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
     __ Bind(&is_assignable);  // For a null object.
     __ popq(RDX);  // Remove pushed instantiator type arguments.
-    __ popq(RCX);  // Remove pushed instantiator.
     return;
   }
 
@@ -723,24 +715,21 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
   __ Bind(&runtime_call);
   __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
-  __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ pushq(RAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  __ pushq(RCX);  // Instantiator.
   __ pushq(RDX);  // Instantiator type arguments.
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadUniqueObject(RAX, test_cache);
   __ pushq(RAX);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 5, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(6);
+  __ Drop(5);
   __ popq(RAX);
 
   __ Bind(&is_assignable);
   __ popq(RDX);  // Remove pushed instantiator type arguments.
-  __ popq(RCX);  // Remove pushed instantiator.
 }
 
 

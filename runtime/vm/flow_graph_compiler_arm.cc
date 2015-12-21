@@ -462,7 +462,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    // Load instantiator (or null) and instantiator type arguments on stack.
+    // Load instantiator type arguments on stack.
     __ ldr(R1, Address(SP, 0));  // Get instantiator type arguments.
     // R1: instantiator type arguments.
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
@@ -587,7 +587,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Inputs:
 // - R0: object.
 // - R1: instantiator type arguments or raw_null.
-// - R2: instantiator or raw_null.
 // Returns:
 // - true or false in R0.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
@@ -597,8 +596,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
 
-  // Preserve instantiator (R2) and its type arguments (R1).
-  __ PushList((1 << R1) | (1 << R2));
+  // Preserve instantiator type arguments (R1).
+  __ Push(R1);
 
   Label is_instance, is_not_instance;
   // If type is instantiated and non-parameterized, we can inline code
@@ -624,19 +623,18 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    // Load instantiator (R2) and its type arguments (R1).
-    __ ldm(IA, SP,  (1 << R1) | (1 << R2));
+    // Load instantiator type arguments (R1).
+    __ ldr(R1, Address(SP, 0 * kWordSize));
     __ PushObject(Object::null_object());  // Make room for the result.
     __ Push(R0);  // Push the instance.
     __ PushObject(type);  // Push the type.
-    // Push instantiator (R2) and its type arguments (R1).
-    __ PushList((1 << R1) | (1 << R2));
+    __ Push(R1);  // Push instantiator type arguments (R1).
     __ LoadUniqueObject(R0, test_cache);
     __ Push(R0);
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 4, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
+    __ Drop(4);
     if (negate_result) {
       __ Pop(R1);
       __ LoadObject(R0, Bool::True());
@@ -655,8 +653,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   __ Bind(&is_instance);
   __ LoadObject(R0, Bool::Get(!negate_result));
   __ Bind(&done);
-  // Remove instantiator (R2) and its type arguments (R1).
-  __ Drop(2);
+  // Remove instantiator type arguments (R1).
+  __ Drop(1);
 }
 
 
@@ -667,7 +665,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 // Inputs:
 // - R0: instance being type checked.
 // - R1: instantiator type arguments or raw_null.
-// - R2: instantiator or raw_null.
 // Returns:
 // - object in R0 for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
@@ -683,8 +680,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  // Preserve instantiator (R2) and its type arguments (R1).
-  __ PushList((1 << R1) | (1 << R2));
+  // Preserve instantiator type arguments (R1).
+  __ Push(R1);
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
   __ CompareObject(R0, Object::null_object());
@@ -705,8 +702,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ bkpt(0);
 
     __ Bind(&is_assignable);  // For a null object.
-    // Restore instantiator (R2) and its type arguments (R1).
-    __ PopList((1 << R1) | (1 << R2));
+    // Restore instantiator type arguments (R1).
+    __ Pop(R1);
     return;
   }
 
@@ -716,25 +713,24 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                         &is_assignable, &runtime_call);
 
   __ Bind(&runtime_call);
-  // Load instantiator (R2) and its type arguments (R1).
-  __ ldm(IA, SP,  (1 << R1) | (1 << R2));
+  // Load instantiator type arguments (R1).
+  __ ldr(R1, Address(SP, 0 * kWordSize));
   __ PushObject(Object::null_object());  // Make room for the result.
   __ Push(R0);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  // Push instantiator (R2) and its type arguments (R1).
-  __ PushList((1 << R1) | (1 << R2));
+  __ Push(R1);  // Push instantiator type arguments (R1).
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadUniqueObject(R0, test_cache);
   __ Push(R0);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 5, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(6);
+  __ Drop(5);
   __ Pop(R0);
 
   __ Bind(&is_assignable);
-  // Restore instantiator (R2) and its type arguments (R1).
-  __ PopList((1 << R1) | (1 << R2));
+  // Restore instantiator type arguments (R1).
+  __ Pop(R1);
 }
 
 

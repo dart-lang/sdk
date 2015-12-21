@@ -450,7 +450,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    // Load instantiator (or null) and instantiator type arguments on stack.
+    // Load instantiator type arguments on stack.
     __ lw(A1, Address(SP, 0));  // Get instantiator type arguments.
     // A1: instantiator type arguments.
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
@@ -575,7 +575,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Inputs:
 // - A0: object.
 // - A1: instantiator type arguments or raw_null.
-// - A2: instantiator or raw_null.
 // Returns:
 // - true or false in V0.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
@@ -585,9 +584,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
 
-  // Preserve instantiator (A2) and its type arguments (A1).
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A2, Address(SP, 1 * kWordSize));
+  // Preserve instantiator type arguments (A1).
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
   __ sw(A1, Address(SP, 0 * kWordSize));
 
   Label is_instance, is_not_instance;
@@ -614,25 +612,23 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    // Load instantiator (A2) and its type arguments (A1).
+    // Load instantiator type arguments (A1).
     __ lw(A1, Address(SP, 0 * kWordSize));
-    __ lw(A2, Address(SP, 1 * kWordSize));
 
-    __ addiu(SP, SP, Immediate(-6 * kWordSize));
+    __ addiu(SP, SP, Immediate(-5 * kWordSize));
     __ LoadObject(TMP, Object::null_object());
-    __ sw(TMP, Address(SP, 5 * kWordSize));  // Make room for the result.
-    __ sw(A0, Address(SP, 4 * kWordSize));  // Push the instance.
+    __ sw(TMP, Address(SP, 4 * kWordSize));  // Make room for the result.
+    __ sw(A0, Address(SP, 3 * kWordSize));  // Push the instance.
     __ LoadObject(TMP, type);
-    __ sw(TMP, Address(SP, 3 * kWordSize));  // Push the type.
-    __ sw(A2, Address(SP, 2 * kWordSize));  // Push instantiator.
+    __ sw(TMP, Address(SP, 2 * kWordSize));  // Push the type.
     __ sw(A1, Address(SP, 1 * kWordSize));  // Push type arguments.
     __ LoadUniqueObject(A0, test_cache);
     __ sw(A0, Address(SP, 0 * kWordSize));
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 4, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ lw(T0, Address(SP, 5 * kWordSize));
-    __ addiu(SP, SP, Immediate(6 * kWordSize));
+    __ lw(T0, Address(SP, 4 * kWordSize));
+    __ addiu(SP, SP, Immediate(5 * kWordSize));
     if (negate_result) {
       __ LoadObject(V0, Bool::True());
       __ bne(T0, V0, &done);
@@ -649,8 +645,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   __ Bind(&is_instance);
   __ LoadObject(V0, Bool::Get(!negate_result));
   __ Bind(&done);
-  // Remove instantiator (A2) and its type arguments (A1).
-  __ Drop(2);
+  // Remove instantiator type arguments (A1).
+  __ Drop(1);
 }
 
 
@@ -661,7 +657,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 // Inputs:
 // - A0: instance being type checked.
 // - A1: instantiator type arguments or raw_null.
-// - A2: instantiator or raw_null.
 // Returns:
 // - object in A0 for successful assignable check (or throws TypeError).
 // Clobbers: T0, T1, T2
@@ -679,9 +674,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  // Preserve instantiator and its type arguments.
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A2, Address(SP, 1 * kWordSize));
+  // Preserve instantiator type arguments.
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
+  __ sw(A1, Address(SP, 0 * kWordSize));
 
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
@@ -709,10 +704,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ break_(0);
 
     __ Bind(&is_assignable);  // For a null object.
-    // Restore instantiator and its type arguments.
+    // Restore instantiator type arguments.
     __ lw(A1, Address(SP, 0 * kWordSize));
-    __ lw(A2, Address(SP, 1 * kWordSize));
-    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ addiu(SP, SP, Immediate(1 * kWordSize));
     return;
   }
 
@@ -722,34 +716,31 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                         &is_assignable, &runtime_call);
 
   __ Bind(&runtime_call);
-  // Load instantiator (A2) and its type arguments (A1).
+  // Load instantiator type arguments (A1).
   __ lw(A1, Address(SP, 0 * kWordSize));
-  __ lw(A2, Address(SP, 1 * kWordSize));
 
-  __ addiu(SP, SP, Immediate(-7 * kWordSize));
+  __ addiu(SP, SP, Immediate(-6 * kWordSize));
   __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 6 * kWordSize));  // Make room for the result.
-  __ sw(A0, Address(SP, 5 * kWordSize));  // Push the source object.
+  __ sw(TMP, Address(SP, 5 * kWordSize));  // Make room for the result.
+  __ sw(A0, Address(SP, 4 * kWordSize));  // Push the source object.
   __ LoadObject(TMP, dst_type);
-  __ sw(TMP, Address(SP, 4 * kWordSize));  // Push the type of the destination.
-  __ sw(A2, Address(SP, 3 * kWordSize));  // Push instantiator.
+  __ sw(TMP, Address(SP, 3 * kWordSize));  // Push the type of the destination.
   __ sw(A1, Address(SP, 2 * kWordSize));  // Push type arguments.
   __ LoadObject(TMP, dst_name);
   __ sw(TMP, Address(SP, 1 * kWordSize));  // Push the name of the destination.
   __ LoadUniqueObject(T0, test_cache);
   __ sw(T0, Address(SP, 0 * kWordSize));
 
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 5, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ lw(A0, Address(SP, 6 * kWordSize));
-  __ addiu(SP, SP, Immediate(7 * kWordSize));
+  __ lw(A0, Address(SP, 5 * kWordSize));
+  __ addiu(SP, SP, Immediate(6 * kWordSize));
 
   __ Bind(&is_assignable);
-  // Restore instantiator and its type arguments.
+  // Restore instantiator type arguments.
   __ lw(A1, Address(SP, 0 * kWordSize));
-  __ lw(A2, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ addiu(SP, SP, Immediate(1 * kWordSize));
 }
 
 
