@@ -130,11 +130,14 @@ class CpsFragment {
 
   /// Inserts an invocation and returns a primitive holding the returned value.
   Primitive invokeMethod(Primitive receiver,
-                         Selector selector,
-                         TypeMask mask,
-                         List<Primitive> arguments) {
-    return letPrim(new InvokeMethod(receiver, selector, mask, arguments,
-        sourceInformation));
+      Selector selector,
+      TypeMask mask,
+      List<Primitive> arguments,
+      [CallingConvention callingConvention = CallingConvention.Normal]) {
+    InvokeMethod invoke =
+        new InvokeMethod(receiver, selector, mask, arguments, sourceInformation)
+            ..callingConvention = callingConvention;
+    return letPrim(invoke);
   }
 
   /// Inserts an invocation and returns a primitive holding the returned value.

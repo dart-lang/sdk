@@ -49,11 +49,12 @@ class ConstantPropagationLattice {
   final AbstractConstantValue anything;
   final AbstractConstantValue nullValue;
 
-  ConstantPropagationLattice(TypeMaskSystem typeSystem,
-                             this.constantSystem,
-                             this.dartTypes)
-    : this.typeSystem = typeSystem,
-      anything = new AbstractConstantValue.nonConstant(typeSystem.dynamicType),
+  ConstantPropagationLattice(CpsFunctionCompiler functionCompiler)
+    : typeSystem = functionCompiler.typeSystem,
+      constantSystem = functionCompiler.compiler.backend.constantSystem,
+      dartTypes = functionCompiler.compiler.types,
+      anything = new AbstractConstantValue.nonConstant(
+          functionCompiler.typeSystem.dynamicType),
       nullValue = new AbstractConstantValue.constantValue(
           new NullConstantValue(), new TypeMask.empty());
 
@@ -711,25 +712,19 @@ class ConstantPropagationLattice {
  * by Wegman, Zadeck.
  */
 class TypePropagator extends Pass {
-  String get passName => 'Sparse constant propagation';
+  String get passName => 'Type propagation';
 
-  final dart2js.Compiler _compiler;
   final CpsFunctionCompiler _functionCompiler;
+  final Map<Variable, ConstantValue> _values= <Variable, ConstantValue>{};
   final ConstantPropagationLattice _lattice;
-  final InternalErrorFunction _internalError;
-  final Map<Variable, ConstantValue> _values = <Variable, ConstantValue>{};
-  final TypeMaskSystem _typeSystem;
 
-  TypePropagator(dart2js.Compiler compiler,
-                 TypeMaskSystem typeSystem,
-                 this._functionCompiler)
-      : _compiler = compiler,
-        _internalError = compiler.reporter.internalError,
-        _typeSystem = typeSystem,
-        _lattice = new ConstantPropagationLattice(
-            typeSystem,
-            compiler.backend.constantSystem,
-            compiler.types);
+  TypePropagator(CpsFunctionCompiler functionCompiler)
+      : _functionCompiler = functionCompiler,
+        _lattice = new ConstantPropagationLattice(functionCompiler);
+
+  dart2js.Compiler get _compiler => _functionCompiler.compiler;
+  TypeMaskSystem get _typeSystem => _functionCompiler.typeSystem;
+  InternalErrorFunction get _internalError => _compiler.reporter.internalError;
 
   @override
   void rewrite(FunctionDefinition root) {
@@ -2592,31 +2587,38 @@ class TypePropagationVisitor implements Visitor {
   void visit(Node node) { node.accept(this); }
 
   void visitFunctionDefinition(FunctionDefinition node) {
-    int firstActualParameter = 0;
-    if (backend.isInterceptedMethod(node.element)) {
-      if (typeSystem.methodUsesReceiverArgument(node.element)) {
+    bool isIntercepted = backend.isInterceptedMethod(node.element);
+
+    // If the abstract value of the function parameters is Nothing, use the
+    // inferred parameter type.  Otherwise (e.g., when inlining) do not
+    // change the abstract value.
+    if (node.thisParameter != null && getValue(node.thisParameter).isNothing) {
+      if (isIntercepted &&
+          typeSystem.methodUsesReceiverArgument(node.element)) {
         setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
-        setValue(node.parameters[0],
-                 nonConstant(typeSystem.getReceiverType(node.element)));
       } else {
         setValue(node.thisParameter,
-              nonConstant(typeSystem.getReceiverType(node.element)));
+            nonConstant(typeSystem.getReceiverType(node.element)));
+      }
+    }
+    if (isIntercepted && getValue(node.parameters[0]).isNothing) {
+      if (typeSystem.methodUsesReceiverArgument(node.element)) {
+        setValue(node.parameters[0],
+            nonConstant(typeSystem.getReceiverType(node.element)));
+      } else {
         setValue(node.parameters[0], nonConstant());
       }
-      firstActualParameter = 1;
-    } else if (node.thisParameter != null) {
-      setValue(node.thisParameter,
-               nonConstant(typeSystem.getReceiverType(node.element)));
     }
     bool hasParameterWithoutValue = false;
-    for (Parameter param in node.parameters.skip(firstActualParameter)) {
-      // TODO(karlklose): remove reference to the element model.
-      TypeMask type = param.hint is ParameterElement
-          ? typeSystem.getParameterType(param.hint)
-          : typeSystem.dynamicType;
-      setValue(param, lattice.fromMask(type));
-      if (type.isEmpty && !type.isNullable) {
-        hasParameterWithoutValue = true;
+    for (Parameter param in node.parameters.skip(isIntercepted ? 1 : 0)) {
+      if (getValue(param).isNothing) {
+        TypeMask type = param.hint is ParameterElement
+            ? typeSystem.getParameterType(param.hint)
+            : typeSystem.dynamicType;
+        setValue(param, lattice.fromMask(type));
+        if (type.isEmpty && !type.isNullable) {
+          hasParameterWithoutValue = true;
+        }
       }
     }
     if (!hasParameterWithoutValue) { // Don't analyze unreachable code.

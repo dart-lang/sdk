@@ -48,6 +48,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   /// Main entry point for creating a [String] from a [Node].  All recursive
   /// calls must go through this method.
   String visit(Node node) {
+    if (node == null) return '**** NULL ****';
     String s = node.accept(this);
     return decorator(node, s);
   }
@@ -112,20 +113,25 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String formatArguments(CallStructure call,
-        List<Reference<Primitive>> arguments,
-        [CallingConvention callingConvention = CallingConvention.Normal]) {
+      List<Reference<Primitive>> arguments,
+      [CallingConvention callingConvention = CallingConvention.Normal]) {
     int positionalArgumentCount = call.positionalArgumentCount;
-    if (callingConvention == CallingConvention.Intercepted) {
+    if (callingConvention == CallingConvention.Intercepted ||
+        callingConvention == CallingConvention.dummyIntercepted) {
       ++positionalArgumentCount;
     }
     List<String> args =
-        arguments.getRange(0, positionalArgumentCount).map(access).toList();
+        arguments.take(positionalArgumentCount).map(access).toList();
     List<String> argumentNames = call.getOrderedNamedArguments();
     for (int i = 0; i < argumentNames.length; ++i) {
       String name = argumentNames[i];
       String arg = access(arguments[positionalArgumentCount + i]);
       args.add("($name: $arg)");
     }
+    // Constructors can have type parameter after the named arguments.
+    args.addAll(
+        arguments.skip(positionalArgumentCount + argumentNames.length)
+            .map(access));
     return '(${args.join(' ')})';
   }
 
@@ -170,7 +176,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String name = access(node.continuation);
     if (node.isRecursive) name = 'rec $name';
     String args = node.arguments.map(access).join(' ');
-    return '$indentation(InvokeContinuation $name ($args))';
+    String escaping = node.isEscapingTry ? ' escape' : '';
+    return '$indentation(InvokeContinuation $name ($args)$escaping)';
   }
 
   String visitThrow(Throw node) {
