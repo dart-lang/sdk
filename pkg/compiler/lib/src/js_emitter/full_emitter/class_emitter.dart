@@ -328,8 +328,9 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     if (!statics.isEmpty) {
-      classBuilder.addPropertyByName('static',
-                                     new jsAst.ObjectInitializer(statics));
+      classBuilder.addPropertyByName(
+          'static',
+          new jsAst.ObjectInitializer(statics, isOneLiner: false));
     }
 
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
