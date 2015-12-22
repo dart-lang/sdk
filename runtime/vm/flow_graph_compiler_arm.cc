@@ -983,8 +983,8 @@ void FlowGraphCompiler::EmitFrameEntry() {
   if (CanOptimizeFunction() &&
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
+    __ Comment("Invocation Count Check");
     const Register function_reg = R8;
-
     // The pool pointer is not setup before entering the Dart frame.
     // Temporarily setup pool pointer for this dart function.
     __ LoadPoolPointer(new_pp);

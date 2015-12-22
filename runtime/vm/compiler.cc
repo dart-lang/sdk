@@ -60,6 +60,8 @@ DEFINE_FLAG(bool, print_ic_data_map, false,
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
+DEFINE_FLAG(bool, trace_optimizing_compiler, false,
+    "Trace only optimizing compiler operations.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
@@ -499,23 +501,34 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
       // Background compilation.
       // Before installing code check generation counts if the code may
       // have become invalid.
+      const bool trace_compiler =
+          FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
       bool code_is_valid = true;
       if (!thread()->cha()->leaf_classes().is_empty()) {
         if (cha_invalidation_gen_at_start() !=
             isolate()->cha_invalidation_gen()) {
           code_is_valid = false;
+          if (trace_compiler) {
+            THR_Print("--> FAIL: CHA invalidation.");
+          }
         }
       }
       if (!flow_graph->guarded_fields()->is_empty()) {
         if (field_invalidation_gen_at_start() !=
             isolate()->field_invalidation_gen()) {
           code_is_valid = false;
+          if (trace_compiler) {
+            THR_Print("--> FAIL: Field invalidation.");
+          }
         }
       }
       if (parsed_function()->HasDeferredPrefixes()) {
         if (prefix_invalidation_gen_at_start() !=
             isolate()->prefix_invalidation_gen()) {
           code_is_valid = false;
+          if (trace_compiler) {
+            THR_Print("--> FAIL: Prefix invalidation.");
+          }
         }
       }
       if (code_is_valid) {
@@ -1079,7 +1092,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         const intptr_t max_attempts = FLAG_max_speculative_inlining_attempts;
         if (inlining_black_list.length() >= max_attempts) {
           use_speculative_inlining = false;
-          if (FLAG_trace_compiler) {
+          if (FLAG_trace_compiler || FLAG_trace_optimizing_compiler) {
             THR_Print("Disabled speculative inlining after %" Pd " attempts.\n",
                       inlining_black_list.length());
           }
@@ -1284,12 +1297,15 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     Isolate* const isolate = thread->isolate();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
-    Timer per_compile_timer(FLAG_trace_compiler, "Compilation time");
+    const bool trace_compiler =
+        FLAG_trace_compiler ||
+        (FLAG_trace_optimizing_compiler && optimized);
+    Timer per_compile_timer(trace_compiler, "Compilation time");
     per_compile_timer.Start();
 
     ParsedFunction* parsed_function = new(zone) ParsedFunction(
         thread, Function::ZoneHandle(zone, function.raw()));
-    if (FLAG_trace_compiler) {
+    if (trace_compiler) {
       THR_Print("Compiling %s%sfunction: '%s' @ token %" Pd ", size %" Pd "\n",
                 (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
                 (optimized ? "optimized " : ""),
@@ -1317,7 +1333,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       if (optimized) {
         ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
         // Optimizer bailed out. Disable optimizations and never try again.
-        if (FLAG_trace_compiler) {
+        if (trace_compiler) {
           THR_Print("--> disabling optimizations for '%s'\n",
                     function.ToFullyQualifiedCString());
         } else if (FLAG_trace_failed_optimization_attempts) {
@@ -1338,7 +1354,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     per_compile_timer.Stop();
 
-    if (FLAG_trace_compiler) {
+    if (trace_compiler && success) {
       THR_Print("--> '%s' entry: %#" Px " size: %" Pd " time: %" Pd64 " us\n",
                 function.ToFullyQualifiedCString(),
                 Code::Handle(function.CurrentCode()).EntryPoint(),

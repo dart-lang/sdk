@@ -9591,7 +9591,10 @@ bool Library::LookupResolvedNamesCache(const String& name,
   ResolvedNamesMap cache(resolved_names());
   bool present = false;
   *obj = cache.GetOrNull(name, &present);
-  ASSERT(cache.Release().raw() == resolved_names());
+  // Mutator compiler thread may add entries and therefore
+  // change 'resolved_names()' while running a background compilation;
+  // do not ASSERT that 'resolved_names()' has not changed.
+  cache.Release();
   return present;
 }
 

@@ -276,7 +276,12 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   // Check if getter or setter in function's class and class is currently leaf.
-  if (FLAG_guess_icdata_cid &&
+  // Do not run the optimization below if in background compilation since
+  // resolution of getter functions may create new signature classes.
+  // TODO(regis): Remove test for background compilation once signature classes
+  // are not generated any longer.
+  if (thread()->IsMutatorThread() &&
+      FLAG_guess_icdata_cid &&
       ((call->token_kind() == Token::kGET) ||
           (call->token_kind() == Token::kSET))) {
     const Class& owner_class = Class::Handle(Z, function().Owner());

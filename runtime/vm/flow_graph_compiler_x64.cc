@@ -998,6 +998,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     ASSERT(extra_slots >= 0);
     __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
+    __ Comment("Invocation Count Check");
     const Register new_pp = R13;
     __ LoadPoolPointer(new_pp);
 

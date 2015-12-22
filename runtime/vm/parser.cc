@@ -12064,8 +12064,10 @@ bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
   bool is_present = false;
   *value ^= constants.GetOrNull(key, &is_present);
-  ASSERT(constants.Release().raw() ==
-      isolate()->object_store()->compile_time_constants());
+  // Mutator compiler thread may add constants while background compiler
+  // is running , and thus change the value of 'compile_time_constants';
+  // do not assert that 'compile_time_constants' has not changed.
+  constants.Release();
   if (FLAG_compiler_stats && is_present) {
     isolate_->compiler_stats()->num_const_cache_hits++;
   }
