@@ -96,7 +96,7 @@ vars = {
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev" : "@44061",
+  "WebCore_rev": "@4f90b41b0165f23f412cecdba07b7d81d3fbb5b5",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "barback-0.13.0_rev": "@34853",
@@ -138,7 +138,7 @@ deps = {
       Var("idl_parser_rev"),
 
   Var("dart_root") + "/third_party/WebCore":
-      Var("third_party") + "/WebCore" + Var("WebCore_rev"),
+      "https://github.com/dart-lang/webcore.git" + Var("WebCore_rev"),
 
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
