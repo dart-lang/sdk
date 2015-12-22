@@ -303,6 +303,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       case 'Array':
       case 'Date':
       case 'Function':
+      case 'Math':
       case 'Number':
       case 'Object':
       case 'RegExp':
