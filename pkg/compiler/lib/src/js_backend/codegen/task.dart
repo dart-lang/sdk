@@ -66,22 +66,18 @@ class CpsFunctionCompiler implements FunctionCompiler {
   final GenericTask treeBuilderTask;
   final GenericTask treeOptimizationTask;
 
-  Inliner inliner;
-
   CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend,
                       SourceInformationStrategy sourceInformationFactory)
       : fallbackCompiler =
             new ssa.SsaFunctionCompiler(backend, sourceInformationFactory),
         cpsBuilderTask = new IrBuilderTask(compiler, sourceInformationFactory),
-        sourceInformationFactory = sourceInformationFactory,
+        this.sourceInformationFactory = sourceInformationFactory,
         constantSystem = backend.constantSystem,
         compiler = compiler,
         glue = new Glue(compiler),
         cpsOptimizationTask = new GenericTask('CPS optimization', compiler),
         treeBuilderTask = new GenericTask('Tree builder', compiler),
-      treeOptimizationTask = new GenericTask('Tree optimization', compiler) {
-    inliner = new Inliner(this);
-  }
+        treeOptimizationTask = new GenericTask('Tree optimization', compiler);
 
   String get name => 'CPS Ir pipeline';
 
@@ -91,9 +87,9 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   /// Generates JavaScript code for `work.element`.
   js.Fun compile(CodegenWorkItem work) {
-    if (typeSystem == null) typeSystem = new TypeMaskSystem(compiler);
     AstElement element = work.element;
     return reporter.withCurrentElement(element, () {
+      typeSystem = new TypeMaskSystem(compiler);
       try {
         // TODO(karlklose): remove this fallback when we do not need it for
         // testing anymore.
@@ -106,9 +102,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
           tracer.traceCompilation(element.name, null);
         }
         cps.FunctionDefinition cpsFunction = compileToCpsIr(element);
-        optimizeCpsBeforeInlining(cpsFunction);
-        applyCpsPass(inliner, cpsFunction);
-        optimizeCpsAfterInlining(cpsFunction);
+        cpsFunction = optimizeCpsIr(cpsFunction);
         cpsIntegrityChecker = null;
         tree_ir.FunctionDefinition treeFunction = compileToTreeIr(cpsFunction);
         treeFunction = optimizeTreeIr(treeFunction);
@@ -206,19 +200,14 @@ class CpsFunctionCompiler implements FunctionCompiler {
     return true; // So this can be used from assert().
   }
 
-  void optimizeCpsBeforeInlining(cps.FunctionDefinition cpsFunction) {
+  cps.FunctionDefinition optimizeCpsIr(cps.FunctionDefinition cpsFunction) {
     cpsOptimizationTask.measure(() {
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
       applyCpsPass(new InsertRefinements(typeSystem), cpsFunction);
-      applyCpsPass(new TypePropagator(this), cpsFunction);
+      applyCpsPass(new TypePropagator(compiler, typeSystem, this), cpsFunction);
       applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
-    });
-  }
-
-  void optimizeCpsAfterInlining(cps.FunctionDefinition cpsFunction) {
-    cpsOptimizationTask.measure(() {
       applyCpsPass(new RedundantRefinementEliminator(typeSystem), cpsFunction);
       applyCpsPass(new EagerlyLoadStatics(), cpsFunction);
       applyCpsPass(new GVN(compiler, typeSystem), cpsFunction);
@@ -234,6 +223,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       applyCpsPass(new BackwardNullCheckRemover(typeSystem), cpsFunction);
       applyCpsPass(new ShrinkingReducer(), cpsFunction);
     });
+    return cpsFunction;
   }
 
   tree_ir.FunctionDefinition compileToTreeIr(cps.FunctionDefinition cpsNode) {

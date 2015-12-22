@@ -166,17 +166,6 @@ class ShrinkingReducer extends Pass {
     InvokeContinuation invoke = cont.body;
     Continuation wrappedCont = invoke.continuation.definition;
 
-    // If the invocation of wrappedCont is escaping, then all invocations of
-    // cont will be as well, after the reduction.
-    if (invoke.isEscapingTry) {
-      Reference current = cont.firstRef;
-      while (current != null) {
-        InvokeContinuation owner = current.parent;
-        owner.isEscapingTry = true;
-        current = current.next;
-      }
-    }
-
     // Replace all occurrences with the wrapped continuation.
     cont.replaceUsesWith(wrappedCont);
 

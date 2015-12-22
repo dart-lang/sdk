@@ -143,6 +143,7 @@ package_map_test: SkipByDesign  # Uses Isolate.packageMap
 
 [ $compiler == dart2js && $cps_ir ]
 deferred_in_isolate2_test: RuntimeError # A.loadLibrary is not a function
+isolate_current_test: RuntimeError # Please triage this failure.
 
 [ ($noopt || $compiler == precompiler) ]
 # Imports dart:mirrors
