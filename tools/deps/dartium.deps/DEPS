@@ -187,7 +187,7 @@ deps.update({
       (Var("github_mirror") % "test") + Var("unittest_tag"),
 
   "src/dart/third_party/WebCore":
-    "https://github.com/dart-lang/webcore.git" + Var("WebCore_rev")
+    "https://github.com/dart-lang/webcore.git" + Var("WebCore_rev"),
 
   "src/dart/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),

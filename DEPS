@@ -7,9 +7,6 @@ vars = {
   # simply sdk, but if using special gclient specs it can be different.
   "dart_root": "sdk",
 
-  # The svn location to pull out dependencies from
-  "third_party": "http://dart.googlecode.com/svn/third_party",
-
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
   # We need the mirrors to not have 100+ bots pulling github constantly.
@@ -35,7 +32,6 @@ vars = {
   "boringssl_rev" : "@daeafc22c66ad48f6b32fc8d3362eb9ba31b774e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
-  "clang_rev" : "@28450",
   "cli_util_tag" : "@0.0.1+2",
   "collection_rev": "@f6135e6350c63eb3f4dd12953b8d4363faff16fc",
   "convert_tag": "@1.0.0",
@@ -290,10 +286,6 @@ deps_os = {
       Var("chromium_git") + "/chromium/deps/cygwin.git" +
       "@c89e446b273697fadf3a10ff1007a97c0b7de6df",
   },
-  "unix": {
-    Var("dart_root") + "/third_party/clang":
-      Var("third_party") + "/clang" + Var("clang_rev"),
-  },
 }
 
 # TODO(iposva): Move the necessary tools so that hooks can be run
@@ -418,6 +410,21 @@ hooks = [
       "--extract",
       "-s",
       Var('dart_root') + "/third_party/gsutil.tar.gz.sha1",
+    ],
+  },
+  {
+    "name": "clang",
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--platform=linux*",
+      "--extract",
+      "-s",
+      Var('dart_root') + "/third_party/clang.tar.gz.sha1",
     ],
   },
 ]
