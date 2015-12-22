@@ -77,7 +77,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
     return Object::null();
   }
   // json was allocated in the zone and a copy will be stored in event.
-  event->SerializedJSON(json);
+  event->SerializedJSON(json, start.AsInt64Value(), id.AsInt64Value());
   event->Complete();
 
   return Object::null();
@@ -124,7 +124,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
     return Object::null();
   }
   // json was allocated in the zone and a copy will be stored in event.
-  event->SerializedJSON(json);
+  event->SerializedJSON(json, start.AsInt64Value(), end.AsInt64Value());
   event->Complete();
 
   return Object::null();
@@ -168,7 +168,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
     return Object::null();
   }
   // json was allocated in the zone and a copy will be stored in event.
-  event->SerializedJSON(json);
+  event->SerializedJSON(json, start.AsInt64Value(), 0);
   event->Complete();
 
   return Object::null();

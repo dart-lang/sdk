@@ -96,7 +96,10 @@ class SampleFilter : public ValueObject {
                int64_t time_extent_micros)
       : isolate_(isolate),
         time_origin_micros_(time_origin_micros),
-        time_extent_micros_(time_extent_micros) { }
+        time_extent_micros_(time_extent_micros) {
+    ASSERT(time_origin_micros_ >= -1);
+    ASSERT(time_extent_micros_ >= -1);
+  }
   virtual ~SampleFilter() { }
 
   // Override this function.

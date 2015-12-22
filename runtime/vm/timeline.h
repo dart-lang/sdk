@@ -137,7 +137,9 @@ class TimelineEvent {
   void End(const char* label,
            int64_t micros = OS::GetCurrentMonotonicMicros());
 
-  void SerializedJSON(const char* json);
+  void SerializedJSON(const char* json,
+                      int64_t timestamp0,
+                      int64_t timestamp1);
 
   // Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
@@ -522,7 +524,9 @@ class TimelineEventBlock {
 
 class TimelineEventFilter : public ValueObject {
  public:
-  TimelineEventFilter();
+  TimelineEventFilter(int64_t time_origin_micros = -1,
+                      int64_t time_extent_micros = -1);
+
   virtual ~TimelineEventFilter();
 
   virtual bool IncludeBlock(TimelineEventBlock* block) {
@@ -540,13 +544,19 @@ class TimelineEventFilter : public ValueObject {
     return event->IsValid();
   }
 
+  bool EventInTimeRange(TimelineEvent* event);
+
  private:
+  int64_t time_origin_micros_;
+  int64_t time_extent_micros_;
 };
 
 
 class IsolateTimelineEventFilter : public TimelineEventFilter {
  public:
-  explicit IsolateTimelineEventFilter(Dart_Port isolate_id);
+  explicit IsolateTimelineEventFilter(Dart_Port isolate_id,
+                                      int64_t time_origin_micros = -1,
+                                      int64_t time_extent_micros = -1);
 
   bool IncludeBlock(TimelineEventBlock* block) {
     if (block == NULL) {

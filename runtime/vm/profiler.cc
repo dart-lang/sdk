@@ -304,7 +304,7 @@ bool SampleFilter::TimeFilterSample(Sample* sample) {
   }
   const int64_t timestamp = sample->timestamp();
   int64_t delta = timestamp - time_origin_micros_;
-  return (delta >= 0) && (delta < time_extent_micros_);
+  return (delta >= 0) && (delta <= time_extent_micros_);
 }
 
 

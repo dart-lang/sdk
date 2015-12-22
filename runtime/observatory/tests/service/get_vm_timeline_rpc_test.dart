@@ -32,6 +32,35 @@ bool eventsContains(List<Map> events, String phase, String name) {
   return false;
 }
 
+int timeOrigin(List<Map> events) {
+  if (events.length == 0) {
+    return 0;
+  }
+  int smallest = events[0]['ts'];
+  for (var i = 0; i < events.length; i++) {
+    Map event = events[i];
+    if (event['ts'] < smallest) {
+      smallest = event['ts'];
+    }
+  }
+  return smallest;
+}
+
+int timeDuration(List<Map> events, int timeOrigin) {
+  if (events.length == 0) {
+    return 0;
+  }
+  int biggestDuration = events[0]['ts'] - timeOrigin;
+  for (var i = 0; i < events.length; i++) {
+    Map event = events[i];
+    int duration = event['ts'] - timeOrigin;
+    if (duration > biggestDuration) {
+      biggestDuration = duration;
+    }
+  }
+  return biggestDuration;
+}
+
 void allEventsHaveIsolateNumber(List<Map> events) {
   for (Map event in events) {
     if (event['ph'] == 'M') {
@@ -61,6 +90,7 @@ var tests = [
     Map result = await vm.invokeRpcNoUpgrade('_getVMTimeline', {});
     expect(result['type'], equals('_Timeline'));
     expect(result['traceEvents'], new isInstanceOf<List>());
+    final int numEvents = result['traceEvents'].length;
     List<Map> dartEvents = filterForDartEvents(result['traceEvents']);
     expect(dartEvents.length, equals(5));
     allEventsHaveIsolateNumber(dartEvents);
@@ -71,6 +101,19 @@ var tests = [
     expect(eventsContains(dartEvents, 'e', 'TASK1'), isTrue);
     expect(eventsContains(dartEvents, 'n', 'ITASK'), isTrue);
     expect(eventsContains(dartEvents, 'q', 'ITASK'), isFalse);
+    // Calculate the time Window of Dart events.
+    int origin = timeOrigin(dartEvents);
+    int extent = timeDuration(dartEvents, origin);
+    // Query for the timeline with the time window for Dart events.
+    result = await vm.invokeRpcNoUpgrade('_getVMTimeline', {
+      'timeOriginMicros': origin,
+      'timeExtentMicros': extent
+    });
+    // Verify that we received fewer events than before.
+    expect(result['traceEvents'].length, lessThan(numEvents));
+    // Verify that we have the same number of Dart events.
+    List<Map> dartEvents2 = filterForDartEvents(result['traceEvents']);
+    expect(dartEvents2.length, dartEvents.length);
   },
 ];
 

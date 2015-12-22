@@ -2635,6 +2635,8 @@ static bool ClearVMTimeline(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* get_vm_timeline_params[] = {
   NO_ISOLATE_PARAMETER,
+  new Int64Parameter("timeOriginMicros", false),
+  new Int64Parameter("timeExtentMicros", false),
   NULL,
 };
 
@@ -2647,7 +2649,11 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
   TimelineEventRecorder* timeline_recorder = Timeline::recorder();
   // TODO(johnmccutchan): Return an error.
   ASSERT(timeline_recorder != NULL);
-  TimelineEventFilter filter;
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  TimelineEventFilter filter(time_origin_micros, time_extent_micros);
   timeline_recorder->PrintJSON(js, &filter);
   return true;
 }
