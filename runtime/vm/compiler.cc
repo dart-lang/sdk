@@ -396,31 +396,200 @@ RawError* Compiler::CompileClass(const Class& cls) {
 }
 
 
+class CompileParsedFunctionHelper : public ValueObject {
+ public:
+  CompileParsedFunctionHelper(ParsedFunction* parsed_function,
+                              bool optimized,
+                              intptr_t osr_id)
+      : parsed_function_(parsed_function),
+        optimized_(optimized),
+        osr_id_(osr_id),
+        thread_(Thread::Current()),
+        cha_invalidation_gen_at_start_(isolate()->cha_invalidation_gen()),
+        field_invalidation_gen_at_start_(isolate()->field_invalidation_gen()),
+        prefix_invalidation_gen_at_start_(
+            isolate()->prefix_invalidation_gen()) {
+  }
+
+  bool Compile(CompilationPipeline* pipeline);
+
+ private:
+  ParsedFunction* parsed_function() const { return parsed_function_; }
+  bool optimized() const { return optimized_; }
+  intptr_t osr_id() const { return osr_id_; }
+  Thread* thread() const { return thread_; }
+  Isolate* isolate() const { return thread_->isolate(); }
+  uint32_t cha_invalidation_gen_at_start() const {
+    return cha_invalidation_gen_at_start_;
+  }
+  uint32_t field_invalidation_gen_at_start() const {
+    return field_invalidation_gen_at_start_;
+  }
+  uint32_t prefix_invalidation_gen_at_start() const {
+    return prefix_invalidation_gen_at_start_;
+  }
+  void FinalizeCompilation(Assembler* assembler,
+                           FlowGraphCompiler* graph_compiler,
+                           FlowGraph* flow_graph);
+
+  ParsedFunction* parsed_function_;
+  const bool optimized_;
+  const intptr_t osr_id_;
+  Thread* const thread_;
+  const uint32_t cha_invalidation_gen_at_start_;
+  const uint32_t field_invalidation_gen_at_start_;
+  const uint32_t prefix_invalidation_gen_at_start_;
+
+  DISALLOW_COPY_AND_ASSIGN(CompileParsedFunctionHelper);
+};
+
+
+void CompileParsedFunctionHelper::FinalizeCompilation(
+    Assembler* assembler,
+    FlowGraphCompiler* graph_compiler,
+    FlowGraph* flow_graph) {
+  const Function& function = parsed_function()->function();
+  Zone* const zone = thread()->zone();
+
+  CSTAT_TIMER_SCOPE(thread(), codefinalizer_timer);
+  // CreateDeoptInfo uses the object pool and needs to be done before
+  // FinalizeCode.
+  const Array& deopt_info_array =
+      Array::Handle(zone, graph_compiler->CreateDeoptInfo(assembler));
+  INC_STAT(thread(), total_code_size,
+           deopt_info_array.Length() * sizeof(uword));
+  // Allocates instruction object. Since this occurs only at safepoint,
+  // there can be no concurrent access to the instruction page.
+  const Code& code = Code::Handle(
+      Code::FinalizeCode(function, assembler, optimized()));
+  code.set_is_optimized(optimized());
+  code.set_owner(function);
+
+  const Array& intervals = graph_compiler->inlined_code_intervals();
+  INC_STAT(thread(), total_code_size,
+           intervals.Length() * sizeof(uword));
+  code.SetInlinedIntervals(intervals);
+
+  const Array& inlined_id_array =
+      Array::Handle(zone, graph_compiler->InliningIdToFunction());
+  INC_STAT(thread(), total_code_size,
+           inlined_id_array.Length() * sizeof(uword));
+  code.SetInlinedIdToFunction(inlined_id_array);
+
+  const Array& caller_inlining_id_map_array =
+      Array::Handle(zone, graph_compiler->CallerInliningIdMap());
+  INC_STAT(thread(), total_code_size,
+           caller_inlining_id_map_array.Length() * sizeof(uword));
+  code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
+
+  graph_compiler->FinalizePcDescriptors(code);
+  code.set_deopt_info_array(deopt_info_array);
+
+  graph_compiler->FinalizeStackmaps(code);
+  graph_compiler->FinalizeVarDescriptors(code);
+  graph_compiler->FinalizeExceptionHandlers(code);
+  graph_compiler->FinalizeStaticCallTargetsTable(code);
+
+  if (optimized()) {
+    // Installs code while at safepoint.
+    if (thread()->IsMutatorThread()) {
+      const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
+      function.InstallOptimizedCode(code, is_osr);
+    } else {
+      // Background compilation.
+      // Before installing code check generation counts if the code may
+      // have become invalid.
+      bool code_is_valid = true;
+      if (!thread()->cha()->leaf_classes().is_empty()) {
+        if (cha_invalidation_gen_at_start() !=
+            isolate()->cha_invalidation_gen()) {
+          code_is_valid = false;
+        }
+      }
+      if (!flow_graph->guarded_fields()->is_empty()) {
+        if (field_invalidation_gen_at_start() !=
+            isolate()->field_invalidation_gen()) {
+          code_is_valid = false;
+        }
+      }
+      if (parsed_function()->HasDeferredPrefixes()) {
+        if (prefix_invalidation_gen_at_start() !=
+            isolate()->prefix_invalidation_gen()) {
+          code_is_valid = false;
+        }
+      }
+      if (code_is_valid) {
+        const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
+        ASSERT(!is_osr);  // OSR is compiled in background.
+        function.InstallOptimizedCode(code, is_osr);
+      }
+      if (function.usage_counter() < 0) {
+        // Reset to 0 so that it can be recompiled if needed.
+        function.set_usage_counter(0);
+      }
+    }
+
+    // Register code with the classes it depends on because of CHA and
+    // fields it depends on because of store guards, unless we cannot
+    // deopt.
+    if (Compiler::allow_recompilation()) {
+      // Deoptimize field dependent code first, before registering
+      // this yet uninstalled code as dependent on a field.
+      // TODO(srdjan): Debugging dart2js crashes;
+      // FlowGraphOptimizer::VisitStoreInstanceField populates
+      // deoptimize_dependent_code() list, currently disabled.
+      for (intptr_t i = 0;
+           i < flow_graph->deoptimize_dependent_code().length();
+           i++) {
+        const Field* field = flow_graph->deoptimize_dependent_code()[i];
+        field->DeoptimizeDependentCode();
+      }
+      for (intptr_t i = 0;
+           i < thread()->cha()->leaf_classes().length();
+           ++i) {
+        thread()->cha()->leaf_classes()[i]->RegisterCHACode(code);
+      }
+      for (intptr_t i = 0;
+           i < flow_graph->guarded_fields()->length();
+           i++) {
+        const Field* field = (*flow_graph->guarded_fields())[i];
+        field->RegisterDependentCode(code);
+      }
+    }
+  } else {  // not optimized.
+    if (!Compiler::always_optimize() &&
+        (function.ic_data_array() == Array::null())) {
+      function.SaveICDataMap(
+          graph_compiler->deopt_id_to_ic_data(),
+          Array::Handle(zone, graph_compiler->edge_counters_array()));
+    }
+    function.set_unoptimized_code(code);
+    function.AttachCode(code);
+  }
+  if (parsed_function()->HasDeferredPrefixes()) {
+    ASSERT(!FLAG_load_deferred_eagerly);
+    ZoneGrowableArray<const LibraryPrefix*>* prefixes =
+        parsed_function()->deferred_prefixes();
+    for (intptr_t i = 0; i < prefixes->length(); i++) {
+      (*prefixes)[i]->RegisterDependentCode(code);
+    }
+  }
+}
+
+
 // Return false if bailed out.
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
-static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
-                                        ParsedFunction* parsed_function,
-                                        bool optimized,
-                                        intptr_t osr_id) {
-  const Function& function = parsed_function->function();
-  if (optimized && !function.IsOptimizable()) {
+bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
+  const Function& function = parsed_function()->function();
+  if (optimized() && !function.IsOptimizable()) {
     return false;
   }
   bool is_compiled = false;
-  Thread* const thread = Thread::Current();
-  Zone* const zone = thread->zone();
-  Isolate* const isolate = thread->isolate();
-  TimelineStream* compiler_timeline = isolate->GetCompilerStream();
-  CSTAT_TIMER_SCOPE(thread, codegen_timer);
-  HANDLESCOPE(thread);
-
-  // Get current generation count so that we can check and ensure that the code
-  // was not invalidated while we were compiling in the background.
-  uint32_t cha_invalidation_gen_at_start = isolate->cha_invalidation_gen();
-  uint32_t field_invalidation_gen_at_start = isolate->field_invalidation_gen();
-  uint32_t prefix_invalidation_gen_at_start =
-      isolate->prefix_invalidation_gen();
+  Zone* const zone = thread()->zone();
+  TimelineStream* compiler_timeline = isolate()->GetCompilerStream();
+  CSTAT_TIMER_SCOPE(thread(), codegen_timer);
+  HANDLESCOPE(thread());
 
   // We may reattempt compilation if the function needs to be assembled using
   // far branches on ARM and MIPS. In the else branch of the setjmp call,
@@ -436,8 +605,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
   GrowableArray<intptr_t> inlining_black_list;
 
   while (!done) {
-    const intptr_t prev_deopt_id = thread->deopt_id();
-    thread->set_deopt_id(0);
+    const intptr_t prev_deopt_id = thread()->deopt_id();
+    thread()->set_deopt_id(0);
     LongJumpScope jump;
     const intptr_t val = setjmp(*jump.Set());
     if (val == 0) {
@@ -445,15 +614,15 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
       // Class hierarchy analysis is registered with the isolate in the
       // constructor and unregisters itself upon destruction.
-      CHA cha(thread);
+      CHA cha(thread());
 
       // TimerScope needs an isolate to be properly terminated in case of a
       // LongJump.
       {
-        CSTAT_TIMER_SCOPE(thread, graphbuilder_timer);
+        CSTAT_TIMER_SCOPE(thread(), graphbuilder_timer);
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new(zone) ZoneGrowableArray<const ICData*>();
-        if (optimized) {
+        if (optimized()) {
           // Extract type feedback before the graph is built, as the graph
           // builder uses it to attach it to nodes.
           ASSERT(function.deoptimization_counter() <
@@ -474,22 +643,22 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           }
         }
 
-        TimelineDurationScope tds(thread,
+        TimelineDurationScope tds(thread(),
                                   compiler_timeline,
                                   "BuildFlowGraph");
         flow_graph = pipeline->BuildFlowGraph(zone,
-                                              parsed_function,
+                                              parsed_function(),
                                               *ic_data_array,
-                                              osr_id);
+                                              osr_id());
       }
 
       const bool print_flow_graph =
           (FLAG_print_flow_graph ||
-          (optimized && FLAG_print_flow_graph_optimized)) &&
+           (optimized() && FLAG_print_flow_graph_optimized)) &&
           FlowGraphPrinter::ShouldPrint(function);
 
       if (print_flow_graph) {
-        if (osr_id == Compiler::kNoOSRDeoptId) {
+        if (osr_id() == Compiler::kNoOSRDeoptId) {
           FlowGraphPrinter::PrintGraph("Before Optimizations", flow_graph);
         } else {
           FlowGraphPrinter::PrintGraph("For OSR", flow_graph);
@@ -498,19 +667,19 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
       BlockScheduler block_scheduler(flow_graph);
       const bool reorder_blocks =
-          FlowGraph::ShouldReorderBlocks(function, optimized);
+          FlowGraph::ShouldReorderBlocks(function, optimized());
       if (reorder_blocks) {
-        TimelineDurationScope tds(thread,
+        TimelineDurationScope tds(thread(),
                                   compiler_timeline,
                                   "BlockScheduler::AssignEdgeWeights");
         block_scheduler.AssignEdgeWeights();
       }
 
-      if (optimized) {
-        TimelineDurationScope tds(thread,
+      if (optimized()) {
+        TimelineDurationScope tds(thread(),
                                   compiler_timeline,
                                   "ComputeSSA");
-        CSTAT_TIMER_SCOPE(thread, ssa_timer);
+        CSTAT_TIMER_SCOPE(thread(), ssa_timer);
         // Transform to SSA (virtual register 0 and no inlining arguments).
         flow_graph->ComputeSSA(0, NULL);
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -527,14 +696,14 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       // Collect all instance fields that are loaded in the graph and
       // have non-generic type feedback attached to them that can
       // potentially affect optimizations.
-      if (optimized) {
-        TimelineDurationScope tds(thread,
+      if (optimized()) {
+        TimelineDurationScope tds(thread(),
                                   compiler_timeline,
                                   "OptimizationPasses");
         inline_id_to_function.Add(&function);
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
-        CSTAT_TIMER_SCOPE(thread, graphoptimizer_timer);
+        CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
         FlowGraphOptimizer optimizer(flow_graph,
                                      use_speculative_inlining,
@@ -560,10 +729,10 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
         // Inlining (mutates the flow graph)
         if (FLAG_use_inlining) {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "Inlining");
-          CSTAT_TIMER_SCOPE(thread, graphinliner_timer);
+          CSTAT_TIMER_SCOPE(thread(), graphinliner_timer);
           // Propagate types to create more inlining opportunities.
           FlowGraphTypePropagator::Propagate(flow_graph);
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -587,7 +756,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "ApplyClassIds");
           // Use propagated class-ids to optimize further.
@@ -609,7 +778,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "BranchSimplifier");
           BranchSimplifier::Simplify(flow_graph);
@@ -620,7 +789,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
 
         if (FLAG_constant_propagation) {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "ConstantPropagation");
           ConstantPropagator::Optimize(flow_graph);
@@ -649,7 +818,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "SelectRepresentations");
           // Where beneficial convert Smi operations into Int32 operations.
@@ -664,7 +833,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "CommonSubexpressionElinination");
           if (FLAG_common_subexpression_elimination ||
@@ -704,14 +873,14 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "DeadStoreElimination");
           DeadStoreElimination::Optimize(flow_graph);
         }
 
         if (FLAG_range_analysis) {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "RangeAnalysis");
           // Propagate types after store-load-forwarding. Some phis may have
@@ -727,7 +896,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
 
         if (FLAG_constant_propagation) {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "ConstantPropagator::OptimizeBranches");
           // Constant propagation can use information from range analysis to
@@ -743,7 +912,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "TryCatchAnalyzer::Optimize");
           // Optimize try-blocks.
@@ -756,7 +925,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         optimizer.EliminateEnvironments();
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "EliminateDeadPhis");
           DeadCodeElimination::EliminateDeadPhis(flow_graph);
@@ -772,7 +941,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         AllocationSinking* sinking = NULL;
         if (FLAG_allocation_sinking &&
             (flow_graph->graph_entry()->SuccessorCount()  == 1)) {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "AllocationSinking::Optimize");
           // TODO(fschneider): Support allocation sinking with try-catch.
@@ -788,7 +957,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "SelectRepresentations");
           // Ensure that all phis inserted by optimization passes have
@@ -808,7 +977,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
 
         if (sinking != NULL) {
           TimelineDurationScope tds2(
-              thread,
+              thread(),
               compiler_timeline,
               "AllocationSinking::DetachMaterializations");
           // Remove all MaterializeObject instructions inserted by allocation
@@ -823,7 +992,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         FlowGraphInliner::CollectGraphInfo(flow_graph, true);
 
         {
-          TimelineDurationScope tds2(thread,
+          TimelineDurationScope tds2(thread(),
                                      compiler_timeline,
                                      "AllocateRegisters");
           // Perform register allocation on the SSA graph.
@@ -832,7 +1001,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         }
 
         if (reorder_blocks) {
-          TimelineDurationScope tds(thread,
+          TimelineDurationScope tds(thread(),
                                     compiler_timeline,
                                     "BlockScheduler::ReorderBlocks");
           block_scheduler.ReorderBlocks();
@@ -846,168 +1015,48 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       ASSERT(inline_id_to_function.length() == caller_inline_id.length());
       Assembler assembler(use_far_branches);
       FlowGraphCompiler graph_compiler(&assembler, flow_graph,
-                                       *parsed_function, optimized,
+                                       *parsed_function(), optimized(),
                                        inline_id_to_function,
                                        caller_inline_id);
       {
-        CSTAT_TIMER_SCOPE(thread, graphcompiler_timer);
-        TimelineDurationScope tds(thread,
+        CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
+        TimelineDurationScope tds(thread(),
                                   compiler_timeline,
                                   "CompileGraph");
         graph_compiler.CompileGraph();
         pipeline->FinalizeCompilation();
       }
       {
-        TimelineDurationScope tds(thread,
+        TimelineDurationScope tds(thread(),
                                   compiler_timeline,
                                   "FinalizeCompilation");
         // This part of compilation must be at a safepoint.
-        if (!Thread::Current()->IsMutatorThread()) {
+        if (!thread()->IsMutatorThread()) {
           // Stop mutator thread before creating the instruction object and
           // installing code.
           // Mutator thread may not run code while we are creating the
           // instruction object, since the creation of instruction object
           // changes code page access permissions (makes them temporary not
           // executable).
-          isolate->thread_registry()->SafepointThreads();
+          isolate()->thread_registry()->SafepointThreads();
         }
-        CSTAT_TIMER_SCOPE(thread, codefinalizer_timer);
-        // CreateDeoptInfo uses the object pool and needs to be done before
-        // FinalizeCode.
-        const Array& deopt_info_array =
-            Array::Handle(zone, graph_compiler.CreateDeoptInfo(&assembler));
-        INC_STAT(thread, total_code_size,
-                 deopt_info_array.Length() * sizeof(uword));
-        // Allocates instruction object. Since this occurs only at safepoint,
-        // there can be no concurrent access to the instruction page.
-        const Code& code = Code::Handle(
-            Code::FinalizeCode(function, &assembler, optimized));
-        code.set_is_optimized(optimized);
-        code.set_owner(function);
 
-        const Array& intervals = graph_compiler.inlined_code_intervals();
-        INC_STAT(thread, total_code_size,
-                 intervals.Length() * sizeof(uword));
-        code.SetInlinedIntervals(intervals);
+        FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
 
-        const Array& inlined_id_array =
-            Array::Handle(zone, graph_compiler.InliningIdToFunction());
-        INC_STAT(thread, total_code_size,
-                 inlined_id_array.Length() * sizeof(uword));
-        code.SetInlinedIdToFunction(inlined_id_array);
-
-        const Array& caller_inlining_id_map_array =
-            Array::Handle(zone, graph_compiler.CallerInliningIdMap());
-        INC_STAT(thread, total_code_size,
-                 caller_inlining_id_map_array.Length() * sizeof(uword));
-        code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
-
-        graph_compiler.FinalizePcDescriptors(code);
-        code.set_deopt_info_array(deopt_info_array);
-
-        graph_compiler.FinalizeStackmaps(code);
-        graph_compiler.FinalizeVarDescriptors(code);
-        graph_compiler.FinalizeExceptionHandlers(code);
-        graph_compiler.FinalizeStaticCallTargetsTable(code);
-
-        if (optimized) {
-          // Installs code while at safepoint.
-          if (thread->IsMutatorThread()) {
-            const bool is_osr = osr_id != Compiler::kNoOSRDeoptId;
-            function.InstallOptimizedCode(code, is_osr);
-          } else {
-            // Background compilation.
-            // Before installing code check generation counts if the code may
-            // have become invalid.
-            bool code_is_valid = true;
-            if (!thread->cha()->leaf_classes().is_empty()) {
-              if (cha_invalidation_gen_at_start !=
-                  isolate->cha_invalidation_gen()) {
-                code_is_valid = false;
-              }
-            }
-            if (!flow_graph->guarded_fields()->is_empty()) {
-              if (field_invalidation_gen_at_start !=
-                  isolate->field_invalidation_gen()) {
-                code_is_valid = false;
-              }
-            }
-            if (parsed_function->HasDeferredPrefixes()) {
-              if (prefix_invalidation_gen_at_start !=
-                  isolate->prefix_invalidation_gen()) {
-                code_is_valid = false;
-              }
-            }
-            if (code_is_valid) {
-              const bool is_osr = osr_id != Compiler::kNoOSRDeoptId;
-              ASSERT(!is_osr);  // OSR is compiled in background.
-              function.InstallOptimizedCode(code, is_osr);
-            }
-            if (function.usage_counter() < 0) {
-              // Reset to 0 so that it can be recompiled if needed.
-              function.set_usage_counter(0);
-            }
-          }
-
-          // Register code with the classes it depends on because of CHA and
-          // fields it depends on because of store guards, unless we cannot
-          // deopt.
-          if (Compiler::allow_recompilation()) {
-            // Deoptimize field dependent code first, before registering
-            // this yet uninstalled code as dependent on a field.
-            // TODO(srdjan): Debugging dart2js crashes;
-            // FlowGraphOptimizer::VisitStoreInstanceField populates
-            // deoptimize_dependent_code() list, currently disabled.
-            for (intptr_t i = 0;
-                 i < flow_graph->deoptimize_dependent_code().length();
-                 i++) {
-              const Field* field = flow_graph->deoptimize_dependent_code()[i];
-              field->DeoptimizeDependentCode();
-            }
-            for (intptr_t i = 0;
-                 i < thread->cha()->leaf_classes().length();
-                 ++i) {
-              thread->cha()->leaf_classes()[i]->RegisterCHACode(code);
-            }
-            for (intptr_t i = 0;
-                 i < flow_graph->guarded_fields()->length();
-                 i++) {
-              const Field* field = (*flow_graph->guarded_fields())[i];
-              field->RegisterDependentCode(code);
-            }
-          }
-        } else {  // not optimized.
-          if (!Compiler::always_optimize() &&
-              (function.ic_data_array() == Array::null())) {
-            function.SaveICDataMap(
-                graph_compiler.deopt_id_to_ic_data(),
-                Array::Handle(zone, graph_compiler.edge_counters_array()));
-          }
-          function.set_unoptimized_code(code);
-          function.AttachCode(code);
-        }
-        if (parsed_function->HasDeferredPrefixes()) {
-          ASSERT(!FLAG_load_deferred_eagerly);
-          ZoneGrowableArray<const LibraryPrefix*>* prefixes =
-              parsed_function->deferred_prefixes();
-          for (intptr_t i = 0; i < prefixes->length(); i++) {
-            (*prefixes)[i]->RegisterDependentCode(code);
-          }
-        }
-        if (!Thread::Current()->IsMutatorThread()) {
+        if (!thread()->IsMutatorThread()) {
           // Background compilation.
-          isolate->thread_registry()->ResumeAllThreads();
+          isolate()->thread_registry()->ResumeAllThreads();
         }
       }
       // Mark that this isolate now has compiled code.
-      isolate->set_has_compiled_code(true);
+      isolate()->set_has_compiled_code(true);
       // Exit the loop and the function with the correct result value.
       is_compiled = true;
       done = true;
     } else {
       // We bailed out or we encountered an error.
       const Error& error = Error::Handle(
-          isolate->object_store()->sticky_error());
+          isolate()->object_store()->sticky_error());
 
       if (error.raw() == Object::branch_offset_error().raw()) {
         // Compilation failed due to an out of range branch offset in the
@@ -1048,12 +1097,12 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
       // Clear the error if it was not a real error, but just a bailout.
       if (error.IsLanguageError() &&
           (LanguageError::Cast(error).kind() == Report::kBailout)) {
-        isolate->object_store()->clear_sticky_error();
+        isolate()->object_store()->clear_sticky_error();
       }
       is_compiled = false;
     }
     // Reset global isolate state.
-    thread->set_deopt_id(prev_deopt_id);
+    thread()->set_deopt_id(prev_deopt_id);
   }
   return is_compiled;
 }
@@ -1262,10 +1311,8 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                num_tokens_after - num_tokens_before);
     }
 
-    const bool success = CompileParsedFunctionHelper(pipeline,
-                                                     parsed_function,
-                                                     optimized,
-                                                     osr_id);
+    CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
+    const bool success = helper.Compile(pipeline);
     if (!success) {
       if (optimized) {
         ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
@@ -1421,10 +1468,8 @@ RawError* Compiler::CompileParsedFunction(
   if (setjmp(*jump.Set()) == 0) {
     // Non-optimized code generator.
     DartCompilationPipeline pipeline;
-    CompileParsedFunctionHelper(&pipeline,
-                                parsed_function,
-                                false,
-                                kNoOSRDeoptId);
+    CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
+    helper.Compile(&pipeline);
     if (FLAG_disassemble) {
       DisassembleCode(parsed_function->function(), false);
     }
@@ -1509,11 +1554,8 @@ void Compiler::CompileStaticInitializer(const Field& field) {
   parsed_function->AllocateVariables();
   // Non-optimized code generator.
   DartCompilationPipeline pipeline;
-  CompileParsedFunctionHelper(&pipeline,
-                              parsed_function,
-                              false,  // optimized
-                              kNoOSRDeoptId);
-
+  CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
+  helper.Compile(&pipeline);
   const Function& initializer = parsed_function->function();
   field.SetPrecompiledInitializer(initializer);
 }
@@ -1540,10 +1582,8 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       parsed_function->AllocateVariables();
       // Non-optimized code generator.
       DartCompilationPipeline pipeline;
-      CompileParsedFunctionHelper(&pipeline,
-                                  parsed_function,
-                                  false,  // optimized
-                                  kNoOSRDeoptId);
+      CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
+      helper.Compile(&pipeline);
       initializer = parsed_function->function().raw();
       Code::Handle(initializer.unoptimized_code()).set_var_descriptors(
           Object::empty_var_descriptors());
@@ -1610,10 +1650,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
     // Non-optimized code generator.
     DartCompilationPipeline pipeline;
-    CompileParsedFunctionHelper(&pipeline,
-                                parsed_function,
-                                false,
-                                kNoOSRDeoptId);
+    CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
+    helper.Compile(&pipeline);
     Code::Handle(func.unoptimized_code()).set_var_descriptors(
         Object::empty_var_descriptors());
 
