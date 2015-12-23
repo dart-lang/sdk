@@ -81,7 +81,16 @@ main() {
 """,
 r"""
 function() {
-  P.print(122 + 1);
+  var v0 = H.S(122 + 1);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 
   const TestEntry("""
@@ -95,10 +104,19 @@ main() {
 """,
 r"""
 function() {
-  var _box_0 = {}, a = new V.main_closure(_box_0);
+  var _box_0 = {}, a = new V.main_closure(_box_0), v0;
   _box_0.x = 122;
   _box_0.x = _box_0.x + 1;
-  P.print(a.call$0());
+  v0 = H.S(a.call$0());
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
   return a;
 }"""),
 
@@ -115,7 +133,16 @@ main() {
 """,
 r"""
 function() {
-  P.print(122 + 1);
+  var v0 = H.S(122 + 1);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 
   const TestEntry("""
@@ -132,10 +159,19 @@ main() {
 """,
 r"""
 function() {
-  var _box_0 = {}, a = new V.main_closure(_box_0);
+  var _box_0 = {}, a = new V.main_closure(_box_0), v0;
   _box_0.x = 122;
   _box_0.x = _box_0.x + 1;
-  P.print(a.call$0().call$0());
+  v0 = H.S(a.call$0().call$0());
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
   return a;
 }"""),
 
@@ -150,13 +186,22 @@ main() {
 """,
 r"""
 function() {
-  var a = null, i = 0;
+  var a = null, i = 0, v0;
   for (; i < 10; a = new V.main_closure(i), i = i + 1)
     ;
-  P.print(a.call$0());
+  v0 = H.S(a.call$0());
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 
-  const TestEntry.forMethod('function(A#b)', """
+  const TestEntry("""
 class A {
   a() => 1;
   b() => () => a();
@@ -167,7 +212,16 @@ main() {
 """,
 r"""
 function() {
-  return new V.A_b_closure(this);
+  var v0 = H.S(new V.A_b_closure(V.A$()).call$0());
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 
   const TestEntry("""
@@ -179,7 +233,8 @@ main(x) {
 """,
 r"""
 function(x) {
-  P.print(V.staticMethod(123));
+  P.print(123);
+  P.print(123);
 }"""),
 
   const TestEntry("""
@@ -193,7 +248,8 @@ main(x) {
 """,
 r"""
 function(x) {
-  P.print(V.Foo$().instanceMethod$1(123));
+  V.Foo$();
+  P.print(123);
 }"""),
 
   const TestEntry("""
@@ -208,9 +264,9 @@ main(x) {
 """,
 r"""
 function(x) {
-  var v0 = V.Foo$();
-  P.print(v0.instanceMethod$1(123));
-  P.print(v0.instanceMethod$1(321));
+  V.Foo$();
+  P.print(123);
+  P.print(321);
 }"""),
 
   const TestEntry("""
@@ -228,9 +284,11 @@ main(x) {
 """,
 r"""
 function(x) {
-  var notTearOff = V.Foo$().get$getter();
-  P.print(notTearOff.call$1(123));
-  P.print(notTearOff.call$1(321));
+  var v0 = new V.Foo_getter_closure();
+  V.Foo$();
+  P.print("getter");
+  P.print(v0.call$1(123));
+  P.print(v0.call$1(321));
 }"""),
 
   const TestEntry("""
@@ -247,7 +305,9 @@ main(x) {
 """,
 r"""
 function(x) {
-  P.print(V.Foo$().get$getter().call$1(123));
+  V.Foo$();
+  P.print("getter");
+  P.print(new V.Foo_getter_closure().call$1(123));
 }"""),
 ];
 

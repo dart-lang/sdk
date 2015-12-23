@@ -9,7 +9,7 @@ library basic_tests;
 import 'js_backend_cps_ir.dart';
 
 const List<TestEntry> tests = const [
-  const TestEntry.forMethod('function(foo)', r"""
+  const TestEntry(r"""
 foo(x, list) {
   var sum = 0;
   for (int k = 0; k < 10; k++) {
@@ -51,18 +51,24 @@ main() {
   print(foo(z, [1,2,3,4,5,6,7,8,9,10]));
 }
 """,r"""
-function(x, list) {
-  var v0 = x.left, a = v0.left, b = v0.right, sum = 0, k = 0, c = (v0 = x.right).left, d = v0.right, v1, v2, v3, i, v4;
-  v0 = a.value;
-  v1 = c.value;
-  v2 = b.value;
-  for (v3 = d.value; k < 10; sum = sum + (i + list[v4]), k = k + 1) {
-    i = v0 + v1;
-    v4 = i * (v2 + v3);
-    if (v4 < 0 || v4 >= 10)
-      return H.ioore(list, v4);
+function() {
+  var v0 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], sum = 0, k = 0, i, v1;
+  for (; k < 10; sum = sum + (i + v0[v1]), k = k + 1) {
+    i = 1 + 20;
+    v1 = i * (10 + -10);
+    if (v1 < 0 || v1 >= 10)
+      return H.ioore(v0, v1);
   }
-  return sum;
+  v0 = H.S(sum);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 ];
 

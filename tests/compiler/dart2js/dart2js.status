@@ -52,6 +52,12 @@ js_backend_cps_ir_basic_test: Pass, Slow
 js_backend_cps_ir_closures_test: Pass, Slow
 js_backend_cps_ir_constructor_test: Pass, Slow
 
+# Source information is not correct due to inlining.
+js_backend_cps_ir_source_information_test: Fail
+sourcemaps/source_mapping_operators_test: Fail # Issue 25304 for checked mode, was: Pass, Slow
+
+check_elements_invariants_test: Slow, Pass, Timeout # Slow due to inlining in the CPS backend
+
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
 
@@ -59,7 +65,6 @@ exit_code_test: Skip # This tests requires checked mode.
 analyze_dart2js_helpers_test: Pass, Slow
 analyze_dart2js_test: Pass, Slow
 analyze_unused_dart2js_test: Pass, Slow
-check_elements_invariants_test: Slow, Pass, Timeout
 deferred_mirrors_test: Pass, Slow
 duplicate_library_test: Pass, Slow
 exit_code_test: Pass, Slow
@@ -67,7 +72,6 @@ import_mirrors_test: Slow, Pass
 interop_anonymous_unreachable_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow
 source_map_pub_build_validity_test: Pass, Slow
-sourcemaps/source_mapping_operators_test: Fail # Issue 25304, was: Pass, Slow
 uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 

@@ -25,15 +25,23 @@ main() {
   print('($m)');
 }""",r"""
 function() {
-  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
+  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]), value_ = C.JSArray_methods, res, v0, v1;
   P.print("()");
   P.print("(true)");
   P.print("(1)");
-  P.print("(" + H.S([1, 2, 3]) + ")");
-  P.print("(" + H.S(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
+  if (!(typeof (res = value_.toString$0(v0 = [1, 2, 3])) === "string"))
+    throw H.wrapException(H.argumentErrorValue(v0));
+  P.print("(" + res + ")");
+  if (!(typeof (v1 = P.Maps_mapToString(v0 = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]))) === "string"))
+    throw H.wrapException(H.argumentErrorValue(v0));
+  P.print("(" + v1 + ")");
   P.print("(1)");
-  P.print("(" + H.S(l) + ")");
-  P.print("(" + H.S(m) + ")");
+  if (!(typeof (res = value_.toString$0(l)) === "string"))
+    throw H.wrapException(H.argumentErrorValue(l));
+  P.print("(" + res + ")");
+  if (!(typeof (v0 = P.Maps_mapToString(m)) === "string"))
+    throw H.wrapException(H.argumentErrorValue(m));
+  P.print("(" + v0 + ")");
 }"""),
   const TestEntry("""
 foo(a, [b = "b"]) { print(b); return b; }
@@ -49,12 +57,12 @@ main() {
 """,
 """
 function() {
-  V.foo(0, "b");
-  V.foo(1, 2);
-  V.bar(3, "b", "c");
-  V.bar(4, 5, "c");
-  V.bar(6, "b", 7);
-  V.bar(8, 9, 10);
+  P.print("b");
+  P.print(2);
+  P.print("c");
+  P.print("c");
+  P.print(7);
+  P.print(10);
 }"""),
   const TestEntry(
   """
@@ -80,15 +88,27 @@ function() {
   P.print(1);
   P.print(10);
   P.print(10);
-  P.print(V.foo(1));
+  P.print(1);
+  P.print(1);
 }"""),
   const TestEntry(
   """
 foo() { print(42); return 42; }
 main() { return foo(); }
   """,
-  """function() {
-  return V.foo();
+  """
+function() {
+  var v0 = H.S(42);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
+  return 42;
 }"""),
   const TestEntry("main() {}"),
   const TestEntry("main() { return 42; }"),
@@ -102,7 +122,7 @@ main() {
   print(new Set.from([1, 2, 3]));
 }""", r"""
 function() {
-  P.print(P.LinkedHashSet_LinkedHashSet(null, null, null, null));
+  P.print(P._LinkedHashSet$(null));
   P.print(P.LinkedHashSet_LinkedHashSet$from([1, 2, 3], null));
 }"""),
   // Call synthetic constructor.
@@ -117,7 +137,16 @@ main() {
   print(new DateTime.now().isBefore(new DateTime.now()));
 }""", r"""
 function() {
-  P.print(P.DateTime$now().isBefore$1(P.DateTime$now()));
+  var v0 = H.S(Date.now() < Date.now());
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   // Static calls
   const TestEntry("""
@@ -125,7 +154,16 @@ foo() { print(42); }
 main() { foo(); }
 """, r"""
 function() {
-  V.foo();
+  var v0 = H.S(42);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   // Static getters
   const TestEntry("""
@@ -133,14 +171,32 @@ var foo = 42;
 main() { print(foo); }
 """, r"""
 function() {
-  P.print($.foo);
+  var v0 = H.S($.foo);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   const TestEntry("""
 get foo { print(42); }
 main() { foo; }
 """, r"""
 function() {
-  V.foo();
+  var v0 = H.S(42);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   // Static setters
   const TestEntry("""
@@ -148,15 +204,34 @@ var foo = 0;
 main() { print(foo = 42); }
 """, r"""
 function() {
+  var v0;
   $.foo = 42;
-  P.print(42);
+  v0 = H.S(42);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   const TestEntry("""
 set foo(x) { print(x); }
 main() { foo = 42; }
 """, r"""
 function() {
-  V.foo(42);
+  var v0 = H.S(42);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   // Assert
   const TestEntry("""

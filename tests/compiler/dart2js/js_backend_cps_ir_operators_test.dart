@@ -15,43 +15,89 @@ var x = 1;
 foo() => ++x > 10;
 main() {
   print(foo() ? "hello world" : "bad bad");
-}""","""
+}""",r"""
 function() {
-  P.print(V.foo() ? "hello world" : "bad bad");
-}"""),
-  const TestEntry("""
-var x = 1;
-foo() => ++x > 10;
-main() {
-  print(foo() ? "hello world" : "bad bad");
-}""","""
-function() {
-  P.print(V.foo() ? "hello world" : "bad bad");
+  var v0 = $.x + 1;
+  $.x = v0;
+  v0 = v0 > 10 ? "hello world" : "bad bad";
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   const TestEntry("""
 var x = 1;
 get foo => ++x > 10;
 main() {
   print(foo ? "hello world" : "bad bad");
-}""","""
+}""",r"""
 function() {
-  P.print(V.foo() ? "hello world" : "bad bad");
+  var v0 = $.x + 1;
+  $.x = v0;
+  v0 = v0 > 10 ? "hello world" : "bad bad";
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   const TestEntry("""
 var x = 1;
 get foo => ++x > 10;
 main() { print(foo && foo); }
-""", """
+""", r"""
 function() {
-  P.print(V.foo() ? !!V.foo() : false);
+  var v0 = $.x + 1;
+  $.x = v0;
+  if (v0 > 10) {
+    $.x = v0 = $.x + 1;
+    v0 = v0 > 10;
+  } else
+    v0 = false;
+  v0 = H.S(v0);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   const TestEntry("""
 var x = 1;
 get foo => ++x > 10;
 main() { print(foo || foo); }
-""","""
+""",r"""
 function() {
-  P.print(V.foo() ? true : !!V.foo());
+  var v0 = $.x + 1;
+  $.x = v0;
+  if (v0 > 10)
+    v0 = true;
+  else {
+    $.x = v0 = $.x + 1;
+    v0 = v0 > 10;
+  }
+  v0 = H.S(v0);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 const TestEntry("""
 get foo => foo;
@@ -84,9 +130,20 @@ main() {
   print(list);
 }""", r"""
 function() {
-  var list = [1, 2, 3];
+  var list = [1, 2, 3], res, v0;
   list[1] = 6;
-  P.print(list);
+  if (!(typeof (res = C.JSArray_methods.toString$0(list)) === "string"))
+    throw H.wrapException(H.argumentErrorValue(list));
+  v0 = res;
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 ];
 
