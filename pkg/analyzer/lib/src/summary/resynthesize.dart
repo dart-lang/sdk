@@ -177,7 +177,7 @@ class SummaryResynthesizer extends ElementResynthesizer {
         getUnlinkedSummary(uri)
       ];
       Source librarySource = _getSource(uri);
-      for (UnlinkedPart part in serializedUnits[0].parts) {
+      for (UnlinkedPart part in serializedUnits[0].publicNamespace.parts) {
         String partAbsUri =
             sourceFactory.resolveUri(librarySource, part.uri).uri.toString();
         serializedUnits.add(getUnlinkedSummary(partAbsUri));
@@ -668,11 +668,12 @@ class _LibraryResynthesizer {
     definingCompilationUnit.librarySource = librarySource;
     List<CompilationUnitElement> parts = <CompilationUnitElement>[];
     UnlinkedUnit unlinkedDefiningUnit = unlinkedUnits[0];
-    assert(
-        unlinkedDefiningUnit.parts.length + 1 == prelinkedLibrary.units.length);
+    assert(unlinkedDefiningUnit.publicNamespace.parts.length + 1 ==
+        prelinkedLibrary.units.length);
     for (int i = 1; i < prelinkedLibrary.units.length; i++) {
-      CompilationUnitElementImpl part =
-          buildPart(unlinkedDefiningUnit.parts[i - 1].uri, unlinkedUnits[i]);
+      CompilationUnitElementImpl part = buildPart(
+          unlinkedDefiningUnit.publicNamespace.parts[i - 1].uri,
+          unlinkedUnits[i]);
       parts.add(part);
     }
     libraryElement.parts = parts;
@@ -683,7 +684,7 @@ class _LibraryResynthesizer {
     }
     libraryElement.imports = imports;
     libraryElement.exports =
-        unlinkedDefiningUnit.exports.map(buildExport).toList();
+        unlinkedDefiningUnit.publicNamespace.exports.map(buildExport).toList();
     populateUnit(definingCompilationUnit, 0);
     for (int i = 0; i < parts.length; i++) {
       populateUnit(parts[i], i + 1);
@@ -762,8 +763,7 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-              currentTypeParameters.length - type.paramReference]
-          .type;
+          currentTypeParameters.length - type.paramReference].type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).
@@ -787,8 +787,8 @@ class _LibraryResynthesizer {
         if (referenceResolution.unit != 0) {
           UnlinkedUnit referencedLibraryDefiningUnit =
               summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
-          String uri = referencedLibraryDefiningUnit
-              .parts[referenceResolution.unit - 1].uri;
+          String uri = referencedLibraryDefiningUnit.publicNamespace.parts[
+              referenceResolution.unit - 1].uri;
           Source partSource = summaryResynthesizer.sourceFactory
               .resolveUri(referencedLibrarySource, uri);
           partUri = partSource.uri.toString();
@@ -803,7 +803,8 @@ class _LibraryResynthesizer {
       } else {
         referencedLibraryUri = librarySource.uri.toString();
         if (referenceResolution.unit != 0) {
-          String uri = unlinkedUnits[0].parts[referenceResolution.unit - 1].uri;
+          String uri = unlinkedUnits[0].publicNamespace.parts[
+              referenceResolution.unit - 1].uri;
           Source partSource =
               summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
           partUri = partSource.uri.toString();

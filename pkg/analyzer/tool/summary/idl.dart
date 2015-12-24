@@ -542,6 +542,57 @@ class UnlinkedPart {
 }
 
 /**
+ * Unlinked summary information about a specific name contributed by a
+ * compilation unit to a library's public namespace.
+ *
+ * TODO(paulberry): add a count of generic parameters, so that resynthesis
+ * doesn't have to peek into the library to obtain this info.
+ *
+ * TODO(paulberry): for classes, add info about static members and
+ * constructors, since this will be needed to prelink info about constants.
+ *
+ * TODO(paulberry): some of this information is redundant with information
+ * elsewhere in the summary.  Consider reducing the redundancy to reduce
+ * summary size.
+ */
+class UnlinkedPublicName {
+  /**
+   * The name itself.
+   */
+  String name;
+
+  /**
+   * The kind of object referred to by the name.
+   */
+  PrelinkedReferenceKind kind;
+}
+
+/**
+ * Unlinked summary information about what a compilation unit contributes to a
+ * library's public namespace.  This is the subset of [UnlinkedUnit] that is
+ * required from dependent libraries in order to perform prelinking.
+ */
+class UnlinkedPublicNamespace {
+  /**
+   * Public names defined in the compilation unit.
+   *
+   * TODO(paulberry): consider sorting these names to reduce unnecessary
+   * relinking.
+   */
+  List<UnlinkedPublicName> names;
+
+  /**
+   * Export declarations in the compilation unit.
+   */
+  List<UnlinkedExport> exports;
+
+  /**
+   * Part declarations in the compilation unit.
+   */
+  List<UnlinkedPart> parts;
+}
+
+/**
  * Unlinked summary information about a name referred to in one library that
  * might be defined in another.
  */
@@ -655,6 +706,11 @@ class UnlinkedUnit {
   String libraryName;
 
   /**
+   * Unlinked public namespace of this compilation unit.
+   */
+  UnlinkedPublicNamespace publicNamespace;
+
+  /**
    * Top level and prefixed names referred to by this compilation unit.  The
    * zeroth element of this array is always populated and always represents a
    * reference to the pseudo-type "dynamic".
@@ -678,19 +734,9 @@ class UnlinkedUnit {
   List<UnlinkedExecutable> executables;
 
   /**
-   * Export declarations in the compilation unit.
-   */
-  List<UnlinkedExport> exports;
-
-  /**
    * Import declarations in the compilation unit.
    */
   List<UnlinkedImport> imports;
-
-  /**
-   * Part declarations in the compilation unit.
-   */
-  List<UnlinkedPart> parts;
 
   /**
    * Typedefs declared in the compilation unit.

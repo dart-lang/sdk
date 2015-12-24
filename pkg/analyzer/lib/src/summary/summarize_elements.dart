@@ -163,22 +163,57 @@ class _LibrarySerializer {
     prelinkedReferences = <PrelinkedReferenceBuilder>[
       encodePrelinkedReference(ctx, kind: PrelinkedReferenceKind.classOrEnum)
     ];
+    List<UnlinkedPublicNameBuilder> names = <UnlinkedPublicNameBuilder>[];
+    for (PropertyAccessorElement accessor in element.accessors) {
+      if (accessor.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.other, name: accessor.name));
+      }
+    }
+    for (ClassElement cls in element.types) {
+      if (cls.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.classOrEnum, name: cls.name));
+      }
+    }
+    for (ClassElement enm in element.enums) {
+      if (enm.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.classOrEnum, name: enm.name));
+      }
+    }
+    for (FunctionElement function in element.functions) {
+      if (function.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.other, name: function.name));
+      }
+    }
+    for (FunctionTypeAliasElement typedef in element.functionTypeAliases) {
+      if (typedef.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.typedef, name: typedef.name));
+      }
+    }
     if (unitNum == 0) {
+      if (libraryElement.name.isNotEmpty) {
+        b.libraryName = libraryElement.name;
+      }
+      b.publicNamespace = encodeUnlinkedPublicNamespace(ctx,
+          exports: libraryElement.exports.map(serializeExport).toList(),
+          parts: libraryElement.parts
+              .map((CompilationUnitElement e) =>
+                  encodeUnlinkedPart(ctx, uri: e.uri))
+              .toList(),
+          names: names);
+      b.imports = libraryElement.imports.map(serializeImport).toList();
+    } else {
       // TODO(paulberry): we need to figure out a way to record library, part,
       // import, and export declarations that appear in non-defining
       // compilation units (even though such declarations are prohibited by the
       // language), so that if the user makes code changes that cause a
       // non-defining compilation unit to become a defining compilation unit,
       // we can create a correct summary by simply re-linking.
-      if (libraryElement.name.isNotEmpty) {
-        b.libraryName = libraryElement.name;
-      }
-      b.exports = libraryElement.exports.map(serializeExport).toList();
-      b.imports = libraryElement.imports.map(serializeImport).toList();
-      b.parts = libraryElement.parts
-          .map(
-              (CompilationUnitElement e) => encodeUnlinkedPart(ctx, uri: e.uri))
-          .toList();
+      b.publicNamespace = encodeUnlinkedPublicNamespace(ctx, names: names);
     }
     b.classes = element.types.map(serializeClass).toList();
     b.enums = element.enums.map(serializeEnum).toList();

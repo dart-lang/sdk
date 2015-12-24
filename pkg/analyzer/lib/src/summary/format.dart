@@ -1074,6 +1074,116 @@ UnlinkedPartBuilder encodeUnlinkedPart(builder.BuilderContext builderContext, {S
   return builder;
 }
 
+class UnlinkedPublicName {
+  String _name;
+  PrelinkedReferenceKind _kind;
+
+  UnlinkedPublicName.fromJson(Map json)
+    : _name = json["name"],
+      _kind = json["kind"] == null ? null : PrelinkedReferenceKind.values[json["kind"]];
+
+  String get name => _name ?? '';
+  PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+}
+
+class UnlinkedPublicNameBuilder {
+  final Map _json = {};
+
+  bool _finished = false;
+
+  UnlinkedPublicNameBuilder(builder.BuilderContext context);
+
+  void set name(String _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("name"));
+    if (_value != null) {
+      _json["name"] = _value;
+    }
+  }
+
+  void set kind(PrelinkedReferenceKind _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("kind"));
+    if (!(_value == null || _value == PrelinkedReferenceKind.classOrEnum)) {
+      _json["kind"] = _value.index;
+    }
+  }
+
+  Map finish() {
+    assert(!_finished);
+    _finished = true;
+    return _json;
+  }
+}
+
+UnlinkedPublicNameBuilder encodeUnlinkedPublicName(builder.BuilderContext builderContext, {String name, PrelinkedReferenceKind kind}) {
+  UnlinkedPublicNameBuilder builder = new UnlinkedPublicNameBuilder(builderContext);
+  builder.name = name;
+  builder.kind = kind;
+  return builder;
+}
+
+class UnlinkedPublicNamespace {
+  List<UnlinkedPublicName> _names;
+  List<UnlinkedExport> _exports;
+  List<UnlinkedPart> _parts;
+
+  UnlinkedPublicNamespace.fromJson(Map json)
+    : _names = json["names"]?.map((x) => new UnlinkedPublicName.fromJson(x))?.toList(),
+      _exports = json["exports"]?.map((x) => new UnlinkedExport.fromJson(x))?.toList(),
+      _parts = json["parts"]?.map((x) => new UnlinkedPart.fromJson(x))?.toList();
+
+  List<UnlinkedPublicName> get names => _names ?? const <UnlinkedPublicName>[];
+  List<UnlinkedExport> get exports => _exports ?? const <UnlinkedExport>[];
+  List<UnlinkedPart> get parts => _parts ?? const <UnlinkedPart>[];
+}
+
+class UnlinkedPublicNamespaceBuilder {
+  final Map _json = {};
+
+  bool _finished = false;
+
+  UnlinkedPublicNamespaceBuilder(builder.BuilderContext context);
+
+  void set names(List<UnlinkedPublicNameBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("names"));
+    if (!(_value == null || _value.isEmpty)) {
+      _json["names"] = _value.map((b) => b.finish()).toList();
+    }
+  }
+
+  void set exports(List<UnlinkedExportBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("exports"));
+    if (!(_value == null || _value.isEmpty)) {
+      _json["exports"] = _value.map((b) => b.finish()).toList();
+    }
+  }
+
+  void set parts(List<UnlinkedPartBuilder> _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("parts"));
+    if (!(_value == null || _value.isEmpty)) {
+      _json["parts"] = _value.map((b) => b.finish()).toList();
+    }
+  }
+
+  Map finish() {
+    assert(!_finished);
+    _finished = true;
+    return _json;
+  }
+}
+
+UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace(builder.BuilderContext builderContext, {List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportBuilder> exports, List<UnlinkedPartBuilder> parts}) {
+  UnlinkedPublicNamespaceBuilder builder = new UnlinkedPublicNamespaceBuilder(builderContext);
+  builder.names = names;
+  builder.exports = exports;
+  builder.parts = parts;
+  return builder;
+}
+
 class UnlinkedReference {
   String _name;
   int _prefixReference;
@@ -1308,38 +1418,35 @@ UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(builder.BuilderContext builderConte
 
 class UnlinkedUnit {
   String _libraryName;
+  UnlinkedPublicNamespace _publicNamespace;
   List<UnlinkedReference> _references;
   List<UnlinkedClass> _classes;
   List<UnlinkedEnum> _enums;
   List<UnlinkedExecutable> _executables;
-  List<UnlinkedExport> _exports;
   List<UnlinkedImport> _imports;
-  List<UnlinkedPart> _parts;
   List<UnlinkedTypedef> _typedefs;
   List<UnlinkedVariable> _variables;
 
   UnlinkedUnit.fromJson(Map json)
     : _libraryName = json["libraryName"],
+      _publicNamespace = json["publicNamespace"] == null ? null : new UnlinkedPublicNamespace.fromJson(json["publicNamespace"]),
       _references = json["references"]?.map((x) => new UnlinkedReference.fromJson(x))?.toList(),
       _classes = json["classes"]?.map((x) => new UnlinkedClass.fromJson(x))?.toList(),
       _enums = json["enums"]?.map((x) => new UnlinkedEnum.fromJson(x))?.toList(),
       _executables = json["executables"]?.map((x) => new UnlinkedExecutable.fromJson(x))?.toList(),
-      _exports = json["exports"]?.map((x) => new UnlinkedExport.fromJson(x))?.toList(),
       _imports = json["imports"]?.map((x) => new UnlinkedImport.fromJson(x))?.toList(),
-      _parts = json["parts"]?.map((x) => new UnlinkedPart.fromJson(x))?.toList(),
       _typedefs = json["typedefs"]?.map((x) => new UnlinkedTypedef.fromJson(x))?.toList(),
       _variables = json["variables"]?.map((x) => new UnlinkedVariable.fromJson(x))?.toList();
 
   UnlinkedUnit.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
   String get libraryName => _libraryName ?? '';
+  UnlinkedPublicNamespace get publicNamespace => _publicNamespace;
   List<UnlinkedReference> get references => _references ?? const <UnlinkedReference>[];
   List<UnlinkedClass> get classes => _classes ?? const <UnlinkedClass>[];
   List<UnlinkedEnum> get enums => _enums ?? const <UnlinkedEnum>[];
   List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
-  List<UnlinkedExport> get exports => _exports ?? const <UnlinkedExport>[];
   List<UnlinkedImport> get imports => _imports ?? const <UnlinkedImport>[];
-  List<UnlinkedPart> get parts => _parts ?? const <UnlinkedPart>[];
   List<UnlinkedTypedef> get typedefs => _typedefs ?? const <UnlinkedTypedef>[];
   List<UnlinkedVariable> get variables => _variables ?? const <UnlinkedVariable>[];
 }
@@ -1356,6 +1463,14 @@ class UnlinkedUnitBuilder {
     assert(!_json.containsKey("libraryName"));
     if (_value != null) {
       _json["libraryName"] = _value;
+    }
+  }
+
+  void set publicNamespace(UnlinkedPublicNamespaceBuilder _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("publicNamespace"));
+    if (_value != null) {
+      _json["publicNamespace"] = _value.finish();
     }
   }
 
@@ -1391,27 +1506,11 @@ class UnlinkedUnitBuilder {
     }
   }
 
-  void set exports(List<UnlinkedExportBuilder> _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("exports"));
-    if (!(_value == null || _value.isEmpty)) {
-      _json["exports"] = _value.map((b) => b.finish()).toList();
-    }
-  }
-
   void set imports(List<UnlinkedImportBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("imports"));
     if (!(_value == null || _value.isEmpty)) {
       _json["imports"] = _value.map((b) => b.finish()).toList();
-    }
-  }
-
-  void set parts(List<UnlinkedPartBuilder> _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("parts"));
-    if (!(_value == null || _value.isEmpty)) {
-      _json["parts"] = _value.map((b) => b.finish()).toList();
     }
   }
 
@@ -1440,16 +1539,15 @@ class UnlinkedUnitBuilder {
   }
 }
 
-UnlinkedUnitBuilder encodeUnlinkedUnit(builder.BuilderContext builderContext, {String libraryName, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
+UnlinkedUnitBuilder encodeUnlinkedUnit(builder.BuilderContext builderContext, {String libraryName, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedImportBuilder> imports, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
   UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder(builderContext);
   builder.libraryName = libraryName;
+  builder.publicNamespace = publicNamespace;
   builder.references = references;
   builder.classes = classes;
   builder.enums = enums;
   builder.executables = executables;
-  builder.exports = exports;
   builder.imports = imports;
-  builder.parts = parts;
   builder.typedefs = typedefs;
   builder.variables = variables;
   return builder;

@@ -492,8 +492,7 @@ abstract class SummaryTest {
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-            allowErrors: allowErrors)
-        .type;
+        allowErrors: allowErrors).type;
   }
 
   /**
@@ -647,8 +646,12 @@ C c;
 
   test_class_alias_concrete() {
     UnlinkedClass cls =
-        serializeClassText('class C = D with E; class D {} class E {}');
+        serializeClassText('class C = _D with _E; class _D {} class _E {}');
     expect(cls.isAbstract, false);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
+        PrelinkedReferenceKind.classOrEnum);
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
   }
 
   test_class_alias_flag() {
@@ -681,6 +684,11 @@ class E {}
     expect(cls.executables, isEmpty);
   }
 
+  test_class_alias_private() {
+    serializeClassText('class _C = _D with _E; class _D {} class _E {}', '_C');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
+  }
+
   test_class_alias_supertype() {
     UnlinkedClass cls =
         serializeClassText('class C = D with E; class D {} class E {}');
@@ -691,6 +699,10 @@ class E {}
   test_class_concrete() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.isAbstract, false);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
+        PrelinkedReferenceKind.classOrEnum);
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
   }
 
   test_class_interface() {
@@ -763,6 +775,11 @@ class E {}
   test_class_non_alias_flag() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.isMixinApplication, false);
+  }
+
+  test_class_private() {
+    serializeClassText('class _C {}', '_C');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
   test_class_superclass() {
@@ -1139,6 +1156,10 @@ typedef F();
     expect(e.name, 'E');
     expect(e.values, hasLength(1));
     expect(e.values[0].name, 'v1');
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
+        PrelinkedReferenceKind.classOrEnum);
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'E');
   }
 
   test_enum_order() {
@@ -1146,6 +1167,11 @@ typedef F();
     expect(e.values, hasLength(2));
     expect(e.values[0].name, 'v1');
     expect(e.values[1].name, 'v2');
+  }
+
+  test_enum_private() {
+    serializeEnumText('enum _E { v1 }', '_E');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
   test_executable_abstract() {
@@ -1166,6 +1192,10 @@ typedef F();
     expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
     expect(executable.isExternal, isFalse);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
+        PrelinkedReferenceKind.other);
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
   }
 
   test_executable_function_explicit_return() {
@@ -1180,6 +1210,11 @@ typedef F();
     expect(executable.isExternal, isTrue);
   }
 
+  test_executable_function_private() {
+    serializeExecutableText('_f() {}', '_f');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
+  }
+
   test_executable_getter() {
     UnlinkedExecutable executable = serializeExecutableText('int get f => 1;');
     expect(executable.kind, UnlinkedExecutableKind.getter);
@@ -1187,12 +1222,21 @@ typedef F();
     expect(executable.isExternal, isFalse);
     expect(findVariable('f'), isNull);
     expect(findExecutable('f='), isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
+        PrelinkedReferenceKind.other);
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
   }
 
   test_executable_getter_external() {
     UnlinkedExecutable executable =
         serializeExecutableText('external int get f;');
     expect(executable.isExternal, isTrue);
+  }
+
+  test_executable_getter_private() {
+    serializeExecutableText('int get _f => 1;', '_f');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
   test_executable_getter_type() {
@@ -1357,8 +1401,7 @@ typedef F();
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-            'class C { void operator[]=(int i, bool v) => null; }')
-        .executables[0];
+        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);
@@ -1507,6 +1550,10 @@ typedef F();
     expect(executable.isExternal, isFalse);
     expect(findVariable('f'), isNull);
     expect(findExecutable('f'), isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
+        PrelinkedReferenceKind.other);
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f=');
   }
 
   test_executable_setter_external() {
@@ -1521,6 +1568,11 @@ typedef F();
     // For setters, hasImplicitReturnType is always false.
     expect(executable.hasImplicitReturnType, isFalse);
     checkDynamicTypeRef(executable.returnType);
+  }
+
+  test_executable_setter_private() {
+    serializeExecutableText('void set _f(value) {}', '_f=');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
   test_executable_setter_type() {
@@ -1569,32 +1621,42 @@ typedef F();
 
   test_export_hide_order() {
     serializeLibraryText('export "dart:async" hide Future, Stream;');
-    expect(unlinkedUnits[0].exports, hasLength(1));
-    expect(unlinkedUnits[0].exports[0].combinators, hasLength(1));
-    expect(unlinkedUnits[0].exports[0].combinators[0].shows, isEmpty);
-    expect(unlinkedUnits[0].exports[0].combinators[0].hides, hasLength(2));
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(
+        unlinkedUnits[0].publicNamespace.exports[0].combinators, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows,
+        isEmpty);
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides,
+        hasLength(2));
     checkCombinatorName(
-        unlinkedUnits[0].exports[0].combinators[0].hides[0], 'Future');
+        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[0],
+        'Future');
     checkCombinatorName(
-        unlinkedUnits[0].exports[0].combinators[0].hides[1], 'Stream');
+        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[1],
+        'Stream');
   }
 
   test_export_no_combinators() {
     serializeLibraryText('export "dart:async";');
-    expect(unlinkedUnits[0].exports, hasLength(1));
-    expect(unlinkedUnits[0].exports[0].combinators, isEmpty);
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators, isEmpty);
   }
 
   test_export_show_order() {
     serializeLibraryText('export "dart:async" show Future, Stream;');
-    expect(unlinkedUnits[0].exports, hasLength(1));
-    expect(unlinkedUnits[0].exports[0].combinators, hasLength(1));
-    expect(unlinkedUnits[0].exports[0].combinators[0].shows, hasLength(2));
-    expect(unlinkedUnits[0].exports[0].combinators[0].hides, isEmpty);
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(
+        unlinkedUnits[0].publicNamespace.exports[0].combinators, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows,
+        hasLength(2));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides,
+        isEmpty);
     checkCombinatorName(
-        unlinkedUnits[0].exports[0].combinators[0].shows[0], 'Future');
+        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[0],
+        'Future');
     checkCombinatorName(
-        unlinkedUnits[0].exports[0].combinators[0].shows[1], 'Stream');
+        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[1],
+        'Stream');
   }
 
   test_export_uri() {
@@ -1602,8 +1664,8 @@ typedef F();
     String uriString = '"a.dart"';
     String libraryText = 'export $uriString;';
     serializeLibraryText(libraryText);
-    expect(unlinkedUnits[0].exports, hasLength(1));
-    expect(unlinkedUnits[0].exports[0].uri, 'a.dart');
+    expect(unlinkedUnits[0].publicNamespace.exports, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.exports[0].uri, 'a.dart');
   }
 
   test_field() {
@@ -1746,6 +1808,13 @@ typedef F();
     expect(unlinkedUnits[0].imports[0].prefixReference, 0);
   }
 
+  test_import_prefix_not_in_public_namespace() {
+    serializeLibraryText('import "dart:async" as a; a.Future v;');
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(2));
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'v');
+    expect(unlinkedUnits[0].publicNamespace.names[1].name, 'v=');
+  }
+
   test_import_prefix_reference() {
     UnlinkedVariable variable =
         serializeVariableText('import "dart:async" as a; a.Future v;');
@@ -1823,7 +1892,7 @@ a.Stream s;
   test_parts_defining_compilation_unit() {
     serializeLibraryText('');
     expect(prelinked.units, hasLength(1));
-    expect(unlinkedUnits[0].parts, isEmpty);
+    expect(unlinkedUnits[0].publicNamespace.parts, isEmpty);
   }
 
   test_parts_included() {
@@ -1832,8 +1901,16 @@ a.Stream s;
     String libraryText = 'library my.lib; part $partString;';
     serializeLibraryText(libraryText);
     expect(prelinked.units, hasLength(2));
-    expect(unlinkedUnits[0].parts, hasLength(1));
-    expect(unlinkedUnits[0].parts[0].uri, 'part1.dart');
+    expect(unlinkedUnits[0].publicNamespace.parts, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.parts[0].uri, 'part1.dart');
+  }
+
+  test_public_namespace_of_part() {
+    addNamedSource('/a.dart', 'part of foo; class C {}');
+    serializeLibraryText('library foo; part "a.dart";');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
+    expect(unlinkedUnits[1].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[1].publicNamespace.names[0].name, 'C');
   }
 
   test_type_arguments_explicit() {
@@ -2040,6 +2117,10 @@ a.Stream s;
   test_typedef_name() {
     UnlinkedTypedef type = serializeTypedefText('typedef F();');
     expect(type.name, 'F');
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
+        PrelinkedReferenceKind.typedef);
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'F');
   }
 
   test_typedef_param_none() {
@@ -2052,6 +2133,11 @@ a.Stream s;
     expect(type.parameters, hasLength(2));
     expect(type.parameters[0].name, 'x');
     expect(type.parameters[1].name, 'y');
+  }
+
+  test_typedef_private() {
+    serializeTypedefText('typedef _F();', '_F');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
   test_typedef_return_type_explicit() {
@@ -2085,6 +2171,13 @@ a.Stream s;
     serializeVariableText('int i;', variableName: 'i');
     expect(findExecutable('i'), isNull);
     expect(findExecutable('i='), isNull);
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(2));
+    expect(unlinkedUnits[0].publicNamespace.names[0].kind,
+        PrelinkedReferenceKind.other);
+    expect(unlinkedUnits[0].publicNamespace.names[0].name, 'i');
+    expect(unlinkedUnits[0].publicNamespace.names[1].kind,
+        PrelinkedReferenceKind.other);
+    expect(unlinkedUnits[0].publicNamespace.names[1].name, 'i=');
   }
 
   test_variable_const() {
@@ -2160,5 +2253,10 @@ a.Stream s;
     UnlinkedVariable variable =
         serializeVariableText('int i;', variableName: 'i');
     checkTypeRef(variable.type, 'dart:core', 'dart:core', 'int');
+  }
+
+  test_varible_private() {
+    serializeVariableText('int _i;', variableName: '_i');
+    expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 }
