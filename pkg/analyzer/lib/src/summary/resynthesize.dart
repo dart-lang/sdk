@@ -112,9 +112,6 @@ class SummaryResynthesizer extends ElementResynthesizer {
   /**
    * The [TypeProvider] used to obtain core types (such as Object, int, List,
    * and dynamic) during resynthesis.
-   *
-   * TODO(paulberry): will this create a chicken-and-egg problem when trying to
-   * resynthesize the core library from summaries?
    */
   final TypeProvider typeProvider;
 
@@ -133,10 +130,9 @@ class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(AnalysisContext context, this.getPrelinkedSummary,
-      this.getUnlinkedSummary, this.sourceFactory)
-      : super(context),
-        typeProvider = context.typeProvider;
+  SummaryResynthesizer(AnalysisContext context, this.typeProvider,
+      this.getPrelinkedSummary, this.getUnlinkedSummary, this.sourceFactory)
+      : super(context);
 
   /**
    * Number of libraries that have been resynthesized so far.
@@ -228,6 +224,17 @@ class _LibraryResynthesizer {
   final Source librarySource;
 
   /**
+   * Indicates whether [librarySource] is the `dart:core` library.
+   */
+  bool isCoreLibrary;
+
+  /**
+   * Classes which should have their supertype set to "object" once
+   * resynthesis is complete.  Only used if [isCoreLibrary] is `true`.
+   */
+  List<ClassElementImpl> delayedObjectSubclasses = <ClassElementImpl>[];
+
+  /**
    * [ElementHolder] into which resynthesized elements should be placed.  This
    * object is recreated afresh for each unit in the library, and is used to
    * populate the [CompilationUnitElement].
@@ -260,7 +267,9 @@ class _LibraryResynthesizer {
   List<TypeParameterElement> currentTypeParameters;
 
   _LibraryResynthesizer(this.summaryResynthesizer, this.prelinkedLibrary,
-      this.unlinkedUnits, this.librarySource);
+      this.unlinkedUnits, this.librarySource) {
+    isCoreLibrary = librarySource.uri.toString() == 'dart:core';
+  }
 
   /**
    * Resynthesize a [ClassElement] and place it in [unitHolder].
@@ -280,7 +289,11 @@ class _LibraryResynthesizer {
       if (serializedClass.supertype != null) {
         classElement.supertype = buildType(serializedClass.supertype);
       } else if (!serializedClass.hasNoSupertype) {
-        classElement.supertype = summaryResynthesizer.typeProvider.objectType;
+        if (isCoreLibrary) {
+          delayedObjectSubclasses.add(classElement);
+        } else {
+          classElement.supertype = summaryResynthesizer.typeProvider.objectType;
+        }
       }
       classElement.interfaces =
           serializedClass.interfaces.map(buildType).toList();
@@ -367,6 +380,7 @@ class _LibraryResynthesizer {
    * associated fields and implicit accessors.
    */
   void buildEnum(UnlinkedEnum serializedEnum) {
+    assert(!isCoreLibrary);
     // TODO(paulberry): add offset support (for this element type and others)
     ClassElementImpl classElement =
         new ClassElementImpl(serializedEnum.name, -1);
@@ -572,18 +586,18 @@ class _LibraryResynthesizer {
    */
   FieldElementImpl buildImplicitField(String name, DartType type,
       UnlinkedExecutableKind kind, ElementHolder holder) {
-    if (holder.getField(name) == null) {
-      FieldElementImpl field = new FieldElementImpl(name, -1);
+    FieldElementImpl field = holder.getField(name);
+    if (field == null) {
+      field = new FieldElementImpl(name, -1);
       field.synthetic = true;
       field.final2 = kind == UnlinkedExecutableKind.getter;
       field.type = type;
       holder.addField(field);
       return field;
     } else {
-      // TODO(paulberry): if adding a setter where there was previously
-      // only a getter, remove "final" modifier.
       // TODO(paulberry): what if the getter and setter have a type mismatch?
-      throw new UnimplementedError();
+      field.final2 = false;
+      return field;
     }
   }
 
@@ -674,6 +688,13 @@ class _LibraryResynthesizer {
     for (int i = 0; i < parts.length; i++) {
       populateUnit(parts[i], i + 1);
     }
+    if (isCoreLibrary) {
+      ClassElement objectElement = libraryElement.getType('Object');
+      assert(objectElement != null);
+      for (ClassElementImpl classElement in delayedObjectSubclasses) {
+        classElement.supertype = objectElement.type;
+      }
+    }
     return libraryElement;
   }
 
@@ -741,7 +762,8 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-          currentTypeParameters.length - type.paramReference].type;
+              currentTypeParameters.length - type.paramReference]
+          .type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).
@@ -765,7 +787,8 @@ class _LibraryResynthesizer {
         if (referenceResolution.unit != 0) {
           UnlinkedUnit referencedLibraryDefiningUnit =
               summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
-          String uri = referencedLibraryDefiningUnit.parts[0].uri;
+          String uri = referencedLibraryDefiningUnit
+              .parts[referenceResolution.unit - 1].uri;
           Source partSource = summaryResynthesizer.sourceFactory
               .resolveUri(referencedLibrarySource, uri);
           partUri = partSource.uri.toString();

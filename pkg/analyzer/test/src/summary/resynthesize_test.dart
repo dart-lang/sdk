@@ -463,6 +463,7 @@ class ResynthTest extends ResolverTestCase {
     }
     SummaryResynthesizer resynthesizer = new SummaryResynthesizer(
         analysisContext,
+        analysisContext.typeProvider,
         getPrelinkedSummary,
         getUnlinkedSummary,
         analysisContext.sourceFactory);
@@ -597,6 +598,14 @@ class E {
 
   test_class_getters() {
     checkLibrary('class C { int get x => null; get y => null; }');
+  }
+
+  test_class_implicitField_getterFirst() {
+    checkLibrary('class C { int get x => 0; void set x(int value) {} }');
+  }
+
+  test_class_implicitField_setterFirst() {
+    checkLibrary('class C { void set x(int value) {} int get x => 0; }');
   }
 
   test_class_interfaces() {
@@ -940,6 +949,13 @@ class E {
     addNamedSource(
         '/b.dart', 'part of l; class C {} enum E { v } typedef F();');
     checkLibrary('import "a.dart"; C c; E e; F f;');
+  }
+
+  test_type_reference_to_import_part2() {
+    addLibrarySource('/a.dart', 'library l; part "p1.dart"; part "p2.dart";');
+    addNamedSource('/p1.dart', 'part of l; class C1 {}');
+    addNamedSource('/p2.dart', 'part of l; class C2 {}');
+    checkLibrary('import "a.dart"; C1 c1; C2 c2;');
   }
 
   test_type_reference_to_import_part_in_subdir() {
