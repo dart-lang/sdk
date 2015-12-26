@@ -8,7 +8,7 @@
 library analyzer.src.summary.format;
 
 import 'dart:convert';
-import 'builder.dart' as builder;
+import 'base.dart' as base;
 
 enum PrelinkedReferenceKind {
   classOrEnum,
@@ -31,11 +31,16 @@ enum UnlinkedParamKind {
   named,
 }
 
-class PrelinkedDependency {
+class PrelinkedDependency extends base.SummaryClass {
   String _uri;
 
   PrelinkedDependency.fromJson(Map json)
     : _uri = json["uri"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "uri": uri,
+  };
 
   String get uri => _uri ?? '';
 }
@@ -45,7 +50,7 @@ class PrelinkedDependencyBuilder {
 
   bool _finished = false;
 
-  PrelinkedDependencyBuilder(builder.BuilderContext context);
+  PrelinkedDependencyBuilder(base.BuilderContext context);
 
   void set uri(String _value) {
     assert(!_finished);
@@ -62,13 +67,13 @@ class PrelinkedDependencyBuilder {
   }
 }
 
-PrelinkedDependencyBuilder encodePrelinkedDependency(builder.BuilderContext builderContext, {String uri}) {
+PrelinkedDependencyBuilder encodePrelinkedDependency(base.BuilderContext builderContext, {String uri}) {
   PrelinkedDependencyBuilder builder = new PrelinkedDependencyBuilder(builderContext);
   builder.uri = uri;
   return builder;
 }
 
-class PrelinkedLibrary {
+class PrelinkedLibrary extends base.SummaryClass {
   List<PrelinkedUnit> _units;
   List<PrelinkedDependency> _dependencies;
   List<int> _importDependencies;
@@ -77,6 +82,13 @@ class PrelinkedLibrary {
     : _units = json["units"]?.map((x) => new PrelinkedUnit.fromJson(x))?.toList(),
       _dependencies = json["dependencies"]?.map((x) => new PrelinkedDependency.fromJson(x))?.toList(),
       _importDependencies = json["importDependencies"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "units": units,
+    "dependencies": dependencies,
+    "importDependencies": importDependencies,
+  };
 
   PrelinkedLibrary.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
@@ -90,7 +102,7 @@ class PrelinkedLibraryBuilder {
 
   bool _finished = false;
 
-  PrelinkedLibraryBuilder(builder.BuilderContext context);
+  PrelinkedLibraryBuilder(base.BuilderContext context);
 
   void set units(List<PrelinkedUnitBuilder> _value) {
     assert(!_finished);
@@ -125,7 +137,7 @@ class PrelinkedLibraryBuilder {
   }
 }
 
-PrelinkedLibraryBuilder encodePrelinkedLibrary(builder.BuilderContext builderContext, {List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies}) {
+PrelinkedLibraryBuilder encodePrelinkedLibrary(base.BuilderContext builderContext, {List<PrelinkedUnitBuilder> units, List<PrelinkedDependencyBuilder> dependencies, List<int> importDependencies}) {
   PrelinkedLibraryBuilder builder = new PrelinkedLibraryBuilder(builderContext);
   builder.units = units;
   builder.dependencies = dependencies;
@@ -133,7 +145,7 @@ PrelinkedLibraryBuilder encodePrelinkedLibrary(builder.BuilderContext builderCon
   return builder;
 }
 
-class PrelinkedReference {
+class PrelinkedReference extends base.SummaryClass {
   int _dependency;
   PrelinkedReferenceKind _kind;
   int _unit;
@@ -142,6 +154,13 @@ class PrelinkedReference {
     : _dependency = json["dependency"],
       _kind = json["kind"] == null ? null : PrelinkedReferenceKind.values[json["kind"]],
       _unit = json["unit"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "dependency": dependency,
+    "kind": kind,
+    "unit": unit,
+  };
 
   int get dependency => _dependency ?? 0;
   PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
@@ -153,7 +172,7 @@ class PrelinkedReferenceBuilder {
 
   bool _finished = false;
 
-  PrelinkedReferenceBuilder(builder.BuilderContext context);
+  PrelinkedReferenceBuilder(base.BuilderContext context);
 
   void set dependency(int _value) {
     assert(!_finished);
@@ -186,7 +205,7 @@ class PrelinkedReferenceBuilder {
   }
 }
 
-PrelinkedReferenceBuilder encodePrelinkedReference(builder.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind, int unit}) {
+PrelinkedReferenceBuilder encodePrelinkedReference(base.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind, int unit}) {
   PrelinkedReferenceBuilder builder = new PrelinkedReferenceBuilder(builderContext);
   builder.dependency = dependency;
   builder.kind = kind;
@@ -194,11 +213,16 @@ PrelinkedReferenceBuilder encodePrelinkedReference(builder.BuilderContext builde
   return builder;
 }
 
-class PrelinkedUnit {
+class PrelinkedUnit extends base.SummaryClass {
   List<PrelinkedReference> _references;
 
   PrelinkedUnit.fromJson(Map json)
     : _references = json["references"]?.map((x) => new PrelinkedReference.fromJson(x))?.toList();
+
+  @override
+  Map<String, Object> toMap() => {
+    "references": references,
+  };
 
   List<PrelinkedReference> get references => _references ?? const <PrelinkedReference>[];
 }
@@ -208,7 +232,7 @@ class PrelinkedUnitBuilder {
 
   bool _finished = false;
 
-  PrelinkedUnitBuilder(builder.BuilderContext context);
+  PrelinkedUnitBuilder(base.BuilderContext context);
 
   void set references(List<PrelinkedReferenceBuilder> _value) {
     assert(!_finished);
@@ -225,13 +249,13 @@ class PrelinkedUnitBuilder {
   }
 }
 
-PrelinkedUnitBuilder encodePrelinkedUnit(builder.BuilderContext builderContext, {List<PrelinkedReferenceBuilder> references}) {
+PrelinkedUnitBuilder encodePrelinkedUnit(base.BuilderContext builderContext, {List<PrelinkedReferenceBuilder> references}) {
   PrelinkedUnitBuilder builder = new PrelinkedUnitBuilder(builderContext);
   builder.references = references;
   return builder;
 }
 
-class SdkBundle {
+class SdkBundle extends base.SummaryClass {
   List<String> _prelinkedLibraryUris;
   List<PrelinkedLibrary> _prelinkedLibraries;
   List<String> _unlinkedUnitUris;
@@ -242,6 +266,14 @@ class SdkBundle {
       _prelinkedLibraries = json["prelinkedLibraries"]?.map((x) => new PrelinkedLibrary.fromJson(x))?.toList(),
       _unlinkedUnitUris = json["unlinkedUnitUris"],
       _unlinkedUnits = json["unlinkedUnits"]?.map((x) => new UnlinkedUnit.fromJson(x))?.toList();
+
+  @override
+  Map<String, Object> toMap() => {
+    "prelinkedLibraryUris": prelinkedLibraryUris,
+    "prelinkedLibraries": prelinkedLibraries,
+    "unlinkedUnitUris": unlinkedUnitUris,
+    "unlinkedUnits": unlinkedUnits,
+  };
 
   SdkBundle.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
@@ -256,7 +288,7 @@ class SdkBundleBuilder {
 
   bool _finished = false;
 
-  SdkBundleBuilder(builder.BuilderContext context);
+  SdkBundleBuilder(base.BuilderContext context);
 
   void set prelinkedLibraryUris(List<String> _value) {
     assert(!_finished);
@@ -299,7 +331,7 @@ class SdkBundleBuilder {
   }
 }
 
-SdkBundleBuilder encodeSdkBundle(builder.BuilderContext builderContext, {List<String> prelinkedLibraryUris, List<PrelinkedLibraryBuilder> prelinkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits}) {
+SdkBundleBuilder encodeSdkBundle(base.BuilderContext builderContext, {List<String> prelinkedLibraryUris, List<PrelinkedLibraryBuilder> prelinkedLibraries, List<String> unlinkedUnitUris, List<UnlinkedUnitBuilder> unlinkedUnits}) {
   SdkBundleBuilder builder = new SdkBundleBuilder(builderContext);
   builder.prelinkedLibraryUris = prelinkedLibraryUris;
   builder.prelinkedLibraries = prelinkedLibraries;
@@ -308,7 +340,7 @@ SdkBundleBuilder encodeSdkBundle(builder.BuilderContext builderContext, {List<St
   return builder;
 }
 
-class UnlinkedClass {
+class UnlinkedClass extends base.SummaryClass {
   String _name;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _supertype;
@@ -332,6 +364,20 @@ class UnlinkedClass {
       _isMixinApplication = json["isMixinApplication"],
       _hasNoSupertype = json["hasNoSupertype"];
 
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "typeParameters": typeParameters,
+    "supertype": supertype,
+    "mixins": mixins,
+    "interfaces": interfaces,
+    "fields": fields,
+    "executables": executables,
+    "isAbstract": isAbstract,
+    "isMixinApplication": isMixinApplication,
+    "hasNoSupertype": hasNoSupertype,
+  };
+
   String get name => _name ?? '';
   List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
   UnlinkedTypeRef get supertype => _supertype;
@@ -349,7 +395,7 @@ class UnlinkedClassBuilder {
 
   bool _finished = false;
 
-  UnlinkedClassBuilder(builder.BuilderContext context);
+  UnlinkedClassBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -438,7 +484,7 @@ class UnlinkedClassBuilder {
   }
 }
 
-UnlinkedClassBuilder encodeUnlinkedClass(builder.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
+UnlinkedClassBuilder encodeUnlinkedClass(base.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
   UnlinkedClassBuilder builder = new UnlinkedClassBuilder(builderContext);
   builder.name = name;
   builder.typeParameters = typeParameters;
@@ -453,13 +499,19 @@ UnlinkedClassBuilder encodeUnlinkedClass(builder.BuilderContext builderContext, 
   return builder;
 }
 
-class UnlinkedCombinator {
+class UnlinkedCombinator extends base.SummaryClass {
   List<UnlinkedCombinatorName> _shows;
   List<UnlinkedCombinatorName> _hides;
 
   UnlinkedCombinator.fromJson(Map json)
     : _shows = json["shows"]?.map((x) => new UnlinkedCombinatorName.fromJson(x))?.toList(),
       _hides = json["hides"]?.map((x) => new UnlinkedCombinatorName.fromJson(x))?.toList();
+
+  @override
+  Map<String, Object> toMap() => {
+    "shows": shows,
+    "hides": hides,
+  };
 
   List<UnlinkedCombinatorName> get shows => _shows ?? const <UnlinkedCombinatorName>[];
   List<UnlinkedCombinatorName> get hides => _hides ?? const <UnlinkedCombinatorName>[];
@@ -470,7 +522,7 @@ class UnlinkedCombinatorBuilder {
 
   bool _finished = false;
 
-  UnlinkedCombinatorBuilder(builder.BuilderContext context);
+  UnlinkedCombinatorBuilder(base.BuilderContext context);
 
   void set shows(List<UnlinkedCombinatorNameBuilder> _value) {
     assert(!_finished);
@@ -495,18 +547,23 @@ class UnlinkedCombinatorBuilder {
   }
 }
 
-UnlinkedCombinatorBuilder encodeUnlinkedCombinator(builder.BuilderContext builderContext, {List<UnlinkedCombinatorNameBuilder> shows, List<UnlinkedCombinatorNameBuilder> hides}) {
+UnlinkedCombinatorBuilder encodeUnlinkedCombinator(base.BuilderContext builderContext, {List<UnlinkedCombinatorNameBuilder> shows, List<UnlinkedCombinatorNameBuilder> hides}) {
   UnlinkedCombinatorBuilder builder = new UnlinkedCombinatorBuilder(builderContext);
   builder.shows = shows;
   builder.hides = hides;
   return builder;
 }
 
-class UnlinkedCombinatorName {
+class UnlinkedCombinatorName extends base.SummaryClass {
   String _name;
 
   UnlinkedCombinatorName.fromJson(Map json)
     : _name = json["name"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+  };
 
   String get name => _name ?? '';
 }
@@ -516,7 +573,7 @@ class UnlinkedCombinatorNameBuilder {
 
   bool _finished = false;
 
-  UnlinkedCombinatorNameBuilder(builder.BuilderContext context);
+  UnlinkedCombinatorNameBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -533,19 +590,25 @@ class UnlinkedCombinatorNameBuilder {
   }
 }
 
-UnlinkedCombinatorNameBuilder encodeUnlinkedCombinatorName(builder.BuilderContext builderContext, {String name}) {
+UnlinkedCombinatorNameBuilder encodeUnlinkedCombinatorName(base.BuilderContext builderContext, {String name}) {
   UnlinkedCombinatorNameBuilder builder = new UnlinkedCombinatorNameBuilder(builderContext);
   builder.name = name;
   return builder;
 }
 
-class UnlinkedEnum {
+class UnlinkedEnum extends base.SummaryClass {
   String _name;
   List<UnlinkedEnumValue> _values;
 
   UnlinkedEnum.fromJson(Map json)
     : _name = json["name"],
       _values = json["values"]?.map((x) => new UnlinkedEnumValue.fromJson(x))?.toList();
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "values": values,
+  };
 
   String get name => _name ?? '';
   List<UnlinkedEnumValue> get values => _values ?? const <UnlinkedEnumValue>[];
@@ -556,7 +619,7 @@ class UnlinkedEnumBuilder {
 
   bool _finished = false;
 
-  UnlinkedEnumBuilder(builder.BuilderContext context);
+  UnlinkedEnumBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -581,18 +644,23 @@ class UnlinkedEnumBuilder {
   }
 }
 
-UnlinkedEnumBuilder encodeUnlinkedEnum(builder.BuilderContext builderContext, {String name, List<UnlinkedEnumValueBuilder> values}) {
+UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {String name, List<UnlinkedEnumValueBuilder> values}) {
   UnlinkedEnumBuilder builder = new UnlinkedEnumBuilder(builderContext);
   builder.name = name;
   builder.values = values;
   return builder;
 }
 
-class UnlinkedEnumValue {
+class UnlinkedEnumValue extends base.SummaryClass {
   String _name;
 
   UnlinkedEnumValue.fromJson(Map json)
     : _name = json["name"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+  };
 
   String get name => _name ?? '';
 }
@@ -602,7 +670,7 @@ class UnlinkedEnumValueBuilder {
 
   bool _finished = false;
 
-  UnlinkedEnumValueBuilder(builder.BuilderContext context);
+  UnlinkedEnumValueBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -619,13 +687,13 @@ class UnlinkedEnumValueBuilder {
   }
 }
 
-UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(builder.BuilderContext builderContext, {String name}) {
+UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderContext, {String name}) {
   UnlinkedEnumValueBuilder builder = new UnlinkedEnumValueBuilder(builderContext);
   builder.name = name;
   return builder;
 }
 
-class UnlinkedExecutable {
+class UnlinkedExecutable extends base.SummaryClass {
   String _name;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _returnType;
@@ -651,6 +719,21 @@ class UnlinkedExecutable {
       _hasImplicitReturnType = json["hasImplicitReturnType"],
       _isExternal = json["isExternal"];
 
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "typeParameters": typeParameters,
+    "returnType": returnType,
+    "parameters": parameters,
+    "kind": kind,
+    "isAbstract": isAbstract,
+    "isStatic": isStatic,
+    "isConst": isConst,
+    "isFactory": isFactory,
+    "hasImplicitReturnType": hasImplicitReturnType,
+    "isExternal": isExternal,
+  };
+
   String get name => _name ?? '';
   List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
   UnlinkedTypeRef get returnType => _returnType;
@@ -669,7 +752,7 @@ class UnlinkedExecutableBuilder {
 
   bool _finished = false;
 
-  UnlinkedExecutableBuilder(builder.BuilderContext context);
+  UnlinkedExecutableBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -766,7 +849,7 @@ class UnlinkedExecutableBuilder {
   }
 }
 
-UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
+UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
   UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder(builderContext);
   builder.name = name;
   builder.typeParameters = typeParameters;
@@ -782,13 +865,19 @@ UnlinkedExecutableBuilder encodeUnlinkedExecutable(builder.BuilderContext builde
   return builder;
 }
 
-class UnlinkedExport {
+class UnlinkedExport extends base.SummaryClass {
   String _uri;
   List<UnlinkedCombinator> _combinators;
 
   UnlinkedExport.fromJson(Map json)
     : _uri = json["uri"],
       _combinators = json["combinators"]?.map((x) => new UnlinkedCombinator.fromJson(x))?.toList();
+
+  @override
+  Map<String, Object> toMap() => {
+    "uri": uri,
+    "combinators": combinators,
+  };
 
   String get uri => _uri ?? '';
   List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
@@ -799,7 +888,7 @@ class UnlinkedExportBuilder {
 
   bool _finished = false;
 
-  UnlinkedExportBuilder(builder.BuilderContext context);
+  UnlinkedExportBuilder(base.BuilderContext context);
 
   void set uri(String _value) {
     assert(!_finished);
@@ -824,14 +913,14 @@ class UnlinkedExportBuilder {
   }
 }
 
-UnlinkedExportBuilder encodeUnlinkedExport(builder.BuilderContext builderContext, {String uri, List<UnlinkedCombinatorBuilder> combinators}) {
+UnlinkedExportBuilder encodeUnlinkedExport(base.BuilderContext builderContext, {String uri, List<UnlinkedCombinatorBuilder> combinators}) {
   UnlinkedExportBuilder builder = new UnlinkedExportBuilder(builderContext);
   builder.uri = uri;
   builder.combinators = combinators;
   return builder;
 }
 
-class UnlinkedImport {
+class UnlinkedImport extends base.SummaryClass {
   String _uri;
   int _offset;
   int _prefixReference;
@@ -847,6 +936,16 @@ class UnlinkedImport {
       _isDeferred = json["isDeferred"],
       _isImplicit = json["isImplicit"];
 
+  @override
+  Map<String, Object> toMap() => {
+    "uri": uri,
+    "offset": offset,
+    "prefixReference": prefixReference,
+    "combinators": combinators,
+    "isDeferred": isDeferred,
+    "isImplicit": isImplicit,
+  };
+
   String get uri => _uri ?? '';
   int get offset => _offset ?? 0;
   int get prefixReference => _prefixReference ?? 0;
@@ -860,7 +959,7 @@ class UnlinkedImportBuilder {
 
   bool _finished = false;
 
-  UnlinkedImportBuilder(builder.BuilderContext context);
+  UnlinkedImportBuilder(base.BuilderContext context);
 
   void set uri(String _value) {
     assert(!_finished);
@@ -917,7 +1016,7 @@ class UnlinkedImportBuilder {
   }
 }
 
-UnlinkedImportBuilder encodeUnlinkedImport(builder.BuilderContext builderContext, {String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit}) {
+UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit}) {
   UnlinkedImportBuilder builder = new UnlinkedImportBuilder(builderContext);
   builder.uri = uri;
   builder.offset = offset;
@@ -928,7 +1027,7 @@ UnlinkedImportBuilder encodeUnlinkedImport(builder.BuilderContext builderContext
   return builder;
 }
 
-class UnlinkedParam {
+class UnlinkedParam extends base.SummaryClass {
   String _name;
   UnlinkedTypeRef _type;
   List<UnlinkedParam> _parameters;
@@ -946,6 +1045,17 @@ class UnlinkedParam {
       _isInitializingFormal = json["isInitializingFormal"],
       _hasImplicitType = json["hasImplicitType"];
 
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "type": type,
+    "parameters": parameters,
+    "kind": kind,
+    "isFunctionTyped": isFunctionTyped,
+    "isInitializingFormal": isInitializingFormal,
+    "hasImplicitType": hasImplicitType,
+  };
+
   String get name => _name ?? '';
   UnlinkedTypeRef get type => _type;
   List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
@@ -960,7 +1070,7 @@ class UnlinkedParamBuilder {
 
   bool _finished = false;
 
-  UnlinkedParamBuilder(builder.BuilderContext context);
+  UnlinkedParamBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -1025,7 +1135,7 @@ class UnlinkedParamBuilder {
   }
 }
 
-UnlinkedParamBuilder encodeUnlinkedParam(builder.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType}) {
+UnlinkedParamBuilder encodeUnlinkedParam(base.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType}) {
   UnlinkedParamBuilder builder = new UnlinkedParamBuilder(builderContext);
   builder.name = name;
   builder.type = type;
@@ -1037,11 +1147,16 @@ UnlinkedParamBuilder encodeUnlinkedParam(builder.BuilderContext builderContext, 
   return builder;
 }
 
-class UnlinkedPart {
+class UnlinkedPart extends base.SummaryClass {
   String _uri;
 
   UnlinkedPart.fromJson(Map json)
     : _uri = json["uri"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "uri": uri,
+  };
 
   String get uri => _uri ?? '';
 }
@@ -1051,7 +1166,7 @@ class UnlinkedPartBuilder {
 
   bool _finished = false;
 
-  UnlinkedPartBuilder(builder.BuilderContext context);
+  UnlinkedPartBuilder(base.BuilderContext context);
 
   void set uri(String _value) {
     assert(!_finished);
@@ -1068,19 +1183,25 @@ class UnlinkedPartBuilder {
   }
 }
 
-UnlinkedPartBuilder encodeUnlinkedPart(builder.BuilderContext builderContext, {String uri}) {
+UnlinkedPartBuilder encodeUnlinkedPart(base.BuilderContext builderContext, {String uri}) {
   UnlinkedPartBuilder builder = new UnlinkedPartBuilder(builderContext);
   builder.uri = uri;
   return builder;
 }
 
-class UnlinkedPublicName {
+class UnlinkedPublicName extends base.SummaryClass {
   String _name;
   PrelinkedReferenceKind _kind;
 
   UnlinkedPublicName.fromJson(Map json)
     : _name = json["name"],
       _kind = json["kind"] == null ? null : PrelinkedReferenceKind.values[json["kind"]];
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "kind": kind,
+  };
 
   String get name => _name ?? '';
   PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
@@ -1091,7 +1212,7 @@ class UnlinkedPublicNameBuilder {
 
   bool _finished = false;
 
-  UnlinkedPublicNameBuilder(builder.BuilderContext context);
+  UnlinkedPublicNameBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -1116,14 +1237,14 @@ class UnlinkedPublicNameBuilder {
   }
 }
 
-UnlinkedPublicNameBuilder encodeUnlinkedPublicName(builder.BuilderContext builderContext, {String name, PrelinkedReferenceKind kind}) {
+UnlinkedPublicNameBuilder encodeUnlinkedPublicName(base.BuilderContext builderContext, {String name, PrelinkedReferenceKind kind}) {
   UnlinkedPublicNameBuilder builder = new UnlinkedPublicNameBuilder(builderContext);
   builder.name = name;
   builder.kind = kind;
   return builder;
 }
 
-class UnlinkedPublicNamespace {
+class UnlinkedPublicNamespace extends base.SummaryClass {
   List<UnlinkedPublicName> _names;
   List<UnlinkedExport> _exports;
   List<UnlinkedPart> _parts;
@@ -1132,6 +1253,15 @@ class UnlinkedPublicNamespace {
     : _names = json["names"]?.map((x) => new UnlinkedPublicName.fromJson(x))?.toList(),
       _exports = json["exports"]?.map((x) => new UnlinkedExport.fromJson(x))?.toList(),
       _parts = json["parts"]?.map((x) => new UnlinkedPart.fromJson(x))?.toList();
+
+  @override
+  Map<String, Object> toMap() => {
+    "names": names,
+    "exports": exports,
+    "parts": parts,
+  };
+
+  UnlinkedPublicNamespace.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
   List<UnlinkedPublicName> get names => _names ?? const <UnlinkedPublicName>[];
   List<UnlinkedExport> get exports => _exports ?? const <UnlinkedExport>[];
@@ -1143,7 +1273,7 @@ class UnlinkedPublicNamespaceBuilder {
 
   bool _finished = false;
 
-  UnlinkedPublicNamespaceBuilder(builder.BuilderContext context);
+  UnlinkedPublicNamespaceBuilder(base.BuilderContext context);
 
   void set names(List<UnlinkedPublicNameBuilder> _value) {
     assert(!_finished);
@@ -1169,6 +1299,8 @@ class UnlinkedPublicNamespaceBuilder {
     }
   }
 
+  List<int> toBuffer() => UTF8.encode(JSON.encode(finish()));
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -1176,7 +1308,7 @@ class UnlinkedPublicNamespaceBuilder {
   }
 }
 
-UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace(builder.BuilderContext builderContext, {List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportBuilder> exports, List<UnlinkedPartBuilder> parts}) {
+UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace(base.BuilderContext builderContext, {List<UnlinkedPublicNameBuilder> names, List<UnlinkedExportBuilder> exports, List<UnlinkedPartBuilder> parts}) {
   UnlinkedPublicNamespaceBuilder builder = new UnlinkedPublicNamespaceBuilder(builderContext);
   builder.names = names;
   builder.exports = exports;
@@ -1184,13 +1316,19 @@ UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace(builder.BuilderCont
   return builder;
 }
 
-class UnlinkedReference {
+class UnlinkedReference extends base.SummaryClass {
   String _name;
   int _prefixReference;
 
   UnlinkedReference.fromJson(Map json)
     : _name = json["name"],
       _prefixReference = json["prefixReference"];
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "prefixReference": prefixReference,
+  };
 
   String get name => _name ?? '';
   int get prefixReference => _prefixReference ?? 0;
@@ -1201,7 +1339,7 @@ class UnlinkedReferenceBuilder {
 
   bool _finished = false;
 
-  UnlinkedReferenceBuilder(builder.BuilderContext context);
+  UnlinkedReferenceBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -1226,14 +1364,14 @@ class UnlinkedReferenceBuilder {
   }
 }
 
-UnlinkedReferenceBuilder encodeUnlinkedReference(builder.BuilderContext builderContext, {String name, int prefixReference}) {
+UnlinkedReferenceBuilder encodeUnlinkedReference(base.BuilderContext builderContext, {String name, int prefixReference}) {
   UnlinkedReferenceBuilder builder = new UnlinkedReferenceBuilder(builderContext);
   builder.name = name;
   builder.prefixReference = prefixReference;
   return builder;
 }
 
-class UnlinkedTypedef {
+class UnlinkedTypedef extends base.SummaryClass {
   String _name;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _returnType;
@@ -1244,6 +1382,14 @@ class UnlinkedTypedef {
       _typeParameters = json["typeParameters"]?.map((x) => new UnlinkedTypeParam.fromJson(x))?.toList(),
       _returnType = json["returnType"] == null ? null : new UnlinkedTypeRef.fromJson(json["returnType"]),
       _parameters = json["parameters"]?.map((x) => new UnlinkedParam.fromJson(x))?.toList();
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "typeParameters": typeParameters,
+    "returnType": returnType,
+    "parameters": parameters,
+  };
 
   String get name => _name ?? '';
   List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
@@ -1256,7 +1402,7 @@ class UnlinkedTypedefBuilder {
 
   bool _finished = false;
 
-  UnlinkedTypedefBuilder(builder.BuilderContext context);
+  UnlinkedTypedefBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -1297,7 +1443,7 @@ class UnlinkedTypedefBuilder {
   }
 }
 
-UnlinkedTypedefBuilder encodeUnlinkedTypedef(builder.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
+UnlinkedTypedefBuilder encodeUnlinkedTypedef(base.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
   UnlinkedTypedefBuilder builder = new UnlinkedTypedefBuilder(builderContext);
   builder.name = name;
   builder.typeParameters = typeParameters;
@@ -1306,13 +1452,19 @@ UnlinkedTypedefBuilder encodeUnlinkedTypedef(builder.BuilderContext builderConte
   return builder;
 }
 
-class UnlinkedTypeParam {
+class UnlinkedTypeParam extends base.SummaryClass {
   String _name;
   UnlinkedTypeRef _bound;
 
   UnlinkedTypeParam.fromJson(Map json)
     : _name = json["name"],
       _bound = json["bound"] == null ? null : new UnlinkedTypeRef.fromJson(json["bound"]);
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "bound": bound,
+  };
 
   String get name => _name ?? '';
   UnlinkedTypeRef get bound => _bound;
@@ -1323,7 +1475,7 @@ class UnlinkedTypeParamBuilder {
 
   bool _finished = false;
 
-  UnlinkedTypeParamBuilder(builder.BuilderContext context);
+  UnlinkedTypeParamBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -1348,14 +1500,14 @@ class UnlinkedTypeParamBuilder {
   }
 }
 
-UnlinkedTypeParamBuilder encodeUnlinkedTypeParam(builder.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder bound}) {
+UnlinkedTypeParamBuilder encodeUnlinkedTypeParam(base.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder bound}) {
   UnlinkedTypeParamBuilder builder = new UnlinkedTypeParamBuilder(builderContext);
   builder.name = name;
   builder.bound = bound;
   return builder;
 }
 
-class UnlinkedTypeRef {
+class UnlinkedTypeRef extends base.SummaryClass {
   int _reference;
   int _paramReference;
   List<UnlinkedTypeRef> _typeArguments;
@@ -1364,6 +1516,13 @@ class UnlinkedTypeRef {
     : _reference = json["reference"],
       _paramReference = json["paramReference"],
       _typeArguments = json["typeArguments"]?.map((x) => new UnlinkedTypeRef.fromJson(x))?.toList();
+
+  @override
+  Map<String, Object> toMap() => {
+    "reference": reference,
+    "paramReference": paramReference,
+    "typeArguments": typeArguments,
+  };
 
   int get reference => _reference ?? 0;
   int get paramReference => _paramReference ?? 0;
@@ -1375,7 +1534,7 @@ class UnlinkedTypeRefBuilder {
 
   bool _finished = false;
 
-  UnlinkedTypeRefBuilder(builder.BuilderContext context);
+  UnlinkedTypeRefBuilder(base.BuilderContext context);
 
   void set reference(int _value) {
     assert(!_finished);
@@ -1408,7 +1567,7 @@ class UnlinkedTypeRefBuilder {
   }
 }
 
-UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(builder.BuilderContext builderContext, {int reference, int paramReference, List<UnlinkedTypeRefBuilder> typeArguments}) {
+UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(base.BuilderContext builderContext, {int reference, int paramReference, List<UnlinkedTypeRefBuilder> typeArguments}) {
   UnlinkedTypeRefBuilder builder = new UnlinkedTypeRefBuilder(builderContext);
   builder.reference = reference;
   builder.paramReference = paramReference;
@@ -1416,7 +1575,7 @@ UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(builder.BuilderContext builderConte
   return builder;
 }
 
-class UnlinkedUnit {
+class UnlinkedUnit extends base.SummaryClass {
   String _libraryName;
   UnlinkedPublicNamespace _publicNamespace;
   List<UnlinkedReference> _references;
@@ -1438,6 +1597,19 @@ class UnlinkedUnit {
       _typedefs = json["typedefs"]?.map((x) => new UnlinkedTypedef.fromJson(x))?.toList(),
       _variables = json["variables"]?.map((x) => new UnlinkedVariable.fromJson(x))?.toList();
 
+  @override
+  Map<String, Object> toMap() => {
+    "libraryName": libraryName,
+    "publicNamespace": publicNamespace,
+    "references": references,
+    "classes": classes,
+    "enums": enums,
+    "executables": executables,
+    "imports": imports,
+    "typedefs": typedefs,
+    "variables": variables,
+  };
+
   UnlinkedUnit.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
   String get libraryName => _libraryName ?? '';
@@ -1456,7 +1628,7 @@ class UnlinkedUnitBuilder {
 
   bool _finished = false;
 
-  UnlinkedUnitBuilder(builder.BuilderContext context);
+  UnlinkedUnitBuilder(base.BuilderContext context);
 
   void set libraryName(String _value) {
     assert(!_finished);
@@ -1539,7 +1711,7 @@ class UnlinkedUnitBuilder {
   }
 }
 
-UnlinkedUnitBuilder encodeUnlinkedUnit(builder.BuilderContext builderContext, {String libraryName, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedImportBuilder> imports, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
+UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {String libraryName, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedImportBuilder> imports, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
   UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder(builderContext);
   builder.libraryName = libraryName;
   builder.publicNamespace = publicNamespace;
@@ -1553,7 +1725,7 @@ UnlinkedUnitBuilder encodeUnlinkedUnit(builder.BuilderContext builderContext, {S
   return builder;
 }
 
-class UnlinkedVariable {
+class UnlinkedVariable extends base.SummaryClass {
   String _name;
   UnlinkedTypeRef _type;
   bool _isStatic;
@@ -1569,6 +1741,16 @@ class UnlinkedVariable {
       _isConst = json["isConst"],
       _hasImplicitType = json["hasImplicitType"];
 
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "type": type,
+    "isStatic": isStatic,
+    "isFinal": isFinal,
+    "isConst": isConst,
+    "hasImplicitType": hasImplicitType,
+  };
+
   String get name => _name ?? '';
   UnlinkedTypeRef get type => _type;
   bool get isStatic => _isStatic ?? false;
@@ -1582,7 +1764,7 @@ class UnlinkedVariableBuilder {
 
   bool _finished = false;
 
-  UnlinkedVariableBuilder(builder.BuilderContext context);
+  UnlinkedVariableBuilder(base.BuilderContext context);
 
   void set name(String _value) {
     assert(!_finished);
@@ -1639,7 +1821,7 @@ class UnlinkedVariableBuilder {
   }
 }
 
-UnlinkedVariableBuilder encodeUnlinkedVariable(builder.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
+UnlinkedVariableBuilder encodeUnlinkedVariable(base.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
   UnlinkedVariableBuilder builder = new UnlinkedVariableBuilder(builderContext);
   builder.name = name;
   builder.type = type;

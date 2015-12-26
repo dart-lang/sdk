@@ -6,7 +6,7 @@ library test.src.serialization.elements_test;
 
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/builder.dart';
+import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';

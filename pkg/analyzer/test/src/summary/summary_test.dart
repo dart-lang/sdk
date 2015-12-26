@@ -5,11 +5,18 @@
 library analyzer.test.src.summary.summary_test;
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/builder.dart';
+import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/public_namespace_computer.dart'
+    as public_namespace;
 import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
 import 'package:unittest/unittest.dart';
@@ -27,8 +34,52 @@ main() {
  */
 @reflectiveTest
 class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
+  final BuilderContext builderContext = new BuilderContext();
+
+  /**
+   * The list of absolute unit URIs corresponding to the compilation units in
+   * [unlinkedUnits].
+   */
+  List<String> unitUris;
+
   @override
   bool get checkAstDerivedData => false;
+
+  /**
+   * Convert a summary object (or a portion of one) into a canonical form that
+   * can be easily compared using [expect].  If [orderByName] is true, and the
+   * object is a [List], it is sorted by the `name` field of its elements.
+   */
+  Object canonicalize(Object obj, {bool orderByName: false}) {
+    if (obj is SummaryClass) {
+      Map<String, Object> result = <String, Object>{};
+      obj.toMap().forEach((String key, Object value) {
+        bool orderByName = false;
+        if (obj is UnlinkedPublicNamespace && key == 'names') {
+          orderByName = true;
+        }
+        result[key] = canonicalize(value, orderByName: orderByName);
+      });
+      return result;
+    } else if (obj is List) {
+      List<Object> result = <Object>[];
+      for (Object item in obj) {
+        result.add(canonicalize(item));
+      }
+      if (orderByName) {
+        result.sort((Object a, Object b) {
+          if (a is Map && b is Map) {
+            return Comparable.compare(a['name'], b['name']);
+          } else {
+            return 0;
+          }
+        });
+      }
+      return result;
+    } else {
+      return obj;
+    }
+  }
 
   /**
    * Serialize the library containing the given class [element], then
@@ -41,10 +92,9 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
 
   /**
    * Serialize the given [library] element, then deserialize it and store the
-   * resulting summary in [lib].
+   * resulting summary in [prelinked] and [unlinkedUnits].
    */
   void serializeLibraryElement(LibraryElement library) {
-    BuilderContext builderContext = new BuilderContext();
     summarize_elements.LibrarySerializationResult serializedLib =
         summarize_elements.serializeLibrary(
             builderContext, library, typeProvider);
@@ -54,6 +104,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
         .map((UnlinkedUnitBuilder b) =>
             new UnlinkedUnit.fromBuffer(b.toBuffer()))
         .toList();
+    unitUris = serializedLib.unitUris;
   }
 
   @override
@@ -71,6 +122,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
       expect(unlinkedUnits[i].references.length,
           prelinked.units[i].references.length);
     }
+    verifyPublicNamespace();
   }
 
   @override
@@ -85,6 +137,29 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
     UnlinkedClass cls = serializeClassElement(typeProvider.objectType.element);
     expect(cls.supertype, isNull);
     expect(cls.hasNoSupertype, isTrue);
+  }
+
+  /**
+   * Verify that [public_namespace.computePublicNamespace] produces data that's
+   * equivalent to that produced by [summarize_elements.serializeLibrary].
+   */
+  void verifyPublicNamespace() {
+    for (int i = 0; i < unlinkedUnits.length; i++) {
+      Source source = analysisContext.sourceFactory.forUri(unitUris[i]);
+      String text = analysisContext.getContents(source).data;
+      CharacterReader reader = new CharSequenceReader(text);
+      Scanner scanner =
+          new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER);
+      Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+      CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
+      UnlinkedPublicNamespace namespace =
+          new UnlinkedPublicNamespace.fromBuffer(public_namespace
+              .computePublicNamespace(builderContext, unit)
+              .toBuffer());
+      expect(canonicalize(namespace),
+          canonicalize(unlinkedUnits[i].publicNamespace),
+          reason: 'publicNamespace(${unitUris[i]})');
+    }
   }
 }
 

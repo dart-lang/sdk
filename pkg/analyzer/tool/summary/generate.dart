@@ -247,7 +247,7 @@ class _CodeGenerator {
     out('library analyzer.src.summary.format;');
     out();
     out("import 'dart:convert';");
-    out("import 'builder.dart' as builder;");
+    out("import 'base.dart' as base;");
     out();
     _idl.enums.forEach((String name, idlModel.EnumDeclaration enm) {
       out('enum $name {');
@@ -260,7 +260,7 @@ class _CodeGenerator {
       out();
     });
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
-      out('class $name {');
+      out('class $name extends base.SummaryClass {');
       indent(() {
         cls.fields.forEach((String fieldName, idlModel.FieldType type) {
           out('${dartType(type)} _$fieldName;');
@@ -294,6 +294,15 @@ class _CodeGenerator {
           }
         });
         out();
+        out('@override');
+        out('Map<String, Object> toMap() => {');
+        indent(() {
+          cls.fields.forEach((String fieldName, idlModel.FieldType type) {
+            out('${quoted(fieldName)}: $fieldName,');
+          });
+        });
+        out('};');
+        out();
         if (cls.isTopLevel) {
           out('$name.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));');
           out();
@@ -313,7 +322,7 @@ class _CodeGenerator {
         out();
         out('bool _finished = false;');
         out();
-        out('${name}Builder(builder.BuilderContext context);');
+        out('${name}Builder(base.BuilderContext context);');
         cls.fields.forEach((String fieldName, idlModel.FieldType type) {
           out();
           String conversion = '_value';
@@ -363,7 +372,7 @@ class _CodeGenerator {
       });
       out('}');
       out();
-      out('${name}Builder encode$name(builder.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
+      out('${name}Builder encode$name(base.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
       indent(() {
         out('${name}Builder builder = new ${name}Builder(builderContext);');
         cls.fields.forEach((String fieldName, idlModel.FieldType type) {

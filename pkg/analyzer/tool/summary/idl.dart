@@ -572,6 +572,7 @@ class UnlinkedPublicName {
  * library's public namespace.  This is the subset of [UnlinkedUnit] that is
  * required from dependent libraries in order to perform prelinking.
  */
+@topLevel
 class UnlinkedPublicNamespace {
   /**
    * Public names defined in the compilation unit.

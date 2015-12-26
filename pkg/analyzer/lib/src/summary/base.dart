@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Format-agnostic infrastructure for building summary objects.
+ * Base functionality which code generated summary classes are built upon.
  */
-library analyzer.src.summary.builder;
+library analyzer.src.summary.base;
 
 /**
  * Instances of this class encapsulate the necessary state to keep track of a
@@ -19,4 +19,17 @@ class BuilderContext {
   // serialization format (JSON) doesn't require any state tracking.  If/when
   // we switch to a serialization format that requires state tracking, the
   // state will be stored here.
+}
+
+/**
+ * Instances of this class represent data that has been read from a summary.
+ */
+abstract class SummaryClass {
+  /**
+   * Translate the data in this class into a map whose keys are the names of
+   * fields and whose values are the data stored in those fields.
+   *
+   * Intended for testing and debugging only.
+   */
+  Map<String, Object> toMap();
 }
