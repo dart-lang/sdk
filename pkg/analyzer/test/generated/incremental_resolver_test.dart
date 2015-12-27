@@ -3990,6 +3990,27 @@ class A {
 ''');
   }
 
+  void test_inBody_functionExpression() {
+    _resolveUnit(r'''
+class C extends D {
+  static final f = () {
+    var x = 0;
+  }();
+}
+
+class D {}
+''');
+    _updateAndValidate(r'''
+class C extends D {
+  static final f = () {
+    var x = 01;
+  }();
+}
+
+class D {}
+''');
+  }
+
   void test_inBody_insertStatement() {
     _resolveUnit(r'''
 main() {

@@ -48,7 +48,7 @@ void set test_resolveApiChanges(bool value) {
  */
 class DeclarationMatcher extends RecursiveAstVisitor {
   /**
-   * The libary containing the AST nodes being visited.
+   * The library containing the AST nodes being visited.
    */
   LibraryElement _enclosingLibrary;
 
@@ -165,6 +165,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         _assertEquals(constructor.parameters.length, 0);
       }
     }
+    // matches, set the element
+    node.name.staticElement = element;
   }
 
   @override
