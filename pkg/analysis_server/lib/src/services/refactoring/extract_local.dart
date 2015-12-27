@@ -230,10 +230,30 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
         new NodeLocator(selectionRange.offset, selectionRange.end)
             .searchWithin(unit);
     // compute covering expressions
-    for (AstNode node = coveringNode;
-        node is Expression || node is ArgumentList;
-        node = node.parent) {
+    for (AstNode node = coveringNode; node != null; node = node.parent) {
       AstNode parent = node.parent;
+      // skip some nodes
+      if (node is ArgumentList ||
+          node is AssignmentExpression ||
+          node is NamedExpression ||
+          node is TypeArgumentList) {
+        continue;
+      }
+      if (node is ConstructorName || node is Label || node is TypeName) {
+        rootExpression = null;
+        coveringExpressionOffsets.clear();
+        coveringExpressionLengths.clear();
+        continue;
+      }
+      // cannot extract the name part of a property access
+      if (parent is PrefixedIdentifier && parent.identifier == node ||
+          parent is PropertyAccess && parent.propertyName == node) {
+        continue;
+      }
+      // stop if not an Expression
+      if (node is! Expression) {
+        break;
+      }
       // stop at void method invocations
       if (node is MethodInvocation) {
         MethodInvocation invocation = node;
@@ -248,19 +268,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           }
           break;
         }
-      }
-      // skip ArgumentList
-      if (node is ArgumentList) {
-        continue;
-      }
-      // skip AssignmentExpression
-      if (node is AssignmentExpression) {
-        continue;
-      }
-      // cannot extract the name part of a property access
-      if (parent is PrefixedIdentifier && parent.identifier == node ||
-          parent is PropertyAccess && parent.propertyName == node) {
-        continue;
       }
       // fatal selection problems
       if (coveringExpressionOffsets.isEmpty) {

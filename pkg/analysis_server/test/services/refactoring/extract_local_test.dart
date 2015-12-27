@@ -426,7 +426,21 @@ void foo(int x) {}
     expect(subExpressions, ['111', '111 + 222']);
   }
 
-  test_coveringExpressions_skipAssignments() async {
+  test_coveringExpressions_namedExpression_value() async {
+    indexTestUnit('''
+main() {
+  foo(ppp: 42);
+}
+int foo({int ppp: 0}) => ppp + 1;
+''');
+    _createRefactoring(testCode.indexOf('42'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['42', 'foo(ppp: 42)']);
+  }
+
+  test_coveringExpressions_skip_assignment() async {
     indexTestUnit('''
 main() {
   int v;
@@ -439,6 +453,80 @@ int foo(x) => 42;
     await refactoring.checkInitialConditions();
     List<String> subExpressions = _getCoveringExpressions();
     expect(subExpressions, ['111', '111 + 222', 'foo(v = 111 + 222)']);
+  }
+
+  test_coveringExpressions_skip_constructorName() async {
+    indexTestUnit('''
+class AAA {
+  AAA.name() {}
+}
+main() {
+  int v = new AAA.name();
+}
+''');
+    _createRefactoring(testCode.indexOf('AA.name();'), 5);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['new AAA.name()']);
+  }
+
+  test_coveringExpressions_skip_constructorName_name() async {
+    indexTestUnit('''
+class A {
+  A.name() {}
+}
+main() {
+  int v = new A.name();
+}
+''');
+    _createRefactoring(testCode.indexOf('ame();'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['new A.name()']);
+  }
+
+  test_coveringExpressions_skip_constructorName_type() async {
+    indexTestUnit('''
+class A {}
+main() {
+  int v = new A();
+}
+''');
+    _createRefactoring(testCode.indexOf('A();'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['new A()']);
+  }
+
+  test_coveringExpressions_skip_constructorName_typeArgument() async {
+    indexTestUnit('''
+class A<T> {}
+main() {
+  int v = new A<String>();
+}
+''');
+    _createRefactoring(testCode.indexOf('ring>'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['new A<String>()']);
+  }
+
+  test_coveringExpressions_skip_namedExpression() async {
+    indexTestUnit('''
+main() {
+  foo(ppp: 42);
+}
+int foo({int ppp: 0}) => ppp + 1;
+''');
+    _createRefactoring(testCode.indexOf('pp: 42'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['foo(ppp: 42)']);
   }
 
   test_fragmentExpression() {
