@@ -3278,6 +3278,48 @@ abstract class B extends A {
 ''');
   }
 
+  test_makeFieldNotFinal_hasType() async {
+    resolveTestUnit('''
+class A {
+  final int fff = 1;
+  main() {
+    fff = 2;
+  }
+}
+''');
+    await assertHasFix(
+        DartFixKind.MAKE_FIELD_NOT_FINAL,
+        '''
+class A {
+  int fff = 1;
+  main() {
+    fff = 2;
+  }
+}
+''');
+  }
+
+  test_makeFieldNotFinal_noType() async {
+    resolveTestUnit('''
+class A {
+  final fff = 1;
+  main() {
+    fff = 2;
+  }
+}
+''');
+    await assertHasFix(
+        DartFixKind.MAKE_FIELD_NOT_FINAL,
+        '''
+class A {
+  var fff = 1;
+  main() {
+    fff = 2;
+  }
+}
+''');
+  }
+
   test_noException_1() async {
     resolveTestUnit('''
 main(p) {

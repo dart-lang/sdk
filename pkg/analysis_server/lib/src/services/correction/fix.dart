@@ -169,6 +169,8 @@ class DartFixKind {
       const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
   static const REMOVE_DEAD_CODE =
       const FixKind('REMOVE_DEAD_CODE', 50, "Remove dead code");
+  static const MAKE_FIELD_NOT_FINAL =
+      const FixKind('MAKE_FIELD_NOT_FINAL', 50, "Make field '{0}' not final");
   static const REMOVE_PARAMETERS_IN_GETTER_DECLARATION = const FixKind(
       'REMOVE_PARAMETERS_IN_GETTER_DECLARATION',
       50,
