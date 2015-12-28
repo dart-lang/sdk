@@ -162,7 +162,8 @@ class TimelineEvent {
   }
 
   bool IsFinishedDuration() const {
-    return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
+    return (SerializedJSONIsDuration() || (event_type() == kDuration)) &&
+           (timestamp1_ > timestamp0_);
   }
 
   int64_t TimeOrigin() const;
@@ -238,7 +239,18 @@ class TimelineEvent {
     }
   }
 
+  bool Within(int64_t time_origin_micros,
+              int64_t time_extent_micros);
+
   const char* GetSerializedJSON() const;
+
+  void SetSerializedJSONIsDuration(bool duration) {
+    state_ = SerializedJSONIsDurationField::update(duration, state_);
+  }
+
+  bool SerializedJSONIsDuration() const {
+    return SerializedJSONIsDurationField::decode(state_);
+  }
 
  private:
   void FreeArguments();
@@ -263,10 +275,13 @@ class TimelineEvent {
 
   enum StateBits {
     kEventTypeBit = 0,  // reserve 4 bits for type.
-    kNextBit = 4,
+    kSerializedJSONIsDuration = 4,
+    kNextBit = 5,
   };
 
   class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
+  class SerializedJSONIsDurationField :
+      public BitField<bool, kSerializedJSONIsDuration, 1> {};
 
   int64_t timestamp0_;
   int64_t timestamp1_;
@@ -544,7 +559,13 @@ class TimelineEventFilter : public ValueObject {
     return event->IsValid();
   }
 
-  bool EventInTimeRange(TimelineEvent* event);
+  int64_t time_origin_micros() const {
+    return time_origin_micros_;
+  }
+
+  int64_t time_extent_micros() const {
+    return time_extent_micros_;
+  }
 
  private:
   int64_t time_origin_micros_;

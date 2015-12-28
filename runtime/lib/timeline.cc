@@ -125,6 +125,7 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
   }
   // json was allocated in the zone and a copy will be stored in event.
   event->SerializedJSON(json, start.AsInt64Value(), end.AsInt64Value());
+  event->SetSerializedJSONIsDuration(true);
   event->Complete();
 
   return Object::null();

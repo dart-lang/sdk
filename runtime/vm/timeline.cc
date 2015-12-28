@@ -382,6 +382,29 @@ void TimelineEvent::Init(EventType event_type,
 }
 
 
+bool TimelineEvent::Within(int64_t time_origin_micros,
+                           int64_t time_extent_micros) {
+  if ((time_origin_micros == -1) ||
+      (time_extent_micros == -1)) {
+    // No time range specified.
+    return true;
+  }
+  if (IsFinishedDuration()) {
+    // Event is from e_t0 to e_t1.
+    int64_t e_t0 = TimeOrigin();
+    int64_t e_t1 = TimeEnd();
+    ASSERT(e_t0 <= e_t1);
+    // Range is from r_t0 to r_t1.
+    int64_t r_t0 = time_origin_micros;
+    int64_t r_t1 = time_origin_micros + time_extent_micros;
+    ASSERT(r_t0 <= r_t1);
+    return !((r_t1 < e_t0) || (e_t1 < r_t0));
+  }
+  int64_t delta = TimeOrigin() - time_origin_micros;
+  return (delta >= 0) && (delta <= time_extent_micros);
+}
+
+
 const char* TimelineEvent::GetSerializedJSON() const {
   ASSERT(event_type() == kSerializedJSON);
   ASSERT(arguments_length_ == 1);
@@ -731,22 +754,6 @@ TimelineEventFilter::~TimelineEventFilter() {
 }
 
 
-bool TimelineEventFilter::EventInTimeRange(TimelineEvent* event) {
-  if (event == NULL) {
-    return false;
-  }
-  if ((time_origin_micros_ == -1) ||
-      (time_extent_micros_ == -1)) {
-    // No time filter applied.
-    return true;
-  }
-  // TODO(johnmccutchan): Some events span a range of time, check the range and
-  // not just the start time.
-  int64_t delta = event->TimeOrigin() - time_origin_micros_;
-  return (delta >= 0) && (delta <= time_extent_micros_);
-}
-
-
 IsolateTimelineEventFilter::IsolateTimelineEventFilter(
     Dart_Port isolate_id,
     int64_t time_origin_micros,
@@ -967,7 +974,9 @@ void TimelineEventRingRecorder::PrintJSONEvents(
     }
     for (intptr_t event_idx = 0; event_idx < block->length(); event_idx++) {
       TimelineEvent* event = block->At(event_idx);
-      if (filter->IncludeEvent(event) && filter->EventInTimeRange(event)) {
+      if (filter->IncludeEvent(event) &&
+          event->Within(filter->time_origin_micros(),
+                        filter->time_extent_micros())) {
         events->AddValue(event);
       }
     }
@@ -1159,7 +1168,9 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
     intptr_t length = current->length();
     for (intptr_t i = 0; i < length; i++) {
       TimelineEvent* event = current->At(i);
-      if (filter->IncludeEvent(event) && filter->EventInTimeRange(event)) {
+      if (filter->IncludeEvent(event) &&
+          event->Within(filter->time_origin_micros(),
+                        filter->time_extent_micros())) {
         events->AddValue(event);
       }
     }
