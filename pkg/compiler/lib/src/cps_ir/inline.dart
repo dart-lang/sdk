@@ -379,10 +379,8 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       // Add a null check to the inlined function body if necessary.  The
       // cached function body does not contain the null check.
       if (dartReceiver != null && abstractReceiver.isNullable) {
-        Primitive check =
-            _fragment.letPrim(new NullCheck(dartReceiver.definition,
-                invoke.sourceInformation));
-        check.type = abstractReceiver.nonNullable();
+        Primitive check = nullReceiverGuard(
+            invoke, _fragment, dartReceiver.definition, abstractReceiver);
         if (invoke.callingConvention == CallingConvention.Intercepted) {
           arguments[0] = check;
         } else {
@@ -454,6 +452,31 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     return _fragment.inlineFunction(function, receiver, arguments,
         hint: invoke.hint);
   }
+
+  Primitive nullReceiverGuard(InvocationPrimitive invoke,
+                              CpsFragment fragment,
+                              Primitive dartReceiver,
+                              TypeMask abstractReceiver) {
+    Selector selector = invoke is InvokeMethod ? invoke.selector : null;
+    if (typeSystem.isDefinitelyNum(abstractReceiver, allowNull: true)) {
+      Primitive condition = _fragment.letPrim(
+          new ApplyBuiltinOperator(BuiltinOperator.IsNotNumber,
+                                   <Primitive>[dartReceiver],
+                                   invoke.sourceInformation));
+      condition.type = typeSystem.boolType;
+      Primitive check = _fragment.letPrim(
+          new NullCheck.guarded(
+              condition, dartReceiver, selector, invoke.sourceInformation));
+      check.type = abstractReceiver.nonNullable();
+      return check;
+    }
+
+    Primitive check = _fragment.letPrim(
+        new NullCheck(dartReceiver, invoke.sourceInformation));
+    check.type = abstractReceiver.nonNullable();
+    return check;
+  }
+
 
   @override
   Primitive visitInvokeStatic(InvokeStatic node) {
