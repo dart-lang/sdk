@@ -57,7 +57,7 @@ DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
-DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
@@ -677,7 +677,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
                                  target_code);
   caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
-    OS::PrintErr("PatchStaticCall: patching caller pc %#" Px ""
+    THR_Print("PatchStaticCall: patching caller pc %#" Px ""
         " to '%s' new entry point %#" Px " (%s)\n",
         caller_frame->pc(),
         target_function.ToFullyQualifiedCString(),
@@ -1255,7 +1255,7 @@ static bool CanOptimizeFunction(const Function& function, Thread* thread) {
     return false;
   }
   if (function.deoptimization_counter() >=
-      FLAG_deoptimization_counter_threshold) {
+      FLAG_max_deoptimization_counter_threshold) {
     if (FLAG_trace_failed_optimization_attempts ||
         FLAG_stop_on_excessive_deoptimization) {
       OS::PrintErr("Too Many Deoptimizations: %s\n",
@@ -1707,6 +1707,9 @@ static void CopySavedRegisters(uword saved_registers_address,
 
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.
+// The calling code must be optimized, but its function may not have
+// have optimized code if the code is OSR code, or if the code was invalidated
+// through class loading/finalization or field guard.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                           2,
                           uword saved_registers_address,
@@ -1728,6 +1731,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(caller_frame != NULL);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(optimized_code.is_optimized());
+  const Function& top_function =
+      Function::Handle(thread->zone(), optimized_code.function());
+  const bool deoptimizing_code = top_function.HasOptimizedCode();
+  if (FLAG_trace_deoptimization) {
+    const Function& function = Function::Handle(optimized_code.function());
+    THR_Print("== Deoptimizing code for '%s', %s, %s\n",
+       function.ToFullyQualifiedCString(),
+       deoptimizing_code ? "code & frame" : "frame",
+       is_lazy_deopt ? "lazy-deopt" : "");
+  }
 
   // Copy the saved registers from the stack.
   fpu_register_t* fpu_registers;
@@ -1741,7 +1754,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                        DeoptContext::kDestIsOriginalFrame,
                        fpu_registers,
                        cpu_registers,
-                       is_lazy_deopt != 0);
+                       is_lazy_deopt != 0,
+                       deoptimizing_code);
   isolate->set_deopt_context(deopt_context);
 
   // Stack size (FP - SP) in bytes.

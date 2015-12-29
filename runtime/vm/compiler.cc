@@ -46,7 +46,7 @@ DEFINE_FLAG(bool, common_subexpression_elimination, true,
     "Do common subexpression elimination.");
 DEFINE_FLAG(bool, constant_propagation, true,
     "Do conditional constant propagation/unreachable code elimination.");
-DEFINE_FLAG(int, deoptimization_counter_threshold, 16,
+DEFINE_FLAG(int, max_deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
 DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
 DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
@@ -639,7 +639,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
           // Extract type feedback before the graph is built, as the graph
           // builder uses it to attach it to nodes.
           ASSERT(function.deoptimization_counter() <
-                 FLAG_deoptimization_counter_threshold);
+                 FLAG_max_deoptimization_counter_threshold);
 
           // 'Freeze' ICData in background compilation so that it does not
           // change while compiling.

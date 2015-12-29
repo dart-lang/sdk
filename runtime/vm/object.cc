@@ -7725,8 +7725,8 @@ class FieldDependentArray : public WeakCodeReferences {
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      THR_Print("Switching %s to unoptimized code because guard"
-                " on field %s was violated.\n",
+      THR_Print("Switching '%s' to unoptimized code because guard"
+                " on field '%s' was violated.\n",
                 function.ToFullyQualifiedCString(),
                 field_.ToCString());
     }

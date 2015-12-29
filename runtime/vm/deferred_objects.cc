@@ -173,16 +173,18 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   *reinterpret_cast<RawObject**>(dest_addr) = code.raw();
 
   if (FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("materializing pc marker at 0x%" Px ": %s, %s\n",
-                 reinterpret_cast<uword>(slot()), code.ToCString(),
-                 function.ToCString());
+    THR_Print("materializing pc marker at 0x%" Px ": %s, %s\n",
+        reinterpret_cast<uword>(slot()), code.ToCString(),
+        function.ToCString());
   }
 
   // Increment the deoptimization counter. This effectively increments each
   // function occurring in the optimized frame.
-  function.set_deoptimization_counter(function.deoptimization_counter() + 1);
+  if (deopt_context->deoptimizing_code()) {
+    function.set_deoptimization_counter(function.deoptimization_counter() + 1);
+  }
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("Deoptimizing %s (count %d)\n",
+    THR_Print("Deoptimizing '%s' (count %d)\n",
         function.ToFullyQualifiedCString(),
         function.deoptimization_counter());
   }

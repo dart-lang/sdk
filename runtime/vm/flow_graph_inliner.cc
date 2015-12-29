@@ -59,7 +59,7 @@ DEFINE_FLAG(bool, enable_inlining_annotations, false,
             "Enable inlining annotations");
 
 DECLARE_FLAG(bool, compiler_stats);
-DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -639,7 +639,7 @@ class CallSiteInliner : public ValueObject {
 
     // Abort if this function has deoptimized too much.
     if (function.deoptimization_counter() >=
-        FLAG_deoptimization_counter_threshold) {
+        FLAG_max_deoptimization_counter_threshold) {
       function.set_is_inlinable(false);
       TRACE_INLINING(THR_Print("     Bailout: deoptimization threshold\n"));
       PRINT_INLINING_TREE("Deoptimization threshold exceeded",
