@@ -328,8 +328,8 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     if (!statics.isEmpty) {
-      classBuilder.addPropertyByName(
-          'static',
+      classBuilder.addProperty(
+          namer.staticsPropertyName, // 'static' or its minified name.
           new jsAst.ObjectInitializer(statics, isOneLiner: false));
     }
 
