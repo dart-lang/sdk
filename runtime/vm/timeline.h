@@ -115,17 +115,23 @@ class TimelineEvent {
   }
 
   // Marks the beginning of an asynchronous operation with |async_id|.
-  void AsyncBegin(const char* label, int64_t async_id);
+  void AsyncBegin(const char* label,
+                  int64_t async_id,
+                  int64_t micros = OS::GetCurrentMonotonicMicros());
   // Marks an instantaneous event associated with |async_id|.
   void AsyncInstant(const char* label,
-                    int64_t async_id);
+                    int64_t async_id,
+                    int64_t micros = OS::GetCurrentMonotonicMicros());
   // Marks the end of an asynchronous operation associated with |async_id|.
   void AsyncEnd(const char* label,
-                int64_t async_id);
+                int64_t async_id,
+                int64_t micros = OS::GetCurrentMonotonicMicros());
 
-  void DurationBegin(const char* label);
-  void DurationEnd();
-  void Instant(const char* label);
+  void DurationBegin(const char* label,
+                     int64_t micros = OS::GetCurrentMonotonicMicros());
+  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicros());
+  void Instant(const char* label,
+               int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void Duration(const char* label,
                 int64_t start_micros,
@@ -137,9 +143,8 @@ class TimelineEvent {
   void End(const char* label,
            int64_t micros = OS::GetCurrentMonotonicMicros());
 
-  void SerializedJSON(const char* json,
-                      int64_t timestamp0,
-                      int64_t timestamp1);
+  // Completes this event with pre-serialized JSON. Copies |json|.
+  void CompleteWithPreSerializedJSON(const char* json);
 
   // Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
@@ -162,8 +167,7 @@ class TimelineEvent {
   }
 
   bool IsFinishedDuration() const {
-    return (SerializedJSONIsDuration() || (event_type() == kDuration)) &&
-           (timestamp1_ > timestamp0_);
+    return (event_type() == kDuration) && (timestamp1_ > timestamp0_);
   }
 
   int64_t TimeOrigin() const;
@@ -244,14 +248,6 @@ class TimelineEvent {
 
   const char* GetSerializedJSON() const;
 
-  void SetSerializedJSONIsDuration(bool duration) {
-    state_ = SerializedJSONIsDurationField::update(duration, state_);
-  }
-
-  bool SerializedJSONIsDuration() const {
-    return SerializedJSONIsDurationField::decode(state_);
-  }
-
  private:
   void FreeArguments();
 
@@ -273,15 +269,23 @@ class TimelineEvent {
     timestamp1_ = value;
   }
 
+  bool pre_serialized_json() const {
+    return PreSerializedJSON::decode(state_);
+  }
+
+  void set_pre_serialized_json(bool pre_serialized_json) {
+    state_ = PreSerializedJSON::update(pre_serialized_json, state_);
+  }
+
   enum StateBits {
     kEventTypeBit = 0,  // reserve 4 bits for type.
-    kSerializedJSONIsDuration = 4,
+    kPreSerializedJSON = 4,
     kNextBit = 5,
   };
 
   class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
-  class SerializedJSONIsDurationField :
-      public BitField<bool, kSerializedJSONIsDuration, 1> {};
+  class PreSerializedJSON :
+      public BitField<bool, kPreSerializedJSON, 1> {};
 
   int64_t timestamp0_;
   int64_t timestamp1_;

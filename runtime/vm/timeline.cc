@@ -200,47 +200,53 @@ void TimelineEvent::Reset() {
 }
 
 
-void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
+void TimelineEvent::AsyncBegin(const char* label,
+                               int64_t async_id,
+                               int64_t micros) {
   Init(kAsyncBegin, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
   set_timestamp1(async_id);
 }
 
 
 void TimelineEvent::AsyncInstant(const char* label,
-                                 int64_t async_id) {
+                                 int64_t async_id,
+                                 int64_t micros) {
   Init(kAsyncInstant, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
   set_timestamp1(async_id);
 }
 
 
 void TimelineEvent::AsyncEnd(const char* label,
-                             int64_t async_id) {
+                             int64_t async_id,
+                             int64_t micros) {
   Init(kAsyncEnd, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
   set_timestamp1(async_id);
 }
 
 
-void TimelineEvent::DurationBegin(const char* label) {
+void TimelineEvent::DurationBegin(const char* label,
+                                  int64_t micros) {
   Init(kDuration, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
 }
 
 
-void TimelineEvent::DurationEnd() {
+void TimelineEvent::DurationEnd(int64_t micros) {
   ASSERT(timestamp1_ == 0);
-  set_timestamp1(OS::GetCurrentMonotonicMicros());
+  set_timestamp1(micros);
 }
 
 
-void TimelineEvent::Instant(const char* label) {
+void TimelineEvent::Instant(const char* label,
+                            int64_t micros) {
   Init(kInstant, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
 }
 
 
@@ -267,14 +273,11 @@ void TimelineEvent::End(const char* label,
 }
 
 
-void TimelineEvent::SerializedJSON(const char* json,
-                                   int64_t timestamp0,
-                                   int64_t timestamp1) {
-  Init(kSerializedJSON, "Dart");
-  set_timestamp0(timestamp0);
-  set_timestamp1(timestamp1);
+void TimelineEvent::CompleteWithPreSerializedJSON(const char* json) {
+  set_pre_serialized_json(true);
   SetNumArguments(1);
   CopyArgument(0, "Dart", json);
+  Complete();
 }
 
 
@@ -406,7 +409,7 @@ bool TimelineEvent::Within(int64_t time_origin_micros,
 
 
 const char* TimelineEvent::GetSerializedJSON() const {
-  ASSERT(event_type() == kSerializedJSON);
+  ASSERT(pre_serialized_json());
   ASSERT(arguments_length_ == 1);
   ASSERT(arguments_ != NULL);
   return arguments_[0].value;
@@ -414,7 +417,7 @@ const char* TimelineEvent::GetSerializedJSON() const {
 
 
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
-  if (event_type() == kSerializedJSON) {
+  if (pre_serialized_json()) {
     // Event has already been serialized into JSON- just append the
     // raw data.
     stream->AppendSerializedObject(GetSerializedJSON());

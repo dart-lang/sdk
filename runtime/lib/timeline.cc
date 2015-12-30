@@ -49,8 +49,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
     return Object::null();
   }
 
-  if (!isolate->GetDartStream()->Enabled()) {
-    // Dart stream is not enabled for this isolate, do nothing.
+  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  if (event == NULL) {
+    // Stream was turned off.
     return Object::null();
   }
 
@@ -58,7 +59,13 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   int64_t tid = OSThread::ThreadIdToIntPtr(os_thread->trace_id());
-
+  // Convert phase to a C string and perform a sanity check.
+  const char* phase_string = phase.ToCString();
+  ASSERT(phase_string != NULL);
+  ASSERT((phase_string[0] == 'n') ||
+         (phase_string[0] == 'b') ||
+         (phase_string[0] == 'e'));
+  ASSERT(phase_string[1] == '\0');
   char* json = OS::SCreate(zone,
       "{\"name\":\"%s\",\"cat\":\"%s\",\"tid\":%" Pd64 ",\"pid\":%" Pd64 ","
       "\"ts\":%" Pd64 ",\"ph\":\"%s\",\"id\":%" Pd64 ", \"args\":%s}",
@@ -67,18 +74,26 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
       tid,
       pid,
       start.AsInt64Value(),
-      phase.ToCString(),
+      phase_string,
       id.AsInt64Value(),
       args.ToCString());
 
-  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
-  if (event == NULL) {
-    // Stream was turned off.
-    return Object::null();
+  switch (phase_string[0]) {
+    case 'n':
+      event->AsyncInstant("", id.AsInt64Value(), start.AsInt64Value());
+    break;
+    case 'b':
+      event->AsyncBegin("", id.AsInt64Value(), start.AsInt64Value());
+    break;
+    case 'e':
+      event->AsyncEnd("", id.AsInt64Value(), start.AsInt64Value());
+    break;
+    default:
+      UNREACHABLE();
   }
+
   // json was allocated in the zone and a copy will be stored in event.
-  event->SerializedJSON(json, start.AsInt64Value(), id.AsInt64Value());
-  event->Complete();
+  event->CompleteWithPreSerializedJSON(json);
 
   return Object::null();
 }
@@ -96,8 +111,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
     return Object::null();
   }
 
-  if (!isolate->GetDartStream()->Enabled()) {
-    // Dart stream is not enabled for this isolate, do nothing.
+  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  if (event == NULL) {
+    // Stream was turned off.
     return Object::null();
   }
 
@@ -118,15 +134,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
       duration,
       args.ToCString());
 
-  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
-  if (event == NULL) {
-    // Stream was turned off.
-    return Object::null();
-  }
+  event->Duration("", start.AsInt64Value(), end.AsInt64Value());
   // json was allocated in the zone and a copy will be stored in event.
-  event->SerializedJSON(json, start.AsInt64Value(), end.AsInt64Value());
-  event->SetSerializedJSONIsDuration(true);
-  event->Complete();
+  event->CompleteWithPreSerializedJSON(json);
 
   return Object::null();
 }
@@ -143,8 +153,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
     return Object::null();
   }
 
-  if (!isolate->GetDartStream()->Enabled()) {
-    // Dart stream is not enabled for this isolate, do nothing.
+  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
+  if (event == NULL) {
+    // Stream was turned off.
     return Object::null();
   }
 
@@ -163,14 +174,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
       start.AsInt64Value(),
       args.ToCString());
 
-  TimelineEvent* event = isolate->GetDartStream()->StartEvent();
-  if (event == NULL) {
-    // Stream was turned off.
-    return Object::null();
-  }
+  event->Instant("", start.AsInt64Value());
   // json was allocated in the zone and a copy will be stored in event.
-  event->SerializedJSON(json, start.AsInt64Value(), 0);
-  event->Complete();
+  event->CompleteWithPreSerializedJSON(json);
 
   return Object::null();
 }
