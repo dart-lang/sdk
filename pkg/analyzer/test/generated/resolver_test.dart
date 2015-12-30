@@ -201,8 +201,8 @@ class AnalysisContextFactory {
         'onValue', futureThenR, [futureElement.typeParameters[0]], null);
 
     DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
-    MethodElementImpl thenMethod = ElementFactory.methodElementWithParameters(
-        futureElement, "then", futureRType, [
+    MethodElementImpl thenMethod = ElementFactory
+        .methodElementWithParameters(futureElement, "then", futureRType, [
       ElementFactory.requiredParameter2("onValue", thenOnValue.type),
       ElementFactory.namedParameter2("onError", provider.functionType)
     ]);
@@ -291,8 +291,8 @@ class AnalysisContextFactory {
     ClassElementImpl htmlDocumentElement =
         ElementFactory.classElement("HtmlDocument", documentElement.type);
     htmlDocumentElement.methods = <MethodElement>[
-      ElementFactory.methodElement(
-          "query", elementType, <DartType>[provider.stringType])
+      ElementFactory
+          .methodElement("query", elementType, <DartType>[provider.stringType])
     ];
     htmlUnit.types = <ClassElement>[
       ElementFactory.classElement("AnchorElement", elementType),
@@ -312,8 +312,8 @@ class AnalysisContextFactory {
       ElementFactory.functionElement3("query", elementElement,
           <ClassElement>[provider.stringType.element], ClassElement.EMPTY_LIST)
     ];
-    TopLevelVariableElementImpl document = ElementFactory
-        .topLevelVariableElement3(
+    TopLevelVariableElementImpl document =
+        ElementFactory.topLevelVariableElement3(
             "document", false, true, htmlDocumentElement.type);
     htmlUnit.topLevelVariables = <TopLevelVariableElement>[document];
     htmlUnit.accessors = <PropertyAccessorElement>[document.getter];
@@ -5153,7 +5153,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_getter_method() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I2, I1 {}
@@ -5176,7 +5177,8 @@ class InheritanceManagerTest {
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_int_str() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I1, I2 {}
@@ -5186,8 +5188,8 @@ class InheritanceManagerTest {
         ElementFactory.methodElement(methodName, null, [_typeProvider.intType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
-    MethodElement methodM2 = ElementFactory.methodElement(
-        methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM2 = ElementFactory
+        .methodElement(methodName, null, [_typeProvider.stringType]);
     classI2.methods = <MethodElement>[methodM2];
     ClassElementImpl classA = ElementFactory.classElement2("A");
     classA.interfaces = <InterfaceType>[classI1.type, classI2.type];
@@ -5199,7 +5201,8 @@ class InheritanceManagerTest {
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_method_getter() {
     // class I1 { int m(); }
     // class I2 { int get m; }
     // class A implements I1, I2 {}
@@ -5222,7 +5225,8 @@ class InheritanceManagerTest {
         [StaticWarningCode.INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD]);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_numOfRequiredParams() {
     // class I1 { dynamic m(int, [int]); }
     // class I2 { dynamic m(int, int, int); }
     // class A implements I1, I2 {}
@@ -5271,14 +5275,15 @@ class InheritanceManagerTest {
         classA, [StaticTypeWarningCode.INCONSISTENT_METHOD_INHERITANCE]);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_inconsistentMethodInheritance_str_int() {
     // class I1 { int m(); }
     // class I2 { String m(); }
     // class A implements I2, I1 {}
     ClassElementImpl classI1 = ElementFactory.classElement2("I1");
     String methodName = "m";
-    MethodElement methodM1 = ElementFactory.methodElement(
-        methodName, null, [_typeProvider.stringType]);
+    MethodElement methodM1 = ElementFactory
+        .methodElement(methodName, null, [_typeProvider.stringType]);
     classI1.methods = <MethodElement>[methodM1];
     ClassElementImpl classI2 = ElementFactory.classElement2("I2");
     MethodElement methodM2 =
@@ -5380,7 +5385,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_getters() {
     // class I1 { int get g; }
     // class I2 { num get g; }
     // class A implements I1, I2 {}
@@ -5404,7 +5410,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_methods() {
     // class I1 { dynamic m(int); }
     // class I2 { dynamic m(num); }
     // class A implements I1, I2 {}
@@ -5438,7 +5445,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_2_setters() {
     // class I1 { set s(int); }
     // class I2 { set s(num); }
     // class A implements I1, I2 {}
@@ -5463,7 +5471,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_getters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5502,7 +5511,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classD);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_methods() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5556,7 +5566,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classD);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_multipleSubtypes_3_setters() {
     // class A {}
     // class B extends A {}
     // class C extends B {}
@@ -5596,7 +5607,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classD);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_2_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class A implements I1, I2 {}
@@ -5623,7 +5635,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_3_methods() {
     // class I1 { int m(); }
     // class I2 { int m([int]); }
     // class I3 { int m([int, int]); }
@@ -5668,7 +5681,8 @@ class InheritanceManagerTest {
     _assertNoErrors(classA);
   }
 
-  void test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
+  void
+      test_getMapOfMembersInheritedFromInterfaces_union_oneSubtype_4_methods() {
     // class I1 { int m(); }
     // class I2 { int m(); }
     // class I3 { int m([int]); }
@@ -9370,7 +9384,9 @@ const A = null;
     expect(declarations, hasLength(2));
     Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
         .variables
-        .variables[0].name.staticElement;
+        .variables[0]
+        .name
+        .staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
         PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -9561,7 +9577,9 @@ const A = null;
     expect(declarations, hasLength(2));
     Element expectedElement = (declarations[0] as TopLevelVariableDeclaration)
         .variables
-        .variables[0].name.staticElement;
+        .variables[0]
+        .name
+        .staticElement;
     EngineTestCase.assertInstanceOf((obj) => obj is PropertyInducingElement,
         PropertyInducingElement, expectedElement);
     expectedElement = (expectedElement as PropertyInducingElement).getter;
@@ -11782,19 +11800,27 @@ int f() {
 @reflectiveTest
 class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   TypeAssertions _assertions;
-  AsserterBuilder<Element, DartType> _hasElement;
-  AsserterBuilder<DartType, DartType> _isType;
-  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
-      DartType> _isFunction2Of;
-  AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>,
-      DartType> _isInstantiationOf;
+
+  Asserter<DartType> _isDynamic;
+  Asserter<InterfaceType> _isFutureOfDynamic;
+  Asserter<InterfaceType> _isFutureOfInt;
   Asserter<DartType> _isInt;
   Asserter<DartType> _isNum;
   Asserter<DartType> _isString;
-  Asserter<DartType> _isDynamic;
+
+  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, DartType>
+      _isFunction2Of;
+  AsserterBuilder<List<Asserter<DartType>>, InterfaceType> _isFutureOf;
+  AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>, DartType>
+      _isInstantiationOf;
   AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
-  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>,
-      InterfaceType> _isMapOf;
+  AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, InterfaceType>
+      _isMapOf;
+  AsserterBuilder<List<Asserter<DartType>>, InterfaceType> _isStreamOf;
+  AsserterBuilder<DartType, DartType> _isType;
+
+  AsserterBuilder<Element, DartType> _hasElement;
+  AsserterBuilder<DartType, DartType> _sameElement;
 
   @override
   void setUp() {
@@ -11812,6 +11838,187 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     _isListOf = _assertions.isListOf;
     _isMapOf = _assertions.isMapOf;
     _isFunction2Of = _assertions.isFunction2Of;
+    _sameElement = _assertions.sameElement;
+    _isFutureOf = _isInstantiationOf(_sameElement(typeProvider.futureType));
+    _isFutureOfDynamic = _isFutureOf([_isDynamic]);
+    _isFutureOfInt = _isFutureOf([_isInt]);
+    _isStreamOf = _isInstantiationOf(_sameElement(typeProvider.streamType));
+  }
+
+  void test_async_method_propagation() {
+    String code = r'''
+      import "dart:async";
+      class A {
+        Future f0() => new Future.value(3);
+        Future f1() async => new Future.value(3);
+        Future f2() async => await new Future.value(3);
+
+        Future<int> f3() => new Future.value(3);
+        Future<int> f4() async => new Future.value(3);
+        Future<int> f5() async => await new Future.value(3);
+
+        Future g0() { return new Future.value(3); }
+        Future g1() async { return new Future.value(3); }
+        Future g2() async { return await new Future.value(3); }
+
+        Future<int> g3() { return new Future.value(3); }
+        Future<int> g4() async { return new Future.value(3); }
+        Future<int> g5() async { return await new Future.value(3); }
+      }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    void check(String name, Asserter<InterfaceType> typeTest) {
+      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
+      FunctionBody body = test.body;
+      Expression returnExp;
+      if (body is ExpressionFunctionBody) {
+        returnExp = body.expression;
+      } else {
+        ReturnStatement stmt = (body as BlockFunctionBody).block.statements[0];
+        returnExp = stmt.expression;
+      }
+      DartType type = returnExp.staticType;
+      if (returnExp is AwaitExpression) {
+        type = returnExp.expression.staticType;
+      }
+      typeTest(type);
+    }
+
+    check("f0", _isFutureOfDynamic);
+    check("f1", _isFutureOfDynamic);
+    check("f2", _isFutureOfDynamic);
+
+    check("f3", _isFutureOfInt);
+    // This should be int when we handle the implicit Future<T> | T union
+    // https://github.com/dart-lang/sdk/issues/25322
+    check("f4", _isFutureOfDynamic);
+    check("f5", _isFutureOfInt);
+
+    check("g0", _isFutureOfDynamic);
+    check("g1", _isFutureOfDynamic);
+    check("g2", _isFutureOfDynamic);
+
+    check("g3", _isFutureOfInt);
+    // This should be int when we handle the implicit Future<T> | T union
+    // https://github.com/dart-lang/sdk/issues/25322
+    check("g4", _isFutureOfDynamic);
+    check("g5", _isFutureOfInt);
+  }
+
+  void test_async_propagation() {
+    String code = r'''
+      import "dart:async";
+
+      Future f0() => new Future.value(3);
+      Future f1() async => new Future.value(3);
+      Future f2() async => await new Future.value(3);
+
+      Future<int> f3() => new Future.value(3);
+      Future<int> f4() async => new Future.value(3);
+      Future<int> f5() async => await new Future.value(3);
+
+      Future g0() { return new Future.value(3); }
+      Future g1() async { return new Future.value(3); }
+      Future g2() async { return await new Future.value(3); }
+
+      Future<int> g3() { return new Future.value(3); }
+      Future<int> g4() async { return new Future.value(3); }
+      Future<int> g5() async { return await new Future.value(3); }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    void check(String name, Asserter<InterfaceType> typeTest) {
+      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
+      FunctionBody body = test.functionExpression.body;
+      Expression returnExp;
+      if (body is ExpressionFunctionBody) {
+        returnExp = body.expression;
+      } else {
+        ReturnStatement stmt = (body as BlockFunctionBody).block.statements[0];
+        returnExp = stmt.expression;
+      }
+      DartType type = returnExp.staticType;
+      if (returnExp is AwaitExpression) {
+        type = returnExp.expression.staticType;
+      }
+      typeTest(type);
+    }
+
+    check("f0", _isFutureOfDynamic);
+    check("f1", _isFutureOfDynamic);
+    check("f2", _isFutureOfDynamic);
+
+    check("f3", _isFutureOfInt);
+    // This should be int when we handle the implicit Future<T> | T union
+    // https://github.com/dart-lang/sdk/issues/25322
+    check("f4", _isFutureOfDynamic);
+    check("f5", _isFutureOfInt);
+
+    check("g0", _isFutureOfDynamic);
+    check("g1", _isFutureOfDynamic);
+    check("g2", _isFutureOfDynamic);
+
+    check("g3", _isFutureOfInt);
+    // This should be int when we handle the implicit Future<T> | T union
+    // https://github.com/dart-lang/sdk/issues/25322
+    check("g4", _isFutureOfDynamic);
+    check("g5", _isFutureOfInt);
+  }
+
+  void test_async_star_method_propagation() {
+    String code = r'''
+      import "dart:async";
+      class A {
+        Stream g0() async* { yield []; }
+        Stream g1() async* { yield* new Stream(); }
+
+        Stream<List<int>> g2() async* { yield []; }
+        Stream<List<int>> g3() async* { yield* new Stream(); }
+      }
+    ''';
+    CompilationUnit unit = resolveSource(code);
+
+    void check(String name, Asserter<InterfaceType> typeTest) {
+      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
+      BlockFunctionBody body = test.body;
+      YieldStatement stmt = body.block.statements[0];
+      Expression exp = stmt.expression;
+      typeTest(exp.staticType);
+    }
+
+    check("g0", _isListOf(_isDynamic));
+    check("g1", _isStreamOf([_isDynamic]));
+
+    check("g2", _isListOf(_isInt));
+    check("g3", _isStreamOf([_isListOf(_isInt)]));
+  }
+
+  void test_async_star_propagation() {
+    String code = r'''
+      import "dart:async";
+
+      Stream g0() async* { yield []; }
+      Stream g1() async* { yield* new Stream(); }
+
+      Stream<List<int>> g2() async* { yield []; }
+      Stream<List<int>> g3() async* { yield* new Stream(); }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    void check(String name, Asserter<InterfaceType> typeTest) {
+      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
+      BlockFunctionBody body = test.functionExpression.body;
+      YieldStatement stmt = body.block.statements[0];
+      Expression exp = stmt.expression;
+      typeTest(exp.staticType);
+    }
+
+    check("g0", _isListOf(_isDynamic));
+    check("g1", _isStreamOf([_isDynamic]));
+
+    check("g2", _isListOf(_isInt));
+    check("g3", _isStreamOf([_isListOf(_isInt)]));
   }
 
   void test_cascadeExpression() {
@@ -12750,6 +12957,61 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     SuperConstructorInvocation invocation = constructor.initializers[0];
     Expression exp = invocation.argumentList.arguments[0];
     _isListOf(_isString)(exp.staticType);
+  }
+
+  void test_sync_star_method_propagation() {
+    String code = r'''
+      import "dart:async";
+      class A {
+        Iterable f0() sync* { yield []; }
+        Iterable f1() sync* { yield* new List(); }
+
+        Iterable<List<int>> f2() sync* { yield []; }
+        Iterable<List<int>> f3() sync* { yield* new List(); }
+      }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    void check(String name, Asserter<InterfaceType> typeTest) {
+      MethodDeclaration test = AstFinder.getMethodInClass(unit, "A", name);
+      BlockFunctionBody body = test.body;
+      YieldStatement stmt = body.block.statements[0];
+      Expression exp = stmt.expression;
+      typeTest(exp.staticType);
+    }
+
+    check("f0", _isListOf(_isDynamic));
+    check("f1", _isListOf(_isDynamic));
+
+    check("f2", _isListOf(_isInt));
+    check("f3", _isListOf(_isListOf(_isInt)));
+  }
+
+  void test_sync_star_propagation() {
+    String code = r'''
+      import "dart:async";
+
+      Iterable f0() sync* { yield []; }
+      Iterable f1() sync* { yield* new List(); }
+
+      Iterable<List<int>> f2() sync* { yield []; }
+      Iterable<List<int>> f3() sync* { yield* new List(); }
+   ''';
+    CompilationUnit unit = resolveSource(code);
+
+    void check(String name, Asserter<InterfaceType> typeTest) {
+      FunctionDeclaration test = AstFinder.getTopLevelFunction(unit, name);
+      BlockFunctionBody body = test.functionExpression.body;
+      YieldStatement stmt = body.block.statements[0];
+      Expression exp = stmt.expression;
+      typeTest(exp.staticType);
+    }
+
+    check("f0", _isListOf(_isDynamic));
+    check("f1", _isListOf(_isDynamic));
+
+    check("f2", _isListOf(_isInt));
+    check("f3", _isListOf(_isListOf(_isInt)));
   }
 }
 
@@ -14025,7 +14287,8 @@ class B extends A {
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
-  void test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
+  void
+      test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
     addNamedSource(
         "/lib.dart",
         r'''
@@ -14244,7 +14507,8 @@ f(MyMap<int, String> m) {
     expect(vParameter.identifier.propagatedType, same(stringType));
   }
 
-  void test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
+  void
+      test_functionExpression_asInvocationArgument_functionExpressionInvocation() {
     String code = r'''
 main() {
   (f(String value)) {} ((v) {
