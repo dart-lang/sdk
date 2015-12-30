@@ -107,10 +107,16 @@ void ThreadPool::Shutdown() {
     while (current != NULL) {
       Worker* next = current->all_next_;
       ThreadId currentId = current->id();
-      if (currentId != id) {
+      ASSERT(id != currentId);
+      if (currentId == OSThread::kInvalidThreadId) {
+        // If the thread id is invalid, it means the thread never started
+        // because OSThread creation was disabled. Destroy the Task and Worker.
+        delete current->task_;
+        delete current;
+      } else {
         AddWorkerToShutdownList(current);
+        current->Shutdown();
       }
-      current->Shutdown();
       current = next;
     }
     saved = NULL;
@@ -258,6 +264,7 @@ bool ThreadPool::ReleaseIdleWorker(Worker* worker) {
 
 // Only call while holding the exit_monitor_
 void ThreadPool::AddWorkerToShutdownList(Worker* worker) {
+  ASSERT(exit_monitor_.IsOwnedByCurrentThread());
   worker->shutdown_next_ = shutting_down_workers_;
   shutting_down_workers_ = worker;
 }
@@ -267,6 +274,7 @@ void ThreadPool::AddWorkerToShutdownList(Worker* worker) {
 bool ThreadPool::RemoveWorkerFromShutdownList(Worker* worker) {
   ASSERT(worker != NULL);
   ASSERT(shutting_down_workers_ != NULL);
+  ASSERT(exit_monitor_.IsOwnedByCurrentThread());
 
   // Special case head of list.
   if (shutting_down_workers_ == worker) {

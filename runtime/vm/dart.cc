@@ -222,10 +222,6 @@ const char* Dart::Cleanup() {
     return "VM already terminated.";
   }
 
-  // Disable creation of any new OSThread structures which means no more new
-  // threads can do an EnterIsolate.
-  OSThread::DisableOSThreadCreation();
-
   // Shut down profiling.
   Profiler::Shutdown();
 
@@ -252,6 +248,11 @@ const char* Dart::Cleanup() {
     // before shutting down the thread pool.
     WaitForIsolateShutdown();
 
+    // Disable creation of any new OSThread structures which means no more new
+    // threads can do an EnterIsolate. This must come after isolate shutdown
+    // because new threads may need to be spawned to shutdown the isolates.
+    OSThread::DisableOSThreadCreation();
+
     // Shutdown the thread pool. On return, all thread pool threads have exited.
     delete thread_pool_;
     thread_pool_ = NULL;
@@ -276,6 +277,9 @@ const char* Dart::Cleanup() {
   } else {
     // Shutdown the service isolate.
     ServiceIsolate::Shutdown();
+
+    // Disable thread creation.
+    OSThread::DisableOSThreadCreation();
   }
 
   CodeObservers::DeleteAll();

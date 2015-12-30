@@ -36,14 +36,18 @@ OSThread::OSThread() :
 
 
 OSThread* OSThread::CreateOSThread() {
-  ASSERT(thread_list_lock_ != NULL);
-  MutexLocker ml(thread_list_lock_);
-  if (!creation_enabled_) {
+  if (thread_list_lock_ == NULL) {
     return NULL;
   }
-  OSThread* os_thread = new OSThread();
-  AddThreadToListLocked(os_thread);
-  return os_thread;
+  {
+    MutexLocker ml(thread_list_lock_);
+    if (!creation_enabled_) {
+      return NULL;
+    }
+    OSThread* os_thread = new OSThread();
+    AddThreadToListLocked(os_thread);
+    return os_thread;
+  }
 }
 
 
