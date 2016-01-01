@@ -5,8 +5,11 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_OPENBSD)
 
+#include <errno.h>
+
 #include "vm/flags.h"
 #include "vm/os.h"
+#include "vm/profiler.h"
 #include "vm/signal_handler.h"
 #include "vm/thread_interrupter.h"
 
@@ -26,32 +29,25 @@ class ThreadInterrupterOpenBSD : public AllStatic {
     if (thread == NULL) {
       return;
     }
-    ThreadInterruptCallback callback = NULL;
-    void* callback_data = NULL;
-    if (!thread->IsThreadInterrupterEnabled(&callback, &callback_data)) {
-      return;
-    }
     // Extract thread state.
     mcontext_t mcontext = reinterpret_cast<mcontext_t &>(context_);
     InterruptedThreadState its;
-    its.tid = thread->id();
     its.pc = SignalHandler::GetProgramCounter(mcontext);
     its.fp = SignalHandler::GetFramePointer(mcontext);
     its.csp = SignalHandler::GetCStackPointer(mcontext);
     its.dsp = SignalHandler::GetDartStackPointer(mcontext);
     its.lr = SignalHandler::GetLinkRegister(mcontext);
-    callback(its, callback_data);
+    Profiler::SampleThread(thread, its);
   }
 };
 
-
-void ThreadInterrupter::InterruptThread(Thread* thread) {
+void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter interrupting %p\n",
               reinterpret_cast<void*>(thread->id()));
   }
   int result = pthread_kill(thread->id(), SIGPROF);
-  ASSERT(result == 0);
+  ASSERT((result == 0) || (result == ESRCH));
 }
 
 
