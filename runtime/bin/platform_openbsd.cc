@@ -79,6 +79,10 @@ char* Platform::ResolveExecutablePath() {
   return File::LinkTarget("/proc/self/exe");
 }
 
+void Platform::Exit(int exit_code) {
+  exit(exit_code);
+}
+  
 }  // namespace bin
 }  // namespace dart
 
