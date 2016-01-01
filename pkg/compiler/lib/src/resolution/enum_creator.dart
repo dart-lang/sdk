@@ -4,7 +4,9 @@
 
 library dart2js.resolution.enum_creator;
 
-import '../compiler.dart';
+import '../common.dart';
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
@@ -178,19 +180,22 @@ class AstBuilder {
   }
 }
 
+// TODO(johnniwinther): Avoid creating synthesized ASTs for enums when SSA is
+// removed.
 class EnumCreator {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
+  final CoreTypes coreTypes;
   final EnumClassElementX enumClass;
 
-  EnumCreator(this.compiler, this.enumClass);
+  EnumCreator(this.reporter, this.coreTypes, this.enumClass);
 
   void createMembers() {
     Enum node = enumClass.node;
     InterfaceType enumType = enumClass.thisType;
     AstBuilder builder = new AstBuilder(enumClass.position.charOffset);
 
-    InterfaceType intType = compiler.intClass.computeType(compiler);
-    InterfaceType stringType = compiler.stringClass.computeType(compiler);
+    InterfaceType intType = coreTypes.intType;
+    InterfaceType stringType = coreTypes.stringType;
 
     EnumFieldElementX addInstanceMember(String name, InterfaceType type) {
       Identifier identifier = builder.identifier(name);
@@ -199,7 +204,7 @@ class EnumCreator {
       variableList.type = type;
       EnumFieldElementX variable = new EnumFieldElementX(
           identifier, enumClass, variableList, identifier);
-      enumClass.addMember(variable, compiler);
+      enumClass.addMember(variable, reporter);
       return variable;
     }
 
@@ -229,8 +234,8 @@ class EnumCreator {
         requiredParameterCount: 1,
         type: new FunctionType(constructor, const VoidType(),
             <DartType>[intType]));
-    constructor.functionSignatureCache = constructorSignature;
-    enumClass.addMember(constructor, compiler);
+    constructor.functionSignature = constructorSignature;
+    enumClass.addMember(constructor, reporter);
 
     List<FieldElement> enumValues = <FieldElement>[];
     VariableList variableList =
@@ -262,14 +267,13 @@ class EnumCreator {
       EnumFieldElementX field = new EnumFieldElementX(
           name, enumClass, variableList, definition, initializer);
       enumValues.add(field);
-      enumClass.addMember(field, compiler);
+      enumClass.addMember(field, reporter);
       index++;
     }
 
     VariableList valuesVariableList =
         new VariableList(builder.modifiers(isStatic: true, isConst: true));
-    InterfaceType listType = compiler.listClass.computeType(compiler);
-    valuesVariableList.type = listType.createInstantiation([enumType]);
+    valuesVariableList.type = coreTypes.listType(enumType);
 
     Identifier valuesIdentifier = builder.identifier('values');
     // TODO(johnniwinther): Add type argument.
@@ -282,7 +286,7 @@ class EnumCreator {
         valuesIdentifier, enumClass, valuesVariableList,
         definition, initializer);
 
-    enumClass.addMember(valuesVariable, compiler);
+    enumClass.addMember(valuesVariable, reporter);
 
     // TODO(johnniwinther): Support return type. Note `String` might be prefixed
     // or not imported within the current library.
@@ -301,8 +305,8 @@ class EnumCreator {
         enumClass, Modifiers.EMPTY, toStringNode);
     FunctionSignatureX toStringSignature = new FunctionSignatureX(
         type: new FunctionType(toString, stringType));
-    toString.functionSignatureCache = toStringSignature;
-    enumClass.addMember(toString, compiler);
+    toString.functionSignature = toStringSignature;
+    enumClass.addMember(toString, reporter);
 
     enumClass.enumValues = enumValues;
   }

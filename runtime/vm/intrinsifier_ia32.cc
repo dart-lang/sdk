@@ -33,6 +33,7 @@ DECLARE_FLAG(bool, interpret_irregexp);
 // The ECX, EDX registers can be destroyed only if there is no slow-path, i.e.
 // if the intrinsified method always executes a return.
 // The EBP register should not be modified, because it is used by the profiler.
+// The THR register (see constants_ia32.h) must be preserved.
 
 #define __ assembler->
 
@@ -76,7 +77,7 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
     // Check if it's dynamic.
     // Get type at index 0.
     __ movl(EAX, FieldAddress(EBX, TypeArguments::type_at_offset(0)));
-    __ CompareObject(EAX, Type::ZoneHandle(Type::DynamicType()));
+    __ CompareObject(EAX, Object::dynamic_type());
     __ j(EQUAL,  &checked_ok, Assembler::kNearJump);
     // Check for int and num.
     __ testl(EDI, Immediate(kSmiTagMask));  // Value is Smi?
@@ -1737,6 +1738,12 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   __ ret();
 
   __ Bind(&fall_through);
+}
+
+
+// bool _substringMatches(int start, String other)
+void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
+  // For precompilation, not implemented on IA32.
 }
 
 

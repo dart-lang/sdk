@@ -5,21 +5,22 @@
 // Patch file for dart:core classes.
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
-import 'dart:_js_helper' show patch,
+import 'dart:_js_helper' show checkInt,
+                              Closure,
+                              ConstantMap,
+                              getRuntimeType,
+                              JsLinkedHashMap,
+                              jsonEncodeNative,
+                              JSSyntaxRegExp,
+                              NoInline,
+                              objectHashCode,
+                              patch,
                               patch_full,
                               patch_lazy,
                               patch_startup,
-                              checkInt,
-                              getRuntimeType,
-                              jsonEncodeNative,
-                              JSSyntaxRegExp,
                               Primitives,
-                              ConstantMap,
-                              stringJoinUnchecked,
-                              objectHashCode,
-                              Closure,
                               readHttp,
-                              JsLinkedHashMap;
+                              stringJoinUnchecked;
 
 import 'dart:_foreign_helper' show JS;
 
@@ -185,6 +186,18 @@ class Error {
 @patch
 class DateTime {
   @patch
+  DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
+                                      {bool isUtc: false})
+      : this._withValue(millisecondsSinceEpoch, isUtc: isUtc);
+
+  @patch
+  DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
+                                      {bool isUtc: false})
+      : this._withValue(
+          _microsecondInRoundedMilliseconds(microsecondsSinceEpoch),
+          isUtc: isUtc);
+
+  @patch
   DateTime._internal(int year,
                      int month,
                      int day,
@@ -192,26 +205,38 @@ class DateTime {
                      int minute,
                      int second,
                      int millisecond,
+                     int microsecond,
                      bool isUtc)
         // checkBool is manually inlined here because dart2js doesn't inline it
         // and [isUtc] is usually a constant.
       : this.isUtc = isUtc is bool
             ? isUtc
             : throw new ArgumentError.value(isUtc, 'isUtc'),
-        millisecondsSinceEpoch = checkInt(Primitives.valueFromDecomposedDate(
-            year, month, day, hour, minute, second, millisecond, isUtc));
+        _value = checkInt(Primitives.valueFromDecomposedDate(
+            year, month, day, hour, minute, second,
+            millisecond + _microsecondInRoundedMilliseconds(microsecond),
+            isUtc));
 
   @patch
   DateTime._now()
       : isUtc = false,
-        millisecondsSinceEpoch = Primitives.dateNow();
+        _value = Primitives.dateNow();
+
+  /// Rounds the given [microsecond] to the nearest milliseconds value.
+  ///
+  /// For example, invoked with argument `2600` returns `3`.
+  static int _microsecondInRoundedMilliseconds(int microsecond) {
+    return (microsecond / 1000).round();
+  }
 
   @patch
-  static int _brokenDownDateToMillisecondsSinceEpoch(
+  static int _brokenDownDateToValue(
       int year, int month, int day, int hour, int minute, int second,
-      int millisecond, bool isUtc) {
+      int millisecond, int microsecond, bool isUtc) {
     return Primitives.valueFromDecomposedDate(
-        year, month, day, hour, minute, second, millisecond, isUtc);
+        year, month, day, hour, minute, second,
+        millisecond + _microsecondInRoundedMilliseconds(microsecond),
+        isUtc);
   }
 
   @patch
@@ -225,6 +250,29 @@ class DateTime {
     if (isUtc) return new Duration();
     return new Duration(minutes: Primitives.getTimeZoneOffsetInMinutes(this));
   }
+
+  @patch
+  DateTime add(Duration duration) {
+    return new DateTime._withValue(
+        _value + duration.inMilliseconds, isUtc: isUtc);
+  }
+
+  @patch
+  DateTime subtract(Duration duration) {
+    return new DateTime._withValue(
+        _value - duration.inMilliseconds, isUtc: isUtc);
+  }
+
+  @patch
+  Duration difference(DateTime other) {
+    return new Duration(milliseconds: _value - other._value);
+  }
+
+  @patch
+  int get millisecondsSinceEpoch => _value;
+
+  @patch
+  int get microsecondsSinceEpoch => _value * 1000;
 
   @patch
   int get year => Primitives.getYear(this);
@@ -246,6 +294,9 @@ class DateTime {
 
   @patch
   int get millisecond => Primitives.getMilliseconds(this);
+
+  @patch
+  int get microsecond => 0;
 
   @patch
   int get weekday => Primitives.getWeekday(this);
@@ -281,8 +332,9 @@ class List<E> {
   }
 
   @patch
-  factory List.filled(int length, E fill) {
-    List result = new JSArray<E>.fixed(length);
+  factory List.filled(int length, E fill, {bool growable: false}) {
+    List result = growable ? new JSArray<E>.growable(length)
+                           : new JSArray<E>.fixed(length);
     if (length != 0 && fill != null) {
       for (int i = 0; i < result.length; i++) {
         result[i] = fill;
@@ -527,6 +579,47 @@ class Uri {
     if (uri != null) return Uri.parse(uri);
     throw new UnsupportedError("'Uri.base' is not supported");
   }
+
+
+  // Matches a String that _uriEncodes to itself regardless of the kind of
+  // component.  This corresponds to [_unreservedTable], i.e. characters that
+  // are not encoded by any encoding table.
+  static final RegExp _needsNoEncoding = new RegExp(r'^[\-\.0-9A-Z_a-z~]*$');
+
+  /**
+   * This is the internal implementation of JavaScript's encodeURI function.
+   * It encodes all characters in the string [text] except for those
+   * that appear in [canonicalTable], and returns the escaped string.
+   */
+  @patch
+  static String _uriEncode(List<int> canonicalTable,
+                           String text,
+                           Encoding encoding,
+                           bool spaceToPlus) {
+    if (identical(encoding, UTF8) && _needsNoEncoding.hasMatch(text)) {
+      return text;
+    }
+
+    // Encode the string into bytes then generate an ASCII only string
+    // by percent encoding selected bytes.
+    StringBuffer result = new StringBuffer();
+    var bytes = encoding.encode(text);
+    for (int i = 0; i < bytes.length; i++) {
+      int byte = bytes[i];
+      if (byte < 128 &&
+          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+        result.writeCharCode(byte);
+      } else if (spaceToPlus && byte == _SPACE) {
+        result.write('+');
+      } else {
+        const String hexDigits = '0123456789ABCDEF';
+        result.write('%');
+        result.write(hexDigits[(byte >> 4) & 0x0f]);
+        result.write(hexDigits[byte & 0x0f]);
+      }
+    }
+    return result.toString();
+  }
 }
 
 @patch
@@ -627,5 +720,26 @@ class _Resource implements Resource {
       throw new StateError(
           "Unable to read Resource, data could not be decoded");
     });
+  }
+}
+
+@patch
+class StackTrace {
+  @patch
+  @NoInline()
+  static StackTrace get current {
+    var error = JS('', 'new Error()');
+    var stack = JS('String|Null', '#.stack', error);
+    if (stack is String) return new StackTrace.fromString(stack);
+    if (JS('', 'Error.captureStackTrace') != null) {
+      JS('void', 'Error.captureStackTrace(#)', error);
+      var stack = JS('String|Null', '#.stack', error);
+      if (stack is String) return new StackTrace.fromString(stack);
+    }
+    try {
+      throw 0;
+    } catch (_, stackTrace) {
+      return stackTrace;
+    }
   }
 }

@@ -51,6 +51,20 @@
       padding: 8px;
     }
   </style>
+  <link rel="stylesheet" href="../../../../packages/charted/charts/themes/quantum_theme.css">
+  <style>
+.chart-wrapper {
+}
+
+.chart-host-wrapper {
+height: 200px;
+}
+.chart-legend-host {
+max-height: 200px;
+overflow-x: auto;
+overflow-y: auto;
+}
+  </style>
   <nav-bar>
     <top-nav-menu></top-nav-menu>
     <vm-nav-menu vm="{{ profile.isolate.vm }}"></vm-nav-menu>
@@ -115,7 +129,13 @@
             <div class="memberValue">{{ isolate.newSpace.averageCollectionPeriodInMillis.toStringAsFixed(2) }} ms</div>
           </div>
         </div>
-        <div id="newPieChart" style="height: 300px"></div>
+        <br>
+        <div class="chart-wrapper" id="new-pie-chart">
+          <div class="chart-host-wrapper">
+              <div class="chart-legend-host"></div>
+              <div class="chart-host"></div>
+          </div>
+        </div>
       </div>
       <div id="oldSpace" class="flex-item-50-percent">
         <h2>Old Generation</h2>
@@ -152,7 +172,13 @@
             <div class="memberValue">{{ isolate.oldSpace.averageCollectionPeriodInMillis.toStringAsFixed(2) }} ms</div>
           </div>
         </div>
-        <div id="oldPieChart" style="height: 300px"></div>
+        <br>
+        <div class="chart-wrapper" id="old-pie-chart">
+          <div class="chart-host-wrapper">
+              <div class="chart-host"></div>
+              <div class="chart-legend-host"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

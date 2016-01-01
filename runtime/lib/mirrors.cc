@@ -91,8 +91,7 @@ static void EnsureConstructorsAreCompiled(const Function& func) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, func.Owner());
-  const Error& error = Error::Handle(
-      zone, cls.EnsureIsFinalized(thread->isolate()));
+  const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -279,6 +278,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
   kind_flags |= ((is_ctor && func.is_redirecting())
                  << Mirrors::kRedirectingCtor);
   kind_flags |= ((is_ctor && func.IsFactory()) << Mirrors::kFactoryCtor);
+  kind_flags |= (func.is_external() << Mirrors::kExternal);
   args.SetAt(5, Smi::Handle(Smi::New(kind_flags)));
 
   return CreateMirror(Symbols::_LocalMethodMirror(), args);
@@ -345,7 +345,7 @@ static RawInstance* CreateClassMirror(const Class& cls,
     }
   }
 
-  const Error& error = Error::Handle(cls.EnsureIsFinalized(Isolate::Current()));
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(Thread::Current()));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
@@ -382,9 +382,17 @@ static RawInstance* CreateLibraryMirror(const Library& lib) {
   str = lib.name();
   args.SetAt(1, str);
   str = lib.url();
-  if (str.Equals("dart:_builtin") || str.Equals("dart:_blink")) {
-    // Censored library (grumble).
-    return Instance::null();
+  const char* censored_libraries[] = {
+    "dart:_builtin",
+    "dart:_blink",
+    "dart:_vmservice",
+    NULL,
+  };
+  for (intptr_t i = 0; censored_libraries[i] != NULL; i++) {
+    if (str.Equals(censored_libraries[i])) {
+      // Censored library (grumble).
+      return Instance::null();
+    }
   }
   if (str.Equals("dart:io")) {
     // Hack around dart:io being loaded into non-service isolates in Dartium.
@@ -573,10 +581,11 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
 
 
 static RawInstance* CreateIsolateMirror() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   const String& debug_name = String::Handle(String::New(isolate->name()));
-  const Library& root_library =
-      Library::Handle(isolate, isolate->object_store()->root_library());
+  const Library& root_library = Library::Handle(thread->zone(),
+      isolate->object_store()->root_library());
   const Instance& root_library_mirror =
       Instance::Handle(CreateLibraryMirror(root_library));
 
@@ -589,11 +598,12 @@ static RawInstance* CreateIsolateMirror() {
 
 static void VerifyMethodKindShifts() {
 #ifdef DEBUG
-  Isolate* isolate = Isolate::Current();
-  const Library& lib = Library::Handle(isolate, Library::MirrorsLibrary());
-  const Class& cls = Class::Handle(isolate,
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Library& lib = Library::Handle(zone, Library::MirrorsLibrary());
+  const Class& cls = Class::Handle(zone,
       lib.LookupClassAllowPrivate(Symbols::_LocalMethodMirror()));
-  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
 
   Field& field = Field::Handle();
@@ -788,13 +798,13 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
 
 DEFINE_NATIVE_ENTRY(MirrorSystem_libraries, 0) {
   const GrowableObjectArray& libraries = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
+      zone, isolate->object_store()->libraries());
 
   const intptr_t num_libraries = libraries.Length();
   const GrowableObjectArray& library_mirrors = GrowableObjectArray::Handle(
-      isolate, GrowableObjectArray::New(num_libraries));
-  Library& library = Library::Handle(isolate);
-  Instance& library_mirror = Instance::Handle(isolate);
+      zone, GrowableObjectArray::New(num_libraries));
+  Library& library = Library::Handle(zone);
+  Instance& library_mirror = Instance::Handle(zone);
 
   for (int i = 0; i < num_libraries; i++) {
     library ^= libraries.At(i);
@@ -977,7 +987,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
     UNREACHABLE();
   }
   const Class& cls = Class::Handle(type.type_class());
-  const Error& error = Error::Handle(cls.EnsureIsFinalized(isolate));
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -994,7 +1004,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
     UNREACHABLE();
   }
   const Class& cls = Class::Handle(type.type_class());
-  const Error& error = Error::Handle(cls.EnsureIsFinalized(isolate));
+  const Error& error = Error::Handle(cls.EnsureIsFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -1059,7 +1069,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_members, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(2));
   const Class& klass = Class::Handle(ref.GetClassReferent());
 
-  const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
+  const Error& error = Error::Handle(klass.EnsureIsFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -1110,7 +1120,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_constructors, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(2));
   const Class& klass = Class::Handle(ref.GetClassReferent());
 
-  const Error& error = Error::Handle(klass.EnsureIsFinalized(isolate));
+  const Error& error = Error::Handle(klass.EnsureIsFinalized(thread));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -1196,6 +1206,11 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 2) {
 DEFINE_NATIVE_ENTRY(ClassMirror_type_variables, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(0));
   const Class& klass = Class::Handle(ref.GetClassReferent());
+  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
   return CreateTypeVariableList(klass);
 }
 
@@ -1219,7 +1234,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_type_arguments, 1) {
   // arguments have been provided, or all arguments are dynamic. Return a list
   // of typemirrors on dynamic in this case.
   if (args.IsNull()) {
-    arg_type ^= Object::dynamic_type();
+    arg_type ^= Object::dynamic_type().raw();
     type_mirror ^= CreateTypeMirror(arg_type);
     for (intptr_t i = 0; i < num_params; i++) {
       result.SetAt(i, type_mirror);
@@ -2014,8 +2029,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     token_pos = cls.token_pos();
   } else if (decl.IsField()) {
     const Field& field = Field::Cast(decl);
-    const Class& owner = Class::Handle(field.owner());
-    script = owner.script();
+    script = field.script();
     token_pos = field.token_pos();
   } else if (decl.IsTypeParameter()) {
     const TypeParameter& type_var = TypeParameter::Cast(decl);

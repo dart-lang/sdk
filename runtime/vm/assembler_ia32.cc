@@ -96,8 +96,13 @@ void Assembler::pushl(const Address& address) {
 
 void Assembler::pushl(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x68);
-  EmitImmediate(imm);
+  if (imm.is_int8()) {
+    EmitUint8(0x6A);
+    EmitUint8(imm.value() & 0xFF);
+  } else {
+    EmitUint8(0x68);
+    EmitImmediate(imm);
+  }
 }
 
 
@@ -2158,6 +2163,7 @@ void Assembler::LoadIsolate(Register dst) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2171,6 +2177,7 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 
 void Assembler::LoadObjectSafely(Register dst, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (Assembler::IsSafe(object)) {
     LoadObject(dst, object);
   } else {
@@ -2182,6 +2189,7 @@ void Assembler::LoadObjectSafely(Register dst, const Object& object) {
 
 
 void Assembler::PushObject(const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2195,6 +2203,7 @@ void Assembler::PushObject(const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2366,7 +2375,7 @@ void Assembler::StoreIntoObject(Register object,
   if (object != EDX) {
     movl(EDX, object);
   }
-  Call(*StubCode::UpdateStoreBuffer_entry());
+  call(Address(THR, Thread::update_store_buffer_entry_point_offset()));
   if (value != EDX) {
     popl(EDX);  // Restore EDX.
   }
@@ -2393,6 +2402,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::UnverifiedStoreOldObject(const Address& dest,
                                          const Object& value) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   ASSERT(value.IsOld());
   ASSERT(!value.InVMHeap());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2406,6 +2416,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value,
                                          FieldContent old_content) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   VerifyHeapWord(dest, old_content);
   if (value.IsSmi() || value.InVMHeap()) {
     Immediate imm_value(reinterpret_cast<int32_t>(value.raw()));
@@ -2565,6 +2576,7 @@ static const intptr_t kNumberOfVolatileXmmRegisters =
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
 
   // Preserve volatile CPU registers.
@@ -2622,8 +2634,9 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 
 
 void Assembler::Call(const StubEntry& stub_entry) {
-  const ExternalLabel label(stub_entry.EntryPoint());
-  call(&label);
+  const Code& target = Code::ZoneHandle(stub_entry.code());
+  LoadObject(CODE_REG, target);
+  call(FieldAddress(CODE_REG, Code::entry_point_offset()));
 }
 
 
@@ -2869,18 +2882,19 @@ void Assembler::TryAllocateArray(intptr_t cid,
 }
 
 
+void Assembler::PushCodeObject() {
+  ASSERT(code_.IsNotTemporaryScopedHandle());
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x68);
+  buffer_.EmitObject(code_);
+}
+
+
 void Assembler::EnterDartFrame(intptr_t frame_size) {
   EnterFrame(0);
-  Label dart_entry;
-  call(&dart_entry);
-  Bind(&dart_entry);
-  // The runtime system assumes that the code marker address is
-  // kEntryPointToPcMarkerOffset bytes from the entry.  If there is any code
-  // generated before entering the frame, the address needs to be adjusted.
-  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
-  if (offset != 0) {
-    addl(Address(ESP, 0), Immediate(offset));
-  }
+
+  PushCodeObject();
+
   if (frame_size != 0) {
     subl(ESP, Immediate(frame_size));
   }
@@ -2889,8 +2903,7 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 
 // On entry to a function compiled for OSR, the caller's frame pointer, the
 // stack locals, and any copied parameters are already in place.  The frame
-// pointer is already set up.  The PC marker is not correct for the
-// optimized function and there may be extra space for spill slots to
+// pointer is already set up. There may be extra space for spill slots to
 // allocate.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
   Comment("EnterOsrFrame");
@@ -2898,17 +2911,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
     Comment("PrologueOffset = %" Pd "", CodeSize());
     prologue_offset_ = CodeSize();
   }
-  Label dart_entry;
-  call(&dart_entry);
-  Bind(&dart_entry);
-  // The runtime system assumes that the code marker address is
-  // kEntryPointToPcMarkerOffset bytes from the entry.  Since there is no
-  // code to set up the frame pointer, the address needs to be adjusted.
-  const intptr_t offset = EntryPointToPcMarkerOffset() - CodeSize();
-  if (offset != 0) {
-    addl(Address(ESP, 0), Immediate(offset));
-  }
-  popl(Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+
   if (extra_size != 0) {
     subl(ESP, Immediate(extra_size));
   }
@@ -2916,8 +2919,7 @@ void Assembler::EnterOsrFrame(intptr_t extra_size) {
 
 
 void Assembler::EnterStubFrame() {
-  EnterFrame(0);
-  pushl(Immediate(0));  // Push 0 in the saved PC area for stub frames.
+  EnterDartFrame(0);
 }
 
 

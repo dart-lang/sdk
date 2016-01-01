@@ -803,6 +803,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_SET,
                     element: 'field(o)',
                     rhs: '42')),
+    const Test.prefix(
+        '''
+        ''',
+        'm() { p = 42; }',
+        const Visit(VisitKind.ERROR_INVALID_SET,
+                    error: MessageKind.PREFIX_AS_EXPRESSION,
+                    rhs: '42')),
     const Test(
         '''
         final o = 0;
@@ -850,6 +857,13 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() { p.o(null, 42); }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_INVOKE,
                     element: 'field(o)',
+                    arguments: '(null,42)')),
+    const Test.prefix(
+        '''
+        ''',
+        'm() { p(null, 42); }',
+        const Visit(VisitKind.ERROR_INVALID_INVOKE,
+                    error: MessageKind.PREFIX_AS_EXPRESSION,
                     arguments: '(null,42)')),
     const Test(
         '''
@@ -1742,19 +1756,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
     // Assert
     const Test(
         '''
-        m() { assert(false); }
+        m() { assert(m()); }
         ''',
-        const Visit(VisitKind.VISIT_ASSERT, expression: 'false')),
-    const Test(
-        '''
-        m() { assert(); }
-        ''',
-        const Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: '()')),
-    const Test(
-        '''
-        m() { assert(42, true); }
-        ''',
-        const Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: '(42,true)')),
+        const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_INVOKE,
+                    element: 'function(m)',
+                    arguments: '()')),
   ],
   'Logical and': const [
     // Logical and
@@ -2422,6 +2428,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     error: MessageKind.NO_INSTANCE_AVAILABLE,
                     operator: '+=',
                     rhs: '42')),
+    const Test.prefix(
+        '''
+        ''',
+        '''
+        m() { p += 42; }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_COMPOUND,
+                    error: MessageKind.PREFIX_AS_EXPRESSION,
+                    operator: '+=',
+                    rhs: '42')),
     const Test(
         '''
         class C {
@@ -2941,6 +2957,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.ERROR_INVALID_PREFIX,
                     error: MessageKind.NO_INSTANCE_AVAILABLE,
                     operator: '++')),
+    const Test.prefix(
+        '''
+        ''',
+        '''
+        m() { ++p; }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_PREFIX,
+                    error: MessageKind.PREFIX_AS_EXPRESSION,
+                    operator: '++')),
     const Test(
         '''
         class C {
@@ -3325,6 +3350,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.ERROR_INVALID_POSTFIX,
                     error: MessageKind.NO_INSTANCE_AVAILABLE,
+                    operator: '--')),
+    const Test.prefix(
+        '''
+        ''',
+        '''
+        m() { p--; }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_POSTFIX,
+                    error: MessageKind.PREFIX_AS_EXPRESSION,
                     operator: '--')),
     const Test(
         '''
@@ -3723,7 +3757,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(VisitKind.VISIT_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3736,7 +3770,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3750,7 +3784,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class<double>(true, 42);
         ''',
         const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class<double>',
             target: 'generative_constructor(Class#b)',
@@ -3766,7 +3800,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class<double>(true, 42);
         ''',
         const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class<double>',
             target: 'generative_constructor(Class#b)',
@@ -3782,7 +3816,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3797,7 +3831,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class<double>',
             selector: 'CallStructure(arity=2)')),
@@ -3838,7 +3872,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3851,7 +3885,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3865,7 +3899,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -3881,7 +3915,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(
             VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-            element: 'function(Class#)',
+            element: 'factory_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
@@ -4129,6 +4163,15 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
                     error: MessageKind.NO_INSTANCE_AVAILABLE,
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        ''',
+        '''
+        m() { p ??= 42; }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_SET_IF_NULL,
+                    error: MessageKind.PREFIX_AS_EXPRESSION,
                     rhs: '42')),
     const Test(
         '''

@@ -4,13 +4,19 @@
 
 library dart2js.constant_system.js;
 
-import '../compiler.dart' show Compiler;
+import '../compiler.dart' show
+    Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../constant_system_dart.dart';
+import '../core_types.dart' show
+    CoreTypes;
 import '../dart_types.dart';
-import '../elements/elements.dart' show ClassElement;
-import '../tree/tree.dart' show DartString, LiteralDartString;
+import '../elements/elements.dart' show
+    ClassElement;
+import '../tree/tree.dart' show
+    DartString,
+    LiteralDartString;
 import 'js_backend.dart';
 
 const JAVA_SCRIPT_CONSTANT_SYSTEM = const JavaScriptConstantSystem();
@@ -263,7 +269,8 @@ class JavaScriptConstantSystem extends ConstantSystem {
   @override
   ConstantValue createType(Compiler compiler, DartType type) {
     return new TypeConstantValue(
-        type, compiler.backend.typeImplementation.computeType(compiler));
+        type,
+        compiler.backend.typeImplementation.computeType(compiler.resolution));
   }
 
   // Integer checks don't verify that the number is not -0.0.
@@ -290,6 +297,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
                              List<ConstantValue> keys,
                              List<ConstantValue> values) {
     JavaScriptBackend backend = compiler.backend;
+    CoreTypes coreTypes = compiler.coreTypes;
 
     bool onlyStringKeys = true;
     ConstantValue protoValue = null;
@@ -310,18 +318,17 @@ class JavaScriptConstantSystem extends ConstantSystem {
     bool hasProtoKey = (protoValue != null);
     DartType keysType;
     if (sourceType.treatAsRaw) {
-      keysType = compiler.listClass.rawType;
+      keysType = coreTypes.listType();
     } else {
-      List<DartType> arguments = <DartType>[sourceType.typeArguments.first];
-      keysType = new InterfaceType(compiler.listClass, arguments);
+      keysType = coreTypes.listType(sourceType.typeArguments.first);
     }
     ListConstantValue keysList = new ListConstantValue(keysType, keys);
     String className = onlyStringKeys
         ? (hasProtoKey ? JavaScriptMapConstant.DART_PROTO_CLASS
                        : JavaScriptMapConstant.DART_STRING_CLASS)
         : JavaScriptMapConstant.DART_GENERAL_CLASS;
-    ClassElement classElement = backend.jsHelperLibrary.find(className);
-    classElement.ensureResolved(compiler);
+    ClassElement classElement = backend.helpers.jsHelperLibrary.find(className);
+    classElement.ensureResolved(compiler.resolution);
     List<DartType> typeArgument = sourceType.typeArguments;
     InterfaceType type;
     if (sourceType.treatAsRaw) {
@@ -348,7 +355,7 @@ class JavaScriptMapConstant extends MapConstantValue {
   static const String DART_STRING_CLASS = "ConstantStringMap";
   static const String DART_PROTO_CLASS = "ConstantProtoMap";
   static const String DART_GENERAL_CLASS = "GeneralConstantMap";
-  static const String LENGTH_NAME = "length";
+  static const String LENGTH_NAME = "_length";
   static const String JS_OBJECT_NAME = "_jsObject";
   static const String KEYS_NAME = "_keys";
   static const String PROTO_VALUE = "_protoValue";

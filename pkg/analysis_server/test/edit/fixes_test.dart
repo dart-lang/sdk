@@ -6,9 +6,9 @@ library test.edit.fixes;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
@@ -33,14 +33,14 @@ class FixesTest extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server);
   }
 
-  Future test_fixUndefinedClass() async {
+  test_fixUndefinedClass() async {
     addTestFile('''
 main() {
   Future<String> x = null;
 }
 ''');
     await waitForTasksFinished();
-    List<AnalysisErrorFixes> errorFixes = _getFixesAt('Future<String>');
+    List<AnalysisErrorFixes> errorFixes = await _getFixesAt('Future<String>');
     expect(errorFixes, hasLength(1));
     AnalysisError error = errorFixes[0].error;
     expect(error.severity, AnalysisErrorSeverity.WARNING);
@@ -51,7 +51,7 @@ main() {
     expect(fixes[1].message, matches('Create class'));
   }
 
-  Future test_hasFixes() async {
+  test_hasFixes() async {
     addTestFile('''
 foo() {
   print(1)
@@ -63,20 +63,20 @@ bar() {
     await waitForTasksFinished();
     // print(1)
     {
-      List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
+      List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(1)');
       expect(errorFixes, hasLength(1));
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
     }
     // print(10)
     {
-      List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(10)');
+      List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(10)');
       expect(errorFixes, hasLength(2));
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
       _isSyntacticErrorWithSingleFix(errorFixes[1]);
     }
   }
 
-  Future test_overlayOnlyFile() async {
+  test_overlayOnlyFile() async {
     // add an overlay-only file
     {
       testCode = '''
@@ -92,21 +92,21 @@ main() {
     }
     // ask for fixes
     await waitForTasksFinished();
-    List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
+    List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(1)');
     expect(errorFixes, hasLength(1));
     _isSyntacticErrorWithSingleFix(errorFixes[0]);
   }
 
-  List<AnalysisErrorFixes> _getFixes(int offset) {
+  Future<List<AnalysisErrorFixes>> _getFixes(int offset) async {
     Request request = new EditGetFixesParams(testFile, offset).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    Response response = await waitResponse(request);
     var result = new EditGetFixesResult.fromResponse(response);
     return result.fixes;
   }
 
-  List<AnalysisErrorFixes> _getFixesAt(String search) {
+  Future<List<AnalysisErrorFixes>> _getFixesAt(String search) async {
     int offset = findOffset(search);
-    return _getFixes(offset);
+    return await _getFixes(offset);
   }
 
   void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {

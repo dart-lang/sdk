@@ -4,7 +4,7 @@
 
 /**
  * Support for interoperating with JavaScript.
- * 
+ *
  * This library provides access to JavaScript objects from Dart, allowing
  * Dart code to get and set properties, and call methods of JavaScript objects
  * and invoke JavaScript functions. The library takes care of converting
@@ -27,14 +27,14 @@
  * global function `alert()`:
  *
  *     import 'dart:js';
- *     
+ *
  *     main() => context.callMethod('alert', ['Hello from Dart!']);
  *
  * This example shows how to create a [JsObject] from a JavaScript constructor
  * and access its properties:
  *
  *     import 'dart:js';
- *     
+ *
  *     main() {
  *       var object = new JsObject(context['Object']);
  *       object['greeting'] = 'Hello';
@@ -44,7 +44,7 @@
  *     }
  *
  * ## Proxying and automatic conversion
- * 
+ *
  * When setting properties on a JsObject or passing arguments to a Javascript
  * method or function, Dart objects are automatically converted or proxied to
  * JavaScript objects. When accessing JavaScript properties, or when a Dart
@@ -80,7 +80,7 @@
  * `a` and `b` defined:
  *
  *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
- * 
+ *
  * This expression creates a JavaScript array:
  *
  *     var jsArray = new JsObject.jsify([1, 2, 3]);
@@ -91,17 +91,23 @@ import 'dart:collection' show ListMixin;
 import 'dart:nativewrappers';
 import 'dart:math' as math;
 import 'dart:mirrors' as mirrors;
+import 'dart:html' as html;
+import 'dart:html_common' as html_common;
+import 'dart:indexed_db' as indexed_db;
+import 'dart:typed_data';
 
 // Pretend we are always in checked mode as we aren't interested in users
 // running Dartium code outside of checked mode.
+@Deprecated("Internal Use Only")
 final bool CHECK_JS_INVOCATIONS = true;
 
 final _allowedMethods = new Map<Symbol, _DeclarationSet>();
 final _allowedGetters = new Map<Symbol, _DeclarationSet>();
 final _allowedSetters = new Map<Symbol, _DeclarationSet>();
 
-final _jsInterfaceTypes = new Set<Type>();
-Iterable<Type> get jsInterfaceTypes => _jsInterfaceTypes;
+final _jsInterfaceTypes = new Set<mirrors.ClassMirror>();
+@Deprecated("Internal Use Only")
+Iterable<mirrors.ClassMirror> get jsInterfaceTypes => _jsInterfaceTypes;
 
 /// A collection of methods where all methods have the same name.
 /// This class is intended to optimize whether a specific invocation is
@@ -203,12 +209,13 @@ class _DeclarationSet {
  * Temporary method that we hope to remove at some point. This method should
  * generally only be called by machine generated code.
  */
-void registerJsInterfaces(List<Type> classes) {
-  if (_finalized == true) {
-    throw 'JSInterop class registration already finalized';
-  }
+@Deprecated("Internal Use Only")
+void registerJsInterfaces([List<Type> classes]) {
+  // This method is now obsolete in Dartium.
+}
+
+void _registerJsInterfaces(List<Type> classes) {
   for (Type type in classes) {
-    if (!_jsInterfaceTypes.add(type)) continue; // Already registered.
     mirrors.ClassMirror typeMirror = mirrors.reflectType(type);
     typeMirror.declarations.forEach((symbol, declaration) {
       if (declaration is mirrors.MethodMirror ||
@@ -251,20 +258,394 @@ void registerJsInterfaces(List<Type> classes) {
 
 _finalizeJsInterfaces() native "Js_finalizeJsInterfaces";
 
+String _getJsName(mirrors.DeclarationMirror mirror) {
+  for (var annotation in mirror.metadata) {
+    if (mirrors.MirrorSystem.getName(annotation.type.simpleName) == "JS") {
+      mirrors.LibraryMirror library = annotation.type.owner;
+      var uri = library.uri;
+      // make sure the annotation is from package://js
+      if (uri.scheme == 'package' && uri.path == 'js/js.dart') {
+        try {
+          var name = annotation.reflectee.name;
+          return name != null ? name : "";
+        } catch (e) {}
+      }
+    }
+  }
+  return null;
+}
+
+bool _isAnonymousClass(mirrors.ClassMirror mirror) {
+  for (var annotation in mirror.metadata) {
+    if (mirrors.MirrorSystem.getName(annotation.type.simpleName) ==
+        "_Anonymous") {
+      mirrors.LibraryMirror library = annotation.type.owner;
+      var uri = library.uri;
+      // make sure the annotation is from package://js
+      if (uri.scheme == 'package' && uri.path == 'js/js.dart') {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool _hasJsName(mirrors.DeclarationMirror mirror) => _getJsName(mirror) != null;
+
+_getJsMemberName(mirrors.DeclarationMirror mirror) {
+  var name = _getJsName(mirror);
+  return name == null || name.isEmpty ? _getDeclarationName(mirror) : name;
+}
+
+// TODO(jacobr): handle setters correctyl.
+String _getDeclarationName(mirrors.DeclarationMirror declaration) {
+  var name = mirrors.MirrorSystem.getName(declaration.simpleName);
+  if (declaration is mirrors.MethodMirror && declaration.isSetter) {
+    assert(name.endsWith("="));
+    name = name.substring(0, name.length - 1);
+  }
+  return name;
+}
+
+final _JS_LIBRARY_PREFIX = "js_library";
+final _UNDEFINED_VAR = "_UNDEFINED_JS_CONST";
+
+String _accessJsPath(String path) => _accessJsPathHelper(path.split("."));
+
+String _accessJsPathHelper(Iterable<String> parts) {
+  var sb = new StringBuffer();
+  sb
+    ..write('${_JS_LIBRARY_PREFIX}.JsNative.getProperty(' * parts.length)
+    ..write("${_JS_LIBRARY_PREFIX}.context");
+  for (var p in parts) {
+    sb.write(", '$p')");
+  }
+  return sb.toString();
+}
+
+String _accessJsPathSetter(String path) {
+  var parts = path.split(".");
+  return "${_JS_LIBRARY_PREFIX}.JsNative.setProperty(${_accessJsPathHelper(parts.getRange(0, parts.length - 1))
+      }, '${parts.last}', v)";
+}
+
+@Deprecated("Internal Use Only")
+void addMemberHelper(
+    mirrors.MethodMirror declaration, String path, StringBuffer sb,
+    {bool isStatic: false, String memberName}) {
+  if (!declaration.isConstructor) {
+    var jsName = _getJsMemberName(declaration);
+    path = (path != null && path.isNotEmpty) ? "${path}.${jsName}" : jsName;
+  }
+  var name = memberName != null ? memberName : _getDeclarationName(declaration);
+  if (declaration.isConstructor) {
+    sb.write("factory");
+  } else if (isStatic) {
+    sb.write("static");
+  } else {
+    sb.write("patch");
+  }
+  sb.write(" ");
+  if (declaration.isGetter) {
+    sb.write("get $name => ${_JS_LIBRARY_PREFIX}.maybeWrapTypedInterop(${_accessJsPath(path)});");
+  } else if (declaration.isSetter) {
+    sb.write("set $name(v) => ${_JS_LIBRARY_PREFIX}.maybeWrapTypedInterop(${_accessJsPathSetter(path)});");
+  } else {
+    sb.write("$name(");
+    bool hasOptional = false;
+    int i = 0;
+    var args = <String>[];
+    for (var p in declaration.parameters) {
+      assert(!p.isNamed); // XXX throw
+      assert(!p.hasDefaultValue);
+      if (i > 0) {
+        sb.write(", ");
+      }
+      if (p.isOptional && !hasOptional) {
+        sb.write("[");
+        hasOptional = true;
+      }
+      var arg = "p$i";
+      args.add(arg);
+      sb.write(arg);
+      if (p.isOptional) {
+        sb.write("=${_UNDEFINED_VAR}");
+      }
+      i++;
+    }
+    if (hasOptional) {
+      sb.write("]");
+    }
+    // TODO(jacobr):
+    sb.write(") => ");
+    sb.write('${_JS_LIBRARY_PREFIX}.maybeWrapTypedInterop(');
+    if (declaration.isConstructor) {
+      sb.write("new ${_JS_LIBRARY_PREFIX}.JsObject(");
+    }
+    sb
+      ..write(_accessJsPath(path))
+      ..write(declaration.isConstructor ? "," : ".apply(")
+      ..write("[${args.join(",")}]");
+
+    if (hasOptional) {
+      sb.write(".takeWhile((i) => i != ${_UNDEFINED_VAR}).toList()");
+    }
+    sb.write("));");
+  }
+  sb.write("\n");
+}
+
+bool _isExternal(mirrors.MethodMirror mirror) {
+  // This try-catch block is a workaround for BUG:24834.
+  try {
+    return mirror.isExternal;
+  } catch (e) { }
+  return false;
+}
+
+List<String> _generateExternalMethods() {
+  var staticCodegen = <String>[];
+  mirrors.currentMirrorSystem().libraries.forEach((uri, library) {
+    var sb = new StringBuffer();
+    String jsLibraryName = _getJsName(library);
+    library.declarations.forEach((name, declaration) {
+      if (declaration is mirrors.MethodMirror) {
+        if ((_hasJsName(declaration) || jsLibraryName != null) &&
+            _isExternal(declaration)) {
+          addMemberHelper(declaration, jsLibraryName, sb);
+        }
+      } else if (declaration is mirrors.ClassMirror) {
+        mirrors.ClassMirror clazz = declaration;
+        if (_hasJsName(clazz)) {
+          // TODO(jacobr): verify class implements JavaScriptObject.
+          String jsClassName = _getJsMemberName(clazz);
+          var className = mirrors.MirrorSystem.getName(clazz.simpleName);
+          var sbPatch = new StringBuffer();
+          jsInterfaceTypes.add(clazz);
+          clazz.declarations.forEach((name, declaration) {
+            if (declaration is! mirrors.MethodMirror ||
+                !_isExternal(declaration)) return;
+            if (declaration.isFactoryConstructor && _isAnonymousClass(clazz)) {
+              sbPatch.write("  factory ${className}(");
+              int i = 0;
+              var args = <String>[];
+              for (var p in declaration.parameters) {
+                args.add(mirrors.MirrorSystem.getName(p.simpleName));
+                i++;
+              }
+              if (args.isNotEmpty) {
+                sbPatch
+                  ..write('{')
+                  ..write(
+                      args.map((name) => '$name:${_UNDEFINED_VAR}').join(", "))
+                  ..write('}');
+              }
+              sbPatch.write(") {\n"
+                    "    var ret = new ${_JS_LIBRARY_PREFIX}.JsObject.jsify({});\n");
+              i = 0;
+              for (var p in declaration.parameters) {
+                assert(p.isNamed); // XXX throw
+                var name = args[i];
+                var jsName = mirrors.MirrorSystem.getName(p.simpleName);
+                // XXX apply name conversion rules.
+                sbPatch.write(
+                    "    if($name != ${_UNDEFINED_VAR}) ret['$jsName'] = $name;\n");
+                i++;
+              }
+
+              sbPatch.write("    return ret;\n"
+                  "  }\n");
+            } else if (declaration.isConstructor ||
+                declaration.isFactoryConstructor) {
+              sbPatch.write("  ");
+              addMemberHelper(
+                  declaration,
+                  (jsLibraryName != null && jsLibraryName.isNotEmpty)
+                      ? "${jsLibraryName}.${jsClassName}"
+                      : jsClassName,
+                  sbPatch,
+                  isStatic: true,
+                  memberName: className);
+            }
+          });
+
+          clazz.staticMembers.forEach((memberName, member) {
+            if (_isExternal(member)) {
+              sbPatch.write("  ");
+              addMemberHelper(
+                  member,
+                  (jsLibraryName != null && jsLibraryName.isNotEmpty)
+                      ? "${jsLibraryName}.${jsClassName}"
+                      : jsClassName,
+                  sbPatch,
+                  isStatic: true);
+            }
+          });
+          var typeVariablesClause = '';
+          if (!clazz.typeVariables.isEmpty) {
+            typeVariablesClause =
+                '<${clazz.typeVariables.map((m) => mirrors.MirrorSystem.getName(m.simpleName)).join(',')}>';
+          }
+          if (sbPatch.isNotEmpty) {
+            sb.write("""
+patch class $className$typeVariablesClause {
+$sbPatch
+}
+""");
+          }
+        }
+      }
+    });
+    if (sb.isNotEmpty) {
+      staticCodegen
+        ..add(uri.toString())
+        ..add("${uri}_js_interop_patch.dart")
+        ..add("""
+import 'dart:js' as ${_JS_LIBRARY_PREFIX};
+
+/**
+ * Placeholder object for cases where we need to determine exactly how many
+ * args were passed to a function.
+ */
+const ${_UNDEFINED_VAR} = const Object();
+
+${sb}
+""");
+    }
+  });
+
+  return staticCodegen;
+}
+
+List<String> _generateExternalMethods2() {
+  var staticCodegen = <String>[];
+  mirrors.currentMirrorSystem().libraries.forEach((uri, library) {
+    var sb = new StringBuffer();
+    String jsLibraryName = _getJsName(library);
+    library.declarations.forEach((name, declaration) {
+      var isExternal = _isExternal(declaration);
+      if (declaration is mirrors.MethodMirror) {
+        if (isExternal && (_hasJsName(declaration) || jsLibraryName != null)) {
+          addMemberHelper(declaration, jsLibraryName, sb);
+        }
+      } else if (declaration is mirrors.ClassMirror) {
+        mirrors.ClassMirror clazz = declaration;
+        if (_hasJsName(clazz)) {
+          // TODO(jacobr): verify class implements JavaScriptObject.
+          String jsClassName = _getJsMemberName(clazz);
+          var className = mirrors.MirrorSystem.getName(clazz.simpleName);
+          var sbPatch = new StringBuffer();
+          jsInterfaceTypes.add(clazz);
+          clazz.declarations.forEach((name, declaration) {
+            if (declaration is! mirrors.MethodMirror ||
+                !declaration.isAbstract ||
+                !isExternal) return;
+            if (_hasLiteralAnnotation(declaration) &&
+                declaration.isFactoryConstructor) {
+              sbPatch.write("  factory ${className}({");
+              int i = 0;
+              var args = <String>[];
+              for (var p in declaration.parameters) {
+                assert(p.isNamed); // XXX throw
+                args.add(mirrors.MirrorSystem.getName(p.simpleName));
+                i++;
+              }
+              sbPatch
+                ..write(
+                    args.map((name) => '$name:${_UNDEFINED_VAR}').join(", "))
+                ..write("}) {\n"
+                    "    var ret = new ${_JS_LIBRARY_PREFIX}.JsObject.jsify({});\n");
+              i = 0;
+              for (var p in declaration.parameters) {
+                assert(p.isNamed); // XXX throw
+                var name = args[i];
+                var jsName = mirrors.MirrorSystem.getName(p.simpleName);
+                // XXX apply name conversion rules.
+                sbPatch.write(
+                    "    if($name != ${_UNDEFINED_VAR}) ret['$jsName'] = $name;\n");
+                i++;
+              }
+
+              sbPatch.write("    return ret;\n"
+                  "  }\n");
+            } else if (declaration.isConstructor ||
+                declaration.isFactoryConstructor) {
+              sbPatch.write("  ");
+              addMemberHelper(
+                  declaration,
+                  (jsLibraryName != null && jsLibraryName.isNotEmpty)
+                      ? "${jsLibraryName}.${jsClassName}"
+                      : jsClassName,
+                  sbPatch,
+                  isStatic: true,
+                  memberName: className);
+            }
+          });
+
+          clazz.staticMembers.forEach((memberName, member) {
+            if (_isExternal(member)) {
+              sbPatch.write("  ");
+              addMemberHelper(
+                  member,
+                  (jsLibraryName != null && jsLibraryName.isNotEmpty)
+                      ? "${jsLibraryName}.${jsClassName}"
+                      : jsClassName,
+                  sbPatch,
+                  isStatic: true);
+            }
+          });
+          var typeVariablesClause = '';
+          if (!clazz.typeVariables.isEmpty) {
+            typeVariablesClause =
+                '<${clazz.typeVariables.map((m) => mirrors.MirrorSystem.getName(m.simpleName)).join(',')}>';
+          }
+          if (sbPatch.isNotEmpty) {
+            sb.write("""
+patch class $className$typeVariablesClause {
+$sbPatch
+}
+""");
+          }
+        }
+      }
+    });
+    if (sb.isNotEmpty) {
+      staticCodegen
+        ..add(uri.toString())
+        ..add("${uri}_js_interop_patch.dart")
+        ..add("""
+import 'dart:js' as ${_JS_LIBRARY_PREFIX};
+
+/**
+ * Placeholder object for cases where we need to determine exactly how many
+ * args were passed to a function.
+ */
+const ${_UNDEFINED_VAR} = const Object();
+
+${sb}
+""");
+    }
+  });
+
+  return staticCodegen;
+}
+
 /**
  * Generates a part file defining source code for JsObjectImpl and related
  * classes. This calass is needed so that type checks for all registered JavaScript
  * interop classes pass.
  */
-String _generateJsObjectImplPart() {
-  Iterable<Type> types = jsInterfaceTypes;
+List<String> _generateInteropPatchFiles() {
+  var ret = _generateExternalMethods();
   var libraryPrefixes = new Map<mirrors.LibraryMirror, String>();
   var prefixNames = new Set<String>();
   var sb = new StringBuffer();
 
   var implements = <String>[];
-  for (var type in types) {
-    mirrors.ClassMirror typeMirror = mirrors.reflectType(type);
+  var implementsArray = <String>[];
+  var listMirror = mirrors.reflectType(List);
+
+  for (var typeMirror in jsInterfaceTypes) {
     mirrors.LibraryMirror libraryMirror = typeMirror.owner;
     var prefixName;
     if (libraryPrefixes.containsKey(libraryMirror)) {
@@ -283,16 +664,19 @@ String _generateJsObjectImplPart() {
       prefixNames.add(prefixName);
       libraryPrefixes[libraryMirror] = prefixName;
     }
-    implements.add(
+    var isArray = typeMirror.isSubtypeOf(listMirror);
+    (isArray ? implementsArray : implements).add(
         '${prefixName}.${mirrors.MirrorSystem.getName(typeMirror.simpleName)}');
   }
   libraryPrefixes.forEach((libraryMirror, prefix) {
     sb.writeln('import "${libraryMirror.uri}" as $prefix;');
   });
-  var implementsClause =
-      implements.isEmpty ? "" : "implements ${implements.join(', ')}";
+  buildImplementsClause(classes) =>
+      classes.isEmpty ? "" : "implements ${classes.join(', ')}";
+  var implementsClause = buildImplementsClause(implements);
   // TODO(jacobr): only certain classes need to be implemented by
-  // Function and Array.
+  // JsFunctionImpl.
+  var allTypes = []..addAll(implements)..addAll(implementsArray);
   sb.write('''
 class JsObjectImpl extends JsObject $implementsClause {
   JsObjectImpl.internal() : super.internal();
@@ -302,11 +686,17 @@ class JsFunctionImpl extends JsFunction $implementsClause {
   JsFunctionImpl.internal() : super.internal();
 }
 
-class JsArrayImpl<E> extends JsArray<E> $implementsClause {
+class JsArrayImpl<E> extends JsArray<E> ${buildImplementsClause(implementsArray)} {
   JsArrayImpl.internal() : super.internal();
 }
+
+_registerAllJsInterfaces() {
+  _registerJsInterfaces([${allTypes.join(", ")}]);
+}
+
 ''');
-  return sb.toString();
+  ret..addAll(["dart:js", "JsInteropImpl.dart", sb.toString()]);
+  return ret;
 }
 
 // Start of block of helper methods facilitating emulating JavaScript Array
@@ -357,7 +747,7 @@ String _arrayJoin(List list, sep) {
 String _arrayToString(List list) => _arrayJoin(list, ",");
 
 int _arrayPush(List list, List args) {
-  for(var e in args) {
+  for (var e in args) {
     list.add(e);
   }
   return list.length;
@@ -458,6 +848,7 @@ List _arraySort(List l, rawCompare) {
  * be added. Creating an instance of JsObject will also automatically trigger
  * all JsObjects to be finalized.
  */
+@Deprecated("Internal Use Only")
 void finalizeJsInterfaces() {
   if (_finalized == true) {
     throw 'JSInterop class registration already finalized';
@@ -478,6 +869,52 @@ JsObject get context {
   return _cachedContext;
 }
 
+@Deprecated("Internal Use Only")
+maybeWrapTypedInterop(o) =>
+    html_common.wrap_jso_no_SerializedScriptvalue(o);
+
+_maybeWrap(o) {
+  var wrapped = html_common.wrap_jso_no_SerializedScriptvalue(o);
+  if (identical(wrapped, o)) return o;
+  return (wrapped is html.Blob ||
+      wrapped is html.Event ||
+      wrapped is indexed_db.KeyRange ||
+      wrapped is html.ImageData ||
+      wrapped is html.Node ||
+      wrapped is TypedData ||
+      wrapped is html.Window) ? wrapped : o;
+}
+
+/**
+ * Get the dart wrapper object for object. Top-level so we
+ * we can access it from other libraries without it being
+ * a public instance field on JsObject.
+ */
+@Deprecated("Internal Use Only")
+getDartHtmlWrapperFor(JsObject object) => object._dartHtmlWrapper;
+
+/**
+ * Set the dart wrapper object for object. Top-level so we
+ * we can access it from other libraries without it being
+ * a public instance field on JsObject.
+ */
+@Deprecated("Internal Use Only")
+void setDartHtmlWrapperFor(JsObject object, wrapper) {
+  object._dartHtmlWrapper = wrapper;
+}
+
+/**
+ * Used by callMethod to get the JS object for each argument passed if the
+ * argument is a Dart class instance that delegates to a DOM object.  See
+ * wrap_jso defined in dart:html.
+ */
+@Deprecated("Internal Use Only")
+unwrap_jso(dartClass_instance) {
+  if (dartClass_instance is html.DartHtmlDomObject &&
+      dartClass_instance is! JsObject) return dartClass_instance.blink_jsObject;
+  else return dartClass_instance;
+}
+
 /**
  * Proxies a JavaScript object to Dart.
  *
@@ -488,14 +925,26 @@ class JsObject extends NativeFieldWrapperClass2 {
   JsObject.internal();
 
   /**
+   * If this JsObject is wrapped, e.g. DOM objects, then we can save the
+   * wrapper here and preserve its identity.
+   */
+  var _dartHtmlWrapper;
+
+  /**
    * Constructs a new JavaScript object from [constructor] and returns a proxy
    * to it.
    */
-  factory JsObject(JsFunction constructor, [List arguments]) =>
-      _create(constructor, arguments);
+  factory JsObject(JsFunction constructor, [List arguments]) {
+    try {
+      return html_common.unwrap_jso(_create(constructor, arguments));
+    } catch (e) {
+      // Re-throw any errors (returned as a string) as a DomException.
+      throw new html.DomException.jsInterop(e);
+    }
+  }
 
-  static JsObject _create(
-      JsFunction constructor, arguments) native "JsObject_constructorCallback";
+  static JsObject _create(JsFunction constructor, arguments)
+      native "JsObject_constructorCallback";
 
   _buildArgs(Invocation invocation) {
     if (invocation.namedArguments.isEmpty) {
@@ -517,7 +966,7 @@ class JsObject extends NativeFieldWrapperClass2 {
    * Use this constructor only if you wish to get access to JavaScript
    * properties attached to a browser host object, such as a Node or Blob, that
    * is normally automatically converted into a native Dart object.
-   * 
+   *
    * An exception will be thrown if [object] either is `null` or has the type
    * `bool`, `num`, or `String`.
    */
@@ -546,8 +995,7 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   static JsObject _jsify(object) native "JsObject_jsify";
 
-  static JsObject _fromBrowserObject(
-      object) native "JsObject_fromBrowserObject";
+  static JsObject _fromBrowserObject(object) => html_common.unwrap_jso(object);
 
   /**
    * Returns the value associated with [property] from the proxied JavaScript
@@ -555,7 +1003,16 @@ class JsObject extends NativeFieldWrapperClass2 {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator [](property) native "JsObject_[]";
+  operator [](property) {
+    try {
+      return _maybeWrap(_operator_getter(property));
+    } catch (e) {
+      // Re-throw any errors (returned as a string) as a DomException.
+      throw new html.DomException.jsInterop(e);
+    }
+  }
+
+  _operator_getter(property) native "JsObject_[]";
 
   /**
    * Sets the value associated with [property] on the proxied JavaScript
@@ -563,14 +1020,30 @@ class JsObject extends NativeFieldWrapperClass2 {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator []=(property, value) native "JsObject_[]=";
+  operator []=(property, value) {
+    try {
+      _operator_setter(property, value);
+    } catch (e) {
+      // Re-throw any errors (returned as a string) as a DomException.
+      throw new html.DomException.jsInterop(e);
+    }
+  }
+
+  _operator_setter(property, value) native "JsObject_[]=";
 
   int get hashCode native "JsObject_hashCode";
 
-  operator ==(other) => other is JsObject && _identityEquality(this, other);
+  operator ==(other) {
+    var is_JsObject = other is JsObject;
+    if (!is_JsObject) {
+      other = html_common.unwrap_jso(other);
+      is_JsObject = other is JsObject;
+    }
+    return is_JsObject && _identityEquality(this, other);
+  }
 
-  static bool _identityEquality(
-      JsObject a, JsObject b) native "JsObject_identityEquality";
+  static bool _identityEquality(JsObject a, JsObject b)
+      native "JsObject_identityEquality";
 
   /**
    * Returns `true` if the JavaScript object contains the specified property
@@ -615,10 +1088,11 @@ class JsObject extends NativeFieldWrapperClass2 {
    */
   callMethod(String method, [List args]) {
     try {
-      return _callMethod(method, args);
+      return _maybeWrap(_callMethod(method, args));
     } catch (e) {
       if (hasProperty(method)) {
-        rethrow;
+        // Return a DomException if DOM call returned an error.
+        throw new html.DomException.jsInterop(e);
       } else {
         throw new NoSuchMethodError(this, new Symbol(method), args, null);
       }
@@ -648,7 +1122,7 @@ class JsObject extends NativeFieldWrapperClass2 {
         throwError();
       } else {
         // TODO(jacobr): should we throw if the JavaScript object doesn't have the property?
-        return this[name];
+        return maybeWrapTypedInterop(this._operator_getter(name));
       }
     } else if (invocation.isSetter) {
       if (CHECK_JS_INVOCATIONS) {
@@ -658,7 +1132,8 @@ class JsObject extends NativeFieldWrapperClass2 {
       }
       assert(name.endsWith("="));
       name = name.substring(0, name.length - 1);
-      return this[name] = invocation.positionalArguments.first;
+      return maybeWrapTypedInterop(_operator_setter(
+          name, invocation.positionalArguments.first));
     } else {
       // TODO(jacobr): also allow calling getters that look like functions.
       var matches;
@@ -667,7 +1142,7 @@ class JsObject extends NativeFieldWrapperClass2 {
         if (matches == null ||
             !matches.checkInvocation(invocation)) throwError();
       }
-      var ret = this.callMethod(name, _buildArgs(invocation));
+      var ret = maybeWrapTypedInterop(this._callMethod(name, _buildArgs(invocation)));
       if (CHECK_JS_INVOCATIONS) {
         if (!matches._checkReturnType(ret)) throwError();
       }
@@ -676,6 +1151,35 @@ class JsObject extends NativeFieldWrapperClass2 {
   }
 
   _callMethod(String name, List args) native "JsObject_callMethod";
+}
+
+// JavaScript interop methods that do not automatically wrap to dart:html types.
+// Warning: this API is not exposed to dart:js.
+@Deprecated("Internal Use Only")
+class JsNative {
+  static getProperty(o, name) {
+    o = unwrap_jso(o);
+    return o != null ? o._operator_getter(name) : null;
+  }
+
+  static setProperty(o, name, value) {
+    return unwrap_jso(o)._operator_setter(name, value);
+  }
+
+  static callMethod(o, String method, List args) {
+    return unwrap_jso(o)._callMethod(method, args);
+  }
+
+  static getArrayIndex(JsArray array, int index) {
+    array._checkIndex(index);
+    return getProperty(array, index);
+  }
+
+  /**
+   * Same behavior as new JsFunction.withThis except that JavaScript "this" is not
+   * wrapped.
+   */
+  static JsFunction withThis(Function f) native "JsFunction_withThisNoWrap";
 }
 
 /**
@@ -694,7 +1198,24 @@ class JsFunction extends JsObject implements Function {
    * Invokes the JavaScript function with arguments [args]. If [thisArg] is
    * supplied it is the value of `this` for the invocation.
    */
-  dynamic apply(List args, {thisArg}) native "JsFunction_apply";
+  dynamic apply(List args, {thisArg}) =>
+      _maybeWrap(_apply(args, thisArg: thisArg));
+
+  dynamic _apply(List args, {thisArg}) native "JsFunction_apply";
+
+  call([a1 = _UNDEFINED,
+        a2 = _UNDEFINED,
+        a3 = _UNDEFINED,
+        a4 = _UNDEFINED,
+        a5 = _UNDEFINED,
+        a6 = _UNDEFINED,
+        a7 = _UNDEFINED,
+        a8 = _UNDEFINED,
+        a9 = _UNDEFINED,
+        a10 = _UNDEFINED]) {
+    return apply(
+        _stripUndefinedArgs([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]));
+  }
 
   noSuchMethod(Invocation invocation) {
     if (invocation.isMethod && invocation.memberName == #call) {
@@ -709,8 +1230,8 @@ class JsFunction extends JsObject implements Function {
    * efficiently implemented in Dart2Js so should only be used by internal
    * tools.
    */
-  _applyDebuggerOnly(List args,
-      {thisArg}) native "JsFunction_applyDebuggerOnly";
+  _applyDebuggerOnly(List args, {thisArg})
+      native "JsFunction_applyDebuggerOnly";
 
   static JsFunction _withThis(Function f) native "JsFunction_withThis";
 }
@@ -728,8 +1249,8 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   factory JsArray.from(Iterable<E> other) =>
       _newJsArrayFromSafeList(new List.from(other));
 
-  static JsArray _newJsArrayFromSafeList(
-      List list) native "JsArray_newJsArrayFromSafeList";
+  static JsArray _newJsArrayFromSafeList(List list)
+      native "JsArray_newJsArrayFromSafeList";
 
   _checkIndex(int index, {bool insert: false}) {
     int length = insert ? this.length + 1 : this.length;
@@ -754,6 +1275,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     if (index is int) {
       _checkIndex(index);
     }
+
     return super[index];
   }
 
@@ -766,7 +1288,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   int get length native "JsArray_length";
 
-  void set length(int length) {
+  set length(int length) {
     super['length'] = length;
   }
 
@@ -830,8 +1352,57 @@ List _stripUndefinedArgs(List args) =>
  * Returns a method that can be called with an arbitrary number (for n less
  * than 11) of arguments without violating Dart type checks.
  */
-Function _wrapAsDebuggerVarArgsFunction(JsFunction jsFunction) =>
-    ([a1 = _UNDEFINED, a2 = _UNDEFINED, a3 = _UNDEFINED, a4 = _UNDEFINED,
-        a5 = _UNDEFINED, a6 = _UNDEFINED, a7 = _UNDEFINED, a8 = _UNDEFINED,
-        a9 = _UNDEFINED, a10 = _UNDEFINED]) => jsFunction._applyDebuggerOnly(
-            _stripUndefinedArgs([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]));
+Function _wrapAsDebuggerVarArgsFunction(JsFunction jsFunction) => (
+        [a1 = _UNDEFINED,
+        a2 = _UNDEFINED,
+        a3 = _UNDEFINED,
+        a4 = _UNDEFINED,
+        a5 = _UNDEFINED,
+        a6 = _UNDEFINED,
+        a7 = _UNDEFINED,
+        a8 = _UNDEFINED,
+        a9 = _UNDEFINED,
+        a10 = _UNDEFINED]) =>
+    jsFunction._applyDebuggerOnly(
+        _stripUndefinedArgs([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]));
+
+// The allowInterop method is a no-op in Dartium.
+// TODO(jacobr): tag methods so we can throw if a Dart method is passed to
+// JavaScript using the new interop without calling allowInterop.
+
+/// Returns a wrapper around function [f] that can be called from JavaScript
+/// using the package:js Dart-JavaScript interop.
+///
+/// For performance reasons in Dart2Js, by default Dart functions cannot be
+/// passed directly to JavaScript unless this method is called to create
+/// a Function compatible with both Dart and JavaScript.
+/// Calling this method repeatedly on a function will return the same function.
+/// The [Function] returned by this method can be used from both Dart and
+/// JavaScript. We may remove the need to call this method completely in the
+/// future if Dart2Js is refactored so that its function calling conventions
+/// are more compatible with JavaScript.
+Function allowInterop(Function f) => f;
+
+Expando<JsFunction> _interopCaptureThisExpando = new Expando<JsFunction>();
+
+/// Returns a [Function] that when called from JavaScript captures its 'this'
+/// binding and calls [f] with the value of this passed as the first argument.
+/// When called from Dart, [null] will be passed as the first argument.
+///
+/// See the documention for [allowInterop]. This method should only be used with
+/// package:js Dart-JavaScript interop.
+Function allowInteropCaptureThis(Function f) {
+  if (f is JsFunction) {
+    // Behavior when the function is already a JS function is unspecified.
+    throw new ArgumentError(
+        "Function is already a JS function so cannot capture this.");
+    return f;
+  } else {
+    var ret = _interopCaptureThisExpando[f];
+    if (ret == null) {
+      ret = new JsFunction.withThis(f);
+      _interopCaptureThisExpando[f] = ret;
+    }
+    return ret;
+  }
+}

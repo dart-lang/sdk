@@ -12,9 +12,9 @@
 #include "bin/file.h"
 #include "bin/platform.h"
 
-#if !defined(TARGET_OS_IOS)
+#if !TARGET_OS_IOS
 #include <crt_externs.h>  // NOLINT
-#endif  // !defined(TARGET_OS_IOS)
+#endif  // !TARGET_OS_IOS
 #include <signal.h>  // NOLINT
 #include <string.h>  // NOLINT
 #include <unistd.h>  // NOLINT
@@ -53,7 +53,11 @@ int Platform::NumberOfProcessors() {
 
 
 const char* Platform::OperatingSystem() {
+#if TARGET_OS_IOS
+  return "ios";
+#else
   return "macos";
+#endif
 }
 
 
@@ -68,7 +72,7 @@ bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
 
 
 char** Platform::Environment(intptr_t* count) {
-#if defined(TARGET_OS_IOS)
+#if TARGET_OS_IOS
   // TODO(iposva): On Mac (desktop), _NSGetEnviron() is used to access the
   // environ from shared libraries or bundles. This is present in crt_externs.h
   // which is unavailable on iOS. On iOS, everything is statically linked for
@@ -118,6 +122,10 @@ char* Platform::ResolveExecutablePath() {
   char* canon_path = File::GetCanonicalPath(path);
   free(path);
   return canon_path;
+}
+
+void Platform::Exit(int exit_code) {
+  exit(exit_code);
 }
 
 }  // namespace bin

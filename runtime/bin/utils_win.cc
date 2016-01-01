@@ -168,11 +168,7 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return true;
 }
 
-int64_t TimerUtils::GetCurrentTimeMilliseconds() {
-  return GetCurrentTimeMicros() / 1000;
-}
-
-int64_t TimerUtils::GetCurrentTimeMicros() {
+static int64_t GetCurrentTimeMicros() {
   static const int64_t kTimeEpoc = 116444736000000000LL;
   static const int64_t kTimeScaler = 10;  // 100 ns to us.
 
@@ -189,6 +185,38 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
   TimeStamp time;
   GetSystemTimeAsFileTime(&time.ft_);
   return (time.t_ - kTimeEpoc) / kTimeScaler;
+}
+
+static int64_t qpc_ticks_per_second = 0;
+
+void TimerUtils::InitOnce() {
+  LARGE_INTEGER ticks_per_sec;
+  if (!QueryPerformanceFrequency(&ticks_per_sec)) {
+    qpc_ticks_per_second = 0;
+  } else {
+    qpc_ticks_per_second = static_cast<int64_t>(ticks_per_sec.QuadPart);
+  }
+}
+
+int64_t TimerUtils::GetCurrentMonotonicMillis() {
+  return GetCurrentMonotonicMicros() / 1000;
+}
+
+int64_t TimerUtils::GetCurrentMonotonicMicros() {
+  if (qpc_ticks_per_second == 0) {
+    // QueryPerformanceCounter not supported, fallback.
+    return GetCurrentTimeMicros();
+  }
+  // Grab performance counter value.
+  LARGE_INTEGER now;
+  QueryPerformanceCounter(&now);
+  int64_t qpc_value = static_cast<int64_t>(now.QuadPart);
+  // Convert to microseconds.
+  int64_t seconds = qpc_value / qpc_ticks_per_second;
+  int64_t leftover_ticks = qpc_value - (seconds * qpc_ticks_per_second);
+  int64_t result = seconds * kMicrosecondsPerSecond;
+  result += ((leftover_ticks * kMicrosecondsPerSecond) / qpc_ticks_per_second);
+  return result;
 }
 
 void TimerUtils::Sleep(int64_t millis) {

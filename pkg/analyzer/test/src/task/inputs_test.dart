@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.inputs_test;
+library analyzer.test.src.task.inputs_test;
 
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
@@ -15,6 +15,8 @@ import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
+  runReflectiveTests(ConstantTaskInputBuilderTest);
+  runReflectiveTests(ConstantTaskInputTest);
   runReflectiveTests(ListTaskInputImplTest);
   runReflectiveTests(ListToListTaskInputTest);
   runReflectiveTests(ListToListTaskInputBuilderTest);
@@ -25,6 +27,97 @@ main() {
   runReflectiveTests(SimpleTaskInputTest);
   runReflectiveTests(SimpleTaskInputBuilderTest);
   runReflectiveTests(TopLevelTaskInputBuilderTest);
+}
+
+@reflectiveTest
+class ConstantTaskInputBuilderTest extends EngineTestCase {
+  static final int value = 7;
+  static final ConstantTaskInput<int> input = new ConstantTaskInput<int>(value);
+
+  ConstantTaskInputBuilder builder;
+
+  void setUp() {
+    super.setUp();
+    builder = new ConstantTaskInputBuilder(input);
+  }
+
+  test_create() {
+    expect(builder, isNotNull);
+    expect(builder.input, input);
+  }
+
+  test_currentResult_afterOneMoveNext() {
+    builder.moveNext();
+    expect(builder.currentResult, null);
+  }
+
+  test_currentResult_beforeMoveNext() {
+    expect(builder.currentResult, null);
+  }
+
+  test_currentTarget_afterOneMoveNext() {
+    builder.moveNext();
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentTarget_beforeMoveNext() {
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentValue_afterOneMoveNext() {
+    builder.moveNext();
+    expect(() {
+      builder.currentValue = 'value';
+    }, throwsStateError);
+  }
+
+  test_currentValue_beforeMoveNext() {
+    expect(() {
+      builder.currentValue = 'value';
+    }, throwsStateError);
+  }
+
+  test_currentValueNotAvailable_afterOneMoveNext() {
+    builder.moveNext();
+    expect(() {
+      builder.currentValueNotAvailable();
+    }, throwsStateError);
+  }
+
+  test_currentValueNotAvailable_beforeMoveNext() {
+    expect(() {
+      builder.currentValueNotAvailable();
+    }, throwsStateError);
+  }
+
+  test_inputValue_afterOneMoveNext() {
+    builder.moveNext();
+    expect(builder.inputValue, value);
+  }
+
+  test_inputValue_beforeMoveNext() {
+    expect(builder.inputValue, value);
+  }
+
+  test_moveNext() {
+    expect(builder.moveNext(), false);
+    expect(builder.moveNext(), false);
+  }
+}
+
+@reflectiveTest
+class ConstantTaskInputTest extends EngineTestCase {
+  test_create() {
+    int value = 3;
+    ConstantTaskInput<int> input = new ConstantTaskInput<int>(value);
+    expect(input, isNotNull);
+    expect(input.value, value);
+  }
+
+  test_createBuilder() {
+    ConstantTaskInput<int> input = new ConstantTaskInput<int>(5);
+    expect(input.createBuilder(), new isInstanceOf<ConstantTaskInputBuilder>());
+  }
 }
 
 @reflectiveTest
@@ -463,7 +556,7 @@ class ListToMapTaskInputTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class ObjectToListTaskInputBuilderTest extends EngineTestCase {
+class ObjectToListTaskInputBuilderTest {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);
@@ -613,7 +706,7 @@ class ObjectToListTaskInputTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class SimpleTaskInputBuilderTest extends EngineTestCase {
+class SimpleTaskInputBuilderTest {
   static final AnalysisTarget target = new TestSource();
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);
@@ -800,6 +893,21 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
     expect(builder.currentResult, result1);
   }
 
+  test_currentResult_afterTwoMoveNext_withConstantInput() {
+    ConstantTaskInput<int> constantInput = new ConstantTaskInput<int>(11);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1,
+      'constant': constantInput,
+      'two': input2
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
+    builder.moveNext();
+    builder.currentValue = 'value1';
+    builder.moveNext();
+    expect(builder.currentResult, result2);
+  }
+
   test_currentResult_beforeMoveNext() {
     Map<String, TaskInput> inputDescriptors = {};
     TopLevelTaskInputBuilder builder =
@@ -831,6 +939,21 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
     Map<String, TaskInput> inputDescriptors = {'one': input1};
     TopLevelTaskInputBuilder builder =
         new TopLevelTaskInputBuilder(inputDescriptors);
+    builder.moveNext();
+    expect(builder.currentTarget, target);
+  }
+
+  test_currentTarget_afterTwoMoveNext_withConstantInput() {
+    ConstantTaskInput<int> constantInput = new ConstantTaskInput<int>(11);
+    Map<String, TaskInput> inputDescriptors = {
+      'one': input1,
+      'constant': constantInput,
+      'two': input2
+    };
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
+    builder.moveNext();
+    builder.currentValue = 'value1';
     builder.moveNext();
     expect(builder.currentTarget, target);
   }

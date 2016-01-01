@@ -2020,23 +2020,45 @@ ASSEMBLER_TEST_RUN(PackedDoubleSub, test) {
 }
 
 
+static void EnterTestFrame(Assembler* assembler) {
+  COMPILE_ASSERT(THR != CallingConventions::kArg1Reg);
+  COMPILE_ASSERT(CODE_REG != CallingConventions::kArg2Reg);
+  __ EnterFrame(0);
+  __ pushq(CODE_REG);
+  __ pushq(PP);
+  __ pushq(THR);
+  __ movq(CODE_REG, Address(CallingConventions::kArg1Reg,
+                            VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(THR, CallingConventions::kArg2Reg);
+  __ LoadPoolPointer(PP);
+}
+
+
+static void LeaveTestFrame(Assembler* assembler) {
+  __ popq(THR);
+  __ popq(PP);
+  __ popq(CODE_REG);
+  __ LeaveFrame();
+}
+
+
 ASSEMBLER_TEST_GENERATE(PackedDoubleNegate, assembler) {
   static const struct ALIGN16 {
     double a;
     double b;
   } constant0 = { 1.0, 2.0 };
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ negatepd(XMM10);
   __ movaps(XMM0, XMM10);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedDoubleNegate, test) {
-  double res = test->Invoke<double>();
+  double res = test->InvokeWithCodeAndThread<double>();
   EXPECT_FLOAT_EQ(-1.0, res, 0.000001f);
 }
 
@@ -2046,18 +2068,18 @@ ASSEMBLER_TEST_GENERATE(PackedDoubleAbsolute, assembler) {
     double a;
     double b;
   } constant0 = { -1.0, 2.0 };
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ movq(RAX, Immediate(reinterpret_cast<uword>(&constant0)));
   __ movups(XMM10, Address(RAX, 0));
   __ abspd(XMM10);
   __ movaps(XMM0, XMM10);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedDoubleAbsolute, test) {
-  double res = test->Invoke<double>();
+  double res = test->InvokeWithCodeAndThread<double>();
   EXPECT_FLOAT_EQ(1.0, res, 0.000001f);
 }
 
@@ -2491,53 +2513,53 @@ ASSEMBLER_TEST_RUN(PackedCompareNLE, test) {
 
 
 ASSEMBLER_TEST_GENERATE(PackedNegate, assembler) {
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ negateps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedNegate, test) {
-  float res = test->Invoke<float>();
+  float res = test->InvokeWithCodeAndThread<float>();
   EXPECT_FLOAT_EQ(-12.3f, res, 0.001f);
 }
 
 
 ASSEMBLER_TEST_GENERATE(PackedAbsolute, assembler) {
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ movl(RAX, Immediate(bit_cast<int32_t, float>(-15.3f)));
   __ movd(XMM0, RAX);
   __ shufps(XMM0, XMM0, Immediate(0x0));
   __ absps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xAA));  // Copy third lane into all 4 lanes.
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
-  float res = test->Invoke<float>();
+  float res = test->InvokeWithCodeAndThread<float>();
   EXPECT_FLOAT_EQ(15.3f, res, 0.001f);
 }
 
 
 ASSEMBLER_TEST_GENERATE(PackedSetWZero, assembler) {
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ set1ps(XMM0, RAX, Immediate(bit_cast<int32_t, float>(12.3f)));
   __ zerowps(XMM0);
   __ shufps(XMM0, XMM0, Immediate(0xFF));  // Copy the W lane which is now 0.0.
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
-  float res = test->Invoke<float>();
+  float res = test->InvokeWithCodeAndThread<float>();
   EXPECT_FLOAT_EQ(0.0f, res, 0.001f);
 }
 
@@ -2647,7 +2669,7 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
     uint32_t d;
   } constant1 =
       { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ LoadImmediate(RAX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
   __ movups(XMM9, Address(RAX, 0));
   __ notps(XMM9);
@@ -2655,13 +2677,13 @@ ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   __ pushq(RAX);
   __ movss(Address(RSP, 0), XMM0);
   __ popq(RAX);
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(PackedLogicalNot, test) {
-  uint32_t res = test->Invoke<uint32_t>();
+  uint32_t res = test->InvokeWithCodeAndThread<uint32_t>();
   EXPECT_EQ(static_cast<uword>(0x0), res);
 }
 
@@ -3053,7 +3075,7 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Object& obj = Object::ZoneHandle(object_store->smi_class());
   Label fail;
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
   __ LoadObject(RAX, obj);
   __ CompareObject(RAX, obj);
   __ j(NOT_EQUAL, &fail);
@@ -3075,18 +3097,17 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   __ CompareObject(RCX, smi);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
-  __ popq(PP);  // Restore caller's pool pointer.
-  __ LeaveFrame();
+  LeaveTestFrame(assembler);
   __ ret();
   __ Bind(&fail);
   __ movl(RAX, Immediate(0));  // Fail.
-  __ LeaveStubFrame();
+  LeaveTestFrame(assembler);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
-  bool res = test->Invoke<bool>();
+  bool res = test->InvokeWithCodeAndThread<bool>();
   EXPECT_EQ(true, res);
 }
 
@@ -3290,6 +3311,7 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
 
 // Called from assembler_test.cc.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
+  __ pushq(CODE_REG);
   __ pushq(THR);
   __ movq(THR, CallingConventions::kArg3Reg);
   __ StoreIntoObject(CallingConventions::kArg2Reg,
@@ -3297,6 +3319,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
                                   GrowableObjectArray::data_offset()),
                      CallingConventions::kArg1Reg);
   __ popq(THR);
+  __ popq(CODE_REG);
   __ ret();
 }
 
@@ -3374,22 +3397,6 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
 }
 
 
-ASSEMBLER_TEST_GENERATE(IntToDoubleConversion2, assembler) {
-  __ pushq(CallingConventions::kArg1Reg);
-  __ fildl(Address(RSP, 0));
-  __ fstpl(Address(RSP, 0));
-  __ movsd(XMM0, Address(RSP, 0));
-  __ popq(RAX);
-  __ ret();
-}
-
-
-ASSEMBLER_TEST_RUN(IntToDoubleConversion2, test) {
-  typedef double (*IntToDoubleConversion2Code)(int i);
-  double res = reinterpret_cast<IntToDoubleConversion2Code>(test->entry())(3);
-  EXPECT_FLOAT_EQ(3.0, res, 0.001);
-}
-
 ASSEMBLER_TEST_GENERATE(DoubleToDoubleTrunc, assembler) {
   __ roundsd(XMM0, XMM0, Assembler::kRoundToZero);
   __ ret();
@@ -3410,19 +3417,28 @@ ASSEMBLER_TEST_RUN(DoubleToDoubleTrunc, test) {
 
 
 ASSEMBLER_TEST_GENERATE(DoubleAbs, assembler) {
-  __ EnterStubFrame();
+  EnterTestFrame(assembler);
+#if defined(TARGET_OS_WINDOWS)
+  // First argument is code object, second argument is thread. MSVC passes
+  // third argument in XMM2.
+  __ DoubleAbs(XMM2);
+  __ movaps(XMM0, XMM2);
+#else
+  // SysV ABI allocates integral and double registers for arguments
+  // independently.
   __ DoubleAbs(XMM0);
-  __ LeaveStubFrame();
+#endif
+  LeaveTestFrame(assembler);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(DoubleAbs, test) {
   double val = -12.45;
-  double res =  test->Invoke<double, double>(val);
+  double res =  test->InvokeWithCodeAndThread<double, double>(val);
   EXPECT_FLOAT_EQ(-val, res, 0.001);
   val = 12.45;
-  res = test->Invoke<double, double>(val);
+  res = test->InvokeWithCodeAndThread<double, double>(val);
   EXPECT_FLOAT_EQ(val, res, 0.001);
 }
 

@@ -62,32 +62,16 @@ void _loadFile(SendPort sp, int id, Uri uri) {
   });
 }
 
-var dataUriRegex = new RegExp(
-    r"data:([\w-]+/[\w-]+)?(;charset=([\w-]+))?(;base64)?,(.*)");
-
 void _loadDataUri(SendPort sp, int id, Uri uri) {
   try {
-    var match = dataUriRegex.firstMatch(uri.toString());
-    if (match == null) throw "Malformed data uri";
-
-    var mimeType = match.group(1);
-    var encoding = match.group(3);
-    var maybeBase64 = match.group(4);
-    var encodedData = match.group(5);
-
-    if (mimeType != "application/dart") {
+    if (uri.data.mimeType != "application/dart") {
       throw "MIME-type must be application/dart";
     }
-    if (encoding != "utf-8") {
-      // Default is ASCII. The C++ portion of the embedder assumes UTF-8.
+    if (uri.data.charset != "utf-8") {
+      // The C++ portion of the embedder assumes UTF-8.
       throw "Only utf-8 encoding is supported";
     }
-    if (maybeBase64 != null) {
-      throw "Only percent encoding is supported";
-    }
-
-    var data = UTF8.encode(Uri.decodeComponent(encodedData));
-    _sendResourceResponse(sp, id, data);
+    _sendResourceResponse(sp, id, uri.data.contentAsBytes());
   } catch (e) {
     _sendResourceResponse(sp, id, "Invalid data uri ($uri):\n  $e");
   }

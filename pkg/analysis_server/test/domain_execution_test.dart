@@ -6,12 +6,12 @@ library test.domain.execution;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_execution.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -19,9 +19,11 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:plugin/manager.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
+import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
 import 'operation/operation_queue_test.dart';
@@ -29,6 +31,7 @@ import 'utils.dart';
 
 main() {
   initializeTestEnvironment();
+  defineReflectiveTests(ExecutionDomainTest);
   group('ExecutionDomainHandler', () {
     MemoryResourceProvider provider = new MemoryResourceProvider();
     AnalysisServer server;
@@ -90,6 +93,15 @@ main() {
     group('mapUri', () {
       String contextId;
 
+      void createExecutionContextIdForFile(String path) {
+        Request request = new ExecutionCreateContextParams(path).toRequest('0');
+        Response response = handler.handleRequest(request);
+        expect(response, isResponseSuccess('0'));
+        ExecutionCreateContextResult result =
+            new ExecutionCreateContextResult.fromResponse(response);
+        contextId = result.id;
+      }
+
       setUp(() {
         Folder folder = provider.newFile('/a/b.dart', '').parent;
         server.folderMap.putIfAbsent(folder, () {
@@ -100,13 +112,7 @@ main() {
           context.sourceFactory = factory;
           return context;
         });
-        Request request =
-            new ExecutionCreateContextParams('/a/b.dart').toRequest('0');
-        Response response = handler.handleRequest(request);
-        expect(response, isResponseSuccess('0'));
-        ExecutionCreateContextResult result =
-            new ExecutionCreateContextResult.fromResponse(response);
-        contextId = result.id;
+        createExecutionContextIdForFile('/a/b.dart');
       });
 
       tearDown(() {
@@ -131,17 +137,6 @@ main() {
           Response response = handler.handleRequest(request);
           expect(response, isResponseFailure('2'));
         });
-
-        test('valid', () {
-          Request request = new ExecutionMapUriParams(contextId,
-              file: '/a/b.dart').toRequest('2');
-          Response response = handler.handleRequest(request);
-          expect(response, isResponseSuccess('2'));
-          ExecutionMapUriResult result =
-              new ExecutionMapUriResult.fromResponse(response);
-          expect(result.file, isNull);
-          expect(result.uri, 'file:///a/b.dart');
-        });
       });
 
       group('URI to file', () {
@@ -150,17 +145,6 @@ main() {
               uri: 'foo:///a/b.dart').toRequest('2');
           Response response = handler.handleRequest(request);
           expect(response, isResponseFailure('2'));
-        });
-
-        test('valid', () {
-          Request request = new ExecutionMapUriParams(contextId,
-              uri: 'file:///a/b.dart').toRequest('2');
-          Response response = handler.handleRequest(request);
-          expect(response, isResponseSuccess('2'));
-          ExecutionMapUriResult result =
-              new ExecutionMapUriResult.fromResponse(response);
-          expect(result.file, '/a/b.dart');
-          expect(result.uri, isNull);
         });
       });
 
@@ -287,35 +271,74 @@ main() {
   });
 }
 
-/**
- * Return a matcher that will match an [ExecutableFile] if it has the given
- * [source] and [kind].
- */
-Matcher isExecutableFile(Source source, ExecutableKind kind) {
-  return new IsExecutableFile(source.fullName, kind);
-}
-
-/**
- * A matcher that will match an [ExecutableFile] if it has a specified [source]
- * and [kind].
- */
-class IsExecutableFile extends Matcher {
-  String expectedFile;
-  ExecutableKind expectedKind;
-
-  IsExecutableFile(this.expectedFile, this.expectedKind);
+@reflectiveTest
+class ExecutionDomainTest extends AbstractAnalysisTest {
+  String contextId;
 
   @override
-  Description describe(Description description) {
-    return description.add('ExecutableFile($expectedFile, $expectedKind)');
+  void setUp() {
+    super.setUp();
+    createProject();
+    handler = new ExecutionDomainHandler(server);
+    _createExecutionContext(testFile);
   }
 
   @override
-  bool matches(item, Map matchState) {
-    if (item is! ExecutableFile) {
-      return false;
-    }
-    return item.file == expectedFile && item.kind == expectedKind;
+  void tearDown() {
+    super.tearDown();
+    _disposeExecutionContext();
+  }
+
+  void test_mapUri_file() {
+    String path = '/a/b.dart';
+    resourceProvider.newFile(path, '');
+    // map the file
+    ExecutionMapUriResult result = _mapUri(file: path);
+    expect(result.file, isNull);
+    expect(result.uri, 'file:///a/b.dart');
+  }
+
+  void test_mapUri_file_dartUriKind() {
+    String path = server.defaultSdk.mapDartUri('dart:async').fullName;
+    // hack - pretend that the SDK file exists in the project FS
+    resourceProvider.newFile(path, '// hack');
+    // map file
+    ExecutionMapUriResult result = _mapUri(file: path);
+    expect(result.file, isNull);
+    expect(result.uri, 'dart:async');
+  }
+
+  void test_mapUri_uri() {
+    String path = '/a/b.dart';
+    resourceProvider.newFile(path, '');
+    // map the uri
+    ExecutionMapUriResult result = _mapUri(uri: 'file://$path');
+    expect(result.file, '/a/b.dart');
+    expect(result.uri, isNull);
+  }
+
+  void _createExecutionContext(String path) {
+    Request request = new ExecutionCreateContextParams(path).toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response, isResponseSuccess('0'));
+    ExecutionCreateContextResult result =
+        new ExecutionCreateContextResult.fromResponse(response);
+    contextId = result.id;
+  }
+
+  void _disposeExecutionContext() {
+    Request request =
+        new ExecutionDeleteContextParams(contextId).toRequest('1');
+    Response response = handler.handleRequest(request);
+    expect(response, isResponseSuccess('1'));
+  }
+
+  ExecutionMapUriResult _mapUri({String file, String uri}) {
+    Request request = new ExecutionMapUriParams(contextId, file: file, uri: uri)
+        .toRequest('2');
+    Response response = handler.handleRequest(request);
+    expect(response, isResponseSuccess('2'));
+    return new ExecutionMapUriResult.fromResponse(response);
   }
 }
 

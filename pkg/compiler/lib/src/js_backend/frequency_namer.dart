@@ -21,12 +21,15 @@ class FrequencyBasedNamer extends Namer with _MinifiedFieldNamer,
   final String setterPrefix = 's';
   final String callPrefix = ''; // this will create function names $<n>
 
+  jsAst.Name get staticsPropertyName =>
+      _staticsPropertyName ??= getFreshName(instanceScope, 'static');
+
   FrequencyBasedNamer(Compiler compiler) : super(compiler) {
     fieldRegistry = new _FieldNamingRegistry(this);
   }
 
   TokenScope newScopeFor(NamingScope scope) {
-    if (scope == NamingScope.instance) {
+    if (scope == instanceScope) {
       Set<String> illegalNames = new Set<String>.from(jsReserved);
       for (String illegal in MinifyNamer._reservedNativeProperties) {
         illegalNames.add(illegal);
@@ -50,8 +53,7 @@ class FrequencyBasedNamer extends Namer with _MinifiedFieldNamer,
 
     // Get the name the normal namer would use as a key.
     String proposed = _generateFreshStringForName(proposedName,
-                                                  getUsedNames(scope),
-                                                  getSuggestedNames(scope),
+                                                  scope,
                                                   sanitizeForNatives:
                                                   sanitizeForNatives,
                                                   sanitizeForAnnotations:

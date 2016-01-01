@@ -4,10 +4,7 @@
 
 library dart2js.parser.member_listener;
 
-import '../diagnostics/diagnostic_listener.dart' show
-    DiagnosticListener;
-import '../diagnostics/messages.dart' show
-    MessageKind;
+import '../common.dart';
 import '../elements/elements.dart' show
     Element,
     ElementKind,
@@ -21,23 +18,24 @@ import '../elements/modelx.dart' show
 import '../tokens/token.dart' show
     Token;
 import '../tree/tree.dart';
-import '../util/util.dart' show
-    Link;
 
+import 'element_listener.dart' show
+    ScannerOptions;
+import 'node_listener.dart' show
+    NodeListener;
 import 'partial_elements.dart' show
     PartialConstructorElement,
     PartialFunctionElement,
     PartialMetadataAnnotation;
-import 'node_listener.dart' show
-    NodeListener;
 
 class MemberListener extends NodeListener {
   final ClassElementX enclosingClass;
 
-  MemberListener(DiagnosticListener listener,
+  MemberListener(ScannerOptions scannerOptions,
+                 DiagnosticReporter listener,
                  ClassElementX enclosingElement)
       : this.enclosingClass = enclosingElement,
-        super(listener, enclosingElement.compilationUnit);
+        super(scannerOptions, listener, enclosingElement.compilationUnit);
 
   bool isConstructorName(Node nameNode) {
     if (enclosingClass == null ||
@@ -72,9 +70,10 @@ class MemberListener extends NodeListener {
       return Elements.constructOperatorName(operator.source, isUnary);
     } else {
       if (receiver == null || receiver.source != enclosingClass.name) {
-        listener.reportError(send.receiver,
-                                 MessageKind.INVALID_CONSTRUCTOR_NAME,
-                                 {'name': enclosingClass.name});
+        reporter.reportErrorMessage(
+            send.receiver,
+            MessageKind.INVALID_CONSTRUCTOR_NAME,
+            {'name': enclosingClass.name});
       }
       return selector.source;
     }
@@ -112,14 +111,15 @@ class MemberListener extends NodeListener {
     Identifier singleIdentifierName = method.name.asIdentifier();
     if (singleIdentifierName != null && singleIdentifierName.source == name) {
       if (name != enclosingClass.name) {
-        listener.reportError(singleIdentifierName,
-                                 MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
-                                 {'name': enclosingClass.name});
+        reporter.reportErrorMessage(
+            singleIdentifierName,
+            MessageKind.INVALID_UNNAMED_CONSTRUCTOR_NAME,
+            {'name': enclosingClass.name});
       }
     }
     Element memberElement = new PartialConstructorElement(
         name, beginToken, endToken,
-        ElementKind.FUNCTION,
+        ElementKind.FACTORY_CONSTRUCTOR,
         method.modifiers,
         enclosingClass);
     addMember(memberElement);
@@ -158,7 +158,7 @@ class MemberListener extends NodeListener {
 
   void addMember(ElementX memberElement) {
     addMetadata(memberElement);
-    enclosingClass.addMember(memberElement, listener);
+    enclosingClass.addMember(memberElement, reporter);
   }
 
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {

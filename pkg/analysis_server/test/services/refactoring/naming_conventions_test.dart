@@ -4,7 +4,7 @@
 
 library test.services.refactoring.naming_conventions;
 
-import 'package:analysis_server/src/protocol.dart'
+import 'package:analysis_server/plugin/protocol/protocol.dart'
     show RefactoringProblemSeverity;
 import 'package:analysis_server/src/services/refactoring/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';

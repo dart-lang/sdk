@@ -790,7 +790,8 @@ static const char* ObjectToCStringNoGC(const Object& obj) {
       obj.IsClass() ||
       obj.IsFunction() ||
       obj.IsICData() ||
-      obj.IsField()) {
+      obj.IsField() ||
+      obj.IsCode()) {
     return obj.ToCString();
   }
 
@@ -808,6 +809,7 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
   if (((addr & kSmiTagMask) == kHeapObjectTag) &&
       reinterpret_cast<RawObject*>(addr)->IsWellFormed() &&
       reinterpret_cast<RawObject*>(addr)->IsOldObject() &&
+      !Dart::vm_isolate()->heap()->CodeContains(addr) &&
       !Isolate::Current()->heap()->CodeContains(addr) &&
       Disassembler::CanFindOldObject(addr)) {
     NoSafepointScope no_safepoint;
@@ -835,14 +837,6 @@ void DisassemblerX64::AppendAddressToBuffer(uint8_t* addr_byte_ptr) {
     const char* name_of_stub = StubCode::NameOfStub(addr);
     if (name_of_stub != NULL) {
       AppendToBuffer("  [stub: %s]", name_of_stub);
-    } else {
-      // Print only if jumping to entry point.
-      const Code& code = Code::Handle(Code::LookupCode(addr));
-      if (!code.IsNull() && (code.EntryPoint() == addr)) {
-        const String& name = String::Handle(code.PrettyName());
-        const char* name_c = name.ToCString();
-        AppendToBuffer(" [%s]", name_c);
-      }
     }
   }
 }

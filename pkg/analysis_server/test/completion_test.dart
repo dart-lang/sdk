@@ -1121,9 +1121,8 @@ main(A a) {
     buildTests(
         'testCompletion_combinator_afterComma',
         '''
-"import 'dart:math' show cos, !1;''',
-        <String>["1+PI", "1+sin", "1+Random", "1-String"],
-        failingTests: '1');
+import 'dart:math' show cos, !1;''',
+        <String>["1+PI", "1+sin", "1+Random", "1-String"]);
 
     buildTests(
         'testCompletion_combinator_ended',
@@ -1896,8 +1895,7 @@ class B extends A {
 main() {
   B.!1;
 }''',
-        <String>["1+FIELD_B", "1-FIELD_A", "1+methodB", "1-methodA"],
-        failingTests: '1');
+        <String>["1+FIELD_B", "1-FIELD_A", "1+methodB", "1-methodA"]);
 
     buildTests(
         'testCompletion_propertyAccess_whenInstanceTarget',
@@ -2119,7 +2117,7 @@ main() {
     sources.clear();
     sources["/lib.dart"] = '''
 library lib
-class _A 
+class _A
   foo() {}
 
 class A extends _A {

@@ -4,13 +4,10 @@
 
 library dart2js.resolution.signatures;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     ErroneousFieldElementX,
@@ -21,6 +18,8 @@ import '../elements/modelx.dart' show
     InitializingFormalElementX,
     LocalParameterElementX;
 import '../tree/tree.dart';
+import '../universe/use.dart' show
+    TypeUse;
 import '../util/util.dart' show
     Link,
     LinkBuilder;
@@ -66,7 +65,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     // This must be a list of optional arguments.
     String value = node.beginToken.stringValue;
     if ((!identical(value, '[')) && (!identical(value, '{'))) {
-      internalError(node, "expected optional parameters");
+      reporter.internalError(node, "expected optional parameters");
     }
     optionalParametersAreNamed = (identical(value, '{'));
     isOptionalParameter = true;
@@ -78,26 +77,26 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   FormalElementX visitVariableDefinitions(VariableDefinitions node) {
     Link<Node> definitions = node.definitions.nodes;
     if (definitions.isEmpty) {
-      internalError(node, 'no parameter definition');
+      reporter.internalError(node, 'no parameter definition');
       return null;
     }
     if (!definitions.tail.isEmpty) {
-      internalError(definitions.tail.head, 'extra definition');
+      reporter.internalError(definitions.tail.head, 'extra definition');
       return null;
     }
     Node definition = definitions.head;
     if (definition is NodeList) {
-      internalError(node, 'optional parameters are not implemented');
+      reporter.internalError(node, 'optional parameters are not implemented');
     }
     if (node.modifiers.isConst) {
-      compiler.reportError(node, MessageKind.FORMAL_DECLARED_CONST);
+      reporter.reportErrorMessage(node, MessageKind.FORMAL_DECLARED_CONST);
     }
     if (node.modifiers.isStatic) {
-      compiler.reportError(node, MessageKind.FORMAL_DECLARED_STATIC);
+      reporter.reportErrorMessage(node, MessageKind.FORMAL_DECLARED_STATIC);
     }
 
     if (currentDefinitions != null) {
-      internalError(node, 'function type parameters not supported');
+      reporter.internalError(node, 'function type parameters not supported');
     }
     currentDefinitions = node;
     FormalElementX element = definition.accept(this);
@@ -113,7 +112,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     if (isOptionalParameter &&
         optionalParametersAreNamed &&
         Name.isPrivateName(node.source)) {
-      compiler.reportError(node, MessageKind.PRIVATE_NAMED_PARAMETER);
+      reporter.reportErrorMessage(node, MessageKind.PRIVATE_NAMED_PARAMETER);
     }
   }
 
@@ -124,8 +123,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           compiler, functionExpression.parameters,
           functionExpression.returnType, element, registry,
           defaultValuesError: MessageKind.FUNCTION_TYPE_FORMAL_WITH_DEFAULT);
-      element.functionSignatureCache = functionSignature;
-      element.typeCache = functionSignature.type;
+      element.functionSignature = functionSignature;
     }
 
     if (currentDefinitions.type != null) {
@@ -148,7 +146,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         assert(invariant(currentDefinitions,
             link.head.asIdentifier() != null || link.head.asSend() != null));
         if (fieldElement != null) {
-          element.typeCache = fieldElement.computeType(compiler);
+          element.typeCache = fieldElement.computeType(resolution);
         } else {
           element.typeCache = const DynamicType();
         }
@@ -172,7 +170,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           functionExpression.name.asIdentifier() != null) {
         return functionExpression.name.asIdentifier();
       } else {
-        internalError(node,
+        reporter.internalError(node,
             'internal error: unimplemented receiver on parameter send');
         return null;
       }
@@ -205,12 +203,13 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     InitializingFormalElementX element;
     Identifier receiver = node.receiver.asIdentifier();
     if (receiver == null || !receiver.isThis()) {
-      error(node, MessageKind.INVALID_PARAMETER);
+      reporter.reportErrorMessage(node, MessageKind.INVALID_PARAMETER);
       return new ErroneousInitializingFormalElementX(
           getParameterName(node), enclosingElement);
     } else {
       if (!enclosingElement.isGenerativeConstructor) {
-        error(node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
+        reporter.reportErrorMessage(
+            node, MessageKind.INITIALIZING_FORMAL_NOT_ALLOWED);
         return new ErroneousInitializingFormalElementX(
             getParameterName(node), enclosingElement);
       }
@@ -220,11 +219,13 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
           enclosingElement.enclosingClass.lookupLocalMember(name.source);
       if (fieldElement == null ||
           !identical(fieldElement.kind, ElementKind.FIELD)) {
-        error(node, MessageKind.NOT_A_FIELD, {'fieldName': name});
+        reporter.reportErrorMessage(
+            node, MessageKind.NOT_A_FIELD, {'fieldName': name});
         fieldElement = new ErroneousFieldElementX(
             name, enclosingElement.enclosingClass);
       } else if (!fieldElement.isInstanceMember) {
-        error(node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
+        reporter.reportErrorMessage(
+            node, MessageKind.NOT_INSTANCE_FIELD, {'fieldName': name});
         fieldElement = new ErroneousFieldElementX(
             name, enclosingElement.enclosingClass);
       }
@@ -247,7 +248,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     }
     Node defaultValue = node.arguments.head;
     if (!defaultValuesAllowed) {
-      compiler.reportError(defaultValue, defaultValuesError);
+      reporter.reportErrorMessage(defaultValue, defaultValuesError);
     }
     return element;
   }
@@ -256,11 +257,13 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     // This is a function typed parameter.
     Modifiers modifiers = currentDefinitions.modifiers;
     if (modifiers.isFinal) {
-      compiler.reportError(modifiers,
+      reporter.reportErrorMessage(
+          modifiers,
           MessageKind.FINAL_FUNCTION_TYPE_PARAMETER);
     }
     if (modifiers.isVar) {
-      compiler.reportError(modifiers, MessageKind.VAR_FUNCTION_TYPE_PARAMETER);
+      reporter.reportErrorMessage(
+          modifiers, MessageKind.VAR_FUNCTION_TYPE_PARAMETER);
     }
 
     return createParameter(node.name, null);
@@ -276,7 +279,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         // If parameter is null, the current node should be the last,
         // and a list of optional named parameters.
         if (!link.tail.isEmpty || (link.head is !NodeList)) {
-          internalError(link.head, "expected optional parameters");
+          reporter.internalError(link.head, "expected optional parameters");
         }
       }
     }
@@ -300,6 +303,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       {MessageKind defaultValuesError,
        bool createRealParameters: false,
        bool isFunctionExpression: false}) {
+    DiagnosticReporter reporter = compiler.reporter;
 
     SignatureResolver visitor = new SignatureResolver(compiler, element,
         registry, defaultValuesError: defaultValuesError,
@@ -308,14 +312,14 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     int requiredParameterCount = 0;
     if (formalParameters == null) {
       if (!element.isGetter) {
-        if (element.isErroneous) {
+        if (element.isMalformed) {
           // If the element is erroneous, an error should already have been
           // reported. In the case of parse errors, it is possible that there
           // are formal parameters, but something else in the method failed to
           // parse. So we suppress the message about missing formals.
           assert(invariant(element, compiler.compilationFailed));
         } else {
-          compiler.reportError(element, MessageKind.MISSING_FORMALS);
+          reporter.reportErrorMessage(element, MessageKind.MISSING_FORMALS);
         }
       }
     } else {
@@ -323,8 +327,9 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
         if (!identical(formalParameters.endToken.next.stringValue,
                        // TODO(ahe): Remove the check for native keyword.
                        'native')) {
-          compiler.reportError(formalParameters,
-                               MessageKind.EXTRA_FORMALS);
+          reporter.reportErrorMessage(
+              formalParameters,
+              MessageKind.EXTRA_FORMALS);
         }
       }
       LinkBuilder<Element> parametersBuilder =
@@ -338,7 +343,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       // Because there is no type annotation for the return type of
       // this element, we explicitly add one.
       if (compiler.enableTypeAssertions) {
-        registry.registerIsCheck(returnType);
+        registry.registerTypeUse(new TypeUse.checkedModeCheck(returnType));
       }
     } else {
       AsyncMarker asyncMarker = AsyncMarker.SYNC;
@@ -368,8 +373,9 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
                                visitor.optionalParameterCount != 0)) {
       // If there are no formal parameters, we already reported an error above.
       if (formalParameters != null) {
-        compiler.reportError(formalParameters,
-                                 MessageKind.ILLEGAL_SETTER_FORMALS);
+        reporter.reportErrorMessage(
+            formalParameters,
+            MessageKind.ILLEGAL_SETTER_FORMALS);
       }
     }
     LinkBuilder<DartType> parameterTypes = new LinkBuilder<DartType>();
@@ -426,7 +432,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   DartType resolveTypeAnnotation(TypeAnnotation annotation) {
     DartType type = resolveReturnType(annotation);
     if (type.isVoid) {
-      compiler.reportError(annotation, MessageKind.VOID_NOT_ALLOWED);
+      reporter.reportErrorMessage(annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;
   }

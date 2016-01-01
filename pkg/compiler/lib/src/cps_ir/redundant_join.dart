@@ -19,7 +19,7 @@ import 'optimizers.dart';
 /// one continuation. The reference chains for parameters are therefore 
 /// meaningless during this pass, until repaired by [AlphaRenamer] at
 /// the end.
-class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
+class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Redundant join elimination';
 
   final Set<Branch> workSet = new Set<Branch>();
@@ -62,20 +62,6 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
         return parent;
       }
     }
-  }
-
-  /// Removes [movedNode] from its current position and inserts it
-  /// before [target].
-  void moveToBefore(Expression target, LetCont movedNode) {
-    if (movedNode.parent != null) {
-      movedNode.parent.body = movedNode.body;
-      movedNode.body.parent = movedNode.parent;
-    }
-    InteriorNode parent = target.parent;
-    parent.body = movedNode;
-    movedNode.body = target;
-    target.parent = movedNode;
-    movedNode.parent = parent;
   }
 
   void rewriteBranch(Branch branch) {
@@ -153,7 +139,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
           Expression use = ref.parent;
           if (use is InvokeContinuation) {
             for (Parameter param in branchCont.parameters) {
-              use.arguments.add(new Reference<Primitive>(param));
+              use.arguments.add(new Reference<Primitive>(param)..parent = use);
             }
           } else {
             // The branch will be eliminated, so don't worry about updating it.
@@ -161,7 +147,8 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
           }
         }
       }
-      moveToBefore(outerLetCont, innerLetCont);
+      innerLetCont.remove();
+      innerLetCont.insertAbove(outerLetCont);
     }
 
     assert(branchCont.body == branch);
@@ -196,9 +183,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
     branch.falseContinuation.unlink();
     outerLetCont.continuations.remove(branchCont);
     if (outerLetCont.continuations.isEmpty) {
-      InteriorNode parent = outerLetCont.parent;
-      parent.body = outerLetCont.body;
-      outerLetCont.body.parent = parent;
+      outerLetCont.remove();
     }
 
     // We may have created new redundant join points in the two branches.
@@ -230,7 +215,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
 /// 
 /// This returns the IR to its normal form after redundant joins have been
 /// eliminated.
-class AlphaRenamer extends RecursiveVisitor {
+class AlphaRenamer extends TrampolineRecursiveVisitor {
   Map<Parameter, Parameter> renaming = <Parameter, Parameter>{};
 
   processContinuation(Continuation cont) {
@@ -248,6 +233,7 @@ class AlphaRenamer extends RecursiveVisitor {
       // create a new parameter object for this continuation.
       if (param.parent != cont) {
         Parameter newParam = new Parameter(param.hint);
+        newParam.type = param.type;
         renaming[param] = newParam;
         cont.parameters[i] = newParam;
         newParam.parent = cont;

@@ -11,6 +11,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
 
@@ -493,6 +494,8 @@ TEST_CASE(Debug_InspectStack_NotOptimized) {
 
 
 TEST_CASE(Debug_InspectStack_Optimized) {
+  // Ensure code gets optimized.
+  FLAG_background_compilation = false;
   InspectStackTest(true);
 }
 
@@ -589,6 +592,8 @@ TEST_CASE(Debug_InspectStackWithClosure_NotOptimized) {
 
 
 TEST_CASE(Debug_InspectStackWithClosure_Optimized) {
+  // Ensure code gets optimized.
+  FLAG_background_compilation = false;
   InspectStackWithClosureTest(true);
 }
 
@@ -663,6 +668,7 @@ static const char* step_into_expected_bpts[] = {
       "foo",       // entry
       "foo",       // call f1
         "f1",      // entry
+        "f1",      // return
       "foo",       // call initializer
       "foo",       // call kvmk
         "X.kvmk",  // entry
@@ -832,7 +838,7 @@ void TestSingleStepHandler(Dart_IsolateId isolate_id,
   Dart_StackTrace trace;
   Dart_GetStackTrace(&trace);
   const char* expected_bpts[] = {
-      "moo", "foo", "moo", "foo", "moo", "foo", "main"};
+      "moo", "moo", "foo", "moo", "moo", "foo", "moo", "moo", "foo", "main"};
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
@@ -1405,6 +1411,7 @@ UNIT_TEST_CASE(Debug_IsolateID) {
   EXPECT(Dart_GetIsolateId(isolate) == test_isolate_id);
   Dart_ExitScope();
   Dart_ShutdownIsolate();
+  Dart_SetIsolateEventHandler(NULL);
   EXPECT(verify_callback == 0x5);  // Only created and shutdown events.
 }
 
@@ -1508,7 +1515,7 @@ TEST_CASE(Debug_InterruptIsolate) {
   sync = new Monitor();
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
   Dart_SetPausedEventHandler(InterruptIsolateHandler);
-  int result = OSThread::Start(InterruptIsolateRun, 0);
+  int result = OSThread::Start("DebugInterruptIsolate", InterruptIsolateRun, 0);
   EXPECT_EQ(0, result);
 
   // Wait for the test isolate to be created.
@@ -2136,7 +2143,8 @@ TEST_CASE(Debug_GetSupertype) {
       "int main() {\n"
       "}\n";
 
-  Isolate* isolate = Isolate::Current();
+
+  Zone* zone = thread->zone();
   LoadScript(kScriptChars);
   ASSERT(script_lib != NULL);
   ASSERT(Dart_IsLibrary(script_lib));
@@ -2187,34 +2195,34 @@ TEST_CASE(Debug_GetSupertype) {
   }
   {
     Dart_Handle super_type = Dart_GetSupertype(Test1_type);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, Test_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {
     Dart_Handle super_type = Dart_GetSupertype(Test3_type);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test2_int_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, Test2_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {
     Dart_Handle super_type = Dart_GetSupertype(Test4_int_type);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test2_int_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, Test2_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {
     Dart_Handle super_type = Dart_GetSupertype(Test5_int_type);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, Test4_int_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, Test4_int_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {
     Dart_Handle set_type = Dart_GetType(core_lib, set_name, 0, NULL);
     Dart_Handle super_type = Dart_GetSupertype(set_type);
     Dart_Handle iterable_type = Dart_GetType(core_lib, iterable_name, 0, NULL);
-    const Type& expected_type = Api::UnwrapTypeHandle(isolate, iterable_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(isolate, super_type);
+    const Type& expected_type = Api::UnwrapTypeHandle(zone, iterable_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {

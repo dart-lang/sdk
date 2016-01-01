@@ -110,5 +110,5 @@ class PrivateName extends PublicName {
     return super==(other) && library == other.library;
   }
 
-  String toString() => '${library.getLibraryName()}#${super.toString()}';
+  String toString() => '${library.libraryName}#${super.toString()}';
 }

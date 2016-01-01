@@ -52,7 +52,9 @@ def BuildAndroid(build_info):
     if os.path.exists('./out/lastHooksTargetOS.txt'):
       os.remove('./out/lastHooksTargetOS.txt')
     targets = ['runtime']
-    args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
+    args = [sys.executable, './tools/build.py',
+            '--arch=' + build_info.arch,
+            '--mode=' + build_info.mode,
             '--os=android'] + targets
     print 'Building Android: %s' % (' '.join(args))
     bot.RunProcess(args)

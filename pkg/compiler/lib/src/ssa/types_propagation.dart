@@ -262,7 +262,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
             cls.declaration, classWorld);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
-        if (!type.satisfies(backend.jsIndexableClass, classWorld) &&
+        if (!type.satisfies(backend.helpers.jsIndexableClass, classWorld) &&
             !type.containsOnlyNum(classWorld) &&
             !type.containsOnlyBool(classWorld)) {
           return false;

@@ -366,7 +366,7 @@ class Assembler : public ValueObject {
   void call(Label* label);
   void call(const ExternalLabel* label);
 
-  static const intptr_t kCallExternalLabelSize = 7;
+  static const intptr_t kCallExternalLabelSize = 15;
 
   void pushq(Register reg);
   void pushq(const Address& address);
@@ -671,8 +671,6 @@ class Assembler : public ValueObject {
   void fldl(const Address& src);
   void fstpl(const Address& dst);
 
-  void fildl(const Address& src);
-
   void fincstp();
   void ffree(intptr_t value);
 
@@ -683,6 +681,10 @@ class Assembler : public ValueObject {
   void nop(int size = 1);
   void int3();
   void hlt();
+
+  static uword GetBreakInstructionFiller() {
+    return 0xCCCCCCCCCCCCCCCC;
+  }
 
   // Note: verified_mem mode forces far jumps.
   void j(Condition condition, Label* label, bool near = kFarJump);
@@ -760,9 +762,6 @@ class Assembler : public ValueObject {
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
-  void LoadExternalLabel(Register dst,
-                         const ExternalLabel* label,
-                         Patchability patchable);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        Patchability patchable);
@@ -770,7 +769,7 @@ class Assembler : public ValueObject {
                                   const Function& function,
                                   Register new_pp);
   void JmpPatchable(const StubEntry& stub_entry, Register pp);
-  void Jmp(const StubEntry& stub_entry, Register pp);
+  void Jmp(const StubEntry& stub_entry, Register pp = PP);
   void J(Condition condition, const StubEntry& stub_entry, Register pp);
   void CallPatchable(const StubEntry& stub_entry);
   void Call(const StubEntry& stub_entry);
@@ -831,6 +830,8 @@ class Assembler : public ValueObject {
 
   void PushRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
   void PopRegisters(intptr_t cpu_register_set, intptr_t xmm_register_set);
+
+  void CheckCodePointer();
 
   void EnterFrame(intptr_t frame_space);
   void LeaveFrame();
@@ -922,6 +923,7 @@ class Assembler : public ValueObject {
     buffer_.FinalizeInstructions(region);
   }
 
+  void RestoreCodePointer();
   void LoadPoolPointer(Register pp = PP);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
@@ -943,16 +945,13 @@ class Assembler : public ValueObject {
   //   ...
   //   pushq r15
   //   .....
-  void EnterDartFrame(intptr_t frame_size,
-                      Register new_pp,
-                      Register pc_marker_override);
-  void LeaveDartFrame();
+  void EnterDartFrame(intptr_t frame_size, Register new_pp);
+  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
   // up on entry (it is the frame of the unoptimized code).
-  void EnterOsrFrame(intptr_t extra_size,
-                     Register new_pp, Register pc_marker_override);
+  void EnterOsrFrame(intptr_t extra_size);
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
@@ -969,19 +968,6 @@ class Assembler : public ValueObject {
   //   .....
   void EnterStubFrame();
   void LeaveStubFrame();
-
-  // Instruction pattern from entrypoint is used in dart frame prologues
-  // to set up the frame and save a PC which can be used to figure out the
-  // RawInstruction object corresponding to the code running in the frame.
-  // entrypoint:
-  //   pushq rbp          (size is 1 byte)
-  //   movq rbp, rsp      (size is 3 bytes)
-  //   call L             (size is 5 bytes)
-  //   L:
-  static const intptr_t kEntryPointToPcMarkerOffset = 0;
-  static intptr_t EntryPointToPcMarkerOffset() {
-    return kEntryPointToPcMarkerOffset;
-  }
 
   void UpdateAllocationStats(intptr_t cid,
                              Heap::Space space,
@@ -1043,6 +1029,10 @@ class Assembler : public ValueObject {
                                            intptr_t index_scale,
                                            Register array,
                                            Register index);
+
+  static Address VMTagAddress() {
+    return Address(THR, Thread::vm_tag_offset());
+  }
 
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.

@@ -40,42 +40,42 @@ var udpTests = [
     var server = await isolate.invokeRpcNoUpgrade(
         '__getSocketByID', { 'id' : result['data'][0]['id'] });
     expect(server['id'], equals(result['data'][0]['id']));
-    expect(server['remote_port'], equals('NA'));
-    expect(server['remote_host'], equals('NA'));
+    expect(server['remotePort'], equals('NA'));
+    expect(server['remoteHost'], equals('NA'));
     expect(server['listening'], isFalse);
-    expect(server['socket_type'], equals('UDP'));
+    expect(server['socketType'], equals('UDP'));
     expect(server['port'], greaterThanOrEqualTo(1024));
     // Stopwatch resolution on windows makes us sometimes report 0;
     if (io.Platform.isWindows) {
-      expect(server['last_read'], greaterThanOrEqualTo(0));
+      expect(server['lastRead'], greaterThanOrEqualTo(0));
     } else {
-      expect(server['last_read'], greaterThan(0));
+      expect(server['lastRead'], greaterThan(0));
     }
-    expect(server['total_read'], equals(6));
-    expect(server['last_write'], equals(0));
-    expect(server['total_written'], equals(0));
-    expect(server['write_count'], equals(0));
-    expect(server['read_count'], greaterThanOrEqualTo(1));
+    expect(server['totalRead'], equals(6));
+    expect(server['lastWrite'], equals(0));
+    expect(server['totalWritten'], equals(0));
+    expect(server['writeCount'], equals(0));
+    expect(server['readCount'], greaterThanOrEqualTo(1));
 
     var client = await isolate.invokeRpcNoUpgrade(
         '__getSocketByID', { 'id' : result['data'][1]['id'] });
     expect(client['id'], equals(result['data'][1]['id']));
-    expect(client['remote_port'], equals('NA'));
-    expect(client['remote_host'], equals('NA'));
+    expect(client['remotePort'], equals('NA'));
+    expect(client['remoteHost'], equals('NA'));
     expect(client['listening'], isFalse);
-    expect(client['socket_type'], equals('UDP'));
+    expect(client['socketType'], equals('UDP'));
     expect(client['port'], greaterThanOrEqualTo(1024));
-    expect(client['last_read'], equals(0));
-    expect(client['total_read'], equals(0));
+    expect(client['lastRead'], equals(0));
+    expect(client['totalRead'], equals(0));
     // Stopwatch resolution on windows makes us sometimes report 0;
     if (io.Platform.isWindows) {
-      expect(client['last_write'], greaterThanOrEqualTo(0));
+      expect(client['lastWrite'], greaterThanOrEqualTo(0));
     } else {
-      expect(client['last_write'], greaterThan(0));
+      expect(client['lastWrite'], greaterThan(0));
     }
-    expect(client['total_written'], equals(6));
-    expect(client['write_count'], greaterThanOrEqualTo(1));
-    expect(client['read_count'], equals(0));
+    expect(client['totalWritten'], equals(6));
+    expect(client['writeCount'], greaterThanOrEqualTo(1));
+    expect(client['readCount'], equals(0));
   },
 ];
 

@@ -18,7 +18,9 @@ class FlowGraphInliner : ValueObject {
  public:
   FlowGraphInliner(FlowGraph* flow_graph,
                    GrowableArray<const Function*>* inline_id_to_function,
-                   GrowableArray<intptr_t>* caller_inline_id);
+                   GrowableArray<intptr_t>* caller_inline_id,
+                   bool use_speculative_inlining,
+                   GrowableArray<intptr_t>* inlining_black_list);
 
   // The flow graph is destructively updated upon inlining.
   void Inline();
@@ -41,6 +43,8 @@ class FlowGraphInliner : ValueObject {
   GrowableArray<const Function*>* inline_id_to_function_;
   GrowableArray<intptr_t>* caller_inline_id_;
   const bool trace_inlining_;
+  const bool use_speculative_inlining_;
+  GrowableArray<intptr_t>* inlining_black_list_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);
 };

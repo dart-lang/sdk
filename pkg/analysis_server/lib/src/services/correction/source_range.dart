@@ -4,14 +4,14 @@
 
 library services.src.correction.source_range_factory;
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 SourceRange rangeElementName(Element element) {
-  return new SourceRange(element.nameOffset, element.displayName.length);
+  return new SourceRange(element.nameOffset, element.nameLength);
 }
 
 SourceRange rangeEndEnd(a, b) {

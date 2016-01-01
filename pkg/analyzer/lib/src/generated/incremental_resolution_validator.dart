@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.incremental_resolution_validator;
+library analyzer.src.generated.incremental_resolution_validator;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 /**
  * Validates that the [actual] and the [expected] units have the same structure
@@ -63,6 +66,7 @@ class _SameResolutionValidator implements AstVisitor {
   visitAssertStatement(AssertStatement node) {
     AssertStatement other = this.other;
     _visitNode(node.condition, other.condition);
+    _visitNode(node.message, other.message);
   }
 
   @override
@@ -185,6 +189,14 @@ class _SameResolutionValidator implements AstVisitor {
   }
 
   @override
+  visitConfiguration(Configuration node) {
+    Configuration other = this.other;
+    _visitNode(node.name, other.name);
+    _visitNode(node.value, other.value);
+    _visitNode(node.libraryUri, other.libraryUri);
+  }
+
+  @override
   visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration other = this.other;
     _visitDeclaration(node, other);
@@ -235,6 +247,12 @@ class _SameResolutionValidator implements AstVisitor {
     DoStatement other = this.other;
     _visitNode(node.condition, other.condition);
     _visitNode(node.body, other.body);
+  }
+
+  @override
+  visitDottedName(DottedName node) {
+    DottedName other = this.other;
+    _visitList(node.components, other.components);
   }
 
   @override
@@ -827,6 +845,11 @@ class _SameResolutionValidator implements AstVisitor {
     }
     if (a.nameOffset != b.nameOffset) {
       _fail('Expected: ${b.nameOffset}\n  Actual: ${a.nameOffset}');
+    }
+    if (a is LocalElement && b is LocalElement) {
+      if (a.visibleRange != b.visibleRange) {
+        _fail('Expected: ${b.visibleRange}\nActual: ${a.visibleRange}');
+      }
     }
   }
 

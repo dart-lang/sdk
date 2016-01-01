@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.memory_file_system;
+library analyzer.test.file_system.memory_file_system_test;
 
 import 'dart:async';
 import 'dart:core' hide Resource;
@@ -337,6 +337,13 @@ class MemoryFileSourceExistingTest {
   void test_resolveRelative() {
     Uri relative = source.resolveRelativeUri(new Uri.file('bar/baz.dart'));
     expect(relative.path, '/foo/bar/baz.dart');
+  }
+
+  void test_resolveRelative_dart() {
+    File file = provider.newFile('/sdk/lib/core/core.dart', '');
+    Source source = file.createSource(Uri.parse('dart:core'));
+    Uri resolved = source.resolveRelativeUri(Uri.parse('int.dart'));
+    expect(resolved.toString(), 'dart:core/int.dart');
   }
 
   void test_shortName() {

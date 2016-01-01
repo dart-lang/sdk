@@ -59,6 +59,7 @@ static const char* kCustomIsolateScriptChars =
     "     var replyTo = message[1];\n"
     "     echo('Received: $data');\n"
     "     replyTo.send(data + 1);\n"
+    "     mainPort.close();\n"
     "   };\n"
     "}\n"
     "\n"
@@ -179,6 +180,7 @@ void StartEvent::Process() {
   free(const_cast<char*>(main_));
   main_ = NULL;
 
+  Dart_SetMessageNotifyCallback(NULL);
   Dart_ExitScope();
   Dart_ExitIsolate();
 }
@@ -207,6 +209,7 @@ void MessageEvent::Process() {
   if (!Dart_HasLivePorts()) {
     OS::Print("<< Shutting down isolate(%p)\n", isolate());
     event_queue->RemoveEventsForIsolate(isolate());
+    Dart_SetMessageNotifyCallback(NULL);
     Dart_ShutdownIsolate();
   } else {
     Dart_ExitScope();
@@ -240,7 +243,7 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
 }
 
 
-const char* saved_echo = NULL;
+char* saved_echo = NULL;
 static void native_echo(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle arg = Dart_GetNativeArgument(args, 0);
@@ -249,7 +252,7 @@ static void native_echo(Dart_NativeArguments args) {
   const char* c_str = NULL;
   EXPECT_VALID(Dart_StringToCString(toString, &c_str));
   if (saved_echo) {
-    free(const_cast<char*>(saved_echo));
+    free(saved_echo);
   }
   saved_echo = strdup(c_str);
   OS::Print("-- (isolate=%p) %s\n", Dart_CurrentIsolate(), c_str);
@@ -347,9 +350,10 @@ UNIT_TEST_CASE(CustomIsolates) {
   }
   OS::Print("-- Finished event loop --\n");
   EXPECT_STREQ("Received: 43", saved_echo);
-  free(const_cast<char*>(saved_echo));
+  free(saved_echo);
 
   delete event_queue;
+  event_queue = NULL;
 }
 
 }  // namespace dart

@@ -12,10 +12,16 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+#include "vm/allocation.h"
+
 namespace dart {
 
 typedef DWORD ThreadLocalKey;
 typedef DWORD ThreadId;
+typedef DWORD ThreadJoinId;
+
+
+static const ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
 
 
 class ThreadInlineImpl {
@@ -24,7 +30,6 @@ class ThreadInlineImpl {
   ~ThreadInlineImpl() {}
 
   static uword GetThreadLocal(ThreadLocalKey key) {
-    static ThreadLocalKey kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
     ASSERT(key != kUnsetThreadLocalKey);
     return reinterpret_cast<uword>(TlsGetValue(key));
   }
@@ -114,6 +119,56 @@ class MonitorData {
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(MonitorData);
+};
+
+
+typedef void (*ThreadDestructor) (void* parameter);
+
+
+class ThreadLocalEntry {
+ public:
+  ThreadLocalEntry(ThreadLocalKey key, ThreadDestructor destructor)
+      : key_(key),
+        destructor_(destructor) {
+  }
+
+  ThreadLocalKey key() const {
+    return key_;
+  }
+
+
+  ThreadDestructor destructor() const {
+    return destructor_;
+  }
+
+ private:
+  ThreadLocalKey key_;
+  ThreadDestructor destructor_;
+
+  DISALLOW_ALLOCATION();
+};
+
+
+template<typename T>
+class MallocGrowableArray;
+
+
+class ThreadLocalData : public AllStatic {
+ public:
+  static void RunDestructors();
+
+ private:
+  static void AddThreadLocal(ThreadLocalKey key, ThreadDestructor destructor);
+  static void RemoveThreadLocal(ThreadLocalKey key);
+
+  static Mutex* mutex_;
+  static MallocGrowableArray<ThreadLocalEntry>* thread_locals_;
+
+  static void InitOnce();
+  static void Shutdown();
+
+  friend class OS;
+  friend class OSThread;
 };
 
 }  // namespace dart

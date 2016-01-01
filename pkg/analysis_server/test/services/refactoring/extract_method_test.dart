@@ -6,7 +6,7 @@ library test.services.refactoring.extract_method;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
@@ -1066,6 +1066,24 @@ main() {
     // do check
     await refactoring.checkInitialConditions();
     expect(refactoring.returnType, 'int');
+  }
+
+  test_returnType_mixInterfaceFunction() async {
+    indexTestUnit('''
+main() {
+// start
+  if (true) {
+    return 1;
+  } else {
+    return () {};
+  }
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // do check
+    await refactoring.checkInitialConditions();
+    expect(refactoring.returnType, 'Object');
   }
 
   test_returnType_statements() async {
@@ -2577,6 +2595,35 @@ int res() {
     return 'abc';
   }
   return 42;
+}
+''');
+  }
+
+  test_statements_return_multiple_interfaceFunction() {
+    indexTestUnit('''
+main(bool b) {
+// start
+  if (b) {
+    return 1;
+  }
+  return () {};
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(bool b) {
+// start
+  return res(b);
+// end
+}
+
+Object res(bool b) {
+  if (b) {
+    return 1;
+  }
+  return () {};
 }
 ''');
   }

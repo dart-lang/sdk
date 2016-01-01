@@ -62,34 +62,22 @@ template<class P> class InstructionPattern : public ValueObject {
 };
 
 
-template<class P>
-class CallOrJumpPattern : public InstructionPattern<P> {
+class CallPattern : public InstructionPattern<CallPattern> {
  public:
+  explicit CallPattern(uword pc) : InstructionPattern(pc) {}
   uword TargetAddress() const {
     ASSERT(this->IsValid());
     return this->start() +
-        P::pattern_length_in_bytes() +
+        CallPattern::pattern_length_in_bytes() +
         *reinterpret_cast<uword*>(this->start() + 1);
   }
 
   void SetTargetAddress(uword new_target) const {
     ASSERT(this->IsValid());
     *reinterpret_cast<uword*>(this->start() + 1) =
-        new_target - this->start() - P::pattern_length_in_bytes();
+        new_target - this->start() - CallPattern::pattern_length_in_bytes();
     CPU::FlushICache(this->start() + 1, kWordSize);
   }
-
- protected:
-  explicit CallOrJumpPattern(uword pc) : InstructionPattern<P>(pc) {}
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(CallOrJumpPattern);
-};
-
-
-class CallPattern : public CallOrJumpPattern<CallPattern> {
- public:
-  explicit CallPattern(uword pc) : CallOrJumpPattern(pc) {}
 
   static int pattern_length_in_bytes() { return kLengthInBytes; }
   static const int* pattern() {
@@ -97,27 +85,10 @@ class CallPattern : public CallOrJumpPattern<CallPattern> {
     return kCallPattern;
   }
 
+
  private:
   static const int kLengthInBytes = 5;
-
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
-};
-
-
-class JumpPattern : public CallOrJumpPattern<JumpPattern> {
- public:
-  JumpPattern(uword pc, const Code& code) : CallOrJumpPattern(pc) {}
-
-  static int pattern_length_in_bytes() { return kLengthInBytes; }
-  static const int* pattern() {
-    static const int kJumpPattern[kLengthInBytes] = {0xE9, -1, -1, -1, -1};
-    return kJumpPattern;
-  }
-
- private:
-  static const int kLengthInBytes = 5;
-
-  DISALLOW_COPY_AND_ASSIGN(JumpPattern);
 };
 
 

@@ -8,16 +8,15 @@ library stringvalidator;
 
 import 'dart:collection';
 
-import 'diagnostics/diagnostic_listener.dart';
-import 'diagnostics/messages.dart' show MessageKind;
+import 'common.dart';
 import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
 import 'util/characters.dart';
 
 class StringValidator {
-  final DiagnosticListener listener;
+  final DiagnosticReporter reporter;
 
-  StringValidator(this.listener);
+  StringValidator(this.reporter);
 
   DartString validateInterpolationPart(Token token, StringQuoting quoting,
                                        {bool isFirst: false,
@@ -102,7 +101,7 @@ class StringValidator {
   }
 
   void stringParseError(String message, Token token, int offset) {
-    listener.reportError(
+    reporter.reportErrorMessage(
         token, MessageKind.GENERIC, {'text': "$message @ $offset"});
   }
 

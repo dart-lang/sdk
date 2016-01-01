@@ -21,14 +21,8 @@ $endif
 $if DARTIUM
   @DocsEditable()
   $if JSINTEROP
-  static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((List<MutationRecord> mutations, MutationObserver observer) {
-      var wrapped_mutations = [];
-      for (var mutation in mutations) {
-        // Wrap the Javascript object for each MutationRecord.
-        wrapped_mutations.add(wrap_jso(mutation));
-      }
-      // Wrap the MutationObserver too.
-      callback(wrapped_mutations, wrap_jso(observer));
+  static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((mutations, observer) {
+    callback(wrap_jso(mutations), wrap_jso(observer));
   }));
   $else
   static MutationObserver _create(callback) => _blink.BlinkMutationObserver.instance.constructorCallback_1_(callback);

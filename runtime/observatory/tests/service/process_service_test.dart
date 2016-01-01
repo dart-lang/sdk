@@ -94,6 +94,7 @@ var processTests = [
       expect(first['name'], io.Platform.executable);
       expect(first['pid'], equals(setup['pids'][0]));
       expect(first['arguments'].contains('foobar'), isFalse);
+      expect(first['startedAt'], greaterThan(0));
 
       var second = await isolate.invokeRpcNoUpgrade(
           '__getProcessById', { 'id' : all['data'][1]['id'] });
@@ -101,6 +102,8 @@ var processTests = [
       expect(second['pid'], equals(setup['pids'][1]));
       expect(second['arguments'].contains('foobar'), isTrue);
       expect(second['pid'] != first['pid'], isTrue);
+      expect(second['startedAt'], greaterThan(0));
+      expect(second['startedAt'], greaterThanOrEqualTo(first['startedAt']));
 
       var third = await isolate.invokeRpcNoUpgrade(
           '__getProcessById', { 'id' : all['data'][2]['id'] });
@@ -108,6 +111,7 @@ var processTests = [
       expect(third['pid'], equals(setup['pids'][2]));
       expect(third['pid'] != first['pid'], isTrue);
       expect(third['pid'] != second['pid'], isTrue);
+      expect(third['startedAt'], greaterThanOrEqualTo(second['startedAt']));
 
       await isolate.invokeRpcNoUpgrade('__closeStdin', {});
       all = await isolate.invokeRpcNoUpgrade('__getProcesses', {});

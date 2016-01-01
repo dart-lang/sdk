@@ -25,6 +25,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [Private RPCs, Types, and Properties](#private-rpcs-types-and-properties)
 - [Public RPCs](#public-rpcs)
 	- [addBreakpoint](#addbreakpoint)
+	- [addBreakpointWithScriptUri](#addbreakpointwithscripturi)
 	- [addBreakpointAtEntry](#addbreakpointatentry)
 	- [evaluate](#evaluate)
 	- [evaluateInFrame](#evaluateinframe)
@@ -37,8 +38,10 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [pause](#pause)
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
-	- [setName](#setname)
+	- [setExceptionPauseMode](#setexceptionpausemode)
 	- [setLibraryDebuggable](#setlibrarydebuggable)
+	- [setName](#setname)
+	- [setVMName](#setvmname)
 	- [streamCancel](#streamcancel)
 	- [streamListen](#streamlisten)
 - [Public Types](#public-types)
@@ -55,6 +58,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
 	- [ErrorKind](#errorkind)
 	- [Event](#event)
 	- [EventKind](#eventkind)
+	- [ExtensionData](#extensiondata)
 	- [Field](#field)
 	- [Flag](#flag)
 	- [FlagList](#flaglist)
@@ -372,8 +376,7 @@ in the section on [public types](#public-types).
 
 ```
 Breakpoint addBreakpoint(string isolateId,
-                         string scriptId [optional],
-                         string scriptUri [optional],
+                         string scriptId,
                          int line,
                          int column [optional])
 ```
@@ -381,8 +384,41 @@ Breakpoint addBreakpoint(string isolateId,
 The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
 of some script.
 
-The _scriptId_ or _scriptUri_ parameter is used to specify the target
-script. One of these two parameters must always be provided.
+The _scriptId_ parameter is used to specify the target script.
+
+The _line_ parameter is used to specify the target line for the
+breakpoint. If there are multiple possible breakpoints on the target
+line, then the VM will place the breakpoint at the location which
+would execute soonest. If it is not possible to set a breakpoint at
+the target line, the breakpoint will be added at the next possible
+breakpoint location within the same function.
+
+The _column_ parameter may be optionally specified.  This is useful
+for targeting a specific breakpoint on a line with multiple possible
+breakpoints.
+
+If no breakpoint is possible at that line, the _102_ (Cannot add
+breakpoint) error code is returned.
+
+Note that breakpoints are added and removed on a per-isolate basis.
+
+See [Breakpoint](#breakpoint).
+
+### addBreakpointWithScriptUri
+
+```
+Breakpoint addBreakpointWithScriptUri(string isolateId,
+                                      string scriptUri,
+                                      int line,
+                                      int column [optional])
+```
+
+The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
+of some script.  This RPC is useful when a script has not yet been
+assigned an id, for example, if a script is in a deferred library
+which has not yet been loaded.
+
+The _scriptUri_ parameter is used to specify the target script.
 
 The _line_ parameter is used to specify the target line for the
 breakpoint. If there are multiple possible breakpoints on the target
@@ -432,7 +468,7 @@ some target.
 _targetId_ may refer to a [Library](#library), [Class](#class), or
 [Instance](#instance).
 
-If _targetId_ is a temporary id which has expired, then then _Expired_
+If _targetId_ is a temporary id which has expired, then the _Expired_
 [Sentinel](#sentinel) is returned.
 
 If _targetId_ refers to an object which has been collected by the VM's
@@ -478,24 +514,29 @@ See [FlagList](#flaglist).
 ### getIsolate
 
 ```
-Isolate getIsolate(string isolateId)
+Isolate|Sentinel getIsolate(string isolateId)
 ```
 
 The _getIsolate_ RPC is used to lookup an _Isolate_ object by its _id_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Isolate](#isolate).
 
 ### getObject
 
 ```
-Object|Sentinel  getObject(string isolateId,
-                           string objectId)
+Object|Sentinel getObject(string isolateId,
+                          string objectId,
+                          int offset [optional],
+                          int count [optional])
 ```
 
 The _getObject_ RPC is used to lookup an _object_ from some isolate by
 its _id_.
 
-If _objectId_ is a temporary id which has expired, then then _Expired_
+If _objectId_ is a temporary id which has expired, then the _Expired_
 [Sentinel](#sentinel) is returned.
 
 If _objectId_ refers to a heap object which has been collected by the VM's
@@ -507,6 +548,13 @@ the _Collected_ [Sentinel](#sentinel) is returned.
 
 If the object handle has not expired and the object has not been
 collected, then an [Object](#object) will be returned.
+
+The _offset_ and _count_ parameters are used to request subranges of
+Instance objects with the kinds: List, Map, Uint8ClampedList,
+Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
+Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
+Float32x4List, and Float64x2List.  These parameters are otherwise
+ignored.
 
 ### getStack
 
@@ -587,16 +635,22 @@ Out | Single step until the current function exits
 
 See [Success](#success), [StepOption](#StepOption).
 
-### setName
+### setExceptionPauseMode
 
 ```
-Success setName(string isolateId,
-                string name)
+Success setExceptionPauseMode(string isolateId,
+                              ExceptionPauseMode mode)
 ```
 
-The _setName_ RPC is used to change the debugging name for an isolate.
+The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
+an exception is thrown.
 
-See [Success](#success).
+mode | meaning
+---- | -------
+None | Do not pause isolate on thrown exceptions
+Unhandled | Pause isolate on unhandled exceptions
+All  | Pause isolate on all thrown exceptions
+
 
 ### setLibraryDebuggable
 
@@ -608,6 +662,27 @@ Success setLibraryDebuggable(string isolateId,
 
 The _setLibraryDebuggable_ RPC is used to enable or disable whether
 breakpoints and stepping work for a given library.
+
+See [Success](#success).
+
+### setName
+
+```
+Success setName(string isolateId,
+                string name)
+```
+
+The _setName_ RPC is used to change the debugging name for an isolate.
+
+See [Success](#success).
+
+### setVMName
+
+```
+Success setVMName(string name)
+```
+
+The _setVMName_ RPC is used to change the debugging name for the vm.
 
 See [Success](#success).
 
@@ -640,9 +715,11 @@ The _streamId_ parameter may have the following published values:
 
 streamId | event types provided
 -------- | -----------
-Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate
+VM | VMUpdate
+Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
+Extension | Extension
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -719,6 +796,13 @@ a vertical bar:
 
 ```
   PropertyType1|PropertyType2 complexProperty;
+```
+
+We also allow parenthesis on type expressions.  This is useful when a property
+is an _Array_ of multiple independent types:
+
+```
+  (PropertyType1|PropertyType2)[]
 ```
 
 When a string is only permitted to take one of a certain set of values,
@@ -991,7 +1075,16 @@ class Event extends Response {
   EventKind kind;
 
   // The isolate with which this event is associated.
-  @Isolate isolate;
+  //
+  // This is provided for all event kinds except for:
+  //   VMUpdate
+  @Isolate isolate [optional];
+
+  // The vm with which this event is associated.
+  //
+  // This is provided for the event kind:
+  //   VMUpdate
+  @VM vm [optional];
 
   // The timestamp (in milliseconds since the epoch) associated with this event.
   // For some isolate pause events, the timestamp is from when the isolate was
@@ -1027,6 +1120,9 @@ class Event extends Response {
   //   PauseInterrupted
   //   PauseException
   //
+  // For PauseInterrupted events, there will be no top frame if the
+  // isolate is idle (waiting in the message loop).
+  //
   // For the Resume event, the top frame is provided at
   // all times except for the initial resume event that is delivered
   // when an isolate begins execution.
@@ -1040,6 +1136,26 @@ class Event extends Response {
   //
   // This is provided for the WriteEvent event.
   string bytes [optional];
+
+  // The argument passed to dart:developer.inspect.
+  //
+  // This is provided for the Inspect event.
+  @Instance inspectee [optional];
+
+  // The RPC name of the extension that was added.
+  //
+  // This is provided for the ServiceExtensionAdded event.
+  string extensionRPC [optional];
+
+  // The extension event kind.
+  //
+  // This is provided for the Extension event.
+  string extensionKind [optional];
+
+  // The extension event data.
+  //
+  // This is provided for the Extension event.
+  ExtensionData extensionData [optional];
 }
 ```
 
@@ -1053,6 +1169,10 @@ For more information, see [events](#events).
 
 ```
 enum EventKind {
+  // Notification that VM identifying information has changed. Currently used
+  // to notify of changes to the VM debugging name via setVMName.
+  VMUpdate,
+
   // Notification that a new isolate has started.
   IsolateStart,
 
@@ -1066,6 +1186,9 @@ enum EventKind {
   // Currently used to notify of changes to the isolate debugging name
   // via setName.
   IsolateUpdate,
+
+  // Notification that an extension RPC was registered on an isolate.
+  ServiceExtensionAdded,
 
   // An isolate has paused at start, before executing code.
   PauseStart,
@@ -1098,12 +1221,27 @@ enum EventKind {
   GC,
 
   // Notification of bytes written, for example, to stdout/stderr.
-  WriteEvent
+  WriteEvent,
+
+  // Notification from dart:developer.inspect.
+  Inspect,
+
+  // Event from dart:developer.postEvent.
+  Extension
 }
 ```
 
 Adding new values to _EventKind_ is considered a backwards compatible
 change. Clients should ignore unrecognized events.
+
+### ExtensionData
+
+```
+class ExtensionData {
+}
+```
+
+An _ExtensionData_ is an arbitrary map that can have any contents.
 
 ### Field
 
@@ -1223,8 +1361,7 @@ class @Function extends @Object {
   // The name of this function.
   string name;
 
-  // The owner of this field, which can be a Library, Class, or a
-  // Function.
+  // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
 
   // Is this function static?
@@ -1243,8 +1380,7 @@ class Function extends Object {
   // The name of this function.
   string name;
 
-  // The owner of this field, which can be a Library, Class, or a
-  // Function.
+  // The owner of this function, which can be a Library, Class, or a Function.
   @Library|@Class|@Function owner;
 
   // The location of this function in the source code.
@@ -1285,7 +1421,7 @@ class @Instance extends @Object {
   // this property is added with the value 'true'.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List instance.
+  // The length of a List or the number of associations in a Map.
   //
   // Provided for instance kinds:
   //   List
@@ -1358,7 +1494,7 @@ class Instance extends Object {
   // this property is added with the value 'true'.
   bool valueAsStringIsTruncated [optional];
 
-  // The length of a List instance.
+  // The length of a List or the number of associations in a Map.
   //
   // Provided for instance kinds:
   //   List
@@ -1379,6 +1515,50 @@ class Instance extends Object {
   //   Float64x2List
   int length [optional];
 
+  // The index of the first element or association returned.
+  // This is only provided when it is non-zero.
+  //
+  // Provided for instance kinds:
+  //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
+  int offset [optional];
+
+  // The number of elements or associations returned.
+  // This is only provided when it is less than length.
+  //
+  // Provided for instance kinds:
+  //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
+  int count [optional];
+
   // The name of a Type instance.
   //
   // Provided for instance kinds:
@@ -1398,15 +1578,15 @@ class Instance extends Object {
   @Class parameterizedClass [optional];
 
   // The fields of this Instance.
-  BoundField fields [optional];
+  BoundField[] fields [optional];
 
   // The elements of a List instance.
   //
   // Provided for instance kinds:
   //   List
-  @Instance|Sentinel[] elements [optional];
+  (@Instance|Sentinel)[] elements [optional];
 
-  // The elements of a List instance.
+  // The elements of a Map instance.
   //
   // Provided for instance kinds:
   //   Map
@@ -1554,7 +1734,7 @@ enum InstanceKind {
   Float64x2,
   Int32x4
 
-  // An instance of the built-in VM TypedData implementations.  User-defined
+  // An instance of the built-in VM TypedData implementations. User-defined
   // TypedDatas will be PlainInstance.
   Uint8ClampedList,
   Uint8List,
@@ -1587,16 +1767,16 @@ enum InstanceKind {
   // An instance of the Dart class WeakProperty.
   WeakProperty,
 
-  // An instance of the Dart class Type
+  // An instance of the Dart class Type.
   Type,
 
-  // An instance of the Dart class TypeParamer
+  // An instance of the Dart class TypeParameter.
   TypeParameter,
 
-  // An instance of the Dart class TypeRef
+  // An instance of the Dart class TypeRef.
   TypeRef,
 
-  // An instance of the Dart class BoundedType
+  // An instance of the Dart class BoundedType.
   BoundedType,
 }
 ```
@@ -1649,11 +1829,6 @@ class Isolate extends Response {
   // running, this will be a resume event.
   Event pauseEvent;
 
-  // The entry function for this isolate.
-  //
-  // Guaranteed to be initialized when the IsolateRunnable event fires.
-  @Function entry [optional];
-
   // The root library for this isolate.
   //
   // Guaranteed to be initialized when the IsolateRunnable event fires.
@@ -1669,6 +1844,12 @@ class Isolate extends Response {
 
   // The error that is causing this isolate to exit, if applicable.
   Error error [optional];
+
+  // The current pause on exception mode for this isolate.
+  ExceptionPauseMode exceptionPauseMode;
+
+  // The list of service extension RPCs that are registered for this isolate.
+  string[] extensionRPCs;
 }
 ```
 
@@ -1696,7 +1877,7 @@ class Library extends Object {
   // The uri of this library.
   string uri;
 
-  // Is this library debuggable?  Default true.
+  // Is this library debuggable? Default true.
   bool debuggable;
 
   // A list of the imports for this library.
@@ -1977,6 +2158,19 @@ class Stack extends Response {
 }
 ```
 
+### ExceptionPauseMode
+
+```
+enum ExceptionPauseMode {
+  None,
+  Unhandled,
+  All,
+}
+```
+
+An _ExceptionPauseMode_ indicates how the isolate pauses when an exception
+is thrown.
+
 ### StepOption
 
 ```
@@ -2036,15 +2230,15 @@ class UnresolvedSourceLocation extends Response {
   // has yet to be loaded.
   string scriptUri [optional];
 
-  // An approximate token position for the source location.  This may
+  // An approximate token position for the source location. This may
   // change when the location is resolved.
   int tokenPos [optional];
 
-  // An approximate line number for the source location.  This may
+  // An approximate line number for the source location. This may
   // change when the location is resolved.
   int line [optional];
 
-  // An approximate column number for the source location.  This may
+  // An approximate column number for the source location. This may
   // change when the location is resolved.
   int column [optional];
 
@@ -2081,6 +2275,15 @@ See [Versioning](#versioning).
 ### VM
 
 ```
+class @VM extends Response {
+  // A name identifying this vm. Not guaranteed to be unique.
+  string name;
+}
+```
+
+_@VM_ is a reference to a _VM_ object.
+
+```
 class VM extends Response {
   // Word length on target architecture (e.g. 32, 64).
   int architectureBits;
@@ -2095,7 +2298,7 @@ class VM extends Response {
   string version;
 
   // The process id for the VM.
-  string pid;
+  int pid;
 
   // The time that the VM started in milliseconds since the epoch.
   //
@@ -2111,9 +2314,9 @@ class VM extends Response {
 
 version | comments
 ------- | --------
-1.0 draft 1 | initial revision
-1.1 | Describe protocol version 2.0.
-1.2 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.
+1.0 | initial revision
+2.0 | Describe protocol version 2.0.
+3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.static_type_warning_code_test;
+library analyzer.test.generated.static_type_warning_code_test;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import '../utils.dart';
@@ -57,6 +56,30 @@ library lib2;
 f() {}''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+  }
+
+  void test_assert_message_suppresses_type_promotion() {
+    // If a variable is assigned to inside the expression for an assert
+    // message, type promotion should be suppressed, just as it would be if the
+    // assignment occurred outside an assert statement.  (Note that it is a
+    // dubious practice for the computation of an assert message to have side
+    // effects, since it is only evaluated if the assert fails).
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+class C {
+  void foo() {}
+}
+
+f(Object x) {
+  if (x is C) {
+    x.foo();
+    assert(true, () { x = new C(); return 'msg'; }());
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    // Do not verify since `x.foo()` fails to resolve.
   }
 
   void test_await_flattened() {
@@ -833,6 +856,27 @@ class A {
     verify([source]);
   }
 
+  // https://github.com/dart-lang/sdk/issues/24713
+  void test_returnOfInvalidType_not_issued_for_valid_generic_return() {
+    Source source = addSource(r'''
+abstract class F<T, U>  {
+  U get value;
+}
+
+abstract class G<T> {
+  T test(F<int, T> arg) => arg.value;
+}
+
+abstract class H<S> {
+  S test(F<int, S> arg) => arg.value;
+}
+
+void main() { }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_returnOfInvalidType_void() {
     Source source = addSource("void f() { return 42; }");
     computeLibrarySourceErrors(source);
@@ -1078,7 +1122,8 @@ class A<T extends T> {
     verify([source]);
   }
 
-  void test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() {
+  void
+      test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1107,7 +1152,8 @@ main(Object p) {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1118,7 +1164,8 @@ main(Object p) {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1398,6 +1445,18 @@ var a = A.B;''');
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  void test_undefinedGetter_typeLiteral_cascadeTarget() {
+    Source source = addSource(r'''
+class T {
+  static int get foo => 42;
+}
+main() {
+  T..foo;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
   void test_undefinedGetter_typeLiteral_conditionalAccess() {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance getters of Type.
@@ -1569,6 +1628,19 @@ main() {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
+  void test_undefinedMethod_typeLiteral_cascadeTarget() {
+    Source source = addSource('''
+class T {
+  static void foo() {}
+}
+main() {
+  T..foo();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   void test_undefinedMethod_typeLiteral_conditionalAccess() {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance methods of Type.
@@ -1578,6 +1650,19 @@ f() => A?.toString();
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  void test_undefinedMethodWithConstructor() {
+    Source source = addSource(r'''
+class C {
+  C.m();
+}
+f() {
+  C c = C.m();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR]);
   }
 
   void test_undefinedOperator_indexBoth() {
@@ -1652,6 +1737,18 @@ f(T e1) { e1.m = 0; }''');
     Source source = addSource(r'''
 class A {}
 f() { A.B = 0;}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+  }
+
+  void test_undefinedSetter_typeLiteral_cascadeTarget() {
+    Source source = addSource(r'''
+class T {
+  static void set foo(_) {}
+}
+main() {
+  T..foo = 42;
+}''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }

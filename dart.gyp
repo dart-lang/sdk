@@ -25,6 +25,7 @@
       'type': 'none',
       'dependencies': [
         'runtime/dart-runtime.gyp:dart',
+        'runtime/dart-runtime.gyp:dart_precompiled',
         'runtime/dart-runtime.gyp:dart_no_snapshot',
         'runtime/dart-runtime.gyp:run_vm_tests',
         'runtime/dart-runtime.gyp:process_test',
@@ -91,13 +92,6 @@
       'dependencies': [
         'create_sdk',
         'packages',
-      ],
-    },
-    {
-      'target_name': 'api_docs',
-      'type': 'none',
-      'dependencies': [
-        'utils/apidoc/docgen.gyp:dartdocgen',
       ],
     },
     {

@@ -42,7 +42,7 @@ class HeapPage {
   }
 
   uword object_start() const {
-    return (reinterpret_cast<uword>(this) + ObjectStartOffset());
+    return memory_->start() + ObjectStartOffset();
   }
   uword object_end() const {
     return object_end_;
@@ -218,8 +218,8 @@ class PageSpace {
            NeedsExternalGC();
   }
 
-  intptr_t UsedInWords() const { return usage_.used_in_words; }
-  intptr_t CapacityInWords() const {
+  int64_t UsedInWords() const { return usage_.used_in_words; }
+  int64_t CapacityInWords() const {
     MutexLocker ml(pages_lock_);
     return usage_.capacity_in_words;
   }
@@ -230,8 +230,13 @@ class PageSpace {
   void IncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
     DEBUG_ASSERT(pages_lock_->IsOwnedByCurrentThread());
     usage_.capacity_in_words += increase_in_words;
+    UpdateMaxCapacityLocked();
   }
-  intptr_t ExternalInWords() const {
+
+  void UpdateMaxCapacityLocked();
+  void UpdateMaxUsed();
+
+  int64_t ExternalInWords() const {
     return usage_.external_in_words;
   }
   SpaceUsage GetCurrentUsage() const {
@@ -277,8 +282,9 @@ class PageSpace {
         (ExternalInWords() > max_external_in_words_);
   }
 
-  // TODO(koda): Unify protection handling.
-  void WriteProtect(bool read_only);
+  // Note: Code pages are made executable/non-executable when 'read_only' is
+  // true/false, respectively.
+  void WriteProtect(bool read_only, bool include_code_pages);
   void WriteProtectCode(bool read_only);
 
   void AddGCTime(int64_t micros) {
@@ -339,6 +345,8 @@ class PageSpace {
   uword* EndAddress() { return &bump_end_; }
   static intptr_t top_offset() { return OFFSET_OF(PageSpace, bump_top_); }
   static intptr_t end_offset() { return OFFSET_OF(PageSpace, bump_end_); }
+
+  void SetupInstructionsSnapshotPage(void* pointer, uword size);
 
  private:
   // Ids for time and data records in Heap::GCStats.

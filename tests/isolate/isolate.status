@@ -2,26 +2,25 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
 
 [ $runtime != vm ]
 checked_test: Skip # Unsupported.
 
-[ $runtime == vm && $arch == mips && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $arch == mips && $mode == debug ]
 mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
 
-[ $compiler == none ]
+[ ($compiler == none || $compiler == precompiler) ]
 compile_time_error_test/01: Skip # Issue 12587
 ping_test: Skip           # Resolve test issues
 ping_pause_test: Skip     # Resolve test issues
 kill3_test: Pass, Fail    # Bad test: expects total message order
 
-message3_test/byteBuffer: Crash # Issue 21818
-message3_test/int32x4: Crash # Issue 21818
+message3_test/int32x4: Crash, Timeout # Issue 21818
 
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
+[ ($compiler == none || $compiler == precompiler) && $runtime == ContentShellOnAndroid ]
 *: Skip # Isolate tests are timing out flakily on Android content_shell.  Issue 19795
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
@@ -45,6 +44,7 @@ spawn_uri_exported_main_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate1_test: SkipByDesign # Test uses a ".dart" URI.
 issue_21398_parent_isolate2_test: SkipByDesign # Test uses a ".dart" URI.
+issue_24243_parent_isolate_test: SkipByDesign # Test uses a ".dart" URI.
 function_send1_test: SkipByDesign   # Test uses a ".dart" URI.
 error_exit_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
 error_at_spawnuri_test: SkipByDesign  # Test uses a ".dart" URI.
@@ -78,22 +78,25 @@ isolate_stress_test: Pass, Slow # Issue 10697
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 unresolved_ports_test: Pass, Timeout # Issue 15610
 
-[ $compiler == none && $runtime == drt ]
+[ ($compiler == none || $compiler == precompiler) && $runtime == drt ]
 spawn_uri_nested_vm_test: Skip # Issue 14463
 
 [ $jscl ]
 spawn_uri_multi_test/none: RuntimeError # Issue 13544
 
-[ $compiler == none && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 pause_test: Fail         # Not implemented yet
 
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
+[ ($compiler == none || $compiler == precompiler) && $runtime == ContentShellOnAndroid ]
 nested_spawn2_test: Skip # Issue 19127: This test is timing out.
 
-[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 spawn_uri_nested_vm_test: Skip # Issue 14479: This test is timing out.
 
-[ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && $runtime == dartium && $arch == x64 ]
+isolate/spawn_uri_multi_test/01: Skip # Times out. Issue 24795
+
+[ ($compiler == none || $compiler == precompiler) && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 typed_message_test: Crash, Fail # Issue 13921, 14400
 message_enum_test: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
 compile_time_error_test/none: Fail, OK # Issue 13921 Dom isolates don't support spawnFunction
@@ -130,17 +133,51 @@ error_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFu
 exit_at_spawnuri_test: SkipByDesign  # 13921 Dom isolates don't support spawnFunction
 
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 browser/typed_data_message_test: StaticWarning
 mint_maker_test: StaticWarning
 
 [ $compiler != none || $runtime != vm ]
-package_root_test: SkipByDesign # Uses dart:io.
+package_root_test: SkipByDesign  # Uses Isolate.packageRoot
+package_map_test: SkipByDesign  # Uses Isolate.packageMap
 
 [ $compiler == dart2js && $cps_ir ]
-deferred_in_isolate2_test: Crash # (lib.f()): deferred access is not implemented
-isolate_current_test: RuntimeError # Please triage this failure.
-message3_test/byteBuffer: RuntimeError # Please triage this failure.
-message3_test/fun: RuntimeError # Please triage this failure.
-message3_test/int32x4: RuntimeError # Please triage this failure.
-message3_test/none: RuntimeError # Please triage this failure.
+deferred_in_isolate2_test: RuntimeError # A.loadLibrary is not a function
+
+[ ($noopt || $compiler == precompiler) ]
+# Imports dart:mirrors
+count_test: CompileTimeError
+cross_isolate_message_test: CompileTimeError
+illegal_msg_function_test: CompileTimeError
+illegal_msg_mirror_test: CompileTimeError
+isolate_complex_messages_test: CompileTimeError
+mandel_isolate_test: CompileTimeError
+message2_test: CompileTimeError
+message_test: CompileTimeError
+mint_maker_test: CompileTimeError
+nested_spawn2_test: CompileTimeError
+nested_spawn_test: CompileTimeError
+raw_port_test: CompileTimeError
+request_reply_test: CompileTimeError
+spawn_function_custom_class_test: CompileTimeError
+spawn_function_test: CompileTimeError
+stacktrace_message_test: CompileTimeError
+stacktrace_message_test: CompileTimeError
+static_function_test: CompileTimeError
+unresolved_ports_test: CompileTimeError
+
+[ $runtime == dart_precompiled ]
+deferred_in_isolate_test: Skip # Isolate.spawnUri
+deferred_in_isolate2_test: Skip # Isolate.spawnUri
+exit_at_spawnuri_test: Skip # Isolate.spawnUri
+error_exit_at_spawnuri_test: Skip # Isolate.spawnUri
+issue_24243_parent_isolate_test: Skip # Isolate.spawnUri
+issue_21398_parent_isolate1_test: Skip # Isolate.spawnUri
+spawn_uri_exported_main_test: Skip # Isolate.spawnUri
+spawn_uri_test: Skip # Isolate.spawnUri
+spawn_uri_nested_vm_test: Skip # Isolate.spawnUri
+deferred_in_isolate_test: Skip # Isolate.spawnUri
+spawn_uri_multi_test: Skip # Isolate.spawnUri
+spawn_uri_vm_test: Skip # Isolate.spawnUri
+issue_21398_parent_isolate_test: Skip # Isolate.spawnUri
+error_at_spawnuri_test: Skip # Isolate.spawnUri

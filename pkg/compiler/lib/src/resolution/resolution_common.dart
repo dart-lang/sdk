@@ -4,14 +4,13 @@
 
 library dart2js.resolution.common;
 
+import '../common.dart';
+import '../common/resolution.dart' show
+    Resolution;
 import '../common/tasks.dart' show
     DeferredAction;
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 
@@ -27,28 +26,19 @@ class CommonResolverVisitor<R> extends Visitor<R> {
 
   CommonResolverVisitor(Compiler this.compiler);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  Resolution get resolution => compiler.resolution;
+
   R visitNode(Node node) {
-    internalError(node,
+    return reporter.internalError(node,
         'internal error: Unhandled node: ${node.getObjectDescription()}');
-    return null;
   }
 
   R visitEmptyStatement(Node node) => null;
 
   /** Convenience method for visiting nodes that may be null. */
   R visit(Node node) => (node == null) ? null : node.accept(this);
-
-  void error(Spannable node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportError(node, kind, arguments);
-  }
-
-  void warning(Spannable node, MessageKind kind, [Map arguments = const {}]) {
-    compiler.reportWarning(node, kind, arguments);
-  }
-
-  internalError(Spannable node, message) {
-    compiler.internalError(node, message);
-  }
 
   void addDeferredAction(Element element, DeferredAction action) {
     compiler.enqueuer.resolution.addDeferredAction(element, action);
@@ -86,7 +76,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
       if (element.name == 'yield' ||
           element.name == 'async' ||
           element.name == 'await') {
-        compiler.reportError(
+        reporter.reportErrorMessage(
             node, MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
             {'keyword': element.name,
              'modifier': currentAsyncMarker});
@@ -97,7 +87,7 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
   /// Register [node] as the definition of [element].
   void defineLocalVariable(Node node, LocalVariableElement element) {
     if (element == null) {
-      throw compiler.internalError(node, 'element is null');
+      throw reporter.internalError(node, 'element is null');
     }
     checkLocalDefinitionName(node, element);
     registry.defineElement(node, element);
@@ -106,9 +96,16 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
   void reportDuplicateDefinition(String name,
                                  Spannable definition,
                                  Spannable existing) {
-    compiler.reportError(definition,
-        MessageKind.DUPLICATE_DEFINITION, {'name': name});
-    compiler.reportInfo(existing,
-        MessageKind.EXISTING_DEFINITION, {'name': name});
+    reporter.reportError(
+        reporter.createMessage(
+            definition,
+            MessageKind.DUPLICATE_DEFINITION,
+            {'name': name}),
+        <DiagnosticMessage>[
+            reporter.createMessage(
+                existing,
+                MessageKind.EXISTING_DEFINITION,
+                {'name': name}),
+        ]);
   }
 }

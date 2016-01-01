@@ -196,7 +196,7 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     ConstantExpression initialValue =
         initialVariableValues[element.declaration];
     if (initialValue == null) {
-      compiler.internalError(element, "No initial value for given element.");
+      reporter.internalError(element, "No initial value for given element.");
     }
     return getConstantValue(initialValue);
   }

@@ -1,7 +1,11 @@
-library java.engine;
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-import 'interner.dart';
-import 'java_core.dart';
+library analyzer.src.generated.java_engine;
+
+import 'package:analyzer/src/generated/interner.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 
 /**
  * A predicate is a one-argument function that returns a boolean value.
@@ -97,7 +101,9 @@ class CaughtException implements Exception {
       }
     } else {
       buffer.writeln(exception.toString());
-      buffer.writeln(stackTrace.toString());
+      if (stackTrace != null) {
+        buffer.writeln(stackTrace.toString());
+      }
     }
   }
 }
@@ -120,6 +126,33 @@ class StringUtilities {
   static const List<String> EMPTY_ARRAY = const <String>[];
 
   static Interner INTERNER = new NullInterner();
+
+  /**
+   * Compute line starts for the given [content].
+   * Lines end with `\r`, `\n` or `\r\n`.
+   */
+  static List<int> computeLineStarts(String content) {
+    List<int> lineStarts = <int>[0];
+    int length = content.length;
+    int unit;
+    for (int index = 0; index < length; index++) {
+      unit = content.codeUnitAt(index);
+      // Special-case \r\n.
+      if (unit == 0x0D /* \r */) {
+        // Peek ahead to detect a following \n.
+        if ((index + 1 < length) && content.codeUnitAt(index + 1) == 0x0A) {
+          // Line start will get registered at next index at the \n.
+        } else {
+          lineStarts.add(index + 1);
+        }
+      }
+      // \n
+      if (unit == 0x0A) {
+        lineStarts.add(index + 1);
+      }
+    }
+    return lineStarts;
+  }
 
   static endsWith3(String str, int c1, int c2, int c3) {
     var length = str.length;

@@ -17,8 +17,10 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX, TypeVariableElementX;
 import 'package:compiler/src/tree/tree.dart' show LiteralDartString;
-import 'package:compiler/src/universe/universe.dart'
-    show Selector, SelectorKind, CallStructure;
+import 'package:compiler/src/universe/call_structure.dart'
+    show CallStructure;
+import 'package:compiler/src/universe/selector.dart'
+    show Selector, SelectorKind;
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart';
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] needs a

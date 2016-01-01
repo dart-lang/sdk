@@ -2,9 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities.general;
+library analyzer.src.generated.utilities_general;
 
-import 'dart:profiler';
+import 'dart:collection';
+import 'dart:developer' show UserTag;
+
+/**
+ * Test if the given [value] is `true` or the string "true" (case-insensitive).
+ */
+bool isTrue(Object value) =>
+    value is bool ? value : toLowerCase(value) == 'true';
+
+/**
+ * Safely convert this [value] to lower case, returning `null` if [value] is
+ * null.
+ */
+String toLowerCase(Object value) => value?.toString()?.toLowerCase();
+
+/**
+ * Safely convert this [value] to upper case, returning `null` if [value] is
+ * null.
+ */
+String toUpperCase(Object value) => value?.toString()?.toUpperCase();
 
 /**
  * Jenkins hash function, optimized for small integers.
@@ -32,8 +51,28 @@ class JenkinsSmiHash {
 }
 
 /**
+ * A simple limited queue.
+ */
+class LimitedQueue<E> extends ListQueue<E> {
+  final int limit;
+
+  /**
+   * Create a queue with [limit] items.
+   */
+  LimitedQueue(this.limit);
+
+  @override
+  void add(E o) {
+    super.add(o);
+    while (length > limit) {
+      remove(first);
+    }
+  }
+}
+
+/**
  * Helper class for gathering performance statistics.  This class is modeled on
- * the UserTag class in dart:profiler so that it can interoperate easily with
+ * the UserTag class in dart:developer so that it can interoperate easily with
  * it.
  */
 abstract class PerformanceTag {

@@ -397,7 +397,7 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
 
   ClassMirror get originalDeclaration =>
       mirrorSystem._getTypeDeclarationMirror(
-          mirrorSystem.compiler.functionClass);
+          mirrorSystem.compiler.coreClasses.functionClass);
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
   ClassMirror get superclass => originalDeclaration.superclass;

@@ -41,14 +41,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
-  const intptr_t exitframe_last_param_slot_from_fp = 2;
 
   __ SetPrologueOffset();
   __ Comment("CallToRuntimeStub");
   __ EnterStubFrame();
-
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
-  __ LoadIsolate(S6);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -57,15 +53,15 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ lw(T0, Address(S6, Isolate::vm_tag_offset()));
+    __ lw(T0, Assembler::VMTagAddress());
     __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
 #endif
 
-  // Mark that the isolate is executing VM code.
-  __ sw(S5, Address(S6, Isolate::vm_tag_offset()));
+  // Mark that the thread is executing VM code.
+  __ sw(S5, Assembler::VMTagAddress());
 
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
@@ -88,7 +84,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ sll(A2, S4, 2);
   __ addu(A2, FP, A2);  // Compute argv.
   // Set argv in NativeArguments.
-  __ addiu(A2, A2, Immediate(exitframe_last_param_slot_from_fp * kWordSize));
+  __ addiu(A2, A2, Immediate(kParamEndSlotFromFp * kWordSize));
 
 
   // Call runtime or redirection via simulator.
@@ -102,9 +98,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ delay_slot()->addiu(A3, A2, Immediate(kWordSize));
   __ Comment("CallToRuntimeStub return");
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(A2, VMTag::kDartTagId);
-  __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
+  __ sw(A2, Assembler::VMTagAddress());
 
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
@@ -148,9 +144,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ Comment("CallNativeCFunctionStub");
   __ EnterStubFrame();
 
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
-  __ LoadIsolate(S6);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ sw(FP, Address(THR, Thread::top_exit_frame_info_offset()));
@@ -158,15 +151,15 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ lw(T0, Address(S6, Isolate::vm_tag_offset()));
+    __ lw(T0, Assembler::VMTagAddress());
     __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
 #endif
 
-  // Mark that the isolate is executing Native code.
-  __ sw(T5, Address(S6, Isolate::vm_tag_offset()));
+  // Mark that the thread is executing native code.
+  __ sw(T5, Assembler::VMTagAddress());
 
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.
@@ -184,7 +177,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Set argv in NativeArguments: A2 already contains argv.
 
   ASSERT(retval_offset == 3 * kWordSize);
-  __ addiu(A3, FP, Immediate(3 * kWordSize));  // Set retval in NativeArgs.
+  // Set retval in NativeArgs.
+  __ addiu(A3, FP, Immediate(kCallerSpSlotFromFp * kWordSize));
 
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.
@@ -199,21 +193,15 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ mov(A1, T5);  // Pass the function entrypoint.
   __ ReserveAlignedFrameSpace(2 * kWordSize);  // Just passing A0, A1.
+
   // Call native wrapper function or redirection via simulator.
-#if defined(USING_SIMULATOR)
-  uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
-  entry = Simulator::RedirectExternalReference(
-      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
-  __ LoadImmediate(T9, entry);
+  __ lw(T9, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
   __ jalr(T9);
-#else
-  __ BranchLink(&NativeEntry::NativeCallWrapperLabel(), kNotPatchable);
-#endif
   __ Comment("CallNativeCFunctionStub return");
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(A2, VMTag::kDartTagId);
-  __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
+  __ sw(A2, Assembler::VMTagAddress());
 
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
@@ -238,9 +226,6 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ Comment("CallNativeCFunctionStub");
   __ EnterStubFrame();
 
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
-  __ LoadIsolate(S6);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ sw(FP, Address(THR, Thread::top_exit_frame_info_offset()));
@@ -248,15 +233,15 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ lw(T0, Address(S6, Isolate::vm_tag_offset()));
+    __ lw(T0, Assembler::VMTagAddress());
     __ BranchEqual(T0, Immediate(VMTag::kDartTagId), &ok);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
 #endif
 
-  // Mark that the isolate is executing Native code.
-  __ sw(T5, Address(S6, Isolate::vm_tag_offset()));
+  // Mark that the thread is executing native code.
+  __ sw(T5, Assembler::VMTagAddress());
 
   // Initialize NativeArguments structure and call native function.
   // Registers A0, A1, A2, and A3 are used.
@@ -274,7 +259,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Set argv in NativeArguments: A2 already contains argv.
 
   ASSERT(retval_offset == 3 * kWordSize);
-  __ addiu(A3, FP, Immediate(3 * kWordSize));  // Set retval in NativeArgs.
+  // Set retval in NativeArgs.
+  __ addiu(A3, FP, Immediate(kCallerSpSlotFromFp * kWordSize));
 
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.
@@ -296,9 +282,9 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ jalr(T9);
   __ Comment("CallNativeCFunctionStub return");
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(A2, VMTag::kDartTagId);
-  __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
+  __ sw(A2, Assembler::VMTagAddress());
 
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
@@ -323,11 +309,11 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ Comment("CallStaticFunctionStub return");
 
   // Get Code object result and restore arguments descriptor array.
-  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(CODE_REG, Address(SP, 0 * kWordSize));
   __ lw(S4, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
 
-  __ lw(T0, FieldAddress(T0, Code::entry_point_offset()));
+  __ lw(T0, FieldAddress(CODE_REG, Code::entry_point_offset()));
 
   // Remove the stub frame as we are about to jump to the dart function.
   __ LeaveStubFrameAndReturn(T0);
@@ -338,9 +324,12 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // S4: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
+  // Load code pointer to this stub from the thread:
+  // The one that is passed in, is not correct - it points to the code object
+  // that needs to be replaced.
+  __ lw(CODE_REG, Address(THR, Thread::fix_callers_target_code_offset()));
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ Comment("FixCallersTarget");
   __ EnterStubFrame();
   // Setup space on stack for return value and preserve arguments descriptor.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -349,12 +338,12 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ sw(TMP, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   // Get Code object result and restore arguments descriptor array.
-  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(CODE_REG, Address(SP, 0 * kWordSize));
   __ lw(S4, Address(SP, 1 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
 
   // Jump to the dart function.
-  __ lw(T0, FieldAddress(T0, Code::entry_point_offset()));
+  __ lw(T0, FieldAddress(CODE_REG, Code::entry_point_offset()));
 
   // Remove the stub frame.
   __ LeaveStubFrameAndReturn(T0);
@@ -364,7 +353,10 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 // Called from object allocate instruction when the allocation stub has been
 // disabled.
 void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
-  __ Comment("FixAllocationStubTarget");
+  // Load code pointer to this stub from the thread:
+  // The one that is passed in, is not correct - it points to the code object
+  // that needs to be replaced.
+  __ lw(CODE_REG, Address(THR, Thread::fix_allocation_stub_code_offset()));
   __ EnterStubFrame();
   // Setup space on stack for return value.
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
@@ -372,11 +364,11 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ sw(TMP, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   // Get Code object result.
-  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(CODE_REG, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(1 * kWordSize));
 
   // Jump to the dart function.
-  __ lw(T0, FieldAddress(T0, Code::entry_point_offset()));
+  __ lw(T0, FieldAddress(CODE_REG, Code::entry_point_offset()));
 
   // Remove the stub frame.
   __ LeaveStubFrameAndReturn(T0);
@@ -433,34 +425,26 @@ static void PushArgumentsArray(Assembler* assembler) {
 //   +------------------+
 //   | Saved PP         | <- TOS
 //   +------------------+
+//   | Saved CODE_REG   |
+//   +------------------+
 //   | Saved FP         | <- FP of stub
 //   +------------------+
 //   | Saved LR         |  (deoptimization point)
 //   +------------------+
-//   | PC marker        |
+//   | Saved CODE_REG   |
 //   +------------------+
 //   | ...              | <- SP of optimized frame
 //
 // Parts of the code cannot GC, part of the code can GC.
 static void GenerateDeoptimizationSequence(Assembler* assembler,
-                                           bool preserve_result) {
+                                           DeoptStubKind kind) {
   const intptr_t kPushedRegistersSize =
-      kNumberOfCpuRegisters * kWordSize +
-      4 * kWordSize +  // PP, FP, RA, PC marker.
-      kNumberOfFRegisters * kWordSize;
+      kNumberOfCpuRegisters * kWordSize + kNumberOfFRegisters * kWordSize;
 
   __ SetPrologueOffset();
   __ Comment("GenerateDeoptimizationSequence");
-  // DeoptimizeCopyFrame expects a Dart frame, i.e. EnterDartFrame(0), but there
-  // is no need to set the correct PC marker or load PP, since they get patched.
-  __ addiu(SP, SP, Immediate(-kPushedRegistersSize * kWordSize));
-  __ sw(ZR, Address(SP, kPushedRegistersSize - 1 * kWordSize));
-  __ sw(RA, Address(SP, kPushedRegistersSize - 2 * kWordSize));
-  __ sw(FP, Address(SP, kPushedRegistersSize - 3 * kWordSize));
-  __ sw(PP, Address(SP, kPushedRegistersSize - 4 * kWordSize));
-  __ addiu(FP, SP, Immediate(kPushedRegistersSize - 3 * kWordSize));
-
-  __ LoadPoolPointer();
+  // DeoptimizeCopyFrame expects a Dart frame.
+  __ EnterStubFrame(kPushedRegistersSize);
 
   // The code in this frame may not cause GC. kDeoptimizeCopyFrameRuntimeEntry
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
@@ -471,27 +455,38 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Push registers in their enumeration order: lowest register number at
   // lowest address.
   for (int i = 0; i < kNumberOfCpuRegisters; i++) {
-    const int slot = 4 + kNumberOfCpuRegisters - i;
+    const int slot = kNumberOfCpuRegisters - i;
     Register reg = static_cast<Register>(i);
-    __ sw(reg, Address(SP, kPushedRegistersSize - slot * kWordSize));
+    if (reg == CODE_REG) {
+      // Save the original value of CODE_REG pushed before invoking this stub
+      // instead of the value used to call this stub.
+      COMPILE_ASSERT(TMP < CODE_REG);  // Assert TMP is pushed first.
+      __ lw(TMP, Address(FP, kCallerSpSlotFromFp * kWordSize));
+      __ sw(TMP, Address(SP, kPushedRegistersSize - slot * kWordSize));
+    } else {
+      __ sw(reg, Address(SP, kPushedRegistersSize - slot * kWordSize));
+    }
   }
   for (int i = 0; i < kNumberOfFRegisters; i++) {
     // These go below the CPU registers.
-    const int slot = 4 + kNumberOfCpuRegisters + kNumberOfFRegisters - i;
+    const int slot = kNumberOfCpuRegisters + kNumberOfFRegisters - i;
     FRegister reg = static_cast<FRegister>(i);
     __ swc1(reg, Address(SP, kPushedRegistersSize - slot * kWordSize));
   }
 
   __ mov(A0, SP);  // Pass address of saved registers block.
+  __ LoadImmediate(A1, (kind == kLazyDeopt) ? 1 : 0);
   __ ReserveAlignedFrameSpace(1 * kWordSize);
-  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 1);
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (V0) is stack-size (FP - SP) in bytes, incl. the return address.
 
+  const bool preserve_result = (kind == kLazyDeopt);
   if (preserve_result) {
     // Restore result into T1 temporarily.
     __ lw(T1, Address(FP, saved_result_slot_from_fp * kWordSize));
   }
 
+  __ RestoreCodePointer();
   __ LeaveDartFrame();
   __ subu(SP, FP, V0);
 
@@ -510,6 +505,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
   }
   // Code above cannot cause GC.
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
 
   // Frame is fully rewritten at this point and it is safe to perform a GC.
@@ -539,13 +535,16 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
-  __ AddImmediate(RA, -CallPattern::kFixedLengthInBytes);
-  GenerateDeoptimizationSequence(assembler, true);  // Preserve V0.
+  __ AddImmediate(RA, -CallPattern::kDeoptCallLengthInBytes);
+  // Push zap value instead of CODE_REG for lazy deopt.
+  __ LoadImmediate(TMP, 0xf1f1f1f1);
+  __ Push(TMP);
+  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
 }
 
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  GenerateDeoptimizationSequence(assembler, false);  // Don't preserve V0.
+  GenerateDeoptimizationSequence(assembler, kEagerDeopt);
 }
 
 
@@ -564,7 +563,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
 
   // Push space for the return value.
   // Push the receiver.
-  // Push IC data object.
+  // Push ICData/MegamorphicCache object.
   // Push arguments descriptor array.
   // Push original arguments array.
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
@@ -615,6 +614,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ lw(S5, Address(SP, 5 * kWordSize));  // Restore IC data.
   __ addiu(SP, SP, Immediate(6 * kWordSize));
 
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
 
   if (!FLAG_lazy_dispatchers) {
@@ -623,6 +623,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
     __ Bind(&call_target_function);
   }
 
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ lw(T2, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T2);
 }
@@ -780,7 +781,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 // Called when invoking Dart code from C++ (VM code).
 // Input parameters:
 //   RA : points to return address.
-//   A0 : entrypoint of the Dart function to call.
+//   A0 : code object of the Dart function to call.
 //   A1 : arguments descriptor array.
 //   A2 : arguments array.
 //   A3 : current thread.
@@ -788,6 +789,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
   __ Comment("InvokeDartCodeStub");
   __ EnterFrame();
+
+  // Push code object to PC marker slot.
+  __ lw(TMP, Address(A3, Thread::invoke_dart_code_stub_offset()));
+  __ Push(TMP);
 
   // Save new context and C++ ABI callee-saved registers.
 
@@ -813,24 +818,22 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ swc1(r, Address(SP, slot * kWordSize));
   }
 
-  // We now load the pool pointer(PP) as we are about to invoke dart code and we
-  // could potentially invoke some intrinsic functions which need the PP to be
-  // set up.
-  __ LoadPoolPointer();
+  // We now load the pool pointer(PP) with a GC safe value as we are about
+  // to invoke dart code.
+  __ LoadImmediate(PP, 0);
 
   // Set up THR, which caches the current thread in Dart code.
   if (THR != A3) {
     __ mov(THR, A3);
   }
-  __ LoadIsolate(T2);
 
   // Save the current VMTag on the stack.
-  __ lw(T1, Address(T2, Isolate::vm_tag_offset()));
+  __ lw(T1, Assembler::VMTagAddress());
   __ sw(T1, Address(SP, 2 * kWordSize));
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(T0, VMTag::kDartTagId);
-  __ sw(T0, Address(T2, Isolate::vm_tag_offset()));
+  __ sw(T0, Assembler::VMTagAddress());
 
   // Save top resource and top exit frame info. Use T0 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
@@ -840,7 +843,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ lw(T0, Address(THR, Thread::top_exit_frame_info_offset()));
   __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -23);
+  ASSERT(kExitLinkSlotFromEntryFp == -24);
   __ sw(T0, Address(SP, 0 * kWordSize));
 
   // After the call, The stack pointer is restored to this location.
@@ -875,17 +878,18 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Call the Dart code entrypoint.
   // We are calling into Dart code, here, so there is no need to call through
   // T9 to match the ABI.
+  __ lw(CODE_REG, Address(A0, VMHandles::kOffsetOfRawPtrInHandle));
+  __ lw(A0, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ jalr(A0);  // S4 is the arguments descriptor array.
   __ Comment("InvokeDartCodeStub return");
 
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize);
 
-  __ LoadIsolate(S6);
 
   // Restore the current VMTag from the stack.
   __ lw(T1, Address(SP, 2 * kWordSize));
-  __ sw(T1, Address(S6, Isolate::vm_tag_offset()));
+  __ sw(T1, Assembler::VMTagAddress());
 
   // Restore the saved top resource and top exit frame info back into the
   // Isolate structure. Uses T0 as a temporary register for this.
@@ -1108,13 +1112,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
 // Input parameters:
 //   RA : return address.
 //   SP + 0 : type arguments object (only if class is parameterized).
-// Returns patch_code_pc offset where patching code for disabling the stub
-// has been generated (similar to regularly generated Dart code).
-void StubCode::GenerateAllocationStubForClass(
-    Assembler* assembler, const Class& cls,
-    uword* entry_patch_offset, uword* patch_code_pc_offset) {
+void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
+                                              const Class& cls) {
   __ Comment("AllocationStubForClass");
-  *entry_patch_offset = assembler->CodeSize();
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = cls.NumTypeArguments() > 0;
   ASSERT(!is_cls_parameterized ||
@@ -1237,8 +1237,6 @@ void StubCode::GenerateAllocationStubForClass(
   // V0: new object
   // Restore the frame pointer and return.
   __ LeaveStubFrameAndReturn(RA);
-  *patch_code_pc_offset = assembler->CodeSize();
-  __ BranchPatchable(*StubCode::FixAllocationStubTarget_entry());
 }
 
 
@@ -1558,6 +1556,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Remove the call arguments pushed earlier, including the IC data object
   // and the arguments descriptor array.
   __ addiu(SP, SP, Immediate(num_slots * kWordSize));
+  if (range_collection_mode == kCollectRanges) {
+    __ RestoreCodePointer();
+  }
   __ LeaveStubFrame();
 
   Label call_target_function;
@@ -1605,6 +1606,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     if (num_args == 2) {
       __ sw(T1, Address(SP, 1 * kWordSize));
     }
+    __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
     __ jalr(T4);
     __ lw(S5, Address(SP, (frame_size - 2) * kWordSize));
     __ lw(RA, Address(SP, (frame_size - 1) * kWordSize));
@@ -1612,9 +1614,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ UpdateRangeFeedback(V0, 2, S5, T1, &done);
     __ Bind(&done);
     __ addiu(SP, SP, Immediate(frame_size * kWordSize));
+    __ RestoreCodePointer();
     __ LeaveStubFrame();
     __ Ret();
   } else {
+    __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
     __ jr(T4);
   }
 
@@ -1629,6 +1633,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ lw(RA, Address(SP, 0 * kWordSize));
     __ lw(S5, Address(SP, 1 * kWordSize));
     __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ RestoreCodePointer();
     __ LeaveStubFrame();
     __ b(&done_stepping);
   }
@@ -1774,6 +1779,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
 
   // Get function and call it, if possible.
   __ lw(T0, Address(T0, target_offset));
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ lw(T4, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T4);
 
@@ -1788,6 +1794,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
     __ lw(RA, Address(SP, 0 * kWordSize));
     __ lw(S5, Address(SP, 1 * kWordSize));
     __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ RestoreCodePointer();
     __ LeaveStubFrame();
     __ b(&done_stepping);
   }
@@ -1827,6 +1834,7 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ LeaveStubFrame();
 
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ lw(T2, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T2);
 }
@@ -1844,9 +1852,10 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
 
   __ lw(S5, Address(SP, 1 * kWordSize));
-  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(CODE_REG, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(2 * kWordSize));
   __ LeaveStubFrame();
+  __ lw(T0, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ jr(T0);
 }
 
@@ -1860,9 +1869,10 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
 
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
 
-  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(CODE_REG, Address(SP, 0 * kWordSize));
   __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ LeaveStubFrame();
+  __ lw(T0, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ jr(T0);
 }
 
@@ -2027,10 +2037,9 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ lw(V1, Address(SP, 4 * kWordSize));  // StackTrace object.
   __ mov(FP, A2);  // Frame_pointer.
   __ lw(THR, Address(SP, 5 * kWordSize));  // Thread.
-  __ LoadIsolate(A3);
   // Set tag.
   __ LoadImmediate(A2, VMTag::kDartTagId);
-  __ sw(A2, Address(A3, Isolate::vm_tag_offset()));
+  __ sw(A2, Assembler::VMTagAddress());
   // Clear top exit frame.
   __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
@@ -2053,11 +2062,11 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ sw(T0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ Comment("OptimizeFunctionStub return");
-  __ lw(T0, Address(SP, 1 * kWordSize));  // Get Code object
+  __ lw(CODE_REG, Address(SP, 1 * kWordSize));  // Get Code object
   __ lw(S4, Address(SP, 2 * kWordSize));  // Restore argument descriptor.
   __ addiu(SP, SP, Immediate(3 * kWordSize));  // Discard argument.
 
-  __ lw(T0, FieldAddress(T0, Code::entry_point_offset()));
+  __ lw(T0, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ LeaveStubFrameAndReturn(T0);
   __ break_(0);
 }
@@ -2178,6 +2187,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
     __ CallRuntime(kSingleStepHandlerRuntimeEntry, 0);
     __ lw(RA, Address(SP, 0 * kWordSize));
     __ addiu(SP, SP, Immediate(1 * kWordSize));
+    __ RestoreCodePointer();
     __ LeaveStubFrame();
     __ b(&done_stepping);
   }
@@ -2201,16 +2211,16 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(
-    Assembler* assembler, Register receiver, Register cache, Register target) {
-  ASSERT((cache != T0) && (cache != T2));
-  __ LoadTaggedClassIdMayBeSmi(T0, receiver);
+void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
+  __ LoadTaggedClassIdMayBeSmi(T0, T0);
   // T0: class ID of the receiver (smi).
-  __ lw(T2, FieldAddress(cache, MegamorphicCache::buckets_offset()));
-  __ lw(T1, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  __ lw(S4, FieldAddress(S5, MegamorphicCache::arguments_descriptor_offset()));
+  __ lw(T2, FieldAddress(S5, MegamorphicCache::buckets_offset()));
+  __ lw(T1, FieldAddress(S5, MegamorphicCache::mask_offset()));
   // T2: cache buckets array.
   // T1: mask.
   __ mov(T3, T0);
+  // T3: probe.
 
   Label loop, update, call_target_function;
   __ b(&loop);
@@ -2238,17 +2248,61 @@ void StubCode::EmitMegamorphicLookup(
   __ addu(T1, T2, T1);
   __ lw(T0, FieldAddress(T1, base + kWordSize));
 
-  __ lw(target, FieldAddress(T0, Function::entry_point_offset()));
+  __ lw(T1, FieldAddress(T0, Function::entry_point_offset()));
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
 }
 
 
 // Called from megamorphic calls.
-//  T0: receiver.
-//  T1: lookup cache.
+//  T0: receiver
+//  S5: MegamorphicCache (preserved)
 // Result:
-//  T1: entry point.
+//  T1: target entry point
+//  CODE_REG: target Code
+//  S4: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler, T0, T1, T1);
+  EmitMegamorphicLookup(assembler);
+  __ Ret();
+}
+
+
+// Called from switchable IC calls.
+//  T0: receiver
+//  S5: ICData (preserved)
+// Result:
+//  T1: target entry point
+//  CODE_REG: target Code object
+//  S4: arguments descriptor
+void StubCode::GenerateICLookupStub(Assembler* assembler) {
+  Label loop, found, miss;
+  __ lw(T6, FieldAddress(S5, ICData::ic_data_offset()));
+  __ lw(S4, FieldAddress(S5, ICData::arguments_descriptor_offset()));
+  __ AddImmediate(T6, T6, Array::data_offset() - kHeapObjectTag);
+  // T6: first IC entry.
+  __ LoadTaggedClassIdMayBeSmi(T1, T0);
+  // T1: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ lw(T2, Address(T6, 0));
+  __ beq(T1, T2, &found);
+  ASSERT(Smi::RawValue(kIllegalCid) == 0);
+  __ beq(T2, ZR, &miss);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ AddImmediate(T6, entry_length);  // Next entry.
+  __ b(&loop);
+
+  __ Bind(&found);
+  const intptr_t target_offset = ICData::TargetIndexFor(1) * kWordSize;
+  __ lw(T0, Address(T6, target_offset));
+  __ lw(T1, FieldAddress(T0, Function::entry_point_offset()));
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
+  __ Ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(T2);
+  __ lw(CODE_REG, Address(T2, Isolate::ic_miss_code_offset()));
+  __ lw(T1, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ Ret();
 }
 

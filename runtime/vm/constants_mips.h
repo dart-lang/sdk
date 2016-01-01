@@ -11,8 +11,7 @@ namespace dart {
 
 enum Register {
   R0  =  0,
-  R1  =  1,
-  kFirstFreeCpuRegister = 2,
+  R1  =  1,  // AT aka TMP
   R2  =  2,
   R3  =  3,
   R4  =  4,
@@ -30,23 +29,23 @@ enum Register {
   R16 = 16,
   R17 = 17,
   R18 = 18,
-  R19 = 19,
+  R19 = 19,  // THR
   R20 = 20,
   R21 = 21,
-  kLastFreeCpuRegister = 21,
-  R22 = 22,
-  R23 = 23,
+  R22 = 22,  // CTX
+  R23 = 23,  // PP
   R24 = 24,
   R25 = 25,
   R26 = 26,
   R27 = 27,
   R28 = 28,
-  R29 = 29,
-  R30 = 30,
-  R31 = 31,
+  R29 = 29,  // SP
+  R30 = 30,  // FP
+  R31 = 31,  // RA
   kNumberOfCpuRegisters = 32,
   IMM = 32,  // Positive value is easier to encode than kNoRegister in bitfield.
-  kNoRegister = -1,
+  kNoRegister = -1,  // Signals an illegal register.
+
 
   // Register aliases.
   ZR = R0,
@@ -179,6 +178,7 @@ const FpuRegister kNoFpuRegister = kNoDRegister;
 const Register TMP = AT;  // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register CTX = S6;  // Location of current context at method entry.
+const Register CODE_REG = S6;
 const Register PP = S7;  // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
@@ -186,6 +186,7 @@ const Register LRREG = RA;  // Link register.
 const Register ICREG = S5;  // IC data register.
 const Register ARGS_DESC_REG = S4;
 const Register THR = S3;  // Caches current thread in generated code.
+
 
 // The code that generates a comparison can be far away from the code that
 // generates the branch that uses the result of that comparison. In this case,
@@ -206,7 +207,6 @@ const Register kStackTraceObjectReg = V1;
 typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 
-
 const RegList kAbiArgumentCpuRegs =
     (1 << A0) | (1 << A1) | (1 << A2) | (1 << A3);
 const RegList kAbiPreservedCpuRegs =
@@ -220,13 +220,24 @@ const FRegister kAbiLastPreservedFpuReg =
     static_cast<FRegister>(kNumberOfFRegisters - 1);
 const int kAbiPreservedFpuRegCount = 12;
 
+const RegList kReservedCpuRegisters =
+    (1 << SPREG)   |
+    (1 << FPREG)   |
+    (1 << TMP)     |
+    (1 << PP)      |
+    (1 << THR)     |
+    (1 << CTX)     |
+    (1 << ZR)      |
+    (1 << CMPRES1) |
+    (1 << CMPRES2) |
+    (1 << K0)      |
+    (1 << K1)      |
+    (1 << GP)      |
+    (1 << RA);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
-    (1 << R2) | (1 << R3) | (1 << R4) | (1 << R5) |
-    (1 << R6) | (1 << R7) | (1 << R8) | (1 << R9) |
-    (1 << R10) | (1 << R11) | (1 << R12) | (1 << R13) |
-    (1 << R14) | (1 << R15) | (1 << R16) | (1 << R17) |
-    (1 << R18) | (1 << R19) | (1 << R20) | (1 << R21);
+    kAllCpuRegistersList & ~kReservedCpuRegisters;
+// Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
 const int kDartVolatileCpuRegCount = 14;
@@ -428,6 +439,7 @@ enum Cop1Function {
   COP1_DIV = 0x03,
   COP1_SQRT = 0x04,
   COP1_MOV = 0x06,
+  COP1_NEG = 0x07,
   COP1_CVT_S = 0x20,
   COP1_CVT_D = 0x21,
   COP1_CVT_W = 0x24,

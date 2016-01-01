@@ -6,13 +6,9 @@ library services.src.index.store.codec;
 
 import 'dart:collection';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/indexable_element.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * A helper that encodes/decodes [AnalysisContext]s from/to integers.
@@ -79,71 +75,55 @@ class ElementCodec {
    */
   IndexableObject decode(
       AnalysisContext context, int fileId, int offset, int kindId) {
-    String filePath = _stringCodec.decode(fileId);
     IndexableObjectKind kind = IndexableObjectKind.getKind(kindId);
     if (kind == null) {
       return null;
     } else if (kind is IndexableNameKind) {
-      return new IndexableElement(new NameElement(_stringCodec.decode(offset)));
+      String name = _stringCodec.decode(offset);
+      return new IndexableName(name);
     }
+    String filePath = _stringCodec.decode(fileId);
     return kind.decode(context, filePath, offset);
   }
 
   /**
-   * Returns the first component of the [element] id.
-   * In the most cases it is an encoding of the [element]'s file path.
-   * If the given [element] is not defined in a file, returns `-1`.
+   * Returns the first component of the [indexable] id.
+   * In the most cases it is an encoding of the [indexable]'s file path.
+   * If the given [indexable] is not defined in a file, returns `-1`.
    */
   int encode1(IndexableObject indexable) {
-    Source source = indexable.source;
-    if (source == null) {
+    String filePath = indexable.filePath;
+    if (filePath == null) {
       return -1;
     }
-    String filePath = source.fullName;
     return _stringCodec.encode(filePath);
   }
 
   /**
-   * Returns the second component of the [element] id.
-   * In the most cases it is the [element]'s name offset.
+   * Returns the second component of the [indexable] id.
+   * In the most cases it is the [indexable]'s name offset.
    */
   int encode2(IndexableObject indexable) {
     if (indexable is IndexableName) {
       String name = indexable.name;
       return _stringCodec.encode(name);
     }
-    int offset = indexable.offset;
-    if (offset < 0) {
-      return _stringCodec.encode(indexable.name);
-    }
-    return offset;
+    return indexable.offset;
   }
 
   /**
-   * Returns the third component of the [element] id.
-   * In the most cases it is the [element]'s kind.
+   * Returns the third component of the [indexable] id.
+   * In the most cases it is the [indexable]'s kind.
    */
   int encode3(IndexableObject indexable) {
     return indexable.kind.index;
   }
 
   /**
-   * Returns an integer that corresponds to the name of [element].
+   * Returns an integer that corresponds to the name of [indexable].
    */
   int encodeHash(IndexableObject indexable) {
-    // TODO(brianwilkerson) Consider moving this to IndexableObjectKind so that
-    // we don't have to break encapsulation.
-    String elementName = indexable.name; // was: indexable.displayName;
-    int elementNameId = _stringCodec.encode(elementName);
-    if (indexable is IndexableElement) {
-      LibraryElement libraryElement = indexable.element.library;
-      if (libraryElement != null) {
-        String libraryPath = libraryElement.source.fullName;
-        int libraryPathId = _stringCodec.encode(libraryPath);
-        return JenkinsSmiHash.combine(libraryPathId, elementNameId);
-      }
-    }
-    return elementNameId;
+    return indexable.kind.encodeHash(_stringCodec.encode, indexable);
   }
 }
 

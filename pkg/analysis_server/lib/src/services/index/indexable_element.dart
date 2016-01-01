@@ -6,10 +6,11 @@ library src.services.index;
 
 import 'dart:collection';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * A wrapper around an [Element] that implements the [IndexableObject] interface.
@@ -30,16 +31,15 @@ class IndexableElement implements IndexableObject {
   }
 
   @override
+  String get filePath {
+    return element.source?.fullName;
+  }
+
+  @override
   int get hashCode => element.hashCode;
 
   @override
-  IndexableObjectKind get kind => IndexableElementKind.forElement(element);
-
-  @override
-  int get length => element.displayName.length;
-
-  @override
-  String get name => element.displayName;
+  IndexableElementKind get kind => IndexableElementKind.forElement(element);
 
   @override
   int get offset {
@@ -48,9 +48,6 @@ class IndexableElement implements IndexableObject {
     }
     return element.nameOffset;
   }
-
-  @override
-  Source get source => element.source;
 
   @override
   bool operator ==(Object object) =>
@@ -63,11 +60,11 @@ class IndexableElement implements IndexableObject {
 /**
  * The kind associated with an [IndexableElement].
  */
-class IndexableElementKind implements IndexableObjectKind {
+class IndexableElementKind implements IndexableObjectKind<IndexableElement> {
   /**
    * A table mapping element kinds to the corresponding indexable element kind.
    */
-  static Map<ElementKind, IndexableElementKind> _kindMap =
+  static final Map<ElementKind, IndexableElementKind> _kindMap =
       new HashMap<ElementKind, IndexableElementKind>();
 
   /**
@@ -75,7 +72,7 @@ class IndexableElementKind implements IndexableObjectKind {
    * of constructors associated with a class) to the indexable element kind used
    * to represent it.
    */
-  static Map<int, IndexableElementKind> _constructorKinds =
+  static final Map<int, IndexableElementKind> _constructorKinds =
       new HashMap<int, IndexableElementKind>();
 
   @override
@@ -107,7 +104,8 @@ class IndexableElementKind implements IndexableObjectKind {
   }
 
   @override
-  IndexableObject decode(AnalysisContext context, String filePath, int offset) {
+  IndexableElement decode(
+      AnalysisContext context, String filePath, int offset) {
     List<Source> unitSources = context.getSourcesWithFullName(filePath);
     for (Source unitSource in unitSources) {
       List<Source> libSources = context.getLibrariesContaining(unitSource);
@@ -143,6 +141,20 @@ class IndexableElementKind implements IndexableObjectKind {
       }
     }
     return null;
+  }
+
+  @override
+  int encodeHash(StringToInt stringToInt, IndexableElement indexable) {
+    Element element = indexable.element;
+    String elementName = element.displayName;
+    int elementNameId = stringToInt(elementName);
+    LibraryElement libraryElement = element.library;
+    if (libraryElement != null) {
+      String libraryPath = libraryElement.source.fullName;
+      int libraryPathId = stringToInt(libraryPath);
+      return JenkinsSmiHash.combine(libraryPathId, elementNameId);
+    }
+    return elementNameId;
   }
 
   /**

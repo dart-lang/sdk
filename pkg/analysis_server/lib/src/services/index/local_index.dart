@@ -6,15 +6,11 @@ library services.src.index.local_index;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/index_contributor.dart'
-    as oldContributors;
 import 'package:analysis_server/src/services/index/store/split_store.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/html.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -24,12 +20,14 @@ class LocalIndex extends Index {
   /**
    * The index contributors used by this index.
    */
-  List<IndexContributor> contributors;
+  List<IndexContributor> contributors = <IndexContributor>[];
 
   SplitIndexStore _store;
 
   LocalIndex(NodeManager nodeManager) {
-    _store = new SplitIndexStore(nodeManager);
+    // TODO(scheglov) get IndexObjectManager(s) as a parameter
+    _store = new SplitIndexStore(
+        nodeManager, <IndexObjectManager>[new DartUnitIndexObjectManager()]);
   }
 
   @override
@@ -50,11 +48,11 @@ class LocalIndex extends Index {
 
   /**
    * Returns a `Future<List<Location>>` that completes with the list of
-   * [LocationImpl]s of the given [relationship] with the given [element].
+   * [LocationImpl]s of the given [relationship] with the given [indexable].
    *
-   * For example, if the [element] represents a function and the [relationship]
-   * is the `is-invoked-by` relationship, then the locations will be all of the
-   * places where the function is invoked.
+   * For example, if the [indexable] represents a function element and the
+   * [relationship] is the `is-invoked-by` relationship, then the locations
+   * will be all of the places where the function is invoked.
    */
   @override
   Future<List<LocationImpl>> getRelationships(
@@ -68,13 +66,22 @@ class LocalIndex extends Index {
   }
 
   @override
-  void indexHtmlUnit(AnalysisContext context, HtmlUnit unit) {
-    oldContributors.indexHtmlUnit(_store, context, unit);
-  }
-
-  @override
-  void indexUnit(AnalysisContext context, CompilationUnit unit) {
-    oldContributors.indexDartUnit(_store, context, unit);
+  void index(AnalysisContext context, Object object) {
+    // about to index
+    bool mayIndex = _store.aboutToIndex(context, object);
+    if (!mayIndex) {
+      return;
+    }
+    // do index
+    try {
+      for (IndexContributor contributor in contributors) {
+        contributor.contributeTo(_store, context, object);
+      }
+      _store.doneIndex();
+    } catch (e) {
+      _store.cancelIndex();
+      rethrow;
+    }
   }
 
   @override

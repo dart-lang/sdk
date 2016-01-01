@@ -7,6 +7,7 @@ library code_view_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'service_ref.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
 import 'package:observatory/cpu_profile.dart';
@@ -34,6 +35,7 @@ class CodeViewElement extends ObservatoryElement {
         new SortedTableColumn('Inclusive'),
         new SortedTableColumn('Exclusive'),
         new SortedTableColumn('Disassembly'),
+        new SortedTableColumn('Objects'),
     ];
     disassemblyTable = new DisassemblyTable(columns);
     columns = [
@@ -171,7 +173,8 @@ class CodeViewElement extends ObservatoryElement {
       var row = [formattedAddress(instruction),
                  formattedInclusive(instruction),
                  formattedExclusive(instruction),
-                 instruction.human];
+                 instruction.human,
+                 instruction.object];
       disassemblyTable.addRow(new SortedTableRow(row));
     }
   }
@@ -192,6 +195,8 @@ class CodeViewElement extends ObservatoryElement {
     cell.classes.add('monospace');
     cell = tr.insertCell(-1);
     cell.classes.add('monospace');
+    cell = tr.insertCell(-1);
+    cell.classes.add('monospace');
 
     tableBody.children.add(tr);
   }
@@ -201,8 +206,14 @@ class CodeViewElement extends ObservatoryElement {
     final n = row.values.length;
     for (var i = 0; i < n; i++) {
       final cell = tr.children[i];
-      cell.title = row.values[i].toString();
-      cell.text = row.values[i].toString();
+      final content = row.values[i];
+      if (content is ServiceObject) {
+        ServiceRefElement element = new Element.tag('any-service-ref');
+        element.ref = content;
+        cell.append(element);
+      } else if (content != null) {
+        cell.text = content.toString();
+      }
     }
   }
 
@@ -294,7 +305,6 @@ class CodeViewElement extends ObservatoryElement {
 
     for (var i = addressRangeColumn + 1; i < columns - 1; i++) {
       var cell = tr.children[i];
-      cell.title = row.values[i].toString();
       cell.text = row.values[i].toString();
     }
     var functions = row.values[functionsColumn];

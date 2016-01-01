@@ -12,7 +12,28 @@
 
 namespace dart {
 
+DECLARE_FLAG(int, marker_tasks);
+
 TEST_CASE(OldGC) {
+  const char* kScriptChars =
+  "main() {\n"
+  "  return [1, 2, 3];\n"
+  "}\n";
+  FLAG_verbose_gc = true;
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+
+  EXPECT_VALID(result);
+  EXPECT(!Dart_IsNull(result));
+  EXPECT(Dart_IsList(result));
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+  heap->CollectGarbage(Heap::kOld);
+}
+
+
+TEST_CASE(OldGC_Unsync) {
+  FLAG_marker_tasks = 0;
   const char* kScriptChars =
   "main() {\n"
   "  return [1, 2, 3];\n"
@@ -259,9 +280,9 @@ TEST_CASE(IterateReadOnly) {
   const String& obj = String::Handle(String::New("x", Heap::kOld));
   Heap* heap = Thread::Current()->isolate()->heap();
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
-  heap->WriteProtect(true);
+  heap->WriteProtect(true, true /* include_code_pages */);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
-  heap->WriteProtect(false);
+  heap->WriteProtect(false, true /* include_code_pages */);
   EXPECT(heap->Contains(RawObject::ToAddr(obj.raw())));
 }
 

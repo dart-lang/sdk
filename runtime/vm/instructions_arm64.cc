@@ -17,7 +17,7 @@ CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
       ic_data_load_end_(0),
-      target_address_pool_index_(-1),
+      target_code_pool_index_(-1),
       ic_data_(ICData::Handle()) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blr ip0.
@@ -25,10 +25,10 @@ CallPattern::CallPattern(uword pc, const Code& code)
 
   Register reg;
   ic_data_load_end_ =
-      InstructionPattern::DecodeLoadWordFromPool(end_ - Instr::kInstrSize,
+      InstructionPattern::DecodeLoadWordFromPool(end_ - 2 * Instr::kInstrSize,
                                                  &reg,
-                                                 &target_address_pool_index_);
-  ASSERT(reg == IP0);
+                                                 &target_code_pool_index_);
+  ASSERT(reg == CODE_REG);
 }
 
 
@@ -36,17 +36,17 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
       native_function_pool_index_(-1),
-      target_address_pool_index_(-1) {
+      target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
   // Last instruction: blr ip0.
   ASSERT(*(reinterpret_cast<uint32_t*>(end_) - 1) == 0xd63f0200);
 
   Register reg;
   uword native_function_load_end =
-      InstructionPattern::DecodeLoadWordFromPool(end_ - Instr::kInstrSize,
+      InstructionPattern::DecodeLoadWordFromPool(end_ - 2 * Instr::kInstrSize,
                                                  &reg,
-                                                 &target_address_pool_index_);
-  ASSERT(reg == IP0);
+                                                 &target_code_pool_index_);
+  ASSERT(reg == CODE_REG);
   InstructionPattern::DecodeLoadWordFromPool(native_function_load_end,
                                              &reg,
                                              &native_function_pool_index_);
@@ -54,13 +54,14 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
 }
 
 
-uword NativeCallPattern::target() const {
-  return object_pool_.RawValueAt(target_address_pool_index_);
+RawCode* NativeCallPattern::target() const {
+  return reinterpret_cast<RawCode*>(
+      object_pool_.ObjectAt(target_code_pool_index_));
 }
 
 
-void NativeCallPattern::set_target(uword target_address) const {
-  object_pool_.SetRawValueAt(target_address_pool_index_, target_address);
+void NativeCallPattern::set_target(const Code& target) const {
+  object_pool_.SetObjectAt(target_code_pool_index_, target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -258,6 +259,34 @@ uword InstructionPattern::DecodeLoadWordFromPool(uword end,
 }
 
 
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj) {
+  ASSERT(code.ContainsInstructionAt(pc));
+
+  Instr* instr = Instr::At(pc);
+  if (instr->IsLoadStoreRegOp() && (instr->Bit(22) == 1) &&
+      (instr->Bits(30, 2) == 3) && instr->Bit(24) == 1) {
+    intptr_t offset = (instr->Imm12Field() << 3);
+    if (instr->RnField() == PP) {
+      // PP is untagged on ARM64.
+      ASSERT(Utils::IsAligned(offset, 8));
+      intptr_t index = ObjectPool::IndexFromOffset(offset - kHeapObjectTag);
+      const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+      if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+        *obj = pool.ObjectAt(index);
+        return true;
+      }
+    } else if (instr->RnField() == THR) {
+      return Thread::ObjectAtOffset(offset, obj);
+    }
+  }
+  // TODO(rmacnak): Loads with offsets beyond 12 bits.
+
+  return false;
+}
+
+
 // Encodes a load sequence ending at 'end'. Encodes a fixed length two
 // instruction load from the pool pointer in PP using the destination
 // register reg as a temporary for the base address.
@@ -292,18 +321,19 @@ RawICData* CallPattern::IcData() {
 }
 
 
-uword CallPattern::TargetAddress() const {
-  return object_pool_.RawValueAt(target_address_pool_index_);
+RawCode* CallPattern::TargetCode() const {
+  return reinterpret_cast<RawCode*>(
+      object_pool_.ObjectAt(target_code_pool_index_));
 }
 
 
-void CallPattern::SetTargetAddress(uword target_address) const {
-  object_pool_.SetRawValueAt(target_address_pool_index_, target_address);
+void CallPattern::SetTargetCode(const Code& target) const {
+  object_pool_.SetObjectAt(target_code_pool_index_, target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
 
-void CallPattern::InsertAt(uword pc, uword target_address) {
+void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
   Instr* movz0 = Instr::At(pc + (0 * Instr::kInstrSize));
   Instr* movk1 = Instr::At(pc + (1 * Instr::kInstrSize));
   Instr* movk2 = Instr::At(pc + (2 * Instr::kInstrSize));
@@ -322,68 +352,47 @@ void CallPattern::InsertAt(uword pc, uword target_address) {
   movk3->SetMoveWideBits(MOVK, IP0, h3, 3, kDoubleWord);
   blr->SetUnconditionalBranchRegBits(BLR, IP0);
 
-  ASSERT(kLengthInBytes == 5 * Instr::kInstrSize);
-  CPU::FlushICache(pc, kLengthInBytes);
+  ASSERT(kDeoptCallLengthInBytes == 5 * Instr::kInstrSize);
+  CPU::FlushICache(pc, kDeoptCallLengthInBytes);
 }
 
 
-JumpPattern::JumpPattern(uword pc, const Code& code) : pc_(pc) { }
+SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
+      cache_pool_index_(-1),
+      stub_pool_index_(-1) {
+  ASSERT(code.ContainsInstructionAt(pc));
+  // Last instruction: blr r1.
+  ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0020);
 
-
-bool JumpPattern::IsValid() const {
-  Instr* movz0 = Instr::At(pc_ + (0 * Instr::kInstrSize));
-  Instr* movk1 = Instr::At(pc_ + (1 * Instr::kInstrSize));
-  Instr* movk2 = Instr::At(pc_ + (2 * Instr::kInstrSize));
-  Instr* movk3 = Instr::At(pc_ + (3 * Instr::kInstrSize));
-  Instr* br = Instr::At(pc_ + (4 * Instr::kInstrSize));
-  return (movz0->IsMoveWideOp()) && (movz0->Bits(29, 2) == 2) &&
-         (movk1->IsMoveWideOp()) && (movk1->Bits(29, 2) == 3) &&
-         (movk2->IsMoveWideOp()) && (movk2->Bits(29, 2) == 3) &&
-         (movk3->IsMoveWideOp()) && (movk3->Bits(29, 2) == 3) &&
-         (br->IsUnconditionalBranchRegOp()) && (br->Bits(16, 5) == 31);
+  Register reg;
+  uword stub_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(pc - 3 * Instr::kInstrSize,
+                                                 &reg,
+                                                 &stub_pool_index_);
+  ASSERT(reg == CODE_REG);
+  InstructionPattern::DecodeLoadWordFromPool(stub_load_end,
+                                             &reg,
+                                             &cache_pool_index_);
+  ASSERT(reg == R5);
 }
 
 
-uword JumpPattern::TargetAddress() const {
-  Instr* movz0 = Instr::At(pc_ + (0 * Instr::kInstrSize));
-  Instr* movk1 = Instr::At(pc_ + (1 * Instr::kInstrSize));
-  Instr* movk2 = Instr::At(pc_ + (2 * Instr::kInstrSize));
-  Instr* movk3 = Instr::At(pc_ + (3 * Instr::kInstrSize));
-  const uint16_t imm0 = movz0->Imm16Field();
-  const uint16_t imm1 = movk1->Imm16Field();
-  const uint16_t imm2 = movk2->Imm16Field();
-  const uint16_t imm3 = movk3->Imm16Field();
-  const int64_t target =
-      (static_cast<int64_t>(imm0)) |
-      (static_cast<int64_t>(imm1) << 16) |
-      (static_cast<int64_t>(imm2) << 32) |
-      (static_cast<int64_t>(imm3) << 48);
-  return target;
+RawObject* SwitchableCallPattern::cache() const {
+  return reinterpret_cast<RawCode*>(
+      object_pool_.ObjectAt(cache_pool_index_));
 }
 
 
-void JumpPattern::SetTargetAddress(uword target_address) const {
-  Instr* movz0 = Instr::At(pc_ + (0 * Instr::kInstrSize));
-  Instr* movk1 = Instr::At(pc_ + (1 * Instr::kInstrSize));
-  Instr* movk2 = Instr::At(pc_ + (2 * Instr::kInstrSize));
-  Instr* movk3 = Instr::At(pc_ + (3 * Instr::kInstrSize));
-  const int32_t movz0_bits = movz0->InstructionBits();
-  const int32_t movk1_bits = movk1->InstructionBits();
-  const int32_t movk2_bits = movk2->InstructionBits();
-  const int32_t movk3_bits = movk3->InstructionBits();
+void SwitchableCallPattern::SetCache(const MegamorphicCache& cache) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(cache_pool_index_)).IsICData());
+  object_pool_.SetObjectAt(cache_pool_index_, cache);
+}
 
-  const uint32_t w0 = Utils::Low32Bits(target_address);
-  const uint32_t w1 = Utils::High32Bits(target_address);
-  const uint16_t h0 = Utils::Low16Bits(w0);
-  const uint16_t h1 = Utils::High16Bits(w0);
-  const uint16_t h2 = Utils::Low16Bits(w1);
-  const uint16_t h3 = Utils::High16Bits(w1);
 
-  movz0->SetInstructionBits((movz0_bits & ~kImm16Mask) | (h0 << kImm16Shift));
-  movk1->SetInstructionBits((movk1_bits & ~kImm16Mask) | (h1 << kImm16Shift));
-  movk2->SetInstructionBits((movk2_bits & ~kImm16Mask) | (h2 << kImm16Shift));
-  movk3->SetInstructionBits((movk3_bits & ~kImm16Mask) | (h3 << kImm16Shift));
-  CPU::FlushICache(pc_, 4 * Instr::kInstrSize);
+void SwitchableCallPattern::SetLookupStub(const Code& lookup_stub) const {
+  ASSERT(Object::Handle(object_pool_.ObjectAt(stub_pool_index_)).IsCode());
+  object_pool_.SetObjectAt(stub_pool_index_, lookup_stub);
 }
 
 

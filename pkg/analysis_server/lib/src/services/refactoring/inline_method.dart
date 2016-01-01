@@ -16,8 +16,8 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -523,7 +523,7 @@ class _ReferenceProcessor {
             ref._methodExpressionPart, _refUtils, usage, target, arguments);
         if (getExpressionPrecedence(ref._methodExpression) <
             getExpressionParentPrecedence(usage)) {
-          source = "(${source})";
+          source = "($source)";
         }
         // do replace
         SourceRange methodUsageRange = rangeNode(usage);

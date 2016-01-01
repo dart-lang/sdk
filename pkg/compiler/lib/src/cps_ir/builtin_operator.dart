@@ -29,6 +29,7 @@ enum BuiltinOperator {
   NumAdd,
   NumSubtract,
   NumMultiply,
+  NumDivide,
   NumAnd,
   NumOr,
   NumXor,
@@ -38,12 +39,42 @@ enum BuiltinOperator {
   NumGt,
   NumGe,
 
+  /// NumShr behaves like JS '>>>' but is valid only when the left is in the
+  /// uint32 range and the right in the range [0, 31].
+  NumShr,
+
+  /// NumRemainder corresponds to JavaScript's `a % b`, and Dart's
+  /// `a.remainder(b)`, except at zero, since JavaScript `1 % 0` is `NaN`.
+  /// Dart's modulo (`%`) is the same as remainder only when if both arguments
+  /// are non-negative.
+  NumRemainder,
+
+  /// Corresponds to `a ~/ b` when b is non-zero and the result fits in a signed
+  /// 32 bit value.
+  ///
+  /// This case can be compiled to  `(a / b) | 0`.
+  NumTruncatingDivideToSigned32,
+
+  /// Corresponds to JavaScript's negation, which converts 0 to -0.0.
+  NumNegate,
+
+  /// Bit inversions, with coercion to uint32.
+  ///
+  /// Compiles to `(~x) >>> 0`.
+  NumBitNot,
+
   /// Concatenates any number of strings.
   ///
   /// Takes any number of arguments, and each argument must be a string.
   ///
   /// Returns the empty string if no arguments are given.
   StringConcatenate,
+
+  /// Corresponds to `a.charCodeAt(b)`. `a' must be a String. The index `b` must
+  /// be in range `0 <= b < a.length`.
+  /// TODO(sra): Consider replacing with a Primitive to allow lowering when 'a'
+  /// is nullable (i.e. throws).
+  CharCodeAt,
 
   /// Returns true if the two arguments are the same value, and that value is
   /// not NaN, or if one argument is +0 and the other is -0.
@@ -103,6 +134,26 @@ enum BuiltinOperator {
   ///
   /// Compiles to `typeof x === 'number' && Math.floor(x) === x`
   IsNumberAndFloor,
+
+  /// Returns true if the argument is a fixed length Array.
+  ///
+  /// Uses one argument.
+  ///
+  /// Precondition: Argument is a JavaScript Array.
+  IsFixedLengthJSArray,
+
+  // TODO(sra): Remove this and replace with IsFalsy(IsFixedLengthJSArray(x)).
+  IsExtendableJSArray,
+
+  /// Returns true if the argument is an unmodifiable Array.
+  ///
+  /// Uses one argument.
+  ///
+  /// Precondition: Argument is a JavaScript Array.
+  IsUnmodifiableJSArray,
+
+  // TODO(sra): Remove this and replace with IsFalsy(IsUnmodifiableArray(x)).
+  IsModifiableJSArray,
 }
 
 /// A method supported natively in the CPS and Tree IRs using the

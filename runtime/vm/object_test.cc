@@ -173,7 +173,7 @@ TEST_CASE(TokenStream) {
   EXPECT_EQ(6, ts.length());
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(
-      TokenStream::New(ts, private_key));
+      TokenStream::New(ts, private_key, false));
   TokenStream::Iterator iterator(token_stream, 0);
   // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.
@@ -281,7 +281,8 @@ TEST_CASE(InstanceClass) {
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(
-      Field::New(field_name, false, false, false, true, one_field_class, 0));
+      Field::New(field_name, false, false, false, true, one_field_class,
+                 Object::dynamic_type(), 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2783,7 +2784,7 @@ TEST_CASE(EmbedSmiInCode) {
 // Test for Embedded Smi object in the instructions.
 TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
-  const intptr_t kSmiTestValue = 5L << 32;
+  const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
@@ -2961,7 +2962,8 @@ static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name = String::Handle(Symbols::New(name));
   const Field& field =
-      Field::Handle(Field::New(field_name, true, false, false, true, cls, 0));
+      Field::Handle(Field::New(field_name, true, false, false, true, cls,
+          Object::dynamic_type(), 0));
   return field.raw();
 }
 
@@ -3021,7 +3023,7 @@ TEST_CASE(ICData) {
   o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested);
   EXPECT_EQ(1, o1.NumArgsTested());
   EXPECT_EQ(id, o1.deopt_id());
-  EXPECT_EQ(function.raw(), o1.owner());
+  EXPECT_EQ(function.raw(), o1.Owner());
   EXPECT_EQ(0, o1.NumberOfChecks());
   EXPECT_EQ(target_name.raw(), o1.target_name());
   EXPECT_EQ(args_descriptor.raw(), o1.arguments_descriptor());
@@ -3060,7 +3062,7 @@ TEST_CASE(ICData) {
   o2 = ICData::New(function, target_name, args_descriptor, 57, 2);
   EXPECT_EQ(2, o2.NumArgsTested());
   EXPECT_EQ(57, o2.deopt_id());
-  EXPECT_EQ(function.raw(), o2.owner());
+  EXPECT_EQ(function.raw(), o2.Owner());
   EXPECT_EQ(0, o2.NumberOfChecks());
   GrowableArray<intptr_t> classes;
   classes.Add(kSmiCid);
@@ -3767,120 +3769,13 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
-TEST_CASE(FindFieldIndex) {
-  const char* kScriptChars =
-      "class A {\n"
-      "  var a;\n"
-      "  var b;\n"
-      "}\n"
-      "class B {\n"
-      "  var d;\n"
-      "}\n"
-      "test() {\n"
-      "  new A();\n"
-      "  new B();\n"
-      "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("test"), 0, NULL);
-  EXPECT_VALID(result);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  const Class& class_a = Class::Handle(GetClass(lib, "A"));
-  const Array& class_a_fields = Array::Handle(class_a.fields());
-  const Class& class_b = Class::Handle(GetClass(lib, "B"));
-  const Field& field_a = Field::Handle(GetField(class_a, "a"));
-  const Field& field_b = Field::Handle(GetField(class_a, "b"));
-  const Field& field_d = Field::Handle(GetField(class_b, "d"));
-  intptr_t field_a_index = class_a.FindFieldIndex(field_a);
-  intptr_t field_b_index = class_a.FindFieldIndex(field_b);
-  intptr_t field_d_index = class_a.FindFieldIndex(field_d);
-  // Valid index.
-  EXPECT_GE(field_a_index, 0);
-  // Valid index.
-  EXPECT_GE(field_b_index, 0);
-  // Invalid index.
-  EXPECT_EQ(field_d_index, -1);
-  Field& field_a_from_index = Field::Handle();
-  field_a_from_index ^= class_a_fields.At(field_a_index);
-  ASSERT(!field_a_from_index.IsNull());
-  // Same field.
-  EXPECT_EQ(field_a.raw(), field_a_from_index.raw());
-  Field& field_b_from_index = Field::Handle();
-  field_b_from_index ^= class_a_fields.At(field_b_index);
-  ASSERT(!field_b_from_index.IsNull());
-  // Same field.
-  EXPECT_EQ(field_b.raw(), field_b_from_index.raw());
-}
-
-
-TEST_CASE(FindFunctionIndex) {
-  // Tests both FindFunctionIndex and FindImplicitClosureFunctionIndex.
-  const char* kScriptChars =
-      "class A {\n"
-      "  void a() {}\n"
-      "  Function b() { return a; }\n"
-      "}\n"
-      "class B {\n"
-      "  dynamic d() {}\n"
-      "}\n"
-      "var x;\n"
-      "test() {\n"
-      "  x = new A().b();\n"
-      "  x();\n"
-      "  new B();\n"
-      "  return x;\n"
-      "}";
-  Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
-  EXPECT_VALID(h_lib);
-  Dart_Handle result = Dart_Invoke(h_lib, NewString("test"), 0, NULL);
-  EXPECT_VALID(result);
-  Library& lib = Library::Handle();
-  lib ^= Api::UnwrapHandle(h_lib);
-  EXPECT(!lib.IsNull());
-  const Class& class_a = Class::Handle(GetClass(lib, "A"));
-  const Class& class_b = Class::Handle(GetClass(lib, "B"));
-  const Function& func_a = Function::Handle(GetFunction(class_a, "a"));
-  const Function& func_b = Function::Handle(GetFunction(class_a, "b"));
-  const Function& func_d = Function::Handle(GetFunction(class_b, "d"));
-  EXPECT(func_a.HasImplicitClosureFunction());
-  const Function& func_x = Function::Handle(func_a.ImplicitClosureFunction());
-  intptr_t func_a_index = class_a.FindFunctionIndex(func_a);
-  intptr_t func_b_index = class_a.FindFunctionIndex(func_b);
-  intptr_t func_d_index = class_a.FindFunctionIndex(func_d);
-  intptr_t func_x_index = class_a.FindImplicitClosureFunctionIndex(func_x);
-  // Valid index.
-  EXPECT_GE(func_a_index, 0);
-  // Valid index.
-  EXPECT_GE(func_b_index, 0);
-  // Invalid index.
-  EXPECT_EQ(func_d_index, -1);
-  // Valid index.
-  EXPECT_GE(func_x_index, 0);
-  Function& func_a_from_index = Function::Handle();
-  func_a_from_index ^= class_a.FunctionFromIndex(func_a_index);
-  EXPECT(!func_a_from_index.IsNull());
-  // Same function.
-  EXPECT_EQ(func_a.raw(), func_a_from_index.raw());
-  Function& func_b_from_index = Function::Handle();
-  func_b_from_index ^= class_a.FunctionFromIndex(func_b_index);
-  EXPECT(!func_b_from_index.IsNull());
-  // Same function.
-  EXPECT_EQ(func_b.raw(), func_b_from_index.raw());
-  // Retrieve implicit closure function.
-  Function& func_x_from_index = Function::Handle();
-  func_x_from_index ^= class_a.ImplicitClosureFunctionFromIndex(func_x_index);
-  EXPECT_EQ(func_x.raw(), func_x_from_index.raw());
-}
-
-
 TEST_CASE(FindClosureIndex) {
   // Allocate the class first.
   const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(CreateDummyClass(class_name, script));
   const Array& functions = Array::Handle(Array::New(1));
+  const Isolate* iso = Isolate::Current();
 
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New("foo_papa"));
@@ -3893,18 +3788,18 @@ TEST_CASE(FindClosureIndex) {
   const String& function_name = String::Handle(Symbols::New("foo"));
   function = Function::NewClosureFunction(function_name, parent, 0);
   // Add closure function to class.
-  cls.AddClosureFunction(function);
+  iso->AddClosureFunction(function);
 
   // The closure should return a valid index.
-  intptr_t good_closure_index = cls.FindClosureIndex(function);
+  intptr_t good_closure_index = iso->FindClosureIndex(function);
   EXPECT_GE(good_closure_index, 0);
   // The parent function should return an invalid index.
-  intptr_t bad_closure_index = cls.FindClosureIndex(parent);
+  intptr_t bad_closure_index = iso->FindClosureIndex(parent);
   EXPECT_EQ(bad_closure_index, -1);
 
   // Retrieve closure function via index.
   Function& func_from_index = Function::Handle();
-  func_from_index ^= cls.ClosureFunctionFromIndex(good_closure_index);
+  func_from_index ^= iso->ClosureFunctionFromIndex(good_closure_index);
   // Same closure function.
   EXPECT_EQ(func_from_index.raw(), function.raw());
 }
@@ -3932,7 +3827,8 @@ TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   Function& invocation_dispatcher = Function::Handle();
   invocation_dispatcher ^=
       cls.GetInvocationDispatcher(invocation_dispatcher_name, args_desc,
-                                  RawFunction::kNoSuchMethodDispatcher);
+                                  RawFunction::kNoSuchMethodDispatcher,
+                                  true /* create_if_absent */);
   EXPECT(!invocation_dispatcher.IsNull());
   // Get index to function.
   intptr_t invocation_dispatcher_index =
@@ -4258,7 +4154,8 @@ TEST_CASE(PrintJSONPrimitives) {
         "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"bool\"},"
         "\"_kind\":\"RegularFunction\","
-        "\"static\":false,\"const\":false}",
+        "\"static\":false,\"const\":false,"
+        "\"_intrinsic\":false,\"_native\":false}",
         buffer);
   }
   // Library reference
@@ -4755,6 +4652,38 @@ TEST_CASE(Symbols_FromConcatAll) {
                               &empty,
                               &Symbols::isPaused() };
     CheckConcatAll(data, 3);
+  }
+}
+
+
+struct TestResult {
+  const char* in;
+  const char* out;
+};
+
+
+TEST_CASE(String_IdentifierPrettyName) {
+  TestResult tests[] = {
+    {"(dynamic, dynamic) => void", "(dynamic, dynamic) => void"},
+    {"_List@915557746", "_List"},
+    {"_HashMap@600006304<K, V>(dynamic) => V", "_HashMap<K, V>(dynamic) => V"},
+    {"set:foo", "foo="},
+    {"get:foo", "foo"},
+    {"_ReceivePortImpl@709387912", "_ReceivePortImpl"},
+    {"_ReceivePortImpl@709387912._internal@709387912",
+        "_ReceivePortImpl._internal"},
+    {"_C@6328321&_E@6328321&_F@6328321", "_C&_E&_F"},
+    {"List.", "List"},
+    {"get:foo@6328321", "foo"},
+    {"_MyClass@6328321.", "_MyClass"},
+    {"_MyClass@6328321.named", "_MyClass.named"},
+  };
+  String& test = String::Handle();
+  String& result = String::Handle();
+  for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
+    test = String::New(tests[i].in);
+    result = String::IdentifierPrettyName(test);
+    EXPECT_STREQ(tests[i].out, result.ToCString());
   }
 }
 

@@ -396,6 +396,20 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
+int64_t OS::GetCurrentMonotonicMicros() {
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+    UNREACHABLE();
+    return 0;
+  }
+  // Convert to microseconds.
+  int64_t result = ts.tv_sec;
+  result *= kMicrosecondsPerSecond;
+  result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
+  return result;
+}
+
+
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));

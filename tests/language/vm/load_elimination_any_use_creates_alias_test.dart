@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correctness of side effects tracking used by load to load forwarding.
 
-// VMOptions=--no-use-osr --optimization-counter-threshold=10 --enable-inlining-annotations
+// VMOptions=--no-use-osr --optimization-counter-threshold=10 --enable-inlining-annotations --no-background-compilation
 
 import "package:expect/expect.dart";
 

@@ -27,4 +27,15 @@ void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
   region_.Subregion(region_, 0, new_size);
 }
 
+
+VirtualMemory* VirtualMemory::ForInstructionsSnapshot(void* pointer,
+                                                      uword size) {
+  // Memory for precompilated instructions was allocated by the embedder, so
+  // create a VirtualMemory without allocating.
+  MemoryRegion region(pointer, size);
+  VirtualMemory* memory = new VirtualMemory(region);
+  memory->embedder_allocated_ = true;
+  return memory;
+}
+
 }  // namespace dart

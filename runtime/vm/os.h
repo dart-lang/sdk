@@ -47,6 +47,9 @@ class OS {
   // from midnight January 1, 1970 UTC.
   static int64_t GetCurrentTimeMicros();
 
+  // Returns the current time used by the tracing infrastructure.
+  static int64_t GetCurrentMonotonicMicros();
+
   // Returns a cleared aligned array of type T with n entries.
   // Alignment must be >= 16 and a power of two.
   template<typename T>

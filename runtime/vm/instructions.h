@@ -21,4 +21,15 @@
 #error Unknown architecture.
 #endif
 
+namespace dart {
+
+class Object;
+class Code;
+
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj);
+
+}  // namespace dart
+
 #endif  // VM_INSTRUCTIONS_H_

@@ -59,6 +59,8 @@ class NoSuchMethodRegistry {
       : this._backend = backend,
         this._compiler = backend.compiler;
 
+  DiagnosticReporter get reporter => _compiler.reporter;
+
   bool get hasThrowingNoSuchMethod => throwingImpls.isNotEmpty;
   bool get hasComplexNoSuchMethod => otherImpls.isNotEmpty;
 
@@ -82,20 +84,20 @@ class NoSuchMethodRegistry {
   void emitDiagnostic() {
     throwingImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHint(e,
-                               MessageKind.DIRECTLY_THROWING_NSM);
+          reporter.reportHintMessage(
+              e, MessageKind.DIRECTLY_THROWING_NSM);
         }
       });
     complexNoReturnImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHint(e,
-                               MessageKind.COMPLEX_THROWING_NSM);
+          reporter.reportHintMessage(
+              e, MessageKind.COMPLEX_THROWING_NSM);
         }
       });
     complexReturningImpls.forEach((e) {
         if (!_hasForwardingSyntax(e)) {
-          _compiler.reportHint(e,
-                               MessageKind.COMPLEX_RETURNING_NSM);
+          reporter.reportHintMessage(
+              e, MessageKind.COMPLEX_RETURNING_NSM);
         }
       });
   }
@@ -165,9 +167,9 @@ class NoSuchMethodRegistry {
 
   bool _isDefaultNoSuchMethodImplementation(FunctionElement element) {
     ClassElement classElement = element.enclosingClass;
-    return classElement == _compiler.objectClass
-        || classElement == _backend.jsInterceptorClass
-        || classElement == _backend.jsNullClass;
+    return classElement == _compiler.coreClasses.objectClass
+        || classElement == _backend.helpers.jsInterceptorClass
+        || classElement == _backend.helpers.jsNullClass;
   }
 
   bool _hasForwardingSyntax(FunctionElement element) {

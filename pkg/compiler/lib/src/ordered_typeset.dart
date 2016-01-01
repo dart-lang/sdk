@@ -4,13 +4,10 @@
 
 library ordered_typeset;
 
+import 'common.dart';
 import 'compiler.dart' show
     Compiler;
 import 'dart_types.dart';
-import 'diagnostics/invariant.dart' show
-    invariant;
-import 'diagnostics/messages.dart' show
-    MessageKind;
 import 'elements/elements.dart' show
     ClassElement;
 import 'util/util.dart' show
@@ -160,26 +157,29 @@ class OrderedTypeSetBuilder {
 
   void add(Compiler compiler, InterfaceType type) {
     if (type.element == cls) {
-      if (type.element != compiler.objectClass) {
-        allSupertypes.addLast(compiler.objectClass.rawType);
+      if (type.element != compiler.coreClasses.objectClass) {
+        allSupertypes.addLast(compiler.coreTypes.objectType);
       }
-      _addAtDepth(compiler, type, maxDepth + 1);
+      DiagnosticReporter reporter = compiler.reporter;
+      _addAtDepth(reporter, type, maxDepth + 1);
     } else {
-      if (type.element != compiler.objectClass) {
+      if (type.element != compiler.coreClasses.objectClass) {
         allSupertypes.addLast(type);
       }
-      _addAtDepth(compiler, type, type.element.hierarchyDepth);
+      DiagnosticReporter reporter = compiler.reporter;
+      _addAtDepth(reporter, type, type.element.hierarchyDepth);
     }
   }
 
-  void _addAtDepth(Compiler compiler, InterfaceType type, int depth) {
+  void _addAtDepth(DiagnosticReporter reporter, InterfaceType type, int depth) {
     LinkEntry<DartType> prev = null;
     LinkEntry<DartType> link = map[depth];
     while (link != null) {
       DartType existingType = link.head;
       if (existingType == type) return;
       if (existingType.element == type.element) {
-        compiler.reportError(cls,
+        reporter.reportErrorMessage(
+            cls,
             MessageKind.MULTI_INHERITANCE,
             {'thisType': cls.thisType,
              'firstType': existingType,

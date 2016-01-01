@@ -39,6 +39,10 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
     closeNode();
   }
 
+  visitAssert(Assert node) {
+    visitNodeWithChildren(node, "Assert");
+  }
+
   visitAsyncModifier(AsyncModifier node) {
     openAndCloseNode(node, "AsyncModifier",
         {'asyncToken': node.asyncToken,
@@ -84,8 +88,18 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
     visitNodeWithChildren(node, "Conditional");
   }
 
+  visitConditionalUri(ConditionalUri node) {
+    visitNodeWithChildren(node, "ConditionalUri");
+  }
+
   visitContinueStatement(ContinueStatement node) {
     visitNodeWithChildren(node, "ContinueStatement");
+  }
+
+  visitDottedName(DottedName node) {
+    openNode(node, "DottedName");
+    visitChildNode(node.identifiers, "identifiers");
+    closeNode();
   }
 
   visitDoWhile(DoWhile node) {
@@ -376,6 +390,9 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
   visitExport(Export node) {
     openNode(node, "Export");
     visitChildNode(node.uri, "uri");
+    if (node.conditionalUris != null) {
+      visitChildNode(node.conditionalUris, "conditionalUris");
+    }
     visitChildNode(node.combinators, "combinators");
     closeNode();
   }
@@ -384,6 +401,9 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
     openNode(node, "Import", {
       "isDeferred" : "${node.isDeferred}"});
     visitChildNode(node.uri, "uri");
+    if (node.conditionalUris != null) {
+      visitChildNode(node.conditionalUris, "conditionalUris");
+    }
     visitChildNode(node.combinators, "combinators");
     if (node.prefix != null) {
       visitChildNode(node.prefix, "prefix");

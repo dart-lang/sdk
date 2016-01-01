@@ -35,7 +35,7 @@ Please remove them from your code.
   }
 
   @deprecated
-  void set resetStyleInheritance(bool value) {
+  set resetStyleInheritance(bool value) {
     _shadowRootDeprecationReport();
   }
 
@@ -47,7 +47,7 @@ Please remove them from your code.
   }
 
   @deprecated
-  void set applyAuthorStyles(bool value) {
+  set applyAuthorStyles(bool value) {
     _shadowRootDeprecationReport();
   }
 }

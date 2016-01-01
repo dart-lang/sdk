@@ -13,14 +13,11 @@ import 'dart:collection';
 import 'dart:convert';
 
 import '../../compiler.dart';
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../diagnostics/invariant.dart' show
     DEBUG_MODE;
-import '../diagnostics/messages.dart' show
-    MessageKind;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../util/util.dart';
 
 part 'debug_collection.dart';
@@ -88,7 +85,9 @@ debugBreak() {
 }
 
 /// Function signature of [reportHere].
-typedef ReportHere(Compiler compiler, Spannable node, String debugMessage);
+typedef ReportHere(DiagnosticReporter reporter,
+                   Spannable node,
+                   String debugMessage);
 
 /// Print a message with a source location.
 ReportHere get reportHere {
@@ -97,8 +96,8 @@ ReportHere get reportHere {
 }
 
 /// Implementation of [reportHere]
-_reportHere(Compiler compiler, Spannable node, String debugMessage) {
-  compiler.reportInfo(node,
+_reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
+  reporter.reportInfo(node,
       MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
 }
 

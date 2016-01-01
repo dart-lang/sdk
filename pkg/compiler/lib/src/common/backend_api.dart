@@ -6,11 +6,18 @@ library dart2js.backend_api;
 
 import 'dart:async' show Future;
 
+import '../common.dart';
+import '../common/codegen.dart' show
+    CodegenImpact;
+import '../common/resolution.dart' show
+    ResolutionImpact;
 import '../compiler.dart' show
     Compiler;
 import '../compile_time_constants.dart' show
     BackendConstantEnvironment,
     ConstantCompilerTask;
+import '../constants/expressions.dart' show
+    ConstantExpression;
 import '../constants/constant_system.dart' show
     ConstantSystem;
 import '../constants/values.dart' show
@@ -18,9 +25,6 @@ import '../constants/values.dart' show
 import '../dart_types.dart' show
     DartType,
     InterfaceType;
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
 import '../elements/elements.dart' show
     ClassElement,
     ConstructorElement,
@@ -31,30 +35,38 @@ import '../elements/elements.dart' show
 import '../enqueue.dart' show
     Enqueuer,
     CodegenEnqueuer,
-    ResolutionEnqueuer,
-    WorldImpact;
+    ResolutionEnqueuer;
 import '../io/code_output.dart' show
     CodeBuffer;
 import '../io/source_information.dart' show
     SourceInformationStrategy;
+import '../js_backend/backend_helpers.dart' as js_backend show
+    BackendHelpers;
 import '../js_backend/js_backend.dart' as js_backend show
     JavaScriptBackend;
 import '../library_loader.dart' show
     LibraryLoader,
     LoadedLibraries;
 import '../native/native.dart' as native show
-    NativeEnqueuer;
+    NativeEnqueuer,
+    maybeEnableNative;
 import '../patch_parser.dart' show
-    checkNativeAnnotation;
+    checkNativeAnnotation, checkJsInteropAnnotation;
 import '../resolution/tree_elements.dart' show
     TreeElements;
+import '../tree/tree.dart' show
+    Node,
+    Send;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/world_impact.dart' show
+    ImpactStrategy,
+    WorldImpact;
 
 import 'codegen.dart' show
     CodegenWorkItem;
 import 'registry.dart' show
     Registry;
-import 'resolution.dart' show
-    ResolutionCallbacks;
 import 'tasks.dart' show
     CompilerTask;
 import 'work.dart' show
@@ -81,8 +93,8 @@ abstract class Backend {
   /// the frontend and the backend.
   ConstantCompilerTask get constantCompilerTask;
 
-  /// Backend callback methods for the resolution phase.
-  ResolutionCallbacks get resolutionCallbacks;
+  /// Backend transformation methods for the world impacts.
+  ImpactTransformer get impactTransformer;
 
   /// The strategy used for collecting and emitting source information.
   SourceInformationStrategy get sourceInformationStrategy {
@@ -103,6 +115,7 @@ abstract class Backend {
   void initializeHelperClasses() {}
 
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry);
+
   WorldImpact codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
@@ -153,22 +166,26 @@ abstract class Backend {
                                  Enqueuer enqueuer,
                                  Registry registry) {}
 
-  /// Called to notify to the backend that an interface type has been
-  /// instantiated.
-  void registerInstantiatedType(InterfaceType type, Registry registry) {}
+  /// Called to notify to the backend that a class is implemented by an
+  /// instantiated class.
+  void registerImplementedClass(ClassElement cls,
+                                Enqueuer enqueuer,
+                                Registry registry) {}
 
-  /// Register an is check to the backend.
-  void registerIsCheckForCodegen(DartType type,
-                                 Enqueuer enqueuer,
-                                 Registry registry) {}
+  /// Called to instruct to the backend register [type] as instantiated on
+  /// [enqueuer].
+  void registerInstantiatedType(InterfaceType type,
+                                Enqueuer enqueuer,
+                                Registry registry,
+                                {bool mirrorUsage: false}) {
+    registry.registerDependency(type.element);
+    enqueuer.registerInstantiatedType(type, mirrorUsage: mirrorUsage);
+  }
 
   /// Register a runtime type variable bound tests between [typeArgument] and
   /// [bound].
   void registerTypeVariableBoundsSubtypeCheck(DartType typeArgument,
                                               DartType bound) {}
-
-  /// Returns `true` if [element] represent the assert function.
-  bool isAssertMethod(Element element) => false;
 
   /**
    * Call this to register that an instantiated generic class has a call
@@ -179,14 +196,14 @@ abstract class Backend {
       Enqueuer enqueuer,
       Registry registry) {}
 
-  /**
-   * Call this to register that a getter exists for a function on an
-   * instantiated generic class.
-   */
+  /// Called to instruct the backend to register that a closure exists for a
+  /// function on an instantiated generic class.
   void registerClosureWithFreeTypeVariables(
       Element closure,
       Enqueuer enqueuer,
-      Registry registry) {}
+      Registry registry) {
+    enqueuer.universe.closuresWithFreeTypeVariables.add(closure);
+  }
 
   /// Call this to register that a member has been closurized.
   void registerBoundClosure(Enqueuer enqueuer) {}
@@ -211,41 +228,59 @@ abstract class Backend {
   /// Call this method to enable support for isolates.
   void enableIsolateSupport(Enqueuer enqueuer) {}
 
-  void registerRequiredType(DartType type, Element enclosingElement) {}
-  void registerClassUsingVariableExpression(ClassElement cls) {}
-
-  void registerConstSymbol(String name, Registry registry) {}
-  void registerNewSymbol(Registry registry) {}
+  void registerConstSymbol(String name) {}
 
   bool isNullImplementation(ClassElement cls) {
-    return cls == compiler.nullClass;
+    return cls == compiler.coreClasses.nullClass;
   }
 
-  ClassElement get intImplementation => compiler.intClass;
-  ClassElement get doubleImplementation => compiler.doubleClass;
-  ClassElement get numImplementation => compiler.numClass;
-  ClassElement get stringImplementation => compiler.stringClass;
-  ClassElement get listImplementation => compiler.listClass;
-  ClassElement get growableListImplementation => compiler.listClass;
-  ClassElement get fixedListImplementation => compiler.listClass;
-  ClassElement get constListImplementation => compiler.listClass;
-  ClassElement get mapImplementation => compiler.mapClass;
-  ClassElement get constMapImplementation => compiler.mapClass;
-  ClassElement get functionImplementation => compiler.functionClass;
-  ClassElement get typeImplementation => compiler.typeClass;
-  ClassElement get boolImplementation => compiler.boolClass;
-  ClassElement get nullImplementation => compiler.nullClass;
-  ClassElement get uint32Implementation => compiler.intClass;
-  ClassElement get uint31Implementation => compiler.intClass;
-  ClassElement get positiveIntImplementation => compiler.intClass;
+  ClassElement get intImplementation => compiler.coreClasses.intClass;
+  ClassElement get doubleImplementation => compiler.coreClasses.doubleClass;
+  ClassElement get numImplementation => compiler.coreClasses.numClass;
+  ClassElement get stringImplementation => compiler.coreClasses.stringClass;
+  ClassElement get listImplementation => compiler.coreClasses.listClass;
+  ClassElement get growableListImplementation => compiler.coreClasses.listClass;
+  ClassElement get fixedListImplementation => compiler.coreClasses.listClass;
+  ClassElement get constListImplementation => compiler.coreClasses.listClass;
+  ClassElement get mapImplementation => compiler.coreClasses.mapClass;
+  ClassElement get constMapImplementation => compiler.coreClasses.mapClass;
+  ClassElement get functionImplementation => compiler.coreClasses.functionClass;
+  ClassElement get typeImplementation => compiler.coreClasses.typeClass;
+  ClassElement get boolImplementation => compiler.coreClasses.boolClass;
+  ClassElement get nullImplementation => compiler.coreClasses.nullClass;
+  ClassElement get uint32Implementation => compiler.coreClasses.intClass;
+  ClassElement get uint31Implementation => compiler.coreClasses.intClass;
+  ClassElement get positiveIntImplementation => compiler.coreClasses.intClass;
+  ClassElement get syncStarIterableImplementation =>
+      compiler.coreClasses.iterableClass;
+  ClassElement get asyncFutureImplementation =>
+      compiler.coreClasses.futureClass;
+  ClassElement get asyncStarStreamImplementation =>
+      compiler.coreClasses.streamClass;
 
-  ClassElement defaultSuperclass(ClassElement element) => compiler.objectClass;
+  ClassElement defaultSuperclass(ClassElement element) {
+    return compiler.coreClasses.objectClass;
+  }
 
   bool isInterceptorClass(ClassElement element) => false;
 
   /// Returns `true` if [element] is a foreign element, that is, that the
   /// backend has specialized handling for the element.
   bool isForeign(Element element) => false;
+
+  /// Returns `true` if [element] is a native element, that is, that the
+  /// corresponding entity already exists in the target language.
+  bool isNative(Element element) => false;
+
+  /// Returns `true` if [element] is implemented via typed JavaScript interop.
+  // TODO(johnniwinther): Move this to [JavaScriptBackend].
+  bool isJsInterop(Element element) => false;
+
+  /// Returns `true` if the `native` pseudo keyword is supported for [library].
+  bool canLibraryUseNative(LibraryElement library) {
+    // TODO(johnniwinther): Move this to [JavaScriptBackend].
+    return native.maybeEnableNative(compiler, library);
+  }
 
   /// Processes [element] for resolution and returns the [FunctionElement] that
   /// defines the implementation of [element].
@@ -258,8 +293,8 @@ abstract class Backend {
     // TODO(johnniwinther): Remove this when patching is only done by the
     // JavaScript backend.
     Uri canonicalUri = library.canonicalUri;
-    if (canonicalUri == js_backend.JavaScriptBackend.DART_JS_HELPER ||
-        canonicalUri == js_backend.JavaScriptBackend.DART_INTERCEPTORS) {
+    if (canonicalUri == js_backend.BackendHelpers.DART_JS_HELPER ||
+        canonicalUri == js_backend.BackendHelpers.DART_INTERCEPTORS) {
       return true;
     }
     return false;
@@ -274,13 +309,24 @@ abstract class Backend {
   /// This method is called immediately after the [library] and its parts have
   /// been scanned.
   Future onLibraryScanned(LibraryElement library, LibraryLoader loader) {
-    if (library.canUseNative) {
+    // TODO(johnniwinther): Move this to [JavaScriptBackend].
+    if (canLibraryUseNative(library)) {
       library.forEachLocalMember((Element element) {
         if (element.isClass) {
           checkNativeAnnotation(compiler, element);
         }
       });
     }
+    checkJsInteropAnnotation(compiler, library);
+    library.forEachLocalMember((Element element) {
+      checkJsInteropAnnotation(compiler, element);
+      if (element.isClass && isJsInterop(element)) {
+        ClassElement classElement = element;
+        classElement.forEachMember((_, memberElement) {
+          checkJsInteropAnnotation(compiler, memberElement);
+        });
+      }
+    });
     return new Future.value();
   }
 
@@ -367,5 +413,51 @@ abstract class Backend {
   void registerAsyncMarker(FunctionElement element,
                            Enqueuer enqueuer,
                            Registry registry) {}
+
+  /// Called when resolving a call to a foreign function.
+  void registerForeignCall(Send node,
+                           Element element,
+                           CallStructure callStructure,
+                           ForeignResolver resolver) {}
+
+  /// Returns the location of the patch-file associated with [libraryName]
+  /// resolved from [plaformConfigUri].
+  ///
+  /// Returns null if there is none.
+  Uri resolvePatchUri(String libraryName, Uri plaformConfigUri);
+
+  /// Creates an impact strategy to use for compilation.
+  ImpactStrategy createImpactStrategy(
+      {bool supportDeferredLoad: true,
+       bool supportDumpInfo: true}) {
+    return const ImpactStrategy();
+  }
 }
 
+/// Interface for resolving calls to foreign functions.
+abstract class ForeignResolver {
+  /// Returns the constant expression of [node], or `null` if [node] is not
+  /// a constant expression.
+  ConstantExpression getConstant(Node node);
+
+  /// Registers [type] as instantiated.
+  void registerInstantiatedType(InterfaceType type);
+
+  /// Resolves [typeName] to a type in the context of [node].
+  DartType resolveTypeFromString(Node node, String typeName);
+}
+
+/// Backend transformation methods for the world impacts.
+class ImpactTransformer {
+  /// Transform the [ResolutionImpact] into a [WorldImpact] adding the
+  /// backend dependencies for features used in [worldImpact].
+  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
+    return worldImpact;
+  }
+
+  /// Transform the [CodegenImpact] into a [WorldImpact] adding the
+  /// backend dependencies for features used in [worldImpact].
+  WorldImpact transformCodegenImpact(CodegenImpact worldImpact) {
+    return worldImpact;
+  }
+}

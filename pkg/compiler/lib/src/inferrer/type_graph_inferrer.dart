@@ -4,54 +4,46 @@
 
 library type_graph_inferrer;
 
-import 'dart:collection' show
-    IterableBase,
-    Queue;
+import 'dart:collection' show Queue;
 
+import '../common.dart';
 import '../common/names.dart' show
     Identifiers,
     Names;
 import '../compiler.dart' show
     Compiler;
 import '../constants/values.dart';
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir show
-    Node;
 import '../dart_types.dart' show
     DartType,
     FunctionType,
     InterfaceType,
     TypeKind;
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show
     Annotations,
     JavaScriptBackend;
-import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart' show
     TreeElementMapping;
 import '../tree/tree.dart' as ast show
     DartString,
     Node,
+    LiteralBool,
     Send,
     SendSet,
     TryStatement;
 import '../types/types.dart' show
     ContainerTypeMask,
-    DictionaryTypeMask,
     MapTypeMask,
     TypeMask,
-    TypesInferrer,
-    ValueTypeMask;
+    TypesInferrer;
 import '../types/constants.dart' show
     computeTypeMask;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SideEffects,
-    TypedSelector;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/side_effects.dart' show
+    SideEffects;
 import '../util/util.dart' show
     ImmutableEmptySet,
     Setlet;
@@ -63,15 +55,12 @@ import 'inferrer_visitor.dart' show
     TypeSystem;
 import 'simple_types_inferrer.dart';
 
-part 'closure_tracer.dart';
-part 'list_tracer.dart';
-part 'map_tracer.dart';
-part 'node_tracer.dart';
-part 'type_graph_nodes.dart';
+import 'closure_tracer.dart';
+import 'list_tracer.dart';
+import 'map_tracer.dart';
+import 'type_graph_nodes.dart';
+import 'debug.dart' as debug;
 
-bool _VERBOSE = false;
-bool _PRINT_SUMMARY = false;
-final _ANOMALY_WARN = false;
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
@@ -234,11 +223,36 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
         getConcreteTypeFor(compiler.typesTask.dynamicType);
   }
 
+  TypeInformation asyncFutureTypeCache;
+  TypeInformation get asyncFutureType {
+    if (asyncFutureTypeCache != null) return asyncFutureTypeCache;
+    return asyncFutureTypeCache =
+        getConcreteTypeFor(compiler.typesTask.asyncFutureType);
+  }
+
+  TypeInformation syncStarIterableTypeCache;
+  TypeInformation get syncStarIterableType {
+    if (syncStarIterableTypeCache != null) return syncStarIterableTypeCache;
+    return syncStarIterableTypeCache =
+        getConcreteTypeFor(compiler.typesTask.syncStarIterableType);
+  }
+
+  TypeInformation asyncStarStreamTypeCache;
+  TypeInformation get asyncStarStreamType {
+    if (asyncStarStreamTypeCache != null) return asyncStarStreamTypeCache;
+    return asyncStarStreamTypeCache =
+        getConcreteTypeFor(compiler.typesTask.asyncStarStreamType);
+  }
+
   TypeInformation nonNullEmptyType;
 
   TypeInformation stringLiteralType(ast.DartString value) {
     return new StringLiteralTypeInformation(
         value, compiler.typesTask.stringType);
+  }
+
+  TypeInformation boolLiteralType(ast.LiteralBool value) {
+    return new BoolLiteralTypeInformation(value, compiler.typesTask.boolType);
   }
 
   TypeInformation computeLUB(TypeInformation firstType,
@@ -311,6 +325,16 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       allocatedTypes.add(newType);
       return newType;
     }
+  }
+
+  TypeInformation narrowNotNull(TypeInformation type) {
+    if (type.type.isExact && !type.type.isNullable) {
+      return type;
+    }
+    TypeInformation newType =
+        new NarrowTypeInformation(type, dynamicType.type.nonNullable());
+    allocatedTypes.add(newType);
+    return newType;
   }
 
   ElementTypeInformation getInferredTypeOf(Element element) {
@@ -514,11 +538,28 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeMask joinTypeMasks(Iterable<TypeMask> masks) {
-    TypeMask newType = const TypeMask.nonNullEmpty();
+    var dynamicType = compiler.typesTask.dynamicType;
+    // Optimization: we are iterating over masks twice, but because `masks` is a
+    // mapped iterable, we save the intermediate results to avoid computing them
+    // again.
+    var list = [];
     for (TypeMask mask in masks) {
-      newType = newType.union(mask, classWorld);
+      // Don't do any work on computing unions if we know that after all that
+      // work the result will be `dynamic`.
+      // TODO(sigmund): change to `mask == dynamicType` so we can continue to
+      // track the non-nullable bit.
+      if (mask.containsAll(classWorld)) return dynamicType;
+      list.add(mask);
     }
-    return newType.containsAll(classWorld) ? dynamicType.type : newType;
+
+    TypeMask newType = null;
+    for (TypeMask mask in masks) {
+      newType = newType == null ? mask : newType.union(mask, classWorld);
+      // Likewise - stop early if we already reach dynamic.
+      if (newType.containsAll(classWorld)) return dynamicType;
+    }
+
+    return newType ?? const TypeMask.nonNullEmpty();
   }
 }
 
@@ -582,12 +623,13 @@ class TypeGraphInferrerEngine
 
   JavaScriptBackend get backend => compiler.backend;
   Annotations get annotations => backend.annotations;
+  DiagnosticReporter get reporter => compiler.reporter;
 
   /**
    * A set of selector names that [List] implements, that we know return
    * their element type.
    */
-  final Set<Selector> _returnsListElementTypeSet = new Set<Selector>.from(
+  final Set<Selector> returnsListElementTypeSet = new Set<Selector>.from(
     <Selector>[
       new Selector.getter(const PublicName('first')),
       new Selector.getter(const PublicName('last')),
@@ -602,7 +644,7 @@ class TypeGraphInferrerEngine
   bool returnsListElementType(Selector selector, TypeMask mask) {
     return mask != null &&
            mask.isContainer &&
-           _returnsListElementTypeSet.contains(selector);
+           returnsListElementTypeSet.contains(selector);
   }
 
   bool returnsMapValueType(Selector selector, TypeMask mask) {
@@ -662,15 +704,16 @@ class TypeGraphInferrerEngine
       compiler.progress.reset();
     }
     sortResolvedElements().forEach((Element element) {
+      assert(compiler.enqueuer.resolution.hasBeenProcessed(element));
       if (compiler.shouldPrintProgress) {
-        compiler.log('Added $addedInGraph elements in inferencing graph.');
+        reporter.log('Added $addedInGraph elements in inferencing graph.');
         compiler.progress.reset();
       }
       // This also forces the creation of the [ElementTypeInformation] to ensure
       // it is in the graph.
       types.withMember(element, () => analyze(element, null));
     });
-    compiler.log('Added $addedInGraph elements in inferencing graph.');
+    reporter.log('Added $addedInGraph elements in inferencing graph.');
 
     buildWorkQueue();
     refine();
@@ -697,7 +740,7 @@ class TypeGraphInferrerEngine
         if (!tracer.continueAnalyzing) {
           elements.forEach((FunctionElement e) {
             compiler.world.registerMightBePassedToApply(e);
-            if (_VERBOSE) print("traced closure $e as ${true} (bail)");
+            if (debug.VERBOSE) print("traced closure $e as ${true} (bail)");
             e.functionSignature.forEachParameter((parameter) {
               types.getInferredTypeOf(parameter).giveUp(
                   this,
@@ -718,7 +761,7 @@ class TypeGraphInferrerEngine
           if (tracer.tracedType.mightBePassedToFunctionApply) {
             compiler.world.registerMightBePassedToApply(e);
           };
-          if (_VERBOSE) {
+          if (debug.VERBOSE) {
             print("traced closure $e as "
                 "${compiler.world.getMightBePassedToApply(e)}");
           }
@@ -772,7 +815,7 @@ class TypeGraphInferrerEngine
     workQueue.addAll(seenTypes);
     refine();
 
-    if (_PRINT_SUMMARY) {
+    if (debug.PRINT_SUMMARY) {
       types.allocatedLists.values.forEach((ListTypeInformation info) {
         print('${info.type} '
               'for ${info.originalType.allocationNode} '
@@ -814,7 +857,7 @@ class TypeGraphInferrerEngine
       });
     }
 
-    compiler.log('Inferred $overallRefineCount types.');
+    reporter.log('Inferred $overallRefineCount types.');
 
     processLoopInformation();
   }
@@ -827,7 +870,7 @@ class TypeGraphInferrerEngine
     SimpleTypeInferrerVisitor visitor =
         new SimpleTypeInferrerVisitor(element, compiler, this);
     TypeInformation type;
-    compiler.withCurrentElement(element, () {
+    reporter.withCurrentElement(element, () {
       type = visitor.run();
     });
     addedInGraph++;
@@ -907,7 +950,7 @@ class TypeGraphInferrerEngine
   void refine() {
     while (!workQueue.isEmpty) {
       if (compiler.shouldPrintProgress) {
-        compiler.log('Inferred $overallRefineCount types.');
+        reporter.log('Inferred $overallRefineCount types.');
         compiler.progress.reset();
       }
       TypeInformation info = workQueue.remove();
@@ -920,7 +963,7 @@ class TypeGraphInferrerEngine
         overallRefineCount++;
         info.refineCount++;
         if (info.refineCount > MAX_CHANGE_COUNT) {
-          if (_ANOMALY_WARN) {
+          if (debug.ANOMALY_WARN) {
             print("ANOMALY WARNING: max refinement reached for $info");
           }
           info.giveUp(this);
@@ -1036,16 +1079,16 @@ class TypeGraphInferrerEngine
       if (parameter.functionDeclaration.isInstanceMember) {
         ParameterAssignments assignments = info.assignments;
         assignments.replace(existing, type);
-        type.addUser(info);
       } else {
         List<TypeInformation> assignments = info.assignments;
         for (int i = 0; i < assignments.length; i++) {
           if (assignments[i] == existing) {
             assignments[i] = type;
-            type.addUser(info);
           }
         }
       }
+      // Also forward all users.
+      type.addUsersOf(existing);
     } else {
       assert(existing == null);
     }
@@ -1211,17 +1254,17 @@ class TypeGraphInferrerEngine
   Iterable<Element> sortResolvedElements() {
     int max = 0;
     Map<int, Setlet<Element>> methodSizes = new Map<int, Setlet<Element>>();
-    compiler.enqueuer.resolution.resolvedElements.forEach((AstElement element) {
+    compiler.enqueuer.resolution.processedElements.forEach((AstElement element) {
         // TODO(ngeoffray): Not sure why the resolver would put a null
         // mapping.
-        if (!compiler.enqueuer.resolution.hasBeenResolved(element)) return;
+        if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
         TreeElementMapping mapping = element.resolvedAst.elements;
         element = element.implementation;
         if (element.impliesType) return;
         assert(invariant(element,
             element.isField ||
             element.isFunction ||
-            element.isGenerativeConstructor ||
+            element.isConstructor ||
             element.isGetter ||
             element.isSetter,
             message: 'Unexpected element kind: ${element.kind}'));

@@ -33,7 +33,7 @@ import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:sdk_library_metadata/libraries.dart'
-    show LIBRARIES, LibraryInfo;
+    show libraries, LibraryInfo;
 
 import 'package:compiler/src/mirrors/analyze.dart'
     show analyze;
@@ -51,7 +51,7 @@ const DART2JS_MIRROR = 'package:compiler/src/mirrors/dart2js_mirrors.dart';
 const SDK_ROOT = '../../../../sdk/';
 
 bool isPublicDart2jsLibrary(String name) {
-  return !name.startsWith('_') && LIBRARIES[name].isDart2jsLibrary;
+  return !name.startsWith('_') && libraries[name].isDart2jsLibrary;
 }
 
 var handler;
@@ -82,15 +82,16 @@ main(List<String> arguments) {
   }
 
   // Get the names of public dart2js libraries.
-  Iterable<String> names = LIBRARIES.keys.where(isPublicDart2jsLibrary);
+  Iterable<String> names = libraries.keys.where(isPublicDart2jsLibrary);
 
   // Prepend "dart:" to the names.
   uris.addAll(names.map((String name) => Uri.parse('dart:$name')));
 
-  Uri libraryRoot = myLocation.resolve(SDK_ROOT);
+  Uri platformConfigUri = myLocation.resolve(SDK_ROOT)
+      .resolve("lib/dart2js_shared_sdk");
   Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
 
-  analyze(uris, libraryRoot, packageRoot, handler.provider, handler)
+  analyze(uris, platformConfigUri, packageRoot, handler.provider, handler)
       .then(processMirrors);
 }
 

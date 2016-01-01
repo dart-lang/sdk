@@ -15,6 +15,8 @@ class Code;
 class Isolate;
 class ObjectPointerVisitor;
 class RawCode;
+class SnapshotReader;
+class SnapshotWriter;
 
 
 // List of stubs created in the VM isolate, these stubs are shared by different
@@ -33,6 +35,7 @@ class RawCode;
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
+  V(ICLookup)                                                                  \
   V(MegamorphicLookup)                                                         \
   V(FixAllocationStubTarget)                                                   \
   V(Deoptimize)                                                                \
@@ -58,7 +61,7 @@ class RawCode;
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
-  V(CallClosureNoSuchMethod)
+  V(CallClosureNoSuchMethod)                                                   \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
@@ -98,11 +101,17 @@ class StubCode : public AllStatic {
   // only once and the stub code resides in the vm_isolate heap.
   static void InitOnce();
 
+  static void ReadFrom(SnapshotReader* reader);
+  static void WriteTo(SnapshotWriter* writer);
+
   // Generate all stubs which are generated on a per isolate basis as they
   // have embedded objects which are isolate specific.
   static void Init(Isolate* isolate);
 
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  // Returns true if stub code has been initialized.
+  static bool HasBeenInitialized();
 
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
@@ -131,8 +140,7 @@ class StubCode : public AllStatic {
 
   static const intptr_t kNoInstantiator = 0;
 
-  static void EmitMegamorphicLookup(
-      Assembler*, Register recv, Register cache, Register target);
+  static void EmitMegamorphicLookup(Assembler* assembler);
 
  private:
   friend class MegamorphicCacheTable;
@@ -160,9 +168,8 @@ class StubCode : public AllStatic {
                            void (*GenerateStub)(Assembler* assembler));
 
   static void GenerateMegamorphicMissStub(Assembler* assembler);
-  static void GenerateAllocationStubForClass(
-      Assembler* assembler, const Class& cls,
-      uword* entry_patch_offset, uword* patch_code_pc_offset);
+  static void GenerateAllocationStubForClass(Assembler* assembler,
+                                             const Class& cls);
   static void GenerateNArgsCheckInlineCacheStub(
       Assembler* assembler,
       intptr_t num_args,
@@ -173,6 +180,12 @@ class StubCode : public AllStatic {
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);
+};
+
+
+enum DeoptStubKind {
+  kLazyDeopt,
+  kEagerDeopt
 };
 
 }  // namespace dart

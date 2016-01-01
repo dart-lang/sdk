@@ -60,6 +60,10 @@ class ArgumentsDescriptor : public ValueObject {
   // Initialize the preallocated fixed length arguments descriptors cache.
   static void InitOnce();
 
+  enum {
+    kCachedDescriptorCount = 32
+  };
+
  private:
   // Absolute indexes into the array.
   enum {
@@ -75,10 +79,6 @@ class ArgumentsDescriptor : public ValueObject {
     kNamedEntrySize,
   };
 
-  enum {
-    kCachedDescriptorCount = 32
-  };
-
   static intptr_t LengthFor(intptr_t count) {
     // Add 1 for the terminating null.
     return kFirstNamedEntryIndex + (kNamedEntrySize * count) + 1;
@@ -91,8 +91,8 @@ class ArgumentsDescriptor : public ValueObject {
   // A cache of VM heap allocated arguments descriptors.
   static RawArray* cached_args_descriptors_[kCachedDescriptorCount];
 
-  friend class FullSnapshotWriter;
-  friend class VmIsolateSnapshotReader;
+  friend class SnapshotReader;
+  friend class SnapshotWriter;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
 
@@ -102,7 +102,7 @@ class ArgumentsDescriptor : public ValueObject {
 class DartEntry : public AllStatic {
  public:
   // On success, returns a RawInstance.  On failure, a RawError.
-  typedef RawObject* (*invokestub)(uword entry_point,
+  typedef RawObject* (*invokestub)(const Code& target_code,
                                    const Array& arguments_descriptor,
                                    const Array& arguments,
                                    Thread* thread);

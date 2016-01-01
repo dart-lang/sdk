@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -27,6 +27,8 @@ public class AnalysisService {
   public static final String FOLDING = "FOLDING";
 
   public static final String HIGHLIGHTS = "HIGHLIGHTS";
+
+  public static final String IMPLEMENTED = "IMPLEMENTED";
 
   /**
    * This service is not currently implemented and will become a GeneralAnalysisService in a future

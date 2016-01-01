@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.testing.test_type_provider;
+library analyzer.src.generated.testing.test_type_provider;
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 
@@ -208,7 +212,11 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get functionType {
     if (_functionType == null) {
-      _functionType = ElementFactory.classElement2("Function").type;
+      ClassElementImpl functionClass = ElementFactory.classElement2("Function");
+      functionClass.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(functionClass, null, false)
+      ];
+      _functionType = functionClass.type;
     }
     return _functionType;
   }
@@ -265,7 +273,10 @@ class TestTypeProvider implements TypeProvider {
             "iterator", false, iteratorType.substitute4(<DartType>[eType])),
         ElementFactory.getterElement("last", false, eType)
       ]);
-      iterableElement.constructors = ConstructorElement.EMPTY_LIST;
+      iterableElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(iterableElement, null, true)
+          ..isCycleFree = true
+      ];
       _propagateTypeArguments(iterableElement);
     }
     return _iterableType;
@@ -280,7 +291,9 @@ class TestTypeProvider implements TypeProvider {
       _setAccessors(iteratorElement, <PropertyAccessorElement>[
         ElementFactory.getterElement("current", false, eType)
       ]);
-      iteratorElement.constructors = ConstructorElement.EMPTY_LIST;
+      iteratorElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(iteratorElement, null, false)
+      ];
       _propagateTypeArguments(iteratorElement);
     }
     return _iteratorType;
@@ -329,7 +342,11 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.methodElement(
             "[]=", VoidTypeImpl.instance, [kType, vType])
       ];
-      mapElement.constructors = ConstructorElement.EMPTY_LIST;
+      mapElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(mapElement, null, false)
+          ..external = true
+          ..factory = true
+      ];
       _propagateTypeArguments(mapElement);
     }
     return _mapType;
@@ -357,7 +374,10 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType get nullType {
     if (_nullType == null) {
       ClassElementImpl nullElement = ElementFactory.classElement2("Null");
-      nullElement.constructors = ConstructorElement.EMPTY_LIST;
+      nullElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(
+            nullElement, '_uninstantiatable', false)..factory = true
+      ];
       _nullType = nullElement.type;
     }
     return _nullType;
@@ -396,7 +416,12 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get stackTraceType {
     if (_stackTraceType == null) {
-      _stackTraceType = ElementFactory.classElement2("StackTrace").type;
+      ClassElementImpl stackTraceElement =
+          ElementFactory.classElement2("StackTrace");
+      stackTraceElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(stackTraceElement, null, false)
+      ];
+      _stackTraceType = stackTraceElement.type;
     }
     return _stackTraceType;
   }
@@ -463,7 +488,12 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get typeType {
     if (_typeType == null) {
-      _typeType = ElementFactory.classElement2("Type").type;
+      ClassElementImpl typeClass = ElementFactory.classElement2("Type");
+      typeClass.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement(typeClass, null, false)
+          ..synthetic = true
+      ];
+      _typeType = typeClass.type;
     }
     return _typeType;
   }
@@ -554,12 +584,22 @@ class TestTypeProvider implements TypeProvider {
     ];
     fromEnvironment.factory = true;
     fromEnvironment.isCycleFree = true;
-    numElement.constructors = ConstructorElement.EMPTY_LIST;
+    numElement.constructors = <ConstructorElement>[
+      ElementFactory.constructorElement(numElement, null, false)
+        ..synthetic = true
+    ];
     intElement.constructors = <ConstructorElement>[fromEnvironment];
-    doubleElement.constructors = ConstructorElement.EMPTY_LIST;
+    doubleElement.constructors = <ConstructorElement>[
+      ElementFactory.constructorElement(doubleElement, null, false)
+        ..synthetic = true
+    ];
+    ConstFieldElementImpl varINFINITY =
+        ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType);
+    varINFINITY.constantInitializer = AstFactory.binaryExpression(
+        AstFactory.integer(1), TokenType.SLASH, AstFactory.integer(0));
     List<FieldElement> fields = <FieldElement>[
       ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
-      ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType),
+      varINFINITY,
       ElementFactory.fieldElement(
           "NEGATIVE_INFINITY", true, false, true, _doubleType),
       ElementFactory.fieldElement(
@@ -598,19 +638,15 @@ class TestTypeProvider implements TypeProvider {
    * defined for the class.
    */
   void _propagateTypeArguments(ClassElementImpl classElement) {
-    List<DartType> typeArguments =
-        TypeParameterTypeImpl.getTypes(classElement.typeParameters);
     for (PropertyAccessorElement accessor in classElement.accessors) {
-      FunctionTypeImpl functionType = accessor.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
+      (accessor as ExecutableElementImpl).type = new FunctionTypeImpl(accessor);
     }
     for (MethodElement method in classElement.methods) {
-      FunctionTypeImpl functionType = method.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
+      (method as ExecutableElementImpl).type = new FunctionTypeImpl(method);
     }
     for (ConstructorElement constructor in classElement.constructors) {
-      FunctionTypeImpl functionType = constructor.type as FunctionTypeImpl;
-      functionType.typeArguments = typeArguments;
+      (constructor as ExecutableElementImpl).type =
+          new FunctionTypeImpl(constructor);
     }
   }
 

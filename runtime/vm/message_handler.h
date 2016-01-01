@@ -18,13 +18,21 @@ class MessageHandler {
   MessageHandler();
 
  public:
+  enum MessageStatus {
+    kOK,        // We successfully handled a message.
+    kError,     // We encountered an error handling a message.
+    kRestart,   // The VM is restarting.
+    kShutdown,  // The VM is shutting down.
+  };
+  static const char* MessageStatusString(MessageStatus status);
+
   virtual ~MessageHandler();
 
   // Allow subclasses to provide a handler name.
   virtual const char* name() const;
 
   typedef uword CallbackData;
-  typedef bool (*StartCallback)(CallbackData data);
+  typedef MessageStatus (*StartCallback)(CallbackData data);
   typedef void (*EndCallback)(CallbackData data);
 
   // Runs this message handler on the thread pool.
@@ -46,13 +54,13 @@ class MessageHandler {
   // or RunBlocking).
   //
   // Returns true on success.
-  bool HandleNextMessage();
+  MessageStatus HandleNextMessage();
 
   // Handles any OOB messages for this message handler.  Can be used
   // even if the message handler is running on the thread pool.
   //
   // Returns true on success.
-  bool HandleOOBMessages();
+  MessageStatus HandleOOBMessages();
 
   // Returns true if there are pending OOB messages for this message
   // handler.
@@ -179,7 +187,7 @@ class MessageHandler {
   // Handles a single message.  Provided by subclass.
   //
   // Returns true on success.
-  virtual bool HandleMessage(Message* message) = 0;
+  virtual MessageStatus HandleMessage(Message* message) = 0;
 
   virtual void NotifyPauseOnStart() {}
   virtual void NotifyPauseOnExit() {}
@@ -199,9 +207,11 @@ class MessageHandler {
   // messages from the queue_.
   Message* DequeueMessage(Message::Priority min_priority);
 
+  void ClearOOBQueue();
+
   // Handles any pending messages.
-  bool HandleMessages(bool allow_normal_messages,
-                      bool allow_multiple_normal_messages);
+  MessageStatus HandleMessages(bool allow_normal_messages,
+                               bool allow_multiple_normal_messages);
 
   Monitor monitor_;  // Protects all fields in MessageHandler.
   MessageQueue* queue_;

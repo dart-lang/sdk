@@ -224,13 +224,12 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of `RawServerSocket`s. One
-   * way of using this is to have number of isolates between which
-   * incoming connections are distributed.
+   * The optional argument [shared] specifies whether additional RawServerSocket
+   * objects can bind to the same combination of `address`, `port` and `v6Only`.
+   * If `shared` is `true` and more `RawServerSocket`s from this isolate or
+   * other isolates are bound to the port, then the incoming connections will be
+   * distributed among all the bound `RawServerSocket`s. Connections can be
+   * distributed over multiple isolates this way.
    */
   external static Future<RawServerSocket> bind(address,
                                                int port,
@@ -253,41 +252,6 @@ abstract class RawServerSocket implements Stream<RawSocket> {
    * is fully closed and is no longer bound.
    */
   Future<RawServerSocket> close();
-
-  /**
-   * Get the [RawServerSocketReference].
-   *
-   * WARNING: This feature is *highly experimental* and currently only
-   * works on Linux. The API will be removed in Dart 1.10. Use the
-   * `shared` optional argument on the `bind` method instead.
-   *
-   * The returned [RawServerSocketReference] can be used to create other
-   * [RawServerSocket]s listening on the same port,
-   * using [RawServerSocketReference.create].
-   * Incoming connections on the port will be distributed fairly between the
-   * active server sockets.
-   * The [RawServerSocketReference] can be distributed to other isolates through
-   * a [RawSendPort].
-   */
-
-  @Deprecated('This will be removed in Dart 1.10. Use the '
-              '`shared` optional argument on the `bind` method instead.')
-  RawServerSocketReference get reference;
-}
-
-
-/**
- * A [RawServerSocketReference].
- *
- * WARNING: This class is used with [RawServerSocket.reference] which is highly
- * experimental.
- */
-@Deprecated('This will be removed in Dart 1.10.')
-abstract class RawServerSocketReference {
-  /**
-   * Create a new [RawServerSocket], from this reference.
-   */
-  Future<RawServerSocket> create();
 }
 
 
@@ -329,13 +293,12 @@ abstract class ServerSocket implements Stream<Socket> {
    * value of [:0:] (the default) a reasonable value will be chosen by
    * the system.
    *
-   * The optional argument [shared] specify whether additional binds
-   * to the same `address`, `port` and `v6Only` combination is
-   * possible from the same Dart process. If `shared` is `true` and
-   * additional binds are performed, then the incoming connections
-   * will be distributed between that set of `ServerSocket`s. One way
-   * of using this is to have number of isolates between which
-   * incoming connections are distributed.
+   * The optional argument [shared] specifies whether additional ServerSocket
+   * objects can bind to the same combination of `address`, `port` and `v6Only`.
+   * If `shared` is `true` and more `ServerSocket`s from this isolate or other
+   * isolates are bound to the port, then the incoming connections will be
+   * distributed among all the bound `ServerSocket`s. Connections can be
+   * distributed over multiple isolates this way.
    */
   external static Future<ServerSocket> bind(address,
                                             int port,
@@ -358,40 +321,6 @@ abstract class ServerSocket implements Stream<Socket> {
    * is fully closed and is no longer bound.
    */
   Future<ServerSocket> close();
-
-  /**
-   * Get the [ServerSocketReference].
-   *
-   * WARNING: This feature is *highly experimental* and currently only
-   * works on Linux. The API will be removed in Dart 1.10. Use the
-   * `shared` optional argument on the `bind` method instead.
-   *
-   * The returned [ServerSocketReference] can be used to create other
-   * [ServerSocket]s listening on the same port,
-   * using [ServerSocketReference.create].
-   * Incoming connections on the port will be distributed fairly between the
-   * active server sockets.
-   * The [ServerSocketReference] can be distributed to other isolates through a
-   * [SendPort].
-   */
-  @Deprecated('This will be removed in Dart 1.10. Use the '
-              '`shared` optional argument on the `bind` method instead.')
-  ServerSocketReference get reference;
-}
-
-
-/**
- * A [ServerSocketReference].
- *
- * WARNING: This class is used with [ServerSocket.reference] which is highly
- * experimental.
- */
-@Deprecated('This will be removed in Dart 1.10.')
-abstract class ServerSocketReference {
-  /**
-   * Create a new [ServerSocket], from this reference.
-   */
-  Future<ServerSocket> create();
 }
 
 
@@ -735,6 +664,8 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /**
    * Receive a datagram. If there are no datagrams available `null` is
    * returned.
+   *
+   * The maximum length of the datagram that can be received is 65503 bytes.
    */
   Datagram receive();
 

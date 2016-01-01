@@ -6,15 +6,19 @@ library test.domain.analysis.abstract;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
@@ -52,7 +56,7 @@ class AbstractAnalysisTest {
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
   String projectPath = '/project';
-  String testFolder = '/project/bin/';
+  String testFolder = '/project/bin';
   String testFile = '/project/bin/test.dart';
   String testCode;
 
@@ -93,13 +97,27 @@ class AbstractAnalysisTest {
   }
 
   AnalysisServer createAnalysisServer(Index index) {
+    //
+    // Collect plugins
+    //
     ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = <Plugin>[serverPlugin];
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(serverPlugin);
+    plugins.add(dartCompletionPlugin);
+    plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
     addServerPlugins(plugins);
-    // process plugins
+    //
+    // Process plugins
+    //
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
-    // create server
+    //
+    // Create server
+    //
     return new AnalysisServer(
         serverChannel,
         resourceProvider,

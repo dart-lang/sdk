@@ -97,7 +97,7 @@
 // the value defined in TargetConditionals.h
 #define TARGET_OS_MACOS 1
 #if TARGET_OS_IPHONE
-#define TARGET_OS_IOS
+#define TARGET_OS_IOS 1
 #endif
 
 #elif defined(_WIN32)
@@ -235,6 +235,18 @@ typedef simd128_value_t fpu_register_t;
 #define DART_UNUSED
 #endif
 
+// DART_NORETURN indicates to the compiler that a function doees not return.
+// It should be used on functions that unconditionally call functions like
+// exit(), which end the program. We use it to avoid compiler warnings in
+// callers of DART_NORETURN functions.
+#ifdef _MSC_VER
+#define DART_NORETURN __declspec(noreturn)
+#elif __GNUC__
+#define DART_NORETURN __attribute__((noreturn))
+#else
+#error Automatic compiler detection failed.
+#endif
+
 #if !defined(TARGET_ARCH_MIPS)
 #if !defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_ARCH_X64)
@@ -281,17 +293,17 @@ typedef simd128_value_t fpu_register_t;
 #elif defined(TARGET_ARCH_X64)
   // No simulator used.
 #elif defined(TARGET_ARCH_ARM)
-#if !defined(HOST_ARCH_ARM) || defined(TARGET_OS_IOS)
+#if !defined(HOST_ARCH_ARM)
 #define USING_SIMULATOR 1
 #endif
 
 #elif defined(TARGET_ARCH_ARM64)
-#if !defined(HOST_ARCH_ARM64) || defined(TARGET_OS_IOS)
+#if !defined(HOST_ARCH_ARM64)
 #define USING_SIMULATOR 1
 #endif
 
 #elif defined(TARGET_ARCH_MIPS)
-#if !defined(HOST_ARCH_MIPS) || defined(TARGET_OS_IOS)
+#if !defined(HOST_ARCH_MIPS)
 #define USING_SIMULATOR 1
 #endif
 

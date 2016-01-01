@@ -7,6 +7,8 @@ library tree_ir.optimization.statement_rewriter;
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 import '../../io/source_information.dart';
+import '../../elements/elements.dart';
+import '../../js/placeholder_safety.dart';
 
 /**
  * Translates to direct-style.
@@ -237,9 +239,14 @@ class StatementRewriter extends Transformer implements Pass {
   /// If the given expression always returns the value of one of its
   /// subexpressions, and that subexpression is a variable use, returns that
   /// variable. Otherwise `null`.
-  Variable getRightHand(Expression e) {
+  Variable getRightHandVariable(Expression e) {
     Expression value = getValueSubexpression(e);
     return value is VariableUse ? value.variable : null;
+  }
+
+  Constant getRightHandConstant(Expression e) {
+    Expression value = getValueSubexpression(e);
+    return value is Constant ? value : null;
   }
 
   /// True if the given expression (taken from [constantEnvironment]) uses a
@@ -277,6 +284,11 @@ class StatementRewriter extends Transformer implements Pass {
     // it means we are looking at the first use.
     assert(unseenUses[node.variable] < node.variable.readCount);
     assert(unseenUses[node.variable] >= 0);
+
+    // We cannot reliably find the first dynamic use of a variable that is
+    // accessed from a JS function in a foreign code fragment.
+    if (node.variable.isCaptured) return node;
+
     bool isFirstUse = unseenUses[node.variable] == 0;
 
     // Propagate constant to use site.
@@ -315,7 +327,7 @@ class StatementRewriter extends Transformer implements Pass {
       //
       //     { E.foo = x; bar(x) } ==> bar(E.foo = x)
       //
-      if (getRightHand(binding) == node.variable) {
+      if (getRightHandVariable(binding) == node.variable) {
         environment.removeLast();
         --node.variable.readCount;
         return visitExpression(binding);
@@ -496,6 +508,11 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  Expression visitOneShotInterceptor(OneShotInterceptor node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
+
   Expression visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     if (node.receiverIsNotNull) {
       _rewriteList(node.arguments);
@@ -513,7 +530,19 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     _rewriteList(node.arguments);
-    node.receiver = visitExpression(node.receiver);
+    // The target function might not exist before the enclosing class has been
+    // instantitated for the first time.  If the receiver might be the first
+    // instantiation of its class, we cannot propgate it into the receiver
+    // expression, because the target function is evaluated before the receiver.
+    // Calls to constructor bodies are compiled so that the receiver is
+    // evaluated first, so they are safe.
+    if (node.target is! ConstructorBodyElement) {
+      inEmptyEnvironment(() {
+        node.receiver = visitExpression(node.receiver);
+      });
+    } else {
+      node.receiver = visitExpression(node.receiver);
+    }
     return node;
   }
 
@@ -561,13 +590,15 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitFunctionExpression(FunctionExpression node) {
-    new StatementRewriter.nested(this).rewrite(node.definition);
-    return node;
+  bool isNullConstant(Expression node) {
+    return node is Constant && node.value.isNull;
   }
 
   Statement visitReturn(Return node) {
-    node.value = visitExpression(node.value);
+    if (!isNullConstant(node.value)) {
+      // Do not chain assignments into a null return.
+      node.value = visitExpression(node.value);
+    }
     return node;
   }
 
@@ -690,6 +721,12 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitConstant(Constant node) {
+    if (!environment.isEmpty) {
+      Constant constant = getRightHandConstant(environment.last);
+      if (constant != null && constant.value == node.value) {
+        return visitExpression(environment.removeLast());
+      }
+    }
     return node;
   }
 
@@ -734,6 +771,11 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitSetStatic(SetStatic node) {
     node.value = visitExpression(node.value);
+    return node;
+  }
+
+  Expression visitGetTypeTestProperty(GetTypeTestProperty node) {
+    node.object = visitExpression(node.object);
     return node;
   }
 
@@ -1121,20 +1163,63 @@ class StatementRewriter extends Transformer implements Pass {
     return polarity ? node.thenStatement : node.elseStatement;
   }
 
+  void handleForeignCode(ForeignCode node) {
+    // Some arguments will get inserted in a JS code template.  The arguments
+    // will not always be evaluated (e.g. the second placeholder in the template
+    // '# && #').
+    bool isNullable(int position) => node.nullableArguments[position];
+
+    int safeArguments =
+      PlaceholderSafetyAnalysis.analyze(node.codeTemplate.ast, isNullable);
+    inEmptyEnvironment(() {
+      for (int i = node.arguments.length - 1; i >= safeArguments; --i) {
+        node.arguments[i] = visitExpression(node.arguments[i]);
+      }
+    });
+    for (int i = safeArguments - 1; i >= 0; --i) {
+      node.arguments[i] = visitExpression(node.arguments[i]);
+    }
+  }
+
   @override
   Expression visitForeignExpression(ForeignExpression node) {
-    _rewriteList(node.arguments);
+    handleForeignCode(node);
     return node;
   }
 
   @override
   Statement visitForeignStatement(ForeignStatement node) {
-    _rewriteList(node.arguments);
+    handleForeignCode(node);
     return node;
   }
 
   @override
   Expression visitAwait(Await node) {
+    node.input = visitExpression(node.input);
+    return node;
+  }
+
+  @override
+  Statement visitYield(Yield node) {
+    node.input = visitExpression(node.input);
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  @override
+  Statement visitNullCheck(NullCheck node) {
+    inEmptyEnvironment(() {
+      node.next = visitStatement(node.next);
+    });
+    if (node.condition != null) {
+      inEmptyEnvironment(() {
+        // Value occurs in conditional context.
+        node.value = visitExpression(node.value);
+      });
+      node.condition = visitExpression(node.condition);
+    } else {
+      node.value = visitExpression(node.value);
+    }
     return node;
   }
 }
@@ -1215,8 +1300,6 @@ class IsVariableUsedVisitor extends RecursiveVisitor {
       wasFound = true;
     }
   }
-
-  visitInnerFunction(FunctionDefinition node) {}
 }
 
 typedef VariableUseCallback(VariableUse use);
@@ -1227,8 +1310,6 @@ class VariableUseVisitor extends RecursiveVisitor {
   VariableUseVisitor(this.callback);
 
   visitVariableUse(VariableUse use) => callback(use);
-
-  visitInnerFunction(FunctionDefinition node) {}
 
   static void visit(Expression node, VariableUseCallback callback) {
     new VariableUseVisitor(callback).visitExpression(node);

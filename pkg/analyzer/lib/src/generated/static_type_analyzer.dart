@@ -2,17 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver.static_type_analyzer;
+library analyzer.src.generated.static_type_analyzer;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
-
-import 'ast.dart';
-import 'element.dart';
-import 'java_engine.dart';
-import 'resolver.dart';
-import 'scanner.dart' as sc;
+import 'package:analyzer/src/generated/scanner.dart' as sc;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
@@ -58,6 +61,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   InterfaceType thisType;
 
   /**
+   * Are we running in strong mode or not.
+   */
+  bool _strongMode;
+
+  /**
    * The object keeping track of which elements have had their types overridden.
    */
   TypeOverrideManager _overrideManager;
@@ -80,10 +88,88 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   StaticTypeAnalyzer(this._resolver) {
     _typeProvider = _resolver.typeProvider;
+    _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
     _overrideManager = _resolver.overrideManager;
     _promoteManager = _resolver.promoteManager;
-    _typeSystem = new TypeSystemImpl(_typeProvider);
+    _strongMode = _resolver.definingLibrary.context.analysisOptions.strongMode;
+  }
+
+  /**
+   * Given a constructor name [node] and a type [type], record an inferred type
+   * for the constructor if in strong mode. This is used to fill in any
+   * inferred type parameters found by the resolver.
+   */
+  void inferConstructorName(ConstructorName node, InterfaceType type) {
+    if (_strongMode) {
+      node.type.type = type;
+      _resolver.inferenceContext.recordInference(node.parent, type);
+    }
+    return;
+  }
+
+  /**
+   * Given a formal parameter list and a function type use the function type
+   * to infer types for any of the parameters which have implicit (missing)
+   * types.  Only infers types in strong mode.  Returns true if inference
+   * has occurred.
+   */
+  bool inferFormalParameterList(
+      FormalParameterList node, DartType functionType) {
+    bool inferred = false;
+    if (_strongMode && node != null && functionType is FunctionType) {
+      void inferType(ParameterElementImpl p, DartType inferredType) {
+        // Check that there is no declared type, and that we have not already
+        // inferred a type in some fashion.
+        if (p.hasImplicitType &&
+            (p.type == null || p.type.isDynamic) &&
+            !inferredType.isDynamic) {
+          p.type = inferredType;
+          inferred = true;
+        }
+      }
+
+      List<ParameterElement> parameters = node.parameterElements;
+
+      {
+        List<DartType> normalParameterTypes = functionType.normalParameterTypes;
+        int normalCount = normalParameterTypes.length;
+        Iterable<ParameterElement> required = parameters
+            .where((p) => p.parameterKind == ParameterKind.REQUIRED)
+            .take(normalCount);
+        int index = 0;
+        for (ParameterElementImpl p in required) {
+          inferType(p, normalParameterTypes[index++]);
+        }
+      }
+
+      {
+        List<DartType> optionalParameterTypes =
+            functionType.optionalParameterTypes;
+        int optionalCount = optionalParameterTypes.length;
+        Iterable<ParameterElement> optional = parameters
+            .where((p) => p.parameterKind == ParameterKind.POSITIONAL)
+            .take(optionalCount);
+        int index = 0;
+        for (ParameterElementImpl p in optional) {
+          inferType(p, optionalParameterTypes[index++]);
+        }
+      }
+
+      {
+        Map<String, DartType> namedParameterTypes =
+            functionType.namedParameterTypes;
+        Iterable<ParameterElement> named =
+            parameters.where((p) => p.parameterKind == ParameterKind.NAMED);
+        for (ParameterElementImpl p in named) {
+          if (!namedParameterTypes.containsKey(p.name)) {
+            continue;
+          }
+          inferType(p, namedParameterTypes[p.name]);
+        }
+      }
+    }
+    return inferred;
   }
 
   /**
@@ -306,9 +392,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     super.visitDeclaredIdentifier(node);
-    if (_resolver.definingLibrary.context.analysisOptions.strongMode) {
+    if (_strongMode) {
       _inferForEachLoopVariableType(node);
     }
+    return null;
   }
 
   /**
@@ -374,8 +461,19 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     ExecutableElementImpl functionElement =
         node.element as ExecutableElementImpl;
-    functionElement.returnType =
-        _computeStaticReturnTypeOfFunctionExpression(node);
+    DartType computedType = _computeStaticReturnTypeOfFunctionExpression(node);
+    if (_strongMode) {
+      DartType functionType = InferenceContext.getType(node);
+      if (functionType is FunctionType) {
+        DartType returnType = functionType.returnType;
+        if ((computedType.isDynamic || computedType.isBottom) &&
+            !(returnType.isDynamic || returnType.isBottom)) {
+          computedType = returnType;
+          _resolver.inferenceContext.recordInference(node, functionType);
+        }
+      }
+    }
+    functionElement.returnType = computedType;
     _recordPropagatedTypeOfFunction(functionElement, node.body);
     _recordStaticType(node, node.element.type);
     return null;
@@ -515,6 +613,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
           staticType = argumentType;
         }
       }
+    } else {
+      DartType contextType = InferenceContext.getType(node);
+      if (_strongMode &&
+          contextType is InterfaceType &&
+          contextType.typeArguments.length == 1 &&
+          contextType.element == _typeProvider.listType.element) {
+        staticType = contextType.typeArguments[0];
+        _resolver.inferenceContext.recordInference(node, contextType);
+      }
     }
     _recordStaticType(
         node, _typeProvider.listType.substitute4(<DartType>[staticType]));
@@ -551,6 +658,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         if (entryValueType != null) {
           staticValueType = entryValueType;
         }
+      }
+    } else {
+      DartType contextType = InferenceContext.getType(node);
+      if (_strongMode &&
+          contextType is InterfaceType &&
+          contextType.typeArguments.length == 2 &&
+          contextType.element == _typeProvider.mapType.element) {
+        staticKeyType = contextType.typeArguments[0] ?? staticKeyType;
+        staticValueType = contextType.typeArguments[1] ?? staticValueType;
+        _resolver.inferenceContext.recordInference(node, contextType);
       }
     }
     _recordStaticType(
@@ -618,6 +735,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     // Check for special cases.
     bool needPropagatedType = true;
     String methodName = methodNameNode.name;
+    if (_strongMode) {
+      // TODO(leafp): Revisit this.  It's here to associate a type with the
+      // method name, which is important to the DDC backend (but apparently
+      // no-one else).  Not sure that there's a problem having this here, but
+      // it's a little ad hoc.
+      visitSimpleIdentifier(methodNameNode);
+
+      _inferMethodInvocation(node);
+    }
     if (methodName == "then") {
       Expression target = node.realTarget;
       if (target != null) {
@@ -872,7 +998,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (staticElement is MethodElement) {
       staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(staticElement, node.prefix.staticType);
+      staticType = _getTypeOfProperty(staticElement);
       propagatedType =
           _getPropertyPropagatedType(staticElement, propagatedType);
     } else if (staticElement is ExecutableElement) {
@@ -882,8 +1008,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (staticElement is VariableElement) {
       staticType = staticElement.type;
     }
-    _recordStaticType(prefixedIdentifier, staticType);
-    _recordStaticType(node, staticType);
+    if (!(_strongMode &&
+        _inferObjectAccess(node, staticType, prefixedIdentifier))) {
+      _recordStaticType(prefixedIdentifier, staticType);
+      _recordStaticType(node, staticType);
+    }
     Element propagatedElement = prefixedIdentifier.propagatedElement;
     // HACK: special case for object getters ([hashCode] and [runtimeType]) on
     // dynamic expressions. More special cases in [visitMethodInvocation].
@@ -902,8 +1031,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (propagatedElement is MethodElement) {
       propagatedType = propagatedElement.type;
     } else if (propagatedElement is PropertyAccessorElement) {
-      propagatedType =
-          _getTypeOfProperty(propagatedElement, node.prefix.staticType);
+      propagatedType = _getTypeOfProperty(propagatedElement);
       propagatedType =
           _getPropertyPropagatedType(propagatedElement, propagatedType);
     } else if (propagatedElement is ExecutableElement) {
@@ -1005,22 +1133,20 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (staticElement is MethodElement) {
       staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
-      Expression realTarget = node.realTarget;
-      staticType = _getTypeOfProperty(staticElement,
-          realTarget != null ? _getStaticType(realTarget) : null);
+      staticType = _getTypeOfProperty(staticElement);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
-    _recordStaticType(propertyName, staticType);
-    _recordStaticType(node, staticType);
+    if (!(_strongMode && _inferObjectAccess(node, staticType, propertyName))) {
+      _recordStaticType(propertyName, staticType);
+      _recordStaticType(node, staticType);
+    }
     Element propagatedElement = propertyName.propagatedElement;
     DartType propagatedType = _overrideManager.getType(propagatedElement);
     if (propagatedElement is MethodElement) {
       propagatedType = propagatedElement.type;
     } else if (propagatedElement is PropertyAccessorElement) {
-      Expression realTarget = node.realTarget;
-      propagatedType = _getTypeOfProperty(
-          propagatedElement, realTarget != null ? realTarget.bestType : null);
+      propagatedType = _getTypeOfProperty(propagatedElement);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
@@ -1096,7 +1222,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else if (element is MethodElement) {
       staticType = element.type;
     } else if (element is PropertyAccessorElement) {
-      staticType = _getTypeOfProperty(element, null);
+      staticType = _getTypeOfProperty(element);
     } else if (element is ExecutableElement) {
       staticType = element.type;
     } else if (element is TypeParameterElement) {
@@ -1194,7 +1320,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     Expression initializer = node.initializer;
-    if (_resolver.definingLibrary.context.analysisOptions.strongMode) {
+    if (_strongMode) {
       _inferLocalVariableType(node, initializer);
     }
     if (initializer != null) {
@@ -1226,7 +1352,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       staticType2 = _dynamicType;
     }
     DartType staticType =
-        _typeSystem.getLeastUpperBound(staticType1, staticType2);
+        _typeSystem.getLeastUpperBound(_typeProvider, staticType1, staticType2);
     if (staticType == null) {
       staticType = _dynamicType;
     }
@@ -1240,8 +1366,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       if (propagatedType2 == null) {
         propagatedType2 = staticType2;
       }
-      DartType propagatedType =
-          _typeSystem.getLeastUpperBound(propagatedType1, propagatedType2);
+      DartType propagatedType = _typeSystem.getLeastUpperBound(
+          _typeProvider, propagatedType1, propagatedType2);
       _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
     }
   }
@@ -1291,7 +1417,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     if (body is BlockFunctionBody) {
       _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor =
           new _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(
-              _typeSystem);
+              _typeProvider, _typeSystem);
       body.accept(visitor);
       return visitor.result;
     }
@@ -1398,11 +1524,16 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   // TODO(vsm): Use leafp's matchType here?
-  DartType _findIteratedType(InterfaceType type, DartType targetType) {
+  DartType _findIteratedType(DartType type, DartType targetType) {
     // Set by _find if match is found
     DartType result = null;
     // Elements we've already visited on a given inheritance path.
     HashSet<ClassElement> visitedClasses = null;
+
+    while (type is TypeParameterType) {
+      TypeParameterElement element = type.element;
+      type = element.bound;
+    }
 
     bool _find(InterfaceType type) {
       ClassElement element = type.element;
@@ -1430,7 +1561,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         visitedClasses.remove(element);
       }
     }
-    _find(type);
+    if (type is InterfaceType) {
+      _find(type);
+    }
     return result;
   }
 
@@ -1600,14 +1733,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    * Return the type that should be recorded for a node that resolved to the given accessor.
    *
    * @param accessor the accessor that the node resolved to
-   * @param context if the accessor element has context [by being the RHS of a
-   *          [PrefixedIdentifier] or [PropertyAccess]], and the return type of the
-   *          accessor is a parameter type, then the type of the LHS can be used to get more
-   *          specific type information
    * @return the type that should be recorded for a node that resolved to the given accessor
    */
-  DartType _getTypeOfProperty(
-      PropertyAccessorElement accessor, DartType context) {
+  DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
     FunctionType functionType = accessor.type;
     if (functionType == null) {
       // TODO(brianwilkerson) Report this internal error. This happens when we
@@ -1630,31 +1758,15 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
       return _dynamicType;
     }
-    DartType returnType = functionType.returnType;
-    if (returnType is TypeParameterType && context is InterfaceType) {
-      // if the return type is a TypeParameter, we try to use the context [that
-      // the function is being called on] to get a more accurate returnType type
-      InterfaceType interfaceTypeContext = context;
-      //      Type[] argumentTypes = interfaceTypeContext.getTypeArguments();
-      List<TypeParameterElement> typeParameterElements =
-          interfaceTypeContext.element != null
-              ? interfaceTypeContext.element.typeParameters
-              : null;
-      if (typeParameterElements != null) {
-        for (int i = 0; i < typeParameterElements.length; i++) {
-          TypeParameterElement typeParameterElement = typeParameterElements[i];
-          if (returnType.name == typeParameterElement.name) {
-            return interfaceTypeContext.typeArguments[i];
-          }
-        }
-        // TODO(jwren) troubleshoot why call to substitute doesn't work
-//        Type[] parameterTypes = TypeParameterTypeImpl.getTypes(parameterElements);
-//        return returnType.substitute(argumentTypes, parameterTypes);
-      }
-    }
-    return returnType;
+    return functionType.returnType;
   }
 
+  /**
+   * Given a declared identifier from a foreach loop, attempt to infer
+   * a type for it if one is not already present.  Inference is based
+   * on the type of the iterator or stream over which the foreach loop
+   * is defined.
+   */
   void _inferForEachLoopVariableType(DeclaredIdentifier loopVariable) {
     if (loopVariable != null &&
         loopVariable.type == null &&
@@ -1664,20 +1776,24 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         Expression expr = loop.iterable;
         LocalVariableElementImpl element = loopVariable.element;
         DartType exprType = expr.staticType;
-        if (exprType is InterfaceType) {
-          DartType targetType = (loop.awaitKeyword == null)
-              ? _typeProvider.iterableType
-              : _typeProvider.streamType;
-          DartType iteratedType = _findIteratedType(exprType, targetType);
-          if (element != null && iteratedType != null) {
-            element.type = iteratedType;
-            loopVariable.identifier.staticType = iteratedType;
-          }
+        DartType targetType = (loop.awaitKeyword == null)
+            ? _typeProvider.iterableType
+            : _typeProvider.streamType;
+        DartType iteratedType = _findIteratedType(exprType, targetType);
+        if (element != null && iteratedType != null) {
+          element.type = iteratedType;
+          loopVariable.identifier.staticType = iteratedType;
         }
       }
     }
   }
 
+  /**
+   * Given a local variable declaration and its initializer, attempt to infer
+   * a type for the local variable declaration based on the initializer.
+   * Inference is only done if an explicit type is not present, and if
+   * inferring a type improves the type.
+   */
   void _inferLocalVariableType(
       VariableDeclaration node, Expression initializer) {
     if (initializer != null &&
@@ -1692,10 +1808,178 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Given a method invocation [node], attempt to infer a better
+   * type for the result.
+   */
+  bool _inferMethodInvocation(MethodInvocation node) {
+    return _inferMethodInvocationObject(node) ||
+        _inferMethodInvocationGeneric(node) ||
+        _inferMethodInvocationInlineJS(node);
+  }
+
+  /**
+   * Given a generic method invocation [node], attempt to infer the method's
+   * type variables, using the actual types of the arguments.
+   */
+  bool _inferMethodInvocationGeneric(MethodInvocation node) {
+    Element element = node.methodName.staticElement;
+    DartType fnType = node.methodName.staticType;
+    TypeSystem ts = _typeSystem;
+    if (node.typeArguments == null &&
+        element is ExecutableElement &&
+        fnType is FunctionTypeImpl &&
+        ts is StrongTypeSystemImpl) {
+      FunctionTypeImpl genericFunction = fnType.originalFunction;
+      if (element is PropertyAccessorElement) {
+        genericFunction = element.type.returnType;
+      }
+      if (genericFunction.boundTypeParameters.isEmpty) {
+        return false;
+      }
+      for (DartType typeArg in fnType.instantiatedTypeArguments) {
+        if (!typeArg.isDynamic) {
+          return false;
+        }
+      }
+
+      List<ParameterElement> genericParameters = genericFunction.parameters;
+      List<DartType> argTypes = new List<DartType>();
+      List<DartType> paramTypes = new List<DartType>();
+      for (Expression arg in node.argumentList.arguments) {
+        // We may have too many (or too few) arguments.  Only use arguments
+        // which have been matched up with a static parameter.
+        ParameterElement p = arg.staticParameterElement;
+        if (p != null) {
+          int i = element.parameters.indexOf(p);
+          argTypes.add(arg.staticType);
+          paramTypes.add(genericParameters[i].type);
+        }
+      }
+
+      FunctionType inferred = ts.inferCallFromArguments(
+          _typeProvider, genericFunction, paramTypes, argTypes);
+      if (inferred != fnType) {
+        // TODO(jmesserly): we need to fix up the parameter elements based on
+        // inferred method.
+        List<ParameterElement> inferredParameters = inferred.parameters;
+        List<ParameterElement> correspondingParams =
+            new List<ParameterElement>();
+        for (Expression arg in node.argumentList.arguments) {
+          ParameterElement p = arg.staticParameterElement;
+          if (p != null) {
+            int i = element.parameters.indexOf(p);
+            correspondingParams.add(inferredParameters[i]);
+          }
+        }
+        node.argumentList.correspondingStaticParameters = correspondingParams;
+        _recordStaticType(node.methodName, inferred);
+        _recordStaticType(node, inferred.returnType);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Given a method invocation [node], attempt to infer a better
+   * type for the result if it is an inline JS invocation
+   */
+  bool _inferMethodInvocationInlineJS(MethodInvocation node) {
+    Element e = node.methodName.staticElement;
+    if (e is FunctionElement &&
+        e.library.source.uri.toString() == 'dart:_foreign_helper' &&
+        e.name == 'JS') {
+      String typeStr = _getFirstArgumentAsString(node.argumentList);
+      DartType returnType = null;
+      if (typeStr == '-dynamic') {
+        returnType = _typeProvider.bottomType;
+      } else {
+        returnType = _getElementNameAsType(
+            _typeProvider.objectType.element.library, typeStr, null);
+      }
+      if (returnType != null) {
+        _recordStaticType(node, returnType);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Given a method invocation [node], attempt to infer a better
+   * type for the result if the target is dynamic and the method
+   * being called is one of the object methods.
+   */
+  bool _inferMethodInvocationObject(MethodInvocation node) {
+    // If we have a call like `toString()` or `libraryPrefix.toString()` don't
+    // infer it.
+    Expression target = node.realTarget;
+    if (target == null ||
+        target is SimpleIdentifier && target.staticElement is PrefixElement) {
+      return false;
+    }
+
+    // Object methods called on dynamic targets can have their types improved.
+    String name = node.methodName.name;
+    MethodElement inferredElement =
+        _typeProvider.objectType.element.getMethod(name);
+    if (inferredElement == null || inferredElement.isStatic) {
+      return false;
+    }
+    DartType inferredType = inferredElement.type;
+    DartType nodeType = node.staticType;
+    if (nodeType != null &&
+        nodeType.isDynamic &&
+        inferredType is FunctionType &&
+        inferredType.parameters.isEmpty &&
+        node.argumentList.arguments.isEmpty &&
+        _typeProvider.nonSubtypableTypes.contains(inferredType.returnType)) {
+      _recordStaticType(node.methodName, inferredType);
+      _recordStaticType(node, inferredType.returnType);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Given a property access [node] with static type [nodeType],
+   * and [id] is the property name being accessed, infer a type for the
+   * access itself and its constituent components if the access is to one of the
+   * methods or getters of the built in 'Object' type, and if the result type is
+   * a sealed type. Returns true if inference succeeded.
+   */
+  bool _inferObjectAccess(
+      Expression node, DartType nodeType, SimpleIdentifier id) {
+    // If we have an access like `libraryPrefix.hashCode` don't infer it.
+    if (node is PrefixedIdentifier &&
+        node.prefix.staticElement is PrefixElement) {
+      return false;
+    }
+    // Search for Object accesses.
+    String name = id.name;
+    PropertyAccessorElement inferredElement =
+        _typeProvider.objectType.element.getGetter(name);
+    if (inferredElement == null || inferredElement.isStatic) {
+      return false;
+    }
+    DartType inferredType = inferredElement.type.returnType;
+    if (nodeType != null &&
+        nodeType.isDynamic &&
+        inferredType != null &&
+        _typeProvider.nonSubtypableTypes.contains(inferredType)) {
+      _recordStaticType(id, inferredType);
+      _recordStaticType(node, inferredType);
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Return `true` if the given [Type] is the `Future` form the 'dart:async'
    * library.
    */
-  bool _isAsyncFutureType(DartType type) => type is InterfaceType &&
+  bool _isAsyncFutureType(DartType type) =>
+      type is InterfaceType &&
       type.name == "Future" &&
       _isAsyncLibrary(type.element.library);
 
@@ -2029,10 +2313,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
 
 class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction
     extends GeneralizingAstVisitor<Object> {
-  final TypeSystem typeSystem;
+  final TypeSystem _typeSystem;
+  final TypeProvider _typeProvider;
   DartType result = null;
 
-  _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(this.typeSystem);
+  _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(
+      this._typeProvider, this._typeSystem);
 
   @override
   Object visitExpression(Expression node) => null;
@@ -2051,7 +2337,7 @@ class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction
     if (result == null) {
       result = type;
     } else {
-      result = typeSystem.getLeastUpperBound(result, type);
+      result = _typeSystem.getLeastUpperBound(_typeProvider, result, type);
     }
     return null;
   }

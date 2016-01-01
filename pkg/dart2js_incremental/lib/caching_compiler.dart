@@ -6,12 +6,12 @@ part of dart2js_incremental;
 
 /// Do not call this method directly. It will be made private.
 // TODO(ahe): Make this method private.
-Future<Compiler> reuseCompiler(
+Future<CompilerImpl> reuseCompiler(
     {CompilerDiagnostics diagnosticHandler,
      CompilerInput inputProvider,
      CompilerOutput outputProvider,
      List<String> options: const [],
-     Compiler cachedCompiler,
+     CompilerImpl cachedCompiler,
      Uri libraryRoot,
      Uri packageRoot,
      bool packagesAreImmutable: false,
@@ -33,7 +33,7 @@ Future<Compiler> reuseCompiler(
   if (environment == null) {
     environment = {};
   }
-  Compiler compiler = cachedCompiler;
+  CompilerImpl compiler = cachedCompiler;
   if (compiler == null ||
       compiler.libraryRoot != libraryRoot ||
       !compiler.hasIncrementalSupport ||
@@ -53,7 +53,7 @@ Future<Compiler> reuseCompiler(
       }
     }
     oldTag.makeCurrent();
-    compiler = new Compiler(
+    compiler = new CompilerImpl(
         inputProvider,
         outputProvider,
         diagnosticHandler,
@@ -76,13 +76,16 @@ Future<Compiler> reuseCompiler(
         ..needsStructuredMemberInfo = true;
 
     Uri core = Uri.parse("dart:core");
-    return compiler.libraryLoader.loadLibrary(core).then((_) {
-      // Likewise, always be prepared for runtimeType support.
-      // TODO(johnniwinther): Add global switch to force RTI.
-      compiler.enabledRuntimeType = true;
-      backend.registerRuntimeType(
-          compiler.enqueuer.resolution, compiler.globalDependencies);
-      return compiler;
+
+    return compiler.setupSdk().then((_) {
+      return compiler.libraryLoader.loadLibrary(core).then((_) {
+        // Likewise, always be prepared for runtimeType support.
+        // TODO(johnniwinther): Add global switch to force RTI.
+        compiler.enabledRuntimeType = true;
+        backend.registerRuntimeType(
+            compiler.enqueuer.resolution, compiler.globalDependencies);
+        return compiler;
+      });
     });
   } else {
     for (final task in compiler.tasks) {

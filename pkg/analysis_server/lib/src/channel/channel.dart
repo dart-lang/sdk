@@ -7,7 +7,7 @@ library channel;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 
 /**
  * Instances of the class [ChannelChunkSink] uses a [Converter] to translate

@@ -7,6 +7,7 @@
 #include "vm/globals.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
 
@@ -76,7 +77,8 @@ TEST_CASE(IsolateSpawn) {
   EXPECT(!Dart_IsError(result));
   // Run until all ports to isolate are closed.
   result = Dart_RunLoop();
-  EXPECT_ERROR(result, "Null callback specified for isolate creation");
+  EXPECT_ERROR(result,
+               "Isolate spawn is not supported by this Dart implementation");
   EXPECT(Dart_ErrorHasException(result));
   Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);
@@ -89,88 +91,35 @@ class InterruptChecker : public ThreadPool::Task {
   static const intptr_t kIterations;
 
   InterruptChecker(Isolate* isolate,
-                   Monitor* awake_monitor,
-                   bool* awake,
-                   Monitor* round_monitor,
-                   const intptr_t* round)
+                   ThreadBarrier* barrier)
     : isolate_(isolate),
-      awake_monitor_(awake_monitor),
-      awake_(awake),
-      round_monitor_(round_monitor),
-      round_(round) {
+      barrier_(barrier) {
   }
 
   virtual void Run() {
     Thread::EnterIsolateAsHelper(isolate_);
     // Tell main thread that we are ready.
-    {
-      MonitorLocker ml(awake_monitor_);
-      ASSERT(!*awake_);
-      *awake_ = true;
-      ml.Notify();
-    }
+    barrier_->Sync();
     for (intptr_t i = 0; i < kIterations; ++i) {
       // Busy wait for interrupts.
       while (!isolate_->HasInterruptsScheduled(Isolate::kVMInterrupt)) {
         // Do nothing.
       }
       // Tell main thread that we observed the interrupt.
-      {
-        MonitorLocker ml(awake_monitor_);
-        ASSERT(!*awake_);
-        *awake_ = true;
-        ml.Notify();
-      }
-      // Wait for main thread to let us resume, i.e., until all tasks are here.
-      {
-        MonitorLocker ml(round_monitor_);
-        EXPECT(*round_ == i || *round_ == (i + 1));
-        while (*round_ == i) {
-          ml.Wait();
-        }
-        EXPECT(*round_ == i + 1);
-      }
+      barrier_->Sync();
     }
     Thread::ExitIsolateAsHelper();
-    // Use awake also to signal exit.
-    {
-      MonitorLocker ml(awake_monitor_);
-      *awake_ = true;
-      ml.Notify();
-    }
+    barrier_->Exit();
   }
 
  private:
   Isolate* isolate_;
-  Monitor* awake_monitor_;
-  bool* awake_;
-  Monitor* round_monitor_;
-  const intptr_t* round_;
+  ThreadBarrier* barrier_;
 };
 
 
 const intptr_t InterruptChecker::kTaskCount = 5;
 const intptr_t InterruptChecker::kIterations = 10;
-
-
-// Waits for all tasks to set their individual flag, then clears them all.
-static void WaitForAllTasks(bool* flags, Monitor* monitor) {
-  MonitorLocker ml(monitor);
-  while (true) {
-    intptr_t count = 0;
-    for (intptr_t task = 0; task < InterruptChecker::kTaskCount; ++task) {
-      if (flags[task]) {
-        ++count;
-      }
-    }
-    if (count == InterruptChecker::kTaskCount) {
-      memset(flags, 0, sizeof(*flags) * count);
-      break;
-    } else {
-      ml.Wait();
-    }
-  }
-}
 
 // Test and document usage of Isolate::HasInterruptsScheduled.
 //
@@ -182,34 +131,23 @@ static void WaitForAllTasks(bool* flags, Monitor* monitor) {
 // compiler and/or CPU could reorder operations to make the tasks observe the
 // round update *before* the interrupt is set.
 TEST_CASE(StackLimitInterrupts) {
-  Monitor awake_monitor;  // Synchronizes the 'awake' flags.
-  bool awake[InterruptChecker::kTaskCount];
-  memset(awake, 0, sizeof(awake));
-  Monitor round_monitor;  // Synchronizes the 'round' counter.
-  intptr_t round = 0;
   Isolate* isolate = Thread::Current()->isolate();
+  ThreadBarrier barrier(InterruptChecker::kTaskCount + 1);
   // Start all tasks. They will busy-wait until interrupted in the first round.
   for (intptr_t task = 0; task < InterruptChecker::kTaskCount; task++) {
-    Dart::thread_pool()->Run(new InterruptChecker(
-        isolate, &awake_monitor, &awake[task], &round_monitor, &round));
+    Dart::thread_pool()->Run(new InterruptChecker(isolate, &barrier));
   }
   // Wait for all tasks to get ready for the first round.
-  WaitForAllTasks(awake, &awake_monitor);
+  barrier.Sync();
   for (intptr_t i = 0; i < InterruptChecker::kIterations; ++i) {
     isolate->ScheduleInterrupts(Isolate::kVMInterrupt);
     // Wait for all tasks to observe the interrupt.
-    WaitForAllTasks(awake, &awake_monitor);
+    barrier.Sync();
     // Continue with next round.
     uword interrupts = isolate->GetAndClearInterrupts();
     EXPECT((interrupts & Isolate::kVMInterrupt) != 0);
-    {
-      MonitorLocker ml(&round_monitor);
-      ++round;
-      ml.NotifyAll();
-    }
   }
-  // Wait for tasks to exit cleanly.
-  WaitForAllTasks(awake, &awake_monitor);
+  barrier.Exit();
 }
 
 }  // namespace dart

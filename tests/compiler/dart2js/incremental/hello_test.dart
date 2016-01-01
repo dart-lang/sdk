@@ -85,8 +85,7 @@ var testResults = {
 
 main() {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolveUri(
-      new Uri.file('${Platform.packageRoot}/'));
+  Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
   MemorySourceFileProvider provider =
       new MemorySourceFileProvider(tests);
   asyncTest(() => runTests(libraryRoot, packageRoot, provider));

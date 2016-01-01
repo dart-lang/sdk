@@ -6,13 +6,13 @@ library test.plugin.analysis_contributor;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/analysis_domain.dart';
-import 'package:analysis_server/analysis/navigation_core.dart';
-import 'package:analysis_server/analysis/occurrences_core.dart';
-import 'package:analysis_server/plugin/navigation.dart';
-import 'package:analysis_server/plugin/occurrences.dart';
+import 'package:analysis_server/plugin/analysis/analysis_domain.dart';
+import 'package:analysis_server/plugin/analysis/navigation/navigation.dart';
+import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
+import 'package:analysis_server/plugin/analysis/occurrences/occurrences.dart';
+import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
@@ -25,9 +25,7 @@ import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  if (AnalysisEngine.instance.useTaskModel) {
-    defineReflectiveTests(SetAnalysisDomainTest);
-  }
+  defineReflectiveTests(SetAnalysisDomainTest);
 }
 
 /**
@@ -124,8 +122,9 @@ class TestOccurrencesContributor implements OccurrencesContributor {
   @override
   void computeOccurrences(
       OccurrencesCollector collector, AnalysisContext context, Source source) {
-    collector.addOccurrences(new Occurrences(
-        new Element(ElementKind.UNKNOWN, 'TestElement', 0), <int>[1, 2, 3], 5));
+    Element element = new Element(ElementKind.UNKNOWN, 'TestElement', 0);
+    collector.addOccurrences(new Occurrences(element, <int>[1, 2], 5));
+    collector.addOccurrences(new Occurrences(element, <int>[3], 5));
   }
 }
 

@@ -17,7 +17,7 @@ import '../../language/compiler_annotations.dart';
 class C {
   static foo() => 1;
 
-  @DontInline
+  @NoInline()
   // Use a closure to prevent inlining until the annotation is implemented.
   static bar() => () => 2;
 }

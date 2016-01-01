@@ -2,24 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.constant;
+library analyzer.src.generated.constant;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisEngine, RecordingErrorListener;
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
+import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/generated/type_system.dart'
+    show TypeSystem, TypeSystemImpl;
+import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
-
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart' show AnalysisEngine, RecordingErrorListener;
-import 'error.dart';
-import 'java_core.dart';
-import 'resolver.dart' show TypeProvider, TypeSystem, TypeSystemImpl;
-import 'scanner.dart' show Token, TokenType;
-import 'source.dart' show Source;
-import 'utilities_collection.dart';
-import 'utilities_dart.dart' show ParameterKind;
 
 /**
  * Callback used by [ReferenceFinder] to report that a dependency was found.
@@ -54,9 +59,6 @@ class BoolState extends InstanceState {
    * Initialize a newly created state to represent the given [value].
    */
   BoolState(this.value);
-
-  @override
-  bool get hasExactValue => true;
 
   @override
   int get hashCode => value == null ? 0 : (value ? 2 : 3);
@@ -187,6 +189,13 @@ class ConstantAstCloner extends AstCloner {
     invocation.staticElement = node.staticElement;
     return invocation;
   }
+
+  @override
+  TypeName visitTypeName(TypeName node) {
+    TypeName typeName = super.visitTypeName(node);
+    typeName.type = node.type;
+    return typeName;
+  }
 }
 
 /**
@@ -214,6 +223,11 @@ class ConstantEvaluationEngine {
       "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
+   * The type provider used to access the known types.
+   */
+  final TypeProvider typeProvider;
+
+  /**
    * The type system.  This is used to gues the types of constants when their
    * exact value is unknown.
    */
@@ -237,17 +251,12 @@ class ConstantEvaluationEngine {
    * given, is used to verify correct dependency analysis when running unit
    * tests.
    */
-  ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
-      {ConstantEvaluationValidator validator})
+  ConstantEvaluationEngine(this.typeProvider, this._declaredVariables,
+      {ConstantEvaluationValidator validator, TypeSystem typeSystem})
       : validator = validator != null
             ? validator
             : new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = new TypeSystemImpl(typeProvider);
-
-  /**
-   * The type provider used to access the known types.
-   */
-  TypeProvider get typeProvider => typeSystem.typeProvider;
+        typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -311,7 +320,7 @@ class ConstantEvaluationEngine {
     if (!identical(argumentValues[0].type, typeProvider.stringType)) {
       return false;
     }
-    String name = argumentValues[0].stringValue;
+    String name = argumentValues[0].toStringValue();
     return isValidPublicSymbol(name);
   }
 
@@ -320,23 +329,21 @@ class ConstantEvaluationEngine {
    */
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
-    if (constant is ParameterElement) {
+    if (constant is ParameterElementImpl) {
       if (constant.initializer != null) {
-        Expression defaultValue =
-            (constant as PotentiallyConstVariableElement).constantInitializer;
+        Expression defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           ErrorReporter errorReporter =
               new ErrorReporter(errorListener, constant.source);
           DartObjectImpl dartObject =
               defaultValue.accept(new ConstantVisitor(this, errorReporter));
-          (constant as ParameterElementImpl).evaluationResult =
+          constant.evaluationResult =
               new EvaluationResultImpl(dartObject, errorListener.errors);
         }
       }
-    } else if (constant is VariableElement) {
-      Expression constantInitializer =
-          (constant as PotentiallyConstVariableElement).constantInitializer;
+    } else if (constant is VariableElementImpl) {
+      Expression constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
         RecordingErrorListener errorListener = new RecordingErrorListener();
         ErrorReporter errorReporter =
@@ -355,7 +362,7 @@ class ConstantEvaluationEngine {
                 [dartObject.type, constant.type]);
           }
         }
-        (constant as VariableElementImpl).evaluationResult =
+        constant.evaluationResult =
             new EvaluationResultImpl(dartObject, errorListener.errors);
       }
     } else if (constant is ConstructorElement) {
@@ -415,6 +422,12 @@ class ConstantEvaluationEngine {
           elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
         }
       }
+    } else if (constant is VariableElement) {
+      // constant is a VariableElement but not a VariableElementImpl.  This can
+      // happen sometimes in the case of invalid user code (for example, a
+      // constant expression that refers to a nonstatic field inside a generic
+      // class will wind up referring to a FieldMember).  The error is detected
+      // elsewhere, so just silently ignore it here.
     } else {
       // Should not happen.
       assert(false);
@@ -439,15 +452,14 @@ class ConstantEvaluationEngine {
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     ReferenceFinder referenceFinder = new ReferenceFinder(callback);
-    if (constant is ParameterElement) {
+    if (constant is ParameterElementImpl) {
       if (constant.initializer != null) {
-        Expression defaultValue =
-            (constant as ConstVariableElement).constantInitializer;
+        Expression defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
           defaultValue.accept(referenceFinder);
         }
       }
-    } else if (constant is PotentiallyConstVariableElement) {
+    } else if (constant is VariableElementImpl) {
       Expression initializer = constant.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
@@ -532,6 +544,12 @@ class ConstantEvaluationEngine {
       if (constNode.arguments != null) {
         constNode.arguments.accept(referenceFinder);
       }
+    } else if (constant is VariableElement) {
+      // constant is a VariableElement but not a VariableElementImpl.  This can
+      // happen sometimes in the case of invalid user code (for example, a
+      // constant expression that refers to a nonstatic field inside a generic
+      // class will wind up referring to a FieldMember).  So just don't bother
+      // computing any dependencies.
     } else {
       // Should not happen.
       assert(false);
@@ -626,7 +644,7 @@ class ConstantEvaluationEngine {
           return null;
         }
         String variableName =
-            argumentCount < 1 ? null : argumentValues[0].stringValue;
+            argumentCount < 1 ? null : argumentValues[0].toStringValue();
         if (identical(definingClass, typeProvider.boolType)) {
           DartObject valueFromEnvironment;
           valueFromEnvironment =
@@ -661,7 +679,7 @@ class ConstantEvaluationEngine {
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
           return null;
         }
-        String argumentValue = argumentValues[0].stringValue;
+        String argumentValue = argumentValues[0].toStringValue();
         return new DartObjectImpl(
             definingClass, new SymbolState(argumentValue));
       }
@@ -694,16 +712,24 @@ class ConstantEvaluationEngine {
           field is ConstFieldElementImpl) {
         validator.beforeGetFieldEvaluationResult(field);
         EvaluationResultImpl evaluationResult = field.evaluationResult;
+        // It is possible that the evaluation result is null.
+        // This happens for example when we have duplicate fields.
+        // class Test {final x = 1; final x = 2; const Test();}
+        if (evaluationResult == null) {
+          continue;
+        }
+        // Match the value and the type.
         DartType fieldType =
             FieldMember.from(field, constructor.returnType).type;
         DartObjectImpl fieldValue = evaluationResult.value;
         if (fieldValue != null && !runtimeTypeMatch(fieldValue, fieldType)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+              CheckedModeCompileTimeErrorCode
+                  .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
               node,
               [fieldValue.type, field.name, fieldType]);
         }
-        fieldMap[field.name] = evaluationResult.value;
+        fieldMap[field.name] = fieldValue;
       }
     }
     // Now evaluate the constructor declaration.
@@ -747,7 +773,8 @@ class ConstantEvaluationEngine {
       if (argumentValue != null) {
         if (!runtimeTypeMatch(argumentValue, parameter.type)) {
           errorReporter.reportErrorForNode(
-              CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+              CheckedModeCompileTimeErrorCode
+                  .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               errorTarget,
               [argumentValue.type, parameter.type]);
         }
@@ -761,7 +788,8 @@ class ConstantEvaluationEngine {
               // the field.
               if (!runtimeTypeMatch(argumentValue, fieldType)) {
                 errorReporter.reportErrorForNode(
-                    CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+                    CheckedModeCompileTimeErrorCode
+                        .CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
                     errorTarget,
                     [argumentValue.type, fieldType]);
               }
@@ -803,7 +831,8 @@ class ConstantEvaluationEngine {
             PropertyInducingElement field = getter.variable;
             if (!runtimeTypeMatch(evaluationResult, field.type)) {
               errorReporter.reportErrorForNode(
-                  CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+                  CheckedModeCompileTimeErrorCode
+                      .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
                   node,
                   [evaluationResult.type, fieldName, field.type]);
             }
@@ -977,7 +1006,8 @@ class ConstantEvaluationEngine {
    * Determine whether the given string is a valid name for a public symbol
    * (i.e. whether it is allowed for a call to the Symbol constructor).
    */
-  static bool isValidPublicSymbol(String name) => name.isEmpty ||
+  static bool isValidPublicSymbol(String name) =>
+      name.isEmpty ||
       name == "void" ||
       new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
 
@@ -1018,6 +1048,9 @@ class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
       return false;
     }
   }
+
+  @override
+  String toString() => 'Constant: $annotation';
 }
 
 /**
@@ -1082,62 +1115,81 @@ class ConstantEvaluationValidator_ForProduction
   void beforeGetParameterDefault(ParameterElement parameter) {}
 }
 
-/**
- * Instances of the class `ConstantEvaluator` evaluate constant expressions to
- * produce their compile-time value. According to the Dart Language
- * Specification:
- * <blockquote>
- * A constant expression is one of the following:
- * * A literal number.
- * * A literal boolean.
- * * A literal string where any interpolated expression is a compile-time
- *   constant that evaluates to a numeric, string or boolean value or to
- *   <b>null</b>.
- * * A literal symbol.
- * * <b>null</b>.
- * * A qualified reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, class or type
- *   alias.
- * * A constant constructor invocation.
- * * A constant list literal.
- * * A constant map literal.
- * * A simple or qualified identifier denoting a top-level function or a static
- *   method.
- * * A parenthesized expression <i>(e)</i> where <i>e</i> is a constant
- *   expression.
- * * An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i>
- *   where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- *   expressions and <i>identical()</i> is statically bound to the predefined
- *   dart function <i>identical()</i> discussed above.
- * * An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i> or
- *   <i>e<sub>1</sub> != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and
- *   <i>e<sub>2</sub></i> are constant expressions that evaluate to a numeric,
- *   string or boolean value.
- * * An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp;
- *   e<sub>2</sub></i> or <i>e<sub>1</sub> || e<sub>2</sub></i>, where <i>e</i>,
- *   <i>e1</sub></i> and <i>e2</sub></i> are constant expressions that evaluate
- *   to a boolean value.
- * * An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> &amp; e<sub>2</sub></i>,
- *   <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;&gt;
- *   e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where
- *   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- *   expressions that evaluate to an integer value or to <b>null</b>.
- * * An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> +
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> -e<sub>2</sub></i>, <i>e<sub>1</sub> *
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> / e<sub>2</sub></i>, <i>e<sub>1</sub>
- *   ~/ e<sub>2</sub></i>, <i>e<sub>1</sub> &gt; e<sub>2</sub></i>,
- *   <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or
- *   <i>e<sub>1</sub> % e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i>
- *   and <i>e<sub>2</sub></i> are constant expressions that evaluate to a
- *   numeric value or to <b>null</b>.
- * * An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
- *   e<sub>3</sub></i> where <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and
- *   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
- *   evaluates to a boolean value.
- * </blockquote>
- */
+/// Instances of the class [ConstantEvaluator] evaluate constant expressions to
+/// produce their compile-time value.
+///
+/// According to the Dart Language Specification:
+///
+/// > A constant expression is one of the following:
+/// >
+/// > * A literal number.
+/// > * A literal boolean.
+/// > * A literal string where any interpolated expression is a compile-time
+/// >   constant that evaluates to a numeric, string or boolean value or to
+/// >   **null**.
+/// > * A literal symbol.
+/// > * **null**.
+/// > * A qualified reference to a static constant variable.
+/// > * An identifier expression that denotes a constant variable, class or type
+/// >   alias.
+/// > * A constant constructor invocation.
+/// > * A constant list literal.
+/// > * A constant map literal.
+/// > * A simple or qualified identifier denoting a top-level function or a
+/// >   static method.
+/// > * A parenthesized expression _(e)_ where _e_ is a constant expression.
+/// > * <span>
+/// >   An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i>
+/// >   where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions and <i>identical()</i> is statically bound to the predefined
+/// >   dart function <i>identical()</i> discussed above.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i>
+/// >   or <i>e<sub>1</sub> != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and
+/// >   <i>e<sub>2</sub></i> are constant expressions that evaluate to a
+/// >   numeric, string or boolean value.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp;
+/// >   e<sub>2</sub></i> or <i>e<sub>1</sub> || e<sub>2</sub></i>, where
+/// >   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions that evaluate to a boolean value.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> &amp; e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;&gt;
+/// >   e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where
+/// >   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions that evaluate to an integer value or to <b>null</b>.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> +
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> -e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> * e<sub>2</sub></i>, <i>e<sub>1</sub> /
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> ~/ e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> &gt; e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;= e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or <i>e<sub>1</sub> %
+/// >   e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i> and
+/// >   <i>e<sub>2</sub></i> are constant expressions that evaluate to a numeric
+/// >   value or to <b>null</b>.
+/// >   </span>
+/// > * <span>
+/// >   An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
+/// >   e<sub>3</sub></i> where <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and
+/// >   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
+/// >   evaluates to a boolean value.
+/// >   </span>
+///
+/// The values returned by instances of this class are therefore `null` and
+/// instances of the classes `Boolean`, `BigInteger`, `Double`, `String`, and
+/// `DartObject`.
+///
+/// In addition, this class defines several values that can be returned to
+/// indicate various conditions encountered during evaluation. These are
+/// documented with the static fields that define those values.
 class ConstantEvaluator {
   /**
    * The source containing the expression(s) that will be evaluated.
@@ -1150,22 +1202,82 @@ class ConstantEvaluator {
   final TypeProvider _typeProvider;
 
   /**
+   * The type system primitives.
+   */
+  final TypeSystem _typeSystem;
+
+  /**
    * Initialize a newly created evaluator to evaluate expressions in the given
    * [source]. The [typeProvider] is the type provider used to access known
    * types.
    */
-  ConstantEvaluator(this._source, this._typeProvider);
+  ConstantEvaluator(this._source, this._typeProvider, {TypeSystem typeSystem})
+      : _typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables()),
+        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables(),
+            typeSystem: _typeSystem),
         errorReporter));
     if (result != null) {
       return EvaluationResult.forValue(result);
     }
     return EvaluationResult.forErrors(errorListener.errors);
+  }
+}
+
+/**
+ * A visitor used to traverse the AST structures of all of the compilation units
+ * being resolved and build the full set of dependencies for all constant
+ * expressions.
+ */
+class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
+  /**
+   * The constants whose values need to be computed.
+   */
+  HashSet<ConstantEvaluationTarget> dependencies =
+      new HashSet<ConstantEvaluationTarget>();
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
+  void visitListLiteral(ListLiteral node) {
+    if (node.constKeyword != null) {
+      _find(node);
+    } else {
+      super.visitListLiteral(node);
+    }
+  }
+
+  @override
+  void visitMapLiteral(MapLiteral node) {
+    if (node.constKeyword != null) {
+      _find(node);
+    } else {
+      super.visitMapLiteral(node);
+    }
+  }
+
+  @override
+  void visitSwitchCase(SwitchCase node) {
+    _find(node.expression);
+    node.statements.accept(this);
+  }
+
+  void _find(Expression node) {
+    if (node != null) {
+      ReferenceFinder referenceFinder = new ReferenceFinder(dependencies.add);
+      node.accept(referenceFinder);
+    }
   }
 }
 
@@ -1196,8 +1308,9 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
+    AnalysisContext owningContext = _getOwningContext();
     constantsToCompute.add(new ConstantEvaluationTarget_Annotation(
-        context, source, librarySource, node));
+        owningContext, source, librarySource, node));
     return null;
   }
 
@@ -1231,6 +1344,16 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    super.visitDefaultFormalParameter(node);
+    Expression defaultValue = node.defaultValue;
+    if (defaultValue != null && node.element != null) {
+      constantsToCompute.add(node.element);
+    }
+    return null;
+  }
+
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     Expression initializer = node.initializer;
@@ -1246,6 +1369,14 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
       }
     }
     return null;
+  }
+
+  AnalysisContext _getOwningContext() {
+    if (context is InternalAnalysisContext) {
+      InternalAnalysisContext internalContext = context;
+      return internalContext.getContextFor(librarySource);
+    }
+    return context;
   }
 }
 
@@ -1304,10 +1435,10 @@ class ConstantValueComputer {
    */
   ConstantValueComputer(this._context, TypeProvider typeProvider,
       DeclaredVariables declaredVariables,
-      [ConstantEvaluationValidator validator])
+      [ConstantEvaluationValidator validator, TypeSystem typeSystem])
       : evaluationEngine = new ConstantEvaluationEngine(
             typeProvider, declaredVariables,
-            validator: validator);
+            validator: validator, typeSystem: typeSystem);
 
   /**
    * Add the constants in the given compilation [unit] to the list of constants
@@ -1569,15 +1700,16 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     if (conditionResult == null) {
       return conditionResult;
     }
-    if (conditionResult.isTrue) {
+    if (conditionResult.toBoolValue() == true) {
       return thenResult;
-    } else if (conditionResult.isFalse) {
+    } else if (conditionResult.toBoolValue() == false) {
       return elseResult;
     }
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
     return new DartObjectImpl.validWithUnknownValue(
-        _typeSystem.getLeastUpperBound(thenType, elseType) as InterfaceType);
+        _typeSystem.getLeastUpperBound(_typeProvider, thenType, elseType)
+        as InterfaceType);
   }
 
   @override
@@ -1906,64 +2038,143 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 }
 
 /**
- * The state of a Dart object.
+ * A representation of the value of a compile-time constant expression.
+ *
+ * Note that, unlike the mirrors system, the object being represented does *not*
+ * exist. This interface allows static analysis tools to determine something
+ * about the state of the object that would exist if the code that creates the
+ * object were executed, but none of the code being analyzed is actually
+ * executed.
  */
 abstract class DartObject {
   /**
-   * Return the boolean value of this object, or `null` if either the value of
-   * this object is not known or this object is not of type 'bool'.
+   * Return `true` if the value of the object being represented is known.
+   *
+   * This method will return `false` if
+   * * the value being represented is the value of a declared variable (a
+   *   variable whose value is provided at run-time using a `-D` command-line
+   *   option), or
+   * * the value is a function.
+   *
+   * The result of this method does not imply anything about the state of
+   * object representations returned by the method [getField], those that are
+   * elements of the list returned by [toListValue], or the keys or values in
+   * the map returned by [toMapValue]. For example, a representation of a list
+   * can return `true` even if one or more of the elements of that list would
+   * return `false`.
    */
-  bool get boolValue;
+  bool get hasKnownValue;
 
   /**
-   * Return the floating point value of this object, or `null` if either the
-   * value of this object is not known or this object is not of type 'double'.
-   */
-  double get doubleValue;
-
-  /**
-   * Return `true` if this object's value can be represented exactly.
-   */
-  bool get hasExactValue;
-
-  /**
-   * Return the integer value of this object, or `null` if either the value of
-   * this object is not known or this object is not of type 'int'.
-   */
-  int get intValue;
-
-  /**
-   * Return `true` if this object represents the value 'false'.
-   */
-  bool get isFalse;
-
-  /**
-   * Return `true` if this object represents the value 'null'.
+   * Return `true` if the object being represented represents the value 'null'.
    */
   bool get isNull;
 
   /**
-   * Return `true` if this object represents the value 'true'.
-   */
-  bool get isTrue;
-
-  /**
-   * Return the string value of this object, or `null` if either the value of
-   * this object is not known or this object is not of type 'String'.
-   */
-  String get stringValue;
-
-  /**
-   * Return the run-time type of this object.
+   * Return a representation of the type of the object being represented.
+   *
+   * For values resulting from the invocation of a 'const' constructor, this
+   * will be a representation of the run-time type of the object.
+   *
+   * For values resulting from a literal expression, this will be a
+   * representation of the static type of the value -- `int` for integer
+   * literals, `List` for list literals, etc. -- even when the static type is an
+   * abstract type (such as `List`) and hence will never be the run-time type of
+   * the represented object.
+   *
+   * For values resulting from any other kind of expression, this will be a
+   * representation of the result of evaluating the expression.
+   *
+   * Return `null` if the expression cannot be evaluated, either because it is
+   * not a valid constant expression or because one or more of the values used
+   * in the expression does not have a known value.
+   *
+   * This method can return a representation of the type, even if this object
+   * would return `false` from [hasKnownValue].
    */
   ParameterizedType get type;
 
   /**
-   * Return this object's value if it can be represented exactly, or `null` if
-   * either the value cannot be represented exactly or if the value is `null`.
-   * Clients should use [hasExactValue] to distinguish between these two cases.
+   * Return a representation of the value of the field with the given [name].
+   *
+   * Return `null` if either the object being represented does not have a field
+   * with the given name or if the implementation of the class of the object is
+   * invalid, making it impossible to determine that value of the field.
+   *
+   * Note that, unlike the mirrors API, this method does *not* invoke a getter;
+   * it simply returns a representation of the known state of a field.
    */
-  Object get value;
+  DartObject getField(String name);
+
+  /**
+   * Return a boolean corresponding to the value of the object being
+   * represented, or `null` if
+   * * this object is not of type 'bool',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  bool toBoolValue();
+
+  /**
+   * Return a double corresponding to the value of the object being represented,
+   * or `null`
+   * if
+   * * this object is not of type 'double',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  double toDoubleValue();
+
+  /**
+   * Return an integer corresponding to the value of the object being
+   * represented, or `null` if
+   * * this object is not of type 'int',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  int toIntValue();
+
+  /**
+   * Return a list corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'List', or
+   * * the value of the object being represented is `null`.
+   */
+  List<DartObject> toListValue();
+
+  /**
+   * Return a map corresponding to the value of the object being represented, or
+   * `null` if
+   * * this object is not of type 'Map', or
+   * * the value of the object being represented is `null`.
+   */
+  Map<DartObject, DartObject> toMapValue();
+
+  /**
+   * Return a string corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'String',
+   * * the value of the object being represented is not known, or
+   * * the value of the object being represented is `null`.
+   */
+  String toStringValue();
+
+  /**
+   * Return a string corresponding to the value of the object being represented,
+   * or `null` if
+   * * this object is not of type 'Symbol', or
+   * * the value of the object being represented is `null`.
+   * (We return the string
+   */
+  String toSymbolValue();
+
+  /**
+   * Return the representation of the type corresponding to the value of the
+   * object being represented, or `null` if
+   * * this object is not of type 'Type', or
+   * * the value of the object being represented is `null`.
+   */
+  DartType toTypeValue();
 }
 
 /**
@@ -2360,37 +2571,13 @@ class DartObjectImpl implements DartObject {
     return new DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
   }
 
-  @override
-  bool get boolValue {
-    if (_state is BoolState) {
-      return (_state as BoolState).value;
-    }
-    return null;
-  }
-
-  @override
-  double get doubleValue {
-    if (_state is DoubleState) {
-      return (_state as DoubleState).value;
-    }
-    return null;
-  }
-
   HashMap<String, DartObjectImpl> get fields => _state.fields;
-
-  @override
-  bool get hasExactValue => _state.hasExactValue;
 
   @override
   int get hashCode => JenkinsSmiHash.hash2(type.hashCode, _state.hashCode);
 
   @override
-  int get intValue {
-    if (_state is IntState) {
-      return (_state as IntState).value;
-    }
-    return null;
-  }
+  bool get hasKnownValue => !_state.isUnknown;
 
   /**
    * Return `true` if this object represents an object whose type is 'bool'.
@@ -2404,15 +2591,7 @@ class DartObjectImpl implements DartObject {
   bool get isBoolNumStringOrNull => _state.isBoolNumStringOrNull;
 
   @override
-  bool get isFalse =>
-      _state is BoolState && identical((_state as BoolState).value, false);
-
-  @override
   bool get isNull => _state is NullState;
-
-  @override
-  bool get isTrue =>
-      _state is BoolState && identical((_state as BoolState).value, true);
 
   /**
    * Return `true` if this object represents an unknown value.
@@ -2424,17 +2603,6 @@ class DartObjectImpl implements DartObject {
    * class.
    */
   bool get isUserDefinedObject => _state is GenericState;
-
-  @override
-  String get stringValue {
-    if (_state is StringState) {
-      return (_state as StringState).value;
-    }
-    return null;
-  }
-
-  @override
-  Object get value => _state.value;
 
   @override
   bool operator ==(Object object) {
@@ -2592,6 +2760,14 @@ class DartObjectImpl implements DartObject {
     }
     return new DartObjectImpl(
         typeProvider.boolType, _state.equalEqual(rightOperand._state));
+  }
+
+  @override
+  DartObject getField(String name) {
+    if (_state is GenericState) {
+      return (_state as GenericState).fields[name];
+    }
+    return null;
   }
 
   /**
@@ -2867,7 +3043,74 @@ class DartObjectImpl implements DartObject {
   }
 
   @override
+  bool toBoolValue() {
+    if (_state is BoolState) {
+      return (_state as BoolState).value;
+    }
+    return null;
+  }
+
+  @override
+  double toDoubleValue() {
+    if (_state is DoubleState) {
+      return (_state as DoubleState).value;
+    }
+    return null;
+  }
+
+  @override
+  int toIntValue() {
+    if (_state is IntState) {
+      return (_state as IntState).value;
+    }
+    return null;
+  }
+
+  @override
+  List<DartObject> toListValue() {
+    if (_state is ListState) {
+      return (_state as ListState)._elements;
+    }
+    return null;
+  }
+
+  @override
+  Map<DartObject, DartObject> toMapValue() {
+    if (_state is MapState) {
+      return (_state as MapState)._entries;
+    }
+    return null;
+  }
+
+  @override
   String toString() => "${type.displayName} ($_state)";
+
+  @override
+  String toStringValue() {
+    if (_state is StringState) {
+      return (_state as StringState).value;
+    }
+    return null;
+  }
+
+  @override
+  String toSymbolValue() {
+    if (_state is SymbolState) {
+      return (_state as SymbolState).value;
+    }
+    return null;
+  }
+
+  @override
+  DartType toTypeValue() {
+    if (_state is TypeState) {
+      Element element = (_state as TypeState)._element;
+      if (element is TypeDefiningElement) {
+        return element.type;
+      }
+    }
+    return null;
+  }
 }
 
 /**
@@ -2964,9 +3207,6 @@ class DoubleState extends NumState {
    * [value].
    */
   DoubleState(this.value);
-
-  @override
-  bool get hasExactValue => true;
 
   @override
   int get hashCode => value == null ? 0 : value.hashCode;
@@ -3543,14 +3783,6 @@ class EvaluationResultImpl {
     this._errors = errors == null ? <AnalysisError>[] : errors;
   }
 
-  @deprecated // Use new EvaluationResultImpl(value)
-  EvaluationResultImpl.con1(this.value) {
-    this._errors = new List<AnalysisError>(0);
-  }
-
-  @deprecated // Use new EvaluationResultImpl(value, errors)
-  EvaluationResultImpl.con2(this.value, List<AnalysisError> this._errors);
-
   List<AnalysisError> get errors => _errors;
 
   bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
@@ -3747,11 +3979,6 @@ abstract class InstanceState {
   HashMap<String, DartObjectImpl> get fields => null;
 
   /**
-   * Return `true` if this object's value can be represented exactly.
-   */
-  bool get hasExactValue => false;
-
-  /**
    * Return `true` if this object represents an object whose type is 'bool'.
    */
   bool get isBool => false;
@@ -3771,13 +3998,6 @@ abstract class InstanceState {
    * Return the name of the type of this value.
    */
   String get typeName;
-
-  /**
-   * Return this object's value if it can be represented exactly, or `null` if
-   * either the value cannot be represented exactly or if the value is `null`.
-   * Clients should use [hasExactValue] to distinguish between these two cases.
-   */
-  Object get value => null;
 
   /**
    * Return the result of invoking the '+' operator on this object with the
@@ -4172,9 +4392,6 @@ class IntState extends NumState {
    * [value].
    */
   IntState(this.value);
-
-  @override
-  bool get hasExactValue => true;
 
   @override
   int get hashCode => value == null ? 0 : value.hashCode;
@@ -4633,17 +4850,6 @@ class ListState extends InstanceState {
   ListState(this._elements);
 
   @override
-  bool get hasExactValue {
-    int count = _elements.length;
-    for (int i = 0; i < count; i++) {
-      if (!_elements[i].hasExactValue) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
   int get hashCode {
     int value = 0;
     int count = _elements.length;
@@ -4655,20 +4861,6 @@ class ListState extends InstanceState {
 
   @override
   String get typeName => "List";
-
-  @override
-  List<Object> get value {
-    int count = _elements.length;
-    List<Object> result = new List<Object>(count);
-    for (int i = 0; i < count; i++) {
-      DartObjectImpl element = _elements[i];
-      if (!element.hasExactValue) {
-        return null;
-      }
-      result[i] = element.value;
-    }
-    return result;
-  }
 
   @override
   bool operator ==(Object object) {
@@ -4741,16 +4933,6 @@ class MapState extends InstanceState {
   MapState(this._entries);
 
   @override
-  bool get hasExactValue {
-    for (DartObjectImpl key in _entries.keys) {
-      if (!key.hasExactValue || !_entries[key].hasExactValue) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
   int get hashCode {
     int value = 0;
     for (DartObjectImpl key in _entries.keys.toSet()) {
@@ -4761,19 +4943,6 @@ class MapState extends InstanceState {
 
   @override
   String get typeName => "Map";
-
-  @override
-  Map<Object, Object> get value {
-    HashMap<Object, Object> result = new HashMap<Object, Object>();
-    for (DartObjectImpl key in _entries.keys) {
-      DartObjectImpl value = _entries[key];
-      if (!key.hasExactValue || !value.hasExactValue) {
-        return null;
-      }
-      result[key.value] = value.value;
-    }
-    return result;
-  }
 
   @override
   bool operator ==(Object object) {
@@ -4843,9 +5012,6 @@ class NullState extends InstanceState {
    * An instance representing the boolean value 'null'.
    */
   static NullState NULL_STATE = new NullState();
-
-  @override
-  bool get hasExactValue => true;
 
   @override
   int get hashCode => 0;
@@ -5104,9 +5270,6 @@ class StringState extends InstanceState {
   StringState(this.value);
 
   @override
-  bool get hasExactValue => true;
-
-  @override
   int get hashCode => value == null ? 0 : value.hashCode;
 
   @override
@@ -5192,9 +5355,6 @@ class SymbolState extends InstanceState {
   SymbolState(this.value);
 
   @override
-  bool get hasExactValue => true;
-
-  @override
   int get hashCode => value == null ? 0 : value.hashCode;
 
   @override
@@ -5258,9 +5418,6 @@ class TypeState extends InstanceState {
 
   @override
   String get typeName => "Type";
-
-  @override
-  Element get value => _element;
 
   @override
   bool operator ==(Object object) =>

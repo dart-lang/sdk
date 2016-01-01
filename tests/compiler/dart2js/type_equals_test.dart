@@ -10,15 +10,17 @@ import "compiler_helper.dart";
 bool test(compiler, String name1, String name2, {bool expect}) {
   Expect.isTrue((expect != null), 'required parameter "expect" not given');
   var clazz = findElement(compiler, "Class");
-  clazz.ensureResolved(compiler);
+  clazz.ensureResolved(compiler.resolution);
   var element1 = clazz.buildScope().lookup(name1);
   var element2 = clazz.buildScope().lookup(name2);
   Expect.isNotNull(element1);
   Expect.isNotNull(element2);
   Expect.equals(element1.kind, ElementKind.FUNCTION);
   Expect.equals(element2.kind, ElementKind.FUNCTION);
-  FunctionSignature signature1 = element1.computeSignature(compiler);
-  FunctionSignature signature2 = element2.computeSignature(compiler);
+  element1.computeType(compiler.resolution);
+  element2.computeType(compiler.resolution);
+  FunctionSignature signature1 = element1.functionSignature;
+  FunctionSignature signature2 = element2.functionSignature;
 
   // Function signatures are used to be to provide void types (only occuring as
   // as return types) and (inlined) function types (only occuring as method
@@ -87,7 +89,7 @@ void main() {
       """,
       uri,
       analyzeAll: true, analyzeOnly: true);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     test(compiler, "void1", "void2", expect: true);
     test(compiler, "int1", "int2", expect: true);
     test(compiler, "String1", "String2", expect: true);

@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library memory_file_system;
+library analyzer.file_system.memory_file_system;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core' hide Resource;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
-
-import 'file_system.dart';
 
 /**
  * An in-memory implementation of [ResourceProvider].
@@ -27,6 +27,9 @@ class MemoryResourceProvider implements ResourceProvider {
   final Map<String, List<StreamController<WatchEvent>>> _pathToWatchers =
       new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
+
+  final AbsolutePathContext absolutePathContext =
+      new AbsolutePathContext(false);
 
   @override
   Context get pathContext => posix;
@@ -44,7 +47,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   /**
    * Delete the folder with the given path
-   * and recurively delete nested files and folders.
+   * and recursively delete nested files and folders.
    */
   void deleteFolder(String path) {
     _checkFolderAtPath(path);
@@ -363,7 +366,13 @@ class _MemoryFileSource extends Source {
 
   @override
   Uri resolveRelativeUri(Uri relativeUri) {
-    return uri.resolveUri(relativeUri);
+    Uri baseUri = uri;
+    String scheme = uri.scheme;
+    if (scheme == DartUriResolver.DART_SCHEME) {
+      String libraryName = uri.path;
+      baseUri = Uri.parse('$scheme:$libraryName/$libraryName.dart');
+    }
+    return baseUri.resolveUri(relativeUri);
   }
 
   @override

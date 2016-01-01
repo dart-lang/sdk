@@ -4,8 +4,10 @@
 
 library dart2js.common.tasks;
 
-import 'dart:profiler' show
+import 'dart:developer' show
     UserTag;
+
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../elements/elements.dart' show
@@ -24,15 +26,24 @@ class CompilerTask {
   final Compiler compiler;
   final Stopwatch watch;
   UserTag profilerTag;
+  final Map<String, GenericTask> _subtasks = <String, GenericTask>{};
 
   CompilerTask(Compiler compiler)
       : this.compiler = compiler,
         watch = (compiler.verbose) ? new Stopwatch() : null;
 
-  String get name => "Unknown task '${this.runtimeType}'";
-  int get timing => (watch != null) ? watch.elapsedMilliseconds : 0;
+  DiagnosticReporter get reporter => compiler.reporter;
 
-  int get timingMicroseconds => (watch != null) ? watch.elapsedMicroseconds : 0;
+  String get name => "Unknown task '${this.runtimeType}'";
+
+  int get timing {
+    if (watch == null) return 0;
+    int total = watch.elapsedMilliseconds;
+    for (GenericTask subtask in _subtasks.values) {
+      total += subtask.timing;
+    }
+    return total;
+  }
 
   UserTag getProfilerTag() {
     if (profilerTag == null) profilerTag = new UserTag(name);
@@ -59,8 +70,24 @@ class CompilerTask {
   }
 
   measureElement(Element element, action()) {
-    compiler.withCurrentElement(element, () => measure(action));
+    reporter.withCurrentElement(element, () => measure(action));
   }
+
+  /// Measure the time spent in [action] (if in verbose mode) and accumulate it
+  /// under a subtask with the given name.
+  measureSubtask(String name, action()) {
+    if (watch == null) return action();
+    // Use a nested CompilerTask for the measurement to ensure nested [measure]
+    // calls work correctly. The subtasks will never themselves have nested
+    // subtasks because they are not accessible outside.
+    GenericTask subtask = _subtasks.putIfAbsent(name,
+        () => new GenericTask(name, compiler));
+    return subtask.measure(action);
+  }
+
+  Iterable<String> get subtasks => _subtasks.keys;
+
+  int getSubtaskTime(String subtask) => _subtasks[subtask].timing;
 }
 
 class GenericTask extends CompilerTask {

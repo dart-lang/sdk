@@ -17,6 +17,7 @@ var tests = [
     expect(result['type'], equals('Isolate'));
     expect(result['id'], startsWith('isolates/'));
     expect(result['number'], new isInstanceOf<String>());
+    expect(result['_originNumber'], equals(result['number']));
     expect(result['startTime'], isPositive);
     expect(result['livePorts'], isPositive);
     expect(result['pauseOnExit'], isFalse);
@@ -45,6 +46,17 @@ var tests = [
              "getIsolate: invalid 'isolateId' parameter: badid");
     }
     expect(caughtException, isTrue);
+  },
+
+  // Plausible isolate id, not found.
+  (VM vm) async {
+    var params = {
+      'isolateId': 'isolates/9999999999',
+    };
+    var result = await vm.invokeRpcNoUpgrade('getIsolate', params);
+    expect(result['type'], equals('Sentinel'));
+    expect(result['kind'], equals('Collected'));
+    expect(result['valueAsString'], equals('<collected>'));
   },
 ];
 

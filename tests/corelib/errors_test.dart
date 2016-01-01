@@ -25,9 +25,9 @@ main() {
                 new ArgumentError.value(42, "foo", "message").toString());
   Expect.equals("Invalid argument: message: 42",
                 new ArgumentError.value(42, null, "message").toString());
-  Expect.equals("Invalid argument: Must not be null: null",
+  Expect.equals("Invalid argument(s): Must not be null",
                 new ArgumentError.notNull().toString());
-  Expect.equals("Invalid argument (foo): Must not be null: null",
+  Expect.equals("Invalid argument(s) (foo): Must not be null",
                 new ArgumentError.notNull("foo").toString());
 
   Expect.equals("RangeError",

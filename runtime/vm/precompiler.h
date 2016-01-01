@@ -20,79 +20,104 @@ class GrowableObjectArray;
 class RawError;
 class String;
 
-class SymbolPair {
+class SymbolKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
   typedef const String* Key;
-  typedef bool Value;
-  typedef SymbolPair Pair;
+  typedef const String* Value;
+  typedef const String* Pair;
 
-  SymbolPair() : key_(NULL), value_(false) {}
-  SymbolPair(Key key, Value value) : key_(key), value_(value) {
-    ASSERT(key->IsNotTemporaryScopedHandle());
-  }
+  static Key KeyOf(Pair kv) { return kv; }
 
-  static Key KeyOf(Pair kv) { return kv.key_; }
-
-  static Value ValueOf(Pair kv) { return kv.value_; }
+  static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
     return key->Hash();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair.key_->raw() == key->raw();
+    return pair->raw() == key->raw();
   }
-
- private:
-  Key key_;
-  Value value_;
 };
 
+typedef DirectChainedHashMap<SymbolKeyValueTrait> SymbolSet;
 
-class SymbolSet : public ValueObject {
+class StackmapKeyValueTrait {
  public:
-  explicit SymbolSet(Zone* zone) : zone_(zone), map_() {}
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Stackmap* Key;
+  typedef const Stackmap* Value;
+  typedef const Stackmap* Pair;
 
-  void Add(const String& symbol) {
-    ASSERT(symbol.IsSymbol());
-    if (symbol.IsNotTemporaryScopedHandle()) {
-      SymbolPair pair(&symbol, true);
-      map_.Insert(pair);
-    } else {
-      SymbolPair pair(&String::ZoneHandle(zone_, symbol.raw()), true);
-      map_.Insert(pair);
-    }
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->PcOffset();
   }
 
-  bool Includes(const String& symbol) {
-    ASSERT(symbol.IsSymbol());
-    return map_.Lookup(&symbol);
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
   }
-
- private:
-  Zone* zone_;
-  DirectChainedHashMap<SymbolPair> map_;
 };
+
+typedef DirectChainedHashMap<StackmapKeyValueTrait> StackmapSet;
+
+class FunctionKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Function* Key;
+  typedef const Function* Value;
+  typedef const Function* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->token_pos();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<FunctionKeyValueTrait> FunctionSet;
 
 
 class Precompiler : public ValueObject {
  public:
-  static RawError* CompileAll();
+  static RawError* CompileAll(
+      Dart_QualifiedFunctionName embedder_entry_points[],
+      bool reset_fields);
+
+  // Returns named function that is a unique dynamic target, i.e.,
+  // - the target is identified by its name alone, since it occurs only once.
+  // - target's class has no subclasses, and neither is subclassed, i.e.,
+  //   the receiver type can be only the function's class.
+  // Returns Function::null() if there is no unique dynamic target for
+  // given 'fname'. 'fname' must be a symbol.
+  static void GetUniqueDynamicTarget(Isolate* isolate,
+                                     const String& fname,
+                                     Object* function);
 
  private:
-  explicit Precompiler(Thread* thread);
+  Precompiler(Thread* thread, bool reset_fields);
 
-  void DoCompileAll();
+  void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
-  void AddRoots();
+  void AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]);
+  void AddEntryPoints(Dart_QualifiedFunctionName entry_points[]);
   void Iterate();
-  void CleanUp();
 
   void AddCalleesOf(const Function& function);
+  void AddConstObject(const Instance& instance);
+  void AddClosureCall(const ICData& call_site);
   void AddField(const Field& field);
   void AddFunction(const Function& function);
-  void AddClass(const Class& cls);
+  void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
   bool IsSent(const String& selector);
 
@@ -100,6 +125,20 @@ class Precompiler : public ValueObject {
   void CheckForNewDynamicFunctions();
 
   void DropUncompiledFunctions();
+  void CollectDynamicFunctionNames();
+  void BindStaticCalls();
+  void DedupStackmaps();
+  void ResetPrecompilerState();
+
+  class FunctionVisitor : public ValueObject {
+   public:
+    virtual ~FunctionVisitor() {}
+    virtual void VisitFunction(const Function& function) = 0;
+  };
+
+  void VisitFunctions(FunctionVisitor* visitor);
+
+  void FinalizeAllClasses();
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
@@ -109,6 +148,8 @@ class Precompiler : public ValueObject {
   Zone* zone_;
   Isolate* isolate_;
 
+  const bool reset_fields_;
+
   bool changed_;
   intptr_t function_count_;
   intptr_t class_count_;
@@ -117,8 +158,8 @@ class Precompiler : public ValueObject {
 
   const GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
-  const GrowableObjectArray& collected_closures_;
   SymbolSet sent_selectors_;
+  FunctionSet enqueued_functions_;
   Error& error_;
 };
 

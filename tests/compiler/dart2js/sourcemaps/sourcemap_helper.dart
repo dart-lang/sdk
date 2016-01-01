@@ -120,7 +120,7 @@ class SourceMapProcessor {
       if (verbose) print('Using the new source information system.');
       useNewSourceInfo = true;
     }
-    api.Compiler compiler = await compilerFor(
+    api.CompilerImpl compiler = await compilerFor(
         outputProvider: outputProvider,
         // TODO(johnniwinther): Use [verbose] to avoid showing diagnostics.
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']
@@ -134,7 +134,7 @@ class SourceMapProcessor {
     var handler = compiler.handler;
     SourceFileProvider sourceFileProvider = handler.provider;
     sourceFileManager = new ProviderSourceFileManager(sourceFileProvider);
-    await compiler.runCompiler(inputUri);
+    await compiler.run(inputUri);
 
     List<SourceMapInfo> infoList = <SourceMapInfo>[];
     backend.generatedCode.forEach((Element element, js.Expression node) {

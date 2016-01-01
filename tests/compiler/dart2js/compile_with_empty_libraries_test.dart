@@ -14,5 +14,5 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   MockCompiler compiler =
     new MockCompiler.internal(librariesOverride: (_) => '');
-  asyncTest(() => compiler.runCompiler(uri));
+  asyncTest(() => compiler.run(uri));
 }

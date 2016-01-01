@@ -44,15 +44,15 @@ void main() {
     InterfaceType A_X_Y = add(instantiate(A, [X, Y]));
     InterfaceType A_Y_X = add(instantiate(A, [Y, X]));
 
-    TypedefType B_this = add(B.computeType(env.compiler));
+    TypedefType B_this = add(B.computeType(env.compiler.resolution));
     TypedefType B_raw = add(B.rawType);
     TypeVariableType BT = add(B_this.typeArguments[0]);
     TypeVariableType BS = add(B_this.typeArguments[1]);
     FunctionType B_this_alias = add(B.alias);
     TypedefType B_X_Y = add(instantiate(B, [X, Y]));
-    FunctionType B_X_Y_alias = add(B_X_Y.unalias(env.compiler));
+    FunctionType B_X_Y_alias = add(B_X_Y.unaliased);
     TypedefType B_Y_X = add(instantiate(B, [Y, X]));
-    FunctionType B_Y_X_alias = add(B_Y_X.unalias(env.compiler));
+    FunctionType B_Y_X_alias = add(B_Y_X.unaliased);
 
     InterfaceType C_this = add(C.thisType);
     InterfaceType C_raw = add(C.rawType);

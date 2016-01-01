@@ -104,7 +104,7 @@ class Int64 implements IntX {
 
     if (negative) return _negate(d0, d1, d2);
 
-    return new Int64._bits(d0, d1, d2);
+    return Int64._masked(d0, d1, d2);
   }
 
   /**
@@ -131,18 +131,13 @@ class Int64 implements IntX {
       negative = true;
       value = -value - 1;
     }
-    if (_haveBigInts) {
-      v0 = _MASK & value;
-      v1 = _MASK & (value >> _BITS);
-      v2 = _MASK2 & (value >> _BITS01);
-    } else {
-      // Avoid using bitwise operations that coerce their input to 32 bits.
-      v2 = value ~/ 17592186044416; // 2^44
-      value -= v2 * 17592186044416;
-      v1 = value ~/ 4194304; // 2^22
-      value -= v1 * 4194304;
-      v0 = value;
-    }
+    // Avoid using bitwise operations that in JavaScript coerce their input to
+    // 32 bits.
+    v2 = value ~/ 17592186044416; // 2^44
+    value -= v2 * 17592186044416;
+    v1 = value ~/ 4194304; // 2^22
+    value -= v1 * 4194304;
+    v0 = value;
 
     if (negative) {
       v0 = ~v0;
@@ -202,7 +197,7 @@ class Int64 implements IntX {
     int d0 = _MASK & bottom;
     int d1 = ((0xfff & top) << 10) | (0x3ff & (bottom >> _BITS));
     int d2 = _MASK2 & (top >> 12);
-    return new Int64._bits(d0, d1, d2);
+    return  Int64._masked(d0, d1, d2);
   }
 
   // Returns the [Int64] representation of the specified value. Throws
@@ -325,7 +320,7 @@ class Int64 implements IntX {
     int a0 = _l & o._l;
     int a1 = _m & o._m;
     int a2 = _h & o._h;
-    return new Int64._bits(a0, a1, a2);
+    return Int64._masked(a0, a1, a2);
   }
 
   Int64 operator |(other) {
@@ -333,7 +328,7 @@ class Int64 implements IntX {
     int a0 = _l | o._l;
     int a1 = _m | o._m;
     int a2 = _h | o._h;
-    return new Int64._bits(a0, a1, a2);
+    return Int64._masked(a0, a1, a2);
   }
 
   Int64 operator ^(other) {
@@ -629,23 +624,15 @@ class Int64 implements IntX {
     int l = _l;
     int m = _m;
     int h = _h;
-    bool negative = false;
+    // In the sum we add least significant to most significant so that in
+    // JavaScript double arithmetic rounding occurs on only the last addition.
     if ((_h & _SIGN_BIT_MASK) != 0) {
       l = _MASK & ~_l;
       m = _MASK & ~_m;
       h = _MASK2 & ~_h;
-      negative = true;
-    }
-
-    if (_haveBigInts) {
-      int result = (h << _BITS01) | (m << _BITS) | l;
-      return negative ? -result - 1 : result;
+      return -((1 + l) + (4194304 * m) + (17592186044416 * h));
     } else {
-      if (negative) {
-        return -((l + 1) + (m * 4194304) + (h * 17592186044416));
-      } else {
-        return (l + (m * 4194304)) + (h * 17592186044416);
-      }
+      return l + (4194304 * m) + (17592186044416 * h);
     }
   }
 
@@ -671,7 +658,6 @@ class Int64 implements IntX {
     if (isZero) return "0";
     Int64 x = this;
     String hexStr = "";
-    Int64 digit_f = new Int64(0xf);
     while (!x.isZero) {
       int digit = x._l & 0xf;
       hexStr = "${_hexDigit(digit)}$hexStr";
@@ -843,26 +829,7 @@ class Int64 implements IntX {
     return _sub(0, 0, 0, b0, b1, b2);
   }
 
-  // Determine whether the platform supports ints greater than 2^53
-  // without loss of precision.
-  static bool _haveBigIntsCached = null;
-
-  static bool get _haveBigInts {
-    if (_haveBigIntsCached == null) {
-      var x = 9007199254740992;
-      // Defeat compile-time constant folding.
-      if (2 + 2 != 4) {
-        x = 0;
-      }
-      var y = x + 1;
-      var same = y == x;
-      _haveBigIntsCached = !same;
-    }
-    return _haveBigIntsCached;
-  }
-
   String _hexDigit(int digit) => "0123456789ABCDEF"[digit];
-
 
   // Work around dart2js bugs with negative arguments to '>>' operator.
   static int _shiftRight(int x, int n) {

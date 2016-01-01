@@ -47,7 +47,6 @@ static_library("libdart_platform") {
 static_library("libdart_vm") {
   configs += ["..:dart_config"]
   public_configs = [":libdart_vm_config"]
-  deps = [ ":generate_service_cc_file", ]
 
   vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
                                 [rebase_path("vm_sources.gypi")],
@@ -56,7 +55,6 @@ static_library("libdart_vm") {
 
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = vm_sources_list.sources
-            + ["$target_gen_dir/service_gen.cc",]
             - ["vtune.cc", "vtune.h"]
   include_dirs = [
     "..",
@@ -67,7 +65,6 @@ static_library("libdart_vm") {
 static_library("libdart_vm_nosnapshot") {
   configs += ["..:dart_config"]
   public_configs = [":libdart_vm_config"]
-  deps = [ ":generate_service_cc_file", ]
   defines = [ "DART_NO_SNAPSHOT" ]
   vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
                                 [rebase_path("vm_sources.gypi")],
@@ -76,7 +73,6 @@ static_library("libdart_vm_nosnapshot") {
 
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = vm_sources_list.sources
-            + ["$target_gen_dir/service_gen.cc",]
             - ["vtune.cc", "vtune.h"]
   include_dirs = [
     "..",
@@ -199,30 +195,6 @@ generate_core_libraries("core_libraries") {
     ["mirrors", "mirrors"],
     ["profiler", "profiler"],
     ["typed_data", "typed_data"],
+    ["_vmservice", "vmservice"],
   ]
-}
-
-
-action("generate_service_cc_file") {
-  visibility = [ ":*" ]  # Only targets in this file can see this.
-  script = "../tools/create_resources.py"
-  sources = [
-    "service/client.dart",
-    "service/constants.dart",
-    "service/message.dart",
-    "service/message_router.dart",
-    "service/running_isolate.dart",
-    "service/running_isolates.dart",
-    "service/vmservice.dart",
-  ]
-
-  output = "$target_gen_dir/service_gen.cc"
-  outputs = [ output, ]
-
-  args = [
-    "--output", rebase_path(output, root_build_dir),
-    "--outer_namespace", "dart",
-    "--table_name", "service",
-    "--root_prefix", rebase_path("service/", root_build_dir)] +
-    rebase_path(sources, root_build_dir)
 }

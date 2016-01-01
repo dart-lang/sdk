@@ -13,10 +13,10 @@ library dart.developer;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:isolate' show SendPort;
 
 part 'extension.dart';
 part 'profiler.dart';
+part 'timeline.dart';
 
 /// If [when] is true, stop the program as if a breakpoint were hit at the
 /// following statement.
@@ -37,13 +37,13 @@ external Object inspect(Object object);
 
 /// Emit a log event.
 /// [message] is the log message.
-/// [time] (optional) is the timestamp.
-/// [sequenceNumber] (optional) is a monotonically increasing sequence number.
-/// [level] (optional) is the severity level (value between 0 and 2000).
-/// [name] (optional) is the name of the source of the log message.
-/// [zone] (optional) the zone where the log was emitted
-/// [error] (optional) an error object associated with this log event.
-/// [stackTrace] (optional) a stack trace associated with this log event.
+/// [time]  (optional) is the timestamp.
+/// [sequenceNumber]  (optional) is a monotonically increasing sequence number.
+/// [level]  (optional) is the severity level (value between 0 and 2000).
+/// [name]  (optional) is the name of the source of the log message.
+/// [zone]  (optional) the zone where the log was emitted
+/// [error]  (optional) an error object associated with this log event.
+/// [stackTrace]  (optional) a stack trace associated with this log event.
 external void log(String message,
                   {DateTime time,
                    int sequenceNumber,

@@ -44,3 +44,53 @@ ServiceExtensionHandler _lookupExtension(String method) {
 _registerExtension(String method, ServiceExtensionHandler handler) {
   _extensions[method] = handler;
 }
+
+@patch
+_postEvent(String eventKind, String eventData) {
+  // TODO.
+}
+
+
+@patch
+int _getTraceClock() {
+  // TODO.
+  return _clockValue++;
+}
+int _clockValue = 0;
+
+@patch
+void _reportCompleteEvent(int start,
+                          int end,
+                          String category,
+                          String name,
+                          String argumentsAsJson) {
+  // TODO.
+}
+
+@patch
+void _reportInstantEvent(int start,
+                         String category,
+                         String name,
+                         String argumentsAsJson) {
+  // TODO.
+}
+
+@patch
+int _getNextAsyncId() {
+  return 0;
+}
+
+@patch
+int _getIsolateNum() {
+  return 0;
+}
+
+@patch
+void _reportTaskEvent(int start,
+                      int taskId,
+                      String phase,
+                      String category,
+                      String name,
+                      String argumentsAsJson) {
+ // TODO.
+}

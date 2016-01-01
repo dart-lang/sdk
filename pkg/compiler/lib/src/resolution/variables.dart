@@ -4,14 +4,15 @@
 
 library dart2js.resolution.variables;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/modelx.dart' show
     LocalVariableElementX,
     VariableList;
 import '../tree/tree.dart';
+import '../universe/use.dart' show
+    TypeUse;
 import '../util/util.dart' show
     Link;
 
@@ -46,7 +47,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
         new VariableDefinitionScope(resolver.scope, name);
     resolver.visitIn(node.arguments.head, scope);
     if (scope.variableReferencedInInitializer) {
-      compiler.reportError(
+      reporter.reportErrorMessage(
           identifier, MessageKind.REFERENCE_IN_INITIALIZATION,
           {'variableName': name});
     }
@@ -55,13 +56,22 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
 
   Identifier visitIdentifier(Identifier node) {
     // The variable is initialized to null.
-    registry.registerInstantiatedClass(compiler.nullClass);
+    // TODO(johnniwinther): Register a feature instead.
+    registry.registerTypeUse(
+        new TypeUse.instantiation(compiler.coreTypes.nullType));
     if (definitions.modifiers.isConst) {
-      compiler.reportError(node, MessageKind.CONST_WITHOUT_INITIALIZER);
+      if (resolver.inLoopVariable) {
+        reporter.reportErrorMessage(
+            node, MessageKind.CONST_LOOP_VARIABLE);
+      } else {
+        reporter.reportErrorMessage(
+            node, MessageKind.CONST_WITHOUT_INITIALIZER);
+      }
     }
     if (definitions.modifiers.isFinal &&
-        !resolver.allowFinalWithoutInitializer) {
-      compiler.reportError(node, MessageKind.FINAL_WITHOUT_INITIALIZER);
+        !resolver.inLoopVariable) {
+      reporter.reportErrorMessage(
+          node, MessageKind.FINAL_WITHOUT_INITIALIZER);
     }
     return node;
   }

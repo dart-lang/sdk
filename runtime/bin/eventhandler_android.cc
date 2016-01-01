@@ -333,7 +333,7 @@ int64_t EventHandlerImplementation::GetTimeout() {
     return kInfinityTimeout;
   }
   int64_t millis = timeout_queue_.CurrentTimeout() -
-      TimerUtils::GetCurrentTimeMilliseconds();
+      TimerUtils::GetCurrentMonotonicMillis();
   return (millis < 0) ? 0 : millis;
 }
 
@@ -341,7 +341,7 @@ int64_t EventHandlerImplementation::GetTimeout() {
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_queue_.HasTimeout()) {
     int64_t millis = timeout_queue_.CurrentTimeout() -
-        TimerUtils::GetCurrentTimeMilliseconds();
+        TimerUtils::GetCurrentMonotonicMillis();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_queue_.CurrentPort());
       timeout_queue_.RemoveCurrent();

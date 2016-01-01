@@ -88,7 +88,7 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 #define GET_NATIVE_ARGUMENT(type, name, value)                                 \
   const Instance& __##name##_instance__ =                                      \
       Instance::CheckedHandle(zone, value);                                    \
-  type& name = type::Handle(isolate);                                          \
+  type& name = type::Handle(zone);                                             \
   if (!__##name##_instance__.IsNull()) {                                       \
     if (!__##name##_instance__.Is##type()) {                                   \
       const Array& __args__ = Array::Handle(Array::New(1));                    \
@@ -114,11 +114,11 @@ class NativeEntry : public AllStatic {
                                                uword pc);
   static const uint8_t* ResolveSymbol(uword pc);
 
-  static const ExternalLabel& NativeCallWrapperLabel();
+  static uword NativeCallWrapperEntry();
   static void NativeCallWrapper(Dart_NativeArguments args,
                                 Dart_NativeFunction func);
 
-  static const ExternalLabel& LinkNativeCallLabel();
+  static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
 };
 

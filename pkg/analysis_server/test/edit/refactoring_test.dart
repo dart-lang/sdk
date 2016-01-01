@@ -6,8 +6,8 @@ library test.edit.refactoring;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:plugin/manager.dart';
@@ -273,6 +273,26 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     test_simulateRefactoringReset_afterFinalConditions = false;
     test_simulateRefactoringReset_afterCreateChange = false;
     super.tearDown();
+  }
+
+  test_coveringExpressions() {
+    addTestFile('''
+main() {
+  var v = 111 + 222 + 333;
+}
+''');
+    return getRefactoringResult(() {
+      return sendExtractRequest(testCode.indexOf('222 +'), 0, 'res', true);
+    }).then((result) {
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.coveringExpressionOffsets, [
+        testCode.indexOf('222 +'),
+        testCode.indexOf('111 +'),
+        testCode.indexOf('111 +')
+      ]);
+      expect(feedback.coveringExpressionLengths,
+          ['222'.length, '111 + 222'.length, '111 + 222 + 333'.length]);
+    });
   }
 
   test_extractAll() {
@@ -1648,6 +1668,24 @@ library my.new_name;
 ''');
   }
 
+  test_library_partOfDirective() {
+    addFile(
+        '$testFolder/my_lib.dart',
+        '''
+library aaa.bbb.ccc;
+part 'test.dart';
+''');
+    addTestFile('''
+part of aaa.bbb.ccc;
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('aaa.bb', 'my.new_name');
+    },
+        '''
+part of my.new_name;
+''');
+  }
+
   test_localVariable() {
     addTestFile('''
 main() {
@@ -1863,7 +1901,7 @@ main() {
     await waitForTasksFinished();
     Request request =
         new EditGetAvailableRefactoringsParams(testFile, 0, 0).toRequest('0');
-    return _assertErrorResposeNoIndex(request);
+    return _assertErrorResponseNoIndex(request);
   }
 
   test_getRefactoring_noSearchEngine() async {
@@ -1876,10 +1914,10 @@ main() {
     Request request = new EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE, testFile, 0, 0, true)
         .toRequest('0');
-    return _assertErrorResposeNoIndex(request);
+    return _assertErrorResponseNoIndex(request);
   }
 
-  _assertErrorResposeNoIndex(Request request) async {
+  _assertErrorResponseNoIndex(Request request) async {
     Response response = await serverChannel.sendRequest(request);
     expect(response.error, isNotNull);
     expect(response.error.code, RequestErrorCode.NO_INDEX_GENERATED);

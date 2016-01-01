@@ -29,21 +29,29 @@ Future check(String source, {errors, warnings, hints, infos}) {
     compiler.diagnosticHandler = createHandler(compiler, source);
     compiler.parseScript(source);
     var cls = compiler.mainApp.find('Class');
-    cls.ensureResolved(compiler);
+    cls.ensureResolved(compiler.resolution);
     MembersCreator.computeAllClassMembers(compiler, cls);
 
     toList(o) => o == null ? [] : o is List ? o : [o];
 
-    compareMessageKinds(source, toList(errors), compiler.errors, 'error');
+    compareMessageKinds(
+        source, toList(errors),
+        compiler.diagnosticCollector.errors, 'error');
 
-    compareMessageKinds(source, toList(warnings), compiler.warnings, 'warning');
+    compareMessageKinds(
+        source, toList(warnings),
+        compiler.diagnosticCollector.warnings, 'warning');
 
     if (infos != null) {
-      compareMessageKinds(source, toList(infos), compiler.infos, 'info');
+      compareMessageKinds(
+          source, toList(infos),
+          compiler.diagnosticCollector.infos, 'info');
     }
 
     if (hints != null) {
-      compareMessageKinds(source, toList(hints), compiler.hints, 'hint');
+      compareMessageKinds(
+          source, toList(hints),
+          compiler.diagnosticCollector.hints, 'hint');
     }
   });
 }

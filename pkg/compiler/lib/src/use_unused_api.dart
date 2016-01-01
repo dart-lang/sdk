@@ -22,13 +22,12 @@ import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
 import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
 import 'dart_types.dart' as dart_types;
 import 'dart2js.dart' as dart2js;
-import 'compiler.dart' as dart2jslib;
+import 'deferred_load.dart' as deferred;
 import 'diagnostics/source_span.dart' as diagnostics;
 import 'elements/elements.dart' as elements;
 import 'elements/modelx.dart' as modelx;
 import 'elements/visitor.dart' as elements_visitor;
 import 'filenames.dart' as filenames;
-import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
 import 'io/line_column_provider.dart' as io;
 import 'io/source_map_builder.dart' as io;
@@ -69,7 +68,6 @@ void main(List<String> arguments) {
   useJsNode(new js.ArrayHole());
   useJsOther(new js.SimpleJavaScriptPrintingContext());
   useJsBackend(null);
-  useConcreteTypesInferrer(null);
   useColor();
   useFilenames();
   useSsa(null);
@@ -84,6 +82,7 @@ void main(List<String> arguments) {
   useProgramBuilder(null);
   useSemanticVisitor();
   useTreeVisitors();
+  useDeferred();
 }
 
 useApi([api.ReadStringFromUri uri, compiler.Compiler compiler]) {
@@ -144,6 +143,7 @@ void useNode(tree.Node node) {
     ..asFor()
     ..asFunctionDeclaration()
     ..asIf()
+    ..asImport()
     ..asLabeledStatement()
     ..asLibraryDependency()
     ..asLibraryName()
@@ -229,10 +229,6 @@ useJsBackend(js_backend.JavaScriptBackend backend) {
   backend.getGeneratedCode(null);
 }
 
-useConcreteTypesInferrer(concrete_types_inferrer.ConcreteTypesInferrer c) {
-  c.debug();
-}
-
 useColor() {
   colors.white(null);
   colors.blue(null);
@@ -263,8 +259,6 @@ usedByTests() {
   // TODO(ahe): We should try to avoid including API used only for tests. In
   // most cases, such API can be moved to a test library.
   World world = null;
-  dart2jslib.Compiler compiler = null;
-  compiler.currentlyInUserCode();
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   sourceFileProvider.getSourceFile(null);
@@ -275,7 +269,7 @@ usedByTests() {
   world.haveAnyCommonSubtypes(null, null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
-  new dart_types.Types(compiler).copy(compiler);
+  new dart_types.Types(null).copy(null);
   sourceFileProvider.readStringFromUri(null);
 }
 
@@ -300,17 +294,18 @@ useIr(ir_builder.IrBuilder builder) {
     ..buildStringConstant(null);
 }
 
-useCompiler(dart2jslib.Compiler compiler) {
-  compiler.libraryLoader
+useCompiler(compiler.Compiler c) {
+  c.libraryLoader
       ..reset()
       ..resetAsync(null)
       ..lookupLibrary(null);
-  compiler.forgetElement(null);
-  compiler.backend.constantCompilerTask.copyConstantValues(null);
+  c.forgetElement(null);
+  c.backend.constantCompilerTask.copyConstantValues(null);
+  c.currentlyInUserCode();
+
 }
 
 useTypes() {
-  new dart_types.ResolvedTypedefType(null, null, null).unalias(null);
 }
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
@@ -344,4 +339,8 @@ class TreeVisitor1 extends tree_ir.ExpressionVisitor1
 useTreeVisitors() {
   new TreeVisitor1().visitExpression(null, null);
   new TreeVisitor1().visitStatement(null, null);
+}
+
+useDeferred([deferred.DeferredLoadTask task]) {
+  task.dump();
 }

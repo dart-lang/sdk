@@ -6,7 +6,6 @@
 {
   'sources': [
     'lib/app.dart',
-    'lib/base64.dart',
     'lib/cli.dart',
     'lib/cpu_profile.dart',
     'lib/debugger.dart',
@@ -19,7 +18,6 @@
     'lib/service_html.dart',
     'lib/src/app/analytics.dart',
     'lib/src/app/application.dart',
-    'lib/src/app/chart.dart',
     'lib/src/app/location_manager.dart',
     'lib/src/app/page.dart',
     'lib/src/app/settings.dart',
@@ -105,6 +103,8 @@
     'lib/src/elements/library_view.html',
     'lib/src/elements/logging.dart',
     'lib/src/elements/logging.html',
+    'lib/src/elements/megamorphiccache_view.dart',
+    'lib/src/elements/megamorphiccache_view.html',
     'lib/src/elements/metrics.dart',
     'lib/src/elements/metrics.html',
     'lib/src/elements/nav_bar.dart',
@@ -133,6 +133,8 @@
     'lib/src/elements/service_view.html',
     'lib/src/elements/sliding_checkbox.dart',
     'lib/src/elements/sliding_checkbox.html',
+    'lib/src/elements/timeline_page.dart',
+    'lib/src/elements/timeline_page.html',
     'lib/src/elements/view_footer.dart',
     'lib/src/elements/view_footer.html',
     'lib/src/elements/vm_connect.dart',
@@ -151,5 +153,8 @@
     'web/index.html',
     'web/main.dart',
     'web/favicon.ico',
+    'web/third_party/trace_viewer_full.html',
+    'web/timeline.js',
+    'web/timeline.html',
   ],
 }

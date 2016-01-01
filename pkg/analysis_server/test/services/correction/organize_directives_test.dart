@@ -4,7 +4,8 @@
 
 library test.services.refactoring.organize_directives;
 
-import 'package:analysis_server/src/protocol.dart' hide AnalysisError;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisError;
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,6 +23,29 @@ main() {
 class OrganizeDirectivesTest extends AbstractSingleUnitTest {
   List<AnalysisError> testErrors;
 
+  void test_keep_duplicateImports_withDifferentPrefix() {
+    _computeUnitAndErrors(r'''
+import 'dart:async' as async1;
+import 'dart:async' as async2;
+
+main() {
+  async1.Future f;
+  async2.Stream s;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async' as async1;
+import 'dart:async' as async2;
+
+main() {
+  async1.Future f;
+  async2.Stream s;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
+
   void test_remove_duplicateImports() {
     _computeUnitAndErrors(r'''
 import 'dart:async';
@@ -37,6 +61,46 @@ import 'dart:async';
 
 main() {
   Future f;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
+
+  void test_remove_duplicateImports_differentText_uri() {
+    _computeUnitAndErrors(r'''
+import 'dart:async' as async;
+import "dart:async" as async;
+
+main() {
+  async.Future f;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
+}''',
+        removeUnresolved: true,
+        removeUnused: true);
+  }
+
+  void test_remove_duplicateImports_withSamePrefix() {
+    _computeUnitAndErrors(r'''
+import 'dart:async' as async;
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
+}''');
+    // validate change
+    _assertOrganize(
+        r'''
+import 'dart:async' as async;
+
+main() {
+  async.Future f;
 }''',
         removeUnresolved: true,
         removeUnused: true);

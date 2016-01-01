@@ -26,13 +26,7 @@ import 'dart:_foreign_helper' show
     JS_GET_STATIC_STATE,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EMBEDDED_GLOBAL,
-    JS_GET_NAME,
-    JS_TYPEDEF_TAG,
-    JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
-    JS_FUNCTION_TYPE_VOID_RETURN_TAG,
-    JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG;
+    JS_GET_NAME;
 
 
 import 'dart:_internal' as _symbol_dev;
@@ -43,7 +37,6 @@ import 'dart:_js_helper' show
     Closure,
     JSInvocationMirror,
     JsCache,
-    Null,
     Primitives,
     ReflectionInfo,
     RuntimeError,
@@ -2252,19 +2245,25 @@ class JsClosureMirror extends JsInstanceMirror implements ClosureMirror {
     disableTreeShaking();
     // TODO(ahe): What about optional parameters (named or not).
     String callPrefix = "${JS_GET_NAME(JsGetName.CALL_PREFIX)}\$";
-    var extractCallName = JS('', r'''
-function(reflectee) {
-  var properties = Object.keys(reflectee.constructor.prototype);
-  for (var i = 0; i < properties.length; i++) {
-    var property = properties[i];
-    if (# == property.substring(0, #) &&
-        property[#] >= '0' &&
-        property[#] <= '9') return property;
-  }
-  return null;
-}
-''', callPrefix, callPrefix.length, callPrefix.length, callPrefix.length);
-    String callName = JS('String|Null', '#(#)', extractCallName, reflectee);
+
+    String callName = JS(
+        'String|Null',
+        r'''
+          (function(reflectee, callPrefix) {
+            var properties = Object.keys(reflectee.constructor.prototype);
+            var callPrefixLength = callPrefix.length;
+            for (var i = 0; i < properties.length; i++) {
+              var property = properties[i];
+              if (callPrefix == property.substring(0, callPrefixLength) &&
+                  property[callPrefixLength] >= "0" &&
+                  property[callPrefixLength] <= "9") {
+                return property;
+              }
+            }
+            return null;
+          })(#, #)''',
+        reflectee, callPrefix);
+
     if (callName == null) {
       throw new RuntimeError('Cannot find callName on "$reflectee"');
     }

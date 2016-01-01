@@ -164,13 +164,13 @@ class Scavenger {
   static intptr_t top_offset() { return OFFSET_OF(Scavenger, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Scavenger, end_); }
 
-  intptr_t UsedInWords() const {
+  int64_t UsedInWords() const {
     return (top_ - FirstObjectStart()) >> kWordSizeLog2;
   }
-  intptr_t CapacityInWords() const {
+  int64_t CapacityInWords() const {
     return to_->size_in_words();
   }
-  intptr_t ExternalInWords() const {
+  int64_t ExternalInWords() const {
     return external_size_ >> kWordSizeLog2;
   }
   SpaceUsage GetCurrentUsage() const {
@@ -231,14 +231,10 @@ class Scavenger {
   SemiSpace* Prologue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateRoots(Isolate* isolate,
-                    ScavengerVisitor* visitor,
-                    bool visit_prologue_weak_persistent_handles);
+  void IterateRoots(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateWeakProperties(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateWeakReferences(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateWeakRoots(Isolate* isolate,
-                        HandleVisitor* visitor,
-                        bool visit_prologue_weak_persistent_handles);
+  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
   void ProcessToSpace(ScavengerVisitor* visitor);
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);
@@ -268,18 +264,21 @@ class Scavenger {
     return end_ < to_->end();
   }
 
+  void UpdateMaxHeapCapacity();
+  void UpdateMaxHeapUsage();
+
   void ProcessWeakTables();
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words) const;
-
-  SemiSpace* to_;
-
-  Heap* heap_;
 
   // Current allocation top and end. These values are being accessed directly
   // from generated code.
   uword top_;
   uword end_;
+
+  SemiSpace* to_;
+
+  Heap* heap_;
 
   // A pointer to the first unscanned object.  Scanning completes when
   // this value meets the allocation top.

@@ -23,14 +23,6 @@ DEFINE_FLAG(bool, trace_natives, false,
             "Trace invocation of natives (debug mode only)");
 
 
-static ExternalLabel native_call_label(
-    reinterpret_cast<uword>(&NativeEntry::NativeCallWrapper));
-
-
-static ExternalLabel link_native_call_label(
-    reinterpret_cast<uword>(&NativeEntry::LinkNativeCall));
-
-
 NativeFunction NativeEntry::ResolveNative(const Library& library,
                                           const String& function_name,
                                           int number_of_arguments,
@@ -44,7 +36,7 @@ NativeFunction NativeEntry::ResolveNative(const Library& library,
   Dart_EnterScope();  // Enter a new Dart API scope as we invoke API entries.
   Dart_NativeEntryResolver resolver = library.native_entry_resolver();
   Dart_NativeFunction native_function =
-      resolver(Api::NewHandle(Isolate::Current(), function_name.raw()),
+      resolver(Api::NewHandle(Thread::Current(), function_name.raw()),
                number_of_arguments, auto_setup_scope);
   Dart_ExitScope();  // Exit the Dart API scope.
   return reinterpret_cast<NativeFunction>(native_function);
@@ -64,14 +56,14 @@ const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
 
 
 const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(thread);
   GrowableObjectArray& libs = reused_growable_object_array_handle.Handle();
-  libs ^= isolate->object_store()->libraries();
+  libs ^= thread->isolate()->object_store()->libraries();
   ASSERT(!libs.IsNull());
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
-    REUSABLE_LIBRARY_HANDLESCOPE(isolate);
+    REUSABLE_LIBRARY_HANDLESCOPE(thread);
     Library& lib = reused_library_handle.Handle();
     lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
@@ -84,8 +76,13 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
 }
 
 
-const ExternalLabel& NativeEntry::NativeCallWrapperLabel() {
-  return native_call_label;
+uword NativeEntry::NativeCallWrapperEntry() {
+  uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(
+      entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
+#endif
+  return entry;
 }
 
 
@@ -101,8 +98,8 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
 
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  ApiLocalScope* current_top_scope = state->top_scope();
-  ApiLocalScope* scope = state->reusable_scope();
+  ApiLocalScope* current_top_scope = thread->api_top_scope();
+  ApiLocalScope* scope = thread->api_reusable_scope();
   TRACE_NATIVE_CALL("0x%" Px "", reinterpret_cast<uintptr_t>(func));
   if (scope == NULL) {
     scope = new ApiLocalScope(current_top_scope,
@@ -112,19 +109,19 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
     scope->Reinit(thread,
                   current_top_scope,
                   thread->top_exit_frame_info());
-    state->set_reusable_scope(NULL);
+    thread->set_api_reusable_scope(NULL);
   }
-  state->set_top_scope(scope);  // New scope is now the top scope.
+  thread->set_api_top_scope(scope);  // New scope is now the top scope.
 
   func(args);
 
   ASSERT(current_top_scope == scope->previous());
-  state->set_top_scope(current_top_scope);  // Reset top scope to previous.
-  if (state->reusable_scope() == NULL) {
+  thread->set_api_top_scope(current_top_scope);  // Reset top scope to previous.
+  if (thread->api_reusable_scope() == NULL) {
     scope->Reset(thread);  // Reset the old scope which we just exited.
-    state->set_reusable_scope(scope);
+    thread->set_api_reusable_scope(scope);
   } else {
-    ASSERT(state->reusable_scope() != scope);
+    ASSERT(thread->api_reusable_scope() != scope);
     delete scope;
   }
   DEOPTIMIZE_ALOT;
@@ -132,33 +129,17 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
 }
 
 
-static bool IsNativeKeyword(const TokenStream::Iterator& it) {
-  return Token::IsIdentifier(it.CurrentTokenKind()) &&
-      (it.CurrentLiteral() == Symbols::Native().raw());
-}
-
-
-static NativeFunction ResolveNativeFunction(Isolate *isolate,
+static NativeFunction ResolveNativeFunction(Zone* zone,
                                             const Function& func,
                                             bool* is_bootstrap_native) {
-  const Script& script = Script::Handle(isolate, func.script());
-  const Class& cls = Class::Handle(isolate, func.Owner());
-  const Library& library = Library::Handle(isolate, cls.library());
+  const Class& cls = Class::Handle(zone, func.Owner());
+  const Library& library = Library::Handle(zone, cls.library());
 
   *is_bootstrap_native =
       Bootstrap::IsBootstapResolver(library.native_entry_resolver());
 
-  TokenStream::Iterator it(TokenStream::Handle(isolate, script.tokens()),
-                           func.token_pos());
-
-  const intptr_t end_pos = func.end_token_pos();
-  while (!IsNativeKeyword(it) && it.CurrentPosition() <= end_pos) {
-    it.Advance();
-  }
-  ASSERT(IsNativeKeyword(it));
-  it.Advance();
-  ASSERT(it.CurrentTokenKind() == Token::kSTRING);
-  const String& native_name = String::Handle(it.CurrentLiteral());
+  const String& native_name = String::Handle(zone, func.native_name());
+  ASSERT(!native_name.IsNull());
 
   const int num_params = NativeArguments::ParameterCountForResolution(func);
   bool auto_setup_scope = true;
@@ -167,8 +148,13 @@ static NativeFunction ResolveNativeFunction(Isolate *isolate,
 }
 
 
-const ExternalLabel& NativeEntry::LinkNativeCallLabel() {
-  return link_native_call_label;
+uword NativeEntry::LinkNativeCallEntry() {
+  uword entry = reinterpret_cast<uword>(NativeEntry::LinkNativeCall);
+#if defined(USING_SIMULATOR)
+  entry = Simulator::RedirectExternalReference(
+      entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
+#endif
+  return entry;
 }
 
 
@@ -184,7 +170,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
   bool call_through_wrapper = false;
 #ifdef USING_SIMULATOR
   bool is_native_auto_setup_scope = false;
-  intptr_t num_parameters = -1;
 #endif
 
   {
@@ -197,7 +182,6 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     const Function& func = Function::Handle(code.function());
 #ifdef USING_SIMULATOR
     is_native_auto_setup_scope = func.IsNativeAutoSetupScope();
-    num_parameters = func.NumParameters();
 #endif
 
     if (FLAG_trace_natives) {
@@ -206,16 +190,16 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
     bool is_bootstrap_native = false;
     target_function = ResolveNativeFunction(
-        arguments->thread()->isolate(), func, &is_bootstrap_native);
+        arguments->thread()->zone(), func, &is_bootstrap_native);
     ASSERT(target_function != NULL);
 
 #if defined(DEBUG)
     {
       NativeFunction current_function = NULL;
-      uword current_trampoline =
+      const Code& current_trampoline = Code::Handle(
           CodePatcher::GetNativeCallAt(caller_frame->pc(),
                                        code,
-                                       &current_function);
+                                       &current_function));
 #if !defined(USING_SIMULATOR)
       ASSERT(current_function ==
              reinterpret_cast<NativeFunction>(LinkNativeCall));
@@ -225,16 +209,16 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
                  Simulator::RedirectExternalReference(
                      reinterpret_cast<uword>(LinkNativeCall),
                      Simulator::kBootstrapNativeCall,
-                     func.NumParameters())));
+                     NativeEntry::kNumArguments)));
 #endif
-      ASSERT(current_trampoline ==
-             StubCode::CallBootstrapCFunction_entry()->EntryPoint());
+      ASSERT(current_trampoline.raw() ==
+             StubCode::CallBootstrapCFunction_entry()->code());
     }
 #endif
 
     const intptr_t argc_tag = NativeArguments::ComputeArgcTag(func);
     const bool is_leaf_call =
-      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+        (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
     call_through_wrapper = !is_bootstrap_native && !is_leaf_call;
 
@@ -248,7 +232,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
       patch_target_function = reinterpret_cast<NativeFunction>(
           Simulator::RedirectExternalReference(
               reinterpret_cast<uword>(patch_target_function),
-              Simulator::kBootstrapNativeCall, num_parameters));
+              Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments));
     }
 #endif
 

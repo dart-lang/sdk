@@ -28,55 +28,9 @@
 
 part of html_common;
 
-
-/// Converts a JavaScript object with properties into a Dart Map.
-/// Not suitable for nested objects.
-Map convertNativeToDart_Dictionary(object) {
-  if (object == null) return null;
-  var dict = {};
-  var keys = JS('JSExtendableArray', 'Object.getOwnPropertyNames(#)', object);
-  for (final key in keys) {
-    dict[key] = JS('var', '#[#]', object, key);
-  }
-  return dict;
-}
-
-/// Converts a flat Dart map into a JavaScript object with properties.
-convertDartToNative_Dictionary(Map dict) {
-  if (dict == null) return null;
-  var object = JS('var', '{}');
-  dict.forEach((String key, value) {
-      JS('void', '#[#] = #', object, key, value);
-    });
-  return object;
-}
-
-
-/**
- * Ensures that the input is a JavaScript Array.
- *
- * Creates a new JavaScript array if necessary, otherwise returns the original.
- */
-List convertDartToNative_StringArray(List<String> input) {
-  // TODO(sra).  Implement this.
-  return input;
-}
-
-DateTime convertNativeToDart_DateTime(date) {
-  var millisSinceEpoch = JS('int', '#.getTime()', date);
-  return new DateTime.fromMillisecondsSinceEpoch(millisSinceEpoch, isUtc: true);
-}
-
-convertDartToNative_DateTime(DateTime date) {
-  return JS('', 'new Date(#)', date.millisecondsSinceEpoch);
-}
-
-
-// -----------------------------------------------------------------------------
-
 /// Converts a Dart value into a JavaScript SerializedScriptValue.
 convertDartToNative_SerializedScriptValue(value) {
-  return _convertDartToNative_PrepareForStructuredClone(value);
+  return convertDartToNative_PrepareForStructuredClone(value);
 }
 
 /// Since the source object may be viewed via a JavaScript event listener the
@@ -102,7 +56,7 @@ convertNativeToDart_SerializedScriptValue(object) {
  * operations that perform the structured clone algorithm which does not mutate
  * its output, the result may share structure with the input [value].
  */
-_convertDartToNative_PrepareForStructuredClone(value) {
+abstract class _StructuredClone {
 
   // TODO(sra): Replace slots with identity hash table.
   var values = [];
@@ -120,6 +74,10 @@ _convertDartToNative_PrepareForStructuredClone(value) {
   readSlot(int i) => copies[i];
   writeSlot(int i, x) { copies[i] = x; }
   cleanupSlots() {}  // Will be needed if we mark objects with a property.
+  bool cloneNotRequired(object);
+  newJsMap();
+  newJsList(length);
+  void putIntoMap(map, key, value);
 
   // Returns the input, or a clone of the input.
   walk(e) {
@@ -148,57 +106,52 @@ _convertDartToNative_PrepareForStructuredClone(value) {
 
     // TODO(sra): Firefox: How to convert _TypedImageData on the other end?
     if (e is ImageData) return e;
-    if (e is NativeByteBuffer) return e;
-
-    if (e is NativeTypedData) return e;
+    if (cloneNotRequired(e)) return e;
 
     if (e is Map) {
       var slot = findSlot(e);
       var copy = readSlot(slot);
       if (copy != null) return copy;
-      copy = JS('var', '{}');
+      copy = newJsMap();
       writeSlot(slot, copy);
       e.forEach((key, value) {
-          JS('void', '#[#] = #', copy, key, walk(value));
-        });
+        putIntoMap(copy, key, walk(value));
+      });
       return copy;
     }
 
     if (e is List) {
-      // Since a JavaScript Array is an instance of Dart List it is possible to
-      // avoid making a copy of the list if there is no need to copy anything
-      // reachable from the array.  We defer creating a new array until a cycle
-      // is detected or a subgraph was copied.
-      int length = e.length;
+      // Since a JavaScript Array is an instance of Dart List it is tempting
+      // in dart2js to avoid making a copy of the list if there is no need
+      // to copy anything reachable from the array.  However, the list may have
+      // non-native properties or methods from interceptors and such, e.g.
+      // an immutability marker. So we  had to stop doing that.
       var slot = findSlot(e);
       var copy = readSlot(slot);
-      if (copy != null) {
-        if (true == copy) {  // Cycle, so commit to making a copy.
-          copy = JS('JSExtendableArray', 'new Array(#)', length);
-          writeSlot(slot, copy);
-        }
-        return copy;
-      }
-
-      int i = 0;
-
-      // Always clone the list, as it may have non-native properties or methods
-      // from interceptors and such.
-      copy = JS('JSExtendableArray', 'new Array(#)', length);
-      writeSlot(slot, copy);
-
-      for ( ; i < length; i++) {
-        copy[i] = walk(e[i]);
-      }
+      if (copy != null) return copy;
+      copy = copyList(e, slot);
       return copy;
     }
 
     throw new UnimplementedError('structured clone of other type');
   }
 
-  var copy = walk(value);
-  cleanupSlots();
-  return copy;
+  copyList(List e, int slot) {
+    int i = 0;
+    int length = e.length;
+    var copy = newJsList(length);
+    writeSlot(slot, copy);
+    for ( ; i < length; i++) {
+      copy[i] = walk(e[i]);
+    }
+    return copy;
+  }
+
+  convertDartToNative_PrepareForStructuredClone(value) {
+    var copy = walk(value);
+    cleanupSlots();
+    return copy;
+  }
 }
 
 /**
@@ -219,24 +172,35 @@ _convertDartToNative_PrepareForStructuredClone(value) {
  * MessageEvents.  Mutating the object to make it more 'Dart-like' would corrupt
  * the value as seen from the JavaScript listeners.
  */
-convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
+abstract class _AcceptStructuredClone {
 
-  // TODO(sra): Replace slots with identity hash table that works on non-dart
-  // objects.
+  // TODO(sra): Replace slots with identity hash table.
   var values = [];
-  var copies = [];
+  var copies = [];  // initially 'null', 'true' during initial DFS, then a copy.
+  bool mustCopy = false;
 
   int findSlot(value) {
     int length = values.length;
     for (int i = 0; i < length; i++) {
-      if (identical(values[i], value)) return i;
+      if (identicalInJs(values[i], value)) return i;
     }
     values.add(value);
     copies.add(null);
     return length;
   }
+
+  /// Are the two objects identical, but taking into account that two JsObject
+  /// wrappers may not be identical, but their underlying Js Object might be.
+  bool identicalInJs(a, b);
   readSlot(int i) => copies[i];
   writeSlot(int i, x) { copies[i] = x; }
+
+  /// Iterate over the JS properties.
+  forEachJsField(object, action);
+
+  /// Create a new Dart list of the given length. May create a native List or
+  /// a JsArray, depending if we're in Dartium or dart2js.
+  newDartList(length);
 
   walk(e) {
     if (e == null) return e;
@@ -253,6 +217,10 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
       throw new UnimplementedError('structured clone of RegExp');
     }
 
+    if (isJavaScriptPromise(e)) {
+      return convertNativePromiseToDartFuture(e);
+    }
+
     if (isJavaScriptSimpleObject(e)) {
       // TODO(sra): If mustCopy is false, swizzle the prototype for one of a Map
       // implementation that uses the properies as storage.
@@ -262,9 +230,7 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
       copy = {};
 
       writeSlot(slot, copy);
-      for (final key in JS('JSExtendableArray', 'Object.keys(#)', e)) {
-        copy[key] = walk(JS('var', '#[#]', e, key));
-      }
+      forEachJsField(e, (key, value) => copy[key] = walk(value));
       return copy;
     }
 
@@ -276,7 +242,7 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
       int length = e.length;
       // Since a JavaScript Array is an instance of Dart List, we can modify it
       // in-place unless we must copy.
-      copy = mustCopy ? JS('JSExtendableArray', 'new Array(#)', length) : e;
+      copy = mustCopy ? newDartList(length) : e;
       writeSlot(slot, copy);
 
       for (int i = 0; i < length; i++) {
@@ -290,8 +256,11 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
     return e;
   }
 
-  var copy = walk(object);
-  return copy;
+  convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
+    this.mustCopy = mustCopy;
+    var copy = walk(object);
+    return copy;
+  }
 }
 
 // Conversions for ContextAttributes.
@@ -335,7 +304,7 @@ gl.ContextAttributes convertNativeToDart_ContextAttributes(
 // On Firefox, the returned ImageData is a plain object.
 
 class _TypedImageData implements ImageData {
-  final NativeUint8ClampedList data;
+  final Uint8ClampedList data;
   final int height;
   final int width;
 
@@ -387,20 +356,6 @@ convertDartToNative_ImageData(ImageData imageData) {
   }
   return imageData;
 }
-
-
-bool isJavaScriptDate(value) => JS('bool', '# instanceof Date', value);
-bool isJavaScriptRegExp(value) => JS('bool', '# instanceof RegExp', value);
-bool isJavaScriptArray(value) => JS('bool', '# instanceof Array', value);
-bool isJavaScriptSimpleObject(value) {
-  var proto = JS('', 'Object.getPrototypeOf(#)', value);
-  return JS('bool', '# === Object.prototype', proto) ||
-      JS('bool', '# === null', proto);
-}
-bool isImmutableJavaScriptArray(value) =>
-    JS('bool', r'!!(#.immutable$list)', value);
-
-
 
 const String _serializedScriptValue =
     'num|String|bool|'

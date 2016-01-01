@@ -10,6 +10,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/service_isolate.h"
 
 namespace dart {
 
@@ -126,6 +127,11 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
   library = Library::TypedDataLibrary();
+  ASSERT(!library.IsNull());
+  library.set_native_entry_resolver(resolver);
+  library.set_native_entry_symbol_resolver(symbol_resolver);
+
+  library = Library::VMServiceLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);

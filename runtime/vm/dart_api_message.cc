@@ -18,15 +18,26 @@ ApiMessageReader::ApiMessageReader(const uint8_t* buffer, intptr_t length)
       backward_references_(kNumInitialReferences),
       vm_isolate_references_(kNumInitialReferences),
       vm_symbol_references_(NULL) {
-  // We need to have an enclosing ApiNativeScope.
-  ASSERT(ApiNativeScope::Current() != NULL);
-  zone_ = ApiNativeScope::Current()->zone();
-  ASSERT(zone_ != NULL);
-  Init();
+}
+
+
+ApiMessageReader::ApiMessageReader(Message* msg)
+    : BaseReader(msg->IsRaw() ? reinterpret_cast<uint8_t*>(msg->raw_obj())
+                              : msg->data(),
+                 msg->len()),
+      zone_(NULL),
+      backward_references_(kNumInitialReferences),
+      vm_isolate_references_(kNumInitialReferences),
+      vm_symbol_references_(NULL) {
 }
 
 
 void ApiMessageReader::Init() {
+  // We need to have an enclosing ApiNativeScope.
+  ASSERT(ApiNativeScope::Current() != NULL);
+  zone_ = ApiNativeScope::Current()->zone();
+  ASSERT(zone_ != NULL);
+
   // Initialize marker objects used to handle Lists.
   // TODO(sjesse): Remove this when message serialization format is
   // updated.
@@ -40,8 +51,19 @@ void ApiMessageReader::Init() {
 
 
 Dart_CObject* ApiMessageReader::ReadMessage() {
-  // Read the object out of the message.
-  return ReadObject();
+  Init();
+  if (PendingBytes() > 0) {
+    // Read the object out of the message.
+    return ReadObject();
+  } else {
+    const RawObject* raw_obj =
+        reinterpret_cast<const RawObject*>(CurrentBufferAddress());
+    ASSERT(ApiObjectConverter::CanConvert(raw_obj));
+    Dart_CObject* cobj =
+      reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));
+    ApiObjectConverter::Convert(raw_obj, cobj);
+    return cobj;
+  }
 }
 
 
@@ -210,7 +232,7 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
       for (intptr_t i = 0; i < vm_isolate_references_.length(); i++) {
         object = vm_isolate_references_.At(i);
         if (object->type == Dart_CObject_kString) {
-          if (strcmp(str, const_cast<char*>(object->value.as_string)) == 0) {
+          if (strcmp(str, object->value.as_string) == 0) {
             return object;
           }
         }
@@ -794,7 +816,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       value = AllocateDartCObjectArray(0);
       AddBackRef(object_id, value, kIsDeserialized);
       // Read the content of the GrowableObjectArray.
-      Dart_CObject* content = ReadObjectImpl();
+      Dart_CObject* content = ReadObjectRef();
       ASSERT(content->type == Dart_CObject_kArray);
       // Make the empty array allocated point to the backing store content.
       value->value.as_array.length = len;
@@ -1235,7 +1257,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
 
       WriteIndexedObject(class_id);
-      WriteTags(RawObject::ClassIdTag::update(class_id, 0));
+      WriteTags(0);
       WriteSmi(len);
       switch (class_id) {
         case kTypedDataInt8ArrayCid:
@@ -1269,8 +1291,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteInlinedHeader(object);
       // Write out the class and tag information.
       WriteIndexedObject(kExternalTypedDataUint8ArrayCid);
-      WriteTags(RawObject::ClassIdTag::update(
-          kExternalTypedDataUint8ArrayCid, 0));
+      WriteTags(0);
       intptr_t length = object->value.as_external_typed_data.length;
       if (length < 0 ||
           length > ExternalTypedData::MaxElements(

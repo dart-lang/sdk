@@ -5,16 +5,18 @@
 part of dart.core;
 
 /**
- * A resource that can be read into the program.
+ * DEPRECATED. A resource that can be read into the program.
  *
- * WARNING: This API is _experimental_,
- * and it may be changed or removed in future releases
+ * WARNING: This API is _deprecated_,
+ * and it will be removed in 1.14. Please use
+ * https://pub.dartlang.org/packages/resource instead.
  *
  * A resource is data that can be located using a URI and read into
  * the program at runtime.
  * The URI may use the `package` scheme to read resources provided
  * along with package sources.
  */
+@Deprecated('1.14')
 abstract class Resource {
   /**
    * Creates a resource object with the given [uri] as location.

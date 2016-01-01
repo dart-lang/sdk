@@ -71,9 +71,10 @@ ObjectStore::ObjectStore()
     profiler_library_(Library::null()),
     root_library_(Library::null()),
     typed_data_library_(Library::null()),
+    vmservice_library_(Library::null()),
     libraries_(GrowableObjectArray::null()),
+    closure_functions_(GrowableObjectArray::null()),
     pending_classes_(GrowableObjectArray::null()),
-    pending_functions_(GrowableObjectArray::null()),
     pending_deferred_loads_(GrowableObjectArray::null()),
     resume_capabilities_(GrowableObjectArray::null()),
     exit_listeners_(GrowableObjectArray::null()),
@@ -88,7 +89,13 @@ ObjectStore::ObjectStore()
     empty_uint32_array_(TypedData::null()),
     handle_message_function_(Function::null()),
     library_load_error_table_(Array::null()),
-    compile_time_constants_(Array::null()) {
+    compile_time_constants_(Array::null()),
+    unique_dynamic_targets_(Array::null()),
+    token_objects_(GrowableObjectArray::null()),
+    token_objects_map_(Array::null()),
+    megamorphic_cache_table_(GrowableObjectArray::null()),
+    megamorphic_miss_code_(Code::null()),
+    megamorphic_miss_function_(Function::null()) {
   for (RawObject** current = from(); current <= to(); current++) {
     ASSERT(*current == Object::null());
   }
@@ -113,7 +120,9 @@ void ObjectStore::Init(Isolate* isolate) {
 
 
 bool ObjectStore::PreallocateObjects() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   ASSERT(isolate != NULL && isolate->object_store() == this);
   if (this->stack_overflow() != Instance::null()) {
     ASSERT(this->out_of_memory() != Instance::null());
@@ -124,10 +133,9 @@ bool ObjectStore::PreallocateObjects() {
   ASSERT(this->out_of_memory() == Instance::null());
   ASSERT(this->preallocated_stack_trace() == Stacktrace::null());
 
-  ASSERT(this->pending_functions() == GrowableObjectArray::null());
-  this->pending_functions_ = GrowableObjectArray::New();
   this->pending_deferred_loads_ = GrowableObjectArray::New();
 
+  this->closure_functions_ = GrowableObjectArray::New();
   this->resume_capabilities_ = GrowableObjectArray::New();
   this->exit_listeners_ = GrowableObjectArray::New();
   this->error_listeners_ = GrowableObjectArray::New();
@@ -157,14 +165,14 @@ bool ObjectStore::PreallocateObjects() {
   // pre-allocated OutOfMemoryError.
   const UnhandledException& unhandled_exception = UnhandledException::Handle(
       UnhandledException::New(Instance::Cast(result),
-                              Stacktrace::Handle(isolate)));
+                              Stacktrace::Handle(zone)));
   set_preallocated_unhandled_exception(unhandled_exception);
 
-  const Array& code_array = Array::Handle(isolate,
+  const Array& code_array = Array::Handle(zone,
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  const Array& pc_offset_array = Array::Handle(isolate,
+  const Array& pc_offset_array = Array::Handle(zone,
       Array::New(Stacktrace::kPreallocatedStackdepth, Heap::kOld));
-  const Stacktrace& stack_trace = Stacktrace::Handle(isolate,
+  const Stacktrace& stack_trace = Stacktrace::Handle(zone,
       Stacktrace::New(code_array, pc_offset_array));
   // Expansion of inlined functions requires additional memory at run time,
   // avoid it.
@@ -176,12 +184,14 @@ bool ObjectStore::PreallocateObjects() {
 
 
 void ObjectStore::InitKnownObjects() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL && isolate->object_store() == this);
 
   const Library& async_lib = Library::Handle(async_library());
   ASSERT(!async_lib.IsNull());
-  Class& cls = Class::Handle(isolate);
+  Class& cls = Class::Handle(zone);
   cls = async_lib.LookupClass(Symbols::Future());
   ASSERT(!cls.IsNull());
   set_future_class(cls);

@@ -11,10 +11,39 @@ declare_args() {
   # Debug build of Dart so that clients can still use a Release build of Dart
   # while themselves doing a Debug build.
   dart_debug = false
+
+  # Explicitly set the target architecture in case of precompilation. Leaving
+  # this unspecified results in automatic target architecture detection.
+  # Available options are: arm, arm64, mips, x64 and ia32
+  dart_target_arch = ""
+}
+
+config("dart_public_config") {
+  include_dirs = [
+    ".",
+  ]
 }
 
 config("dart_config") {
   defines = []
+
+  if (dart_target_arch != "") {
+    if (dart_target_arch == "arm") {
+      defines += [ "TARGET_ARCH_ARM" ]
+    } else if (dart_target_arch == "arm64") {
+      defines += [ "TARGET_ARCH_ARM64" ]
+    } else if (dart_target_arch == "mips") {
+      defines += [ "TARGET_ARCH_MIPS" ]
+    } else if (dart_target_arch == "x64") {
+      defines += [ "TARGET_ARCH_X64" ]
+    } else if (dart_target_arch == "ia32") {
+      defines += [ "TARGET_ARCH_IA32" ]
+    } else  {
+      print("Invalid |dart_target_arch|")
+      assert(false)
+    }
+  }
+
   if (dart_debug) {
     defines += ["DEBUG"]
   } else {
@@ -66,6 +95,7 @@ static_library("libdart") {
   include_dirs = [
     ".",
   ]
+  public_configs = [":dart_public_config"]
   sources = [
     "include/dart_api.h",
     "include/dart_mirrors_api.h",

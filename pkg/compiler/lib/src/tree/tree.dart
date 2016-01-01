@@ -6,9 +6,7 @@ library tree;
 
 import 'dart:collection';
 
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
+import '../common.dart';
 import '../tokens/precedence_constants.dart' as Precedence show
     FUNCTION_INFO;
 import '../tokens/token.dart' show
@@ -21,10 +19,12 @@ import '../tokens/token_constants.dart' as Tokens show
 import '../util/util.dart';
 import '../util/characters.dart';
 
-import '../resolution/secret_tree_element.dart'
-    show StoredTreeElementMixin, NullTreeElementMixin;
+import '../resolution/secret_tree_element.dart' show
+    NullTreeElementMixin,
+    StoredTreeElementMixin;
 
-import '../elements/elements.dart' show MetadataAnnotation;
+import '../elements/elements.dart' show
+    MetadataAnnotation;
 
 part 'dartstring.dart';
 part 'nodes.dart';

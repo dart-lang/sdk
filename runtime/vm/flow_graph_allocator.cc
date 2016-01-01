@@ -101,24 +101,11 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
 
   // All registers are marked as "not blocked" (array initialized to false).
   // Mark the unavailable ones as "blocked" (true).
-  for (intptr_t i = 0; i < kFirstFreeCpuRegister; i++) {
-    blocked_cpu_registers_[i] = true;
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    if ((kDartAvailableCpuRegs & (1 << i)) == 0) {
+      blocked_cpu_registers_[i] = true;
+    }
   }
-  for (intptr_t i = kLastFreeCpuRegister + 1; i < kNumberOfCpuRegisters; i++) {
-    blocked_cpu_registers_[i] = true;
-  }
-  if (TMP != kNoRegister) {
-    blocked_cpu_registers_[TMP] = true;
-  }
-  if (TMP2 != kNoRegister) {
-    blocked_cpu_registers_[TMP2] = true;
-  }
-  if (PP != kNoRegister) {
-    blocked_cpu_registers_[PP] = true;
-  }
-  blocked_cpu_registers_[SPREG] = true;
-  blocked_cpu_registers_[FPREG] = true;
-  blocked_cpu_registers_[THR] = true;
 
   // FpuTMP is used as scratch by optimized code and parallel move resolver.
   blocked_fpu_registers_[FpuTMP] = true;
@@ -128,6 +115,11 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
   // generating intrinsic code.
   if (intrinsic_mode) {
     blocked_cpu_registers_[ARGS_DESC_REG] = true;
+#if !defined(TARGET_ARCH_IA32)
+    // Need to preserve CODE_REG to be able to store the PC marker
+    // and load the pool pointer.
+    blocked_cpu_registers_[CODE_REG] = true;
+#endif
   }
 }
 
@@ -222,11 +214,14 @@ void SSALivenessAnalysis::ComputeInitialSets() {
     if (block->IsJoinEntry()) {
       JoinEntryInstr* join = block->AsJoinEntry();
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
-        // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
         PhiInstr* phi = it.Current();
         ASSERT(phi != NULL);
         kill->Add(phi->ssa_temp_index());
         live_in->Remove(phi->ssa_temp_index());
+        if (phi->HasPairRepresentation()) {
+          kill->Add(ToSecondPairVreg(phi->ssa_temp_index()));
+          live_in->Remove(ToSecondPairVreg(phi->ssa_temp_index()));
+        }
 
         // If a phi input is not defined by the corresponding predecessor it
         // must be marked live-in for that predecessor.
@@ -238,6 +233,12 @@ void SSALivenessAnalysis::ComputeInitialSets() {
           const intptr_t use = val->definition()->ssa_temp_index();
           if (!kill_[pred->postorder_number()]->Contains(use)) {
             live_in_[pred->postorder_number()]->Add(use);
+          }
+          if (phi->HasPairRepresentation()) {
+            const intptr_t second_use = ToSecondPairVreg(use);
+            if (!kill_[pred->postorder_number()]->Contains(second_use)) {
+              live_in_[pred->postorder_number()]->Add(second_use);
+            }
           }
         }
       }
@@ -774,20 +775,18 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
 
   // Search for the index of the current block in the predecessors of
   // the join.
-  const intptr_t pred_idx = join->IndexOfPredecessor(block);
+  const intptr_t pred_index = join->IndexOfPredecessor(block);
 
   // Record the corresponding phi input use for each phi.
-  intptr_t move_idx = 0;
+  intptr_t move_index = 0;
   for (PhiIterator it(join); !it.Done(); it.Advance()) {
-    // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
     PhiInstr* phi = it.Current();
-    Value* val = phi->InputAt(pred_idx);
-    MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
+    Value* val = phi->InputAt(pred_index);
+    MoveOperands* move = parallel_move->MoveOperandsAt(move_index++);
 
     ConstantInstr* constant = val->definition()->AsConstant();
     if (constant != NULL) {
       move->set_src(Location::Constant(constant));
-      move_idx++;
       continue;
     }
 
@@ -796,8 +795,7 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
     //                 g  g'
     //      value    --*
     //
-
-    const intptr_t vreg = val->definition()->ssa_temp_index();
+    intptr_t vreg = val->definition()->ssa_temp_index();
     LiveRange* range = GetLiveRange(vreg);
     if (interfere_at_backedge != NULL) interfere_at_backedge->Add(vreg);
 
@@ -806,9 +804,23 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
         pos,
         move->src_slot(),
         GetLiveRange(phi->ssa_temp_index())->assigned_location_slot());
-
     move->set_src(Location::PrefersRegister());
-    move_idx++;
+
+    if (val->definition()->HasPairRepresentation()) {
+      move = parallel_move->MoveOperandsAt(move_index++);
+      vreg = ToSecondPairVreg(vreg);
+      range = GetLiveRange(vreg);
+      if (interfere_at_backedge != NULL) {
+        interfere_at_backedge->Add(vreg);
+      }
+      range->AddUseInterval(block->start_pos(), pos);
+      range->AddHintedUse(
+          pos,
+          move->src_slot(),
+          GetLiveRange(ToSecondPairVreg(
+              phi->ssa_temp_index()))->assigned_location_slot());
+      move->set_src(Location::PrefersRegister());
+    }
   }
 
   // Begin backward iteration with the instruction before the parallel
@@ -826,11 +838,11 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(JoinEntryInstr* join) {
   const bool is_loop_header = BlockInfoAt(join->start_pos())->is_loop_header();
   intptr_t move_idx = 0;
   for (PhiIterator it(join); !it.Done(); it.Advance()) {
-    // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
     PhiInstr* phi = it.Current();
     ASSERT(phi != NULL);
     const intptr_t vreg = phi->ssa_temp_index();
     ASSERT(vreg >= 0);
+    const bool is_pair_phi = phi->HasPairRepresentation();
 
     // Expected shape of live range:
     //
@@ -839,8 +851,13 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(JoinEntryInstr* join) {
     //
     LiveRange* range = GetLiveRange(vreg);
     range->DefineAt(pos);  // Shorten live range.
-
     if (is_loop_header) range->mark_loop_phi();
+
+    if (is_pair_phi) {
+      LiveRange* second_range = GetLiveRange(ToSecondPairVreg(vreg));
+      second_range->DefineAt(pos);  // Shorten live range.
+      if (is_loop_header) second_range->mark_loop_phi();
+    }
 
     for (intptr_t pred_idx = 0; pred_idx < phi->InputCount(); pred_idx++) {
       BlockEntryInstr* pred = join->PredecessorAt(pred_idx);
@@ -850,15 +867,26 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(JoinEntryInstr* join) {
           goto_instr->parallel_move()->MoveOperandsAt(move_idx);
       move->set_dest(Location::PrefersRegister());
       range->AddUse(pos, move->dest_slot());
+      if (is_pair_phi) {
+        LiveRange* second_range = GetLiveRange(ToSecondPairVreg(vreg));
+        MoveOperands* second_move =
+            goto_instr->parallel_move()->MoveOperandsAt(move_idx + 1);
+        second_move->set_dest(Location::PrefersRegister());
+        second_range->AddUse(pos, second_move->dest_slot());
+      }
     }
 
     // All phi resolution moves are connected. Phi's live range is
     // complete.
     AssignSafepoints(phi, range);
-
     CompleteRange(range, RegisterKindForResult(phi));
+    if (is_pair_phi) {
+      LiveRange* second_range = GetLiveRange(ToSecondPairVreg(vreg));
+      AssignSafepoints(phi, second_range);
+      CompleteRange(second_range, RegisterKindForResult(phi));
+    }
 
-    move_idx++;
+    move_idx += is_pair_phi ? 2 : 1;
   }
 }
 
@@ -1499,10 +1527,11 @@ void FlowGraphAllocator::NumberInstructions() {
     // For join entry predecessors create phi resolution moves if
     // necessary. They will be populated by the register allocator.
     JoinEntryInstr* join = block->AsJoinEntry();
-    if ((join != NULL) &&
-        (join->phis() != NULL) &&
-        !join->phis()->is_empty()) {
-      const intptr_t phi_count = join->phis()->length();
+    if (join != NULL) {
+      intptr_t move_count = 0;
+      for (PhiIterator it(join); !it.Done(); it.Advance()) {
+        move_count += it.Current()->HasPairRepresentation() ? 2 : 1;
+      }
       for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
         // Insert the move between the last two instructions of the
         // predecessor block (all such blocks have at least two instructions:
@@ -1513,7 +1542,7 @@ void FlowGraphAllocator::NumberInstructions() {
         ParallelMoveInstr* move = last->AsGoto()->GetParallelMove();
 
         // Populate the ParallelMove with empty moves.
-        for (intptr_t j = 0; j < phi_count; j++) {
+        for (intptr_t j = 0; j < move_count; j++) {
           move->AddMove(Location::NoLocation(), Location::NoLocation());
         }
       }
@@ -2023,7 +2052,6 @@ intptr_t FlowGraphAllocator::FirstIntersectionWithAllocated(
 
 
 void ReachingDefs::AddPhi(PhiInstr* phi) {
-  // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
   if (phi->reaching_defs() == NULL) {
     Zone* zone = flow_graph_.zone();
     phi->set_reaching_defs(new(zone) BitVector(
@@ -2037,6 +2065,9 @@ void ReachingDefs::AddPhi(PhiInstr* phi) {
         depends_on_phi = true;
       }
       phi->reaching_defs()->Add(input->ssa_temp_index());
+      if (phi->HasPairRepresentation()) {
+        phi->reaching_defs()->Add(ToSecondPairVreg(input->ssa_temp_index()));
+      }
     }
 
     // If this phi depends on another phi then we need fix point iteration.
@@ -2048,7 +2079,6 @@ void ReachingDefs::AddPhi(PhiInstr* phi) {
 void ReachingDefs::Compute() {
   // Transitively collect all phis that are used by the given phi.
   for (intptr_t i = 0; i < phis_.length(); i++) {
-    // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
     PhiInstr* phi = phis_[i];
 
     // Add all phis that affect this phi to the list.
@@ -2153,16 +2183,25 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     for (PhiIterator it(loop_header->entry()->AsJoinEntry());
          !it.Done();
          it.Advance()) {
-      // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
       PhiInstr* phi = it.Current();
       ASSERT(phi->is_alive());
       const intptr_t phi_vreg = phi->ssa_temp_index();
       LiveRange* range = GetLiveRange(phi_vreg);
       if (range->assigned_location().kind() == register_kind_) {
         const intptr_t reg = range->assigned_location().register_code();
-
         if (!reaching_defs_.Get(phi)->Contains(unallocated->vreg())) {
           used_on_backedge[reg] = true;
+        }
+      }
+      if (phi->HasPairRepresentation()) {
+        const intptr_t second_phi_vreg = ToSecondPairVreg(phi_vreg);
+        LiveRange* second_range = GetLiveRange(second_phi_vreg);
+        if (second_range->assigned_location().kind() == register_kind_) {
+          const intptr_t reg =
+              second_range->assigned_location().register_code();
+          if (!reaching_defs_.Get(phi)->Contains(unallocated->vreg())) {
+            used_on_backedge[reg] = true;
+          }
         }
       }
     }
@@ -2877,11 +2916,12 @@ void FlowGraphAllocator::CollectRepresentations() {
     if (block->IsJoinEntry()) {
       JoinEntryInstr* join = block->AsJoinEntry();
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
-        // TODO(johnmccutchan): Fix handling of PhiInstr with PairLocation.
         PhiInstr* phi = it.Current();
-        if ((phi != NULL) && (phi->ssa_temp_index() >= 0)) {
-          ASSERT(!phi->HasPairRepresentation());
-          value_representations_[phi->ssa_temp_index()] =
+        ASSERT(phi != NULL && phi->ssa_temp_index() >= 0);
+        value_representations_[phi->ssa_temp_index()] =
+            RepresentationForRange(phi->representation());
+        if (phi->HasPairRepresentation()) {
+          value_representations_[ToSecondPairVreg(phi->ssa_temp_index())] =
               RepresentationForRange(phi->representation());
         }
       }

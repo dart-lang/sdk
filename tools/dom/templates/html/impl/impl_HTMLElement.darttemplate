@@ -1,0 +1,24 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+part of $LIBRARYNAME;
+
+@DocsEditable()
+$(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$!MEMBERS
+$if DARTIUM
+  // Flags to only try upgrading once. If there's a failure don't try upgrading
+  // anymore.
+  bool _badUpgradeOccurred = false;
+
+  /// Required for SDK Infrastructure. Internal use only.
+  ///
+  /// Did this encounter a failure attempting to upgrade to
+  /// a custom element.
+  @Deprecated("Required for SDK Infrastructure. Internal use only.")
+  bool get isBadUpgrade => _badUpgradeOccurred;
+
+  void _badUpgrade() { _badUpgradeOccurred = true; }
+$endif
+}

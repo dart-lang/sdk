@@ -18,7 +18,6 @@ namespace bin {
 typedef DWORD ThreadLocalKey;
 typedef DWORD ThreadId;
 
-
 class ThreadInlineImpl {
  private:
   ThreadInlineImpl() {}

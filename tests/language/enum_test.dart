@@ -11,6 +11,7 @@ enum Enum2 { A }
 enum Enum3 { B, C }
 enum Enum4 { D, E, }
 enum Enum5 { F, G, H }
+enum _Enum6 { I, _J }
 
 main() {
   Expect.equals('Enum1._', Enum1._.toString());
@@ -21,6 +22,7 @@ main() {
   Expect.equals('Enum2.A', Enum2.A.toString());
   Expect.equals(0, Enum2.A.index);
   Expect.listEquals([Enum2.A], Enum2.values);
+  Expect.identical(const [Enum2.A], Enum2.values);
   Enum2.values.forEach(test2);
 
   Expect.equals('Enum3.B', Enum3.B.toString());
@@ -45,6 +47,9 @@ main() {
   Expect.equals(2, Enum5.H.index);
   Expect.listEquals([Enum5.F, Enum5.G, Enum5.H], Enum5.values);
   Enum5.values.forEach(test5);
+
+  Expect.equals('_Enum6.I', _Enum6.I.toString());
+  Expect.equals('_Enum6._J', _Enum6._J.toString());
 }
 
 test1(Enum1 e) {

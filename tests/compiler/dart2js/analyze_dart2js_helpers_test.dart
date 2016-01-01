@@ -10,7 +10,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/compiler_new.dart' show
     Diagnostic;
 import 'package:compiler/src/apiimpl.dart' show
-    Compiler;
+    CompilerImpl;
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/constants/expressions.dart' show
     ConstructedConstantExpression;
@@ -27,7 +27,7 @@ import 'package:compiler/src/resolution/tree_elements.dart' show
 import 'package:compiler/src/source_file_provider.dart' show
     FormattingDiagnosticHandler;
 import 'package:compiler/src/tree/tree.dart';
-import 'package:compiler/src/universe/universe.dart' show
+import 'package:compiler/src/universe/call_structure.dart' show
     CallStructure;
 import 'package:expect/expect.dart';
 
@@ -44,7 +44,7 @@ main(List<String> arguments) {
     options.add(Flags.verbose);
   }
   asyncTest(() async {
-    Compiler compiler = compilerFor(
+    CompilerImpl compiler = compilerFor(
         options: options, showDiagnostics: verbose);
     FormattingDiagnosticHandler diagnostics =
         new FormattingDiagnosticHandler(compiler.provider);

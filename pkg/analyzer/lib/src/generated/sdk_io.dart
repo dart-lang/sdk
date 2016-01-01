@@ -2,23 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.sdk.io;
+library analyzer.src.generated.sdk_io;
 
 import 'dart:io';
 
-import 'package:analyzer/src/context/context.dart' as newContext;
+import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-
-import 'ast.dart';
-import 'engine.dart';
-import 'error.dart';
-import 'java_core.dart';
-import 'java_engine_io.dart';
-import 'java_io.dart';
-import 'parser.dart';
-import 'scanner.dart';
-import 'sdk.dart';
-import 'source_io.dart';
+import 'package:analyzer/src/generated/java_engine_io.dart';
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/sdk.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 
 /**
  * A Dart SDK installed in a specified directory. Typical Dart SDK layout is
@@ -242,11 +241,7 @@ class DirectoryBasedDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      if (AnalysisEngine.instance.useTaskModel) {
-        _analysisContext = new newContext.SdkAnalysisContext();
-      } else {
-        _analysisContext = new SdkAnalysisContext();
-      }
+      _analysisContext = new SdkAnalysisContext();
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       List<String> uris = this.uris;

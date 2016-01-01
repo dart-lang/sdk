@@ -57,11 +57,12 @@ class TypeMaskFactory {
   static TypeMask fromNativeType(type, Compiler compiler) {
     ClassWorld classWorld = compiler.world;
     JavaScriptBackend backend = compiler.backend;
+    CoreClasses coreClasses = compiler.coreClasses;
     if (type == native.SpecialType.JsObject) {
-      return new TypeMask.nonNullExact(compiler.objectClass, classWorld);
+      return new TypeMask.nonNullExact(coreClasses.objectClass, classWorld);
     } else if (type.isVoid) {
       return backend.nullType;
-    } else if (type.element == compiler.nullClass) {
+    } else if (type.element == coreClasses.nullClass) {
       return backend.nullType;
     } else if (type.treatAsDynamic) {
       return backend.dynamicType;

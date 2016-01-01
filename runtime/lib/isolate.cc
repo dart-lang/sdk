@@ -2,11 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_message.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
 #include "vm/lockers.h"
@@ -22,6 +24,9 @@
 #include "vm/unicode.h"
 
 namespace dart {
+
+DEFINE_FLAG(bool, i_like_slow_isolate_spawn, false,
+            "Block the parent thread when loading spawned isolates.");
 
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
@@ -102,18 +107,22 @@ DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 2) {
   // TODO(iposva): Allow for arbitrary messages to be sent.
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 
-  uint8_t* data = NULL;
-
   const Dart_Port destination_port_id = port.Id();
   const bool can_send_any_object = isolate->origin_id() == port.origin_id();
 
-  MessageWriter writer(&data, &allocator, can_send_any_object);
-  writer.WriteMessage(obj);
+  if (ApiObjectConverter::CanConvert(obj.raw())) {
+    PortMap::PostMessage(new Message(
+        destination_port_id, obj.raw(), Message::kNormalPriority));
+  } else {
+    uint8_t* data = NULL;
+    MessageWriter writer(&data, &allocator, can_send_any_object);
+    writer.WriteMessage(obj);
 
-  // TODO(turnidge): Throw an exception when the return value is false?
-  PortMap::PostMessage(new Message(destination_port_id,
-                                   data, writer.BytesWritten(),
-                                   Message::kNormalPriority));
+    // TODO(turnidge): Throw an exception when the return value is false?
+    PortMap::PostMessage(new Message(destination_port_id,
+                                     data, writer.BytesWritten(),
+                                     Message::kNormalPriority));
+  }
   return Object::null();
 }
 
@@ -125,96 +134,70 @@ static void ThrowIsolateSpawnException(const String& message) {
 }
 
 
-static bool CanonicalizeUri(Isolate* isolate,
-                            const Library& library,
-                            const String& uri,
-                            char** canonical_uri,
-                            char** error) {
-  Zone* zone = isolate->current_zone();
-  bool retval = false;
-  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
-  if (handler != NULL) {
-    Dart_EnterScope();
-    Dart_Handle result = handler(Dart_kCanonicalizeUrl,
-                                 Api::NewHandle(isolate, library.raw()),
-                                 Api::NewHandle(isolate, uri.raw()));
-    const Object& obj = Object::Handle(Api::UnwrapHandle(result));
-    if (obj.IsString()) {
-      *canonical_uri = zone->MakeCopyOfString(String::Cast(obj).ToCString());
-      retval = true;
-    } else if (obj.IsError()) {
-      Error& error_obj = Error::Handle();
-      error_obj ^= obj.raw();
-      *error = zone->PrintToString("Unable to canonicalize uri '%s': %s",
-                                   uri.ToCString(), error_obj.ToErrorCString());
-    } else {
-      *error = zone->PrintToString("Unable to canonicalize uri '%s': "
-                                   "library tag handler returned wrong type",
-                                   uri.ToCString());
+class SpawnIsolateTask : public ThreadPool::Task {
+ public:
+  explicit SpawnIsolateTask(IsolateSpawnState* state) : state_(state) {}
+
+  virtual void Run() {
+    // Create a new isolate.
+    char* error = NULL;
+    Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
+    if (callback == NULL) {
+      ReportError(
+          "Isolate spawn is not supported by this Dart implementation\n");
+      delete state_;
+      state_ = NULL;
+      return;
     }
-    Dart_ExitScope();
-  } else {
-    *error = zone->PrintToString(
-        "Unable to canonicalize uri '%s': no library tag handler found.",
-        uri.ToCString());
-  }
-  return retval;
-}
 
+    Dart_IsolateFlags api_flags;
+    state_->isolate_flags()->CopyTo(&api_flags);
 
-static bool CreateIsolate(Isolate* parent_isolate,
-                          IsolateSpawnState* state,
-                          char** error) {
-  Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
-  if (callback == NULL) {
-    *error = strdup("Null callback specified for isolate creation\n");
-    return false;
+    Isolate* isolate = reinterpret_cast<Isolate*>(
+        (callback)(state_->script_url(),
+                   state_->function_name(),
+                   state_->package_root(),
+                   state_->package_map(),
+                   &api_flags,
+                   state_->init_data(),
+                   &error));
+    if (isolate == NULL) {
+      ReportError(error);
+      delete state_;
+      state_ = NULL;
+      free(error);
+      return;
+    }
+
+    if (state_->origin_id() != ILLEGAL_PORT) {
+      // For isolates spawned using spawnFunction we set the origin_id
+      // to the origin_id of the parent isolate.
+      isolate->set_origin_id(state_->origin_id());
+    }
+    MutexLocker ml(isolate->mutex());
+    state_->set_isolate(reinterpret_cast<Isolate*>(isolate));
+    isolate->set_spawn_state(state_);
+    state_ = NULL;
+    if (isolate->is_runnable()) {
+      isolate->Run();
+    }
   }
 
-  Dart_IsolateFlags api_flags;
-  state->isolate_flags()->CopyTo(&api_flags);
+ private:
+  void ReportError(const char* error) {
+    Dart_CObject error_cobj;
+    error_cobj.type = Dart_CObject_kString;
+    error_cobj.value.as_string = const_cast<char*>(error);
+    if (!Dart_PostCObject(state_->parent_port(), &error_cobj)) {
+      // Perhaps the parent isolate died or closed the port before we
+      // could report the error.  Ignore.
+    }
+  }
 
-  void* init_data = parent_isolate->init_callback_data();
-  Isolate* child_isolate = reinterpret_cast<Isolate*>(
-      (callback)(state->script_url(),
-                 state->function_name(),
-                 state->package_root(),
-                 &api_flags,
-                 init_data,
-                 error));
-  if (child_isolate == NULL) {
-    return false;
-  }
-  if (!state->is_spawn_uri()) {
-    // For isolates spawned using the spawn semantics we set
-    // the origin_id to the origin_id of the parent isolate.
-    child_isolate->set_origin_id(parent_isolate->origin_id());
-  }
-  state->set_isolate(reinterpret_cast<Isolate*>(child_isolate));
-  return true;
-}
+  IsolateSpawnState* state_;
 
-
-static void Spawn(Isolate* parent_isolate, IsolateSpawnState* state) {
-  Thread::ExitIsolate();
-  // Create a new isolate.
-  char* error = NULL;
-  if (!CreateIsolate(parent_isolate, state, &error)) {
-    Thread::EnterIsolate(parent_isolate);
-    delete state;
-    const String& msg = String::Handle(String::New(error));
-    free(error);
-    ThrowIsolateSpawnException(msg);
-  }
-  Thread::EnterIsolate(parent_isolate);
-  // Start the new isolate if it is already marked as runnable.
-  Isolate* spawned_isolate = state->isolate();
-  MutexLocker ml(spawned_isolate->mutex());
-  spawned_isolate->set_spawn_state(state);
-  if (spawned_isolate->is_runnable()) {
-    spawned_isolate->Run();
-  }
-}
+  DISALLOW_COPY_AND_ASSIGN(SpawnIsolateTask);
+};
 
 
 DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
@@ -242,13 +225,28 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
       Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
       Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
 
-      Spawn(isolate, new IsolateSpawnState(port.Id(),
-                                           func,
-                                           message,
-                                           paused.value(),
-                                           fatal_errors,
-                                           on_exit_port,
-                                           on_error_port));
+      ThreadPool::Task* spawn_task =
+          new SpawnIsolateTask(
+              new IsolateSpawnState(port.Id(),
+                                    isolate->origin_id(),
+                                    isolate->init_callback_data(),
+                                    func,
+                                    message,
+                                    paused.value(),
+                                    fatal_errors,
+                                    on_exit_port,
+                                    on_error_port));
+      if (FLAG_i_like_slow_isolate_spawn) {
+        // We block the parent isolate while the child isolate loads.
+        Isolate* saved = Isolate::Current();
+        Thread::ExitIsolate();
+        spawn_task->Run();
+        delete spawn_task;
+        spawn_task = NULL;
+        Thread::EnterIsolate(saved);
+      } else {
+        Dart::thread_pool()->Run(spawn_task);
+      }
       return Object::null();
     }
   }
@@ -259,57 +257,147 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 7) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 10) {
+static const char* String2UTF8(const String& str) {
+  intptr_t len = Utf8::Length(str);
+  char* result = new char[len + 1];
+  str.ToUTF8(reinterpret_cast<uint8_t*>(result), len);
+  result[len] = 0;
+
+  return result;
+}
+
+
+static const char* CanonicalizeUri(Thread* thread,
+                                   const Library& library,
+                                   const String& uri,
+                                   char** error) {
+  const char* result = NULL;
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Dart_LibraryTagHandler handler = isolate->library_tag_handler();
+  if (handler != NULL) {
+    Dart_EnterScope();
+    Dart_Handle handle = handler(Dart_kCanonicalizeUrl,
+                                 Api::NewHandle(thread, library.raw()),
+                                 Api::NewHandle(thread, uri.raw()));
+    const Object& obj = Object::Handle(Api::UnwrapHandle(handle));
+    if (obj.IsString()) {
+      result = String2UTF8(String::Cast(obj));
+    } else if (obj.IsError()) {
+      Error& error_obj = Error::Handle();
+      error_obj ^= obj.raw();
+      *error = zone->PrintToString("Unable to canonicalize uri '%s': %s",
+                                   uri.ToCString(), error_obj.ToErrorCString());
+    } else {
+      *error = zone->PrintToString("Unable to canonicalize uri '%s': "
+                                   "library tag handler returned wrong type",
+                                   uri.ToCString());
+    }
+    Dart_ExitScope();
+  } else {
+    *error = zone->PrintToString(
+        "Unable to canonicalize uri '%s': no library tag handler found.",
+        uri.ToCString());
+  }
+  return result;
+}
+
+
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
+
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
+
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
-  GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(5));
-  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(6));
+  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(5));
+  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(6));
+
   GET_NATIVE_ARGUMENT(Bool, fatalErrors, arguments->NativeArgAt(7));
-  GET_NATIVE_ARGUMENT(SendPort, onExit, arguments->NativeArgAt(8));
-  GET_NATIVE_ARGUMENT(SendPort, onError, arguments->NativeArgAt(9));
+  GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(8));
+
+  GET_NATIVE_ARGUMENT(Array, environment, arguments->NativeArgAt(9));
+
+  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(10));
+  GET_NATIVE_ARGUMENT(Array, packages, arguments->NativeArgAt(11));
+
+  if (Dart::IsRunningPrecompiledCode()) {
+    const Array& args = Array::Handle(Array::New(1));
+    args.SetAt(0, String::Handle(String::New(
+        "Isolate.spawnUri not supported under precompilation")));
+    Exceptions::ThrowByType(Exceptions::kUnsupported, args);
+    UNREACHABLE();
+  }
 
   // Canonicalize the uri with respect to the current isolate.
-  char* error = NULL;
-  char* canonical_uri = NULL;
   const Library& root_lib =
       Library::Handle(isolate->object_store()->root_library());
-  if (!CanonicalizeUri(isolate, root_lib, uri,
-                       &canonical_uri, &error)) {
+  char* error = NULL;
+  const char* canonical_uri = CanonicalizeUri(thread, root_lib, uri, &error);
+  if (canonical_uri == NULL) {
     const String& msg = String::Handle(String::New(error));
     ThrowIsolateSpawnException(msg);
   }
 
-  char* utf8_package_root = NULL;
-  if (!package_root.IsNull()) {
-    const intptr_t len = Utf8::Length(package_root);
-    utf8_package_root = zone->Alloc<char>(len + 1);
-    package_root.ToUTF8(reinterpret_cast<uint8_t*>(utf8_package_root), len);
-    utf8_package_root[len] = '\0';
+  const char* utf8_package_root =
+      package_root.IsNull() ? NULL : String2UTF8(package_root);
+
+  const char** utf8_package_map = NULL;
+  if (!packages.IsNull()) {
+    intptr_t len = packages.Length();
+    utf8_package_map = new const char*[len + 1];
+
+    Object& entry = Object::Handle();
+    for (intptr_t i = 0; i < len; i++) {
+      entry = packages.At(i);
+      if (!entry.IsString()) {
+        const String& msg = String::Handle(String::NewFormatted(
+            "Bad value in package map: %s", entry.ToCString()));
+        ThrowIsolateSpawnException(msg);
+      }
+      utf8_package_map[i] = String2UTF8(String::Cast(entry));
+    }
+    // NULL terminated array.
+    utf8_package_map[len] = NULL;
   }
 
   bool fatal_errors = fatalErrors.IsNull() ? true : fatalErrors.value();
   Dart_Port on_exit_port = onExit.IsNull() ? ILLEGAL_PORT : onExit.Id();
   Dart_Port on_error_port = onError.IsNull() ? ILLEGAL_PORT : onError.Id();
 
-  IsolateSpawnState* state = new IsolateSpawnState(port.Id(),
-                                                   canonical_uri,
-                                                   utf8_package_root,
-                                                   args,
-                                                   message,
-                                                   paused.value(),
-                                                   fatal_errors,
-                                                   on_exit_port,
-                                                   on_error_port);
+  IsolateSpawnState* state =
+      new IsolateSpawnState(
+          port.Id(),
+          isolate->init_callback_data(),
+          canonical_uri,
+          utf8_package_root,
+          utf8_package_map,
+          args,
+          message,
+          paused.value(),
+          fatal_errors,
+          on_exit_port,
+          on_error_port);
+
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
     state->isolate_flags()->set_checked(checked.value());
   }
 
-  Spawn(isolate, state);
+  ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);
+  if (FLAG_i_like_slow_isolate_spawn) {
+    // We block the parent isolate while the child isolate loads.
+    Isolate* saved = Isolate::Current();
+    Thread::ExitIsolate();
+    spawn_task->Run();
+    delete spawn_task;
+    spawn_task = NULL;
+    Thread::EnterIsolate(saved);
+  } else {
+    Dart::thread_pool()->Run(spawn_task);
+  }
   return Object::null();
 }
 

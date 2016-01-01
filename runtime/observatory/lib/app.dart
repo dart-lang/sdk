@@ -7,7 +7,6 @@ library app;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
-import 'dart:js';
 
 import 'package:logging/logging.dart';
 import 'package:observatory/service_html.dart';
@@ -20,7 +19,6 @@ import 'package:usage/usage_html.dart';
 export 'package:observatory/utils.dart';
 
 part 'src/app/application.dart';
-part 'src/app/chart.dart';
 part 'src/app/location_manager.dart';
 part 'src/app/page.dart';
 part 'src/app/settings.dart';

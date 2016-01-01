@@ -24,6 +24,7 @@ RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
 RawObject* DartEntry::InvokeFunction(const Function& function,
                                      const Array& arguments) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Array& arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(arguments.Length()));
   return InvokeFunction(function, arguments, arguments_descriptor);
@@ -32,26 +33,39 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 
 class ScopedIsolateStackLimits : public ValueObject {
  public:
-  explicit ScopedIsolateStackLimits(Isolate* isolate)
-      : isolate_(isolate), stack_base_(Isolate::GetCurrentStackPointer()) {
-    ASSERT(isolate_ != NULL);
-    ASSERT(isolate_ == Isolate::Current());
-    if (stack_base_ >= isolate_->stack_base()) {
-      isolate_->SetStackLimitFromStackBase(stack_base_);
+  explicit ScopedIsolateStackLimits(Thread* thread)
+      : thread_(thread), saved_stack_limit_(0) {
+    ASSERT(thread != NULL);
+    // Set the thread's stack_base based on the current
+    // stack pointer, we keep refining this value as we
+    // see higher stack pointers (Note: we assume the stack
+    // grows from high to low addresses).
+    OSThread* os_thread = thread->os_thread();
+    ASSERT(os_thread != NULL);
+    uword current_sp = Isolate::GetCurrentStackPointer();
+    if (current_sp > os_thread->stack_base()) {
+      os_thread->set_stack_base(current_sp);
     }
+    // Save the Isolate's current stack limit and adjust the stack
+    // limit based on the thread's stack_base.
+    Isolate* isolate = thread->isolate();
+    ASSERT(isolate == Isolate::Current());
+    saved_stack_limit_ = isolate->saved_stack_limit();
+    isolate->SetStackLimitFromStackBase(os_thread->stack_base());
   }
 
   ~ScopedIsolateStackLimits() {
-    ASSERT(isolate_ == Isolate::Current());
-    if (isolate_->stack_base() == stack_base_) {
-      // Bottomed out.
-      isolate_->ClearStackLimit();
-    }
+    Isolate* isolate = thread_->isolate();
+    ASSERT(isolate == Isolate::Current());
+    // Since we started with a stack limit of 0 we should be getting back
+    // to a stack limit of 0 when all nested invocations are done and
+    // we have bottomed out.
+    isolate->SetStackLimit(saved_stack_limit_);
   }
 
  private:
-  Isolate* isolate_;
-  uword stack_base_;
+  Thread* thread_;
+  uword saved_stack_limit_;
 };
 
 
@@ -83,7 +97,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // compiled.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
+  ASSERT(thread->IsMutatorThread());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(
         zone, Compiler::CompileFunction(thread, function));
@@ -96,31 +110,21 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       StubCode::InvokeDartCode_entry()->EntryPoint());
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
-  ASSERT(Isolate::Current()->no_callback_scope_depth() == 0);
-  ScopedIsolateStackLimits stack_limit(isolate);
+  ASSERT(thread->no_callback_scope_depth() == 0);
+  ScopedIsolateStackLimits stack_limit(thread);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
 #if defined(USING_SIMULATOR)
-#if defined(ARCH_IS_64_BIT)
-  // TODO(zra): Change to intptr_t so we have only one case.
-    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
-        reinterpret_cast<int64_t>(entrypoint),
-        static_cast<int64_t>(code.EntryPoint()),
-        reinterpret_cast<int64_t>(&arguments_descriptor),
-        reinterpret_cast<int64_t>(&arguments),
-        reinterpret_cast<int64_t>(thread)));
+  return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
+      reinterpret_cast<intptr_t>(entrypoint),
+      reinterpret_cast<intptr_t>(&code),
+      reinterpret_cast<intptr_t>(&arguments_descriptor),
+      reinterpret_cast<intptr_t>(&arguments),
+      reinterpret_cast<intptr_t>(thread)));
 #else
-    return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
-        reinterpret_cast<int32_t>(entrypoint),
-        static_cast<int32_t>(code.EntryPoint()),
-        reinterpret_cast<int32_t>(&arguments_descriptor),
-        reinterpret_cast<int32_t>(&arguments),
-        reinterpret_cast<int32_t>(thread)));
-#endif
-#else
-    return entrypoint(code.EntryPoint(),
-                      arguments_descriptor,
-                      arguments,
-                      thread);
+  return entrypoint(code,
+                    arguments_descriptor,
+                    arguments,
+                    thread);
 #endif
 }
 
@@ -163,15 +167,15 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
-        // Getters don't have a stack overflow check, so do one in C++.
-
         Isolate* isolate = Isolate::Current();
-#if defined(USING_SIMULATOR)
-        uword stack_pos = Simulator::Current()->get_register(SPREG);
-#else
-        uword stack_pos = Isolate::GetCurrentStackPointer();
+        volatile uword c_stack_pos = Isolate::GetCurrentStackPointer();
+        volatile uword c_stack_limit = OSThread::Current()->stack_base() -
+                                       OSThread::GetSpecifiedStackSize();
+#if !defined(USING_SIMULATOR)
+        ASSERT(c_stack_limit == isolate->saved_stack_limit());
 #endif
-        if (stack_pos < isolate->saved_stack_limit()) {
+
+        if (c_stack_pos < c_stack_limit) {
           const Instance& exception =
             Instance::Handle(isolate->object_store()->stack_overflow());
           return UnhandledException::New(exception, Stacktrace::Handle());
@@ -239,9 +243,10 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   if (function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
     // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
-    Isolate* isolate = Isolate::Current();
+    Thread* thread = Thread::Current();
     function ^= Resolver::ResolveDynamicForReceiverClass(
-        Class::Handle(isolate, isolate->object_store()->object_class()),
+        Class::Handle(thread->zone(),
+                      thread->isolate()->object_store()->object_class()),
         Symbols::NoSuchMethod(),
         args_desc);
   }
@@ -259,12 +264,12 @@ ArgumentsDescriptor::ArgumentsDescriptor(const Array& array)
 
 
 intptr_t ArgumentsDescriptor::Count() const {
-  return Smi::CheckedHandle(array_.At(kCountIndex)).Value();
+  return Smi::Cast(Object::Handle(array_.At(kCountIndex))).Value();
 }
 
 
 intptr_t ArgumentsDescriptor::PositionalCount() const {
-  return Smi::CheckedHandle(array_.At(kPositionalCountIndex)).Value();
+  return Smi::Cast(Object::Handle(array_.At(kPositionalCountIndex))).Value();
 }
 
 
@@ -493,10 +498,9 @@ RawObject* DartLibraryCalls::Equals(const Instance& left,
 
 
 RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
-  Isolate* isolate = Isolate::Current();
-  Function& function =
-      Function::Handle(isolate,
-                       isolate->object_store()->lookup_port_handler());
+  Thread* thread = Thread::Current();
+  Function& function = Function::Handle(thread->zone(),
+      thread->isolate()->object_store()->lookup_port_handler());
   const int kNumArguments = 1;
   if (function.IsNull()) {
     Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
@@ -511,7 +515,7 @@ RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
                                        kNumArguments,
                                        Object::empty_array());
     ASSERT(!function.IsNull());
-    isolate->object_store()->set_lookup_port_handler(function);
+    thread->isolate()->object_store()->set_lookup_port_handler(function);
   }
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, Integer::Handle(Integer::New(port_id)));
@@ -523,16 +527,18 @@ RawObject* DartLibraryCalls::LookupHandler(Dart_Port port_id) {
 
 RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
                                            const Instance& message) {
-  Isolate* isolate = Isolate::Current();
-  Function& function = Function::Handle(isolate,
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Function& function = Function::Handle(zone,
       isolate->object_store()->handle_message_function());
   const int kNumArguments = 2;
   if (function.IsNull()) {
-    Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
+    Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
     ASSERT(!isolate_lib.IsNull());
-    const String& class_name = String::Handle(isolate,
+    const String& class_name = String::Handle(zone,
         isolate_lib.PrivateName(Symbols::_RawReceivePortImpl()));
-    const String& function_name = String::Handle(isolate,
+    const String& function_name = String::Handle(zone,
         isolate_lib.PrivateName(Symbols::_handleMessage()));
     function = Resolver::ResolveStatic(isolate_lib,
                                        class_name,
@@ -542,7 +548,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
     ASSERT(!function.IsNull());
     isolate->object_store()->set_handle_message_function(function);
   }
-  const Array& args = Array::Handle(isolate, Array::New(kNumArguments));
+  const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, handler);
   args.SetAt(1, message);
   if (isolate->debugger()->IsStepping()) {
@@ -551,7 +557,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
     // at the first location the user is interested in.
     isolate->debugger()->SetSingleStep();
   }
-  const Object& result = Object::Handle(isolate,
+  const Object& result = Object::Handle(zone,
       DartEntry::InvokeFunction(function, args));
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();
@@ -559,13 +565,13 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
 
 
 RawObject* DartLibraryCalls::DrainMicrotaskQueue() {
-  Isolate* isolate = Isolate::Current();
-  Library& isolate_lib = Library::Handle(isolate, Library::IsolateLibrary());
+  Zone* zone = Thread::Current()->zone();
+  Library& isolate_lib = Library::Handle(zone, Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
-  Function& function = Function::Handle(isolate,
+  Function& function = Function::Handle(zone,
       isolate_lib.LookupFunctionAllowPrivate(
           Symbols::_runPendingImmediateCallback()));
-  const Object& result = Object::Handle(isolate,
+  const Object& result = Object::Handle(zone,
       DartEntry::InvokeFunction(function, Object::empty_array()));
   ASSERT(result.IsNull() || result.IsError());
   return result.raw();

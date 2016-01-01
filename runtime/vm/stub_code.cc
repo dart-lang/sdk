@@ -10,6 +10,7 @@
 #include "vm/disassembler.h"
 #include "vm/flags.h"
 #include "vm/object_store.h"
+#include "vm/snapshot.h"
 #include "vm/virtual_memory.h"
 #include "vm/visitor.h"
 
@@ -53,6 +54,24 @@ void StubCode::InitOnce() {
 #undef STUB_CODE_GENERATE
 
 
+void StubCode::ReadFrom(SnapshotReader* reader) {
+#define READ_STUB(name)                                                        \
+  *(reader->CodeHandle()) ^= reader->ReadObject();                             \
+  name##_entry_ = new StubEntry(*(reader->CodeHandle()));
+  VM_STUB_CODE_LIST(READ_STUB);
+#undef READ_STUB
+}
+
+void StubCode::WriteTo(SnapshotWriter* writer) {
+  // TODO(rmacnak): Consider writing only the instructions to avoid
+  // vm_isolate_is_symbolic.
+#define WRITE_STUB(name)                                                       \
+  writer->WriteObject(StubCode::name##_entry()->code());
+  VM_STUB_CODE_LIST(WRITE_STUB);
+#undef WRITE_STUB
+}
+
+
 void StubCode::Init(Isolate* isolate) { }
 
 
@@ -60,7 +79,16 @@ void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+bool StubCode::HasBeenInitialized() {
+  // Use JumpToExceptionHandler and InvokeDart as canaries.
+  const StubEntry* entry_1 = StubCode::JumpToExceptionHandler_entry();
+  const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
+  return (entry_1 != NULL) && (entry_2 != NULL);
+}
+
+
 bool StubCode::InInvocationStub(uword pc) {
+  ASSERT(HasBeenInitialized());
   uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
@@ -68,6 +96,7 @@ bool StubCode::InInvocationStub(uword pc) {
 
 
 bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
+  ASSERT(HasBeenInitialized());
   uword entry = StubCode::JumpToExceptionHandler_entry()->EntryPoint();
   uword size = StubCode::JumpToExceptionHandlerSize();
   return (pc >= entry) && (pc < (entry + size));
@@ -75,21 +104,19 @@ bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
 
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
-  Isolate* isolate = Isolate::Current();
-  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   if (cls.id() == kArrayCid) {
     return AllocateArray_entry()->code();
   }
-  Code& stub = Code::Handle(isolate, cls.allocation_stub());
+  Code& stub = Code::Handle(zone, cls.allocation_stub());
   if (stub.IsNull()) {
     Assembler assembler;
     const char* name = cls.ToCString();
-    uword patch_code_offset = 0;
-    uword entry_patch_offset = 0;
-    StubCode::GenerateAllocationStubForClass(
-        &assembler, cls, &entry_patch_offset, &patch_code_offset);
-    stub ^= Code::FinalizeCode(name, &assembler);
+    StubCode::GenerateAllocationStubForClass(&assembler, cls);
+    stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
@@ -98,12 +125,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       DisassembleToStdout formatter;
       stub.Disassemble(&formatter);
       THR_Print("}\n");
-      const ObjectPool& object_pool = ObjectPool::Handle(
-          Instructions::Handle(stub.instructions()).object_pool());
+      const ObjectPool& object_pool = ObjectPool::Handle(stub.object_pool());
       object_pool.DebugPrint();
     }
-    stub.set_entry_patch_pc_offset(entry_patch_offset);
-    stub.set_patch_code_pc_offset(patch_code_offset);
   }
   return stub.raw();
 }
@@ -129,15 +153,15 @@ RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler;
   GenerateStub(&assembler);
-  const Code& code = Code::Handle(Code::FinalizeCode(name, &assembler));
+  const Code& code = Code::Handle(
+      Code::FinalizeCode(name, &assembler, false /* optimized */));
   if (FLAG_disassemble_stubs) {
     LogBlock lb;
     THR_Print("Code for stub '%s': {\n", name);
     DisassembleToStdout formatter;
     code.Disassemble(&formatter);
     THR_Print("}\n");
-    const ObjectPool& object_pool = ObjectPool::Handle(
-        Instructions::Handle(code.instructions()).object_pool());
+    const ObjectPool& object_pool = ObjectPool::Handle(code.object_pool());
     object_pool.DebugPrint();
   }
   return code.raw();

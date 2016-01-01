@@ -1,0 +1,7 @@
+analyzer:
+  errors:
+    unused_local_variable: ignore
+    missing_return: error
+    undefined_function: warning
+  language:
+    enableSuperMixins: true

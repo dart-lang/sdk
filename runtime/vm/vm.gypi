@@ -26,29 +26,23 @@
     'mirrors_cc_file': '<(gen_source_dir)/mirrors_gen.cc',
     'mirrors_patch_cc_file': '<(gen_source_dir)/mirrors_patch_gen.cc',
     'profiler_cc_file': '<(gen_source_dir)/profiler_gen.cc',
-    'service_cc_file': '<(gen_source_dir)/service_gen.cc',
     'snapshot_test_dat_file': '<(gen_source_dir)/snapshot_test.dat',
     'snapshot_test_in_dat_file': 'snapshot_test_in.dat',
     'snapshot_test_dart_file': 'snapshot_test.dart',
     'typed_data_cc_file': '<(gen_source_dir)/typed_data_gen.cc',
     'typed_data_patch_cc_file': '<(gen_source_dir)/typed_data_patch_gen.cc',
+    'vmservice_cc_file': '<(gen_source_dir)/vmservice_gen.cc',
+    'vmservice_patch_cc_file': '<(gen_source_dir)/vmservice_patch_gen.cc',
   },
   'targets': [
     {
       'target_name': 'libdart_vm',
       'type': 'static_library',
       'toolsets':['host', 'target'],
-      'dependencies': [
-        'generate_service_cc_file#host'
-      ],
       'includes': [
         'vm_sources.gypi',
         '../platform/platform_headers.gypi',
         '../platform/platform_sources.gypi',
-      ],
-      'sources': [
-        # Include generated source files.
-        '<(service_cc_file)',
       ],
       'sources/': [
         # Exclude all _test.[cc|h] files.
@@ -56,6 +50,69 @@
       ],
       'include_dirs': [
         '..',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+              '-ldl',
+            ],
+          },
+        }],
+        ['OS=="android" and _toolset=="host"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+              '-lrt',
+              '-ldl',
+            ],
+          },
+        }],
+        ['OS=="win"', {
+          'sources/' : [
+            ['exclude', 'gdbjit.cc'],
+          ],
+       }],
+       ['dart_vtune_support==0', {
+          'sources/' : [
+            ['exclude', 'vtune\\.(cc|h)$'],
+          ],
+       }],
+       ['dart_vtune_support==1', {
+          'include_dirs': ['<(dart_vtune_root)/include'],
+          'defines': ['DART_VTUNE_SUPPORT'],
+          'link_settings': {
+            'conditions': [
+              ['OS=="linux"', {
+                 'libraries': ['-ljitprofiling'],
+              }],
+              ['OS=="win"', {
+                 'libraries': ['-ljitprofiling.lib'],
+              }],
+            ],
+          },
+        }]],
+    },
+    {
+      'target_name': 'libdart_vm_precompiled',
+      'type': 'static_library',
+      'toolsets':['host', 'target'],
+      'includes': [
+        'vm_sources.gypi',
+        '../platform/platform_headers.gypi',
+        '../platform/platform_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all _test.[cc|h] files.
+        ['exclude', '_test\\.(cc|h)$'],
+      ],
+      'include_dirs': [
+        '..',
+      ],
+      'defines': [
+        'DART_PRECOMPILED',
       ],
       'conditions': [
         ['OS=="linux"', {
@@ -112,17 +169,10 @@
       'target_name': 'libdart_vm_nosnapshot',
       'type': 'static_library',
       'toolsets':['host', 'target'],
-      'dependencies': [
-        'generate_service_cc_file#host'
-      ],
       'includes': [
         'vm_sources.gypi',
         '../platform/platform_headers.gypi',
         '../platform/platform_sources.gypi',
-      ],
-      'sources': [
-        # Include generated source files.
-        '<(service_cc_file)',
       ],
       'sources/': [
         # Exclude all _test.[cc|h] files.
@@ -211,6 +261,8 @@
         'generate_profiler_cc_file#host',
         'generate_typed_data_cc_file#host',
         'generate_typed_data_patch_cc_file#host',
+        'generate_vmservice_cc_file#host',
+        'generate_vmservice_patch_cc_file#host',
       ],
       'includes': [
         '../lib/async_sources.gypi',
@@ -222,6 +274,7 @@
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
         '../lib/typed_data_sources.gypi',
+        '../lib/vmservice_sources.gypi',
       ],
       'sources': [
         'bootstrap.cc',
@@ -247,6 +300,8 @@
         '<(profiler_cc_file)',
         '<(typed_data_cc_file)',
         '<(typed_data_patch_cc_file)',
+        '<(vmservice_cc_file)',
+        '<(vmservice_patch_cc_file)',
       ],
       'include_dirs': [
         '..',
@@ -266,6 +321,7 @@
         '../lib/math_sources.gypi',
         '../lib/mirrors_sources.gypi',
         '../lib/typed_data_sources.gypi',
+        '../lib/vmservice_sources.gypi',
       ],
       'sources': [
         'bootstrap_nocore.cc',
@@ -1142,32 +1198,82 @@
       ]
     },
     {
-      'target_name': 'generate_service_cc_file',
+      'target_name': 'generate_vmservice_cc_file',
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        'service_sources.gypi',
+        # Load the shared library sources.
+        '../../sdk/lib/vmservice/vmservice_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
       ],
       'actions': [
         {
-          'action_name': 'generate_service_cc',
+          'action_name': 'generate_vmservice_cc',
           'inputs': [
-            '../tools/create_resources.py',
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
             '<@(_sources)',
           ],
           'outputs': [
-            '<(service_cc_file)',
+            '<(vmservice_cc_file)',
           ],
           'action': [
             'python',
-            'tools/create_resources.py',
-            '--output', '<(service_cc_file)',
-            '--outer_namespace', 'dart',
-            '--table_name', 'service',
-            '--root_prefix', 'vm/service/',
-            '<@(_sources)'
+            'tools/gen_library_src_paths.py',
+            '--output', '<(vmservice_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::_vmservice_source_paths_',
+            '--library_name', 'dart:_vmservice',
+            '<@(_sources)',
           ],
-          'message': 'Generating ''<(service_cc_file)'' file.'
+          'message': 'Generating ''<(vmservice_cc_file)'' file.'
+        },
+      ]
+    },
+    {
+      'target_name': 'generate_vmservice_patch_cc_file',
+      'type': 'none',
+      'toolsets':['host'],
+      'includes': [
+        # Load the runtime implementation sources.
+        '../lib/vmservice_sources.gypi',
+      ],
+      'sources/': [
+        # Exclude all .[cc|h] files.
+        # This is only here for reference. Excludes happen after
+        # variable expansion, so the script has to do its own
+        # exclude processing of the sources being passed.
+        ['exclude', '\\.cc|h$'],
+      ],
+      'actions': [
+        {
+          'action_name': 'generate_vmservice_patch_cc',
+          'inputs': [
+            '../tools/gen_library_src_paths.py',
+            '<(libgen_in_cc_file)',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(vmservice_patch_cc_file)',
+          ],
+          'action': [
+            'python',
+            'tools/gen_library_src_paths.py',
+            '--output', '<(vmservice_patch_cc_file)',
+            '--input_cc', '<(libgen_in_cc_file)',
+            '--include', 'vm/bootstrap.h',
+            '--var_name', 'dart::Bootstrap::_vmservice_patch_paths_',
+            '--library_name', 'dart:_vmservice',
+            '<@(_sources)',
+          ],
+          'message': 'Generating ''<(vmservice_patch_cc_file)'' file.'
         },
       ]
     },

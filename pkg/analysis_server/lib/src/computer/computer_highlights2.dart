@@ -4,9 +4,10 @@
 
 library computer.highlights2;
 
-import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
 /**
@@ -63,13 +64,13 @@ class DartUnitHighlightsComputer2 {
     if (_addIdentifierRegion_constructor(node)) {
       return;
     }
-    if (_addIdentifierRegion_dynamicLocal(node)) {
-      return;
-    }
     if (_addIdentifierRegion_getterSetterDeclaration(node)) {
       return;
     }
     if (_addIdentifierRegion_field(node)) {
+      return;
+    }
+    if (_addIdentifierRegion_dynamicLocal(node)) {
       return;
     }
     if (_addIdentifierRegion_function(node)) {
@@ -94,6 +95,9 @@ class DartUnitHighlightsComputer2 {
       return;
     }
     if (_addIdentifierRegion_typeParameter(node)) {
+      return;
+    }
+    if (_addIdentifierRegion_unresolvedInstanceMemberReference(node)) {
       return;
     }
     _addRegion_node(node, HighlightRegionType.IDENTIFIER_DEFAULT);
@@ -352,6 +356,38 @@ class DartUnitHighlightsComputer2 {
     return _addRegion_node(node, HighlightRegionType.TYPE_PARAMETER);
   }
 
+  bool _addIdentifierRegion_unresolvedInstanceMemberReference(
+      SimpleIdentifier node) {
+    // unresolved
+    Element element = node.bestElement;
+    if (element != null) {
+      return false;
+    }
+    // invoke / get / set
+    bool decorate = false;
+    AstNode parent = node.parent;
+    if (parent is MethodInvocation) {
+      Expression target = parent.realTarget;
+      if (parent.methodName == node &&
+          target != null &&
+          _isDynamicExpression(target)) {
+        decorate = true;
+      }
+    } else if (node.inGetterContext() || node.inSetterContext()) {
+      if (parent is PrefixedIdentifier) {
+        decorate = parent.identifier == node;
+      } else if (parent is PropertyAccess) {
+        decorate = parent.propertyName == node;
+      }
+    }
+    if (decorate) {
+      _addRegion_node(
+          node, HighlightRegionType.UNRESOLVED_INSTANCE_MEMBER_REFERENCE);
+      return true;
+    }
+    return false;
+  }
+
   void _addRegion(int offset, int length, HighlightRegionType type) {
     _regions.add(new HighlightRegion(type, offset, length));
   }
@@ -383,6 +419,13 @@ class DartUnitHighlightsComputer2 {
     int offset = a.offset;
     int end = b.end;
     _addRegion(offset, end - offset, type);
+  }
+
+  static bool _isDynamicExpression(Expression e) {
+    if (e is SimpleIdentifier && e.staticElement is PrefixElement) {
+      return false;
+    }
+    return e.bestType.isDynamic;
   }
 }
 
@@ -595,6 +638,12 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<Object> {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
     computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
     return super.visitLibraryDirective(node);
+  }
+
+  @override
+  Object visitLibraryIdentifier(LibraryIdentifier node) {
+    computer._addRegion_node(node, HighlightRegionType.LIBRARY_NAME);
+    return null;
   }
 
   @override

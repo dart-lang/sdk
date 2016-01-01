@@ -1,0 +1,7 @@
+analyzer:
+  plugins:
+    my_plugin1:
+      version: any
+      library_uri: 'package:my_plugin/my_plugin.dart'
+      class_name: MyPlugin
+    

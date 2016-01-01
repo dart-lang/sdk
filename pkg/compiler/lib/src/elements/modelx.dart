@@ -4,22 +4,18 @@
 
 library elements.modelx;
 
+import '../common.dart';
+import '../common/resolution.dart' show
+    Resolution,
+    Parsing;
 import '../compiler.dart' show
     Compiler;
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart';
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
-import '../helpers/helpers.dart';
+import '../diagnostics/messages.dart' show
+    MessageTemplate;
 import '../ordered_typeset.dart' show
     OrderedTypeSet;
 import '../resolution/class_members.dart' show
@@ -62,13 +58,13 @@ abstract class ElementX extends Element with ElementCommon {
   List<MetadataAnnotation> metadataInternal;
 
   ElementX(this.name, this.kind, this.enclosingElement) {
-    assert(isErroneous || implementationLibrary != null);
+    assert(isError || implementationLibrary != null);
   }
 
   Modifiers get modifiers => Modifiers.EMPTY;
 
-  Node parseNode(DiagnosticListener listener) {
-    listener.internalError(this,
+  Node parseNode(Parsing parsing) {
+    parsing.reporter.internalError(this,
         'parseNode not implemented on $this.');
     return null;
   }
@@ -104,7 +100,6 @@ abstract class ElementX extends Element with ElementCommon {
   bool get isInstanceMember => false;
   bool get isDeferredLoaderGetter => false;
 
-  bool get isFactoryConstructor => modifiers.isFactory;
   bool get isConst => modifiers.isConst;
   bool get isFinal => modifiers.isFinal;
   bool get isStatic => modifiers.isStatic;
@@ -126,7 +121,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   bool get isAssignable {
     if (isFinal || isConst) return false;
-    if (isFunction || isGenerativeConstructor) return false;
+    if (isFunction || isConstructor) return false;
     return true;
   }
 
@@ -236,22 +231,9 @@ abstract class ElementX extends Element with ElementCommon {
     }
   }
 
-  String _fixedBackendName = null;
-  bool _isNative = false;
-  bool get isNative => _isNative;
-  bool get hasFixedBackendName => _fixedBackendName != null;
-  String get fixedBackendName => _fixedBackendName;
-  // Marks this element as a native element.
-  void setNative(String name) {
-    _isNative = true;
-    _fixedBackendName = name;
-  }
-
   FunctionElement asFunctionElement() => null;
 
   bool get isAbstract => modifiers.isAbstract;
-
-  void diagnose(Element context, DiagnosticListener listener) {}
 
   bool get hasTreeElements => analyzableElement.hasTreeElements;
 
@@ -284,6 +266,8 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   bool get isCyclicRedirection => false;
 
+  bool get isMalformed => true;
+
   PrefixElement get redirectionDeferredPrefix => null;
 
   AbstractFieldElement abstractField;
@@ -314,8 +298,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   bool get isRedirectingGenerative => unsupported();
   bool get isRedirectingFactory => unsupported();
 
-  computeSignature(compiler) => unsupported();
-  computeType(compiler) => unsupported();
+  computeType(Resolution resolution) => unsupported();
 
   bool get hasFunctionSignature => false;
 
@@ -339,6 +322,11 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   }
 
   @override
+  get isEffectiveTargetMalformed {
+    throw new UnsupportedError("isEffectiveTargetMalformed");
+  }
+
+  @override
   bool get isFromEnvironmentConstructor => false;
 }
 
@@ -359,80 +347,132 @@ class ErroneousConstructorElementX extends ErroneousElementX
       Element enclosing)
       : super(messageKind, messageArguments, name, enclosing);
 
+  @override
   bool get isRedirectingGenerative => false;
 
+  @override
   void set isRedirectingGenerative(_) {
     throw new UnsupportedError("isRedirectingGenerative");
   }
 
+  @override
   bool get isRedirectingFactory => false;
 
+  @override
   get definingElement {
     throw new UnsupportedError("definingElement");
   }
 
+  @override
   get asyncMarker {
     throw new UnsupportedError("asyncMarker");
   }
 
+  @override
   set asyncMarker(_) {
     throw new UnsupportedError("asyncMarker=");
   }
 
-  get internalEffectiveTarget {
-    throw new UnsupportedError("internalEffectiveTarget");
+  @override
+  get effectiveTargetInternal {
+    throw new UnsupportedError("effectiveTargetInternal");
   }
 
-  set internalEffectiveTarget(_) {
-    throw new UnsupportedError("internalEffectiveTarget=");
+  @override
+  set effectiveTargetInternal(_) {
+    throw new UnsupportedError("effectiveTargetInternal=");
   }
 
+  @override
+  get _effectiveTargetType {
+    throw new UnsupportedError("_effectiveTargetType");
+  }
+
+  @override
+  set _effectiveTargetType(_) {
+    throw new UnsupportedError("_effectiveTargetType=");
+  }
+
+  @override
   get effectiveTargetType {
     throw new UnsupportedError("effectiveTargetType");
   }
 
-  set effectiveTargetType(_) {
-    throw new UnsupportedError("effectiveTargetType=");
+  @override
+  get _isEffectiveTargetMalformed {
+    throw new UnsupportedError("_isEffectiveTargetMalformed");
   }
 
+  @override
+  set _isEffectiveTargetMalformed(_) {
+    throw new UnsupportedError("_isEffectiveTargetMalformed=");
+  }
+
+  @override
+  get isEffectiveTargetMalformed {
+    throw new UnsupportedError("isEffectiveTargetMalformed");
+  }
+
+  @override
+  void setEffectiveTarget(ConstructorElement target,
+                            InterfaceType type,
+                            {bool isMalformed: false}) {
+    throw new UnsupportedError("setEffectiveTarget");
+  }
+
+  @override
+  void _computeSignature(Resolution resolution) {
+    throw new UnsupportedError("_computeSignature");
+  }
+
+  @override
   get typeCache {
     throw new UnsupportedError("typeCache");
   }
 
+  @override
   set typeCache(_) {
     throw new UnsupportedError("typeCache=");
   }
 
+  @override
   get immediateRedirectionTarget {
     throw new UnsupportedError("immediateRedirectionTarget");
   }
 
+  @override
   set immediateRedirectionTarget(_) {
     throw new UnsupportedError("immediateRedirectionTarget=");
   }
 
-  get functionSignatureCache {
+  @override
+  get _functionSignatureCache {
     throw new UnsupportedError("functionSignatureCache");
   }
 
-  set functionSignatureCache(_) {
+  @override
+  set _functionSignatureCache(_) {
     throw new UnsupportedError("functionSignatureCache=");
   }
 
+  @override
+  set functionSignature(_) {
+    throw new UnsupportedError("functionSignature=");
+  }
+
+  @override
   get nestedClosures {
     throw new UnsupportedError("nestedClosures");
   }
 
+  @override
   set nestedClosures(_) {
     throw new UnsupportedError("nestedClosures=");
   }
 
+  @override
   set redirectionDeferredPrefix(_) {
     throw new UnsupportedError("redirectionDeferredPrefix=");
-  }
-
-  void set effectiveTarget(_) {
-    throw new UnsupportedError("effectiveTarget=");
   }
 }
 
@@ -470,22 +510,24 @@ class WarnOnUseElementX extends ElementX implements WarnOnUseElement {
       : this.wrappedElement = wrappedElement,
         super(wrappedElement.name, ElementKind.WARN_ON_USE, enclosingElement);
 
-  Element unwrap(DiagnosticListener listener, Spannable usageSpannable) {
+  Element unwrap(DiagnosticReporter reporter, Spannable usageSpannable) {
     var unwrapped = wrappedElement;
     if (warning != null) {
       Spannable spannable = warning.spannable;
       if (spannable == null) spannable = usageSpannable;
-      listener.reportWarning(
+      DiagnosticMessage warningMessage = reporter.createMessage(
           spannable, warning.messageKind, warning.messageArguments);
-    }
-    if (info != null) {
-      Spannable spannable = info.spannable;
-      if (spannable == null) spannable = usageSpannable;
-      listener.reportInfo(
-          spannable, info.messageKind, info.messageArguments);
+      List<DiagnosticMessage> infos = <DiagnosticMessage>[];
+      if (info != null) {
+        Spannable spannable = info.spannable;
+        if (spannable == null) spannable = usageSpannable;
+        infos.add(reporter.createMessage(
+            spannable, info.messageKind, info.messageArguments));
+      }
+      reporter.reportWarning(warningMessage, infos);
     }
     if (unwrapped.isWarnOnUse) {
-      unwrapped = unwrapped.unwrap(listener, usageSpannable);
+      unwrapped = unwrapped.unwrap(reporter, usageSpannable);
     }
     return unwrapped;
   }
@@ -534,6 +576,11 @@ abstract class AmbiguousElementX extends ElementX implements AmbiguousElement {
     return set;
   }
 
+  List<DiagnosticMessage> computeInfos(Element context,
+                                       DiagnosticReporter reporter) {
+    return const <DiagnosticMessage>[];
+  }
+
   accept(ElementVisitor visitor, arg) {
     return visitor.visitAmbiguousElement(this, arg);
   }
@@ -552,22 +599,25 @@ class AmbiguousImportX extends AmbiguousElementX {
       : super(messageKind, messageArguments, enclosingElement, existingElement,
               newElement);
 
-  void diagnose(Element context, DiagnosticListener listener) {
+  List<DiagnosticMessage> computeInfos(
+      Element context,
+      DiagnosticReporter reporter) {
+    List<DiagnosticMessage> infos = <DiagnosticMessage>[];
     Setlet ambiguousElements = flatten();
     MessageKind code = (ambiguousElements.length == 1)
         ? MessageKind.AMBIGUOUS_REEXPORT : MessageKind.AMBIGUOUS_LOCATION;
     LibraryElementX importer = context.library;
     for (Element element in ambiguousElements) {
-      var arguments = {'name': element.name};
-      listener.reportInfo(element, code, arguments);
-      Link<Import> importers = importer.importers.getImports(element);
-      listener.withCurrentElement(importer, () {
-        for (; !importers.isEmpty; importers = importers.tail) {
-          listener.reportInfo(
-              importers.head, MessageKind.IMPORTED_HERE, arguments);
+      Map arguments = {'name': element.name};
+      infos.add(reporter.createMessage(element, code, arguments));
+      reporter.withCurrentElement(importer, () {
+        for (ImportElement import in importer.importers.getImports(element)) {
+          infos.add(reporter.createMessage(
+              import, MessageKind.IMPORTED_HERE, arguments));
         }
       });
     }
+    return infos;
   }
 }
 
@@ -580,7 +630,7 @@ class DuplicatedElementX extends AmbiguousElementX {
       : super(messageKind, messageArguments, enclosingElement, existingElement,
               newElement);
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 }
 
 class ScopeX {
@@ -593,17 +643,24 @@ class ScopeX {
     return contents[name];
   }
 
-  void add(Element element, DiagnosticListener listener) {
+  void add(Element element, DiagnosticReporter reporter) {
     String name = element.name;
     if (element.isAccessor) {
-      addAccessor(element, contents[name], listener);
+      addAccessor(element, contents[name], reporter);
     } else {
       Element existing = contents.putIfAbsent(name, () => element);
       if (!identical(existing, element)) {
-        listener.reportError(
-            element, MessageKind.DUPLICATE_DEFINITION, {'name': name});
-        listener.reportInfo(existing,
-            MessageKind.EXISTING_DEFINITION, {'name': name});
+        reporter.reportError(
+            reporter.createMessage(
+                element,
+                MessageKind.DUPLICATE_DEFINITION,
+                {'name': name}),
+            <DiagnosticMessage>[
+                reporter.createMessage(
+                    existing,
+                    MessageKind.EXISTING_DEFINITION,
+                    {'name': name}),
+            ]);
       }
     }
   }
@@ -623,13 +680,19 @@ class ScopeX {
    */
   void addAccessor(AccessorElementX accessor,
                    Element existing,
-                   DiagnosticListener listener) {
+                   DiagnosticReporter reporter) {
     void reportError(Element other) {
-      listener.reportError(accessor,
-                           MessageKind.DUPLICATE_DEFINITION,
-                           {'name': accessor.name});
-      listener.reportInfo(
-          other, MessageKind.EXISTING_DEFINITION, {'name': accessor.name});
+      reporter.reportError(
+          reporter.createMessage(
+              accessor,
+              MessageKind.DUPLICATE_DEFINITION,
+              {'name': accessor.name}),
+          <DiagnosticMessage>[
+              reporter.createMessage(
+                  other,
+                  MessageKind.EXISTING_DEFINITION,
+                  {'name': accessor.name}),
+          ]);
 
       contents[accessor.name] = new DuplicatedElementX(
           MessageKind.DUPLICATE_DEFINITION, {'name': accessor.name},
@@ -668,7 +731,7 @@ class ScopeX {
       } else {
         field.setter = accessor;
       }
-      add(field, listener);
+      add(field, reporter);
     }
   }
 }
@@ -708,30 +771,32 @@ class CompilationUnitElementX extends ElementX
     localMembers.forEach(f);
   }
 
-  void addMember(Element element, DiagnosticListener listener) {
+  void addMember(Element element, DiagnosticReporter reporter) {
     // Keep a list of top level members.
     localMembers = localMembers.prepend(element);
     // Provide the member to the library to build scope.
     if (enclosingElement.isPatch) {
-      implementationLibrary.addMember(element, listener);
+      implementationLibrary.addMember(element, reporter);
     } else {
-      library.addMember(element, listener);
+      library.addMember(element, reporter);
     }
   }
 
-  void setPartOf(PartOf tag, DiagnosticListener listener) {
+  void setPartOf(PartOf tag, DiagnosticReporter reporter) {
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
+      // This compilation unit is loaded as a library. The error is reported by
+      // the library loader.
       partTag = tag;
-      listener.reportError(tag, MessageKind.IMPORT_PART_OF);
       return;
     }
     if (!localMembers.isEmpty) {
-      listener.reportError(tag, MessageKind.BEFORE_TOP_LEVEL);
+      reporter.reportErrorMessage(
+          tag, MessageKind.BEFORE_TOP_LEVEL);
       return;
     }
     if (partTag != null) {
-      listener.reportWarning(tag, MessageKind.DUPLICATED_PART_OF);
+      reporter.reportWarningMessage(tag, MessageKind.DUPLICATED_PART_OF);
       return;
     }
     partTag = tag;
@@ -740,16 +805,22 @@ class CompilationUnitElementX extends ElementX
     if (libraryTag != null) {
       String expectedName = libraryTag.name.toString();
       if (expectedName != actualName) {
-        listener.reportWarning(tag.name,
+        reporter.reportWarningMessage(
+            tag.name,
             MessageKind.LIBRARY_NAME_MISMATCH,
             {'libraryName': expectedName});
       }
     } else {
-      listener.reportWarning(library,
-          MessageKind.MISSING_LIBRARY_NAME,
-          {'libraryName': actualName});
-      listener.reportInfo(tag.name,
-          MessageKind.THIS_IS_THE_PART_OF_TAG);
+      reporter.reportWarning(
+          reporter.createMessage(
+              library,
+              MessageKind.MISSING_LIBRARY_NAME,
+              {'libraryName': actualName}),
+          <DiagnosticMessage>[
+              reporter.createMessage(
+                  tag.name,
+                  MessageKind.THIS_IS_THE_PART_OF_TAG),
+          ]);
     }
   }
 
@@ -762,22 +833,26 @@ class CompilationUnitElementX extends ElementX
   }
 }
 
+/// Map from [Element] to the [ImportElement]s throught which it was imported.
+///
+/// This is used for error reporting and deferred loading.
 class Importers {
-  Map<Element, Link<Import>> importers = new Map<Element, Link<Import>>();
+  Map<Element, List<ImportElement>> importers =
+      new Map<Element, List<ImportElement>>();
 
-  Link<Import> getImports(Element element) {
-    Link<Import> imports = importers[element];
-    return imports != null ? imports : const Link<Import>();
+  /// Returns the the list of [ImportElement]s through which [element] was
+  /// imported.
+  List<ImportElement> getImports(Element element) {
+    List<ImportElement> imports = importers[element];
+    return imports != null ? imports : const <ImportElement>[];
   }
 
-  Import getImport(Element element) => getImports(element).head;
+  /// Returns the first [ImportElement] through which [element] was imported.
+  ImportElement getImport(Element element) => getImports(element).first;
 
-  void registerImport(Element element, Import import) {
-    if (import == null) return;
-
-    importers[element] =
-        importers.putIfAbsent(element, () => const Link<Import>())
-          .prepend(import);
+  /// Register [element] as imported through [import];
+  void registerImport(Element element, ImportElement import) {
+    importers.putIfAbsent(element, () => <ImportElement>[]).add(import);
   }
 }
 
@@ -800,8 +875,8 @@ class ImportScope {
    */
   void addImport(Element enclosingElement,
                  Element element,
-                 Import import,
-                 DiagnosticListener listener) {
+                 ImportElement import,
+                 DiagnosticReporter reporter) {
     LibraryElementX library = enclosingElement.library;
     Importers importers = library.importers;
 
@@ -815,7 +890,7 @@ class ImportScope {
     Element existing = importScope.putIfAbsent(name, () => element);
     importers.registerImport(element, import);
 
-    void registerWarnOnUseElement(Import import,
+    void registerWarnOnUseElement(ImportElement import,
                                   MessageKind messageKind,
                                   Element hidingElement,
                                   Element hiddenElement) {
@@ -827,7 +902,7 @@ class ImportScope {
               messageKind,
               {'name': name, 'hiddenUri': hiddenUri, 'hidingUri': hidingUri}),
           new WrappedMessage(
-              listener.spanFromSpannable(import),
+              reporter.spanFromSpannable(import),
               MessageKind.IMPORTED_HERE,
               {'name': name}),
           enclosingElement, hidingElement);
@@ -836,7 +911,7 @@ class ImportScope {
     }
 
     if (existing != element) {
-      Import existingImport = importers.getImport(existing);
+      ImportElement existingImport = importers.getImport(existing);
       if (existing.library.isPlatformLibrary &&
           !element.library.isPlatformLibrary) {
         // [existing] is implicitly hidden.
@@ -845,7 +920,7 @@ class ImportScope {
       } else if (!existing.library.isPlatformLibrary &&
                  element.library.isPlatformLibrary) {
         // [element] is implicitly hidden.
-        if (import == null) {
+        if (import.isSynthesized) {
           // [element] is imported implicitly (probably through dart:core).
           registerWarnOnUseElement(
               existingImport, MessageKind.HIDDEN_IMPLICIT_IMPORT,
@@ -866,6 +941,94 @@ class ImportScope {
   }
 
   Element operator [](String name) => importScope[name];
+
+  void forEach(f(Element element)) => importScope.values.forEach(f);
+}
+
+abstract class LibraryDependencyElementX extends ElementX {
+  final LibraryDependency node;
+  final Uri uri;
+  LibraryElement libraryDependency;
+
+  LibraryDependencyElementX(CompilationUnitElement enclosingElement,
+                            ElementKind kind,
+                            this.node,
+                            this.uri)
+      : super('', kind, enclosingElement);
+
+  @override
+  List<MetadataAnnotation> get metadata => node.metadata;
+
+  void set metadata(value) {
+    // The metadata is stored on [libraryDependency].
+    throw new SpannableAssertionFailure(
+        this, 'Cannot set metadata on a import/export.');
+  }
+
+  @override
+  Token get position => node.getBeginToken();
+
+  SourceSpan get sourcePosition {
+    return new SourceSpan.fromNode(compilationUnit.script.resourceUri, node);
+  }
+
+  String toString() => '$kind($uri)';
+}
+
+class ImportElementX extends LibraryDependencyElementX
+    implements ImportElement {
+  PrefixElementX prefix;
+
+  ImportElementX(CompilationUnitElement enclosingElement, Import node, Uri uri)
+      : super(enclosingElement, ElementKind.IMPORT, node, uri);
+
+  @override
+  Import get node => super.node;
+
+  @override
+  LibraryElement get importedLibrary => libraryDependency;
+
+  @override
+  accept(ElementVisitor visitor, arg) => visitor.visitImportElement(this, arg);
+
+  @override
+  bool get isDeferred => node.isDeferred;
+}
+
+class SyntheticImportElement extends ImportElementX {
+  SyntheticImportElement(CompilationUnitElement enclosingElement, Uri uri)
+      : super(enclosingElement, null, uri);
+
+  @override
+  Token get position => library.position;
+
+  @override
+  bool get isSynthesized => true;
+
+  @override
+  bool get isDeferred => false;
+
+  @override
+  List<MetadataAnnotation> get metadata => const <MetadataAnnotation>[];
+
+  @override
+  SourceSpan get sourcePosition => library.sourcePosition;
+}
+
+
+class ExportElementX extends LibraryDependencyElementX
+    implements ExportElement {
+
+  ExportElementX(CompilationUnitElement enclosingElement, Export node, Uri uri)
+      : super(enclosingElement, ElementKind.EXPORT, node, uri);
+
+  Export get node => super.node;
+
+  @override
+  LibraryElement get exportedLibrary => libraryDependency;
+
+  @override
+  accept(ElementVisitor visitor, arg) => visitor.visitExportElement(this, arg);
 }
 
 class LibraryElementX
@@ -885,7 +1048,6 @@ class LibraryElementX
   LinkBuilder<LibraryTag> tagsBuilder = new LinkBuilder<LibraryTag>();
   List<LibraryTag> tagsCache;
   LibraryName libraryTag;
-  bool canUseNative = false;
   Link<Element> localMembers = const Link<Element>();
   final ScopeX localScope = new ScopeX();
   final ImportScope importScope = new ImportScope();
@@ -902,6 +1064,9 @@ class LibraryElementX
    * library is loaded.
    */
   Link<Element> slotForExports;
+
+  List<ImportElement> _imports = <ImportElement>[];
+  List<ExportElement> _exports = <ExportElement>[];
 
   final Map<LibraryDependency, LibraryElement> tagMapping =
       new Map<LibraryDependency, LibraryElement>();
@@ -938,9 +1103,9 @@ class LibraryElementX
     compilationUnits = compilationUnits.prepend(element);
   }
 
-  void addTag(LibraryTag tag, DiagnosticListener listener) {
+  void addTag(LibraryTag tag, DiagnosticReporter reporter) {
     if (tagsCache != null) {
-      listener.internalError(tag,
+      reporter.internalError(tag,
           "Library tags for $this have already been computed.");
     }
     tagsBuilder.addLast(tag);
@@ -954,13 +1119,17 @@ class LibraryElementX
     return tagsCache;
   }
 
-  /// Record which element an import or export tag resolved to.
-  void recordResolvedTag(LibraryDependency tag, LibraryElement library) {
-    assert(tagMapping[tag] == null);
-    tagMapping[tag] = library;
+  void addImportDeclaration(ImportElement import) {
+    _imports.add(import);
   }
 
-  LibraryElement getLibraryFromTag(LibraryDependency tag) => tagMapping[tag];
+  Iterable<ImportElement> get imports => _imports;
+
+  void addExportDeclaration(ExportElement export) {
+    _exports.add(export);
+  }
+
+  Iterable<ExportElement> get exports => _exports;
 
   /**
    * Adds [element] to the import scope of this library.
@@ -969,17 +1138,19 @@ class LibraryElementX
    * [ErroneousElement] will be put in the imported scope, allowing for
    * detection of ambiguous uses of imported names.
    */
-  void addImport(Element element, Import import, DiagnosticListener listener) {
-    importScope.addImport(this, element, import, listener);
+  void addImport(Element element,
+                 ImportElement import,
+                 DiagnosticReporter reporter) {
+    importScope.addImport(this, element, import, reporter);
   }
 
-  void addMember(Element element, DiagnosticListener listener) {
+  void addMember(Element element, DiagnosticReporter reporter) {
     localMembers = localMembers.prepend(element);
-    addToScope(element, listener);
+    addToScope(element, reporter);
   }
 
-  void addToScope(Element element, DiagnosticListener listener) {
-    localScope.add(element, listener);
+  void addToScope(Element element, DiagnosticReporter reporter) {
+    localScope.add(element, reporter);
   }
 
   Element localLookup(String elementName) {
@@ -995,12 +1166,6 @@ class LibraryElementX
    * library.
    */
   bool get exportsHandled => slotForExports != null;
-
-  Link<Element> get exports {
-    assert(invariant(this, exportsHandled,
-                     message: 'Exports not handled on $this'));
-    return slotForExports;
-  }
 
   /**
    * Sets the export scope of this library. This method can only be called once.
@@ -1053,7 +1218,9 @@ class LibraryElementX
   }
 
   Element findExported(String elementName) {
-    for (Link link = exports; !link.isEmpty; link = link.tail) {
+    assert(invariant(this, exportsHandled,
+                     message: 'Exports not handled on $this'));
+    for (Link link = slotForExports; !link.isEmpty; link = link.tail) {
       Element element = link.head;
       if (element.name == elementName) return element;
     }
@@ -1061,15 +1228,16 @@ class LibraryElementX
   }
 
   void forEachExport(f(Element element)) {
-    exports.forEach((Element e) => f(e));
+    assert(invariant(this, exportsHandled,
+                     message: 'Exports not handled on $this'));
+    slotForExports.forEach((Element e) => f(e));
   }
 
-  Link<Import> getImportsFor(Element element) => importers.getImports(element);
-
-  @override
-  void forEachImport(f(Element element)) {
-    importScope.importScope.values.forEach(f);
+  Iterable<ImportElement> getImportsFor(Element element) {
+    return importers.getImports(element);
   }
+
+  void forEachImport(f(Element element)) => importScope.forEach(f);
 
   void forEachLocalMember(f(Element element)) {
     if (isPatch) {
@@ -1096,15 +1264,21 @@ class LibraryElementX
     });
   }
 
-  bool hasLibraryName() => libraryTag != null;
+  bool get hasLibraryName => libraryTag != null;
 
-  /**
-   * Returns the library name, which is either the name given in the library tag
-   * or the empty string if there is no library tag.
-   */
-  String getLibraryName() {
+  String get libraryName {
     if (libraryTag == null) return '';
     return libraryTag.name.toString();
+  }
+
+  String get libraryOrScriptName {
+    if (libraryTag != null) {
+      return libraryTag.name.toString();
+    } else {
+      // Use the file name as script name.
+      String path = canonicalUri.path;
+      return path.substring(path.lastIndexOf('/') + 1);
+    }
   }
 
   Scope buildScope() => new LibraryScope(this);
@@ -1133,33 +1307,33 @@ class PrefixElementX extends ElementX implements PrefixElement {
 
   final ImportScope importScope = new ImportScope();
 
-  bool get isDeferred => _deferredImport != null;
+  bool get isDeferred => deferredImport != null;
 
   // Only needed for deferred imports.
-  Import _deferredImport;
-  Import get deferredImport => _deferredImport;
+  final ImportElement deferredImport;
 
-  PrefixElementX(String prefix, Element enclosing, this.firstPosition)
+  PrefixElementX(String prefix,
+                 Element enclosing,
+                 this.firstPosition,
+                 this.deferredImport)
       : super(prefix, ElementKind.PREFIX, enclosing);
 
   bool get isTopLevel => false;
 
   Element lookupLocalMember(String memberName) => importScope[memberName];
 
-  DartType computeType(Compiler compiler) => const DynamicType();
+  DartType computeType(Resolution resolution) => const DynamicType();
 
   Token get position => firstPosition;
 
-  void addImport(Element element, Import import, DiagnosticListener listener) {
-    importScope.addImport(this, element, import, listener);
+  void addImport(Element element,
+                 ImportElement import,
+                 DiagnosticReporter reporter) {
+    importScope.addImport(this, element, import, reporter);
   }
 
   accept(ElementVisitor visitor, arg) {
     return visitor.visitPrefixElement(this, arg);
-  }
-
-  void markAsDeferred(Import deferredImport) {
-    _deferredImport = deferredImport;
   }
 
   String toString() => '$kind($name)';
@@ -1175,7 +1349,13 @@ class TypedefElementX extends ElementX
   /**
    * The type annotation which defines this typedef.
    */
-  DartType alias;
+  DartType aliasCache;
+
+  DartType get alias {
+    assert(invariant(this, hasBeenCheckedForCycles,
+        message: "$this has not been checked for cycles."));
+    return aliasCache;
+  }
 
   /// [:true:] if the typedef has been checked for cyclic reference.
   bool hasBeenCheckedForCycles = false;
@@ -1203,17 +1383,17 @@ class TypedefElementX extends ElementX
    */
   FunctionSignature functionSignature;
 
-  TypedefType computeType(Compiler compiler) {
+  TypedefType computeType(Resolution resolution) {
     if (thisTypeCache != null) return thisTypeCache;
-    Typedef node = parseNode(compiler);
-    setThisAndRawTypes(compiler, createTypeVariables(node.typeParameters));
-    ensureResolved(compiler);
+    Typedef node = parseNode(resolution.parsing);
+    setThisAndRawTypes(createTypeVariables(node.typeParameters));
+    ensureResolved(resolution);
     return thisTypeCache;
   }
 
-  void ensureResolved(Compiler compiler) {
+  void ensureResolved(Resolution resolution) {
     if (resolutionState == STATE_NOT_STARTED) {
-      compiler.resolver.resolve(this);
+      resolution.resolveTypedef(this);
     }
   }
 
@@ -1225,10 +1405,11 @@ class TypedefElementX extends ElementX
     return new TypeDeclarationScope(enclosingElement.buildScope(), this);
   }
 
-  void checkCyclicReference(Compiler compiler) {
+  void checkCyclicReference(Resolution resolution) {
     if (hasBeenCheckedForCycles) return;
-    var visitor = new TypedefCyclicVisitor(compiler, this);
-    computeType(compiler).accept(visitor, null);
+    TypedefCyclicVisitor visitor =
+        new TypedefCyclicVisitor(resolution.reporter, this);
+    computeType(resolution).accept(visitor, null);
     hasBeenCheckedForCycles = true;
   }
 
@@ -1276,11 +1457,11 @@ class VariableList implements DeclarationSite {
     metadataInternal = metadata;
   }
 
-  VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
+  VariableDefinitions parseNode(Element element, Parsing parsing) {
     return definitions;
   }
 
-  DartType computeType(Element element, Compiler compiler) => type;
+  DartType computeType(Element element, Resolution resolution) => type;
 }
 
 abstract class ConstantVariableMixin implements VariableElement {
@@ -1300,7 +1481,7 @@ abstract class ConstantVariableMixin implements VariableElement {
     if (isPatch) {
       ConstantVariableMixin originVariable = origin;
       originVariable.constant = value;
-      return null;
+      return;
     }
     assert(invariant(
         this, constantCache == null || constantCache == value,
@@ -1359,10 +1540,10 @@ abstract class VariableElementX extends ElementX
     return initializerCache;
   }
 
-  Node parseNode(DiagnosticListener listener) {
+  Node parseNode(Parsing parsing) {
     if (definitionsCache != null) return definitionsCache;
 
-    VariableDefinitions definitions = variables.parseNode(this, listener);
+    VariableDefinitions definitions = variables.parseNode(this, parsing);
     createDefinitions(definitions);
     return definitionsCache;
   }
@@ -1402,14 +1583,12 @@ abstract class VariableElementX extends ElementX
     }
   }
 
-  DartType computeType(Compiler compiler) {
+  DartType computeType(Resolution resolution) {
     if (variables.type != null) return variables.type;
     // Call [parseNode] to ensure that [definitionsCache] and [initializerCache]
     // are set as a consequence of calling [computeType].
-    return compiler.withCurrentElement(this, () {
-      parseNode(compiler);
-      return variables.computeType(this, compiler);
-    });
+    parseNode(resolution.parsing);
+    return variables.computeType(this, resolution);
   }
 
   DartType get type {
@@ -1521,7 +1700,7 @@ class ErroneousFieldElementX extends ElementX
 
   get initializer => null;
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 
   get nestedClosures {
     throw new UnsupportedError("nestedClosures");
@@ -1550,7 +1729,7 @@ class ErroneousFieldElementX extends ElementX
     throw new UnsupportedError("copyWithEnclosing");
   }
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 }
 
 /// [Element] for a parameter-like element.
@@ -1566,7 +1745,7 @@ class FormalElementX extends ElementX
    * kept to provide full information about parameter names through the mirror
    * system.
    */
-  FunctionSignature functionSignatureCache;
+  FunctionSignature _functionSignatureCache;
 
   FormalElementX(ElementKind elementKind,
                  FunctionTypedElement enclosingElement,
@@ -1581,9 +1760,9 @@ class FormalElementX extends ElementX
 
   Token get position => identifier.getBeginToken();
 
-  Node parseNode(DiagnosticListener listener) => definitions;
+  Node parseNode(Parsing parsing) => definitions;
 
-  DartType computeType(Compiler compiler) {
+  DartType computeType(Resolution resolution) {
     assert(invariant(this, type != null,
         message: "Parameter type has not been set for $this."));
     return type;
@@ -1596,9 +1775,16 @@ class FormalElementX extends ElementX
   }
 
   FunctionSignature get functionSignature {
-    assert(invariant(this, typeCache != null,
-            message: "Parameter signature has not been set for $this."));
-    return functionSignatureCache;
+    assert(invariant(this, _functionSignatureCache != null,
+        message: "Parameter signature has not been computed for $this."));
+    return _functionSignatureCache;
+  }
+
+  void set functionSignature(FunctionSignature value) {
+    assert(invariant(this, _functionSignatureCache == null,
+        message: "Parameter signature has already been computed for $this."));
+    _functionSignatureCache = value;
+    typeCache = _functionSignatureCache.type;
   }
 
   bool get hasNode => true;
@@ -1720,7 +1906,7 @@ class ErroneousInitializingFormalElementX extends ParameterElementX
 
   bool get isLocal => false;
 
-  bool get isErroneous => true;
+  bool get isMalformed => true;
 
   DynamicType get type => const DynamicType();
 }
@@ -1736,7 +1922,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     throw "internal error: AbstractFieldElement has no type";
   }
 
-  Node parseNode(DiagnosticListener listener) {
+  Node parseNode(Parsing parsing) {
     throw "internal error: AbstractFieldElement has no node";
   }
 
@@ -1818,7 +2004,7 @@ abstract class BaseFunctionElementX
 
   List<FunctionElement> nestedClosures = new List<FunctionElement>();
 
-  FunctionSignature functionSignatureCache;
+  FunctionSignature _functionSignatureCache;
 
   AsyncMarker asyncMarker = AsyncMarker.SYNC;
 
@@ -1838,20 +2024,26 @@ abstract class BaseFunctionElementX
            && !isStatic;
   }
 
-  bool get hasFunctionSignature => functionSignatureCache != null;
+  bool get hasFunctionSignature => _functionSignatureCache != null;
 
-  FunctionSignature computeSignature(Compiler compiler) {
-    if (functionSignatureCache != null) return functionSignatureCache;
-    compiler.withCurrentElement(this, () {
-      functionSignatureCache = compiler.resolver.resolveSignature(this);
-    });
-    return functionSignatureCache;
+  void _computeSignature(Resolution resolution) {
+    if (hasFunctionSignature) return;
+    functionSignature = resolution.resolveSignature(this);
   }
 
   FunctionSignature get functionSignature {
-    assert(invariant(this, functionSignatureCache != null,
+    assert(invariant(this, hasFunctionSignature,
         message: "Function signature has not been computed for $this."));
-    return functionSignatureCache;
+    return _functionSignatureCache;
+  }
+
+  void set functionSignature(FunctionSignature value) {
+    // TODO(johnniwinther): Strengthen the invariant to `!hasFunctionSignature`
+    // when checked mode checks are not enqueued eagerly.
+    assert(invariant(this, !hasFunctionSignature || type == value.type,
+        message: "Function signature has already been computed for $this."));
+    _functionSignatureCache = value;
+    typeCache = _functionSignatureCache.type;
   }
 
   List<ParameterElement> get parameters {
@@ -1862,9 +2054,11 @@ abstract class BaseFunctionElementX
     return list;
   }
 
-  FunctionType computeType(Compiler compiler) {
+  FunctionType computeType(Resolution resolution) {
     if (typeCache != null) return typeCache;
-    typeCache = computeSignature(compiler).type;
+    _computeSignature(resolution);
+    assert(invariant(this, typeCache != null,
+        message: "Type cache expected to be set on $this."));
     return typeCache;
   }
 
@@ -1907,10 +2101,29 @@ abstract class FunctionElementX extends BaseFunctionElementX
 
   MemberElement get memberContext => this;
 
+  @override
+  SourceSpan get sourcePosition {
+    SourceSpan span = super.sourcePosition;
+    if (span != null && hasNode) {
+      FunctionExpression functionExpression = node.asFunctionExpression();
+      if (functionExpression != null) {
+        Token begin = functionExpression.getBeginToken();
+        Token end;
+        if (functionExpression.parameters != null) {
+          end = functionExpression.parameters.getEndToken();
+        } else {
+          end = functionExpression.name.getEndToken();
+        }
+        span = new SourceSpan.fromTokens(span.uri, begin, end);
+      }
+    }
+    return span;
+  }
+
   void reuseElement() {
     super.reuseElement();
     nestedClosures.clear();
-    functionSignatureCache = null;
+    _functionSignatureCache = null;
     typeCache = null;
   }
 }
@@ -1981,7 +2194,7 @@ class LocalFunctionElementX extends BaseFunctionElementX
 
   bool get hasNode => true;
 
-  FunctionExpression parseNode(DiagnosticListener listener) => node;
+  FunctionExpression parseNode(Parsing parsing) => node;
 
   Token get position {
     // Use the name as position if this is not an unnamed closure.
@@ -2057,29 +2270,53 @@ abstract class ConstructorElementX extends FunctionElementX
   // generative constructors.
   bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
 
-  /// This field is set by the post process queue when checking for cycles.
-  ConstructorElement internalEffectiveTarget;
-  DartType effectiveTargetType;
+  /// These fields are set by the post process queue when checking for cycles.
+  ConstructorElement effectiveTargetInternal;
+  DartType _effectiveTargetType;
+  bool _isEffectiveTargetMalformed;
 
-  void set effectiveTarget(ConstructorElement constructor) {
-    assert(constructor != null && internalEffectiveTarget == null);
-    internalEffectiveTarget = constructor;
+  void setEffectiveTarget(ConstructorElement target,
+                          DartType type,
+                          {bool isMalformed: false}) {
+    assert(invariant(this, target != null,
+        message: 'No effective target provided for $this.'));
+    assert(invariant(this, effectiveTargetInternal == null,
+        message: 'Effective target has already been computed for $this.'));
+    effectiveTargetInternal = target;
+    _effectiveTargetType = type;
+    _isEffectiveTargetMalformed = isMalformed;
   }
 
   ConstructorElement get effectiveTarget {
-    if (Elements.isErroneous(immediateRedirectionTarget)) {
+    if (Elements.isMalformed(immediateRedirectionTarget)) {
       return immediateRedirectionTarget;
     }
-    assert(!isRedirectingFactory || internalEffectiveTarget != null);
-    return isRedirectingFactory ? internalEffectiveTarget : this;
+    assert(!isRedirectingFactory || effectiveTargetInternal != null);
+    if (isRedirectingFactory) {
+      return effectiveTargetInternal;
+    }
+    if (isPatched) {
+      return effectiveTargetInternal ?? this;
+    }
+    return this;
+  }
+
+  InterfaceType get effectiveTargetType {
+    assert(invariant(this, _effectiveTargetType != null,
+        message: 'Effective target type has not yet been computed for $this.'));
+    return _effectiveTargetType;
   }
 
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {
     if (!isRedirectingFactory) return newType;
-    assert(invariant(this, effectiveTargetType != null,
-        message: 'Redirection target type has not yet been computed for '
-                 '$this.'));
     return effectiveTargetType.substByContext(newType);
+  }
+
+  bool get isEffectiveTargetMalformed {
+    if (!isRedirectingFactory) return false;
+    assert(invariant(this, _isEffectiveTargetMalformed != null,
+            message: 'Malformedness has not yet been computed for $this.'));
+    return _isEffectiveTargetMalformed == true;
   }
 
   accept(ElementVisitor visitor, arg) {
@@ -2100,15 +2337,8 @@ class DeferredLoaderGetterElementX extends GetterElementX
         super("loadLibrary",
               Modifiers.EMPTY,
               prefix,
-              false);
-
-  FunctionSignature computeSignature(Compiler compiler) {
-    if (functionSignatureCache != null) return functionSignature;
-    compiler.withCurrentElement(this, () {
-      DartType inner = new FunctionType(this);
-      functionSignatureCache = new FunctionSignatureX(type: inner);
-    });
-    return functionSignatureCache;
+              false) {
+    functionSignature = new FunctionSignatureX(type: new FunctionType(this));
   }
 
   bool get isClassMember => false;
@@ -2122,7 +2352,7 @@ class DeferredLoaderGetterElementX extends GetterElementX
   // error messages.
   Token get position => null;
 
-  FunctionExpression parseNode(DiagnosticListener listener) => null;
+  FunctionExpression parseNode(Parsing parsing) => null;
 
   bool get hasNode => false;
 
@@ -2142,7 +2372,7 @@ class ConstructorBodyElementX extends BaseFunctionElementX
               ElementKind.GENERATIVE_CONSTRUCTOR_BODY,
               Modifiers.EMPTY,
               constructor.enclosingElement) {
-    functionSignatureCache = constructor.functionSignature;
+    functionSignature = constructor.functionSignature;
   }
 
   bool get hasNode => constructor.hasNode;
@@ -2153,8 +2383,9 @@ class ConstructorBodyElementX extends BaseFunctionElementX
 
   bool get isInstanceMember => true;
 
-  FunctionType computeType(Compiler compiler) {
-    compiler.internalError(this, '$this.computeType.');
+  FunctionType computeType(Resolution resolution) {
+    DiagnosticReporter reporter = resolution.reporter;
+    reporter.internalError(this, '$this.computeType.');
     return null;
   }
 
@@ -2198,11 +2429,11 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
               ElementKind.GENERATIVE_CONSTRUCTOR,
               Modifiers.EMPTY,
               enclosing) {
-    typeCache = new FunctionType.synthesized(enclosingClass.thisType);
-    functionSignatureCache = new FunctionSignatureX(type: type);
+    functionSignature = new FunctionSignatureX(
+        type: new FunctionType.synthesized(enclosingClass.thisType));
   }
 
-  FunctionExpression parseNode(DiagnosticListener listener) => null;
+  FunctionExpression parseNode(Parsing parsing) => null;
 
   bool get hasNode => false;
 
@@ -2222,18 +2453,16 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
     }
   }
 
-  FunctionSignature computeSignature(compiler) {
-    if (functionSignatureCache != null) return functionSignatureCache;
-    if (definingConstructor.isErroneous) {
-      return functionSignatureCache =
-          compiler.objectClass.localLookup('').computeSignature(compiler);
+  void _computeSignature(Resolution resolution) {
+    if (hasFunctionSignature) return;
+    if (definingConstructor.isMalformed) {
+      functionSignature = new FunctionSignatureX(
+          type: new FunctionType.synthesized(enclosingClass.thisType));
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
-    definingConstructor.computeType(compiler);
-    functionSignatureCache = definingConstructor.functionSignature;
-    typeCache = definingConstructor.type;
-    return functionSignatureCache;
+    definingConstructor.computeType(resolution);
+    functionSignature = definingConstructor.functionSignature;
   }
 
   accept(ElementVisitor visitor, arg) {
@@ -2290,7 +2519,7 @@ abstract class TypeDeclarationElementX<T extends GenericType>
 
   T createType(List<DartType> typeArguments);
 
-  void setThisAndRawTypes(Compiler compiler, List<DartType> typeParameters) {
+  void setThisAndRawTypes(List<DartType> typeParameters) {
     assert(invariant(this, thisTypeCache == null,
         message: "This type has already been set on $this."));
     assert(invariant(this, rawTypeCache == null,
@@ -2348,7 +2577,6 @@ abstract class BaseClassElementX extends ElementX
 
   DartType supertype;
   Link<DartType> interfaces;
-  String nativeTagInfo;
   int supertypeLoadState;
   int resolutionState;
   bool isProxy = false;
@@ -2377,23 +2605,25 @@ abstract class BaseClassElementX extends ElementX
   @override
   bool get isEnumClass => false;
 
-  InterfaceType computeType(Compiler compiler) {
+  InterfaceType computeType(Resolution resolution) {
     if (isPatch) {
-      origin.computeType(compiler);
+      origin.computeType(resolution);
       thisTypeCache = origin.thisType;
       rawTypeCache = origin.rawType;
     } else if (thisTypeCache == null) {
-      computeThisAndRawType(compiler, computeTypeParameters(compiler));
+      computeThisAndRawType(
+          resolution, computeTypeParameters(resolution.parsing));
     }
     return thisTypeCache;
   }
 
-  void computeThisAndRawType(Compiler compiler, List<DartType> typeVariables) {
+  void computeThisAndRawType(Resolution resolution,
+                             List<DartType> typeVariables) {
     if (thisTypeCache == null) {
       if (origin == null) {
-        setThisAndRawTypes(compiler, typeVariables);
+        setThisAndRawTypes(typeVariables);
       } else {
-        thisTypeCache = origin.computeType(compiler);
+        thisTypeCache = origin.computeType(resolution);
         rawTypeCache = origin.rawType;
       }
     }
@@ -2404,7 +2634,7 @@ abstract class BaseClassElementX extends ElementX
     return new InterfaceType(this, typeArguments);
   }
 
-  List<DartType> computeTypeParameters(Compiler compiler);
+  List<DartType> computeTypeParameters(Parsing parsing);
 
   bool get isObject {
     assert(invariant(this, isResolved,
@@ -2412,14 +2642,15 @@ abstract class BaseClassElementX extends ElementX
     return supertype == null;
   }
 
-  void ensureResolved(Compiler compiler) {
+  void ensureResolved(Resolution resolution) {
     if (resolutionState == STATE_NOT_STARTED) {
-      compiler.resolver.resolveClass(this);
-      compiler.world.registerClass(this);
+      resolution.resolveClass(this);
+      resolution.registerClass(this);
     }
   }
 
-  void setDefaultConstructor(FunctionElement constructor, Compiler compiler);
+  void setDefaultConstructor(FunctionElement constructor,
+                             DiagnosticReporter reporter);
 
   void addBackendMember(Element member) {
     // TODO(ngeoffray): Deprecate this method.
@@ -2460,7 +2691,8 @@ abstract class BaseClassElementX extends ElementX
    * The returned element may not be resolved yet.
    */
   ClassElement get superclass {
-    assert(supertypeLoadState == STATE_DONE);
+    assert(invariant(this, supertypeLoadState == STATE_DONE,
+        message: "Superclass has not been computed for $this."));
     return supertype == null ? null : supertype.element;
   }
 
@@ -2469,20 +2701,8 @@ abstract class BaseClassElementX extends ElementX
   }
 
   bool implementsFunction(Compiler compiler) {
-    return asInstanceOf(compiler.functionClass) != null || callType != null;
-  }
-
-  bool get isNative => nativeTagInfo != null;
-
-  void setNative(String name) {
-    // TODO(johnniwinther): Assert that this is only called once. The memory
-    // compiler copies pre-processed elements into a new compiler through
-    // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
-    // method.
-    assert(invariant(this, nativeTagInfo == null || nativeTagInfo == name,
-        message: "Native tag info set inconsistently on $this: "
-                 "Existing name '$nativeTagInfo', new name '$name'."));
-    nativeTagInfo = name;
+    return asInstanceOf(compiler.coreClasses.functionClass) != null ||
+        callType != null;
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.
@@ -2512,17 +2732,18 @@ abstract class ClassElementX extends BaseClassElementX {
   bool get isMixinApplication => false;
   bool get hasLocalScopeMembers => !localScope.isEmpty;
 
-  void addMember(Element element, DiagnosticListener listener) {
+  void addMember(Element element, DiagnosticReporter reporter) {
     localMembersCache = null;
     localMembersReversed = localMembersReversed.prepend(element);
-    addToScope(element, listener);
+    addToScope(element, reporter);
   }
 
-  void addToScope(Element element, DiagnosticListener listener) {
+  void addToScope(Element element, DiagnosticReporter reporter) {
     if (element.isField && element.name == name) {
-      listener.reportError(element, MessageKind.MEMBER_USES_CLASS_NAME);
+      reporter.reportErrorMessage(
+          element, MessageKind.MEMBER_USES_CLASS_NAME);
     }
-    localScope.add(element, listener);
+    localScope.add(element, reporter);
   }
 
   Element localLookup(String elementName) {
@@ -2545,13 +2766,14 @@ abstract class ClassElementX extends BaseClassElementX {
     return false;
   }
 
-  void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
+  void setDefaultConstructor(FunctionElement constructor,
+                             DiagnosticReporter reporter) {
     // The default constructor, although synthetic, is part of a class' API.
-    addMember(constructor, compiler);
+    addMember(constructor, reporter);
   }
 
-  List<DartType> computeTypeParameters(Compiler compiler) {
-    ClassNode node = parseNode(compiler);
+  List<DartType> computeTypeParameters(Parsing parsing) {
+    ClassNode node = parseNode(parsing);
     return createTypeVariables(node.typeParameters);
   }
 
@@ -2585,14 +2807,14 @@ class EnumClassElementX extends ClassElementX implements EnumClassElement {
   bool get isEnumClass => true;
 
   @override
-  Node parseNode(Compiler compiler) => node;
+  Node parseNode(Parsing parsing) => node;
 
   @override
   accept(ElementVisitor visitor, arg) {
     return visitor.visitEnumClassElement(this, arg);
   }
 
-  List<DartType> computeTypeParameters(Compiler compiler) => const <DartType>[];
+  List<DartType> computeTypeParameters(Parsing parsing) => const <DartType>[];
 
   List<FieldElement> get enumValues {
     assert(invariant(this, _enumValues != null,
@@ -2622,7 +2844,7 @@ class EnumConstructorElementX extends ConstructorElementX {
   bool get hasNode => true;
 
   @override
-  FunctionExpression parseNode(Compiler compiler) => node;
+  FunctionExpression parseNode(Parsing parsing) => node;
 }
 
 class EnumMethodElementX extends MethodElementX {
@@ -2638,7 +2860,7 @@ class EnumMethodElementX extends MethodElementX {
   bool get hasNode => true;
 
   @override
-  FunctionExpression parseNode(Compiler compiler) => node;
+  FunctionExpression parseNode(Parsing parsing) => node;
 }
 
 class EnumFormalElementX extends InitializingFormalElementX {
@@ -2692,7 +2914,7 @@ class MixinApplicationElementX extends BaseClassElementX
 
   Token get position => node.getBeginToken();
 
-  Node parseNode(DiagnosticListener listener) => node;
+  Node parseNode(Parsing parsing) => node;
 
   FunctionElement lookupLocalConstructor(String name) {
     for (Link<Element> link = constructors;
@@ -2719,24 +2941,25 @@ class MixinApplicationElementX extends BaseClassElementX
     });
   }
 
-  void addMember(Element element, DiagnosticListener listener) {
+  void addMember(Element element, DiagnosticReporter reporter) {
     throw new UnsupportedError("Cannot add member to $this.");
   }
 
-  void addToScope(Element element, DiagnosticListener listener) {
-    listener.internalError(this, 'Cannot add to scope of $this.');
+  void addToScope(Element element, DiagnosticReporter reporter) {
+    reporter.internalError(this, 'Cannot add to scope of $this.');
   }
 
   void addConstructor(FunctionElement constructor) {
     constructors = constructors.prepend(constructor);
   }
 
-  void setDefaultConstructor(FunctionElement constructor, Compiler compiler) {
+  void setDefaultConstructor(FunctionElement constructor,
+                             DiagnosticReporter reporter) {
     assert(!hasConstructor);
     addConstructor(constructor);
   }
 
-  List<DartType> computeTypeParameters(Compiler compiler) {
+  List<DartType> computeTypeParameters(Parsing parsing) {
     NamedMixinApplication named = node.asNamedMixinApplication();
     if (named == null) {
       throw new SpannableAssertionFailure(node,
@@ -2821,7 +3044,7 @@ class TypeVariableElementX extends ElementX with AstElementMixin
 
   TypeDeclarationElement get typeDeclaration => enclosingElement;
 
-  TypeVariableType computeType(compiler) => type;
+  TypeVariableType computeType(Resolution resolution) => type;
 
   TypeVariableType get type {
     assert(invariant(this, typeCache != null,
@@ -2837,7 +3060,7 @@ class TypeVariableElementX extends ElementX with AstElementMixin
 
   bool get hasNode => true;
 
-  Node parseNode(compiler) => node;
+  Node parseNode(Parsing parsing) => node;
 
   Token get position => node.getBeginToken();
 
@@ -2889,18 +3112,18 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
 
   MetadataAnnotationX([this.resolutionState = STATE_NOT_STARTED]);
 
-  MetadataAnnotation ensureResolved(Compiler compiler) {
+  MetadataAnnotation ensureResolved(Resolution resolution) {
     if (annotatedElement.isClass || annotatedElement.isTypedef) {
       TypeDeclarationElement typeDeclaration = annotatedElement;
-      typeDeclaration.ensureResolved(compiler);
+      typeDeclaration.ensureResolved(resolution);
     }
     if (resolutionState == STATE_NOT_STARTED) {
-      compiler.resolver.resolveMetadataAnnotation(this);
+      resolution.resolveMetadataAnnotation(this);
     }
     return this;
   }
 
-  Node parseNode(DiagnosticListener listener);
+  Node parseNode(Parsing parsing);
 
   String toString() => 'MetadataAnnotation($constant, $resolutionState)';
 }
@@ -2911,7 +3134,7 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
 
   ParameterMetadataAnnotation(Metadata this.metadata);
 
-  Node parseNode(DiagnosticListener listener) => metadata.expression;
+  Node parseNode(Parsing parsing) => metadata.expression;
 
   Token get beginToken => metadata.getBeginToken();
 

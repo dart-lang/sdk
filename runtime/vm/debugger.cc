@@ -15,6 +15,7 @@
 #include "vm/globals.h"
 #include "vm/longjump.h"
 #include "vm/json_stream.h"
+#include "vm/message_handler.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
@@ -41,6 +42,8 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
             "are sent to the embedder and use a generic VM breakpoint "
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
+
+DECLARE_FLAG(bool, trace_isolates);
 
 
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
@@ -220,6 +223,7 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
 }
 
 
@@ -254,9 +258,15 @@ void DebuggerEvent::UpdateTimestamp() {
 }
 
 
-bool Debugger::HasEventHandler() {
+bool Debugger::HasAnyEventHandler() {
   return ((event_handler_ != NULL) ||
           Service::isolate_stream.enabled() ||
+          Service::debug_stream.enabled());
+}
+
+
+bool Debugger::HasDebugEventHandler() {
+  return ((event_handler_ != NULL) ||
           Service::debug_stream.enabled());
 }
 
@@ -285,8 +295,6 @@ static bool ServiceNeedsDebuggerEvent(DebuggerEvent::EventType type) {
 
 
 void Debugger::InvokeEventHandler(DebuggerEvent* event) {
-  ASSERT(HasEventHandler());
-
   // Give the event to the Service first, as the debugger event handler
   // may go into a message loop and the Service will not.
   //
@@ -297,7 +305,8 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
     Service::HandleEvent(&service_event);
   }
 
-  if (FLAG_steal_breakpoints && event->IsPauseEvent()) {
+  if ((FLAG_steal_breakpoints || (event_handler_ == NULL)) &&
+      event->IsPauseEvent()) {
     // We allow the embedder's default breakpoint handler to be overridden.
     isolate_->PauseEventHandler();
   } else if (event_handler_ != NULL) {
@@ -306,21 +315,29 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
 
   if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {
     // If we were paused, notify the service that we have resumed.
-    ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
-    service_event.set_top_frame(event->top_frame());
-    Service::HandleEvent(&service_event);
+    const Error& error =
+        Error::Handle(isolate_->object_store()->sticky_error());
+    ASSERT(error.IsNull() || error.IsUnwindError());
+
+    // Only send a resume event when the isolate is not unwinding.
+    if (!error.IsUnwindError()) {
+      ServiceEvent service_event(event->isolate(), ServiceEvent::kResume);
+      service_event.set_top_frame(event->top_frame());
+      Service::HandleEvent(&service_event);
+    }
   }
 }
 
 
 void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
-  if (HasEventHandler()) {
+  if (HasAnyEventHandler()) {
     DebuggerEvent event(isolate_, type);
     ASSERT(event.isolate_id() != ILLEGAL_ISOLATE_ID);
     if (type == DebuggerEvent::kIsolateInterrupted) {
       DebuggerStackTrace* trace = CollectStackTrace();
-      ASSERT(trace->Length() > 0);
-      event.set_top_frame(trace->FrameAt(0));
+      if (trace->Length() > 0) {
+        event.set_top_frame(trace->FrameAt(0));
+      }
       ASSERT(stack_trace_ == NULL);
       stack_trace_ = trace;
       resume_action_ = kContinue;
@@ -334,11 +351,17 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
 }
 
 
-void Debugger::SignalIsolateInterrupted() {
-  if (HasEventHandler()) {
-    Debugger* debugger = Isolate::Current()->debugger();
-    debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
+RawError* Debugger::SignalIsolateInterrupted() {
+  if (HasDebugEventHandler()) {
+    SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
   }
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_->object_store()->sticky_error());
+  ASSERT(error.IsNull() || error.IsUnwindError());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
@@ -438,13 +461,13 @@ static bool FunctionContains(const Function& func,
 }
 
 
-bool Debugger::HasBreakpoint(const Function& func) {
+bool Debugger::HasBreakpoint(const Function& func, Zone* zone) {
   if (!func.HasCode()) {
     // If the function is not compiled yet, just check whether there
     // is a user-defined breakpoint that falls into the token
     // range of the function. This may be a false positive: the breakpoint
     // might be inside a local closure.
-    Script& script = Script::Handle(isolate_);
+    Script& script = Script::Handle(zone);
     BreakpointLocation* sbpt = breakpoint_locations_;
     while (sbpt != NULL) {
       script = sbpt->script();
@@ -674,7 +697,6 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       return ctx_;
     }
   }
-  UNREACHABLE();
   return Context::ZoneHandle(Context::null());
 }
 
@@ -685,9 +707,14 @@ RawObject* ActivationFrame::GetAsyncOperation() {
   for (intptr_t i = 0; i < var_desc_len; i++) {
     RawLocalVarDescriptors::VarInfo var_info;
     var_descriptors_.GetInfo(i, &var_info);
-    const int8_t kind = var_info.kind();
-    if (kind == RawLocalVarDescriptors::kAsyncOperation) {
-      return GetContextVar(var_info.scope_id, var_info.index());
+    if (var_descriptors_.GetName(i) == Symbols::AsyncOperation().raw()) {
+      const int8_t kind = var_info.kind();
+      if (kind == RawLocalVarDescriptors::kStackVar) {
+        return GetStackVar(var_info.index());
+      } else {
+        ASSERT(kind == RawLocalVarDescriptors::kContextVar);
+        return GetContextVar(var_info.scope_id, var_info.index());
+      }
     }
   }
   return Object::null();
@@ -908,8 +935,7 @@ void ActivationFrame::VariableAt(intptr_t i,
   intptr_t desc_index = desc_indices_[i];
   ASSERT(name != NULL);
 
-  const String& tmp = String::Handle(var_descriptors_.GetName(desc_index));
-  *name ^= String::IdentifierPrettyName(tmp);
+  *name = var_descriptors_.GetName(desc_index);
 
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
@@ -991,7 +1017,12 @@ RawObject* ActivationFrame::GetReceiver() {
       return value.raw();
     }
   }
-  return Object::null();
+  return Symbols::OptimizedOut().raw();
+}
+
+
+bool IsPrivateVariableName(const String& var_name) {
+  return (var_name.Length() >= 1) && (var_name.CharAt(0) == '_');
 }
 
 
@@ -1008,6 +1039,9 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
     intptr_t ignore;
     VariableAt(i, &name, &ignore, &ignore, &value);
     if (!name.Equals(Symbols::This())) {
+      if (IsPrivateVariableName(name)) {
+        name = String::IdentifierPrettyName(name);
+      }
       param_names.Add(name);
       param_values.Add(value);
     }
@@ -1020,8 +1054,8 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
                         Array::Handle(Array::MakeArray(param_values)));
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
-    ASSERT(receiver.IsInstance());
-    if (!receiver.IsInstance()) {
+    ASSERT(receiver.IsInstance() || receiver.IsNull());
+    if (!(receiver.IsInstance() || receiver.IsNull())) {
       return Object::null();
     }
     const Instance& inst = Instance::Cast(receiver);
@@ -1071,19 +1105,23 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();
     for (intptr_t v = 0; v < num_vars; v++) {
-      JSONObject jsvar(&jsvars);
       String& var_name = String::Handle();
       Instance& var_value = Instance::Handle();
       intptr_t token_pos;
       intptr_t end_token_pos;
       VariableAt(v, &var_name, &token_pos, &end_token_pos, &var_value);
-      jsvar.AddProperty("name", var_name.ToCString());
-      jsvar.AddProperty("value", var_value, !full);
-      // TODO(turnidge): Do we really want to provide this on every
-      // stack dump?  Should be associated with the function object, I
-      // think, and not the stack frame.
-      jsvar.AddProperty("_tokenPos", token_pos);
-      jsvar.AddProperty("_endTokenPos", end_token_pos);
+      if (var_name.raw() != Symbols::AsyncOperation().raw()) {
+        JSONObject jsvar(&jsvars);
+        jsvar.AddProperty("type", "BoundVariable");
+        var_name = String::IdentifierPrettyName(var_name);
+        jsvar.AddProperty("name", var_name.ToCString());
+        jsvar.AddProperty("value", var_value, !full);
+        // TODO(turnidge): Do we really want to provide this on every
+        // stack dump?  Should be associated with the function object, I
+        // think, and not the stack frame.
+        jsvar.AddProperty("_tokenPos", token_pos);
+        jsvar.AddProperty("_endTokenPos", end_token_pos);
+      }
     }
   }
 }
@@ -1114,7 +1152,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(kind),
-      saved_value_(0) {
+      saved_value_(Code::null()) {
   ASSERT(!code.IsNull());
   ASSERT(token_pos_ > 0);
   ASSERT(pc_ != 0);
@@ -1207,6 +1245,7 @@ Debugger::Debugger()
     : isolate_(NULL),
       isolate_id_(ILLEGAL_ISOLATE_ID),
       initialized_(false),
+      creation_message_sent_(false),
       next_id_(1),
       latent_locations_(NULL),
       breakpoint_locations_(NULL),
@@ -1233,6 +1272,12 @@ Debugger::~Debugger() {
 
 
 void Debugger::Shutdown() {
+  // TODO(johnmccutchan): Do not create a debugger for isolates that don't need
+  // them. Then, assert here that isolate_ is not one of those isolates.
+  if ((isolate_ == Dart::vm_isolate()) ||
+      ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+    return;
+  }
   while (breakpoint_locations_ != NULL) {
     BreakpointLocation* bpt = breakpoint_locations_;
     breakpoint_locations_ = breakpoint_locations_->next();
@@ -1249,8 +1294,9 @@ void Debugger::Shutdown() {
     bpt->Disable();
     delete bpt;
   }
-  // Signal isolate shutdown event.
-  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+  // Signal isolate shutdown event, but only if we previously sent the creation
+  // event.
+  if (creation_message_sent_) {
     SignalIsolateEvent(DebuggerEvent::kIsolateShutdown);
   }
 }
@@ -1341,26 +1387,24 @@ void Debugger::DeoptimizeWorld() {
           }
         }
       }
+    }
+  }
 
-      // Disable other optimized closure functions.
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        intptr_t num_closures = closures.Length();
-        for (intptr_t pos = 0; pos < num_closures; pos++) {
-          function ^= closures.At(pos);
-          ASSERT(!function.IsNull());
-          if (function.HasOptimizedCode()) {
-            function.SwitchToUnoptimizedCode();
-          }
-        }
-      }
+  // Disable optimized closure functions.
+  closures = isolate_->object_store()->closure_functions();
+  const intptr_t num_closures = closures.Length();
+  for (intptr_t pos = 0; pos < num_closures; pos++) {
+    function ^= closures.At(pos);
+    ASSERT(!function.IsNull());
+    if (function.HasOptimizedCode()) {
+      function.SwitchToUnoptimizedCode();
     }
   }
 }
 
 
 void Debugger::SignalBpResolved(Breakpoint* bpt) {
-  if (HasEventHandler() && !bpt->IsSingleShot()) {
+  if (HasDebugEventHandler() && !bpt->IsSingleShot()) {
     DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointResolved);
     event.set_breakpoint(bpt);
     InvokeEventHandler(&event);
@@ -1389,21 +1433,24 @@ ActivationFrame* Debugger::CollectDartFrame(Isolate* isolate,
 }
 
 
-RawArray* Debugger::DeoptimizeToArray(Isolate* isolate,
+RawArray* Debugger::DeoptimizeToArray(Thread* thread,
                                       StackFrame* frame,
                                       const Code& code) {
   ASSERT(code.is_optimized());
-
+  Isolate* isolate = thread->isolate();
   // Create the DeoptContext for this deoptimization.
   DeoptContext* deopt_context =
       new DeoptContext(frame, code,
                        DeoptContext::kDestIsAllocated,
-                       NULL, NULL);
+                       NULL,
+                       NULL,
+                       true,
+                       false /* deoptimizing_code */);
   isolate->set_deopt_context(deopt_context);
 
   deopt_context->FillDestFrame();
   deopt_context->MaterializeDeferredObjects();
-  const Array& dest_frame = Array::Handle(isolate,
+  const Array& dest_frame = Array::Handle(thread->zone(),
                                           deopt_context->DestFrameAsArray());
 
   isolate->set_deopt_context(NULL);
@@ -1414,12 +1461,14 @@ RawArray* Debugger::DeoptimizeToArray(Isolate* isolate,
 
 
 DebuggerStackTrace* Debugger::CollectStackTrace() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
   StackFrameIterator iterator(false);
-  Code& code = Code::Handle(isolate);
-  Code& inlined_code = Code::Handle(isolate);
-  Array& deopt_frame = Array::Handle(isolate);
+  Code& code = Code::Handle(zone);
+  Code& inlined_code = Code::Handle(zone);
+  Array& deopt_frame = Array::Handle(zone);
 
   for (StackFrame* frame = iterator.NextFrame();
        frame != NULL;
@@ -1432,14 +1481,14 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
       if (code.is_optimized() && !Compiler::always_optimize()) {
-        deopt_frame = DeoptimizeToArray(isolate, frame, code);
+        deopt_frame = DeoptimizeToArray(thread, frame, code);
         for (InlinedFunctionsIterator it(code, frame->pc());
              !it.Done();
              it.Advance()) {
           inlined_code = it.code();
           if (FLAG_trace_debugger_stacktrace) {
             const Function& function =
-                Function::Handle(isolate, inlined_code.function());
+                Function::Handle(zone, inlined_code.function());
             ASSERT(!function.IsNull());
             OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
                          function.ToFullyQualifiedCString());
@@ -1472,7 +1521,7 @@ ActivationFrame* Debugger::TopDartFrame() const {
   while ((frame != NULL) && !frame->IsDartFrame()) {
     frame = iterator.NextFrame();
   }
-  Code& code = Code::Handle(isolate_, frame->LookupDartCode());
+  Code& code = Code::Handle(frame->LookupDartCode());
   ActivationFrame* activation =
       new ActivationFrame(frame->pc(), frame->fp(), frame->sp(), code,
                           Object::null_array(), 0);
@@ -1577,7 +1626,7 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   // interested in exception events.
   if (ignore_breakpoints_ ||
       IsPaused() ||
-      (!HasEventHandler()) ||
+      (!HasDebugEventHandler()) ||
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
@@ -1819,10 +1868,31 @@ void Debugger::FindCompiledFunctions(const Script& script,
                                      intptr_t start_pos,
                                      intptr_t end_pos,
                                      GrowableObjectArray* function_list) {
-  Class& cls = Class::Handle(isolate_);
-  Array& functions = Array::Handle(isolate_);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(isolate_);
-  Function& function = Function::Handle(isolate_);
+  Zone* zone = Thread::Current()->zone();
+  Class& cls = Class::Handle(zone);
+  Array& functions = Array::Handle(zone);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
+  Function& function = Function::Handle(zone);
+
+  closures = isolate_->object_store()->closure_functions();
+  const intptr_t num_closures = closures.Length();
+  for (intptr_t pos = 0; pos < num_closures; pos++) {
+    function ^= closures.At(pos);
+    ASSERT(!function.IsNull());
+    if ((function.token_pos() == start_pos)
+        && (function.end_token_pos() == end_pos)
+        && (function.script() == script.raw())) {
+      if (function.HasCode() && function.is_debuggable()) {
+        function_list->Add(function);
+      }
+      if (function.HasImplicitClosureFunction()) {
+        function = function.ImplicitClosureFunction();
+        if (function.HasCode() && function.is_debuggable()) {
+          function_list->Add(function);
+        }
+      }
+    }
+  }
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -1862,27 +1932,6 @@ void Debugger::FindCompiledFunctions(const Script& script,
           }
         }
       }
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        const intptr_t num_closures = closures.Length();
-        for (intptr_t pos = 0; pos < num_closures; pos++) {
-          function ^= closures.At(pos);
-          ASSERT(!function.IsNull());
-          if ((function.token_pos() == start_pos)
-              && (function.end_token_pos() == end_pos)
-              && (function.script() == script.raw())) {
-            if (function.HasCode() && function.is_debuggable()) {
-              function_list->Add(function);
-            }
-            if (function.HasImplicitClosureFunction()) {
-              function = function.ImplicitClosureFunction();
-              if (function.HasCode() && function.is_debuggable()) {
-                function_list->Add(function);
-              }
-            }
-          }
-        }
-      }
     }
   }
 }
@@ -1902,12 +1951,22 @@ static void SelectBestFit(Function* best_fit, Function* func) {
 
 RawFunction* Debugger::FindBestFit(const Script& script,
                                    intptr_t token_pos) {
-  Class& cls = Class::Handle(isolate_);
-  Array& functions = Array::Handle(isolate_);
-  GrowableObjectArray& closures = GrowableObjectArray::Handle(isolate_);
-  Function& function = Function::Handle(isolate_);
-  Function& best_fit = Function::Handle(isolate_);
-  Error& error = Error::Handle(isolate_);
+  Zone* zone = Thread::Current()->zone();
+  Class& cls = Class::Handle(zone);
+  Array& functions = Array::Handle(zone);
+  GrowableObjectArray& closures = GrowableObjectArray::Handle(zone);
+  Function& function = Function::Handle(zone);
+  Function& best_fit = Function::Handle(zone);
+  Error& error = Error::Handle(zone);
+
+  closures = isolate_->object_store()->closure_functions();
+  const intptr_t num_closures = closures.Length();
+  for (intptr_t i = 0; i < num_closures; i++) {
+    function ^= closures.At(i);
+    if (FunctionContains(function, script, token_pos)) {
+      SelectBestFit(&best_fit, &function);
+    }
+  }
 
   const ClassTable& class_table = *isolate_->class_table();
   const intptr_t num_classes = class_table.NumCids();
@@ -1924,7 +1983,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
         continue;
       }
       // Parse class definition if not done yet.
-      error = cls.EnsureIsFinalized(isolate_);
+      error = cls.EnsureIsFinalized(Thread::Current());
       if (!error.IsNull()) {
         // Ignore functions in this class.
         // TODO(hausner): Should we propagate this error? How?
@@ -1943,18 +2002,6 @@ RawFunction* Debugger::FindBestFit(const Script& script,
           }
         }
       }
-
-      closures = cls.closures();
-      if (!closures.IsNull()) {
-        const intptr_t num_closures = closures.Length();
-        for (intptr_t pos = 0; pos < num_closures; pos++) {
-          function ^= closures.At(pos);
-          ASSERT(!function.IsNull());
-          if (FunctionContains(function, script, token_pos)) {
-            SelectBestFit(&best_fit, &function);
-          }
-        }
-      }
     }
   }
   return best_fit.raw();
@@ -1966,7 +2013,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                                             intptr_t last_token_pos,
                                             intptr_t requested_line,
                                             intptr_t requested_column) {
-  Function& func = Function::Handle(isolate_);
+  Function& func = Function::Handle();
   func = FindBestFit(script, token_pos);
   if (func.IsNull()) {
     return NULL;
@@ -2158,12 +2205,13 @@ BreakpointLocation* Debugger::BreakpointLocationAtLineCol(
     const String& script_url,
     intptr_t line_number,
     intptr_t column_number) {
-  Library& lib = Library::Handle(isolate_);
-  Script& script = Script::Handle(isolate_);
+  Zone* zone = Thread::Current()->zone();
+  Library& lib = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
   const GrowableObjectArray& scripts =
-    GrowableObjectArray::Handle(isolate_, GrowableObjectArray::New());
+    GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     script = lib.LookupScript(script_url);
@@ -2353,10 +2401,11 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
                                     const String& prefix,
                                     bool include_private_fields) {
   DictionaryIterator it(lib);
-  Object& entry = Object::Handle(isolate_);
-  Field& field = Field::Handle(isolate_);
-  String& field_name = String::Handle(isolate_);
-  PassiveObject& field_value = PassiveObject::Handle(isolate_);
+  Zone* zone = Thread::Current()->zone();
+  Object& entry = Object::Handle(zone);
+  Field& field = Field::Handle(zone);
+  String& field_name = String::Handle(zone);
+  PassiveObject& field_value = PassiveObject::Handle(zone);
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {
@@ -2387,26 +2436,28 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
 
 
 RawArray* Debugger::GetLibraryFields(const Library& lib) {
+  Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& field_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  CollectLibraryFields(field_list, lib, String::Handle(isolate_), true);
+  CollectLibraryFields(field_list, lib, String::Handle(zone), true);
   return Array::MakeArray(field_list);
 }
 
 
 RawArray* Debugger::GetGlobalFields(const Library& lib) {
+  Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& field_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  String& prefix_name = String::Handle(isolate_);
+      GrowableObjectArray::Handle(zone, GrowableObjectArray::New(8));
+  String& prefix_name = String::Handle(zone);
   CollectLibraryFields(field_list, lib, prefix_name, true);
-  Library& imported = Library::Handle(isolate_);
+  Library& imported = Library::Handle(zone);
   intptr_t num_imports = lib.num_imports();
   for (intptr_t i = 0; i < num_imports; i++) {
     imported = lib.ImportLibraryAt(i);
     ASSERT(!imported.IsNull());
     CollectLibraryFields(field_list, imported, prefix_name, false);
   }
-  LibraryPrefix& prefix = LibraryPrefix::Handle(isolate_);
+  LibraryPrefix& prefix = LibraryPrefix::Handle(zone);
   LibraryPrefixIterator it(lib);
   while (it.HasNext()) {
     prefix = it.GetNext();
@@ -2457,7 +2508,16 @@ void Debugger::Pause(DebuggerEvent* event) {
   pause_event_->UpdateTimestamp();
   obj_cache_ = new RemoteObjectCache(64);
 
-  InvokeEventHandler(event);
+  // We are about to invoke the debuggers event handler. Disable interrupts
+  // for this thread while waiting for debug commands over the service protocol.
+  {
+    Thread* thread = Thread::Current();
+    DisableThreadInterruptsScope dtis(thread);
+    TimelineDurationScope tds(thread,
+                              isolate_->GetDebuggerStream(),
+                              "Debugger Pause");
+    InvokeEventHandler(event);
+  }
 
   pause_event_ = NULL;
   obj_cache_ = NULL;    // Zone allocated
@@ -2498,11 +2558,6 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
       }
     }
   }
-  if (!isolate_->single_step()) {
-    // We are no longer single stepping, make sure that the ThreadInterrupter
-    // is awake.
-    ThreadInterrupter::WakeUp();
-  }
 }
 
 
@@ -2537,6 +2592,8 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   event.set_breakpoint(bpt);
   Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
   if (!closure_or_null.IsNull()) {
+    ASSERT(closure_or_null.IsInstance());
+    ASSERT(Instance::Cast(closure_or_null).IsClosure());
     event.set_async_continuation(&closure_or_null);
     const Script& script = Script::Handle(top_frame->SourceScript());
     const TokenStream& tokens = TokenStream::Handle(script.tokens());
@@ -2551,13 +2608,12 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
 }
 
 
-void Debugger::DebuggerStepCallback() {
+RawError* Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
-  // We can't get here unless the debugger event handler enabled
-  // single stepping.
-  ASSERT(HasEventHandler());
   // Don't pause recursively.
-  if (IsPaused()) return;
+  if (IsPaused()) {
+    return Error::null();
+  }
 
   // Check whether we are in a Dart function that the user is
   // interested in. If we saved the frame pointer of a stack frame
@@ -2573,7 +2629,7 @@ void Debugger::DebuggerStepCallback() {
     if (stepping_fp_ > frame->fp()) {
       // We are in a callee of the frame we're interested in.
       // Ignore this stepping break.
-      return;
+      return Error::null();
     } else if (frame->fp() > stepping_fp_) {
       // We returned from the "interesting frame", there can be no more
       // stepping breaks for it. Pause at the next appropriate location
@@ -2583,16 +2639,16 @@ void Debugger::DebuggerStepCallback() {
   }
 
   if (!frame->IsDebuggable()) {
-    return;
+    return Error::null();
   }
   if (frame->TokenPos() == Scanner::kNoSourcePos) {
-    return;
+    return Error::null();
   }
 
   // Don't pause for a single step if there is a breakpoint set
   // at this location.
   if (HasActiveBreakpoint(frame->pc())) {
-    return;
+    return Error::null();
   }
 
   if (FLAG_verbose_debug) {
@@ -2608,15 +2664,21 @@ void Debugger::DebuggerStepCallback() {
   SignalPausedEvent(frame, NULL);
   HandleSteppingRequest(stack_trace_);
   stack_trace_ = NULL;
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
-void Debugger::SignalBpReached() {
+RawError* Debugger::SignalBpReached() {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
-    return;
+  if (ignore_breakpoints_ || IsPaused()) {
+    return Error::null();
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
   ASSERT(stack_trace->Length() > 0);
@@ -2670,7 +2732,7 @@ void Debugger::SignalBpReached() {
   }
 
   if (bpt_hit == NULL) {
-    return;
+    return Error::null();
   }
 
   if (FLAG_verbose_debug) {
@@ -2691,6 +2753,12 @@ void Debugger::SignalBpReached() {
   if (cbpt->IsInternal()) {
     RemoveInternalBreakpoints();
   }
+
+  // If any error occurred while in the debug message loop, return it here.
+  const Error& error =
+      Error::Handle(isolate_->object_store()->sticky_error());
+  isolate_->object_store()->clear_sticky_error();
+  return error.raw();
 }
 
 
@@ -2698,8 +2766,12 @@ void Debugger::BreakHere(const String& msg) {
   // We ignore this breakpoint when the VM is executing code invoked
   // by the debugger to evaluate variables values, or when we see a nested
   // breakpoint or exception event.
-  if (ignore_breakpoints_ || IsPaused() || !HasEventHandler()) {
+  if (ignore_breakpoints_ || IsPaused()) {
     return;
+  }
+
+  if (!HasDebugEventHandler()) {
+    OS::Print("Hit debugger!");
   }
 
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -2728,15 +2800,17 @@ void Debugger::Initialize(Isolate* isolate) {
   // Use the isolate's control port as the isolate_id for debugging.
   // This port will be used as a unique ID to represent the isolate in the
   // debugger wire protocol messages.
-  isolate_id_ = isolate->main_port();
+  isolate_id_ = isolate_->main_port();
   initialized_ = true;
 }
 
 
 void Debugger::NotifyIsolateCreated() {
   // Signal isolate creation event.
-  if (!ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
+  if ((isolate_ != Dart::vm_isolate()) &&
+      !ServiceIsolate::IsServiceIsolateDescendant(isolate_)) {
     SignalIsolateEvent(DebuggerEvent::kIsolateCreated);
+    creation_message_sent_ = true;
   }
 }
 
@@ -2745,20 +2819,14 @@ void Debugger::NotifyIsolateCreated() {
 // the given token position.
 RawFunction* Debugger::FindInnermostClosure(const Function& function,
                                             intptr_t token_pos) {
-  const Class& owner = Class::Handle(isolate_, function.Owner());
-  if (owner.closures() == GrowableObjectArray::null()) {
-    return Function::null();
-  }
-  // Note that we need to check that the closure is in the same
-  // script as the outer function. We could have closures originating
-  // in mixin classes whose source code is contained in a different
-  // script.
-  const Script& outer_origin = Script::Handle(isolate_, function.script());
+  Zone* zone = Thread::Current()->zone();
+  const Script& outer_origin = Script::Handle(zone, function.script());
   const GrowableObjectArray& closures =
-     GrowableObjectArray::Handle(isolate_, owner.closures());
+     GrowableObjectArray::Handle(zone,
+         Isolate::Current()->object_store()->closure_functions());
   const intptr_t num_closures = closures.Length();
-  Function& closure = Function::Handle(isolate_);
-  Function& best_fit = Function::Handle(isolate_);
+  Function& closure = Function::Handle(zone);
+  Function& best_fit = Function::Handle(zone);
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
     if ((function.token_pos() < closure.token_pos()) &&
@@ -2786,13 +2854,14 @@ void Debugger::NotifyCompilation(const Function& func) {
   }
   // Iterate over all source breakpoints to check whether breakpoints
   // need to be set in the newly compiled function.
-  Script& script = Script::Handle(isolate_);
+  Zone* zone = Thread::Current()->zone();
+  Script& script = Script::Handle(zone);
   for (BreakpointLocation* loc = breakpoint_locations_;
       loc != NULL;
       loc = loc->next()) {
     script = loc->script();
     if (FunctionContains(func, script, loc->token_pos())) {
-      Function& inner_function = Function::Handle(isolate_);
+      Function& inner_function = Function::Handle(zone);
       inner_function = FindInnermostClosure(func, loc->token_pos());
       if (!inner_function.IsNull()) {
         // The local function of a function we just compiled cannot
@@ -2873,9 +2942,10 @@ void Debugger::NotifyDoneLoading() {
     // Common, fast path.
     return;
   }
-  Library& lib = Library::Handle(isolate_);
-  Script& script = Script::Handle(isolate_);
-  String& url = String::Handle(isolate_);
+  Zone* zone = Thread::Current()->zone();
+  Library& lib = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
+  String& url = String::Handle(zone);
   BreakpointLocation* loc = latent_locations_;
   BreakpointLocation* prev_loc = NULL;
   const GrowableObjectArray& libs =
@@ -3007,13 +3077,13 @@ CodeBreakpoint* Debugger::GetCodeBreakpoint(uword breakpoint_address) {
 }
 
 
-uword Debugger::GetPatchedStubAddress(uword breakpoint_address) {
+RawCode* Debugger::GetPatchedStubAddress(uword breakpoint_address) {
   CodeBreakpoint* bpt = GetCodeBreakpoint(breakpoint_address);
   if (bpt != NULL) {
     return bpt->OrigStubAddress();
   }
   UNREACHABLE();
-  return 0L;
+  return Code::null();
 }
 
 
@@ -3148,7 +3218,7 @@ BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
                                                   intptr_t line,
                                                   intptr_t column) {
   BreakpointLocation* bpt = latent_locations_;
-  String& bpt_url = String::Handle(isolate_);
+  String& bpt_url = String::Handle();
   while (bpt != NULL) {
     bpt_url = bpt->url();
     if (bpt_url.Equals(url) &&

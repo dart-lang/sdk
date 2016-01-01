@@ -95,6 +95,7 @@ bool ClassTable::TraceAllocationFor(intptr_t cid) {
 
 
 void ClassTable::Register(const Class& cls) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   intptr_t index = cls.id();
   if (index != kIllegalCid) {
     ASSERT(index > 0);
@@ -520,11 +521,12 @@ void ClassTable::ResetAllocationAccumulators() {
 }
 
 
-void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size) {
+void ClassTable::UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count) {
   ClassHeapStats* stats = PreliminaryStatsAt(cid);
   ASSERT(stats != NULL);
   ASSERT(size >= 0);
-  stats->post_gc.AddOld(size);
+  ASSERT(count >= 0);
+  stats->post_gc.AddOld(size, count);
 }
 
 

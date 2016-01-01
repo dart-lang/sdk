@@ -14,8 +14,7 @@ const String typeToString = r'H.runtimeTypeToString';
 const String createType = r'H.createRuntimeType';
 
 const List<TestEntry> tests = const [
-    const TestEntry.forMethod("function(C#foo)",
-r"""
+    const TestEntry(r"""
 class C<T> {
   foo() => print(T);
 }
@@ -23,12 +22,20 @@ class C<T> {
 main() {
   new C<int>().foo();
 }""",
-"""
-function() {
-  return P.print($createType($typeToString($getTypeArgument(this, 0))));
-}"""),
-    const TestEntry.forMethod("function(C#foo)",
 r"""
+function() {
+  var v0 = H.S(H.createRuntimeType(H.runtimeTypeToString(H.getTypeArgumentByIndex(V.C$(P.$int), 0))));
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
+}"""),
+    const TestEntry(r"""
 class C<T, U> {
   foo() => print(U);
 }
@@ -38,11 +45,20 @@ class D extends C<int, double> {}
 main() {
   new D().foo();
 }""",
-"""
+r"""
 function() {
-  return P.print($createType($typeToString($getSubstitutedTypeArgument(this, "C", 1))));
+  var v0 = H.S(H.createRuntimeType(H.runtimeTypeToString(H.getRuntimeTypeArgument(V.D$(), "C", 1))));
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
-  const TestEntry.forMethod('function(C#foo)', r"""
+  const TestEntry(r"""
 class C<T> {
   foo() => new D<C<T>>();
 }
@@ -51,9 +67,18 @@ class D<T> {
 }
 main() {
   print(new C<int>().foo().bar());
-}""", """
+}""", r"""
 function() {
-  return V.D\$([V.C, $getTypeArgument(this, 0)]);
+  var v0 = H.S(H.createRuntimeType(H.runtimeTypeToString(H.getTypeArgumentByIndex(V.D$([V.C, H.getTypeArgumentByIndex(V.C$(P.$int), 0)]), 0))));
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
     const TestEntry.forMethod('generative_constructor(C#)', r"""
 class C<X, Y, Z> {

@@ -16,18 +16,19 @@
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
+#include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
+#include "vm/thread_registry.h"
 #include "vm/visitor.h"
 #include "vm/object_id_ring.h"
 
 namespace dart {
 
-DEFINE_FLAG(int, marker_tasks, 1,
+DEFINE_FLAG(int, marker_tasks, 2,
             "The number of tasks to spawn during old gen GC marking (0 means "
             "perform all marking on main thread).");
-
-typedef StoreBufferBlock PointerBlock;  // TODO(koda): Rename to PointerBlock.
-typedef StoreBuffer MarkingStack;  // TODO(koda): Create shared base class.
+DEFINE_FLAG(bool, log_marker_tasks, false,
+            "Log debugging information for old gen GC marking tasks.");
 
 class DelaySet {
  private:
@@ -38,24 +39,33 @@ class DelaySet {
   DelaySet() : mutex_(new Mutex()) {}
   ~DelaySet() { delete mutex_; }
 
-  // Returns 'true' if this inserted a new key (not just added a value).
-  bool Insert(RawWeakProperty* raw_weak) {
+  // After atomically setting the watched bit on a white key (see
+  // EnsureWatchedIfWhitewhich; this means the mark bit cannot be set
+  // without observing the watched bit), this method atomically
+  // inserts raw_weak if its key is *still* white, so that any future
+  // call to VisitValuesForKey is guaranteed to include its
+  // value. Returns true on success, and false if the key is no longer white.
+  bool InsertIfWhite(RawWeakProperty* raw_weak) {
     MutexLocker ml(mutex_);
     RawObject* raw_key = raw_weak->ptr()->key_;
-    bool new_key = (delay_set_.find(raw_key) == delay_set_.end());
+    if (raw_key->IsMarked()) return false;
+    // The key was white *after* acquiring the lock. Thus any future call to
+    // VisitValuesForKey is guaranteed to include the entry inserted below.
     delay_set_.insert(std::make_pair(raw_key, raw_weak));
-    return new_key;
+    return true;
   }
 
   void ClearReferences() {
     MutexLocker ml(mutex_);
     for (Map::iterator it = delay_set_.begin(); it != delay_set_.end(); ++it) {
+      ASSERT(!it->first->IsMarked());
       WeakProperty::Clear(it->second);
     }
   }
 
-  // Visit all values with a key equal to raw_obj.
+  // Visit all values with a key equal to raw_obj, which must already be marked.
   void VisitValuesForKey(RawObject* raw_obj, ObjectPointerVisitor* visitor) {
+    ASSERT(raw_obj->IsMarked());
     // Extract the range into a temporary vector to iterate over it
     // while delay_set_ may be modified.
     std::vector<MapEntry> temp_copy;
@@ -91,14 +101,14 @@ class SkippedCodeFunctions : public ZoneAllocated {
     intptr_t current_code_count = 0;
     for (int i = 0; i < skipped_code_functions_.length(); i++) {
       RawFunction* func = skipped_code_functions_[i];
-      RawCode* code = func->ptr()->instructions_->ptr()->code_;
+      RawCode* code = func->ptr()->code_;
       if (!code->IsMarked()) {
         // If the code wasn't strongly visited through other references
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
         func->StorePointer(
-            &(func->ptr()->instructions_),
-            StubCode::LazyCompile_entry()->code()->ptr()->instructions_);
+            &(func->ptr()->code_),
+            StubCode::LazyCompile_entry()->code());
         uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
         func->ptr()->entry_point_ = entry_point;
         if (FLAG_log_code_drop) {
@@ -142,9 +152,62 @@ class SkippedCodeFunctions : public ZoneAllocated {
 };
 
 
-class MarkingVisitor : public ObjectPointerVisitor {
+class MarkerWorkList : public ValueObject {
  public:
-  MarkingVisitor(Isolate* isolate,
+  explicit MarkerWorkList(MarkingStack* marking_stack)
+      : marking_stack_(marking_stack) {
+    work_ = marking_stack_->PopEmptyBlock();
+  }
+
+  ~MarkerWorkList() {
+    ASSERT(work_ == NULL);
+    ASSERT(marking_stack_ == NULL);
+  }
+
+  // Returns NULL if no more work was found.
+  RawObject* Pop() {
+    ASSERT(work_ != NULL);
+    if (work_->IsEmpty()) {
+      // TODO(koda): Track over/underflow events and use in heuristics to
+      // distribute work and prevent degenerate flip-flopping.
+      MarkingStack::Block* new_work = marking_stack_->PopNonEmptyBlock();
+      if (new_work == NULL) {
+        return NULL;
+      }
+      marking_stack_->PushBlock(work_);
+      work_ = new_work;
+    }
+    return work_->Pop();
+  }
+
+  void Push(RawObject* raw_obj) {
+    if (work_->IsFull()) {
+      // TODO(koda): Track over/underflow events and use in heuristics to
+      // distribute work and prevent degenerate flip-flopping.
+      marking_stack_->PushBlock(work_);
+      work_ = marking_stack_->PopEmptyBlock();
+    }
+    work_->Push(raw_obj);
+  }
+
+  void Finalize() {
+    ASSERT(work_->IsEmpty());
+    marking_stack_->PushBlock(work_);
+    work_ = NULL;
+    // Fail fast on attempts to mark after finalizing.
+    marking_stack_ = NULL;
+  }
+
+ private:
+  MarkingStack::Block* work_;
+  MarkingStack* marking_stack_;
+};
+
+
+template<bool sync>
+class MarkingVisitorBase : public ObjectPointerVisitor {
+ public:
+  MarkingVisitorBase(Isolate* isolate,
                  Heap* heap,
                  PageSpace* page_space,
                  MarkingStack* marking_stack,
@@ -154,7 +217,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
         thread_(Thread::Current()),
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
-        class_table_(isolate->class_table()),
+        class_stats_count_(isolate->class_table()->NumCids()),
+        class_stats_size_(isolate->class_table()->NumCids()),
         page_space_(page_space),
         work_list_(marking_stack),
         delay_set_(delay_set),
@@ -163,9 +227,23 @@ class MarkingVisitor : public ObjectPointerVisitor {
         marked_bytes_(0) {
     ASSERT(heap_ != vm_heap_);
     ASSERT(thread_->isolate() == isolate);
+    class_stats_count_.SetLength(isolate->class_table()->NumCids());
+    class_stats_size_.SetLength(isolate->class_table()->NumCids());
+    for (intptr_t i = 0; i < class_stats_count_.length(); ++i) {
+      class_stats_count_[i] = 0;
+      class_stats_size_[i] = 0;
+    }
   }
 
   uintptr_t marked_bytes() const { return marked_bytes_; }
+
+  intptr_t live_count(intptr_t class_id) {
+    return class_stats_count_[class_id];
+  }
+
+  intptr_t live_size(intptr_t class_id) {
+    return class_stats_size_[class_id];
+  }
 
   // Returns true if some non-zero amount of work was performed.
   bool DrainMarkingStack() {
@@ -177,9 +255,6 @@ class MarkingVisitor : public ObjectPointerVisitor {
     do {
       VisitingOldObject(raw_obj);
       const intptr_t class_id = raw_obj->GetClassId();
-      // Currently, classes are considered roots (see issue 18284), so at this
-      // point, they should all be marked.
-      ASSERT(isolate()->class_table()->At(class_id)->IsMarked());
       if (class_id != kWeakPropertyCid) {
         marked_bytes_ += raw_obj->VisitPointers(this);
       } else {
@@ -208,32 +283,35 @@ class MarkingVisitor : public ObjectPointerVisitor {
     skipped_code_functions_->Add(func);
   }
 
-  // Returns the mark bit. Sets the watch bit if unmarked. (The prior value of
-  // the watched bit is returned in 'watched_before' for validation purposes.)
-  // TODO(koda): When synchronizing header bits, this goes in a single CAS loop.
-  static bool EnsureWatchedIfWhite(RawObject* obj, bool* watched_before) {
-    if (obj->IsMarked()) {
-      return false;
+  // If unmarked, sets the watch bit and returns true.
+  // If marked, does nothing and returns false.
+  static bool EnsureWatchedIfWhite(RawObject* obj) {
+    if (!sync) {
+      if (obj->IsMarked()) return false;
+      if (!obj->IsWatched()) obj->SetWatchedBitUnsynchronized();
+      return true;
     }
-    if (!obj->IsWatched()) {
-      *watched_before = false;
-      obj->SetWatchedBitUnsynchronized();
-    } else {
-      *watched_before = true;
-    }
+    uword tags = obj->ptr()->tags_;
+    uword old_tags;
+    do {
+      old_tags = tags;
+      if (RawObject::MarkBit::decode(tags)) return false;
+      if (RawObject::WatchedBit::decode(tags)) return true;
+      uword new_tags = RawObject::WatchedBit::update(true, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &obj->ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
     return true;
   }
 
   void ProcessWeakProperty(RawWeakProperty* raw_weak) {
     // The fate of the weak property is determined by its key.
     RawObject* raw_key = raw_weak->ptr()->key_;
-    bool watched_before = false;
     if (raw_key->IsHeapObject() &&
         raw_key->IsOldObject() &&
-        EnsureWatchedIfWhite(raw_key, &watched_before)) {
-      // Key is white.  Delay the weak property.
-      bool new_key = delay_set_->Insert(raw_weak);
-      ASSERT(new_key == !watched_before);
+        EnsureWatchedIfWhite(raw_key) &&
+        delay_set_->InsertIfWhite(raw_weak)) {
+      // Key was white.  Delayed the weak property.
     } else {
       // Key is gray or black.  Make the weak property black.
       raw_weak->VisitPointers(this);
@@ -254,73 +332,33 @@ class MarkingVisitor : public ObjectPointerVisitor {
   }
 
  private:
-  class WorkList : public ValueObject {
-   public:
-    explicit WorkList(MarkingStack* marking_stack)
-        : marking_stack_(marking_stack) {
-      work_ = marking_stack_->PopEmptyBlock();
-    }
-
-    ~WorkList() {
-      ASSERT(work_ == NULL);
-      ASSERT(marking_stack_ == NULL);
-    }
-
-    // Returns NULL if no more work was found.
-    RawObject* Pop() {
-      ASSERT(work_ != NULL);
-      if (work_->IsEmpty()) {
-        // TODO(koda): Track over/underflow events and use in heuristics to
-        // distribute work and prevent degenerate flip-flopping.
-        PointerBlock* new_work = marking_stack_->PopNonEmptyBlock();
-        if (new_work == NULL) {
-          return NULL;
-        }
-        marking_stack_->PushBlock(work_, false);
-        work_ = new_work;
-      }
-      return work_->Pop();
-    }
-
-    void Push(RawObject* raw_obj) {
-      if (work_->IsFull()) {
-        // TODO(koda): Track over/underflow events and use in heuristics to
-        // distribute work and prevent degenerate flip-flopping.
-        marking_stack_->PushBlock(work_, false);
-        work_ = marking_stack_->PopEmptyBlock();
-      }
-      work_->Push(raw_obj);
-    }
-
-    void Finalize() {
-      ASSERT(work_->IsEmpty());
-      marking_stack_->PushBlock(work_, false);
-      work_ = NULL;
-      // Fail fast on attempts to mark after finalizing.
-      marking_stack_ = NULL;
-    }
-
-   private:
-    PointerBlock* work_;
-    MarkingStack* marking_stack_;
-  };
-
-  void MarkAndPush(RawObject* raw_obj) {
+  void PushMarked(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
     ASSERT((FLAG_verify_before_gc || FLAG_verify_before_gc) ?
            page_space_->Contains(RawObject::ToAddr(raw_obj)) :
            true);
 
-    // Mark the object and push it on the marking stack.
-    ASSERT(!raw_obj->IsMarked());
+    // Push the marked object on the marking stack.
+    ASSERT(raw_obj->IsMarked());
     const bool is_watched = raw_obj->IsWatched();
-    raw_obj->SetMarkBitUnsynchronized();
+    // We acquired the mark bit => no other task is modifying the header.
+    // TODO(koda): For concurrent mutator, this needs synchronization. Consider
+    // clearing these bits already in the CAS for the mark bit.
     raw_obj->ClearRememberedBitUnsynchronized();
     raw_obj->ClearWatchedBitUnsynchronized();
     if (is_watched) {
       delay_set_->VisitValuesForKey(raw_obj, this);
     }
     work_list_.Push(raw_obj);
+  }
+
+  static bool TryAcquireMarkBit(RawObject* raw_obj) {
+    if (!sync) {
+      if (raw_obj->IsMarked()) return false;
+      raw_obj->SetMarkBitUnsynchronized();
+      return true;
+    }
+    return raw_obj->TryAcquireMarkBit();
   }
 
   void MarkObject(RawObject* raw_obj, RawObject** p) {
@@ -334,39 +372,80 @@ class MarkingVisitor : public ObjectPointerVisitor {
       return;
     }
 
-    // Skip over new objects, but verify consistency of heap while at it.
+    // TODO(koda): Investigate performance impact of alternative branching:
+    // if (smi or new) <-- can be done as single compare + conditional jump
+    //   if (smi) return;
+    //   else ...
+    // if (marked) return;
+    // ...
     if (raw_obj->IsNewObject()) {
-      // TODO(iposva): Add consistency check.
-      if ((visiting_old_object_ != NULL) &&
-          !visiting_old_object_->IsRemembered()) {
-        ASSERT(p != NULL);
-        visiting_old_object_->SetRememberedBitUnsynchronized();
-        thread_->StoreBufferAddObjectGC(visiting_old_object_);
-      }
+      ProcessNewSpaceObject(raw_obj, p);
+      return;
+    }
+
+    if (!TryAcquireMarkBit(raw_obj)) {
+      // Already marked.
       return;
     }
     if (RawObject::IsVariableSizeClassId(raw_obj->GetClassId())) {
-      class_table_->UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
+      UpdateLiveOld(raw_obj->GetClassId(), raw_obj->Size());
     } else {
-      class_table_->UpdateLiveOld(raw_obj->GetClassId(), 0);
+      UpdateLiveOld(raw_obj->GetClassId(), 0);
     }
 
-    MarkAndPush(raw_obj);
+    PushMarked(raw_obj);
+  }
+
+  static bool TryAcquireRememberedBit(RawObject* raw_obj) {
+    if (!sync) {
+      if (raw_obj->IsRemembered()) return false;
+      raw_obj->SetRememberedBitUnsynchronized();
+      return true;
+    }
+    return raw_obj->TryAcquireRememberedBit();
+  }
+
+  void ProcessNewSpaceObject(RawObject* raw_obj, RawObject** p) {
+    // TODO(iposva): Add consistency check.
+    if ((visiting_old_object_ != NULL) &&
+        TryAcquireRememberedBit(visiting_old_object_)) {
+      // NOTE: We pass in the pointer to the address we are visiting
+      // allows us to get a distance from the object start. At some
+      // point we might want to store exact addresses in store buffers
+      // for locations far enough from the header, so that we do not
+      // need to walk big objects only to find the single new
+      // reference in the last word during scavenge. This doesn't seem
+      // to be a problem though currently.
+      ASSERT(p != NULL);
+      thread_->StoreBufferAddObjectGC(visiting_old_object_);
+    }
+  }
+
+  void UpdateLiveOld(intptr_t class_id, intptr_t size) {
+    // TODO(koda): Support growing the array once mutator runs concurrently.
+    ASSERT(class_id < class_stats_count_.length());
+    class_stats_count_[class_id] += 1;
+    class_stats_size_[class_id] += size;
   }
 
   Thread* thread_;
   Heap* heap_;
   Heap* vm_heap_;
-  ClassTable* class_table_;
+  GrowableArray<intptr_t> class_stats_count_;
+  GrowableArray<intptr_t> class_stats_size_;
   PageSpace* page_space_;
-  WorkList work_list_;
+  MarkerWorkList work_list_;
   DelaySet* delay_set_;
   RawObject* visiting_old_object_;
   SkippedCodeFunctions* skipped_code_functions_;
   uintptr_t marked_bytes_;
 
-  DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
+  DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitorBase);
 };
+
+
+typedef MarkingVisitorBase<false> UnsyncMarkingVisitor;
+typedef MarkingVisitorBase<true> SyncMarkingVisitor;
 
 
 static bool IsUnreachable(const RawObject* raw_obj) {
@@ -385,7 +464,7 @@ static bool IsUnreachable(const RawObject* raw_obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  MarkingWeakVisitor() : HandleVisitor(Isolate::Current()) {
+  MarkingWeakVisitor() : HandleVisitor(Thread::Current()) {
   }
 
   void VisitHandle(uword addr) {
@@ -393,7 +472,7 @@ class MarkingWeakVisitor : public HandleVisitor {
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject* raw_obj = handle->raw();
     if (IsUnreachable(raw_obj)) {
-      handle->UpdateUnreachable(isolate());
+      handle->UpdateUnreachable(thread()->isolate());
     }
   }
 
@@ -406,7 +485,7 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
-  Thread::PrepareForGC();
+  isolate->thread_registry()->PrepareForGC();
   // The store buffers will be rebuilt as part of marking, reset them now.
   isolate->store_buffer()->Reset();
 }
@@ -421,80 +500,25 @@ void GCMarker::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
 
 void GCMarker::IterateRoots(Isolate* isolate,
                             ObjectPointerVisitor* visitor,
-                            bool visit_prologue_weak_persistent_handles) {
-  isolate->VisitObjectPointers(visitor,
-                               visit_prologue_weak_persistent_handles,
-                               StackFrameIterator::kDontValidateFrames);
-  heap_->new_space()->VisitObjectPointers(visitor);
-}
-
-
-void GCMarker::IterateWeakRoots(Isolate* isolate,
-                                HandleVisitor* visitor,
-                                bool visit_prologue_weak_persistent_handles) {
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  isolate->VisitWeakPersistentHandles(visitor,
-                                      visit_prologue_weak_persistent_handles);
-}
-
-
-void GCMarker::IterateWeakReferences(Isolate* isolate,
-                                     MarkingVisitor* visitor) {
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  while (true) {
-    WeakReferenceSet* queue = state->delayed_weak_reference_sets();
-    if (queue == NULL) {
-      // The delay queue is empty therefore no clean-up is required.
-      return;
-    }
-    state->set_delayed_weak_reference_sets(NULL);
-    while (queue != NULL) {
-      WeakReferenceSet* reference_set = WeakReferenceSet::Pop(&queue);
-      ASSERT(reference_set != NULL);
-      intptr_t num_keys = reference_set->num_keys();
-      intptr_t num_values = reference_set->num_values();
-      if ((num_keys == 1) && (num_values == 1) &&
-          reference_set->SingletonKeyEqualsValue()) {
-        // We do not have to process sets that have just one key/value pair
-        // and the key and value are identical.
-        continue;
-      }
-      bool is_unreachable = true;
-      // Test each key object for reachability.  If a key object is
-      // reachable, all value objects should be marked.
-      for (intptr_t k = 0; k < num_keys; ++k) {
-        if (!IsUnreachable(*reference_set->get_key(k))) {
-          for (intptr_t v = 0; v < num_values; ++v) {
-            visitor->VisitPointer(reference_set->get_value(v));
-          }
-          is_unreachable = false;
-          // Since we have found a key object that is reachable and all
-          // value objects have been marked we can break out of iterating
-          // this set and move on to the next set.
-          break;
-        }
-      }
-      // If all key objects are unreachable put the reference on a
-      // delay queue.  This reference will be revisited if another
-      // reference is marked.
-      if (is_unreachable) {
-        state->DelayWeakReferenceSet(reference_set);
-      }
-    }
-    if (!visitor->DrainMarkingStack()) {
-      // Break out of the loop if there has been no forward process.
-      // All key objects in the weak reference sets are unreachable
-      // so we reset the weak reference sets queue.
-      state->set_delayed_weak_reference_sets(NULL);
-      break;
-    }
+                            intptr_t slice_index, intptr_t num_slices) {
+  ASSERT(0 <= slice_index && slice_index < num_slices);
+  if ((slice_index == 0) || (num_slices <= 1)) {
+    isolate->VisitObjectPointers(visitor,
+                                 StackFrameIterator::kDontValidateFrames);
   }
-  ASSERT(state->delayed_weak_reference_sets() == NULL);
-  // All weak reference sets are zone allocated and unmarked references which
-  // were on the delay queue will be freed when the zone is released in the
-  // epilog callback.
+  if ((slice_index == 1) || (num_slices <= 1)) {
+    heap_->new_space()->VisitObjectPointers(visitor);
+  }
+
+  // For now, we just distinguish two parts of the root set, so any remaining
+  // slices are empty.
+}
+
+
+void GCMarker::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
+  ApiState* state = isolate->api_state();
+  ASSERT(state != NULL);
+  isolate->VisitWeakPersistentHandles(visitor);
 }
 
 
@@ -553,42 +577,73 @@ class MarkTask : public ThreadPool::Task {
            PageSpace* page_space,
            MarkingStack* marking_stack,
            DelaySet* delay_set,
+           ThreadBarrier* barrier,
            bool collect_code,
-           bool visit_prologue_weak_persistent_handles)
+           intptr_t task_index,
+           intptr_t num_tasks,
+           uintptr_t* num_busy)
       : marker_(marker),
         isolate_(isolate),
         heap_(heap),
         page_space_(page_space),
         marking_stack_(marking_stack),
         delay_set_(delay_set),
+        barrier_(barrier),
         collect_code_(collect_code),
-        visit_prologue_weak_persistent_handles_(
-            visit_prologue_weak_persistent_handles) {
+        task_index_(task_index),
+        num_tasks_(num_tasks),
+        num_busy_(num_busy) {
   }
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(isolate_, true);
+    bool result = Thread::EnterIsolateAsHelper(isolate_, true);
+    ASSERT(result);
     {
       StackZone stack_zone(Thread::Current());
       Zone* zone = stack_zone.GetZone();
       SkippedCodeFunctions* skipped_code_functions =
-        collect_code_ ? new(zone) SkippedCodeFunctions() : NULL;
-      MarkingVisitor visitor(isolate_, heap_, page_space_, marking_stack_,
-                             delay_set_, skipped_code_functions);
-      // Phase 1: Populate and drain marking stack in task.
-      // TODO(koda): Split root iteration work among multiple tasks.
-      marker_->IterateRoots(isolate_, &visitor,
-                            visit_prologue_weak_persistent_handles_);
-      visitor.DrainMarkingStack();
-      marker_->TaskSync();
+          collect_code_ ? new(zone) SkippedCodeFunctions() : NULL;
+      SyncMarkingVisitor visitor(isolate_, heap_, page_space_, marking_stack_,
+                                 delay_set_, skipped_code_functions);
+      // Phase 1: Iterate over roots and drain marking stack in tasks.
+      marker_->IterateRoots(isolate_, &visitor, task_index_, num_tasks_);
+      do {
+        visitor.DrainMarkingStack();
+
+        // I can't find more work right now. If no other task is busy,
+        // then there will never be more work (NB: 1 is *before* decrement).
+        if (AtomicOperations::FetchAndDecrement(num_busy_) == 1) break;
+
+        // Wait for some work to appear.
+        // TODO(iposva): Replace busy-waiting with a solution using Monitor,
+        // and redraw the boundaries between stack/visitor/task as needed.
+        while (marking_stack_->IsEmpty() &&
+               AtomicOperations::LoadRelaxed(num_busy_) > 0) {
+        }
+
+        // If no tasks are busy, there will never be more work.
+        if (AtomicOperations::LoadRelaxed(num_busy_) == 0) break;
+
+        // I saw some work; get busy and compete for it.
+        AtomicOperations::FetchAndIncrement(num_busy_);
+      } while (true);
+      ASSERT(AtomicOperations::LoadRelaxed(num_busy_) == 0);
+      barrier_->Sync();
+
       // Phase 2: Weak processing and follow-up marking on main thread.
-      marker_->TaskSync();
+      barrier_->Sync();
+
       // Phase 3: Finalize results from all markers (detach code, etc.).
+      if (FLAG_log_marker_tasks) {
+        THR_Print("Task %" Pd " marked %" Pd " bytes.\n",
+                  task_index_, visitor.marked_bytes());
+      }
       marker_->FinalizeResultsFrom(&visitor);
     }
     Thread::ExitIsolateAsHelper(true);
+
     // This task is done. Notify the original thread.
-    marker_->TaskNotifyDone();
+    barrier_->Exit();
   }
 
  private:
@@ -598,50 +653,31 @@ class MarkTask : public ThreadPool::Task {
   PageSpace* page_space_;
   MarkingStack* marking_stack_;
   DelaySet* delay_set_;
+  ThreadBarrier* barrier_;
   bool collect_code_;
-  bool visit_prologue_weak_persistent_handles_;
+  const intptr_t task_index_;
+  const intptr_t num_tasks_;
+  uintptr_t* num_busy_;
 
   DISALLOW_COPY_AND_ASSIGN(MarkTask);
 };
 
 
-void GCMarker::MainSync(intptr_t num_tasks) {
-  MonitorLocker ml(&monitor_);
-  while (done_count_ < num_tasks) {
-    ml.Wait();
-  }
-  done_count_ = 0;  // Tasks may now resume.
-  // TODO(koda): Add barrier utility with two condition variables to allow for
-  // Notify rather than NotifyAll. Also use it for safepoints.
-  ml.NotifyAll();
-}
-
-
-void GCMarker::TaskNotifyDone() {
-  MonitorLocker ml(&monitor_);
-  ++done_count_;
-  // TODO(koda): Add barrier utility with two condition variables to allow for
-  // Notify rather than NotifyAll. Also use it for safepoints.
-  ml.NotifyAll();
-}
-
-
-void GCMarker::TaskSync() {
-  MonitorLocker ml(&monitor_);
-  ++done_count_;
-  ml.NotifyAll();  // Notify controller that this thread reached end of phase.
-  ASSERT(done_count_ > 0);
-  while (done_count_ > 0) {
-    // Wait for the controller to release into next phase.
-    ml.Wait();
-  }
-}
-
-
-void GCMarker::FinalizeResultsFrom(MarkingVisitor* visitor) {
+template<class MarkingVisitorType>
+void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
   {
-    MonitorLocker ml(&monitor_);
+    MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
+    // Class heap stats are not themselves thread-safe yet, so we update the
+    // stats while holding stats_mutex_.
+    ClassTable* table = heap_->isolate()->class_table();
+    for (intptr_t i = 0; i < table->NumCids(); ++i) {
+      const intptr_t count = visitor->live_count(i);
+      if (count > 0) {
+        const intptr_t size = visitor->live_size(i);
+        table->UpdateLiveOld(i, size, count);
+      }
+    }
   }
   visitor->Finalize();
 }
@@ -659,52 +695,51 @@ void GCMarker::MarkObjects(Isolate* isolate,
     Zone* zone = stack_zone.GetZone();
     MarkingStack marking_stack;
     DelaySet delay_set;
-    const bool visit_prologue_weak_persistent_handles = !invoke_api_callbacks;
     marked_bytes_ = 0;
     const int num_tasks = FLAG_marker_tasks;
     if (num_tasks == 0) {
       // Mark everything on main thread.
       SkippedCodeFunctions* skipped_code_functions =
           collect_code ? new(zone) SkippedCodeFunctions() : NULL;
-      MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
-                          &delay_set, skipped_code_functions);
-      IterateRoots(isolate, &mark, visit_prologue_weak_persistent_handles);
+      UnsyncMarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
+                                &delay_set, skipped_code_functions);
+      IterateRoots(isolate, &mark, 0, 1);
       mark.DrainMarkingStack();
-      IterateWeakReferences(isolate, &mark);
       MarkingWeakVisitor mark_weak;
-      IterateWeakRoots(isolate, &mark_weak,
-                       !visit_prologue_weak_persistent_handles);
+      IterateWeakRoots(isolate, &mark_weak);
       // All marking done; detach code, etc.
       FinalizeResultsFrom(&mark);
     } else {
-      if (num_tasks > 1) {
-        // TODO(koda): Support multiple:
-        // 1. non-concurrent tasks, after splitting root iteration work, then
-        // 2. concurrent tasks, after synchronizing headers.
-        FATAL("Multiple marking tasks not yet supported");
+      ThreadBarrier barrier(num_tasks + 1);
+      // Used to coordinate draining among tasks; all start out as 'busy'.
+      uintptr_t num_busy = num_tasks;
+      // Phase 1: Iterate over roots and drain marking stack in tasks.
+      for (intptr_t i = 0; i < num_tasks; ++i) {
+        MarkTask* mark_task =
+            new MarkTask(this, isolate, heap_, page_space, &marking_stack,
+                         &delay_set, &barrier, collect_code,
+                         i, num_tasks, &num_busy);
+        ThreadPool* pool = Dart::thread_pool();
+        pool->Run(mark_task);
       }
-      // Phase 1: Populate and drain marking stack in task.
-      MarkTask* mark_task =
-          new MarkTask(this, isolate, heap_, page_space, &marking_stack,
-                       &delay_set, collect_code,
-                       visit_prologue_weak_persistent_handles);
-      ThreadPool* pool = Dart::thread_pool();
-      pool->Run(mark_task);
-      MainSync(num_tasks);
+      barrier.Sync();
+
       // Phase 2: Weak processing and follow-up marking on main thread.
       SkippedCodeFunctions* skipped_code_functions =
           collect_code ? new(zone) SkippedCodeFunctions() : NULL;
-      MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
-                          &delay_set, skipped_code_functions);
-      IterateWeakReferences(isolate, &mark);
+      SyncMarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
+                              &delay_set, skipped_code_functions);
       MarkingWeakVisitor mark_weak;
-      IterateWeakRoots(isolate, &mark_weak,
-                       !visit_prologue_weak_persistent_handles);
-      MainSync(num_tasks);
+      IterateWeakRoots(isolate, &mark_weak);
+      barrier.Sync();
+
       // Phase 3: Finalize results from all markers (detach code, etc.).
+      if (FLAG_log_marker_tasks) {
+        THR_Print("Main thread marked %" Pd " bytes.\n",
+                  mark.marked_bytes());
+      }
       FinalizeResultsFrom(&mark);
-      MainSync(num_tasks);
-      // Finalization complete and all tasks exited.
+      barrier.Exit();
     }
     delay_set.ClearReferences();
     ProcessWeakTables(page_space);

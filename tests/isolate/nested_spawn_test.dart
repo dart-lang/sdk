@@ -24,7 +24,7 @@ void main([args, port]) {
   test("spawned isolates can spawn nested isolates", () {
     ReceivePort port = new ReceivePort();
     Isolate.spawn(isolateA, [port.sendPort, "main"]);
-    port.first.then((message) {
+    return port.first.then((message) {
       expect("main", message[1]);
       expect("isolateA", message[2]);
       expect("isolateB", message[3]);

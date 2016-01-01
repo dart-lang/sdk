@@ -32,7 +32,8 @@ void NativeMessageHandler::CheckAccess() {
 #endif
 
 
-bool NativeMessageHandler::HandleMessage(Message* message) {
+MessageHandler::MessageStatus NativeMessageHandler::HandleMessage(
+    Message* message) {
   if (message->IsOOB()) {
     // We currently do not use OOB messages for native ports.
     UNREACHABLE();
@@ -41,11 +42,12 @@ bool NativeMessageHandler::HandleMessage(Message* message) {
   // All allocation of objects for decoding the message is done in the
   // zone associated with this scope.
   ApiNativeScope scope;
-  ApiMessageReader reader(message->data(), message->len());
-  Dart_CObject* object = reader.ReadMessage();
+  Dart_CObject* object;
+  ApiMessageReader reader(message);
+  object = reader.ReadMessage();
   (*func())(message->dest_port(), object);
   delete message;
-  return true;
+  return kOK;
 }
 
 }  // namespace dart

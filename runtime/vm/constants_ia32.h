@@ -10,7 +10,6 @@
 namespace dart {
 
 enum Register {
-  kFirstFreeCpuRegister = 0,
   EAX = 0,
   ECX = 1,
   EDX = 2,
@@ -19,9 +18,8 @@ enum Register {
   EBP = 5,
   ESI = 6,
   EDI = 7,
-  kLastFreeCpuRegister = 7,
   kNumberOfCpuRegisters = 8,
-  kNoRegister = -1  // Signals an illegal register.
+  kNoRegister = -1,  // Signals an illegal register.
 };
 
 
@@ -63,12 +61,14 @@ const FpuRegister kNoFpuRegister = kNoXmmRegister;
 const Register TMP = kNoRegister;  // No scratch register used by assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register CTX = EDI;  // Location of current context at method entry.
+const Register CODE_REG = EDI;
 const Register PP = kNoRegister;  // No object pool pointer.
 const Register SPREG = ESP;  // Stack pointer register.
 const Register FPREG = EBP;  // Frame pointer register.
 const Register ICREG = ECX;  // IC data register.
 const Register ARGS_DESC_REG = EDX;  // Arguments descriptor register.
 const Register THR = ESI;  // Caches current thread in generated code.
+
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
@@ -77,6 +77,18 @@ const Register kExceptionObjectReg = EAX;
 // Stack trace object is passed in this register to the catch handlers when
 // an exception is thrown.
 const Register kStackTraceObjectReg = EDX;
+
+
+typedef uint32_t RegList;
+const RegList kAllCpuRegistersList = 0xFF;
+
+const intptr_t kReservedCpuRegisters =
+    (1 << SPREG) |
+    (1 << FPREG) |
+    (1 << THR);
+// CPU registers available to Dart allocator.
+const RegList kDartAvailableCpuRegs =
+    kAllCpuRegistersList & ~kReservedCpuRegisters;
 
 
 enum ScaleFactor {

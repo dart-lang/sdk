@@ -178,7 +178,7 @@
 
 <polymer-element name="vm-nav-menu">
   <template>
-    <nav-menu link="/vm" anchor="{{ vm.target.name }}" last="{{ last }}">
+    <nav-menu link="/vm" anchor="{{ nameAndAddress(vm.name, vm.target) }}" last="{{ last }}">
       <template repeat="{{ isolate in vm.isolates }}">
         <nav-menu-item link="{{ makeLink('/inspect', isolate) }}"
 	               anchor="{{ isolate.name }}"></nav-menu-item>

@@ -581,7 +581,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   int get length => JS('JSUInt32', r'#.length', this);
 
-  void set length(int newLength) {
+  set length(int newLength) {
     checkGrowable('set length');
     if (newLength is !int) {
       throw new ArgumentError.value(newLength, 'newLength');
@@ -650,7 +650,7 @@ class ArrayIterator<E> implements Iterator<E> {
     // inline moveNext() we might be able to GVN the length and eliminate this
     // check on known fixed length JSArray.
     if (_length != length) {
-      throw new ConcurrentModificationError(_iterable);
+      throw throwConcurrentModificationError(_iterable);
     }
 
     if (_index >= length) {

@@ -9,11 +9,12 @@ library from.html;
 
 import 'dart:io';
 
+import 'package:analyzer/src/codegen/html.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:html/parser.dart' as parser;
+import 'package:path/path.dart';
 
 import 'api.dart';
-import 'html_tools.dart';
 
 const List<String> specialElements = const [
   'domain',
@@ -106,7 +107,7 @@ void checkAttributes(
   for (String expectedAttribute in requiredAttributes) {
     if (!attributesFound.contains(expectedAttribute)) {
       throw new Exception(
-          '$context: ${element.localName} must contain attribute ${expectedAttribute}');
+          '$context: ${element.localName} must contain attribute $expectedAttribute');
     }
   }
 }
@@ -137,8 +138,10 @@ void checkName(dom.Element element, String expectedName, [String context]) {
 Domain domainFromHtml(dom.Element html) {
   checkName(html, 'domain');
   String name = html.attributes['name'];
-  String context = name != null ? name : 'domain';
-  checkAttributes(html, ['name'], context);
+  String context = name ?? 'domain';
+  bool experimental = html.attributes['experimental'] == 'true';
+  checkAttributes(html, ['name'], context,
+      optionalAttributes: ['experimental']);
   List<Request> requests = <Request>[];
   List<Notification> notifications = <Notification>[];
   recurse(html, context, {
@@ -149,7 +152,8 @@ Domain domainFromHtml(dom.Element html) {
       notifications.add(notificationFromHtml(child, context));
     }
   });
-  return new Domain(name, requests, notifications, html);
+  return new Domain(name, requests, notifications, html,
+      experimental: experimental);
 }
 
 dom.Element getAncestor(dom.Element html, String name, String context) {
@@ -287,13 +291,16 @@ List<TypeDecl> processContentsAsTypes(dom.Element html, String context) {
 }
 
 /**
- * Read the API description from the file 'spec_input.html'.
+ * Read the API description from the file 'spec_input.html'.  [pkgPath] is the
+ * path to the current package.
  */
-Api readApi() {
-  File htmlFile = new File('spec_input.html');
+Api readApi(String pkgPath) {
+  File htmlFile = new File(join(pkgPath, 'tool', 'spec', 'spec_input.html'));
   String htmlContents = htmlFile.readAsStringSync();
   dom.Document document = parser.parse(htmlContents);
-  return apiFromHtml(document.firstChild);
+  dom.Element htmlElement = document.children
+      .singleWhere((element) => element.localName.toLowerCase() == 'html');
+  return apiFromHtml(htmlElement);
 }
 
 void recurse(dom.Element parent, String context,
@@ -416,9 +423,10 @@ TypeDefinition typeDefinitionFromHtml(dom.Element html) {
   checkName(html, 'type');
   String name = html.attributes['name'];
   String context = name != null ? name : 'type';
-  checkAttributes(html, ['name'], context);
+  checkAttributes(html, ['name'], context, optionalAttributes: ['experimental']);
   TypeDecl type = processContentsAsType(html, context);
-  return new TypeDefinition(name, type, html);
+  bool experimental = html.attributes['experimental'] == 'true';
+  return new TypeDefinition(name, type, html, experimental: experimental);
 }
 
 /**
@@ -509,14 +517,15 @@ TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
  * Create a [TypeObject] from an HTML description.
  */
 TypeObject typeObjectFromHtml(dom.Element html, String context) {
-  checkAttributes(html, [], context);
+  checkAttributes(html, [], context,  optionalAttributes: ['experimental']);
   List<TypeObjectField> fields = <TypeObjectField>[];
   recurse(html, context, {
     'field': (dom.Element child) {
       fields.add(typeObjectFieldFromHtml(child, context));
     }
   });
-  return new TypeObject(fields, html);
+  bool experimental = html.attributes['experimental'] == 'true';
+  return new TypeObject(fields, html, experimental: experimental);
 }
 
 /**

@@ -42,7 +42,7 @@ class DartBackend extends Backend {
 
   DartConstantTask constantCompilerTask;
 
-  DartResolutionCallbacks resolutionCallbacks;
+  DartImpactTransformer impactTransformer;
 
   final Set<ClassElement> usedTypeLiterals = new Set<ClassElement>();
 
@@ -52,7 +52,8 @@ class DartBackend extends Backend {
       new Set<ClassElement>();
 
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    compiler.reportHint(node,
+    reporter.reportHintMessage(
+        node,
         MessageKind.GENERIC,
         {'text': "Generation of code with compile time errors is not "
                  "supported for dart2dart."});
@@ -107,13 +108,18 @@ class DartBackend extends Backend {
         stripAsserts = strips.indexOf('asserts') != -1,
         constantCompilerTask = new DartConstantTask(compiler),
         outputter = new DartOutputter(
-            compiler, compiler.outputProvider,
+            compiler.reporter, compiler.outputProvider,
             forceStripTypes: strips.indexOf('types') != -1,
             multiFile: multiFile,
             enableMinification: compiler.enableMinification),
         super(compiler) {
-    resolutionCallbacks = new DartResolutionCallbacks(this);
+    impactTransformer = new DartImpactTransformer(this);
   }
+
+
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  Resolution get resolution => compiler.resolution;
 
   bool classNeedsRti(ClassElement cls) => false;
   bool methodNeedsRti(FunctionElement function) => false;
@@ -127,20 +133,22 @@ class DartBackend extends Backend {
     final coreLibrary = compiler.coreLibrary;
     for (final name in LITERAL_TYPE_NAMES) {
       ClassElement classElement = coreLibrary.findLocal(name);
-      classElement.ensureResolved(compiler);
+      classElement.ensureResolved(resolution);
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
-    world.registerInvocation(new UniverseSelector(Selectors.toString_, null));
-    world.registerInvokedGetter(
-        new UniverseSelector(Selectors.hashCode_, null));
-    world.registerInvocation(
-        new UniverseSelector(new Selector.binaryOperator('=='), null));
-    world.registerInvocation(
-        new UniverseSelector(Selectors.compareTo, null));
+    world.registerDynamicUse(new DynamicUse(Selectors.toString_, null));
+    world.registerDynamicUse(
+        new DynamicUse(Selectors.hashCode_, null));
+    world.registerDynamicUse(
+        new DynamicUse(new Selector.binaryOperator('=='), null));
+    world.registerDynamicUse(
+        new DynamicUse(Selectors.compareTo, null));
   }
 
-  WorldImpact codegen(CodegenWorkItem work) => const WorldImpact();
+  WorldImpact codegen(CodegenWorkItem work) {
+    return const WorldImpact();
+  }
 
   /**
    * Tells whether we should output given element. Corelib classes like
@@ -166,7 +174,7 @@ class DartBackend extends Backend {
         newTypedefElementCallback,
         newClassElementCallback) {
       ReferencedElementCollector collector =
-          new ReferencedElementCollector(compiler,
+          new ReferencedElementCollector(reporter,
                                          element,
                                          elementAst,
                                          newTypedefElementCallback,
@@ -177,7 +185,7 @@ class DartBackend extends Backend {
     int totalSize = outputter.assembleProgram(
         libraries: compiler.libraryLoader.libraries,
         instantiatedClasses: compiler.resolverWorld.directlyInstantiatedClasses,
-        resolvedElements: compiler.enqueuer.resolution.resolvedElements,
+        resolvedElements: compiler.enqueuer.resolution.processedElements,
         usedTypeLiterals: usedTypeLiterals,
         postProcessElementAst: postProcessElementAst,
         computeElementAst: computeElementAst,
@@ -213,7 +221,7 @@ class DartBackend extends Backend {
         'Output total size: $totalOutputSize bytes (${percentage}%)');
   }
 
-  log(String message) => compiler.log('[DartBackend] $message');
+  log(String message) => reporter.log('[DartBackend] $message');
 
   @override
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
@@ -224,7 +232,7 @@ class DartBackend extends Backend {
         library.forEachLocalMember((Element element) {
           if (element.isClass) {
             ClassElement classElement = element;
-            classElement.ensureResolved(compiler);
+            classElement.ensureResolved(resolution);
           }
         });
       }
@@ -253,7 +261,21 @@ class DartBackend extends Backend {
   }
 
   @override
-  void registerInstantiatedType(InterfaceType type, Registry registry) {
+  void registerInstantiatedType(InterfaceType type,
+                                Enqueuer enqueuer,
+                                Registry registry,
+                                {bool mirrorUsage: false}) {
+    registerPlatformMembers(type, registerUse: registry.registerDynamicUse);
+    super.registerInstantiatedType(
+        type, enqueuer, registry, mirrorUsage: mirrorUsage);
+  }
+
+  /// Register dynamic access of members of [type] that implement members
+  /// of types defined in the platform libraries.
+  void registerPlatformMembers(
+      InterfaceType type,
+      {void registerUse(DynamicUse dynamicUse)}) {
+
     // Without patching, dart2dart has no way of performing sound tree-shaking
     // in face external functions. Therefore we employ another scheme:
     //
@@ -302,43 +324,52 @@ class DartBackend extends Backend {
               if (element.isConstructor || element.isStatic) return;
 
               FunctionElement function = element.asFunctionElement();
-              element.computeType(compiler);
+              element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
-              if (selector.isGetter) {
-                registry.registerDynamicGetter(
-                    new UniverseSelector(selector, null));
-              } else if (selector.isSetter) {
-                registry.registerDynamicSetter(
-                    new UniverseSelector(selector, null));
-              } else {
-                registry.registerDynamicInvocation(
-                    new UniverseSelector(selector, null));
-              }
+              registerUse(
+                  new DynamicUse(selector, null));
             });
           }
         }
       }
     }
-
   }
 
   @override
   bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     // TODO(sigurdm): Implement deferred loading for dart2dart.
-    compiler.reportWarning(node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
+    reporter.reportWarningMessage(
+        node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     return false;
+  }
+
+  @override
+  Uri resolvePatchUri(String libraryName, Uri) {
+    // Dart2dart does not use patches.
+    return null;
   }
 }
 
-class DartResolutionCallbacks extends ResolutionCallbacks {
+class DartImpactTransformer extends ImpactTransformer {
   final DartBackend backend;
 
-  DartResolutionCallbacks(this.backend);
+  DartImpactTransformer(this.backend);
 
-  void onTypeLiteral(DartType type, Registry registry) {
-    if (type.isInterfaceType) {
-      backend.usedTypeLiterals.add(type.element);
+  @override
+  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
+    TransformedWorldImpact transformed =
+        new TransformedWorldImpact(worldImpact);
+    for (TypeUse typeUse in worldImpact.typeUses) {
+      if (typeUse.kind == TypeUseKind.TYPE_LITERAL &&
+          typeUse.type.isInterfaceType) {
+        backend.usedTypeLiterals.add(typeUse.type.element);
+      }
+      if (typeUse.kind == TypeUseKind.INSTANTIATION) {
+        backend.registerPlatformMembers(typeUse.type,
+            registerUse: transformed.registerDynamicUse);
+      }
     }
+    return transformed;
   }
 }
 
@@ -379,13 +410,13 @@ class EmitterUnparser extends Unparser {
  * (just to name a few).  Retraverse AST to pick those up.
  */
 class ReferencedElementCollector extends Visitor {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
   final Element element;
   final ElementAst elementAst;
   final newTypedefElementCallback;
   final newClassElementCallback;
 
-  ReferencedElementCollector(this.compiler,
+  ReferencedElementCollector(this.reporter,
                              this.element,
                              this.elementAst,
                              this.newTypedefElementCallback,
@@ -406,7 +437,7 @@ class ReferencedElementCollector extends Visitor {
   }
 
   void collect() {
-    compiler.withCurrentElement(element, () {
+    reporter.withCurrentElement(element, () {
       elementAst.ast.accept(this);
     });
   }

@@ -34,8 +34,8 @@ class CoverageFilter : public ValueObject {
 
 class CodeCoverage : public AllStatic {
  public:
-  static void Write(Isolate* isolate);
-  static void PrintJSON(Isolate* isolate,
+  static void Write(Thread* thread);
+  static void PrintJSON(Thread* thread,
                         JSONStream* stream,
                         CoverageFilter* filter,
                         bool as_call_sites);

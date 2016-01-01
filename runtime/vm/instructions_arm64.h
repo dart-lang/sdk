@@ -61,14 +61,16 @@ class CallPattern : public ValueObject {
 
   RawICData* IcData();
 
-  uword TargetAddress() const;
-  void SetTargetAddress(uword target_address) const;
+  RawCode* TargetCode() const;
+  void SetTargetCode(const Code& target) const;
 
   // This constant length is only valid for inserted call patterns used for
   // lazy deoptimization. Regular call pattern may vary in length.
-  static const int kLengthInBytes = 5 * Instr::kInstrSize;
+  static const int kDeoptCallLengthInInstructions = 5;
+  static const int kDeoptCallLengthInBytes =
+      kDeoptCallLengthInInstructions * Instr::kInstrSize;
 
-  static void InsertAt(uword pc, uword target_address);
+  static void InsertDeoptCallAt(uword pc, uword target_address);
 
  private:
   const ObjectPool& object_pool_;
@@ -76,7 +78,7 @@ class CallPattern : public ValueObject {
   uword end_;
   uword ic_data_load_end_;
 
-  intptr_t target_address_pool_index_;
+  intptr_t target_code_pool_index_;
   ICData& ic_data_;
 
   DISALLOW_COPY_AND_ASSIGN(CallPattern);
@@ -87,8 +89,8 @@ class NativeCallPattern : public ValueObject {
  public:
   NativeCallPattern(uword pc, const Code& code);
 
-  uword target() const;
-  void set_target(uword target_address) const;
+  RawCode* target() const;
+  void set_target(const Code& target) const;
 
   NativeFunction native_function() const;
   void set_native_function(NativeFunction target) const;
@@ -98,30 +100,30 @@ class NativeCallPattern : public ValueObject {
 
   uword end_;
   intptr_t native_function_pool_index_;
-  intptr_t target_address_pool_index_;
+  intptr_t target_code_pool_index_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallPattern);
 };
 
 
-class JumpPattern : public ValueObject {
+// Instance call that can switch from an IC call to a megamorphic call
+//   load ICData             load MegamorphicCache
+//   call ICLookup stub  ->  call MegamorphicLookup stub
+//   call target             call target
+class SwitchableCallPattern : public ValueObject {
  public:
-  JumpPattern(uword pc, const Code& code);
+  SwitchableCallPattern(uword pc, const Code& code);
 
-  static const int kLengthInBytes = 5 * Instr::kInstrSize;
-
-  int pattern_length_in_bytes() const {
-    return kLengthInBytes;
-  }
-
-  bool IsValid() const;
-  uword TargetAddress() const;
-  void SetTargetAddress(uword target_address) const;
+  RawObject* cache() const;
+  void SetCache(const MegamorphicCache& cache) const;
+  void SetLookupStub(const Code& stub) const;
 
  private:
-  const uword pc_;
+  const ObjectPool& object_pool_;
+  intptr_t cache_pool_index_;
+  intptr_t stub_pool_index_;
 
-  DISALLOW_COPY_AND_ASSIGN(JumpPattern);
+  DISALLOW_COPY_AND_ASSIGN(SwitchableCallPattern);
 };
 
 

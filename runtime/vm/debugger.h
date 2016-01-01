@@ -191,7 +191,7 @@ class CodeBreakpoint {
   void Disable();
   bool IsEnabled() const { return is_enabled_; }
 
-  uword OrigStubAddress() const;
+  RawCode* OrigStubAddress() const;
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -215,7 +215,7 @@ class CodeBreakpoint {
   CodeBreakpoint* next_;
 
   RawPcDescriptors::Kind breakpoint_kind_;
-  uword saved_value_;
+  RawCode* saved_value_;
 
   friend class Debugger;
   DISALLOW_COPY_AND_ASSIGN(CodeBreakpoint);
@@ -515,7 +515,9 @@ class Debugger {
 
   // Returns true if there is at least one breakpoint set in func or code.
   // Checks for both user-defined and internal temporary breakpoints.
-  bool HasBreakpoint(const Function& func);
+  // This may be called from different threads, therefore do not use the,
+  // debugger's zone.
+  bool HasBreakpoint(const Function& func, Zone* zone);
   bool HasBreakpoint(const Code& code);
 
   // Returns true if the call at address pc is patched to point to
@@ -556,16 +558,16 @@ class Debugger {
   RawObject* GetStaticField(const Class& cls,
                             const String& field_name);
 
-  void SignalBpReached();
-  void DebuggerStepCallback();
+  RawError* SignalBpReached();
+  RawError* DebuggerStepCallback();
+  RawError* SignalIsolateInterrupted();
 
   void BreakHere(const String& msg);
 
   void SignalExceptionThrown(const Instance& exc);
   void SignalIsolateEvent(DebuggerEvent::EventType type);
-  static void SignalIsolateInterrupted();
 
-  uword GetPatchedStubAddress(uword breakpoint_address);
+  RawCode* GetPatchedStubAddress(uword breakpoint_address);
 
   void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
   void PrintSettingsToJSONObject(JSONObject* jsobj) const;
@@ -582,7 +584,8 @@ class Debugger {
     kSingleStep
   };
 
-  static bool HasEventHandler();
+  static bool HasAnyEventHandler();
+  static bool HasDebugEventHandler();
   void InvokeEventHandler(DebuggerEvent* event);
 
   void FindCompiledFunctions(const Script& script,
@@ -626,7 +629,7 @@ class Debugger {
                                            const Code& code,
                                            const Array& deopt_frame,
                                            intptr_t deopt_frame_offset);
-  static RawArray* DeoptimizeToArray(Isolate* isolate,
+  static RawArray* DeoptimizeToArray(Thread* thread,
                                      StackFrame* frame,
                                      const Code& code);
   static DebuggerStackTrace* CollectStackTrace();
@@ -653,6 +656,7 @@ class Debugger {
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
   bool initialized_;
+  bool creation_message_sent_;  // The creation message has been sent.
 
   // ID number generator.
   intptr_t next_id_;

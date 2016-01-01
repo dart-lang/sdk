@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/os.h"
 
 namespace dart {
 
@@ -15,13 +16,24 @@ class JSONObject;
 class JSONStream;
 class Object;
 class ObjectPointerVisitor;
+class Isolate;
 class RawArray;
 class Thread;
 class TimelineEvent;
 class TimelineEventBlock;
 class TimelineEventRecorder;
 class TimelineStream;
+class Zone;
 
+// (name, enabled by default for isolate).
+#define ISOLATE_TIMELINE_STREAM_LIST(V)                                        \
+  V(API, false)                                                                \
+  V(Compiler, false)                                                           \
+  V(Dart, false)                                                               \
+  V(Debugger, false)                                                           \
+  V(Embedder, false)                                                           \
+  V(GC, false)                                                                 \
+  V(Isolate, false)                                                            \
 
 class Timeline : public AllStatic {
  public:
@@ -38,11 +50,41 @@ class Timeline : public AllStatic {
 
   static TimelineStream* GetVMStream();
 
+  static TimelineStream* GetVMApiStream();
+
+  // Reclaim all |TimelineEventBlocks|s that are cached by threads.
+  static void ReclaimCachedBlocksFromThreads();
+
+  static void Clear();
+
+#define ISOLATE_TIMELINE_STREAM_FLAGS(name, not_used)                          \
+  static const bool* Stream##name##EnabledFlag() {                             \
+    return &stream_##name##_enabled_;                                          \
+  }                                                                            \
+  static void SetStream##name##Enabled(bool enabled) {                         \
+    stream_##name##_enabled_ = enabled;                                        \
+  }
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAGS)
+#undef ISOLATE_TIMELINE_STREAM_FLAGS
+
  private:
   static TimelineEventRecorder* recorder_;
   static TimelineStream* vm_stream_;
+  static TimelineStream* vm_api_stream_;
+
+#define ISOLATE_TIMELINE_STREAM_DECLARE_FLAG(name, not_used)                   \
+  static bool stream_##name##_enabled_;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DECLARE_FLAG)
+#undef ISOLATE_TIMELINE_STREAM_DECLARE_FLAG
 
   friend class TimelineRecorderOverride;
+  friend class ReclaimBlocksIsolateVisitor;
+};
+
+
+struct TimelineEventArgument {
+  const char* name;
+  char* value;
 };
 
 
@@ -52,6 +94,9 @@ class TimelineEvent {
   // Keep in sync with StateBits below.
   enum EventType {
     kNone,
+    kSerializedJSON,  // Events from Dart code.
+    kBegin,
+    kEnd,
     kDuration,
     kInstant,
     kAsyncBegin,
@@ -70,25 +115,40 @@ class TimelineEvent {
   }
 
   // Marks the beginning of an asynchronous operation with |async_id|.
-  void AsyncBegin(const char* label, int64_t async_id);
+  void AsyncBegin(const char* label,
+                  int64_t async_id,
+                  int64_t micros = OS::GetCurrentMonotonicMicros());
   // Marks an instantaneous event associated with |async_id|.
   void AsyncInstant(const char* label,
-                    int64_t async_id);
+                    int64_t async_id,
+                    int64_t micros = OS::GetCurrentMonotonicMicros());
   // Marks the end of an asynchronous operation associated with |async_id|.
   void AsyncEnd(const char* label,
-                int64_t async_id);
+                int64_t async_id,
+                int64_t micros = OS::GetCurrentMonotonicMicros());
 
-  void DurationBegin(const char* label);
-  void DurationEnd();
-  void Instant(const char* label);
+  void DurationBegin(const char* label,
+                     int64_t micros = OS::GetCurrentMonotonicMicros());
+  void DurationEnd(int64_t micros = OS::GetCurrentMonotonicMicros());
+  void Instant(const char* label,
+               int64_t micros = OS::GetCurrentMonotonicMicros());
 
   void Duration(const char* label,
                 int64_t start_micros,
                 int64_t end_micros);
 
+  void Begin(const char* label,
+             int64_t micros = OS::GetCurrentMonotonicMicros());
+
+  void End(const char* label,
+           int64_t micros = OS::GetCurrentMonotonicMicros());
+
+  // Completes this event with pre-serialized JSON. Copies |json|.
+  void CompleteWithPreSerializedJSON(const char* json);
+
   // Set the number of arguments in the event.
   void SetNumArguments(intptr_t length);
-  // |name| must be a compile time constant. Takes ownership of |argumentp|.
+  // |name| must be a compile time constant. Takes ownership of |argument|.
   void SetArgument(intptr_t i, const char* name, char* argument);
   // |name| must be a compile time constant. Copies |argument|.
   void CopyArgument(intptr_t i, const char* name, const char* argument);
@@ -97,6 +157,8 @@ class TimelineEvent {
                       const char* name,
                       const char* fmt, ...) PRINTF_ATTRIBUTE(4, 5);
 
+  void StealArguments(intptr_t arguments_length,
+                      TimelineEventArgument* arguments);
   // Mandatory to call when this event is completely filled out.
   void Complete();
 
@@ -122,6 +184,10 @@ class TimelineEvent {
     return thread_;
   }
 
+  Dart_Port isolate_id() const {
+    return isolate_id_;
+  }
+
   const char* label() const {
     return label_;
   }
@@ -131,30 +197,95 @@ class TimelineEvent {
     return TimeEnd() <= micros;
   }
 
+  bool IsDuration() const {
+    return (event_type() == kDuration);
+  }
+
+  bool IsBegin() const {
+    return (event_type() == kBegin);
+  }
+
+  bool IsEnd() const {
+    return (event_type() == kEnd);
+  }
+
+  // Is this event a synchronous begin or end event?
+  bool IsBeginOrEnd() const {
+    return IsBegin() || IsEnd();
+  }
+
   // Does this duration fully contain |other| ?
   bool DurationContains(TimelineEvent* other) const {
     ASSERT(IsFinishedDuration());
-    ASSERT(other->IsFinishedDuration());
-    if (other->TimeOrigin() < TimeOrigin()) {
-      return false;
+    if (other->IsBegin()) {
+      if (other->TimeOrigin() < TimeOrigin()) {
+        return false;
+      }
+      if (other->TimeOrigin() > TimeEnd()) {
+        return false;
+      }
+      return true;
+    } else {
+      ASSERT(other->IsFinishedDuration());
+      if (other->TimeOrigin() < TimeOrigin()) {
+        return false;
+      }
+      if (other->TimeEnd() < TimeOrigin()) {
+        return false;
+      }
+      if (other->TimeOrigin() > TimeEnd()) {
+        return false;
+      }
+      if (other->TimeEnd() > TimeEnd()) {
+        return false;
+      }
+      return true;
     }
-    if (other->TimeEnd() < TimeOrigin()) {
-      return false;
-    }
-    if (other->TimeOrigin() > TimeEnd()) {
-      return false;
-    }
-    if (other->TimeEnd() > TimeEnd()) {
-      return false;
-    }
-    return true;
   }
 
+  bool Within(int64_t time_origin_micros,
+              int64_t time_extent_micros);
+
+  const char* GetSerializedJSON() const;
+
  private:
-  struct TimelineEventArgument {
-    const char* name;
-    char* value;
+  void FreeArguments();
+
+  void StreamInit(TimelineStream* stream);
+  void Init(EventType event_type, const char* label);
+
+  void set_event_type(EventType event_type) {
+    // We only reserve 4 bits to hold the event type.
+    COMPILE_ASSERT(kNumEventTypes < 16);
+    state_ = EventTypeField::update(event_type, state_);
+  }
+
+  void set_timestamp0(int64_t value) {
+    ASSERT(timestamp0_ == 0);
+    timestamp0_ = value;
+  }
+  void set_timestamp1(int64_t value) {
+    ASSERT(timestamp1_ == 0);
+    timestamp1_ = value;
+  }
+
+  bool pre_serialized_json() const {
+    return PreSerializedJSON::decode(state_);
+  }
+
+  void set_pre_serialized_json(bool pre_serialized_json) {
+    state_ = PreSerializedJSON::update(pre_serialized_json, state_);
+  }
+
+  enum StateBits {
+    kEventTypeBit = 0,  // reserve 4 bits for type.
+    kPreSerializedJSON = 4,
+    kNextBit = 5,
   };
+
+  class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
+  class PreSerializedJSON :
+      public BitField<bool, kPreSerializedJSON, 1> {};
 
   int64_t timestamp0_;
   int64_t timestamp1_;
@@ -164,41 +295,34 @@ class TimelineEvent {
   const char* label_;
   const char* category_;
   ThreadId thread_;
-  Isolate* isolate_;
+  Dart_Port isolate_id_;
 
-  void FreeArguments();
-
-  void StreamInit(TimelineStream* stream);
-  void Init(EventType event_type, const char* label);
-
-  void set_event_type(EventType event_type) {
-    state_ = EventTypeField::update(event_type, state_);
-  }
-
-  enum StateBits {
-    kEventTypeBit = 0,
-    // reserve 4 bits for type.
-    kNextBit = 4,
-  };
-
-  class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
-
-  friend class TimelineTestHelper;
+  friend class TimelineEventRecorder;
+  friend class TimelineEventEndlessRecorder;
+  friend class TimelineEventRingRecorder;
   friend class TimelineStream;
+  friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
 };
 
 
 // A stream of timeline events. A stream has a name and can be enabled or
-// disabled.
+// disabled (globally and per isolate).
 class TimelineStream {
  public:
   TimelineStream();
 
-  void Init(const char* name, bool enabled);
+  void Init(const char* name,
+            bool enabled,
+            const bool* globally_enabled = NULL);
 
   const char* name() const {
     return name_;
+  }
+
+  bool Enabled() const {
+    return ((globally_enabled_ != NULL) && *globally_enabled_) ||
+           enabled();
   }
 
   bool enabled() const {
@@ -211,22 +335,15 @@ class TimelineStream {
 
   // Records an event. Will return |NULL| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
+  // NOTE: It is not allowed to call StartEvent again without completing
+  // the first event.
   TimelineEvent* StartEvent();
 
  private:
   const char* name_;
   bool enabled_;
+  const bool* globally_enabled_;
 };
-
-
-// (name, enabled by default).
-#define ISOLATE_TIMELINE_STREAM_LIST(V)                                        \
-  V(API, false)                                                                \
-  V(Compiler, false)                                                           \
-  V(Embedder, false)                                                           \
-  V(GC, false)                                                                 \
-  V(Isolate, false)                                                            \
-
 
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
   TimelineDurationScope tds(thread,                                            \
@@ -237,81 +354,99 @@ class TimelineStream {
     tds.CopyArgument(                                                          \
         0,                                                                     \
         "function",                                                            \
-        const_cast<char*>(function.ToLibNamePrefixedQualifiedCString()));      \
+        function.ToLibNamePrefixedQualifiedCString());                         \
   }
 
 
-// TODO(johnmccutchan): TimelineDurationScope should only allocate the
-// event when complete.
-class TimelineDurationScope : public StackResource {
+// See |TimelineDurationScope| and |TimelineBeginEndScope|.
+class TimelineEventScope : public StackResource {
  public:
-  TimelineDurationScope(Isolate* isolate,
-                        TimelineStream* stream,
-                        const char* label)
-      : StackResource(isolate) {
-    Init(stream, label);
-  }
-
-  TimelineDurationScope(Thread* thread,
-                        TimelineStream* stream,
-                        const char* label)
-      : StackResource(thread) {
-    Init(stream, label);
-  }
-
-  TimelineDurationScope(TimelineStream* stream,
-                        const char* label)
-      : StackResource(reinterpret_cast<Thread*>(NULL)) {
-    Init(stream, label);
-  }
-
-  void Init(TimelineStream* stream, const char* label) {
-    event_ = stream->StartEvent();
-    if (event_ == NULL) {
-      return;
-    }
-    event_->DurationBegin(label);
-  }
-
   bool enabled() const {
-    return event_ != NULL;
+    return enabled_;
   }
 
-  void SetNumArguments(intptr_t length) {
-    if (event_ == NULL) {
-      return;
-    }
-    event_->SetNumArguments(length);
-  }
+  void SetNumArguments(intptr_t length);
 
-  void SetArgument(intptr_t i, const char* name, char* argument) {
-    if (event_ == NULL) {
-      return;
-    }
-    event_->SetArgument(i, name, argument);
-  }
+  void SetArgument(intptr_t i, const char* name, char* argument);
 
-  void CopyArgument(intptr_t i, const char* name, const char* argument) {
-    if (event_ == NULL) {
-      return;
-    }
-    event_->CopyArgument(i, name, argument);
-  }
+  void CopyArgument(intptr_t i, const char* name, const char* argument);
 
   void FormatArgument(intptr_t i,
                       const char* name,
                       const char* fmt, ...)  PRINTF_ATTRIBUTE(4, 5);
 
-  ~TimelineDurationScope() {
-    if (event_ == NULL) {
-      return;
-    }
-    event_->DurationEnd();
-    event_->Complete();
+ protected:
+  TimelineEventScope(TimelineStream* stream,
+                     const char* label);
+
+  TimelineEventScope(Thread* thread,
+                     TimelineStream* stream,
+                     const char* label);
+
+  bool ShouldEmitEvent() const {
+    return enabled_;
   }
 
+  const char* label() const {
+    return label_;
+  }
+
+  TimelineStream* stream() const {
+    return stream_;
+  }
+
+  virtual ~TimelineEventScope();
+
+  void StealArguments(TimelineEvent* event);
+
  private:
-  TimelineEvent* event_;
+  void Init();
+  void FreeArguments();
+
+  TimelineStream* stream_;
+  const char* label_;
+  TimelineEventArgument* arguments_;
+  intptr_t arguments_length_;
+  bool enabled_;
+
+  DISALLOW_COPY_AND_ASSIGN(TimelineEventScope);
+};
+
+
+class TimelineDurationScope : public TimelineEventScope {
+ public:
+  TimelineDurationScope(TimelineStream* stream,
+                        const char* label);
+
+  TimelineDurationScope(Thread* thread,
+                        TimelineStream* stream,
+                        const char* label);
+
+  ~TimelineDurationScope();
+
+ private:
+  int64_t timestamp_;
+
+  DISALLOW_COPY_AND_ASSIGN(TimelineDurationScope);
+};
+
+
+class TimelineBeginEndScope : public TimelineEventScope {
+ public:
+  TimelineBeginEndScope(TimelineStream* stream,
+                        const char* label);
+
+  TimelineBeginEndScope(Thread* thread,
+                        TimelineStream* stream,
+                        const char* label);
+
+  ~TimelineBeginEndScope();
+
+ private:
+  void EmitBegin();
+  void EmitEnd();
+
+  DISALLOW_COPY_AND_ASSIGN(TimelineBeginEndScope);
 };
 
 
@@ -358,8 +493,6 @@ class TimelineEventBlock {
     return &events_[index];
   }
 
-  // Attempt to sniff a thread id from the first event.
-  ThreadId thread() const;
   // Attempt to sniff the timestamp from the first event.
   int64_t LowerTimeBound() const;
 
@@ -372,13 +505,13 @@ class TimelineEventBlock {
   void Reset();
 
   // Only safe to access under the recorder's lock.
-  bool open() const {
-    return open_;
+  bool in_use() const {
+    return in_use_;
   }
 
   // Only safe to access under the recorder's lock.
-  Isolate* isolate() const {
-    return isolate_;
+  ThreadId thread_id() const {
+    return thread_id_;
   }
 
  protected:
@@ -390,10 +523,10 @@ class TimelineEventBlock {
   intptr_t block_index_;
 
   // Only accessed under the recorder's lock.
-  Isolate* isolate_;
-  bool open_;
+  ThreadId thread_id_;
+  bool in_use_;
 
-  void Open(Isolate* isolate);
+  void Open();
   void Finish();
 
   friend class Thread;
@@ -410,15 +543,17 @@ class TimelineEventBlock {
 
 class TimelineEventFilter : public ValueObject {
  public:
-  TimelineEventFilter();
+  TimelineEventFilter(int64_t time_origin_micros = -1,
+                      int64_t time_extent_micros = -1);
+
   virtual ~TimelineEventFilter();
 
   virtual bool IncludeBlock(TimelineEventBlock* block) {
     if (block == NULL) {
       return false;
     }
-    // Not empty and not open.
-    return !block->IsEmpty() && !block->open();
+    // Not empty and not in use.
+    return !block->IsEmpty() && !block->in_use();
   }
 
   virtual bool IncludeEvent(TimelineEvent* event) {
@@ -428,25 +563,41 @@ class TimelineEventFilter : public ValueObject {
     return event->IsValid();
   }
 
+  int64_t time_origin_micros() const {
+    return time_origin_micros_;
+  }
+
+  int64_t time_extent_micros() const {
+    return time_extent_micros_;
+  }
+
  private:
+  int64_t time_origin_micros_;
+  int64_t time_extent_micros_;
 };
 
 
 class IsolateTimelineEventFilter : public TimelineEventFilter {
  public:
-  explicit IsolateTimelineEventFilter(Isolate* isolate);
+  explicit IsolateTimelineEventFilter(Dart_Port isolate_id,
+                                      int64_t time_origin_micros = -1,
+                                      int64_t time_extent_micros = -1);
 
   bool IncludeBlock(TimelineEventBlock* block) {
     if (block == NULL) {
       return false;
     }
-    // Not empty, not open, and isolate match.
-    return !block->IsEmpty() &&
-           (block->isolate() == isolate_);
+    // Not empty, not in use, and isolate match.
+    return !block->IsEmpty() && !block->in_use();
+  }
+
+  bool IncludeEvent(TimelineEvent* event) {
+    return event->IsValid() &&
+           (event->isolate_id() == isolate_id_);
   }
 
  private:
-  Isolate* isolate_;
+  Dart_Port isolate_id_;
 };
 
 
@@ -460,8 +611,11 @@ class TimelineEventRecorder {
 
   // Interface method(s) which must be implemented.
   virtual void PrintJSON(JSONStream* js, TimelineEventFilter* filter) = 0;
+  virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
 
   int64_t GetNextAsyncId();
+
+  void FinishBlock(TimelineEventBlock* block);
 
  protected:
   void WriteTo(const char* directory);
@@ -470,27 +624,22 @@ class TimelineEventRecorder {
   virtual TimelineEvent* StartEvent() = 0;
   virtual void CompleteEvent(TimelineEvent* event) = 0;
   virtual TimelineEventBlock* GetHeadBlockLocked() = 0;
-  virtual TimelineEventBlock* GetNewBlockLocked(Isolate* isolate) = 0;
+  virtual TimelineEventBlock* GetNewBlockLocked() = 0;
+  virtual void Clear() = 0;
 
   // Utility method(s).
   void PrintJSONMeta(JSONArray* array) const;
   TimelineEvent* ThreadBlockStartEvent();
-  TimelineEvent* GlobalBlockStartEvent();
+  void ThreadBlockCompleteEvent(TimelineEvent* event);
 
   Mutex lock_;
-  // Only accessed under |lock_|.
-  TimelineEventBlock* global_block_;
-  void FinishGlobalBlock();
-
   uintptr_t async_id_;
 
-  friend class ThreadRegistry;
   friend class TimelineEvent;
   friend class TimelineEventBlockIterator;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   friend class Timeline;
-  friend class Isolate;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
@@ -506,15 +655,17 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   ~TimelineEventRingRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
  protected:
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
   TimelineEventBlock* GetHeadBlockLocked();
   intptr_t FindOldestBlockIndex() const;
-  TimelineEventBlock* GetNewBlockLocked(Isolate* isolate);
+  TimelineEventBlock* GetNewBlockLocked();
+  void Clear();
 
-  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter) const;
+  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
 
   TimelineEventBlock** blocks_;
   intptr_t capacity_;
@@ -530,17 +681,20 @@ class TimelineEventStreamingRecorder : public TimelineEventRecorder {
   ~TimelineEventStreamingRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
   // Called when |event| is ready to be streamed. It is unsafe to keep a
   // reference to |event| as it may be freed as soon as this function returns.
   virtual void StreamEvent(TimelineEvent* event) = 0;
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked(Isolate* isolate) {
+  TimelineEventBlock* GetNewBlockLocked() {
     return NULL;
   }
   TimelineEventBlock* GetHeadBlockLocked() {
     return NULL;
+  }
+  void Clear() {
   }
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
@@ -554,21 +708,17 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
  public:
   TimelineEventEndlessRecorder();
 
-  // NOTE: Calling this while threads are filling in their blocks is not safe
-  // and there are no checks in place to ensure that doesn't happen.
-  // TODO(koda): Add isolate count to |ThreadRegistry| and verify that it is 1.
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
  protected:
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
-  TimelineEventBlock* GetNewBlockLocked(Isolate* isolate);
+  TimelineEventBlock* GetNewBlockLocked();
   TimelineEventBlock* GetHeadBlockLocked();
-
-  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter) const;
-
-  // Useful only for testing. Only works for one thread.
   void Clear();
+
+  void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
 
   TimelineEventBlock* head_;
   intptr_t block_index_;
@@ -595,6 +745,7 @@ class TimelineEventBlockIterator {
   TimelineEventBlock* current_;
   TimelineEventRecorder* recorder_;
 };
+
 
 }  // namespace dart
 

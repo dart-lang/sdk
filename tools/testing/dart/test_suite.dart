@@ -212,6 +212,19 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  String get dartPrecompiledBinaryFileName {
+    // Controlled by user with the option "--dart_precompiled".
+    String dartExecutable = configuration['dart_precompiled'];
+
+    if (dartExecutable == null || dartExecutable == '') {
+      String suffix = executableBinarySuffix;
+      dartExecutable = '$buildDir/dart_precompiled$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, configuration);
+    return dartExecutable;
+  }
+
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
     var d8Dir = TestUtils.dartDir.append('third_party/d8');
@@ -224,7 +237,7 @@ abstract class TestSuite {
   String get jsShellFileName {
     var executableSuffix = getExecutableSuffix('jsshell');
     var executable = 'jsshell$executableSuffix';
-    var jsshellDir = '${TestUtils.dartDir}/tools/testing/bin';
+    var jsshellDir = '${TestUtils.dartDir.toNativePath()}/tools/testing/bin';
     return '$jsshellDir/$executable';
   }
 
@@ -674,7 +687,6 @@ class StandardTestSuite extends TestSuite {
     var status_paths = ['$directory/$name.status',
                         '$directory/.status',
                         '$directory/${name}_dart2js.status',
-                        '$directory/${name}_analyzer.status',
                         '$directory/${name}_analyzer2.status'];
 
     return new StandardTestSuite(configuration,
@@ -1010,9 +1022,10 @@ class StandardTestSuite extends TestSuite {
     List<String> compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
-      compileTimeArguments
-          ..addAll(sharedOptions)
-          ..addAll(args);
+      compileTimeArguments =
+          compilerConfiguration.computeCompilerArguments(vmOptions,
+                                                         sharedOptions,
+                                                         args);
       // Avoid doing this for analyzer.
       tempDir = createCompilationOutputDirectory(info.filePath);
     }
@@ -1502,7 +1515,6 @@ class StandardTestSuite extends TestSuite {
       case 'none':
         return 'application/dart';
       case 'dart2js':
-      case 'dartanalyzer':
       case 'dart2analyzer':
         return 'text/javascript';
       default:
@@ -1551,8 +1563,7 @@ class StandardTestSuite extends TestSuite {
       args.add('--no-hints');
     }
 
-    if ((configuration["compiler"] == "dartanalyzer" ||
-        configuration["compiler"] == "dart2analyzer") &&
+    if (configuration["compiler"] == "dart2analyzer" &&
         (filePath.filename.contains("dart2js") ||
         filePath.directoryPath.segments().last.contains('html_common'))) {
       args.add("--use-dart2js-libraries");
@@ -1775,8 +1786,8 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none'];
-    var RUNTIMES = const ['none', 'vm', 'drt', 'dartium',
+    var COMPILERS = const ['none', 'precompiler'];
+    var RUNTIMES = const ['none', 'dart_precompiled', 'vm', 'drt', 'dartium',
                           'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
@@ -2247,7 +2258,7 @@ class TestUtils {
     if (compiler == "dart2js" && configuration["cps_ir"]) {
       args.add("--use-cps-ir");
     }
-    if (compiler == "dartanalyzer" || compiler == "dart2analyzer") {
+    if (compiler == "dart2analyzer") {
       args.add("--show-package-warnings");
       args.add("--enable-async");
     }
@@ -2277,7 +2288,7 @@ class TestUtils {
       const ['d8', 'jsshell'].contains(runtime);
 
   static bool isCommandLineAnalyzer(String compiler) =>
-      compiler == 'dartanalyzer' || compiler == 'dart2analyzer';
+      compiler == 'dart2analyzer';
 
   static String buildDir(Map configuration) {
     // FIXME(kustermann,ricow): Our code assumes that the returned 'buildDir'

@@ -17,6 +17,7 @@ import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/dart2js.dart' as entry;
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
@@ -28,11 +29,14 @@ import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/scanner/scanner_task.dart';
+import 'package:compiler/src/universe/world_impact.dart';
+import 'diagnostic_reporter_helper.dart';
 
-class TestCompiler extends apiimpl.Compiler {
+class TestCompiler extends apiimpl.CompilerImpl {
   final String testMarker;
   final String testType;
   final Function onTest;
+  DiagnosticReporter reporter;
 
   TestCompiler(api.CompilerInput inputProvider,
                api.CompilerOutput outputProvider,
@@ -50,6 +54,7 @@ class TestCompiler extends apiimpl.Compiler {
               packageRoot, options, environment, packageConfig, findPackages) {
     scanner = new TestScanner(this);
     resolver = new TestResolver(this, backend.constantCompilerTask);
+    reporter = new TestDiagnosticReporter(this, super.reporter);
     test('Compiler');
   }
 
@@ -78,13 +83,6 @@ class TestCompiler extends apiimpl.Compiler {
     return super.codegen(work, world);
   }
 
-  withCurrentElement(Element element, f()) {
-    return super.withCurrentElement(element, () {
-      test('Compiler.withCurrentElement');
-      return f();
-    });
-  }
-
   test(String marker) {
     if (marker == testMarker) {
       switch (testType) {
@@ -98,17 +96,19 @@ class TestCompiler extends apiimpl.Compiler {
         break;
       case 'warning':
         onTest(testMarker, testType);
-        reportWarning(NO_LOCATION_SPANNABLE,
-                      MessageKind.GENERIC, {'text': marker});
+        reporter.reportWarningMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.GENERIC, {'text': marker});
         break;
       case 'error':
         onTest(testMarker, testType);
-        reportError(NO_LOCATION_SPANNABLE,
-                    MessageKind.GENERIC, {'text': marker});
+        reporter.reportErrorMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.GENERIC, {'text': marker});
         break;
       case 'internalError':
         onTest(testMarker, testType);
-        internalError(NO_LOCATION_SPANNABLE, marker);
+        reporter.internalError(NO_LOCATION_SPANNABLE, marker);
         break;
       case 'NoSuchMethodError':
         onTest(testMarker, testType);
@@ -119,6 +119,21 @@ class TestCompiler extends apiimpl.Compiler {
         break;
       }
     }
+  }
+}
+
+class TestDiagnosticReporter extends DiagnosticReporterWrapper {
+  final TestCompiler compiler;
+  final DiagnosticReporter reporter;
+
+  TestDiagnosticReporter(this.compiler, this.reporter);
+
+  @override
+  withCurrentElement(Element element, f()) {
+    return super.withCurrentElement(element, () {
+      compiler.test('Compiler.withCurrentElement');
+      return f();
+    });
   }
 }
 

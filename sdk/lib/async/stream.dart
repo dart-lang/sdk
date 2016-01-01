@@ -139,8 +139,6 @@ abstract class Stream<T> {
    */
   factory Stream.periodic(Duration period,
                           [T computation(int computationCount)]) {
-    if (computation == null) computation = ((i) => null);
-
     Timer timer;
     int computationCount = 0;
     StreamController<T> controller;
@@ -149,7 +147,15 @@ abstract class Stream<T> {
 
     void sendEvent() {
       watch.reset();
-      T data = computation(computationCount++);
+      T data;
+      if (computation != null) {
+        try {
+          data = computation(computationCount++);
+        } catch (e, s) {
+          controller.addError(e, s);
+          return;
+        }
+      }
       controller.add(data);
     }
 
@@ -307,12 +313,20 @@ abstract class Stream<T> {
    * Creates a new stream that converts each element of this stream
    * to a new value using the [convert] function.
    *
+   * For each data event, `o`, in this stream, the returned stream
+   * provides a data event with the value `convert(o)`.
+   * If [convert] throws, the returned stream reports the exception as an error
+   * event instead.
+   *
+   * Error and done events are passed through unchanged to the returned stream.
+   *
    * The returned stream is a broadcast stream if this stream is.
+   * The [convert] function is called once per data event per listener.
    * If a broadcast stream is listened to more than once, each subscription
-   * will individually execute `map` for each event.
+   * will individually call [convert] on each data event.
    */
-  Stream map(convert(T event)) {
-    return new _MapStream<T, dynamic>(this, convert);
+  Stream/*<S>*/ map/*<S>*/(/*=S*/ convert(T event)) {
+    return new _MapStream<T, dynamic/*=S*/>(this, convert);
   }
 
   /**
@@ -473,8 +487,8 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually call `convert` and expand the events.
    */
-  Stream expand(Iterable convert(T value)) {
-    return new _ExpandStream<T, dynamic>(this, convert);
+  Stream/*<S>*/ expand(Iterable/*<S>*/ convert(T value)) {
+    return new _ExpandStream<T, dynamic/*=S*/>(this, convert);
   }
 
   /**
@@ -548,7 +562,9 @@ abstract class Stream<T> {
   }
 
   /** Reduces a sequence of values by repeatedly applying [combine]. */
-  Future fold(var initialValue, combine(var previous, T element)) {
+  Future/*<S>*/ fold/*<S>*/(var/*=S*/ initialValue,
+      /*=S*/ combine(var/*=S*/ previous, T element)) {
+
     _Future result = new _Future();
     var value = initialValue;
     StreamSubscription subscription;
@@ -898,7 +914,7 @@ abstract class Stream<T> {
    * Skips data events if they are equal to the previous data event.
    *
    * The returned stream provides the same events as this stream, except
-   * that it never provides two consequtive data events that are equal.
+   * that it never provides two consecutive data events that are equal.
    *
    * Equality is determined by the provided [equals] method. If that is
    * omitted, the '==' operator on the last provided data element is used.
@@ -1451,7 +1467,7 @@ class StreamView<T> extends Stream<T> {
 /**
  * Abstract interface for a "sink" accepting multiple entire streams.
  *
- * A consumer can accept a number of consequtive streams using [addStream],
+ * A consumer can accept a number of consecutive streams using [addStream],
  * and when no further data need to be added, the [close] method tells the
  * consumer to complete its work and shut down.
  *
@@ -1485,7 +1501,7 @@ abstract class StreamConsumer<S> {
   Future addStream(Stream<S> stream);
 
   /**
-   * Tells the consumer that no futher streams will be added.
+   * Tells the consumer that no further streams will be added.
    *
    * This allows the consumer to complete any remaining work and release
    * resources that are no longer needed
@@ -1519,7 +1535,7 @@ abstract class StreamConsumer<S> {
  */
 abstract class StreamSink<S> implements EventSink<S>, StreamConsumer<S> {
   /**
-   * Tells the stream sink that no futher streams will be added.
+   * Tells the stream sink that no further streams will be added.
    *
    * This allows the stream sink to complete any remaining work and release
    * resources that are no longer needed
@@ -1622,9 +1638,9 @@ abstract class StreamTransformer<S, T> {
    *                 onDone: controller.close,
    *                 cancelOnError: cancelOnError);
    *             },
-   *             onPause: subscription.pause,
-   *             onResume: subscription.resume,
-   *             onCancel: subscription.cancel,
+   *             onPause: () { subscription.pause(); },
+   *             onResume: () { subscription.resume(); },
+   *             onCancel: () { subscription.cancel(); },
    *             sync: true);
    *           return controller.stream.listen(null);
    *         });

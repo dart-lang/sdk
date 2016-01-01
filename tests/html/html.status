@@ -6,28 +6,36 @@ interactive_test: Skip # Must be run manually.
 dromaeo_smoke_test: Skip # Issue 14521, 8257
 cross_frame_test: Skip # Test reloads itself. Issue 18558
 
-js_array_test: Skip # Issue 23676, 23677
-js_typed_interop_test: Skip # Issue 23676, 23677
+[ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
-custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # Issue 18931 (Disabled for Chrome 35 roll)
-form_data_test/functional: Skip # Issue 19726
-indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
-indexeddb_4_test: Skip # Issue 19726
-mouse_event_test: Fail # Issue 20437
+js_array_test: Skip # Dartium JSInterop failure
+mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
+js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
+
+cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
+indexeddb_2_test: Fail # Dartium JSInterop failure. Identity preservation on array deferred copy.
+js_test/transferrables: RuntimeError # Dartium JSInterop failure
+js_test/JsArray: RuntimeError # Dartium JSInterop failure
+native_gc_test: Skip # Dartium JSInterop failure
+transferables_test: RuntimeError # Dartium JSInterop failure
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
 worker_api_test: Fail # Issue 10223
-media_stream_test/constructors: Pass, Crash # Issue 22267
-element_animate_test/simple_timing: Fail # Not supported on Dartium
-element_animate_test/omit_timing: Fail # Not supported on Dartium
-element_animate_test/timing_dict: Fail # Not supported on Dartium
-trusted_html_tree_sanitizer_test/untrusted: Fail # We make adoptNode throw to verify it's not being called. That doesn't work on Dartium.
 resource_http_test: Fail # Issue 24203
+js_function_getter_trust_types_test: Skip # dartium doesn't support trust types.
 
-[ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium ) ]
 datalistelement_test: Skip # Issue 20540
 
 [ $compiler == dart2js ]
 input_element_test/attributes: Fail # Issue 21555
+wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
+
+[ $compiler == dart2js && $checked ]
+js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
+
+[ $compiler == dart2js && $checked && $browser ]
+js_typed_interop_test/method: Fail # Issue 24822
 
 [ $compiler == dart2js && $csp && $browser ]
 custom/js_custom_test: Fail # Issue 14643
@@ -36,7 +44,6 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
-storage_quota_test: Fail # Support for promises.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
@@ -47,33 +54,22 @@ element_animate_test: Fail # Element.animate not supported on these browsers.
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
 postmessage_structured_test/typed_arrays: Fail
 # Dartium seems to lose the data from the dispatchEvent.
-postmessage_structured_test/more_primitives: Fail
 async_test: Fail # Uses spawn, not implemented from a DOM isolate in Dartium
 keyboard_event_test: Fail # Issue 13902
 isolates_test: Fail # Issue 13921
-indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 fileapi_test/getFile: Pass, Fail # Issue 20488
 
-# DO NOT Suppress/Skip the below XSS security test for dart2js - any failure is a P0 bug.
-node_validator_important_if_you_suppress_make_the_bug_critical_test/dom_clobbering: Fail # Dartium is immune to DOM clobbering, so the HTML passes through the sanitizer.
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
+[ $compiler == none && ($runtime == drt || $runtime == dartium ) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
-
-[ $compiler == none && $runtime == ContentShellOnAndroid ]
-canvasrenderingcontext2d_test/drawImage_video_element: RuntimeError # Issue 19127
-canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass, Fail # Issue 20524
-notification_test/constructors: Skip # Times out on Android Dartium. Issue 22835
 
 element_offset_test/offset: RuntimeError # Issue 17550
 request_animation_frame_test: Skip # Times out, and also passes while taking 4.00 minutes. Issue 19127.
 fileapi_test/fileEntry: Pass, RuntimeError # Issue 20488
-indexeddb_5_test: Pass, RuntimeError # Issue 21262
 native_gc_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
@@ -109,22 +105,24 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
 element_animate_test/omit_timing: RuntimeError # Also timing out on MacOS. Issue 23507
 element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue 23507
+element_animate_test/simple_timing: RuntimeError # Please triage this failure
+element_types_test/supported_object: RuntimeError # Issue 25155
+element_types_test/supported_embed: RuntimeError # Issue 25155
+event_test: Pass, RuntimeError # Issue 25158 Passes on 46, fails on 47
+history_test/history: Pass, RuntimeError # Issue 25158, passes on 46 fails on 47
 
 [ $runtime == chrome && $system == macos ]
+canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
+canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
 element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
 element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 
-[ $runtime == chrome && $system != linux ]
-# These are failures in Chrome 45, which is not yet on Linux.
-# This will be merged with the earlier blocks when Linux is updated.
-element_animate_test/simple_timing: RuntimeError # Please triage this failure
-
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows]
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows ]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug]
@@ -133,10 +131,10 @@ native_gc_test: Pass, Slow
 
 [$runtime == ie10 || $runtime == ie11]
 indexeddb_5_test: Fail # Issue 12893
-js_test: Fail # Issue 14246
-element_test/click: Fail                # IE does not support firing this event.
+js_test/transferrables: RuntimeError # Issue 14246
+element_test/click: Fail # IE does not support firing this event.
 serialized_script_value_test: Fail
-websocket_test/websocket: Fail # TODO(efortuna): Issue 7875.
+websocket_test/websocket: Fail # Issue 7875. Closed with "working as intended".
 canvasrenderingcontext2d_test/drawImage_video_element: Fail # IE does not support drawImage w/ video element
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # IE does not support drawImage w/ video element
 no_linked_scripts_htmltest: Skip # Times out on IE.  Issue 21537
@@ -348,7 +346,8 @@ performance_api_test/supported: Fail
 speechrecognition_test/supported: Fail
 websql_test/supported: Fail
 
-[ $runtime == ff ]
+[  $compiler == dart2js && $runtime == ff ]
+history_test/history: Skip # Issue 22050
 xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
@@ -377,23 +376,30 @@ speechrecognition_test/supported: Fail
 touchevent_test/supported: Fail
 websql_test/supported: Fail
 
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+mediasource_test/supported: Pass
+mediasource_test/functional: RuntimeError # Issue 24838
+
 # 'html' tests import the HTML library, so they only make sense in
 # a browser environment.
-[ $runtime == vm ]
+[ $runtime == vm || $runtime == dart_precompiled ]
 *: Skip
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.
 
-[ $compiler == dart2js && $runtime == ff ]
-history_test/history: Skip # Issue 22050
-
 [ $compiler == dart2js && $csp && ($runtime == drt || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == chromeOnAndroid) ]
 # Note: these tests are all injecting scripts by design.  This is not allowed under CSP.
-event_customevent_test: Fail       # Test cannot run under CSP restrictions.
-js_interop_1_test: Skip            # Test cannot run under CSP restrictions (times out).
-js_test: Skip                      # Test cannot run under CSP restrictions (times out).
-postmessage_structured_test: Skip  # Test cannot run under CSP restrictions (times out).
+event_customevent_test: Fail        # Test cannot run under CSP restrictions.
+js_interop_1_test: Skip             # Test cannot run under CSP restrictions (times out).
+js_test: Skip                       # Test cannot run under CSP restrictions (times out).
+js_array_test: Skip                 # Test cannot run under CSP restrictions.
+js_typed_interop_test: Skip         # Test cannot run under CSP restrictions.
+js_function_getter_test: Skip       # Test cannot run under CSP restrictions.
+js_function_getter_trust_types_test: Skip  # Test cannot run under CSP restrictions.
+js_dart_to_string_test: Skip        # Test cannot run under CSP restrictions.
+mirrors_js_typed_interop_test: Skip # Test cannot run under CSP restrictions.
+postmessage_structured_test: Skip   # Test cannot run under CSP restrictions (times out).
 
 [ $compiler == dart2js &&  $runtime == chrome]
 svgelement_test/supported_altGlyph: RuntimeError # Issue 23144
@@ -405,7 +411,7 @@ touchevent_test/supported: Fail
 [ (($runtime == dartium || $runtime == drt) && $system == macos) || $system == windows ]
 xhr_test/xhr: Skip # Times out.  Issue 21527
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 custom/document_register_basic_test: StaticWarning
 custom/element_upgrade_test: StaticWarning
 datalistelement_test: StaticWarning
@@ -414,6 +420,7 @@ element_add_test: StaticWarning
 element_test: StaticWarning
 events_test: StaticWarning
 htmlelement_test: StaticWarning
+js_function_getter_trust_types_test: skip # dart2js specific flags.
 localstorage_test: StaticWarning
 mutationobserver_test: StaticWarning
 queryall_test: fail

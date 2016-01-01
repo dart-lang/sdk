@@ -7,21 +7,21 @@ library dart2js.cps_ir.loop_hierarchy;
 import 'cps_ir_nodes.dart';
 
 /// Determines the effective nesting of loops.
-/// 
+///
 /// The effective nesting of loops is different from the lexical nesting, since
-/// recursive continuations can generally contain all the code following 
+/// recursive continuations can generally contain all the code following
 /// after the loop in addition to the looping code itself.
-/// 
+///
 /// For example, the 'else' branch below is not effectively part of the loop:
-/// 
-///   let rec kont x = 
-///     if (<loop condition>) 
+///
+///   let rec kont x =
+///     if (<loop condition>)
 ///       <loop body>
 ///       InvokeContinuation kont x'
-///     else 
+///     else
 ///       <after loop>
 ///       return p.foo()
-/// 
+///
 /// We use the term "loop" to mean recursive continuation.
 /// The `null` value is used to represent a context not part of any loop.
 class LoopHierarchy {
@@ -36,7 +36,7 @@ class LoopHierarchy {
   int currentDepth = 0;
 
   /// Computes the loop hierarchy for the given function.
-  /// 
+  ///
   /// Parent pointers must be computed for [node].
   LoopHierarchy(FunctionDefinition node) {
     _processBlock(node.body, null);
@@ -47,21 +47,21 @@ class LoopHierarchy {
     return cont.isRecursive ? cont : loopTarget[cont];
   }
 
-  /// Returns the innermost loop which the given loop is part of, other
+  /// Returns the innermost loop which the given continuation is part of, other
   /// than itself.
-  Continuation getEnclosingLoop(Continuation loop) {
-    return loopTarget[loop];
+  Continuation getEnclosingLoop(Continuation cont) {
+    return loopTarget[cont];
   }
 
   /// Marks the innermost loop as a subloop of the other loop.
-  /// 
+  ///
   /// Returns the innermost loop.
-  /// 
+  ///
   /// Both continuations, [c1] and [c2] may be null (i.e. no loop).
-  /// 
+  ///
   /// A loop is said to be a subloop of an enclosing loop if it can invoke
   /// that loop recursively. This information is stored in [loopTarget].
-  /// 
+  ///
   /// This method is only invoked with two distinct loops if there is a
   /// point that can reach a recursive invocation of both loops.
   /// This implies that one loop is nested in the other, because they must
@@ -83,7 +83,7 @@ class LoopHierarchy {
 
   /// Analyzes the body of [cont] and returns the innermost loop
   /// that can be invoked recursively from [cont] (other than [cont] itself).
-  /// 
+  ///
   /// [catchLoop] is the innermost loop that can be invoked recursively
   /// from the current exception handler.
   Continuation _processContinuation(Continuation cont, Continuation catchLoop) {
@@ -99,29 +99,13 @@ class LoopHierarchy {
     return loopTarget[cont];
   }
 
-  bool _isCallContinuation(Continuation cont) {
-    return cont.hasExactlyOneUse && cont.firstRef.parent is CallExpression;
-  }
-
   /// Analyzes a basic block and returns the innermost loop that
   /// can be invoked recursively from that block.
   Continuation _processBlock(Expression node, Continuation catchLoop) {
-    List<Continuation> callContinuations = <Continuation>[];
     for (; node is! TailExpression; node = node.next) {
       if (node is LetCont) {
         for (Continuation cont in node.continuations) {
-          if (!_isCallContinuation(cont)) {
-            // Process non-call continuations at the binding site, so they
-            // their loop target is known at all use sites.
-            _processContinuation(cont, catchLoop);
-          } else {
-            // To avoid deep recursion, do not analyze call continuations
-            // recursively. This basic block traversal steps into the
-            // call contiunation after visiting its use site. We store the
-            // continuations in a list so we can set the loop target once
-            // it is known.
-            callContinuations.add(cont);
-          }
+          _processContinuation(cont, catchLoop);
         }
       } else if (node is LetHandler) {
         catchLoop = _processContinuation(node.handler, catchLoop);
@@ -141,13 +125,28 @@ class LoopHierarchy {
     } else {
       assert(node is Unreachable || node is Throw);
     }
-    target = _markInnerLoop(target, catchLoop);
-    for (Continuation cont in callContinuations) {
-      // Store the loop target on each call continuation in the basic block.
-      // Because we walk over call continuations as part of the basic block
-      // traversal, these do not get their loop target set otherwise.
-      loopTarget[cont] = target;
+    return _markInnerLoop(target, catchLoop);
+  }
+
+  /// Returns the the innermost loop that effectively encloses both
+  /// c1 and c2 (or `null` if there is no such loop).
+  Continuation lowestCommonAncestor(Continuation c1, Continuation c2) {
+    int d1 = getDepth(c1), d2 = getDepth(c2);
+    while (c1 != c2) {
+      if (d1 <= d2) {
+        c2 = getEnclosingLoop(c2);
+        d2 = getDepth(c2);
+      } else {
+        c1 = getEnclosingLoop(c1);
+        d1 = getDepth(c1);
+      }
     }
-    return target;
+    return c1;
+  }
+
+  /// Returns the lexical nesting depth of [loop].
+  int getDepth(Continuation loop) {
+    if (loop == null) return 0;
+    return loopDepth[loop];
   }
 }

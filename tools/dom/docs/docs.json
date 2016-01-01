@@ -140,7 +140,8 @@
         " * See also:",
         " *",
         " * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.",
-        " * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.",
+        " * * [CanvasGradient](https://html.spec.whatwg.org/multipage/scripting.html#canvasgradient)",
+        " *   from WHATWG.",
         " * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.",
         " */"
       ],
@@ -184,7 +185,8 @@
         " *",
         " * See also:",
         " * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.",
-        " * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.",
+        " * * [CanvasPattern](https://html.spec.whatwg.org/multipage/scripting.html#canvaspattern)",
+        " *   from WHATWG.",
         " * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.",
         " */"
       ]
@@ -212,9 +214,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Current default path]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)",
-          "   * from WHATWG.",
+          "   * * [Current default",
+          "   *   path](https://html.spec.whatwg.org/multipage/scripting.html#current-default-path)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "imageSmoothingEnabled": [
@@ -224,9 +226,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Image smoothing]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)",
-          "   * from WHATWG.",
+          "   * * [Image",
+          "   *   smoothing](https://html.spec.whatwg.org/multipage/scripting.html#image-smoothing)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "webkitBackingStorePixelRatio": [
@@ -236,8 +238,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [High DPI Canvas tutorial]",
-          "   * (http://www.html5rocks.com/en/tutorials/canvas/hidpi/) from HTML5Rocks.",
+          "   * * [High DPI Canvas",
+          "   *   tutorial](http://www.html5rocks.com/en/tutorials/canvas/hidpi/)",
+          "   *   from HTML5Rocks.",
           "   */"
         ]
       }
@@ -629,13 +632,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "dragenterEvent": [
@@ -645,13 +648,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "dragEvent": [
@@ -664,13 +667,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "draggable": [
@@ -679,13 +682,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "dragleaveEvent": [
@@ -695,13 +698,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "dragoverEvent": [
@@ -711,13 +714,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "dragstartEvent": [
@@ -726,13 +729,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "dropEvent": [
@@ -742,13 +745,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "errorEvent": [
@@ -774,12 +777,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Element.getBoundingClientRect]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)",
-          "   * from MDN.",
-          "   * * [The getBoundingClientRect() method]",
-          "   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)",
-          "   * from W3C.",
+          "   * * [Element.getBoundingClientRect](https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)",
+          "   *   from MDN.",
+          "   * * [The getBoundingClientRect()",
+          "   *   method](http://www.w3.org/TR/cssom-view/#the-getclientrects()-and-getboundingclientrect()-methods)",
+          "   *   from W3C.",
           "   */"
         ],
         "getClientRects": [
@@ -789,12 +791,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Element.getClientRects]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)",
-          "   * from MDN.",
-          "   * * [The getClientRects() method]",
-          "   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)",
-          "   * from W3C.",
+          "   * * [Element.getClientRects](https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)",
+          "   *   from MDN.",
+          "   * * [The getClientRects()",
+          "   *   method](http://www.w3.org/TR/cssom-view/#the-getclientrects()-and-getboundingclientrect()-methods)",
+          "   *   from W3C.",
           "   */"
         ],
         "getDestinationInsertionPoints": [
@@ -804,9 +805,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Shadow DOM specification]",
-          "   * (https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)",
-          "   * from W3C.",
+          "   * * [Shadow DOM",
+          "   *   specification](https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)",
+          "   *   from W3C.",
           "   */"
         ],
         "getElementsByClassName": [
@@ -815,11 +816,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [getElementsByClassName]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)",
-          "   * from MDN.",
-          "   * * [DOM specification]",
-          "   * (http://www.w3.org/TR/domcore/) from W3C.",
+          "   * * [getElementsByClassName](https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)",
+          "   *   from MDN.",
+          "   * * [DOM specification](http://www.w3.org/TR/domcore/) from W3C.",
           "   */"
         ],
         "hidden": [
@@ -828,9 +827,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Hidden attribute specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/editing.html#the-hidden-attribute)",
-          "   * from WHATWG.",
+          "   * * [Hidden attribute",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#the-hidden-attribute)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "inputEvent": [
@@ -847,8 +846,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Input method editor specification]",
-          "   * (http://www.w3.org/TR/ime-api/) from W3C.",
+          "   * * [Input method editor",
+          "   *   specification](http://www.w3.org/TR/ime-api/) from W3C.",
           "   */"
         ],
         "invalidEvent": [
@@ -990,13 +989,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "ondragend": [
@@ -1006,13 +1005,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "ondragenter": [
@@ -1022,13 +1021,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "ondragleave": [
@@ -1038,13 +1037,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "ondragover": [
@@ -1054,13 +1053,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "ondragstart": [
@@ -1070,13 +1069,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "ondrop": [
@@ -1086,13 +1085,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "onerror": [
@@ -1207,11 +1206,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Using custom pseudo elements]",
-          "   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/#toc-custom-pseduo)",
-          "   * from HTML5Rocks.",
-          "   * * [Custom pseudo-elements]",
-          "   * (http://www.w3.org/TR/shadow-dom/#custom-pseudo-elements) from W3C.",
+          "   * * [Using custom pseudo",
+          "   *   elements](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom-201/#toc-custom-pseduo)",
+          "   *   from HTML5Rocks.",
+          "   * * [Custom pseudo-elements](http://www.w3.org/TR/shadow-dom/#custom-pseudo-elements)",
+          "   *   from W3C.",
           "   */"
         ],
         "querySelector": [
@@ -1246,8 +1245,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [scrollByLines]",
-          "   * (http://docs.webplatform.org/wiki/dom/methods/scrollByLines) from WebPlatform.org.",
+          "   * * [scrollByLines](http://docs.webplatform.org/wiki/dom/methods/scrollByLines)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "scrollByPages": [
@@ -1256,8 +1255,7 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [scrollByPages]",
-          "   * (http://docs.webplatform.org/wiki/dom/methods/scrollByPages) from WebPlatform.org.",
+          "   * * [scrollByPages](http://docs.webplatform.org/wiki/dom/methods/scrollByPages) from WebPlatform.org.",
           "   */"
         ],
         "scrollEvent": [
@@ -1355,9 +1353,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The translate attribute]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute)",
-          "   * from WHATWG.",
+          "   * * [The translate",
+          "   *   attribute](https://html.spec.whatwg.org/multipage/dom.html#the-translate-attribute)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "webkitdropzone": [
@@ -1367,13 +1365,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Drag and drop sample]",
-          "   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)",
-          "   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
-          "   * from HTML5Rocks.",
-          "   * * [Drag and drop specification]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)",
-          "   * from WHATWG.",
+          "   * * [Drag and drop",
+          "   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)",
+          "   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Drag and drop",
+          "   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "webkitfullscreenchangeEvent": [
@@ -1398,11 +1396,10 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [CSS regions and exclusions tutorial]",
-          "   * (http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.",
-          "   * * [Regions](http://html.adobe.com/webplatform/layout/regions/) from Adobe.",
-          "   * * [CSS regions specification]",
-          "   * (http://www.w3.org/TR/css3-regions/) from W3C.",
+          "   * * [CSS regions and exclusions",
+          "   *   tutorial](http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.",
+          "   * * [Regions](http://webplatform.adobe.com/regions/) from Adobe.",
+          "   * * [CSS regions specification](http://www.w3.org/TR/css3-regions/) from W3C.",
           "   */"
         ],
         "webkitRegionOverset": [
@@ -1416,11 +1413,10 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [CSS regions and exclusions tutorial]",
-          "   * (http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.",
-          "   * * [Regions](http://html.adobe.com/webplatform/layout/regions/) from Adobe.",
-          "   * * [CSS regions specification]",
-          "   * (http://www.w3.org/TR/css3-regions/) from W3C.",
+          "   * * [CSS regions and exclusions",
+          "   *   tutorial](http://www.html5rocks.com/en/tutorials/regions/adobe/) from HTML5Rocks.",
+          "   * * [Regions](http://webplatform.adobe.com/regions/) from Adobe.",
+          "   * * [CSS regions specification](http://www.w3.org/TR/css3-regions/) from W3C.",
           "   */"
         ],
         "webkitRequestFullscreen": [
@@ -1429,11 +1425,10 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Using the fullscreen API]",
-          "   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)",
-          "   * tutorial from WebPlatform.org.",
-          "   * * [Fullscreen specification]",
-          "   * (http://www.w3.org/TR/fullscreen/) from W3C.",
+          "   * * [Using the fullscreen",
+          "   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)",
+          "   *   tutorial from WebPlatform.org.",
+          "   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.",
           "   */"
         ],
         "webkitRequestPointerLock": [
@@ -1442,12 +1437,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Pointer lock and first person shooter controls]",
-          "   * (http://www.html5rocks.com/en/tutorials/pointerlock/intro/) tutorial from",
-          "   * HTML5Rocks.",
-          "   *",
-          "   * * [Pointer lock specification]",
-          "   * (http://www.w3.org/TR/pointerlock/) from W3C.",
+          "   * * [Pointer lock and first person shooter",
+          "   *   controls](http://www.html5rocks.com/en/tutorials/pointerlock/intro/)",
+          "   *   tutorial from HTML5Rocks.",
+          "   * * [Pointer lock specification](http://www.w3.org/TR/pointerlock/)",
+          "   *   from W3C.",
           "   */"
         ]
       }
@@ -1460,8 +1454,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Target phase] (http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)",
-          "   * from W3C.",
+          "   * * [Target phase](http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)",
+          "   *   from W3C.",
           "   */"
         ],
         "BUBBLING_PHASE": [
@@ -1470,8 +1464,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)",
-          "   * from W3C.",
+          "   * * [Bubble phase](http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)",
+          "   *   from W3C.",
           "   */"
         ],
         "CAPTURING_PHASE": [
@@ -1481,8 +1475,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)",
-          "   * from W3C.",
+          "   * * [Bubble phase](http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)",
+          "   *   from W3C.",
           "   */"
         ],
         "clipboardData": [
@@ -1491,8 +1485,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [clipboardData specification]",
-          "   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.",
+          "   * * [clipboardData specification](http://www.w3.org/TR/clipboard-apis/#attributes)",
+          "   *   from W3C.",
           "   */"
         ],
         "path": [
@@ -1501,9 +1495,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Shadow DOM extensions to Event]",
-          "   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from",
-          "   * W3C.",
+          "   * * [Shadow DOM extensions to",
+          "   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)",
+          "   *   from W3C.",
           "   */"
         ]
       }
@@ -1694,7 +1688,7 @@
         " *",
         " * See also:",
         " *",
-        " * * [<area>](https://developer.mozilla.org/en-US/docs/HTML/Element/area)",
+        " * * [`<area>`](https://developer.mozilla.org/en-US/docs/HTML/Element/area)",
         " * on MDN.",
         " */"
       ]
@@ -1887,7 +1881,7 @@
         " *",
         " * See also:",
         " *",
-        " * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.",
+        " * * [HTML `<div>` element](http://www.w3.org/TR/html-markup/div.html) from W3C.",
         " * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.",
         " * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.",
         " */"
@@ -2457,9 +2451,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.childNodes]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)",
-          "   * from MDN.",
+          "   * * [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)",
+          "   *   from MDN.",
           "   */"
         ],
         "cloneNode": [
@@ -2471,9 +2464,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.cloneNode]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode) from",
-          "   * MDN.",
+          "   * * [Node.cloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode)",
+          "   *   from MDN.",
           "   */"
         ],
         "contains": [
@@ -2482,8 +2474,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.contains]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.contains) from MDN.",
+          "   * * [Node.contains](https://developer.mozilla.org/en-US/docs/Web/API/Node.contains)",
+          "   *   from MDN.",
           "   */"
         ],
         "firstChild": [
@@ -2492,9 +2484,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.firstChild]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)",
-          "   * from MDN.",
+          "   * * [Node.firstChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)",
+          "   *   from MDN.",
           "   */"
         ],
         "hasChildNodes": [
@@ -2503,9 +2494,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.hasChildNodes]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes) from",
-          "   * MDN.",
+          "   * * [Node.hasChildNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes)",
+          "   *   from MDN.",
           "   */"
         ],
         "insertBefore": [
@@ -2514,9 +2504,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.insertBefore]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore) from",
-          "   * MDN.",
+          "   * * [Node.insertBefore](https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore)",
+          "   *   from MDN.",
           "   */"
         ],
         "lastChild": [
@@ -2525,9 +2514,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.lastChild]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)",
-          "   * from MDN.",
+          "   * * [Node.lastChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)",
+          "   *   from MDN.",
           "   */"
         ],
         "nextSibling": [
@@ -2536,9 +2524,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.nextSibling]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)",
-          "   * from MDN.",
+          "   * * [Node.nextSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)",
+          "   *   from MDN.",
           "   */"
         ],
         "nodeName": [
@@ -2549,10 +2536,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.nodeName]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)",
-          "   * from MDN. This page contains a table of [nodeName] values for each",
-          "   * [nodeType].",
+          "   * * [Node.nodeName](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)",
+          "   *   from MDN. This page contains a table of [nodeName] values for each",
+          "   *   [nodeType].",
           "   */"
         ],
         "nodeType": [
@@ -2576,8 +2562,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.nodeType]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType) from MDN.",
+          "   * * [Node.nodeType](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType)",
+          "   *   from MDN.",
           "   */"
         ],
         "nodeValue": [
@@ -2588,10 +2574,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.nodeValue]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)",
-          "   * from MDN. This page contains a table of [nodeValue] values for each",
-          "   * [nodeType].",
+          "   * * [Node.nodeValue](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)",
+          "   *   from MDN. This page contains a table of [nodeValue] values for each",
+          "   *   [nodeType].",
           "   */"
         ],
         "ownerDocument": [
@@ -2602,9 +2587,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.ownerDocument]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument) from",
-          "   * MDN.",
+          "   * * [Node.ownerDocument](https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument)",
+          "   *   from MDN.",
           "   */"
         ],
         "parentElement": [
@@ -2616,9 +2600,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.parentElement]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement) from",
-          "   * W3C.",
+          "   * * [Node.parentElement](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement)",
+          "   *   from W3C.",
           "   */"
         ],
         "parentNode": [
@@ -2627,9 +2610,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.parentNode]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode) from",
-          "   * MDN.",
+          "   * * [Node.parentNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode)",
+          "   *   from MDN.",
           "   */"
         ],
         "previousSibling": [
@@ -2638,9 +2620,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.previousSibling]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)",
-          "   * from MDN.",
+          "   * * [Node.previousSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)",
+          "   *   from MDN.",
           "   */"
         ],
         "textContent": [
@@ -2649,9 +2630,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Node.textContent]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent) from",
-          "   * MDN.",
+          "   * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)",
+          "   *   from MDN.",
           "   */"
         ]
       }
@@ -3287,9 +3267,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [User prompts]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)",
-          "   * from WHATWG.",
+          "   * * [User prompts](https://html.spec.whatwg.org/multipage/webappapis.html#user-prompts)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "applicationCache": [
@@ -3298,11 +3277,12 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [A beginner's guide to using the application cache]",
-          "   * (http://www.html5rocks.com/en/tutorials/appcache/beginner) from HTML5Rocks.",
-          "   * * [Application cache API]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api)",
-          "   * from WHATWG.",
+          "   * * [A beginner's guide to using the application",
+          "   *   cache](http://www.html5rocks.com/en/tutorials/appcache/beginner)",
+          "   *   from HTML5Rocks.",
+          "   * * [Application cache",
+          "   *   API](https://html.spec.whatwg.org/multipage/browsers.html#application-cache-api)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "confirm": [
@@ -3311,9 +3291,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [User prompts]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)",
-          "   * from WHATWG.",
+          "   * * [User prompts](https://html.spec.whatwg.org/multipage/webappapis.html#user-prompts)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "crypto": [
@@ -3362,12 +3341,10 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [devicePixelRatio]",
-          "   * (http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html) from",
-          "   * quirksmode.",
-          "   * * [More about devicePixelRatio]",
-          "   * (http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html) from",
-          "   * quirksmode.",
+          "   * * [devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html)",
+          "   *   from quirksmode.",
+          "   * * [More about devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html)",
+          "   *   from quirksmode.",
           "   */"
         ],
         "DOMContentLoadedEvent": [
@@ -3384,8 +3361,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window.find]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.find) from MDN.",
+          "   * * [Window.find](https://developer.mozilla.org/en-US/docs/Web/API/Window.find)",
+          "   *   from MDN.",
           "   */"
         ],
         "getMatchedCSSRules": [
@@ -3399,9 +3376,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window.getSelection]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)",
-          "   * from MDN.",
+          "   * * [Window.getSelection](https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)",
+          "   *   from MDN.",
           "   */"
         ],
         "hashchangeEvent": [
@@ -3418,9 +3394,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Loading web pages]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)",
-          "   * from WHATWG.",
+          "   * * [Loading web pages](https://html.spec.whatwg.org/multipage/browsers.html)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "innerHeight": [
@@ -3429,9 +3404,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [innerHeight]",
-          "   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight) from",
-          "   * WebPlatform.org.",
+          "   * * [innerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "innerWidth": [
@@ -3440,9 +3414,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [innerWidth]",
-          "   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth) from",
-          "   * WebPlatform.org.",
+          "   * * [innerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "localStorage": [
@@ -3451,13 +3424,12 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [DOM storage guide]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from",
-          "   * MDN.",
-          "   * * [The past, present & future of local storage for web applications]",
-          "   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.",
-          "   * * [Local storage specification]",
-          "   * (http://www.w3.org/TR/webstorage/#the-localstorage-attribute) from W3C.",
+          "   * * [DOM storage guide](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage)",
+          "   *   from MDN.",
+          "   * * [The past, present & future of local storage for web",
+          "   *   applications](http://diveintohtml5.info/storage.html) from Dive Into HTML5.",
+          "   * * [Local storage specification](http://www.w3.org/TR/webstorage/#the-localstorage-attribute)",
+          "   *   from W3C.",
           "   */"
         ],
         "locationbar": [
@@ -3466,9 +3438,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Browser interface elements]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
-          "   * from WHATWG.",
+          "   * * [Browser interface",
+          "   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "matchMedia": [
@@ -3477,11 +3449,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Testing media queries]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)",
-          "   * from MDN.",
-          "   * * [The MediaQueryList specification]",
-          "   * (http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.",
+          "   * * [Testing media",
+          "   *   queries](https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)",
+          "   *   from MDN.",
+          "   * * [The MediaQueryList",
+          "   *   specification](http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.",
           "   */"
         ],
         "menubar": [
@@ -3490,9 +3462,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Browser interface elements]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
-          "   * from WHATWG.",
+          "   * * [Browser interface",
+          "   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "messageEvent": [
@@ -3511,10 +3483,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window.moveBy]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy) from MDN.",
-          "   * * [Window.moveBy]",
-          "   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.",
+          "   * * [Window.moveBy](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy)",
+          "   *   from MDN.",
+          "   * * [Window.moveBy](http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.",
           "   */"
         ],
         "name": [
@@ -3523,9 +3494,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window name]",
-          "   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from",
-          "   * WebPlatform.org.",
+          "   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "navigator": [
@@ -3534,9 +3504,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The navigator object]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#the-navigator-object)",
-          "   * from WHATWG.",
+          "   * * [The navigator",
+          "   *   object](https://html.spec.whatwg.org/multipage/webappapis.html#the-navigator-object)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "offlineEvent": [
@@ -3553,9 +3523,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [offscreenBuffering]",
-          "   * (http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering) from",
-          "   * WebPlatform.org.",
+          "   * * [offscreenBuffering](http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "onabort": [
@@ -3740,9 +3709,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [outerHeight]",
-          "   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight) from",
-          "   * WebPlatform.org.",
+          "   * * [outerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "outerWidth": [
@@ -3751,9 +3719,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [outerWidth]",
-          "   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth) from",
-          "   * WebPlatform.org.",
+          "   * * [outerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "pagehideEvent": [
@@ -3780,10 +3747,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The Screen interface specification]",
-          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
-          "   * * [scrollX and pageXOffset]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.",
+          "   * * [The Screen interface",
+          "   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [scrollX and",
+          "   *   pageXOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)",
+          "   *   from MDN.",
           "   */"
         ],
         "pageYOffset": [
@@ -3794,10 +3762,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The Screen interface specification]",
-          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
-          "   * * [scrollY and pageYOffset]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.",
+          "   * * [The Screen interface",
+          "   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [scrollY and",
+          "   *   pageYOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)",
+          "   *   from MDN.",
           "   */"
         ],
         "performance": [
@@ -3806,11 +3775,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Measuring page load speed with navigation timeing]",
-          "   * (http://www.html5rocks.com/en/tutorials/webperformance/basics/) from",
-          "   * HTML5Rocks.",
-          "   * * [Navigation timing specification]",
-          "   * (http://www.w3.org/TR/navigation-timing/) from W3C.",
+          "   * * [Measuring page load speed with navigation",
+          "   *   timeing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)",
+          "   *   from HTML5Rocks.",
+          "   * * [Navigation timing",
+          "   *   specification](http://www.w3.org/TR/navigation-timing/) from W3C.",
           "   */"
         ],
         "PERSISTENT": [
@@ -3820,10 +3789,11 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Exploring the FileSystem APIs]",
-          "   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.",
-          "   * * [File API]",
-          "   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.",
+          "   * * [Exploring the FileSystem",
+          "   *   APIs](http://www.html5rocks.com/en/tutorials/file/filesystem/)",
+          "   *   from HTML5Rocks.",
+          "   * * [File API](http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem)",
+          "   *   from W3C.",
           "   */"
         ],
         "popstateEvent": [
@@ -3840,8 +3810,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window.print]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.print) from MDN.",
+          "   * * [Window.print](https://developer.mozilla.org/en-US/docs/Web/API/Window.print)",
+          "   *   from MDN.",
           "   */"
         ],
         "resizeBy": [
@@ -3850,8 +3820,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window resizeBy] (http://docs.webplatform.org/wiki/dom/methods/resizeBy)",
-          "   * from WebPlatform.org.",
+          "   * * [Window resizeBy](http://docs.webplatform.org/wiki/dom/methods/resizeBy)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "resizeEvent": [
@@ -3868,8 +3838,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window resizeTo] (http://docs.webplatform.org/wiki/dom/methods/resizeTo)",
-          "   * from WebPlatform.org.",
+          "   * * [Window resizeTo](http://docs.webplatform.org/wiki/dom/methods/resizeTo)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "screen": [
@@ -3878,8 +3848,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The Screen interface specification]",
-          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)",
+          "   *   from W3C.",
           "   */"
         ],
         "screenLeft": [
@@ -3889,8 +3859,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The Screen interface specification]",
-          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)",
+          "   *   from W3C.",
           "   */"
         ],
         "screenTop": [
@@ -3899,8 +3869,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The Screen interface specification]",
-          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)",
+          "   *   from W3C.",
           "   */"
         ],
         "screenX": [
@@ -3909,8 +3879,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The Screen interface specification]",
-          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)",
+          "   *   from W3C.",
           "   */"
         ],
         "screenY": [
@@ -3919,8 +3889,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The Screen interface specification]",
-          "   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.",
+          "   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)",
+          "   *   from W3C.",
           "   */"
         ],
         "scroll": [
@@ -3931,8 +3901,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)",
-          "   * from WebPlatform.org.",
+          "   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "scrollbars": [
@@ -3941,9 +3911,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Browser interface elements]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
-          "   * from WHATWG.",
+          "   * * [Browser interface",
+          "   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "scrollBy": [
@@ -3952,8 +3922,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)",
-          "   * from WebPlatform.org.",
+          "   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "scrollTo": [
@@ -3964,8 +3934,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)",
-          "   * from WebPlatform.org.",
+          "   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)",
+          "   *   from WebPlatform.org.",
           "   */"
         ],
         "self": [
@@ -3974,8 +3944,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window.self]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.",
+          "   * * [Window.self](https://developer.mozilla.org/en-US/docs/Web/API/Window.self)",
+          "   *   from MDN.",
           "   */"
         ],
         "sessionStorage": [
@@ -3984,13 +3954,13 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [DOM storage guide]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from",
-          "   * MDN.",
-          "   * * [The past, present & future of local storage for web applications]",
-          "   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.",
-          "   * * [Local storage specification]",
-          "   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.",
+          "   * * [DOM storage",
+          "   *   guide](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage)",
+          "   *   from MDN.",
+          "   * * [The past, present & future of local storage for web",
+          "   *   applications](http://diveintohtml5.info/storage.html) from Dive Into HTML5.",
+          "   * * [Local storage",
+          "   *   specification](http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.",
           "   */"
         ],
         "showModalDialog": [
@@ -3999,9 +3969,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Dialogs implemented using separate documents]",
-          "   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)",
-          "   * from W3C.",
+          "   * * [Dialogs implemented using separate",
+          "   *   documents](http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)",
+          "   *   from W3C.",
           "   */"
         ],
         "speechSynthesis": [
@@ -4010,9 +3980,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Web speech specification]",
-          "   * (https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)",
-          "   * from W3C.",
+          "   * * [Web speech",
+          "   *   specification](https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)",
+          "   *   from W3C.",
           "   */"
         ],
         "status": [
@@ -4024,9 +3994,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Browser interface elements]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
-          "   * from WHATWG.",
+          "   * * [Browser interface",
+          "   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "stop": [
@@ -4035,9 +4005,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [The Window object]",
-          "   * (http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)",
-          "   * from W3C.",
+          "   * * [The Window",
+          "   *   object](http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)",
+          "   *   from W3C.",
           "   */"
         ],
         "storageEvent": [
@@ -4054,9 +4024,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [StyleMedia class reference]",
-          "   * (https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html)",
-          "   * from Safari Developer Library.",
+          "   * * [StyleMedia class",
+          "   *   reference](https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/)",
+          "   *   from Safari Developer Library.",
           "   */"
         ],
         "TEMPORARY": [
@@ -4065,10 +4035,10 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Exploring the FileSystem APIs]",
-          "   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.",
-          "   * * [File API]",
-          "   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.",
+          "   * * [Exploring the FileSystem",
+          "   *   APIs](http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.",
+          "   * * [File API](http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem)",
+          "   *   from W3C.",
           "   */"
         ],
         "toolbar": [
@@ -4077,9 +4047,9 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Browser interface elements]",
-          "   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)",
-          "   * from WHATWG.",
+          "   * * [Browser interface",
+          "   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)",
+          "   *   from WHATWG.",
           "   */"
         ],
         "unloadEvent": [
@@ -4120,8 +4090,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Obtaining access to file system entry points]",
-          "   * (http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)",
+          "   * * [Obtaining access to file system entry",
+          "   *   points](http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)",
           "   * from W3C.",
           "   */"
         ],
@@ -4131,8 +4101,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [Window.window]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.",
+          "   * * [Window.window](https://developer.mozilla.org/en-US/docs/Web/API/Window.window)",
+          "   *   from MDN.",
           "   */"
         ]
       }
@@ -4197,7 +4167,8 @@
           "   * `getAllResponseHeaders` will return the response headers for the current",
           "   * part of the request.",
           "   *",
-          "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
+          "   * See also [HTTP response",
+          "   * headers](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields)",
           "   * for a list of common response headers.",
           "   */"
         ],
@@ -4205,7 +4176,8 @@
           "/**",
           "   * Return the response header named `header`, or null if not found.",
           "   *",
-          "   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)",
+          "   * See also [HTTP response",
+          "   * headers](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields)",
           "   * for a list of common response headers.",
           "   */"
         ],
@@ -4239,7 +4211,7 @@
           "   * response.",
           "   *",
           "   * This value must be set before the request has been sent. See also the list",
-          "   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)",
+          "   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)",
           "   */"
         ],
         "readyState": [
@@ -4307,7 +4279,8 @@
           "   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if",
           "   * `responseType` is set while performing a synchronous request.",
           "   *",
-          "   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)",
+          "   * See also: [MDN",
+          "   * responseType](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-responsetype)",
           "   */"
         ],
         "responseXML": [
@@ -4330,9 +4303,8 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [XMLHttpRequest.send]",
-          "   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)",
-          "   * from MDN.",
+          "   * * [XMLHttpRequest.send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)",
+          "   *   from MDN.",
           "   */"
         ],
         "setRequestHeader": [
@@ -4347,24 +4319,23 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [XMLHttpRequest.setRequestHeader]",
-          "   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)",
-          "   * from MDN.",
-          "   * * [The setRequestHeader() method]",
-          "   * (http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method) from",
-          "   * W3C.",
+          "   * * [XMLHttpRequest.setRequestHeader](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#setRequestHeader())",
+          "   *   from MDN.",
+          "   * * [The setRequestHeader()",
+          "   *   method](http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method)",
+          "   *   from W3C.",
           "   */"
         ],
         "status": [
           "/**",
-          "   * The http result code from the request (200, 404, etc).",
-          "   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
+          "   * The HTTP result code from the request (200, 404, etc).",
+          "   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
           "   */"
         ],
         "statusText": [
           "/**",
           "   * The request response string (such as \\\"200 OK\\\").",
-          "   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
+          "   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)",
           "   */"
         ],
         "timeout": [
@@ -4377,12 +4348,10 @@
           "   *",
           "   * ## Other resources",
           "   *",
-          "   * * [XMLHttpRequest.timeout]",
-          "   * (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#timeout)",
-          "   * from MDN.",
-          "   * * [The timeout attribute]",
-          "   * (http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)",
-          "   * from W3C.",
+          "   * * [XMLHttpRequest.timeout](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-timeout)",
+          "   *   from MDN.",
+          "   * * [The timeout attribute](http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)",
+          "   *   from W3C.",
           "   */"
         ],
         "upload": [
@@ -5266,6 +5235,8 @@
           "   * Otherwise, [errorCallback] is called.",
           "   *",
           "   * [oldVersion] should match the database's current [version] exactly.",
+          "   *",
+          "   * See also:",
           "   *",
           "   * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.",
           "   */"

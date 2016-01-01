@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities.dart;
+library analyzer.src.generated.utilities_dart;
 
-import 'java_core.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 
 /**
  * Check whether [uri1] starts with (or 'is prefixed by') [uri2] by checking

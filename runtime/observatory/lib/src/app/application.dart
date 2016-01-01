@@ -88,6 +88,7 @@ class ObservatoryApplication extends Observable {
 
   void _onEvent(ServiceEvent event) {
     switch(event.kind) {
+      case ServiceEvent.kVMUpdate:
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateRunnable:
       case ServiceEvent.kIsolateUpdate:
@@ -140,6 +141,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new MetricsPage(this));
     _pageRegistry.add(new PortsPage(this));
     _pageRegistry.add(new LoggingPage(this));
+    _pageRegistry.add(new TimelinePage(this));
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
     _pageRegistry.add(new ErrorPage(this));
@@ -223,6 +225,13 @@ class ObservatoryApplication extends Observable {
   }
 
   void handleException(e, st) {
+    if (e is ServerRpcException) {
+      if (e.code == ServerRpcException.kFeatureDisabled) return;
+      if (e.code == ServerRpcException.kVMMustBePaused) return;
+      if (e.code == ServerRpcException.kCannotAddBreakpoint) return;
+      Logger.root.fine('Dropping exception: ${e}\n${st}');
+    }
+
     // TODO(turnidge): Report this failure via analytics.
     Logger.root.warning('Caught exception: ${e}\n${st}');
     notifications.add(new Notification.fromException(e, st));

@@ -46,42 +46,54 @@ RawString* Report::PrependSnippet(Kind kind,
       // Only report the line position if we have the original source. We still
       // need to get a valid column so that we can report the ^ mark below the
       // snippet.
+      // Allocate formatted strings in old sapce as they may be created during
+      // optimizing compilation. Those strings are created rarely and should not
+      // polute old space.
       if (script.HasSource()) {
-        result = String::NewFormatted("'%s': %s: line %" Pd " pos %" Pd ": ",
+        result = String::NewFormatted(Heap::kOld,
+                                      "'%s': %s: line %" Pd " pos %" Pd ": ",
                                       script_url.ToCString(),
                                       message_header,
                                       line,
                                       column);
       } else {
-        result = String::NewFormatted("'%s': %s: line %" Pd ": ",
+        result = String::NewFormatted(Heap::kOld,
+                                      "'%s': %s: line %" Pd ": ",
                                       script_url.ToCString(),
                                       message_header,
                                       line);
       }
       // Append the formatted error or warning message.
-      result = String::Concat(result, message);
+      GrowableHandlePtrArray<const String> strs(Thread::Current()->zone(), 5);
+      strs.Add(result);
+      strs.Add(message);
       // Append the source line.
-      const String& script_line = String::Handle(script.GetLine(line));
+      const String& script_line = String::Handle(
+          script.GetLine(line, Heap::kOld));
       ASSERT(!script_line.IsNull());
-      result = String::Concat(result, Symbols::NewLine());
-      result = String::Concat(result, script_line);
-      result = String::Concat(result, Symbols::NewLine());
+      strs.Add(Symbols::NewLine());
+      strs.Add(script_line);
+      strs.Add(Symbols::NewLine());
       // Append the column marker.
       const String& column_line = String::Handle(
-          String::NewFormatted("%*s\n", static_cast<int>(column), "^"));
-      result = String::Concat(result, column_line);
+          String::NewFormatted(Heap::kOld,
+                               "%*s\n", static_cast<int>(column), "^"));
+      strs.Add(column_line);
+      // TODO(srdjan): Use Strings::FromConcatAll in old space, once
+      // implemented.
+      result = Symbols::FromConcatAll(strs);
     } else {
       // Token position is unknown.
-      result = String::NewFormatted("'%s': %s: ",
+      result = String::NewFormatted(Heap::kOld, "'%s': %s: ",
                                     script_url.ToCString(),
                                     message_header);
-      result = String::Concat(result, message);
+      result = String::Concat(result, message, Heap::kOld);
     }
   } else {
     // Script is unknown.
     // Append the formatted error or warning message.
-    result = String::NewFormatted("%s: ", message_header);
-    result = String::Concat(result, message);
+    result = String::NewFormatted(Heap::kOld, "%s: ", message_header);
+    result = String::Concat(result, message, Heap::kOld);
   }
   return result.raw();
 }
@@ -140,7 +152,7 @@ void Report::MessageV(Kind kind, const Script& script, intptr_t token_pos,
       if (kind == kJSWarning) {
         TraceJSWarning(script, token_pos, msg);
         // Do not print stacktrace if we have not executed Dart code yet.
-        if (Isolate::Current()->top_exit_frame_info() != 0) {
+        if (Thread::Current()->top_exit_frame_info() != 0) {
           const Stacktrace& stacktrace =
               Stacktrace::Handle(Exceptions::CurrentStacktrace());
           intptr_t idx = 0;
@@ -212,14 +224,14 @@ void Report::JSWarningFromFrame(StackFrame* caller_frame, const char* msg) {
   ASSERT(caller_frame != NULL);
   ASSERT(FLAG_warn_on_javascript_compatibility);
   if (FLAG_silent_warnings) return;
-  Isolate* isolate = Isolate::Current();
-  const Code& caller_code = Code::Handle(isolate,
+  Zone* zone = Thread::Current()->zone();
+  const Code& caller_code = Code::Handle(zone,
                                          caller_frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   const uword caller_pc = caller_frame->pc();
   const intptr_t token_pos = caller_code.GetTokenIndexOfPC(caller_pc);
-  const Function& caller = Function::Handle(isolate, caller_code.function());
-  const Script& script = Script::Handle(isolate, caller.script());
+  const Function& caller = Function::Handle(zone, caller_code.function());
+  const Script& script = Script::Handle(zone, caller.script());
   MessageF(kJSWarning, script, token_pos, "%s", msg);
 }
 

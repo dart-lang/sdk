@@ -12,14 +12,14 @@ namespace dart {
                |                    | <- TOS
 Callee frame   | ...                |
                | saved PP           |
-               | callee's PC marker |
+               | code object        |
                | saved RBP          |    (RBP of current frame)
                | saved PC           |    (PC of current frame)
                +--------------------+
 Current frame  | ...               T| <- RSP of current frame
                | first local       T|
                | caller's PP       T|
-               | PC marker          |    (current frame's code entry + offset)
+               | code object       T|    (current frame's code object)
                | caller's RBP       | <- RBP of current frame
                | caller's ret addr  |    (PC of caller frame)
                +--------------------+
@@ -32,7 +32,7 @@ Caller frame   | last parameter     | <- RSP of caller frame
 static const int kDartFrameFixedSize = 4;  // PC marker, RBP, PP, PC.
 static const int kSavedPcSlotFromSp = -1;
 
-static const int kFirstObjectSlotFromFp = -2;  // Used by GC to traverse stack.
+static const int kFirstObjectSlotFromFp = -1;  // Used by GC to traverse stack.
 
 static const int kFirstLocalSlotFromFp = -3;
 static const int kSavedCallerPpSlotFromFp = -2;
@@ -46,9 +46,9 @@ static const int kSavedAboveReturnAddress = 3;  // Saved above return address.
 
 // Entry and exit frame layout.
 #if defined(_WIN64)
-static const int kExitLinkSlotFromEntryFp = -31;
+static const int kExitLinkSlotFromEntryFp = -32;
 #else
-static const int kExitLinkSlotFromEntryFp = -9;
+static const int kExitLinkSlotFromEntryFp = -10;
 #endif  // defined(_WIN64)
 
 }  // namespace dart

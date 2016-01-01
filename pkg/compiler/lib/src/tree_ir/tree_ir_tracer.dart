@@ -133,7 +133,6 @@ class BlockCollector extends StatementVisitor {
 
     _addBlock(whileBlock);
     _addStatement(node);
-    whileBlock.statements.add(node);
     blocks.last.addEdgeTo(whileBlock);
 
     Block bodyBlock = new Block();
@@ -177,6 +176,16 @@ class BlockCollector extends StatementVisitor {
 
   visitForeignStatement(ForeignStatement node) {
     _addStatement(node);
+  }
+
+  visitYield(Yield node) {
+    _addStatement(node);
+    visitStatement(node.next);
+  }
+
+  visitNullCheck(NullCheck node) {
+    _addStatement(node);
+    visitStatement(node.next);
   }
 }
 
@@ -336,6 +345,17 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   visitForeignStatement(ForeignStatement node) {
     printStatement(null, 'foreign ${node.codeTemplate.source}');
   }
+
+  @override
+  visitYield(Yield node) {
+    String name = node.hasStar ? 'yield*' : 'yield';
+    printStatement(null, '$name ${expr(node.input)}');
+  }
+
+  @override
+  visitNullCheck(NullCheck node) {
+    printStatement(null, 'NullCheck ${expr(node.value)}');
+  }
 }
 
 class SubexpressionVisitor extends ExpressionVisitor<String> {
@@ -389,6 +409,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String args = formatArguments(node);
     String keyword = node.constant != null ? 'const' : 'new';
     return "$keyword $callName($args)";
+  }
+
+  String visitOneShotInterceptor(OneShotInterceptor node) {
+    String name = node.selector.name;
+    String args = formatArguments(node);
+    return "oneshot $name($args)";
   }
 
   String visitLiteralList(LiteralList node) {
@@ -454,10 +480,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return '!$operand';
   }
 
-  String visitFunctionExpression(FunctionExpression node) {
-    return "function ${node.definition.element.name}";
-  }
-
   String visitGetField(GetField node) {
     String object = visitExpression(node.object);
     String field = node.field.name;
@@ -486,6 +508,15 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String element = node.element.name;
     String value = visitExpression(node.value);
     return '$element = $value';
+  }
+
+  String visitGetTypeTestProperty(GetTypeTestProperty node) {
+    String object = visitExpression(node.object);
+    if (usesInfixNotation(node.object)) {
+      object = '($object)';
+    }
+    // TODO(sra): Fix up this.
+    return '$object."is-${node.dartType}"';
   }
 
   String visitCreateBox(CreateBox node) {
@@ -568,6 +599,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   String visitAwait(Await node) {
     String value = visitExpression(node.input);
     return 'Await($value)';
+  }
+
+  @override
+  String visitYield(Yield node) {
+    String value = visitExpression(node.input);
+    return 'Yield($value)';
   }
 }
 

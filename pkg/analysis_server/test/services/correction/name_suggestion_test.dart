@@ -5,8 +5,9 @@
 library test.services.correction.name_suggestion;
 
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -334,23 +335,5 @@ main(p) {
       expect(suggestions,
           unorderedEquals(['goodbyeCruelWorld', 'cruelWorld', 'world2']));
     }
-  }
-
-  void test_getCamelWords_empty() {
-    expect(getCamelWords(''), unorderedEquals([]));
-  }
-
-  void test_getCamelWords_multipleUpper() {
-    expect(getCamelWords('sortedHTMLNodes'),
-        unorderedEquals(['sorted', 'HTML', 'Nodes']));
-  }
-
-  void test_getCamelWords_simpleCamel() {
-    expect(getCamelWords('mySimpleText'),
-        unorderedEquals(['my', 'Simple', 'Text']));
-  }
-
-  void test_getCamelWords_simpleName() {
-    expect(getCamelWords('name'), unorderedEquals(['name']));
   }
 }

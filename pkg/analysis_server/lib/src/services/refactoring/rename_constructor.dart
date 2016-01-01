@@ -16,7 +16,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -59,7 +59,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       // append declaration
       references.add(_createDeclarationReference());
       // update references
-      String replacement = newName.isEmpty ? '' : '.${newName}';
+      String replacement = newName.isEmpty ? '' : '.$newName';
       for (SourceReference reference in references) {
         reference.addEdit(change, replacement);
       }

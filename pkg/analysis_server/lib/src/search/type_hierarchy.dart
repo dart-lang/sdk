@@ -8,10 +8,11 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show TypeHierarchyItem, newElement_fromEngine;
+    show TypeHierarchyItem, convertElement;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /**
  * A computer for a type hierarchy of an [Element].
@@ -85,14 +86,14 @@ class TypeHierarchyComputer {
         TypeHierarchyItem subItem = _elementItemMap[subElement];
         if (subItem != null) {
           int id = _items.indexOf(subItem);
-          subItem.subclasses.add(id);
+          item.subclasses.add(id);
           continue;
         }
         // create a subclass item
         ExecutableElement subMemberElement = _findMemberElement(subElement);
-        subItem = new TypeHierarchyItem(newElement_fromEngine(subElement),
+        subItem = new TypeHierarchyItem(convertElement(subElement),
             memberElement: subMemberElement != null
-                ? newElement_fromEngine(subMemberElement)
+                ? convertElement(subMemberElement)
                 : null,
             superclass: itemId);
         int subItemId = _items.length;
@@ -129,11 +130,10 @@ class TypeHierarchyComputer {
       }
       ClassElement classElement = type.element;
       ExecutableElement memberElement = _findMemberElement(classElement);
-      item = new TypeHierarchyItem(newElement_fromEngine(classElement),
+      item = new TypeHierarchyItem(convertElement(classElement),
           displayName: displayName,
-          memberElement: memberElement != null
-              ? newElement_fromEngine(memberElement)
-              : null);
+          memberElement:
+              memberElement != null ? convertElement(memberElement) : null);
       _elementItemMap[classElement] = item;
       itemId = _items.length;
       _items.add(item);
@@ -192,6 +192,9 @@ class TypeHierarchyComputer {
         if (result == null && !_pivotFieldFinal) {
           result = mixinElement.lookUpSetter(_pivotName, _pivotLibrary);
         }
+      }
+      if (result == _pivotElement) {
+        return null;
       }
       if (result != null) {
         return result;

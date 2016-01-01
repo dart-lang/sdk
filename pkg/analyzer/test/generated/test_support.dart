@@ -2,17 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.test_support;
+library analyzer.test.generated.test_support;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart' show AstNode, NodeLocator;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/generated/ast.dart'
+    show AstNode, NodeLocator, SimpleIdentifier;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
 import 'resolver_test.dart';
@@ -91,7 +95,13 @@ class EngineTestCase {
     return null;
   }
 
-  void setUp() {}
+  void setUp() {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    new ExtensionManager().processPlugins(plugins);
+  }
 
   void tearDown() {}
 
@@ -123,6 +133,18 @@ class EngineTestCase {
     }
     AstNode node = new NodeLocator(offset).searchWithin(root);
     return node.getAncestor(predicate);
+  }
+
+  /**
+   * Find the [SimpleIdentifier] with at offset of the "prefix".
+   */
+  static SimpleIdentifier findSimpleIdentifier(
+      AstNode root, String code, String prefix) {
+    int offset = code.indexOf(prefix);
+    if (offset == -1) {
+      throw new IllegalArgumentException("Not found '$prefix'.");
+    }
+    return new NodeLocator(offset).searchWithin(root);
   }
 }
 
@@ -401,9 +423,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
       identical(firstError.errorCode, secondError.errorCode) &&
-          firstError.offset == secondError.offset &&
-          firstError.length == secondError.length &&
-          _equalSources(firstError.source, secondError.source);
+      firstError.offset == secondError.offset &&
+      firstError.length == secondError.length &&
+      _equalSources(firstError.source, secondError.source);
 
   /**
    * Return `true` if the two sources are equivalent.
@@ -530,17 +552,7 @@ class TestLogger implements Logger {
   }
 
   @override
-  void logError2(String message, Object exception) {
-    errorCount++;
-  }
-
-  @override
   void logInformation(String message, [CaughtException exception]) {
-    infoCount++;
-  }
-
-  @override
-  void logInformation2(String message, Object exception) {
     infoCount++;
   }
 }
@@ -556,10 +568,6 @@ class TestSource extends Source {
    * is made to access the contents of this source.
    */
   bool generateExceptionOnRead = false;
-
-  @override
-  int get modificationStamp =>
-      generateExceptionOnRead ? -1 : _modificationStamp;
 
   /**
    * The number of times that the contents of this source have been requested.
@@ -586,9 +594,14 @@ class TestSource extends Source {
   }
 
   int get hashCode => 0;
+
   bool get isInSystemLibrary {
     return false;
   }
+
+  @override
+  int get modificationStamp =>
+      generateExceptionOnRead ? -1 : _modificationStamp;
 
   String get shortName {
     return _name;

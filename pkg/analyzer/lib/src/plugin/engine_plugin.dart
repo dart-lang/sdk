@@ -7,11 +7,13 @@ library analyzer.src.plugin.engine_plugin;
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show InternalAnalysisContext;
+import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
+import 'package:analyzer/src/task/options_work_manager.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
@@ -34,6 +36,12 @@ class EnginePlugin implements Plugin {
    */
   static const String DART_ERRORS_FOR_UNIT_EXTENSION_POINT =
       'dartErrorsForUnit';
+
+  /**
+   * The simple identifier of the extension point that allows plugins to
+   * register new analysis error results to compute for an HTML source.
+   */
+  static const String HTML_ERRORS_EXTENSION_POINT = 'htmlErrors';
 
   /**
    * The simple identifier of the extension point that allows plugins to
@@ -66,6 +74,12 @@ class EnginePlugin implements Plugin {
   ExtensionPoint dartErrorsForUnitExtensionPoint;
 
   /**
+   * The extension point that allows plugins to register new analysis error
+   * results for an HTML source.
+   */
+  ExtensionPoint htmlErrorsExtensionPoint;
+
+  /**
    * The extension point that allows plugins to register new analysis tasks with
    * the analysis engine.
    */
@@ -86,15 +100,24 @@ class EnginePlugin implements Plugin {
    * Return a list containing all of the contributed analysis error result
    * descriptors for Dart sources.
    */
-  List<TaskDescriptor> get dartErrorsForSource =>
+  @ExtensionPointId('DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID')
+  List<ResultDescriptor> get dartErrorsForSource =>
       dartErrorsForSourceExtensionPoint.extensions;
 
   /**
    * Return a list containing all of the contributed analysis error result
    * descriptors for Dart library specific units.
    */
-  List<TaskDescriptor> get dartErrorsForUnit =>
+  @ExtensionPointId('DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID')
+  List<ResultDescriptor> get dartErrorsForUnit =>
       dartErrorsForUnitExtensionPoint.extensions;
+
+  /**
+   * Return a list containing all of the contributed analysis error result
+   * descriptors for HTML sources.
+   */
+  @ExtensionPointId('HTML_ERRORS_EXTENSION_POINT_ID')
+  List<ResultDescriptor> get htmlErrors => htmlErrorsExtensionPoint.extensions;
 
   /**
    * Return a list containing all of the task descriptors that were contributed.
@@ -114,9 +137,14 @@ class EnginePlugin implements Plugin {
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
     dartErrorsForSourceExtensionPoint = registerExtensionPoint(
-        DART_ERRORS_FOR_SOURCE_EXTENSION_POINT, _validateResultDescriptor);
+        DART_ERRORS_FOR_SOURCE_EXTENSION_POINT,
+        _validateAnalysisErrorListResultDescriptor);
     dartErrorsForUnitExtensionPoint = registerExtensionPoint(
-        DART_ERRORS_FOR_UNIT_EXTENSION_POINT, _validateResultDescriptor);
+        DART_ERRORS_FOR_UNIT_EXTENSION_POINT,
+        _validateAnalysisErrorListResultDescriptor);
+    htmlErrorsExtensionPoint = registerExtensionPoint(
+        HTML_ERRORS_EXTENSION_POINT,
+        _validateAnalysisErrorListResultDescriptor);
     taskExtensionPoint =
         registerExtensionPoint(TASK_EXTENSION_POINT, _validateTaskExtension);
     workManagerFactoryExtensionPoint = registerExtensionPoint(
@@ -130,19 +158,21 @@ class EnginePlugin implements Plugin {
     _registerWorkManagerFactoryExtensions(registerExtension);
     _registerDartErrorsForSource(registerExtension);
     _registerDartErrorsForUnit(registerExtension);
+    _registerHtmlErrors(registerExtension);
   }
 
   void _registerDartErrorsForSource(RegisterExtension registerExtension) {
-    String id = DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID;
-    registerExtension(id, BUILD_DIRECTIVES_ERRORS);
-    registerExtension(id, BUILD_LIBRARY_ERRORS);
-    registerExtension(id, PARSE_ERRORS);
-    registerExtension(id, SCAN_ERRORS);
+    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, PARSE_ERRORS);
+    registerExtension(DART_ERRORS_FOR_SOURCE_EXTENSION_POINT_ID, SCAN_ERRORS);
   }
 
   void _registerDartErrorsForUnit(RegisterExtension registerExtension) {
-    String id = DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID;
-    registerExtension(id, LIBRARY_UNIT_ERRORS);
+    registerExtension(
+        DART_ERRORS_FOR_UNIT_EXTENSION_POINT_ID, LIBRARY_UNIT_ERRORS);
+  }
+
+  void _registerHtmlErrors(RegisterExtension registerExtension) {
+    registerExtension(HTML_ERRORS_EXTENSION_POINT_ID, HTML_DOCUMENT_ERRORS);
   }
 
   void _registerTaskExtensions(RegisterExtension registerExtension) {
@@ -161,18 +191,21 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, BuildLibraryElementTask.DESCRIPTOR);
     registerExtension(taskId, BuildPublicNamespaceTask.DESCRIPTOR);
     registerExtension(taskId, BuildSourceExportClosureTask.DESCRIPTOR);
-    registerExtension(taskId, BuildSourceImportExportClosureTask.DESCRIPTOR);
     registerExtension(taskId, BuildTypeProviderTask.DESCRIPTOR);
     registerExtension(taskId, ComputeConstantDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ComputeConstantValueTask.DESCRIPTOR);
     registerExtension(
         taskId, ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
+    registerExtension(taskId, ComputeLibraryCycleTask.DESCRIPTOR);
+    registerExtension(
+        taskId, ComputePropagableVariableDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ContainingLibrariesTask.DESCRIPTOR);
     registerExtension(taskId, DartErrorsTask.DESCRIPTOR);
     registerExtension(taskId, EvaluateUnitConstantsTask.DESCRIPTOR);
     registerExtension(taskId, GatherUsedImportedElementsTask.DESCRIPTOR);
     registerExtension(taskId, GatherUsedLocalElementsTask.DESCRIPTOR);
     registerExtension(taskId, GenerateHintsTask.DESCRIPTOR);
+    registerExtension(taskId, GenerateLintsTask.DESCRIPTOR);
     registerExtension(taskId, InferInstanceMembersInUnitTask.DESCRIPTOR);
     registerExtension(taskId, InferStaticVariableTypesInUnitTask.DESCRIPTOR);
     registerExtension(taskId, InferStaticVariableTypeTask.DESCRIPTOR);
@@ -180,12 +213,26 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, LibraryUnitErrorsTask.DESCRIPTOR);
     registerExtension(taskId, ParseDartTask.DESCRIPTOR);
     registerExtension(taskId, PartiallyResolveUnitReferencesTask.DESCRIPTOR);
-    registerExtension(taskId, ResolveFunctionBodiesInUnitTask.DESCRIPTOR);
+    registerExtension(
+        taskId, PropagateVariableTypesInLibraryClosureTask.DESCRIPTOR);
+    registerExtension(taskId, PropagateVariableTypesInLibraryTask.DESCRIPTOR);
+    registerExtension(taskId, PropagateVariableTypesInUnitTask.DESCRIPTOR);
+    registerExtension(taskId, PropagateVariableTypeTask.DESCRIPTOR);
+    registerExtension(taskId, ReadyLibraryElement2Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyLibraryElement5Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyLibraryElement6Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyResolvedUnitTask.DESCRIPTOR);
+    registerExtension(taskId, ReadyResolvedUnit10Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyResolvedUnit11Task.DESCRIPTOR);
+    registerExtension(taskId, ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryReferencesTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveLibraryTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryTypeNamesTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveUnitTypeNamesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveVariableReferencesTask.DESCRIPTOR);
     registerExtension(taskId, ScanDartTask.DESCRIPTOR);
+    registerExtension(taskId, StrongModeVerifyUnitTask.DESCRIPTOR);
     registerExtension(taskId, VerifyUnitTask.DESCRIPTOR);
     //
     // Register HTML tasks.
@@ -202,16 +249,19 @@ class EnginePlugin implements Plugin {
         (InternalAnalysisContext context) => new DartWorkManager(context));
     registerExtension(taskId,
         (InternalAnalysisContext context) => new HtmlWorkManager(context));
+    registerExtension(taskId,
+        (InternalAnalysisContext context) => new OptionsWorkManager(context));
   }
 
   /**
    * Validate the given extension by throwing an [ExtensionError] if it is not
-   * a [ResultDescriptor].
+   * a [ListResultDescriptor] of [AnalysisError]s.
    */
-  void _validateResultDescriptor(Object extension) {
-    if (extension is! ResultDescriptor) {
+  void _validateAnalysisErrorListResultDescriptor(Object extension) {
+    if (extension is! ListResultDescriptor<AnalysisError>) {
       String id = taskExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be a ResultDescriptor');
+      throw new ExtensionError(
+          'Extensions to $id must be a ListResultDescriptor<AnalysisError>');
     }
   }
 
@@ -237,4 +287,18 @@ class EnginePlugin implements Plugin {
           'Extensions to $id must be a WorkManagerFactory');
     }
   }
+}
+
+/**
+ * Annotation describing the relationship between a getter in [EnginePlugin]
+ * and the associated identifier (in '../../plugin/task.dart') which can be
+ * passed to the extension manager to populate it.
+ *
+ * This annotation is not used at runtime; it is used to aid in static analysis
+ * of the task model during development.
+ */
+class ExtensionPointId {
+  final String extensionPointId;
+
+  const ExtensionPointId(this.extensionPointId);
 }

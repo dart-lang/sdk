@@ -149,6 +149,30 @@ class KK {
 }
 get kk => const KK();
 
+@LL(() => 42)  /// 28: compile-time error
+class LL {
+  final field;
+  const LL(this.field);
+}
+
+@MM((x) => 42)  /// 29: compile-time error
+class MM {
+  final field;
+  const MM(this.field);
+}
+
+@NN(() {})  /// 30: compile-time error
+class NN {
+  final field;
+  const NN(this.field);
+}
+
+@OO(() { () {} })  /// 31: compile-time error
+class OO {
+  final field;
+  const OO(this.field);
+}
+
 checkMetadata(DeclarationMirror mirror, List expectedMetadata) {
   Expect.listEquals(expectedMetadata.map(reflect).toList(), mirror.metadata);
 }
@@ -191,4 +215,8 @@ main() {
   reflectClass(II).metadata;
   reflectClass(JJ).metadata;
   reflectClass(KK).metadata;
+  reflectClass(LL).metadata;
+  reflectClass(MM).metadata;
+  reflectClass(NN).metadata;
+  reflectClass(OO).metadata;
 }

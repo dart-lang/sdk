@@ -7,6 +7,7 @@
 
 #include "vm/intermediate_language.h"
 
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
@@ -238,15 +239,19 @@ LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 0;
   return LocationSummary::Make(zone,
                                kNumInputs,
-                               Location::RequiresRegister(),
+                               Assembler::IsSafe(value())
+                                   ? Location::Constant(this)
+                                   : Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
 
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
-  if (!locs()->out(0).IsInvalid()) {
-    Register result = locs()->out(0).reg();
+  Location out = locs()->out(0);
+  ASSERT(out.IsRegister() || out.IsConstant() || out.IsInvalid());
+  if (out.IsRegister()) {
+    Register result = out.reg();
     __ LoadObject(result, value());
   }
 }
@@ -300,13 +305,12 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(RAX));  // Value.
-  summary->set_in(1, Location::RegisterLocation(RCX));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(RDX));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(RDX));  // Type arguments.
   summary->set_out(0, Location::RegisterLocation(RAX));
   return summary;
 }
@@ -768,10 +772,11 @@ LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  SetupNative();
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
-    (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
@@ -786,8 +791,8 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-    __ LoadNativeEntry(
-        RBX, &NativeEntry::LinkNativeCallLabel(), kPatchable);
+    ExternalLabel label(NativeEntry::LinkNativeCallEntry());
+    __ LoadNativeEntry(RBX, &label, kPatchable);
   } else {
     stub_entry = (is_bootstrap_native() || is_leaf_call)
         ? StubCode::CallBootstrapCFunction_entry()
@@ -2007,13 +2012,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(RAX));
-  summary->set_in(1, Location::RegisterLocation(RCX));
-  summary->set_in(2, Location::RegisterLocation(RDX));
+  summary->set_in(1, Location::RegisterLocation(RDX));
   summary->set_out(0, Location::RegisterLocation(RAX));
   return summary;
 }
@@ -2021,8 +2025,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == RAX);  // Value.
-  ASSERT(locs()->in(1).reg() == RCX);  // Instantiator.
-  ASSERT(locs()->in(2).reg() == RDX);  // Instantiator type arguments.
+  ASSERT(locs()->in(1).reg() == RDX);  // Instantiator type arguments.
 
   compiler->GenerateInstanceOf(token_pos(),
                                deopt_id(),
@@ -2112,6 +2115,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label slow_path, done;
   if (compiler->is_optimizing() &&
+      !Compiler::always_optimize() &&
       num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
@@ -2555,7 +2559,8 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 needs_stacktrace());
 
   // Restore the pool pointer.
-  __ LoadPoolPointer();
+  __ RestoreCodePointer();
+  __ LoadPoolPointer(PP);
 
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -6181,13 +6186,10 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     if (FLAG_emit_edge_counters) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
-    // may be inserted before this instruction.  This descriptor points
-    // after the edge counter for uniformity with ARM and MIPS, where we can
-    // reuse pattern matching that matches backwards from the end of the
-    // pattern.
+    // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);
@@ -6221,10 +6223,18 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register offset_reg = locs()->in(0).reg();
-  Register target_address_reg = locs()->temp_slot(0)->reg();
+  Register target_address_reg = locs()->temp(0).reg();
+
+  {
+    const intptr_t kRIPRelativeLeaqSize = 7;
+    const intptr_t entry_to_rip_offset =
+        __ CodeSize() + kRIPRelativeLeaqSize;
+    __ leaq(target_address_reg,
+            Address::AddressRIPRelative(-entry_to_rip_offset));
+    ASSERT(__ CodeSize() == entry_to_rip_offset);
+  }
 
   // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ movq(target_address_reg, Address(RBP, kPcMarkerSlotFromFp * kWordSize));
 
   // Calculate the final absolute address.
   if (offset()->definition()->representation() == kTagged) {
@@ -6343,6 +6353,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Function in RAX.
   ASSERT(locs()->in(0).reg() == RAX);
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
   __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
 
   // RAX: Function.
@@ -6353,7 +6364,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
   }
@@ -6411,7 +6422,7 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
   __ CallPatchable(*StubCode::DebugStepCheck_entry());
-  compiler->AddCurrentDescriptor(stub_kind_, Isolate::kNoDeoptId, token_pos());
+  compiler->AddCurrentDescriptor(stub_kind_, Thread::kNoDeoptId, token_pos());
   compiler->RecordSafepoint(locs());
 }
 

@@ -7,7 +7,7 @@
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'compiler_helper.dart';
-import 'package:compiler/src/universe/universe.dart' show Selector;
+import 'package:compiler/src/universe/selector.dart' show Selector;
 
 const String TEST = r"""
 class A {
@@ -25,7 +25,7 @@ main() {
 main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     String generated = compiler.assembledCode;
     RegExp regexp = new RegExp(r"get\$foo");
     Iterator matches = regexp.allMatches(generated).iterator;

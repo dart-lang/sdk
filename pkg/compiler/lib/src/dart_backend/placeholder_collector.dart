@@ -45,9 +45,7 @@ class SendVisitor extends Visitor {
 
   visitSend(Send node) {
     Element element = elements[node];
-    if (elements.isAssert(node)) {
-      return;
-    } else if (elements.isTypeLiteral(node)) {
+    if (elements.isTypeLiteral(node)) {
       DartType type = elements.getTypeLiteralType(node);
       if (!type.isDynamic) {
         if (type is TypeVariableType) {
@@ -99,7 +97,7 @@ class SendVisitor extends Visitor {
 
   visitDynamicSend(Send node) {
     final element = elements[node];
-    if (element == null || !element.isErroneous) {
+    if (element == null || !element.isMalformed) {
       collector.tryMakeMemberPlaceholder(node.selector);
     }
   }
@@ -109,7 +107,7 @@ class SendVisitor extends Visitor {
     // element == null means dynamic property access.
     if (element == null) {
       collector.tryMakeMemberPlaceholder(node.selector);
-    } else if (element.isErroneous) {
+    } else if (element.isMalformed) {
       collector.makeUnresolvedPlaceholder(node);
       return;
     } else if (element.isPrefix) {
@@ -139,7 +137,6 @@ class SendVisitor extends Visitor {
         collector.currentElement, element, node);
 
     if (Elements.isUnresolved(element)
-        || elements.isAssert(node)
         || element.isDeferredLoaderGetter) {
       return;
     }
@@ -173,7 +170,7 @@ class SendVisitor extends Visitor {
 }
 
 class PlaceholderCollector extends Visitor {
-  final DiagnosticListener listener;
+  final DiagnosticReporter reporter;
   final MirrorRenamer mirrorRenamer;
   final FunctionElement mainFunction;
   final Set<String> fixedMemberNames; // member names which cannot be renamed.
@@ -199,7 +196,7 @@ class PlaceholderCollector extends Visitor {
   get currentFunctionScope => functionScopes.putIfAbsent(
       topmostEnclosingFunction, () => new FunctionScope());
 
-  PlaceholderCollector(this.listener, this.mirrorRenamer,
+  PlaceholderCollector(this.reporter, this.mirrorRenamer,
                        this.fixedMemberNames, this.elementAsts,
                        this.mainFunction);
 
@@ -261,7 +258,7 @@ class PlaceholderCollector extends Visitor {
     currentLocalPlaceholders = new Map<String, LocalPlaceholder>();
     if (!(element is ConstructorElement && element.isRedirectingFactory)) {
       // Do not visit the body of redirecting factories.
-      listener.withCurrentElement(element, () {
+      reporter.withCurrentElement(element, () {
         elementNode.accept(this);
       });
     }
@@ -478,7 +475,7 @@ class PlaceholderCollector extends Visitor {
   }
 
   void internalError(String reason, {Node node}) {
-    listener.internalError(node, reason);
+    reporter.internalError(node, reason);
   }
 
   visit(Node node) => (node == null) ? null : node.accept(this);
@@ -492,7 +489,7 @@ class PlaceholderCollector extends Visitor {
     Element constructor = treeElements[send];
     assert(constructor != null);
     assert(send.receiver == null);
-    if (!Elements.isErroneous(constructor)) {
+    if (!Elements.isMalformed(constructor)) {
       tryMakeConstructorPlaceholder(node.send.selector, constructor);
       // TODO(smok): Should this be in visitNamedArgument?
       // Field names can be exposed as names of optional arguments, e.g.
@@ -533,7 +530,7 @@ class PlaceholderCollector extends Visitor {
 
   visitSendSet(SendSet send) {
     Element element = treeElements[send];
-    if (Elements.isErroneous(element)) {
+    if (Elements.isMalformed(element)) {
       // Complicated case: constructs like receiver.selector++ can resolve
       // to ErroneousElement.  Fortunately, receiver.selector still
       // can be resoved via treeElements[send.selector], that's all
@@ -543,7 +540,7 @@ class PlaceholderCollector extends Visitor {
     tryMakePrivateIdentifier(send.selector, element);
     if (element == null) {
       if (send.receiver != null) tryMakeMemberPlaceholder(send.selector);
-    } else if (!element.isErroneous) {
+    } else if (!element.isMalformed) {
       if (Elements.isStaticOrTopLevel(element)) {
         // TODO(smok): Worth investigating why sometimes we get getter/setter
         // here and sometimes abstract field.

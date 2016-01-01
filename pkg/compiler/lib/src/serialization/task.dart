@@ -14,7 +14,8 @@ import '../compiler.dart' show
     Compiler;
 import '../elements/elements.dart';
 import '../enqueue.dart' show
-    ResolutionEnqueuer,
+    ResolutionEnqueuer;
+import '../universe/world_impact.dart' show
     WorldImpact;
 
 /// Task that supports deserialization of elements.
@@ -65,7 +66,7 @@ class DeserializedResolutionWorkItem implements ResolutionWorkItem {
   @override
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     _isAnalyzed = true;
-    world.registerResolvedElement(element);
+    world.registerProcessedElement(element);
     return worldImpact;
   }
 }

@@ -237,8 +237,8 @@ void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
 static void PrintUse(BufferFormatter* f, const Definition& definition) {
   if (definition.HasSSATemp()) {
     if (definition.HasPairRepresentation()) {
-      f->Print("v%" Pd ", v%" Pd "", definition.ssa_temp_index(),
-                                     definition.ssa_temp_index() + 1);
+      f->Print("(v%" Pd ", v%" Pd ")", definition.ssa_temp_index(),
+                                       definition.ssa_temp_index() + 1);
     } else {
       f->Print("v%" Pd "", definition.ssa_temp_index());
     }
@@ -257,7 +257,7 @@ const char* Instruction::ToCString() const {
 
 
 void Instruction::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -278,7 +278,7 @@ void Instruction::PrintOperandsTo(BufferFormatter* f) const {
 void Definition::PrintTo(BufferFormatter* f) const {
   PrintUse(f, *this);
   if (HasSSATemp() || HasTemp()) f->Print(" <- ");
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("%s:%" Pd "(", DebugName(), GetDeoptId());
   } else {
     f->Print("%s(", DebugName());
@@ -405,9 +405,6 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'",
            dst_type().ToCString(),
            dst_name().ToCString());
-  f->Print(" instantiator(");
-  instantiator()->PrintTo(f);
-  f->Print(")");
   f->Print(" instantiator_type_arguments(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
@@ -551,9 +548,6 @@ void InstanceOfInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s %s",
             negate_result() ? "ISNOT" : "IS",
             String::Handle(type().Name()).ToCString());
-  f->Print(" instantiator(");
-  instantiator()->PrintTo(f);
-  f->Print(")");
   f->Print(" type-arg(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
@@ -1050,7 +1044,12 @@ static const char *RepresentationToCString(Representation rep) {
 
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("v%" Pd " <- phi(", ssa_temp_index());
+  if (HasPairRepresentation()) {
+    f->Print("(v%" Pd ", v%" Pd ") <- phi(",
+             ssa_temp_index(), ssa_temp_index() + 1);
+  } else {
+    f->Print("v%" Pd " <- phi(", ssa_temp_index());
+  }
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
     if (inputs_[i] != NULL) inputs_[i]->PrintTo(f);
     if (i < inputs_.length() - 1) f->Print(", ");
@@ -1150,7 +1149,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
     parallel_move()->PrintTo(f);
     f->Print(" ");
   }
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("goto:%" Pd " B%" Pd "", GetDeoptId(), successor()->block_id());
   } else {
     f->Print("goto: B%" Pd "", successor()->block_id());
@@ -1159,7 +1158,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 
 
 void IndirectGotoInstr::PrintTo(BufferFormatter* f) const {
-  if (GetDeoptId() != Isolate::kNoDeoptId) {
+  if (GetDeoptId() != Thread::kNoDeoptId) {
     f->Print("igoto:%" Pd "(", GetDeoptId());
   } else {
     f->Print("igoto:(");

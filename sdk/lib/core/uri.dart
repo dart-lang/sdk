@@ -12,22 +12,12 @@ part of dart.core;
  * * [URIs][uris] in the [library tour][libtour]
  * * [RFC-3986](http://tools.ietf.org/html/rfc3986)
  *
- * [uris]: http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-uri
- * [libtour]: http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
+ * [uris]: https://www.dartlang.org/docs/dart-up-and-running/ch03.html#uris
+ * [libtour]: https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html
  */
 class Uri {
-  // The host name of the URI.
-  // Set to `null` if there is no authority in a URI.
-  final String _host;
-  // The port. Set to null if there is no port. Normalized to null if
-  // the port is the default port for the scheme.
-  // Set to the value of the default port if an empty port was supplied.
-  int _port;
-  // The path. Always non-null.
-  String _path;
-
   /**
-   * Returns the scheme component.
+   * The scheme component of the URI.
    *
    * Returns the empty string if there is no scheme component.
    *
@@ -37,6 +27,213 @@ class Uri {
   // We represent the missing scheme as an empty string.
   // A valid scheme cannot be empty.
   final String scheme;
+
+  /**
+   * The user-info part of the authority.
+   *
+   * Does not distinguish between an empty user-info and an absent one.
+   * The value is always non-null.
+   * Is considered absent if [_host] is `null`.
+   */
+  final String _userInfo;
+
+  /**
+   * The host name of the URI.
+   *
+   * Set to `null` if there is no authority in the URI.
+   * The host name is the only mandatory part of an authority, so we use
+   * it to mark whether an authority part was present or not.
+   */
+  final String _host;
+
+  /**
+   * The port number part of the authority.
+   *
+   * The port. Set to null if there is no port. Normalized to null if
+   * the port is the default port for the scheme.
+   */
+  int _port;
+
+  /**
+   * The path of the URI.
+   *
+   * Always non-null.
+   */
+  String _path;
+
+  // The query content, or null if there is no query.
+  final String _query;
+
+  // The fragment content, or null if there is no fragment.
+  final String _fragment;
+
+  /**
+   * Cache the computed return value of [pathSegements].
+   */
+  List<String> _pathSegments;
+
+  /**
+   * Cache the computed return value of [queryParameters].
+   */
+  Map<String, String> _queryParameters;
+
+  /// Internal non-verifying constructor. Only call with validated arguments.
+  Uri._internal(this.scheme,
+                this._userInfo,
+                this._host,
+                this._port,
+                this._path,
+                this._query,
+                this._fragment);
+
+  /**
+   * Creates a new URI from its components.
+   *
+   * Each component is set through a named argument. Any number of
+   * components can be provided. The [path] and [query] components can be set
+   * using either of two different named arguments.
+   *
+   * The scheme component is set through [scheme]. The scheme is
+   * normalized to all lowercase letters. If the scheme is omitted or empty,
+   * the URI will not have a scheme part.
+   *
+   * The user info part of the authority component is set through
+   * [userInfo]. It defaults to the empty string, which will be omitted
+   * from the string representation of the URI.
+   *
+   * The host part of the authority component is set through
+   * [host]. The host can either be a hostname, an IPv4 address or an
+   * IPv6 address, contained in '[' and ']'. If the host contains a
+   * ':' character, the '[' and ']' are added if not already provided.
+   * The host is normalized to all lowercase letters.
+   *
+   * The port part of the authority component is set through
+   * [port].
+   * If [port] is omitted or `null`, it implies the default port for
+   * the URI's scheme, and is equivalent to passing that port explicitly.
+   * The recognized schemes, and their default ports, are "http" (80) and
+   * "https" (443). All other schemes are considered as having zero as the
+   * default port.
+   *
+   * If any of `userInfo`, `host` or `port` are provided,
+   * the URI will have an autority according to [hasAuthority].
+   *
+   * The path component is set through either [path] or
+   * [pathSegments]. When [path] is used, it should be a valid URI path,
+   * but invalid characters, except the general delimiters ':/@[]?#',
+   * will be escaped if necessary.
+   * When [pathSegments] is used, each of the provided segments
+   * is first percent-encoded and then joined using the forward slash
+   * separator. The percent-encoding of the path segments encodes all
+   * characters except for the unreserved characters and the following
+   * list of characters: `!$&'()*+,;=:@`. If the other components
+   * calls for an absolute path a leading slash `/` is prepended if
+   * not already there.
+   *
+   * The query component is set through either [query] or
+   * [queryParameters]. When [query] is used the provided string should
+   * be a valid URI query, but invalid characters other than general delimiters,
+   * will be escaped if necessary.
+   * When [queryParameters] is used the query is built from the
+   * provided map. Each key and value in the map is percent-encoded
+   * and joined using equal and ampersand characters. The
+   * percent-encoding of the keys and values encodes all characters
+   * except for the unreserved characters.
+   * If `query` is the empty string, it is equivalent to omitting it.
+   * To have an actual empty query part,
+   * use an empty list for `queryParameters`.
+   * If both `query` and `queryParameters` are omitted or `null`, the
+   * URI will have no query part.
+   *
+   * The fragment component is set through [fragment].
+   * It should be a valid URI fragment, but invalid characters other than
+   * general delimiters, will be escaped if necessary.
+   * If `fragment` is omitted or `null`, the URI will have no fragment part.
+   */
+  factory Uri({String scheme : "",
+               String userInfo : "",
+               String host,
+               int port,
+               String path,
+               Iterable<String> pathSegments,
+               String query,
+               Map<String, String> queryParameters,
+               String fragment}) {
+    scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
+    userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
+    host = _makeHost(host, 0, _stringOrNullLength(host), false);
+    // Special case this constructor for backwards compatibility.
+    if (query == "") query = null;
+    query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
+    fragment = _makeFragment(fragment, 0, _stringOrNullLength(fragment));
+    port = _makePort(port, scheme);
+    bool isFile = (scheme == "file");
+    if (host == null &&
+        (userInfo.isNotEmpty || port != null || isFile)) {
+      host = "";
+    }
+    bool hasAuthority = (host != null);
+    path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
+                     scheme, hasAuthority);
+    if (scheme.isEmpty && host == null && !path.startsWith('/')) {
+      path = _normalizeRelativePath(path);
+    } else {
+      path = _removeDotSegments(path);
+    }
+    return new Uri._internal(scheme, userInfo, host, port,
+                             path, query, fragment);
+  }
+
+  /**
+   * Creates a new `http` URI from authority, path and query.
+   *
+   * Examples:
+   *
+   * ```
+   * // http://example.org/path?q=dart.
+   * new Uri.http("google.com", "/search", { "q" : "dart" });
+   *
+   * // http://user:pass@localhost:8080
+   * new Uri.http("user:pass@localhost:8080", "");
+   *
+   * // http://example.org/a%20b
+   * new Uri.http("example.org", "a b");
+   *
+   * // http://example.org/a%252F
+   * new Uri.http("example.org", "/a%2F");
+   * ```
+   *
+   * The `scheme` is always set to `http`.
+   *
+   * The `userInfo`, `host` and `port` components are set from the
+   * [authority] argument. If `authority` is `null` or empty,
+   * the created `Uri` will have no authority, and will not be directly usable
+   * as an HTTP URL, which must have a non-empty host.
+   *
+   * The `path` component is set from the [unencodedPath]
+   * argument. The path passed must not be encoded as this constructor
+   * encodes the path.
+   *
+   * The `query` component is set from the optional [queryParameters]
+   * argument.
+   */
+  factory Uri.http(String authority,
+                   String unencodedPath,
+                   [Map<String, String> queryParameters]) {
+    return _makeHttpUri("http", authority, unencodedPath, queryParameters);
+  }
+
+  /**
+   * Creates a new `https` URI from authority, path and query.
+   *
+   * This constructor is the same as [Uri.http] except for the scheme
+   * which is set to `https`.
+   */
+  factory Uri.https(String authority,
+                    String unencodedPath,
+                    [Map<String, String> queryParameters]) {
+    return _makeHttpUri("https", authority, unencodedPath, queryParameters);
+  }
 
   /**
    * Returns the authority component.
@@ -52,14 +249,6 @@ class Uri {
     _writeAuthority(sb);
     return sb.toString();
   }
-
-  /**
-   * The user-info part of the authority.
-   *
-   * Does not distinguish between an empty user-info and an absent one.
-   * The value is always non-null.
-   */
-  final String _userInfo;
 
   /**
    * Returns the user info part of the authority component.
@@ -118,9 +307,6 @@ class Uri {
    */
   String get path => _path;
 
-  // The query content, or null if there is no query.
-  final String _query;
-
   /**
    * Returns the query component. The returned query is encoded. To get
    * direct access to the decoded query use [queryParameters].
@@ -129,9 +315,6 @@ class Uri {
    */
   String get query => (_query == null) ? "" : _query;
 
-  // The fragment content, or null if there is no fragment.
-  final String _fragment;
-
   /**
    * Returns the fragment identifier component.
    *
@@ -139,16 +322,6 @@ class Uri {
    * component.
    */
   String get fragment => (_fragment == null) ? "" : _fragment;
-
-  /**
-   * Cache the computed return value of [pathSegements].
-   */
-  List<String> _pathSegments;
-
-  /**
-   * Cache the computed return value of [queryParameters].
-   */
-  Map<String, String> _queryParameters;
 
   /**
    * Creates a new `Uri` object by parsing a URI string.
@@ -213,9 +386,6 @@ class Uri {
     // query         = *( pchar / "/" / "?" )
     //
     // fragment      = *( pchar / "/" / "?" )
-    bool isRegName(int ch) {
-      return ch < 128 && ((_regNameTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
-    }
     const int EOI = -1;
 
     String scheme = "";
@@ -415,164 +585,6 @@ class Uri {
     throw new FormatException(message, uri, index);
   }
 
-  /// Internal non-verifying constructor. Only call with validated arguments.
-  Uri._internal(this.scheme,
-                this._userInfo,
-                this._host,
-                this._port,
-                this._path,
-                this._query,
-                this._fragment);
-
-  /**
-   * Creates a new URI from its components.
-   *
-   * Each component is set through a named argument. Any number of
-   * components can be provided. The [path] and [query] components can be set
-   * using either of two different named arguments.
-   *
-   * The scheme component is set through [scheme]. The scheme is
-   * normalized to all lowercase letters. If the scheme is omitted or empty,
-   * the URI will not have a scheme part.
-   *
-   * The user info part of the authority component is set through
-   * [userInfo]. It defaults to the empty string, which will be omitted
-   * from the string representation of the URI.
-   *
-   * The host part of the authority component is set through
-   * [host]. The host can either be a hostname, an IPv4 address or an
-   * IPv6 address, contained in '[' and ']'. If the host contains a
-   * ':' character, the '[' and ']' are added if not already provided.
-   * The host is normalized to all lowercase letters.
-   *
-   * The port part of the authority component is set through
-   * [port].
-   * If [port] is omitted or `null`, it implies the default port for
-   * the URI's scheme, and is equivalent to passing that port explicitly.
-   * The recognized schemes, and their default ports, are "http" (80) and
-   * "https" (443). All other schemes are considered as having zero as the
-   * default port.
-   *
-   * If any of `userInfo`, `host` or `port` are provided,
-   * the URI will have an autority according to [hasAuthority].
-   *
-   * The path component is set through either [path] or
-   * [pathSegments]. When [path] is used, it should be a valid URI path,
-   * but invalid characters, except the general delimiters ':/@[]?#',
-   * will be escaped if necessary.
-   * When [pathSegments] is used, each of the provided segments
-   * is first percent-encoded and then joined using the forward slash
-   * separator. The percent-encoding of the path segments encodes all
-   * characters except for the unreserved characters and the following
-   * list of characters: `!$&'()*+,;=:@`. If the other components
-   * calls for an absolute path a leading slash `/` is prepended if
-   * not already there.
-   *
-   * The query component is set through either [query] or
-   * [queryParameters]. When [query] is used the provided string should
-   * be a valid URI query, but invalid characters other than general delimiters,
-   * will be escaped if necessary.
-   * When [queryParameters] is used the query is built from the
-   * provided map. Each key and value in the map is percent-encoded
-   * and joined using equal and ampersand characters. The
-   * percent-encoding of the keys and values encodes all characters
-   * except for the unreserved characters.
-   * If `query` is the empty string, it is equivalent to omitting it.
-   * To have an actual empty query part,
-   * use an empty list for `queryParameters`.
-   * If both `query` and `queryParameters` are omitted or `null`, the
-   * URI will have no query part.
-   *
-   * The fragment component is set through [fragment].
-   * It should be a valid URI fragment, but invalid characters other than
-   * general delimiters, will be escaped if necessary.
-   * If `fragment` is omitted or `null`, the URI will have no fragment part.
-   */
-  factory Uri({String scheme : "",
-               String userInfo : "",
-               String host,
-               int port,
-               String path,
-               Iterable<String> pathSegments,
-               String query,
-               Map<String, String> queryParameters,
-               String fragment}) {
-    scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
-    userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
-    host = _makeHost(host, 0, _stringOrNullLength(host), false);
-    // Special case this constructor for backwards compatibility.
-    if (query == "") query = null;
-    query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
-    fragment = _makeFragment(fragment, 0, _stringOrNullLength(fragment));
-    port = _makePort(port, scheme);
-    bool isFile = (scheme == "file");
-    if (host == null &&
-        (userInfo.isNotEmpty || port != null || isFile)) {
-      host = "";
-    }
-    bool hasAuthority = (host != null);
-    path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
-                     scheme, hasAuthority);
-    if (scheme.isEmpty && host == null && !path.startsWith('/')) {
-      path = _normalizeRelativePath(path);
-    } else {
-      path = _removeDotSegments(path);
-    }
-    return new Uri._internal(scheme, userInfo, host, port,
-                             path, query, fragment);
-  }
-
-  /**
-   * Creates a new `http` URI from authority, path and query.
-   *
-   * Examples:
-   *
-   * ```
-   * // http://example.org/path?q=dart.
-   * new Uri.http("google.com", "/search", { "q" : "dart" });
-   *
-   * // http://user:pass@localhost:8080
-   * new Uri.http("user:pass@localhost:8080", "");
-   *
-   * // http://example.org/a%20b
-   * new Uri.http("example.org", "a b");
-   *
-   * // http://example.org/a%252F
-   * new Uri.http("example.org", "/a%2F");
-   * ```
-   *
-   * The `scheme` is always set to `http`.
-   *
-   * The `userInfo`, `host` and `port` components are set from the
-   * [authority] argument. If `authority` is `null` or empty,
-   * the created `Uri` will have no authority, and will not be directly usable
-   * as an HTTP URL, which must have a non-empty host.
-   *
-   * The `path` component is set from the [unencodedPath]
-   * argument. The path passed must not be encoded as this constructor
-   * encodes the path.
-   *
-   * The `query` component is set from the optional [queryParameters]
-   * argument.
-   */
-  factory Uri.http(String authority,
-                   String unencodedPath,
-                   [Map<String, String> queryParameters]) {
-    return _makeHttpUri("http", authority, unencodedPath, queryParameters);
-  }
-
-  /**
-   * Creates a new `https` URI from authority, path and query.
-   *
-   * This constructor is the same as [Uri.http] except for the scheme
-   * which is set to `https`.
-   */
-  factory Uri.https(String authority,
-                    String unencodedPath,
-                    [Map<String, String> queryParameters]) {
-    return _makeHttpUri("https", authority, unencodedPath, queryParameters);
-  }
-
   static Uri _makeHttpUri(String scheme,
                           String authority,
                           String unencodedPath,
@@ -730,6 +742,74 @@ class Uri {
     windows = (windows == null) ? Uri._isWindows : windows;
     return windows ? _makeWindowsFileUrl(path, true)
                    : _makeFileUri(path, true);
+  }
+
+  /**
+   * Creates a `data:` URI containing the [content] string.
+   *
+   * Converts the content to a bytes using [encoding] or the charset specified
+   * in [parameters] (defaulting to US-ASCII if not specified or unrecognized),
+   * then encodes the bytes into the resulting data URI.
+   *
+   * Defaults to encoding using percent-encoding (any non-ASCII or non-URI-valid
+   * bytes is replaced by a percent encoding). If [base64] is true, the bytes
+   * are instead encoded using [BASE64].
+   *
+   * If [encoding] is not provided and [parameters] has a `charset` entry,
+   * that name is looked up using [Encoding.getByName],
+   * and if the lookup returns an encoding, that encoding is used to convert
+   * [content] to bytes.
+   * If providing both an [encoding] and a charset [parameter], they should
+   * agree, otherwise decoding won't be able to use the charset parameter
+   * to determine the encoding.
+   *
+   * If [mimeType] and/or [parameters] are supplied, they are added to the
+   * created URI. If any of these contain characters that are not allowed
+   * in the data URI, the character is percent-escaped. If the character is
+   * non-ASCII, it is first UTF-8 encoded and then the bytes are percent
+   * encoded. An omitted [mimeType] in a data URI means `text/plain`, just
+   * as an omitted `charset` parameter defaults to meaning `US-ASCII`.
+   *
+   * To read the content back, use [UriData.contentAsString].
+   */
+  factory Uri.dataFromString(String content,
+                             {String mimeType,
+                              Encoding encoding,
+                              Map<String, String> parameters,
+                              bool base64: false}) {
+    UriData data =  new UriData.fromString(content,
+                                           mimeType: mimeType,
+                                           encoding: encoding,
+                                           parameters: parameters,
+                                           base64: base64);
+    return data.uri;
+  }
+
+  /**
+   * Creates a `data:` URI containing an encoding of [bytes].
+   *
+   * Defaults to Base64 encoding the bytes, but if [percentEncoded]
+   * is `true`, the bytes will instead be percent encoded (any non-ASCII
+   * or non-valid-ASCII-character byte is replaced by a percent encoding).
+   *
+   * To read the bytes back, use [UriData.contentAsBytes].
+   *
+   * It defaults to having the mime-type `application/octet-stream`.
+   * The [mimeType] and [parameters] are added to the created URI.
+   * If any of these contain characters that are not allowed
+   * in the data URI, the character is percent-escaped. If the character is
+   * non-ASCII, it is first UTF-8 encoded and then the bytes are percent
+   * encoded.
+   */
+  factory Uri.dataFromBytes(List<int> bytes,
+                            {mimeType: "application/octet-stream",
+                             Map<String, String> parameters,
+                             percentEncoded: false}) {
+    UriData data = new UriData.fromBytes(bytes,
+                                         mimeType: mimeType,
+                                         parameters: parameters,
+                                         percentEncoded: percentEncoded);
+    return data.uri;
   }
 
   /**
@@ -938,7 +1018,7 @@ class Uri {
     if (userInfo != null) {
       userInfo = _makeUserInfo(userInfo, 0, userInfo.length);
     } else {
-      userInfo = this.userInfo;
+      userInfo = this._userInfo;
     }
     if (port != null) {
       port = _makePort(port, scheme);
@@ -952,7 +1032,7 @@ class Uri {
     if (host != null) {
       host = _makeHost(host, 0, host.length, false);
     } else if (this.hasAuthority) {
-      host = this.host;
+      host = this._host;
     } else if (userInfo.isNotEmpty || port != null || isFile) {
       host = "";
     }
@@ -962,7 +1042,7 @@ class Uri {
       path = _makePath(path, 0, _stringOrNullLength(path), pathSegments,
                        scheme, hasAuthority);
     } else {
-      path = this.path;
+      path = this._path;
       if ((isFile || (hasAuthority && !path.isEmpty)) &&
           !path.startsWith('/')) {
         path = "/" + path;
@@ -971,14 +1051,14 @@ class Uri {
 
     if (query != null || queryParameters != null) {
       query = _makeQuery(query, 0, _stringOrNullLength(query), queryParameters);
-    } else if (this.hasQuery) {
-      query = this.query;
+    } else {
+      query = this._query;
     }
 
     if (fragment != null) {
       fragment = _makeFragment(fragment, 0, fragment.length);
-    } else if (this.hasFragment) {
-      fragment = this.fragment;
+    } else {
+      fragment = this._fragment;
     }
 
     return new Uri._internal(
@@ -992,38 +1072,40 @@ class Uri {
    */
   Uri removeFragment() {
     if (!this.hasFragment) return this;
-    return new Uri._internal(scheme, userInfo, host, port, path, query, null);
+    return new Uri._internal(scheme, _userInfo, _host, _port,
+                             _path, _query, null);
   }
 
   /**
-   * Returns the URI path split into its segments. Each of the
-   * segments in the returned list have been decoded. If the path is
-   * empty the empty list will be returned. A leading slash `/` does
-   * not affect the segments returned.
+   * Returns the URI path split into its segments. Each of the segments in the
+   * returned list have been decoded. If the path is empty the empty list will
+   * be returned. A leading slash `/` does not affect the segments returned.
    *
    * The returned list is unmodifiable and will throw [UnsupportedError] on any
    * calls that would mutate it.
    */
   List<String> get pathSegments {
-    if (_pathSegments == null) {
-      var pathToSplit = !path.isEmpty && path.codeUnitAt(0) == _SLASH
-                        ? path.substring(1)
-                        : path;
-      _pathSegments = new UnmodifiableListView(
-        pathToSplit == "" ? const<String>[]
-                          : pathToSplit.split("/")
-                                       .map(Uri.decodeComponent)
-                                       .toList(growable: false));
+    var result = _pathSegments;
+    if (result != null) return result;
+
+    var pathToSplit = path;
+    if (pathToSplit.isNotEmpty && pathToSplit.codeUnitAt(0) == _SLASH) {
+      pathToSplit = pathToSplit.substring(1);
     }
-    return _pathSegments;
+    result = (pathToSplit == "")
+        ? const<String>[]
+        : new List<String>.unmodifiable(
+              pathToSplit.split("/").map(Uri.decodeComponent));
+    _pathSegments = result;
+    return result;
   }
 
   /**
    * Returns the URI query split into a map according to the rules
-   * specified for FORM post in the [HTML 4.01 specification section 17.13.4]
-   * (http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
-   * "HTML 4.01 section 17.13.4"). Each key and value in the returned map
-   * has been decoded. If there is no query the empty map is returned.
+   * specified for FORM post in the [HTML 4.01 specification section
+   * 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+   * Each key and value in the returned map has been decoded. If there is no
+   * query the empty map is returned.
    *
    * Keys in the query string that have no value are mapped to the
    * empty string.
@@ -1229,7 +1311,8 @@ class Uri {
     if (path != null) {
       result = _normalize(path, start, end, _pathCharOrSlashTable);
     } else {
-      result = pathSegments.map((s) => _uriEncode(_pathCharTable, s)).join("/");
+      result = pathSegments.map((s) =>
+          _uriEncode(_pathCharTable, s, UTF8, false)).join("/");
     }
     if (result.isEmpty) {
       if (isFile) return "/";
@@ -1283,19 +1366,6 @@ class Uri {
 
   static int _stringOrNullLength(String s) => (s == null) ? 0 : s.length;
 
-  static bool _isHexDigit(int char) {
-    if (_NINE >= char) return _ZERO <= char;
-    char |= 0x20;
-    return _LOWER_CASE_A <= char && _LOWER_CASE_F >= char;
-  }
-
-  static int _hexValue(int char) {
-    assert(_isHexDigit(char));
-    if (_NINE >= char) return char - _ZERO;
-    char |= 0x20;
-    return char - (_LOWER_CASE_A - 10);
-  }
-
   /**
    * Performs RFC 3986 Percent-Encoding Normalization.
    *
@@ -1316,10 +1386,12 @@ class Uri {
     }
     int firstDigit = source.codeUnitAt(index + 1);
     int secondDigit = source.codeUnitAt(index + 2);
-    if (!_isHexDigit(firstDigit) || !_isHexDigit(secondDigit)) {
+    int firstDigitValue = _parseHexDigit(firstDigit);
+    int secondDigitValue = _parseHexDigit(secondDigit);
+    if (firstDigitValue < 0 || secondDigitValue < 0) {
       return "%";  // Marks the escape as invalid.
     }
-    int value = _hexValue(firstDigit) * 16 + _hexValue(secondDigit);
+    int value = firstDigitValue * 16 + secondDigitValue;
     if (_isUnreservedChar(value)) {
       if (lowerCase && _UPPER_CASE_A <= value && _UPPER_CASE_Z >= value) {
         value |= 0x20;
@@ -1335,21 +1407,27 @@ class Uri {
     return null;
   }
 
-  static bool _isUnreservedChar(int ch) {
-    return ch < 127 &&
-           ((_unreservedTable[ch >> 4] & (1 << (ch & 0x0f))) != 0);
+  // Converts a UTF-16 code-unit to its value as a hex digit.
+  // Returns -1 for non-hex digits.
+  static int _parseHexDigit(int char) {
+    int digit = char ^ Uri._ZERO;
+    if (digit <= 9) return digit;
+    int lowerCase = char | 0x20;
+    if (Uri._LOWER_CASE_A <= lowerCase && lowerCase <= _LOWER_CASE_F) {
+      return lowerCase - (_LOWER_CASE_A - 10);
+    }
+    return -1;
   }
 
-  static String _escapeChar(char) {
+  static String _escapeChar(int char) {
     assert(char <= 0x10ffff);  // It's a valid unicode code point.
-    const hexDigits = "0123456789ABCDEF";
     List codeUnits;
     if (char < 0x80) {
       // ASCII, a single percent encoded sequence.
       codeUnits = new List(3);
       codeUnits[0] = _PERCENT;
-      codeUnits[1] = hexDigits.codeUnitAt(char >> 4);
-      codeUnits[2] = hexDigits.codeUnitAt(char & 0xf);
+      codeUnits[1] = _hexDigits.codeUnitAt(char >> 4);
+      codeUnits[2] = _hexDigits.codeUnitAt(char & 0xf);
     } else {
       // Do UTF-8 encoding of character, then percent encode bytes.
       int flag = 0xc0;  // The high-bit markers on the first byte of UTF-8.
@@ -1367,8 +1445,8 @@ class Uri {
       while (--encodedBytes >= 0) {
         int byte = ((char >> (6 * encodedBytes)) & 0x3f) | flag;
         codeUnits[index] = _PERCENT;
-        codeUnits[index + 1] = hexDigits.codeUnitAt(byte >> 4);
-        codeUnits[index + 2] = hexDigits.codeUnitAt(byte & 0xf);
+        codeUnits[index + 1] = _hexDigits.codeUnitAt(byte >> 4);
+        codeUnits[index + 2] = _hexDigits.codeUnitAt(byte & 0xf);
         index += 3;
         flag = 0x80;  // Following bytes have only high bit set.
       }
@@ -1589,9 +1667,8 @@ class Uri {
    *
    * Returns the resolved URI.
    *
-   * The algorithm "Transform Reference" for resolving a reference is
-   * described in [RFC-3986 Section 5]
-   * (http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
+   * The algorithm "Transform Reference" for resolving a reference is described
+   * in [RFC-3986 Section 5](http://tools.ietf.org/html/rfc3986#section-5 "RFC-1123").
    *
    * Updated to handle the case where the base URI is just a relative path -
    * that is: when it has no scheme or authority and the path does not start
@@ -1871,6 +1948,16 @@ class Uri {
     }
   }
 
+  /**
+   * Access the structure of a `data:` URI.
+   *
+   * Returns a [UriData] object for `data:` URIs and `null` for all other
+   * URIs.
+   * The [UriData] object can be used to access the media type and data
+   * of a `data:` URI.
+   */
+  UriData get data => (scheme == "data") ? new UriData.fromUri(this) : null;
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     _addIfNonEmpty(sb, scheme, scheme, ':');
@@ -1889,16 +1976,16 @@ class Uri {
   bool operator==(other) {
     if (other is! Uri) return false;
     Uri uri = other;
-    return scheme == uri.scheme &&
-        hasAuthority == uri.hasAuthority &&
-        userInfo == uri.userInfo &&
-        host == uri.host &&
-        port == uri.port &&
-        path == uri.path &&
-        hasQuery == uri.hasQuery &&
-        query == uri.query &&
-        hasFragment == uri.hasFragment &&
-        fragment == uri.fragment;
+    return scheme       == uri.scheme       &&
+           hasAuthority == uri.hasAuthority &&
+           userInfo     == uri.userInfo     &&
+           host         == uri.host         &&
+           port         == uri.port         &&
+           path         == uri.path         &&
+           hasQuery     == uri.hasQuery     &&
+           query        == uri.query        &&
+           hasFragment  == uri.hasFragment  &&
+           fragment     == uri.fragment;
   }
 
   int get hashCode {
@@ -1939,7 +2026,7 @@ class Uri {
    * a [Uri].
    */
   static String encodeComponent(String component) {
-    return _uriEncode(_unreserved2396Table, component);
+    return _uriEncode(_unreserved2396Table, component, UTF8, false);
   }
 
   /**
@@ -1977,8 +2064,7 @@ class Uri {
    */
   static String encodeQueryComponent(String component,
                                      {Encoding encoding: UTF8}) {
-    return _uriEncode(
-        _unreservedTable, component, encoding: encoding, spaceToPlus: true);
+    return _uriEncode(_unreservedTable, component, encoding, true);
   }
 
   /**
@@ -1995,7 +2081,8 @@ class Uri {
    * decoded component.
    */
   static String decodeComponent(String encodedComponent) {
-    return _uriDecode(encodedComponent);
+    return _uriDecode(encodedComponent, 0, encodedComponent.length,
+                      UTF8, false);
   }
 
   /**
@@ -2009,7 +2096,8 @@ class Uri {
   static String decodeQueryComponent(
       String encodedComponent,
       {Encoding encoding: UTF8}) {
-    return _uriDecode(encodedComponent, plusToSpace: true, encoding: encoding);
+    return _uriDecode(encodedComponent, 0, encodedComponent.length,
+                      encoding, true);
   }
 
   /**
@@ -2022,7 +2110,7 @@ class Uri {
    * the encodeURI function .
    */
   static String encodeFull(String uri) {
-    return _uriEncode(_encodeFullTable, uri);
+    return _uriEncode(_encodeFullTable, uri, UTF8, false);
   }
 
   /**
@@ -2034,16 +2122,14 @@ class Uri {
    * [Uri.parse] before decoding the separate components.
    */
   static String decodeFull(String uri) {
-    return _uriDecode(uri);
+    return _uriDecode(uri, 0, uri.length, UTF8, false);
   }
 
   /**
    * Returns the [query] split into a map according to the rules
-   * specified for FORM post in the
-   * [HTML 4.01 specification section 17.13.4]
-   * (http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4
-   * "HTML 4.01 section 17.13.4"). Each key and value in the returned
-   * map has been decoded. If the [query]
+   * specified for FORM post in the [HTML 4.01 specification section
+   * 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+   * Each key and value in the returned map has been decoded. If the [query]
    * is the empty string an empty map is returned.
    *
    * Keys in the query string that have no value are mapped to the
@@ -2238,39 +2324,12 @@ class Uri {
   static const int _LOWER_CASE_Z = 0x7A;
   static const int _BAR = 0x7C;
 
-  /**
-   * This is the internal implementation of JavaScript's encodeURI function.
-   * It encodes all characters in the string [text] except for those
-   * that appear in [canonicalTable], and returns the escaped string.
-   */
-  static String _uriEncode(List<int> canonicalTable,
-                           String text,
-                           {Encoding encoding: UTF8,
-                            bool spaceToPlus: false}) {
-    byteToHex(byte, buffer) {
-      const String hex = '0123456789ABCDEF';
-      buffer.writeCharCode(hex.codeUnitAt(byte >> 4));
-      buffer.writeCharCode(hex.codeUnitAt(byte & 0x0f));
-    }
+  static const String _hexDigits = "0123456789ABCDEF";
 
-    // Encode the string into bytes then generate an ASCII only string
-    // by percent encoding selected bytes.
-    StringBuffer result = new StringBuffer();
-    var bytes = encoding.encode(text);
-    for (int i = 0; i < bytes.length; i++) {
-      int byte = bytes[i];
-      if (byte < 128 &&
-          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
-        result.writeCharCode(byte);
-      } else if (spaceToPlus && byte == _SPACE) {
-        result.writeCharCode(_PLUS);
-      } else {
-        result.writeCharCode(_PERCENT);
-        byteToHex(byte, result);
-      }
-    }
-    return result.toString();
-  }
+  external static String _uriEncode(List<int> canonicalTable,
+                                    String text,
+                                    Encoding encoding,
+                                    bool spaceToPlus);
 
   /**
    * Convert a byte (2 character hex sequence) in string [s] starting
@@ -2308,24 +2367,35 @@ class Uri {
    * decode the byte-list using [encoding]. The default encodingis UTF-8.
    */
   static String _uriDecode(String text,
-                           {bool plusToSpace: false,
-                            Encoding encoding: UTF8}) {
+                           int start,
+                           int end,
+                           Encoding encoding,
+                           bool plusToSpace) {
+    assert(0 <= start);
+    assert(start <= end);
+    assert(end <= text.length);
+    assert(encoding != null);
     // First check whether there is any characters which need special handling.
     bool simple = true;
-    for (int i = 0; i < text.length && simple; i++) {
+    for (int i = start; i < end; i++) {
       var codeUnit = text.codeUnitAt(i);
-      simple = codeUnit != _PERCENT && codeUnit != _PLUS;
+      if (codeUnit > 127 ||
+          codeUnit == _PERCENT ||
+          (plusToSpace && codeUnit == _PLUS)) {
+        simple = false;
+        break;
+      }
     }
     List<int> bytes;
     if (simple) {
-      if (encoding == UTF8 || encoding == LATIN1) {
-        return text;
+      if (UTF8 == encoding || LATIN1 == encoding || ASCII == encoding) {
+        return text.substring(start, end);
       } else {
-        bytes = text.codeUnits;
+        bytes = text.substring(start, end).codeUnits;
       }
     } else {
       bytes = new List();
-      for (int i = 0; i < text.length; i++) {
+      for (int i = start; i < end; i++) {
         var codeUnit = text.codeUnitAt(i);
         if (codeUnit > 127) {
           throw new ArgumentError("Illegal percent encoding in URI");
@@ -2346,9 +2416,15 @@ class Uri {
     return encoding.decode(bytes);
   }
 
-  static bool _isAlphabeticCharacter(int codeUnit)
-    => (codeUnit >= _LOWER_CASE_A && codeUnit <= _LOWER_CASE_Z) ||
-       (codeUnit >= _UPPER_CASE_A && codeUnit <= _UPPER_CASE_Z);
+  static bool _isAlphabeticCharacter(int codeUnit) {
+    var lowerCase = codeUnit | 0x20;
+    return (_LOWER_CASE_A <= lowerCase && lowerCase <= _LOWER_CASE_Z);
+  }
+
+  static bool _isUnreservedChar(int char) {
+    return char < 127 &&
+           ((_unreservedTable[char >> 4] & (1 << (char & 0x0f))) != 0);
+  }
 
   // Tables of char-codes organized as a bit vector of 128 bits where
   // each bit indicate whether a character code on the 0-127 needs to
@@ -2597,4 +2673,594 @@ class Uri {
       0xfffe,   // 0x60 - 0x6f  0111111111111111
                 //              pqrstuvwxyz   ~
       0x47ff];  // 0x70 - 0x7f  1111111111100010
+
+}
+
+// --------------------------------------------------------------------
+// Data URI
+// --------------------------------------------------------------------
+
+/**
+ * A way to access the structure of a `data:` URI.
+ *
+ * Data URIs are non-hierarchical URIs that can contain any binary data.
+ * They are defined by [RFC 2397](https://tools.ietf.org/html/rfc2397).
+ *
+ * This class allows parsing the URI text and extracting individual parts of the
+ * URI, as well as building the URI text from structured parts.
+ */
+class UriData {
+  static const int _noScheme = -1;
+  /**
+   * Contains the text content of a `data:` URI, with or without a
+   * leading `data:`.
+   *
+   * If [_separatorIndices] starts with `4` (the index of the `:`), then
+   * there is a leading `data:`, otherwise [_separatorIndices] starts with
+   * `-1`.
+   */
+  final String _text;
+
+  /**
+   * List of the separators (';', '=' and ',') in the text.
+   *
+   * Starts with the index of the `:` in `data:` of the mimeType.
+   * That is always either -1 or 4, depending on whether `_text` includes the
+   * `data:` scheme or not.
+   *
+   * The first speparator ends the mime type. We don't bother with finding
+   * the '/' inside the mime type.
+   *
+   * Each two separators after that marks a parameter key and value.
+   *
+   * If there is a single separator left, it ends the "base64" marker.
+   *
+   * So the following separators are found for a text:
+   *
+   *     data:text/plain;foo=bar;base64,ARGLEBARGLE=
+   *         ^          ^   ^   ^      ^
+   *
+   */
+  final List<int> _separatorIndices;
+
+  /**
+   * Cache of the result returned by [uri].
+   */
+  Uri _uriCache;
+
+  UriData._(this._text, this._separatorIndices, this._uriCache);
+
+  /**
+   * Creates a `data:` URI containing the [content] string.
+   *
+   * Equivalent to `new Uri.dataFromString(...).data`, but may
+   * be more efficient if the [uri] itself isn't used.
+   */
+  factory UriData.fromString(String content,
+                             {String mimeType,
+                              Encoding encoding,
+                              Map<String, String> parameters,
+                              bool base64: false}) {
+    StringBuffer buffer = new StringBuffer();
+    List indices = [_noScheme];
+    String charsetName;
+    String encodingName;
+    if (parameters != null) charsetName = parameters["charset"];
+    if (encoding == null) {
+      if (charsetName != null) {
+        encoding = Encoding.getByName(charsetName);
+      }
+    } else if (charsetName == null) {
+      // Non-null only if parameters does not contain "charset".
+      encodingName = encoding.name;
+    }
+    encoding ??= ASCII;
+    _writeUri(mimeType, encodingName, parameters, buffer, indices);
+    indices.add(buffer.length);
+    if (base64) {
+      buffer.write(';base64,');
+      indices.add(buffer.length - 1);
+      buffer.write(encoding.fuse(BASE64).encode(content));
+    } else {
+      buffer.write(',');
+      _uriEncodeBytes(_uricTable, encoding.encode(content), buffer);
+    }
+    return new UriData._(buffer.toString(), indices, null);
+  }
+
+  /**
+   * Creates a `data:` URI containing an encoding of [bytes].
+   *
+   * Equivalent to `new Uri.dataFromBytes(...).data`, but may
+   * be more efficient if the [uri] itself isn't used.
+   */
+  factory UriData.fromBytes(List<int> bytes,
+                            {mimeType: "application/octet-stream",
+                             Map<String, String> parameters,
+                             percentEncoded: false}) {
+    StringBuffer buffer = new StringBuffer();
+    List indices = [_noScheme];
+    _writeUri(mimeType, null, parameters, buffer, indices);
+    indices.add(buffer.length);
+    if (percentEncoded) {
+      buffer.write(',');
+      _uriEncodeBytes(_uricTable, bytes, buffer);
+    } else {
+      buffer.write(';base64,');
+      indices.add(buffer.length - 1);
+      BASE64.encoder
+            .startChunkedConversion(
+                new StringConversionSink.fromStringSink(buffer))
+            .addSlice(bytes, 0, bytes.length, true);
+    }
+
+    return new UriData._(buffer.toString(), indices, null);
+  }
+
+  /**
+   * Creates a `DataUri` from a [Uri] which must have `data` as [Uri.scheme].
+   *
+   * The [uri] must have scheme `data` and no authority or fragment,
+   * and the path (concatenated with the query, if there is one) must be valid
+   * as data URI content with the same rules as [parse].
+   */
+  factory UriData.fromUri(Uri uri) {
+    if (uri.scheme != "data") {
+      throw new ArgumentError.value(uri, "uri",
+                                    "Scheme must be 'data'");
+    }
+    if (uri.hasAuthority) {
+      throw new ArgumentError.value(uri, "uri",
+                                    "Data uri must not have authority");
+    }
+    if (uri.hasFragment) {
+      throw new ArgumentError.value(uri, "uri",
+                                    "Data uri must not have a fragment part");
+    }
+    if (!uri.hasQuery) {
+      return _parse(uri.path, 0, uri);
+    }
+    // Includes path and query (and leading "data:").
+    return _parse("$uri", 5, uri);
+  }
+
+  /**
+   * Writes the initial part of a `data:` uri, from after the "data:"
+   * until just before the ',' before the data, or before a `;base64,`
+   * marker.
+   *
+   * Of an [indices] list is passed, separator indices are stored in that
+   * list.
+   */
+  static void _writeUri(String mimeType,
+                        String charsetName,
+                        Map<String, String> parameters,
+                        StringBuffer buffer, List indices) {
+    if (mimeType == null || mimeType == "text/plain") {
+      mimeType = "";
+    }
+    if (mimeType.isEmpty || identical(mimeType, "application/octet-stream")) {
+      buffer.write(mimeType);  // Common cases need no escaping.
+    } else {
+      int slashIndex = _validateMimeType(mimeType);
+      if (slashIndex < 0) {
+        throw new ArgumentError.value(mimeType, "mimeType",
+                                      "Invalid MIME type");
+      }
+      buffer.write(Uri._uriEncode(_tokenCharTable,
+                                  mimeType.substring(0, slashIndex),
+                                  UTF8, false));
+      buffer.write("/");
+      buffer.write(Uri._uriEncode(_tokenCharTable,
+                                  mimeType.substring(slashIndex + 1),
+                                  UTF8, false));
+    }
+    if (charsetName != null) {
+      if (indices != null) {
+        indices..add(buffer.length)
+               ..add(buffer.length + 8);
+      }
+      buffer.write(";charset=");
+      buffer.write(Uri._uriEncode(_tokenCharTable, charsetName, UTF8, false));
+    }
+    parameters?.forEach((var key, var value) {
+      if (key.isEmpty) {
+        throw new ArgumentError.value("", "Parameter names must not be empty");
+      }
+      if (value.isEmpty) {
+        throw new ArgumentError.value("", "Parameter values must not be empty",
+                                      'parameters["$key"]');
+      }
+      if (indices != null) indices.add(buffer.length);
+      buffer.write(';');
+      // Encode any non-RFC2045-token character and both '%' and '#'.
+      buffer.write(Uri._uriEncode(_tokenCharTable, key, UTF8, false));
+      if (indices != null) indices.add(buffer.length);
+      buffer.write('=');
+      buffer.write(Uri._uriEncode(_tokenCharTable, value, UTF8, false));
+    });
+  }
+
+  /**
+   * Checks mimeType is valid-ish (`token '/' token`).
+   *
+   * Returns the index of the slash, or -1 if the mime type is not
+   * considered valid.
+   *
+   * Currently only looks for slashes, all other characters will be
+   * percent-encoded as UTF-8 if necessary.
+   */
+  static int _validateMimeType(String mimeType) {
+    int slashIndex = -1;
+    for (int i = 0; i < mimeType.length; i++) {
+      var char = mimeType.codeUnitAt(i);
+      if (char != Uri._SLASH) continue;
+      if (slashIndex < 0) {
+        slashIndex = i;
+        continue;
+      }
+      return -1;
+    }
+    return slashIndex;
+  }
+
+  /**
+   * Parses a string as a `data` URI.
+   *
+   * The string must have the format:
+   *
+   * ```
+   * 'data:' (type '/' subtype)? (';' attribute '=' value)* (';base64')? ',' data
+   * ````
+   *
+   * where `type`, `subtype`, `attribute` and `value` are specified in RFC-2045,
+   * and `data` is a sequnce of URI-characters (RFC-2396 `uric`).
+   *
+   * This means that all the characters must be ASCII, but the URI may contain
+   * percent-escapes for non-ASCII byte values that need an interpretation
+   * to be converted to the corresponding string.
+   *
+   * Parsing doesn't check the validity of any part, it just checks that the
+   * input has the correct structure with the correct sequence of `/`, `;`, `=`
+   * and `,` delimiters.
+   *
+   * Accessing the individual parts may fail later if they turn out to have
+   * content that can't be decoded sucessfully as a string.
+   */
+  static UriData parse(String uri) {
+    if (!uri.startsWith("data:")) {
+      throw new FormatException("Does not start with 'data:'", uri, 0);
+    }
+    return _parse(uri, 5, null);
+  }
+
+  /**
+   * The [Uri] that this `UriData` is giving access to.
+   *
+   * Returns a `Uri` with scheme `data` and the remainder of the data URI
+   * as path.
+   */
+  Uri get uri {
+    if (_uriCache != null) return _uriCache;
+    String path = _text;
+    String query = null;
+    int colonIndex = _separatorIndices[0];
+    int queryIndex = _text.indexOf('?', colonIndex + 1);
+    int end = null;
+    if (queryIndex >= 0) {
+      query = _text.substring(queryIndex + 1);
+      end = queryIndex;
+    }
+    path = _text.substring(colonIndex + 1, end);
+    // TODO(lrn): This is probably too simple. We should ensure URI
+    // normalization before passing in the raw strings, maybe using
+    // Uri._makePath, Uri._makeQuery.
+    _uriCache = new Uri._internal("data", "", null, null, path, query, null);
+    return _uriCache;
+  }
+
+  /**
+   * The MIME type of the data URI.
+   *
+   * A data URI consists of a "media type" followed by data.
+   * The media type starts with a MIME type and can be followed by
+   * extra parameters.
+   *
+   * Example:
+   *
+   *     data:text/plain;charset=utf-8,Hello%20World!
+   *
+   * This data URI has the media type `text/plain;charset=utf-8`, which is the
+   * MIME type `text/plain` with the parameter `charset` with value `utf-8`.
+   * See [RFC 2045](https://tools.ietf.org/html/rfc2045) for more detail.
+   *
+   * If the first part of the data URI is empty, it defaults to `text/plain`.
+   */
+  String get mimeType {
+    int start = _separatorIndices[0] + 1;
+    int end = _separatorIndices[1];
+    if (start == end) return "text/plain";
+    return Uri._uriDecode(_text, start, end, UTF8, false);
+  }
+
+  /**
+   * The charset parameter of the media type.
+   *
+   * If the parameters of the media type contains a `charset` parameter
+   * then this returns its value, otherwise it returns `US-ASCII`,
+   * which is the default charset for data URIs.
+   */
+  String get charset {
+    int parameterStart = 1;
+    int parameterEnd = _separatorIndices.length - 1;  // The ',' before data.
+    if (isBase64) {
+      // There is a ";base64" separator, so subtract one for that as well.
+      parameterEnd -= 1;
+    }
+    for (int i = parameterStart; i < parameterEnd; i += 2) {
+      var keyStart = _separatorIndices[i] + 1;
+      var keyEnd = _separatorIndices[i + 1];
+      if (keyEnd == keyStart + 7 && _text.startsWith("charset", keyStart)) {
+        return Uri._uriDecode(_text, keyEnd + 1, _separatorIndices[i + 2],
+                              UTF8, false);
+      }
+    }
+    return "US-ASCII";
+  }
+
+  /**
+   * Whether the data is Base64 encoded or not.
+   */
+  bool get isBase64 => _separatorIndices.length.isOdd;
+
+  /**
+   * The content part of the data URI, as its actual representation.
+   *
+   * This string may contain percent escapes.
+   */
+  String get contentText => _text.substring(_separatorIndices.last + 1);
+
+  /**
+   * The content part of the data URI as bytes.
+   *
+   * If the data is Base64 encoded, it will be decoded to bytes.
+   *
+   * If the data is not Base64 encoded, it will be decoded by unescaping
+   * percent-escaped characters and returning byte values of each unescaped
+   * character. The bytes will not be, e.g., UTF-8 decoded.
+   */
+  List<int> contentAsBytes() {
+    String text = _text;
+    int start = _separatorIndices.last + 1;
+    if (isBase64) {
+      return BASE64.decoder.convert(text, start);
+    }
+
+    // Not base64, do percent-decoding and return the remaining bytes.
+    // Compute result size.
+    const int percent = 0x25;
+    int length = text.length - start;
+    for (int i = start; i < text.length; i++) {
+      var codeUnit = text.codeUnitAt(i);
+      if (codeUnit == percent) {
+        i += 2;
+        length -= 2;
+      }
+    }
+    // Fill result array.
+    Uint8List result = new Uint8List(length);
+    if (length == text.length) {
+      result.setRange(0, length, text.codeUnits, start);
+      return result;
+    }
+    int index = 0;
+    for (int i = start; i < text.length; i++) {
+      var codeUnit = text.codeUnitAt(i);
+      if (codeUnit != percent) {
+        result[index++] = codeUnit;
+      } else {
+        if (i + 2 < text.length) {
+          var digit1 = Uri._parseHexDigit(text.codeUnitAt(i + 1));
+          var digit2 = Uri._parseHexDigit(text.codeUnitAt(i + 2));
+          if (digit1 >= 0 && digit2 >= 0) {
+            int byte = digit1 * 16 + digit2;
+            result[index++] = byte;
+            i += 2;
+            continue;
+          }
+        }
+        throw new FormatException("Invalid percent escape", text, i);
+      }
+    }
+    assert(index == result.length);
+    return result;
+  }
+
+  /**
+   * Returns a string created from the content of the data URI.
+   *
+   * If the content is Base64 encoded, it will be decoded to bytes and then
+   * decoded to a string using [encoding].
+   * If encoding is omitted, the value of a `charset` parameter is used
+   * if it is recongized by [Encoding.getByName], otherwise it defaults to
+   * the [ASCII] encoding, which is the default encoding for data URIs
+   * that do not specify an encoding.
+   *
+   * If the content is not Base64 encoded, it will first have percent-escapes
+   * converted to bytes and then the character codes and byte values are
+   * decoded using [encoding].
+   */
+  String contentAsString({Encoding encoding}) {
+    if (encoding == null) {
+      var charset = this.charset;  // Returns "US-ASCII" if not present.
+      encoding = Encoding.getByName(charset);
+      if (encoding == null) {
+        throw new UnsupportedError("Unknown charset: $charset");
+      }
+    }
+    String text = _text;
+    int start = _separatorIndices.last + 1;
+    if (isBase64) {
+      var converter = BASE64.decoder.fuse(encoding.decoder);
+      return converter.convert(text.substring(start));
+    }
+    return Uri._uriDecode(text, start, text.length, encoding, false);
+  }
+
+  /**
+   * A map representing the parameters of the media type.
+   *
+   * A data URI may contain parameters between the the MIME type and the
+   * data. This converts these parameters to a map from parameter name
+   * to parameter value.
+   * The map only contains parameters that actually occur in the URI.
+   * The `charset` parameter has a default value even if it doesn't occur
+   * in the URI, which is reflected by the [charset] getter. This means that
+   * [charset] may return a value even if `parameters["charset"]` is `null`.
+   *
+   * If the values contain non-ASCII values or percent escapes, they default
+   * to being decoded as UTF-8.
+   */
+  Map<String, String> get parameters {
+    var result = <String, String>{};
+    for (int i = 3; i < _separatorIndices.length; i += 2) {
+      var start = _separatorIndices[i - 2] + 1;
+      var equals = _separatorIndices[i - 1];
+      var end = _separatorIndices[i];
+      String key = Uri._uriDecode(_text, start, equals, UTF8, false);
+      String value = Uri._uriDecode(_text,equals + 1, end, UTF8, false);
+      result[key] = value;
+    }
+    return result;
+  }
+
+  static UriData _parse(String text, int start, Uri sourceUri) {
+    assert(start == 0 || start == 5);
+    assert((start == 5) == text.startsWith("data:"));
+
+    /// Character codes.
+    const int comma     = 0x2c;
+    const int slash     = 0x2f;
+    const int semicolon = 0x3b;
+    const int equals    = 0x3d;
+    List indices = [start - 1];
+    int slashIndex = -1;
+    var char;
+    int i = start;
+    for (; i < text.length; i++) {
+      char = text.codeUnitAt(i);
+      if (char == comma || char == semicolon) break;
+      if (char == slash) {
+        if (slashIndex < 0) {
+          slashIndex = i;
+          continue;
+        }
+        throw new FormatException("Invalid MIME type", text, i);
+      }
+    }
+    if (slashIndex < 0 && i > start) {
+      // An empty MIME type is allowed, but if non-empty it must contain
+      // exactly one slash.
+      throw new FormatException("Invalid MIME type", text, i);
+    }
+    while (char != comma) {
+      // Parse parameters and/or "base64".
+      indices.add(i);
+      i++;
+      int equalsIndex = -1;
+      for (; i < text.length; i++) {
+        char = text.codeUnitAt(i);
+        if (char == equals) {
+          if (equalsIndex < 0) equalsIndex = i;
+        } else if (char == semicolon || char == comma) {
+          break;
+        }
+      }
+      if (equalsIndex >= 0) {
+        indices.add(equalsIndex);
+      } else {
+        // Have to be final "base64".
+        var lastSeparator = indices.last;
+        if (char != comma ||
+            i != lastSeparator + 7 /* "base64,".length */ ||
+            !text.startsWith("base64", lastSeparator + 1)) {
+          throw new FormatException("Expecting '='", text, i);
+        }
+        break;
+      }
+    }
+    indices.add(i);
+    return new UriData._(text, indices, sourceUri);
+  }
+
+  /**
+   * Like [Uri._uriEncode] but takes the input as bytes, not a string.
+   *
+   * Encodes into [buffer] instead of creating its own buffer.
+   */
+  static void _uriEncodeBytes(List<int> canonicalTable,
+                              List<int> bytes,
+                              StringSink buffer) {
+    // Encode the string into bytes then generate an ASCII only string
+    // by percent encoding selected bytes.
+    int byteOr = 0;
+    for (int i = 0; i < bytes.length; i++) {
+      int byte = bytes[i];
+      byteOr |= byte;
+      if (byte < 128 &&
+          ((canonicalTable[byte >> 4] & (1 << (byte & 0x0f))) != 0)) {
+        buffer.writeCharCode(byte);
+      } else {
+        buffer.writeCharCode(Uri._PERCENT);
+        buffer.writeCharCode(Uri._hexDigits.codeUnitAt(byte >> 4));
+        buffer.writeCharCode(Uri._hexDigits.codeUnitAt(byte & 0x0f));
+      }
+    }
+    if ((byteOr & ~0xFF) != 0) {
+      for (int i = 0; i < bytes.length; i++) {
+        var byte = bytes[i];
+        if (byte < 0 || byte > 255) {
+          throw new ArgumentError.value(byte, "non-byte value");
+        }
+      }
+    }
+  }
+
+  String toString() =>
+      (_separatorIndices[0] == _noScheme) ? "data:$_text" : _text;
+
+  // Table of the `token` characters of RFC 2045 in a URI.
+  //
+  // A token is any US-ASCII character except SPACE, control characters and
+  // `tspecial` characters. The `tspecial` category is:
+  // '(', ')', '<', '>', '@', ',', ';', ':', '\', '"', '/', '[, ']', '?', '='.
+  //
+  // In a data URI, we also need to escape '%' and '#' characters.
+  static const _tokenCharTable = const [
+                //             LSB             MSB
+                //              |               |
+      0x0000,   // 0x00 - 0x0f  00000000 00000000
+      0x0000,   // 0x10 - 0x1f  00000000 00000000
+                //               !  $ &'   *+ -.
+      0x6cd2,   // 0x20 - 0x2f  01001011 00110110
+                //              01234567 89
+      0x03ff,   // 0x30 - 0x3f  11111111 11000000
+                //               ABCDEFG HIJKLMNO
+      0xfffe,   // 0x40 - 0x4f  01111111 11111111
+                //              PQRSTUVW XYZ   ^_
+      0xc7ff,   // 0x50 - 0x5f  11111111 11100011
+                //              `abcdefg hijklmno
+      0xffff,   // 0x60 - 0x6f  11111111 11111111
+                //              pqrstuvw xyz{|}~
+      0x7fff];  // 0x70 - 0x7f  11111111 11111110
+
+  // All non-escape RFC-2396 uric characters.
+  //
+  //  uric        =  reserved | unreserved | escaped
+  //  reserved    =  ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
+  //  unreserved  =  alphanum | mark
+  //  mark        =  "-" | "_" | "." | "!" | "~" | "*" | "'" | "(" | ")"
+  //
+  // This is the same characters as in a URI query (which is URI pchar plus '?')
+  static const _uricTable = Uri._queryCharTable;
 }

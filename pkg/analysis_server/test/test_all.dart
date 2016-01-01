@@ -10,6 +10,7 @@ import 'channel/test_all.dart' as channel_test;
 import 'context_manager_test.dart' as context_manager_test;
 import 'domain_analysis_test.dart' as domain_analysis_test;
 import 'domain_completion_test.dart' as domain_completion_test;
+import 'domain_diagnostic_test.dart' as domain_experimental_test;
 import 'domain_execution_test.dart' as domain_execution_test;
 import 'domain_server_test.dart' as domain_server_test;
 import 'edit/test_all.dart' as edit_all;
@@ -38,6 +39,7 @@ main() {
     domain_analysis_test.main();
     domain_completion_test.main();
     domain_execution_test.main();
+    domain_experimental_test.main();
     domain_server_test.main();
     edit_all.main();
     operation_test_all.main();

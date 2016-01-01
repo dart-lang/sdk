@@ -21,7 +21,7 @@ DEFINE_NATIVE_ENTRY(Bool_fromEnvironment, 3) {
   GET_NATIVE_ARGUMENT(Bool, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
   const String& env_value =
-      String::Handle(Api::CallEnvironmentCallback(isolate, name));
+      String::Handle(Api::CallEnvironmentCallback(thread, name));
   if (!env_value.IsNull()) {
     if (Symbols::True().Equals(env_value)) {
       return Bool::True().raw();

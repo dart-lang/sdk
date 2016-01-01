@@ -465,9 +465,6 @@ class ExpandIterator<S, T> implements Iterator<T> {
 
   ExpandIterator(this._iterator, Iterable<T> this._f(S element));
 
-  void _nextExpansion() {
-  }
-
   T get current => _current;
 
   bool moveNext() {

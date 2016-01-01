@@ -15,10 +15,18 @@ class ObjectCommonElement extends ObservatoryElement {
   @published ServiceMap path;
   @published ServiceMap inboundReferences;
   @observable int retainedBytes = null;
+  @observable int reachableBytes = null;
 
   ObjectCommonElement.created() : super.created();
 
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
+  Future<ServiceObject> reachableSize(var dummy) {
+    return object.isolate.getReachableSize(object).then((Instance obj) {
+      // TODO(turnidge): Handle collected/expired objects gracefully.
+      reachableBytes = int.parse(obj.valueAsString);
+    });
+  }
+
   Future<ServiceObject> retainedSize(var dummy) {
     return object.isolate.getRetainedSize(object).then((Instance obj) {
       // TODO(turnidge): Handle collected/expired objects gracefully.

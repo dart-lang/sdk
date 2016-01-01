@@ -71,7 +71,7 @@ class GCSNamer(object):
 
   Under every base path, the following structure is used:
     - /VERSION
-    - /api-docs/dart-api-docs.zip
+    - /api-docs/dartdocs-gen-api.zip
     - /dartium/{chromedriver,content_shell,dartium}
          -{linux,macos,windows}-{ia32,x64}-release.zip
     - /sdk/dartsdk-{linux,macos,windows}-{ia32,x64}-release.zip
@@ -121,7 +121,7 @@ class GCSNamer(object):
 
   def apidocs_zipfilepath(self, revision):
     return '/'.join([self.apidocs_directory(revision),
-      self.apidocs_zipfilename()])
+      self.dartdocs_zipfilename()])
 
   def dartium_android_apk_filepath(self, revision, name, arch, mode):
     return '/'.join([self.dartium_android_directory(revision),
@@ -165,9 +165,6 @@ class GCSNamer(object):
 
   def dartium_android_apk_filename(self, name, arch, mode):
     return '%s-%s-%s.apk' % (name, arch, mode)
-
-  def apidocs_zipfilename(self):
-    return 'dart-api-docs.zip'
 
   def dartdocs_zipfilename(self):
     return 'dartdocs-gen-api.zip'

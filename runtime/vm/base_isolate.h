@@ -26,28 +26,13 @@ class BaseIsolate {
   void AssertCurrentThreadIsMutator() const {}
 #endif  // DEBUG
 
-  int32_t no_callback_scope_depth() const {
-    return no_callback_scope_depth_;
-  }
-
-  void IncrementNoCallbackScopeDepth() {
-    ASSERT(no_callback_scope_depth_ < INT_MAX);
-    no_callback_scope_depth_ += 1;
-  }
-
-  void DecrementNoCallbackScopeDepth() {
-    ASSERT(no_callback_scope_depth_ > 0);
-    no_callback_scope_depth_ -= 1;
-  }
-
 #if defined(DEBUG)
   static void AssertCurrent(BaseIsolate* isolate);
 #endif
 
  protected:
   BaseIsolate()
-      : mutator_thread_(NULL),
-        no_callback_scope_depth_(0) {
+      : mutator_thread_(NULL) {
   }
 
   ~BaseIsolate() {
@@ -55,12 +40,8 @@ class BaseIsolate {
   }
 
   Thread* mutator_thread_;
-  int32_t no_callback_scope_depth_;
 
  private:
-  // During migration, some deprecated interfaces will default to using the
-  // mutator_thread_ (can't use accessor in Isolate due to circular deps).
-  friend class StackResource;
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);
 };
 

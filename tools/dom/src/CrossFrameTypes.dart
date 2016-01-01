@@ -39,9 +39,9 @@ abstract class WindowBase implements EventTarget {
    *
    * ## Other resources
    *
-   * * [Session history and navigation specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html)
-   * from WHATWG.
+   * * [Session history and navigation
+   *   specification](https://html.spec.whatwg.org/multipage/browsers.html#history)
+   *   from WHATWG.
    */
   HistoryBase get history;
 
@@ -134,12 +134,10 @@ abstract class WindowBase implements EventTarget {
    *
    * ## Other resources
    *
-   * * [window.postMessage]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage) from
-   * MDN.
-   * * [Cross-document messaging]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/web-messaging.html)
-   * from WHATWG.
+   * * [window.postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage)
+   *   from MDN.
+   * * [Cross-document messaging](https://html.spec.whatwg.org/multipage/comms.html#web-messaging)
+   *   from WHATWG.
    */
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }

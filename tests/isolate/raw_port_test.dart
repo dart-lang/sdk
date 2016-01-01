@@ -31,6 +31,12 @@ main([args, port]) {
     });
   });
 
+  test("raw receive hashCode", () {
+    RawReceivePort port = new RawReceivePort();
+    expect(port.hashCode is int, true);
+    port.close();
+  });
+
   test("raw receive twice - change handler", () {
     RawReceivePort port = new RawReceivePort();
     Isolate.spawn(remote2, port.sendPort);

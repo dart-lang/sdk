@@ -64,17 +64,19 @@ class TestOptionsParser {
          safari, ie9, ie10, ie11, firefox, opera, chromeOnAndroid,
          none (compile only)),
 
-   dartanalyzer: Perform static analysis on Dart code by running the analyzer on Java.
-   dart2analyzer: Perform static analysis on Dart code by running the analyzer on Dart.
+   dart2analyzer: Perform static analysis on Dart code by running the analyzer
           (only valid with the following runtimes: none)''',
               ['-c', '--compiler'],
-              ['none', 'dart2js', 'dartanalyzer', 'dart2analyzer'],
+              ['none', 'precompiler', 'dart2js', 'dart2analyzer'],
               'none'),
           // TODO(antonm): fix the option drt.
           new _TestOptionSpecification(
               'runtime',
               '''Where the tests should be run.
     vm: Run Dart code on the standalone dart vm.
+
+    dart_precompiled: Run a precompiled snapshot on a variant of the standalone
+                      dart vm lacking a JIT.
 
     d8: Run JavaScript from the command line using v8.
 
@@ -93,10 +95,11 @@ class TestOptionsParser {
     [ff | chrome | safari | ie9 | ie10 | ie11 | opera | chromeOnAndroid]:
         Run JavaScript in the specified browser.
 
-    none: No runtime, compile only (for example, used for dartanalyzer static
+    none: No runtime, compile only (for example, used for dart2analyzer static
           analysis tests).''',
               ['-r', '--runtime'],
-              ['vm', 'd8', 'jsshell', 'drt', 'dartium', 'ff', 'firefox',
+              ['vm', 'dart_precompiled', 'd8', 'jsshell', 'drt', 'dartium',
+               'ff', 'firefox',
                'chrome', 'safari', 'ie9', 'ie10', 'ie11', 'opera',
                'chromeOnAndroid', 'safarimobilesim',
                'ContentShellOnAndroid', 'DartiumOnAndroid', 'none'],
@@ -107,7 +110,7 @@ class TestOptionsParser {
               ['-a', '--arch'],
               ['all', 'ia32', 'x64', 'arm', 'armv5te', 'arm64', 'mips',
                'simarm', 'simarmv5te', 'simarm64', 'simmips'],
-              'ia32'),
+              'x64'),
           new _TestOptionSpecification(
               'system',
               'The operating system to run tests on',
@@ -146,6 +149,13 @@ class TestOptionsParser {
               'cps_ir',
               'Run the compiler with the cps based backend',
               ['--cps-ir'],
+              [],
+              false,
+              type: 'bool'),
+          new _TestOptionSpecification(
+              'noopt',
+              'Run an in-place precompilation',
+              ['--noopt'],
               [],
               false,
               type: 'bool'),
@@ -635,9 +645,11 @@ Note: currently only implemented for dart2js.''',
                                'ff', 'chrome', 'safari', 'ie9', 'ie10', 'ie11',
                                'opera', 'chromeOnAndroid', 'safarimobilesim'];
         break;
-      case 'dartanalyzer':
       case 'dart2analyzer':
         validRuntimes = const ['none'];
+        break;
+      case 'precompiler':
+        validRuntimes = const ['dart_precompiled'];
         break;
       case 'none':
         validRuntimes = const ['vm', 'drt', 'dartium',
@@ -875,7 +887,7 @@ Note: currently only implemented for dart2js.''',
    */
   _TestOptionSpecification _getSpecification(String name) {
     for (var option in _options) {
-      if (option.keys.any((key) => key == name)) {
+      if (option.keys.contains(name)) {
         return option;
       }
     }

@@ -8,4 +8,8 @@ main() {
   var a = new List<int>.filled(42, 42);
   Expect.isTrue(a is List<int>);
   Expect.isFalse(a is List<String>);
+
+  a = new List<int>.filled(42, 42, growable: true);
+  Expect.isTrue(a is List<int>);
+  Expect.isFalse(a is List<String>);
 }

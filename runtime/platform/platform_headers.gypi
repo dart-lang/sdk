@@ -13,8 +13,8 @@
     'globals.h',
     'hashmap.h',
     'inttypes_support_win.h',
-    'json.h',
     'memory_sanitizer.h',
+    'text_buffer.h',
     'utils.h',
   ],
 }

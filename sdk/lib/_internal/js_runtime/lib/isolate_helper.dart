@@ -21,7 +21,6 @@ import 'dart:_native_typed_data' show NativeByteBuffer, NativeTypedData;
 import 'dart:_js_helper' show
     Closure,
     InternalMap,
-    Null,
     Primitives,
     convertDartClosureToJS,
     createDartClosureFromNameOfStaticFunction,

@@ -12,6 +12,7 @@
 
 #include "bin/utils.h"
 #include "platform/assert.h"
+#include "platform/utils.h"
 
 
 namespace dart {
@@ -22,7 +23,7 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   set_code(errno);
   const int kBufferSize = 1024;
   char error_buf[kBufferSize];
-  SetMessage(strerror_r(errno, error_buf, kBufferSize));
+  SetMessage(Utils::StrError(errno, error_buf, kBufferSize));
 }
 
 
@@ -32,7 +33,7 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   if (sub_system == kSystem) {
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
-    SetMessage(strerror_r(code, error_buf, kBufferSize));
+    SetMessage(Utils::StrError(code, error_buf, kBufferSize));
   } else if (sub_system == kGetAddressInfo) {
     SetMessage(gai_strerror(code));
   } else {
@@ -68,17 +69,24 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
-int64_t TimerUtils::GetCurrentTimeMilliseconds() {
-  return GetCurrentTimeMicros() / 1000;
+void TimerUtils::InitOnce() {
 }
 
-int64_t TimerUtils::GetCurrentTimeMicros() {
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
+int64_t TimerUtils::GetCurrentMonotonicMillis() {
+  return GetCurrentMonotonicMicros() / 1000;
+}
+
+int64_t TimerUtils::GetCurrentMonotonicMicros() {
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
     UNREACHABLE();
     return 0;
   }
-  return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+  // Convert to microseconds.
+  int64_t result = ts.tv_sec;
+  result *= kMicrosecondsPerSecond;
+  result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
+  return result;
 }
 
 void TimerUtils::Sleep(int64_t millis) {

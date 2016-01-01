@@ -46,17 +46,14 @@ class _Double extends _Num implements double {
     return _remainder(other.toDouble());
   }
   double _remainder(double other) native "Double_remainder";
-  double operator -() {
-    // Handles properly 0.0, NAN, and other doubles.
-    return this._flipSignBit;
-  }
-  double get _flipSignBit native "Double_flipSignBit";
+
+  double operator -() native "Double_flipSignBit";
 
   bool operator ==(other) {
     if (!(other is num)) return false;
     return _equal(other.toDouble());
   }
-  bool _equal(double other)native "Double_equal";
+  bool _equal(double other) native "Double_equal";
   bool _equalToInteger(int other) native "Double_equalToInteger";
   bool operator <(num other) {
     return other > this;

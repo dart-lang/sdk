@@ -4,17 +4,18 @@
 
 library closureToClassMapper;
 
+import 'common.dart';
 import 'common/names.dart' show
     Identifiers;
+import 'common/resolution.dart' show
+    Parsing,
+    Resolution;
 import 'common/tasks.dart' show
     CompilerTask;
 import 'compiler.dart' show
     Compiler;
 import 'constants/expressions.dart';
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart';
-import 'diagnostics/spannable.dart' show
-    SpannableAssertionFailure;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show
     BaseFunctionElementX,
@@ -75,7 +76,7 @@ class ClosureTask extends CompilerTask {
     return measure(() {
       ClosureClassMap nestedClosureData = closureMappingCache[node];
       if (nestedClosureData == null) {
-        compiler.internalError(node, "No closure cache.");
+        reporter.internalError(node, "No closure cache.");
       }
       return nestedClosureData;
     });
@@ -102,7 +103,7 @@ abstract class CapturedVariable implements Element {}
 // TODO(ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class ClosureFieldElement extends ElementX
-    implements FieldElement, CapturedVariable {
+    implements FieldElement, CapturedVariable, PrivatelyNamedJSEntity {
   /// The [BoxLocal] or [LocalElement] being accessed through the field.
   final Local local;
 
@@ -118,6 +119,11 @@ class ClosureFieldElement extends ElementX
   ClosureClassElement get closureClass => super.enclosingElement;
 
   MemberElement get memberContext => closureClass.methodElement.memberContext;
+
+  @override
+  Entity get declaredEntity => local;
+  @override
+  Entity get rootOfScope => closureClass;
 
   bool get hasNode => false;
 
@@ -140,7 +146,7 @@ class ClosureFieldElement extends ElementX
   bool get isInstanceMember => true;
   bool get isAssignable => false;
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   DartType get type {
     if (local is LocalElement) {
@@ -195,9 +201,9 @@ class ClosureClassElement extends ClassElementX {
               STATE_DONE) {
     JavaScriptBackend backend = compiler.backend;
     ClassElement superclass = methodElement.isInstanceMember
-        ? backend.boundClosureClass
-        : backend.closureClass;
-    superclass.ensureResolved(compiler);
+        ? backend.helpers.boundClosureClass
+        : backend.helpers.closureClass;
+    superclass.ensureResolved(compiler.resolution);
     supertype = superclass.thisType;
     interfaces = const Link<DartType>();
     thisType = rawType = new InterfaceType(this);
@@ -208,7 +214,7 @@ class ClosureClassElement extends ClassElementX {
 
   Iterable<ClosureFieldElement> get closureFields => _closureFields;
 
-  void addField(ClosureFieldElement field, DiagnosticListener listener) {
+  void addField(ClosureFieldElement field, DiagnosticReporter listener) {
     _closureFields.add(field);
     addMember(field, listener);
   }
@@ -219,7 +225,7 @@ class ClosureClassElement extends ClassElementX {
 
   Token get position => node.getBeginToken();
 
-  Node parseNode(DiagnosticListener listener) => node;
+  Node parseNode(Parsing parsing) => node;
 
   // A [ClosureClassElement] is nested inside a function or initializer in terms
   // of [enclosingElement], but still has to be treated as a top-level
@@ -245,16 +251,23 @@ class BoxLocal extends Local {
 // TODO(ngeoffray, ahe): These classes continuously cause problems.  We need to
 // find a more general solution.
 class BoxFieldElement extends ElementX
-    implements TypedElement, CapturedVariable, FieldElement {
+    implements TypedElement, CapturedVariable, FieldElement,
+        PrivatelyNamedJSEntity {
   final BoxLocal box;
 
-  BoxFieldElement(String name, this.variableElement, BoxLocal box)
+  BoxFieldElement(String name, this.variableElement,
+      BoxLocal box)
       : this.box = box,
         super(name, ElementKind.FIELD, box.executableContext);
 
-  DartType computeType(Compiler compiler) => type;
+  DartType computeType(Resolution resolution) => type;
 
   DartType get type => variableElement.type;
+
+  @override
+  Entity get declaredEntity => variableElement;
+  @override
+  Entity get rootOfScope => box;
 
   final VariableElement variableElement;
 
@@ -315,7 +328,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
       : expression = other,
         super(name, other.kind, other.modifiers, enclosing) {
     asyncMarker = other.asyncMarker;
-    functionSignatureCache = other.functionSignature;
+    functionSignature = other.functionSignature;
   }
 
   /// Use [closureClass] instead.
@@ -332,7 +345,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
   FunctionExpression get node => expression.node;
 
-  FunctionExpression parseNode(DiagnosticListener listener) => node;
+  FunctionExpression parseNode(Parsing parsing) => node;
 
   ResolvedAst get resolvedAst {
     return new ResolvedAst(this, node, treeElements);
@@ -507,6 +520,8 @@ class ClosureTranslator extends Visitor {
                     this.elements,
                     this.closureMappingCache);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   /// Generate a unique name for the [id]th closure field, with proposed name
   /// [name].
   ///
@@ -516,6 +531,8 @@ class ClosureTranslator extends Visitor {
   ///
   /// Also, the names should be distinct from real field names to prevent
   /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
   String getClosureVariableName(String name, int id) {
     return "_captured_${name}_$id";
   }
@@ -529,6 +546,8 @@ class ClosureTranslator extends Visitor {
   ///
   /// Also, the names should be distinct from real field names to prevent
   /// clashes with selectors for those fields.
+  ///
+  /// These names are not used in generated code, just as element name.
   String getBoxFieldName(int id) {
     return "_box_$id";
   }
@@ -539,7 +558,7 @@ class ClosureTranslator extends Visitor {
 
   void addCapturedVariable(Node node, Local variable) {
     if (_capturedVariableMapping[variable] != null) {
-      compiler.internalError(node, 'In closure analyzer.');
+      reporter.internalError(node, 'In closure analyzer.');
     }
     _capturedVariableMapping[variable] = null;
   }
@@ -609,7 +628,7 @@ class ClosureTranslator extends Visitor {
       void addClosureField(Local local, String name) {
         ClosureFieldElement closureField =
             new ClosureFieldElement(name, local, closureClass);
-        closureClass.addField(closureField, compiler);
+        closureClass.addField(closureField, reporter);
         data.freeVariableMap[local] = closureField;
       }
 
@@ -786,8 +805,6 @@ class ClosureTranslator extends Visitor {
     } else if (node.isTypeCast) {
       DartType type = elements.getType(node.arguments.head);
       analyzeType(type);
-    } else if (elements.isAssert(node) && !compiler.enableUserAssertions) {
-      return;
     }
     node.visitChildren(this);
   }
@@ -905,6 +922,7 @@ class ClosureTranslator extends Visitor {
   }
 
   visitFor(For node) {
+    List<LocalVariableElement> boxedLoopVariables = <LocalVariableElement>[];
     inNewScope(node, () {
       // First visit initializer and update so we can easily check if a loop
       // variable was captured in one of these subexpressions.
@@ -928,24 +946,27 @@ class ClosureTranslator extends Visitor {
       // condition or body are indeed flagged as mutated.
       if (node.conditionStatement != null) visit(node.conditionStatement);
       if (node.body != null) visit(node.body);
+
+      // See if we have declared loop variables that need to be boxed.
+      if (node.initializer == null) return;
+      VariableDefinitions definitions =
+          node.initializer.asVariableDefinitions();
+      if (definitions == null) return;
+      for (Link<Node> link = definitions.definitions.nodes;
+           !link.isEmpty;
+           link = link.tail) {
+        Node definition = link.head;
+        LocalVariableElement element = elements[definition];
+        // Non-mutated variables should not be boxed.  The mutatedVariables set
+        // gets cleared when 'inNewScope' returns, so check it here.
+        if (isCapturedVariable(element) && mutatedVariables.contains(element)) {
+          boxedLoopVariables.add(element);
+        }
+      }
     });
-    // See if we have declared loop variables that need to be boxed.
-    if (node.initializer == null) return;
-    VariableDefinitions definitions = node.initializer.asVariableDefinitions();
-    if (definitions == null) return;
     ClosureScope scopeData = closureData.capturingScopes[node];
     if (scopeData == null) return;
-    List<LocalVariableElement> result = <LocalVariableElement>[];
-    for (Link<Node> link = definitions.definitions.nodes;
-         !link.isEmpty;
-         link = link.tail) {
-      Node definition = link.head;
-      LocalVariableElement element = elements[definition];
-      if (isCapturedVariable(element)) {
-        result.add(element);
-      }
-    }
-    scopeData.boxedLoopVariables = result;
+    scopeData.boxedLoopVariables = boxedLoopVariables;
   }
 
   /** Returns a non-unique name for the given closure element. */
@@ -993,6 +1014,9 @@ class ClosureTranslator extends Visitor {
     String closureName = computeClosureName(element);
     ClosureClassElement globalizedElement = new ClosureClassElement(
         node, closureName, compiler, element);
+    // Extend [globalizedElement] as an instantiated class in the closed world.
+    compiler.world.registerClass(
+        globalizedElement, isDirectlyInstantiated: true);
     FunctionElement callElement =
         new SynthesizedCallMethodElementX(Identifiers.call,
                                           element,
@@ -1001,7 +1025,7 @@ class ClosureTranslator extends Visitor {
         globalizedElement, callElement, element);
     MemberElement enclosing = element.memberContext;
     enclosing.nestedClosures.add(callElement);
-    globalizedElement.addMember(callElement, compiler);
+    globalizedElement.addMember(callElement, reporter);
     globalizedElement.computeAllClassMembers(compiler);
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
@@ -1128,4 +1152,15 @@ class TypeVariableLocal implements Local {
     if (other is! TypeVariableLocal) return false;
     return typeVariable == other.typeVariable;
   }
+}
+
+///
+/// Move the below classes to a JS model eventually.
+///
+abstract class JSEntity implements Entity {
+  Entity get declaredEntity;
+}
+
+abstract class PrivatelyNamedJSEntity implements JSEntity {
+  Entity get rootOfScope;
 }

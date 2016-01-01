@@ -18,9 +18,10 @@ const Map<String, List<String>> WHITE_LIST = const {
   // Helper methods for debugging should never be called from production code:
   "lib/src/helpers/": const [" is never "],
 
-  // Node.asLiteralBool is never used.
+  // Node.asAssert, Node.asLiteralBool is never used.
   "lib/src/tree/nodes.dart": const [
-      "The method 'asLiteralBool' is never called"],
+      "The method 'asAssert' is never called.",
+      "The method 'asLiteralBool' is never called."],
 
   // Some things in dart_printer are not yet used
   "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],
@@ -70,8 +71,13 @@ const Map<String, List<String>> WHITE_LIST = const {
 void main() {
   var uri = currentDirectory.resolve(
       'pkg/compiler/lib/src/use_unused_api.dart');
-  asyncTest(() => analyze([uri], WHITE_LIST,
-      analyzeAll: false, checkResults: checkResults));
+  asyncTest(() => analyze(
+      [uri],
+      // TODO(johnniwinther): Use [WHITE_LIST] again when
+      // [Compiler.reportUnusedCode] is reenabled.
+      const {}, // WHITE_LIST
+      analyzeAll: false,
+      checkResults: checkResults));
 }
 
 bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
@@ -79,20 +85,23 @@ bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
       'pkg/compiler/lib/src/helpers/helpers.dart');
   void checkLive(member) {
     if (member.isFunction) {
-      if (compiler.enqueuer.resolution.hasBeenResolved(member)) {
-        compiler.reportHint(member, MessageKind.GENERIC,
+      if (compiler.enqueuer.resolution.hasBeenProcessed(member)) {
+        compiler.reporter.reportHintMessage(
+            member, MessageKind.GENERIC,
             {'text': "Helper function in production code '$member'."});
       }
     } else if (member.isClass) {
       if (member.isResolved) {
-        compiler.reportHint(member, MessageKind.GENERIC,
+        compiler.reporter.reportHintMessage(
+            member, MessageKind.GENERIC,
             {'text': "Helper class in production code '$member'."});
       } else {
         member.forEachLocalMember(checkLive);
       }
     } else if (member.isTypedef) {
       if (member.isResolved) {
-        compiler.reportHint(member, MessageKind.GENERIC,
+        compiler.reporter.reportHintMessage(
+            member, MessageKind.GENERIC,
             {'text': "Helper typedef in production code '$member'."});
       }
     }

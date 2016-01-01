@@ -5,13 +5,13 @@
 library vmservice_io;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:vmservice';
+import 'dart:_vmservice';
 
 part 'loader.dart';
-part 'resources.dart';
 part 'server.dart';
 
 // The TCP ip/port that the HTTP server listens on.
@@ -25,9 +25,20 @@ bool _isWindows = false;
 var _signalWatch;
 var _signalSubscription;
 
-// HTTP servr.
+// HTTP server.
 Server server;
 Future<Server> serverFuture;
+HashMap<String, Asset> _assets;
+HashMap<String, Asset> get assets {
+  if (_assets == null) {
+    try {
+      _assets = Asset.request();
+    } catch (e) {
+      print('Could not load Observatory assets: $e');
+    }
+  }
+  return _assets;
+}
 
 _onShutdown() {
   if (server != null) {
@@ -42,8 +53,6 @@ _onShutdown() {
 }
 
 _bootServer() {
-  // Load resources.
-  _triggerResourceLoad();
   // Lazily create service.
   var service = new VMService();
   service.onShutdown = _onShutdown;
@@ -89,6 +98,15 @@ main() {
     // scheduled microtasks.
     Timer.run(() {});
   }
+  // TODO(johnmccutchan, turnidge) Creating a VMService object here causes
+  // strange behavior from the legacy debug protocol and coverage tool.
+  // Enable this code, and remove the call to Isolate::KillIsolate() from
+  // service_isolate.cc when the strange behavior is solved.
+  // See: https://github.com/dart-lang/sdk/issues/23977
+  // else {
+  //   var service = new VMService();
+  //   service.onShutdown = _onShutdown;
+  // }
   scriptLoadPort.handler = _processLoadRequest;
   // Register signal handler after a small delay to avoid stalling main
   // isolate startup.

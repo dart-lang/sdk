@@ -4,10 +4,9 @@
 
 library dart2js.constants.values;
 
+import '../common.dart';
 import '../core_types.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart'
-    show assertDebugMode;
 import '../elements/elements.dart'
     show ClassElement,
          Element,
@@ -376,6 +375,9 @@ class StringConstantValue extends PrimitiveConstantValue {
       : this.primitiveValue = value,
         this.hashCode = value.slowToString().hashCode;
 
+  StringConstantValue.fromString(String value)
+      : this(new DartString.literal(value));
+
   bool get isString => true;
 
   DartType getType(CoreTypes types) => types.stringType;
@@ -500,6 +502,7 @@ class MapConstantValue extends ObjectConstantValue {
   final List<ConstantValue> keys;
   final List<ConstantValue> values;
   final int hashCode;
+  Map<ConstantValue, ConstantValue> _lookupMap;
 
   MapConstantValue(InterfaceType type,
                    List<ConstantValue> keys,
@@ -536,6 +539,12 @@ class MapConstantValue extends ObjectConstantValue {
   }
 
   int get length => keys.length;
+
+  ConstantValue lookup(ConstantValue key) {
+    var lookupMap = _lookupMap ??=
+        new Map<ConstantValue, ConstantValue>.fromIterables(keys, values);
+    return lookupMap[key];
+  }
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitMap(this, arg);
 

@@ -4,34 +4,41 @@
 
 library dump_info;
 
-import 'dart:convert'
-    show HtmlEscape, JsonEncoder, StringConversionSink, ChunkedConversionSink;
+import 'dart:convert' show
+    ChunkedConversionSink,
+    HtmlEscape,
+    JsonEncoder,
+    StringConversionSink;
 
 import 'package:dart2js_info/info.dart';
 
+import 'common.dart';
 import 'common/tasks.dart' show
     CompilerTask;
-import 'constants/values.dart' show ConstantValue;
+import 'constants/values.dart' show
+    ConstantValue,
+    InterceptorConstantValue;
 import 'compiler.dart' show
     Compiler;
-import 'diagnostics/messages.dart' show
-    MessageKind;
-import 'diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
-import 'elements/elements.dart';
-import 'elements/visitor.dart';
-import 'types/types.dart' show
-    TypeMask;
 import 'deferred_load.dart' show
     OutputUnit;
+import 'elements/elements.dart';
+import 'elements/visitor.dart';
+import 'info/send_info.dart' show
+    collectSendMeasurements;
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show
     Emitter;
 import 'js/js.dart' as jsAst;
+import 'types/types.dart' show
+    TypeMask;
 import 'universe/universe.dart' show
-    Selector,
-    UniverseSelector;
+    ReceiverConstraint;
+import 'universe/world_impact.dart' show
+    ImpactUseCase,
+    WorldImpact,
+    WorldImpactVisitorImpl;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final Compiler compiler;
@@ -48,10 +55,10 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       // TODO(sigmund): add dependencies on other constants
       var size = compiler.dumpInfoTask._nodeToSize[node];
       var code = jsAst.prettyPrint(node, compiler).getText();
-      var info = new ConstantInfo(size: size, code: code);
+      var info = new ConstantInfo(
+          size: size, code: code, outputUnit: _unitInfoForConstant(constant));
       _constantToInfo[constant] = info;
       result.constants.add(info);
-
     });
     compiler.libraryLoader.libraries.forEach(visit);
   }
@@ -61,10 +68,10 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   /// Whether to emit information about [element].
   ///
   /// By default we emit information for any element that contributes to the
-  /// output size. Either becuase the it is a function being emitted or inlined,
+  /// output size. Either because the it is a function being emitted or inlined,
   /// or because it is an element that holds dependencies to other elements.
   bool shouldKeep(Element element) {
-    return compiler.dumpInfoTask.selectorsFromElement.containsKey(element) ||
+    return compiler.dumpInfoTask.impacts.containsKey(element) ||
         compiler.dumpInfoTask.inlineCount.containsKey(element);
   }
 
@@ -82,11 +89,10 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   LibraryInfo visitLibraryElement(LibraryElement element, _) {
-    String libname = element.getLibraryName();
-    libname = libname == "" ? "<unnamed>" : libname;
+    String libname = element.hasLibraryName ? element.libraryName : "<unnamed>";
     int size = compiler.dumpInfoTask.sizeOf(element);
     LibraryInfo info =
-      new LibraryInfo(libname, element.canonicalUri, null, size);
+        new LibraryInfo(libname, element.canonicalUri, null, size);
     _elementToInfo[element] = info;
 
     LibraryElement realElement = element.isPatched ? element.patch : element;
@@ -116,9 +122,9 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   TypedefInfo visitTypedefElement(TypedefElement element, _) {
-    if (element.alias == null) return null;
-    TypedefInfo info = new TypedefInfo(element.name, '${element.alias}',
-        _unitInfoForElement(element));
+    if (!element.isResolved) return null;
+    TypedefInfo info = new TypedefInfo(
+        element.name, '${element.alias}', _unitInfoForElement(element));
     _elementToInfo[element] = info;
     result.typedefs.add(info);
     return info;
@@ -228,6 +234,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
   FunctionInfo visitFunctionElement(FunctionElement element, _) {
     int size = compiler.dumpInfoTask.sizeOf(element);
+    // TODO(sigmund): consider adding a small info to represent unreachable
+    // code here.
     if (size == 0 && !shouldKeep(element)) return null;
 
     String name = element.name;
@@ -286,6 +294,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
 
     FunctionInfo info = new FunctionInfo(
         name: name,
+        functionKind: kind,
         // We use element.hashCode because it is globally unique and it is
         // available while we are doing codegen.
         coverageId: '${element.hashCode}',
@@ -319,12 +328,13 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     }
     info.closures = nestedClosures;
     result.functions.add(info);
+    if (const bool.fromEnvironment('send_stats')) {
+      info.measurements = collectSendMeasurements(element, compiler);
+    }
     return info;
   }
 
-  OutputUnitInfo _unitInfoForElement(Element element) {
-    OutputUnit outputUnit =
-      compiler.deferredLoadTask.outputUnitForElement(element);
+  OutputUnitInfo _infoFromOutputUnit(OutputUnit outputUnit) {
     return _outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
@@ -332,19 +342,48 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       full.Emitter emitter = backend.emitter.emitter;
       OutputUnitInfo info = new OutputUnitInfo(
           outputUnit.name, emitter.outputBuffers[outputUnit].length);
+      info.imports.addAll(outputUnit.imports
+          .map((d) => compiler.deferredLoadTask.importDeferName[d]));
       result.outputUnits.add(info);
       return info;
     });
+  }
+
+  OutputUnitInfo _unitInfoForElement(Element element) {
+    return _infoFromOutputUnit(
+        compiler.deferredLoadTask.outputUnitForElement(element));
+  }
+
+  OutputUnitInfo _unitInfoForConstant(ConstantValue constant) {
+    OutputUnit outputUnit =
+        compiler.deferredLoadTask.outputUnitForConstant(constant);
+    if (outputUnit == null) {
+      assert(constant is InterceptorConstantValue);
+      return null;
+    }
+    return _infoFromOutputUnit(outputUnit);
   }
 }
 
 class Selection {
   final Element selectedElement;
-  final TypeMask mask;
+  final ReceiverConstraint mask;
   Selection(this.selectedElement, this.mask);
 }
 
-class DumpInfoTask extends CompilerTask {
+/// Interface used to record information from different parts of the compiler so
+/// we can emit them in the dump-info task.
+// TODO(sigmund,het): move more features here. Ideally the dump-info task
+// shouldn't reach into internals of other parts of the compiler. For example,
+// we currently reach into the full emitter and as a result we don't support
+// dump-info when using the startup-emitter (issue #24190).
+abstract class InfoReporter {
+  void reportInlined(Element element, Element inlinedFrom);
+}
+
+class DumpInfoTask extends CompilerTask implements InfoReporter {
+  static const ImpactUseCase IMPACT_USE = const ImpactUseCase('Dump info');
+
   DumpInfoTask(Compiler compiler) : super(compiler);
 
   String get name => "Dump Info";
@@ -367,39 +406,38 @@ class DumpInfoTask extends CompilerTask {
   // pretty-printed contents.
   final Map<jsAst.Node, int> _nodeToSize = <jsAst.Node, int>{};
 
-  final Map<Element, Set<UniverseSelector>> selectorsFromElement = {};
   final Map<Element, int> inlineCount = <Element, int>{};
   // A mapping from an element to a list of elements that are
   // inlined inside of it.
   final Map<Element, List<Element>> inlineMap = <Element, List<Element>>{};
+
+  final Map<Element, WorldImpact> impacts = <Element, WorldImpact>{};
 
   /// Register the size of the generated output.
   void reportSize(int programSize) {
     _programSize = programSize;
   }
 
-  void registerInlined(Element element, Element inlinedFrom) {
+  void reportInlined(Element element, Element inlinedFrom) {
     inlineCount.putIfAbsent(element, () => 0);
     inlineCount[element] += 1;
     inlineMap.putIfAbsent(inlinedFrom, () => new List<Element>());
     inlineMap[inlinedFrom].add(element);
   }
 
-  /**
-   * Registers that a function uses a selector in the
-   * function body
-   */
-  void elementUsesSelector(Element element, UniverseSelector selector) {
-    if (compiler.dumpInfo) {
-      selectorsFromElement
-          .putIfAbsent(element, () => new Set<UniverseSelector>())
-          .add(selector);
-    }
-  }
-
   final Map<Element, Set<Element>> _dependencies = {};
   void registerDependency(Element source, Element target) {
     _dependencies.putIfAbsent(source, () => new Set()).add(target);
+  }
+
+  void registerImpact(Element element, WorldImpact impact) {
+    if (compiler.dumpInfo) {
+      impacts[element] = impact;
+    }
+  }
+
+  void unregisterImpact(Element element) {
+    impacts.remove(element);
   }
 
   /**
@@ -408,17 +446,25 @@ class DumpInfoTask extends CompilerTask {
    * used and the selector that selected the element.
    */
   Iterable<Selection> getRetaining(Element element) {
-    if (!selectorsFromElement.containsKey(element)) {
-      return const <Selection>[];
-    } else {
-      return selectorsFromElement[element].expand((UniverseSelector selector) {
-        return compiler.world.allFunctions
-            .filter(selector.selector, selector.mask)
-            .map((element) {
-          return new Selection(element, selector.mask);
-        });
-      });
-    }
+    WorldImpact impact = impacts[element];
+    if (impact == null) return const <Selection>[];
+
+    var selections = <Selection>[];
+    compiler.impactStrategy.visitImpact(
+        element,
+        impact,
+        new WorldImpactVisitorImpl(
+            visitDynamicUse: (dynamicUse) {
+              selections.addAll(compiler.world.allFunctions
+                        .filter(dynamicUse.selector, dynamicUse.mask)
+                        .map((e) => new Selection(e, dynamicUse.mask)));
+            },
+            visitStaticUse: (staticUse) {
+              selections.add(new Selection(staticUse.element, null));
+            }
+        ),
+        IMPACT_USE);
+    return selections;
   }
 
   // Returns true if we care about tracking the size of
@@ -488,16 +534,9 @@ class DumpInfoTask extends CompilerTask {
     return sb.toString();
   }
 
-  void collectInfo() {
-    infoCollector = new ElementInfoCollector(compiler)..run();
-  }
-
   void dumpInfo() {
     measure(() {
-      if (infoCollector == null) {
-        collectInfo();
-      }
-
+      infoCollector = new ElementInfoCollector(compiler)..run();
       StringBuffer jsonBuffer = new StringBuffer();
       dumpInfoJson(jsonBuffer);
       compiler.outputProvider('', 'info.json')
@@ -525,6 +564,8 @@ class DumpInfoTask extends CompilerTask {
         info.uses.add(new DependencyInfo(useInfo, '${selection.mask}'));
       }
     }
+    // Notify the impact strategy impacts are no longer needed for dump info.
+    compiler.impactStrategy.onImpactUsed(IMPACT_USE);
 
     // Track dependencies that come from inlining.
     for (Element element in inlineMap.keys) {
@@ -543,14 +584,15 @@ class DumpInfoTask extends CompilerTask {
       var a = infoCollector._elementToInfo[element];
       if (a == null) continue;
       result.dependencies[a] = _dependencies[element]
-        .map((o) => infoCollector._elementToInfo[o])
-        .where((o) => o != null)
-        .toList();
+          .map((o) => infoCollector._elementToInfo[o])
+          .where((o) => o != null)
+          .toList();
     }
 
     result.deferredFiles = compiler.deferredLoadTask.computeDeferredMap();
     stopwatch.stop();
     result.program = new ProgramInfo(
+        entrypoint: infoCollector._elementToInfo[compiler.mainFunction],
         size: _programSize,
         dart2jsVersion: compiler.hasBuildId ? compiler.buildId : null,
         compilationMoment: new DateTime.now(),
@@ -562,8 +604,8 @@ class DumpInfoTask extends CompilerTask {
 
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
         new StringConversionSink.fromStringSink(buffer));
-    sink.add(result.toJson());
-    compiler.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    sink.add(new AllInfoJsonCodec().encode(result));
+    reporter.reportInfo(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "View the dumped .info.json file at "
           "https://dart-lang.github.io/dump-info-visualizer"
     });

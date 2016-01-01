@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.sdk;
+library analyzer.src.generated.sdk;
 
 import 'dart:collection';
 
-import 'ast.dart';
-import 'engine.dart' show AnalysisContext;
-import 'source.dart' show ContentCache, Source, UriKind;
+import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/source.dart'
+    show ContentCache, Source, UriKind;
 
 /**
  * A Dart SDK installed in a specified location.
@@ -145,7 +146,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
    * The name of the optional parameter used to specify the category of the
    * library.
    */
-  static String _CATEGORY = "category";
+  static String _CATEGORIES = "categories";
 
   /**
    * The name of the optional parameter used to specify the platforms on which
@@ -183,6 +184,20 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
    */
   LibraryMap get librariesMap => _librariesMap;
 
+
+  // To be backwards-compatible the new categories field is translated to
+  // an old approximation.
+  String convertCategories(String categories) {
+    switch (categories) {
+      case "": return "Internal";
+      case "Client": return "Client";
+      case "Server": return "Server";
+      case "Client,Server": return "Shared";
+      case "Client,Server,Embedded": return "Shared";
+    }
+    return "Shared";
+  }
+
   @override
   Object visitMapLiteralEntry(MapLiteralEntry node) {
     String libraryName = null;
@@ -200,8 +215,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
         } else if (argument is NamedExpression) {
           String name = argument.name.label.name;
           Expression expression = argument.expression;
-          if (name == _CATEGORY) {
-            library.category = (expression as SimpleStringLiteral).value;
+          if (name == _CATEGORIES) {
+            library.category =
+                convertCategories((expression as StringLiteral).stringValue);
           } else if (name == _IMPLEMENTATION) {
             library.implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {

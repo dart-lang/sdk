@@ -6,40 +6,6 @@ library dart2js.js_emitter.startup_emitter.model_emitter;
 
 import 'dart:convert' show JsonEncoder;
 
-import '../../common.dart';
-
-import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
-import '../../compiler.dart' show Compiler;
-import '../../diagnostics/messages.dart' show
-    MessageKind;
-
-import '../../elements/elements.dart' show ClassElement, FunctionElement;
-import '../../hash/sha1.dart' show Hasher;
-
-import '../../io/code_output.dart';
-
-import '../../io/line_column_provider.dart' show
-    LineColumnCollector,
-    LineColumnProvider;
-
-import '../../io/source_map_builder.dart' show
-    SourceMapBuilder;
-
-import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show
-    JavaScriptBackend,
-    Namer,
-    ConstantEmitter;
-
-import '../../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
-
-import '../../util/uri_extras.dart' show
-    relativize;
-
-import '../headers.dart';
-import '../js_emitter.dart' show AstContainer, NativeEmitter;
-
 import 'package:js_runtime/shared/embedded_names.dart' show
     CLASS_FIELDS_EXTRACTOR,
     CLASS_ID_EXTRACTOR,
@@ -63,7 +29,41 @@ import 'package:js_runtime/shared/embedded_names.dart' show
     TYPE_TO_INTERCEPTOR_MAP,
     TYPES;
 
-import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
+import '../../common.dart';
+import '../../constants/values.dart' show
+    ConstantValue,
+    FunctionConstantValue;
+import '../../compiler.dart' show
+    Compiler;
+import '../../core_types.dart' show
+    CoreClasses;
+import '../../elements/elements.dart' show
+    ClassElement,
+    FunctionElement;
+import '../../hash/sha1.dart' show
+    Hasher;
+import '../../io/code_output.dart';
+import '../../io/line_column_provider.dart' show
+    LineColumnCollector,
+    LineColumnProvider;
+import '../../io/source_map_builder.dart' show
+    SourceMapBuilder;
+import '../../js/js.dart' as js;
+import '../../js_backend/js_backend.dart' show
+    JavaScriptBackend,
+    Namer,
+    ConstantEmitter;
+import '../../util/uri_extras.dart' show
+    relativize;
+
+import '../constant_ordering.dart' show deepCompareConstants;
+import '../headers.dart';
+import '../js_emitter.dart' show
+    NativeEmitter;
+
+import '../js_emitter.dart' show
+    buildTearOffCode,
+    NativeGenerator;
 import '../model.dart';
 
 part 'deferred_fragment_hash.dart';
@@ -99,6 +99,8 @@ class ModelEmitter {
         compiler, namer, this.generateConstantReference,
         constantListGenerator);
   }
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   js.Expression constantListGenerator(js.Expression array) {
     // TODO(floitsch): remove hard-coded name.
@@ -139,9 +141,9 @@ class ModelEmitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    return namer.constantName(a).compareTo(namer.constantName(b));
+
+    // Resolve collisions in the long name by using a structural order.
+    return deepCompareConstants(a, b);
   }
 
   js.Expression generateStaticClosureAccess(FunctionElement element) {
@@ -207,11 +209,13 @@ class ModelEmitter {
       token.setHash(hunkHashes[key]);
     });
 
-    writeMainFragment(mainFragment, mainCode);
+    writeMainFragment(mainFragment, mainCode,
+      isSplit: program.deferredFragments.isNotEmpty);
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
-      compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+      reporter.reportHintMessage(
+          NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 
     if (compiler.deferredMapUri != null) {
@@ -247,10 +251,18 @@ class ModelEmitter {
     return hunkHashes;
   }
 
+  js.Statement buildDeferredInitializerGlobal() {
+    String global = deferredInitializersGlobal;
+    return js.js.statement(
+        "if (typeof($global) === 'undefined') var # = Object.create(null);",
+        new js.VariableDeclaration(global, allowRename: false));
+  }
+
   // Writes the given [fragment]'s [code] into a file.
   //
   // Updates the shared [outputBuffers] field with the output.
-  void writeMainFragment(MainFragment fragment, js.Statement code) {
+  void writeMainFragment(MainFragment fragment, js.Statement code,
+      {bool isSplit}) {
     LineColumnCollector lineColumnCollector;
     List<CodeOutputListener> codeOutputListeners;
     if (shouldGenerateSourceMap) {
@@ -266,6 +278,7 @@ class ModelEmitter {
     js.Program program = new js.Program([
         buildGeneratedBy(),
         new js.Comment(HOOKS_API_USAGE),
+        isSplit ? buildDeferredInitializerGlobal() : new js.Block.empty(),
         code]);
 
     mainOutput.addBuffer(js.prettyPrint(program, compiler,
@@ -319,6 +332,7 @@ class ModelEmitter {
 
     js.Program program = new js.Program([
         buildGeneratedBy(),
+        buildDeferredInitializerGlobal(),
         js.js.statement('$deferredInitializersGlobal.current = #', code)]);
 
     output.addBuffer(js.prettyPrint(program, compiler,

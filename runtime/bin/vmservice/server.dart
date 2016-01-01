@@ -16,6 +16,12 @@ class WebSocketClient extends Client {
     socket.done.then((_) => close());
   }
 
+  disconnect() {
+    if (socket != null) {
+      socket.close();
+    }
+  }
+
   void onWebSocketMessage(message) {
     if (message is String) {
       var map;
@@ -68,6 +74,11 @@ class HttpRequestClient extends Client {
   HttpRequestClient(this.request, VMService service)
       : super(service, sendEvents:false);
 
+  disconnect() {
+    request.response.close();
+    close();
+  }
+
   void post(String result) {
     if (result == null) {
       close();
@@ -119,25 +130,34 @@ class Server {
           request.uri.path == '/' ? ROOT_REDIRECT_PATH : request.uri.path;
 
     if (path == WEBSOCKET_PATH) {
-      WebSocketTransformer.upgrade(request).then((WebSocket webSocket) {
+      WebSocketTransformer.upgrade(request,
+                                   compression: CompressionOptions.OFF).then(
+                                   (WebSocket webSocket) {
         new WebSocketClient(webSocket, _service);
       });
       return;
     }
 
-    var resource = Resource.resources[path];
-    if (resource != null) {
-      // Serving up a static resource (e.g. .css, .html, .png).
+    Asset asset = assets[path];
+    if (asset != null) {
+      // Serving up a static asset (e.g. .css, .html, .png).
       request.response.headers.contentType =
-          ContentType.parse(resource.mimeType);
-      request.response.add(resource.data);
+          ContentType.parse(asset.mimeType);
+      request.response.add(asset.data);
       request.response.close();
       return;
     }
     // HTTP based service request.
-    var client = new HttpRequestClient(request, _service);
-    var message = new Message.fromUri(client, request.uri);
-    client.onMessage(null, message);
+    try {
+      var client = new HttpRequestClient(request, _service);
+      var message = new Message.fromUri(client, request.uri);
+      client.onMessage(null, message);
+    } catch (e) {
+      print('Unexpected error processing HTTP request uri: '
+            '${request.uri}\n$e\n');
+      rethrow;
+    }
+
   }
 
   Future startup() {

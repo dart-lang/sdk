@@ -100,6 +100,7 @@
       }
       .console {
         flex: 1 1 auto;
+        overflow-x: auto;
         overflow-y: auto;
       }
       .commandline {
@@ -266,16 +267,13 @@
               </source-inset>
             </div>
             <div class="flex-item-vars">
-              <div style="padding:10px;" class="memberList">
-                <template repeat="{{ v in frame.variables }}">
-                  <div class="memberItem">
-                    <div class="memberName">{{ v['name']}}</div>
-                    <div class="memberValue">
-                      <any-service-ref ref="{{ v['value'] }}"
-                                       expandKey="{{ makeExpandKey(v['name']) }}">
-                      </any-service-ref>
-                    </div>
-                  </div>
+              <div style="padding-left:2em;" class="memberList">
+                <template repeat="{{ v in properLocals }}">
+                  {{ v['name']}}&nbsp;:&nbsp;
+                  <any-service-ref ref="{{ v['value'] }}"
+                                   expandKey="{{ makeExpandKey(v['name']) }}"
+                                   asValue="{{ true }}">
+                  </any-service-ref><br>
                 </template>
               </div>
             </div>
@@ -442,14 +440,34 @@
   <template>
     <link rel="stylesheet" href="css/shared.css">
     <style>
+      .container {
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+      }
       .textBox {
+        flex: 1 1 auto;
         margin: 20px;
         padding: 5px;
         font: 400 16px consolas, courier, monospace;
         width: 95%;
       }
+      .modalPrompt {
+        flex: 0 0 auto;
+        margin-top: 20px;
+        margin-left: 20px;
+        padding: 5px;
+        font: 400 16px consolas, courier, monospace;
+        color: red;
+      }
     </style>
-    <input id="textBox" class="textBox" type="text" value="{{ text }}" autofocus>
+    <div class="container">
+      <template if="{{ modalPrompt != null }}">
+        <div class="modalPrompt">{{ modalPrompt }}</div>
+      </template>
+      <input id="textBox" class="textBox" type="text" value="{{ text }}" autofocus>
+    </div>
   </template>
 </polymer-element>
 

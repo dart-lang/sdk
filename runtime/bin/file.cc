@@ -6,6 +6,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/embedded_dart_io.h"
 #include "bin/io_buffer.h"
 #include "bin/utils.h"
 
@@ -17,14 +18,32 @@ namespace bin {
 
 static const int kMSPerSecond = 1000;
 
-// Are we capturing output from either stdout or stderr for the VM Service?
-bool capture_stdio = false;
-
 // Are we capturing output from stdout for the VM service?
-bool capture_stdout = false;
+static bool capture_stdout = false;
 
 // Are we capturing output from stderr for the VM service?
-bool capture_stderr = false;
+static bool capture_stderr = false;
+
+
+void SetCaptureStdout(bool value) {
+  capture_stdout = value;
+}
+
+
+void SetCaptureStderr(bool value) {
+  capture_stderr = value;
+}
+
+
+bool ShouldCaptureStdout() {
+  return capture_stdout;
+}
+
+
+bool ShouldCaptureStderr() {
+  return capture_stderr;
+}
+
 
 
 // The file pointer has been passed into Dart as an intptr_t and it is safe
@@ -62,7 +81,7 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
     remaining -= bytes_written;  // Reduce the number of remaining bytes.
     current_buffer += bytes_written;  // Move the buffer forward.
   }
-  if (capture_stdio) {
+  if (capture_stdout || capture_stderr) {
     intptr_t fd = GetFD();
     if (fd == STDOUT_FILENO && capture_stdout) {
       Dart_ServiceSendDataEvent("Stdout", "WriteEvent",

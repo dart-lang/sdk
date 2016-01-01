@@ -360,34 +360,44 @@ class AssemblerTest {
 
   uword entry() const { return code_.EntryPoint(); }
 
-  // Invoke is used to call assembler test functions using the ABI calling
-  // convention.
+  // Invoke/InvokeWithCodeAndThread is used to call assembler test functions
+  // using the ABI calling convention.
   // ResultType is the return type of the assembler test function.
   // ArgNType is the type of the Nth argument.
 #if defined(USING_SIMULATOR)
 
 #if defined(ARCH_IS_64_BIT)
-  // TODO(fschneider): Make Invoke<> more general and work on 32-bit platforms.
+  // TODO(fschneider): Make InvokeWithCodeAndThread<> more general and work on
+  // 32-bit.
   // Since Simulator::Call always return a int64_t, bit_cast does not work
   // on 32-bit platforms when returning an int32_t. Since template functions
   // don't support partial specialization, we'd need to introduce a helper
   // class to support 32-bit return types.
-  template<typename ResultType> ResultType Invoke() {
+  template<typename ResultType> ResultType InvokeWithCodeAndThread() {
     const bool fp_return = is_double<ResultType>::value;
     const bool fp_args = false;
+    Thread* thread = Thread::Current();
+    ASSERT(thread != NULL);
     return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
-        bit_cast<intptr_t, uword>(entry()), 0, 0, 0, 0, fp_return, fp_args));
+        bit_cast<intptr_t, uword>(entry()),
+        reinterpret_cast<intptr_t>(&code_),
+        reinterpret_cast<intptr_t>(thread),
+        0, 0, fp_return, fp_args));
   }
   template<typename ResultType, typename Arg1Type>
-  ResultType Invoke(Arg1Type arg1) {
+  ResultType InvokeWithCodeAndThread(Arg1Type arg1) {
     const bool fp_return = is_double<ResultType>::value;
     const bool fp_args = is_double<Arg1Type>::value;
     // TODO(fschneider): Support double arguments for simulator calls.
     COMPILE_ASSERT(!fp_args);
+    Thread* thread = Thread::Current();
+    ASSERT(thread != NULL);
     return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
         bit_cast<intptr_t, uword>(entry()),
+        reinterpret_cast<intptr_t>(&code_),
+        reinterpret_cast<intptr_t>(thread),
         reinterpret_cast<intptr_t>(arg1),
-        0, 0, 0, fp_return, fp_args));
+        0, fp_return, fp_args));
   }
 #endif  // ARCH_IS_64_BIT
 
@@ -411,15 +421,19 @@ class AssemblerTest {
         0, fp_return, fp_args);
   }
 #else
-  template<typename ResultType> ResultType Invoke() {
-    typedef ResultType (*FunctionType) ();
-    return reinterpret_cast<FunctionType>(entry())();
+  template<typename ResultType> ResultType InvokeWithCodeAndThread() {
+    Thread* thread = Thread::Current();
+    ASSERT(thread != NULL);
+    typedef ResultType (*FunctionType) (const Code&, Thread*);
+    return reinterpret_cast<FunctionType>(entry())(code_, thread);
   }
 
   template<typename ResultType, typename Arg1Type>
-  ResultType Invoke(Arg1Type arg1) {
-    typedef ResultType (*FunctionType) (Arg1Type);
-    return reinterpret_cast<FunctionType>(entry())(arg1);
+  ResultType InvokeWithCodeAndThread(Arg1Type arg1) {
+    Thread* thread = Thread::Current();
+    ASSERT(thread != NULL);
+    typedef ResultType (*FunctionType) (const Code&, Thread*, Arg1Type);
+    return reinterpret_cast<FunctionType>(entry())(code_, thread, arg1);
   }
 
   template<typename ResultType,

@@ -192,7 +192,7 @@ def OldUploadFile(source, target):
 
   # Set ACL.
   if ACL is not None:
-    cmd = [GSUTIL, 'setacl', ACL, target]
+    cmd = [GSUTIL, 'acl', 'set', ACL, target]
     (status, output) = ExecuteCommand(cmd)
   return status
 

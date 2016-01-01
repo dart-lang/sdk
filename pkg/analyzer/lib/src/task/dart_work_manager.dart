@@ -42,11 +42,11 @@ class DartWorkManager implements WorkManager {
    */
   static final List<ResultDescriptor> _UNIT_ERRORS = <ResultDescriptor>[
     HINTS,
-    INFER_STATIC_VARIABLE_TYPES_ERRORS,
+    LINTS,
     LIBRARY_UNIT_ERRORS,
-    PARTIALLY_RESOLVE_REFERENCES_ERRORS,
-    RESOLVE_FUNCTION_BODIES_ERRORS,
     RESOLVE_TYPE_NAMES_ERRORS,
+    RESOLVE_UNIT_ERRORS,
+    STRONG_MODE_ERRORS,
     VARIABLE_REFERENCE_ERRORS,
     VERIFY_ERRORS
   ];
@@ -88,7 +88,8 @@ class DartWorkManager implements WorkManager {
     analysisCache.onResultInvalidated.listen((InvalidatedResult event) {
       if (event.descriptor == LIBRARY_ERRORS_READY) {
         CacheEntry entry = event.entry;
-        if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
+        if (entry.explicitlyAdded &&
+            entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
           librarySourceQueue.add(entry.target);
         }
       }
@@ -194,6 +195,12 @@ class DartWorkManager implements WorkManager {
    * Maybe empty, but not null.
    */
   List<Source> getLibrariesContainingPart(Source part) {
+    if (part.isInSystemLibrary) {
+      DartWorkManager sdkDartWorkManager = _getSdkDartWorkManager();
+      if (sdkDartWorkManager != this) {
+        return sdkDartWorkManager.getLibrariesContainingPart(part);
+      }
+    }
     List<Source> libraries = partLibrariesMap[part];
     return libraries != null ? libraries : Source.EMPTY_LIST;
   }
@@ -265,13 +272,24 @@ class DartWorkManager implements WorkManager {
   @override
   void resultsComputed(
       AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {
+    bool isDartSource = _isDartSource(target);
+    // Route SDK outputs to the SDK WorkManager.
+    if (isDartSource && target.source.isInSystemLibrary) {
+      DartWorkManager sdkWorkManager = _getSdkDartWorkManager();
+      if (sdkWorkManager != this) {
+        sdkWorkManager.resultsComputed(target, outputs);
+        return;
+      }
+    }
     // Organize sources.
-    if (_isDartSource(target)) {
+    bool isDartLibrarySource = false;
+    if (isDartSource) {
       Source source = target;
       SourceKind kind = outputs[SOURCE_KIND];
       if (kind != null) {
         unknownSourceQueue.remove(source);
         if (kind == SourceKind.LIBRARY) {
+          isDartLibrarySource = true;
           if (context.prioritySources.contains(source)) {
             _schedulePriorityLibrarySourceAnalysis(source);
           } else {
@@ -284,7 +302,7 @@ class DartWorkManager implements WorkManager {
       }
     }
     // Update parts in libraries.
-    if (_isDartSource(target)) {
+    if (isDartLibrarySource) {
       Source library = target;
       List<Source> includedParts = outputs[INCLUDED_PARTS];
       if (includedParts != null) {
@@ -300,7 +318,7 @@ class DartWorkManager implements WorkManager {
       }
     }
     // Update notice.
-    if (_isDartSource(target)) {
+    if (isDartSource) {
       bool shouldSetErrors = false;
       outputs.forEach((ResultDescriptor descriptor, value) {
         if (descriptor == PARSED_UNIT && value != null) {
@@ -337,6 +355,22 @@ class DartWorkManager implements WorkManager {
   }
 
   /**
+   * Return the SDK [DartWorkManager] or this one.
+   */
+  DartWorkManager _getSdkDartWorkManager() {
+    SourceFactory sourceFactory = context.sourceFactory;
+    InternalAnalysisContext sdkContext = sourceFactory.dartSdk.context;
+    if (sdkContext != context) {
+      for (WorkManager workManager in sdkContext.workManagers) {
+        if (workManager is DartWorkManager) {
+          return workManager;
+        }
+      }
+    }
+    return this;
+  }
+
+  /**
    * Invalidate all of the resolution results computed by this context. The flag
    * [invalidateUris] should be `true` if the cached results of converting URIs
    * to source files should also be invalidated.
@@ -359,7 +393,10 @@ class DartWorkManager implements WorkManager {
         unitTargets.add(target);
         Source library = target.library;
         if (context.exists(library)) {
-          librarySourceQueue.add(library);
+          CacheEntry entry = iterator.value;
+          if (entry.explicitlyAdded) {
+            librarySourceQueue.add(library);
+          }
         }
       }
     }
@@ -367,7 +404,7 @@ class DartWorkManager implements WorkManager {
     unitTargets.forEach(partition.remove);
     for (Source dartSource in dartSources) {
       CacheEntry entry = partition.get(dartSource);
-      if (dartSource != null) {
+      if (entry != null) {
         // TODO(scheglov) we invalidate too much.
         // Would be nice to invalidate just URLs resolution.
         entry.setState(PARSED_UNIT, CacheState.INVALID);
@@ -375,6 +412,8 @@ class DartWorkManager implements WorkManager {
         entry.setState(EXPLICITLY_IMPORTED_LIBRARIES, CacheState.INVALID);
         entry.setState(EXPORTED_LIBRARIES, CacheState.INVALID);
         entry.setState(INCLUDED_PARTS, CacheState.INVALID);
+        entry.setState(LIBRARY_SPECIFIC_UNITS, CacheState.INVALID);
+        entry.setState(UNITS, CacheState.INVALID);
       }
     }
   }
@@ -435,7 +474,7 @@ class DartWorkManager implements WorkManager {
   }
 
   bool _shouldErrorsBeComputed(Source source) =>
-      context.shouldErrorsBeAnalyzed(source, null);
+      context.shouldErrorsBeAnalyzed(source);
 
   static bool _isDartSource(AnalysisTarget target) {
     return target is Source && AnalysisEngine.isDartFileName(target.fullName);

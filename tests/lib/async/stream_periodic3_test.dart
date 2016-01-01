@@ -21,7 +21,7 @@ main() {
                                         (x) => x);
     stream.take(10).listen((_) { }, onDone: expectAsync(() {
       int millis = watch.elapsedMilliseconds + safetyMargin;
-      expect(millis, greaterThan(10));
+      expect(millis, greaterThanOrEqualTo(10));
     }));
   });
 }

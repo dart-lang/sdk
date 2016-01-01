@@ -6,19 +6,14 @@ library domain.completion;
 
 import 'dart:async';
 
-import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/protocol.dart';
-import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-export 'package:analysis_server/src/services/completion/completion_manager.dart'
-    show CompletionPerformance, CompletionRequest, OperationPerformance;
 
 /**
  * Instances of the class [CompletionDomainHandler] implement a [RequestHandler]
@@ -36,33 +31,17 @@ class CompletionDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
-   * The [SearchEngine] for this server.
-   */
-  SearchEngine searchEngine;
-
-  /**
    * The next completion response id.
    */
   int _nextCompletionId = 0;
 
   /**
-   * The completion manager for most recent [Source] and [AnalysisContext],
-   * or `null` if none.
-   */
-  CompletionManager _manager;
-
-  /**
-   * The subscription for the cached context's source change stream.
-   */
-  StreamSubscription<SourcesChangedEvent> _sourcesChangedSubscription;
-
-  /**
-   * Code completion peformance for the last completion operation.
+   * Code completion performance for the last completion operation.
    */
   CompletionPerformance performance;
 
   /**
-   * A list of code completion peformance measurements for the latest
+   * A list of code completion performance measurements for the latest
    * completion operation up to [performanceListMaxLength] measurements.
    */
   final List<CompletionPerformance> performanceList =
@@ -76,137 +55,114 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Initialize a new request handler for the given [server].
    */
-  CompletionDomainHandler(this.server) {
-    server.onContextsChanged.listen(contextsChanged);
-    server.onPriorityChange.listen(priorityChanged);
-    searchEngine = server.searchEngine;
-  }
+  CompletionDomainHandler(this.server);
 
   /**
-   * Return the completion manager for most recent [Source] and [AnalysisContext],
-   * or `null` if none.
+   * Compute completion results for the given reqeust and append them to the stream.
+   * Clients should not call this method directly as it is automatically called
+   * when a client listens to the stream returned by [results].
+   * Subclasses should override this method, append at least one result
+   * to the [controller], and close the controller stream once complete.
    */
-  CompletionManager get manager => _manager;
+  Future<CompletionResult> computeSuggestions(
+      CompletionRequestImpl request) async {
+    Iterable<CompletionContributor> newContributors =
+        server.serverPlugin.completionContributors;
+    List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
-  /**
-   * Return the [CompletionManager] for the given [context] and [source],
-   * creating a new manager or returning an existing manager as necessary.
-   */
-  CompletionManager completionManagerFor(
-      AnalysisContext context, Source source) {
-    if (_manager != null) {
-      if (_manager.context == context && _manager.source == source) {
-        return _manager;
-      }
-      _discardManager();
-    }
-    _manager = createCompletionManager(context, source, searchEngine);
-    if (context != null) {
-      _sourcesChangedSubscription =
-          context.onSourcesChanged.listen(sourcesChanged);
-    }
-    return _manager;
-  }
+    const COMPUTE_SUGGESTIONS_TAG = 'computeSuggestions';
+    performance.logStartTime(COMPUTE_SUGGESTIONS_TAG);
 
-  /**
-   * If the context associated with the cache has changed or been removed
-   * then discard the cache.
-   */
-  void contextsChanged(ContextsChangedEvent event) {
-    if (_manager != null) {
-      AnalysisContext context = _manager.context;
-      if (event.changed.contains(context) || event.removed.contains(context)) {
-        _discardManager();
-      }
+    for (CompletionContributor contributor in newContributors) {
+      String contributorTag = 'computeSuggestions - ${contributor.runtimeType}';
+      performance.logStartTime(contributorTag);
+      suggestions.addAll(await contributor.computeSuggestions(request));
+      performance.logElapseTime(contributorTag);
     }
-  }
 
-  CompletionManager createCompletionManager(
-      AnalysisContext context, Source source, SearchEngine searchEngine) {
-    return new CompletionManager.create(context, source, searchEngine);
+    performance.logElapseTime(COMPUTE_SUGGESTIONS_TAG);
+
+    // TODO (danrubel) if request is obsolete
+    // (processAnalysisRequest returns false)
+    // then send empty results
+
+    return new CompletionResult(
+        request.replacementOffset, request.replacementLength, suggestions);
   }
 
   @override
   Response handleRequest(Request request) {
-    if (searchEngine == null) {
+    if (server.searchEngine == null) {
       return new Response.noIndexGenerated(request);
     }
-    try {
-      String requestName = request.method;
-      if (requestName == COMPLETION_GET_SUGGESTIONS) {
-        return processRequest(request);
+    return runZoned(() {
+      try {
+        String requestName = request.method;
+        if (requestName == COMPLETION_GET_SUGGESTIONS) {
+          return processRequest(request);
+        }
+      } on RequestFailure catch (exception) {
+        return exception.response;
       }
-    } on RequestFailure catch (exception) {
-      return exception.response;
-    }
-    return null;
-  }
-
-  /**
-   * If the set the priority files has changed, then pre-cache completion
-   * information related to the first priority file.
-   */
-  void priorityChanged(PriorityChangeEvent event) {
-    Source source = event.firstSource;
-    CompletionPerformance performance = new CompletionPerformance();
-    computeCachePerformance = performance;
-    if (source == null) {
-      performance.complete('priorityChanged caching: no source');
-      return;
-    }
-    performance.source = source;
-    AnalysisContext context = server.getAnalysisContextForSource(source);
-    if (context != null) {
-      String computeTag = 'computeCache';
-      performance.logStartTime(computeTag);
-      CompletionManager manager = completionManagerFor(context, source);
-      manager.computeCache().catchError((_) => false).then((bool success) {
-        performance.logElapseTime(computeTag);
-        performance.complete('priorityChanged caching: $success');
-      });
-    }
+      return null;
+    }, onError: (exception, stackTrace) {
+      server.sendServerErrorNotification(
+          'Failed to handle completion domain request: ${request.toJson()}',
+          exception,
+          stackTrace);
+    });
   }
 
   /**
    * Process a `completion.getSuggestions` request.
    */
-  Response processRequest(Request request, [CompletionManager manager]) {
+  Response processRequest(Request request) {
     performance = new CompletionPerformance();
-    // extract params
+
+    // extract and validate params
     CompletionGetSuggestionsParams params =
         new CompletionGetSuggestionsParams.fromRequest(request);
-    // schedule completion analysis
-    String completionId = (_nextCompletionId++).toString();
     ContextSourcePair contextSource = server.getContextSourcePair(params.file);
     AnalysisContext context = contextSource.context;
     Source source = contextSource.source;
     if (context == null || !context.exists(source)) {
       return new Response.unknownSource(request);
     }
-    recordRequest(performance, context, source, params.offset);
-    if (manager == null) {
-      manager = completionManagerFor(context, source);
+    TimestampedData<String> contents = context.getContents(source);
+    if (params.offset < 0 || params.offset > contents.data.length) {
+      return new Response.invalidParameter(
+          request,
+          'params.offset',
+          'Expected offset between 0 and source length inclusive,'
+          ' but found ${params.offset}');
     }
-    CompletionRequest completionRequest =
-        new CompletionRequestImpl(server, context, source, params.offset);
-    int notificationCount = 0;
-    manager.results(completionRequest).listen((CompletionResult result) {
-      ++notificationCount;
-      bool isLast = result is CompletionResultImpl ? result.isLast : true;
-      performance.logElapseTime("notification $notificationCount send", () {
-        sendCompletionNotification(completionId, result.replacementOffset,
-            result.replacementLength, result.suggestions, isLast);
-      });
-      if (notificationCount == 1) {
-        performance.logFirstNotificationComplete('notification 1 complete');
-        performance.suggestionCountFirst = result.suggestions.length;
-      }
-      if (isLast) {
-        performance.notificationCount = notificationCount;
-        performance.suggestionCountLast = result.suggestions.length;
-        performance.complete();
-      }
+
+    recordRequest(performance, context, source, params.offset);
+
+    CompletionRequest completionRequest = new CompletionRequestImpl(
+        context,
+        server.resourceProvider,
+        server.searchEngine,
+        source,
+        params.offset,
+        performance);
+    String completionId = (_nextCompletionId++).toString();
+
+    // Compute suggestions in the background
+    computeSuggestions(completionRequest).then((CompletionResult result) {
+      const SEND_NOTIFICATION_TAG = 'send notification';
+      performance.logStartTime(SEND_NOTIFICATION_TAG);
+      sendCompletionNotification(completionId, result.replacementOffset,
+          result.replacementLength, result.suggestions);
+      performance.logElapseTime(SEND_NOTIFICATION_TAG);
+
+      performance.notificationCount = 1;
+      performance.logFirstNotificationComplete('notification 1 complete');
+      performance.suggestionCountFirst = result.suggestions.length;
+      performance.suggestionCountLast = result.suggestions.length;
+      performance.complete();
     });
+
     // initial response without results
     return new CompletionGetSuggestionsResult(completionId)
         .toResponse(request.id);
@@ -236,51 +192,38 @@ class CompletionDomainHandler implements RequestHandler {
   /**
    * Send completion notification results.
    */
-  void sendCompletionNotification(
-      String completionId,
-      int replacementOffset,
-      int replacementLength,
-      Iterable<CompletionSuggestion> results,
-      bool isLast) {
+  void sendCompletionNotification(String completionId, int replacementOffset,
+      int replacementLength, Iterable<CompletionSuggestion> results) {
     server.sendNotification(new CompletionResultsParams(
-            completionId, replacementOffset, replacementLength, results, isLast)
+            completionId, replacementOffset, replacementLength, results, true)
         .toNotification());
   }
+}
+
+/**
+ * The result of computing suggestions for code completion.
+ */
+class CompletionResult {
+  /**
+   * The length of the text to be replaced if the remainder of the identifier
+   * containing the cursor is to be replaced when the suggestion is applied
+   * (that is, the number of characters in the existing identifier).
+   */
+  final int replacementLength;
 
   /**
-   * Discard the cache if a source other than the source referenced by
-   * the cache changes or if any source is added, removed, or deleted.
+   * The offset of the start of the text to be replaced. This will be different
+   * than the offset used to request the completion suggestions if there was a
+   * portion of an identifier before the original offset. In particular, the
+   * replacementOffset will be the offset of the beginning of said identifier.
    */
-  void sourcesChanged(SourcesChangedEvent event) {
-    bool shouldDiscardManager(SourcesChangedEvent event) {
-      if (_manager == null) {
-        return false;
-      }
-      if (event.wereSourcesAdded || event.wereSourcesRemovedOrDeleted) {
-        return true;
-      }
-      var changedSources = event.changedSources;
-      return changedSources.length > 2 ||
-          (changedSources.length == 1 &&
-              !changedSources.contains(_manager.source));
-    }
-
-    if (shouldDiscardManager(event)) {
-      _discardManager();
-    }
-  }
+  final int replacementOffset;
 
   /**
-   * Discard the sourcesChanged subscription if any
+   * The suggested completions.
    */
-  void _discardManager() {
-    if (_sourcesChangedSubscription != null) {
-      _sourcesChangedSubscription.cancel();
-      _sourcesChangedSubscription = null;
-    }
-    if (_manager != null) {
-      _manager.dispose();
-      _manager = null;
-    }
-  }
+  final List<CompletionSuggestion> suggestions;
+
+  CompletionResult(
+      this.replacementOffset, this.replacementLength, this.suggestions);
 }

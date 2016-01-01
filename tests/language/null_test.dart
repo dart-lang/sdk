@@ -36,13 +36,9 @@ class Generic2<T, S> {
 // Magic incantation to avoid the compiler recognizing the constant values
 // at compile time. If the result is computed at compile time, the dynamic code
 // will not be tested.
-confuse(x) {
-  try {
-    if (new DateTime.now().millisecondsSinceEpoch == 42) x = 42;
-    throw [x];
-  } on dynamic catch (e) { return e[0]; }
-  return 42;
-}
+@NoInline()
+@AssumeDynamic()
+confuse(x) => x;
 
 void main() {
   for (int i = 0; i < 10; i++) {

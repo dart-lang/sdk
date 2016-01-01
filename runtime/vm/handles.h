@@ -22,12 +22,12 @@ namespace dart {
 // - allocation of handles in the current zone (Handle::AllocateZoneHandle).
 //   Handles allocated in this manner are destroyed when the zone is destroyed.
 // - allocation of handles in a scoped manner (Handle::AllocateHandle).
-//   A new scope can be started using HANDLESCOPE(isolate).
+//   A new scope can be started using HANDLESCOPE(thread).
 //   Handles allocated in this manner are destroyed when the HandleScope
 //   object is destroyed.
 // Code that uses scoped handles typically looks as follows:
 //   {
-//     HANDLESCOPE(isolate);
+//     HANDLESCOPE(thread);
 //     const String& str = String::Handle(String::New("abc"));
 //     .....
 //     .....
@@ -50,7 +50,7 @@ namespace dart {
 // raw dart objects directly. We use NOHANDLESCOPE to assert that we do not
 // add code that will allocate new handles during this critical area.
 // {
-//   NOHANDLESCOPE(isolate);
+//   NOHANDLESCOPE(thread);
 //   ....
 //   ....
 // }
@@ -58,21 +58,22 @@ namespace dart {
 
 // Forward declarations.
 class ObjectPointerVisitor;
+class Thread;
 
 DECLARE_FLAG(bool, verify_handles);
 DECLARE_DEBUG_FLAG(bool, trace_handles);
 
 class HandleVisitor {
  public:
-  explicit HandleVisitor(Isolate* isolate) : isolate_(isolate) {}
+  explicit HandleVisitor(Thread* thread) : thread_(thread) {}
   virtual ~HandleVisitor() {}
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
 
   virtual void VisitHandle(uword addr) = 0;
 
  private:
-  Isolate* isolate_;
+  Thread* thread_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(HandleVisitor);
 };
@@ -238,7 +239,7 @@ class Handles {
   friend class HandleScope;
   friend class Dart;
   friend class ObjectStore;
-  friend class Isolate;
+  friend class Thread;
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Handles);
 };
@@ -315,8 +316,8 @@ class HandleScope : public StackResource {
 };
 
 // Macro to start a new Handle scope.
-#define HANDLESCOPE(isolate_or_thread)                                         \
-    dart::HandleScope vm_internal_handles_scope_(isolate_or_thread);
+#define HANDLESCOPE(thread)                                                    \
+    dart::HandleScope vm_internal_handles_scope_(thread);
 
 
 // The class NoHandleScope is used in critical regions of the virtual machine
@@ -344,7 +345,6 @@ class NoHandleScope : public StackResource {
 class NoHandleScope : public ValueObject {
  public:
   explicit NoHandleScope(Thread* thread) { }
-  explicit NoHandleScope(Isolate* isolate) { }
   NoHandleScope() { }
   ~NoHandleScope() { }
 
@@ -354,8 +354,8 @@ class NoHandleScope : public ValueObject {
 #endif  // defined(DEBUG)
 
 // Macro to start a no handles scope in the code.
-#define NOHANDLESCOPE(isolate_or_thread)                                       \
-    dart::NoHandleScope no_vm_internal_handles_scope_(isolate_or_thread);
+#define NOHANDLESCOPE(thread)                                                  \
+    dart::NoHandleScope no_vm_internal_handles_scope_(thread);
 
 }  // namespace dart
 

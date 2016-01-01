@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.source.io;
+library analyzer.src.generated.source_io;
 
 import 'dart:collection';
 
-import 'engine.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'java_io.dart';
-import 'source.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 
-export 'source.dart';
+export 'package:analyzer/src/generated/source.dart';
 
 /**
  * Instances of the class [DirectoryBasedSourceContainer] represent a source container that
@@ -135,27 +135,6 @@ class FileBasedSource extends Source {
         id = _idTable.putIfAbsent(
             '${uri == null ? file.toURI() : uri}@${file.getPath()}',
             () => _idTable.length);
-
-  /**
-   * Initialize a newly created source object.
-   *
-   * @param file the file represented by this source
-   */
-  @deprecated // Use new FileBasedSource(file)
-  FileBasedSource.con1(JavaFile file) : this(file);
-
-  /**
-   * Initialize a newly created source object.
-   *
-   * @param file the file represented by this source
-   * @param uri the URI from which this source was originally derived
-   */
-  @deprecated // Use new FileBasedSource(file, uri)
-  FileBasedSource.con2(Uri uri, JavaFile file)
-      : uri = uri,
-        file = file,
-        id = _idTable.putIfAbsent(
-            '$uri@${file.getPath()}', () => _idTable.length);
 
   @override
   TimestampedData<String> get contents {
@@ -467,15 +446,15 @@ class PackageUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    String sourcePath = source.fullName;
+    String sourceUri = _toFileUri(source.fullName);
     for (JavaFile packagesDirectory in _packagesDirectories) {
       List<JavaFile> pkgFolders = packagesDirectory.listFiles();
       if (pkgFolders != null) {
         for (JavaFile pkgFolder in pkgFolders) {
           try {
-            String pkgCanonicalPath = pkgFolder.getCanonicalPath();
-            if (sourcePath.startsWith(pkgCanonicalPath)) {
-              String relPath = sourcePath.substring(pkgCanonicalPath.length);
+            String pkgCanonicalUri = _toFileUri(pkgFolder.getCanonicalPath());
+            if (sourceUri.startsWith(pkgCanonicalUri)) {
+              String relPath = sourceUri.substring(pkgCanonicalUri.length);
               return parseUriWithException(
                   "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
@@ -499,6 +478,13 @@ class PackageUriResolver extends UriResolver {
     String filePath = file.getAbsolutePath();
     return filePath.startsWith("$rootPath/lib");
   }
+
+  /**
+   * Convert the given file path to a "file:" URI.  On Windows, this transforms
+   * backslashes to forward slashes.
+   */
+  String _toFileUri(String filePath) =>
+      JavaFile.pathContext.toUri(filePath).toString();
 
   /**
    * Return `true` if the given URI is a `package` URI.

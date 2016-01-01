@@ -20,7 +20,6 @@ void main() {
 
   for (int i = 0; i < whiteSpace.length; i++) {
     var ws = whiteSpace[i];
-    print(ws.codeUnitAt(0).toRadixString(16));
     Expect.equals(0, int.parse("${ws}0${ws}", radix: 2));
   }
 
@@ -55,8 +54,8 @@ void main() {
     Expect.equals(-result, int.parse("-$zeros$radixString", radix: radix), m);
   }
 
-  for (int i = 0; i <= 36 * 36; i++) {
-    for (int r = 2; r <= 36; r++) {
+  for (int r = 2; r <= 36; r++) {
+    for (int i = 0; i <= r * r; i++) {
       String radixString = i.toRadixString(r);
       testParse(i, radixString, r);
     }
@@ -89,13 +88,14 @@ void main() {
   void testFails(String source, int radix) {
     Expect.throws(() { throw int.parse(source, radix: radix,
                                        onError: (s) { throw "FAIL"; }); },
-                  (e) => e == "FAIL",
+                  isFail,
                   "$source/$radix");
     Expect.equals(-999, int.parse(source, radix: radix, onError: (s) => -999));
   }
   for (int i = 2; i < 36; i++) {
-    testFails(i.toRadixString(36).toLowerCase(), i);
-    testFails(i.toRadixString(36).toUpperCase(), i);
+    var char = i.toRadixString(36);
+    testFails(char.toLowerCase(), i);
+    testFails(char.toUpperCase(), i);
   }
   testFails("", 2);
   testFails("+ 1", 2);  // No space between sign and digits.
@@ -141,3 +141,5 @@ void main() {
   Expect.throws(() => int.parse("9", radix: 8, onError: () => 42));
   Expect.throws(() => int.parse("9", radix: 8, onError: (v1, v2) => 42));
 }
+
+bool isFail(e) => e == "FAIL";

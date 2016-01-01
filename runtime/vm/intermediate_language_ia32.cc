@@ -151,15 +151,19 @@ LocationSummary* ConstantInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumInputs = 0;
   return LocationSummary::Make(zone,
                                kNumInputs,
-                               Location::RequiresRegister(),
+                               Assembler::IsSafe(value())
+                                   ? Location::Constant(this)
+                                   : Location::RequiresRegister(),
                                LocationSummary::kNoCall);
 }
 
 
 void ConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The register allocator drops constant definitions that have no uses.
-  if (!locs()->out(0).IsInvalid()) {
-    Register result = locs()->out(0).reg();
+  Location out = locs()->out(0);
+  ASSERT(out.IsRegister() || out.IsConstant() || out.IsInvalid());
+  if (out.IsRegister()) {
+    Register result = out.reg();
     __ LoadObjectSafely(result, value());
   }
 }
@@ -214,13 +218,12 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(EAX));  // Value.
-  summary->set_in(1, Location::RegisterLocation(ECX));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(EDX));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(EDX));  // Type arguments.
   summary->set_out(0, Location::RegisterLocation(EAX));
   return summary;
 }
@@ -814,6 +817,7 @@ LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  SetupNative();
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
@@ -833,7 +837,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-    __ movl(ECX, Immediate(NativeEntry::LinkNativeCallLabel().address()));
+    __ movl(ECX, Immediate(NativeEntry::LinkNativeCallEntry()));
   } else {
     stub_entry = (is_bootstrap_native() || is_leaf_call) ?
         StubCode::CallBootstrapCFunction_entry() :
@@ -2005,13 +2009,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(EAX));
-  summary->set_in(1, Location::RegisterLocation(ECX));
-  summary->set_in(2, Location::RegisterLocation(EDX));
+  summary->set_in(1, Location::RegisterLocation(EDX));
   summary->set_out(0, Location::RegisterLocation(EAX));
   return summary;
 }
@@ -2019,8 +2022,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == EAX);  // Value.
-  ASSERT(locs()->in(1).reg() == ECX);  // Instantiator.
-  ASSERT(locs()->in(2).reg() == EDX);  // Instantiator type arguments.
+  ASSERT(locs()->in(1).reg() == EDX);  // Instantiator type arguments.
 
   compiler->GenerateInstanceOf(token_pos(),
                                deopt_id(),
@@ -6084,7 +6086,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ movl(left_lo, left_hi);  // Shift by 32.
           __ sarl(left_hi, Immediate(31));  // Sign extend left hi.
           if (shift > 32) {
-            __ sarl(left_lo, Immediate(shift - 32));
+            __ sarl(left_lo, Immediate(shift > 63 ? 31 : shift - 32));
           }
         } else {
           __ shrdl(left_lo, left_hi, Immediate(shift));
@@ -6093,6 +6095,7 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
       }
       case Token::kSHL: {
+        ASSERT(shift < 64);
         if (can_overflow()) {
           Register temp1 = locs()->temp(0).reg();
           Register temp2 = locs()->temp(1).reg();
@@ -6542,13 +6545,10 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     if (FLAG_emit_edge_counters) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
-    // may be inserted before this instruction.  This descriptor points
-    // after the edge counter for uniformity with ARM and MIPS, where we can
-    // reuse pattern matching that matches backwards from the end of the
-    // pattern.
+    // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);
@@ -6581,20 +6581,22 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
+  Register target_reg = locs()->temp_slot(0)->reg();
 
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ movl(target_address_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+  // Load code object from frame.
+  __ movl(target_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
+  // Load instructions entry point.
+  __ movl(target_reg, FieldAddress(target_reg, Code::entry_point_offset()));
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
   if (offset()->definition()->representation() == kTagged) {
     __ SmiUntag(offset_reg);
   }
-  __ addl(target_address_reg, offset_reg);
+  __ addl(target_reg, offset_reg);
 
   // Jump to the absolute address.
-  __ jmp(target_address_reg);
+  __ jmp(target_reg);
 }
 
 
@@ -6779,7 +6781,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
   }

@@ -6,8 +6,8 @@ library test.analysis.notification.analyzedDirectories;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -49,24 +49,21 @@ class AnalysisNotificationAnalyzedFilesTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_afterAnalysis() {
+  test_afterAnalysis() async {
     addTestFile('''
 class A {}
 ''');
-    return waitForTasksFinished().then((_) {
-      return prepareAnalyzedFiles().then((_) {
-        assertHasFile(testFile);
-      });
-    });
+    await waitForTasksFinished();
+    await prepareAnalyzedFiles();
+    assertHasFile(testFile);
   }
 
-  test_beforeAnalysis() {
+  test_beforeAnalysis() async {
     addTestFile('''
 class A {}
 ''');
-    return prepareAnalyzedFiles().then((_) {
-      assertHasFile(testFile);
-    });
+    await prepareAnalyzedFiles();
+    assertHasFile(testFile);
   }
 
   test_insignificant_change() async {

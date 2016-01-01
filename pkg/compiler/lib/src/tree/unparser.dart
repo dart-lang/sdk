@@ -58,6 +58,18 @@ class Unparser extends Indentation implements Visitor {
     if (node != null) node.accept(this);
   }
 
+  visitAssert(Assert node) {
+    write(node.assertToken.value);
+    write('(');
+    visit(node.condition);
+    if (node.hasMessage) {
+      write(',');
+      space();
+      visit(node.message);
+    }
+    write(');');
+  }
+
   visitBlock(Block node) => unparseBlockStatements(node.statements);
 
   unparseBlockStatements(NodeList statements) {
@@ -698,6 +710,11 @@ class Unparser extends Indentation implements Visitor {
     indentLess();
   }
 
+  unparseLibraryName(String libraryName) {
+    write('library $libraryName;');
+    newline();
+  }
+
   unparseImportTag(String uri, {String prefix,
                                 List<String> shows: const <String>[],
                                 bool isDeferred: false}) {
@@ -765,9 +782,33 @@ class Unparser extends Indentation implements Visitor {
     newline();
   }
 
+  visitConditionalUri(ConditionalUri node) {
+    write(node.ifToken.value);
+    space();
+    write('(');
+    visit(node.key);
+    if (node.value != null) {
+      space();
+      write("==");
+      space();
+      visit(node.value);
+    }
+    write(")");
+    space();
+    visit(node.uri);
+  }
+
+  visitDottedName(DottedName node) {
+    unparseNodeListOfIdentifiers(node.identifiers);
+  }
+
   visitImport(Import node) {
     addToken(node.importKeyword);
     visit(node.uri);
+    if (node.hasConditionalUris) {
+      write(' ');
+      visitNodeList(node.conditionalUris);
+    }
     if (node.isDeferred) {
       write(' deferred');
     }
@@ -786,6 +827,10 @@ class Unparser extends Indentation implements Visitor {
   visitExport(Export node) {
     addToken(node.exportKeyword);
     visit(node.uri);
+    if (node.hasConditionalUris) {
+      write(' ');
+      visitNodeList(node.conditionalUris);
+    }
     if (node.combinators != null) {
       write(' ');
       visit(node.combinators);

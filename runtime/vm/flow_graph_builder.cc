@@ -7,6 +7,7 @@
 #include "lib/invocation_mirror.h"
 #include "vm/ast_printer.h"
 #include "vm/bit_vector.h"
+#include "vm/compiler.h"
 #include "vm/class_finalizer.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -38,8 +39,6 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, support_debugger, true, "Emit code needed for debugging");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
-DEFINE_FLAG(bool, precompile_collect_closures, false,
-            "Collect all closure functions referenced from compiled code.");
 
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, profile_vm);
@@ -489,7 +488,7 @@ Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,
     if (call_->HasUses()) {
       // Add a phi of the return values.
       PhiInstr* phi = new(Z) PhiInstr(join, num_exits);
-      phi->set_ssa_temp_index(caller_graph_->alloc_ssa_temp_index());
+      caller_graph_->AllocateSSAIndexes(phi);
       phi->mark_alive();
       for (intptr_t i = 0; i < num_exits; ++i) {
         ReturnAt(i)->RemoveEnvironment();
@@ -548,6 +547,10 @@ void InlineExitCollector::ReplaceCall(TargetEntryInstr* callee_entry) {
 
     call_->previous()->AppendInstruction(branch);
     call_block->set_last_instruction(branch);
+
+    // Replace uses of the return value with null to maintain valid
+    // SSA form - even though the rest of the caller is unreachable.
+    call_->ReplaceUsesWith(caller_graph_->constant_null());
 
     // Update dominator tree.
     call_block->AddDominatedBlock(callee_entry);
@@ -954,8 +957,7 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 
 void TestGraphVisitor::ReturnValue(Value* value) {
   Isolate* isolate = Isolate::Current();
-  if (isolate->flags().type_checks() ||
-      isolate->flags().asserts()) {
+  if (isolate->flags().type_checks() || isolate->flags().asserts()) {
     value = Bind(new(Z) AssertBooleanInstr(condition_token_pos(), value));
   }
   Value* constant_true = Bind(new(Z) ConstantInstr(Bool::True()));
@@ -1315,8 +1317,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     node->left()->Visit(&for_left);
     EffectGraphVisitor empty(owner());
     Isolate* isolate = Isolate::Current();
-    if (isolate->flags().type_checks() ||
-        isolate->flags().asserts()) {
+    if (isolate->flags().type_checks() || isolate->flags().asserts()) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
@@ -1337,37 +1338,8 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       }
     }
     return;
-  } else if (node->kind() == Token::kIFNULL) {
-    // left ?? right. This operation cannot be overloaded.
-    // temp = left; temp === null ? right : temp
-    ValueGraphVisitor for_left_value(owner());
-    node->left()->Visit(&for_left_value);
-    Append(for_left_value);
-    Do(BuildStoreExprTemp(for_left_value.value()));
-
-    LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
-    LoadLocalNode* load_temp =
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
-    LiteralNode* null_constant =
-        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
-    ComparisonNode* check_is_null =
-        new(Z) ComparisonNode(Scanner::kNoSourcePos,
-                              Token::kEQ_STRICT,
-                              load_temp,
-                              null_constant);
-    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
-    check_is_null->Visit(&for_test);
-
-    ValueGraphVisitor for_right_value(owner());
-    node->right()->Visit(&for_right_value);
-    for_right_value.Do(BuildStoreExprTemp(for_right_value.value()));
-
-    ValueGraphVisitor for_temp(owner());
-    // Nothing to do, left value is already loaded into temp.
-
-    Join(for_test, for_right_value, for_temp);
-    return;
   }
+  ASSERT(node->kind() != Token::kIFNULL);
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
@@ -1412,8 +1384,7 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
     Isolate* isolate = Isolate::Current();
-    if (isolate->flags().type_checks() ||
-        isolate->flags().asserts()) {
+    if (isolate->flags().type_checks() || isolate->flags().asserts()) {
       right_value =
           for_right.Bind(new(Z) AssertBooleanInstr(node->right()->token_pos(),
                                                    right_value));
@@ -1440,37 +1411,6 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       for_true.Do(BuildStoreExprTemp(constant_true));
       Join(for_test, for_true, for_right);
     }
-    ReturnDefinition(BuildLoadExprTemp());
-    return;
-  } else if (node->kind() == Token::kIFNULL) {
-    // left ?? right. This operation cannot be overloaded.
-    // temp = left; temp === null ? right : temp
-    ValueGraphVisitor for_left_value(owner());
-    node->left()->Visit(&for_left_value);
-    Append(for_left_value);
-    Do(BuildStoreExprTemp(for_left_value.value()));
-
-    LocalVariable* temp_var = owner()->parsed_function().expression_temp_var();
-    LoadLocalNode* load_temp =
-        new(Z) LoadLocalNode(Scanner::kNoSourcePos, temp_var);
-    LiteralNode* null_constant =
-        new(Z) LiteralNode(Scanner::kNoSourcePos, Object::null_instance());
-    ComparisonNode* check_is_null =
-        new(Z) ComparisonNode(Scanner::kNoSourcePos,
-                              Token::kEQ_STRICT,
-                              load_temp,
-                              null_constant);
-    TestGraphVisitor for_test(owner(), Scanner::kNoSourcePos);
-    check_is_null->Visit(&for_test);
-
-    ValueGraphVisitor for_right_value(owner());
-    node->right()->Visit(&for_right_value);
-    for_right_value.Do(BuildStoreExprTemp(for_right_value.value()));
-
-    ValueGraphVisitor for_temp(owner());
-    // Nothing to do, left value is already loaded into temp.
-
-    Join(for_test, for_right_value, for_temp);
     ReturnDefinition(BuildLoadExprTemp());
     return;
   }
@@ -1529,7 +1469,6 @@ void EffectGraphVisitor::VisitBinaryOpWithMask32Node(
 
 void EffectGraphVisitor::BuildTypecheckPushArguments(
     intptr_t token_pos,
-    PushArgumentInstr** push_instantiator_result,
     PushArgumentInstr** push_instantiator_type_arguments_result) {
   const Class& instantiator_class = Class::Handle(
       Z, owner()->function().Owner());
@@ -1539,15 +1478,11 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
   Value* instantiator = BuildInstantiator(instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
-    *push_instantiator_result = PushArgument(BuildNullValue());
     instantiator_type_arguments =
         BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   } else {
-    instantiator = Bind(BuildStoreExprTemp(instantiator));
-    *push_instantiator_result = PushArgument(instantiator);
-    Value* loaded = Bind(BuildLoadExprTemp());
-    instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, instantiator_class, loaded);
+    instantiator_type_arguments = BuildInstantiatorTypeArguments(
+        token_pos, instantiator_class, instantiator);
   }
   *push_instantiator_type_arguments_result =
       PushArgument(instantiator_type_arguments);
@@ -1557,7 +1492,6 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
 
 void EffectGraphVisitor::BuildTypecheckArguments(
     intptr_t token_pos,
-    Value** instantiator_result,
     Value** instantiator_type_arguments_result) {
   Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
@@ -1568,17 +1502,12 @@ void EffectGraphVisitor::BuildTypecheckArguments(
   instantiator = BuildInstantiator(instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
-    instantiator = BuildNullValue();
     instantiator_type_arguments =
         BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   } else {
-    // Preserve instantiator.
-    instantiator = Bind(BuildStoreExprTemp(instantiator));
-    Value* loaded = Bind(BuildLoadExprTemp());
-    instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, instantiator_class, loaded);
+    instantiator_type_arguments = BuildInstantiatorTypeArguments(
+        token_pos, instantiator_class, instantiator);
   }
-  *instantiator_result = instantiator;
   *instantiator_type_arguments_result = instantiator_type_arguments;
 }
 
@@ -1595,21 +1524,16 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
     const AbstractType& dst_type,
     const String& dst_name) {
   // Build the type check computation.
-  Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
   if (dst_type.IsInstantiated()) {
-    instantiator = BuildNullValue();
     instantiator_type_arguments = BuildNullValue();
   } else {
-    BuildTypecheckArguments(token_pos,
-                            &instantiator,
-                            &instantiator_type_arguments);
+    BuildTypecheckArguments(token_pos, &instantiator_type_arguments);
   }
 
-  const intptr_t deopt_id = Isolate::Current()->GetNextDeoptId();
+  const intptr_t deopt_id = Thread::Current()->GetNextDeoptId();
   return new(Z) AssertAssignableInstr(token_pos,
                                       value,
-                                      instantiator,
                                       instantiator_type_arguments,
                                       dst_type,
                                       dst_name,
@@ -1660,7 +1584,8 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Z, Type::ObjectType());
-  if (type.IsInstantiated() && object_type.IsSubtypeOf(type, NULL)) {
+  if (type.IsInstantiated() &&
+      object_type.IsSubtypeOf(type, NULL, Heap::kOld)) {
     // Must evaluate left side.
     EffectGraphVisitor for_left_value(owner());
     node->left()->Visit(&for_left_value);
@@ -1710,20 +1635,15 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   }
 
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
-  PushArgumentInstr* push_instantiator = NULL;
   PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
-    push_instantiator = PushArgument(BuildNullValue());
     push_type_args = PushArgument(BuildNullValue());
   } else {
-    BuildTypecheckPushArguments(node->token_pos(),
-                                &push_instantiator,
-                                &push_type_args);
+    BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(5);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(4);
   arguments->Add(push_left);
-  arguments->Add(push_instantiator);
   arguments->Add(push_type_args);
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   Value* type_const = Bind(new(Z) ConstantInstr(type));
@@ -1767,20 +1687,15 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
     }
   }
   PushArgumentInstr* push_left = PushArgument(for_value.value());
-  PushArgumentInstr* push_instantiator = NULL;
   PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
-    push_instantiator = PushArgument(BuildNullValue());
     push_type_args = PushArgument(BuildNullValue());
   } else {
-    BuildTypecheckPushArguments(node->token_pos(),
-                                &push_instantiator,
-                                &push_type_args);
+    BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(4);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(3);
   arguments->Add(push_left);
-  arguments->Add(push_instantiator);
   arguments->Add(push_type_args);
   Value* type_arg = Bind(new(Z) ConstantInstr(type));
   arguments->Add(PushArgument(type_arg));
@@ -1808,10 +1723,10 @@ StrictCompareInstr* EffectGraphVisitor::BuildStrictCompare(AstNode* left,
   right->Visit(&for_right_value);
   Append(for_right_value);
   StrictCompareInstr* comp = new(Z) StrictCompareInstr(token_pos,
-                                                    kind,
-                                                    for_left_value.value(),
-                                                    for_right_value.value(),
-                                                    true);  // Number check.
+                                                       kind,
+                                                       for_left_value.value(),
+                                                       for_right_value.value(),
+                                                       true);  // Number check.
   return comp;
 }
 
@@ -1877,8 +1792,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
         owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
       Isolate* isolate = Isolate::Current();
-      if (isolate->flags().type_checks() ||
-          isolate->flags().asserts()) {
+      if (isolate->flags().type_checks() || isolate->flags().asserts()) {
         Value* value = Bind(result);
         result = new(Z) AssertBooleanInstr(node->token_pos(), value);
       }
@@ -1925,8 +1839,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     Append(for_value);
     Value* value = for_value.value();
     Isolate* isolate = Isolate::Current();
-    if (isolate->flags().type_checks() ||
-        isolate->flags().asserts()) {
+    if (isolate->flags().type_checks() || isolate->flags().asserts()) {
       value =
           Bind(new(Z) AssertBooleanInstr(node->operand()->token_pos(), value));
     }
@@ -2460,7 +2373,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
 
   { LocalVariable* tmp_var = EnterTempLocalScope(array_val);
     const intptr_t class_id = kArrayCid;
-    const intptr_t deopt_id = Isolate::kNoDeoptId;
+    const intptr_t deopt_id = Thread::kNoDeoptId;
     for (int i = 0; i < node->length(); ++i) {
       Value* array = Bind(new(Z) LoadLocalInstr(*tmp_var));
       Value* index =
@@ -2524,34 +2437,15 @@ void EffectGraphVisitor::VisitStringInterpolateNode(
 }
 
 
-// TODO(rmacnak): De-dup closures in inlined-finally and track down other
-// stragglers to use Class::closures instead.
-static void CollectClosureFunction(const Function& function) {
-  if (function.HasCode()) return;
-
-  Isolate* isolate = Isolate::Current();
-  if (isolate->collected_closures() == GrowableObjectArray::null()) {
-    isolate->set_collected_closures(
-        GrowableObjectArray::Handle(GrowableObjectArray::New()));
-  }
-  const GrowableObjectArray& functions =
-      GrowableObjectArray::Handle(isolate, isolate->collected_closures());
-  functions.Add(function);
-}
-
-
 void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   const Function& function = node->function();
-  if (FLAG_precompile_collect_closures) {
-    CollectClosureFunction(function);
-  }
-
   if (function.IsImplicitStaticClosureFunction()) {
     const Instance& closure =
         Instance::ZoneHandle(Z, function.ImplicitStaticClosure());
     ReturnDefinition(new(Z) ConstantInstr(closure));
     return;
   }
+
   const bool is_implicit = function.IsImplicitInstanceClosureFunction();
   ASSERT(is_implicit || function.IsNonImplicitClosureFunction());
   // The context scope may have already been set by the non-optimizing
@@ -2563,25 +2457,18 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
     ASSERT(!function.HasCode());
     ASSERT(function.context_scope() == ContextScope::null());
     function.set_context_scope(context_scope);
-    const Class& cls = Class::Handle(Z, owner()->function().Owner());
+
     // The closure is now properly setup, add it to the lookup table.
     // It is possible that the compiler creates more than one function
     // object for the same closure, e.g. when inlining nodes from
     // finally clauses. If we already have a function object for the
-    // same closure, do not add a second one. We compare the origin
-    // class, token position, and parent function to detect duplicates.
-    // Note that we can have two different closure object for the same
-    // source text representation of the closure: one with a non-closurized
-    // parent, and one with a closurized parent function.
-
-    const Function& found_func = Function::Handle(
-        Z, cls.LookupClosureFunction(function.token_pos()));
-
-    if (found_func.IsNull() ||
-        (found_func.token_pos() != function.token_pos()) ||
-        (found_func.script() != function.script()) ||
-        (found_func.parent_function() != function.parent_function())) {
-      cls.AddClosureFunction(function);
+    // same closure, do not add a second one. We compare token position,
+    // and parent function to detect duplicates.
+    const Function& parent = Function::Handle(function.parent_function());
+    const Function& found_func = Function::Handle(Z,
+        isolate()->LookupClosureFunction(parent, function.token_pos()));
+    if (found_func.IsNull()) {
+      isolate()->AddClosureFunction(function);
     }
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
@@ -3579,7 +3466,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LoadFieldInstr* data_load = new(Z) LoadFieldInstr(
             receiver,
             Array::data_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             node->token_pos());
         data_load->set_result_cid(kArrayCid);
         Value* data = Bind(data_load);
@@ -3607,7 +3494,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kBigint_getDigits: {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, Bigint::digits_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             kTypedDataUint32ArrayCid));
       }
       case MethodRecognizer::kBigint_getUsed: {
@@ -3618,7 +3505,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kLinkedHashMap_getIndex: {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, LinkedHashMap::index_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             kDynamicCid));
       }
       case MethodRecognizer::kLinkedHashMap_setIndex: {
@@ -3628,7 +3515,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
       case MethodRecognizer::kLinkedHashMap_getData: {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, LinkedHashMap::data_offset(),
-            Type::ZoneHandle(Z, Type::DynamicType()),
+            Object::dynamic_type(),
             kArrayCid));
       }
       case MethodRecognizer::kLinkedHashMap_setData: {
@@ -3780,13 +3667,13 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
     GuardFieldClassInstr* guard_field_class =
         new(Z) GuardFieldClassInstr(store_value,
                                  node->field(),
-                                 isolate()->GetNextDeoptId());
+                                 thread()->GetNextDeoptId());
     AddInstruction(guard_field_class);
     store_value = Bind(BuildLoadExprTemp());
     GuardFieldLengthInstr* guard_field_length =
         new(Z) GuardFieldLengthInstr(store_value,
                                      node->field(),
-                                     isolate()->GetNextDeoptId());
+                                     thread()->GetNextDeoptId());
     AddInstruction(guard_field_length);
     store_value = Bind(BuildLoadExprTemp());
   }
@@ -4078,11 +3965,6 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   ASSERT((node->label() == NULL) || !is_top_level_sequence);
   NestedBlock nested_block(owner(), node);
 
-  if (FLAG_support_debugger && is_top_level_sequence) {
-    AddInstruction(new(Z) DebugStepCheckInstr(function.token_pos(),
-                                              RawPcDescriptors::kRuntimeCall));
-  }
-
   if (num_context_variables > 0) {
     // The local scope declares variables that are captured.
     // Allocate and chain a new context (Except don't chain when at the function
@@ -4122,7 +4004,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           LocalVariable* temp_local = new(Z) LocalVariable(
               0,  // Token index.
               temp_name,
-              Type::ZoneHandle(Z, Type::DynamicType()));  // Type.
+              Object::dynamic_type());  // Type.
           temp_local->set_index(param_frame_index);
 
           // Mark this local as captured parameter so that the optimizer
@@ -4143,6 +4025,27 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         }
       }
     }
+  }
+
+  if (FLAG_support_debugger &&
+      is_top_level_sequence &&
+      function.is_debuggable()) {
+    // Place a debug check at method entry to ensure breaking on a method always
+    // happens, even if there are no assignments/calls/runtimecalls in the first
+    // basic block. Place this check at the last parameter to ensure parameters
+    // are in scope in the debugger at method entry.
+    const int num_params = function.NumParameters();
+    intptr_t check_pos = Scanner::kNoSourcePos;
+    if (num_params > 0) {
+      const LocalVariable& parameter = *scope->VariableAt(num_params - 1);
+      check_pos = parameter.token_pos();
+    }
+    if (check_pos == Scanner::kNoSourcePos) {
+      // No parameters or synthetic parameters.
+      check_pos = node->token_pos();
+    }
+    AddInstruction(new(Z) DebugStepCheckInstr(check_pos,
+                                              RawPcDescriptors::kRuntimeCall));
   }
 
   // This check may be deleted if the generated code is leaf.
@@ -4410,7 +4313,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     ASSERT(!for_finally.is_open());
 
     const Array& types = Array::ZoneHandle(Z, Array::New(1, Heap::kOld));
-    types.SetAt(0, Type::Handle(Z, Type::DynamicType()));
+    types.SetAt(0, Object::dynamic_type());
     CatchBlockEntryInstr* finally_entry =
         new(Z) CatchBlockEntryInstr(owner()->AllocateBlockId(),
                                     original_handler_index,
@@ -4653,7 +4556,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   // When compiling for OSR, use a depth first search to prune instructions
   // unreachable from the OSR entry. Catch entries are always considered
   // reachable, even if they become unreachable after OSR.
-  if (osr_id_ != Isolate::kNoDeoptId) {
+  if (osr_id_ != Compiler::kNoOSRDeoptId) {
     PruneUnreachable();
   }
 
@@ -4664,7 +4567,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 
 
 void FlowGraphBuilder::PruneUnreachable() {
-  ASSERT(osr_id_ != Isolate::kNoDeoptId);
+  ASSERT(osr_id_ != Compiler::kNoOSRDeoptId);
   BitVector* block_marks = new(Z) BitVector(Z, last_used_block_id_ + 1);
   bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
                                               block_marks);

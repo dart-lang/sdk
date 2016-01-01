@@ -9,12 +9,13 @@
 namespace dart {
 
 TEST_CASE(TraceJSWarning) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   TraceBuffer::Init(isolate, 3);
   TraceBuffer* trace_buffer = isolate->trace_buffer();
-  const String& url = String::Handle(isolate, String::New("Plug"));
-  const String& source = String::Handle(isolate, String::New("240 100"));
-  const Script& script = Script::Handle(isolate,
+  const String& url = String::Handle(zone, String::New("Plug"));
+  const String& source = String::Handle(zone, String::New("240 100"));
+  const Script& script = Script::Handle(zone,
       Script::New(url, source, RawScript::kEvaluateTag));
   script.Tokenize(String::Handle(String::New("")));
   {

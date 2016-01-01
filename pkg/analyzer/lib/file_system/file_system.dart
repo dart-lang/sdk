@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library file_system;
+library analyzer.file_system.file_system;
 
 import 'dart:async';
 
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
 
 /**
  * [File]s are leaf [Resource]s which contain data.
  */
-abstract class File extends Resource {
+abstract class File implements Resource {
   /**
    * Watch for changes to this file
    */
@@ -52,7 +53,7 @@ class FileSystemException implements Exception {
 /**
  * [Folder]s are [Resource]s which may contain files and/or other folders.
  */
-abstract class Folder extends Resource {
+abstract class Folder implements Resource {
   /**
    * Watch for changes to the files inside this folder (and in any nested
    * folders, including folders reachable via links).
@@ -133,6 +134,11 @@ abstract class Resource {
  * [Resource]s.
  */
 abstract class ResourceProvider {
+  /**
+   * Get the absolute path context used by this resource provider.
+   */
+  AbsolutePathContext get absolutePathContext;
+
   /**
    * Get the path context used by this resource provider.
    */

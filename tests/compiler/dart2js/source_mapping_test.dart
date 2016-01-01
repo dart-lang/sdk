@@ -19,7 +19,7 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   Uri uri = new Uri(path: sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
   JavaScriptBackend backend = compiler.backend;
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     // TODO(floitsch): the outputBuffers are only accessible in the full
     // emitter.
     full.Emitter fullEmitter = backend.emitter.emitter;
@@ -68,7 +68,7 @@ String FUNCTIONS_TEST = '''
 
 String RETURN_TEST = 'void main() { print(((x) { @return x; })(0)); }';
 
-String NOT_TEST = 'void main() { ((x) { if (@!x) print(x); })(false); }';
+String NOT_TEST = 'void main() { ((x) { if (@!x) print(x); })(1==2); }';
 
 String UNARY_TEST = 'void main() { ((x, y) { print(@-x + @~y); })(1,2); }';
 

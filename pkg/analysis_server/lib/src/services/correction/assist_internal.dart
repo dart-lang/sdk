@@ -4,10 +4,11 @@
 
 library services.src.correction.assist;
 
+import 'dart:async';
 import 'dart:collection';
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
-import 'package:analysis_server/edit/assist/assist_dart.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
@@ -16,8 +17,9 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -30,38 +32,49 @@ typedef _SimpleIdentifierVisitor(SimpleIdentifier node);
  * The computer for Dart assists.
  */
 class AssistProcessor {
+  AnalysisContext analysisContext;
+
   Source source;
   String file;
   int fileStamp;
-  final CompilationUnit unit;
-  final int selectionOffset;
-  final int selectionLength;
-  AnalysisContext context;
+
+  CompilationUnit unit;
   CompilationUnitElement unitElement;
+
   LibraryElement unitLibraryElement;
   String unitLibraryFile;
   String unitLibraryFolder;
+
+  int selectionOffset;
+  int selectionLength;
+  int selectionEnd;
 
   final List<Assist> assists = <Assist>[];
   final Map<String, LinkedEditGroup> linkedPositionGroups =
       <String, LinkedEditGroup>{};
   Position exitPosition = null;
 
-  int selectionEnd;
   CorrectionUtils utils;
   AstNode node;
 
   SourceChange change = new SourceChange('<message>');
 
-  AssistProcessor(this.unit, this.selectionOffset, this.selectionLength) {
-    source = unit.element.source;
-    file = source.fullName;
-    unitElement = unit.element;
-    context = unitElement.context;
-    unitLibraryElement = unitElement.library;
+  AssistProcessor(DartAssistContext dartContext) {
+    analysisContext = dartContext.analysisContext;
+    // source
+    source = dartContext.source;
+    file = dartContext.source.fullName;
+    fileStamp = analysisContext.getModificationStamp(source);
+    // unit
+    unit = dartContext.unit;
+    unitElement = dartContext.unit.element;
+    // library
+    unitLibraryElement = dartContext.unit.element.library;
     unitLibraryFile = unitLibraryElement.source.fullName;
     unitLibraryFolder = dirname(unitLibraryFile);
-    fileStamp = unitElement.context.getModificationStamp(source);
+    // selection
+    selectionOffset = dartContext.selectionOffset;
+    selectionLength = dartContext.selectionLength;
     selectionEnd = selectionOffset + selectionLength;
   }
 
@@ -70,7 +83,7 @@ class AssistProcessor {
    */
   String get eol => utils.endOfLine;
 
-  List<Assist> compute() {
+  Future<List<Assist>> compute() async {
     utils = new CorrectionUtils(unit);
     node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
     if (node == null) {
@@ -81,6 +94,8 @@ class AssistProcessor {
     _addProposal_addTypeAnnotation_SimpleFormalParameter();
     _addProposal_addTypeAnnotation_VariableDeclaration();
     _addProposal_assignToLocalVariable();
+    _addProposal_convertDocumentationIntoBlock();
+    _addProposal_convertDocumentationIntoLine();
     _addProposal_convertToBlockFunctionBody();
     _addProposal_convertToExpressionFunctionBody();
     _addProposal_convertToForIndexLoop();
@@ -331,30 +346,27 @@ class AssistProcessor {
 
   void _addProposal_assignToLocalVariable() {
     // prepare enclosing ExpressionStatement
-    Statement statement = node.getAncestor((node) => node is Statement);
-    if (statement is! ExpressionStatement) {
+    ExpressionStatement expressionStatement;
+    for (AstNode node = this.node; node != null; node = node.parent) {
+      if (node is ExpressionStatement) {
+        expressionStatement = node;
+        break;
+      }
+      if (node is ArgumentList ||
+          node is AssignmentExpression ||
+          node is Statement ||
+          node is ThrowExpression) {
+        _coverageMarker();
+        return;
+      }
+    }
+    if (expressionStatement == null) {
       _coverageMarker();
       return;
     }
-    ExpressionStatement expressionStatement = statement as ExpressionStatement;
     // prepare expression
     Expression expression = expressionStatement.expression;
     int offset = expression.offset;
-    // ignore if in arguments
-    if (node.getAncestor((node) => node is ArgumentList) != null) {
-      _coverageMarker();
-      return;
-    }
-    // ignore if already assignment
-    if (expression is AssignmentExpression) {
-      _coverageMarker();
-      return;
-    }
-    // ignore "throw"
-    if (expression is ThrowExpression) {
-      _coverageMarker();
-      return;
-    }
     // prepare expression type
     DartType type = expression.bestType;
     if (type.isVoid) {
@@ -389,6 +401,80 @@ class AssistProcessor {
     // add proposal
     _insertBuilder(builder);
     _addAssist(DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE, []);
+  }
+
+  void _addProposal_convertDocumentationIntoBlock() {
+    Comment comment = node.getAncestor((n) => n is Comment);
+    if (comment != null && comment.isDocumentation) {
+      String prefix = utils.getNodePrefix(comment);
+      SourceBuilder sb = new SourceBuilder(file, comment.offset);
+      sb.append('/**');
+      sb.append(eol);
+      for (Token token in comment.tokens) {
+        if (token is DocumentationCommentToken &&
+            token.type == TokenType.SINGLE_LINE_COMMENT) {
+          sb.append(prefix);
+          sb.append(' *');
+          sb.append(token.lexeme.substring('///'.length));
+          sb.append(eol);
+        } else {
+          return;
+        }
+      }
+      sb.append(prefix);
+      sb.append(' */');
+      _insertBuilder(sb, comment.length);
+    }
+    // add proposal
+    _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK, []);
+  }
+
+  void _addProposal_convertDocumentationIntoLine() {
+    Comment comment = node.getAncestor((n) => n is Comment);
+    if (comment != null && comment.isDocumentation) {
+      if (comment.tokens.length == 1) {
+        Token token = comment.tokens.first;
+        if (token.type == TokenType.MULTI_LINE_COMMENT) {
+          String text = token.lexeme;
+          List<String> lines = text.split('\n');
+          String prefix = utils.getNodePrefix(comment);
+          SourceBuilder sb = new SourceBuilder(file, comment.offset);
+          bool firstLine = true;
+          String linePrefix = '';
+          for (String line in lines) {
+            if (firstLine) {
+              firstLine = false;
+              String expectedPrefix = '/**';
+              if (!line.startsWith(expectedPrefix)) {
+                return;
+              }
+              line = line.substring(expectedPrefix.length).trim();
+              if (line.isNotEmpty) {
+                sb.append('/// ');
+                sb.append(line);
+                linePrefix = eol + prefix;
+              }
+            } else {
+              if (line.startsWith(prefix + ' */')) {
+                break;
+              }
+              String expectedPrefix = prefix + ' * ';
+              if (!line.startsWith(expectedPrefix)) {
+                return;
+              }
+              line = line.substring(expectedPrefix.length).trim();
+              sb.append(linePrefix);
+              sb.append('/// ');
+              sb.append(line);
+              linePrefix = eol + prefix;
+            }
+          }
+          _insertBuilder(sb, comment.length);
+        }
+      }
+    }
+    // add proposal
+    _addAssist(DartAssistKind.CONVERT_DOCUMENTATION_INTO_LINE, []);
   }
 
   void _addProposal_convertToBlockFunctionBody() {
@@ -582,7 +668,7 @@ class AssistProcessor {
     // iterable should be List
     {
       DartType iterableType = iterable.bestType;
-      InterfaceType listType = context.typeProvider.listType;
+      InterfaceType listType = analysisContext.typeProvider.listType;
       if (iterableType is! InterfaceType ||
           iterableType.element != listType.element) {
         _coverageMarker();
@@ -814,19 +900,19 @@ class AssistProcessor {
 
   void _addProposal_encapsulateField() {
     // find FieldDeclaration
-    FieldDeclaration fieldDeclaraton =
+    FieldDeclaration fieldDeclaration =
         node.getAncestor((x) => x is FieldDeclaration);
-    if (fieldDeclaraton == null) {
+    if (fieldDeclaration == null) {
       _coverageMarker();
       return;
     }
     // not interesting for static
-    if (fieldDeclaraton.isStatic) {
+    if (fieldDeclaration.isStatic) {
       _coverageMarker();
       return;
     }
     // has a parse error
-    VariableDeclarationList variableList = fieldDeclaraton.fields;
+    VariableDeclarationList variableList = fieldDeclaration.fields;
     if (variableList.keyword == null && variableList.type == null) {
       _coverageMarker();
       return;
@@ -859,7 +945,7 @@ class AssistProcessor {
     // rename field
     _addReplaceEdit(rangeNode(nameNode), '_$name');
     // update references in constructors
-    ClassDeclaration classDeclaration = fieldDeclaraton.parent;
+    ClassDeclaration classDeclaration = fieldDeclaration.parent;
     for (ClassMember member in classDeclaration.members) {
       if (member is ConstructorDeclaration) {
         for (FormalParameter parameter in member.parameters.parameters) {
@@ -877,10 +963,10 @@ class AssistProcessor {
         variableList.type != null ? _getNodeText(variableList.type) + ' ' : '';
     String getterCode = '$eol2  ${typeNameCode}get $name => _$name;';
     String setterCode = '$eol2'
-        '  void set $name(${typeNameCode}$name) {$eol'
+        '  void set $name($typeNameCode$name) {$eol'
         '    _$name = $name;$eol'
         '  }';
-    _addInsertEdit(fieldDeclaraton.end, getterCode + setterCode);
+    _addInsertEdit(fieldDeclaration.end, getterCode + setterCode);
     // add proposal
     _addAssist(DartAssistKind.ENCAPSULATE_FIELD, []);
   }
@@ -1166,6 +1252,10 @@ class AssistProcessor {
     // prepare outer "if" statement
     AstNode parent = targetIfStatement.parent;
     if (parent is Block) {
+      if ((parent as Block).statements.length != 1) {
+        _coverageMarker();
+        return;
+      }
       parent = parent.parent;
     }
     if (parent is! IfStatement) {
@@ -2050,9 +2140,8 @@ class AssistProcessor {
  */
 class DefaultAssistContributor extends DartAssistContributor {
   @override
-  List<Assist> internalComputeAssists(
-      CompilationUnit unit, int offset, int length) {
-    AssistProcessor processor = new AssistProcessor(unit, offset, length);
+  Future<List<Assist>> internalComputeAssists(DartAssistContext context) {
+    AssistProcessor processor = new AssistProcessor(context);
     return processor.compute();
   }
 }

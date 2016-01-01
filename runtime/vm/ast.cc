@@ -99,7 +99,7 @@ LocalVariable* LetNode::AddInitializer(AstNode* node) {
   LocalVariable* temp_var =
       new LocalVariable(token_pos(),
                         String::ZoneHandle(Symbols::New(name)),
-                        Type::ZoneHandle(Type::DynamicType()));
+                        Object::dynamic_type());
   vars_.Add(temp_var);
   return temp_var;
 }
@@ -119,6 +119,16 @@ void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
     ElementAt(i)->Visit(visitor);
   }
+}
+
+
+bool StringInterpolateNode::IsPotentiallyConst() const {
+  for (int i = 0; i < value_->length(); i++) {
+    if (!value_->ElementAt(i)->IsPotentiallyConst()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 

@@ -1,0 +1,63 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="error_view.html">
+<link rel="import" href="field_ref.html">
+<link rel="import" href="function_ref.html">
+<link rel="import" href="inbound_reference.html">
+<link rel="import" href="instance_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="object_common.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="eval_link.html">
+
+<polymer-element name="megamorphiccache-view" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ megamorphicCache.isolate.vm }}"></vm-nav-menu>
+      <isolate-nav-menu isolate="{{ megamorphicCache.isolate }}"></isolate-nav-menu>
+      <nav-menu link="." anchor="object" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+
+    <div class="content">
+      <object-common object="{{ megamorphicCache }}"></object-common>
+
+      <br><br>
+
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">selector</div>
+          <div class="memberValue">
+            {{ megamorphicCache.selector }}
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">argumentsDescriptor</div>
+          <div class="memberValue">
+            <any-service-ref ref="{{ megamorphicCache.argumentsDescriptor }}"></any-service-ref>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">mask</div>
+          <div class="memberValue"> 
+            {{ megamorphicCache.mask }}
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">buckets</div>
+          <div class="memberValue">
+            <any-service-ref ref="{{ megamorphicCache.buckets }}"></any-service-ref>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  
+    <hr>
+    <view-footer></view-footer>
+  </template>
+</polymer-element>
+
+<script type="application/dart" src="megamorphiccache_view.dart"></script>

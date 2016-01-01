@@ -5,50 +5,11 @@
 library services.src.correction.name_suggestion;
 
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
-
-/**
- * Returns a list of words for the given camel case string.
- *
- * 'getCamelWords' => ['get', 'Camel', 'Words']
- * 'getHTMLText' => ['get', 'HTML', 'Text']
- */
-List<String> getCamelWords(String str) {
-  if (str == null || str.isEmpty) {
-    return <String>[];
-  }
-  List<String> parts = <String>[];
-  bool wasLowerCase = false;
-  bool wasUpperCase = false;
-  int wordStart = 0;
-  for (int i = 0; i < str.length; i++) {
-    int c = str.codeUnitAt(i);
-    var newLowerCase = isLowerCase(c);
-    var newUpperCase = isUpperCase(c);
-    // myWord
-    // | ^
-    if (wasLowerCase && newUpperCase) {
-      parts.add(str.substring(wordStart, i));
-      wordStart = i;
-    }
-    // myHTMLText
-    //   |   ^
-    if (wasUpperCase &&
-        newUpperCase &&
-        i + 1 < str.length &&
-        isLowerCase(str.codeUnitAt(i + 1))) {
-      parts.add(str.substring(wordStart, i));
-      wordStart = i;
-    }
-    wasLowerCase = newLowerCase;
-    wasUpperCase = newUpperCase;
-  }
-  parts.add(str.substring(wordStart));
-  return parts;
-}
 
 /**
  * Returns possible names for a variable with the given expected type and

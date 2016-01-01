@@ -22,14 +22,20 @@ namespace dart {
 
 bool StackFrame::IsStubFrame() const {
   ASSERT(!(IsEntryFrame() || IsExitFrame()));
-  uword saved_pc =
-      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
-  return (saved_pc == 0);
+#if !defined(TARGET_OS_WINDOWS)
+  // On Windows, the profiler calls this from a separate thread where
+  // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
+  NoSafepointScope no_safepoint;
+#endif
+  RawCode* code = GetCodeObject();
+  intptr_t cid = code->ptr()->owner_->GetClassId();
+  ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
+  return cid == kNullCid || cid == kClassCid;
 }
 
 
 const char* StackFrame::ToCString() const {
-  ASSERT(isolate_ == Isolate::Current());
+  ASSERT(thread_ == Thread::Current());
   Zone* zone = Thread::Current()->zone();
   if (IsDartFrame()) {
     const Code& code = Code::Handle(LookupDartCode());
@@ -62,7 +68,7 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  ASSERT(isolate() == Isolate::Current());
+  ASSERT(thread() == Thread::Current());
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
   RawObject** first = reinterpret_cast<RawObject**>(sp());
@@ -79,7 +85,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // these handles are not traversed. The use of handles is mainly to
   // be able to reuse the handle based code and avoid having to add
   // helper functions to the raw object interface.
-  ASSERT(isolate_ == Isolate::Current());
+  ASSERT(thread() == Thread::Current());
   ASSERT(visitor != NULL);
   NoSafepointScope no_safepoint;
   Code code;
@@ -159,7 +165,6 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 RawFunction* StackFrame::LookupDartFunction() const {
-  ASSERT(isolate_ == Isolate::Current());
   const Code& code = Code::Handle(LookupDartCode());
   if (!code.IsNull()) {
     return code.function();
@@ -169,41 +174,38 @@ RawFunction* StackFrame::LookupDartFunction() const {
 
 
 RawCode* StackFrame::LookupDartCode() const {
-  ASSERT(isolate_ == Isolate::Current());
   // We add a no gc scope to ensure that the code below does not trigger
   // a GC as we are handling raw object references here. It is possible
   // that the code is called while a GC is in progress, that is ok.
+#if !defined(TARGET_OS_WINDOWS)
+  // On Windows, the profiler calls this from a separate thread where
+  // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
   NoSafepointScope no_safepoint;
+#endif
   RawCode* code = GetCodeObject();
-  ASSERT(code == Code::null() || code->ptr()->owner_ != Function::null());
-  return code;
-}
-
-
-RawCode* StackFrame::GetCodeObject() const {
-  // We add a no gc scope to ensure that the code below does not trigger
-  // a GC as we are handling raw object references here. It is possible
-  // that the code is called while a GC is in progress, that is ok.
-  NoSafepointScope no_safepoint;
-  const uword pc_marker =
-      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
-  if (pc_marker != 0) {
-    const uword entry_point =
-        (pc_marker - Assembler::EntryPointToPcMarkerOffset());
-    RawInstructions* instr = Instructions::FromEntryPoint(entry_point);
-    if (instr != Instructions::null()) {
-      return instr->ptr()->code_;
-    }
+  if ((code != Code::null()) &&
+      (code->ptr()->owner_->GetClassId() == kFunctionCid)) {
+    return code;
   }
   return Code::null();
 }
 
 
-bool StackFrame::FindExceptionHandler(Isolate* isolate,
+RawCode* StackFrame::GetCodeObject() const {
+  const uword pc_marker =
+      *(reinterpret_cast<uword*>(fp() + (kPcMarkerSlotFromFp * kWordSize)));
+  ASSERT(pc_marker != 0);
+  ASSERT(reinterpret_cast<RawObject*>(pc_marker)->GetClassId() == kCodeCid ||
+         reinterpret_cast<RawObject*>(pc_marker) == Object::null());
+  return reinterpret_cast<RawCode*>(pc_marker);
+}
+
+
+bool StackFrame::FindExceptionHandler(Thread* thread,
                                       uword* handler_pc,
                                       bool* needs_stacktrace,
                                       bool* has_catch_all) const {
-  REUSABLE_CODE_HANDLESCOPE(isolate);
+  REUSABLE_CODE_HANDLESCOPE(thread);
   Code& code = reused_code_handle.Handle();
   code = LookupDartCode();
   if (code.IsNull()) {
@@ -211,7 +213,7 @@ bool StackFrame::FindExceptionHandler(Isolate* isolate,
   }
   uword pc_offset = pc() - code.EntryPoint();
 
-  REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(isolate);
+  REUSABLE_EXCEPTION_HANDLERS_HANDLESCOPE(thread);
   ExceptionHandlers& handlers = reused_exception_handlers_handle.Handle();
   handlers = code.exception_handlers();
   if (handlers.num_entries() == 0) {
@@ -219,7 +221,7 @@ bool StackFrame::FindExceptionHandler(Isolate* isolate,
   }
 
   // Find pc descriptor for the current pc.
-  REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(isolate);
+  REUSABLE_PC_DESCRIPTORS_HANDLESCOPE(thread);
   PcDescriptors& descriptors = reused_pc_descriptors_handle.Handle();
   descriptors = code.pc_descriptors();
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
@@ -257,7 +259,6 @@ intptr_t StackFrame::GetTokenPos() const {
 }
 
 
-
 bool StackFrame::IsValid() const {
   if (IsEntryFrame() || IsExitFrame() || IsStubFrame()) {
     return true;
@@ -267,7 +268,8 @@ bool StackFrame::IsValid() const {
 
 
 void StackFrameIterator::SetupLastExitFrameData() {
-  uword exit_marker = isolate_->top_exit_frame_info();
+  ASSERT(thread_ != NULL);
+  uword exit_marker = thread_->top_exit_frame_info();
   frames_.fp_ = exit_marker;
 }
 
@@ -283,35 +285,35 @@ void StackFrameIterator::SetupNextExitFrameData() {
 
 // Tell MemorySanitizer that generated code initializes part of the stack.
 // TODO(koda): Limit to frames that are actually written by generated code.
-static void UnpoisonStack(Isolate* isolate, uword fp) {
+static void UnpoisonStack(uword fp) {
   ASSERT(fp != 0);
-  uword size = isolate->GetSpecifiedStackSize();
+  uword size = OSThread::GetSpecifiedStackSize();
   MSAN_UNPOISON(reinterpret_cast<void*>(fp - size), 2 * size);
 }
 
 
-StackFrameIterator::StackFrameIterator(bool validate, Isolate* isolate)
+StackFrameIterator::StackFrameIterator(bool validate, Thread* thread)
     : validate_(validate),
-      entry_(isolate),
-      exit_(isolate),
-      frames_(isolate),
+      entry_(thread),
+      exit_(thread),
+      frames_(thread),
       current_frame_(NULL),
-      isolate_(isolate) {
-  ASSERT((isolate_ == Isolate::Current()) ||
+      thread_(thread) {
+  ASSERT((thread_ == Thread::Current()) ||
          OS::AllowStackFrameIteratorFromAnotherThread());
   SetupLastExitFrameData();  // Setup data for last exit frame.
 }
 
 
 StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
-                                       Isolate* isolate)
+                                       Thread* thread)
     : validate_(validate),
-      entry_(isolate),
-      exit_(isolate),
-      frames_(isolate),
+      entry_(thread),
+      exit_(thread),
+      frames_(thread),
       current_frame_(NULL),
-      isolate_(isolate) {
-  ASSERT((isolate_ == Isolate::Current()) ||
+      thread_(thread) {
+  ASSERT((thread_ == Thread::Current()) ||
          OS::AllowStackFrameIteratorFromAnotherThread());
   frames_.fp_ = last_fp;
   frames_.sp_ = 0;
@@ -320,14 +322,14 @@ StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
 
 
 StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
-                                       bool validate, Isolate* isolate)
+                                       bool validate, Thread* thread)
     : validate_(validate),
-      entry_(isolate),
-      exit_(isolate),
-      frames_(isolate),
+      entry_(thread),
+      exit_(thread),
+      frames_(thread),
       current_frame_(NULL),
-      isolate_(isolate) {
-  ASSERT((isolate_ == Isolate::Current()) ||
+      thread_(thread) {
+  ASSERT((thread_ == Thread::Current()) ||
          OS::AllowStackFrameIteratorFromAnotherThread());
   frames_.fp_ = fp;
   frames_.sp_ = sp;
@@ -352,7 +354,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     if (!HasNextFrame()) {
       return NULL;
     }
-    UnpoisonStack(isolate_, frames_.fp_);
+    UnpoisonStack(frames_.fp_);
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();

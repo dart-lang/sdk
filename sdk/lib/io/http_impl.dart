@@ -431,15 +431,15 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
                        String protocolVersion,
                        _HttpOutgoing outgoing,
                        {_HttpHeaders initialHeaders})
-      : super(outgoing, null),
-        _uri = uri,
+      : _uri = uri,
         headers = new _HttpHeaders(
             protocolVersion,
             defaultPortForScheme: uri.scheme == 'https' ?
                 HttpClient.DEFAULT_HTTPS_PORT :
                 HttpClient.DEFAULT_HTTP_PORT,
             initialHeaders: initialHeaders),
-        _outgoing = outgoing {
+        _outgoing = outgoing,
+        super(outgoing, null) {
     _outgoing.outbound = this;
     _encodingMutable = false;
   }
@@ -718,8 +718,8 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
 
   _HttpClientRequest(_HttpOutgoing outgoing, Uri uri, this.method, this._proxy,
                      this._httpClient, this._httpClientConnection)
-      : super(uri, "1.1", outgoing),
-        uri = uri {
+      : uri = uri,
+        super(uri, "1.1", outgoing) {
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
       contentLength = 0;
@@ -1636,7 +1636,6 @@ class _ConnectionTarget {
         ? SecureSocket.connect(host,
                                port,
                                context: context,
-                               sendClientCertificate: true,
                                onBadCertificate: callback)
         : Socket.connect(host, port));
     _connecting++;
@@ -2225,7 +2224,6 @@ class _HttpServer
                                        SecurityContext context,
                                        int backlog,
                                        bool v6Only,
-                                       String certificate_name,
                                        bool requestClientCertificate,
                                        bool shared) {
     return SecureServerSocket.bind(

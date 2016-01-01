@@ -194,7 +194,8 @@ CLASS_LIST_TYPED_DATA(V)
 
 #define SNAPSHOT_WRITER_SUPPORT()                                              \
   void WriteTo(                                                                \
-      SnapshotWriter* writer, intptr_t object_id, Snapshot::Kind kind);        \
+      SnapshotWriter* writer, intptr_t object_id,                              \
+      Snapshot::Kind kind, bool as_reference);                                 \
   friend class SnapshotWriter;                                                 \
 
 #define VISITOR_SUPPORT(object)                                                \
@@ -344,6 +345,11 @@ class RawObject {
     ASSERT(IsMarked());
     UpdateTagBit<MarkBit>(false);
   }
+  // Returns false if the bit was already set.
+  // TODO(koda): Add "must use result" annotation here, after we add support.
+  bool TryAcquireMarkBit() {
+    return TryAcquireTagBit<MarkBit>();
+  }
 
   // Support for GC watched bit.
   // TODO(iposva): Get rid of this.
@@ -397,6 +403,11 @@ class RawObject {
     uword tags = ptr()->tags_;
     ptr()->tags_ = RememberedBit::update(false, tags);
   }
+  // Returns false if the bit was already set.
+  // TODO(koda): Add "must use result" annotation here, after we add support.
+  bool TryAcquireRememberedBit() {
+    return TryAcquireTagBit<RememberedBit>();
+  }
 
   bool IsDartInstance() {
     return (!IsHeapObject() || (GetClassId() >= kInstanceCid));
@@ -409,6 +420,12 @@ class RawObject {
   }
   bool IsFunction() {
     return ((GetClassId() == kFunctionCid));
+  }
+  bool IsInstructions() {
+    return ((GetClassId() == kInstructionsCid));
+  }
+  bool IsCode() {
+    return ((GetClassId() == kCodeCid));
   }
 
   intptr_t Size() const {
@@ -511,6 +528,20 @@ class RawObject {
     } while (tags != old_tags);
   }
 
+  template<class TagBitField>
+  bool TryAcquireTagBit() {
+    uword tags = ptr()->tags_;
+    uword old_tags;
+    do {
+      old_tags = tags;
+      if (TagBitField::decode(tags)) return false;
+      uword new_tags = TagBitField::update(true, old_tags);
+      tags = AtomicOperations::CompareAndSwapWord(
+          &ptr()->tags_, old_tags, new_tags);
+    } while (tags != old_tags);
+    return true;
+  }
+
   // All writes to heap objects should ultimately pass through one of the
   // methods below or their counterparts in Object, to ensure that the
   // write barrier is correctly applied.
@@ -571,10 +602,11 @@ class RawObject {
   friend class Heap;
   friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
-  friend class MarkingVisitor;
+  template<bool> friend class MarkingVisitorBase;
   friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
+  friend class RawCode;
   friend class RawExternalTypedData;
   friend class RawInstructions;
   friend class RawInstance;
@@ -582,9 +614,11 @@ class RawObject {
   friend class Scavenger;
   friend class ScavengerVisitor;
   friend class SizeExcludingClassVisitor;  // GetClassId
+  friend class InstanceAccumulator;  // GetClassId
   friend class RetainingPathVisitor;  // GetClassId
   friend class SkippedCodeFunctions;  // StorePointer
   friend class InstructionsReader;  // tags_ check
+  friend class InstructionsWriter;
   friend class SnapshotReader;
   friend class SnapshotWriter;
   friend class String;
@@ -592,6 +626,8 @@ class RawObject {
   friend class TypedDataView;
   friend class WeakProperty;  // StorePointer
   friend class Instance;  // StorePointer
+  friend class StackFrame;  // GetCodeObject assertion.
+  friend class CodeLookupTableBuilder;  // profiler
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -616,7 +652,6 @@ class RawClass : public RawObject {
   RawArray* functions_hash_table_;
   RawArray* fields_;
   RawArray* offset_in_words_to_field_;
-  RawGrowableObjectArray* closure_functions_;  // Local functions and literals.
   RawArray* interfaces_;  // Array of AbstractType.
   RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawScript* script_;
@@ -624,7 +659,6 @@ class RawClass : public RawObject {
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
-  RawClass* patch_class_;
   RawFunction* signature_function_;  // Associated function for signature class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawObject* canonical_types_;  // An array of canonicalized types of this class
@@ -707,9 +741,10 @@ class RawPatchClass : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->patched_class_);
   }
   RawClass* patched_class_;
-  RawClass* source_class_;
+  RawClass* origin_class_;
+  RawScript* script_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->source_class_);
+    return reinterpret_cast<RawObject**>(&ptr()->script_);
   }
 
   friend class Function;
@@ -763,12 +798,11 @@ class RawFunction : public RawObject {
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
   }
-  // Fields below are not part of the snapshot.
   RawArray* ic_data_array_;  // ICData of unoptimized code.
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
-  RawInstructions* instructions_;  // Instructions of currently active code.
+  RawCode* code_;  // Currently active code.
   RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
@@ -834,7 +868,6 @@ class RawField : public RawObject {
     RawInstance* static_value_;  // Value for static fields.
     RawSmi* offset_;  // Offset in words for instance fields.
   } value_;
-  RawArray* dependent_code_;
   union {
     // When precompiling we need to save the static initializer function here
     // so that code for it can be generated.
@@ -844,6 +877,10 @@ class RawField : public RawObject {
     // restore the value back to the original initial value.
     RawInstance* saved_value_;  // Saved initial value - static fields.
   } initializer_;
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->initializer_);
+  }
+  RawArray* dependent_code_;
   RawSmi* guarded_list_length_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
@@ -886,7 +923,7 @@ class RawTokenStream : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->private_key_);
   }
   RawString* private_key_;  // Key used for private identifiers.
-  RawArray* token_objects_;
+  RawGrowableObjectArray* token_objects_;
   RawExternalTypedData* stream_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->stream_);
@@ -911,6 +948,9 @@ class RawScript : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->url_); }
   RawString* url_;
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->url_);
+  }
   RawTokenStream* tokens_;
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->tokens_);
@@ -942,7 +982,8 @@ class RawLibrary : public RawObject {
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
-  RawArray* anonymous_classes_;  // Classes containing top-level elements.
+  RawClass* toplevel_class_;  // Class containing top-level elements.
+  RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
   RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
@@ -958,7 +999,6 @@ class RawLibrary : public RawObject {
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
   classid_t index_;             // Library id number.
-  classid_t num_anonymous_;     // Number of entries in anonymous_classes_.
   uint16_t num_imports_;        // Number of entries in imports_.
   int8_t load_state_;           // Of type LibraryState.
   bool corelib_imported_;
@@ -998,19 +1038,26 @@ class RawCode : public RawObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
+  uword entry_point_;
+
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->instructions_);
+    return reinterpret_cast<RawObject**>(&ptr()->active_instructions_);
   }
+  RawInstructions* active_instructions_;
   RawInstructions* instructions_;
+  RawObjectPool* object_pool_;
   // If owner_ is Function::null() the owner is a regular stub.
   // If owner_ is a Class the owner is the allocation stub for that class.
   // Else, owner_ is a regular Dart Function.
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawArray* stackmaps_;
+  RawObject** to_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
+  }
   RawArray* deopt_info_array_;
   RawArray* static_calls_target_table_;  // (code-offset, function, code).
-  RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
   RawArray* inlined_metadata_;
   RawArray* comments_;
@@ -1020,7 +1067,6 @@ class RawCode : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->return_address_metadata_);
   }
-  uword entry_point_;
 
   // Compilation timestamp.
   int64_t compile_timestamp_;
@@ -1032,18 +1078,19 @@ class RawCode : public RawObject {
   int32_t state_bits_;
 
   // PC offsets for code patching.
-  int32_t entry_patch_pc_offset_;
-  int32_t patch_code_pc_offset_;
   int32_t lazy_deopt_pc_offset_;
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
   const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }
 
+  static bool ContainsPC(RawObject* raw_obj, uword pc);
+
   friend class Function;
-  friend class MarkingVisitor;
+  template<bool> friend class MarkingVisitorBase;
   friend class SkippedCodeFunctions;
   friend class StackFrame;
+  friend class Profiler;
 };
 
 
@@ -1072,14 +1119,6 @@ class RawObjectPool : public RawObject {
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
 
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->code_);
-  }
-  RawCode* code_;
-  RawObjectPool* object_pool_;
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->object_pool_);
-  }
   int32_t size_;
 
   // Variable length data follows here.
@@ -1088,16 +1127,17 @@ class RawInstructions : public RawObject {
   // Private helper function used while visiting stack frames. The
   // code which iterates over dart frames is also called during GC and
   // is not allowed to create handles.
-  static bool ContainsPC(RawObject* raw_obj, uword pc);
+  static bool ContainsPC(RawInstructions* raw_instr, uword pc);
 
   friend class RawCode;
   friend class RawFunction;
   friend class Code;
   friend class StackFrame;
-  friend class MarkingVisitor;
+  template<bool> friend class MarkingVisitorBase;
   friend class SkippedCodeFunctions;
   friend class Function;
   friend class InstructionsReader;
+  friend class InstructionsWriter;
 };
 
 
@@ -1194,7 +1234,6 @@ class RawLocalVarDescriptors : public RawObject {
     kContextVar,
     kContextLevel,
     kSavedCurrentContext,
-    kAsyncOperation
   };
 
   enum {
@@ -1363,10 +1402,10 @@ class RawICData : public RawObject {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->owner_);
   }
-  RawFunction* owner_;         // Parent/calling function of this IC.
-  RawString* target_name_;     // Name of target function.
+  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
+  RawString* target_name_;  // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
-  RawArray* ic_data_;          // Contains class-ids, target and count.
+  RawArray* ic_data_;  // Contains class-ids, target and count.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
@@ -1384,8 +1423,10 @@ class RawMegamorphicCache : public RawObject {
   }
   RawArray* buckets_;
   RawSmi* mask_;
+  RawString* target_name_;     // Name of target function.
+  RawArray* args_descriptor_;  // Arguments descriptor.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->mask_);
+    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
   }
 
   int32_t filled_entry_count_;
@@ -1458,6 +1499,8 @@ class RawUnwindError : public RawError {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->message_);
   }
+  bool is_user_initiated_;
+  bool is_vm_restart_;
 };
 
 
@@ -1599,11 +1642,12 @@ class RawSmi : public RawInteger {
 class RawMint : public RawInteger {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Mint);
 
-  int64_t value_;
+  ALIGN8 int64_t value_;
 
   friend class Api;
   friend class SnapshotReader;
 };
+COMPILE_ASSERT(sizeof(RawMint) == 16);
 
 
 class RawBigint : public RawInteger {
@@ -1620,11 +1664,12 @@ class RawBigint : public RawInteger {
 class RawDouble : public RawNumber {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Double);
 
-  double value_;
+  ALIGN8 double value_;
 
   friend class Api;
   friend class SnapshotReader;
 };
+COMPILE_ASSERT(sizeof(RawDouble) == 16);
 
 
 class RawString : public RawInstance {
@@ -1970,7 +2015,7 @@ class RawWeakProperty : public RawInstance {
 
   friend class DelaySet;
   friend class GCMarker;
-  friend class MarkingVisitor;
+  template<bool> friend class MarkingVisitorBase;
   friend class Scavenger;
   friend class ScavengerVisitor;
 };

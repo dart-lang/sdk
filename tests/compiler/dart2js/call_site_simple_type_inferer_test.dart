@@ -16,7 +16,7 @@ void compileAndFind(String code,
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
   compiler.disableInlining = disableInlining;
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var cls = findElement(compiler, className);
     var member = cls.lookupLocalMember(memberName);
     return check(compiler, member);
@@ -218,7 +218,7 @@ void doTest(String test, bool enableInlining, Function f) {
     enableInlining,
     (compiler, element) {
       var expectedTypes = f(compiler);
-      var signature = element.computeSignature(compiler);
+      var signature = element.functionSignature;
       int index = 0;
       var inferrer = compiler.typesTask.typesInferrer;
       signature.forEachParameter((Element element) {

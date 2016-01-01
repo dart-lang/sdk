@@ -6,6 +6,15 @@
 
 library mock_libraries;
 
+const DEFAULT_PLATFORM_CONFIG = """
+[libraries]
+core:core/core.dart
+async:async/async.dart
+_js_helper:_internal/js_runtime/lib/js_helper.dart
+_interceptors:_internal/js_runtime/lib/interceptors.dart
+_isolate_helper:_internal/js_runtime/lib/isolate_helper.dart
+""";
+
 String buildLibrarySource(
     Map<String, String> elementMap,
     [Map<String, String> additionalElementMap = const <String, String>{}]) {
@@ -54,11 +63,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
           E get current => null;
       }''',
   'LinkedHashMap': r'''
-      class LinkedHashMap {
-        factory LinkedHashMap._empty() => null;
-        factory LinkedHashMap._literal(elements) => null;
-        static _makeEmpty() => null;
-        static _makeLiteral(elements) => null;
+      class LinkedHashMap<K, V> implements Map<K, V> {
       }''',
   'List': r'''
       class List<E> extends Iterable<E> {
@@ -104,10 +109,21 @@ import 'dart:_js_helper';
 import 'dart:_interceptors';
 import 'dart:_isolate_helper';
 import 'dart:async';
+
+@patch
+class LinkedHashMap<K, V> {
+  factory LinkedHashMap._empty() => null;
+  factory LinkedHashMap._literal(elements) => null;
+  static _makeEmpty() => null;
+  static _makeLiteral(elements) => null;
+}
 ''';
 
 const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
+  'assertTest': 'assertTest(a) {}',
+  'assertThrow': 'assertThrow(a) {}',
   'assertHelper': 'assertHelper(a) {}',
+  'assertUnreachable': 'assertUnreachable() {}',
   'assertIsSubtype': 'assertIsSubtype(subtype, supertype, message) {}',
   'assertSubtype': 'assertSubtype(object, isField, checks, asField) {}',
   'assertSubtypeOfRuntimeType': 'assertSubtypeOfRuntimeType(object, type) {}',
@@ -344,11 +360,11 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
         operator &(other) => 42;
         operator ^(other) => 42;
 
-        operator >(other) => true;
-        operator >=(other) => true;
-        operator <(other) => true;
-        operator <=(other) => true;
-        operator ==(other) => true;
+        operator >(other) => !identical(this, other);
+        operator >=(other) => !identical(this, other);
+        operator <(other) => !identical(this, other);
+        operator <=(other) => !identical(this, other);
+        operator ==(other) => identical(this, other);
         get hashCode => throw "JSNumber.hashCode not implemented.";
 
         // We force side effects on _tdivFast to mimic the shortcomings of
@@ -368,8 +384,8 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
       }''',
   'JSString': r'''
       class JSString extends Interceptor implements String, JSIndexable {
-        var split;
-        var length;
+        split(pattern) => [];
+        int get length => 42;
         operator[](index) {}
         toString() {}
         operator+(other) => this;
@@ -378,8 +394,10 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
   'JSUInt31': 'class JSUInt31 extends JSUInt32 {}',
   'JSUInt32': 'class JSUInt32 extends JSPositiveInt {}',
   'ObjectInterceptor': 'class ObjectInterceptor {}',
+  'JavaScriptObject': 'class JavaScriptObject {}',
   'PlainJavaScriptObject': 'class PlainJavaScriptObject {}',
   'UnknownJavaScriptObject': 'class UnknownJavaScriptObject {}',
+  'JavaScriptFunction': 'class JavaScriptFunction {}',
 };
 
 const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
@@ -407,6 +425,11 @@ const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
 const Map<String, String> ASYNC_AWAIT_LIBRARY = const <String, String>{
   '_wrapJsFunctionForAsync': '_wrapJsFunctionForAsync(f) {}',
   '_asyncHelper': '_asyncHelper(o, f, c) {}',
+  '_SyncStarIterable': 'class _SyncStarIterable {}',
+  '_IterationMarker': 'class _IterationMarker {}',
+  '_AsyncStarStreamController': 'class _AsyncStarStreamController {}',
+  '_asyncStarHelper': '_asyncStarHelper(x, y, z) {}',
+  '_streamOfController': '_streamOfController(x) {}',
 };
 
 const String DEFAULT_MIRRORS_SOURCE = r'''

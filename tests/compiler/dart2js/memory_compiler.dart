@@ -28,64 +28,7 @@ import 'memory_source_file_helper.dart';
 export 'output_collector.dart';
 export 'package:compiler/compiler_new.dart' show
     CompilationResult;
-
-class DiagnosticMessage {
-  final Message message;
-  final Uri uri;
-  final int begin;
-  final int end;
-  final String text;
-  final Diagnostic kind;
-
-  DiagnosticMessage(
-      this.message, this.uri, this.begin, this.end, this.text, this.kind);
-
-  String toString() => '$uri:$begin:$end:$text:$kind';
-}
-
-class DiagnosticCollector implements CompilerDiagnostics {
-  List<DiagnosticMessage> messages = <DiagnosticMessage>[];
-
-  void call(Uri uri, int begin, int end, String message, Diagnostic kind) {
-    report(null, uri, begin, end, message, kind);
-  }
-
-  @override
-  void report(Message message,
-              Uri uri, int begin, int end, String text, Diagnostic kind) {
-    messages.add(new DiagnosticMessage(message, uri, begin, end, text, kind));
-  }
-
-  Iterable<DiagnosticMessage> filterMessagesByKinds(List<Diagnostic> kinds) {
-    return messages.where(
-      (DiagnosticMessage message) => kinds.contains(message.kind));
-  }
-
-  Iterable<DiagnosticMessage> get errors {
-    return filterMessagesByKinds([Diagnostic.ERROR]);
-  }
-
-  Iterable<DiagnosticMessage> get warnings {
-    return filterMessagesByKinds([Diagnostic.WARNING]);
-  }
-
-  Iterable<DiagnosticMessage> get hints {
-    return filterMessagesByKinds([Diagnostic.HINT]);
-  }
-
-  Iterable<DiagnosticMessage> get infos {
-    return filterMessagesByKinds([Diagnostic.INFO]);
-  }
-
-  /// `true` if non-verbose messages has been collected.
-  bool get hasRegularMessages {
-    return messages.any((m) => m.kind != Diagnostic.VERBOSE_INFO);
-  }
-
-  void clear() {
-    messages.clear();
-  }
-}
+export 'diagnostic_helper.dart';
 
 class MultiDiagnostics implements CompilerDiagnostics {
   final List<CompilerDiagnostics> diagnosticsList;
@@ -131,16 +74,16 @@ Future<CompilationResult> runCompiler(
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
-     Compiler cachedCompiler,
+     CompilerImpl cachedCompiler,
      bool showDiagnostics: true,
      Uri packageRoot,
      Uri packageConfig,
      PackagesDiscoveryProvider packagesDiscoveryProvider,
-     void beforeRun(Compiler compiler)}) async {
+     void beforeRun(CompilerImpl compiler)}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
   }
-  Compiler compiler = compilerFor(
+  CompilerImpl compiler = compilerFor(
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
@@ -158,12 +101,12 @@ Future<CompilationResult> runCompiler(
   return new CompilationResult(compiler, isSuccess: isSuccess);
 }
 
-Compiler compilerFor(
+CompilerImpl compilerFor(
     {Map<String, String> memorySourceFiles: const <String, String>{},
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
-     Compiler cachedCompiler,
+     CompilerImpl cachedCompiler,
      bool showDiagnostics: true,
      Uri packageRoot,
      Uri packageConfig,
@@ -172,7 +115,7 @@ Compiler compilerFor(
   if (packageRoot == null &&
       packageConfig == null &&
       packagesDiscoveryProvider == null) {
-    packageRoot = Uri.base.resolveUri(new Uri.file('${Platform.packageRoot}/'));
+    packageRoot = Uri.base.resolve(Platform.packageRoot);
   }
 
   MemorySourceFileProvider provider;
@@ -196,7 +139,7 @@ Compiler compilerFor(
     outputProvider = const NullCompilerOutput();
   }
 
-  Compiler compiler = new Compiler(
+  CompilerImpl compiler = new CompilerImpl(
       provider,
       outputProvider,
       diagnosticHandler,
@@ -210,7 +153,7 @@ Compiler compilerFor(
   if (cachedCompiler != null) {
     compiler.coreLibrary =
         cachedCompiler.libraryLoader.lookupLibrary(Uri.parse('dart:core'));
-    compiler.types = cachedCompiler.types.copy(compiler);
+    compiler.types = cachedCompiler.types.copy(compiler.resolution);
     Map copiedLibraries = {};
     cachedCompiler.libraryLoader.libraries.forEach((library) {
       if (library.isPlatformLibrary) {
@@ -245,10 +188,10 @@ Compiler compilerFor(
     compiler.deferredLibraryClass = cachedCompiler.deferredLibraryClass;
 
     Iterable cachedTreeElements =
-        cachedCompiler.enqueuer.resolution.resolvedElements;
+        cachedCompiler.enqueuer.resolution.processedElements;
     cachedTreeElements.forEach((element) {
       if (element.library.isPlatformLibrary) {
-        compiler.enqueuer.resolution.registerResolvedElement(element);
+        compiler.enqueuer.resolution.registerProcessedElement(element);
       }
     });
 
@@ -263,7 +206,6 @@ Compiler compilerFor(
     cachedCompiler.resolver = null;
     cachedCompiler.closureToClassMapper = null;
     cachedCompiler.checker = null;
-    cachedCompiler.irBuilder = null;
     cachedCompiler.typesTask = null;
     cachedCompiler.backend = null;
     // Don't null out the enqueuer as it prevents us from using cachedCompiler
@@ -323,8 +265,7 @@ Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
                                       List<String> options: const [],
                                       bool showDiagnostics: true}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolveUri(
-      new Uri.file('${Platform.packageRoot}/'));
+  Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
 
   var provider = new MemorySourceFileProvider(memorySourceFiles);
   var handler =

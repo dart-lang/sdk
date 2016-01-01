@@ -25,6 +25,12 @@ Random::Random() {
     // We did not get a seed so far. As a fallback we do use the current time.
     seed = OS::GetCurrentTimeMicros();
   }
+  Initialize(seed);
+}
+
+
+void Random::Initialize(uint64_t seed) {
+  ASSERT(seed != 0);
   // Crank the next state a couple of times.
   _state = seed;
   NextState();
@@ -32,6 +38,12 @@ Random::Random() {
   NextState();
   NextState();
 }
+
+
+Random::Random(uint64_t seed) {
+  Initialize(seed);
+}
+
 
 Random::~Random() {
   // Nothing to be done here.

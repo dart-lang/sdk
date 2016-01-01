@@ -84,7 +84,7 @@ class Platform {
   static String get pathSeparator => _pathSeparator;
 
   /**
-   * Get a string (`linux`, `macos`, `windows` or `android`)
+   * Get a string (`linux`, `macos`, `windows`, `android`, or `ios`)
    * representing the operating system.
    */
   static String get operatingSystem => _operatingSystem;
@@ -113,6 +113,11 @@ class Platform {
    * Returns true if the operating system is Android.
    */
   static final bool isAndroid = (_operatingSystem == "android");
+
+  /**
+   * Returns true if the operating system is iOS.
+   */
+  static final bool isiOS = (_operatingSystem == "ios");
 
   /**
    * Get the environment for this process.
@@ -180,9 +185,18 @@ class Platform {
    * used to run the script in this isolate.  This is the directory in which
    * Dart packages are looked up.
    *
-   * If there is no --package-root flag, then the empty string is returned.
+   * If there is no --package-root flag, then null is returned.
    */
   static String get packageRoot => _Platform.packageRoot;
+
+/**
+ * Returns the value of the --packages flag passed to the executable
+ * used to run the script in this isolate.  This is the configuration which
+ * specifies how Dart packages are looked up.
+ *
+ * If there is no --packages flag, then the null is returned.
+ */
+  static String get packageConfig => _Platform.packageConfig;
 
   /**
    * Returns the version of the current Dart runtime.

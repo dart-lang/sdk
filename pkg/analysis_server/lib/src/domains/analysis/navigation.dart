@@ -6,14 +6,14 @@ library domains.analysis.navigation;
 
 import 'dart:collection';
 
-import 'package:analysis_server/analysis/navigation_core.dart';
+import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
-import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
 
 /**
  * Compute all known navigation information for the given part of [source].
@@ -32,7 +32,7 @@ NavigationCollectorImpl computeNavigation(AnalysisServer server,
           new CaughtException(exception, stackTrace));
     }
   }
-  collector.sortRegions();
+  collector.createRegions();
   return collector;
 }
 
@@ -44,6 +44,8 @@ class NavigationCollectorImpl implements NavigationCollector {
    * A list of navigation regions.
    */
   final List<protocol.NavigationRegion> regions = <protocol.NavigationRegion>[];
+  final Map<SourceRange, List<int>> regionMap =
+      new HashMap<SourceRange, List<int>>();
 
   /**
    * All the unique targets referenced by [regions].
@@ -61,13 +63,24 @@ class NavigationCollectorImpl implements NavigationCollector {
   @override
   void addRegion(int offset, int length, protocol.ElementKind targetKind,
       protocol.Location targetLocation) {
+    SourceRange range = new SourceRange(offset, length);
+    // prepare targets
+    List<int> targets = regionMap[range];
+    if (targets == null) {
+      targets = <int>[];
+      regionMap[range] = targets;
+    }
+    // add new target
     int targetIndex = _addTarget(targetKind, targetLocation);
-    protocol.NavigationRegion region =
-        new protocol.NavigationRegion(offset, length, <int>[targetIndex]);
-    regions.add(region);
+    targets.add(targetIndex);
   }
 
-  void sortRegions() {
+  void createRegions() {
+    regionMap.forEach((range, targets) {
+      protocol.NavigationRegion region =
+          new protocol.NavigationRegion(range.offset, range.length, targets);
+      regions.add(region);
+    });
     regions.sort((a, b) {
       return a.offset - b.offset;
     });

@@ -60,8 +60,11 @@ traceExceptions(List<String> exceptions) {
 }
 
 /// Function signature of [traceAndReport].
-typedef void TraceAndReport(Compiler compiler, Spannable node, String message,
-                            {bool condition(String stackTrace), int limit,
+typedef void TraceAndReport(DiagnosticReporter reporter,
+                            Spannable node,
+                            String message,
+                            {bool condition(String stackTrace),
+                             int limit,
                              bool throwOnPrint});
 
 /// Calls [reportHere] and [trace] with the same message.
@@ -74,7 +77,9 @@ TraceAndReport get traceAndReport {
 TraceAndReport get reportAndTrace => traceAndReport;
 
 /// Implementation of [traceAndReport].
-void _traceAndReport(Compiler compiler, Spannable node, String message,
+void _traceAndReport(DiagnosticReporter reporter,
+                     Spannable node,
+                     String message,
                      {bool condition(String stackTrace), int limit,
                       bool throwOnPrint: false}) {
 
@@ -82,7 +87,7 @@ void _traceAndReport(Compiler compiler, Spannable node, String message,
         condition: (String stackTrace) {
     bool result = condition != null ? condition(stackTrace) : true;
     if (result) {
-      reportHere(compiler, node, message);
+      reportHere(reporter, node, message);
     }
     return result;
   });

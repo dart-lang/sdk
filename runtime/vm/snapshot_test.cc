@@ -255,11 +255,11 @@ Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
 
 
 void CheckMint(int64_t value) {
+  ApiNativeScope scope;
   StackZone zone(Thread::Current());
 
   Mint& mint = Mint::Handle();
   mint ^= Integer::New(value);
-  ApiNativeScope scope;
   Dart_CObject* mint_cobject = SerializeAndDeserializeMint(mint);
   // On 64-bit platforms mints always require 64-bits as the smi range
   // here covers most of the 64-bit range. On 32-bit platforms the smi
@@ -476,10 +476,10 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
 
 void CheckBigint(const char* bigint_value) {
+  ApiNativeScope scope;
   StackZone zone(Thread::Current());
   Bigint& bigint = Bigint::Handle();
   bigint ^= Bigint::NewFromCString(bigint_value);
-  ApiNativeScope scope;
   Dart_CObject* bigint_cobject = SerializeAndDeserializeBigint(bigint);
   EXPECT_EQ(Dart_CObject_kBigint, bigint_cobject->type);
   char* hex_value = TestCase::BigintToHexValue(bigint_cobject);
@@ -831,6 +831,7 @@ class TestSnapshotWriter : public SnapshotWriter {
   static const intptr_t kInitialSize = 64 * KB;
   TestSnapshotWriter(uint8_t** buffer, ReAlloc alloc)
       : SnapshotWriter(Snapshot::kScript,
+                       Thread::Current(),
                        buffer,
                        alloc,
                        kInitialSize,
@@ -839,7 +840,7 @@ class TestSnapshotWriter : public SnapshotWriter {
                        true, /* can_send_any_object */
                        false, /* snapshot_code */
                        true /* vm_isolate_is_symbolic */),
-        forward_list_(kMaxPredefinedObjectIds) {
+        forward_list_(thread(), kMaxPredefinedObjectIds) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -848,7 +849,6 @@ class TestSnapshotWriter : public SnapshotWriter {
   // Writes just a script object
   void WriteScript(const Script& script) {
     WriteObject(script.raw());
-    UnmarkAll();
   }
 
  private:
@@ -869,7 +869,9 @@ static void GenerateSourceAndCheck(const Script& script) {
   const String& private_key = String::Handle(expected_tokens.PrivateKey());
   Scanner scanner(str, private_key);
   const TokenStream& reconstructed_tokens =
-      TokenStream::Handle(TokenStream::New(scanner.GetStream(), private_key));
+      TokenStream::Handle(TokenStream::New(scanner.GetStream(),
+                                           private_key,
+                                           false));
   expected_iterator.SetCurrentPosition(0);
   TokenStream::Iterator reconstructed_iterator(
       reconstructed_tokens, 0, TokenStream::Iterator::kAllTokens);
@@ -1072,7 +1074,7 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
 
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Isolate::Current()));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Thread::Current()));
 
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);
@@ -1119,9 +1121,10 @@ static void IterateScripts(const Library& lib) {
 }
 
 TEST_CASE(GenerateSource) {
-  Isolate* isolate = Isolate::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      isolate, isolate->object_store()->libraries());
+      zone, isolate->object_store()->libraries());
   Library& lib = Library::Handle();
   String& uri = String::Handle();
   for (intptr_t i = 0; i < libs.Length(); i++) {
@@ -1174,7 +1177,7 @@ UNIT_TEST_CASE(FullSnapshot) {
 
     // Create a test library and Load up a test script in it.
     TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread->isolate()));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread));
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
@@ -1235,7 +1238,7 @@ UNIT_TEST_CASE(FullSnapshot1) {
 
     // Create a test library and Load up a test script in it.
     Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread->isolate()));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(thread));
     timer1.Stop();
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
@@ -1379,7 +1382,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(),
                                            import_lib,
                                            Dart_Null()));
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Isolate::Current()));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Thread::Current()));
 
     // Get list of library URLs loaded and save the count.
     Dart_Handle libs = Dart_GetLibraryIds();
@@ -1615,7 +1618,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
     EXPECT_VALID(Dart_LibraryImportLibrary(TestCase::lib(),
                                            import_lib,
                                            Dart_Null()));
-    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Isolate::Current()));
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Thread::Current()));
 
     // Write out the script snapshot.
     result = Dart_CreateScriptSnapshot(&buffer, &size);

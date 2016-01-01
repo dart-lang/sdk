@@ -48,7 +48,7 @@ class ClassStubGenerator {
    * Invariant: [member] must be a declaration element.
    */
   Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
-      Element member, Map<Selector, ReceiverMaskSet> selectors) {
+      Element member, Map<Selector, SelectorConstraints> selectors) {
     assert(invariant(member, member.isDeclaration));
 
     // If the method is intercepted, the stub gets the
@@ -124,9 +124,9 @@ class ClassStubGenerator {
     }
 
     void addNoSuchMethodHandlers(String ignore,
-                                 Map<Selector, ReceiverMaskSet> selectors) {
+                                 Map<Selector, SelectorConstraints> selectors) {
       for (Selector selector in selectors.keys) {
-        ReceiverMaskSet maskSet = selectors[selector];
+        SelectorConstraints maskSet = selectors[selector];
         if (maskSet.needsNoSuchMethodHandling(selector, compiler.world)) {
           jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
           jsNames[jsName] = selector;
@@ -167,7 +167,7 @@ class ClassStubGenerator {
             'noSuchMethodName': namer.noSuchMethodName,
             'createInvocationMirror':
                 backend.emitter.staticFunctionAccess(
-                    backend.getCreateInvocationMirror()),
+                    backend.helpers.createInvocationMirror),
             'methodName':
                 js.quoteName(compiler.enableMinification
                     ? internalName : methodName),
@@ -206,7 +206,7 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
 
-  Element closureFromTearOff = backend.findHelper('closureFromTearOff');
+  Element closureFromTearOff = backend.helpers.closureFromTearOff;
   jsAst.Expression tearOffAccessExpression;
   jsAst.Expression tearOffGlobalObjectString;
   jsAst.Expression tearOffGlobalObject;

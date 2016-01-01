@@ -29,6 +29,14 @@ part of html;
 
 @Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  @Deprecated("Internal Use Only")
+  js.JsObject blink_jsObject;
+
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
 

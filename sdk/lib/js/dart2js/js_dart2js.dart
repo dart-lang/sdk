@@ -92,21 +92,30 @@ import 'dart:collection' show HashMap, ListMixin;
 import 'dart:indexed_db' show KeyRange;
 import 'dart:typed_data' show TypedData;
 
-import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
-import 'dart:_interceptors' show JavaScriptObject, UnknownJavaScriptObject;
-import 'dart:_js_helper' show Primitives, convertDartClosureToJS,
-    getIsolateAffinityTag;
+import 'dart:_foreign_helper' show JS, JS_CONST, DART_CLOSURE_TO_JS;
+import 'dart:_interceptors'
+    show JavaScriptObject, UnknownJavaScriptObject, DART_CLOSURE_PROPERTY_NAME;
+import 'dart:_js_helper'
+    show Primitives, convertDartClosureToJS, getIsolateAffinityTag;
+
+export 'dart:_interceptors' show JavaScriptObject;
 
 final JsObject context = _wrapToDart(JS('', 'self'));
 
 _convertDartFunction(Function f, {bool captureThis: false}) {
-  return JS('',
-    'function(_call, f, captureThis) {'
-      'return function() {'
-        'return _call(f, captureThis, this, '
-            'Array.prototype.slice.apply(arguments));'
-      '}'
-    '}(#, #, #)', DART_CLOSURE_TO_JS(_callDartFunction), f, captureThis);
+  return JS(
+      '',
+      '''
+        function(_call, f, captureThis) {
+          return function() {
+            return _call(f, captureThis, this,
+                Array.prototype.slice.apply(arguments));
+          }
+        }(#, #, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunction),
+      f,
+      captureThis);
 }
 
 _callDartFunction(callback, bool captureThis, self, List arguments) {
@@ -212,8 +221,7 @@ class JsObject {
    */
   factory JsObject.fromBrowserObject(object) {
     if (object is num || object is String || object is bool || object == null) {
-      throw new ArgumentError(
-        "object cannot be a num, string, bool, or null");
+      throw new ArgumentError("object cannot be a num, string, bool, or null");
     }
     return _wrapToDart(_convertToJS(object));
   }
@@ -267,7 +275,7 @@ class JsObject {
    *
    * The type of [property] must be either [String] or [num].
    */
-  dynamic operator[](property) {
+  dynamic operator [](property) {
     if (property is! String && property is! num) {
       throw new ArgumentError("property is not a String or num");
     }
@@ -280,7 +288,7 @@ class JsObject {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator[]=(property, value) {
+  operator []=(property, value) {
     if (property is! String && property is! num) {
       throw new ArgumentError("property is not a String or num");
     }
@@ -289,8 +297,8 @@ class JsObject {
 
   int get hashCode => 0;
 
-  bool operator==(other) => other is JsObject &&
-      JS('bool', '# === #', _jsObject, other._jsObject);
+  bool operator ==(other) =>
+      other is JsObject && JS('bool', '# === #', _jsObject, other._jsObject);
 
   /**
    * Returns `true` if the JavaScript object contains the specified property
@@ -332,7 +340,7 @@ class JsObject {
   String toString() {
     try {
       return JS('String', 'String(#)', _jsObject);
-    } catch(e) {
+    } catch (e) {
       return super.toString();
     }
   }
@@ -347,7 +355,11 @@ class JsObject {
     if (method is! String && method is! num) {
       throw new ArgumentError("method is not a String or num");
     }
-    return _convertToDart(JS('', '#[#].apply(#, #)', _jsObject, method,
+    return _convertToDart(JS(
+        '',
+        '#[#].apply(#, #)',
+        _jsObject,
+        method,
         _jsObject,
         args == null ? null : new List.from(args.map(_convertToJS))));
   }
@@ -357,7 +369,6 @@ class JsObject {
  * Proxies a JavaScript Function object.
  */
 class JsFunction extends JsObject {
-
   /**
    * Returns a [JsFunction] that captures its 'this' binding and calls [f]
    * with the value of this passed as the first argument.
@@ -373,17 +384,18 @@ class JsFunction extends JsObject {
    * Invokes the JavaScript function with arguments [args]. If [thisArg] is
    * supplied it is the value of `this` for the invocation.
    */
-  dynamic apply(List args, { thisArg }) =>
-      _convertToDart(JS('', '#.apply(#, #)', _jsObject,
-          _convertToJS(thisArg),
-          args == null ? null : new List.from(args.map(_convertToJS))));
+  dynamic apply(List args, {thisArg}) => _convertToDart(JS(
+      '',
+      '#.apply(#, #)',
+      _jsObject,
+      _convertToJS(thisArg),
+      args == null ? null : new List.from(args.map(_convertToJS))));
 }
 
 /**
  * A [List] that proxies a JavaScript array.
  */
 class JsArray<E> extends JsObject with ListMixin<E> {
-
   /**
    * Creates a new JavaScript array.
    */
@@ -449,8 +461,9 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     throw new StateError('Bad JsArray length');
   }
 
-  void set length(int length) { super['length'] = length; }
-
+  void set length(int length) {
+    super['length'] = length;
+  }
 
   // Methods overriden for better performance
 
@@ -503,25 +516,25 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 // property added to a Dart object referencing its JS-side DartObject proxy
 final String _DART_OBJECT_PROPERTY_NAME =
     getIsolateAffinityTag(r'_$dart_dartObject');
-final String _DART_CLOSURE_PROPERTY_NAME =
-    getIsolateAffinityTag(r'_$dart_dartClosure');
 
 // property added to a JS object referencing its Dart-side JsObject proxy
 const _JS_OBJECT_PROPERTY_NAME = r'_$dart_jsObject';
 const _JS_FUNCTION_PROPERTY_NAME = r'$dart_jsFunction';
+const _JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS = r'_$dart_jsFunctionCaptureThis';
 
 bool _defineProperty(o, String name, value) {
-  if (_isExtensible(o) &&
-      // TODO(ahe): Calling _hasOwnProperty to work around
-      // https://code.google.com/p/dart/issues/detail?id=21331.
-      !_hasOwnProperty(o, name)) {
-    try {
+  try {
+    if (_isExtensible(o) &&
+        // TODO(ahe): Calling _hasOwnProperty to work around
+        // https://code.google.com/p/dart/issues/detail?id=21331.
+        !_hasOwnProperty(o, name)) {
       JS('void', 'Object.defineProperty(#, #, { value: #})', o, name, value);
       return true;
-    } catch (e) {
-      // object is native and lies about being extensible
-      // see https://bugzilla.mozilla.org/show_bug.cgi?id=775185
     }
+  } catch (e) {
+    // object is native and lies about being extensible
+    // see https://bugzilla.mozilla.org/show_bug.cgi?id=775185
+    // Or, isExtensible throws for this object.
   }
   return false;
 }
@@ -554,8 +567,13 @@ dynamic _convertToJS(dynamic o) {
   if (o is JsObject) {
     return o._jsObject;
   }
-  if (o is Blob || o is Event || o is KeyRange || o is ImageData || o is Node ||
-      o is TypedData || o is Window) {
+  if (o is Blob ||
+      o is Event ||
+      o is KeyRange ||
+      o is ImageData ||
+      o is Node ||
+      o is TypedData ||
+      o is Window) {
     return o;
   }
   if (o is DateTime) {
@@ -565,13 +583,13 @@ dynamic _convertToJS(dynamic o) {
     return _getJsProxy(o, _JS_FUNCTION_PROPERTY_NAME, (o) {
       var jsFunction = _convertDartFunction(o);
       // set a property on the JS closure referencing the Dart closure
-      _defineProperty(jsFunction, _DART_CLOSURE_PROPERTY_NAME, o);
+      _defineProperty(jsFunction, DART_CLOSURE_PROPERTY_NAME, o);
       return jsFunction;
     });
   }
   var ctor = _dartProxyCtor;
-  return _getJsProxy(o, _JS_OBJECT_PROPERTY_NAME,
-      (o) => JS('', 'new #(#)', ctor, o));
+  return _getJsProxy(
+      o, _JS_OBJECT_PROPERTY_NAME, (o) => JS('', 'new #(#)', ctor, o));
 }
 
 Object _getJsProxy(o, String propertyName, createProxy(o)) {
@@ -591,9 +609,14 @@ Object _convertToDart(o) {
       JS('bool', 'typeof # == "number"', o) ||
       JS('bool', 'typeof # == "boolean"', o)) {
     return o;
-  } else if (_isLocalObject(o)
-      && (o is Blob || o is Event || o is KeyRange || o is ImageData
-      || o is Node || o is TypedData || o is Window)) {
+  } else if (_isLocalObject(o) &&
+      (o is Blob ||
+          o is Event ||
+          o is KeyRange ||
+          o is ImageData ||
+          o is Node ||
+          o is TypedData ||
+          o is Window)) {
     // long line: dart2js doesn't allow string concatenation in the JS() form
     return JS('Blob|Event|KeyRange|ImageData|Node|TypedData|Window', '#', o);
   } else if (JS('bool', '# instanceof Date', o)) {
@@ -608,15 +631,15 @@ Object _convertToDart(o) {
 
 JsObject _wrapToDart(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
-    return _getDartProxy(o, _DART_CLOSURE_PROPERTY_NAME,
-        (o) => new JsFunction._fromJs(o));
+    return _getDartProxy(
+        o, DART_CLOSURE_PROPERTY_NAME, (o) => new JsFunction._fromJs(o));
   }
   if (JS('bool', '# instanceof Array', o)) {
-    return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
-        (o) => new JsArray._fromJs(o));
+    return _getDartProxy(
+        o, _DART_OBJECT_PROPERTY_NAME, (o) => new JsArray._fromJs(o));
   }
-  return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
-      (o) => new JsObject._fromJs(o));
+  return _getDartProxy(
+      o, _DART_OBJECT_PROPERTY_NAME, (o) => new JsObject._fromJs(o));
 }
 
 Object _getDartProxy(o, String propertyName, createProxy(o)) {
@@ -633,4 +656,73 @@ Object _getDartProxy(o, String propertyName, createProxy(o)) {
     _defineProperty(o, propertyName, dartProxy);
   }
   return dartProxy;
+}
+
+// ---------------------------------------------------------------------------
+// Start of methods for new style Dart-JS interop.
+
+_convertDartFunctionFast(Function f) {
+  var existing = JS('', '#.#', f, _JS_FUNCTION_PROPERTY_NAME);
+  if (existing != null) return existing;
+  var ret = JS(
+      '',
+      '''
+        function(_call, f) {
+          return function() {
+            return _call(f, Array.prototype.slice.apply(arguments));
+          }
+        }(#, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunctionFast),
+      f);
+  JS('', '#.# = #', ret, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', f, _JS_FUNCTION_PROPERTY_NAME, ret);
+  return ret;
+}
+
+_convertDartFunctionFastCaptureThis(Function f) {
+  var existing = JS('', '#.#', f, _JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS);
+  if (existing != null) return existing;
+  var ret = JS(
+      '',
+      '''
+        function(_call, f) {
+          return function() {
+            return _call(f, this,Array.prototype.slice.apply(arguments));
+          }
+        }(#, #)
+      ''',
+      DART_CLOSURE_TO_JS(_callDartFunctionFastCaptureThis),
+      f);
+  JS('', '#.# = #', ret, DART_CLOSURE_PROPERTY_NAME, f);
+  JS('', '#.# = #', f, _JS_FUNCTION_PROPERTY_NAME_CAPTURE_THIS, ret);
+  return ret;
+}
+
+_callDartFunctionFast(callback, List arguments) {
+  return Function.apply(callback, arguments);
+}
+
+_callDartFunctionFastCaptureThis(callback, self, List arguments) {
+  return Function.apply(callback, [self]..addAll(arguments));
+}
+
+Function allowInterop(Function f) {
+  if (JS('bool', 'typeof(#) == "function"', f)) {
+    // Already supports interop, just use the existing function.
+    return f;
+  } else {
+    return _convertDartFunctionFast(f);
+  }
+}
+
+Function allowInteropCaptureThis(Function f) {
+  if (JS('bool', 'typeof(#) == "function"', f)) {
+    // Behavior when the function is already a JS function is unspecified.
+    throw new ArgumentError(
+        "Function is already a JS function so cannot capture this.");
+    return f;
+  } else {
+    return _convertDartFunctionFastCaptureThis(f);
+  }
 }

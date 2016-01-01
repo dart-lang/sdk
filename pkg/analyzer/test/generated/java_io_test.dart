@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.java_io_test;
-
-import 'dart:io';
+library analyzer.test.generated.java_io_test;
 
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:unittest/unittest.dart';

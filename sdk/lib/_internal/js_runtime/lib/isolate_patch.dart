@@ -6,9 +6,7 @@
 
 import 'dart:_js_helper' show patch;
 import 'dart:_isolate_helper' show CapabilityImpl,
-                                   CloseToken,
                                    IsolateNatives,
-                                   JsIsolateSink,
                                    ReceivePortImpl,
                                    RawReceivePortImpl;
 
@@ -63,14 +61,14 @@ class Isolate {
   static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
       {bool paused: false,
-       bool checked,
-       Uri packageRoot,
-       Map<String, Uri> packages,
-       bool errorsAreFatal,
        SendPort onExit,
-       SendPort onError}) {
+       SendPort onError,
+       bool errorsAreFatal,
+       bool checked,
+       Map<String, String> environment,
+       Uri packageRoot}) {
+    if (environment != null) throw new UnimplementedError("environment");
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
-    if (packages != null) throw new UnimplementedError("packages");
     bool forcePause = (errorsAreFatal != null) ||
                       (onExit != null) ||
                       (onError != null);
@@ -84,7 +82,7 @@ class Isolate {
       } else if (args != null) {
         throw new ArgumentError("Args must be a list of Strings $args");
       }
-      // TODO: Handle [packageRoot]/[packages] somehow, possibly by throwing.
+      // TODO: Handle [packageRoot] somehow, possibly by throwing.
       // TODO: Consider passing the errorsAreFatal/onExit/onError values
       //       as arguments to the internal spawnUri instead of setting
       //       them after the isolate has been created.

@@ -6,6 +6,7 @@ library debugger_page_element;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math';
 import 'observatory_element.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
@@ -516,7 +517,7 @@ class SetCommand extends DebuggerCommand {
   SetCommand(Debugger debugger)
       : super(debugger, 'set', []);
 
-  static var _boeValues = ['all', 'none', 'unhandled'];
+  static var _boeValues = ['All', 'None', 'Unhandled'];
   static var _boolValues = ['false', 'true'];
 
   static var _options = {
@@ -529,7 +530,7 @@ class SetCommand extends DebuggerCommand {
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
-    var result = await debugger.isolate.setExceptionPauseInfo(value);
+    var result = await debugger.isolate.setExceptionPauseMode(value);
     if (result.isError) {
       debugger.console.print(result.toString());
     } else {
@@ -963,27 +964,62 @@ class IsolateCommand extends DebuggerCommand {
   String helpShort = 'Switch the current isolate';
 
   String helpLong =
-      'Switch the current isolate.\n'
+      'Switch, list, or rename isolates.\n'
       '\n'
       'Syntax: isolate <number>\n'
       '        isolate <name>\n';
 }
 
+String _isolateRunState(Isolate isolate) {
+  if (isolate.paused) {
+    return 'paused';
+  } else if (isolate.running) {
+    return 'running';
+  } else if (isolate.idle) {
+    return 'idle';
+  } else {
+    return 'unknown';
+  }
+}
+
 class IsolateListCommand extends DebuggerCommand {
   IsolateListCommand(Debugger debugger) : super(debugger, 'list', []);
 
-  Future run(List<String> args) {
+  Future run(List<String> args) async {
     if (debugger.vm == null) {
       debugger.console.print(
           "Internal error: vm has not been set");
-      return new Future.value(null);
+      return;
     }
+
+    // Refresh all isolates first.
+    var pending = [];
     for (var isolate in debugger.vm.isolates) {
-      String current = (isolate == debugger.isolate ? ' *' : '');
-      debugger.console.print(
-          "Isolate ${isolate.number} '${isolate.name}'${current}");
+      pending.add(isolate.reload());
     }
-    return new Future.value(null);
+    await Future.wait(pending);
+
+    const maxIdLen = 10;
+    const maxRunStateLen = 7;
+    var maxNameLen = 'NAME'.length;
+    for (var isolate in debugger.vm.isolates) {
+      maxNameLen = max(maxNameLen, isolate.name.length);
+    }
+    debugger.console.print("${'ID'.padLeft(maxIdLen, ' ')} "
+                           "${'ORIGIN'.padLeft(maxIdLen, ' ')} "
+                           "${'NAME'.padRight(maxNameLen, ' ')} "
+                           "${'STATE'.padRight(maxRunStateLen, ' ')} "
+                           "CURRENT");
+    for (var isolate in debugger.vm.isolates) {
+      String current = (isolate == debugger.isolate ? '*' : '');
+      debugger.console.print(
+          "${isolate.number.toString().padLeft(maxIdLen, ' ')} "
+          "${isolate.originNumber.toString().padLeft(maxIdLen, ' ')} "
+          "${isolate.name.padRight(maxNameLen, ' ')} "
+          "${_isolateRunState(isolate).padRight(maxRunStateLen, ' ')} "
+          "${current}");
+    }
+    debugger.console.newline();
   }
 
   String helpShort = 'List all isolates';
@@ -1085,6 +1121,119 @@ class RefreshCommand extends DebuggerCommand {
       'Refresh debugging information of various sorts.\n'
       '\n'
       'Syntax: refresh <subcommand>\n';
+}
+
+class VmListCommand extends DebuggerCommand {
+  VmListCommand(Debugger debugger) : super(debugger, 'list', []);
+
+  Future run(List<String> args) async {
+    if (args.length > 0) {
+      debugger.console.print('vm list expects no arguments');
+      return;
+    }
+    if (debugger.vm == null) {
+      debugger.console.print("No connected VMs");
+      return;
+    }
+    // TODO(turnidge): Right now there is only one vm listed.
+    var vmList = [debugger.vm];
+
+    var maxAddrLen = 'ADDRESS'.length;
+    var maxNameLen = 'NAME'.length;
+
+    for (var vm in vmList) {
+      maxAddrLen = max(maxAddrLen, vm.target.networkAddress.length);
+      maxNameLen = max(maxNameLen, vm.name.length);
+    }
+
+    debugger.console.print("${'ADDRESS'.padRight(maxAddrLen, ' ')} "
+                           "${'NAME'.padRight(maxNameLen, ' ')} "
+                           "CURRENT");
+    for (var vm in vmList) {
+      String current = (vm == debugger.vm ? '*' : '');
+      debugger.console.print(
+          "${vm.target.networkAddress.padRight(maxAddrLen, ' ')} "
+          "${vm.name.padRight(maxNameLen, ' ')} "
+          "${current}");
+    }
+  }
+
+  String helpShort = 'List all connected Dart virtual machines';
+
+  String helpLong =
+      'List all connected Dart virtual machines..\n'
+      '\n'
+      'Syntax: vm list\n';
+}
+
+class VmNameCommand extends DebuggerCommand {
+  VmNameCommand(Debugger debugger) : super(debugger, 'name', []);
+
+  Future run(List<String> args) async {
+    if (args.length != 1) {
+      debugger.console.print('vm name expects one argument');
+      return;
+    }
+    if (debugger.vm == null) {
+      debugger.console.print('There is no current vm');
+      return;
+    }
+    await debugger.vm.setName(args[0]);
+  }
+
+  String helpShort = 'Rename the current Dart virtual machine';
+
+  String helpLong =
+      'Rename the current Dart virtual machine.\n'
+      '\n'
+      'Syntax: vm name <name>\n';
+}
+
+class VmRestartCommand extends DebuggerCommand {
+  VmRestartCommand(Debugger debugger) : super(debugger, 'restart', []);
+
+  Future handleModalInput(String line) async {
+    if (line == 'yes') {
+      debugger.console.printRed('Restarting VM...');
+      await debugger.vm.restart();
+      debugger.input.exitMode();
+    } else if (line == 'no') {
+      debugger.console.printRed('VM restart canceled.');
+      debugger.input.exitMode();
+    } else {
+      debugger.console.printRed("Please type 'yes' or 'no'");
+    }
+  }
+
+  Future run(List<String> args) async {
+    debugger.input.enterMode('Restart vm? (yes/no)', handleModalInput);
+  }
+
+  String helpShort = 'Restart a Dart virtual machine';
+
+  String helpLong =
+      'Restart a Dart virtual machine.\n'
+      '\n'
+      'Syntax: vm restart\n';
+}
+
+class VmCommand extends DebuggerCommand {
+  VmCommand(Debugger debugger) : super(debugger, 'vm', [
+      new VmListCommand(debugger),
+      new VmNameCommand(debugger),
+      new VmRestartCommand(debugger),
+  ]);
+
+  Future run(List<String> args) async {
+    debugger.console.print("'vm' expects a subcommand (see 'help vm')");
+  }
+
+  String helpShort = 'Manage a Dart virtual machine';
+
+  String helpLong =
+      'Manage a Dart virtual machine.\n'
+      '\n'
+      'Syntax: vm <subcommand>\n';
 }
 
 class _ConsoleStreamPrinter {
@@ -1234,6 +1383,7 @@ class ObservatoryDebugger extends Debugger {
         new StepCommand(this),
         new SyncNextCommand(this),
         new UpCommand(this),
+        new VmCommand(this),
     ]);
     _consolePrinter = new _ConsoleStreamPrinter(this);
   }
@@ -1254,23 +1404,24 @@ class ObservatoryDebugger extends Debugger {
       }
 
       _isolate.reload().then((response) {
+        if (response.isSentinel) {
+          // The isolate has gone away.  The IsolateExit event will
+          // clear the isolate for the debugger page.
+          return;
+        }
         // TODO(turnidge): Currently the debugger relies on all libs
         // being loaded.  Fix this.
         var pending = [];
-        for (var lib in _isolate.libraries) {
+        for (var lib in response.libraries) {
           if (!lib.loaded) {
             pending.add(lib.load());
           }
         }
         Future.wait(pending).then((_) {
-          _refreshStack(isolate.pauseEvent).then((_) {
-            reportStatus();
-          });
-        }).catchError((_) {
-          // Error loading libraries, try and display stack.
-          _refreshStack(isolate.pauseEvent).then((_) {
-            reportStatus();
-          });
+          refreshStack();
+        }).catchError((e) {
+          print("UNEXPECTED ERROR $e");
+          reportStatus();
         });
       });
     } else {
@@ -1300,10 +1451,16 @@ class ObservatoryDebugger extends Debugger {
     });
   }
 
-  Future refreshStack() {
-    return _refreshStack(isolate.pauseEvent).then((_) {
+  Future refreshStack() async {
+    try {
+      if (_isolate != null) {
+        await _refreshStack(_isolate.pauseEvent);
+      }
+      flushStdio();
       reportStatus();
-    });
+    } catch (e, st) {
+      console.printRed("Unexpected error in refreshStack: $e\n$st");
+    }
   }
 
   bool isolatePaused() {
@@ -1326,9 +1483,12 @@ class ObservatoryDebugger extends Debugger {
 
   Future<ServiceMap> _refreshStack(ServiceEvent pauseEvent) {
     return isolate.getStack().then((result) {
+      if (result.isSentinel) {
+        // The isolate has gone away.  The IsolateExit event will
+        // clear the isolate for the debugger page.
+        return;
+      }
       stack = result;
-      // TODO(turnidge): Replace only the changed part of the stack to
-      // reduce flicker.
       stackElement.updateStack(stack, pauseEvent);
       if (stack['frames'].length > 0) {
         currentFrame = 0;
@@ -1358,12 +1518,13 @@ class ObservatoryDebugger extends Debugger {
   void _reportPause(ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
-          "Paused at isolate start (type 'continue' [F7] or 'step' [F10] to start the isolate')");
+          "Paused at isolate start "
+          "(type 'continue' [F7] or 'step' [F10] to start the isolate')");
     } else if (event.kind == ServiceEvent.kPauseExit) {
       console.print(
-          "Paused at isolate exit (type 'continue' or [F7] to exit the isolate')");
-    }
-    if (stack['frames'].length > 0) {
+          "Paused at isolate exit "
+          "(type 'continue' or [F7] to exit the isolate')");
+    } else if (stack['frames'].length > 0) {
       Frame frame = stack['frames'][0];
       var script = frame.location.script;
       script.load().then((_) {
@@ -1384,6 +1545,9 @@ class ObservatoryDebugger extends Debugger {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
       });
+    } else {
+      console.print("Paused in message loop (type 'continue' or [F7] "
+                    "to resume processing messages)");
     }
   }
 
@@ -1419,11 +1583,20 @@ class ObservatoryDebugger extends Debugger {
 
   void onEvent(ServiceEvent event) {
     switch(event.kind) {
+      case ServiceEvent.kVMUpdate:
+        var vm = event.owner;
+        console.print("VM ${vm.target.networkAddress} renamed to '${vm.name}'");
+        break;
+
       case ServiceEvent.kIsolateStart:
         {
           var iso = event.owner;
           console.print(
               "Isolate ${iso.number} '${iso.name}' has been created");
+          if (isolate == null) {
+            console.print("Switching to isolate ${iso.number} '${iso.name}'");
+            isolate = iso;
+          }
         }
         break;
 
@@ -1431,7 +1604,17 @@ class ObservatoryDebugger extends Debugger {
         {
           var iso = event.owner;
           if (iso == isolate) {
-            console.print("The current isolate has exited");
+            console.print("The current isolate ${iso.number} '${iso.name}' "
+                          "has exited");
+            var isolates = vm.isolates;
+            if (isolates.length > 0) {
+              var newIsolate = isolates.first;
+              console.print("Switching to isolate "
+                            "${newIsolate.number} '${newIsolate.name}'");
+              isolate = newIsolate;
+            } else {
+              isolate = null;
+            }
           } else {
             console.print(
                 "Isolate ${iso.number} '${iso.name}' has exited");
@@ -1541,7 +1724,7 @@ class ObservatoryDebugger extends Debugger {
         // Unambiguous completion.
         return completions[0];
       } else {
-        // Ambigous completion.
+        // Ambiguous completion.
         completions = completions.map((s) => s.trimRight()).toList();
         console.printBold(completions.toString());
         return _foldCompletions(completions);
@@ -1655,16 +1838,16 @@ class ObservatoryDebugger extends Debugger {
       var event = isolate.pauseEvent;
       if (event.kind == ServiceEvent.kPauseStart) {
         console.print("Type 'continue' [F7] or 'step' [F10] to start the isolate");
-        return;
+        return null;
       }
       if (event.kind == ServiceEvent.kPauseExit) {
         console.print("Type 'continue' [F7] to exit the isolate");
-        return;
+        return null;
       }
       return isolate.stepOver();
     } else {
       console.print('The program is already running');
-      return;
+      return null;
     }
   }
 
@@ -1688,9 +1871,7 @@ class DebuggerPageElement extends ObservatoryElement {
   @published Isolate isolate;
 
   isolateChanged(oldValue) {
-    if (isolate != null) {
-      debugger.updateIsolate(isolate);
-    }
+    debugger.updateIsolate(isolate);
   }
   ObservatoryDebugger debugger = new ObservatoryDebugger();
 
@@ -1699,6 +1880,7 @@ class DebuggerPageElement extends ObservatoryElement {
   }
 
   StreamSubscription _resizeSubscription;
+  Future<StreamSubscription> _vmSubscriptionFuture;
   Future<StreamSubscription> _isolateSubscriptionFuture;
   Future<StreamSubscription> _debugSubscriptionFuture;
   Future<StreamSubscription> _stdoutSubscriptionFuture;
@@ -1720,6 +1902,8 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.init();
 
     _resizeSubscription = window.onResize.listen(_onResize);
+    _vmSubscriptionFuture =
+        app.vm.listenEventStream(VM.kVMStream, debugger.onEvent);
     _isolateSubscriptionFuture =
         app.vm.listenEventStream(VM.kIsolateStream, debugger.onEvent);
     _debugSubscriptionFuture =
@@ -1730,6 +1914,7 @@ class DebuggerPageElement extends ObservatoryElement {
       // TODO(turnidge): How do we want to handle this in general?
       _stdoutSubscriptionFuture.catchError((e, st) {
         Logger.root.info('Failed to subscribe to stdout: $e\n$st\n');
+        _stdoutSubscriptionFuture = null;
       });
     }
     _stderrSubscriptionFuture =
@@ -1738,6 +1923,7 @@ class DebuggerPageElement extends ObservatoryElement {
       // TODO(turnidge): How do we want to handle this in general?
       _stderrSubscriptionFuture.catchError((e, st) {
         Logger.root.info('Failed to subscribe to stderr: $e\n$st\n');
+        _stderrSubscriptionFuture = null;
       });
     }
     _logSubscriptionFuture =
@@ -1782,6 +1968,8 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.isolate = null;
     _resizeSubscription.cancel();
     _resizeSubscription = null;
+    cancelFutureSubscription(_vmSubscriptionFuture);
+    _vmSubscriptionFuture = null;
     cancelFutureSubscription(_isolateSubscriptionFuture);
     _isolateSubscriptionFuture = null;
     cancelFutureSubscription(_debugSubscriptionFuture);
@@ -2043,6 +2231,23 @@ class DebuggerFrameElement extends ObservatoryElement {
         busy = false;
       });
   }
+
+  @observable
+  get properLocals {
+    var locals = new List();
+    var homeMethod = frame.function.homeMethod;
+    if (homeMethod.dartOwner is Class && homeMethod.isStatic) {
+      locals.add(
+          {'name' : '<class>',
+           'value' : homeMethod.dartOwner});
+    } else if (homeMethod.dartOwner is Library) {
+      locals.add(
+          {'name' : '<library>',
+           'value' : homeMethod.dartOwner});
+    }
+    locals.addAll(frame.variables);
+    return locals;
+  }
 }
 
 @CustomTag('debugger-message')
@@ -2245,6 +2450,20 @@ class DebuggerInputElement extends ObservatoryElement {
   @published String text = '';
   @observable ObservatoryDebugger debugger;
   @observable bool busy = false;
+  @observable String modalPrompt = null;
+  var modalCallback = null;
+
+  void enterMode(String prompt, callback) {
+    assert(modalPrompt == null);
+    modalPrompt = prompt;
+    modalCallback = callback;
+  }
+
+  void exitMode() {
+    assert(modalPrompt != null);
+    modalPrompt = null;
+    modalCallback = null;
+  }
 
   @override
   void ready() {
@@ -2257,7 +2476,19 @@ class DebuggerInputElement extends ObservatoryElement {
           return;
         }
         busy = true;
-	switch (e.keyCode) {
+        if (modalCallback != null) {
+          if (e.keyCode == KeyCode.ENTER) {
+            var response = text;
+            modalCallback(response).whenComplete(() {
+              text = '';
+              busy = false;
+            });
+          } else {
+            busy = false;
+          }
+          return;
+        }
+        switch (e.keyCode) {
           case KeyCode.TAB:
             e.preventDefault();
             int cursorPos = textBox.selectionStart;
@@ -2353,7 +2584,7 @@ class DebuggerInputElement extends ObservatoryElement {
           default:
             busy = false;
             break;
-	}
+        }
       });
   }
 

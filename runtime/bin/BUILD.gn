@@ -8,6 +8,32 @@ declare_args() {
 }
 
 
+resources_sources_gypi =
+    exec_script("../../tools/gypi_to_gn.py",
+                [rebase_path("resources_sources.gypi")],
+                "scope",
+                ["resources_sources.gypi"])
+
+# Generate a resources.cc file for the service isolate without Observatory.
+action("gen_resources_cc") {
+  visibility = [ ":*" ] # Only targets in this file can see this.
+  script = "../tools/create_resources.py"
+  inputs = [
+    "../tools/create_resources.py",
+  ]
+  sources = resources_sources_gypi.sources
+  outputs = [ "$target_gen_dir/resources_gen.cc" ]
+  args = [
+    "--output",
+    rebase_path("$target_gen_dir/resources_gen.cc", root_build_dir),
+    "--outer_namespace", "dart",
+    "--inner_namespace", "bin",
+    "--table_name", "service_bin",
+    "--root_prefix", rebase_path(".", root_build_dir) + "/",
+  ] + rebase_path(sources, root_build_dir)
+}
+
+
 template("gen_library_src_path") {
   assert(defined(invoker.sources), "Need sources in $target_name")
   assert(defined(invoker.output), "Need output in $target_name")
@@ -144,6 +170,8 @@ static_library("libdart_nosnapshot") {
 executable("gen_snapshot") {
   configs += ["..:dart_config"]
   deps = [
+    ":gen_resources_cc",
+    ":gen_snapshot_dart_io",
     ":generate_builtin_cc_file",
     ":generate_io_cc_file",
     ":generate_io_patch_cc_file",
@@ -165,10 +193,13 @@ executable("gen_snapshot") {
     "platform_openbsd.cc",
     "platform_win.cc",
     "platform.h",
+    "vmservice_impl.cc",
+    "vmservice_impl.h",
     # Include generated source files.
     "$target_gen_dir/builtin_gen.cc",
     "$target_gen_dir/io_gen.cc",
     "$target_gen_dir/io_patch_gen.cc",
+    "$target_gen_dir/resources_gen.cc",
   ]
 
   include_dirs = [
@@ -191,6 +222,61 @@ io_impl_sources_gypi =
                 "scope",
                 [ "io_impl_sources.gypi" ])
 
+
+# A source set for the implementation of 'dart:io' library
+# (without secure sockets) suitable for linking with gen_snapshot.
+source_set("gen_snapshot_dart_io") {
+  configs += ["..:dart_config",]
+
+  # Set custom sources assignment filter. The custom filters does three things:
+  # 1) Filters out unnecessary files pulled in from the gypi files.
+  # 2) Filters out secure socket support.
+  # 3) Enables dart:io by filtering out _unsupported.cc implementations.
+  custom_sources_filter = [
+    "*net/nss_memio.cc",
+    "*net/nss_memio.h",
+    "*secure_socket.cc",
+    "*secure_socket.h",
+    "filter.cc",
+    "*io_service_unsupported.cc",
+    "platform_*.cc",
+    "*io_service.cc",
+    "*io_service.h",
+    "*_test.cc",
+    "*_test.h",
+    "*dbg*",
+    "builtin.cc",
+    "builtin_common.cc",
+    "builtin_gen_snapshot.cc",
+  ]
+  if (!is_mac && !is_ios) {
+    # Dart tree uses *_macos.* instead of *_mac.*
+    custom_sources_filter += [
+      "*_macos.h",
+      "*_macos.cc",
+    ]
+  }
+  set_sources_assignment_filter(custom_sources_filter)
+
+  defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+
+  sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
+  sources += [
+    "io_natives.cc",
+    "io_natives.h",
+    "log_android.cc",
+    "log_linux.cc",
+    "log_macos.cc",
+    "log_win.cc",
+    "log.h",
+  ]
+
+  include_dirs = [
+    "..",
+    "//third_party"
+  ]
+}
+
 # A source set for the implementation of 'dart:io' library
 # (without secure sockets).
 source_set("embedded_dart_io") {
@@ -207,6 +293,8 @@ source_set("embedded_dart_io") {
     "*secure_socket.h",
     "*filter_unsupported.cc",
     "*io_service_unsupported.cc",
+    "*io_service.cc",
+    "*io_service.h",
     "*_test.cc",
     "*_test.h",
     "*dbg*",

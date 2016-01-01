@@ -164,6 +164,7 @@ const DISCRIMINATED_MARK = '*';
  * A dispatch record is cached according to the specification of the dispatch
  * tag for [obj].
  */
+@NoInline()
 lookupAndCacheInterceptor(obj) {
   assert(!isDartObject(obj));
   String tag = getTagFunction(obj);
@@ -288,12 +289,14 @@ String constructorNameFallback(object) {
 
 var initNativeDispatchFlag;  // null or true
 
+@NoInline()
 void initNativeDispatch() {
   if (true == initNativeDispatchFlag) return;
   initNativeDispatchFlag = true;
   initNativeDispatchContinue();
 }
 
+@NoInline()
 void initNativeDispatchContinue() {
 
   dispatchRecordsForInstanceTags = JS('', 'Object.create(null)');

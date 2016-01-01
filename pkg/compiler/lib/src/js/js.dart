@@ -7,10 +7,9 @@ library js;
 import 'package:js_ast/js_ast.dart';
 export 'package:js_ast/js_ast.dart';
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
 import '../dump_info.dart' show
     DumpInfoTask;
 import '../io/code_output.dart' show
@@ -40,7 +39,7 @@ CodeBuffer prettyPrint(Node node,
           new SourceLocationsMapper(outBuffer));
   Dart2JSJavaScriptPrintingContext context =
       new Dart2JSJavaScriptPrintingContext(
-          compiler, monitor, outBuffer, sourceInformationProcessor);
+          compiler.reporter, monitor, outBuffer, sourceInformationProcessor);
   Printer printer = new Printer(options, context);
   printer.visit(node);
   sourceInformationProcessor.process(node);
@@ -48,20 +47,20 @@ CodeBuffer prettyPrint(Node node,
 }
 
 class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
-  final Compiler compiler;
+  final DiagnosticReporter reporter;
   final DumpInfoTask monitor;
   final CodeBuffer outBuffer;
   final CodePositionListener codePositionListener;
 
   Dart2JSJavaScriptPrintingContext(
-      this.compiler,
+      this.reporter,
       this.monitor,
       this.outBuffer,
       this.codePositionListener);
 
   @override
   void error(String message) {
-    compiler.internalError(NO_LOCATION_SPANNABLE, message);
+    reporter.internalError(NO_LOCATION_SPANNABLE, message);
   }
 
   @override

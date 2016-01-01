@@ -4,13 +4,11 @@
 
 library dart2js.parser.partial_elements;
 
-import '../compiler.dart' show
-    Compiler;
+import '../common.dart';
+import '../common/resolution.dart' show
+    Parsing,
+    Resolution;
 import '../dart_types.dart' show DynamicType;
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/messages.dart';
 import '../elements/elements.dart' show
     CompilationUnitElement,
     ConstructorElement,
@@ -68,7 +66,7 @@ abstract class PartialElement implements DeclarationSite {
 
   bool hasParseError = false;
 
-  bool get isErroneous => hasParseError;
+  bool get isMalformed => hasParseError;
 
   DeclarationSite get declarationSite => this;
 }
@@ -104,7 +102,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
     return cachedNode;
   }
 
-  FunctionExpression parseNode(DiagnosticListener listener) {
+  FunctionExpression parseNode(Parsing parsing) {
     if (cachedNode != null) return cachedNode;
     parseFunction(Parser p) {
       if (isClassMember && modifiers.isFactory) {
@@ -113,7 +111,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
         p.parseFunction(beginToken, getOrSet);
       }
     }
-    cachedNode = parse(listener, this, declarationSite, parseFunction);
+    cachedNode = parse(parsing, this, declarationSite, parseFunction);
     return cachedNode;
   }
 
@@ -239,6 +237,8 @@ class PartialSetterElement extends SetterElementX
   }
 }
 
+// TODO(johnniwinther): Create [PartialGenerativeConstructor] and
+// [PartialFactoryConstructor] subclasses and make this abstract.
 class PartialConstructorElement extends ConstructorElementX
     with PartialElement, PartialFunctionMixin {
   PartialConstructorElement(String name,
@@ -268,11 +268,12 @@ class PartialFieldList extends VariableList with PartialElement {
     super.hasParseError = hasParseError;
   }
 
-  VariableDefinitions parseNode(Element element, DiagnosticListener listener) {
+  VariableDefinitions parseNode(Element element, Parsing parsing) {
     if (definitions != null) return definitions;
-    listener.withCurrentElement(element, () {
+    DiagnosticReporter reporter = parsing.reporter;
+    reporter.withCurrentElement(element, () {
       definitions = parse(
-          listener, element, declarationSite,
+          parsing, element, declarationSite,
           (Parser parser) => parser.parseMember(beginToken));
 
       if (!hasParseError &&
@@ -281,7 +282,7 @@ class PartialFieldList extends VariableList with PartialElement {
           !definitions.modifiers.isConst &&
           definitions.type == null &&
           !definitions.isErroneous) {
-        listener.reportError(
+        reporter.reportErrorMessage(
             definitions,
             MessageKind.GENERIC,
             { 'text': 'A field declaration must start with var, final, '
@@ -291,17 +292,17 @@ class PartialFieldList extends VariableList with PartialElement {
     return definitions;
   }
 
-  computeType(Element element, Compiler compiler) {
+  computeType(Element element, Resolution resolution) {
     if (type != null) return type;
     // TODO(johnniwinther): Compute this in the resolver.
-    compiler.withCurrentElement(element, () {
-      VariableDefinitions node = parseNode(element, compiler);
-      if (node.type != null) {
-        type = compiler.resolver.resolveTypeAnnotation(element, node.type);
-      } else {
-        type = const DynamicType();
-      }
-    });
+    VariableDefinitions node = parseNode(element, resolution.parsing);
+    if (node.type != null) {
+      type = resolution.reporter.withCurrentElement(element, () {
+        return resolution.resolveTypeAnnotation(element, node.type);
+      });
+    } else {
+      type = const DynamicType();
+    }
     assert(type != null);
     return type;
   }
@@ -321,10 +322,10 @@ class PartialTypedefElement extends TypedefElementX with PartialElement {
 
   Token get token => beginToken;
 
-  Node parseNode(DiagnosticListener listener) {
+  Node parseNode(Parsing parsing) {
     if (cachedNode != null) return cachedNode;
     cachedNode = parse(
-        listener, this, declarationSite,
+        parsing, this, declarationSite,
         (p) => p.parseTopLevelDeclaration(token));
     return cachedNode;
   }
@@ -345,7 +346,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
 
   PartialMetadataAnnotation(this.beginToken, this.tokenAfterEndToken);
 
-  bool get isErroneous => hasParseError;
+  bool get isMalformed => hasParseError;
 
   DeclarationSite get declarationSite => this;
 
@@ -363,9 +364,9 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
     throw new UnsupportedError("endToken=");
   }
 
-  Node parseNode(DiagnosticListener listener) {
+  Node parseNode(Parsing parsing) {
     if (cachedNode != null) return cachedNode;
-    var metadata = parse(listener,
+    var metadata = parse(parsing,
                          annotatedElement,
                          declarationSite,
                          (p) => p.parseMetadata(beginToken));
@@ -419,11 +420,13 @@ class PartialClassElement extends ClassElementX with PartialElement {
     return cachedNode;
   }
 
-  ClassNode parseNode(Compiler compiler) {
+  ClassNode parseNode(Parsing parsing) {
     if (cachedNode != null) return cachedNode;
-    compiler.withCurrentElement(this, () {
-      compiler.parser.measure(() {
-        MemberListener listener = new MemberListener(compiler, this);
+    DiagnosticReporter reporter = parsing.reporter;
+    reporter.withCurrentElement(this, () {
+      parsing.measure(() {
+        MemberListener listener = new MemberListener(
+            parsing.getScannerOptionsFor(this), reporter, this);
         Parser parser = new ClassElementParser(listener);
         try {
           Token token = parser.parseTopLevelDeclaration(beginToken);
@@ -450,13 +453,9 @@ class PartialClassElement extends ClassElementX with PartialElement {
           hasParseError = true;
         }
       });
-      compiler.patchParser.measure(() {
-        if (isPatched) {
-          // TODO(lrn): Perhaps extract functionality so it doesn't
-          // need compiler.
-          compiler.patchParser.parsePatchClassNode(patch);
-        }
-      });
+      if (isPatched) {
+        parsing.parsePatchClass(patch);
+      }
     });
     return cachedNode;
   }
@@ -477,23 +476,29 @@ class PartialClassElement extends ClassElementX with PartialElement {
 }
 
 Node parse(
-    DiagnosticListener diagnosticListener,
+    Parsing parsing,
     ElementX element,
     PartialElement partial,
     doParse(Parser parser)) {
-  CompilationUnitElement unit = element.compilationUnit;
-  NodeListener listener = new NodeListener(diagnosticListener, unit);
-  listener.memberErrors = listener.memberErrors.prepend(false);
-  try {
-    if (partial.hasParseError) {
-      listener.suppressParseErrors = true;
-    }
-    doParse(new Parser(listener));
-  } on ParserError catch (e) {
-    partial.hasParseError = true;
-    return new ErrorNode(element.position, e.reason);
-  }
-  Node node = listener.popNode();
-  assert(listener.nodes.isEmpty);
-  return node;
+  DiagnosticReporter reporter = parsing.reporter;
+  return parsing.measure(() {
+    return reporter.withCurrentElement(element, () {
+      CompilationUnitElement unit = element.compilationUnit;
+      NodeListener listener = new NodeListener(
+          parsing.getScannerOptionsFor(element), reporter, unit);
+      listener.memberErrors = listener.memberErrors.prepend(false);
+      try {
+        if (partial.hasParseError) {
+          listener.suppressParseErrors = true;
+        }
+        doParse(new Parser(listener));
+      } on ParserError catch (e) {
+        partial.hasParseError = true;
+        return new ErrorNode(element.position, e.reason);
+      }
+      Node node = listener.popNode();
+      assert(listener.nodes.isEmpty);
+      return node;
+    });
+  });
 }

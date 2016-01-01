@@ -12,7 +12,13 @@ part of dart.collection;
  */
 class UnmodifiableListView<E> extends UnmodifiableListBase<E> {
   final Iterable<E> _source;
-  /** Create an unmodifiable list backed by [source]. */
+
+  /**
+   * Creates an unmodifiable list backed by [source].
+   *
+   * The [source] of the elements may be a [List] or any [Iterable] with
+   * efficient [Iterable.length] and [Iterable.elementAt].
+   */
   UnmodifiableListView(Iterable<E> source) : _source = source;
   int get length => _source.length;
   E operator[](int index) => _source.elementAt(index);

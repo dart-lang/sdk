@@ -60,6 +60,9 @@ abstract class ElementCommon implements Element {
   bool get isGenerativeConstructorBody =>
       kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
 
+  bool get isFactoryConstructor =>
+      kind == ElementKind.FACTORY_CONSTRUCTOR;
+
   @override
   bool get isVariable => kind == ElementKind.VARIABLE;
 
@@ -76,10 +79,13 @@ abstract class ElementCommon implements Element {
   bool get isInitializingFormal => kind == ElementKind.INITIALIZING_FORMAL;
 
   @override
-  bool get isErroneous => kind == ElementKind.ERROR;
+  bool get isError => kind == ElementKind.ERROR;
 
   @override
   bool get isAmbiguous => kind == ElementKind.AMBIGUOUS;
+
+  @override
+  bool get isMalformed => false;
 
   @override
   bool get isWarnOnUse => kind == ElementKind.WARN_ON_USE;
@@ -133,9 +139,9 @@ abstract class LibraryElementCommon implements LibraryElement {
   bool get isInternalLibrary =>
       isPlatformLibrary && canonicalUri.path.startsWith('_');
 
-  String getLibraryOrScriptName() {
-    if (hasLibraryName()) {
-      return getLibraryName();
+  String get libraryOrScriptName {
+    if (hasLibraryName) {
+      return libraryName;
     } else {
       // Use the file name as script name.
       String path = canonicalUri.path;
@@ -145,7 +151,7 @@ abstract class LibraryElementCommon implements LibraryElement {
 
   int compareTo(LibraryElement other) {
     if (this == other) return 0;
-    return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
+    return libraryOrScriptName.compareTo(other.libraryOrScriptName);
   }
 }
 
@@ -406,22 +412,11 @@ abstract class ClassElementCommon implements ClassElement {
 
   @override
   bool implementsInterface(ClassElement intrface) {
-    for (DartType implementedInterfaceType in allSupertypes) {
-      ClassElement implementedInterface = implementedInterfaceType.element;
-      if (identical(implementedInterface, intrface)) {
-        return true;
-      }
-    }
-    return false;
+    return this != intrface &&
+        allSupertypesAndSelf.asInstanceOf(intrface) != null;
   }
 
-  /**
-   * Returns true if [this] is a subclass of [cls].
-   *
-   * This method is not to be used for checking type hierarchy and
-   * assignments, because it does not take parameterized types into
-   * account.
-   */
+  @override
   bool isSubclassOf(ClassElement cls) {
     // Use [declaration] for both [this] and [cls], because
     // declaration classes hold the superclass hierarchy.
@@ -435,6 +430,11 @@ abstract class ClassElementCommon implements ClassElement {
   FunctionType get callType {
     MemberSignature member = lookupInterfaceMember(Names.call);
     return member != null && member.isMethod ? member.type : null;
+  }
+
+  @override
+  bool get isNamedMixinApplication {
+    return isMixinApplication && !isUnnamedMixinApplication;
   }
 }
 

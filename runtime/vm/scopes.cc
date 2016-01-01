@@ -250,8 +250,12 @@ int LocalScope::AllocateVariables(int first_parameter_index,
 
 
 // The parser creates internal variables that start with ":"
-static bool IsInternalIdentifier(const String& str) {
+static bool IsFilteredIdentifier(const String& str) {
   ASSERT(str.Length() > 0);
+  if (str.raw() == Symbols::AsyncOperation().raw()) {
+    // Keep :async_op for asynchronous debugging.
+    return false;
+  }
   return str.CharAt(0) == ':';
 }
 
@@ -266,10 +270,8 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
     for (int i = 0; i < context_scope.num_variables(); i++) {
       String& name = String::Handle(context_scope.NameAt(i));
       RawLocalVarDescriptors::VarInfoKind kind;
-      if (!IsInternalIdentifier(name)) {
+      if (!IsFilteredIdentifier(name)) {
         kind = RawLocalVarDescriptors::kContextVar;
-      } else if (name.raw() == Symbols::AsyncOperation().raw()) {
-        kind = RawLocalVarDescriptors::kAsyncOperation;
       } else {
         continue;
       }
@@ -319,7 +321,18 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
     if ((var->owner() == this) && !var->is_invisible()) {
-      if (!IsInternalIdentifier(var->name())) {
+      if (var->name().raw() == Symbols::CurrentContextVar().raw()) {
+        // This is the local variable in which the function saves its
+        // own context before calling a closure function.
+        VarDesc desc;
+        desc.name = &var->name();
+        desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
+        desc.info.scope_id = 0;
+        desc.info.begin_pos = 0;
+        desc.info.end_pos = 0;
+        desc.info.set_index(var->index());
+        vars->Add(desc);
+      } else if (!IsFilteredIdentifier(var->name())) {
         // This is a regular Dart variable, either stack-based or captured.
         VarDesc desc;
         desc.name = &var->name();
@@ -334,34 +347,6 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
         }
         desc.info.begin_pos = var->token_pos();
         desc.info.end_pos = var->owner()->end_token_pos();
-        desc.info.set_index(var->index());
-        vars->Add(desc);
-      } else if (var->name().raw() == Symbols::CurrentContextVar().raw()) {
-        // This is the local variable in which the function saves its
-        // own context before calling a closure function.
-        VarDesc desc;
-        desc.name = &var->name();
-        desc.info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
-        desc.info.scope_id = 0;
-        desc.info.begin_pos = 0;
-        desc.info.end_pos = 0;
-        desc.info.set_index(var->index());
-        vars->Add(desc);
-      } else if (var->name().raw() == Symbols::AsyncOperation().raw()) {
-        // The async continuation.
-        ASSERT(var->is_captured());
-        VarDesc desc;
-        desc.name = &var->name();
-        desc.info.set_kind(RawLocalVarDescriptors::kAsyncOperation);
-        if (var->is_captured()) {
-          ASSERT(var->owner() != NULL);
-          ASSERT(var->owner()->context_level() >= 0);
-          desc.info.scope_id = var->owner()->context_level();
-        } else {
-          desc.info.scope_id = *scope_id;
-        }
-        desc.info.begin_pos = 0;
-        desc.info.end_pos = 0;
         desc.info.set_index(var->index());
         vars->Add(desc);
       }
@@ -591,7 +576,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     if (context_scope.IsConstAt(i)) {
       variable = new LocalVariable(context_scope.TokenIndexAt(i),
           String::ZoneHandle(context_scope.NameAt(i)),
-          AbstractType::ZoneHandle(Type::DynamicType()));
+          Object::dynamic_type());
       variable->SetConstValue(
           Instance::ZoneHandle(context_scope.ConstValueAt(i)));
     } else {

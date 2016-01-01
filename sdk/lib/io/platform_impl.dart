@@ -29,11 +29,13 @@ class _Platform {
   external static _environment();
   external static List<String> _executableArguments();
   external static String _packageRoot();
+  external static String _packageConfig();
   external static String _version();
 
   static String executable = _executable();
   static String resolvedExecutable = _resolvedExecutable();
   static String packageRoot = _packageRoot();
+  static String packageConfig = _packageConfig();
 
   // Cache the OS environemnt. This can be an OSError instance if
   // retrieving the environment failed.

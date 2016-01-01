@@ -15,14 +15,20 @@ class JSONStream;
 // Metrics for each isolate.
 #define ISOLATE_METRIC_LIST(V)                                                 \
   V(MetricHeapOldUsed, HeapOldUsed, "heap.old.used", kByte)                    \
+  V(MaxMetric, HeapOldUsedMax, "heap.old.used.max", kByte)                     \
   V(MetricHeapOldCapacity, HeapOldCapacity, "heap.old.capacity", kByte)        \
+  V(MaxMetric, HeapOldCapacityMax, "heap.old.capacity.max", kByte)             \
   V(MetricHeapOldExternal, HeapOldExternal, "heap.old.external", kByte)        \
   V(MetricHeapNewUsed, HeapNewUsed, "heap.new.used", kByte)                    \
+  V(MaxMetric, HeapNewUsedMax, "heap.new.used.max", kByte)                     \
   V(MetricHeapNewCapacity, HeapNewCapacity, "heap.new.capacity", kByte)        \
+  V(MaxMetric, HeapNewCapacityMax, "heap.new.capacity.max", kByte)             \
   V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)        \
+  V(MetricHeapUsed, HeapGlobalUsed, "heap.global.used", kByte)                 \
+  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)               \
 
 #define VM_METRIC_LIST(V)                                                      \
-  V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)            \
+  V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)
 
 class Metric {
  public:
@@ -102,6 +108,26 @@ class Metric {
 };
 
 
+// A Metric class that reports the maximum value observed.
+// Initial maximum is kMinInt64.
+class MaxMetric : public Metric {
+ public:
+  MaxMetric();
+
+  void SetValue(int64_t new_value);
+};
+
+
+// A Metric class that reports the minimum value observed.
+// Initial minimum is kMaxInt64.
+class MinMetric : public Metric {
+ public:
+  MinMetric();
+
+  void SetValue(int64_t new_value);
+};
+
+
 class MetricHeapOldUsed : public Metric {
  protected:
   virtual int64_t Value() const;
@@ -143,6 +169,11 @@ class MetricIsolateCount : public Metric {
   virtual int64_t Value() const;
 };
 
+
+class MetricHeapUsed : public Metric {
+ protected:
+  virtual int64_t Value() const;
+};
 
 }  // namespace dart
 

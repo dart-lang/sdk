@@ -7,11 +7,8 @@ import "package:expect/expect.dart";
 /// Returns its argument.
 ///
 /// Prevents static optimizations and inlining.
-confuse(x) {
-  // DateTime.now() cannot be predicted statically.
-  if (new DateTime.now() == 42) return confuse(2);
-  return x;
-}
+@NoInline() @AssumeDynamic()
+confuse(x) => x;
 
 main() {
   // Make sure that const maps use the == operator and not identical. The

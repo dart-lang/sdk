@@ -37,11 +37,11 @@ class StacktraceBuilder : public ValueObject {
 
 class RegularStacktraceBuilder : public StacktraceBuilder {
  public:
-  explicit RegularStacktraceBuilder(Isolate* isolate)
+  explicit RegularStacktraceBuilder(Zone* zone)
       : code_list_(
-          GrowableObjectArray::Handle(isolate, GrowableObjectArray::New())),
+          GrowableObjectArray::Handle(zone, GrowableObjectArray::New())),
         pc_offset_list_(
-          GrowableObjectArray::Handle(isolate, GrowableObjectArray::New())) { }
+          GrowableObjectArray::Handle(zone, GrowableObjectArray::New())) { }
   ~RegularStacktraceBuilder() { }
 
   const GrowableObjectArray& code_list() const { return code_list_; }
@@ -111,7 +111,7 @@ void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
 }
 
 
-static void BuildStackTrace(Isolate* isolate, StacktraceBuilder* builder) {
+static void BuildStackTrace(StacktraceBuilder* builder) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
@@ -132,7 +132,7 @@ static void BuildStackTrace(Isolate* isolate, StacktraceBuilder* builder) {
 // exception handler. Once found, set the pc, sp and fp so that execution
 // can continue in that frame. Sets 'needs_stacktrace' if there is no
 // cath-all handler or if a stack-trace is specified in the catch.
-static bool FindExceptionHandler(Isolate* isolate,
+static bool FindExceptionHandler(Thread* thread,
                                  uword* handler_pc,
                                  uword* handler_sp,
                                  uword* handler_fp,
@@ -146,7 +146,7 @@ static bool FindExceptionHandler(Isolate* isolate,
   uword temp_handler_pc = kUwordMax;
   while (!frame->IsEntryFrame()) {
     if (frame->IsDartFrame()) {
-      if (frame->FindExceptionHandler(isolate,
+      if (frame->FindExceptionHandler(thread,
                                       &temp_handler_pc,
                                       needs_stacktrace,
                                       &is_catch_all)) {
@@ -247,18 +247,20 @@ static RawField* LookupStacktraceField(const Instance& instance) {
     // 'class Error' is not a predefined class.
     return Field::null();
   }
-  Isolate* isolate = Isolate::Current();
-  Class& error_class = Class::Handle(isolate,
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  Class& error_class = Class::Handle(zone,
                                      isolate->object_store()->error_class());
   if (error_class.IsNull()) {
-    const Library& core_lib = Library::Handle(isolate, Library::CoreLibrary());
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
     error_class = core_lib.LookupClass(Symbols::Error());
     ASSERT(!error_class.IsNull());
     isolate->object_store()->set_error_class(error_class);
   }
   // If instance class extends 'class Error' return '_stackTrace' field.
-  Class& test_class = Class::Handle(isolate, instance.clazz());
-  AbstractType& type = AbstractType::Handle(isolate, AbstractType::null());
+  Class& test_class = Class::Handle(zone, instance.clazz());
+  AbstractType& type = AbstractType::Handle(zone, AbstractType::null());
   while (true) {
     if (test_class.raw() == error_class.raw()) {
       return error_class.LookupInstanceField(Symbols::_stackTrace());
@@ -273,14 +275,14 @@ static RawField* LookupStacktraceField(const Instance& instance) {
 
 
 RawStacktrace* Exceptions::CurrentStacktrace() {
-  Isolate* isolate = Isolate::Current();
-  RegularStacktraceBuilder frame_builder(isolate);
-  BuildStackTrace(isolate, &frame_builder);
+  Zone* zone = Thread::Current()->zone();
+  RegularStacktraceBuilder frame_builder(zone);
+  BuildStackTrace(&frame_builder);
 
   // Create arrays for code and pc_offset tuples of each frame.
-  const Array& full_code_array = Array::Handle(isolate,
+  const Array& full_code_array = Array::Handle(zone,
       Array::MakeArray(frame_builder.code_list()));
-  const Array& full_pc_offset_array = Array::Handle(isolate,
+  const Array& full_pc_offset_array = Array::Handle(zone,
       Array::MakeArray(frame_builder.pc_offset_list()));
   const Stacktrace& full_stacktrace = Stacktrace::Handle(
       Stacktrace::New(full_code_array, full_pc_offset_array));
@@ -292,9 +294,10 @@ static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
                                  const Instance& existing_stacktrace,
                                  const bool is_rethrow) {
+  Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   bool use_preallocated_stacktrace = false;
-  Instance& exception = Instance::Handle(isolate, incoming_exception.raw());
+  Instance& exception = Instance::Handle(zone, incoming_exception.raw());
   if (exception.IsNull()) {
     exception ^= Exceptions::Create(Exceptions::kNullThrown,
                                     Object::empty_array());
@@ -305,29 +308,29 @@ static void ThrowExceptionHelper(Thread* thread,
   uword handler_pc = 0;
   uword handler_sp = 0;
   uword handler_fp = 0;
-  Instance& stacktrace = Instance::Handle(isolate);
+  Instance& stacktrace = Instance::Handle(zone);
   bool handler_exists = false;
   bool handler_needs_stacktrace = false;
   if (use_preallocated_stacktrace) {
     stacktrace ^= isolate->object_store()->preallocated_stack_trace();
     PreallocatedStacktraceBuilder frame_builder(stacktrace);
-    handler_exists = FindExceptionHandler(isolate,
+    handler_exists = FindExceptionHandler(thread,
                                           &handler_pc,
                                           &handler_sp,
                                           &handler_fp,
                                           &handler_needs_stacktrace);
     if (handler_needs_stacktrace) {
-      BuildStackTrace(isolate, &frame_builder);
+      BuildStackTrace(&frame_builder);
     }
   } else {
     // Get stacktrace field of class Error. This is needed to determine whether
     // we have a subclass of Error which carries around its stack trace.
     const Field& stacktrace_field =
-        Field::Handle(isolate, LookupStacktraceField(exception));
+        Field::Handle(zone, LookupStacktraceField(exception));
 
     // Find the exception handler and determine if the handler needs a
     // stacktrace.
-    handler_exists = FindExceptionHandler(isolate,
+    handler_exists = FindExceptionHandler(thread,
                                           &handler_pc,
                                           &handler_sp,
                                           &handler_fp,
@@ -379,7 +382,7 @@ static void ThrowExceptionHelper(Thread* thread,
     // dart invocation sequence above it, print diagnostics and terminate
     // the isolate etc.).
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
-        isolate, UnhandledException::New(exception, stacktrace));
+        zone, UnhandledException::New(exception, stacktrace));
     stacktrace = Stacktrace::null();
     JumpToExceptionHandler(thread,
                            handler_pc,
@@ -485,7 +488,8 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
     isolate->debugger()->SignalExceptionThrown(exception);
   }
   // Null object is a valid exception object.
-  ThrowExceptionHelper(thread, exception, Stacktrace::Handle(isolate), false);
+  ThrowExceptionHelper(thread, exception,
+      Stacktrace::Handle(thread->zone()), false);
 }
 
 void Exceptions::ReThrow(Thread* thread,
@@ -498,14 +502,14 @@ void Exceptions::ReThrow(Thread* thread,
 
 void Exceptions::PropagateError(const Error& error) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->top_exit_frame_info() != 0);
+  Zone* zone = thread->zone();
+  ASSERT(thread->top_exit_frame_info() != 0);
   if (error.IsUnhandledException()) {
     // If the error object represents an unhandled exception, then
     // rethrow the exception in the normal fashion.
     const UnhandledException& uhe = UnhandledException::Cast(error);
-    const Instance& exc = Instance::Handle(isolate, uhe.exception());
-    const Instance& stk = Instance::Handle(isolate, uhe.stacktrace());
+    const Instance& exc = Instance::Handle(zone, uhe.exception());
+    const Instance& stk = Instance::Handle(zone, uhe.stacktrace());
     Exceptions::ReThrow(thread, exc, stk);
   } else {
     // Return to the invocation stub and return this error object.  The
@@ -516,7 +520,7 @@ void Exceptions::PropagateError(const Error& error) {
     uword handler_fp = 0;
     FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
     JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp, error,
-                           Stacktrace::Handle(isolate));  // Null stacktrace.
+                           Stacktrace::Handle(zone));  // Null stacktrace.
   }
   UNREACHABLE();
 }
@@ -524,8 +528,8 @@ void Exceptions::PropagateError(const Error& error) {
 
 void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  const Object& result = Object::Handle(isolate, Create(type, arguments));
+  const Object& result =
+      Object::Handle(thread->zone(), Create(type, arguments));
   if (result.IsError()) {
     // We got an error while constructing the exception object.
     // Propagate the error instead of throwing the exception.
@@ -541,7 +545,7 @@ void Exceptions::ThrowOOM() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   const Instance& oom = Instance::Handle(
-      isolate, isolate->object_store()->out_of_memory());
+      thread->zone(), isolate->object_store()->out_of_memory());
   Throw(thread, oom);
 }
 
@@ -550,7 +554,7 @@ void Exceptions::ThrowStackOverflow() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   const Instance& stack_overflow = Instance::Handle(
-      isolate, isolate->object_store()->stack_overflow());
+      thread->zone(), isolate->object_store()->stack_overflow());
   Throw(thread, stack_overflow);
 }
 

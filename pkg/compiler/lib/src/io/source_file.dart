@@ -137,31 +137,53 @@ abstract class SourceFile implements LineColumnProvider {
     if (colorize == null) {
       colorize = (text) => text;
     }
-    var line = getLine(start);
-    var column = getColumn(line, start);
+    if (end > length) {
+      start = length - 1;
+      end = length;
+    }
 
-    var buf = new StringBuffer('${filename}:');
+    int lineStart = getLine(start);
+    int columnStart = getColumn(lineStart, start);
+    int lineEnd = getLine(end);
+    int columnEnd = getColumn(lineEnd, end);
+
+    StringBuffer buf = new StringBuffer('${filename}:');
     if (start != end || start != 0) {
       // Line/column info is relevant.
-      buf.write('${line + 1}:${column + 1}:');
+      buf.write('${lineStart + 1}:${columnStart + 1}:');
     }
     buf.write('\n$message\n');
 
     if (start != end && includeSourceLine) {
-      String textLine = getLineText(line);
+      if (lineStart == lineEnd) {
+        String textLine = getLineText(lineStart);
 
-      int toColumn = min(column + (end-start), textLine.length);
-      buf.write(textLine.substring(0, column));
-      buf.write(colorize(textLine.substring(column, toColumn)));
-      buf.write(textLine.substring(toColumn));
+        int toColumn = min(columnStart + (end-start), textLine.length);
+        buf.write(textLine.substring(0, columnStart));
+        buf.write(colorize(textLine.substring(columnStart, toColumn)));
+        buf.write(textLine.substring(toColumn));
 
-      int i = 0;
-      for (; i < column; i++) {
-        buf.write(' ');
-      }
+        int i = 0;
+        for (; i < columnStart; i++) {
+          buf.write(' ');
+        }
 
-      for (; i < toColumn; i++) {
-        buf.write(colorize('^'));
+        for (; i < toColumn; i++) {
+          buf.write(colorize('^'));
+        }
+      } else {
+        for (int line = lineStart; line <= lineEnd; line++) {
+          String textLine = getLineText(line);
+          if (line == lineStart) {
+            buf.write(textLine.substring(0, columnStart));
+            buf.write(colorize(textLine.substring(columnStart)));
+          } else if (line == lineEnd) {
+            buf.write(colorize(textLine.substring(0, columnEnd)));
+            buf.write(textLine.substring(columnEnd));
+          } else {
+            buf.write(colorize(textLine));
+          }
+        }
       }
     }
 

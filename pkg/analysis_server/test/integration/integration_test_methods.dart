@@ -13,7 +13,8 @@ library test.integration.methods;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_tests.dart';
@@ -233,6 +234,41 @@ abstract class IntegrationTestMixin {
         .then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
       return new AnalysisGetHoverResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
+   * Return the transitive closure of reachable sources for a given file.
+   *
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * GET_REACHABLE_SOURCES_INVALID_FILE will be generated.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file for which reachable source information is being requested.
+   *
+   * Returns
+   *
+   * sources ( Map<String, List<String>> )
+   *
+   *   A mapping from source URIs to directly reachable source URIs. For
+   *   example, a file "foo.dart" that imports "bar.dart" would have the
+   *   corresponding mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If
+   *   "bar.dart" has further imports (or exports) there will be a mapping from
+   *   the URI "file:///bar.dart" to them. To check if a specific URI is
+   *   reachable from a given file, clients can check for its presence in the
+   *   resulting key set.
+   */
+  Future<AnalysisGetReachableSourcesResult> sendAnalysisGetReachableSources(String file) {
+    var params = new AnalysisGetReachableSourcesParams(file).toJson();
+    return server.send("analysis.getReachableSources", params)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisGetReachableSourcesResult.fromJson(decoder, 'result', result);
     });
   }
 
@@ -689,6 +725,35 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisHighlightsParams> _onAnalysisHighlights;
 
   /**
+   * Reports the classes that are implemented or extended and class members
+   * that are implemented or overridden in a file.
+   *
+   * This notification is not subscribed to by default. Clients can subscribe
+   * by including the value "IMPLEMENTED" in the list of services passed in an
+   * analysis.setSubscriptions request.
+   *
+   * Parameters
+   *
+   * file ( FilePath )
+   *
+   *   The file with which the implementations are associated.
+   *
+   * classes ( List<ImplementedClass> )
+   *
+   *   The classes defined in the file that are implemented or extended.
+   *
+   * members ( List<ImplementedMember> )
+   *
+   *   The member defined in the file that are implemented or overridden.
+   */
+  Stream<AnalysisImplementedParams> onAnalysisImplemented;
+
+  /**
+   * Stream controller for [onAnalysisImplemented].
+   */
+  StreamController<AnalysisImplementedParams> _onAnalysisImplemented;
+
+  /**
    * Reports that the navigation information associated with a region of a
    * single file has become invalid and should be re-requested.
    *
@@ -800,6 +865,18 @@ abstract class IntegrationTestMixin {
    *
    *   The file with which the outline is associated.
    *
+   * kind ( FileKind )
+   *
+   *   The kind of the file.
+   *
+   * libraryName ( optional String )
+   *
+   *   The name of the library defined by the file using a "library" directive,
+   *   or referenced by a "part of" directive. If both "library" and "part of"
+   *   directives are present, then the "library" directive takes precedence.
+   *   This field will be omitted if the file has neither "library" nor "part
+   *   of" directives.
+   *
    * outline ( Outline )
    *
    *   The outline associated with the file.
@@ -812,7 +889,7 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /**
-   * Reports the overridding members in a file.
+   * Reports the overriding members in a file.
    *
    * This notification is not subscribed to by default. Clients can subscribe
    * by including the value "OVERRIDES" in the list of services passed in an
@@ -1403,7 +1480,7 @@ abstract class IntegrationTestMixin {
    *
    * If directives of the Dart file cannot be organized, for example because it
    * has scan or parse errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR
-   * will be generated. The message will provide datails about the reason.
+   * will be generated. The message will provide details about the reason.
    *
    * Parameters
    *
@@ -1587,6 +1664,23 @@ abstract class IntegrationTestMixin {
   StreamController<ExecutionLaunchDataParams> _onExecutionLaunchData;
 
   /**
+   * Return server diagnostics.
+   *
+   * Returns
+   *
+   * contexts ( List<ContextData> )
+   *
+   *   The list of analysis contexts.
+   */
+  Future<DiagnosticGetDiagnosticsResult> sendDiagnosticGetDiagnostics() {
+    return server.send("diagnostic.getDiagnostics", null)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new DiagnosticGetDiagnosticsResult.fromJson(decoder, 'result', result);
+    });
+  }
+
+  /**
    * Initialize the fields in InttestMixin, and ensure that notifications will
    * be handled.
    */
@@ -1607,6 +1701,8 @@ abstract class IntegrationTestMixin {
     onAnalysisFolding = _onAnalysisFolding.stream.asBroadcastStream();
     _onAnalysisHighlights = new StreamController<AnalysisHighlightsParams>(sync: true);
     onAnalysisHighlights = _onAnalysisHighlights.stream.asBroadcastStream();
+    _onAnalysisImplemented = new StreamController<AnalysisImplementedParams>(sync: true);
+    onAnalysisImplemented = _onAnalysisImplemented.stream.asBroadcastStream();
     _onAnalysisInvalidate = new StreamController<AnalysisInvalidateParams>(sync: true);
     onAnalysisInvalidate = _onAnalysisInvalidate.stream.asBroadcastStream();
     _onAnalysisNavigation = new StreamController<AnalysisNavigationParams>(sync: true);
@@ -1663,6 +1759,10 @@ abstract class IntegrationTestMixin {
       case "analysis.highlights":
         expect(params, isAnalysisHighlightsParams);
         _onAnalysisHighlights.add(new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
+        break;
+      case "analysis.implemented":
+        expect(params, isAnalysisImplementedParams);
+        _onAnalysisImplemented.add(new AnalysisImplementedParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.invalidate":
         expect(params, isAnalysisInvalidateParams);

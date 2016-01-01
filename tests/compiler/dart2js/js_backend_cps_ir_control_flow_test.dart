@@ -34,16 +34,22 @@ main() {
 }
 """, """
 function() {
-  L0:
+  L1:
     while (true)
-      while (true) {
-        while (V.foo(true))
-          if (V.foo(false)) {
-            P.print(2);
-            continue L0;
+      L0:
+        while (true)
+          while (true) {
+            P.print(true);
+            if (false) {
+              P.print(1);
+              continue L0;
+            }
+            P.print(false);
+            if (false) {
+              P.print(2);
+              continue L1;
+            }
           }
-        P.print(1);
-      }
 }"""),
   const TestEntry("""
 foo(a) { print(a); return a; }
@@ -56,18 +62,25 @@ main() {
   print(2);
 }""", """
 function() {
-  var i = 0;
-  for (; V.foo(true) === true; i = V.foo(i)) {
-    P.print(1);
-    if (V.foo(false) === true)
-      break;
+  while (true) {
+    P.print(true);
+    if (true === true) {
+      P.print(1);
+      P.print(false);
+      if (false !== true) {
+        P.print(0);
+        continue;
+      }
+    }
+    P.print(2);
+    return null;
   }
-  P.print(2);
 }"""),
 const TestEntry("""
 foo(a) { print(a); return a; }
 
 main() {
+ foo(false);
  if (foo(true)) {
    print(1);
  } else {
@@ -76,13 +89,16 @@ main() {
  print(3);
 }""", """
 function() {
-  V.foo(true) ? P.print(1) : P.print(2);
+  P.print(false);
+  P.print(true);
+  true ? P.print(1) : P.print(2);
   P.print(3);
 }"""),
 const TestEntry("""
 foo(a) { print(a); return a; }
 
 main() {
+ foo(false);
  if (foo(true)) {
    print(1);
    print(1);
@@ -93,7 +109,9 @@ main() {
  print(3);
 }""", """
 function() {
-  if (V.foo(true)) {
+  P.print(false);
+  P.print(true);
+  if (true) {
     P.print(1);
     P.print(1);
   } else {
@@ -123,7 +141,7 @@ main() {
   }
 }""","""
 function() {
-  V.foo();
+  P.print("2");
   P.print("good");
 }"""),
   const TestEntry("""
@@ -134,11 +152,18 @@ main() {
   }
 }""",r"""
 function() {
-  var list = [1, 2, 3, 4, 5, 6], $length = list.length, i = 0;
-  for (; i < list.length; i = i + 1) {
-    P.print(list[i]);
-    if ($length !== list.length)
-      H.throwConcurrentModificationError(list);
+  var list = [1, 2, 3, 4, 5, 6], i = 0, v0;
+  for (; i < 6; i = i + 1) {
+    v0 = H.S(list[i]);
+    if (typeof dartPrint == "function")
+      dartPrint(v0);
+    else if (typeof console == "object" && typeof console.log != "undefined")
+      console.log(v0);
+    else if (!(typeof window == "object")) {
+      if (!(typeof print == "function"))
+        throw "Unable to print message: " + String(v0);
+      print(v0);
+    }
   }
 }"""),
   const TestEntry("""
@@ -151,22 +176,14 @@ main() {
   }
 }""",r"""
 function() {
-  var xs = ["x", "y", "z"], ys = ["A", "B", "C"], $length = xs.length, length1 = ys.length, i, i1, current, current1;
-  if ($length !== xs.length)
-    H.throwConcurrentModificationError(xs);
-  i = 0;
-  i1 = 0;
-  for (; i < xs.length; i = i + 1, i1 = i1 + 1) {
+  var xs = ["x", "y", "z"], ys = ["A", "B", "C"], i = 0, i1 = 0, current, current1;
+  for (; i < 3; i = i + 1, i1 = i1 + 1) {
     current = xs[i];
-    if (length1 !== ys.length)
-      H.throwConcurrentModificationError(ys);
-    if (!(i1 < ys.length))
+    if (!(i1 < 3))
       break;
     current1 = ys[i1];
     P.print(current);
     P.print(current1);
-    if ($length !== xs.length)
-      H.throwConcurrentModificationError(xs);
   }
 }"""),
 ];

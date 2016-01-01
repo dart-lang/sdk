@@ -69,7 +69,7 @@
  * and where both the keys and the values are strings.
  *
  * * [dart:web_sql]&mdash;a database that can be queried with SQL.
- * 
+ *
  * For a tutorial about using the indexed_db library with Dart,
  * check out
  * [Use IndexedDB](http://www.dartlang.org/docs/tutorials/indexeddb/).
@@ -84,6 +84,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 
 $!GENERATED_DART_FILES
 
@@ -106,12 +107,14 @@ class _KeyRangeFactoryProvider {
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkMap = {
 $!TYPE_MAP
 };
 
 $if JSINTEROP
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkFunctionMap = {
 $!TYPE_FUNCTION_MAP
 };

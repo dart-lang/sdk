@@ -14,10 +14,8 @@ class B implements A {
   operator ==(o) => true;  /// 00: compile-time error
 }
 
-confuse(x) {
-  if (new DateTime.now() == 42) return confuse(2);
-  return x;
-}
+@NoInline() @AssumeDynamic()
+confuse(x) => x;
 
 main() {
   // It is a compile-time error if the key type overrides operator ==.

@@ -50,7 +50,12 @@ class StackFrame : public ValueObject {
   }
 
   void set_pc(uword value) {
-    *reinterpret_cast<uword*>(sp_ + (kSavedPcSlotFromSp * kWordSize)) = value;
+    *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize)) = value;
+  }
+
+  void set_pc_marker(RawCode* code) {
+    *reinterpret_cast<RawCode**>(fp() + (kPcMarkerSlotFromFp * kWordSize)) =
+        code;
   }
 
   // Visit objects in the frame.
@@ -72,7 +77,7 @@ class StackFrame : public ValueObject {
 
   RawFunction* LookupDartFunction() const;
   RawCode* LookupDartCode() const;
-  bool FindExceptionHandler(Isolate* isolate,
+  bool FindExceptionHandler(Thread* thread,
                             uword* handler_pc,
                             bool* needs_stacktrace,
                             bool* is_catch_all) const;
@@ -80,13 +85,15 @@ class StackFrame : public ValueObject {
   intptr_t GetTokenPos() const;
 
  protected:
-  explicit StackFrame(Isolate* isolate)
-      : fp_(0), sp_(0), pc_(0), isolate_(isolate) { }
+  explicit StackFrame(Thread* thread)
+      : fp_(0), sp_(0), pc_(0), thread_(thread) { }
 
   // Name of the frame, used for generic frame printing functionality.
   virtual const char* GetName() const { return IsStubFrame()? "stub" : "dart"; }
 
-  Isolate* isolate() const { return isolate_; }
+  Isolate* isolate() const { return thread_->isolate(); }
+
+  Thread* thread() const { return thread_; }
 
  private:
   RawCode* GetCodeObject() const;
@@ -106,7 +113,7 @@ class StackFrame : public ValueObject {
   uword fp_;
   uword sp_;
   uword pc_;
-  Isolate* isolate_;
+  Thread* thread_;
 
   // The iterators FrameSetIterator and StackFrameIterator set the private
   // fields fp_ and sp_ when they return the respective frame objects.
@@ -132,7 +139,7 @@ class ExitFrame : public StackFrame {
   virtual const char* GetName() const { return "exit"; }
 
  private:
-  explicit ExitFrame(Isolate* isolate) : StackFrame(isolate) { }
+  explicit ExitFrame(Thread* thread) : StackFrame(thread) { }
 
   friend class StackFrameIterator;
   DISALLOW_COPY_AND_ASSIGN(ExitFrame);
@@ -157,18 +164,18 @@ class EntryFrame : public StackFrame {
   virtual const char* GetName() const { return "entry"; }
 
  private:
-  explicit EntryFrame(Isolate* isolate) : StackFrame(isolate) { }
+  explicit EntryFrame(Thread* thread) : StackFrame(thread) { }
 
   friend class StackFrameIterator;
   DISALLOW_COPY_AND_ASSIGN(EntryFrame);
 };
 
 
-// A StackFrameIterator can be initialized with an isolate other than the
-// current thread's isolate. Because this is generally a bad idea,
-// it is only allowed on Windows- where it is needed for the profiler.
-// It is the responsibility of users of StackFrameIterator to ensure that the
-// isolate given is not running concurrently on another thread.
+// A StackFrameIterator can be initialized with a thread other than the
+// current thread. Because this is generally a bad idea, it is only allowed on
+// Windows- where it is needed for the profiler. It is the responsibility of
+// users of StackFrameIterator to ensure that the thread given is not running
+// concurrently.
 class StackFrameIterator : public ValueObject {
  public:
   static const bool kValidateFrames = true;
@@ -176,15 +183,15 @@ class StackFrameIterator : public ValueObject {
 
   // Iterators for iterating over all frames from the last ExitFrame to the
   // first EntryFrame.
-  explicit StackFrameIterator(bool validate,
-                              Isolate* isolate = Isolate::Current());
+  StackFrameIterator(bool validate,
+                     Thread* thread = Thread::Current());
   StackFrameIterator(uword last_fp, bool validate,
-                     Isolate* isolate = Isolate::Current());
+                     Thread* thread = Thread::Current());
 
   // Iterator for iterating over all frames from the current frame (given by its
   // fp, sp, and pc) to the first EntryFrame.
   StackFrameIterator(uword fp, uword sp, uword pc, bool validate,
-                     Isolate* isolate = Isolate::Current());
+                     Thread* thread = Thread::Current());
 
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
@@ -213,13 +220,13 @@ class StackFrameIterator : public ValueObject {
     StackFrame* NextFrame(bool validate);
 
    private:
-    explicit FrameSetIterator(Isolate* isolate)
-        : fp_(0), sp_(0), pc_(0), stack_frame_(isolate), isolate_(isolate) { }
+    explicit FrameSetIterator(Thread* thread)
+        : fp_(0), sp_(0), pc_(0), stack_frame_(thread), thread_(thread) { }
     uword fp_;
     uword sp_;
     uword pc_;
     StackFrame stack_frame_;  // Singleton frame returned by NextFrame().
-    Isolate* isolate_;
+    Thread* thread_;
 
     friend class StackFrameIterator;
     DISALLOW_COPY_AND_ASSIGN(FrameSetIterator);
@@ -245,7 +252,7 @@ class StackFrameIterator : public ValueObject {
   ExitFrame exit_;  // Singleton exit frame returned by NextExitFrame().
   FrameSetIterator frames_;
   StackFrame* current_frame_;  // Points to the current frame in the iterator.
-  Isolate* isolate_;
+  Thread* thread_;
 
   DISALLOW_COPY_AND_ASSIGN(StackFrameIterator);
 };
@@ -260,16 +267,17 @@ class StackFrameIterator : public ValueObject {
 // isolate given is not running concurrently on another thread.
 class DartFrameIterator : public ValueObject {
  public:
-  explicit DartFrameIterator(Isolate* isolate = Isolate::Current())
-      : frames_(StackFrameIterator::kDontValidateFrames, isolate) { }
+  explicit DartFrameIterator(Thread* thread = Thread::Current())
+      : frames_(StackFrameIterator::kDontValidateFrames, thread) { }
   DartFrameIterator(uword last_fp,
-                    Isolate* isolate = Isolate::Current())
-      : frames_(last_fp, StackFrameIterator::kDontValidateFrames, isolate) { }
+                    Thread* thread = Thread::Current())
+      : frames_(last_fp, StackFrameIterator::kDontValidateFrames, thread) { }
   DartFrameIterator(uword fp,
                     uword sp,
                     uword pc,
-                    Isolate* isolate = Isolate::Current())
-      : frames_(fp, sp, pc, StackFrameIterator::kDontValidateFrames, isolate) {
+                    Thread* thread = Thread::Current())
+      : frames_(fp, sp, pc,
+                StackFrameIterator::kDontValidateFrames, thread) {
   }
   // Get next dart frame.
   StackFrame* NextFrame() {

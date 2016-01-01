@@ -79,19 +79,23 @@ var fileTests = [
       var writing = await isolate.invokeRpcNoUpgrade(
            '__getFileByID', { 'id' : result['data'][0]['id'] });
 
-      expect(writing['total_read'], equals(0));
-      expect(writing['read_count'], equals(0));
-      expect(writing['write_count'], equals(3));
-      expect(writing['total_written'], equals(3));
+      expect(writing['totalRead'], equals(0));
+      expect(writing['readCount'], equals(0));
+      expect(writing['writeCount'], equals(3));
+      expect(writing['totalWritten'], equals(3));
+      expect(writing['lastWrite'], greaterThan(0));
+      expect(writing['lastRead'], equals(0));
 
       var reading = await isolate.invokeRpcNoUpgrade(
-           '__getFileByID', { 'id' : result['data'][1]['id'] });
+          '__getFileByID', { 'id' : result['data'][1]['id'] });
 
+      expect(reading['totalRead'], equals(5));
+      expect(reading['readCount'], equals(5));
+      expect(reading['writeCount'], equals(0));
+      expect(reading['totalWritten'], equals(0));
+      expect(reading['lastWrite'], equals(0));
+      expect(reading['lastRead'], greaterThan(0));
 
-      expect(reading['total_read'], equals(5));
-      expect(reading['read_count'], equals(5));
-      expect(reading['write_count'], equals(0));
-      expect(reading['total_written'], equals(0));
     } finally {
       await isolate.invokeRpcNoUpgrade('__cleanup', {});
     }

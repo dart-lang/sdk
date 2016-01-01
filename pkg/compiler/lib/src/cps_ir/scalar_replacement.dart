@@ -7,49 +7,33 @@ import 'optimizers.dart';
 
 import 'dart:collection' show Queue;
 
-import '../closure.dart' show
-    ClosureClassElement, Identifiers;
-import '../common/names.dart' show
-    Selectors, Identifiers;
+import '../common.dart';
 import '../compiler.dart' as dart2js show
     Compiler;
-import '../constants/constant_system.dart';
 import '../constants/values.dart';
-import '../dart_types.dart' as types;
-import '../diagnostics/invariant.dart' as dart2js show
-    InternalErrorFunction;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show SourceInformation;
-import '../resolution/access_semantics.dart';
-import '../resolution/operators.dart';
-import '../resolution/send_structure.dart';
-import '../tree/tree.dart' as ast;
 import '../types/types.dart';
-import '../types/constants.dart' show computeTypeMask;
-import '../universe/universe.dart';
 import '../world.dart' show World;
-import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
-import 'cps_ir_nodes_sexpr.dart' show SExpressionStringifier;
 
 /**
  * Replaces aggregates with a set of local values.  Performs inlining of
- * single-use closures to generate more replacable aggregates.
+ * single-use closures to generate more replaceable aggregates.
  */
 class ScalarReplacer extends Pass {
   String get passName => 'Scalar replacement';
 
-  final dart2js.InternalErrorFunction _internalError;
+  final InternalErrorFunction _internalError;
+  final World _classWorld;
 
   ScalarReplacer(dart2js.Compiler compiler)
-      : _internalError = compiler.internalError;
+      : _internalError = compiler.reporter.internalError,
+        _classWorld = compiler.world;
 
   @override
   void rewrite(FunctionDefinition root) {
-    // Set all parent pointers.
-    new ParentVisitor().visit(root);
     ScalarReplacementVisitor analyzer =
-        new ScalarReplacementVisitor(_internalError);
+        new ScalarReplacementVisitor(_internalError, _classWorld);
     analyzer.analyze(root);
     analyzer.process();
   }
@@ -57,18 +41,19 @@ class ScalarReplacer extends Pass {
 
 /**
  * Do scalar replacement of aggregates on instances. Since scalar replacement
- * can create new candidiates, iterate until all scalar replacements are done.
+ * can create new candidates, iterate until all scalar replacements are done.
  */
-class ScalarReplacementVisitor extends RecursiveVisitor {
+class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
 
-  final dart2js.InternalErrorFunction internalError;
+  final InternalErrorFunction internalError;
+  final World classWorld;
   ScalarReplacementRemovalVisitor removalVisitor;
 
   Primitive _current = null;
   Set<Primitive> _allocations = new Set<Primitive>();
   Queue<Primitive> _queue = new Queue<Primitive>();
 
-  ScalarReplacementVisitor(this.internalError) {
+  ScalarReplacementVisitor(this.internalError, this.classWorld) {
     removalVisitor = new ScalarReplacementRemovalVisitor(this);
   }
 
@@ -119,7 +104,8 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
         (ClassElement enclosingClass, FieldElement field) {
           Primitive argument = allocation.arguments[i++].definition;
           fieldInitialValues[field] = argument;
-        });
+        },
+        includeSuperAndInjectedMembers: true);
     }
 
     // Create [MutableVariable]s for each written field. Initialize the
@@ -130,6 +116,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
     InteriorNode insertionPoint = allocation.parent;  // LetPrim
     for (FieldElement field in writes) {
       MutableVariable variable = new MutableVariable(field);
+      variable.type = new TypeMask.nonNullEmpty();
       cells[field] = variable;
       Primitive initialValue = fieldInitialValues[field];
       if (initialValue == null) {
@@ -137,11 +124,11 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
         initialValue = new Constant(new NullConstantValue());
         LetPrim let = new LetPrim(initialValue);
         let.primitive.parent = let;
-        insertionPoint = insertAtBody(insertionPoint, let);
+        insertionPoint = let..insertBelow(insertionPoint);
       }
       LetMutable let = new LetMutable(variable, initialValue);
       let.value.parent = let;
-      insertionPoint = insertAtBody(insertionPoint, let);
+      insertionPoint = let..insertBelow(insertionPoint);
     }
 
     // Replace references with MutableVariable operations or references to the
@@ -153,23 +140,25 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
         MutableVariable variable = cells[getField.field];
         if (variable != null) {
           GetMutable getter = new GetMutable(variable);
+          getter.type = getField.type;
           getter.variable.parent = getter;
-          getter.substituteFor(getField);
+          getField.replaceUsesWith(getter);
           replacePrimitive(getField, getter);
           deletePrimitive(getField);
         } else {
           Primitive value = fieldInitialValues[getField.field];
-          value.substituteFor(getField);
+          getField.replaceUsesWith(value);
           deleteLetPrimOf(getField);
         }
       } else if (use is SetField && use.object == ref) {
         SetField setField = use;
         MutableVariable variable = cells[setField.field];
         Primitive value = setField.value.definition;
+        variable.type = variable.type.union(value.type, classWorld);
         SetMutable setter = new SetMutable(variable, value);
         setter.variable.parent = setter;
         setter.value.parent = setter;
-        setter.substituteFor(setField);
+        setField.replaceUsesWith(setter);
         replacePrimitive(setField, setter);
         deletePrimitive(setField);
       } else {
@@ -182,29 +171,17 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
     deleteLetPrimOf(allocation);
   }
 
-  InteriorNode insertAtBody(
-      InteriorNode insertionPoint, InteriorExpression let) {
-    let.parent = insertionPoint;
-    let.body = insertionPoint.body;
-    let.body.parent = let;
-    insertionPoint.body = let;
-    return let;
-  }
-
   /// Replaces [old] with [primitive] in [old]'s parent [LetPrim].
   void replacePrimitive(Primitive old, Primitive primitive) {
     LetPrim letPrim = old.parent;
     letPrim.primitive = primitive;
+    primitive.parent = letPrim;
   }
 
   void deleteLetPrimOf(Primitive primitive) {
     assert(primitive.hasNoUses);
     LetPrim letPrim = primitive.parent;
-    Node child = letPrim.body;
-    InteriorNode parent = letPrim.parent;
-    child.parent = parent;
-    parent.body  = child;
-
+    letPrim.remove();
     deletePrimitive(primitive);
   }
 
@@ -240,7 +217,7 @@ class ScalarReplacementVisitor extends RecursiveVisitor {
 
 /// Visit a just-deleted subterm and unlink all [Reference]s in it.  Reconsider
 /// allocations for scalar replacement.
-class ScalarReplacementRemovalVisitor extends RecursiveVisitor {
+class ScalarReplacementRemovalVisitor extends TrampolineRecursiveVisitor {
   ScalarReplacementVisitor process;
 
   ScalarReplacementRemovalVisitor(this.process);

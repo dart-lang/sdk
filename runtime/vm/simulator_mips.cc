@@ -699,8 +699,8 @@ Simulator::Simulator() {
   // the size specified by the user and the buffer space needed for
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
-  stack_ = new char[(Isolate::GetSpecifiedStackSize() +
-                     Isolate::kStackSizeBuffer +
+  stack_ = new char[(OSThread::GetSpecifiedStackSize() +
+                     OSThread::kStackSizeBuffer +
                      kSimulatorStackUnderflowSize)];
   icount_ = 0;
   delay_slot_ = false;
@@ -997,7 +997,7 @@ uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
   return StackBase() +
-      (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+      (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 
@@ -1268,6 +1268,7 @@ void Simulator::DoBreak(Instr *instr) {
         d0 = target(d6, d7);
         set_fregister_double(F0, d0);
       } else if (redirection->call_kind() == kBootstrapNativeCall) {
+        ASSERT(redirection->argument_count() == 1);
         NativeArguments* arguments;
         arguments = reinterpret_cast<NativeArguments*>(get_register(A0));
         SimulatorBootstrapNativeCall target =
@@ -1810,6 +1811,12 @@ void Simulator::DecodeCop1(Instr* instr) {
         // Format(instr, "mov.'fmt 'fd, 'fs");
         ASSERT(instr->FormatField() == FMT_D);  // Only D supported.
         set_fregister_double(instr->FdField(), fs_val);
+        break;
+      }
+      case COP1_NEG: {
+        // Format(instr, "neg.'fmt 'fd, 'fs");
+        ASSERT(instr->FormatField() == FMT_D);
+        set_fregister_double(instr->FdField(), -fs_val);
         break;
       }
       case COP1_C_F: {
@@ -2466,7 +2473,6 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
-  Isolate* isolate = thread->isolate();
   StackResource::Unwind(thread);
 
   // Unwind the C++ stack and continue simulation in the target frame.
@@ -2475,9 +2481,9 @@ void Simulator::Longjmp(uword pc,
   set_register(FP, static_cast<int32_t>(fp));
   set_register(THR, reinterpret_cast<int32_t>(thread));
   // Set the tag.
-  isolate->set_vm_tag(VMTag::kDartTagId);
+  thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
-  isolate->set_top_exit_frame_info(0);
+  thread->set_top_exit_frame_info(0);
 
   ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));

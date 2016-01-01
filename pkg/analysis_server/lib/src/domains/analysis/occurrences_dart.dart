@@ -4,10 +4,12 @@
 
 library domains.analysis.occurrences_dart;
 
-import 'package:analysis_server/analysis/occurrences_core.dart';
+import 'package:analysis_server/plugin/analysis/occurrences/occurrences_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -27,9 +29,9 @@ class DartOccurrencesComputer implements OccurrencesContributor {
             new _DartUnitOccurrencesComputerVisitor();
         unit.accept(visitor);
         visitor.elementsOffsets.forEach((engineElement, offsets) {
-          int length = engineElement.displayName.length;
+          int length = engineElement.nameLength;
           protocol.Element serverElement =
-              protocol.newElement_fromEngine(engineElement);
+              protocol.convertElement(engineElement);
           protocol.Occurrences occurrences =
               new protocol.Occurrences(serverElement, offsets, length);
           collector.addOccurrences(occurrences);

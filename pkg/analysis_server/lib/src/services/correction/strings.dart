@@ -41,6 +41,17 @@ int compareStrings(String a, String b) {
   return a.compareTo(b);
 }
 
+int countLeadingWhitespaces(String str) {
+  int i = 0;
+  for (; i < str.length; i++) {
+    int c = str.codeUnitAt(i);
+    if (!isWhitespace(c)) {
+      break;
+    }
+  }
+  return i;
+}
+
 /**
  * Counts how many times [sub] appears in [str].
  */
@@ -55,6 +66,17 @@ int countMatches(String str, String sub) {
     idx += sub.length;
   }
   return count;
+}
+
+int countTrailingWhitespaces(String str) {
+  int i = 0;
+  for (; i < str.length; i++) {
+    int c = str.codeUnitAt(str.length - 1 - i);
+    if (!isWhitespace(c)) {
+      break;
+    }
+  }
+  return i;
 }
 
 /**
@@ -116,6 +138,46 @@ int findCommonSuffix(String a, String b) {
     }
   }
   return n;
+}
+
+/**
+ * Returns a list of words for the given camel case string.
+ *
+ * 'getCamelWords' => ['get', 'Camel', 'Words']
+ * 'getHTMLText' => ['get', 'HTML', 'Text']
+ */
+List<String> getCamelWords(String str) {
+  if (str == null || str.isEmpty) {
+    return <String>[];
+  }
+  List<String> parts = <String>[];
+  bool wasLowerCase = false;
+  bool wasUpperCase = false;
+  int wordStart = 0;
+  for (int i = 0; i < str.length; i++) {
+    int c = str.codeUnitAt(i);
+    var newLowerCase = isLowerCase(c);
+    var newUpperCase = isUpperCase(c);
+    // myWord
+    // | ^
+    if (wasLowerCase && newUpperCase) {
+      parts.add(str.substring(wordStart, i));
+      wordStart = i;
+    }
+    // myHTMLText
+    //   |   ^
+    if (wasUpperCase &&
+        newUpperCase &&
+        i + 1 < str.length &&
+        isLowerCase(str.codeUnitAt(i + 1))) {
+      parts.add(str.substring(wordStart, i));
+      wordStart = i;
+    }
+    wasLowerCase = newLowerCase;
+    wasUpperCase = newUpperCase;
+  }
+  parts.add(str.substring(wordStart));
+  return parts;
 }
 
 /**

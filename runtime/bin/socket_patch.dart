@@ -1083,8 +1083,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool nativeLeaveMulticast(
       List<int> addr, List<int> interfaceAddr, int interfaceIndex)
       native "Socket_LeaveMulticast";
-  bool _nativeMarkSocketAsSharedHack()
-      native "Socket_MarkSocketAsSharedHack";
 }
 
 
@@ -1187,47 +1185,7 @@ class _RawServerSocket extends Stream<RawSocket>
     }
   }
 
-  RawServerSocketReference get reference {
-    if (_referencePort == null) {
-      bool successfull = _socket._nativeMarkSocketAsSharedHack();
-      _referencePort = new ReceivePort();
-      _referencePort.listen((sendPort) {
-        sendPort.send(
-          [_socket.address,
-           _socket.port,
-           _v6Only]);
-      });
-    }
-    return new _RawServerSocketReference(_referencePort.sendPort);
-  }
-
   void set _owner(owner) { _socket.owner = owner; }
-}
-
-
-class _RawServerSocketReference implements RawServerSocketReference {
-  final SendPort _sendPort;
-
-  _RawServerSocketReference(this._sendPort);
-
-  Future<RawServerSocket> create() {
-    var port = new ReceivePort();
-    _sendPort.send(port.sendPort);
-    return port.first.then((List args) {
-      port.close();
-
-      InternetAddress address = args[0];
-      int tcpPort = args[1];
-      bool v6Only = args[2];
-      return
-          RawServerSocket.bind(address, tcpPort, v6Only: v6Only, shared: true);
-    });
-  }
-
-  int get hashCode => _sendPort.hashCode;
-
-  bool operator==(Object other)
-      => other is _RawServerSocketReference && _sendPort == other._sendPort;
 }
 
 
@@ -1393,17 +1351,6 @@ patch class ServerSocket {
 }
 
 
-class _ServerSocketReference implements ServerSocketReference {
-  final RawServerSocketReference _rawReference;
-
-  _ServerSocketReference(this._rawReference);
-
-  Future<ServerSocket> create() {
-    return _rawReference.create().then((raw) => new _ServerSocket(raw));
-  }
-}
-
-
 class _ServerSocket extends Stream<Socket>
                     implements ServerSocket {
   final _socket;
@@ -1435,10 +1382,6 @@ class _ServerSocket extends Stream<Socket>
   InternetAddress get address => _socket.address;
 
   Future close() => _socket.close().then((_) => this);
-
-  ServerSocketReference get reference {
-    return new _ServerSocketReference(_socket.reference);
-  }
 
   void set _owner(owner) { _socket._owner = owner; }
 }

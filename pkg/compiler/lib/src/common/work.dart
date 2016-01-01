@@ -4,14 +4,14 @@
 
 library dart2js.common.work;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart' show
     AstElement;
 import '../enqueue.dart' show
-    Enqueuer,
+    Enqueuer;
+import '../universe/world_impact.dart' show
     WorldImpact;
 
 

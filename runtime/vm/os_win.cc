@@ -121,6 +121,26 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
+static int64_t qpc_ticks_per_second = 0;
+
+int64_t OS::GetCurrentMonotonicMicros() {
+  if (qpc_ticks_per_second == 0) {
+    // QueryPerformanceCounter not supported, fallback.
+    return GetCurrentTimeMicros();
+  }
+  // Grab performance counter value.
+  LARGE_INTEGER now;
+  QueryPerformanceCounter(&now);
+  int64_t qpc_value = static_cast<int64_t>(now.QuadPart);
+  // Convert to microseconds.
+  int64_t seconds = qpc_value / qpc_ticks_per_second;
+  int64_t leftover_ticks = qpc_value - (seconds * qpc_ticks_per_second);
+  int64_t result = seconds * kMicrosecondsPerSecond;
+  result += ((leftover_ticks * kMicrosecondsPerSecond) / qpc_ticks_per_second);
+  return result;
+}
+
+
 void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   const int kMinimumAlignment = 16;
   ASSERT(Utils::IsPowerOfTwo(alignment));
@@ -348,12 +368,21 @@ void OS::InitOnce() {
   init_once_called = true;
   // Do not pop up a message box when abort is called.
   _set_abort_behavior(0, _WRITE_ABORT_MSG);
+  ThreadLocalData::InitOnce();
   MonitorWaitData::monitor_wait_data_key_ = OSThread::CreateThreadLocal();
   MonitorData::GetMonitorWaitDataForThread();
+  LARGE_INTEGER ticks_per_sec;
+  if (!QueryPerformanceFrequency(&ticks_per_sec)) {
+    qpc_ticks_per_second = 0;
+  } else {
+    qpc_ticks_per_second = static_cast<int64_t>(ticks_per_sec.QuadPart);
+  }
 }
 
 
 void OS::Shutdown() {
+  // TODO(zra): Enable once VM can shutdown cleanly.
+  // ThreadLocalData::Shutdown();
 }
 
 

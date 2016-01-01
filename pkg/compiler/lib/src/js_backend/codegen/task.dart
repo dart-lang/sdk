@@ -10,35 +10,43 @@ import 'codegen.dart';
 import 'unsugar.dart';
 
 import '../js_backend.dart';
+
+import '../../common.dart';
 import '../../common/codegen.dart' show
     CodegenWorkItem;
 import '../../common/tasks.dart' show
-    CompilerTask;
+    CompilerTask,
+    GenericTask;
 import '../../compiler.dart' show
     Compiler;
 import '../../constants/constant_system.dart';
-import '../../cps_ir/cps_ir_nodes.dart' as cps;
-import '../../cps_ir/cps_ir_integrity.dart';
 import '../../cps_ir/cps_ir_builder_task.dart';
-import '../../diagnostics/invariant.dart' show
-    DEBUG_MODE;
-import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
-    ForwardingTypeMask;
-import '../../elements/elements.dart';
-import '../../js/js.dart' as js;
-import '../../io/source_information.dart' show SourceInformationStrategy;
-import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
+import '../../cps_ir/cps_ir_nodes.dart' as cps;
+import '../../cps_ir/cps_ir_nodes_sexpr.dart';
+import '../../cps_ir/cps_ir_integrity.dart';
 import '../../cps_ir/optimizers.dart';
 import '../../cps_ir/optimizers.dart' as cps_opt;
-import '../../tracer.dart';
+import '../../cps_ir/type_mask_system.dart';
+import '../../cps_ir/finalize.dart' show Finalize;
+import '../../diagnostics/invariant.dart' show
+    DEBUG_MODE;
+import '../../elements/elements.dart';
+import '../../js/js.dart' as js;
 import '../../js_backend/codegen/codegen.dart';
+import '../../io/source_information.dart' show
+    SourceInformationStrategy;
+import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
+import '../../tracer.dart';
 import '../../ssa/ssa.dart' as ssa;
 import '../../tree_ir/optimization/optimization.dart';
 import '../../tree_ir/optimization/optimization.dart' as tree_opt;
 import '../../tree_ir/tree_ir_integrity.dart';
-import '../../cps_ir/cps_ir_nodes_sexpr.dart';
-import '../../cps_ir/type_mask_system.dart';
+import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
+import '../../types/types.dart' show
+    FlatTypeMask,
+    ForwardingTypeMask,
+    TypeMask,
+    UnionTypeMask;
 
 class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
@@ -49,48 +57,66 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   // TODO(karlklose,sigurdm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
+  TypeMaskSystem typeSystem;
 
   Tracer get tracer => compiler.tracer;
 
-  IrBuilderTask get irBuilderTask => compiler.irBuilder;
+  final IrBuilderTask cpsBuilderTask;
+  final GenericTask cpsOptimizationTask;
+  final GenericTask treeBuilderTask;
+  final GenericTask treeOptimizationTask;
+
+  Inliner inliner;
 
   CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend,
                       SourceInformationStrategy sourceInformationFactory)
       : fallbackCompiler =
             new ssa.SsaFunctionCompiler(backend, sourceInformationFactory),
-        this.sourceInformationFactory = sourceInformationFactory,
+        cpsBuilderTask = new IrBuilderTask(compiler, sourceInformationFactory),
+        sourceInformationFactory = sourceInformationFactory,
         constantSystem = backend.constantSystem,
         compiler = compiler,
-        glue = new Glue(compiler);
+        glue = new Glue(compiler),
+        cpsOptimizationTask = new GenericTask('CPS optimization', compiler),
+        treeBuilderTask = new GenericTask('Tree builder', compiler),
+      treeOptimizationTask = new GenericTask('Tree optimization', compiler) {
+    inliner = new Inliner(this);
+  }
 
   String get name => 'CPS Ir pipeline';
 
   JavaScriptBackend get backend => compiler.backend;
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
   /// Generates JavaScript code for `work.element`.
   js.Fun compile(CodegenWorkItem work) {
+    if (typeSystem == null) typeSystem = new TypeMaskSystem(compiler);
     AstElement element = work.element;
-    return compiler.withCurrentElement(element, () {
+    return reporter.withCurrentElement(element, () {
       try {
         // TODO(karlklose): remove this fallback when we do not need it for
         // testing anymore.
         if (false) {
-          compiler.log('Using SSA compiler for platform element $element');
+          reporter.log('Using SSA compiler for platform element $element');
           return fallbackCompiler.compile(work);
         }
 
         if (tracer != null) {
           tracer.traceCompilation(element.name, null);
         }
-        cps.FunctionDefinition cpsFunction = compileToCpsIR(element);
-        cpsFunction = optimizeCpsIR(cpsFunction);
-        tree_ir.FunctionDefinition treeFunction = compileToTreeIR(cpsFunction);
-        treeFunction = optimizeTreeIR(treeFunction);
+        cps.FunctionDefinition cpsFunction = compileToCpsIr(element);
+        optimizeCpsBeforeInlining(cpsFunction);
+        applyCpsPass(inliner, cpsFunction);
+        optimizeCpsAfterInlining(cpsFunction);
+        cpsIntegrityChecker = null;
+        tree_ir.FunctionDefinition treeFunction = compileToTreeIr(cpsFunction);
+        treeFunction = optimizeTreeIr(treeFunction);
         return compileToJavaScript(work, treeFunction);
       } on CodegenBailout catch (e) {
         String message = "Unable to compile $element with the new compiler.\n"
             "  Reason: ${e.message}";
-        compiler.internalError(element, message);
+        reporter.internalError(element, message);
       }
     });
   }
@@ -105,23 +131,33 @@ class CpsFunctionCompiler implements FunctionCompiler {
     }
   }
 
-  cps.FunctionDefinition compileToCpsIR(AstElement element) {
-    cps.FunctionDefinition cpsNode = irBuilderTask.buildNode(element);
-    if (cpsNode == null) {
-      if (irBuilderTask.bailoutMessage == null) {
+  void applyCpsPass(cps_opt.Pass pass, cps.FunctionDefinition cpsFunction) {
+    cpsOptimizationTask.measureSubtask(pass.passName, () {
+      pass.rewrite(cpsFunction);
+    });
+    traceGraph(pass.passName, cpsFunction);
+    dumpTypedIr(pass.passName, cpsFunction);
+    assert(checkCpsIntegrity(cpsFunction, pass.passName));
+  }
+
+  cps.FunctionDefinition compileToCpsIr(AstElement element) {
+    cps.FunctionDefinition cpsFunction =
+        cpsBuilderTask.buildNode(element, typeSystem);
+    if (cpsFunction == null) {
+      if (cpsBuilderTask.bailoutMessage == null) {
         giveUp('unable to build cps definition of $element');
       } else {
-        giveUp(irBuilderTask.bailoutMessage);
+        giveUp(cpsBuilderTask.bailoutMessage);
       }
     }
-    traceGraph("IR Builder", cpsNode);
+    ParentVisitor.setParents(cpsFunction);
+    traceGraph('IR Builder', cpsFunction);
+    dumpTypedIr('IR Builder', cpsFunction);
     // Eliminating redundant phis before the unsugaring pass will make it
     // insert fewer getInterceptor calls.
-    new RedundantPhiEliminator().rewrite(cpsNode);
-    traceGraph("Redundant phi elimination", cpsNode);
-    new UnsugarVisitor(glue).rewrite(cpsNode);
-    traceGraph("Unsugaring", cpsNode);
-    return cpsNode;
+    applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
+    applyCpsPass(new UnsugarVisitor(glue), cpsFunction);
+    return cpsFunction;
   }
 
   static const Pattern PRINT_TYPED_IR_FILTER = null;
@@ -141,85 +177,100 @@ class CpsFunctionCompiler implements FunctionCompiler {
     throw 'unsupported: $type';
   }
 
-  void dumpTypedIR(cps.FunctionDefinition cpsNode,
-                   TypePropagator typePropagator) {
+  void dumpTypedIr(String passName, cps.FunctionDefinition cpsFunction) {
     if (PRINT_TYPED_IR_FILTER != null &&
-        PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsNode.element.name) != null) {
+        PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsFunction.element.name) != null) {
       String printType(nodeOrRef, String s) {
         cps.Node node = nodeOrRef is cps.Reference
             ? nodeOrRef.definition
             : nodeOrRef;
-        var type = typePropagator.getType(node);
-        return type == null ? s : "$s:${formatTypeMask(type.type)}";
+        return node is cps.Variable && node.type != null
+            ? '$s:${formatTypeMask(node.type)}'
+            : s;
       }
       DEBUG_MODE = true;
-      print(new SExpressionStringifier(printType).visit(cpsNode));
+      print(';;; ==== After $passName ====');
+      print(new SExpressionStringifier(printType).visit(cpsFunction));
     }
   }
 
-  static bool checkCpsIntegrity(cps.FunctionDefinition node) {
-    new CheckCpsIntegrity().check(node);
+  CheckCpsIntegrity cpsIntegrityChecker;
+
+  bool checkCpsIntegrity(cps.FunctionDefinition node, String previousPass) {
+    cpsOptimizationTask.measureSubtask('Check integrity', () {
+      if (cpsIntegrityChecker == null) {
+        cpsIntegrityChecker = new CheckCpsIntegrity();
+      }
+      cpsIntegrityChecker.check(node, previousPass);
+    });
     return true; // So this can be used from assert().
   }
 
-  cps.FunctionDefinition optimizeCpsIR(cps.FunctionDefinition cpsNode) {
-    // Transformations on the CPS IR.
-    void applyCpsPass(cps_opt.Pass pass) {
-      pass.rewrite(cpsNode);
-      traceGraph(pass.passName, cpsNode);
-      assert(checkCpsIntegrity(cpsNode));
-    }
-
-    TypeMaskSystem typeSystem = new TypeMaskSystem(compiler);
-
-    applyCpsPass(new RedundantJoinEliminator());
-    applyCpsPass(new RedundantPhiEliminator());
-    applyCpsPass(new InsertRefinements(typeSystem));
-    TypePropagator typePropagator =
-        new TypePropagator(compiler, typeSystem, this);
-    applyCpsPass(typePropagator);
-    dumpTypedIR(cpsNode, typePropagator);
-    applyCpsPass(new RemoveRefinements());
-    applyCpsPass(new ShrinkingReducer());
-    applyCpsPass(new ScalarReplacer(compiler));
-    applyCpsPass(new MutableVariableEliminator());
-    applyCpsPass(new RedundantJoinEliminator());
-    applyCpsPass(new RedundantPhiEliminator());
-    applyCpsPass(new ShrinkingReducer());
-    applyCpsPass(new LoopInvariantCodeMotion());
-    applyCpsPass(new ShareInterceptors());
-    applyCpsPass(new ShrinkingReducer());
-
-    return cpsNode;
+  void optimizeCpsBeforeInlining(cps.FunctionDefinition cpsFunction) {
+    cpsOptimizationTask.measure(() {
+      applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
+      applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
+      applyCpsPass(new InsertRefinements(typeSystem), cpsFunction);
+      applyCpsPass(new TypePropagator(this), cpsFunction);
+      applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
+      applyCpsPass(new ShrinkingReducer(), cpsFunction);
+    });
   }
 
-  tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
+  void optimizeCpsAfterInlining(cps.FunctionDefinition cpsFunction) {
+    cpsOptimizationTask.measure(() {
+      applyCpsPass(new RedundantRefinementEliminator(typeSystem), cpsFunction);
+      applyCpsPass(new EagerlyLoadStatics(), cpsFunction);
+      applyCpsPass(new GVN(compiler, typeSystem), cpsFunction);
+      applyCpsPass(new UpdateRefinements(typeSystem), cpsFunction);
+      applyCpsPass(new BoundsChecker(typeSystem, compiler.world), cpsFunction);
+      applyCpsPass(new ShrinkingReducer(), cpsFunction);
+      applyCpsPass(new ScalarReplacer(compiler), cpsFunction);
+      applyCpsPass(new MutableVariableEliminator(), cpsFunction);
+      applyCpsPass(new RedundantJoinEliminator(), cpsFunction);
+      applyCpsPass(new RedundantPhiEliminator(), cpsFunction);
+      applyCpsPass(new ShrinkingReducer(), cpsFunction);
+      applyCpsPass(new OptimizeInterceptors(backend), cpsFunction);
+      applyCpsPass(new BackwardNullCheckRemover(typeSystem), cpsFunction);
+      applyCpsPass(new ShrinkingReducer(), cpsFunction);
+    });
+  }
+
+  tree_ir.FunctionDefinition compileToTreeIr(cps.FunctionDefinition cpsNode) {
+    applyCpsPass(new Finalize(backend), cpsNode);
     tree_builder.Builder builder = new tree_builder.Builder(
-        compiler.internalError);
-    tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
+        reporter.internalError);
+    tree_ir.FunctionDefinition treeNode =
+        treeBuilderTask.measure(() => builder.buildFunction(cpsNode));
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
     assert(checkTreeIntegrity(treeNode));
     return treeNode;
   }
 
-  static bool checkTreeIntegrity(tree_ir.FunctionDefinition node) {
-    new CheckTreeIntegrity().check(node);
+  bool checkTreeIntegrity(tree_ir.FunctionDefinition node) {
+    treeOptimizationTask.measureSubtask('Check integrity', () {
+      new CheckTreeIntegrity().check(node);
+    });
     return true; // So this can be used from assert().
   }
 
-  tree_ir.FunctionDefinition optimizeTreeIR(tree_ir.FunctionDefinition node) {
+  tree_ir.FunctionDefinition optimizeTreeIr(tree_ir.FunctionDefinition node) {
     void applyTreePass(tree_opt.Pass pass) {
-      pass.rewrite(node);
+      treeOptimizationTask.measureSubtask(pass.passName, () {
+        pass.rewrite(node);
+      });
       traceGraph(pass.passName, node);
       assert(checkTreeIntegrity(node));
     }
 
-    applyTreePass(new StatementRewriter());
-    applyTreePass(new VariableMerger());
-    applyTreePass(new LoopRewriter());
-    applyTreePass(new LogicalRewriter());
-    applyTreePass(new PullIntoInitializers());
+    treeOptimizationTask.measure(() {
+      applyTreePass(new StatementRewriter());
+      applyTreePass(new VariableMerger());
+      applyTreePass(new LoopRewriter());
+      applyTreePass(new LogicalRewriter());
+      applyTreePass(new PullIntoInitializers());
+    });
 
     return node;
   }
@@ -237,8 +288,12 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   Iterable<CompilerTask> get tasks {
-    // TODO(sigurdm): Make a better list of tasks.
-    return <CompilerTask>[irBuilderTask]..addAll(fallbackCompiler.tasks);
+    return <CompilerTask>[
+        cpsBuilderTask,
+        cpsOptimizationTask,
+        treeBuilderTask,
+        treeOptimizationTask]
+      ..addAll(fallbackCompiler.tasks);
   }
 
   js.Node attachPosition(js.Node node, AstElement element) {

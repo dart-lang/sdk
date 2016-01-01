@@ -2,13 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 
 import 'dart:mirrors';
 
 import 'package:sdk_library_metadata/libraries.dart'
-    show LIBRARIES, LibraryInfo;
+    show libraries, LibraryInfo;
 
 import '../../lib/src/mirrors/analyze.dart'
     show analyze;
@@ -25,7 +26,7 @@ const DART2JS_MIRROR = '../../lib/src/mirrors/dart2js_mirror.dart';
 const SDK_ROOT = '../../../../sdk/';
 
 bool isPublicDart2jsLibrary(String name) {
-  return !name.startsWith('_') && LIBRARIES[name].isDart2jsLibrary;
+  return !name.startsWith('_') && libraries[name].isDart2jsLibrary;
 }
 
 var handler;
@@ -54,7 +55,7 @@ main(List<String> arguments) {
   sdkRoot = libraryRoot.resolve('../');
 
   // Get the names of public dart2js libraries.
-  Iterable<String> names = LIBRARIES.keys.where(isPublicDart2jsLibrary);
+  Iterable<String> names = libraries.keys.where(isPublicDart2jsLibrary);
 
   // Turn the names into uris by prepending dart: to them.
   List<Uri> uris = names.map((String name) => Uri.parse('dart:$name')).toList();
@@ -65,30 +66,39 @@ main(List<String> arguments) {
 
 jsonify(MirrorSystem mirrors) {
   var map = <String, String>{};
+  List<Future> futures = <Future>[];
+
+  Future mapUri(Uri uri) {
+    String filename = relativize(sdkRoot, uri, false);
+    return handler.provider.readStringFromUri(uri).then((contents) {
+      map['sdk:/$filename'] = contents;
+    });
+  }
 
   mirrors.libraries.forEach((_, LibraryMirror library) {
     BackDoor.compilationUnitsOf(library).forEach((compilationUnit) {
-      Uri uri = compilationUnit.uri;
-      String filename = relativize(sdkRoot, uri, false);
-      SourceFile file = handler.provider.sourceFiles[uri];
-      map['sdk:/$filename'] = file.slowText();
+      futures.add(mapUri(compilationUnit.uri));
     });
   });
 
-  LIBRARIES.forEach((name, info) {
+  libraries.forEach((name, info) {
     var patch = info.dart2jsPatchPath;
     if (patch != null) {
-      Uri uri = sdkRoot.resolve('sdk/lib/$patch');
-      String filename = relativize(sdkRoot, uri, false);
-      SourceFile file = handler.provider.sourceFiles[uri];
-      map['sdk:/$filename'] = file.slowText();
+      futures.add(mapUri(sdkRoot.resolve('sdk/lib/$patch')));
     }
   });
 
-  if (outputJson) {
-    output.writeStringSync(JSON.encode(map));
-  } else {
-    output.writeStringSync('''
+  for (String filename in ["dart_client.platform",
+                           "dart_server.platform",
+                           "dart_shared.platform"]) {
+    futures.add(mapUri(sdkRoot.resolve('sdk/lib/$filename')));
+  }
+
+  Future.wait(futures).then((_) {
+    if (outputJson) {
+      output.writeStringSync(JSON.encode(map));
+    } else {
+      output.writeStringSync('''
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -99,8 +109,9 @@ jsonify(MirrorSystem mirrors) {
 library dart.sdk_sources;
 
 const Map<String, String> SDK_SOURCES = const <String, String>''');
-    output.writeStringSync(JSON.encode(map).replaceAll(r'$', r'\$'));
-    output.writeStringSync(';\n');
-  }
-  output.closeSync();
+      output.writeStringSync(JSON.encode(map).replaceAll(r'$', r'\$'));
+      output.writeStringSync(';\n');
+    }
+    output.closeSync();
+  });
 }

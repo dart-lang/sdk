@@ -17,15 +17,15 @@ issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue
 
 javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude or annotate with '/// none:'
 
-[ $runtime != vm && ($runtime != drt || $compiler != none)) ]
+[ ($runtime != vm && $runtime != dart_precompiled) && ($runtime != drt || $compiler != none)) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 package/scenarios/invalid/same_package_twice_test: Pass # Issue 24119
 
-[ $runtime == vm && $checked ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
 io/directory_invalid_arguments_test: Fail, OK
@@ -38,20 +38,18 @@ io/stdout_bad_argument_test: Fail, OK
 io/file_fuzz_test: Skip
 io/directory_fuzz_test: Skip
 
-[ $runtime == vm && $system == macos ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $system == macos ]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: Fail # Issue 13921
 typed_array_int64_uint64_test: Fail # Issue 13921
 typed_data_isolate_test: SkipByDesign # This test uses dart:io
 io/*: SkipByDesign # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
-debugger/*: SkipByDesign # Do not run standalone debugger tests in browser.
-coverage_test: Skip
 full_coverage_test: Skip
 http_launch_test: Skip
 vmservice/*: SkipByDesign # Do not run standalone vm service tests in browser.
@@ -61,6 +59,9 @@ javascript_compatibility_warnings_test: Skip
 oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
 verbose_gc_to_bmu_test: Skip
+precompilation_test: Skip # Standalone only test.
+precompilation_dart2js_test: Skip # Standalone only test.
+noopt_test: Skip # Standalone only test.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 javascript_int_overflow_literal_test/01: Fail, OK
@@ -88,7 +89,6 @@ io/process_exit_negative_test: Fail, OK # relies on a static error that is a war
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
 package/package_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
 package/package1_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
-debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 full_coverage_test: Skip
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
 pow_test: Skip # Precision > 53 bits.
@@ -103,6 +103,24 @@ javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
+precompilation_test: Skip # Standalone only test.
+precompilation_dart2js_test: Skip # Standalone only test.
+noopt_test: Skip # Standalone only test.
+
+[ $runtime == vm && $mode == debug ]
+precompilation_dart2js_test: Pass, Slow
+
+[ $runtime == vm && $arch == ia32 ]
+precompilation_test: Skip # Not expected to pass on ia32.
+precompilation_dart2js_test: Skip # Not expected to pass on ia32.
+noopt_test: Skip # Not expected to pass on ia32.
+
+[ $runtime == vm && $arch == arm ]
+precompilation_test: Skip # Issue 24427
+precompilation_dart2js_test: Skip # Issue 24427
+
+[ $runtime == vm && $arch == mips ]
+precompilation_dart2js_test: SkipSlow
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
@@ -118,7 +136,7 @@ oom_error_stacktrace_test: Pass # The test only fails at runtime.
 [ $compiler == dart2js && $browser ]
 *: Skip
 
-[ $arch == simarm || $arch == simarmv5te || $arch == simmips]
+[ $arch == simarm || $arch == simarmv5te || $arch == simmips ]
 out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
@@ -139,12 +157,15 @@ io/test_runner_test: Skip # Flakily times out in a subtest. Issue 201351
 full_coverage_test: SkipSlow # Times out. Issue 20352
 io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too slow.
 
-[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $unchecked ]
 assert_test: Fail # Issue 14651.
 
-[ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
+[ ($compiler == none || $compiler == precompiler) && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
 javascript_int_overflow_literal_test/01: Fail # Issue 14651.
 javascript_int_overflow_test: Fail # Issue 14651.
+
+[ $compiler == none && $runtime == drt ]
+map_literal_oom_test: RuntimeError # Issue 24571
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning
@@ -179,30 +200,67 @@ package/scenarios/invalid/same_package_twice_test: Crash, OK # Analyzer exits on
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 verbose_gc_to_bmu_test: Skip
 io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
+io/process_sync_test: Pass, Timeout  # Issue 24596
 
 [ $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te && $mode == debug ]
 verified_mem_test: Skip  # Not yet implemented.
 
-[ $runtime == vm && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 full_coverage_test: Skip  # Timeout.
 io/file_lock_test: Skip  # Timeout.
 io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 # Failures in secure networking while NSS is replaced with BoringSSL
 io/https_client_certificate_test: RuntimeError # Issue 24070
-io/secure_server_client_certificate_test: RuntimeError # Issue 24069
-io/secure_server_client_no_certificate_test: RuntimeError # Issue 24069
 io/secure_socket_renegotiate_test: RuntimeError
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
 
-[ $compiler == dart2js && $cps_ir ]
-coverage_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/addlatexhash_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/file_error_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/file_read_encoded_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/file_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/http_client_connect_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/skipping_dart2js_compilations_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-priority_queue_stress_test: RuntimeError # Cannot read property 'length' of undefined
+[ ($noopt || $compiler == precompiler) ]
+map_literal_oom_test: Pass, Crash # Issue 24678
+javascript*: SkipByDesign # JS overflow flag unsupported
+io/web_socket_test: Pass, RuntimeError # Issue 24674
+
+[ $runtime == dart_precompiled ]
+debugger/*: Skip
+noopt_test: Skip
+precompilation_dart2js_test: Skip
+
+full_coverage_test: RuntimeError # Platform.executable
+http_launch_test: RuntimeError # Platform.executable
+io/addlatexhash_test: RuntimeError # Platform.executable
+io/compile_all_test: Crash # Incompatible flag --compile_all
+io/file_read_special_device_test: RuntimeError # Platform.executable
+io/file_stream_test: RuntimeError # Platform.executable
+io/file_test: RuntimeError # Platform.executable
+io/http_cross_process_test: RuntimeError # Platform.executable
+io/https_unauthorized_test: RuntimeError # Platform.executable
+io/platform_resolved_executable_test: RuntimeError # Platform.resolvedExecutable
+io/skipping_dart2js_compilations_test: RuntimeError # Platform.executable
+io/snapshot_fail_test: RuntimeError # Platform.executable
+io/stdin_sync_test: RuntimeError # Platform.executable
+io/test_extension_fail_test: RuntimeError # Platform.executable
+precompilation_test: RuntimeError # Platform.executable
+standalone/io/file_read_special_device_test: RuntimeError # Platform.executable
+verbose_gc_to_bmu_test: RuntimeError # Platform.executable
+io/http_server_close_response_after_error_test: RuntimeError # Platform.executable
+io/http_client_stays_alive_test: RuntimeError # Platform.executable
+io/print_sync_test: RuntimeError # Platform.executable
+io/signals_test: RuntimeError # Platform.executable
+io/stdio_nonblocking_test: RuntimeError # Platform.executable
+io/regress_7191_test: RuntimeError # Platform.executable
+io/secure_unauthorized_test: RuntimeError # Platform.executable
+io/dart_std_io_pipe_test: RuntimeError # Platform.executable
+io/platform_test: RuntimeError # Platform.executable
+io/socket_cross_process_test: RuntimeError # Platform.executable
+io/test_runner_test: RuntimeError # Platform.executable
+io/file_lock_test: RuntimeError # Platform.executable
+io/code_collection_test: RuntimeError # Platform.executable
+io/file_lock_test: RuntimeError # Platform.executable
+io/code_collection_test: RuntimeError # Platform.executable
+io/raw_socket_cross_process_test: RuntimeError # Platform.executable
+io/test_extension_test: RuntimeError # Platform.executable
+io/regress_7679_test: RuntimeError # Platform.executable
+
+io/process_*: Skip # Most use Platform.executable

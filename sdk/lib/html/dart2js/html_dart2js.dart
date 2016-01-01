@@ -26,7 +26,7 @@ library dart.dom.html;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:_internal' hide Symbol, deprecated;
+import 'dart:_internal' hide Symbol;
 import 'dart:html_common';
 import 'dart:indexed_db';
 import 'dart:isolate';
@@ -55,7 +55,7 @@ import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Native, Null, Returns, Inline, ForceInline,
+    JSName, Native, Returns, ForceInline,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
@@ -122,6 +122,11 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   // TODO(17738): Implement this.
   throw new UnimplementedError();
 }
+
+/// Dartium functions that are a NOOP in dart2js.
+unwrap_jso(dartClass_instance) => dartClass_instance;
+wrap_jso(jsObject) => jsObject;
+createCustomUpgrader(Type customElementClass, $this) => $this;
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -722,7 +727,7 @@ class ApplicationCacheErrorEvent extends Event {
  *
  * See also:
  *
- * * [<area>](https://developer.mozilla.org/en-US/docs/HTML/Element/area)
+ * * [`<area>`](https://developer.mozilla.org/en-US/docs/HTML/Element/area)
  * on MDN.
  */
 @DomName('HTMLAreaElement')
@@ -820,12 +825,10 @@ class AreaElement extends HtmlElement implements UrlUtils {
 @DomName('HTMLAudioElement')
 @Native("HTMLAudioElement")
 class AudioElement extends MediaElement {
-  // To suppress missing implicit constructor warnings.
-  factory AudioElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable()
-  factory AudioElement([String src]) {
+  factory AudioElement._([String src]) {
     if (src != null) {
       return AudioElement._create_1(src);
     }
@@ -839,6 +842,8 @@ class AudioElement extends MediaElement {
    * This can only be called by subclasses from their created constructor.
    */
   AudioElement.created() : super.created();
+
+  factory AudioElement([String src]) => new AudioElement._(src);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1049,7 +1054,7 @@ class BeforeUnloadEvent extends Event {
   // Shadowing definition.
   String get returnValue => JS("String", "#.returnValue", this);
 
-  void set returnValue(String value) {
+  set returnValue(String value) {
     JS("void", "#.returnValue = #", this, value);
   }
 }
@@ -1622,10 +1627,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    *
    * ## Other resources
    *
-   * * [WebGL fundamentals]
-   * (http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/) from
-   * HTML5Rocks.
-   * * [WebGL homepage] (http://get.webgl.org/).
+   * * [WebGL fundamentals](http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/)
+   *   from HTML5Rocks.
+   * * [WebGL homepage](http://get.webgl.org/).
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -1724,7 +1728,8 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
  * See also:
  *
  * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
- * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
+ * * [CanvasGradient](https://html.spec.whatwg.org/multipage/scripting.html#canvasgradient)
+ *   from WHATWG.
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @DomName('CanvasGradient')
@@ -1776,7 +1781,8 @@ class CanvasGradient extends Interceptor {
  *
  * See also:
  * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
- * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
+ * * [CanvasPattern](https://html.spec.whatwg.org/multipage/scripting.html#canvaspattern)
+ *   from WHATWG.
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @DomName('CanvasPattern')
@@ -1844,9 +1850,9 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
    *
    * ## Other resources
    *
-   * * [Image smoothing]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)
-   * from WHATWG.
+   * * [Image
+   *   smoothing](https://html.spec.whatwg.org/multipage/scripting.html#image-smoothing)
+   *   from WHATWG.
    */
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
@@ -2372,7 +2378,7 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
-  void set lineDashOffset(num value) {
+  set lineDashOffset(num value) {
     JS('void',
        'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
        '#.webkitLineDashOffset = #', this, this, value, this, value);
@@ -2940,12 +2946,11 @@ class CredentialsContainer extends Interceptor {
   @Experimental() // untriaged
   Future _request_2() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable()
 @DomName('Crypto')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2953,6 +2958,11 @@ class CredentialsContainer extends Interceptor {
 // http://www.w3.org/TR/WebCryptoAPI/
 @Native("Crypto")
 class Crypto extends Interceptor {
+
+  TypedData getRandomValues(TypedData array) {
+    return _getRandomValues(array);
+  }
+
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
@@ -2964,11 +2974,13 @@ class Crypto extends Interceptor {
   @Experimental() // untriaged
   final _SubtleCrypto subtle;
 
+  @JSName('getRandomValues')
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
   @Creates('TypedData')
   @Returns('TypedData|Null')
-  TypedData getRandomValues(TypedData array) native;
+  TypedData _getRandomValues(TypedData array) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3458,7 +3470,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get background => this._background;
 
   /** Sets the value of "background" */
-  void set background(String value) {
+  set background(String value) {
     _background = value == null ? '' : value;
   }
   @Returns('String')
@@ -3469,7 +3481,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundAttachment => this._backgroundAttachment;
 
   /** Sets the value of "background-attachment" */
-  void set backgroundAttachment(String value) {
+  set backgroundAttachment(String value) {
     _backgroundAttachment = value == null ? '' : value;
   }
   @Returns('String')
@@ -3480,7 +3492,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundColor => this._backgroundColor;
 
   /** Sets the value of "background-color" */
-  void set backgroundColor(String value) {
+  set backgroundColor(String value) {
     _backgroundColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3491,7 +3503,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundImage => this._backgroundImage;
 
   /** Sets the value of "background-image" */
-  void set backgroundImage(String value) {
+  set backgroundImage(String value) {
     _backgroundImage = value == null ? '' : value;
   }
   @Returns('String')
@@ -3502,7 +3514,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundPosition => this._backgroundPosition;
 
   /** Sets the value of "background-position" */
-  void set backgroundPosition(String value) {
+  set backgroundPosition(String value) {
     _backgroundPosition = value == null ? '' : value;
   }
   @Returns('String')
@@ -3513,7 +3525,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get backgroundRepeat => this._backgroundRepeat;
 
   /** Sets the value of "background-repeat" */
-  void set backgroundRepeat(String value) {
+  set backgroundRepeat(String value) {
     _backgroundRepeat = value == null ? '' : value;
   }
   @Returns('String')
@@ -3524,7 +3536,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get border => this._border;
 
   /** Sets the value of "border" */
-  void set border(String value) {
+  set border(String value) {
     _border = value == null ? '' : value;
   }
   @Returns('String')
@@ -3535,7 +3547,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderBottom => this._borderBottom;
 
   /** Sets the value of "border-bottom" */
-  void set borderBottom(String value) {
+  set borderBottom(String value) {
     _borderBottom = value == null ? '' : value;
   }
   @Returns('String')
@@ -3546,7 +3558,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderBottomColor => this._borderBottomColor;
 
   /** Sets the value of "border-bottom-color" */
-  void set borderBottomColor(String value) {
+  set borderBottomColor(String value) {
     _borderBottomColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3557,7 +3569,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderBottomStyle => this._borderBottomStyle;
 
   /** Sets the value of "border-bottom-style" */
-  void set borderBottomStyle(String value) {
+  set borderBottomStyle(String value) {
     _borderBottomStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3568,7 +3580,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderBottomWidth => this._borderBottomWidth;
 
   /** Sets the value of "border-bottom-width" */
-  void set borderBottomWidth(String value) {
+  set borderBottomWidth(String value) {
     _borderBottomWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3579,7 +3591,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderCollapse => this._borderCollapse;
 
   /** Sets the value of "border-collapse" */
-  void set borderCollapse(String value) {
+  set borderCollapse(String value) {
     _borderCollapse = value == null ? '' : value;
   }
   @Returns('String')
@@ -3590,7 +3602,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderColor => this._borderColor;
 
   /** Sets the value of "border-color" */
-  void set borderColor(String value) {
+  set borderColor(String value) {
     _borderColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3601,7 +3613,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderLeft => this._borderLeft;
 
   /** Sets the value of "border-left" */
-  void set borderLeft(String value) {
+  set borderLeft(String value) {
     _borderLeft = value == null ? '' : value;
   }
   @Returns('String')
@@ -3612,7 +3624,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderLeftColor => this._borderLeftColor;
 
   /** Sets the value of "border-left-color" */
-  void set borderLeftColor(String value) {
+  set borderLeftColor(String value) {
     _borderLeftColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3623,7 +3635,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderLeftStyle => this._borderLeftStyle;
 
   /** Sets the value of "border-left-style" */
-  void set borderLeftStyle(String value) {
+  set borderLeftStyle(String value) {
     _borderLeftStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3634,7 +3646,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderLeftWidth => this._borderLeftWidth;
 
   /** Sets the value of "border-left-width" */
-  void set borderLeftWidth(String value) {
+  set borderLeftWidth(String value) {
     _borderLeftWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3645,7 +3657,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderRight => this._borderRight;
 
   /** Sets the value of "border-right" */
-  void set borderRight(String value) {
+  set borderRight(String value) {
     _borderRight = value == null ? '' : value;
   }
   @Returns('String')
@@ -3656,7 +3668,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderRightColor => this._borderRightColor;
 
   /** Sets the value of "border-right-color" */
-  void set borderRightColor(String value) {
+  set borderRightColor(String value) {
     _borderRightColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3667,7 +3679,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderRightStyle => this._borderRightStyle;
 
   /** Sets the value of "border-right-style" */
-  void set borderRightStyle(String value) {
+  set borderRightStyle(String value) {
     _borderRightStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3678,7 +3690,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderRightWidth => this._borderRightWidth;
 
   /** Sets the value of "border-right-width" */
-  void set borderRightWidth(String value) {
+  set borderRightWidth(String value) {
     _borderRightWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3689,7 +3701,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderSpacing => this._borderSpacing;
 
   /** Sets the value of "border-spacing" */
-  void set borderSpacing(String value) {
+  set borderSpacing(String value) {
     _borderSpacing = value == null ? '' : value;
   }
   @Returns('String')
@@ -3700,7 +3712,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderStyle => this._borderStyle;
 
   /** Sets the value of "border-style" */
-  void set borderStyle(String value) {
+  set borderStyle(String value) {
     _borderStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3711,7 +3723,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderTop => this._borderTop;
 
   /** Sets the value of "border-top" */
-  void set borderTop(String value) {
+  set borderTop(String value) {
     _borderTop = value == null ? '' : value;
   }
   @Returns('String')
@@ -3722,7 +3734,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderTopColor => this._borderTopColor;
 
   /** Sets the value of "border-top-color" */
-  void set borderTopColor(String value) {
+  set borderTopColor(String value) {
     _borderTopColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3733,7 +3745,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderTopStyle => this._borderTopStyle;
 
   /** Sets the value of "border-top-style" */
-  void set borderTopStyle(String value) {
+  set borderTopStyle(String value) {
     _borderTopStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3744,7 +3756,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderTopWidth => this._borderTopWidth;
 
   /** Sets the value of "border-top-width" */
-  void set borderTopWidth(String value) {
+  set borderTopWidth(String value) {
     _borderTopWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3755,7 +3767,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get borderWidth => this._borderWidth;
 
   /** Sets the value of "border-width" */
-  void set borderWidth(String value) {
+  set borderWidth(String value) {
     _borderWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -3766,7 +3778,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get bottom => this._bottom;
 
   /** Sets the value of "bottom" */
-  void set bottom(String value) {
+  set bottom(String value) {
     _bottom = value == null ? '' : value;
   }
   @Returns('String')
@@ -3777,7 +3789,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get captionSide => this._captionSide;
 
   /** Sets the value of "caption-side" */
-  void set captionSide(String value) {
+  set captionSide(String value) {
     _captionSide = value == null ? '' : value;
   }
   @Returns('String')
@@ -3788,7 +3800,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get clear => this._clear;
 
   /** Sets the value of "clear" */
-  void set clear(String value) {
+  set clear(String value) {
     _clear = value == null ? '' : value;
   }
   @Returns('String')
@@ -3799,7 +3811,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get clip => this._clip;
 
   /** Sets the value of "clip" */
-  void set clip(String value) {
+  set clip(String value) {
     _clip = value == null ? '' : value;
   }
   @Returns('String')
@@ -3810,7 +3822,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get color => this._color;
 
   /** Sets the value of "color" */
-  void set color(String value) {
+  set color(String value) {
     _color = value == null ? '' : value;
   }
   @Returns('String')
@@ -3821,7 +3833,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get content => this._content;
 
   /** Sets the value of "content" */
-  void set content(String value) {
+  set content(String value) {
     _content = value == null ? '' : value;
   }
   @Returns('String')
@@ -3832,7 +3844,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get cursor => this._cursor;
 
   /** Sets the value of "cursor" */
-  void set cursor(String value) {
+  set cursor(String value) {
     _cursor = value == null ? '' : value;
   }
   @Returns('String')
@@ -3843,7 +3855,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get direction => this._direction;
 
   /** Sets the value of "direction" */
-  void set direction(String value) {
+  set direction(String value) {
     _direction = value == null ? '' : value;
   }
   @Returns('String')
@@ -3854,7 +3866,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get display => this._display;
 
   /** Sets the value of "display" */
-  void set display(String value) {
+  set display(String value) {
     _display = value == null ? '' : value;
   }
   @Returns('String')
@@ -3865,7 +3877,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get emptyCells => this._emptyCells;
 
   /** Sets the value of "empty-cells" */
-  void set emptyCells(String value) {
+  set emptyCells(String value) {
     _emptyCells = value == null ? '' : value;
   }
   @Returns('String')
@@ -3876,7 +3888,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get font => this._font;
 
   /** Sets the value of "font" */
-  void set font(String value) {
+  set font(String value) {
     _font = value == null ? '' : value;
   }
   @Returns('String')
@@ -3887,7 +3899,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontFamily => this._fontFamily;
 
   /** Sets the value of "font-family" */
-  void set fontFamily(String value) {
+  set fontFamily(String value) {
     _fontFamily = value == null ? '' : value;
   }
   @Returns('String')
@@ -3898,7 +3910,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontSize => this._fontSize;
 
   /** Sets the value of "font-size" */
-  void set fontSize(String value) {
+  set fontSize(String value) {
     _fontSize = value == null ? '' : value;
   }
   @Returns('String')
@@ -3909,7 +3921,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontStyle => this._fontStyle;
 
   /** Sets the value of "font-style" */
-  void set fontStyle(String value) {
+  set fontStyle(String value) {
     _fontStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3920,7 +3932,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontVariant => this._fontVariant;
 
   /** Sets the value of "font-variant" */
-  void set fontVariant(String value) {
+  set fontVariant(String value) {
     _fontVariant = value == null ? '' : value;
   }
   @Returns('String')
@@ -3931,7 +3943,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get fontWeight => this._fontWeight;
 
   /** Sets the value of "font-weight" */
-  void set fontWeight(String value) {
+  set fontWeight(String value) {
     _fontWeight = value == null ? '' : value;
   }
   @Returns('String')
@@ -3942,7 +3954,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get height => this._height;
 
   /** Sets the value of "height" */
-  void set height(String value) {
+  set height(String value) {
     _height = value == null ? '' : value;
   }
   @Returns('String')
@@ -3953,7 +3965,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get left => this._left;
 
   /** Sets the value of "left" */
-  void set left(String value) {
+  set left(String value) {
     _left = value == null ? '' : value;
   }
   @Returns('String')
@@ -3964,7 +3976,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get letterSpacing => this._letterSpacing;
 
   /** Sets the value of "letter-spacing" */
-  void set letterSpacing(String value) {
+  set letterSpacing(String value) {
     _letterSpacing = value == null ? '' : value;
   }
   @Returns('String')
@@ -3975,7 +3987,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get lineHeight => this._lineHeight;
 
   /** Sets the value of "line-height" */
-  void set lineHeight(String value) {
+  set lineHeight(String value) {
     _lineHeight = value == null ? '' : value;
   }
   @Returns('String')
@@ -3986,7 +3998,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get listStyle => this._listStyle;
 
   /** Sets the value of "list-style" */
-  void set listStyle(String value) {
+  set listStyle(String value) {
     _listStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -3997,7 +4009,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get listStyleImage => this._listStyleImage;
 
   /** Sets the value of "list-style-image" */
-  void set listStyleImage(String value) {
+  set listStyleImage(String value) {
     _listStyleImage = value == null ? '' : value;
   }
   @Returns('String')
@@ -4008,7 +4020,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get listStylePosition => this._listStylePosition;
 
   /** Sets the value of "list-style-position" */
-  void set listStylePosition(String value) {
+  set listStylePosition(String value) {
     _listStylePosition = value == null ? '' : value;
   }
   @Returns('String')
@@ -4019,7 +4031,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get listStyleType => this._listStyleType;
 
   /** Sets the value of "list-style-type" */
-  void set listStyleType(String value) {
+  set listStyleType(String value) {
     _listStyleType = value == null ? '' : value;
   }
   @Returns('String')
@@ -4030,7 +4042,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get margin => this._margin;
 
   /** Sets the value of "margin" */
-  void set margin(String value) {
+  set margin(String value) {
     _margin = value == null ? '' : value;
   }
   @Returns('String')
@@ -4041,7 +4053,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get marginBottom => this._marginBottom;
 
   /** Sets the value of "margin-bottom" */
-  void set marginBottom(String value) {
+  set marginBottom(String value) {
     _marginBottom = value == null ? '' : value;
   }
   @Returns('String')
@@ -4052,7 +4064,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get marginLeft => this._marginLeft;
 
   /** Sets the value of "margin-left" */
-  void set marginLeft(String value) {
+  set marginLeft(String value) {
     _marginLeft = value == null ? '' : value;
   }
   @Returns('String')
@@ -4063,7 +4075,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get marginRight => this._marginRight;
 
   /** Sets the value of "margin-right" */
-  void set marginRight(String value) {
+  set marginRight(String value) {
     _marginRight = value == null ? '' : value;
   }
   @Returns('String')
@@ -4074,7 +4086,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get marginTop => this._marginTop;
 
   /** Sets the value of "margin-top" */
-  void set marginTop(String value) {
+  set marginTop(String value) {
     _marginTop = value == null ? '' : value;
   }
   @Returns('String')
@@ -4085,7 +4097,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get maxHeight => this._maxHeight;
 
   /** Sets the value of "max-height" */
-  void set maxHeight(String value) {
+  set maxHeight(String value) {
     _maxHeight = value == null ? '' : value;
   }
   @Returns('String')
@@ -4096,7 +4108,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get maxWidth => this._maxWidth;
 
   /** Sets the value of "max-width" */
-  void set maxWidth(String value) {
+  set maxWidth(String value) {
     _maxWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -4107,7 +4119,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get minHeight => this._minHeight;
 
   /** Sets the value of "min-height" */
-  void set minHeight(String value) {
+  set minHeight(String value) {
     _minHeight = value == null ? '' : value;
   }
   @Returns('String')
@@ -4118,7 +4130,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get minWidth => this._minWidth;
 
   /** Sets the value of "min-width" */
-  void set minWidth(String value) {
+  set minWidth(String value) {
     _minWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -4129,7 +4141,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get outline => this._outline;
 
   /** Sets the value of "outline" */
-  void set outline(String value) {
+  set outline(String value) {
     _outline = value == null ? '' : value;
   }
   @Returns('String')
@@ -4140,7 +4152,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get outlineColor => this._outlineColor;
 
   /** Sets the value of "outline-color" */
-  void set outlineColor(String value) {
+  set outlineColor(String value) {
     _outlineColor = value == null ? '' : value;
   }
   @Returns('String')
@@ -4151,7 +4163,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get outlineStyle => this._outlineStyle;
 
   /** Sets the value of "outline-style" */
-  void set outlineStyle(String value) {
+  set outlineStyle(String value) {
     _outlineStyle = value == null ? '' : value;
   }
   @Returns('String')
@@ -4162,7 +4174,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get outlineWidth => this._outlineWidth;
 
   /** Sets the value of "outline-width" */
-  void set outlineWidth(String value) {
+  set outlineWidth(String value) {
     _outlineWidth = value == null ? '' : value;
   }
   @Returns('String')
@@ -4173,7 +4185,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get overflow => this._overflow;
 
   /** Sets the value of "overflow" */
-  void set overflow(String value) {
+  set overflow(String value) {
     _overflow = value == null ? '' : value;
   }
   @Returns('String')
@@ -4184,7 +4196,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get padding => this._padding;
 
   /** Sets the value of "padding" */
-  void set padding(String value) {
+  set padding(String value) {
     _padding = value == null ? '' : value;
   }
   @Returns('String')
@@ -4195,7 +4207,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get paddingBottom => this._paddingBottom;
 
   /** Sets the value of "padding-bottom" */
-  void set paddingBottom(String value) {
+  set paddingBottom(String value) {
     _paddingBottom = value == null ? '' : value;
   }
   @Returns('String')
@@ -4206,7 +4218,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get paddingLeft => this._paddingLeft;
 
   /** Sets the value of "padding-left" */
-  void set paddingLeft(String value) {
+  set paddingLeft(String value) {
     _paddingLeft = value == null ? '' : value;
   }
   @Returns('String')
@@ -4217,7 +4229,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get paddingRight => this._paddingRight;
 
   /** Sets the value of "padding-right" */
-  void set paddingRight(String value) {
+  set paddingRight(String value) {
     _paddingRight = value == null ? '' : value;
   }
   @Returns('String')
@@ -4228,7 +4240,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get paddingTop => this._paddingTop;
 
   /** Sets the value of "padding-top" */
-  void set paddingTop(String value) {
+  set paddingTop(String value) {
     _paddingTop = value == null ? '' : value;
   }
   @Returns('String')
@@ -4239,7 +4251,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get pageBreakAfter => this._pageBreakAfter;
 
   /** Sets the value of "page-break-after" */
-  void set pageBreakAfter(String value) {
+  set pageBreakAfter(String value) {
     _pageBreakAfter = value == null ? '' : value;
   }
   @Returns('String')
@@ -4250,7 +4262,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get pageBreakBefore => this._pageBreakBefore;
 
   /** Sets the value of "page-break-before" */
-  void set pageBreakBefore(String value) {
+  set pageBreakBefore(String value) {
     _pageBreakBefore = value == null ? '' : value;
   }
   @Returns('String')
@@ -4261,7 +4273,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get pageBreakInside => this._pageBreakInside;
 
   /** Sets the value of "page-break-inside" */
-  void set pageBreakInside(String value) {
+  set pageBreakInside(String value) {
     _pageBreakInside = value == null ? '' : value;
   }
   @Returns('String')
@@ -4272,7 +4284,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get position => this._position;
 
   /** Sets the value of "position" */
-  void set position(String value) {
+  set position(String value) {
     _position = value == null ? '' : value;
   }
   @Returns('String')
@@ -4283,7 +4295,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get quotes => this._quotes;
 
   /** Sets the value of "quotes" */
-  void set quotes(String value) {
+  set quotes(String value) {
     _quotes = value == null ? '' : value;
   }
   @Returns('String')
@@ -4294,7 +4306,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get right => this._right;
 
   /** Sets the value of "right" */
-  void set right(String value) {
+  set right(String value) {
     _right = value == null ? '' : value;
   }
   @Returns('String')
@@ -4305,7 +4317,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get tableLayout => this._tableLayout;
 
   /** Sets the value of "table-layout" */
-  void set tableLayout(String value) {
+  set tableLayout(String value) {
     _tableLayout = value == null ? '' : value;
   }
   @Returns('String')
@@ -4316,7 +4328,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get textAlign => this._textAlign;
 
   /** Sets the value of "text-align" */
-  void set textAlign(String value) {
+  set textAlign(String value) {
     _textAlign = value == null ? '' : value;
   }
   @Returns('String')
@@ -4327,7 +4339,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get textDecoration => this._textDecoration;
 
   /** Sets the value of "text-decoration" */
-  void set textDecoration(String value) {
+  set textDecoration(String value) {
     _textDecoration = value == null ? '' : value;
   }
   @Returns('String')
@@ -4338,7 +4350,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get textIndent => this._textIndent;
 
   /** Sets the value of "text-indent" */
-  void set textIndent(String value) {
+  set textIndent(String value) {
     _textIndent = value == null ? '' : value;
   }
   @Returns('String')
@@ -4349,7 +4361,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get textTransform => this._textTransform;
 
   /** Sets the value of "text-transform" */
-  void set textTransform(String value) {
+  set textTransform(String value) {
     _textTransform = value == null ? '' : value;
   }
   @Returns('String')
@@ -4360,7 +4372,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get top => this._top;
 
   /** Sets the value of "top" */
-  void set top(String value) {
+  set top(String value) {
     _top = value == null ? '' : value;
   }
   @Returns('String')
@@ -4371,7 +4383,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get unicodeBidi => this._unicodeBidi;
 
   /** Sets the value of "unicode-bidi" */
-  void set unicodeBidi(String value) {
+  set unicodeBidi(String value) {
     _unicodeBidi = value == null ? '' : value;
   }
   @Returns('String')
@@ -4382,7 +4394,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get verticalAlign => this._verticalAlign;
 
   /** Sets the value of "vertical-align" */
-  void set verticalAlign(String value) {
+  set verticalAlign(String value) {
     _verticalAlign = value == null ? '' : value;
   }
   @Returns('String')
@@ -4393,7 +4405,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get visibility => this._visibility;
 
   /** Sets the value of "visibility" */
-  void set visibility(String value) {
+  set visibility(String value) {
     _visibility = value == null ? '' : value;
   }
   @Returns('String')
@@ -4404,7 +4416,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get whiteSpace => this._whiteSpace;
 
   /** Sets the value of "white-space" */
-  void set whiteSpace(String value) {
+  set whiteSpace(String value) {
     _whiteSpace = value == null ? '' : value;
   }
   @Returns('String')
@@ -4415,7 +4427,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get width => this._width;
 
   /** Sets the value of "width" */
-  void set width(String value) {
+  set width(String value) {
     _width = value == null ? '' : value;
   }
   @Returns('String')
@@ -4426,7 +4438,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get wordSpacing => this._wordSpacing;
 
   /** Sets the value of "word-spacing" */
-  void set wordSpacing(String value) {
+  set wordSpacing(String value) {
     _wordSpacing = value == null ? '' : value;
   }
   @Returns('String')
@@ -4437,7 +4449,7 @@ class CssStyleDeclaration  extends Interceptor with
   String get zIndex => this._zIndex;
 
   /** Sets the value of "z-index" */
-  void set zIndex(String value) {
+  set zIndex(String value) {
     _zIndex = value == null ? '' : value;
   }
   @Returns('String')
@@ -4473,452 +4485,452 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   }
 
   /** Sets the value of "background" */
-  void set background(String value) {
+  set background(String value) {
     _setAll('background', value);
   }
     
   /** Sets the value of "background-attachment" */
-  void set backgroundAttachment(String value) {
+  set backgroundAttachment(String value) {
     _setAll('backgroundAttachment', value);
   }
     
   /** Sets the value of "background-color" */
-  void set backgroundColor(String value) {
+  set backgroundColor(String value) {
     _setAll('backgroundColor', value);
   }
     
   /** Sets the value of "background-image" */
-  void set backgroundImage(String value) {
+  set backgroundImage(String value) {
     _setAll('backgroundImage', value);
   }
     
   /** Sets the value of "background-position" */
-  void set backgroundPosition(String value) {
+  set backgroundPosition(String value) {
     _setAll('backgroundPosition', value);
   }
     
   /** Sets the value of "background-repeat" */
-  void set backgroundRepeat(String value) {
+  set backgroundRepeat(String value) {
     _setAll('backgroundRepeat', value);
   }
     
   /** Sets the value of "border" */
-  void set border(String value) {
+  set border(String value) {
     _setAll('border', value);
   }
     
   /** Sets the value of "border-bottom" */
-  void set borderBottom(String value) {
+  set borderBottom(String value) {
     _setAll('borderBottom', value);
   }
     
   /** Sets the value of "border-bottom-color" */
-  void set borderBottomColor(String value) {
+  set borderBottomColor(String value) {
     _setAll('borderBottomColor', value);
   }
     
   /** Sets the value of "border-bottom-style" */
-  void set borderBottomStyle(String value) {
+  set borderBottomStyle(String value) {
     _setAll('borderBottomStyle', value);
   }
     
   /** Sets the value of "border-bottom-width" */
-  void set borderBottomWidth(String value) {
+  set borderBottomWidth(String value) {
     _setAll('borderBottomWidth', value);
   }
     
   /** Sets the value of "border-collapse" */
-  void set borderCollapse(String value) {
+  set borderCollapse(String value) {
     _setAll('borderCollapse', value);
   }
     
   /** Sets the value of "border-color" */
-  void set borderColor(String value) {
+  set borderColor(String value) {
     _setAll('borderColor', value);
   }
     
   /** Sets the value of "border-left" */
-  void set borderLeft(String value) {
+  set borderLeft(String value) {
     _setAll('borderLeft', value);
   }
     
   /** Sets the value of "border-left-color" */
-  void set borderLeftColor(String value) {
+  set borderLeftColor(String value) {
     _setAll('borderLeftColor', value);
   }
     
   /** Sets the value of "border-left-style" */
-  void set borderLeftStyle(String value) {
+  set borderLeftStyle(String value) {
     _setAll('borderLeftStyle', value);
   }
     
   /** Sets the value of "border-left-width" */
-  void set borderLeftWidth(String value) {
+  set borderLeftWidth(String value) {
     _setAll('borderLeftWidth', value);
   }
     
   /** Sets the value of "border-right" */
-  void set borderRight(String value) {
+  set borderRight(String value) {
     _setAll('borderRight', value);
   }
     
   /** Sets the value of "border-right-color" */
-  void set borderRightColor(String value) {
+  set borderRightColor(String value) {
     _setAll('borderRightColor', value);
   }
     
   /** Sets the value of "border-right-style" */
-  void set borderRightStyle(String value) {
+  set borderRightStyle(String value) {
     _setAll('borderRightStyle', value);
   }
     
   /** Sets the value of "border-right-width" */
-  void set borderRightWidth(String value) {
+  set borderRightWidth(String value) {
     _setAll('borderRightWidth', value);
   }
     
   /** Sets the value of "border-spacing" */
-  void set borderSpacing(String value) {
+  set borderSpacing(String value) {
     _setAll('borderSpacing', value);
   }
     
   /** Sets the value of "border-style" */
-  void set borderStyle(String value) {
+  set borderStyle(String value) {
     _setAll('borderStyle', value);
   }
     
   /** Sets the value of "border-top" */
-  void set borderTop(String value) {
+  set borderTop(String value) {
     _setAll('borderTop', value);
   }
     
   /** Sets the value of "border-top-color" */
-  void set borderTopColor(String value) {
+  set borderTopColor(String value) {
     _setAll('borderTopColor', value);
   }
     
   /** Sets the value of "border-top-style" */
-  void set borderTopStyle(String value) {
+  set borderTopStyle(String value) {
     _setAll('borderTopStyle', value);
   }
     
   /** Sets the value of "border-top-width" */
-  void set borderTopWidth(String value) {
+  set borderTopWidth(String value) {
     _setAll('borderTopWidth', value);
   }
     
   /** Sets the value of "border-width" */
-  void set borderWidth(String value) {
+  set borderWidth(String value) {
     _setAll('borderWidth', value);
   }
     
   /** Sets the value of "bottom" */
-  void set bottom(String value) {
+  set bottom(String value) {
     _setAll('bottom', value);
   }
     
   /** Sets the value of "caption-side" */
-  void set captionSide(String value) {
+  set captionSide(String value) {
     _setAll('captionSide', value);
   }
     
   /** Sets the value of "clear" */
-  void set clear(String value) {
+  set clear(String value) {
     _setAll('clear', value);
   }
     
   /** Sets the value of "clip" */
-  void set clip(String value) {
+  set clip(String value) {
     _setAll('clip', value);
   }
     
   /** Sets the value of "color" */
-  void set color(String value) {
+  set color(String value) {
     _setAll('color', value);
   }
     
   /** Sets the value of "content" */
-  void set content(String value) {
+  set content(String value) {
     _setAll('content', value);
   }
     
   /** Sets the value of "cursor" */
-  void set cursor(String value) {
+  set cursor(String value) {
     _setAll('cursor', value);
   }
     
   /** Sets the value of "direction" */
-  void set direction(String value) {
+  set direction(String value) {
     _setAll('direction', value);
   }
     
   /** Sets the value of "display" */
-  void set display(String value) {
+  set display(String value) {
     _setAll('display', value);
   }
     
   /** Sets the value of "empty-cells" */
-  void set emptyCells(String value) {
+  set emptyCells(String value) {
     _setAll('emptyCells', value);
   }
     
   /** Sets the value of "font" */
-  void set font(String value) {
+  set font(String value) {
     _setAll('font', value);
   }
     
   /** Sets the value of "font-family" */
-  void set fontFamily(String value) {
+  set fontFamily(String value) {
     _setAll('fontFamily', value);
   }
     
   /** Sets the value of "font-size" */
-  void set fontSize(String value) {
+  set fontSize(String value) {
     _setAll('fontSize', value);
   }
     
   /** Sets the value of "font-style" */
-  void set fontStyle(String value) {
+  set fontStyle(String value) {
     _setAll('fontStyle', value);
   }
     
   /** Sets the value of "font-variant" */
-  void set fontVariant(String value) {
+  set fontVariant(String value) {
     _setAll('fontVariant', value);
   }
     
   /** Sets the value of "font-weight" */
-  void set fontWeight(String value) {
+  set fontWeight(String value) {
     _setAll('fontWeight', value);
   }
     
   /** Sets the value of "height" */
-  void set height(String value) {
+  set height(String value) {
     _setAll('height', value);
   }
     
   /** Sets the value of "left" */
-  void set left(String value) {
+  set left(String value) {
     _setAll('left', value);
   }
     
   /** Sets the value of "letter-spacing" */
-  void set letterSpacing(String value) {
+  set letterSpacing(String value) {
     _setAll('letterSpacing', value);
   }
     
   /** Sets the value of "line-height" */
-  void set lineHeight(String value) {
+  set lineHeight(String value) {
     _setAll('lineHeight', value);
   }
     
   /** Sets the value of "list-style" */
-  void set listStyle(String value) {
+  set listStyle(String value) {
     _setAll('listStyle', value);
   }
     
   /** Sets the value of "list-style-image" */
-  void set listStyleImage(String value) {
+  set listStyleImage(String value) {
     _setAll('listStyleImage', value);
   }
     
   /** Sets the value of "list-style-position" */
-  void set listStylePosition(String value) {
+  set listStylePosition(String value) {
     _setAll('listStylePosition', value);
   }
     
   /** Sets the value of "list-style-type" */
-  void set listStyleType(String value) {
+  set listStyleType(String value) {
     _setAll('listStyleType', value);
   }
     
   /** Sets the value of "margin" */
-  void set margin(String value) {
+  set margin(String value) {
     _setAll('margin', value);
   }
     
   /** Sets the value of "margin-bottom" */
-  void set marginBottom(String value) {
+  set marginBottom(String value) {
     _setAll('marginBottom', value);
   }
     
   /** Sets the value of "margin-left" */
-  void set marginLeft(String value) {
+  set marginLeft(String value) {
     _setAll('marginLeft', value);
   }
     
   /** Sets the value of "margin-right" */
-  void set marginRight(String value) {
+  set marginRight(String value) {
     _setAll('marginRight', value);
   }
     
   /** Sets the value of "margin-top" */
-  void set marginTop(String value) {
+  set marginTop(String value) {
     _setAll('marginTop', value);
   }
     
   /** Sets the value of "max-height" */
-  void set maxHeight(String value) {
+  set maxHeight(String value) {
     _setAll('maxHeight', value);
   }
     
   /** Sets the value of "max-width" */
-  void set maxWidth(String value) {
+  set maxWidth(String value) {
     _setAll('maxWidth', value);
   }
     
   /** Sets the value of "min-height" */
-  void set minHeight(String value) {
+  set minHeight(String value) {
     _setAll('minHeight', value);
   }
     
   /** Sets the value of "min-width" */
-  void set minWidth(String value) {
+  set minWidth(String value) {
     _setAll('minWidth', value);
   }
     
   /** Sets the value of "outline" */
-  void set outline(String value) {
+  set outline(String value) {
     _setAll('outline', value);
   }
     
   /** Sets the value of "outline-color" */
-  void set outlineColor(String value) {
+  set outlineColor(String value) {
     _setAll('outlineColor', value);
   }
     
   /** Sets the value of "outline-style" */
-  void set outlineStyle(String value) {
+  set outlineStyle(String value) {
     _setAll('outlineStyle', value);
   }
     
   /** Sets the value of "outline-width" */
-  void set outlineWidth(String value) {
+  set outlineWidth(String value) {
     _setAll('outlineWidth', value);
   }
     
   /** Sets the value of "overflow" */
-  void set overflow(String value) {
+  set overflow(String value) {
     _setAll('overflow', value);
   }
     
   /** Sets the value of "padding" */
-  void set padding(String value) {
+  set padding(String value) {
     _setAll('padding', value);
   }
     
   /** Sets the value of "padding-bottom" */
-  void set paddingBottom(String value) {
+  set paddingBottom(String value) {
     _setAll('paddingBottom', value);
   }
     
   /** Sets the value of "padding-left" */
-  void set paddingLeft(String value) {
+  set paddingLeft(String value) {
     _setAll('paddingLeft', value);
   }
     
   /** Sets the value of "padding-right" */
-  void set paddingRight(String value) {
+  set paddingRight(String value) {
     _setAll('paddingRight', value);
   }
     
   /** Sets the value of "padding-top" */
-  void set paddingTop(String value) {
+  set paddingTop(String value) {
     _setAll('paddingTop', value);
   }
     
   /** Sets the value of "page-break-after" */
-  void set pageBreakAfter(String value) {
+  set pageBreakAfter(String value) {
     _setAll('pageBreakAfter', value);
   }
     
   /** Sets the value of "page-break-before" */
-  void set pageBreakBefore(String value) {
+  set pageBreakBefore(String value) {
     _setAll('pageBreakBefore', value);
   }
     
   /** Sets the value of "page-break-inside" */
-  void set pageBreakInside(String value) {
+  set pageBreakInside(String value) {
     _setAll('pageBreakInside', value);
   }
     
   /** Sets the value of "position" */
-  void set position(String value) {
+  set position(String value) {
     _setAll('position', value);
   }
     
   /** Sets the value of "quotes" */
-  void set quotes(String value) {
+  set quotes(String value) {
     _setAll('quotes', value);
   }
     
   /** Sets the value of "right" */
-  void set right(String value) {
+  set right(String value) {
     _setAll('right', value);
   }
     
   /** Sets the value of "table-layout" */
-  void set tableLayout(String value) {
+  set tableLayout(String value) {
     _setAll('tableLayout', value);
   }
     
   /** Sets the value of "text-align" */
-  void set textAlign(String value) {
+  set textAlign(String value) {
     _setAll('textAlign', value);
   }
     
   /** Sets the value of "text-decoration" */
-  void set textDecoration(String value) {
+  set textDecoration(String value) {
     _setAll('textDecoration', value);
   }
     
   /** Sets the value of "text-indent" */
-  void set textIndent(String value) {
+  set textIndent(String value) {
     _setAll('textIndent', value);
   }
     
   /** Sets the value of "text-transform" */
-  void set textTransform(String value) {
+  set textTransform(String value) {
     _setAll('textTransform', value);
   }
     
   /** Sets the value of "top" */
-  void set top(String value) {
+  set top(String value) {
     _setAll('top', value);
   }
     
   /** Sets the value of "unicode-bidi" */
-  void set unicodeBidi(String value) {
+  set unicodeBidi(String value) {
     _setAll('unicodeBidi', value);
   }
     
   /** Sets the value of "vertical-align" */
-  void set verticalAlign(String value) {
+  set verticalAlign(String value) {
     _setAll('verticalAlign', value);
   }
     
   /** Sets the value of "visibility" */
-  void set visibility(String value) {
+  set visibility(String value) {
     _setAll('visibility', value);
   }
     
   /** Sets the value of "white-space" */
-  void set whiteSpace(String value) {
+  set whiteSpace(String value) {
     _setAll('whiteSpace', value);
   }
     
   /** Sets the value of "width" */
-  void set width(String value) {
+  set width(String value) {
     _setAll('width', value);
   }
     
   /** Sets the value of "word-spacing" */
-  void set wordSpacing(String value) {
+  set wordSpacing(String value) {
     _setAll('wordSpacing', value);
   }
     
   /** Sets the value of "z-index" */
-  void set zIndex(String value) {
+  set zIndex(String value) {
     _setAll('zIndex', value);
   }
     
@@ -4939,7 +4951,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('align-content');
 
   /** Sets the value of "align-content" */
-  void set alignContent(String value) {
+  set alignContent(String value) {
     setProperty('align-content', value, '');
   }
 
@@ -4948,7 +4960,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('align-items');
 
   /** Sets the value of "align-items" */
-  void set alignItems(String value) {
+  set alignItems(String value) {
     setProperty('align-items', value, '');
   }
 
@@ -4957,7 +4969,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('align-self');
 
   /** Sets the value of "align-self" */
-  void set alignSelf(String value) {
+  set alignSelf(String value) {
     setProperty('align-self', value, '');
   }
 
@@ -4966,7 +4978,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation');
 
   /** Sets the value of "animation" */
-  void set animation(String value) {
+  set animation(String value) {
     setProperty('animation', value, '');
   }
 
@@ -4975,7 +4987,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-delay');
 
   /** Sets the value of "animation-delay" */
-  void set animationDelay(String value) {
+  set animationDelay(String value) {
     setProperty('animation-delay', value, '');
   }
 
@@ -4984,7 +4996,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-direction');
 
   /** Sets the value of "animation-direction" */
-  void set animationDirection(String value) {
+  set animationDirection(String value) {
     setProperty('animation-direction', value, '');
   }
 
@@ -4993,7 +5005,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-duration');
 
   /** Sets the value of "animation-duration" */
-  void set animationDuration(String value) {
+  set animationDuration(String value) {
     setProperty('animation-duration', value, '');
   }
 
@@ -5002,7 +5014,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
-  void set animationFillMode(String value) {
+  set animationFillMode(String value) {
     setProperty('animation-fill-mode', value, '');
   }
 
@@ -5011,7 +5023,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
-  void set animationIterationCount(String value) {
+  set animationIterationCount(String value) {
     setProperty('animation-iteration-count', value, '');
   }
 
@@ -5020,7 +5032,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-name');
 
   /** Sets the value of "animation-name" */
-  void set animationName(String value) {
+  set animationName(String value) {
     setProperty('animation-name', value, '');
   }
 
@@ -5029,7 +5041,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-play-state');
 
   /** Sets the value of "animation-play-state" */
-  void set animationPlayState(String value) {
+  set animationPlayState(String value) {
     setProperty('animation-play-state', value, '');
   }
 
@@ -5038,7 +5050,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
-  void set animationTimingFunction(String value) {
+  set animationTimingFunction(String value) {
     setProperty('animation-timing-function', value, '');
   }
 
@@ -5047,7 +5059,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('app-region');
 
   /** Sets the value of "app-region" */
-  void set appRegion(String value) {
+  set appRegion(String value) {
     setProperty('app-region', value, '');
   }
 
@@ -5056,7 +5068,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('appearance');
 
   /** Sets the value of "appearance" */
-  void set appearance(String value) {
+  set appearance(String value) {
     setProperty('appearance', value, '');
   }
 
@@ -5065,7 +5077,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('aspect-ratio');
 
   /** Sets the value of "aspect-ratio" */
-  void set aspectRatio(String value) {
+  set aspectRatio(String value) {
     setProperty('aspect-ratio', value, '');
   }
 
@@ -5074,7 +5086,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('backface-visibility');
 
   /** Sets the value of "backface-visibility" */
-  void set backfaceVisibility(String value) {
+  set backfaceVisibility(String value) {
     setProperty('backface-visibility', value, '');
   }
 
@@ -5083,7 +5095,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background');
 
   /** Sets the value of "background" */
-  void set background(String value) {
+  set background(String value) {
     setProperty('background', value, '');
   }
 
@@ -5092,7 +5104,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-attachment');
 
   /** Sets the value of "background-attachment" */
-  void set backgroundAttachment(String value) {
+  set backgroundAttachment(String value) {
     setProperty('background-attachment', value, '');
   }
 
@@ -5101,7 +5113,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-blend-mode');
 
   /** Sets the value of "background-blend-mode" */
-  void set backgroundBlendMode(String value) {
+  set backgroundBlendMode(String value) {
     setProperty('background-blend-mode', value, '');
   }
 
@@ -5110,7 +5122,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-clip');
 
   /** Sets the value of "background-clip" */
-  void set backgroundClip(String value) {
+  set backgroundClip(String value) {
     setProperty('background-clip', value, '');
   }
 
@@ -5119,7 +5131,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-color');
 
   /** Sets the value of "background-color" */
-  void set backgroundColor(String value) {
+  set backgroundColor(String value) {
     setProperty('background-color', value, '');
   }
 
@@ -5128,7 +5140,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-composite');
 
   /** Sets the value of "background-composite" */
-  void set backgroundComposite(String value) {
+  set backgroundComposite(String value) {
     setProperty('background-composite', value, '');
   }
 
@@ -5137,7 +5149,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-image');
 
   /** Sets the value of "background-image" */
-  void set backgroundImage(String value) {
+  set backgroundImage(String value) {
     setProperty('background-image', value, '');
   }
 
@@ -5146,7 +5158,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-origin');
 
   /** Sets the value of "background-origin" */
-  void set backgroundOrigin(String value) {
+  set backgroundOrigin(String value) {
     setProperty('background-origin', value, '');
   }
 
@@ -5155,7 +5167,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position');
 
   /** Sets the value of "background-position" */
-  void set backgroundPosition(String value) {
+  set backgroundPosition(String value) {
     setProperty('background-position', value, '');
   }
 
@@ -5164,7 +5176,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position-x');
 
   /** Sets the value of "background-position-x" */
-  void set backgroundPositionX(String value) {
+  set backgroundPositionX(String value) {
     setProperty('background-position-x', value, '');
   }
 
@@ -5173,7 +5185,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-position-y');
 
   /** Sets the value of "background-position-y" */
-  void set backgroundPositionY(String value) {
+  set backgroundPositionY(String value) {
     setProperty('background-position-y', value, '');
   }
 
@@ -5182,7 +5194,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat');
 
   /** Sets the value of "background-repeat" */
-  void set backgroundRepeat(String value) {
+  set backgroundRepeat(String value) {
     setProperty('background-repeat', value, '');
   }
 
@@ -5191,7 +5203,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat-x');
 
   /** Sets the value of "background-repeat-x" */
-  void set backgroundRepeatX(String value) {
+  set backgroundRepeatX(String value) {
     setProperty('background-repeat-x', value, '');
   }
 
@@ -5200,7 +5212,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-repeat-y');
 
   /** Sets the value of "background-repeat-y" */
-  void set backgroundRepeatY(String value) {
+  set backgroundRepeatY(String value) {
     setProperty('background-repeat-y', value, '');
   }
 
@@ -5209,7 +5221,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('background-size');
 
   /** Sets the value of "background-size" */
-  void set backgroundSize(String value) {
+  set backgroundSize(String value) {
     setProperty('background-size', value, '');
   }
 
@@ -5218,7 +5230,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border');
 
   /** Sets the value of "border" */
-  void set border(String value) {
+  set border(String value) {
     setProperty('border', value, '');
   }
 
@@ -5227,7 +5239,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after');
 
   /** Sets the value of "border-after" */
-  void set borderAfter(String value) {
+  set borderAfter(String value) {
     setProperty('border-after', value, '');
   }
 
@@ -5236,7 +5248,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-color');
 
   /** Sets the value of "border-after-color" */
-  void set borderAfterColor(String value) {
+  set borderAfterColor(String value) {
     setProperty('border-after-color', value, '');
   }
 
@@ -5245,7 +5257,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-style');
 
   /** Sets the value of "border-after-style" */
-  void set borderAfterStyle(String value) {
+  set borderAfterStyle(String value) {
     setProperty('border-after-style', value, '');
   }
 
@@ -5254,7 +5266,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-after-width');
 
   /** Sets the value of "border-after-width" */
-  void set borderAfterWidth(String value) {
+  set borderAfterWidth(String value) {
     setProperty('border-after-width', value, '');
   }
 
@@ -5263,7 +5275,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before');
 
   /** Sets the value of "border-before" */
-  void set borderBefore(String value) {
+  set borderBefore(String value) {
     setProperty('border-before', value, '');
   }
 
@@ -5272,7 +5284,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-color');
 
   /** Sets the value of "border-before-color" */
-  void set borderBeforeColor(String value) {
+  set borderBeforeColor(String value) {
     setProperty('border-before-color', value, '');
   }
 
@@ -5281,7 +5293,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-style');
 
   /** Sets the value of "border-before-style" */
-  void set borderBeforeStyle(String value) {
+  set borderBeforeStyle(String value) {
     setProperty('border-before-style', value, '');
   }
 
@@ -5290,7 +5302,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-before-width');
 
   /** Sets the value of "border-before-width" */
-  void set borderBeforeWidth(String value) {
+  set borderBeforeWidth(String value) {
     setProperty('border-before-width', value, '');
   }
 
@@ -5299,7 +5311,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom');
 
   /** Sets the value of "border-bottom" */
-  void set borderBottom(String value) {
+  set borderBottom(String value) {
     setProperty('border-bottom', value, '');
   }
 
@@ -5308,7 +5320,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-color');
 
   /** Sets the value of "border-bottom-color" */
-  void set borderBottomColor(String value) {
+  set borderBottomColor(String value) {
     setProperty('border-bottom-color', value, '');
   }
 
@@ -5317,7 +5329,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-left-radius');
 
   /** Sets the value of "border-bottom-left-radius" */
-  void set borderBottomLeftRadius(String value) {
+  set borderBottomLeftRadius(String value) {
     setProperty('border-bottom-left-radius', value, '');
   }
 
@@ -5326,7 +5338,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-right-radius');
 
   /** Sets the value of "border-bottom-right-radius" */
-  void set borderBottomRightRadius(String value) {
+  set borderBottomRightRadius(String value) {
     setProperty('border-bottom-right-radius', value, '');
   }
 
@@ -5335,7 +5347,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-style');
 
   /** Sets the value of "border-bottom-style" */
-  void set borderBottomStyle(String value) {
+  set borderBottomStyle(String value) {
     setProperty('border-bottom-style', value, '');
   }
 
@@ -5344,7 +5356,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-bottom-width');
 
   /** Sets the value of "border-bottom-width" */
-  void set borderBottomWidth(String value) {
+  set borderBottomWidth(String value) {
     setProperty('border-bottom-width', value, '');
   }
 
@@ -5353,7 +5365,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-collapse');
 
   /** Sets the value of "border-collapse" */
-  void set borderCollapse(String value) {
+  set borderCollapse(String value) {
     setProperty('border-collapse', value, '');
   }
 
@@ -5362,7 +5374,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-color');
 
   /** Sets the value of "border-color" */
-  void set borderColor(String value) {
+  set borderColor(String value) {
     setProperty('border-color', value, '');
   }
 
@@ -5371,7 +5383,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end');
 
   /** Sets the value of "border-end" */
-  void set borderEnd(String value) {
+  set borderEnd(String value) {
     setProperty('border-end', value, '');
   }
 
@@ -5380,7 +5392,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-color');
 
   /** Sets the value of "border-end-color" */
-  void set borderEndColor(String value) {
+  set borderEndColor(String value) {
     setProperty('border-end-color', value, '');
   }
 
@@ -5389,7 +5401,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-style');
 
   /** Sets the value of "border-end-style" */
-  void set borderEndStyle(String value) {
+  set borderEndStyle(String value) {
     setProperty('border-end-style', value, '');
   }
 
@@ -5398,7 +5410,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-end-width');
 
   /** Sets the value of "border-end-width" */
-  void set borderEndWidth(String value) {
+  set borderEndWidth(String value) {
     setProperty('border-end-width', value, '');
   }
 
@@ -5407,7 +5419,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-fit');
 
   /** Sets the value of "border-fit" */
-  void set borderFit(String value) {
+  set borderFit(String value) {
     setProperty('border-fit', value, '');
   }
 
@@ -5416,7 +5428,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
-  void set borderHorizontalSpacing(String value) {
+  set borderHorizontalSpacing(String value) {
     setProperty('border-horizontal-spacing', value, '');
   }
 
@@ -5425,7 +5437,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image');
 
   /** Sets the value of "border-image" */
-  void set borderImage(String value) {
+  set borderImage(String value) {
     setProperty('border-image', value, '');
   }
 
@@ -5434,7 +5446,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-outset');
 
   /** Sets the value of "border-image-outset" */
-  void set borderImageOutset(String value) {
+  set borderImageOutset(String value) {
     setProperty('border-image-outset', value, '');
   }
 
@@ -5443,7 +5455,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-repeat');
 
   /** Sets the value of "border-image-repeat" */
-  void set borderImageRepeat(String value) {
+  set borderImageRepeat(String value) {
     setProperty('border-image-repeat', value, '');
   }
 
@@ -5452,7 +5464,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-slice');
 
   /** Sets the value of "border-image-slice" */
-  void set borderImageSlice(String value) {
+  set borderImageSlice(String value) {
     setProperty('border-image-slice', value, '');
   }
 
@@ -5461,7 +5473,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-source');
 
   /** Sets the value of "border-image-source" */
-  void set borderImageSource(String value) {
+  set borderImageSource(String value) {
     setProperty('border-image-source', value, '');
   }
 
@@ -5470,7 +5482,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-image-width');
 
   /** Sets the value of "border-image-width" */
-  void set borderImageWidth(String value) {
+  set borderImageWidth(String value) {
     setProperty('border-image-width', value, '');
   }
 
@@ -5479,7 +5491,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left');
 
   /** Sets the value of "border-left" */
-  void set borderLeft(String value) {
+  set borderLeft(String value) {
     setProperty('border-left', value, '');
   }
 
@@ -5488,7 +5500,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-color');
 
   /** Sets the value of "border-left-color" */
-  void set borderLeftColor(String value) {
+  set borderLeftColor(String value) {
     setProperty('border-left-color', value, '');
   }
 
@@ -5497,7 +5509,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-style');
 
   /** Sets the value of "border-left-style" */
-  void set borderLeftStyle(String value) {
+  set borderLeftStyle(String value) {
     setProperty('border-left-style', value, '');
   }
 
@@ -5506,7 +5518,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-left-width');
 
   /** Sets the value of "border-left-width" */
-  void set borderLeftWidth(String value) {
+  set borderLeftWidth(String value) {
     setProperty('border-left-width', value, '');
   }
 
@@ -5515,7 +5527,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-radius');
 
   /** Sets the value of "border-radius" */
-  void set borderRadius(String value) {
+  set borderRadius(String value) {
     setProperty('border-radius', value, '');
   }
 
@@ -5524,7 +5536,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right');
 
   /** Sets the value of "border-right" */
-  void set borderRight(String value) {
+  set borderRight(String value) {
     setProperty('border-right', value, '');
   }
 
@@ -5533,7 +5545,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-color');
 
   /** Sets the value of "border-right-color" */
-  void set borderRightColor(String value) {
+  set borderRightColor(String value) {
     setProperty('border-right-color', value, '');
   }
 
@@ -5542,7 +5554,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-style');
 
   /** Sets the value of "border-right-style" */
-  void set borderRightStyle(String value) {
+  set borderRightStyle(String value) {
     setProperty('border-right-style', value, '');
   }
 
@@ -5551,7 +5563,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-right-width');
 
   /** Sets the value of "border-right-width" */
-  void set borderRightWidth(String value) {
+  set borderRightWidth(String value) {
     setProperty('border-right-width', value, '');
   }
 
@@ -5560,7 +5572,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-spacing');
 
   /** Sets the value of "border-spacing" */
-  void set borderSpacing(String value) {
+  set borderSpacing(String value) {
     setProperty('border-spacing', value, '');
   }
 
@@ -5569,7 +5581,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start');
 
   /** Sets the value of "border-start" */
-  void set borderStart(String value) {
+  set borderStart(String value) {
     setProperty('border-start', value, '');
   }
 
@@ -5578,7 +5590,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-color');
 
   /** Sets the value of "border-start-color" */
-  void set borderStartColor(String value) {
+  set borderStartColor(String value) {
     setProperty('border-start-color', value, '');
   }
 
@@ -5587,7 +5599,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-style');
 
   /** Sets the value of "border-start-style" */
-  void set borderStartStyle(String value) {
+  set borderStartStyle(String value) {
     setProperty('border-start-style', value, '');
   }
 
@@ -5596,7 +5608,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-start-width');
 
   /** Sets the value of "border-start-width" */
-  void set borderStartWidth(String value) {
+  set borderStartWidth(String value) {
     setProperty('border-start-width', value, '');
   }
 
@@ -5605,7 +5617,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-style');
 
   /** Sets the value of "border-style" */
-  void set borderStyle(String value) {
+  set borderStyle(String value) {
     setProperty('border-style', value, '');
   }
 
@@ -5614,7 +5626,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top');
 
   /** Sets the value of "border-top" */
-  void set borderTop(String value) {
+  set borderTop(String value) {
     setProperty('border-top', value, '');
   }
 
@@ -5623,7 +5635,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-color');
 
   /** Sets the value of "border-top-color" */
-  void set borderTopColor(String value) {
+  set borderTopColor(String value) {
     setProperty('border-top-color', value, '');
   }
 
@@ -5632,7 +5644,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-left-radius');
 
   /** Sets the value of "border-top-left-radius" */
-  void set borderTopLeftRadius(String value) {
+  set borderTopLeftRadius(String value) {
     setProperty('border-top-left-radius', value, '');
   }
 
@@ -5641,7 +5653,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-right-radius');
 
   /** Sets the value of "border-top-right-radius" */
-  void set borderTopRightRadius(String value) {
+  set borderTopRightRadius(String value) {
     setProperty('border-top-right-radius', value, '');
   }
 
@@ -5650,7 +5662,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-style');
 
   /** Sets the value of "border-top-style" */
-  void set borderTopStyle(String value) {
+  set borderTopStyle(String value) {
     setProperty('border-top-style', value, '');
   }
 
@@ -5659,7 +5671,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-top-width');
 
   /** Sets the value of "border-top-width" */
-  void set borderTopWidth(String value) {
+  set borderTopWidth(String value) {
     setProperty('border-top-width', value, '');
   }
 
@@ -5668,7 +5680,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
-  void set borderVerticalSpacing(String value) {
+  set borderVerticalSpacing(String value) {
     setProperty('border-vertical-spacing', value, '');
   }
 
@@ -5677,7 +5689,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('border-width');
 
   /** Sets the value of "border-width" */
-  void set borderWidth(String value) {
+  set borderWidth(String value) {
     setProperty('border-width', value, '');
   }
 
@@ -5686,7 +5698,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('bottom');
 
   /** Sets the value of "bottom" */
-  void set bottom(String value) {
+  set bottom(String value) {
     setProperty('bottom', value, '');
   }
 
@@ -5695,7 +5707,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-align');
 
   /** Sets the value of "box-align" */
-  void set boxAlign(String value) {
+  set boxAlign(String value) {
     setProperty('box-align', value, '');
   }
 
@@ -5704,7 +5716,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-decoration-break');
 
   /** Sets the value of "box-decoration-break" */
-  void set boxDecorationBreak(String value) {
+  set boxDecorationBreak(String value) {
     setProperty('box-decoration-break', value, '');
   }
 
@@ -5713,7 +5725,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-direction');
 
   /** Sets the value of "box-direction" */
-  void set boxDirection(String value) {
+  set boxDirection(String value) {
     setProperty('box-direction', value, '');
   }
 
@@ -5722,7 +5734,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-flex');
 
   /** Sets the value of "box-flex" */
-  void set boxFlex(String value) {
+  set boxFlex(String value) {
     setProperty('box-flex', value, '');
   }
 
@@ -5731,7 +5743,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-flex-group');
 
   /** Sets the value of "box-flex-group" */
-  void set boxFlexGroup(String value) {
+  set boxFlexGroup(String value) {
     setProperty('box-flex-group', value, '');
   }
 
@@ -5740,7 +5752,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-lines');
 
   /** Sets the value of "box-lines" */
-  void set boxLines(String value) {
+  set boxLines(String value) {
     setProperty('box-lines', value, '');
   }
 
@@ -5749,7 +5761,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
-  void set boxOrdinalGroup(String value) {
+  set boxOrdinalGroup(String value) {
     setProperty('box-ordinal-group', value, '');
   }
 
@@ -5758,7 +5770,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-orient');
 
   /** Sets the value of "box-orient" */
-  void set boxOrient(String value) {
+  set boxOrient(String value) {
     setProperty('box-orient', value, '');
   }
 
@@ -5767,7 +5779,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-pack');
 
   /** Sets the value of "box-pack" */
-  void set boxPack(String value) {
+  set boxPack(String value) {
     setProperty('box-pack', value, '');
   }
 
@@ -5776,7 +5788,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-reflect');
 
   /** Sets the value of "box-reflect" */
-  void set boxReflect(String value) {
+  set boxReflect(String value) {
     setProperty('box-reflect', value, '');
   }
 
@@ -5785,7 +5797,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-shadow');
 
   /** Sets the value of "box-shadow" */
-  void set boxShadow(String value) {
+  set boxShadow(String value) {
     setProperty('box-shadow', value, '');
   }
 
@@ -5794,7 +5806,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
-  void set boxSizing(String value) {
+  set boxSizing(String value) {
     setProperty('box-sizing', value, '');
   }
 
@@ -5803,7 +5815,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('caption-side');
 
   /** Sets the value of "caption-side" */
-  void set captionSide(String value) {
+  set captionSide(String value) {
     setProperty('caption-side', value, '');
   }
 
@@ -5812,7 +5824,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clear');
 
   /** Sets the value of "clear" */
-  void set clear(String value) {
+  set clear(String value) {
     setProperty('clear', value, '');
   }
 
@@ -5821,7 +5833,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clip');
 
   /** Sets the value of "clip" */
-  void set clip(String value) {
+  set clip(String value) {
     setProperty('clip', value, '');
   }
 
@@ -5830,7 +5842,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('clip-path');
 
   /** Sets the value of "clip-path" */
-  void set clipPath(String value) {
+  set clipPath(String value) {
     setProperty('clip-path', value, '');
   }
 
@@ -5839,7 +5851,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('color');
 
   /** Sets the value of "color" */
-  void set color(String value) {
+  set color(String value) {
     setProperty('color', value, '');
   }
 
@@ -5848,7 +5860,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-after');
 
   /** Sets the value of "column-break-after" */
-  void set columnBreakAfter(String value) {
+  set columnBreakAfter(String value) {
     setProperty('column-break-after', value, '');
   }
 
@@ -5857,7 +5869,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-before');
 
   /** Sets the value of "column-break-before" */
-  void set columnBreakBefore(String value) {
+  set columnBreakBefore(String value) {
     setProperty('column-break-before', value, '');
   }
 
@@ -5866,7 +5878,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-break-inside');
 
   /** Sets the value of "column-break-inside" */
-  void set columnBreakInside(String value) {
+  set columnBreakInside(String value) {
     setProperty('column-break-inside', value, '');
   }
 
@@ -5875,7 +5887,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-count');
 
   /** Sets the value of "column-count" */
-  void set columnCount(String value) {
+  set columnCount(String value) {
     setProperty('column-count', value, '');
   }
 
@@ -5884,7 +5896,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-fill');
 
   /** Sets the value of "column-fill" */
-  void set columnFill(String value) {
+  set columnFill(String value) {
     setProperty('column-fill', value, '');
   }
 
@@ -5893,7 +5905,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-gap');
 
   /** Sets the value of "column-gap" */
-  void set columnGap(String value) {
+  set columnGap(String value) {
     setProperty('column-gap', value, '');
   }
 
@@ -5902,7 +5914,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule');
 
   /** Sets the value of "column-rule" */
-  void set columnRule(String value) {
+  set columnRule(String value) {
     setProperty('column-rule', value, '');
   }
 
@@ -5911,7 +5923,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-color');
 
   /** Sets the value of "column-rule-color" */
-  void set columnRuleColor(String value) {
+  set columnRuleColor(String value) {
     setProperty('column-rule-color', value, '');
   }
 
@@ -5920,7 +5932,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-style');
 
   /** Sets the value of "column-rule-style" */
-  void set columnRuleStyle(String value) {
+  set columnRuleStyle(String value) {
     setProperty('column-rule-style', value, '');
   }
 
@@ -5929,7 +5941,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-rule-width');
 
   /** Sets the value of "column-rule-width" */
-  void set columnRuleWidth(String value) {
+  set columnRuleWidth(String value) {
     setProperty('column-rule-width', value, '');
   }
 
@@ -5938,7 +5950,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-span');
 
   /** Sets the value of "column-span" */
-  void set columnSpan(String value) {
+  set columnSpan(String value) {
     setProperty('column-span', value, '');
   }
 
@@ -5947,7 +5959,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('column-width');
 
   /** Sets the value of "column-width" */
-  void set columnWidth(String value) {
+  set columnWidth(String value) {
     setProperty('column-width', value, '');
   }
 
@@ -5956,7 +5968,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('columns');
 
   /** Sets the value of "columns" */
-  void set columns(String value) {
+  set columns(String value) {
     setProperty('columns', value, '');
   }
 
@@ -5965,7 +5977,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('content');
 
   /** Sets the value of "content" */
-  void set content(String value) {
+  set content(String value) {
     setProperty('content', value, '');
   }
 
@@ -5974,7 +5986,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('counter-increment');
 
   /** Sets the value of "counter-increment" */
-  void set counterIncrement(String value) {
+  set counterIncrement(String value) {
     setProperty('counter-increment', value, '');
   }
 
@@ -5983,7 +5995,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('counter-reset');
 
   /** Sets the value of "counter-reset" */
-  void set counterReset(String value) {
+  set counterReset(String value) {
     setProperty('counter-reset', value, '');
   }
 
@@ -5992,7 +6004,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('cursor');
 
   /** Sets the value of "cursor" */
-  void set cursor(String value) {
+  set cursor(String value) {
     setProperty('cursor', value, '');
   }
 
@@ -6001,7 +6013,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('direction');
 
   /** Sets the value of "direction" */
-  void set direction(String value) {
+  set direction(String value) {
     setProperty('direction', value, '');
   }
 
@@ -6010,7 +6022,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('display');
 
   /** Sets the value of "display" */
-  void set display(String value) {
+  set display(String value) {
     setProperty('display', value, '');
   }
 
@@ -6019,7 +6031,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('empty-cells');
 
   /** Sets the value of "empty-cells" */
-  void set emptyCells(String value) {
+  set emptyCells(String value) {
     setProperty('empty-cells', value, '');
   }
 
@@ -6028,7 +6040,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('filter');
 
   /** Sets the value of "filter" */
-  void set filter(String value) {
+  set filter(String value) {
     setProperty('filter', value, '');
   }
 
@@ -6037,7 +6049,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex');
 
   /** Sets the value of "flex" */
-  void set flex(String value) {
+  set flex(String value) {
     setProperty('flex', value, '');
   }
 
@@ -6046,7 +6058,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-basis');
 
   /** Sets the value of "flex-basis" */
-  void set flexBasis(String value) {
+  set flexBasis(String value) {
     setProperty('flex-basis', value, '');
   }
 
@@ -6055,7 +6067,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-direction');
 
   /** Sets the value of "flex-direction" */
-  void set flexDirection(String value) {
+  set flexDirection(String value) {
     setProperty('flex-direction', value, '');
   }
 
@@ -6064,7 +6076,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-flow');
 
   /** Sets the value of "flex-flow" */
-  void set flexFlow(String value) {
+  set flexFlow(String value) {
     setProperty('flex-flow', value, '');
   }
 
@@ -6073,7 +6085,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-grow');
 
   /** Sets the value of "flex-grow" */
-  void set flexGrow(String value) {
+  set flexGrow(String value) {
     setProperty('flex-grow', value, '');
   }
 
@@ -6082,7 +6094,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-shrink');
 
   /** Sets the value of "flex-shrink" */
-  void set flexShrink(String value) {
+  set flexShrink(String value) {
     setProperty('flex-shrink', value, '');
   }
 
@@ -6091,7 +6103,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('flex-wrap');
 
   /** Sets the value of "flex-wrap" */
-  void set flexWrap(String value) {
+  set flexWrap(String value) {
     setProperty('flex-wrap', value, '');
   }
 
@@ -6100,7 +6112,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('float');
 
   /** Sets the value of "float" */
-  void set float(String value) {
+  set float(String value) {
     setProperty('float', value, '');
   }
 
@@ -6109,7 +6121,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font');
 
   /** Sets the value of "font" */
-  void set font(String value) {
+  set font(String value) {
     setProperty('font', value, '');
   }
 
@@ -6118,7 +6130,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-family');
 
   /** Sets the value of "font-family" */
-  void set fontFamily(String value) {
+  set fontFamily(String value) {
     setProperty('font-family', value, '');
   }
 
@@ -6127,7 +6139,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
-  void set fontFeatureSettings(String value) {
+  set fontFeatureSettings(String value) {
     setProperty('font-feature-settings', value, '');
   }
 
@@ -6136,7 +6148,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-kerning');
 
   /** Sets the value of "font-kerning" */
-  void set fontKerning(String value) {
+  set fontKerning(String value) {
     setProperty('font-kerning', value, '');
   }
 
@@ -6145,7 +6157,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-size');
 
   /** Sets the value of "font-size" */
-  void set fontSize(String value) {
+  set fontSize(String value) {
     setProperty('font-size', value, '');
   }
 
@@ -6154,7 +6166,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-size-delta');
 
   /** Sets the value of "font-size-delta" */
-  void set fontSizeDelta(String value) {
+  set fontSizeDelta(String value) {
     setProperty('font-size-delta', value, '');
   }
 
@@ -6163,7 +6175,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-smoothing');
 
   /** Sets the value of "font-smoothing" */
-  void set fontSmoothing(String value) {
+  set fontSmoothing(String value) {
     setProperty('font-smoothing', value, '');
   }
 
@@ -6172,7 +6184,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-stretch');
 
   /** Sets the value of "font-stretch" */
-  void set fontStretch(String value) {
+  set fontStretch(String value) {
     setProperty('font-stretch', value, '');
   }
 
@@ -6181,7 +6193,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-style');
 
   /** Sets the value of "font-style" */
-  void set fontStyle(String value) {
+  set fontStyle(String value) {
     setProperty('font-style', value, '');
   }
 
@@ -6190,7 +6202,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-variant');
 
   /** Sets the value of "font-variant" */
-  void set fontVariant(String value) {
+  set fontVariant(String value) {
     setProperty('font-variant', value, '');
   }
 
@@ -6199,7 +6211,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-variant-ligatures');
 
   /** Sets the value of "font-variant-ligatures" */
-  void set fontVariantLigatures(String value) {
+  set fontVariantLigatures(String value) {
     setProperty('font-variant-ligatures', value, '');
   }
 
@@ -6208,7 +6220,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('font-weight');
 
   /** Sets the value of "font-weight" */
-  void set fontWeight(String value) {
+  set fontWeight(String value) {
     setProperty('font-weight', value, '');
   }
 
@@ -6217,7 +6229,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid');
 
   /** Sets the value of "grid" */
-  void set grid(String value) {
+  set grid(String value) {
     setProperty('grid', value, '');
   }
 
@@ -6226,7 +6238,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-area');
 
   /** Sets the value of "grid-area" */
-  void set gridArea(String value) {
+  set gridArea(String value) {
     setProperty('grid-area', value, '');
   }
 
@@ -6235,7 +6247,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-columns');
 
   /** Sets the value of "grid-auto-columns" */
-  void set gridAutoColumns(String value) {
+  set gridAutoColumns(String value) {
     setProperty('grid-auto-columns', value, '');
   }
 
@@ -6244,7 +6256,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-flow');
 
   /** Sets the value of "grid-auto-flow" */
-  void set gridAutoFlow(String value) {
+  set gridAutoFlow(String value) {
     setProperty('grid-auto-flow', value, '');
   }
 
@@ -6253,7 +6265,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-auto-rows');
 
   /** Sets the value of "grid-auto-rows" */
-  void set gridAutoRows(String value) {
+  set gridAutoRows(String value) {
     setProperty('grid-auto-rows', value, '');
   }
 
@@ -6262,7 +6274,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column');
 
   /** Sets the value of "grid-column" */
-  void set gridColumn(String value) {
+  set gridColumn(String value) {
     setProperty('grid-column', value, '');
   }
 
@@ -6271,7 +6283,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column-end');
 
   /** Sets the value of "grid-column-end" */
-  void set gridColumnEnd(String value) {
+  set gridColumnEnd(String value) {
     setProperty('grid-column-end', value, '');
   }
 
@@ -6280,7 +6292,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-column-start');
 
   /** Sets the value of "grid-column-start" */
-  void set gridColumnStart(String value) {
+  set gridColumnStart(String value) {
     setProperty('grid-column-start', value, '');
   }
 
@@ -6289,7 +6301,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row');
 
   /** Sets the value of "grid-row" */
-  void set gridRow(String value) {
+  set gridRow(String value) {
     setProperty('grid-row', value, '');
   }
 
@@ -6298,7 +6310,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row-end');
 
   /** Sets the value of "grid-row-end" */
-  void set gridRowEnd(String value) {
+  set gridRowEnd(String value) {
     setProperty('grid-row-end', value, '');
   }
 
@@ -6307,7 +6319,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-row-start');
 
   /** Sets the value of "grid-row-start" */
-  void set gridRowStart(String value) {
+  set gridRowStart(String value) {
     setProperty('grid-row-start', value, '');
   }
 
@@ -6316,7 +6328,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template');
 
   /** Sets the value of "grid-template" */
-  void set gridTemplate(String value) {
+  set gridTemplate(String value) {
     setProperty('grid-template', value, '');
   }
 
@@ -6325,7 +6337,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-areas');
 
   /** Sets the value of "grid-template-areas" */
-  void set gridTemplateAreas(String value) {
+  set gridTemplateAreas(String value) {
     setProperty('grid-template-areas', value, '');
   }
 
@@ -6334,7 +6346,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-columns');
 
   /** Sets the value of "grid-template-columns" */
-  void set gridTemplateColumns(String value) {
+  set gridTemplateColumns(String value) {
     setProperty('grid-template-columns', value, '');
   }
 
@@ -6343,7 +6355,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('grid-template-rows');
 
   /** Sets the value of "grid-template-rows" */
-  void set gridTemplateRows(String value) {
+  set gridTemplateRows(String value) {
     setProperty('grid-template-rows', value, '');
   }
 
@@ -6352,7 +6364,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('height');
 
   /** Sets the value of "height" */
-  void set height(String value) {
+  set height(String value) {
     setProperty('height', value, '');
   }
 
@@ -6361,7 +6373,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('highlight');
 
   /** Sets the value of "highlight" */
-  void set highlight(String value) {
+  set highlight(String value) {
     setProperty('highlight', value, '');
   }
 
@@ -6370,7 +6382,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
-  void set hyphenateCharacter(String value) {
+  set hyphenateCharacter(String value) {
     setProperty('hyphenate-character', value, '');
   }
 
@@ -6379,7 +6391,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('image-rendering');
 
   /** Sets the value of "image-rendering" */
-  void set imageRendering(String value) {
+  set imageRendering(String value) {
     setProperty('image-rendering', value, '');
   }
 
@@ -6388,7 +6400,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('isolation');
 
   /** Sets the value of "isolation" */
-  void set isolation(String value) {
+  set isolation(String value) {
     setProperty('isolation', value, '');
   }
 
@@ -6397,7 +6409,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('justify-content');
 
   /** Sets the value of "justify-content" */
-  void set justifyContent(String value) {
+  set justifyContent(String value) {
     setProperty('justify-content', value, '');
   }
 
@@ -6406,7 +6418,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('justify-self');
 
   /** Sets the value of "justify-self" */
-  void set justifySelf(String value) {
+  set justifySelf(String value) {
     setProperty('justify-self', value, '');
   }
 
@@ -6415,7 +6427,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('left');
 
   /** Sets the value of "left" */
-  void set left(String value) {
+  set left(String value) {
     setProperty('left', value, '');
   }
 
@@ -6424,7 +6436,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('letter-spacing');
 
   /** Sets the value of "letter-spacing" */
-  void set letterSpacing(String value) {
+  set letterSpacing(String value) {
     setProperty('letter-spacing', value, '');
   }
 
@@ -6433,7 +6445,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-box-contain');
 
   /** Sets the value of "line-box-contain" */
-  void set lineBoxContain(String value) {
+  set lineBoxContain(String value) {
     setProperty('line-box-contain', value, '');
   }
 
@@ -6442,7 +6454,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-break');
 
   /** Sets the value of "line-break" */
-  void set lineBreak(String value) {
+  set lineBreak(String value) {
     setProperty('line-break', value, '');
   }
 
@@ -6451,7 +6463,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-clamp');
 
   /** Sets the value of "line-clamp" */
-  void set lineClamp(String value) {
+  set lineClamp(String value) {
     setProperty('line-clamp', value, '');
   }
 
@@ -6460,7 +6472,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('line-height');
 
   /** Sets the value of "line-height" */
-  void set lineHeight(String value) {
+  set lineHeight(String value) {
     setProperty('line-height', value, '');
   }
 
@@ -6469,7 +6481,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style');
 
   /** Sets the value of "list-style" */
-  void set listStyle(String value) {
+  set listStyle(String value) {
     setProperty('list-style', value, '');
   }
 
@@ -6478,7 +6490,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-image');
 
   /** Sets the value of "list-style-image" */
-  void set listStyleImage(String value) {
+  set listStyleImage(String value) {
     setProperty('list-style-image', value, '');
   }
 
@@ -6487,7 +6499,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-position');
 
   /** Sets the value of "list-style-position" */
-  void set listStylePosition(String value) {
+  set listStylePosition(String value) {
     setProperty('list-style-position', value, '');
   }
 
@@ -6496,7 +6508,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('list-style-type');
 
   /** Sets the value of "list-style-type" */
-  void set listStyleType(String value) {
+  set listStyleType(String value) {
     setProperty('list-style-type', value, '');
   }
 
@@ -6505,7 +6517,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('locale');
 
   /** Sets the value of "locale" */
-  void set locale(String value) {
+  set locale(String value) {
     setProperty('locale', value, '');
   }
 
@@ -6514,7 +6526,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('logical-height');
 
   /** Sets the value of "logical-height" */
-  void set logicalHeight(String value) {
+  set logicalHeight(String value) {
     setProperty('logical-height', value, '');
   }
 
@@ -6523,7 +6535,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('logical-width');
 
   /** Sets the value of "logical-width" */
-  void set logicalWidth(String value) {
+  set logicalWidth(String value) {
     setProperty('logical-width', value, '');
   }
 
@@ -6532,7 +6544,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin');
 
   /** Sets the value of "margin" */
-  void set margin(String value) {
+  set margin(String value) {
     setProperty('margin', value, '');
   }
 
@@ -6541,7 +6553,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-after');
 
   /** Sets the value of "margin-after" */
-  void set marginAfter(String value) {
+  set marginAfter(String value) {
     setProperty('margin-after', value, '');
   }
 
@@ -6550,7 +6562,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
-  void set marginAfterCollapse(String value) {
+  set marginAfterCollapse(String value) {
     setProperty('margin-after-collapse', value, '');
   }
 
@@ -6559,7 +6571,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-before');
 
   /** Sets the value of "margin-before" */
-  void set marginBefore(String value) {
+  set marginBefore(String value) {
     setProperty('margin-before', value, '');
   }
 
@@ -6568,7 +6580,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
-  void set marginBeforeCollapse(String value) {
+  set marginBeforeCollapse(String value) {
     setProperty('margin-before-collapse', value, '');
   }
 
@@ -6577,7 +6589,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-bottom');
 
   /** Sets the value of "margin-bottom" */
-  void set marginBottom(String value) {
+  set marginBottom(String value) {
     setProperty('margin-bottom', value, '');
   }
 
@@ -6586,7 +6598,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
-  void set marginBottomCollapse(String value) {
+  set marginBottomCollapse(String value) {
     setProperty('margin-bottom-collapse', value, '');
   }
 
@@ -6595,7 +6607,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-collapse');
 
   /** Sets the value of "margin-collapse" */
-  void set marginCollapse(String value) {
+  set marginCollapse(String value) {
     setProperty('margin-collapse', value, '');
   }
 
@@ -6604,7 +6616,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-end');
 
   /** Sets the value of "margin-end" */
-  void set marginEnd(String value) {
+  set marginEnd(String value) {
     setProperty('margin-end', value, '');
   }
 
@@ -6613,7 +6625,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-left');
 
   /** Sets the value of "margin-left" */
-  void set marginLeft(String value) {
+  set marginLeft(String value) {
     setProperty('margin-left', value, '');
   }
 
@@ -6622,7 +6634,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-right');
 
   /** Sets the value of "margin-right" */
-  void set marginRight(String value) {
+  set marginRight(String value) {
     setProperty('margin-right', value, '');
   }
 
@@ -6631,7 +6643,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-start');
 
   /** Sets the value of "margin-start" */
-  void set marginStart(String value) {
+  set marginStart(String value) {
     setProperty('margin-start', value, '');
   }
 
@@ -6640,7 +6652,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-top');
 
   /** Sets the value of "margin-top" */
-  void set marginTop(String value) {
+  set marginTop(String value) {
     setProperty('margin-top', value, '');
   }
 
@@ -6649,7 +6661,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
-  void set marginTopCollapse(String value) {
+  set marginTopCollapse(String value) {
     setProperty('margin-top-collapse', value, '');
   }
 
@@ -6658,7 +6670,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask');
 
   /** Sets the value of "mask" */
-  void set mask(String value) {
+  set mask(String value) {
     setProperty('mask', value, '');
   }
 
@@ -6667,7 +6679,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image');
 
   /** Sets the value of "mask-box-image" */
-  void set maskBoxImage(String value) {
+  set maskBoxImage(String value) {
     setProperty('mask-box-image', value, '');
   }
 
@@ -6676,7 +6688,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
-  void set maskBoxImageOutset(String value) {
+  set maskBoxImageOutset(String value) {
     setProperty('mask-box-image-outset', value, '');
   }
 
@@ -6685,7 +6697,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
-  void set maskBoxImageRepeat(String value) {
+  set maskBoxImageRepeat(String value) {
     setProperty('mask-box-image-repeat', value, '');
   }
 
@@ -6694,7 +6706,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
-  void set maskBoxImageSlice(String value) {
+  set maskBoxImageSlice(String value) {
     setProperty('mask-box-image-slice', value, '');
   }
 
@@ -6703,7 +6715,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
-  void set maskBoxImageSource(String value) {
+  set maskBoxImageSource(String value) {
     setProperty('mask-box-image-source', value, '');
   }
 
@@ -6712,7 +6724,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
-  void set maskBoxImageWidth(String value) {
+  set maskBoxImageWidth(String value) {
     setProperty('mask-box-image-width', value, '');
   }
 
@@ -6721,7 +6733,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-clip');
 
   /** Sets the value of "mask-clip" */
-  void set maskClip(String value) {
+  set maskClip(String value) {
     setProperty('mask-clip', value, '');
   }
 
@@ -6730,7 +6742,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-composite');
 
   /** Sets the value of "mask-composite" */
-  void set maskComposite(String value) {
+  set maskComposite(String value) {
     setProperty('mask-composite', value, '');
   }
 
@@ -6739,7 +6751,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-image');
 
   /** Sets the value of "mask-image" */
-  void set maskImage(String value) {
+  set maskImage(String value) {
     setProperty('mask-image', value, '');
   }
 
@@ -6748,7 +6760,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-origin');
 
   /** Sets the value of "mask-origin" */
-  void set maskOrigin(String value) {
+  set maskOrigin(String value) {
     setProperty('mask-origin', value, '');
   }
 
@@ -6757,7 +6769,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position');
 
   /** Sets the value of "mask-position" */
-  void set maskPosition(String value) {
+  set maskPosition(String value) {
     setProperty('mask-position', value, '');
   }
 
@@ -6766,7 +6778,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position-x');
 
   /** Sets the value of "mask-position-x" */
-  void set maskPositionX(String value) {
+  set maskPositionX(String value) {
     setProperty('mask-position-x', value, '');
   }
 
@@ -6775,7 +6787,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-position-y');
 
   /** Sets the value of "mask-position-y" */
-  void set maskPositionY(String value) {
+  set maskPositionY(String value) {
     setProperty('mask-position-y', value, '');
   }
 
@@ -6784,7 +6796,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat');
 
   /** Sets the value of "mask-repeat" */
-  void set maskRepeat(String value) {
+  set maskRepeat(String value) {
     setProperty('mask-repeat', value, '');
   }
 
@@ -6793,7 +6805,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
-  void set maskRepeatX(String value) {
+  set maskRepeatX(String value) {
     setProperty('mask-repeat-x', value, '');
   }
 
@@ -6802,7 +6814,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
-  void set maskRepeatY(String value) {
+  set maskRepeatY(String value) {
     setProperty('mask-repeat-y', value, '');
   }
 
@@ -6811,7 +6823,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-size');
 
   /** Sets the value of "mask-size" */
-  void set maskSize(String value) {
+  set maskSize(String value) {
     setProperty('mask-size', value, '');
   }
 
@@ -6820,7 +6832,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mask-source-type');
 
   /** Sets the value of "mask-source-type" */
-  void set maskSourceType(String value) {
+  set maskSourceType(String value) {
     setProperty('mask-source-type', value, '');
   }
 
@@ -6829,7 +6841,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-height');
 
   /** Sets the value of "max-height" */
-  void set maxHeight(String value) {
+  set maxHeight(String value) {
     setProperty('max-height', value, '');
   }
 
@@ -6838,7 +6850,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-logical-height');
 
   /** Sets the value of "max-logical-height" */
-  void set maxLogicalHeight(String value) {
+  set maxLogicalHeight(String value) {
     setProperty('max-logical-height', value, '');
   }
 
@@ -6847,7 +6859,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-logical-width');
 
   /** Sets the value of "max-logical-width" */
-  void set maxLogicalWidth(String value) {
+  set maxLogicalWidth(String value) {
     setProperty('max-logical-width', value, '');
   }
 
@@ -6856,7 +6868,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-width');
 
   /** Sets the value of "max-width" */
-  void set maxWidth(String value) {
+  set maxWidth(String value) {
     setProperty('max-width', value, '');
   }
 
@@ -6865,7 +6877,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('max-zoom');
 
   /** Sets the value of "max-zoom" */
-  void set maxZoom(String value) {
+  set maxZoom(String value) {
     setProperty('max-zoom', value, '');
   }
 
@@ -6874,7 +6886,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-height');
 
   /** Sets the value of "min-height" */
-  void set minHeight(String value) {
+  set minHeight(String value) {
     setProperty('min-height', value, '');
   }
 
@@ -6883,7 +6895,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-logical-height');
 
   /** Sets the value of "min-logical-height" */
-  void set minLogicalHeight(String value) {
+  set minLogicalHeight(String value) {
     setProperty('min-logical-height', value, '');
   }
 
@@ -6892,7 +6904,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-logical-width');
 
   /** Sets the value of "min-logical-width" */
-  void set minLogicalWidth(String value) {
+  set minLogicalWidth(String value) {
     setProperty('min-logical-width', value, '');
   }
 
@@ -6901,7 +6913,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-width');
 
   /** Sets the value of "min-width" */
-  void set minWidth(String value) {
+  set minWidth(String value) {
     setProperty('min-width', value, '');
   }
 
@@ -6910,7 +6922,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('min-zoom');
 
   /** Sets the value of "min-zoom" */
-  void set minZoom(String value) {
+  set minZoom(String value) {
     setProperty('min-zoom', value, '');
   }
 
@@ -6919,7 +6931,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('mix-blend-mode');
 
   /** Sets the value of "mix-blend-mode" */
-  void set mixBlendMode(String value) {
+  set mixBlendMode(String value) {
     setProperty('mix-blend-mode', value, '');
   }
 
@@ -6928,7 +6940,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('object-fit');
 
   /** Sets the value of "object-fit" */
-  void set objectFit(String value) {
+  set objectFit(String value) {
     setProperty('object-fit', value, '');
   }
 
@@ -6937,7 +6949,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('object-position');
 
   /** Sets the value of "object-position" */
-  void set objectPosition(String value) {
+  set objectPosition(String value) {
     setProperty('object-position', value, '');
   }
 
@@ -6946,7 +6958,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('opacity');
 
   /** Sets the value of "opacity" */
-  void set opacity(String value) {
+  set opacity(String value) {
     setProperty('opacity', value, '');
   }
 
@@ -6955,7 +6967,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('order');
 
   /** Sets the value of "order" */
-  void set order(String value) {
+  set order(String value) {
     setProperty('order', value, '');
   }
 
@@ -6964,7 +6976,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('orientation');
 
   /** Sets the value of "orientation" */
-  void set orientation(String value) {
+  set orientation(String value) {
     setProperty('orientation', value, '');
   }
 
@@ -6973,7 +6985,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('orphans');
 
   /** Sets the value of "orphans" */
-  void set orphans(String value) {
+  set orphans(String value) {
     setProperty('orphans', value, '');
   }
 
@@ -6982,7 +6994,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline');
 
   /** Sets the value of "outline" */
-  void set outline(String value) {
+  set outline(String value) {
     setProperty('outline', value, '');
   }
 
@@ -6991,7 +7003,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-color');
 
   /** Sets the value of "outline-color" */
-  void set outlineColor(String value) {
+  set outlineColor(String value) {
     setProperty('outline-color', value, '');
   }
 
@@ -7000,7 +7012,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-offset');
 
   /** Sets the value of "outline-offset" */
-  void set outlineOffset(String value) {
+  set outlineOffset(String value) {
     setProperty('outline-offset', value, '');
   }
 
@@ -7009,7 +7021,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-style');
 
   /** Sets the value of "outline-style" */
-  void set outlineStyle(String value) {
+  set outlineStyle(String value) {
     setProperty('outline-style', value, '');
   }
 
@@ -7018,7 +7030,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('outline-width');
 
   /** Sets the value of "outline-width" */
-  void set outlineWidth(String value) {
+  set outlineWidth(String value) {
     setProperty('outline-width', value, '');
   }
 
@@ -7027,7 +7039,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow');
 
   /** Sets the value of "overflow" */
-  void set overflow(String value) {
+  set overflow(String value) {
     setProperty('overflow', value, '');
   }
 
@@ -7036,7 +7048,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-wrap');
 
   /** Sets the value of "overflow-wrap" */
-  void set overflowWrap(String value) {
+  set overflowWrap(String value) {
     setProperty('overflow-wrap', value, '');
   }
 
@@ -7045,7 +7057,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-x');
 
   /** Sets the value of "overflow-x" */
-  void set overflowX(String value) {
+  set overflowX(String value) {
     setProperty('overflow-x', value, '');
   }
 
@@ -7054,7 +7066,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('overflow-y');
 
   /** Sets the value of "overflow-y" */
-  void set overflowY(String value) {
+  set overflowY(String value) {
     setProperty('overflow-y', value, '');
   }
 
@@ -7063,7 +7075,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding');
 
   /** Sets the value of "padding" */
-  void set padding(String value) {
+  set padding(String value) {
     setProperty('padding', value, '');
   }
 
@@ -7072,7 +7084,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-after');
 
   /** Sets the value of "padding-after" */
-  void set paddingAfter(String value) {
+  set paddingAfter(String value) {
     setProperty('padding-after', value, '');
   }
 
@@ -7081,7 +7093,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-before');
 
   /** Sets the value of "padding-before" */
-  void set paddingBefore(String value) {
+  set paddingBefore(String value) {
     setProperty('padding-before', value, '');
   }
 
@@ -7090,7 +7102,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-bottom');
 
   /** Sets the value of "padding-bottom" */
-  void set paddingBottom(String value) {
+  set paddingBottom(String value) {
     setProperty('padding-bottom', value, '');
   }
 
@@ -7099,7 +7111,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-end');
 
   /** Sets the value of "padding-end" */
-  void set paddingEnd(String value) {
+  set paddingEnd(String value) {
     setProperty('padding-end', value, '');
   }
 
@@ -7108,7 +7120,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-left');
 
   /** Sets the value of "padding-left" */
-  void set paddingLeft(String value) {
+  set paddingLeft(String value) {
     setProperty('padding-left', value, '');
   }
 
@@ -7117,7 +7129,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-right');
 
   /** Sets the value of "padding-right" */
-  void set paddingRight(String value) {
+  set paddingRight(String value) {
     setProperty('padding-right', value, '');
   }
 
@@ -7126,7 +7138,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-start');
 
   /** Sets the value of "padding-start" */
-  void set paddingStart(String value) {
+  set paddingStart(String value) {
     setProperty('padding-start', value, '');
   }
 
@@ -7135,7 +7147,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('padding-top');
 
   /** Sets the value of "padding-top" */
-  void set paddingTop(String value) {
+  set paddingTop(String value) {
     setProperty('padding-top', value, '');
   }
 
@@ -7144,7 +7156,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page');
 
   /** Sets the value of "page" */
-  void set page(String value) {
+  set page(String value) {
     setProperty('page', value, '');
   }
 
@@ -7153,7 +7165,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-after');
 
   /** Sets the value of "page-break-after" */
-  void set pageBreakAfter(String value) {
+  set pageBreakAfter(String value) {
     setProperty('page-break-after', value, '');
   }
 
@@ -7162,7 +7174,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-before');
 
   /** Sets the value of "page-break-before" */
-  void set pageBreakBefore(String value) {
+  set pageBreakBefore(String value) {
     setProperty('page-break-before', value, '');
   }
 
@@ -7171,7 +7183,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('page-break-inside');
 
   /** Sets the value of "page-break-inside" */
-  void set pageBreakInside(String value) {
+  set pageBreakInside(String value) {
     setProperty('page-break-inside', value, '');
   }
 
@@ -7180,7 +7192,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective');
 
   /** Sets the value of "perspective" */
-  void set perspective(String value) {
+  set perspective(String value) {
     setProperty('perspective', value, '');
   }
 
@@ -7189,7 +7201,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin');
 
   /** Sets the value of "perspective-origin" */
-  void set perspectiveOrigin(String value) {
+  set perspectiveOrigin(String value) {
     setProperty('perspective-origin', value, '');
   }
 
@@ -7198,7 +7210,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
-  void set perspectiveOriginX(String value) {
+  set perspectiveOriginX(String value) {
     setProperty('perspective-origin-x', value, '');
   }
 
@@ -7207,7 +7219,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
-  void set perspectiveOriginY(String value) {
+  set perspectiveOriginY(String value) {
     setProperty('perspective-origin-y', value, '');
   }
 
@@ -7216,7 +7228,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('pointer-events');
 
   /** Sets the value of "pointer-events" */
-  void set pointerEvents(String value) {
+  set pointerEvents(String value) {
     setProperty('pointer-events', value, '');
   }
 
@@ -7225,7 +7237,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('position');
 
   /** Sets the value of "position" */
-  void set position(String value) {
+  set position(String value) {
     setProperty('position', value, '');
   }
 
@@ -7234,7 +7246,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('print-color-adjust');
 
   /** Sets the value of "print-color-adjust" */
-  void set printColorAdjust(String value) {
+  set printColorAdjust(String value) {
     setProperty('print-color-adjust', value, '');
   }
 
@@ -7243,7 +7255,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('quotes');
 
   /** Sets the value of "quotes" */
-  void set quotes(String value) {
+  set quotes(String value) {
     setProperty('quotes', value, '');
   }
 
@@ -7252,7 +7264,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('resize');
 
   /** Sets the value of "resize" */
-  void set resize(String value) {
+  set resize(String value) {
     setProperty('resize', value, '');
   }
 
@@ -7261,7 +7273,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('right');
 
   /** Sets the value of "right" */
-  void set right(String value) {
+  set right(String value) {
     setProperty('right', value, '');
   }
 
@@ -7270,7 +7282,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
-  void set rtlOrdering(String value) {
+  set rtlOrdering(String value) {
     setProperty('rtl-ordering', value, '');
   }
 
@@ -7279,7 +7291,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('ruby-position');
 
   /** Sets the value of "ruby-position" */
-  void set rubyPosition(String value) {
+  set rubyPosition(String value) {
     setProperty('ruby-position', value, '');
   }
 
@@ -7288,7 +7300,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('scroll-behavior');
 
   /** Sets the value of "scroll-behavior" */
-  void set scrollBehavior(String value) {
+  set scrollBehavior(String value) {
     setProperty('scroll-behavior', value, '');
   }
 
@@ -7297,7 +7309,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-image-threshold');
 
   /** Sets the value of "shape-image-threshold" */
-  void set shapeImageThreshold(String value) {
+  set shapeImageThreshold(String value) {
     setProperty('shape-image-threshold', value, '');
   }
 
@@ -7306,7 +7318,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-margin');
 
   /** Sets the value of "shape-margin" */
-  void set shapeMargin(String value) {
+  set shapeMargin(String value) {
     setProperty('shape-margin', value, '');
   }
 
@@ -7315,7 +7327,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('shape-outside');
 
   /** Sets the value of "shape-outside" */
-  void set shapeOutside(String value) {
+  set shapeOutside(String value) {
     setProperty('shape-outside', value, '');
   }
 
@@ -7324,7 +7336,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('size');
 
   /** Sets the value of "size" */
-  void set size(String value) {
+  set size(String value) {
     setProperty('size', value, '');
   }
 
@@ -7333,7 +7345,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('speak');
 
   /** Sets the value of "speak" */
-  void set speak(String value) {
+  set speak(String value) {
     setProperty('speak', value, '');
   }
 
@@ -7342,7 +7354,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('src');
 
   /** Sets the value of "src" */
-  void set src(String value) {
+  set src(String value) {
     setProperty('src', value, '');
   }
 
@@ -7351,7 +7363,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('tab-size');
 
   /** Sets the value of "tab-size" */
-  void set tabSize(String value) {
+  set tabSize(String value) {
     setProperty('tab-size', value, '');
   }
 
@@ -7360,7 +7372,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('table-layout');
 
   /** Sets the value of "table-layout" */
-  void set tableLayout(String value) {
+  set tableLayout(String value) {
     setProperty('table-layout', value, '');
   }
 
@@ -7369,7 +7381,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
-  void set tapHighlightColor(String value) {
+  set tapHighlightColor(String value) {
     setProperty('tap-highlight-color', value, '');
   }
 
@@ -7378,7 +7390,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-align');
 
   /** Sets the value of "text-align" */
-  void set textAlign(String value) {
+  set textAlign(String value) {
     setProperty('text-align', value, '');
   }
 
@@ -7387,7 +7399,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-align-last');
 
   /** Sets the value of "text-align-last" */
-  void set textAlignLast(String value) {
+  set textAlignLast(String value) {
     setProperty('text-align-last', value, '');
   }
 
@@ -7396,7 +7408,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-combine');
 
   /** Sets the value of "text-combine" */
-  void set textCombine(String value) {
+  set textCombine(String value) {
     setProperty('text-combine', value, '');
   }
 
@@ -7405,7 +7417,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration');
 
   /** Sets the value of "text-decoration" */
-  void set textDecoration(String value) {
+  set textDecoration(String value) {
     setProperty('text-decoration', value, '');
   }
 
@@ -7414,7 +7426,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-color');
 
   /** Sets the value of "text-decoration-color" */
-  void set textDecorationColor(String value) {
+  set textDecorationColor(String value) {
     setProperty('text-decoration-color', value, '');
   }
 
@@ -7423,7 +7435,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-line');
 
   /** Sets the value of "text-decoration-line" */
-  void set textDecorationLine(String value) {
+  set textDecorationLine(String value) {
     setProperty('text-decoration-line', value, '');
   }
 
@@ -7432,7 +7444,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decoration-style');
 
   /** Sets the value of "text-decoration-style" */
-  void set textDecorationStyle(String value) {
+  set textDecorationStyle(String value) {
     setProperty('text-decoration-style', value, '');
   }
 
@@ -7441,7 +7453,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
-  void set textDecorationsInEffect(String value) {
+  set textDecorationsInEffect(String value) {
     setProperty('text-decorations-in-effect', value, '');
   }
 
@@ -7450,7 +7462,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis');
 
   /** Sets the value of "text-emphasis" */
-  void set textEmphasis(String value) {
+  set textEmphasis(String value) {
     setProperty('text-emphasis', value, '');
   }
 
@@ -7459,7 +7471,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
-  void set textEmphasisColor(String value) {
+  set textEmphasisColor(String value) {
     setProperty('text-emphasis-color', value, '');
   }
 
@@ -7468,7 +7480,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
-  void set textEmphasisPosition(String value) {
+  set textEmphasisPosition(String value) {
     setProperty('text-emphasis-position', value, '');
   }
 
@@ -7477,7 +7489,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
-  void set textEmphasisStyle(String value) {
+  set textEmphasisStyle(String value) {
     setProperty('text-emphasis-style', value, '');
   }
 
@@ -7486,7 +7498,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-fill-color');
 
   /** Sets the value of "text-fill-color" */
-  void set textFillColor(String value) {
+  set textFillColor(String value) {
     setProperty('text-fill-color', value, '');
   }
 
@@ -7495,7 +7507,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-indent');
 
   /** Sets the value of "text-indent" */
-  void set textIndent(String value) {
+  set textIndent(String value) {
     setProperty('text-indent', value, '');
   }
 
@@ -7504,7 +7516,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-justify');
 
   /** Sets the value of "text-justify" */
-  void set textJustify(String value) {
+  set textJustify(String value) {
     setProperty('text-justify', value, '');
   }
 
@@ -7513,7 +7525,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-color');
 
   /** Sets the value of "text-line-through-color" */
-  void set textLineThroughColor(String value) {
+  set textLineThroughColor(String value) {
     setProperty('text-line-through-color', value, '');
   }
 
@@ -7522,7 +7534,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-mode');
 
   /** Sets the value of "text-line-through-mode" */
-  void set textLineThroughMode(String value) {
+  set textLineThroughMode(String value) {
     setProperty('text-line-through-mode', value, '');
   }
 
@@ -7531,7 +7543,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-style');
 
   /** Sets the value of "text-line-through-style" */
-  void set textLineThroughStyle(String value) {
+  set textLineThroughStyle(String value) {
     setProperty('text-line-through-style', value, '');
   }
 
@@ -7540,7 +7552,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-line-through-width');
 
   /** Sets the value of "text-line-through-width" */
-  void set textLineThroughWidth(String value) {
+  set textLineThroughWidth(String value) {
     setProperty('text-line-through-width', value, '');
   }
 
@@ -7549,7 +7561,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-orientation');
 
   /** Sets the value of "text-orientation" */
-  void set textOrientation(String value) {
+  set textOrientation(String value) {
     setProperty('text-orientation', value, '');
   }
 
@@ -7558,7 +7570,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overflow');
 
   /** Sets the value of "text-overflow" */
-  void set textOverflow(String value) {
+  set textOverflow(String value) {
     setProperty('text-overflow', value, '');
   }
 
@@ -7567,7 +7579,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-color');
 
   /** Sets the value of "text-overline-color" */
-  void set textOverlineColor(String value) {
+  set textOverlineColor(String value) {
     setProperty('text-overline-color', value, '');
   }
 
@@ -7576,7 +7588,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-mode');
 
   /** Sets the value of "text-overline-mode" */
-  void set textOverlineMode(String value) {
+  set textOverlineMode(String value) {
     setProperty('text-overline-mode', value, '');
   }
 
@@ -7585,7 +7597,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-style');
 
   /** Sets the value of "text-overline-style" */
-  void set textOverlineStyle(String value) {
+  set textOverlineStyle(String value) {
     setProperty('text-overline-style', value, '');
   }
 
@@ -7594,7 +7606,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-overline-width');
 
   /** Sets the value of "text-overline-width" */
-  void set textOverlineWidth(String value) {
+  set textOverlineWidth(String value) {
     setProperty('text-overline-width', value, '');
   }
 
@@ -7603,7 +7615,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-rendering');
 
   /** Sets the value of "text-rendering" */
-  void set textRendering(String value) {
+  set textRendering(String value) {
     setProperty('text-rendering', value, '');
   }
 
@@ -7612,7 +7624,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-security');
 
   /** Sets the value of "text-security" */
-  void set textSecurity(String value) {
+  set textSecurity(String value) {
     setProperty('text-security', value, '');
   }
 
@@ -7621,7 +7633,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-shadow');
 
   /** Sets the value of "text-shadow" */
-  void set textShadow(String value) {
+  set textShadow(String value) {
     setProperty('text-shadow', value, '');
   }
 
@@ -7630,7 +7642,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke');
 
   /** Sets the value of "text-stroke" */
-  void set textStroke(String value) {
+  set textStroke(String value) {
     setProperty('text-stroke', value, '');
   }
 
@@ -7639,7 +7651,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
-  void set textStrokeColor(String value) {
+  set textStrokeColor(String value) {
     setProperty('text-stroke-color', value, '');
   }
 
@@ -7648,7 +7660,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
-  void set textStrokeWidth(String value) {
+  set textStrokeWidth(String value) {
     setProperty('text-stroke-width', value, '');
   }
 
@@ -7657,7 +7669,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-transform');
 
   /** Sets the value of "text-transform" */
-  void set textTransform(String value) {
+  set textTransform(String value) {
     setProperty('text-transform', value, '');
   }
 
@@ -7666,7 +7678,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-color');
 
   /** Sets the value of "text-underline-color" */
-  void set textUnderlineColor(String value) {
+  set textUnderlineColor(String value) {
     setProperty('text-underline-color', value, '');
   }
 
@@ -7675,7 +7687,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-mode');
 
   /** Sets the value of "text-underline-mode" */
-  void set textUnderlineMode(String value) {
+  set textUnderlineMode(String value) {
     setProperty('text-underline-mode', value, '');
   }
 
@@ -7684,7 +7696,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-position');
 
   /** Sets the value of "text-underline-position" */
-  void set textUnderlinePosition(String value) {
+  set textUnderlinePosition(String value) {
     setProperty('text-underline-position', value, '');
   }
 
@@ -7693,7 +7705,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-style');
 
   /** Sets the value of "text-underline-style" */
-  void set textUnderlineStyle(String value) {
+  set textUnderlineStyle(String value) {
     setProperty('text-underline-style', value, '');
   }
 
@@ -7702,7 +7714,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('text-underline-width');
 
   /** Sets the value of "text-underline-width" */
-  void set textUnderlineWidth(String value) {
+  set textUnderlineWidth(String value) {
     setProperty('text-underline-width', value, '');
   }
 
@@ -7711,7 +7723,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('top');
 
   /** Sets the value of "top" */
-  void set top(String value) {
+  set top(String value) {
     setProperty('top', value, '');
   }
 
@@ -7720,7 +7732,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('touch-action');
 
   /** Sets the value of "touch-action" */
-  void set touchAction(String value) {
+  set touchAction(String value) {
     setProperty('touch-action', value, '');
   }
 
@@ -7729,7 +7741,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('touch-action-delay');
 
   /** Sets the value of "touch-action-delay" */
-  void set touchActionDelay(String value) {
+  set touchActionDelay(String value) {
     setProperty('touch-action-delay', value, '');
   }
 
@@ -7738,7 +7750,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform');
 
   /** Sets the value of "transform" */
-  void set transform(String value) {
+  set transform(String value) {
     setProperty('transform', value, '');
   }
 
@@ -7747,7 +7759,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin');
 
   /** Sets the value of "transform-origin" */
-  void set transformOrigin(String value) {
+  set transformOrigin(String value) {
     setProperty('transform-origin', value, '');
   }
 
@@ -7756,7 +7768,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
-  void set transformOriginX(String value) {
+  set transformOriginX(String value) {
     setProperty('transform-origin-x', value, '');
   }
 
@@ -7765,7 +7777,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
-  void set transformOriginY(String value) {
+  set transformOriginY(String value) {
     setProperty('transform-origin-y', value, '');
   }
 
@@ -7774,7 +7786,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
-  void set transformOriginZ(String value) {
+  set transformOriginZ(String value) {
     setProperty('transform-origin-z', value, '');
   }
 
@@ -7783,7 +7795,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transform-style');
 
   /** Sets the value of "transform-style" */
-  void set transformStyle(String value) {
+  set transformStyle(String value) {
     setProperty('transform-style', value, '');
   }
 
@@ -7798,7 +7810,7 @@ abstract class CssStyleDeclarationBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void set transition(String value) {
+  set transition(String value) {
     setProperty('transition', value, '');
   }
 
@@ -7807,7 +7819,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-delay');
 
   /** Sets the value of "transition-delay" */
-  void set transitionDelay(String value) {
+  set transitionDelay(String value) {
     setProperty('transition-delay', value, '');
   }
 
@@ -7816,7 +7828,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-duration');
 
   /** Sets the value of "transition-duration" */
-  void set transitionDuration(String value) {
+  set transitionDuration(String value) {
     setProperty('transition-duration', value, '');
   }
 
@@ -7825,7 +7837,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-property');
 
   /** Sets the value of "transition-property" */
-  void set transitionProperty(String value) {
+  set transitionProperty(String value) {
     setProperty('transition-property', value, '');
   }
 
@@ -7834,7 +7846,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
-  void set transitionTimingFunction(String value) {
+  set transitionTimingFunction(String value) {
     setProperty('transition-timing-function', value, '');
   }
 
@@ -7843,7 +7855,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('unicode-bidi');
 
   /** Sets the value of "unicode-bidi" */
-  void set unicodeBidi(String value) {
+  set unicodeBidi(String value) {
     setProperty('unicode-bidi', value, '');
   }
 
@@ -7852,7 +7864,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('unicode-range');
 
   /** Sets the value of "unicode-range" */
-  void set unicodeRange(String value) {
+  set unicodeRange(String value) {
     setProperty('unicode-range', value, '');
   }
 
@@ -7861,7 +7873,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-drag');
 
   /** Sets the value of "user-drag" */
-  void set userDrag(String value) {
+  set userDrag(String value) {
     setProperty('user-drag', value, '');
   }
 
@@ -7870,7 +7882,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-modify');
 
   /** Sets the value of "user-modify" */
-  void set userModify(String value) {
+  set userModify(String value) {
     setProperty('user-modify', value, '');
   }
 
@@ -7879,7 +7891,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-select');
 
   /** Sets the value of "user-select" */
-  void set userSelect(String value) {
+  set userSelect(String value) {
     setProperty('user-select', value, '');
   }
 
@@ -7888,7 +7900,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('user-zoom');
 
   /** Sets the value of "user-zoom" */
-  void set userZoom(String value) {
+  set userZoom(String value) {
     setProperty('user-zoom', value, '');
   }
 
@@ -7897,7 +7909,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('vertical-align');
 
   /** Sets the value of "vertical-align" */
-  void set verticalAlign(String value) {
+  set verticalAlign(String value) {
     setProperty('vertical-align', value, '');
   }
 
@@ -7906,7 +7918,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('visibility');
 
   /** Sets the value of "visibility" */
-  void set visibility(String value) {
+  set visibility(String value) {
     setProperty('visibility', value, '');
   }
 
@@ -7915,7 +7927,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('white-space');
 
   /** Sets the value of "white-space" */
-  void set whiteSpace(String value) {
+  set whiteSpace(String value) {
     setProperty('white-space', value, '');
   }
 
@@ -7924,7 +7936,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('widows');
 
   /** Sets the value of "widows" */
-  void set widows(String value) {
+  set widows(String value) {
     setProperty('widows', value, '');
   }
 
@@ -7933,7 +7945,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('width');
 
   /** Sets the value of "width" */
-  void set width(String value) {
+  set width(String value) {
     setProperty('width', value, '');
   }
 
@@ -7942,7 +7954,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('will-change');
 
   /** Sets the value of "will-change" */
-  void set willChange(String value) {
+  set willChange(String value) {
     setProperty('will-change', value, '');
   }
 
@@ -7951,7 +7963,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-break');
 
   /** Sets the value of "word-break" */
-  void set wordBreak(String value) {
+  set wordBreak(String value) {
     setProperty('word-break', value, '');
   }
 
@@ -7960,7 +7972,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-spacing');
 
   /** Sets the value of "word-spacing" */
-  void set wordSpacing(String value) {
+  set wordSpacing(String value) {
     setProperty('word-spacing', value, '');
   }
 
@@ -7969,7 +7981,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('word-wrap');
 
   /** Sets the value of "word-wrap" */
-  void set wordWrap(String value) {
+  set wordWrap(String value) {
     setProperty('word-wrap', value, '');
   }
 
@@ -7978,7 +7990,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('wrap-flow');
 
   /** Sets the value of "wrap-flow" */
-  void set wrapFlow(String value) {
+  set wrapFlow(String value) {
     setProperty('wrap-flow', value, '');
   }
 
@@ -7987,7 +7999,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('wrap-through');
 
   /** Sets the value of "wrap-through" */
-  void set wrapThrough(String value) {
+  set wrapThrough(String value) {
     setProperty('wrap-through', value, '');
   }
 
@@ -7996,7 +8008,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('writing-mode');
 
   /** Sets the value of "writing-mode" */
-  void set writingMode(String value) {
+  set writingMode(String value) {
     setProperty('writing-mode', value, '');
   }
 
@@ -8005,7 +8017,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('z-index');
 
   /** Sets the value of "z-index" */
-  void set zIndex(String value) {
+  set zIndex(String value) {
     setProperty('z-index', value, '');
   }
 
@@ -8014,7 +8026,7 @@ abstract class CssStyleDeclarationBase {
     getPropertyValue('zoom');
 
   /** Sets the value of "zoom" */
-  void set zoom(String value) {
+  set zoom(String value) {
     setProperty('zoom', value, '');
   }
 }
@@ -8452,7 +8464,26 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @DomName('DedicatedWorkerGlobalScope.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(Object message, [List<MessagePort> transfer]) native;
+  void postMessage(/*any*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_2(message) native;
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
@@ -8960,7 +8991,7 @@ class DirectoryReader extends Interceptor {
  *
  * See also:
  *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
+ * * [HTML `<div>` element](http://www.w3.org/TR/html-markup/div.html) from W3C.
  * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
  * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
  */
@@ -9232,9 +9263,10 @@ class Document extends Node
   @DocsEditable()
   Element _createElement(String localName_OR_tagName, [String typeExtension]) native;
 
+  @JSName('createElementNS')
   @DomName('Document.createElementNS')
   @DocsEditable()
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
+  Element _createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
 
   @JSName('createEvent')
   @DomName('Document.createEvent')
@@ -9833,7 +9865,29 @@ class Document extends Node
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
-    return _createElement(tagName, typeExtension);
+    return (typeExtension == null)
+        ? _createElement_2(tagName)
+        : _createElement(tagName, typeExtension);
+  }
+
+  // The two-argument version of this is automatically generated, but we need to
+  // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
+  @DomName('Document.createElement')
+  _createElement_2(String tagName) =>
+      JS('Element', '#.createElement(#)', this, tagName);
+
+  // The three-argument version of this is automatically generated, but we need to
+  // omit the typeExtension if it's null on Firefox or we get an is="null" attribute.
+  @DomName('Document.createElementNS')
+  _createElementNS_2(String namespaceURI, String qualifiedName) =>
+      JS('Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
+
+  @DomName('Document.createElementNS')
+  @DocsEditable()
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+    return (typeExtension == null)
+        ? _createElementNS_2(namespaceURI, qualifiedName)
+        : _createElementNS(namespaceURI, qualifiedName, typeExtension);
   }
 
   @DomName('Document.createNodeIterator')
@@ -9887,7 +9941,7 @@ class DocumentFragment extends Node implements ParentNode {
     return _docChildren;
   }
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -9909,14 +9963,13 @@ class DocumentFragment extends Node implements ParentNode {
   ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
-
   String get innerHtml {
     final e = new Element.tag("div");
     e.append(this.clone(true));
     return e.innerHtml;
   }
 
-  void set innerHtml(String value) {
+  set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 
@@ -10179,154 +10232,154 @@ class DomMatrix extends DomMatrixReadOnly {
   // Shadowing definition.
   num get a => JS("num", "#.a", this);
 
-  void set a(num value) {
+  set a(num value) {
     JS("void", "#.a = #", this, value);
   }
 
   // Shadowing definition.
   num get b => JS("num", "#.b", this);
 
-  void set b(num value) {
+  set b(num value) {
     JS("void", "#.b = #", this, value);
   }
 
   // Shadowing definition.
   num get c => JS("num", "#.c", this);
 
-  void set c(num value) {
+  set c(num value) {
     JS("void", "#.c = #", this, value);
   }
 
   // Shadowing definition.
   num get d => JS("num", "#.d", this);
 
-  void set d(num value) {
+  set d(num value) {
     JS("void", "#.d = #", this, value);
   }
 
   // Shadowing definition.
   num get e => JS("num", "#.e", this);
 
-  void set e(num value) {
+  set e(num value) {
     JS("void", "#.e = #", this, value);
   }
 
   // Shadowing definition.
   num get f => JS("num", "#.f", this);
 
-  void set f(num value) {
+  set f(num value) {
     JS("void", "#.f = #", this, value);
   }
 
   // Shadowing definition.
   num get m11 => JS("num", "#.m11", this);
 
-  void set m11(num value) {
+  set m11(num value) {
     JS("void", "#.m11 = #", this, value);
   }
 
   // Shadowing definition.
   num get m12 => JS("num", "#.m12", this);
 
-  void set m12(num value) {
+  set m12(num value) {
     JS("void", "#.m12 = #", this, value);
   }
 
   // Shadowing definition.
   num get m13 => JS("num", "#.m13", this);
 
-  void set m13(num value) {
+  set m13(num value) {
     JS("void", "#.m13 = #", this, value);
   }
 
   // Shadowing definition.
   num get m14 => JS("num", "#.m14", this);
 
-  void set m14(num value) {
+  set m14(num value) {
     JS("void", "#.m14 = #", this, value);
   }
 
   // Shadowing definition.
   num get m21 => JS("num", "#.m21", this);
 
-  void set m21(num value) {
+  set m21(num value) {
     JS("void", "#.m21 = #", this, value);
   }
 
   // Shadowing definition.
   num get m22 => JS("num", "#.m22", this);
 
-  void set m22(num value) {
+  set m22(num value) {
     JS("void", "#.m22 = #", this, value);
   }
 
   // Shadowing definition.
   num get m23 => JS("num", "#.m23", this);
 
-  void set m23(num value) {
+  set m23(num value) {
     JS("void", "#.m23 = #", this, value);
   }
 
   // Shadowing definition.
   num get m24 => JS("num", "#.m24", this);
 
-  void set m24(num value) {
+  set m24(num value) {
     JS("void", "#.m24 = #", this, value);
   }
 
   // Shadowing definition.
   num get m31 => JS("num", "#.m31", this);
 
-  void set m31(num value) {
+  set m31(num value) {
     JS("void", "#.m31 = #", this, value);
   }
 
   // Shadowing definition.
   num get m32 => JS("num", "#.m32", this);
 
-  void set m32(num value) {
+  set m32(num value) {
     JS("void", "#.m32 = #", this, value);
   }
 
   // Shadowing definition.
   num get m33 => JS("num", "#.m33", this);
 
-  void set m33(num value) {
+  set m33(num value) {
     JS("void", "#.m33 = #", this, value);
   }
 
   // Shadowing definition.
   num get m34 => JS("num", "#.m34", this);
 
-  void set m34(num value) {
+  set m34(num value) {
     JS("void", "#.m34 = #", this, value);
   }
 
   // Shadowing definition.
   num get m41 => JS("num", "#.m41", this);
 
-  void set m41(num value) {
+  set m41(num value) {
     JS("void", "#.m41 = #", this, value);
   }
 
   // Shadowing definition.
   num get m42 => JS("num", "#.m42", this);
 
-  void set m42(num value) {
+  set m42(num value) {
     JS("void", "#.m42 = #", this, value);
   }
 
   // Shadowing definition.
   num get m43 => JS("num", "#.m43", this);
 
-  void set m43(num value) {
+  set m43(num value) {
     JS("void", "#.m43 = #", this, value);
   }
 
   // Shadowing definition.
   num get m44 => JS("num", "#.m44", this);
 
-  void set m44(num value) {
+  set m44(num value) {
     JS("void", "#.m44 = #", this, value);
   }
 
@@ -10597,28 +10650,28 @@ class DomPoint extends DomPointReadOnly {
   // Shadowing definition.
   num get w => JS("num", "#.w", this);
 
-  void set w(num value) {
+  set w(num value) {
     JS("void", "#.w = #", this, value);
   }
 
   // Shadowing definition.
   num get x => JS("num", "#.x", this);
 
-  void set x(num value) {
+  set x(num value) {
     JS("void", "#.x = #", this, value);
   }
 
   // Shadowing definition.
   num get y => JS("num", "#.y", this);
 
-  void set y(num value) {
+  set y(num value) {
     JS("void", "#.y = #", this, value);
   }
 
   // Shadowing definition.
   num get z => JS("num", "#.z", this);
 
-  void set z(num value) {
+  set z(num value) {
     JS("void", "#.z = #", this, value);
   }
 }
@@ -10862,7 +10915,7 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
   // String is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -10990,7 +11043,7 @@ class _ChildrenElementList extends ListBase<Element>
     _element._replaceChild(value, _childElements[index]);
   }
 
-  void set length(int newLength) {
+  set length(int newLength) {
     // TODO(jacobr): remove children when length is reduced.
     throw new UnsupportedError('Cannot resize element lists');
   }
@@ -11282,13 +11335,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -11300,13 +11353,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -11318,13 +11371,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -11336,13 +11389,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -11354,13 +11407,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -11372,13 +11425,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -11390,13 +11443,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -11696,7 +11749,7 @@ class _FrozenElementList extends ListBase
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void set length(int newLength) {
+  set length(int newLength) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -11719,7 +11772,7 @@ class _FrozenElementList extends ListBase
   CssStyleDeclarationBase get style =>
       new _CssStyleDeclarationSet(this);
 
-  void set classes(Iterable<String> value) {
+  set classes(Iterable<String> value) {
     // TODO(sra): This might be faster for Sets:
     //
     //     new _MultiElementCssClassSet(this).writeClasses(value)
@@ -11814,13 +11867,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -11832,13 +11885,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -11850,13 +11903,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -11868,13 +11921,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -11886,13 +11939,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -11904,13 +11957,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -11922,13 +11975,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -12214,7 +12267,7 @@ class _FrozenElementList extends ListBase
  */
 @DomName('Element')
 @Native("Element")
-abstract class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
+class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.
@@ -12261,11 +12314,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *     }
    *     document.registerElement('x-custom', CustomElement);
    */
-  Element.created() : super._created() {
-    // Validate that this is a custom element & perform any additional
-    // initialization.
-    _initializeCustomElement(this);
-  }
+  Element.created() : super._created();
 
   /**
    * Creates the HTML element specified by the tag name.
@@ -12446,7 +12495,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   Map<String, String> get attributes => new _ElementAttributeMap(this);
 
-  void set attributes(Map<String, String> value) {
+  set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.keys) {
@@ -12468,7 +12517,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -12522,7 +12571,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  void set classes(Iterable<String> value) {
+  set classes(Iterable<String> value) {
     // TODO(sra): Do this without reading the classes in clear() and addAll(),
     // or writing the classes in clear().
     CssClassSet classSet = classes;
@@ -12551,12 +12600,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * See also:
    *
-   * * [Custom data attributes](http://www.w3.org/TR/html5/global-attributes.html#custom-data-attribute)
+   * * [Custom data
+   *   attributes](http://dev.w3.org/html5/spec-preview/global-attributes.html#custom-data-attribute)
    */
   Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
 
-  void set dataset(Map<String, String> value) {
+  set dataset(Map<String, String> value) {
     final data = this.dataset;
     data.clear();
     for (String key in value.keys) {
@@ -12689,18 +12739,15 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *     var animation = elem.animate([
    *       {"transform": "translate(100px, -100%)"},
    *       {"transform" : "translate(400px, 500px)"}
-   *     ], 1500);  
+   *     ], 1500);
    *
    * The [frames] parameter is an Iterable<Map>, where the
    * map entries specify CSS animation effects. The
    * [timing] paramter can be a double, representing the number of milliseconds
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
-   *
-   * This is not yet supported in Dartium.
   **/
-// TODO(alanknight): Correct above comment once it works in Dartium.
-  @Experimental
+  @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
@@ -12750,7 +12797,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // members of the component are used. The actual type is a subtype of Element.
   get xtag => _xtag != null ? _xtag : this;
 
-  void set xtag(Element value) {
+  set xtag(Element value) {
     _xtag = value;
   }
 
@@ -12767,8 +12814,8 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Node.namespaceURI]
-   * (http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname) from W3C.
+   * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
+   *   from W3C.
    */
   @DomName('Element.namespaceUri')
   String get namespaceUri => _namespaceUri;
@@ -12869,7 +12916,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @JSName('insertAdjacentText')
   void _insertAdjacentText(String where, String text) native;
-  
+
 
   /**
    * Parses text as an HTML fragment and inserts it into the DOM at the
@@ -12985,11 +13032,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Shadow DOM 101]
-   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
-   * from HTML5Rocks.
-   * * [Shadow DOM specification]
-   * (http://www.w3.org/TR/shadow-dom/) from W3C.
+   * * [Shadow DOM 101](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   *   from HTML5Rocks.
+   * * [Shadow DOM specification](http://www.w3.org/TR/shadow-dom/) from W3C.
    */
   @DomName('Element.createShadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
@@ -13005,11 +13050,10 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Shadow DOM 101]
-   * (http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
-   * from HTML5Rocks.
-   * * [Shadow DOM specification]
-   * (http://www.w3.org/TR/shadow-dom/) from W3C.
+   * * [Shadow DOM 101](http://www.html5rocks.com/en/tutorials/webcomponents/shadowdom/)
+   *   from HTML5Rocks.
+   * * [Shadow DOM specification](http://www.w3.org/TR/shadow-dom/)
+   *   from W3C.
    */
   @DomName('Element.shadowRoot')
   @SupportedBrowser(SupportedBrowser.CHROME, '25')
@@ -13122,8 +13166,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
-    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
-    if (current == null || identical(current, parent)) {
+    bool sameAsParent = identical(current, parent);
+    bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
+    if (current == null || sameAsParent) {
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
@@ -13181,11 +13226,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-	
+
       // Workaround for Safari bug. Was also previously Chrome bug 229142
-      // - URIs are not resolved in new doc.	
-      var base = _parseDocument.createElement('base');	
-      base.href = document.baseUri;	
+      // - URIs are not resolved in new doc.
+      var base = _parseDocument.createElement('base');
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -13243,7 +13288,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  void set innerHtml(String html) {
+  set innerHtml(String html) {
     this.setInnerHtml(html);
   }
 
@@ -13285,7 +13330,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
-  
+
   /**
    * Verify if any of the attributes that we use in the sanitizer look unexpected,
    * possibly indicating DOM clobbering attacks.
@@ -13309,8 +13354,41 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 	     return true;
 	   }
 	 }
+         var length = 0;
+         if (element.children) {
+           length = element.children.length;
+         }
+         for (var i = 0; i < length; i++) {
+           var child = element.children[i];
+           // On IE it seems like we sometimes don't see the clobbered attribute,
+           // perhaps as a result of an over-optimization. Also use another route
+           // to check of attributes, children, or lastChild are clobbered. It may
+           // seem silly to check children as we rely on children to do this iteration,
+           // but it seems possible that the access to children might see the real thing,
+           // allowing us to check for clobbering that may show up in other accesses.
+           if (child["id"] == 'attributes' || child["name"] == 'attributes' ||
+               child["id"] == 'lastChild'  || child["name"] == 'lastChild' ||
+               child["id"] == 'children' || child["name"] == 'children') {
+             return true;
+           }
+         }
 	 return false;
           })(#)''', element);
+  }
+
+  /// A secondary check for corruption, needed on IE
+  static bool _hasCorruptedAttributesAdditionalCheck(Element element) {
+    return JS('bool', r'!(#.attributes instanceof NamedNodeMap)', element);
+  }
+
+  static String _safeTagName(element) {
+    String result = 'element tag unavailable';
+    try {
+      if (element.tagName is String) {
+        result = element.tagName;
+      }
+    } catch (e) {}
+    return result;
   }
 
   @DomName('Element.offsetHeight')
@@ -13355,7 +13433,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) {
+  set scrollLeft(int value) {
     JS("void", "#.scrollLeft = #", this, value.round());
   }
 
@@ -13365,7 +13443,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) {
+  set scrollTop(int value) {
     JS("void", "#.scrollTop = #", this, value.round());
   }
 
@@ -13506,13 +13584,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragEvent')
   @DocsEditable()
@@ -13524,13 +13602,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragendEvent')
   @DocsEditable()
@@ -13542,13 +13620,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragenterEvent')
   @DocsEditable()
@@ -13560,13 +13638,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragleaveEvent')
   @DocsEditable()
@@ -13578,13 +13656,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragoverEvent')
   @DocsEditable()
@@ -13595,13 +13673,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragstartEvent')
   @DocsEditable()
@@ -13613,13 +13691,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dropEvent')
   @DocsEditable()
@@ -14053,13 +14131,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.draggable')
   @DocsEditable()
@@ -14070,9 +14148,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Hidden attribute specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/editing.html#the-hidden-attribute)
-   * from WHATWG.
+   * * [Hidden attribute
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#the-hidden-attribute)
+   *   from WHATWG.
    */
   @DomName('Element.hidden')
   @DocsEditable()
@@ -14106,9 +14184,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [The translate attribute]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute)
-   * from WHATWG.
+   * * [The translate
+   *   attribute](https://html.spec.whatwg.org/multipage/dom.html#the-translate-attribute)
+   *   from WHATWG.
    */
   @DomName('Element.translate')
   @DocsEditable()
@@ -14123,13 +14201,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.webkitdropzone')
   @DocsEditable()
@@ -14273,12 +14351,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Element.getBoundingClientRect]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
-   * from MDN.
-   * * [The getBoundingClientRect() method]
-   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)
-   * from W3C.
+   * * [Element.getBoundingClientRect](https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
+   *   from MDN.
+   * * [The getBoundingClientRect()
+   *   method](http://www.w3.org/TR/cssom-view/#the-getclientrects()-and-getboundingclientrect()-methods)
+   *   from W3C.
    */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
@@ -14290,12 +14367,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Element.getClientRects]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
-   * from MDN.
-   * * [The getClientRects() method]
-   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)
-   * from W3C.
+   * * [Element.getClientRects](https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
+   *   from MDN.
+   * * [The getClientRects()
+   *   method](http://www.w3.org/TR/cssom-view/#the-getclientrects()-and-getboundingclientrect()-methods)
+   *   from W3C.
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
@@ -14309,9 +14385,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Shadow DOM specification]
-   * (https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)
-   * from W3C.
+   * * [Shadow DOM
+   *   specification](https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)
+   *   from W3C.
    */
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
@@ -14325,11 +14401,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [getElementsByClassName]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)
-   * from MDN.
-   * * [DOM specification]
-   * (http://www.w3.org/TR/domcore/) from W3C.
+   * * [getElementsByClassName](https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)
+   *   from MDN.
+   * * [DOM specification](http://www.w3.org/TR/domcore/) from W3C.
    */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
@@ -14529,13 +14603,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -14547,13 +14621,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -14565,13 +14639,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -14583,13 +14657,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -14601,13 +14675,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -14619,13 +14693,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -14637,13 +14711,13 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -15277,8 +15351,8 @@ class Event extends Interceptor {
    *
    * ## Other resources
    *
-   * * [Target phase] (http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)
-   * from W3C.
+   * * [Target phase](http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)
+   *   from W3C.
    */
   @DomName('Event.AT_TARGET')
   @DocsEditable()
@@ -15289,8 +15363,8 @@ class Event extends Interceptor {
    *
    * ## Other resources
    *
-   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
-   * from W3C.
+   * * [Bubble phase](http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
+   *   from W3C.
    */
   @DomName('Event.BUBBLING_PHASE')
   @DocsEditable()
@@ -15302,8 +15376,8 @@ class Event extends Interceptor {
    *
    * ## Other resources
    *
-   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
-   * from W3C.
+   * * [Bubble phase](http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
+   *   from W3C.
    */
   @DomName('Event.CAPTURING_PHASE')
   @DocsEditable()
@@ -15322,8 +15396,8 @@ class Event extends Interceptor {
    *
    * ## Other resources
    *
-   * * [clipboardData specification]
-   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.
+   * * [clipboardData specification](http://www.w3.org/TR/clipboard-apis/#attributes)
+   *   from W3C.
    */
   @DomName('Event.clipboardData')
   @DocsEditable()
@@ -15358,9 +15432,9 @@ class Event extends Interceptor {
    *
    * ## Other resources
    *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
+   * * [Shadow DOM extensions to
+   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)
+   *   from W3C.
    */
   @DomName('Event.path')
   @DocsEditable()
@@ -15978,7 +16052,7 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
   // File is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -17032,10 +17106,19 @@ class Geoposition extends Interceptor {
 // BSD-style license that can be found in the LICENSE file.
 
 
+// We implement EventTarget and have stubs for its methods because it's tricky to
+// convince the scripts to make our instance methods abstract, and the bodies that
+// get generated require `this` to be an EventTarget.
 @DocsEditable()
 @DomName('GlobalEventHandlers')
 @Experimental() // untriaged
-abstract class GlobalEventHandlers extends EventTarget {
+abstract class GlobalEventHandlers implements EventTarget {
+
+  void addEventListener(String type, dynamic listener(Event event), [bool useCapture]);
+  bool dispatchEvent(Event event);
+  void removeEventListener(String type, dynamic listener(Event event), [bool useCapture]);
+  Events get on;
+
   // To suppress missing implicit constructor warnings.
   factory GlobalEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
@@ -17801,7 +17884,32 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(Object data, String title, [String url]) native;
+  void pushState(/*any*/ data, String title, [String url]) {
+    if (url != null) {
+      var data_1 = convertDartToNative_SerializedScriptValue(data);
+      _pushState_1(data_1, title, url);
+      return;
+    }
+    var data_1 = convertDartToNative_SerializedScriptValue(data);
+    _pushState_2(data_1, title);
+    return;
+  }
+  @JSName('pushState')
+  @DomName('History.pushState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _pushState_1(data, title, url) native;
+  @JSName('pushState')
+  @DomName('History.pushState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _pushState_2(data, title) native;
 
   @DomName('History.replaceState')
   @DocsEditable()
@@ -17809,7 +17917,32 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(Object data, String title, [String url]) native;
+  void replaceState(/*any*/ data, String title, [String url]) {
+    if (url != null) {
+      var data_1 = convertDartToNative_SerializedScriptValue(data);
+      _replaceState_1(data_1, title, url);
+      return;
+    }
+    var data_1 = convertDartToNative_SerializedScriptValue(data);
+    _replaceState_2(data_1, title);
+    return;
+  }
+  @JSName('replaceState')
+  @DomName('History.replaceState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _replaceState_1(data, title, url) native;
+  @JSName('replaceState')
+  @DomName('History.replaceState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _replaceState_2(data, title) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17840,7 +17973,7 @@ class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixi
   // Node is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -17960,7 +18093,7 @@ class HtmlDocument extends Document {
 
   @DomName('Document.selectedStylesheetSet')
   String get selectedStylesheetSet => _selectedStylesheetSet;
-  void set selectedStylesheetSet(String value) {
+  set selectedStylesheetSet(String value) {
     _selectedStylesheetSet = value;
   }
 
@@ -17971,7 +18104,7 @@ class HtmlDocument extends Document {
   String get title => _title;
 
   @DomName('Document.title')
-  void set title(String value) {
+  set title(String value) {
     _title = value;
   }
 
@@ -17982,11 +18115,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -18010,11 +18142,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -18027,11 +18158,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -18577,6 +18707,25 @@ class HttpRequest extends HttpRequestEventTarget {
     return headers;
   }
 
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
+   */
+  @DomName('XMLHttpRequest.open')
+  @DocsEditable()
+  void open(String method, String url, {bool async, String user, String password}) native;
+
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
 
@@ -18715,7 +18864,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
    * `responseType` is set while performing a synchronous request.
    *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   * See also: [MDN
+   * responseType](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-responsetype)
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
@@ -18740,8 +18890,8 @@ class HttpRequest extends HttpRequestEventTarget {
   final Document responseXml;
 
   /**
-   * The http result code from the request (200, 404, etc).
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   * The HTTP result code from the request (200, 404, etc).
+   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   @DomName('XMLHttpRequest.status')
   @DocsEditable()
@@ -18749,7 +18899,7 @@ class HttpRequest extends HttpRequestEventTarget {
 
   /**
    * The request response string (such as \"200 OK\").
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   @DomName('XMLHttpRequest.statusText')
   @DocsEditable()
@@ -18764,12 +18914,10 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.timeout]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#timeout)
-   * from MDN.
-   * * [The timeout attribute]
-   * (http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
-   * from W3C.
+   * * [XMLHttpRequest.timeout](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-timeout)
+   *   from MDN.
+   * * [The timeout attribute](http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
+   *   from W3C.
    */
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
@@ -18813,7 +18961,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * `getAllResponseHeaders` will return the response headers for the current
    * part of the request.
    *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * See also [HTTP response
+   * headers](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields)
    * for a list of common response headers.
    */
   @DomName('XMLHttpRequest.getAllResponseHeaders')
@@ -18824,7 +18973,8 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Return the response header named `header`, or null if not found.
    *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * See also [HTTP response
+   * headers](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields)
    * for a list of common response headers.
    */
   @DomName('XMLHttpRequest.getResponseHeader')
@@ -18833,30 +18983,11 @@ class HttpRequest extends HttpRequestEventTarget {
   String getResponseHeader(String header) native;
 
   /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   *
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   *
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   *
-   * Note: Most simple HTTP requests can be accomplished using the [getString],
-   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complext HTTP requests where
-   * finer-grained control is needed.
-   */
-  @DomName('XMLHttpRequest.open')
-  @DocsEditable()
-  void open(String method, String url, {bool async, String user, String password}) native;
-
-  /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
    * response.
    *
    * This value must be set before the request has been sent. See also the list
-   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
+   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)
    */
   @DomName('XMLHttpRequest.overrideMimeType')
   @DocsEditable()
@@ -18875,9 +19006,8 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.send]
-   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
-   * from MDN.
+   * * [XMLHttpRequest.send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
+   *   from MDN.
    */
   @DomName('XMLHttpRequest.send')
   @DocsEditable()
@@ -18894,12 +19024,11 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.setRequestHeader]
-   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
-   * from MDN.
-   * * [The setRequestHeader() method]
-   * (http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method) from
-   * W3C.
+   * * [XMLHttpRequest.setRequestHeader](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#setRequestHeader())
+   *   from MDN.
+   * * [The setRequestHeader()
+   *   method](http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method)
+   *   from W3C.
    */
   @DomName('XMLHttpRequest.setRequestHeader')
   @DocsEditable()
@@ -19543,10 +19672,10 @@ class InputElement extends HtmlElement implements
   @Creates('Null')
   final dynamic _get_valueAsDate;
 
-  void set valueAsDate(DateTime value) {
+  set valueAsDate(DateTime value) {
     this._set_valueAsDate = convertDartToNative_DateTime(value);
   }
-  void set _set_valueAsDate(/*dynamic*/ value) {
+  set _set_valueAsDate(/*dynamic*/ value) {
     JS("void", "#.valueAsDate = #", this, value);
   }
 
@@ -22661,7 +22790,7 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
   // MimeType is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -23287,11 +23416,6 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @Experimental()
   void getStorageUpdates() native;
 
-  @DomName('Navigator.isProtocolHandlerRegistered')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String isProtocolHandlerRegistered(String scheme, String url) native;
-
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
   @Unstable()
@@ -23301,11 +23425,6 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @DocsEditable()
   @Experimental() // untriaged
   bool sendBeacon(String url, data) native;
-
-  @DomName('Navigator.unregisterProtocolHandler')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void unregisterProtocolHandler(String scheme, String url) native;
 
   // From NavigatorCPU
 
@@ -23658,7 +23777,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   // a local copy of childNodes is more efficient.
   int get length => _this.childNodes.length;
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
@@ -23683,7 +23802,7 @@ class Node extends EventTarget {
     return new _ChildNodeListLazy(this);
   }
 
-  void set nodes(Iterable<Node> value) {
+  set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);
@@ -23764,9 +23883,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.childNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
-   * from MDN.
+   * * [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   *   from MDN.
    */
   @DomName('Node.childNodes')
   @DocsEditable()
@@ -23835,9 +23953,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.firstChild]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)
-   * from MDN.
+   * * [Node.firstChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)
+   *   from MDN.
    */
   @DomName('Node.firstChild')
   @DocsEditable()
@@ -23848,9 +23965,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.lastChild]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)
-   * from MDN.
+   * * [Node.lastChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)
+   *   from MDN.
    */
   @DomName('Node.lastChild')
   @DocsEditable()
@@ -23872,9 +23988,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nextSibling]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
-   * from MDN.
+   * * [Node.nextSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
+   *   from MDN.
    */
   @DomName('Node.nextSibling')
   @DocsEditable()
@@ -23887,10 +24002,9 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeName]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)
-   * from MDN. This page contains a table of [nodeName] values for each
-   * [nodeType].
+   * * [Node.nodeName](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)
+   *   from MDN. This page contains a table of [nodeName] values for each
+   *   [nodeType].
    */
   @DomName('Node.nodeName')
   @DocsEditable()
@@ -23916,8 +24030,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeType]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType) from MDN.
+   * * [Node.nodeType](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType)
+   *   from MDN.
    */
   @DomName('Node.nodeType')
   @DocsEditable()
@@ -23930,10 +24044,9 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeValue]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)
-   * from MDN. This page contains a table of [nodeValue] values for each
-   * [nodeType].
+   * * [Node.nodeValue](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)
+   *   from MDN. This page contains a table of [nodeValue] values for each
+   *   [nodeType].
    */
   @DomName('Node.nodeValue')
   @DocsEditable()
@@ -23946,9 +24059,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.ownerDocument]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument) from
-   * MDN.
+   * * [Node.ownerDocument](https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument)
+   *   from MDN.
    */
   @DomName('Node.ownerDocument')
   @DocsEditable()
@@ -23963,9 +24075,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.parentElement]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement) from
-   * W3C.
+   * * [Node.parentElement](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement)
+   *   from W3C.
    */
   @DomName('Node.parentElement')
   @DocsEditable()
@@ -23976,9 +24087,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.parentNode]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode) from
-   * MDN.
+   * * [Node.parentNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode)
+   *   from MDN.
    */
   @DomName('Node.parentNode')
   @DocsEditable()
@@ -23990,9 +24100,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.previousSibling]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
-   * from MDN.
+   * * [Node.previousSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
+   *   from MDN.
    */
   @DomName('Node.previousSibling')
   @DocsEditable()
@@ -24004,9 +24113,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.textContent]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent) from
-   * MDN.
+   * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)
+   *   from MDN.
    */
   @DomName('Node.textContent')
   @DocsEditable()
@@ -24035,9 +24143,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.cloneNode]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode) from
-   * MDN.
+   * * [Node.cloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode)
+   *   from MDN.
    */
   @DomName('Node.cloneNode')
   @DocsEditable()
@@ -24048,8 +24155,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.contains]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.contains) from MDN.
+   * * [Node.contains](https://developer.mozilla.org/en-US/docs/Web/API/Node.contains)
+   *   from MDN.
    */
   @DomName('Node.contains')
   @DocsEditable()
@@ -24060,9 +24167,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.hasChildNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes) from
-   * MDN.
+   * * [Node.hasChildNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes)
+   *   from MDN.
    */
   @DomName('Node.hasChildNodes')
   @DocsEditable()
@@ -24073,9 +24179,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.insertBefore]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore) from
-   * MDN.
+   * * [Node.insertBefore](https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore)
+   *   from MDN.
    */
   @DomName('Node.insertBefore')
   @DocsEditable()
@@ -24222,7 +24327,7 @@ class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node
   // Node is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -25404,7 +25509,7 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
   // Plugin is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -27341,7 +27446,26 @@ class ServiceWorkerClient extends Interceptor {
   @DomName('ServiceWorkerClient.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('ServiceWorkerClient.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('ServiceWorkerClient.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _postMessage_2(message) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27668,7 +27792,7 @@ Please remove them from your code.
   }
 
   @deprecated
-  void set resetStyleInheritance(bool value) {
+  set resetStyleInheritance(bool value) {
     _shadowRootDeprecationReport();
   }
 
@@ -27680,7 +27804,7 @@ Please remove them from your code.
   }
 
   @deprecated
-  void set applyAuthorStyles(bool value) {
+  set applyAuthorStyles(bool value) {
     _shadowRootDeprecationReport();
   }
 }
@@ -27861,7 +27985,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   // SourceBuffer is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -28067,7 +28191,7 @@ class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, Immut
   // SpeechGrammar is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -29932,7 +30056,7 @@ class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, Immutab
   // TextTrackCue is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -30017,7 +30141,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   // TextTrack is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -30418,7 +30542,7 @@ class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<To
   // Touch is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -31632,7 +31756,7 @@ class WheelEvent extends MouseEvent {
     if (view == null) {
       view = window;
     }
-    
+
     return JS('WheelEvent', 'new WheelEvent(#, #)',
         type, convertDartToNative_Dictionary(options));
 
@@ -31832,26 +31956,27 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Loading web pages]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
-   * from WHATWG.
+   * * [Loading web
+   *   pages](https://html.spec.whatwg.org/multipage/browsers.html)
+   *   from WHATWG.
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
+  WindowBase _open2(url, name) =>
+      JS('Window|Null', '#.open(#,#)', this, url, name);
 
   WindowBase _open3(url, name, options) =>
-      JS('Window', '#.open(#,#,#)', this, url, name, options);
+      JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
    * Opens a new window.
    *
    * ## Other resources
    *
-   * * [Window.open]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.open) from MDN.
-   * * [Window open]
-   * (http://docs.webplatform.org/wiki/dom/methods/open) from WebPlatform.org.
+   * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
+   *   from MDN.
+   * * [Window open](http://docs.webplatform.org/wiki/dom/methods/open)
+   *   from WebPlatform.org.
    */
   WindowBase open(String url, String name, [String options]) {
     if (options == null) {
@@ -31876,13 +32001,13 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    * Sets the window's location, which causes the browser to navigate to the new
    * location. [value] may be a Location object or a String.
    */
-  void set location(value) {
+  set location(value) {
     _location = value;
   }
 
   // Native getter and setter to access raw Location object.
   dynamic get _location => JS('Location|Null', '#.location', this);
-  void set _location(value) {
+  set _location(value) {
     JS('void', '#.location = #', this, value);
   }
 
@@ -31913,8 +32038,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.cancelAnimationFrame]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame) from MDN.
+   * * [Window.cancelAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window.cancelAnimationFrame)
+   *   from MDN.
    */
   void cancelAnimationFrame(int id) {
     _ensureRequestAnimationFrame();
@@ -32170,10 +32295,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Exploring the FileSystem APIs]
-   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
-   * * [File API]
-   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   * * [Exploring the FileSystem
+   *   APIs](http://www.html5rocks.com/en/tutorials/file/filesystem/)
+   *   from HTML5Rocks.
+   * * [File API](http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem)
+   *   from W3C.
    */
   @DomName('Window.PERSISTENT')
   @DocsEditable()
@@ -32186,10 +32312,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Exploring the FileSystem APIs]
-   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
-   * * [File API]
-   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   * * [Exploring the FileSystem
+   *   APIs](http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
+   * * [File API](http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem)
+   *   from W3C.
    */
   @DomName('Window.TEMPORARY')
   @DocsEditable()
@@ -32214,11 +32340,12 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [A beginner's guide to using the application cache]
-   * (http://www.html5rocks.com/en/tutorials/appcache/beginner) from HTML5Rocks.
-   * * [Application cache API]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api)
-   * from WHATWG.
+   * * [A beginner's guide to using the application
+   *   cache](http://www.html5rocks.com/en/tutorials/appcache/beginner)
+   *   from HTML5Rocks.
+   * * [Application cache
+   *   API](https://html.spec.whatwg.org/multipage/browsers.html#application-cache-api)
+   *   from WHATWG.
    */
   @DomName('Window.applicationCache')
   @DocsEditable()
@@ -32258,12 +32385,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [devicePixelRatio]
-   * (http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html) from
-   * quirksmode.
-   * * [More about devicePixelRatio]
-   * (http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html) from
-   * quirksmode.
+   * * [devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html)
+   *   from quirksmode.
+   * * [More about devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html)
+   *   from quirksmode.
    */
   @DomName('Window.devicePixelRatio')
   @DocsEditable()
@@ -32276,9 +32401,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Loading web pages]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
-   * from WHATWG.
+   * * [Loading web pages](https://html.spec.whatwg.org/multipage/browsers.html)
+   *   from WHATWG.
    */
   @DomName('Window.history')
   @DocsEditable()
@@ -32289,9 +32413,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [innerHeight]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight) from
-   * WebPlatform.org.
+   * * [innerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight)
+   *   from WebPlatform.org.
    */
   @DomName('Window.innerHeight')
   @DocsEditable()
@@ -32302,9 +32425,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [innerWidth]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth) from
-   * WebPlatform.org.
+   * * [innerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth)
+   *   from WebPlatform.org.
    */
   @DomName('Window.innerWidth')
   @DocsEditable()
@@ -32315,13 +32437,12 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [DOM storage guide]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
-   * MDN.
-   * * [The past, present & future of local storage for web applications]
-   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
-   * * [Local storage specification]
-   * (http://www.w3.org/TR/webstorage/#the-localstorage-attribute) from W3C.
+   * * [DOM storage guide](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage)
+   *   from MDN.
+   * * [The past, present & future of local storage for web
+   *   applications](http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage specification](http://www.w3.org/TR/webstorage/#the-localstorage-attribute)
+   *   from W3C.
    */
   @DomName('Window.localStorage')
   @DocsEditable()
@@ -32332,9 +32453,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.locationbar')
   @DocsEditable()
@@ -32345,9 +32466,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.menubar')
   @DocsEditable()
@@ -32358,9 +32479,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window name]
-   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from
-   * WebPlatform.org.
+   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))
+   *   from WebPlatform.org.
    */
   @DomName('Window.name')
   @DocsEditable()
@@ -32371,9 +32491,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The navigator object]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#the-navigator-object)
-   * from WHATWG.
+   * * [The navigator
+   *   object](https://html.spec.whatwg.org/multipage/webappapis.html#the-navigator-object)
+   *   from WHATWG.
    */
   @DomName('Window.navigator')
   @DocsEditable()
@@ -32384,9 +32504,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [offscreenBuffering]
-   * (http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering) from
-   * WebPlatform.org.
+   * * [offscreenBuffering](http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering)
+   *   from WebPlatform.org.
    */
   @DomName('Window.offscreenBuffering')
   @DocsEditable()
@@ -32403,7 +32522,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @Returns('Window|=Object')
   final dynamic _get_opener;
 
-  void set opener(Window value) {
+  set opener(Window value) {
     JS("void", "#.opener = #", this, value);
   }
 
@@ -32417,9 +32536,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [outerHeight]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight) from
-   * WebPlatform.org.
+   * * [outerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight)
+   *   from WebPlatform.org.
    */
   @DomName('Window.outerHeight')
   @DocsEditable()
@@ -32430,9 +32548,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [outerWidth]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth) from
-   * WebPlatform.org.
+   * * [outerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth)
+   *   from WebPlatform.org.
    */
   @DomName('Window.outerWidth')
   @DocsEditable()
@@ -32446,10 +32563,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollX and pageXOffset]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX and
+   *   pageXOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
+   *   from MDN.
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
@@ -32463,10 +32581,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollY and pageYOffset]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY and
+   *   pageYOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
+   *   from MDN.
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
@@ -32487,11 +32606,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Measuring page load speed with navigation timeing]
-   * (http://www.html5rocks.com/en/tutorials/webperformance/basics/) from
-   * HTML5Rocks.
-   * * [Navigation timing specification]
-   * (http://www.w3.org/TR/navigation-timing/) from W3C.
+   * * [Measuring page load speed with navigation
+   *   timeing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
+   *   from HTML5Rocks.
+   * * [Navigation timing
+   *   specification](http://www.w3.org/TR/navigation-timing/) from W3C.
    */
   @DomName('Window.performance')
   @DocsEditable()
@@ -32505,8 +32624,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screen')
   @DocsEditable()
@@ -32518,8 +32637,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenLeft')
   @DocsEditable()
@@ -32530,8 +32649,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenTop')
   @DocsEditable()
@@ -32542,8 +32661,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenX')
   @DocsEditable()
@@ -32554,8 +32673,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenY')
   @DocsEditable()
@@ -32566,9 +32685,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.scrollbars')
   @DocsEditable()
@@ -32579,8 +32698,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.self]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.
+   * * [Window.self](https://developer.mozilla.org/en-US/docs/Web/API/Window.self)
+   *   from MDN.
    */
   @DomName('Window.self')
   @DocsEditable()
@@ -32591,8 +32710,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.self]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.
+   * * [Window.self](https://developer.mozilla.org/en-US/docs/Web/API/Window.self)
+   *   from MDN.
    */
   @DomName('Window.self')
   @DocsEditable()
@@ -32605,13 +32724,13 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [DOM storage guide]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
-   * MDN.
-   * * [The past, present & future of local storage for web applications]
-   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
-   * * [Local storage specification]
-   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
+   * * [DOM storage
+   *   guide](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage)
+   *   from MDN.
+   * * [The past, present & future of local storage for web
+   *   applications](http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage
+   *   specification](http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
    */
   @DomName('Window.sessionStorage')
   @DocsEditable()
@@ -32622,9 +32741,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Web speech specification]
-   * (https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)
-   * from W3C.
+   * * [Web speech
+   *   specification](https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)
+   *   from W3C.
    */
   @DomName('Window.speechSynthesis')
   @DocsEditable()
@@ -32642,9 +32761,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.statusbar')
   @DocsEditable()
@@ -32655,9 +32774,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [StyleMedia class reference]
-   * (https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html)
-   * from Safari Developer Library.
+   * * [StyleMedia class
+   *   reference](https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/)
+   *   from Safari Developer Library.
    */
   @DomName('Window.styleMedia')
   @DocsEditable()
@@ -32670,9 +32789,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.toolbar')
   @DocsEditable()
@@ -32693,8 +32812,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.window]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.
+   * * [Window.window](https://developer.mozilla.org/en-US/docs/Web/API/Window.window)
+   *   from MDN.
    */
   @DomName('Window.window')
   @DocsEditable()
@@ -32705,8 +32824,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.window]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.
+   * * [Window.window](https://developer.mozilla.org/en-US/docs/Web/API/Window.window)
+   *   from MDN.
    */
   @DomName('Window.window')
   @DocsEditable()
@@ -32745,9 +32864,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [User prompts]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)
-   * from WHATWG.
+   * * [User prompts](https://html.spec.whatwg.org/multipage/webappapis.html#user-prompts)
+   *   from WHATWG.
    */
   @DomName('Window.alert')
   @DocsEditable()
@@ -32762,9 +32880,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [User prompts]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#user-prompts)
-   * from WHATWG.
+   * * [User prompts](https://html.spec.whatwg.org/multipage/webappapis.html#user-prompts)
+   *   from WHATWG.
    */
   @DomName('Window.confirm')
   @DocsEditable()
@@ -32775,8 +32892,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.find]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.find) from MDN.
+   * * [Window.find](https://developer.mozilla.org/en-US/docs/Web/API/Window.find)
+   *   from MDN.
    */
   @DomName('Window.find')
   @DocsEditable()
@@ -32804,9 +32921,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.getSelection]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)
-   * from MDN.
+   * * [Window.getSelection](https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)
+   *   from MDN.
    */
   @DomName('Window.getSelection')
   @DocsEditable()
@@ -32817,11 +32933,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Testing media queries]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)
-   * from MDN.
-   * * [The MediaQueryList specification]
-   * (http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.
+   * * [Testing media
+   *   queries](https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)
+   *   from MDN.
+   * * [The MediaQueryList
+   *   specification](http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.
    */
   @DomName('Window.matchMedia')
   @DocsEditable()
@@ -32834,10 +32950,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.moveBy]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy) from MDN.
-   * * [Window.moveBy]
-   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.
+   * * [Window.moveBy](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy)
+   *   from MDN.
+   * * [Window.moveBy](http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.
    */
   @DomName('Window.moveBy')
   @DocsEditable()
@@ -32885,8 +33000,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.print]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.print) from MDN.
+   * * [Window.print](https://developer.mozilla.org/en-US/docs/Web/API/Window.print)
+   *   from MDN.
    */
   @DomName('Window.print')
   @DocsEditable()
@@ -32897,8 +33012,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window resizeBy] (http://docs.webplatform.org/wiki/dom/methods/resizeBy)
-   * from WebPlatform.org.
+   * * [Window resizeBy](http://docs.webplatform.org/wiki/dom/methods/resizeBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.resizeBy')
   @DocsEditable()
@@ -32909,8 +33024,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window resizeTo] (http://docs.webplatform.org/wiki/dom/methods/resizeTo)
-   * from WebPlatform.org.
+   * * [Window resizeTo](http://docs.webplatform.org/wiki/dom/methods/resizeTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.resizeTo')
   @DocsEditable()
@@ -32923,8 +33038,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)
-   * from WebPlatform.org.
+   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scroll')
   @DocsEditable()
@@ -32957,8 +33072,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)
-   * from WebPlatform.org.
+   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scroll')
   @DocsEditable()
@@ -32971,8 +33086,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)
-   * from WebPlatform.org.
+   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scroll')
   @DocsEditable()
@@ -32985,8 +33100,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)
-   * from WebPlatform.org.
+   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scroll')
   @DocsEditable()
@@ -32999,8 +33114,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)
-   * from WebPlatform.org.
+   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scroll')
   @DocsEditable()
@@ -33011,8 +33126,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   * from WebPlatform.org.
+   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
@@ -33043,8 +33158,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   * from WebPlatform.org.
+   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
@@ -33055,8 +33170,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   * from WebPlatform.org.
+   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
@@ -33067,8 +33182,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   * from WebPlatform.org.
+   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
@@ -33079,8 +33194,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   * from WebPlatform.org.
+   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
@@ -33093,8 +33208,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   * from WebPlatform.org.
+   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
@@ -33127,8 +33242,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   * from WebPlatform.org.
+   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
@@ -33141,8 +33256,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   * from WebPlatform.org.
+   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
@@ -33155,8 +33270,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   * from WebPlatform.org.
+   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
@@ -33169,8 +33284,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   * from WebPlatform.org.
+   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
@@ -33181,9 +33296,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Dialogs implemented using separate documents]
-   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
-   * from W3C.
+   * * [Dialogs implemented using separate
+   *   documents](http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
+   *   from W3C.
    */
   @DomName('Window.showModalDialog')
   @DocsEditable()
@@ -33195,9 +33310,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Window object]
-   * (http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)
-   * from W3C.
+   * * [The Window
+   *   object](http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)
+   *   from W3C.
    */
   @DomName('Window.stop')
   @DocsEditable()
@@ -33231,8 +33346,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Obtaining access to file system entry points]
-   * (http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)
+   * * [Obtaining access to file system entry
+   *   points](http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)
    * from W3C.
    */
   @DomName('Window.webkitResolveLocalFileSystemURL')
@@ -33248,8 +33363,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Obtaining access to file system entry points]
-   * (http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)
+   * * [Obtaining access to file system entry
+   *   points](http://www.w3.org/TR/file-system-api/#obtaining-access-to-file-system-entry-points)
    * from W3C.
    */
   @DomName('Window.webkitResolveLocalFileSystemURL')
@@ -33693,10 +33808,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.moveTo]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo) from MDN.
-   * * [Window.moveTo]
-   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveto) from W3C.
+   * * [Window.moveTo](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo)
+   *   from MDN.
+   * * [Window.moveTo](http://dev.w3.org/csswg/cssom-view/#dom-window-moveto)
+   *   from W3C.
    */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);
@@ -33715,10 +33830,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollX]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
+   *   from MDN.
    */
   @DomName('Window.scrollX')
   @DocsEditable()
@@ -33731,10 +33846,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollY]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
+   *   from MDN.
    */
   @DomName('Window.scrollY')
   @DocsEditable()
@@ -33750,7 +33865,7 @@ class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
 
   String get returnValue => _returnValue;
 
-  void set returnValue(String value) {
+  set returnValue(String value) {
     _returnValue = value;
     // FF and IE use the value as the return value, Chrome will return this from
     // the event callback function.
@@ -33941,7 +34056,24 @@ class Worker extends EventTarget implements AbstractWorker {
 
   @DomName('Worker.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
+    if (transfer != null) {
+      var message_1 = convertDartToNative_SerializedScriptValue(message);
+      _postMessage_1(message_1, transfer);
+      return;
+    }
+    var message_1 = convertDartToNative_SerializedScriptValue(message);
+    _postMessage_2(message_1);
+    return;
+  }
+  @JSName('postMessage')
+  @DomName('Worker.postMessage')
+  @DocsEditable()
+  void _postMessage_1(message, List<MessagePort> transfer) native;
+  @JSName('postMessage')
+  @DomName('Worker.postMessage')
+  @DocsEditable()
+  void _postMessage_2(message) native;
 
   @DomName('Worker.terminate')
   @DocsEditable()
@@ -34455,7 +34587,7 @@ class _Attr extends Node {
   // Shadowing definition.
   String get text => JS("String", "#.textContent", this);
 
-  void set text(String value) {
+  set text(String value) {
     JS("void", "#.textContent = #", this, value);
   }
 
@@ -34722,7 +34854,7 @@ class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableLi
   // Rectangle is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -34800,7 +34932,7 @@ class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMix
   // CssRule is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -34866,7 +34998,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   // _CSSValue is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -34959,7 +35091,9 @@ abstract class _DocumentType extends Node implements ChildNode {
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
 
   // From ChildNode
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -34999,28 +35133,28 @@ class _DomRect extends DomRectReadOnly {
   // Shadowing definition.
   num get height => JS("num", "#.height", this);
 
-  void set height(num value) {
+  set height(num value) {
     JS("void", "#.height = #", this, value);
   }
 
   // Shadowing definition.
   num get width => JS("num", "#.width", this);
 
-  void set width(num value) {
+  set width(num value) {
     JS("void", "#.width = #", this, value);
   }
 
   // Shadowing definition.
   num get x => JS("num", "#.x", this);
 
-  void set x(num value) {
+  set x(num value) {
     JS("void", "#.x = #", this, value);
   }
 
   // Shadowing definition.
   num get y => JS("num", "#.y", this);
 
-  void set y(num value) {
+  set y(num value) {
     JS("void", "#.y = #", this, value);
   }
 }
@@ -35118,7 +35252,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
   // Gamepad is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35271,7 +35405,9 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
    * This can only be called by subclasses from their created constructor.
    */
   _HTMLFrameSetElement.created() : super.created();
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35346,7 +35482,7 @@ class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin
   // Node is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35593,7 +35729,9 @@ abstract class _Response extends Body {
 abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35625,7 +35763,7 @@ class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechReco
   // SpeechRecognitionResult is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35689,7 +35827,7 @@ class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableL
   // StyleSheet is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -35832,7 +35970,9 @@ abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly {
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
   // From URLUtilsReadOnly
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35852,7 +35992,9 @@ abstract class _WorkerNavigator extends Interceptor implements NavigatorCpu, Nav
   // From NavigatorID
 
   // From NavigatorOnLine
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36166,12 +36308,11 @@ class _DataAttributeMap implements Map<String, String> {
  *
  * ## Other resources
  *
- * * [Image sources for 2D rendering contexts]
- * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
- * from WHATWG.
- * * [Drawing images]
- * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
- * from WHATWG.
+ * * [Image sources for 2D rendering
+ *   contexts](https://html.spec.whatwg.org/multipage/scripting.html#image-sources-for-2d-rendering-contexts)
+ *   from WHATWG.
+ * * [Drawing images](https://html.spec.whatwg.org/multipage/scripting.html#dom-context-2d-drawimage)
+ *   from WHATWG.
  */
 abstract class CanvasImageSource {}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36214,9 +36355,9 @@ abstract class WindowBase implements EventTarget {
    *
    * ## Other resources
    *
-   * * [Session history and navigation specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html)
-   * from WHATWG.
+   * * [Session history and navigation
+   *   specification](https://html.spec.whatwg.org/multipage/browsers.html#history)
+   *   from WHATWG.
    */
   HistoryBase get history;
 
@@ -36309,12 +36450,10 @@ abstract class WindowBase implements EventTarget {
    *
    * ## Other resources
    *
-   * * [window.postMessage]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage) from
-   * MDN.
-   * * [Cross-document messaging]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/web-messaging.html)
-   * from WHATWG.
+   * * [window.postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage)
+   *   from MDN.
+   * * [Cross-document messaging](https://html.spec.whatwg.org/multipage/comms.html#web-messaging)
+   *   from WHATWG.
    */
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
@@ -36467,7 +36606,7 @@ class _ContentCssRect extends CssRect {
    * `height` function in jQuery and the calculated `height` CSS value,
    * converted to a num in pixels.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     if (newHeight is Dimension) {
       if (newHeight.value < 0) newHeight = new Dimension.px(0);
       _element.style.height = newHeight.toString();
@@ -36485,7 +36624,7 @@ class _ContentCssRect extends CssRect {
    * and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     if (newWidth is Dimension) {
       if (newWidth.value < 0) newWidth = new Dimension.px(0);
       _element.style.width = newWidth.toString();
@@ -36520,7 +36659,7 @@ class _ContentCssListRect extends _ContentCssRect {
    * function in jQuery and the calculated `height` CSS value, converted to a
    * num in pixels.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     _elementList.forEach((e) => e.contentEdge.height = newHeight);
   }
 
@@ -36530,7 +36669,7 @@ class _ContentCssListRect extends _ContentCssRect {
    * This is equivalent to the `width` function in jQuery and the calculated
    * `width` CSS value, converted to a dimensionless num in pixels.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     _elementList.forEach((e) => e.contentEdge.width = newWidth);
   }
 }
@@ -36637,7 +36776,7 @@ abstract class CssRect extends MutableRectangle<num> {
    *
    * Note that only the content height can actually be set via this method.
    */
-  void set height(newHeight) {
+  set height(newHeight) {
     throw new UnsupportedError("Can only set height for content rect.");
   }
 
@@ -36651,7 +36790,7 @@ abstract class CssRect extends MutableRectangle<num> {
    *
    * Note that only the content width can be set via this method.
    */
-  void set width(newWidth) {
+  set width(newWidth) {
     throw new UnsupportedError("Can only set width for content rect.");
   }
 
@@ -37158,9 +37297,8 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    *
    * ## Other resources
    *
-   * * [Event Capture]
-   * (http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
-   * from the W3C DOM Events specification.
+   * * [Event Capture](http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
+   *   from the W3C DOM Events specification.
    */
   StreamSubscription<T> capture(void onData(T event));
 }
@@ -37902,11 +38040,11 @@ class _Html5NodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return _allowedElements.contains(element.tagName);
+    return _allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element.tagName;
+    var tagName = Element._safeTagName(element);
     var validator = _attributeValidators['$tagName::$attributeName'];
     if (validator == null) {
       validator = _attributeValidators['*::$attributeName'];
@@ -39568,11 +39706,11 @@ class _SimpleNodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return allowedElements.contains(element.tagName);
+    return allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element.tagName;
+    var tagName = Element._safeTagName(element);
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
       return uriPolicy.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
@@ -39613,10 +39751,10 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
       var isAttr = element.attributes['is'];
       if (isAttr != null) {
         return allowedElements.contains(isAttr.toUpperCase()) &&
-          allowedElements.contains(element.tagName);
+            allowedElements.contains(Element._safeTagName(element));
       }
     }
-    return allowCustomTag && allowedElements.contains(element.tagName);
+    return allowCustomTag && allowedElements.contains(Element._safeTagName(element));
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
@@ -39672,7 +39810,7 @@ class _SvgNodeValidator implements NodeValidator {
     // foreignobject tag as SvgElement. We don't want foreignobject contents
     // anyway, so just remove the whole tree outright. And we can't rely
     // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && element.tagName == 'foreignObject') {
+    if (element is svg.SvgElement && Element._safeTagName(element) == 'foreignObject') {
       return false;
     }
     if (element is svg.SvgElement) {
@@ -39748,7 +39886,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   void operator []=(int index, E value) { _list[index] = value; }
 
-  void set length(int newLength) { _list.length = newLength; }
+  set length(int newLength) { _list.length = newLength; }
 
   void sort([int compare(E a, E b)]) { _list.sort(compare); }
 
@@ -40194,7 +40332,7 @@ class _LocationCrossFrame implements LocationBase {
   // properly.  Its fields and methods can only be accessed via JavaScript.
   var _location;
 
-  void set href(String val) => _setHref(_location, val);
+  set href(String val) => _setHref(_location, val);
   static void _setHref(location, val) {
     JS('void', '#.href = #', location, val);
   }
@@ -40567,9 +40705,9 @@ class _WrappedEvent implements Event {
    *
    * ## Other resources
    *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
+   * * [Shadow DOM extensions to
+   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)
+   *   from W3C.
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   @Experimental()
@@ -40730,7 +40868,7 @@ abstract class NodeTreeSanitizer {
   /**
    * A sanitizer for trees that we trust. It does no validation and allows
    * any elements. It is also more efficient, since it can pass the text
-   * directly through to the underlying APIs without creating a document 
+   * directly through to the underlying APIs without creating a document
    * fragment to be sanitized.
    */
   static const trusted = const _TrustedHtmlTreeSanitizer();
@@ -40745,7 +40883,7 @@ class _TrustedHtmlTreeSanitizer implements NodeTreeSanitizer {
 
   sanitizeTree(Node node) {}
 }
-  
+
 /**
  * Defines the policy for what types of uris are allowed for particular
  * attribute values.
@@ -40799,14 +40937,14 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsElement(Element element) {
     if (!validator.allowsElement(element)) {
-      throw new ArgumentError(element.tagName);
+      throw new ArgumentError(Element._safeTagName(element));
     }
     return true;
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${element.tagName}[$attributeName="$value"]');
+      throw new ArgumentError('${Element._safeTagName(element)}[$attributeName="$value"]');
     }
   }
 }
@@ -40848,7 +40986,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the element, assuming we can't trust anything about it.
-  void _sanitizeUntrustedElement(Element element, Node parent) {
+  void _sanitizeUntrustedElement(/* Element */ element, Node parent) {
     // If the _hasCorruptedAttributes does not successfully return false,
     // then we consider it corrupted and remove.
     // TODO(alanknight): This is a workaround because on Firefox
@@ -40857,7 +40995,9 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     // can't call methods. This does mean that you can't explicitly allow an
     // embed tag. The only thing that will let it through is a null
     // sanitizer that doesn't traverse the tree at all. But sanitizing while
-    // allowing embeds seems quite unlikely.
+    // allowing embeds seems quite unlikely. This is also the reason that we
+    // can't declare the type of element, as an embed won't pass any type
+    // check in dart2js.
     var corrupted = true;
     var attrs;
     var isAttr;
@@ -40865,18 +41005,27 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // If getting/indexing attributes throws, count that as corrupt.
       attrs = element.attributes;
       isAttr = attrs['is'];
-      corrupted = Element._hasCorruptedAttributes(element);
+      var corruptedTest1 = Element._hasCorruptedAttributes(element);
+
+      // On IE, erratically, the hasCorruptedAttributes test can return false,
+      // even though it clearly is corrupted. A separate copy of the test
+      // inlining just the basic check seems to help.
+      corrupted = corruptedTest1 ? true : Element._hasCorruptedAttributesAdditionalCheck(element);
     } catch(e) {}
-     var elementText = 'element unprintable';
+    var elementText = 'element unprintable';
     try {
       elementText = element.toString();
     } catch(e) {}
-    var elementTagName = 'element tag unavailable';
     try {
-      elementTagName = element.tagName;
-    } catch(e) {}
-    _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
-        attrs, isAttr);
+      var elementTagName = Element._safeTagName(element);
+      _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
+          attrs, isAttr);
+    } on ArgumentError { // Thrown by _ThrowsNodeValidator
+      rethrow;
+    } catch(e) {  // Unexpected exception sanitizing -> remove
+      _removeNode(element, parent);
+      window.console.warn('Removing corrupted element $elementText');
+    }
   }
 
   /// Having done basic sanity checking on the element, and computed the
@@ -40885,23 +41034,23 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   void _sanitizeElement(Element element, Node parent, bool corrupted,
       String text, String tag, Map attrs, String isAttr) {
     if (false != corrupted) {
+       _removeNode(element, parent);
       window.console.warn(
           'Removing element due to corrupted attributes on <$text>');
-       _removeNode(element, parent);
        return;
     }
     if (!validator.allowsElement(element)) {
-      window.console.warn(
-          'Removing disallowed element <$tag>');
       _removeNode(element, parent);
+      window.console.warn(
+          'Removing disallowed element <$tag> from $parent');
       return;
     }
 
     if (isAttr != null) {
       if (!validator.allowsAttribute(element, 'is', isAttr)) {
+        _removeNode(element, parent);
         window.console.warn('Removing disallowed type extension '
             '<$tag is="$isAttr">');
-        _removeNode(element, parent);
         return;
       }
     }

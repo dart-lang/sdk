@@ -6,55 +6,60 @@
 
 #include <stdlib.h>
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
 namespace dart {
 
-MegamorphicCacheTable::MegamorphicCacheTable()
-    : miss_handler_function_(NULL),
-      miss_handler_code_(NULL),
-      capacity_(0),
-      length_(0),
-      table_(NULL) {
-}
-
-
-MegamorphicCacheTable::~MegamorphicCacheTable() {
-  free(table_);
-}
-
-
-RawMegamorphicCache* MegamorphicCacheTable::Lookup(const String& name,
+RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
+                                                   const String& name,
                                                    const Array& descriptor) {
-  for (intptr_t i = 0; i < length_; ++i) {
-    if ((table_[i].name == name.raw()) &&
-        (table_[i].descriptor == descriptor.raw())) {
-      return table_[i].cache;
+  // Multiple compilation threads could access this lookup.
+  MutexLocker ml(isolate->mutex());
+  ASSERT(name.IsSymbol());
+  // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
+
+  // TODO(rmacnak): Make a proper hashtable a la symbol table.
+  GrowableObjectArray& table = GrowableObjectArray::Handle(
+      isolate->object_store()->megamorphic_cache_table());
+  MegamorphicCache& cache = MegamorphicCache::Handle();
+  if (table.IsNull()) {
+    table = GrowableObjectArray::New(Heap::kOld);
+    isolate->object_store()->set_megamorphic_cache_table(table);
+  } else {
+    for (intptr_t i = 0; i < table.Length(); i++) {
+      cache ^= table.At(i);
+      if ((cache.target_name() == name.raw()) &&
+          (cache.arguments_descriptor() == descriptor.raw())) {
+        return cache.raw();
+      }
     }
   }
 
-  if (length_ == capacity_) {
-    capacity_ += kCapacityIncrement;
-    table_ =
-        reinterpret_cast<Entry*>(realloc(table_, capacity_ * sizeof(*table_)));
-  }
-
-  ASSERT(length_ < capacity_);
-  const MegamorphicCache& cache =
-      MegamorphicCache::Handle(MegamorphicCache::New());
-  Entry entry = { name.raw(), descriptor.raw(), cache.raw() };
-  table_[length_++] = entry;
+  cache = MegamorphicCache::New(name, descriptor);
+  table.Add(cache, Heap::kOld);
   return cache.raw();
 }
 
 
-void MegamorphicCacheTable::InitMissHandler() {
+RawFunction* MegamorphicCacheTable::miss_handler(Isolate* isolate) {
+  ASSERT(isolate->object_store()->megamorphic_miss_function() !=
+         Function::null());
+  return isolate->object_store()->megamorphic_miss_function();
+}
+
+
+void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // The miss handler for a class ID not found in the table is invoked as a
   // normal Dart function.
   const Code& code =
       Code::Handle(StubCode::Generate("_stub_MegamorphicMiss",
                                       StubCode::GenerateMegamorphicMissStub));
+  // When FLAG_lazy_dispatchers=false, this stub can be on the stack during
+  // exceptions, but it has a corresponding function so IsStubCode is false and
+  // it is considered in the search for an exception handler.
+  code.set_exception_handlers(Object::empty_exception_handlers());
   const Class& cls =
       Class::Handle(Type::Handle(Type::Function()).type_class());
   const Function& function =
@@ -69,37 +74,28 @@ void MegamorphicCacheTable::InitMissHandler() {
                                      0));  // No token position.
   function.set_is_debuggable(false);
   function.set_is_visible(false);
-  miss_handler_code_ = code.raw();
-  miss_handler_function_ = function.raw();
   function.AttachCode(code);
+
+  isolate->object_store()->SetMegamorphicMissHandler(code, function);
 }
 
 
-void MegamorphicCacheTable::VisitObjectPointers(ObjectPointerVisitor* v) {
-  ASSERT(v != NULL);
-  v->VisitPointer(reinterpret_cast<RawObject**>(&miss_handler_code_));
-  v->VisitPointer(reinterpret_cast<RawObject**>(&miss_handler_function_));
-  for (intptr_t i = 0; i < length_; ++i) {
-    v->VisitPointer(reinterpret_cast<RawObject**>(&table_[i].name));
-    v->VisitPointer(reinterpret_cast<RawObject**>(&table_[i].descriptor));
-    v->VisitPointer(reinterpret_cast<RawObject**>(&table_[i].cache));
-  }
-}
-
-
-void MegamorphicCacheTable::PrintSizes() {
+void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
   StackZone zone(Thread::Current());
   intptr_t size = 0;
   MegamorphicCache& cache = MegamorphicCache::Handle();
   Array& buckets = Array::Handle();
-  for (intptr_t i = 0; i < length_; ++i) {
-    cache = table_[i].cache;
+  const GrowableObjectArray& table = GrowableObjectArray::Handle(
+      isolate->object_store()->megamorphic_cache_table());
+  if (table.IsNull()) return;
+  for (intptr_t i = 0; i < table.Length(); i++) {
+    cache ^= table.At(i);
     buckets = cache.buckets();
     size += MegamorphicCache::InstanceSize();
     size += Array::InstanceSize(buckets.Length());
   }
   OS::Print("%" Pd " megamorphic caches using %" Pd "KB.\n",
-            length_, size / 1024);
+            table.Length(), size / 1024);
 }
 
 }  // namespace dart

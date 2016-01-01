@@ -214,6 +214,8 @@ class Utils {
     return true;
 #endif
   }
+
+  static char* StrError(int err, char* buffer, size_t bufsize);
 };
 
 }  // namespace dart

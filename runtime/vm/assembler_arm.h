@@ -23,6 +23,49 @@ namespace dart {
 class RuntimeEntry;
 class StubEntry;
 
+
+// Instruction encoding bits.
+enum {
+  H   = 1 << 5,   // halfword (or byte)
+  L   = 1 << 20,  // load (or store)
+  S   = 1 << 20,  // set condition code (or leave unchanged)
+  W   = 1 << 21,  // writeback base register (or leave unchanged)
+  A   = 1 << 21,  // accumulate in multiply instruction (or not)
+  B   = 1 << 22,  // unsigned byte (or word)
+  D   = 1 << 22,  // high/lo bit of start of s/d register range
+  N   = 1 << 22,  // long (or short)
+  U   = 1 << 23,  // positive (or negative) offset/index
+  P   = 1 << 24,  // offset/pre-indexed addressing (or post-indexed addressing)
+  I   = 1 << 25,  // immediate shifter operand (or not)
+
+  B0 = 1,
+  B1 = 1 << 1,
+  B2 = 1 << 2,
+  B3 = 1 << 3,
+  B4 = 1 << 4,
+  B5 = 1 << 5,
+  B6 = 1 << 6,
+  B7 = 1 << 7,
+  B8 = 1 << 8,
+  B9 = 1 << 9,
+  B10 = 1 << 10,
+  B11 = 1 << 11,
+  B12 = 1 << 12,
+  B16 = 1 << 16,
+  B17 = 1 << 17,
+  B18 = 1 << 18,
+  B19 = 1 << 19,
+  B20 = 1 << 20,
+  B21 = 1 << 21,
+  B22 = 1 << 22,
+  B23 = 1 << 23,
+  B24 = 1 << 24,
+  B25 = 1 << 25,
+  B26 = 1 << 26,
+  B27 = 1 << 27,
+};
+
+
 class Label : public ValueObject {
  public:
   Label() : position_(0) { }
@@ -278,6 +321,11 @@ class Address : public ValueObject {
 
   Mode mode() const { return static_cast<Mode>(encoding() & kModeMask); }
 
+  bool has_writeback() const {
+    return (mode() == PreIndex) || (mode() == PostIndex) ||
+           (mode() == NegPreIndex) || (mode() == NegPostIndex);
+  }
+
   uint32_t encoding() const { return encoding_; }
 
   // Encoding for addressing mode 3.
@@ -470,8 +518,11 @@ class Assembler : public ValueObject {
   // ldrd and strd actually support the full range of addressing modes, but
   // we don't use them, and we need to split them up into two instructions for
   // ARMv5TE, so we only support the base + offset mode.
-  void ldrd(Register rd, Register rn, int32_t offset, Condition cond = AL);
-  void strd(Register rd, Register rn, int32_t offset, Condition cond = AL);
+  // rd must be an even register and rd2 must be rd + 1.
+  void ldrd(Register rd, Register rd2, Register rn, int32_t offset,
+            Condition cond = AL);
+  void strd(Register rd, Register rd2, Register rn, int32_t offset,
+            Condition cond = AL);
 
   void ldm(BlockAddressMode am, Register base,
            RegList regs, Condition cond = AL);
@@ -487,6 +538,16 @@ class Assembler : public ValueObject {
 
   // Note that gdb sets breakpoints using the undefined instruction 0xe7f001f0.
   void bkpt(uint16_t imm16);
+
+  static int32_t BkptEncoding(uint16_t imm16) {
+    // bkpt requires that the cond field is AL.
+    return (AL << kConditionShift) | B24 | B21 |
+           ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
+  }
+
+  static uword GetBreakInstructionFiller() {
+    return BkptEncoding(0);
+  }
 
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
@@ -606,19 +667,18 @@ class Assembler : public ValueObject {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  // Macros.
-  // Branch to an entry address. Call sequence is never patched.
-  void Branch(const StubEntry& stub_entry, Condition cond = AL);
-
-  // Branch to an entry address. Call sequence can be patched or even replaced.
-  void BranchPatchable(const StubEntry& stub_entry);
+  void Branch(const StubEntry& stub_entry,
+              Patchability patchable = kNotPatchable,
+              Register pp = PP,
+              Condition cond = AL);
 
   void BranchLink(const StubEntry& stub_entry,
                   Patchability patchable = kNotPatchable);
-  void BranchLink(const ExternalLabel* label, Patchability patchable);
+  void BranchLink(const Code& code, Patchability patchable);
 
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const StubEntry& stub_entry);
+  void BranchLinkPatchable(const Code& code);
 
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
@@ -661,16 +721,16 @@ class Assembler : public ValueObject {
 
   void Drop(intptr_t stack_elements);
 
-  void LoadPoolPointer();
+  void RestoreCodePointer();
+  void LoadPoolPointer(Register reg = PP);
 
   void LoadIsolate(Register rd);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
   void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
-  void LoadExternalLabel(Register dst,
-                         const ExternalLabel* label,
-                         Patchability patchable,
-                         Condition cond = AL);
+  void LoadFunctionFromCalleePool(Register dst,
+                                  const Function& function,
+                                  Register new_pp);
   void LoadNativeEntry(Register dst,
                        const ExternalLabel* label,
                        Patchability patchable,
@@ -760,6 +820,7 @@ class Assembler : public ValueObject {
                            Label* miss);
 
   intptr_t FindImmediate(int32_t imm);
+  bool CanLoadFromObjectPool(const Object& object) const;
   void LoadFromOffset(OperandSize type,
                       Register reg,
                       Register base,
@@ -871,6 +932,8 @@ class Assembler : public ValueObject {
     b(is_smi, CC);
   }
 
+  void CheckCodePointer();
+
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);
   void LeaveFrame(RegList regs);
@@ -889,7 +952,7 @@ class Assembler : public ValueObject {
   // enable easy access to the RawInstruction object of code corresponding
   // to this frame.
   void EnterDartFrame(intptr_t frame_size);
-  void LeaveDartFrame();
+  void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);
 
   // Set up a Dart frame for a function compiled for on-stack replacement.
   // The frame layout is a normal Dart frame, but the frame is partially set
@@ -900,13 +963,6 @@ class Assembler : public ValueObject {
   // a stub frame.
   void EnterStubFrame();
   void LeaveStubFrame();
-
-  // Instruction pattern from entrypoint is used in Dart frame prologs
-  // to set up the frame and save a PC which can be used to figure out the
-  // RawInstruction object corresponding to the code running in the frame.
-  static intptr_t EntryPointToPcMarkerOffset() {
-    return TargetCPUFeatures::store_pc_read_offset();
-  }
 
   // The register into which the allocation stats table is loaded with
   // LoadAllocationStatsAddress should be passed to
@@ -993,9 +1049,12 @@ class Assembler : public ValueObject {
   void BindARMv6(Label* label);
   void BindARMv7(Label* label);
 
-  void BranchLink(const ExternalLabel* label);
+  void LoadWordFromPoolOffset(Register rd,
+                              int32_t offset,
+                              Register pp,
+                              Condition cond);
 
-  void LoadWordFromPoolOffset(Register rd, int32_t offset, Condition cond);
+  void BranchLink(const ExternalLabel* label);
 
   class CodeComment : public ZoneAllocated {
    public:
@@ -1019,7 +1078,8 @@ class Assembler : public ValueObject {
   void LoadObjectHelper(Register rd,
                         const Object& object,
                         Condition cond,
-                        bool is_unique);
+                        bool is_unique,
+                        Register pp);
 
   void EmitType01(Condition cond,
                   int type,
@@ -1145,7 +1205,8 @@ class Assembler : public ValueObject {
                               Condition cond = AL);
   // Writes new_value to address and its shadow location, if enabled, after
   // verifying that its old value matches its shadow.
-  void VerifiedWrite(const Address& address,
+  void VerifiedWrite(Register object,
+                     const Address& address,
                      Register new_value,
                      FieldContent old_content);
 

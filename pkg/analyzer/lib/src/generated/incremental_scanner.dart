@@ -2,16 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.incremental_scanner;
+library analyzer.src.generated.incremental_scanner;
 
 import "dart:math" as math;
 
 import 'package:analyzer/src/generated/engine.dart';
-
-import 'error.dart';
-import 'scanner.dart';
-import 'source.dart';
-import 'utilities_collection.dart' show TokenMap;
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 
 /**
  * An `IncrementalScanner` is a scanner that scans a subset of a string and

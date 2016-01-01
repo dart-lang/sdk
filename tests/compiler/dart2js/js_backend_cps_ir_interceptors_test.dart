@@ -18,7 +18,16 @@ main() {
 }""",
 r"""
 function() {
-  P.print(4);
+  var v0 = H.S(4);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   const TestEntry("""
 main() {
@@ -33,16 +42,11 @@ main() {
 }""",
 r"""
 function() {
-  var l = ["hest", ["h", "e", "s", "t"]], i = 0, x_, x, j;
-  for (P.print(l.length); i < l.length; i = i + 1) {
-    if (i < 0 || i >= l.length)
-      H.ioore(l, i);
-    x_ = J.getInterceptor$as(x = l[i]);
-    for (j = 0; j < x_.get$length(x); j = j + 1) {
-      if (j < 0 || j >= x.length)
-        H.ioore(x, j);
+  var l = ["hest", ["h", "e", "s", "t"]], i = 0, x, j;
+  for (P.print(2); i < 2; i = i + 1) {
+    x = l[i];
+    for (j = 0; j < x.length; j = j + 1)
       P.print(x[j]);
-    }
   }
 }"""),
 ];

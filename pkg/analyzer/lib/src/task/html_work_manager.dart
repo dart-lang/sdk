@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
-import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
@@ -133,12 +132,10 @@ class HtmlWorkManager implements WorkManager {
     // Try to find a new HTML file to analyze.
     while (sourceQueue.isNotEmpty) {
       Source htmlSource = sourceQueue.first;
-      // Maybe done with this library.
       if (!_needsComputing(htmlSource, HTML_ERRORS)) {
         sourceQueue.remove(htmlSource);
         continue;
       }
-      // Analyze this library.
       return new TargetedResult(htmlSource, HTML_ERRORS);
     }
     // No results to compute.
@@ -234,7 +231,7 @@ class HtmlWorkManager implements WorkManager {
     scriptTargets.forEach(partition.remove);
     for (Source htmlSource in htmlSources) {
       CacheEntry entry = partition.get(htmlSource);
-      if (htmlSource != null) {
+      if (entry != null) {
         entry.setState(HTML_ERRORS, CacheState.INVALID);
         if (invalidateUris) {
           entry.setState(REFERENCED_LIBRARIES, CacheState.INVALID);

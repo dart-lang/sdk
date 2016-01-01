@@ -25,7 +25,7 @@ import 'package:compiler/src/io/source_information.dart'
 validateSourceMap(Uri targetUri,
                   {Uri mainUri,
                    Position mainPosition,
-                   Compiler compiler}) {
+                   CompilerImpl compiler}) {
   Uri mapUri = getMapUri(targetUri);
   List<String> targetLines = new File.fromUri(targetUri).readAsLinesSync();
   SingleMapping sourceMap = getSourceMap(mapUri);
@@ -100,7 +100,7 @@ checkRedundancy(SingleMapping sourceMap) {
 }
 
 checkNames(Uri targetUri, Uri mapUri,
-           SingleMapping sourceMap, Compiler compiler) {
+           SingleMapping sourceMap, CompilerImpl compiler) {
   Map<Uri, CompilationUnitElement> compilationUnitMap = {};
 
   void mapCompilationUnits(LibraryElement library) {

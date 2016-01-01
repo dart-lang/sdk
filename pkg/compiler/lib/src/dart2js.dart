@@ -19,7 +19,6 @@ import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 import 'util/command_line.dart';
-import 'package:sdk_library_metadata/libraries.dart';
 import 'package:package_config/discovery.dart' show findPackages;
 
 const String LIBRARY_ROOT = '../../../../../sdk';
@@ -120,6 +119,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool dumpInfo = false;
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
+  bool trustJSInteropTypeAnnotations = false;
   bool checkedMode = false;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
@@ -228,6 +228,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
     implyCompilation(argument);
   }
 
+  setTrustJSInteropTypeAnnotations(String argument) {
+    trustJSInteropTypeAnnotations = true;
+    implyCompilation(argument);
+  }
+
   setTrustPrimitives(String argument) {
     implyCompilation(argument);
   }
@@ -246,21 +251,13 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   setCategories(String argument) {
     List<String> categories = extractParameter(argument).split(',');
-    Set<String> allowedCategories =
-        LIBRARIES.values.map((x) => x.category).toSet();
-    allowedCategories.remove('Shared');
-    allowedCategories.remove('Internal');
-    List<String> allowedCategoriesList =
-        new List<String>.from(allowedCategories);
-    allowedCategoriesList.sort();
     if (categories.contains('all')) {
-      categories = allowedCategoriesList;
+      categories = ["Client", "Server"];
     } else {
-      String allowedCategoriesString = allowedCategoriesList.join(', ');
       for (String category in categories) {
-        if (!allowedCategories.contains(category)) {
+        if (!["Client", "Server"].contains(category)) {
           fail('Unsupported library category "$category", '
-               'supported categories are: $allowedCategoriesString');
+               'supported categories are: Client, Server, all');
         }
       }
     }
@@ -320,6 +317,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler(Flags.allowMockCompilation, passThrough),
     new OptionHandler(Flags.fastStartup, passThrough),
+    new OptionHandler(Flags.conditionalDirectives, passThrough),
     new OptionHandler('${Flags.minify}|-m', implyCompilation),
     new OptionHandler(Flags.preserveUris, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
@@ -329,15 +327,15 @@ Future<api.CompilationResult> compile(List<String> argv) {
                       (_) => diagnosticHandler.enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
                       (_) => setCheckedMode(Flags.enableCheckedMode)),
-    new OptionHandler(Flags.enableConcreteTypeInference,
-                      (_) => implyCompilation(
-                          Flags.enableConcreteTypeInference)),
     new OptionHandler(Flags.trustTypeAnnotations,
                       (_) => setTrustTypeAnnotations(
                           Flags.trustTypeAnnotations)),
     new OptionHandler(Flags.trustPrimitives,
                       (_) => setTrustPrimitives(
                           Flags.trustPrimitives)),
+    new OptionHandler(Flags.trustJSInteropTypeAnnotations,
+                      (_) => setTrustJSInteropTypeAnnotations(
+                          Flags.trustJSInteropTypeAnnotations)),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--packages=.+', setPackageConfig),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
@@ -353,9 +351,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.dumpInfo, setDumpInfo),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
-    new OptionHandler(Flags.showPackageWarnings, passThrough),
+    new OptionHandler(Option.showPackageWarnings, passThrough),
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
+    new OptionHandler(Flags.enableAssertMessage, passThrough),
     new OptionHandler('--enable-async', (_) {
       diagnosticHandler.info(
           "Option '--enable-async' is no longer needed. "

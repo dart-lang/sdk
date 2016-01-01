@@ -6,10 +6,10 @@ library test.socket.server;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
@@ -116,7 +116,6 @@ class SocketServerTest {
         DirectoryBasedDartSdk.defaultSdk,
         InstrumentationService.NULL_SERVICE,
         serverPlugin,
-        null,
         null);
   }
 }

@@ -6,8 +6,6 @@ compile_with_empty_libraries_test: Fail # Issue 24223
 
 boolified_operator_test: Fail # Issue 8001
 
-async_await_js_transform_test/01: RuntimeError # Issue 23997
-
 # Don't mark these tests as failing. Instead, fix the errors/warnings that they
 # report or update the whitelist in the test-files to temporarily allow
 # digression.
@@ -20,12 +18,6 @@ simple_function_subtype_test: Fail
 simple_inferrer_const_closure_test: Fail # Issue 16507
 simple_inferrer_const_closure2_test: Fail # Issue 16507
 simple_inferrer_global_field_closure_test: Fail # Issue 16507
-simple_inferrer_const_closure_default_test/05: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/06: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/09: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/10: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/11: Fail # Issue 24297
-simple_inferrer_const_closure_default_test/12: Fail # Issue 24297
 
 logical_expression_test: Fail # Issue 17027
 
@@ -43,6 +35,7 @@ mirrors/library_imports_shown_test: Fail
 patch_test/bug: RuntimeError # Issue 21132
 
 http_test: Pass, Slow
+inference_stats_test: Pass, Slow
 
 # These tests are for the now-deleted dart2dart variant of the CPS IR.
 # We want to adapt them to test the JS variant of the CPS IR instead,
@@ -59,16 +52,27 @@ js_backend_cps_ir_basic_test: Pass, Slow
 js_backend_cps_ir_closures_test: Pass, Slow
 js_backend_cps_ir_constructor_test: Pass, Slow
 
+# Source information is not correct due to inlining.
+js_backend_cps_ir_source_information_test: Fail
+sourcemaps/source_mapping_operators_test: Fail # Issue 25304 for checked mode, was: Pass, Slow
+
+check_elements_invariants_test: Slow, Pass, Timeout # Slow due to inlining in the CPS backend
+
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
 
 [ $checked ]
-uri_retention_test: Pass, Slow
+analyze_dart2js_helpers_test: Pass, Slow
+analyze_dart2js_test: Pass, Slow
+analyze_unused_dart2js_test: Pass, Slow
 deferred_mirrors_test: Pass, Slow
-mirror_final_field_inferrer2_test: Pass, Slow
-check_elements_invariants_test: Slow, Pass
-import_mirrors_test: Slow, Pass
+duplicate_library_test: Pass, Slow
 exit_code_test: Pass, Slow
+import_mirrors_test: Slow, Pass
+interop_anonymous_unreachable_test: Pass, Slow
+mirror_final_field_inferrer2_test: Pass, Slow
+source_map_pub_build_validity_test: Pass, Slow
+uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 
 [ $mode == debug ]

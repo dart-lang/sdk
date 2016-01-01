@@ -89,6 +89,11 @@ class ServiceObjectViewElement extends ObservatoryElement {
                   new Element.tag('instructions-view');
               element.instructions = object;
               return element;
+            case 'MegamorphicCache':
+              MegamorphicCacheViewElement element =
+                  new Element.tag('megamorphiccache-view');
+              element.megamorphicCache = object;
+              return element;
             case 'ObjectPool':
               ObjectPoolViewElement element = new Element.tag('objectpool-view');
               element.pool = object;

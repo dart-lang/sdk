@@ -102,6 +102,16 @@ typedef struct _Dart_CObject {
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message);
 
 /**
+ * Posts a message on some port. The message will contain the integer 'message'.
+ *
+ * \param port_id The destination port.
+ * \param message The message to send.
+ *
+ * \return True if the message was posted.
+ */
+DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message);
+
+/**
  * A native message handler.
  *
  * This handler is associated with a native port by calling

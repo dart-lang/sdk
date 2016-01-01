@@ -4,6 +4,11 @@
 
 part of service;
 
+// Some value smaller than the object ring, so requesting a large array
+// doesn't result in an expired ref because the elements lapped it in the
+// object ring.
+const int kDefaultFieldLimit = 100;
+
 /// Helper function for canceling a Future<StreamSubscription>.
 Future cancelFutureSubscription(
     Future<StreamSubscription> subscriptionFuture) async {
@@ -114,6 +119,7 @@ abstract class ServiceObject extends Observable {
   String _vmType;
 
   bool get isICData => vmType == 'ICData';
+  bool get isMegamorphicCache => vmType == 'MegamorphicCache';
   bool get isInstructions => vmType == 'Instructions';
   bool get isObjectPool => vmType == 'ObjectPool';
   bool get isContext => type == 'Context';
@@ -231,6 +237,9 @@ abstract class ServiceObject extends Observable {
           case 'LocalVarDescriptors':
             obj = new LocalVarDescriptors._empty(owner);
             break;
+          case 'MegamorphicCache':
+            obj = new MegamorphicCache._empty(owner);
+            break;
           case 'ObjectPool':
             obj = new ObjectPool._empty(owner);
             break;
@@ -280,6 +289,7 @@ abstract class ServiceObject extends Observable {
   Future<ObservableMap> _fetchDirect() {
     Map params = {
       'objectId': id,
+      'count': kDefaultFieldLimit,
     };
     return isolate.invokeRpcNoUpgrade('getObject', params);
   }
@@ -637,17 +647,18 @@ abstract class VM extends ServiceObjectOwner {
   @observable int architectureBits;
   @observable bool assertsEnabled = false;
   @observable bool typeChecksEnabled = false;
-  @observable String pid = '';
+  @observable int pid = 0;
   @observable DateTime startTime;
   @observable DateTime refreshTime;
-  @observable Duration get upTime =>
-      (new DateTime.now().difference(startTime));
+  @observable Duration get upTime {
+    if (startTime == null) {
+      return null;
+    }
+    return (new DateTime.now().difference(startTime));
+  }
 
   VM() : super._empty(null) {
-    name = 'vm';
-    vmName = 'vm';
-    _cache['vm'] = this;
-    update(toObservable({'id':'vm', 'type':'@VM'}));
+    update(toObservable({'name':'vm', 'type':'@VM'}));
   }
 
   void postServiceEvent(String streamId, Map response, ByteData data) {
@@ -673,6 +684,11 @@ abstract class VM extends ServiceObjectOwner {
       if (event.kind == ServiceEvent.kIsolateExit) {
         _isolateCache.remove(isolate.id);
         _buildIsolateList();
+      }
+      if (event.kind == ServiceEvent.kIsolateRunnable) {
+        // Force reload once the isolate becomes runnable so that we
+        // update the root library.
+        isolate.reload();
       }
     }
     var eventStream = _eventStreams[streamId];
@@ -728,6 +744,14 @@ abstract class VM extends ServiceObjectOwner {
     if (map == null) {
       return null;
     }
+    var type = _stripRef(map['type']);
+    if (type == 'VM') {
+      // Update this VM object.
+      update(map);
+      return this;
+    }
+
+    assert(type == 'Isolate');
     String id = map['id'];
     if (!id.startsWith(_isolateIdPrefix)) {
       // Currently the VM only supports upgrading Isolate ServiceObjects.
@@ -803,15 +827,28 @@ abstract class VM extends ServiceObjectOwner {
     }
   }
 
+  Future restart() {
+    return invokeRpc('_restartVM', {});
+  }
+
   Future<ObservableMap> _fetchDirect() async {
     if (!loaded) {
       // The vm service relies on these events to keep the VM and
       // Isolate types up to date.
-      await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
-      await listenEventStream(kDebugStream, _dispatchEventToIsolate);
-      await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
+      try {
+        await listenEventStream(kVMStream, _dispatchEventToIsolate);
+        await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
+        await listenEventStream(kDebugStream, _dispatchEventToIsolate);
+        await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
+      } on FakeVMRpcException catch (_) {
+        // ignore FakeVMRpcExceptions here.
+      }
     }
     return await invokeRpcNoUpgrade('getVM', {});
+  }
+
+  Future setName(String newName) {
+    return invokeRpc('setVMName', { 'name': newName });
   }
 
   Future<ServiceObject> getFlagList() {
@@ -836,6 +873,7 @@ abstract class VM extends ServiceObjectOwner {
   Map<String,_EventStreamState> _eventStreams = {};
 
   // Well-known stream ids.
+  static const kVMStream = 'VM';
   static const kIsolateStream = 'Isolate';
   static const kDebugStream = 'Debug';
   static const kGCStream = 'GC';
@@ -866,6 +904,8 @@ abstract class VM extends ServiceObjectOwner {
   Future get onDisconnect;
 
   void _update(ObservableMap map, bool mapIsRef) {
+    name = map['name'];
+    vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     if (mapIsRef) {
       return;
     }
@@ -877,7 +917,7 @@ abstract class VM extends ServiceObjectOwner {
     version = map['version'];
     targetCPU = map['targetCPU'];
     architectureBits = map['architectureBits'];
-    var startTimeMillis = map['startTime'].toInt();
+    int startTimeMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeMillis);
     refreshTime = new DateTime.now();
     notifyPropertyChange(#upTime, 0, 1);
@@ -1097,12 +1137,19 @@ class HeapSnapshot {
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner with Coverage {
   static const kLoggingStream = '_Logging';
+  static const kExtensionStream = 'Extension';
+
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable int number;
+  @observable int originNumber;
   @observable DateTime startTime;
-  @observable Duration get upTime =>
-      (new DateTime.now().difference(startTime));
+  @observable Duration get upTime {
+    if (startTime == null) {
+      return null;
+    }
+    return (new DateTime.now().difference(startTime));
+  }
 
   @observable ObservableMap counters = new ObservableMap();
 
@@ -1125,6 +1172,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable bool loading = true;
 
   @observable bool ioEnabled = false;
+
+  final List<String> extensionRPCs = new List<String>();
 
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
   final TagProfile tagProfile = new TagProfile(20);
@@ -1249,6 +1298,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
     Map params = {
       'objectId': objectId,
+      'count': kDefaultFieldLimit,
     };
     return isolate.invokeRpc('getObject', params);
   }
@@ -1269,9 +1319,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable String name;
   @observable String vmName;
   @observable ServiceFunction entry;
-
-  @observable final Map<String, double> timers =
-      toObservable(new Map<String, double>());
 
   final HeapSpace newSpace = new HeapSpace();
   final HeapSpace oldSpace = new HeapSpace();
@@ -1334,7 +1381,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   void _update(ObservableMap map, bool mapIsRef) {
     name = map['name'];
-    vmName = map['name'];
+    vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     number = int.parse(map['number'], onError:(_) => null);
     if (mapIsRef) {
       return;
@@ -1343,12 +1390,13 @@ class Isolate extends ServiceObjectOwner with Coverage {
     loading = false;
 
     _upgradeCollection(map, isolate);
+    originNumber = int.parse(map['_originNumber'], onError:(_) => null);
     rootLibrary = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];
     }
     var savedStartTime = startTime;
-    var startTimeInMillis = map['startTime'].toInt();
+    int startTimeInMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeInMillis);
     notifyPropertyChange(#upTime, 0, 1);
     var countersMap = map['_tagCounters'];
@@ -1373,18 +1421,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
         }
       }
     }
-    var timerMap = {};
-    map['timers'].forEach((timer) {
-        timerMap[timer['name']] = timer['time'];
-      });
-    timers['total'] = timerMap['time_total_runtime'];
-    timers['compile'] = timerMap['time_compilation'];
-    timers['gc'] = 0.0;  // TODO(turnidge): Export this from VM.
-    timers['init'] = (timerMap['time_script_loading'] +
-                      timerMap['time_creating_snapshot'] +
-                      timerMap['time_isolate_initialization'] +
-                      timerMap['time_bootstrap']);
-    timers['dart'] = timerMap['time_dart_execution'];
 
     updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);
@@ -1403,6 +1439,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
     libraries.sort(ServiceObject.LexicalSortName);
     if (savedStartTime == null) {
       vm._buildIsolateList();
+    }
+
+    extensionRPCs.clear();
+    if (map['extensionRPCs'] != null) {
+      extensionRPCs.addAll(map['extensionRPCs']);
     }
   }
 
@@ -1489,8 +1530,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
         break;
 
       default:
-        // Log unrecognized events.
-        Logger.root.severe('Unrecognized event: $event');
+        // Log unexpected events.
+        Logger.root.severe('Unexpected event: $event');
         break;
     }
   }
@@ -1517,7 +1558,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
     } on ServerRpcException catch(e) {
       if (e.code == ServerRpcException.kCannotAddBreakpoint) {
         // Unable to set a breakpoint at the desired line.
-        script.getLine(line).possibleBpt = false;
+        if (script.loaded) {
+          script.getLine(line).possibleBpt = false;
+        }
       }
       rethrow;
     }
@@ -1532,7 +1575,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (col != null) {
       params['column'] = col.toString();
     }
-    return invokeRpc('addBreakpoint', params);
+    return invokeRpc('addBreakpointWithScriptUri', params);
   }
 
   Future<ServiceObject> addBreakpointAtEntry(ServiceFunction function) {
@@ -1635,8 +1678,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('setName', {'name': newName});
   }
 
-  Future setExceptionPauseInfo(String exceptions) {
-    return invokeRpc('_setExceptionPauseInfo', {'exceptions': exceptions});
+  Future setExceptionPauseMode(String mode) {
+    return invokeRpc('setExceptionPauseMode', {'mode': mode});
   }
 
   Future<ServiceMap> getStack() {
@@ -1659,6 +1702,13 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'expression': expression,
     };
     return invokeRpc('evaluateInFrame', params);
+  }
+
+  Future<ServiceObject> getReachableSize(ServiceObject target) {
+    Map params = {
+      'targetId': target.id,
+    };
+    return invokeRpc('_getReachableSize', params);
   }
 
   Future<ServiceObject> getRetainedSize(ServiceObject target) {
@@ -1838,10 +1888,12 @@ Level _findLogLevel(int value) {
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
+  static const kVMUpdate               = 'VMUpdate';
   static const kIsolateStart           = 'IsolateStart';
   static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
+  static const kServiceExtensionAdded  = 'ServiceExtensionAdded';
   static const kPauseStart             = 'PauseStart';
   static const kPauseExit              = 'PauseExit';
   static const kPauseBreakpoint        = 'PauseBreakpoint';
@@ -1857,6 +1909,7 @@ class ServiceEvent extends ServiceObject {
   static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
   static const kConnectionClosed       = 'ConnectionClosed';
   static const kLogging                = '_Logging';
+  static const kExtension              = 'Extension';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1868,6 +1921,7 @@ class ServiceEvent extends ServiceObject {
   @observable DateTime timestamp;
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
+  @observable String extensionRPC;
   @observable Instance exception;
   @observable Instance asyncContinuation;
   @observable bool atAsyncJump;
@@ -1878,6 +1932,8 @@ class ServiceEvent extends ServiceObject {
   @observable String exceptions;
   @observable String bytesAsString;
   @observable Map logRecord;
+  @observable String extensionKind;
+  @observable Map extensionData;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -1894,7 +1950,7 @@ class ServiceEvent extends ServiceObject {
     _upgradeCollection(map, owner);
     assert(map['isolate'] == null || owner == map['isolate']);
     timestamp =
-        new DateTime.fromMillisecondsSinceEpoch(map['timestamp'].toInt());
+        new DateTime.fromMillisecondsSinceEpoch(map['timestamp']);
     kind = map['kind'];
     notifyPropertyChange(#isPauseEvent, 0, 1);
     name = 'ServiceEvent $kind';
@@ -1909,6 +1965,9 @@ class ServiceEvent extends ServiceObject {
       if (pauseBpts.length > 0) {
         breakpoint = pauseBpts[0];
       }
+    }
+    if (map['extensionRPC'] != null) {
+      extensionRPC = map['extensionRPC'];
     }
     topFrame = map['topFrame'];
     if (map['exception'] != null) {
@@ -1943,23 +2002,28 @@ class ServiceEvent extends ServiceObject {
       exceptions = map['_debuggerSettings']['_exceptions'];
     }
     if (map['bytes'] != null) {
-      var bytes = decodeBase64(map['bytes']);
+      var bytes = BASE64.decode(map['bytes']);
       bytesAsString = UTF8.decode(bytes);
     }
     if (map['logRecord'] != null) {
       logRecord = map['logRecord'];
       logRecord['time'] =
-          new DateTime.fromMillisecondsSinceEpoch(logRecord['time'].toInt());
+          new DateTime.fromMillisecondsSinceEpoch(logRecord['time']);
       logRecord['level'] = _findLogLevel(logRecord['level']);
+    }
+    if (map['extensionKind'] != null) {
+      extensionKind = map['extensionKind'];
+      extensionData = map['extensionData'];
     }
   }
 
   String toString() {
+    var ownerName = owner.id != null ? owner.id.toString() : owner.name;
     if (data == null) {
-      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
+      return "ServiceEvent(owner='${ownerName}', kind='${kind}', "
           "time=${timestamp})";
     } else {
-      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
+      return "ServiceEvent(owner='${ownerName}', kind='${kind}', "
           "data.lengthInBytes=${data.lengthInBytes}, time=${timestamp})";
     }
   }
@@ -2384,7 +2448,7 @@ class Instance extends HeapObject {
     elements = map['elements'];
     associations = map['associations'];
     if (map['bytes'] != null) {
-      var bytes = decodeBase64(map['bytes']);
+      var bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
         case "Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList(); break;
@@ -2539,6 +2603,9 @@ class ServiceFunction extends HeapObject with Coverage {
   @observable Code unoptimizedCode;
   @observable bool isOptimizable;
   @observable bool isInlinable;
+  @observable bool hasIntrinsic;
+  @observable bool isRecognized;
+  @observable bool isNative;
   @observable FunctionKind kind;
   @observable int deoptimizations;
   @observable String qualifiedName;
@@ -2546,6 +2613,7 @@ class ServiceFunction extends HeapObject with Coverage {
   @observable bool isDart;
   @observable ProfileFunction profile;
   @observable Instance icDataArray;
+  @observable Field field;
 
   bool get canCache => true;
   bool get immutable => false;
@@ -2578,6 +2646,9 @@ class ServiceFunction extends HeapObject with Coverage {
       qualifiedName = name;
     }
 
+    hasIntrinsic = map['_intrinsic'];
+    isNative = map['_native'];
+
     if (mapIsRef) {
       return;
     }
@@ -2589,10 +2660,20 @@ class ServiceFunction extends HeapObject with Coverage {
     code = map['code'];
     isOptimizable = map['_optimizable'];
     isInlinable = map['_inlinable'];
+    isRecognized = map['_recognized'];
     unoptimizedCode = map['_unoptimizedCode'];
     deoptimizations = map['_deoptimizations'];
     usageCounter = map['_usageCounter'];
     icDataArray = map['_icDataArray'];
+    field = map['_field'];
+  }
+
+  ServiceFunction get homeMethod {
+    var m = this;
+    while (m.dartOwner is ServiceFunction) {
+      m = m.dartOwner;
+    }
+    return m;
   }
 }
 
@@ -3311,6 +3392,32 @@ class ICData extends HeapObject {
   }
 }
 
+class MegamorphicCache extends HeapObject {
+  @observable int mask;
+  @observable Instance buckets;
+  @observable String selector;
+  @observable Instance argumentsDescriptor;
+
+  bool get canCache => false;
+  bool get immutable => false;
+
+  MegamorphicCache._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
+
+    selector = map['_selector'];
+    if (mapIsRef) {
+      return;
+    }
+
+    mask = map['_mask'];
+    buckets = map['_buckets'];
+    argumentsDescriptor = map['_argumentsDescriptor'];
+  }
+}
+
 class Instructions extends HeapObject {
   bool get canCache => false;
   bool get immutable => true;
@@ -3356,11 +3463,16 @@ class CodeInstruction extends Observable {
   @observable final int pcOffset;
   @observable final String machine;
   @observable final String human;
+  @observable final ServiceObject object;
   @observable CodeInstruction jumpTarget;
   @reflectable List<PcDescriptor> descriptors =
       new ObservableList<PcDescriptor>();
 
-  CodeInstruction(this.address, this.pcOffset, this.machine, this.human);
+  CodeInstruction(this.address,
+                  this.pcOffset,
+                  this.machine,
+                  this.human,
+                  this.object);
 
   @reflectable bool get isComment => address == 0;
   @reflectable bool get hasDescriptors => descriptors.length > 0;
@@ -3451,7 +3563,10 @@ class Code extends HeapObject {
   @observable ServiceObject objectPool;
   @observable ServiceFunction function;
   @observable Script script;
-  @observable bool isOptimized = false;
+  @observable bool isOptimized;
+  @observable bool hasIntrinsic;
+  @observable bool isNative;
+
   @reflectable int startAddress = 0;
   @reflectable int endAddress = 0;
   @reflectable final instructions = new ObservableList<CodeInstruction>();
@@ -3521,6 +3636,8 @@ class Code extends HeapObject {
     vmName = (m.containsKey('_vmName') ? m['_vmName'] : name);
     isOptimized = m['_optimized'];
     kind = CodeKind.fromString(m['kind']);
+    hasIntrinsic = m['_intrinsic'];
+    isNative = m['_native'];
     if (mapIsRef) {
       return;
     }
@@ -3600,20 +3717,25 @@ class Code extends HeapObject {
     instructions.clear();
     instructionsByAddressOffset = new List(endAddress - startAddress);
 
-    assert((disassembly.length % 3) == 0);
-    for (var i = 0; i < disassembly.length; i += 3) {
+    assert((disassembly.length % 4) == 0);
+    for (var i = 0; i < disassembly.length; i += 4) {
       var address = 0;  // Assume code comment.
       var machine = disassembly[i + 1];
       var human = disassembly[i + 2];
+      var object = disassembly[i + 3];
+      if (object != null) {
+        object = new ServiceObject._fromMap(owner, object);
+      }
       var pcOffset = 0;
-      if (disassembly[i] != '') {
+      if (disassembly[i] != null) {
         // Not a code comment, extract address.
         address = int.parse(disassembly[i], radix:16);
         pcOffset = address - startAddress;
       }
-      var instruction = new CodeInstruction(address, pcOffset, machine, human);
+      var instruction =
+          new CodeInstruction(address, pcOffset, machine, human, object);
       instructions.add(instruction);
-      if (disassembly[i] != '') {
+      if (disassembly[i] != null) {
         // Not a code comment.
         instructionsByAddressOffset[pcOffset] = instruction;
       }

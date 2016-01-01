@@ -1,0 +1,193 @@
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# Currently paths here are hard coded for convenience in building Mojo/Flutter.
+declare_args() {
+  # Specify the path to a host compatible version of the Dart SDK.
+  # This SDK is used to compile the Observatory frontend sources.
+  dart_host_sdk = rebase_path("//third_party/dart-sdk/dart-sdk")
+
+  # Specify the path to a host compatible version of pub.
+  # This is used to compile the Observatory frontend sources.
+  dart_host_pub_exe = rebase_path("$dart_host_sdk/bin/pub")
+}
+
+# Helper build rules for packaging the Dart observatory resources.
+observatory_sources_gypi =
+    exec_script("../../tools/gypi_to_gn.py",
+                [ rebase_path(
+                    "//dart/runtime/observatory/observatory_sources.gypi") ],
+                "scope",
+                [ "//dart/runtime/observatory/observatory_sources.gypi" ])
+
+copy("copy_observatory") {
+  sources = rebase_path(observatory_sources_gypi.sources,
+                        "",
+                        ".")
+  outputs = [
+    "$root_gen_dir/observatory_copy/{{source_root_relative_dir}}/{{source_file_part}}",
+  ]
+}
+
+action("write_observatory_pubspec_yaml") {
+  deps = [
+    ":copy_observatory",
+  ]
+
+  script = "../../tools/observatory_tool.py"
+
+  inputs = [
+    rebase_path("pubspec.yaml"),
+  ]
+
+  args = [
+    "--silent=True",
+    "--pub-executable",
+    dart_host_pub_exe,
+    "--directory",
+    rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
+    "--command",
+    "rewrite",
+    rebase_path("//dart/runtime/observatory/pubspec.yaml"),
+    rebase_path(
+        "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.yaml"),
+    "../../third_party/",
+    rebase_path("../../../dart/third_party/"),
+  ]
+
+  outputs = [
+    "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.yaml",
+  ]
+}
+
+action("copy_observatory_deps") {
+  deps = [
+    ":write_observatory_pubspec_yaml",
+  ]
+
+  script = "//dart/tools/observatory_tool.py"
+
+  inputs = [
+    script,
+    "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.yaml",
+  ]
+
+  args = [
+    "--silent=True",
+    "--pub-executable",
+    dart_host_pub_exe,
+    "--directory",
+    rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
+    "--command",
+    "get",
+  ]
+
+  outputs = [
+    "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.lock",
+  ]
+}
+
+action("pub_build_observatory") {
+  sources =
+      rebase_path(observatory_sources_gypi.sources,
+                  "",
+                  "$root_gen_dir/observatory_copy/dart/runtime/observatory")
+
+  deps = [
+    ":copy_observatory",
+    ":copy_observatory_deps",
+  ]
+
+  script = "//dart/tools/observatory_tool.py"
+
+  inputs = [
+    script,
+  ]
+  inputs += sources
+
+  args = [
+    "--silent=True",
+    "--pub-executable",
+    dart_host_pub_exe,
+    "--directory",
+    rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
+    "--command",
+    "build",
+    rebase_path("$root_out_dir/observatory/build"),
+  ]
+
+  outputs = [
+    "$root_out_dir/observatory/build/web/index.html",
+    "$root_out_dir/observatory/build/web/index.html.polymer.bootstrap.dart.js",
+  ]
+}
+
+action("deploy_observatory") {
+  deps = [
+    ":pub_build_observatory",
+  ]
+
+  script = "//dart/tools/observatory_tool.py"
+
+  inputs = [
+    script,
+    "$root_out_dir/observatory/build/web/index.html",
+    "$root_out_dir/observatory/build/web/index.html.polymer.bootstrap.dart.js",
+  ]
+
+  args = [
+    "--silent=True",
+    "--pub-executable",
+    dart_host_pub_exe,
+    "--directory",
+    rebase_path("$root_out_dir/observatory"),
+    "--command",
+    "deploy",
+  ]
+
+  outputs = [
+    "$root_out_dir/observatory/deployed/web/index.html",
+    "$root_out_dir/observatory/deployed/web/index.html.polymer.bootstrap.dart.js",
+  ]
+}
+
+action("archive_observatory") {
+  deps = [
+    ":deploy_observatory",
+  ]
+
+  script = "//dart/runtime/tools/create_archive.py"
+
+  inputs = [
+    script,
+    "$root_out_dir/observatory/deployed/web/index.html",
+    "$root_out_dir/observatory/deployed/web/index.html.polymer.bootstrap.dart.js",
+  ]
+
+  args = [
+    "--output",
+    rebase_path("$root_gen_dir/observatory/observatory_archive.cc"),
+    "--tar_output",
+    rebase_path("$root_gen_dir/observatory/observatory_archive.tar"),
+    "--outer_namespace", "dart",
+    "--inner_namespace", "observatory",
+    "--name", "observatory_assets_archive",
+    "--client_root", rebase_path("$root_out_dir/observatory/deployed/web/"),
+  ]
+
+  outputs = [
+    "$root_gen_dir/observatory/observatory_archive.cc",
+    "$root_gen_dir/observatory/observatory_archive.tar",
+  ]
+}
+
+source_set("embedded_observatory_archive") {
+  deps = [
+    ":archive_observatory",
+  ]
+
+  sources = [
+    rebase_path("$root_gen_dir/observatory/observatory_archive.cc"),
+  ]
+}

@@ -40,6 +40,7 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       embedder_stream_id_(NULL),
       breakpoint_(NULL),
       top_frame_(NULL),
+      extension_rpc_(NULL),
       exception_(NULL),
       async_continuation_(NULL),
       at_async_jump_(false),
@@ -62,6 +63,7 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       kind_(TranslateEventKind(debugger_event->type())),
       breakpoint_(NULL),
       top_frame_(NULL),
+      extension_rpc_(NULL),
       exception_(NULL),
       async_continuation_(NULL),
       inspectee_(NULL),
@@ -91,6 +93,8 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
 
 const char* ServiceEvent::KindAsCString() const {
   switch (kind()) {
+    case kVMUpdate:
+      return "VMUpdate";
     case kIsolateStart:
       return "IsolateStart";
     case kIsolateRunnable:
@@ -99,6 +103,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "IsolateExit";
     case kIsolateUpdate:
       return "IsolateUpdate";
+    case kServiceExtensionAdded:
+      return "ServiceExtensionAdded";
     case kPauseStart:
       return "PauseStart";
     case kPauseExit:
@@ -129,6 +135,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "_DebuggerSettingsUpdate";
     case kIllegal:
       return "Illegal";
+    case kExtension:
+      return "Extension";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -138,10 +146,14 @@ const char* ServiceEvent::KindAsCString() const {
 
 const char* ServiceEvent::stream_id() const {
   switch (kind()) {
+    case kVMUpdate:
+      return Service::vm_stream.id();
+
     case kIsolateStart:
     case kIsolateRunnable:
     case kIsolateExit:
     case kIsolateUpdate:
+    case kServiceExtensionAdded:
       return Service::isolate_stream.id();
 
     case kPauseStart:
@@ -166,6 +178,9 @@ const char* ServiceEvent::stream_id() const {
     case kLogging:
       return Service::logging_stream.id();
 
+    case kExtension:
+      return Service::extension_stream.id();
+
     default:
       UNREACHABLE();
       return NULL;
@@ -176,6 +191,10 @@ const char* ServiceEvent::stream_id() const {
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
   PrintJSONHeader(&jsobj);
+  if (kind() == kServiceExtensionAdded) {
+    ASSERT(extension_rpc_ != NULL);
+    jsobj.AddProperty("extensionRPC", extension_rpc_->ToCString());
+  }
   if (kind() == kPauseBreakpoint) {
     JSONArray jsarr(&jsobj, "pauseBreakpoints");
     // TODO(rmacnak): If we are paused at more than one breakpoint,
@@ -192,7 +211,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     isolate()->debugger()->PrintSettingsToJSONObject(&jssettings);
   }
-  if (top_frame() != NULL) {
+  if ((top_frame() != NULL) && Isolate::Current()->compilation_allowed()) {
     JSONObject jsFrame(&jsobj, "topFrame");
     top_frame()->PrintToJSONObject(&jsFrame);
     intptr_t index = 0;  // Avoid ambiguity in call to AddProperty.
@@ -227,6 +246,10 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     logRecord.AddProperty("error", *(log_record_.error));
     logRecord.AddProperty("stackTrace", *(log_record_.stack_trace));
   }
+  if (kind() == kExtension) {
+    js->AppendSerializedObject("extensionData",
+                               extension_event_.event_data->ToCString());
+  }
 }
 
 
@@ -234,7 +257,16 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(jsobj != NULL);
   jsobj->AddProperty("type", "Event");
   jsobj->AddProperty("kind", KindAsCString());
-  jsobj->AddProperty("isolate", isolate());
+  if (kind() == kExtension) {
+    ASSERT(extension_event_.event_kind != NULL);
+    jsobj->AddProperty("extensionKind",
+                       extension_event_.event_kind->ToCString());
+  }
+  if (kind() == kVMUpdate) {
+    jsobj->AddPropertyVM("vm");
+  } else {
+    jsobj->AddProperty("isolate", isolate());
+  }
   ASSERT(timestamp_ != -1);
   jsobj->AddPropertyTimeMillis("timestamp", timestamp_);
 }

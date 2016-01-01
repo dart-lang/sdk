@@ -23,7 +23,7 @@ main() {
   var compiler = compilerFor(CODE, uri);
   var classWorld = compiler.world;
 
-  asyncTest(() => compiler.runCompiler(uri).then((_) {
+  asyncTest(() => compiler.run(uri).then((_) {
     var classA = findElement(compiler, 'A');
     var classB = findElement(compiler, 'B');
     var classC = findElement(compiler, 'C');
@@ -37,8 +37,8 @@ main() {
     var subclassA = new TypeMask.nonNullSubclass(classA, classWorld);
     var subtypeA = new TypeMask.nonNullSubtype(classA, classWorld);
 
-    var subclassObject = new TypeMask.nonNullSubclass(compiler.objectClass,
-        classWorld);
+    var subclassObject = new TypeMask.nonNullSubclass(
+        compiler.coreClasses.objectClass, classWorld);
 
     var unionABC = UnionTypeMask.unionOf([exactA, exactB, exactC], classWorld);
     var unionABnC = UnionTypeMask.unionOf([exactA, exactB.nullable(), exactC],

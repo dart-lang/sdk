@@ -4,10 +4,9 @@
 
 library dart2js.parser.listener;
 
-import '../diagnostics/messages.dart';
-import '../diagnostics/spannable.dart' show
-    Spannable,
-    SpannableAssertionFailure;
+import '../common.dart';
+import '../diagnostics/messages.dart' show
+    MessageTemplate;
 import '../tokens/precedence_constants.dart' as Precedence show
     EOF_INFO,
     IDENTIFIER_INFO;
@@ -231,6 +230,24 @@ class Listener {
 
   void endImport(Token importKeyword, Token DeferredKeyword,
                  Token asKeyword, Token semicolon) {
+  }
+
+  void beginConditionalUris(Token token) {
+  }
+
+  void endConditionalUris(int count) {
+  }
+
+  void beginConditionalUri(Token ifKeyword) {
+  }
+
+  void endConditionalUri(Token ifKeyword, Token equalitySign) {
+  }
+
+  void beginDottedName(Token token) {
+  }
+
+  void endDottedName(int count, Token firstIdentifier) {
   }
 
   void beginInitializedIdentifier(Token token) {
@@ -489,7 +506,8 @@ class Listener {
   void handleEmptyStatement(Token token) {
   }
 
-  void handleAssertStatement(Token assertKeyword, Token semicolonToken) {
+  void handleAssertStatement(Token assertKeyword,
+                             Token commaToken, Token semicolonToken) {
   }
 
   /** Called with either the token containing a double literal, or

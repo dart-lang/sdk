@@ -64,10 +64,6 @@ namespace dart {
   V(Float32x4, Float32x4.fromFloat64x2, Float32x4FromFloat64x2, 1327692716)    \
   V(_Float32x4, shuffle, Float32x4Shuffle, 1636488139)                         \
   V(_Float32x4, shuffleMix, Float32x4ShuffleMix, 654814229)                    \
-  V(_Float32x4, get:x, Float32x4ShuffleX, 384969722)                           \
-  V(_Float32x4, get:y, Float32x4ShuffleY, 1398121942)                          \
-  V(_Float32x4, get:z, Float32x4ShuffleZ, 1178175605)                          \
-  V(_Float32x4, get:w, Float32x4ShuffleW, 480951003)                           \
   V(_Float32x4, get:signMask, Float32x4GetSignMask, 630880675)                 \
   V(_Float32x4, _cmpequal, Float32x4Equal, 571062952)                          \
   V(_Float32x4, _cmpgt, Float32x4GreaterThan, 1613543295)                      \
@@ -134,8 +130,6 @@ namespace dart {
   V(_Uint16Array, []=, Uint16ArraySetIndexed, 1594961463)                      \
   V(_Int32Array, [], Int32ArrayGetIndexed, 2052925823)                         \
   V(_Int32Array, []=, Int32ArraySetIndexed, 504626978)                         \
-  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1034114777)                       \
-  V(_Uint32Array, []=, Uint32ArraySetIndexed, 918159348)                       \
   V(_Int64Array, [], Int64ArrayGetIndexed, 297668331)                          \
   V(_Int64Array, []=, Int64ArraySetIndexed, 36465128)                          \
   V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 35821240)                   \
@@ -194,6 +188,7 @@ namespace dart {
   V(_StringBase, get:hashCode, String_getHashCode, 2103025405)                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 780870414)                    \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 397735324)                  \
+  V(_StringBase, _substringMatches, StringBaseSubstringMatches, 347814979)     \
   V(_StringBase, [], StringBaseCharAt, 408544820)                              \
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 1111957093)       \
   V(_OneByteString, _substringUncheckedNative,                                 \
@@ -282,9 +277,18 @@ namespace dart {
   V(_Uint8Array, []=, Uint8ArraySetIndexed, 447309008)                         \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1293647140)         \
   V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 1593599192)        \
+  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1034114777)                       \
+  V(_Uint32Array, []=, Uint32ArraySetIndexed, 918159348)                       \
   V(_Float64Array, []=, Float64ArraySetIndexed, 887301703)                     \
   V(_Float64Array, [], Float64ArrayGetIndexed, 1959896670)                     \
   V(_TypedList, get:length, TypedDataLength, 522684521)                        \
+  V(_Float32x4, get:x, Float32x4ShuffleX, 384969722)                           \
+  V(_Float32x4, get:y, Float32x4ShuffleY, 1398121942)                          \
+  V(_Float32x4, get:z, Float32x4ShuffleZ, 1178175605)                          \
+  V(_Float32x4, get:w, Float32x4ShuffleW, 480951003)                           \
+  V(_Float32x4, _mul, Float32x4Mul, 1703784673)                                \
+  V(_Float32x4, _sub, Float32x4Sub, 1302598822)                                \
+  V(_Float32x4, _add, Float32x4Add, 182344215)                                 \
 
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
   V(_List, get:length, ObjectArrayLength, 1181471893)                          \
@@ -298,6 +302,7 @@ namespace dart {
   V(_GrowableList, [], GrowableArrayGetIndexed, 1962926024)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 457344024)                    \
   V(_StringBase, get:length, StringBaseLength, 784518792)                      \
+  V(_Double, unary-, DoubleFlipSignBit, 2107492213)
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \
@@ -419,6 +424,19 @@ namespace dart {
   V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 1781420082)         \
   V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 63633039)     \
   V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 2079107858)   \
+  V(Uint8List, ., Uint8ListFactory, 1844890525)                                \
+  V(Int8List, ., Int8ListFactory, 1802068996)                                  \
+  V(Uint16List, ., Uint16ListFactory, 1923962567)                              \
+  V(Int16List, ., Int16ListFactory, 2000007495)                                \
+  V(Uint32List, ., Uint32ListFactory, 1836019363)                              \
+  V(Int32List, ., Int32ListFactory, 442847136)                                 \
+  V(Uint64List, ., Uint64ListFactory, 196248223)                               \
+  V(Int64List, ., Int64ListFactory, 1668869084)                                \
+  V(Float32List, ., Float32ListFactory, 1367032554)                            \
+  V(Float64List, ., Float64ListFactory, 1886443347)                            \
+  V(Int32x4List, ., Int32x4ListFactory, 1409401969)                            \
+  V(Float32x4List, ., Float32x4ListFactory, 556438009)                         \
+  V(Float64x2List, ., Float64x2ListFactory, 1269752759)
 
 
 // A list of core function that should never be inlined.
@@ -491,6 +509,33 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
 #endif  // defined(DART_NO_SNAPSHOT).
 
+
+// List of recognized list factories:
+// (factory-name-symbol, result-cid, fingerprint).
+#define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
+  V(_ListFactory, kArrayCid, 850375012)                                        \
+  V(_GrowableListWithData, kGrowableObjectArrayCid, 2094352700)                \
+  V(_GrowableListFactory, kGrowableObjectArrayCid, 1518848600)                 \
+  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 439914696)                      \
+  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1442599030)                   \
+  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1320015159)     \
+  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 2132591678)                   \
+  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 1704816032)                 \
+  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 1115045147)                   \
+  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 1385852190)                 \
+  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1193438555)                   \
+  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 410766246)                  \
+  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 1430631000)               \
+  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 1194249144)               \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 158753569)            \
+
+
+// Class that recognizes factories and returns corresponding result cid.
+class FactoryRecognizer : public AllStatic {
+ public:
+  // Return kDynamicCid if factory is not recognized.
+  static intptr_t ResultCid(const Function& factory);
+};
 
 }  // namespace dart
 

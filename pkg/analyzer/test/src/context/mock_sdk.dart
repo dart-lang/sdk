@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.mock_sdk;
+library analyzer.test.src.context.mock_sdk;
 
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
@@ -86,6 +86,11 @@ class Iterator<E> {
 abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
+
+  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
+
+  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+      /*=R*/ combine(/*=R*/ previousValue, E element));
 }
 
 abstract class List<E> implements Iterable<E> {
@@ -118,15 +123,26 @@ library dart.async;
 
 import 'dart:math';
 
+part 'stream.dart';
+
 class Future<T> {
   factory Future.delayed(Duration duration, [T computation()]) => null;
   factory Future.value([value]) => null;
-  static Future wait(List<Future> futures) => null;
-}
 
+  static Future<List</*<T>*/> wait/*<T>*/(
+      Iterable<Future/*<T>*/> futures) => null;
+  Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
+}
+''',
+      const <_MockSdkFile>[
+    const _MockSdkFile(
+        '/lib/async/stream.dart',
+        r'''
+part of dart.async;
 class Stream<T> {}
 abstract class StreamTransformer<S, T> {}
-''');
+''')
+  ]);
 
   static const _MockSdkLibrary LIB_COLLECTION = const _MockSdkLibrary(
       'dart:collection',
@@ -154,11 +170,14 @@ class JsonDecoder extends Converter<String, Object> {}
       '/lib/math/math.dart',
       '''
 library dart.math;
+
 const double E = 2.718281828459045;
 const double PI = 3.1415926535897932;
 const double LN10 =  2.302585092994046;
-num min(num a, num b) => 0;
-num max(num a, num b) => 0;
+
+num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
+num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
+
 external double cos(num x);
 external double sin(num x);
 external double sqrt(num x);
@@ -197,6 +216,9 @@ class HtmlElement {}
   MockSdk() {
     LIBRARIES.forEach((_MockSdkLibrary library) {
       provider.newFile(library.path, library.content);
+      library.parts.forEach((file) {
+        provider.newFile(file.path, file.content);
+      });
     });
   }
 
@@ -253,7 +275,7 @@ class HtmlElement {}
       }
       if (filePath.startsWith("$libraryPath/")) {
         String pathInLibrary = filePath.substring(libraryPath.length + 1);
-        String path = '${library.shortName}/${pathInLibrary}';
+        String path = '${library.shortName}/$pathInLibrary';
         try {
           resource.File file = provider.getResource(uri.path);
           Uri dartUri = new Uri(scheme: 'dart', path: path);
@@ -280,6 +302,7 @@ class HtmlElement {}
       "dart:core": "/lib/core/core.dart",
       "dart:html": "/lib/html/dartium/html_dartium.dart",
       "dart:async": "/lib/async/async.dart",
+      "dart:async/stream.dart": "/lib/async/stream.dart",
       "dart:collection": "/lib/collection/collection.dart",
       "dart:convert": "/lib/convert/convert.dart",
       "dart:math": "/lib/math/math.dart"
@@ -298,12 +321,21 @@ class HtmlElement {}
   }
 }
 
+class _MockSdkFile {
+  final String path;
+  final String content;
+
+  const _MockSdkFile(this.path, this.content);
+}
+
 class _MockSdkLibrary implements SdkLibrary {
   final String shortName;
   final String path;
   final String content;
+  final List<_MockSdkFile> parts;
 
-  const _MockSdkLibrary(this.shortName, this.path, this.content);
+  const _MockSdkLibrary(this.shortName, this.path, this.content,
+      [this.parts = const <_MockSdkFile>[]]);
 
   @override
   String get category => throw unimplemented;
@@ -342,8 +374,7 @@ class _SdkAnalysisContext extends AnalysisContextImpl {
     if (factory == null) {
       return super.createCacheFromSourceFactory(factory);
     }
-    return new AnalysisCache(<CachePartition>[
-      AnalysisEngine.instance.partitionManager_new.forSdk(sdk)
-    ]);
+    return new AnalysisCache(
+        <CachePartition>[AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
   }
 }

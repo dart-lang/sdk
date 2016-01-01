@@ -9,7 +9,7 @@ library constructor_test;
 import 'js_backend_cps_ir.dart';
 
 const List<TestEntry> tests = const [
-  const TestEntry.forMethod('generative_constructor(Sub#)', """
+  const TestEntry("""
 class Base {
   var x;
   Base(this.x);
@@ -22,11 +22,20 @@ main() {
   print(new Sub(1, 2).x);
 }""",
 r"""
-function(x, y) {
-  return new V.Sub(y, x);
+function() {
+  var v0 = H.S(1);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 
-  const TestEntry.forMethod('generative_constructor_body(Sub#)', """
+  const TestEntry("""
 class Base {
   var x;
   Base(this.x);
@@ -41,11 +50,12 @@ main() {
   print(new Sub(1, 2).x);
 }""",
 r"""
-function(x, y) {
-  P.print(x);
+function() {
+  P.print(1);
+  P.print(1);
 }"""),
 
-  const TestEntry.forMethod('generative_constructor(Sub#)', """
+  const TestEntry("""
 class Base0 {
   Base0() {
     print('Base0');
@@ -65,14 +75,13 @@ main() {
   print(new Sub(1, 2).x);
 }""",
 r"""
-function(x, y) {
-  var v0 = new V.Sub(y, x);
-  v0.Base0$0();
-  v0.Sub$2(x, y);
-  return v0;
+function() {
+  P.print("Base0");
+  P.print(1);
+  P.print(1);
 }"""),
 
-  const TestEntry.forMethod('generative_constructor(Sub#)', """
+  const TestEntry("""
 class Base0 {
   Base0() {
     print('Base0');
@@ -94,16 +103,16 @@ main() {
   print(new Sub(1, 2).x);
 }""",
 r"""
-function(x, y) {
-  var _box_0 = {}, v0 = new V.Sub(y, new V.Base_closure(_box_0));
-  _box_0._captured_x1_0 = x;
-  v0.Base0$0();
-  v0.Base$1(_box_0);
-  v0.Sub$2(x, y);
-  return v0;
+function() {
+  var _box_0 = {};
+  _box_0.x1 = 1;
+  P.print("Base0");
+  P.print(_box_0.x1);
+  P.print(1);
+  P.print(new V.Base_closure(_box_0));
 }"""),
 
-  const TestEntry.forMethod('generative_constructor(Sub#)', """
+  const TestEntry("""
 foo(x) {
   print(x);
 }
@@ -125,12 +134,16 @@ main() {
 """,
 r"""
 function() {
-  var v0 = V.foo("y1"), v1 = V.foo("y2"), v2 = V.foo("x1"), v3 = V.foo("x3"), v4 = V.foo("x2");
-  return new V.Sub(v0, v1, V.foo("y3"), v2, v4, v3);
+  V.foo("y1");
+  V.foo("y2");
+  V.foo("x1");
+  V.foo("x3");
+  V.foo("x2");
+  V.foo("y3");
 }"""),
 
 
-  const TestEntry.forMethod('generative_constructor(Foo#)', """
+  const TestEntry("""
 class Bar {
   Bar(x, {y, z: 'z', w: '_', q}) {
     print(x);
@@ -149,9 +162,11 @@ main() {
 """,
 r"""
 function() {
-  var v0 = new V.Foo();
-  v0.Bar$5$q$w$y$z("x", null, "w", "y", "z");
-  return v0;
+  P.print("x");
+  P.print("y");
+  P.print("z");
+  P.print("w");
+  P.print(null);
 }"""),
   const TestEntry(r"""
 class C<T> {
@@ -161,7 +176,16 @@ main() {
   print(new C<int>().foo());
 }""", r"""
 function() {
-  P.print(V.C$(P.$int).foo$0());
+  var v0 = H.S(H.createRuntimeType(H.runtimeTypeToString(H.getTypeArgumentByIndex(V.C$(P.$int), 0))));
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   const TestEntry(r"""
 class C<T> {
@@ -171,7 +195,18 @@ main() {
   print(new C<int>().foo());
 }""", r"""
 function() {
-  P.print(V.C$().foo$0());
+  var v0;
+  V.C$();
+  v0 = H.S(C.Type_C_cdS);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
   const TestEntry.forMethod('generative_constructor(C#)', r"""
 class C<T> {
@@ -202,7 +237,7 @@ function($T) {
 }"""),
 
 
-  const TestEntry.forMethod('generative_constructor(A#)', r"""
+  const TestEntry(r"""
 class A {
   var x;
   A() : this.b(1);
@@ -212,11 +247,20 @@ main() {
   print(new A().x);
 }""", r"""
 function() {
-  return new V.A(1);
+  var v0 = H.S(1);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 
 
-const TestEntry.forMethod('function(Foo#make)', r"""
+const TestEntry(r"""
 class Foo {
   factory Foo.make(x) {
     print('Foo');
@@ -228,9 +272,9 @@ class Foo {
 main() {
   print(new Foo.make(5));
 }""", r"""
-function(x) {
+function() {
   P.print("Foo");
-  return V.Foo$create(x);
+  P.print(new V.Foo(5));
 }"""),
 const TestEntry(r"""
 class Foo {
@@ -242,7 +286,19 @@ main() {
   print(new Foo.make(5));
 }""", r"""
 function() {
-  P.print(V.Foo$create(5));
+  var v0 = new V.Foo(5), v1 = "Instance of '" + H.Primitives_objectTypeName(v0) + "'";
+  if (!(typeof v1 === "string"))
+    throw H.wrapException(H.argumentErrorValue(v0));
+  v0 = v1;
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 const TestEntry(r"""
 class A {
@@ -259,7 +315,7 @@ main() {
   new A(5).typevar;
 }""", r"""
 function() {
-  V.B$(5, P.$int).get$typevar();
+  V.B$(5, P.$int);
 }"""),
 ];
 

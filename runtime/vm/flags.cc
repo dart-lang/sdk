@@ -288,8 +288,8 @@ void Flags::Parse(const char* option) {
   if (*equals != '=') {
     // No explicit option argument. Determine if there is a "no_" prefix
     // preceding the name.
-    const char* kNo1Prefix = "no_";
-    const char* kNo2Prefix = "no-";
+    const char* const kNo1Prefix = "no_";
+    const char* const kNo2Prefix = "no-";
     const intptr_t kNo1PrefixLen = strlen(kNo1Prefix);
     const intptr_t kNo2PrefixLen = strlen(kNo2Prefix);
     if (strncmp(option, kNo1Prefix, kNo1PrefixLen) == 0) {
@@ -359,7 +359,7 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
 
   qsort(flags_, num_flags_, sizeof flags_[0], CompareFlagNames);
 
-  const char* kPrefix = "--";
+  const char* const kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);
 
   int i = 0;

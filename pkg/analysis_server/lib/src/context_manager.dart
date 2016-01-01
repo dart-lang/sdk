@@ -9,21 +9,27 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/server_options.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -175,6 +181,31 @@ class ContextInfo {
   void setDependencies(Iterable<String> newDependencies) {
     _dependencies = newDependencies.toSet();
   }
+
+  /**
+   * Return `true` if the given [path] is managed by this context or by
+   * any of its children.
+   */
+  bool _managesOrHasChildThatManages(String path) {
+    if (parent == null) {
+      for (ContextInfo child in children) {
+        if (child._managesOrHasChildThatManages(path)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      if (!folder.isOrContains(path)) {
+        return false;
+      }
+      for (ContextInfo child in children) {
+        if (child._managesOrHasChildThatManages(path)) {
+          return true;
+        }
+      }
+      return !pathFilter.ignored(path);
+    }
+  }
 }
 
 /**
@@ -222,6 +253,23 @@ abstract class ContextManager {
    * descendants).
    */
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot);
+
+  /**
+   * Return the [AnalysisContext] for the "innermost" context whose associated
+   * folder is or contains the given path.  ("innermost" refers to the nesting
+   * of contexts, so if there is a context for path /foo and a context for
+   * path /foo/bar, then the innermost context containing /foo/bar/baz.dart is
+   * the context for /foo/bar.)
+   *
+   * If no context contains the given path, `null` is returned.
+   */
+  AnalysisContext getContextFor(String path);
+
+  /**
+   * Return `true` if the given [path] is ignored by a [ContextInfo] whose
+   * folder contains it.
+   */
+  bool isIgnored(String path);
 
   /**
    * Return `true` if the given absolute [path] is in one of the current
@@ -309,11 +357,9 @@ abstract class ContextManagerCallbacks {
  */
 class ContextManagerImpl implements ContextManager {
   /**
-   * Temporary flag to hide WIP .packages support (DEP 5).
+   * The name of the `doc` directory.
    */
-  static bool ENABLE_PACKAGESPEC_SUPPORT = serverOptions.isSet(
-      'ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT',
-      defaultValue: true);
+  static const String DOC_DIR_NAME = 'doc';
 
   /**
    * The name of the `lib` directory.
@@ -339,6 +385,13 @@ class ContextManagerImpl implements ContextManager {
    * The [ResourceProvider] using which paths are converted into [Resource]s.
    */
   final ResourceProvider resourceProvider;
+
+  /**
+   * The context used to work with absolute file system paths.
+   *
+   * TODO(scheglov) remove [pathContext].
+   */
+  AbsolutePathContext absolutePathContext;
 
   /**
    * The context used to work with file system paths.
@@ -397,17 +450,18 @@ class ContextManagerImpl implements ContextManager {
    * Virtual [ContextInfo] which acts as the ancestor of all other
    * [ContextInfo]s.
    */
-  final ContextInfo _rootInfo = new ContextInfo._root();
+  final ContextInfo rootInfo = new ContextInfo._root();
 
   /**
    * Stream subscription we are using to watch each analysis root directory for
    * changes.
    */
-  final Map<Folder, StreamSubscription<WatchEvent>> _changeSubscriptions =
+  final Map<Folder, StreamSubscription<WatchEvent>> changeSubscriptions =
       <Folder, StreamSubscription<WatchEvent>>{};
 
   ContextManagerImpl(this.resourceProvider, this.packageResolverProvider,
       this._packageMapProvider, this._instrumentationService) {
+    absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
 
@@ -434,6 +488,11 @@ class ContextManagerImpl implements ContextManager {
     return contexts;
   }
 
+  @override
+  AnalysisContext getContextFor(String path) {
+    return _getInnermostContextInfoFor(path)?.context;
+  }
+
   /**
    * For testing: get the [ContextInfo] object for the given [folder], if any.
    */
@@ -446,13 +505,27 @@ class ContextManagerImpl implements ContextManager {
   }
 
   @override
+  bool isIgnored(String path) {
+    ContextInfo info = rootInfo;
+    do {
+      info = info.findChildInfoFor(path);
+      if (info == null) {
+        return false;
+      }
+      if (info.ignored(path)) {
+        return true;
+      }
+    } while (true);
+  }
+
+  @override
   bool isInAnalysisRoot(String path) {
     // check if excluded
     if (_isExcluded(path)) {
       return false;
     }
     // check if in one of the roots
-    for (ContextInfo info in _rootInfo.children) {
+    for (ContextInfo info in rootInfo.children) {
       if (info.folder.contains(path)) {
         return true;
       }
@@ -462,18 +535,66 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Process [options] for the context having info [info].
+   * Process [options] for the given context [info].
    */
-  void processOptionsForContext(
-      ContextInfo info, Map<String, YamlNode> options) {
-    YamlMap analyzer = options['analyzer'];
-    if (analyzer == null) {
-      // No options for analyzer.
+  void processOptionsForContext(ContextInfo info, Folder folder,
+      {bool optionsRemoved: false}) {
+    Map<String, Object> options;
+    try {
+      options = analysisOptionsProvider.getOptions(folder);
+    } catch (_) {
+      // Parse errors are reported by GenerateOptionsErrorsTask.
+    }
+
+    if (options == null && !optionsRemoved) {
+      return;
+    }
+
+    // In case options files are removed, revert to defaults.
+    if (optionsRemoved) {
+      // Start with defaults.
+      info.context.analysisOptions = new AnalysisOptionsImpl();
+
+      // Apply inherited options.
+      options = _getEmbeddedOptions(info.context);
+      if (options != null) {
+        configureContextOptions(info.context, options);
+      }
+    } else {
+      // Check for embedded options.
+      YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
+      if (embeddedOptions != null) {
+        options = new Merger().merge(embeddedOptions, options);
+      }
+    }
+
+    // Notify options processors.
+    AnalysisEngine.instance.optionsPlugin.optionsProcessors
+        .forEach((OptionsProcessor p) {
+      try {
+        p.optionsProcessed(info.context, options);
+      } catch (e, stacktrace) {
+        AnalysisEngine.instance.logger.logError(
+            'Error processing .analysis_options',
+            new CaughtException(e, stacktrace));
+      }
+    });
+
+    configureContextOptions(info.context, options);
+
+    // Nothing more to do.
+    if (options == null) {
+      return;
+    }
+
+    var analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! Map) {
+      // Done.
       return;
     }
 
     // Set ignore patterns.
-    YamlList exclude = analyzer['exclude'];
+    YamlList exclude = analyzer[AnalyzerOptions.exclude];
     if (exclude != null) {
       setIgnorePatternsForContext(info, exclude);
     }
@@ -482,7 +603,7 @@ class ContextManagerImpl implements ContextManager {
   @override
   void refresh(List<Resource> roots) {
     // Destroy old contexts
-    List<ContextInfo> contextInfos = _rootInfo.descendants.toList();
+    List<ContextInfo> contextInfos = rootInfo.descendants.toList();
     if (roots == null) {
       contextInfos.forEach(_destroyContext);
     } else {
@@ -523,22 +644,31 @@ class ContextManagerImpl implements ContextManager {
       }
     });
 
-    List<ContextInfo> contextInfos = _rootInfo.descendants.toList();
+    List<ContextInfo> contextInfos = rootInfo.descendants.toList();
     // included
-    Set<Folder> includedFolders = new HashSet<Folder>();
-    for (int i = 0; i < includedPaths.length; i++) {
-      String path = includedPaths[i];
-      Resource resource = resourceProvider.getResource(path);
-      if (resource is Folder) {
-        includedFolders.add(resource);
-      } else if (!resource.exists) {
-        // Non-existent resources are ignored.  TODO(paulberry): we should set
-        // up a watcher to ensure that if the resource appears later, we will
-        // begin analyzing it.
-      } else {
-        // TODO(scheglov) implemented separate files analysis
-        throw new UnimplementedError('$path is not a folder. '
-            'Only support for folder analysis is implemented currently.');
+    List<Folder> includedFolders = <Folder>[];
+    {
+      // Sort paths to ensure that outer roots are handled before inner roots,
+      // so we can correctly ignore inner roots, which are already managed
+      // by outer roots.
+      LinkedHashSet<String> uniqueIncludedPaths =
+          new LinkedHashSet<String>.from(includedPaths);
+      List<String> sortedIncludedPaths = uniqueIncludedPaths.toList();
+      sortedIncludedPaths.sort((a, b) => a.length - b.length);
+      // Convert paths to folders.
+      for (String path in sortedIncludedPaths) {
+        Resource resource = resourceProvider.getResource(path);
+        if (resource is Folder) {
+          includedFolders.add(resource);
+        } else if (!resource.exists) {
+          // Non-existent resources are ignored.  TODO(paulberry): we should set
+          // up a watcher to ensure that if the resource appears later, we will
+          // begin analyzing it.
+        } else {
+          // TODO(scheglov) implemented separate files analysis
+          throw new UnimplementedError('$path is not a folder. '
+              'Only support for folder analysis is implemented currently.');
+        }
       }
     }
     this.includedPaths = includedPaths;
@@ -555,7 +685,7 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     // Update package roots for existing contexts
-    for (ContextInfo info in _rootInfo.descendants) {
+    for (ContextInfo info in rootInfo.descendants) {
       String newPackageRoot = normalizedPackageRoots[info.folder.path];
       if (info.packageRoot != newPackageRoot) {
         info.packageRoot = newPackageRoot;
@@ -564,17 +694,17 @@ class ContextManagerImpl implements ContextManager {
     }
     // create new contexts
     for (Folder includedFolder in includedFolders) {
-      bool wasIncluded = contextInfos.any((info) {
-        return info.folder.isOrContains(includedFolder.path);
-      });
-      if (!wasIncluded) {
-        _changeSubscriptions[includedFolder] =
+      String includedPath = includedFolder.path;
+      bool isManaged = rootInfo._managesOrHasChildThatManages(includedPath);
+      if (!isManaged) {
+        ContextInfo parent = _getParentForNewContext(includedPath);
+        changeSubscriptions[includedFolder] =
             includedFolder.changes.listen(_handleWatchEvent);
-        _createContexts(_rootInfo, includedFolder, false);
+        _createContexts(parent, includedFolder, false);
       }
     }
     // remove newly excluded sources
-    for (ContextInfo info in _rootInfo.descendants) {
+    for (ContextInfo info in rootInfo.descendants) {
       // prepare excluded sources
       Map<String, Source> excludedSources = new HashMap<String, Source>();
       info.sources.forEach((String path, Source source) {
@@ -592,7 +722,7 @@ class ContextManagerImpl implements ContextManager {
       callbacks.applyChangesToContext(info.folder, changeSet);
     }
     // add previously excluded sources
-    for (ContextInfo info in _rootInfo.descendants) {
+    for (ContextInfo info in rootInfo.descendants) {
       ChangeSet changeSet = new ChangeSet();
       _addPreviouslyExcludedSources(
           info, changeSet, info.folder, oldExcludedPaths);
@@ -601,7 +731,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Resursively adds all Dart and HTML files to the [changeSet].
+   * Recursively adds all Dart and HTML files to the [changeSet].
    */
   void _addPreviouslyExcludedSources(ContextInfo info, ChangeSet changeSet,
       Folder folder, List<String> oldExcludedPaths) {
@@ -648,10 +778,12 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Resursively adds all Dart and HTML files to the [changeSet].
+   * Recursively adds all Dart and HTML files to the [changeSet].
    */
   void _addSourceFiles(ChangeSet changeSet, Folder folder, ContextInfo info) {
-    if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
+    if (info.excludesResource(folder) ||
+        folder.shortName.startsWith('.') ||
+        _isInTopLevelDocDir(info.folder.path, folder.path)) {
       return;
     }
     List<Resource> children = null;
@@ -685,11 +817,24 @@ class ContextManagerImpl implements ContextManager {
     }
   }
 
+  void _checkForAnalysisOptionsUpdate(
+      String path, ContextInfo info, ChangeType changeType) {
+    if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
+      var analysisContext = info.context;
+      if (analysisContext is context.AnalysisContextImpl) {
+        processOptionsForContext(info, info.folder,
+            optionsRemoved: changeType == ChangeType.REMOVE);
+        analysisContext.invalidateCachedResults();
+        callbacks.applyChangesToContext(info.folder, new ChangeSet());
+      }
+    }
+  }
+
   void _checkForPackagespecUpdate(
       String path, ContextInfo info, Folder folder) {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
-    if (pathContext.basename(path) == PACKAGE_SPEC_NAME &&
+    if (absolutePathContext.basename(path) == PACKAGE_SPEC_NAME &&
         info.isPathToPackageDescription(path)) {
       File packagespec = resourceProvider.getFile(path);
       if (packagespec.exists) {
@@ -714,7 +859,7 @@ class ContextManagerImpl implements ContextManager {
     for (Source source in context.sources) {
       flushedFiles.add(source.fullName);
     }
-    for (ContextInfo contextInfo in _rootInfo.descendants) {
+    for (ContextInfo contextInfo in rootInfo.descendants) {
       AnalysisContext contextN = contextInfo.context;
       if (context != contextN) {
         for (Source source in contextN.sources) {
@@ -771,12 +916,11 @@ class ContextManagerImpl implements ContextManager {
       PackageMapInfo packageMapInfo;
       callbacks.beginComputePackageMap();
       try {
-        if (ENABLE_PACKAGESPEC_SUPPORT) {
-          // Try .packages first.
-          if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-            Packages packages = _readPackagespec(packagespecFile);
-            return new PackagesFileDisposition(packages);
-          }
+        // Try .packages first.
+        if (absolutePathContext.basename(packagespecFile.path) ==
+            PACKAGE_SPEC_NAME) {
+          Packages packages = _readPackagespec(packagespecFile);
+          return new PackagesFileDisposition(packages);
         }
         if (packageResolverProvider != null) {
           UriResolver resolver = packageResolverProvider(folder);
@@ -784,6 +928,7 @@ class ContextManagerImpl implements ContextManager {
             return new CustomPackageResolverDisposition(resolver);
           }
         }
+
         ServerPerformanceStatistics.pub.makeCurrentWhile(() {
           packageMapInfo = _packageMapProvider.computePackageMap(folder);
         });
@@ -808,8 +953,7 @@ class ContextManagerImpl implements ContextManager {
       ContextInfo parent, Folder folder, File packagespecFile) {
     ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
         normalizedPackageRoots[folder.path]);
-    Map<String, YamlNode> options = analysisOptionsProvider.getOptions(folder);
-    processOptionsForContext(info, options);
+
     FolderDisposition disposition;
     List<String> dependencies = <String>[];
 
@@ -822,6 +966,9 @@ class ContextManagerImpl implements ContextManager {
     info.setDependencies(dependencies);
     info.context = callbacks.addContext(folder, disposition);
     info.context.name = folder.path;
+
+    processOptionsForContext(info, folder);
+
     return info;
   }
 
@@ -839,13 +986,18 @@ class ContextManagerImpl implements ContextManager {
    */
   void _createContexts(
       ContextInfo parent, Folder folder, bool withPackageSpecOnly) {
+    if (_isExcluded(folder.path) ||
+        folder.shortName.startsWith('.') ||
+        folder.shortName == 'packages') {
+      return;
+    }
     // Decide whether a context needs to be created for [folder] here, and if
     // so, create it.
     File packageSpec = _findPackageSpecFile(folder);
     bool createContext = packageSpec.exists || !withPackageSpecOnly;
     if (withPackageSpecOnly &&
         packageSpec.exists &&
-        (parent != null) &&
+        parent != null &&
         parent.ignored(packageSpec.path)) {
       // Don't create a context if the package spec is required and ignored.
       createContext = false;
@@ -881,9 +1033,7 @@ class ContextManagerImpl implements ContextManager {
    * Clean up and destroy the context associated with the given folder.
    */
   void _destroyContext(ContextInfo info) {
-    if (_changeSubscriptions.containsKey(info.folder)) {
-      _changeSubscriptions[info.folder].cancel();
-    }
+    changeSubscriptions.remove(info.folder)?.cancel();
     callbacks.removeContext(info.folder, _computeFlushedFiles(info));
     bool wasRemoved = info.parent.children.remove(info);
     assert(wasRemoved);
@@ -935,16 +1085,28 @@ class ContextManagerImpl implements ContextManager {
     // so, create it.
     File packageSpec;
 
-    if (ENABLE_PACKAGESPEC_SUPPORT) {
-      // Start by looking for .packages.
-      packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
-    }
+    // Start by looking for .packages.
+    packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
 
     // Fall back to looking for a pubspec.
     if (packageSpec == null || !packageSpec.exists) {
       packageSpec = folder.getChild(PUBSPEC_NAME);
     }
     return packageSpec;
+  }
+
+  /// Get analysis options associated with an `_embedder.yaml`. If there is
+  /// more than one `_embedder.yaml` associated with the given context, `null`
+  /// is returned.
+  YamlMap _getEmbeddedOptions(AnalysisContext context) {
+    if (context is InternalAnalysisContext) {
+      EmbedderYamlLocator locator = context.embedderYamlLocator;
+      Iterable<YamlMap> maps = locator.embedderYamls.values;
+      if (maps.length == 1) {
+        return maps.first;
+      }
+    }
+    return null;
   }
 
   /**
@@ -957,7 +1119,7 @@ class ContextManagerImpl implements ContextManager {
    * If no context contains the given path, `null` is returned.
    */
   ContextInfo _getInnermostContextInfoFor(String path) {
-    ContextInfo info = _rootInfo.findChildInfoFor(path);
+    ContextInfo info = rootInfo.findChildInfoFor(path);
     if (info == null) {
       return null;
     }
@@ -968,6 +1130,17 @@ class ContextManagerImpl implements ContextManager {
       }
       info = childInfo;
     }
+  }
+
+  /**
+   * Return the parent for a new [ContextInfo] with the given [path] folder.
+   */
+  ContextInfo _getParentForNewContext(String path) {
+    ContextInfo parent = _getInnermostContextInfoFor(path);
+    if (parent != null) {
+      return parent;
+    }
+    return rootInfo;
   }
 
   void _handleWatchEvent(WatchEvent event) {
@@ -993,7 +1166,10 @@ class ContextManagerImpl implements ContextManager {
       _recomputeFolderDisposition(info);
     }
     // maybe excluded globally
-    if (_isExcluded(path)) {
+    if (_isExcluded(path) ||
+        _isContainedInDotFolder(info.folder.path, path) ||
+        _isInPackagesDir(info.folder.path, path) ||
+        _isInTopLevelDocDir(info.folder.path, path)) {
       return;
     }
     // maybe excluded from the context, so other context will handle it
@@ -1006,47 +1182,35 @@ class ContextManagerImpl implements ContextManager {
     // handle the change
     switch (event.type) {
       case ChangeType.ADD:
-        if (_isInPackagesDir(path, info.folder)) {
-          return;
-        }
-
         Resource resource = resourceProvider.getResource(path);
 
-        if (ENABLE_PACKAGESPEC_SUPPORT) {
-          String directoryPath = pathContext.dirname(path);
+        String directoryPath = absolutePathContext.dirname(path);
 
-          // Check to see if we need to create a new context.
-          if (info.isTopLevel) {
-            // Only create a new context if this is not the same directory
-            // described by our info object.
-            if (info.folder.path != directoryPath) {
-              if (_isPubspec(path)) {
-                // Check for a sibling .packages file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
-                    .exists) {
-                  _extractContext(info, resource);
-                  return;
-                }
-              }
-              if (_isPackagespec(path)) {
-                // Check for a sibling pubspec.yaml file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
-                    .exists) {
-                  _extractContext(info, resource);
-                  return;
-                }
+        // Check to see if we need to create a new context.
+        if (info.isTopLevel) {
+          // Only create a new context if this is not the same directory
+          // described by our info object.
+          if (info.folder.path != directoryPath) {
+            if (_isPubspec(path)) {
+              // Check for a sibling .packages file.
+              if (!resourceProvider
+                  .getFile(absolutePathContext.append(
+                      directoryPath, PACKAGE_SPEC_NAME))
+                  .exists) {
+                _extractContext(info, resource);
+                return;
               }
             }
-          }
-        } else {
-          // pubspec was added in a sub-folder, extract a new context
-          if (_isPubspec(path) &&
-              info.isTopLevel &&
-              !info.isPathToPackageDescription(path)) {
-            _extractContext(info, resource);
-            return;
+            if (_isPackagespec(path)) {
+              // Check for a sibling pubspec.yaml file.
+              if (!resourceProvider
+                  .getFile(
+                      absolutePathContext.append(directoryPath, PUBSPEC_NAME))
+                  .exists) {
+                _extractContext(info, resource);
+                return;
+              }
+            }
           }
         }
 
@@ -1070,34 +1234,29 @@ class ContextManagerImpl implements ContextManager {
         // Note that it's important to verify that there is NEITHER a .packages nor a
         // lingering pubspec.yaml before merging.
         if (!info.isTopLevel) {
-          if (ENABLE_PACKAGESPEC_SUPPORT) {
-            String directoryPath = pathContext.dirname(path);
+          String directoryPath = absolutePathContext.dirname(path);
 
-            // Only merge if this is the same directory described by our info object.
-            if (info.folder.path == directoryPath) {
-              if (_isPubspec(path)) {
-                // Check for a sibling .packages file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
-                    .exists) {
-                  _mergeContext(info);
-                  return;
-                }
-              }
-              if (_isPackagespec(path)) {
-                // Check for a sibling pubspec.yaml file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
-                    .exists) {
-                  _mergeContext(info);
-                  return;
-                }
+          // Only merge if this is the same directory described by our info object.
+          if (info.folder.path == directoryPath) {
+            if (_isPubspec(path)) {
+              // Check for a sibling .packages file.
+              if (!resourceProvider
+                  .getFile(absolutePathContext.append(
+                      directoryPath, PACKAGE_SPEC_NAME))
+                  .exists) {
+                _mergeContext(info);
+                return;
               }
             }
-          } else {
-            if (info.isPathToPackageDescription(path)) {
-              _mergeContext(info);
-              return;
+            if (_isPackagespec(path)) {
+              // Check for a sibling pubspec.yaml file.
+              if (!resourceProvider
+                  .getFile(
+                      absolutePathContext.append(directoryPath, PUBSPEC_NAME))
+                  .exists) {
+                _mergeContext(info);
+                return;
+              }
             }
           }
         }
@@ -1123,9 +1282,28 @@ class ContextManagerImpl implements ContextManager {
         }
         break;
     }
-
-    //TODO(pquitslund): find the right place for this
     _checkForPackagespecUpdate(path, info, info.folder);
+    _checkForAnalysisOptionsUpdate(path, info, event.type);
+  }
+
+  /**
+   * Determine whether the given [path], when interpreted relative to the
+   * context root [root], contains a folder whose name starts with '.'.
+   */
+  bool _isContainedInDotFolder(String root, String path) {
+    String pathDir = absolutePathContext.dirname(path);
+    String suffixPath = absolutePathContext.suffix(root, pathDir);
+    if (suffixPath == null) {
+      return false;
+    }
+    for (String pathComponent in absolutePathContext.split(suffixPath)) {
+      if (pathComponent.startsWith('.') &&
+          pathComponent != '.' &&
+          pathComponent != '..') {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -1138,7 +1316,7 @@ class ContextManagerImpl implements ContextManager {
    */
   bool _isExcludedBy(List<String> excludedPaths, String path) {
     return excludedPaths.any((excludedPath) {
-      if (pathContext.isWithin(excludedPath, path)) {
+      if (absolutePathContext.isWithin(excludedPath, path)) {
         return true;
       }
       return path == excludedPath;
@@ -1146,19 +1324,36 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Determine if the path from [folder] to [path] contains a 'packages'
-   * directory.
+   * Determine whether the given [path], when interpreted relative to the
+   * context root [root], contains a 'packages' folder.
    */
-  bool _isInPackagesDir(String path, Folder folder) {
-    String relativePath = pathContext.relative(path, from: folder.path);
-    List<String> pathParts = pathContext.split(relativePath);
+  bool _isInPackagesDir(String root, String path) {
+    String suffixPath = absolutePathContext.suffix(root, path);
+    if (suffixPath == null) {
+      return false;
+    }
+    List<String> pathParts = absolutePathContext.split(suffixPath);
     return pathParts.contains(PACKAGES_NAME);
   }
 
-  bool _isPackagespec(String path) =>
-      pathContext.basename(path) == PACKAGE_SPEC_NAME;
+  /**
+   * Determine whether the given [path] is in the direct 'doc' folder of the
+   * context root [root].
+   */
+  bool _isInTopLevelDocDir(String root, String path) {
+    String suffixPath = absolutePathContext.suffix(root, path);
+    if (suffixPath == null) {
+      return false;
+    }
+    return suffixPath == DOC_DIR_NAME ||
+        suffixPath.startsWith(DOC_DIR_NAME + absolutePathContext.separator);
+  }
 
-  bool _isPubspec(String path) => pathContext.basename(path) == PUBSPEC_NAME;
+  bool _isPackagespec(String path) =>
+      absolutePathContext.basename(path) == PACKAGE_SPEC_NAME;
+
+  bool _isPubspec(String path) =>
+      absolutePathContext.basename(path) == PUBSPEC_NAME;
 
   /**
    * Merges [info] context into its parent.
@@ -1371,23 +1566,31 @@ class PackagesFileDisposition extends FolderDisposition {
   @override
   final Packages packages;
 
-  PackagesFileDisposition(this.packages) {}
+  PackagesFileDisposition(this.packages);
 
   @override
   String get packageRoot => null;
+
+  Map<String, List<Folder>> buildPackageMap(ResourceProvider resourceProvider) {
+    Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
+    if (packages == null) {
+      return packageMap;
+    }
+    packages.asMap().forEach((String name, Uri uri) {
+      if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
+        var path = resourceProvider.pathContext.fromUri(uri);
+        packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
+      }
+    });
+    return packageMap;
+  }
 
   @override
   Iterable<UriResolver> createPackageUriResolvers(
       ResourceProvider resourceProvider) {
     if (packages != null) {
       // Construct package map for the SdkExtUriResolver.
-      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
-      packages.asMap().forEach((String name, Uri uri) {
-        if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-          var path = resourceProvider.pathContext.fromUri(uri);
-          packageMap[name] = <Folder>[resourceProvider.getFolder(path)];
-        }
-      });
+      Map<String, List<Folder>> packageMap = buildPackageMap(resourceProvider);
       return <UriResolver>[new SdkExtUriResolver(packageMap)];
     } else {
       return const <UriResolver>[];

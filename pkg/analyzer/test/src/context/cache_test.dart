@@ -2,15 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.driver_test;
+library analyzer.test.src.context.cache_test;
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        CacheState,
-        InternalAnalysisContext,
-        RetentionPriority;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -34,9 +29,7 @@ main() {
   runReflectiveTests(ResultDataTest);
 }
 
-AnalysisCache createCache(
-    {AnalysisContext context,
-    RetentionPriority policy: RetentionPriority.LOW}) {
+AnalysisCache createCache({AnalysisContext context}) {
   CachePartition partition = new UniversalCachePartition(context);
   return new AnalysisCache(<CachePartition>[partition]);
 }
@@ -596,6 +589,21 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(cache.get(target), entry);
   }
 
+  test_setState_invalid_keepEmpty_ifExplicitlyAdded() {
+    AnalysisTarget target = new TestSource('/a.dart');
+    CacheEntry entry = new CacheEntry(target);
+    entry.explicitlyAdded = true;
+    cache.put(entry);
+    ResultDescriptor result = new ResultDescriptor('result1', -1);
+    // set results, all of them are VALID
+    entry.setValue(result, 111, TargetedResult.EMPTY_LIST);
+    expect(entry.getState(result), CacheState.VALID);
+    expect(entry.getValue(result), 111);
+    // invalidate result, keep entry
+    entry.setState(result, CacheState.INVALID);
+    expect(cache.get(target), isNotNull);
+  }
+
   test_setState_invalid_removeEmptyEntry() {
     AnalysisTarget target1 = new TestSource('/a.dart');
     AnalysisTarget target2 = new TestSource('/b.dart');
@@ -738,13 +746,15 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result2), 222);
     expect(entry.getValue(result3), 333);
     // replace result1, keep "dependedOn", invalidate result3
-    entry.setValueIncremental(result2, 2222);
+    entry.setValueIncremental(result2, 2222, true);
     expect(entry.getState(result1), CacheState.VALID);
     expect(entry.getState(result2), CacheState.VALID);
     expect(entry.getState(result3), CacheState.INVALID);
     expect(entry.getValue(result1), 111);
     expect(entry.getValue(result2), 2222);
     expect(entry.getValue(result3), -3);
+    expect(entry.getResultData(result1).dependentResults,
+        unorderedEquals([new TargetedResult(target, result2)]));
     expect(entry.getResultData(result2).dependedOnResults,
         unorderedEquals([new TargetedResult(target, result1)]));
   }
@@ -944,12 +954,31 @@ abstract class CachePartitionTest extends EngineTestCase {
     expect(createPartition(), isNotNull);
   }
 
+  void test_dispose() {
+    CachePartition partition = createPartition();
+    Source source1 = new TestSource('/1.dart');
+    Source source2 = new TestSource('/2.dart');
+    CacheEntry entry1 = new CacheEntry(source1);
+    CacheEntry entry2 = new CacheEntry(source2);
+    // add two sources
+    partition.put(entry1);
+    partition.put(entry2);
+    expect(partition.entryMap, hasLength(2));
+    expect(partition.pathToSource, hasLength(2));
+    expect(partition.sources, unorderedEquals([source1, source2]));
+    // dispose, no sources
+    partition.dispose();
+    expect(partition.entryMap, isEmpty);
+    expect(partition.pathToSource, isEmpty);
+    expect(partition.sources, isEmpty);
+  }
+
   void test_entrySet() {
     CachePartition partition = createPartition();
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
     partition.put(entry);
-    Map<AnalysisTarget, CacheEntry> entryMap = partition.map;
+    Map<AnalysisTarget, CacheEntry> entryMap = partition.entryMap;
     expect(entryMap, hasLength(1));
     AnalysisTarget entryKey = entryMap.keys.first;
     expect(entryKey, target);
@@ -1085,9 +1114,7 @@ class UniversalCachePartitionTest extends CachePartitionTest {
 }
 
 class _InternalAnalysisContextMock extends TypedMock
-    implements InternalAnalysisContext {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+    implements InternalAnalysisContext {}
 
 /**
  * Keep the given [keepDescriptor], invalidate all the other results.

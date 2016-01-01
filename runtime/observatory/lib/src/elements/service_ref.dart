@@ -5,10 +5,14 @@
 library service_ref_element;
 
 import 'dart:html';
+
 import 'package:logging/logging.dart';
-import 'package:polymer/polymer.dart';
-import 'observatory_element.dart';
 import 'package:observatory/service.dart';
+import 'package:polymer/polymer.dart';
+
+import 'class_ref.dart';
+import 'library_ref.dart';
+import 'observatory_element.dart';
 
 @CustomTag('service-ref')
 class ServiceRefElement extends ObservatoryElement {
@@ -56,6 +60,24 @@ class ServiceRefElement extends ObservatoryElement {
   bool get nameIsEmpty {
     return (name == null) || name.isEmpty;
   }
+
+
+  @published bool expanded = false;
+  dynamic expander() {
+    return expandEvent;
+  }
+  void expandEvent(bool expand, Function onDone) {
+    if (expand) {
+      ref.reload().then((result) {
+        ref = result;
+        notifyPropertyChange(#ref, 0, 1);
+        expanded = true;
+      }).whenComplete(onDone);
+    } else {
+      expanded = false;
+      onDone();
+    }
+  }
 }
 
 
@@ -63,14 +85,16 @@ class ServiceRefElement extends ObservatoryElement {
 class AnyServiceRefElement extends ObservatoryElement {
   @published ServiceObject ref;
   @published String expandKey;
+  @published bool asValue = false;
   AnyServiceRefElement.created() : super.created();
 
   Element _constructElementForRef() {
     var type = ref.type;
     switch (type) {
      case 'Class':
-        ServiceRefElement element = new Element.tag('class-ref');
+        ClassRefElement element = new Element.tag('class-ref');
         element.ref = ref;
+        element.asValue = asValue;
         return element;
       case 'Code':
         ServiceRefElement element = new Element.tag('code-ref');
@@ -93,8 +117,9 @@ class AnyServiceRefElement extends ObservatoryElement {
         element.ref = ref;
         return element;
       case 'Library':
-        ServiceRefElement element = new Element.tag('library-ref');
+        LibraryRefElement element = new Element.tag('library-ref');
         element.ref = ref;
+        element.asValue = asValue;
         return element;
       case 'Object':
         ServiceRefElement element = new Element.tag('object-ref');

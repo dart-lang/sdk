@@ -8,7 +8,6 @@
 #include "platform/utils.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
-#include "vm/isolate.h"
 #include "vm/os.h"
 #include "vm/raw_object.h"
 #include "vm/visitor.h"

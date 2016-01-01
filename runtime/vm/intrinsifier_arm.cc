@@ -21,13 +21,12 @@ namespace dart {
 DECLARE_FLAG(bool, interpret_irregexp);
 
 // When entering intrinsics code:
-// R5: IC Data
 // R4: Arguments descriptor
 // LR: Return address
-// The R5, R4 registers can be destroyed only if there is no slow-path, i.e.
+// The R4 register can be destroyed only if there is no slow-path, i.e.
 // if the intrinsified method always executes a return.
 // The FP register should not be modified, because it is used by the profiler.
-// The THR register (see constants_arm.h) must be preserved.
+// The PP and THR registers (see constants_arm.h) must be preserved.
 
 #define __ assembler->
 
@@ -35,56 +34,14 @@ DECLARE_FLAG(bool, interpret_irregexp);
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
 
-static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls = Class::Handle(
-      core_lib.LookupClassAllowPrivate(Symbols::_List()));
-  ASSERT(!cls.IsNull());
-  ASSERT(cls.NumTypeArguments() == 1);
-  const intptr_t field_offset = cls.type_arguments_field_offset();
-  ASSERT(field_offset != Class::kNoTypeArguments);
-  return field_offset;
-}
-
-
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  Label fall_through;
-
   if (Isolate::Current()->flags().type_checks()) {
-    const intptr_t type_args_field_offset =
-        ComputeObjectArrayTypeArgumentsOffset();
-    // Inline simple tests (Smi, null), fallthrough if not positive.
-    Label checked_ok;
-    __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
-
-    // Null value is valid for any type.
-    __ CompareObject(R2, Object::null_object());
-    __ b(&checked_ok, EQ);
-
-    __ ldr(R1, Address(SP, 2 * kWordSize));  // Array.
-    __ ldr(R1, FieldAddress(R1, type_args_field_offset));
-
-    // R1: Type arguments of array.
-    __ CompareObject(R1, Object::null_object());
-    __ b(&checked_ok, EQ);
-
-    // Check if it's dynamic.
-    // Get type at index 0.
-    __ ldr(R0, FieldAddress(R1, TypeArguments::type_at_offset(0)));
-    __ CompareObject(R0, Type::ZoneHandle(Type::DynamicType()));
-    __ b(&checked_ok, EQ);
-
-    // Check for int and num.
-    __ tst(R2, Operand(kSmiTagMask));  // Value is Smi?
-    __ b(&fall_through, NE);  // Non-smi value.
-    __ CompareObject(R0, Type::ZoneHandle(Type::IntType()));
-    __ b(&checked_ok, EQ);
-    __ CompareObject(R0, Type::ZoneHandle(Type::Number()));
-    __ b(&fall_through, NE);
-    __ Bind(&checked_ok);
+    return;
   }
+
+  Label fall_through;
   __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
   __ tst(R1, Operand(kSmiTagMask));
   // Index not Smi.
@@ -258,18 +215,18 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   /* R2: allocation size. */                                                   \
   /* R3: iterator which initially points to the start of the variable */       \
   /* R4: allocation stats address */                                           \
-  /* R6, R7: zero. */                                                          \
+  /* R8, R9: zero. */                                                          \
   /* data area to be initialized. */                                           \
-  __ LoadImmediate(R6, 0);                                                     \
-  __ mov(R7, Operand(R6));                                                     \
+  __ LoadImmediate(R8, 0);                                                     \
+  __ mov(R9, Operand(R8));                                                     \
   __ AddImmediate(R3, R0, sizeof(Raw##type_name) - 1);                         \
   Label init_loop;                                                             \
   __ Bind(&init_loop);                                                         \
   __ AddImmediate(R3, 2 * kWordSize);                                          \
   __ cmp(R3, Operand(R1));                                                     \
-  __ strd(R6, R3, -2 * kWordSize, LS);                                         \
+  __ strd(R8, R9, R3, -2 * kWordSize, LS);                                     \
   __ b(&init_loop, CC);                                                        \
-  __ str(R6, Address(R3, -2 * kWordSize), HI);                                 \
+  __ str(R8, Address(R3, -2 * kWordSize), HI);                                 \
                                                                                \
   __ IncrementAllocationStatsWithSize(R4, R2, space);                          \
   __ Ret();                                                                    \
@@ -356,7 +313,7 @@ void Intrinsifier::Integer_sub(Assembler* assembler) {
 void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
-  __ SmiUntag(R0);  // Untags R6. We only want result shifted by one.
+  __ SmiUntag(R0);  // Untags R0. We only want result shifted by one.
   __ smull(R0, IP, R0, R1);  // IP:R0 <- R0 * R1.
   __ cmp(IP, Operand(R0, ASR, 31));
   __ bx(LR, EQ);
@@ -549,7 +506,7 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   ASSERT(kSmiTag == 0);
   Label fall_through;
-
+  __ Push(R6);
   TestBothArgumentsSmis(assembler, &fall_through);
   __ CompareImmediate(R0, Smi::RawValue(Smi::kBits));
   __ b(&fall_through, HI);
@@ -574,14 +531,14 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   // ((1 << R0) - 1), shifting it to the left, masking R1, then shifting back.
   // high bits = (((1 << R0) - 1) << (32 - R0)) & R1) >> (32 - R0)
   // lo bits = R1 << R0
-  __ LoadImmediate(R7, 1);
-  __ mov(R7, Operand(R7, LSL, R0));  // R7 <- 1 << R0
-  __ sub(R7, R7, Operand(1));  // R7 <- R7 - 1
-  __ rsb(R9, R0, Operand(32));  // R9 <- 32 - R0
-  __ mov(R7, Operand(R7, LSL, R9));  // R7 <- R7 << R9
-  __ and_(R7, R1, Operand(R7));  // R7 <- R7 & R1
-  __ mov(R7, Operand(R7, LSR, R9));  // R7 <- R7 >> R9
-  // Now R7 has the bits that fall off of R1 on a left shift.
+  __ LoadImmediate(NOTFP, 1);
+  __ mov(NOTFP, Operand(NOTFP, LSL, R0));  // NOTFP <- 1 << R0
+  __ sub(NOTFP, NOTFP, Operand(1));  // NOTFP <- NOTFP - 1
+  __ rsb(R6, R0, Operand(32));  // R6 <- 32 - R0
+  __ mov(NOTFP, Operand(NOTFP, LSL, R6));  // NOTFP <- NOTFP << R6
+  __ and_(NOTFP, R1, Operand(NOTFP));  // NOTFP <- NOTFP & R1
+  __ mov(NOTFP, Operand(NOTFP, LSR, R6));  // NOTFP <- NOTFP >> R6
+  // Now NOTFP has the bits that fall off of R1 on a left shift.
   __ mov(R1, Operand(R1, LSL, R0));  // R1 gets the low bits.
 
   const Class& mint_class = Class::Handle(
@@ -590,9 +547,12 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
 
 
   __ str(R1, FieldAddress(R0, Mint::value_offset()));
-  __ str(R7, FieldAddress(R0, Mint::value_offset() + kWordSize));
+  __ str(NOTFP, FieldAddress(R0, Mint::value_offset() + kWordSize));
+  __ Pop(R6);
   __ Ret();
   __ Bind(&fall_through);
+  ASSERT(CODE_REG == R6);
+  __ Pop(R6);
 }
 
 
@@ -661,16 +621,16 @@ static void CompareIntegers(Assembler* assembler, Condition true_condition) {
   // Get left as 64 bit integer.
   Get64SmiOrMint(assembler, R3, R2, R1, &fall_through);
   // Get right as 64 bit integer.
-  Get64SmiOrMint(assembler, R7, R6, R0, &fall_through);
+  Get64SmiOrMint(assembler, NOTFP, R8, R0, &fall_through);
   // R3: left high.
   // R2: left low.
-  // R7: right high.
-  // R6: right low.
+  // NOTFP: right high.
+  // R8: right low.
 
-  __ cmp(R3, Operand(R7));  // Compare left hi, right high.
+  __ cmp(R3, Operand(NOTFP));  // Compare left hi, right high.
   __ b(&is_false, hi_false_cond);
   __ b(&is_true, hi_true_cond);
-  __ cmp(R2, Operand(R6));  // Compare left lo, right lo.
+  __ cmp(R2, Operand(R8));  // Compare left lo, right lo.
   __ b(&is_false, lo_false_cond);
   // Else is true.
   __ b(&is_true);
@@ -807,37 +767,37 @@ void Intrinsifier::Bigint_lsh(Assembler* assembler) {
   // static void _lsh(Uint32List x_digits, int x_used, int n,
   //                  Uint32List r_digits)
 
-  // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
-  __ ldrd(R2, SP, 2 * kWordSize);
-  // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
-  __ ldrd(R4, SP, 0 * kWordSize);
-  __ SmiUntag(R5);
-  // R0 = n ~/ _DIGIT_BITS
-  __ Asr(R0, R5, Operand(5));
-  // R6 = &x_digits[0]
-  __ add(R6, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
-  // R7 = &x_digits[x_used]
-  __ add(R7, R6, Operand(R2, LSL, 1));
-  // R9 = &r_digits[1]
-  __ add(R9, R4, Operand(TypedData::data_offset() - kHeapObjectTag +
+  // R0 = x_used, R1 = x_digits, x_used > 0, x_used is Smi.
+  __ ldrd(R0, R1, SP, 2 * kWordSize);
+  // R2 = r_digits, R3 = n, n is Smi, n % _DIGIT_BITS != 0.
+  __ ldrd(R2, R3, SP, 0 * kWordSize);
+  __ SmiUntag(R3);
+  // R4 = n ~/ _DIGIT_BITS
+  __ Asr(R4, R3, Operand(5));
+  // R8 = &x_digits[0]
+  __ add(R8, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // NOTFP = &x_digits[x_used]
+  __ add(NOTFP, R8, Operand(R0, LSL, 1));
+  // R6 = &r_digits[1]
+  __ add(R6, R2, Operand(TypedData::data_offset() - kHeapObjectTag +
                          Bigint::kBytesPerDigit));
-  // R9 = &r_digits[x_used + n ~/ _DIGIT_BITS + 1]
-  __ add(R0, R0, Operand(R2, ASR, 1));
-  __ add(R9, R9, Operand(R0, LSL, 2));
-  // R3 = n % _DIGIT_BITS
-  __ and_(R3, R5, Operand(31));
-  // R2 = 32 - R3
-  __ rsb(R2, R3, Operand(32));
-  __ mov(R1, Operand(0));
+  // R6 = &r_digits[x_used + n ~/ _DIGIT_BITS + 1]
+  __ add(R4, R4, Operand(R0, ASR, 1));
+  __ add(R6, R6, Operand(R4, LSL, 2));
+  // R1 = n % _DIGIT_BITS
+  __ and_(R1, R3, Operand(31));
+  // R0 = 32 - R1
+  __ rsb(R0, R1, Operand(32));
+  __ mov(R9, Operand(0));
   Label loop;
   __ Bind(&loop);
-  __ ldr(R0, Address(R7, -Bigint::kBytesPerDigit, Address::PreIndex));
-  __ orr(R1, R1, Operand(R0, LSR, R2));
-  __ str(R1, Address(R9, -Bigint::kBytesPerDigit, Address::PreIndex));
-  __ mov(R1, Operand(R0, LSL, R3));
-  __ teq(R7, Operand(R6));
+  __ ldr(R4, Address(NOTFP, -Bigint::kBytesPerDigit, Address::PreIndex));
+  __ orr(R9, R9, Operand(R4, LSR, R0));
+  __ str(R9, Address(R6, -Bigint::kBytesPerDigit, Address::PreIndex));
+  __ mov(R9, Operand(R4, LSL, R1));
+  __ teq(NOTFP, Operand(R8));
   __ b(&loop, NE);
-  __ str(R1, Address(R9, -Bigint::kBytesPerDigit, Address::PreIndex));
+  __ str(R9, Address(R6, -Bigint::kBytesPerDigit, Address::PreIndex));
   // Returning Object::null() is not required, since this method is private.
   __ Ret();
 }
@@ -847,41 +807,41 @@ void Intrinsifier::Bigint_rsh(Assembler* assembler) {
   // static void _lsh(Uint32List x_digits, int x_used, int n,
   //                  Uint32List r_digits)
 
-  // R2 = x_used, R3 = x_digits, x_used > 0, x_used is Smi.
-  __ ldrd(R2, SP, 2 * kWordSize);
-  // R4 = r_digits, R5 = n, n is Smi, n % _DIGIT_BITS != 0.
-  __ ldrd(R4, SP, 0 * kWordSize);
-  __ SmiUntag(R5);
-  // R0 = n ~/ _DIGIT_BITS
-  __ Asr(R0, R5, Operand(5));
-  // R9 = &r_digits[0]
-  __ add(R9, R4, Operand(TypedData::data_offset() - kHeapObjectTag));
-  // R7 = &x_digits[n ~/ _DIGIT_BITS]
-  __ add(R7, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
-  __ add(R7, R7, Operand(R0, LSL, 2));
-  // R6 = &r_digits[x_used - n ~/ _DIGIT_BITS - 1]
-  __ add(R0, R0, Operand(1));
-  __ rsb(R0, R0, Operand(R2, ASR, 1));
-  __ add(R6, R9, Operand(R0, LSL, 2));
-  // R3 = n % _DIGIT_BITS
-  __ and_(R3, R5, Operand(31));
-  // R2 = 32 - R3
-  __ rsb(R2, R3, Operand(32));
-  // R1 = x_digits[n ~/ _DIGIT_BITS] >> (n % _DIGIT_BITS)
-  __ ldr(R1, Address(R7, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ mov(R1, Operand(R1, LSR, R3));
+  // R0 = x_used, R1 = x_digits, x_used > 0, x_used is Smi.
+  __ ldrd(R0, R1, SP, 2 * kWordSize);
+  // R2 = r_digits, R3 = n, n is Smi, n % _DIGIT_BITS != 0.
+  __ ldrd(R2, R3, SP, 0 * kWordSize);
+  __ SmiUntag(R3);
+  // R4 = n ~/ _DIGIT_BITS
+  __ Asr(R4, R3, Operand(5));
+  // R6 = &r_digits[0]
+  __ add(R6, R2, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // NOTFP = &x_digits[n ~/ _DIGIT_BITS]
+  __ add(NOTFP, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
+  __ add(NOTFP, NOTFP, Operand(R4, LSL, 2));
+  // R8 = &r_digits[x_used - n ~/ _DIGIT_BITS - 1]
+  __ add(R4, R4, Operand(1));
+  __ rsb(R4, R4, Operand(R0, ASR, 1));
+  __ add(R8, R6, Operand(R4, LSL, 2));
+  // R1 = n % _DIGIT_BITS
+  __ and_(R1, R3, Operand(31));
+  // R0 = 32 - R1
+  __ rsb(R0, R1, Operand(32));
+  // R9 = x_digits[n ~/ _DIGIT_BITS] >> (n % _DIGIT_BITS)
+  __ ldr(R9, Address(NOTFP, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ mov(R9, Operand(R9, LSR, R1));
   Label loop_entry;
   __ b(&loop_entry);
   Label loop;
   __ Bind(&loop);
-  __ ldr(R0, Address(R7, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ orr(R1, R1, Operand(R0, LSL, R2));
-  __ str(R1, Address(R9, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ mov(R1, Operand(R0, LSR, R3));
+  __ ldr(R4, Address(NOTFP, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ orr(R9, R9, Operand(R4, LSL, R0));
+  __ str(R9, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ mov(R9, Operand(R4, LSR, R1));
   __ Bind(&loop_entry);
-  __ teq(R9, Operand(R6));
+  __ teq(R6, Operand(R8));
   __ b(&loop, NE);
-  __ str(R1, Address(R9, 0));
+  __ str(R9, Address(R6, 0));
   // Returning Object::null() is not required, since this method is private.
   __ Ret();
 }
@@ -892,55 +852,55 @@ void Intrinsifier::Bigint_absAdd(Assembler* assembler) {
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
 
-  // R2 = used, R3 = digits
-  __ ldrd(R2, SP, 3 * kWordSize);
-  // R3 = &digits[0]
+  // R0 = used, R1 = digits
+  __ ldrd(R0, R1, SP, 3 * kWordSize);
+  // R1 = &digits[0]
+  __ add(R1, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
+
+  // R2 = a_used, R3 = a_digits
+  __ ldrd(R2, R3, SP, 1 * kWordSize);
+  // R3 = &a_digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R4 = a_used, R5 = a_digits
-  __ ldrd(R4, SP, 1 * kWordSize);
-  // R5 = &a_digits[0]
-  __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // R8 = r_digits
+  __ ldr(R8, Address(SP, 0 * kWordSize));
+  // R8 = &r_digits[0]
+  __ add(R8, R8, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R6 = r_digits
-  __ ldr(R6, Address(SP, 0 * kWordSize));
-  // R6 = &r_digits[0]
-  __ add(R6, R6, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // NOTFP = &digits[a_used >> 1], a_used is Smi.
+  __ add(NOTFP, R1, Operand(R2, LSL, 1));
 
-  // R7 = &digits[a_used >> 1], a_used is Smi.
-  __ add(R7, R3, Operand(R4, LSL, 1));
+  // R6 = &digits[used >> 1], used is Smi.
+  __ add(R6, R1, Operand(R0, LSL, 1));
 
-  // R9 = &digits[used >> 1], used is Smi.
-  __ add(R9, R3, Operand(R2, LSL, 1));
-
-  __ adds(R0, R0, Operand(0));  // carry flag = 0
+  __ adds(R4, R4, Operand(0));  // carry flag = 0
   Label add_loop;
   __ Bind(&add_loop);
   // Loop a_used times, a_used > 0.
-  __ ldr(R0, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ ldr(R1, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ adcs(R0, R0, Operand(R1));
-  __ teq(R3, Operand(R7));  // Does not affect carry flag.
-  __ str(R0, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(R1, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R9, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ adcs(R4, R4, Operand(R9));
+  __ teq(R1, Operand(NOTFP));  // Does not affect carry flag.
+  __ str(R4, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
   __ b(&add_loop, NE);
 
   Label last_carry;
-  __ teq(R3, Operand(R9));  // Does not affect carry flag.
+  __ teq(R1, Operand(R6));  // Does not affect carry flag.
   __ b(&last_carry, EQ);  // If used - a_used == 0.
 
   Label carry_loop;
   __ Bind(&carry_loop);
   // Loop used - a_used times, used - a_used > 0.
-  __ ldr(R0, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ adcs(R0, R0, Operand(0));
-  __ teq(R3, Operand(R9));  // Does not affect carry flag.
-  __ str(R0, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(R1, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ adcs(R4, R4, Operand(0));
+  __ teq(R1, Operand(R6));  // Does not affect carry flag.
+  __ str(R4, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
   __ b(&carry_loop, NE);
 
   __ Bind(&last_carry);
-  __ mov(R0, Operand(0));
-  __ adc(R0, R0, Operand(0));
-  __ str(R0, Address(R6, 0));
+  __ mov(R4, Operand(0));
+  __ adc(R4, R4, Operand(0));
+  __ str(R4, Address(R8, 0));
 
   // Returning Object::null() is not required, since this method is private.
   __ Ret();
@@ -952,49 +912,49 @@ void Intrinsifier::Bigint_absSub(Assembler* assembler) {
   //                     Uint32List a_digits, int a_used,
   //                     Uint32List r_digits)
 
-  // R2 = used, R3 = digits
-  __ ldrd(R2, SP, 3 * kWordSize);
-  // R3 = &digits[0]
+  // R0 = used, R1 = digits
+  __ ldrd(R0, R1, SP, 3 * kWordSize);
+  // R1 = &digits[0]
+  __ add(R1, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
+
+  // R2 = a_used, R3 = a_digits
+  __ ldrd(R2, R3, SP, 1 * kWordSize);
+  // R3 = &a_digits[0]
   __ add(R3, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R4 = a_used, R5 = a_digits
-  __ ldrd(R4, SP, 1 * kWordSize);
-  // R5 = &a_digits[0]
-  __ add(R5, R5, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // R8 = r_digits
+  __ ldr(R8, Address(SP, 0 * kWordSize));
+  // R8 = &r_digits[0]
+  __ add(R8, R8, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R6 = r_digits
-  __ ldr(R6, Address(SP, 0 * kWordSize));
-  // R6 = &r_digits[0]
-  __ add(R6, R6, Operand(TypedData::data_offset() - kHeapObjectTag));
+  // NOTFP = &digits[a_used >> 1], a_used is Smi.
+  __ add(NOTFP, R1, Operand(R2, LSL, 1));
 
-  // R7 = &digits[a_used >> 1], a_used is Smi.
-  __ add(R7, R3, Operand(R4, LSL, 1));
+  // R6 = &digits[used >> 1], used is Smi.
+  __ add(R6, R1, Operand(R0, LSL, 1));
 
-  // R9 = &digits[used >> 1], used is Smi.
-  __ add(R9, R3, Operand(R2, LSL, 1));
-
-  __ subs(R0, R0, Operand(0));  // carry flag = 1
+  __ subs(R4, R4, Operand(0));  // carry flag = 1
   Label sub_loop;
   __ Bind(&sub_loop);
   // Loop a_used times, a_used > 0.
-  __ ldr(R0, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ ldr(R1, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ sbcs(R0, R0, Operand(R1));
-  __ teq(R3, Operand(R7));  // Does not affect carry flag.
-  __ str(R0, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(R1, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R9, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ sbcs(R4, R4, Operand(R9));
+  __ teq(R1, Operand(NOTFP));  // Does not affect carry flag.
+  __ str(R4, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
   __ b(&sub_loop, NE);
 
   Label done;
-  __ teq(R3, Operand(R9));  // Does not affect carry flag.
+  __ teq(R1, Operand(R6));  // Does not affect carry flag.
   __ b(&done, EQ);  // If used - a_used == 0.
 
   Label carry_loop;
   __ Bind(&carry_loop);
   // Loop used - a_used times, used - a_used > 0.
-  __ ldr(R0, Address(R3, Bigint::kBytesPerDigit, Address::PostIndex));
-  __ sbcs(R0, R0, Operand(0));
-  __ teq(R3, Operand(R9));  // Does not affect carry flag.
-  __ str(R0, Address(R6, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ ldr(R4, Address(R1, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ sbcs(R4, R4, Operand(0));
+  __ teq(R1, Operand(R6));  // Does not affect carry flag.
+  __ str(R4, Address(R8, Bigint::kBytesPerDigit, Address::PostIndex));
   __ b(&carry_loop, NE);
 
   __ Bind(&done);
@@ -1033,26 +993,26 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
 
   Label done;
   // R3 = x, no_op if x == 0
-  __ ldrd(R0, SP, 5 * kWordSize);  // R0 = xi as Smi, R1 = x_digits.
+  __ ldrd(R0, R1, SP, 5 * kWordSize);  // R0 = xi as Smi, R1 = x_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R3, FieldAddress(R1, TypedData::data_offset()));
   __ tst(R3, Operand(R3));
   __ b(&done, EQ);
 
-  // R6 = SmiUntag(n), no_op if n == 0
-  __ ldr(R6, Address(SP, 0 * kWordSize));
-  __ Asrs(R6, R6, Operand(kSmiTagSize));
+  // R8 = SmiUntag(n), no_op if n == 0
+  __ ldr(R8, Address(SP, 0 * kWordSize));
+  __ Asrs(R8, R8, Operand(kSmiTagSize));
   __ b(&done, EQ);
 
   // R4 = mip = &m_digits[i >> 1]
-  __ ldrd(R0, SP, 3 * kWordSize);  // R0 = i as Smi, R1 = m_digits.
+  __ ldrd(R0, R1, SP, 3 * kWordSize);  // R0 = i as Smi, R1 = m_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ add(R4, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R5 = ajp = &a_digits[j >> 1]
-  __ ldrd(R0, SP, 1 * kWordSize);  // R0 = j as Smi, R1 = a_digits.
+  // R9 = ajp = &a_digits[j >> 1]
+  __ ldrd(R0, R1, SP, 1 * kWordSize);  // R0 = j as Smi, R1 = a_digits.
   __ add(R1, R1, Operand(R0, LSL, 1));
-  __ add(R5, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
+  __ add(R9, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
   // R1 = c = 0
   __ mov(R1, Operand(0));
@@ -1061,42 +1021,42 @@ void Intrinsifier::Bigint_mulAdd(Assembler* assembler) {
   __ Bind(&muladd_loop);
   // x:   R3
   // mip: R4
-  // ajp: R5
+  // ajp: R9
   // c:   R1
-  // n:   R6
+  // n:   R8
 
   // uint32_t mi = *mip++
   __ ldr(R2, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex));
 
   // uint32_t aj = *ajp
-  __ ldr(R0, Address(R5, 0));
+  __ ldr(R0, Address(R9, 0));
 
   // uint64_t t = x*mi + aj + c
   __ umaal(R0, R1, R2, R3);  // R1:R0 = R2*R3 + R1 + R0.
 
   // *ajp++ = low32(t) = R0
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(R9, Bigint::kBytesPerDigit, Address::PostIndex));
 
   // c = high32(t) = R1
 
   // while (--n > 0)
-  __ subs(R6, R6, Operand(1));  // --n
+  __ subs(R8, R8, Operand(1));  // --n
   __ b(&muladd_loop, NE);
 
   __ tst(R1, Operand(R1));
   __ b(&done, EQ);
 
   // *ajp++ += c
-  __ ldr(R0, Address(R5, 0));
+  __ ldr(R0, Address(R9, 0));
   __ adds(R0, R0, Operand(R1));
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(R9, Bigint::kBytesPerDigit, Address::PostIndex));
   __ b(&done, CC);
 
   Label propagate_carry_loop;
   __ Bind(&propagate_carry_loop);
-  __ ldr(R0, Address(R5, 0));
+  __ ldr(R0, Address(R9, 0));
   __ adds(R0, R0, Operand(1));
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(R9, Bigint::kBytesPerDigit, Address::PostIndex));
   __ b(&propagate_carry_loop, CS);
 
   __ Bind(&done);
@@ -1133,7 +1093,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   // }
 
   // R4 = xip = &x_digits[i >> 1]
-  __ ldrd(R2, SP, 2 * kWordSize);  // R2 = i as Smi, R3 = x_digits
+  __ ldrd(R2, R3, SP, 2 * kWordSize);  // R2 = i as Smi, R3 = x_digits
   __ add(R3, R3, Operand(R2, LSL, 1));
   __ add(R4, R3, Operand(TypedData::data_offset() - kHeapObjectTag));
 
@@ -1143,28 +1103,28 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ tst(R3, Operand(R3));
   __ b(&x_zero, EQ);
 
-  // R5 = ajp = &a_digits[i]
+  // NOTFP = ajp = &a_digits[i]
   __ ldr(R1, Address(SP, 1 * kWordSize));  // a_digits
   __ add(R1, R1, Operand(R2, LSL, 2));  // j == 2*i, i is Smi.
-  __ add(R5, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
+  __ add(NOTFP, R1, Operand(TypedData::data_offset() - kHeapObjectTag));
 
-  // R6:R0 = t = x*x + *ajp
-  __ ldr(R0, Address(R5, 0));
-  __ mov(R6, Operand(0));
-  __ umaal(R0, R6, R3, R3);  // R6:R0 = R3*R3 + R6 + R0.
+  // R8:R0 = t = x*x + *ajp
+  __ ldr(R0, Address(NOTFP, 0));
+  __ mov(R8, Operand(0));
+  __ umaal(R0, R8, R3, R3);  // R8:R0 = R3*R3 + R8 + R0.
 
   // *ajp++ = low32(t) = R0
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(NOTFP, Bigint::kBytesPerDigit, Address::PostIndex));
 
-  // R6 = low32(c) = high32(t)
-  // R7 = high32(c) = 0
-  __ mov(R7, Operand(0));
+  // R8 = low32(c) = high32(t)
+  // R9 = high32(c) = 0
+  __ mov(R9, Operand(0));
 
   // int n = used - i - 1; while (--n >= 0) ...
   __ ldr(R0, Address(SP, 0 * kWordSize));  // used is Smi
-  __ sub(R9, R0, Operand(R2));
+  __ sub(R6, R0, Operand(R2));
   __ mov(R0, Operand(2));  // n = used - i - 2; if (n >= 0) ... while (--n >= 0)
-  __ rsbs(R9, R0, Operand(R9, ASR, kSmiTagSize));
+  __ rsbs(R6, R0, Operand(R6, ASR, kSmiTagSize));
 
   Label loop, done;
   __ b(&done, MI);
@@ -1172,46 +1132,46 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ Bind(&loop);
   // x:   R3
   // xip: R4
-  // ajp: R5
-  // c:   R7:R6
+  // ajp: NOTFP
+  // c:   R9:R8
   // t:   R2:R1:R0 (not live at loop entry)
-  // n:   R9
+  // n:   R6
 
   // uint32_t xi = *xip++
   __ ldr(R2, Address(R4, Bigint::kBytesPerDigit, Address::PostIndex));
 
-  // uint96_t t = R7:R6:R0 = 2*x*xi + aj + c
+  // uint96_t t = R9:R8:R0 = 2*x*xi + aj + c
   __ umull(R0, R1, R2, R3);  // R1:R0 = R2*R3.
   __ adds(R0, R0, Operand(R0));
   __ adcs(R1, R1, Operand(R1));
   __ mov(R2, Operand(0));
   __ adc(R2, R2, Operand(0));  // R2:R1:R0 = 2*x*xi.
-  __ adds(R0, R0, Operand(R6));
-  __ adcs(R1, R1, Operand(R7));
+  __ adds(R0, R0, Operand(R8));
+  __ adcs(R1, R1, Operand(R9));
   __ adc(R2, R2, Operand(0));  // R2:R1:R0 = 2*x*xi + c.
-  __ ldr(R6, Address(R5, 0));  // R6 = aj = *ajp.
-  __ adds(R0, R0, Operand(R6));
-  __ adcs(R6, R1, Operand(0));
-  __ adc(R7, R2, Operand(0));  // R7:R6:R0 = 2*x*xi + c + aj.
+  __ ldr(R8, Address(NOTFP, 0));  // R8 = aj = *ajp.
+  __ adds(R0, R0, Operand(R8));
+  __ adcs(R8, R1, Operand(0));
+  __ adc(R9, R2, Operand(0));  // R9:R8:R0 = 2*x*xi + c + aj.
 
   // *ajp++ = low32(t) = R0
-  __ str(R0, Address(R5, Bigint::kBytesPerDigit, Address::PostIndex));
+  __ str(R0, Address(NOTFP, Bigint::kBytesPerDigit, Address::PostIndex));
 
   // while (--n >= 0)
-  __ subs(R9, R9, Operand(1));  // --n
+  __ subs(R6, R6, Operand(1));  // --n
   __ b(&loop, PL);
 
   __ Bind(&done);
   // uint32_t aj = *ajp
-  __ ldr(R0, Address(R5, 0));
+  __ ldr(R0, Address(NOTFP, 0));
 
   // uint64_t t = aj + c
-  __ adds(R6, R6, Operand(R0));
-  __ adc(R7, R7, Operand(0));
+  __ adds(R8, R8, Operand(R0));
+  __ adc(R9, R9, Operand(0));
 
-  // *ajp = low32(t) = R6
-  // *(ajp + 1) = high32(t) = R7
-  __ strd(R6, R5, 0);
+  // *ajp = low32(t) = R8
+  // *(ajp + 1) = high32(t) = R9
+  __ strd(R8, R9, NOTFP, 0);
 
   __ Bind(&x_zero);
   __ mov(R0, Operand(Smi::RawValue(1)));  // One digit processed.
@@ -1242,7 +1202,7 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
                           TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
 
   // R2 = digits[i >> 1]
-  __ ldrd(R0, SP, 0 * kWordSize);  // R0 = i as Smi, R1 = digits
+  __ ldrd(R0, R1, SP, 0 * kWordSize);  // R0 = i as Smi, R1 = digits
   __ add(R1, R1, Operand(R0, LSL, 1));
   __ ldr(R2, FieldAddress(R1, TypedData::data_offset()));
 
@@ -1553,11 +1513,11 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
   __ LoadImmediate(R0, a_int32_value);
   __ LoadFromOffset(kWord, R2, R1, disp_0 - kHeapObjectTag);
   __ LoadFromOffset(kWord, R3, R1, disp_1 - kHeapObjectTag);
-  __ mov(R6, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
-  // Unsigned 32-bit multiply and 64-bit accumulate into R6:R3.
-  __ umlal(R3, R6, R0, R2);  // R6:R3 <- R6:R3 + R0 * R2.
+  __ mov(R8, Operand(0));  // Zero extend unsigned _state[kSTATE_HI].
+  // Unsigned 32-bit multiply and 64-bit accumulate into R8:R3.
+  __ umlal(R3, R8, R0, R2);  // R8:R3 <- R8:R3 + R0 * R2.
   __ StoreToOffset(kWord, R3, R1, disp_0 - kHeapObjectTag);
-  __ StoreToOffset(kWord, R6, R1, disp_1 - kHeapObjectTag);
+  __ StoreToOffset(kWord, R8, R1, disp_1 - kHeapObjectTag);
   __ Ret();
 }
 
@@ -1575,14 +1535,10 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   Label fall_through;
-  static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
   __ ldr(R0, Address(SP, 0 * kWordSize));
-
-  __ LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
-  __ tst(R0, Operand(kSmiTagMask));
-  __ mov(TMP, Operand(R0), NE);
-  __ LoadClassId(R1, TMP);
+  __ LoadClassIdMayBeSmi(R1, R0);
   __ LoadClassById(R2, R1);
+
   // R2: class of instance (R0).
   __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
   __ CompareObject(R3, Object::null_object());
@@ -1638,6 +1594,127 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   __ Ret();
 
   __ Bind(&fall_through);
+}
+
+
+void GenerateSubstringMatchesSpecialization(Assembler* assembler,
+                                            intptr_t receiver_cid,
+                                            intptr_t other_cid,
+                                            Label* return_true,
+                                            Label* return_false) {
+  __ SmiUntag(R1);
+  __ ldr(R8, FieldAddress(R0, String::length_offset()));  // this.length
+  __ SmiUntag(R8);
+  __ ldr(R9, FieldAddress(R2, String::length_offset()));  // other.length
+  __ SmiUntag(R9);
+
+  // if (other.length == 0) return true;
+  __ cmp(R9, Operand(0));
+  __ b(return_true, EQ);
+
+  // if (start < 0) return false;
+  __ cmp(R1, Operand(0));
+  __ b(return_false, LT);
+
+  // if (start + other.length > this.length) return false;
+  __ add(R3, R1, Operand(R9));
+  __ cmp(R3, Operand(R8));
+  __ b(return_false, GT);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
+    __ add(R0, R0, Operand(R1));
+  } else {
+    ASSERT(receiver_cid == kTwoByteStringCid);
+    __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R1));
+  }
+  if (other_cid == kOneByteStringCid) {
+    __ AddImmediate(R2, R2, OneByteString::data_offset() - kHeapObjectTag);
+  } else {
+    ASSERT(other_cid == kTwoByteStringCid);
+    __ AddImmediate(R2, R2, TwoByteString::data_offset() - kHeapObjectTag);
+  }
+
+  // i = 0
+  __ LoadImmediate(R3, 0);
+
+  // do
+  Label loop;
+  __ Bind(&loop);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ ldrb(R4, Address(R0, 0));     // this.codeUnitAt(i + start)
+  } else {
+    __ ldrh(R4, Address(R0, 0));     // this.codeUnitAt(i + start)
+  }
+  if (other_cid == kOneByteStringCid) {
+    __ ldrb(NOTFP, Address(R2, 0));  // other.codeUnitAt(i)
+  } else {
+    __ ldrh(NOTFP, Address(R2, 0));  // other.codeUnitAt(i)
+  }
+  __ cmp(R4, Operand(NOTFP));
+  __ b(return_false, NE);
+
+  // i++, while (i < len)
+  __ AddImmediate(R3, R3, 1);
+  __ AddImmediate(R0, R0, receiver_cid == kOneByteStringCid ? 1 : 2);
+  __ AddImmediate(R2, R2, other_cid == kOneByteStringCid ? 1 : 2);
+  __ cmp(R3, Operand(R9));
+  __ b(&loop, LT);
+
+  __ b(return_true);
+}
+
+
+// bool _substringMatches(int start, String other)
+// This intrinsic handles a OneByteString or TwoByteString receiver with a
+// OneByteString other.
+void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
+  Label fall_through, return_true, return_false, try_two_byte;
+  __ ldr(R0, Address(SP, 2 * kWordSize));  // this
+  __ ldr(R1, Address(SP, 1 * kWordSize));  // start
+  __ ldr(R2, Address(SP, 0 * kWordSize));  // other
+  __ Push(R4);  // Make ARGS_DESC_REG available.
+
+  __ tst(R1, Operand(kSmiTagMask));
+  __ b(&fall_through, NE);  // 'start' is not a Smi.
+
+  __ CompareClassId(R2, kOneByteStringCid, R3);
+  __ b(&fall_through, NE);
+
+  __ CompareClassId(R0, kOneByteStringCid, R3);
+  __ b(&try_two_byte, NE);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kOneByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&try_two_byte);
+  __ CompareClassId(R0, kTwoByteStringCid, R3);
+  __ b(&fall_through, NE);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kTwoByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&return_true);
+  __ Pop(R4);
+  __ LoadObject(R0, Bool::True());
+  __ Ret();
+
+  __ Bind(&return_false);
+  __ Pop(R4);
+  __ LoadObject(R0, Bool::False());
+  __ Ret();
+
+  __ Bind(&fall_through);
+  __ Pop(R4);
 }
 
 
@@ -1707,11 +1784,11 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
 
   __ SmiUntag(R2);
   __ mov(R3, Operand(0));
-  __ AddImmediate(R6, R1, OneByteString::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R8, R1, OneByteString::data_offset() - kHeapObjectTag);
   // R1: Instance of OneByteString.
   // R2: String length, untagged integer.
   // R3: Loop counter, untagged integer.
-  // R6: String data.
+  // R8: String data.
   // R0: Hash code, untagged integer.
 
   Label loop;
@@ -1721,11 +1798,11 @@ void Intrinsifier::OneByteString_getHashCode(Assembler* assembler) {
   // hash_ ^= hash_ >> 6;
   // Get one characters (ch).
   __ Bind(&loop);
-  __ ldrb(R7, Address(R6, 0));
-  // R7: ch.
+  __ ldrb(NOTFP, Address(R8, 0));
+  // NOTFP: ch.
   __ add(R3, R3, Operand(1));
-  __ add(R6, R6, Operand(1));
-  __ add(R0, R0, Operand(R7));
+  __ add(R8, R8, Operand(1));
+  __ add(R0, R0, Operand(NOTFP));
   __ add(R0, R0, Operand(R0, LSL, 10));
   __ eor(R0, R0, Operand(R0, LSR, 6));
   __ cmp(R3, Operand(R2));
@@ -1760,8 +1837,9 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure);
-  __ mov(R6, Operand(length_reg));  // Save the length register.
+  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure,
+                          /* inline_isolate = */ false);
+  __ mov(R8, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
   const intptr_t fixed_size = sizeof(RawString) + kObjectAlignment - 1;
@@ -1782,8 +1860,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   // R1: potential next object start.
   // R2: allocation size.
   // R3: heap.
-  __ ldr(R7, Address(R3, Heap::EndOffset(space)));
-  __ cmp(R1, Operand(R7));
+  __ ldr(NOTFP, Address(R3, Heap::EndOffset(space)));
+  __ cmp(R1, Operand(NOTFP));
   __ b(&fail, CS);
 
   // Successfully allocated the object(s), now update top to point to
@@ -1811,10 +1889,10 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     __ str(R3, FieldAddress(R0, String::tags_offset()));  // Store tags.
   }
 
-  // Set the length field using the saved length (R6).
+  // Set the length field using the saved length (R8).
   __ InitializeFieldNoBarrier(R0,
                               FieldAddress(R0, String::length_offset()),
-                              R6);
+                              R8);
   // Clear hash.
   __ LoadImmediate(TMP, 0);
   __ InitializeFieldNoBarrier(R0,
@@ -1866,21 +1944,21 @@ void Intrinsifier::OneByteString_substringUnchecked(Assembler* assembler) {
   // R3: Start address to copy from (untagged).
   // R2: Untagged number of bytes to copy.
   // R0: Tagged result string.
-  // R6: Pointer into R3.
-  // R7: Pointer into R0.
+  // R8: Pointer into R3.
+  // NOTFP: Pointer into R0.
   // R1: Scratch register.
   Label loop, done;
   __ cmp(R2, Operand(0));
   __ b(&done, LE);
-  __ mov(R6, Operand(R3));
-  __ mov(R7, Operand(R0));
+  __ mov(R8, Operand(R3));
+  __ mov(NOTFP, Operand(R0));
   __ Bind(&loop);
-  __ ldrb(R1, Address(R6, 0));
-  __ AddImmediate(R6, 1);
+  __ ldrb(R1, Address(R8, 0));
+  __ AddImmediate(R8, 1);
   __ sub(R2, R2, Operand(1));
   __ cmp(R2, Operand(0));
-  __ strb(R1, FieldAddress(R7, OneByteString::data_offset()));
-  __ AddImmediate(R7, 1);
+  __ strb(R1, FieldAddress(NOTFP, OneByteString::data_offset()));
+  __ AddImmediate(NOTFP, 1);
   __ b(&loop, GT);
 
   __ Bind(&done);
@@ -1997,7 +2075,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   // Incoming registers:
   // R0: Function. (Will be reloaded with the specialized matcher function.)
   // R4: Arguments descriptor. (Will be preserved.)
-  // R5: Unknown. (Must be GC safe on tail call.)
+  // R9: Unknown. (Must be GC safe on tail call.)
 
   // Load the specialized function pointer into R0. Leverage the fact the
   // string CIDs as well as stored function pointers are in sequence.
@@ -2009,10 +2087,11 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ ldr(R0, FieldAddress(R1, JSRegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
-  // in R0, the argument descriptor in R4, and IC-Data in R5.
-  __ eor(R5, R5, Operand(R5));
+  // in R0, the argument descriptor in R4, and IC-Data in R9.
+  __ eor(R9, R9, Operand(R9));
 
   // Tail-call the function.
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
   __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ bx(R1);
 }

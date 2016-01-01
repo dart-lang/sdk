@@ -4,10 +4,9 @@
 
 library dart_tree_printer;
 
+import '../common.dart';
 import '../constants/values.dart' as values;
 import '../dart_types.dart' as types;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart' as elements;
 import '../resolution/tree_elements.dart' show
     TreeElementMapping;

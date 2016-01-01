@@ -6,7 +6,7 @@ library test.domain.analysis.hover;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -25,15 +25,14 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
     return prepareHoverAt(offset);
   }
 
-  Future<HoverInformation> prepareHoverAt(int offset) {
-    return waitForTasksFinished().then((_) {
-      Request request =
-          new AnalysisGetHoverParams(testFile, offset).toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      var result = new AnalysisGetHoverResult.fromResponse(response);
-      List<HoverInformation> hovers = result.hovers;
-      return hovers.isNotEmpty ? hovers.first : null;
-    });
+  Future<HoverInformation> prepareHoverAt(int offset) async {
+    await waitForTasksFinished();
+    Request request =
+        new AnalysisGetHoverParams(testFile, offset).toRequest('0');
+    Response response = handleSuccessfulRequest(request);
+    var result = new AnalysisGetHoverResult.fromResponse(response);
+    List<HoverInformation> hovers = result.hovers;
+    return hovers.isNotEmpty ? hovers.first : null;
   }
 
   @override
@@ -42,7 +41,36 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_dartdoc_clunky() {
+  test_class() async {
+    addTestFile('''
+class A<E> {}
+class I1<K, V> {}
+class I2<E> {}
+class M1 {}
+class M2<E> {}
+class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
+''');
+    HoverInformation hover = await prepareHover('B<T>');
+    expect(
+        hover.elementDescription,
+        'class B<T> extends A<T> with M1, M2<int> '
+        'implements I1<int, String>, I2');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  test_class_abstract() async {
+    addTestFile('''
+class A {}
+abstract class B extends A {}
+''');
+    HoverInformation hover = await prepareHover('B extends');
+    expect(hover.elementDescription, 'abstract class B extends A');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  test_dartdoc_clunky() async {
     addTestFile('''
 library my.library;
 /**
@@ -52,12 +80,11 @@ library my.library;
 main() {
 }
 ''');
-    return prepareHover('main() {').then((HoverInformation hover) {
-      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    });
+    HoverInformation hover = await prepareHover('main() {');
+    expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
-  test_dartdoc_elegant() {
+  test_dartdoc_elegant() async {
     addTestFile('''
 library my.library;
 /// doc aaa
@@ -65,12 +92,21 @@ library my.library;
 main() {
 }
 ''');
-    return prepareHover('main() {').then((HoverInformation hover) {
-      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    });
+    HoverInformation hover = await prepareHover('main() {');
+    expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
-  test_expression_function() {
+  test_enum() async {
+    addTestFile('''
+enum MyEnum {AAA, BBB, CCC}
+''');
+    HoverInformation hover = await prepareHover('MyEnum');
+    expect(hover.elementDescription, 'enum MyEnum');
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+  }
+
+  test_expression_function() async {
     addTestFile('''
 library my.library;
 /// doc aaa
@@ -78,43 +114,41 @@ library my.library;
 List<String> fff(int a, String b) {
 }
 ''');
-    return prepareHover('fff(int a').then((HoverInformation hover) {
-      // element
-      expect(hover.containingLibraryName, 'my.library');
-      expect(hover.containingLibraryPath, testFile);
-      expect(hover.containingClassDescription, isNull);
-      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-      expect(hover.elementDescription, 'fff(int a, String b) → List<String>');
-      expect(hover.elementKind, 'function');
-      // types
-      expect(hover.staticType, '(int, String) → List<String>');
-      expect(hover.propagatedType, isNull);
-      // no parameter
-      expect(hover.parameter, isNull);
-    });
+    HoverInformation hover = await prepareHover('fff(int a');
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
+    expect(hover.elementDescription, 'fff(int a, String b) → List<String>');
+    expect(hover.elementKind, 'function');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
   }
 
-  test_expression_literal_noElement() {
+  test_expression_literal_noElement() async {
     addTestFile('''
 main() {
   foo(123);
 }
 foo(Object myParameter) {}
 ''');
-    return prepareHover('123').then((HoverInformation hover) {
-      // literal, no Element
-      expect(hover.containingClassDescription, isNull);
-      expect(hover.elementDescription, isNull);
-      expect(hover.elementKind, isNull);
-      // types
-      expect(hover.staticType, 'int');
-      expect(hover.propagatedType, isNull);
-      // parameter
-      expect(hover.parameter, 'Object myParameter');
-    });
+    HoverInformation hover = await prepareHover('123');
+    // literal, no Element
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.elementDescription, isNull);
+    expect(hover.elementKind, isNull);
+    // types
+    expect(hover.staticType, 'int');
+    expect(hover.propagatedType, isNull);
+    // parameter
+    expect(hover.parameter, 'Object myParameter');
   }
 
-  test_expression_method() {
+  test_expression_method() async {
     addTestFile('''
 library my.library;
 class A {
@@ -124,23 +158,22 @@ class A {
   }
 }
 ''');
-    return prepareHover('mmm(int a').then((HoverInformation hover) {
-      // element
-      expect(hover.containingLibraryName, 'my.library');
-      expect(hover.containingLibraryPath, testFile);
-      expect(hover.containingClassDescription, 'A');
-      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-      expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
-      expect(hover.elementKind, 'method');
-      // types
-      expect(hover.staticType, '(int, String) → List<String>');
-      expect(hover.propagatedType, isNull);
-      // no parameter
-      expect(hover.parameter, isNull);
-    });
+    HoverInformation hover = await prepareHover('mmm(int a');
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
+    expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
+    expect(hover.elementKind, 'method');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
   }
 
-  test_expression_method_invocation() {
+  test_expression_method_invocation() async {
     addTestFile('''
 library my.library;
 class A {
@@ -151,24 +184,47 @@ main(A a) {
   a.mmm(42, 'foo');
 }
 ''');
-    return prepareHover('mm(42, ').then((HoverInformation hover) {
-      // range
-      expect(hover.offset, findOffset('mmm(42, '));
-      expect(hover.length, 'mmm'.length);
-      // element
-      expect(hover.containingLibraryName, 'my.library');
-      expect(hover.containingLibraryPath, testFile);
-      expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
-      expect(hover.elementKind, 'method');
-      // types
-      expect(hover.staticType, isNull);
-      expect(hover.propagatedType, isNull);
-      // no parameter
-      expect(hover.parameter, isNull);
-    });
+    HoverInformation hover = await prepareHover('mm(42, ');
+    // range
+    expect(hover.offset, findOffset('mmm(42, '));
+    expect(hover.length, 'mmm'.length);
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.elementDescription, 'mmm(int a, String b) → List<String>');
+    expect(hover.elementKind, 'method');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
   }
 
-  test_expression_syntheticGetter() {
+  test_expression_parameter() async {
+    addTestFile('''
+library my.library;
+class A {
+  /// The method documentation.
+  m(int p) {
+  }
+}
+''');
+    HoverInformation hover = await prepareHover('p) {');
+    // element
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, 'The method documentation.');
+    expect(hover.elementDescription, 'int p');
+    expect(hover.elementKind, 'parameter');
+    // types
+    expect(hover.staticType, 'int');
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
+  }
+
+  test_expression_syntheticGetter_invocation() async {
     addTestFile('''
 library my.library;
 class A {
@@ -180,21 +236,20 @@ main(A a) {
   print(a.fff);
 }
 ''');
-    return prepareHover('fff);').then((HoverInformation hover) {
-      // element
-      expect(hover.containingLibraryName, 'my.library');
-      expect(hover.containingLibraryPath, testFile);
-      expect(hover.containingClassDescription, 'A');
-      expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-      expect(hover.elementDescription, 'String fff');
-      expect(hover.elementKind, 'field');
-      // types
-      expect(hover.staticType, 'String');
-      expect(hover.propagatedType, isNull);
-    });
+    HoverInformation hover = await prepareHover('fff);');
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.containingClassDescription, 'A');
+    expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
+    expect(hover.elementDescription, 'String fff');
+    expect(hover.elementKind, 'field');
+    // types
+    expect(hover.staticType, 'String');
+    expect(hover.propagatedType, isNull);
   }
 
-  test_expression_variable_hasPropagatedType() {
+  test_expression_variable_hasPropagatedType() async {
     addTestFile('''
 library my.library;
 main() {
@@ -202,21 +257,20 @@ main() {
   print(vvv);
 }
 ''');
-    return prepareHover('vvv);').then((HoverInformation hover) {
-      // element
-      expect(hover.containingLibraryName, isNull);
-      expect(hover.containingLibraryPath, isNull);
-      expect(hover.containingClassDescription, isNull);
-      expect(hover.dartdoc, isNull);
-      expect(hover.elementDescription, 'dynamic vvv');
-      expect(hover.elementKind, 'local variable');
-      // types
-      expect(hover.staticType, 'dynamic');
-      expect(hover.propagatedType, 'int');
-    });
+    HoverInformation hover = await prepareHover('vvv);');
+    // element
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'dynamic vvv');
+    expect(hover.elementKind, 'local variable');
+    // types
+    expect(hover.staticType, 'dynamic');
+    expect(hover.propagatedType, 'int');
   }
 
-  test_expression_variable_inMethod() {
+  test_expression_variable_inMethod() async {
     addTestFile('''
 library my.library;
 class A {
@@ -225,23 +279,22 @@ class A {
   }
 }
 ''');
-    return prepareHover('vvv = 42').then((HoverInformation hover) {
-      // element
-      expect(hover.containingLibraryName, isNull);
-      expect(hover.containingLibraryPath, isNull);
-      expect(hover.containingClassDescription, isNull);
-      expect(hover.dartdoc, isNull);
-      expect(hover.elementDescription, 'num vvv');
-      expect(hover.elementKind, 'local variable');
-      // types
-      expect(hover.staticType, 'num');
-      expect(hover.propagatedType, 'int');
-      // no parameter
-      expect(hover.parameter, isNull);
-    });
+    HoverInformation hover = await prepareHover('vvv = 42');
+    // element
+    expect(hover.containingLibraryName, isNull);
+    expect(hover.containingLibraryPath, isNull);
+    expect(hover.containingClassDescription, isNull);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'num vvv');
+    expect(hover.elementKind, 'local variable');
+    // types
+    expect(hover.staticType, 'num');
+    expect(hover.propagatedType, 'int');
+    // no parameter
+    expect(hover.parameter, isNull);
   }
 
-  test_instanceCreation_implicit() {
+  test_instanceCreation_implicit() async {
     addTestFile('''
 library my.library;
 class A {
@@ -250,25 +303,24 @@ main() {
   new A();
 }
 ''');
-    return prepareHover('new A').then((HoverInformation hover) {
-      // range
-      expect(hover.offset, findOffset('new A'));
-      expect(hover.length, 'new A()'.length);
-      // element
-      expect(hover.containingLibraryName, 'my.library');
-      expect(hover.containingLibraryPath, testFile);
-      expect(hover.dartdoc, isNull);
-      expect(hover.elementDescription, 'A() → A');
-      expect(hover.elementKind, 'constructor');
-      // types
-      expect(hover.staticType, 'A');
-      expect(hover.propagatedType, isNull);
-      // no parameter
-      expect(hover.parameter, isNull);
-    });
+    HoverInformation hover = await prepareHover('new A');
+    // range
+    expect(hover.offset, findOffset('new A'));
+    expect(hover.length, 'new A()'.length);
+    // element
+    expect(hover.containingLibraryName, 'my.library');
+    expect(hover.containingLibraryPath, testFile);
+    expect(hover.dartdoc, isNull);
+    expect(hover.elementDescription, 'A() → A');
+    expect(hover.elementKind, 'constructor');
+    // types
+    expect(hover.staticType, isNull);
+    expect(hover.propagatedType, isNull);
+    // no parameter
+    expect(hover.parameter, isNull);
   }
 
-  test_instanceCreation_implicit_withTypeArgument() {
+  test_instanceCreation_implicit_withTypeArgument() async {
     addTestFile('''
 library my.library;
 class A<T> {}
@@ -276,7 +328,7 @@ main() {
   new A<String>();
 }
 ''');
-    Function onConstructor = (HoverInformation hover) {
+    void onConstructor(HoverInformation hover) {
       // range
       expect(hover.offset, findOffset('new A<String>'));
       expect(hover.length, 'new A<String>()'.length);
@@ -287,22 +339,28 @@ main() {
       expect(hover.elementDescription, 'A() → A<String>');
       expect(hover.elementKind, 'constructor');
       // types
-      expect(hover.staticType, 'A<String>');
+      expect(hover.staticType, isNull);
       expect(hover.propagatedType, isNull);
       // no parameter
       expect(hover.parameter, isNull);
-    };
-    var futureNewA = prepareHover('new A').then(onConstructor);
-    var futureA = prepareHover('A<String>()').then(onConstructor);
-    var futureString = prepareHover('String>').then((HoverInformation hover) {
+    }
+    {
+      HoverInformation hover = await prepareHover('new A');
+      onConstructor(hover);
+    }
+    {
+      HoverInformation hover = await prepareHover('A<String>()');
+      onConstructor(hover);
+    }
+    {
+      HoverInformation hover = await prepareHover('String>');
       expect(hover.offset, findOffset('String>'));
       expect(hover.length, 'String'.length);
       expect(hover.elementKind, 'class');
-    });
-    return Future.wait([futureNewA, futureA, futureString]);
+    }
   }
 
-  test_instanceCreation_named() {
+  test_instanceCreation_named() async {
     addTestFile('''
 library my.library;
 class A {
@@ -313,7 +371,7 @@ main() {
   new A.named();
 }
 ''');
-    var onConstructor = (HoverInformation hover) {
+    void onConstructor(HoverInformation hover) {
       // range
       expect(hover.offset, findOffset('new A'));
       expect(hover.length, 'new A.named()'.length);
@@ -321,21 +379,25 @@ main() {
       expect(hover.dartdoc, 'my doc');
       expect(hover.elementDescription, 'A.named() → A');
       expect(hover.elementKind, 'constructor');
-    };
-    var futureCreation = prepareHover('new A').then(onConstructor);
-    var futureName = prepareHover('named();').then(onConstructor);
-    return Future.wait([futureCreation, futureName]);
+    }
+    {
+      HoverInformation hover = await prepareHover('new A');
+      onConstructor(hover);
+    }
+    {
+      HoverInformation hover = await prepareHover('named();');
+      onConstructor(hover);
+    }
   }
 
-  test_noHoverInfo() {
+  test_noHoverInfo() async {
     addTestFile('''
 library my.library;
 main() {
   // nothing
 }
 ''');
-    return prepareHover('nothing').then((HoverInformation hover) {
-      expect(hover, isNull);
-    });
+    HoverInformation hover = await prepareHover('nothing');
+    expect(hover, isNull);
   }
 }

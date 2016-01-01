@@ -9,7 +9,8 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /**
  * Returns direct children of [parent].
@@ -132,27 +133,14 @@ List<Element> getMembers(ClassElement clazz) {
  */
 Future<Set<ClassElement>> getSubClasses(
     SearchEngine searchEngine, ClassElement seed) {
-  Set<ClassElement> subs = new HashSet<ClassElement>();
-  // prepare queue
-  List<ClassElement> queue = new List<ClassElement>();
-  queue.add(seed);
-  // schedule subclasss search
-  addSubClasses() {
-    // add direct subclasses of the next class
-    while (queue.isNotEmpty) {
-      ClassElement clazz = queue.removeLast();
-      if (subs.add(clazz)) {
-        return getDirectSubClasses(searchEngine, clazz).then((directSubs) {
-          queue.addAll(directSubs);
-          return new Future(addSubClasses);
-        });
-      }
+  return searchEngine.searchAllSubtypes(seed).then((List<SearchMatch> matches) {
+    Set<ClassElement> ancestors = new HashSet<ClassElement>();
+    for (SearchMatch match in matches) {
+      ClassElement ancestor = match.element;
+      ancestors.add(ancestor);
     }
-    // done
-    subs.remove(seed);
-    return subs;
-  }
-  return new Future(addSubClasses);
+    return ancestors;
+  });
 }
 
 /**

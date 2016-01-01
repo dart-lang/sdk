@@ -293,6 +293,7 @@ class _SyntheticAccessor implements MethodMirror {
   bool get isConstConstructor => false;
   bool get isGenerativeConstructor => false;
   bool get isFactoryConstructor => false;
+  bool get isExternal => false;
   bool get isRedirectingConstructor => false;
   bool get isAbstract => false;
 
@@ -1372,6 +1373,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   static const kGenerativeCtor = 5;
   static const kRedirectingCtor = 6;
   static const kFactoryCtor = 7;
+  static const kExternal = 8;
 
   // These offsets much be kept in sync with those in mirrors.h.
   bool get isAbstract =>               0 != (_kindFlags & (1 << kAbstract));
@@ -1382,6 +1384,7 @@ class _LocalMethodMirror extends _LocalDeclarationMirror
   bool get isGenerativeConstructor =>  0 != (_kindFlags & (1 << kGenerativeCtor));
   bool get isRedirectingConstructor => 0 != (_kindFlags & (1 << kRedirectingCtor));
   bool get isFactoryConstructor =>     0 != (_kindFlags & (1 << kFactoryCtor));
+  bool get isExternal =>               0 != (_kindFlags & (1 << kExternal));
 
   static const _operators = const ["%", "&", "*", "+", "-", "/", "<", "<<",
       "<=", "==", ">", ">=", ">>", "[]", "[]=", "^", "|", "~", "unary-", "~/"];

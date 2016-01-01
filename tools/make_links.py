@@ -29,8 +29,9 @@ import sys
 import utils
 
 # Useful messages when we find orphaned checkouts.
-old_directories = {'package_config':
-  'Please remove third_party/pkg/package_config.'}
+old_directories = {
+    'package_config': 'Please remove third_party/pkg/package_config.',
+    'analyzer_cli': 'Please remove third_party/pkg/analyzer_cli.'}
 
 def get_options():
   result = optparse.OptionParser()

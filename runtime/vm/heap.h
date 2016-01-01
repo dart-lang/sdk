@@ -42,6 +42,7 @@ class Heap {
   enum WeakSelector {
     kPeers = 0,
     kHashes,
+    kObjectIds,
     kNumWeakSelectors
   };
 
@@ -103,7 +104,6 @@ class Heap {
   bool NewContains(uword addr) const;
   bool OldContains(uword addr) const;
   bool CodeContains(uword addr) const;
-  bool StubCodeContains(uword addr) const;
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;
@@ -133,8 +133,9 @@ class Heap {
   void SetGrowthControlState(bool state);
   bool GrowthControlState();
 
-  // Protect access to the heap.
-  void WriteProtect(bool read_only);
+  // Protect access to the heap. Note: Code pages are made
+  // executable/non-executable when 'read_only' is true/false, respectively.
+  void WriteProtect(bool read_only, bool include_code_pages);
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
   }
@@ -157,9 +158,9 @@ class Heap {
   void PrintSizes() const;
 
   // Return amount of memory used and capacity in a space, excluding external.
-  intptr_t UsedInWords(Space space) const;
-  intptr_t CapacityInWords(Space space) const;
-  intptr_t ExternalInWords(Space space) const;
+  int64_t UsedInWords(Space space) const;
+  int64_t CapacityInWords(Space space) const;
+  int64_t ExternalInWords(Space space) const;
   // Return the amount of GCing in microseconds.
   int64_t GCTimeInMicros(Space space) const;
 
@@ -187,6 +188,17 @@ class Heap {
     return GetWeakEntry(raw_obj, kHashes);
   }
   int64_t HashCount() const;
+
+  // Associate an id with an object (used when serializing an object).
+  // A non-existant id is equal to 0.
+  void SetObjectId(RawObject* raw_obj, intptr_t object_id) {
+    SetWeakEntry(raw_obj, kObjectIds, object_id);
+  }
+  intptr_t GetObjectId(RawObject* raw_obj) const {
+    return GetWeakEntry(raw_obj, kObjectIds);
+  }
+  int64_t ObjectIdCount() const;
+  void ResetObjectIdTable();
 
   // Used by the GC algorithms to propagate weak entries.
   intptr_t GetWeakEntry(RawObject* raw_obj, WeakSelector sel) const;
@@ -221,6 +233,8 @@ class Heap {
 
   bool gc_in_progress();
 
+  void UpdateGlobalMaxUsed();
+
   static bool IsAllocatableInNewSpace(intptr_t size) {
     return size <= kNewAllocatableSize;
   }
@@ -235,6 +249,10 @@ class Heap {
   Isolate* isolate() const { return isolate_; }
 
   bool ShouldPretenure(intptr_t class_id) const;
+
+  void SetupInstructionsSnapshotPage(void* pointer, uword size) {
+    old_space_.SetupInstructionsSnapshotPage(pointer, size);
+  }
 
  private:
   class GCStats : public ValueObject {
@@ -352,6 +370,17 @@ class NoHeapGrowthControlScope : public StackResource {
  private:
   bool current_growth_controller_state_;
   DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);
+};
+
+
+// Note: During this scope, the code pages are non-executable.
+class WritableVMIsolateScope : StackResource {
+ public:
+  explicit WritableVMIsolateScope(Thread* thread, bool include_code_pages);
+  ~WritableVMIsolateScope();
+
+ private:
+  bool include_code_pages_;
 };
 
 }  // namespace dart

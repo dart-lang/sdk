@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.general_test;
+library analyzer.test.src.task.general_test;
 
-import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisTask, GetContentTask;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/general.dart';
@@ -81,6 +80,4 @@ class GetContentTaskTest extends EngineTestCase {
   }
 }
 
-class _MockContext extends TypedMock implements AnalysisContext {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _MockContext extends TypedMock implements AnalysisContext {}

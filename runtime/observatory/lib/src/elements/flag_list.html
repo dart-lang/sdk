@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/shared.css">
     <nav-bar>
       <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ app.vm }}"></vm-nav-menu>
       <nav-menu link="{{ makeLink('/flags') }}" anchor="flags" last="{{ true }}"></nav-menu>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>

@@ -4,9 +4,9 @@
 
 library services.index_store;
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 /**
@@ -20,48 +20,27 @@ abstract class InternalIndexStore extends IndexStore {
   String get statistics;
 
   /**
-   * Notifies the index store that we are going to index an unit with the given
-   * [unitElement].
+   * Notifies the index store that we are going to index the given [object].
    *
-   * If the unit is a part of a library, then all its locations are removed.
+   * [context] - the [AnalysisContext] in which the [object] being indexed.
+   * [object] - the object being indexed.
    *
-   * If it is a defining compilation unit of a library, then index store also
-   * checks if some previously indexed parts of the library are not parts of the
-   * library anymore, and clears their information.
-   *
-   * [context] - the [AnalysisContext] in which unit being indexed.
-   * [unitElement] - the element of the unit being indexed.
-   *
-   * Returns `true` if the given [unitElement] may be indexed, or `false` if
+   * Returns `true` if the given [object] may be indexed, or `false` if
    * belongs to a disposed [AnalysisContext], is not resolved completely, etc.
    */
-  bool aboutToIndexDart(
-      AnalysisContext context, CompilationUnitElement unitElement);
+  bool aboutToIndex(AnalysisContext context, Object object);
 
   /**
-   * Notifies the index store that we are going to index an unit with the given
-   * [htmlElement].
-   *
-   * [context] - the [AnalysisContext] in which unit being indexed.
-   * [htmlElement] - the [HtmlElement] being indexed.
-   *
-   * Returns `true` if the given [htmlElement] may be indexed, or `false` if
-   * belongs to a disposed [AnalysisContext], is not resolved completely, etc.
-   */
-  bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
-
-  /**
-   * Notifies the index store that there was an error during the current Dart
+   * Notifies the index store that there was an error during the current
    * indexing, and all the information recorded after the last
-   * [aboutToIndexDart] invocation must be discarded.
+   * [aboutToIndex] invocation must be discarded.
    */
-  void cancelIndexDart();
+  void cancelIndex();
 
   /**
-   * Notifies the index store that the current Dart or HTML unit indexing is
-   * done.
+   * Notifies the index store that the current object indexing is done.
    *
-   * If this method is not invoked after corresponding "aboutToIndex*"
+   * If this method is not invoked after corresponding [aboutToIndex]
    * invocation, all recorded information may be lost.
    */
   void doneIndex();

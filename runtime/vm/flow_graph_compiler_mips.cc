@@ -12,6 +12,7 @@
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -23,6 +24,18 @@ namespace dart {
 
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, use_megamorphic_stub);
+
+
+void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Assembler* assembler = compiler->assembler();
+#define __ assembler->
+  __ Bind(entry_label());
+  __ Comment("MegamorphicSlowPath");
+  compiler->EmitMegamorphicInstanceCall(ic_data_, argument_count_, deopt_id_,
+                                        token_pos_, locs_, try_index_);
+  __ b(exit_label());
+#undef __
+}
 
 
 FlowGraphCompiler::~FlowGraphCompiler() {
@@ -96,13 +109,11 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Zone* zone = compiler->zone();
 
-  // Current PP, FP, and PC.
   builder->AddPp(current->function(), slot_ix++);
+  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
-  // Callee's PC marker is not used anymore. Pass Code::null() to set to 0.
-  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
 
   // Emit all values that are needed for materialization as a part of the
   // expression stack for the bottom-most frame. This guarantees that GC
@@ -119,19 +130,16 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Environment* previous = current;
   current = current->outer();
   while (current != NULL) {
-    // PP, FP, and PC.
     builder->AddPp(current->function(), slot_ix++);
+    builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
 
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
     builder->AddReturnAddress(
         current->function(),
-        Isolate::ToDeoptAfter(current->deopt_id()),
+        Thread::ToDeoptAfter(current->deopt_id()),
         slot_ix++);
-
-    // PC marker.
-    builder->AddPcMarker(previous->function(), slot_ix++);
 
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
@@ -157,13 +165,11 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // The previous pointer is now the outermost environment.
   ASSERT(previous != NULL);
 
-  // For the outermost environment, set caller PC, caller PP, and caller FP.
+  // Set slots for the outermost environment.
   builder->AddCallerPp(slot_ix++);
+  builder->AddPcMarker(previous->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddCallerPc(slot_ix++);
-
-  // PC marker.
-  builder->AddPcMarker(previous->function(), slot_ix++);
 
   // For the outermost environment, set the incoming arguments.
   for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
@@ -178,8 +184,8 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
                                              intptr_t stub_ix) {
   // Calls do not need stubs, they share a deoptimization trampoline.
   ASSERT(reason() != ICData::kDeoptAtCall);
-  Assembler* assem = compiler->assembler();
-#define __ assem->
+  Assembler* assembler = compiler->assembler();
+#define __ assembler->
   __ Comment("%s", Name());
   __ Bind(entry_label());
   if (FLAG_trap_on_deoptimization) {
@@ -187,9 +193,9 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
   }
 
   ASSERT(deopt_env() != NULL);
-
+  __ Push(CODE_REG);
   __ BranchLink(*StubCode::Deoptimize_entry());
-  set_pc_offset(assem->CodeSize());
+  set_pc_offset(assembler->CodeSize());
 #undef __
 }
 
@@ -263,7 +269,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Register kInstanceReg = A0;
   Error& malformed_error = Error::Handle(zone());
   const Type& int_type = Type::Handle(zone(), Type::IntType());
-  const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
+  const bool smi_is_ok =
+      int_type.IsSubtypeOf(type, &malformed_error, Heap::kOld);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
   __ andi(CMPRES1, kInstanceReg, Immediate(kSmiTagMask));
@@ -302,7 +309,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
         ASSERT(tp_argument.HasResolvedTypeClass());
         // Check if type argument is dynamic or Object.
         const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-        if (object_type.IsSubtypeOf(tp_argument, NULL)) {
+        if (object_type.IsSubtypeOf(tp_argument, NULL, Heap::kOld)) {
           // Instance class test only necessary.
           return GenerateSubtype1TestCacheLookup(
               token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -357,7 +364,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(zone()),
                             type_class,
                             TypeArguments::Handle(zone()),
-                            NULL)) {
+                            NULL,
+                            Heap::kOld)) {
     __ beq(T0, ZR, is_instance_lbl);
   } else {
     __ beq(T0, ZR, is_not_instance_lbl);
@@ -383,7 +391,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(Type::Handle(zone(), Type::Number()), NULL)) {
+  if (type.IsSubtypeOf(
+          Type::Handle(zone(), Type::Number()), NULL, Heap::kOld)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -441,7 +450,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   // Skip check if destination is a dynamic type.
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    // Load instantiator (or null) and instantiator type arguments on stack.
+    // Load instantiator type arguments on stack.
     __ lw(A1, Address(SP, 0));  // Get instantiator type arguments.
     // A1: instantiator type arguments.
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
@@ -452,7 +461,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // R2: concrete type of type.
     // Check if type argument is dynamic.
     __ BranchEqual(T2,
-        Type::ZoneHandle(zone(), Type::DynamicType()), is_instance_lbl);
+        Object::dynamic_type(), is_instance_lbl);
     __ BranchEqual(T2,
         Type::ZoneHandle(zone(), Type::ObjectType()), is_instance_lbl);
 
@@ -566,7 +575,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Inputs:
 // - A0: object.
 // - A1: instantiator type arguments or raw_null.
-// - A2: instantiator or raw_null.
 // Returns:
 // - true or false in V0.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
@@ -576,9 +584,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized() && !type.IsMalformed() && !type.IsMalbounded());
 
-  // Preserve instantiator (A2) and its type arguments (A1).
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A2, Address(SP, 1 * kWordSize));
+  // Preserve instantiator type arguments (A1).
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
   __ sw(A1, Address(SP, 0 * kWordSize));
 
   Label is_instance, is_not_instance;
@@ -605,25 +612,23 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   Label done;
   if (!test_cache.IsNull()) {
     // Generate runtime call.
-    // Load instantiator (A2) and its type arguments (A1).
+    // Load instantiator type arguments (A1).
     __ lw(A1, Address(SP, 0 * kWordSize));
-    __ lw(A2, Address(SP, 1 * kWordSize));
 
-    __ addiu(SP, SP, Immediate(-6 * kWordSize));
+    __ addiu(SP, SP, Immediate(-5 * kWordSize));
     __ LoadObject(TMP, Object::null_object());
-    __ sw(TMP, Address(SP, 5 * kWordSize));  // Make room for the result.
-    __ sw(A0, Address(SP, 4 * kWordSize));  // Push the instance.
+    __ sw(TMP, Address(SP, 4 * kWordSize));  // Make room for the result.
+    __ sw(A0, Address(SP, 3 * kWordSize));  // Push the instance.
     __ LoadObject(TMP, type);
-    __ sw(TMP, Address(SP, 3 * kWordSize));  // Push the type.
-    __ sw(A2, Address(SP, 2 * kWordSize));  // Push instantiator.
+    __ sw(TMP, Address(SP, 2 * kWordSize));  // Push the type.
     __ sw(A1, Address(SP, 1 * kWordSize));  // Push type arguments.
     __ LoadUniqueObject(A0, test_cache);
     __ sw(A0, Address(SP, 0 * kWordSize));
-    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
+    GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 4, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ lw(T0, Address(SP, 5 * kWordSize));
-    __ addiu(SP, SP, Immediate(6 * kWordSize));
+    __ lw(T0, Address(SP, 4 * kWordSize));
+    __ addiu(SP, SP, Immediate(5 * kWordSize));
     if (negate_result) {
       __ LoadObject(V0, Bool::True());
       __ bne(T0, V0, &done);
@@ -640,8 +645,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   __ Bind(&is_instance);
   __ LoadObject(V0, Bool::Get(!negate_result));
   __ Bind(&done);
-  // Remove instantiator (A2) and its type arguments (A1).
-  __ Drop(2);
+  // Remove instantiator type arguments (A1).
+  __ Drop(1);
 }
 
 
@@ -652,7 +657,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 // Inputs:
 // - A0: instance being type checked.
 // - A1: instantiator type arguments or raw_null.
-// - A2: instantiator or raw_null.
 // Returns:
 // - object in A0 for successful assignable check (or throws TypeError).
 // Clobbers: T0, T1, T2
@@ -670,9 +674,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  // Preserve instantiator and its type arguments.
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
-  __ sw(A2, Address(SP, 1 * kWordSize));
+  // Preserve instantiator type arguments.
+  __ addiu(SP, SP, Immediate(-1 * kWordSize));
+  __ sw(A1, Address(SP, 0 * kWordSize));
 
   // A null object is always assignable and is returned as result.
   Label is_assignable, runtime_call;
@@ -700,10 +704,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
     __ break_(0);
 
     __ Bind(&is_assignable);  // For a null object.
-    // Restore instantiator and its type arguments.
+    // Restore instantiator type arguments.
     __ lw(A1, Address(SP, 0 * kWordSize));
-    __ lw(A2, Address(SP, 1 * kWordSize));
-    __ addiu(SP, SP, Immediate(2 * kWordSize));
+    __ addiu(SP, SP, Immediate(1 * kWordSize));
     return;
   }
 
@@ -713,34 +716,31 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
                                         &is_assignable, &runtime_call);
 
   __ Bind(&runtime_call);
-  // Load instantiator (A2) and its type arguments (A1).
+  // Load instantiator type arguments (A1).
   __ lw(A1, Address(SP, 0 * kWordSize));
-  __ lw(A2, Address(SP, 1 * kWordSize));
 
-  __ addiu(SP, SP, Immediate(-7 * kWordSize));
+  __ addiu(SP, SP, Immediate(-6 * kWordSize));
   __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 6 * kWordSize));  // Make room for the result.
-  __ sw(A0, Address(SP, 5 * kWordSize));  // Push the source object.
+  __ sw(TMP, Address(SP, 5 * kWordSize));  // Make room for the result.
+  __ sw(A0, Address(SP, 4 * kWordSize));  // Push the source object.
   __ LoadObject(TMP, dst_type);
-  __ sw(TMP, Address(SP, 4 * kWordSize));  // Push the type of the destination.
-  __ sw(A2, Address(SP, 3 * kWordSize));  // Push instantiator.
+  __ sw(TMP, Address(SP, 3 * kWordSize));  // Push the type of the destination.
   __ sw(A1, Address(SP, 2 * kWordSize));  // Push type arguments.
   __ LoadObject(TMP, dst_name);
   __ sw(TMP, Address(SP, 1 * kWordSize));  // Push the name of the destination.
   __ LoadUniqueObject(T0, test_cache);
   __ sw(T0, Address(SP, 0 * kWordSize));
 
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 5, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ lw(A0, Address(SP, 6 * kWordSize));
-  __ addiu(SP, SP, Immediate(7 * kWordSize));
+  __ lw(A0, Address(SP, 5 * kWordSize));
+  __ addiu(SP, SP, Immediate(6 * kWordSize));
 
   __ Bind(&is_assignable);
-  // Restore instantiator and its type arguments.
+  // Restore instantiator type arguments.
   __ lw(A1, Address(SP, 0 * kWordSize));
-  __ lw(A2, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ addiu(SP, SP, Immediate(1 * kWordSize));
 }
 
 
@@ -928,7 +928,7 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
-    __ LeaveDartFrame();  // The arguments are still on the stack.
+    __ LeaveDartFrame(kKeepCalleePP);  // Arguments are still on the stack.
     __ Branch(*StubCode::CallClosureNoSuchMethod_entry());
     // The noSuchMethod call may return to the caller, but not here.
   } else if (check_correct_named_args) {
@@ -967,7 +967,7 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   // Sequence node has one return node, its input is load field node.
   __ Comment("Inlined Getter");
   __ lw(V0, Address(SP, 0 * kWordSize));
-  __ lw(V0, Address(V0, offset - kHeapObjectTag));
+  __ LoadFieldFromOffset(V0, V0, offset);
   __ Ret();
 }
 
@@ -986,31 +986,21 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 }
 
 
+static const Register new_pp = T7;
+
+
 void FlowGraphCompiler::EmitFrameEntry() {
   const Function& function = parsed_function().function();
   if (CanOptimizeFunction() &&
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
+    __ Comment("Invocation Count Check");
     const Register function_reg = T0;
 
-    __ GetNextPC(T2, TMP);
-
-    // Calculate offset of pool pointer from the PC.
-    const intptr_t object_pool_pc_dist =
-       Instructions::HeaderSize() - Instructions::object_pool_offset() +
-       assembler()->CodeSize() - 1 * Instr::kInstrSize;
-
-    // Preserve PP of caller.
-    __ mov(T1, PP);
     // Temporarily setup pool pointer for this dart function.
-    __ lw(PP, Address(T2, -object_pool_pc_dist));
+    __ LoadPoolPointer(new_pp);
     // Load function object from object pool.
-    __ LoadObject(function_reg, function);  // Uses PP.
-    // Restore PP of caller.
-    __ mov(PP, T1);
-
-    // Patch point is after the eventually inlined function object.
-    entry_patch_pc_offset_ = assembler()->CodeSize();
+    __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
 
     __ lw(T1, FieldAddress(function_reg, Function::usage_counter_offset()));
     // Reoptimization of an optimized function is triggered by counting in
@@ -1026,12 +1016,9 @@ void FlowGraphCompiler::EmitFrameEntry() {
         T1, Immediate(GetOptimizationThreshold()), &dont_branch);
 
     ASSERT(function_reg == T0);
-    __ Branch(*StubCode::OptimizeFunction_entry());
+    __ Branch(*StubCode::OptimizeFunction_entry(), new_pp);
 
     __ Bind(&dont_branch);
-
-  } else if (!flow_graph().IsCompiledForOsr()) {
-    entry_patch_pc_offset_ = assembler()->CodeSize();
   }
   __ Comment("Enter frame");
   if (flow_graph().IsCompiledForOsr()) {
@@ -1057,7 +1044,10 @@ void FlowGraphCompiler::EmitFrameEntry() {
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
 
-  TryIntrinsify();
+  if (TryIntrinsify()) {
+    // Skip regular code generation.
+    return;
+  }
 
   EmitFrameEntry();
 
@@ -1092,7 +1082,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ beq(T0, T1, &correct_num_arguments);
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
-        __ LeaveDartFrame();  // The arguments are still on the stack.
+        __ LeaveDartFrame(kKeepCalleePP);  // Arguments are still on the stack.
         __ Branch(*StubCode::CallClosureNoSuchMethod_entry());
         // The noSuchMethod call may return to the caller, but not here.
       } else {
@@ -1145,12 +1135,15 @@ void FlowGraphCompiler::CompileGraph() {
 
   __ break_(0);
   GenerateDeferredCode();
-  // Emit function patching code. This will be swapped with the first 5 bytes
-  // at entry point.
-  patch_code_pc_offset_ = assembler()->CodeSize();
-  __ BranchPatchable(*StubCode::FixCallersTarget_entry());
 
-  if (is_optimizing()) {
+  if (is_optimizing() && Compiler::allow_recompilation()) {
+    // Leave enough space for patching in case of lazy deoptimization from
+    // deferred code.
+    for (intptr_t i = 0;
+      i < CallPattern::kDeoptCallLengthInInstructions;
+      ++i) {
+      __ nop();
+    }
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
     __ Branch(*StubCode::DeoptimizeLazy_entry());
   }
@@ -1162,7 +1155,7 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
   __ BranchLinkPatchable(stub_entry);
-  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos);
+  AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
 }
 
@@ -1177,7 +1170,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {
@@ -1198,10 +1191,10 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
   __ CallRuntime(entry, argument_count);
   AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
   RecordSafepoint(locs);
-  if (deopt_id != Isolate::kNoDeoptId) {
+  if (deopt_id != Thread::kNoDeoptId) {
     // Marks either the continuation point in unoptimized code or the
     // deoptimization point in optimized code, after call.
-    const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+    const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
       AddDeoptIndexAtCall(deopt_id_after, token_pos);
     } else {
@@ -1215,19 +1208,18 @@ void FlowGraphCompiler::GenerateRuntimeCall(intptr_t token_pos,
 }
 
 
-void FlowGraphCompiler::EmitEdgeCounter() {
+void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // We do not check for overflow when incrementing the edge counter.  The
   // function should normally be optimized long before the counter can
   // overflow; and though we do not reset the counters when we optimize or
   // deoptimize, there is a bound on the number of
   // optimization/deoptimization cycles we will attempt.
-  const Array& counter = Array::ZoneHandle(zone(), Array::New(1, Heap::kOld));
-  counter.SetAt(0, Smi::Handle(zone(), Smi::New(0)));
+  ASSERT(!edge_counters_array_.IsNull());
   __ Comment("Edge counter");
-  __ LoadUniqueObject(T0, counter);
-  __ lw(T1, FieldAddress(T0, Array::element_offset(0)));
+  __ LoadObject(T0, edge_counters_array_);
+  __ LoadFieldFromOffset(T1, T0, Array::element_offset(edge_id));
   __ AddImmediate(T1, T1, Smi::RawValue(1));
-  __ sw(T1, FieldAddress(T0, Array::element_offset(0)));
+  __ StoreFieldToOffset(T1, T0, Array::element_offset(edge_id));
 }
 
 
@@ -1281,33 +1273,82 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t argument_count,
     intptr_t deopt_id,
     intptr_t token_pos,
-    LocationSummary* locs) {
-  MegamorphicCacheTable* table = Isolate::Current()->megamorphic_cache_table();
+    LocationSummary* locs,
+    intptr_t try_index) {
   const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
-  const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
-      zone(), table->Lookup(name, arguments_descriptor));
-  __ Comment("MegamorphicInstanceCall");
-  const Register receiverR = T0;
-  const Register cacheR = T1;
-  const Register targetR = T1;
-  __ lw(receiverR, Address(SP, (argument_count - 1) * kWordSize));
-  __ LoadObject(cacheR, cache);
+  const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
+      MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
 
+  __ Comment("MegamorphicCall");
+  __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
+  __ LoadObject(S5, cache);
   if (FLAG_use_megamorphic_stub) {
     __ BranchLink(*StubCode::MegamorphicLookup_entry());
   } else  {
-    StubCode::EmitMegamorphicLookup(assembler(), receiverR, cacheR, targetR);
+    StubCode::EmitMegamorphicLookup(assembler());
   }
-  __ LoadObject(S5, ic_data);
-  __ LoadObject(S4, arguments_descriptor);
-  __ jalr(targetR);
-  AddCurrentDescriptor(RawPcDescriptors::kOther,
-      Isolate::kNoDeoptId, token_pos);
+  __ jalr(T1);
+
   RecordSafepoint(locs);
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  if (Compiler::always_optimize()) {
+    // Megamorphic calls may occur in slow path stubs.
+    // If valid use try_index argument.
+    if (try_index == CatchClauseNode::kInvalidTryIndex) {
+      try_index = CurrentTryIndex();
+    }
+    pc_descriptors_list()->AddDescriptor(RawPcDescriptors::kOther,
+                                         assembler()->CodeSize(),
+                                         Thread::kNoDeoptId,
+                                         token_pos,
+                                         try_index);
+  } else if (is_optimizing()) {
+    AddCurrentDescriptor(RawPcDescriptors::kOther,
+        Thread::kNoDeoptId, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+  } else {
+    AddCurrentDescriptor(RawPcDescriptors::kOther,
+        Thread::kNoDeoptId, token_pos);
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
+  __ Drop(argument_count);
+}
+
+
+void FlowGraphCompiler::EmitSwitchableInstanceCall(
+    const ICData& ic_data,
+    intptr_t argument_count,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  __ Comment("SwitchableCall");
+  __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
+  if (ic_data.NumArgsTested() == 1) {
+    __ LoadUniqueObject(S5, ic_data);
+    __ BranchLinkPatchable(*StubCode::ICLookup_entry());
+  } else {
+    const String& name = String::Handle(zone(), ic_data.target_name());
+    const Array& arguments_descriptor =
+        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
+    ASSERT(!arguments_descriptor.IsNull() &&
+           (arguments_descriptor.Length() > 0));
+    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
+        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
+
+    __ LoadUniqueObject(S5, cache);
+    __ BranchLinkPatchable(*StubCode::MegamorphicLookup_entry());
+  }
+  __ jalr(T1);
+
+  AddCurrentDescriptor(RawPcDescriptors::kOther,
+      Thread::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {
@@ -1381,7 +1422,7 @@ Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     }
     if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            token_pos);
     }
     __ Comment("EqualityRegConstCompare return");
@@ -1415,7 +1456,7 @@ Condition FlowGraphCompiler::EmitEqualityRegRegCompare(Register left,
     }
     if (token_pos != Scanner::kNoSourcePos) {
       AddCurrentDescriptor(RawPcDescriptors::kRuntimeCall,
-                           Isolate::kNoDeoptId,
+                           Thread::kNoDeoptId,
                            token_pos);
     }
     __ Comment("EqualityRegRegCompare return");
@@ -1447,8 +1488,8 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     // Store fpu registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      DRegister fpu_reg = static_cast<DRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         __ StoreDToOffset(fpu_reg, SP, offset);
         offset += kFpuRegisterSize;
@@ -1457,16 +1498,15 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
     ASSERT(offset == (fpu_regs_count * kFpuRegisterSize));
   }
 
-  // Store general purpose registers with the highest register number at the
-  // lowest address. The order in which the registers are pushed must match the
-  // order in which the registers are encoded in the safe point's stack map.
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
   const int register_count = Utils::CountOneBits(cpu_registers);
   if (register_count > 0) {
     __ addiu(SP, SP, Immediate(-register_count * kWordSize));
     intptr_t offset = register_count * kWordSize;
-    for (int i = 0; i < kNumberOfCpuRegisters; i++) {
+    for (int i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
       Register r = static_cast<Register>(i);
       if (locs->live_registers()->ContainsRegister(r)) {
         offset -= kWordSize;
@@ -1479,15 +1519,13 @@ void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
   __ Comment("RestoreLiveRegisters");
   const intptr_t cpu_registers = locs->live_registers()->cpu_registers();
   ASSERT((cpu_registers & ~kAllCpuRegistersList) == 0);
   const int register_count = Utils::CountOneBits(cpu_registers);
   if (register_count > 0) {
     intptr_t offset = register_count * kWordSize;
-    for (int i = 0; i < kNumberOfCpuRegisters; i++) {
+    for (int i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
       Register r = static_cast<Register>(i);
       if (locs->live_registers()->ContainsRegister(r)) {
         offset -= kWordSize;
@@ -1502,8 +1540,8 @@ void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
   if (fpu_regs_count > 0) {
     // Fpu registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfFpuRegisters; ++reg_idx) {
-      DRegister fpu_reg = static_cast<DRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfFpuRegisters; ++i) {
+      DRegister fpu_reg = static_cast<DRegister>(i);
       if (locs->live_registers()->ContainsFpuRegister(fpu_reg)) {
         __ LoadDFromOffset(fpu_reg, SP, offset);
         offset += kFpuRegisterSize;

@@ -11,7 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart'
     show SearchResult, newSearchResult_fromMatch;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -90,7 +90,7 @@ class ElementReferencesComputer {
 
   SearchResult _newDeclarationResult(Element refElement) {
     int nameOffset = refElement.nameOffset;
-    int nameLength = refElement.name.length;
+    int nameLength = refElement.nameLength;
     SearchMatch searchMatch = new SearchMatch(MatchKind.DECLARATION, refElement,
         new SourceRange(nameOffset, nameLength), true, false);
     return newSearchResult_fromMatch(searchMatch);

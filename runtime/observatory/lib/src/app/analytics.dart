@@ -7,7 +7,7 @@ part of app;
 class Analytics {
   static final _UA = 'UA-26406144-17';
   static final _name = 'Observatory';
-  static final _version = '1.11';
+  static final _version = const String.fromEnvironment('OBS_VER');
   static final _googleAnalytics = new AnalyticsHtml(_UA, _name, _version);
 
   static initialize() {

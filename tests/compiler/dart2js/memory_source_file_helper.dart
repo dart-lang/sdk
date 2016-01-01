@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 export 'dart:io' show Platform;
 
 export 'package:compiler/src/apiimpl.dart'
-       show Compiler;
+       show CompilerImpl;
 
 export 'package:compiler/src/filenames.dart'
        show currentDirectory;

@@ -51,8 +51,9 @@ DEFINE_FLAG(bool, trace_thread_interrupter, false,
 bool ThreadInterrupter::initialized_ = false;
 bool ThreadInterrupter::shutdown_ = false;
 bool ThreadInterrupter::thread_running_ = false;
-ThreadId ThreadInterrupter::interrupter_thread_id_ =
-    OSThread::kInvalidThreadId;
+bool ThreadInterrupter::woken_up_ = false;
+ThreadJoinId ThreadInterrupter::interrupter_thread_id_ =
+    OSThread::kInvalidThreadJoinId;
 Monitor* ThreadInterrupter::monitor_ = NULL;
 intptr_t ThreadInterrupter::interrupt_period_ = 1000;
 intptr_t ThreadInterrupter::current_wait_time_ = Monitor::kNoTimeout;
@@ -71,15 +72,15 @@ void ThreadInterrupter::Startup() {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter starting up.\n");
   }
-  ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadId);
+  ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadJoinId);
   {
     MonitorLocker startup_ml(monitor_);
-    OSThread::Start(ThreadMain, 0);
+    OSThread::Start("ThreadInterrupter", ThreadMain, 0);
     while (!thread_running_) {
       startup_ml.Wait();
     }
   }
-  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadId);
+  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadJoinId);
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter running.\n");
   }
@@ -101,28 +102,17 @@ void ThreadInterrupter::Shutdown() {
       OS::Print("ThreadInterrupter shutting down.\n");
     }
   }
-#if defined(TARGET_OS_WINDOWS)
-  // On Windows, a thread's exit-code can leak into the process's exit-code,
-  // if exiting 'at same time' as the process ends. By joining with the thread
-  // here, we avoid this race condition.
-  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadId);
+
+  // Join the thread.
+  ASSERT(interrupter_thread_id_ != OSThread::kInvalidThreadJoinId);
   OSThread::Join(interrupter_thread_id_);
-  interrupter_thread_id_ = OSThread::kInvalidThreadId;
-#else
-  // On non-Windows platforms, just wait for the thread interrupter to signal
-  // that it has exited the loop.
-  {
-    MonitorLocker shutdown_ml(monitor_);
-    while (thread_running_) {
-      // Wait for thread to exit.
-      shutdown_ml.Wait();
-    }
-  }
-#endif
+  interrupter_thread_id_ = OSThread::kInvalidThreadJoinId;
+
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter shut down.\n");
   }
 }
+
 
 // Delay between interrupts.
 void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
@@ -136,9 +126,14 @@ void ThreadInterrupter::SetInterruptPeriod(intptr_t period) {
 
 
 void ThreadInterrupter::WakeUp() {
+  if (!initialized_) {
+    // Early call.
+    return;
+  }
   ASSERT(initialized_);
   {
     MonitorLocker ml(monitor_);
+    woken_up_ = true;
     if (!InDeepSleep()) {
       // No need to notify, regularly waking up.
       return;
@@ -147,35 +142,6 @@ void ThreadInterrupter::WakeUp() {
     ml.Notify();
   }
 }
-
-
-void ThreadInterruptNoOp(const InterruptedThreadState& state, void* data) {
-  // NoOp.
-}
-
-
-class ThreadInterrupterVisitIsolates : public IsolateVisitor {
- public:
-  ThreadInterrupterVisitIsolates() {
-    profiled_thread_count_ = 0;
-  }
-
-  void VisitIsolate(Isolate* isolate) {
-    ASSERT(isolate != NULL);
-    profiled_thread_count_ += isolate->ProfileInterrupt();
-  }
-
-  intptr_t profiled_thread_count() const {
-    return profiled_thread_count_;
-  }
-
-  void set_profiled_thread_count(intptr_t profiled_thread_count) {
-    profiled_thread_count_ = profiled_thread_count;
-  }
-
- private:
-  intptr_t profiled_thread_count_;
-};
 
 
 void ThreadInterrupter::ThreadMain(uword parameters) {
@@ -187,35 +153,61 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
   {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
-    interrupter_thread_id_ = OSThread::GetCurrentThreadId();
+    OSThread* os_thread = OSThread::Current();
+    ASSERT(os_thread != NULL);
+    interrupter_thread_id_ = os_thread->join_id();
     thread_running_ = true;
     startup_ml.Notify();
   }
   {
-    ThreadInterrupterVisitIsolates visitor;
+    intptr_t interrupted_thread_count = 0;
     current_wait_time_ = interrupt_period_;
     MonitorLocker wait_ml(monitor_);
     while (!shutdown_) {
       intptr_t r = wait_ml.WaitMicros(current_wait_time_);
 
+      if (shutdown_) {
+        break;
+      }
+
       if ((r == Monitor::kNotified) && InDeepSleep()) {
         // Woken up from deep sleep.
-        ASSERT(visitor.profiled_thread_count() == 0);
+        ASSERT(interrupted_thread_count == 0);
         // Return to regular interrupts.
         current_wait_time_ = interrupt_period_;
       }
 
-      // Reset count before visiting isolates.
-      visitor.set_profiled_thread_count(0);
-      Isolate::VisitIsolates(&visitor);
+      // Reset count before interrupting any threads.
+      interrupted_thread_count = 0;
 
-      if (visitor.profiled_thread_count() == 0) {
-        // No isolates were profiled. In order to reduce unnecessary CPU
-        // load, we will wait until we are notified before attempting to
-        // interrupt again.
+      // Temporarily drop the monitor while we interrupt threads.
+      monitor_->Exit();
+
+      {
+        OSThreadIterator it;
+        while (it.HasNext()) {
+          OSThread* thread = it.Next();
+          if (thread->ThreadInterruptsEnabled()) {
+            interrupted_thread_count++;
+            InterruptThread(thread);
+          }
+        }
+      }
+
+      // Take the monitor lock again.
+      monitor_->Enter();
+
+      // Now that we have the lock, check if we were signaled to wake up while
+      // interrupting threads.
+      if (!woken_up_ && (interrupted_thread_count == 0)) {
+        // No threads were interrupted and we were not signaled to interrupt
+        // new threads. In order to reduce unnecessary CPU load, we will wait
+        // until we are notified before attempting to interrupt again.
         current_wait_time_ = Monitor::kNoTimeout;
         continue;
       }
+
+      woken_up_ = false;
 
       ASSERT(current_wait_time_ != Monitor::kNoTimeout);
     }

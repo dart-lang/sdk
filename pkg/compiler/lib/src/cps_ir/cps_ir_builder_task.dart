@@ -6,6 +6,7 @@ library dart2js.ir_builder_task;
 
 import '../closure.dart' as closurelib;
 import '../closure.dart' hide ClosureScope;
+import '../common.dart';
 import '../common/names.dart' show
     Names,
     Selectors;
@@ -15,36 +16,35 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     SynthesizedConstructorElementX,
     ConstructorBodyElementX,
     FunctionSignatureX;
 import '../io/source_information.dart';
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     SyntheticConstantKind;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/semantic_visitor.dart';
-import '../resolution/send_resolver.dart' show
-    SendResolverMixin;
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show
     TypeMask;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 import '../constants/values.dart' show
     ConstantValue;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
 import '../native/native.dart' show
-    NativeBehavior;
+    NativeBehavior,
+    HasCapturedPlaceholders;
 
 // TODO(karlklose): remove.
 import '../js/js.dart' as js show js, Template, Expression, Name;
@@ -54,6 +54,8 @@ import '../util/util.dart';
 import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, JsGetName;
 import '../constants/values.dart';
+import 'type_mask_system.dart' show
+    TypeMaskSystem;
 
 typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 
@@ -75,21 +77,23 @@ class IrBuilderTask extends CompilerTask {
       [this.builderCallback])
       : super(compiler);
 
-  String get name => 'IR builder';
+  String get name => 'CPS builder';
 
-  ir.FunctionDefinition buildNode(AstElement element) {
+  ir.FunctionDefinition buildNode(AstElement element,
+                                  TypeMaskSystem typeMaskSystem) {
     return measure(() {
       bailoutMessage = null;
 
       TreeElements elementsMapping = element.resolvedAst.elements;
       element = element.implementation;
-      return compiler.withCurrentElement(element, () {
+      return reporter.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
             sourceInformationStrategy.createBuilderForContext(element);
 
         IrBuilderVisitor builder =
             new JsIrBuilderVisitor(
-                elementsMapping, compiler, sourceInformationBuilder);
+                elementsMapping, compiler, sourceInformationBuilder,
+                typeMaskSystem);
         ir.FunctionDefinition irNode = builder.buildExecutable(element);
         if (irNode == null) {
           bailoutMessage = builder.bailoutMessage;
@@ -114,7 +118,6 @@ class IrBuilderTask extends CompilerTask {
 abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     with IrBuilderMixin<ast.Node>,
          SemanticSendResolvedMixin<ir.Primitive, dynamic>,
-         SendResolverMixin,
          ErrorBulkMixin<ir.Primitive, dynamic>,
          BaseImplementationOfStaticsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfLocalsMixin<ir.Primitive, dynamic>,
@@ -128,6 +131,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   final TreeElements elements;
   final Compiler compiler;
   final SourceInformationBuilder sourceInformationBuilder;
+  final TypeMaskSystem typeMaskSystem;
 
   /// A map from try statements in the source to analysis information about
   /// them.
@@ -158,7 +162,10 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// Construct a top-level visitor.
   IrBuilderVisitor(this.elements,
                    this.compiler,
-                   this.sourceInformationBuilder);
+                   this.sourceInformationBuilder,
+                   this.typeMaskSystem);
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   String bailoutMessage = null;
 
@@ -179,25 +186,25 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ClosureScope getClosureScopeForNode(ast.Node node);
   ClosureEnvironment getClosureEnvironment();
 
-  /// Normalizes the argument list to a static invocation (i.e. where the target
-  /// element is known).
+  /// Normalizes the argument list of a static invocation.
   ///
-  /// For the JS backend, inserts default arguments and normalizes order of
-  /// named arguments.
-  ///
-  /// For the Dart backend, returns [arguments].
-  List<ir.Primitive> normalizeStaticArguments(
+  /// A static invocation is one where the target is known.  The argument list
+  /// [arguments] is normalized by adding default values for optional arguments
+  /// that are not passed, and by sorting it in place so that named arguments
+  /// appear in a canonical order.  A [CallStructure] reflecting this order
+  /// is returned.
+  CallStructure normalizeStaticArguments(
       CallStructure callStructure,
       FunctionElement target,
       List<ir.Primitive> arguments);
 
-  /// Normalizes the argument list of a dynamic invocation (i.e. where the
-  /// target element is unknown).
+  /// Normalizes the argument list of a dynamic invocation.
   ///
-  /// For the JS backend, normalizes order of named arguments.
-  ///
-  /// For the Dart backend, returns [arguments].
-  List<ir.Primitive> normalizeDynamicArguments(
+  /// A dynamic invocation is one where the target is not known.  The argument
+  /// list [arguments] is normalized by sorting it in place so that the named
+  /// arguments appear in a canonical order.  A [CallStructure] reflecting this
+  /// order is returned.
+  CallStructure normalizeDynamicArguments(
       CallStructure callStructure,
       List<ir.Primitive> arguments);
 
@@ -226,6 +233,16 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.makeFunctionDefinition();
   }
 
+  /// Returns the allocation site-specific type for a given allocation.
+  ///
+  /// Currently, it is an error to call this with anything that is not the
+  /// allocation site for a List object (a literal list or a call to one
+  /// of the List constructors).
+  TypeMask getAllocationSiteType(ast.Node node) {
+    return compiler.typesTask.getGuaranteedTypeOfNode(
+        elements.analyzedElement, node);
+  }
+
   ir.Primitive visit(ast.Node node) => node.accept(this);
 
   // ## Statements ##
@@ -235,14 +252,14 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   ir.Primitive visitBreakStatement(ast.BreakStatement node) {
     if (!irBuilder.buildBreak(elements.getTargetOf(node))) {
-      compiler.internalError(node, "'break' target not found");
+      reporter.internalError(node, "'break' target not found");
     }
     return null;
   }
 
   ir.Primitive visitContinueStatement(ast.ContinueStatement node) {
     if (!irBuilder.buildContinue(elements.getTargetOf(node))) {
-      compiler.internalError(node, "'continue' target not found");
+      reporter.internalError(node, "'continue' target not found");
     }
     return null;
   }
@@ -300,8 +317,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     CallStructure callStructure = new CallStructure(
         redirectingSignature.parameterCount,
         namedParameters);
-    arguments = normalizeStaticArguments(callStructure, targetConstructor,
-        arguments);
+    callStructure =
+        normalizeStaticArguments(callStructure, targetConstructor, arguments);
     ir.Primitive instance = irBuilder.buildConstructorInvocation(
         targetConstructor,
         callStructure,
@@ -379,6 +396,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildAwait(value);
   }
 
+  visitYield(ast.Yield node) {
+    ir.Primitive value = visit(node.expression);
+    return irBuilder.buildYield(value, node.hasStar);
+  }
+
   visitSyncForIn(ast.SyncForIn node) {
     // [node.declaredIdentifier] can be either an [ast.VariableDefinitions]
     // (defining a new local variable) or a send designating some existing
@@ -403,6 +425,21 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         closureScope: getClosureScopeForNode(node));
   }
 
+  /// If compiling with trusted type annotations, assumes that [value] is
+  /// now known to be `null` or an instance of [type].
+  ///
+  /// This is also where we should add type checks in checked mode, but this
+  /// is not supported yet.
+  ir.Primitive checkType(ir.Primitive value, DartType dartType) {
+    if (!compiler.trustTypeAnnotations) return value;
+    TypeMask type = typeMaskSystem.subtypesOf(dartType).nullable();
+    return irBuilder.buildRefinement(value, type);
+  }
+
+  ir.Primitive checkTypeVsElement(ir.Primitive value, TypedElement element) {
+    return checkType(value, element.type);
+  }
+
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(irBuilder.isOpen);
     for (ast.Node definition in node.definitions.nodes) {
@@ -414,6 +451,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         assert(!definition.arguments.isEmpty);
         assert(definition.arguments.tail.isEmpty);
         initialValue = visit(definition.arguments.head);
+        initialValue = checkTypeVsElement(initialValue, element);
       } else {
         assert(definition is ast.Identifier);
       }
@@ -434,7 +472,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     SourceInformation source = sourceInformationBuilder.buildReturn(node);
     if (node.beginToken.value == 'native') {
       FunctionElement function = irBuilder.state.currentElement;
-      assert(function.isNative);
+      assert(compiler.backend.isNative(function));
       ast.Node nativeBody = node.expression;
       if (nativeBody != null) {
         ast.LiteralString jsCode = nativeBody.asLiteralString();
@@ -448,7 +486,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               'functions with zero parameters.'));
         irBuilder.buildNativeFunctionBody(function, javaScriptCode);
       } else {
-        irBuilder.buildRedirectingNativeFunctionBody(function, source);
+        JavaScriptBackend backend = compiler.backend;
+        String name = backend.getFixedBackendName(function);
+        irBuilder.buildRedirectingNativeFunctionBody(function, name, source);
       }
     } else {
       irBuilder.buildReturn(
@@ -494,7 +534,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ir.Primitive value = visit(node.expression);
     JumpTarget target = elements.getTargetDefinition(node);
     Element error =
-        (compiler.backend as JavaScriptBackend).getFallThroughError();
+        (compiler.backend as JavaScriptBackend).helpers.fallThroughError;
     irBuilder.buildSimpleSwitch(target, value, cases, defaultCase, error,
         sourceInformationBuilder.buildGeneric(node));
   }
@@ -602,7 +642,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
     List<ir.Primitive> values = node.elements.nodes.mapToList(visit);
     InterfaceType type = elements.getType(node);
-    return irBuilder.buildListLiteral(type, values);
+    return irBuilder.buildListLiteral(type, values,
+        allocationSiteType: getAllocationSiteType(node));
   }
 
   ir.Primitive visitLiteralMap(ast.LiteralMap node) {
@@ -648,9 +689,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return receiver;
   }
 
-  // ## Sends ##
   @override
-  ir.Primitive visitAssert(ast.Send node, ast.Node condition, _) {
+  ir.Primitive visitAssert(ast.Assert node) {
     assert(irBuilder.isOpen);
     if (compiler.enableUserAssertions) {
       return giveup(node, 'assert in checked mode not implemented');
@@ -663,6 +703,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
   }
 
+  // ## Sends ##
   @override
   void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
     giveup(node, 'deferred access is not implemented');
@@ -679,10 +720,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                                      ast.NodeList argumentsNode,
                                      CallStructure callStructure, _) {
     ir.Primitive receiver = visit(expression);
-    List<ir.Primitive> arguments = node.arguments.mapToList(visit);
-    arguments = normalizeDynamicArguments(callStructure, arguments);
-    return irBuilder.buildCallInvocation(
-        receiver, callStructure, arguments,
+    List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
+    callStructure = normalizeDynamicArguments(callStructure, arguments);
+    return irBuilder.buildCallInvocation(receiver, callStructure, arguments,
         sourceInformation:
             sourceInformationBuilder.buildCall(node, argumentsNode));
   }
@@ -910,12 +950,16 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                                ast.Node left,
                                op.BinaryOperator operator,
                                ast.Node right) {
-    Selector selector = new Selector.binaryOperator(operator.selectorName);
     ir.Primitive receiver = visit(left);
+    Selector selector = new Selector.binaryOperator(operator.selectorName);
     List<ir.Primitive> arguments = <ir.Primitive>[visit(right)];
-    arguments = normalizeDynamicArguments(selector.callStructure, arguments);
+    CallStructure callStructure =
+        normalizeDynamicArguments(selector.callStructure, arguments);
     return irBuilder.buildDynamicInvocation(
-        receiver, selector, elements.getTypeMask(node), arguments,
+        receiver,
+        new Selector(selector.kind, selector.memberName, callStructure),
+        elements.getTypeMask(node),
+        arguments,
         sourceInformation:
             sourceInformationBuilder.buildCall(node, node.selector));
   }
@@ -932,12 +976,16 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitIndex(ast.Send node,
                           ast.Node receiver,
                           ast.Node index, _) {
-    Selector selector = new Selector.index();
     ir.Primitive target = visit(receiver);
+    Selector selector = new Selector.index();
     List<ir.Primitive> arguments = <ir.Primitive>[visit(index)];
-    arguments = normalizeDynamicArguments(selector.callStructure, arguments);
+    CallStructure callStructure =
+        normalizeDynamicArguments(selector.callStructure, arguments);
     return irBuilder.buildDynamicInvocation(
-        target, selector, elements.getTypeMask(node), arguments,
+        target,
+        new Selector(selector.kind, selector.memberName, callStructure),
+        elements.getTypeMask(node),
+        arguments,
         sourceInformation:
             sourceInformationBuilder.buildCall(receiver, node.selector));
   }
@@ -945,11 +993,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive translateSuperBinary(FunctionElement function,
                                     op.BinaryOperator operator,
                                     ast.Node argument) {
-    CallStructure callStructure = CallStructure.ONE_ARG;
     List<ir.Primitive> arguments = <ir.Primitive>[visit(argument)];
-    arguments = normalizeDynamicArguments(callStructure, arguments);
-    return irBuilder.buildSuperMethodInvocation(
-        function, callStructure, arguments);
+    return irBuilder.buildSuperMethodInvocation(function,
+        CallStructure.ONE_ARG, arguments);
   }
 
   @override
@@ -1041,28 +1087,33 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   // TODO(johnniwinther): Handle this in the [IrBuilder] to ensure the correct
   // semantic correlation between arguments and invocation.
-  List<ir.Primitive> translateDynamicArguments(ast.NodeList nodeList,
-                                               CallStructure callStructure) {
-    List<ir.Primitive> arguments = nodeList.nodes.mapToList(visit);
+  CallStructure translateDynamicArguments(ast.NodeList nodeList,
+                                          CallStructure callStructure,
+                                          List<ir.Primitive> arguments) {
+    assert(arguments.isEmpty);
+    for (ast.Node node in nodeList) arguments.add(visit(node));
     return normalizeDynamicArguments(callStructure, arguments);
   }
 
   // TODO(johnniwinther): Handle this in the [IrBuilder] to ensure the correct
   // semantic correlation between arguments and invocation.
-  List<ir.Primitive> translateStaticArguments(ast.NodeList nodeList,
-                                              Element element,
-                                              CallStructure callStructure) {
-    List<ir.Primitive> arguments = nodeList.nodes.mapToList(visit);
+  CallStructure translateStaticArguments(ast.NodeList nodeList,
+                                         Element element,
+                                         CallStructure callStructure,
+                                         List<ir.Primitive> arguments) {
+    assert(arguments.isEmpty);
+    for (ast.Node node in nodeList) arguments.add(visit(node));
     return normalizeStaticArguments(callStructure, element, arguments);
   }
 
   ir.Primitive translateCallInvoke(ir.Primitive target,
-                                   ast.NodeList arguments,
+                                   ast.NodeList argumentsNode,
                                    CallStructure callStructure,
                                    SourceInformation sourceInformation) {
-
-    return irBuilder.buildCallInvocation(target, callStructure,
-        translateDynamicArguments(arguments, callStructure),
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildCallInvocation(target, callStructure, arguments,
         sourceInformation: sourceInformation);
   }
 
@@ -1083,12 +1134,18 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleDynamicInvoke(
       ast.Send node,
       ast.Node receiver,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       Selector selector,
       _) {
+    ir.Primitive target = translateReceiver(receiver);
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    CallStructure callStructure = translateDynamicArguments(
+        argumentsNode, selector.callStructure, arguments);
     return irBuilder.buildDynamicInvocation(
-        translateReceiver(receiver), selector, elements.getTypeMask(node),
-        translateDynamicArguments(arguments, selector.callStructure),
+        target,
+        new Selector(selector.kind, selector.memberName, callStructure),
+        elements.getTypeMask(node),
+        arguments,
         sourceInformation:
             sourceInformationBuilder.buildCall(node, node.selector));
   }
@@ -1097,39 +1154,56 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitIfNotNullDynamicPropertyInvoke(
       ast.Send node,
       ast.Node receiver,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       Selector selector,
       _) {
     ir.Primitive target = visit(receiver);
     return irBuilder.buildIfNotNullSend(
         target,
-        nested(() => irBuilder.buildDynamicInvocation(
-            target, selector, elements.getTypeMask(node),
-            translateDynamicArguments(arguments, selector.callStructure))));
+        nested(() {
+          List<ir.Primitive> arguments = <ir.Primitive>[];
+          CallStructure callStructure = translateDynamicArguments(
+              argumentsNode, selector.callStructure, arguments);
+          return irBuilder.buildDynamicInvocation(
+              target,
+              new Selector(selector.kind, selector.memberName, callStructure),
+              elements.getTypeMask(node),
+              arguments);
+        }));
   }
 
   ir.Primitive handleLocalInvoke(
       ast.Send node,
       LocalElement element,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
-    return irBuilder.buildLocalVariableInvocation(element, callStructure,
-        translateDynamicArguments(arguments, callStructure),
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildLocalVariableInvocation(
+        element,
+        callStructure,
+        arguments,
         callSourceInformation:
-            sourceInformationBuilder.buildCall(node, arguments));
+            sourceInformationBuilder.buildCall(node, argumentsNode));
   }
 
   @override
   ir.Primitive visitLocalFunctionInvoke(
       ast.Send node,
       LocalFunctionElement function,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
-    return irBuilder.buildLocalFunctionInvocation(function, callStructure,
-        translateDynamicArguments(arguments, callStructure),
-        sourceInformationBuilder.buildCall(node, arguments));
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildLocalFunctionInvocation(
+        function,
+        callStructure,
+        arguments,
+        sourceInformationBuilder.buildCall(node, argumentsNode));
   }
 
   @override
@@ -1141,16 +1215,20 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleStaticFieldInvoke(
       ast.Send node,
       FieldElement field,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
     SourceInformation src = sourceInformationBuilder.buildGet(node);
     ir.Primitive target = buildStaticFieldGet(field, src);
-    return irBuilder.buildCallInvocation(target,
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildCallInvocation(
+        target,
         callStructure,
-        translateDynamicArguments(arguments, callStructure),
+        arguments,
         sourceInformation:
-            sourceInformationBuilder.buildCall(node, arguments));
+            sourceInformationBuilder.buildCall(node, argumentsNode));
   }
 
   @override
@@ -1167,7 +1245,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement function,
       ast.NodeList arguments,
       CallStructure callStructure, _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         elements.getSelector(node),
         arguments.nodes.mapToList(visit));
   }
@@ -1176,58 +1254,75 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleStaticGetterInvoke(
       ast.Send node,
       FunctionElement getter,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
-    ir.Primitive target = irBuilder.buildStaticGetterGet(
-        getter, sourceInformationBuilder.buildGet(node));
-    return irBuilder.buildCallInvocation(target,
+    ir.Primitive target = irBuilder.buildStaticGetterGet(getter,
+        sourceInformationBuilder.buildGet(node));
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildCallInvocation(
+        target,
         callStructure,
-        translateDynamicArguments(arguments, callStructure),
+        arguments,
         sourceInformation:
-            sourceInformationBuilder.buildCall(node, arguments));
+            sourceInformationBuilder.buildCall(node, argumentsNode));
   }
 
   @override
   ir.Primitive visitSuperFieldInvoke(
       ast.Send node,
       FieldElement field,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
     ir.Primitive target = irBuilder.buildSuperFieldGet(field);
-    return irBuilder.buildCallInvocation(target,
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildCallInvocation(
+        target,
         callStructure,
-        translateDynamicArguments(arguments, callStructure),
+        arguments,
         sourceInformation:
-            sourceInformationBuilder.buildCall(node, arguments));
+            sourceInformationBuilder.buildCall(node, argumentsNode));
   }
 
   @override
   ir.Primitive visitSuperGetterInvoke(
       ast.Send node,
       FunctionElement getter,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
-    ir.Primitive target = irBuilder.buildSuperGetterGet(
-        getter, sourceInformationBuilder.buildGet(node));
-    return irBuilder.buildCallInvocation(target,
+    ir.Primitive target = irBuilder.buildSuperGetterGet(getter,
+        sourceInformationBuilder.buildGet(node));
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildCallInvocation(
+        target,
         callStructure,
-        translateDynamicArguments(arguments, callStructure),
+        arguments,
         sourceInformation:
-            sourceInformationBuilder.buildCall(node, arguments));
+            sourceInformationBuilder.buildCall(node, argumentsNode));
   }
 
   @override
   ir.Primitive visitSuperMethodInvoke(
       ast.Send node,
       MethodElement method,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
-    return irBuilder.buildSuperMethodInvocation(method, callStructure,
-        translateDynamicArguments(arguments, callStructure),
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure = translateStaticArguments(argumentsNode, method,
+        callStructure, arguments);
+    return irBuilder.buildSuperMethodInvocation(
+        method,
+        callStructure,
+        arguments,
         sourceInformation:
             sourceInformationBuilder.buildCall(node, node.selector));
   }
@@ -1238,22 +1333,30 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement method,
       ast.NodeList arguments,
       CallStructure callStructure, _) {
+    List<ir.Primitive> normalizedArguments = <ir.Primitive>[];
+    CallStructure normalizedCallStructure =
+      translateDynamicArguments(arguments, callStructure, normalizedArguments);
     return buildInstanceNoSuchMethod(
-        elements.getSelector(node),
+        new Selector.call(method.memberName, normalizedCallStructure),
         elements.getTypeMask(node),
-        translateDynamicArguments(arguments, callStructure));
+        normalizedArguments);
   }
 
   @override
   ir.Primitive visitUnresolvedSuperInvoke(
       ast.Send node,
       Element element,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       Selector selector, _) {
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    CallStructure callStructure = translateDynamicArguments(
+        argumentsNode, selector.callStructure, arguments);
+    // TODO(johnniwinther): Supply a member name to the visit function instead
+    // of looking it up in elements.
     return buildInstanceNoSuchMethod(
-        elements.getSelector(node),
+        new Selector.call(elements.getSelector(node).memberName, callStructure),
         elements.getTypeMask(node),
-        translateDynamicArguments(arguments, selector.callStructure));
+        arguments);
   }
 
   @override
@@ -1331,15 +1434,19 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       rhsValue = irBuilder.buildIntegerConstant(1);
     }
     List<ir.Primitive> arguments = <ir.Primitive>[rhsValue];
-    arguments = normalizeDynamicArguments(
-        operatorSelector.callStructure, arguments);
+    CallStructure callStructure =
+        normalizeDynamicArguments(operatorSelector.callStructure, arguments);
     TypeMask operatorTypeMask =
         elements.getOperatorTypeMaskInComplexSendSet(node);
     SourceInformation operatorSourceInformation =
         sourceInformationBuilder.buildCall(node, node.assignmentOperator);
     ir.Primitive result = irBuilder.buildDynamicInvocation(
-        value, operatorSelector, operatorTypeMask, arguments,
-            sourceInformation: operatorSourceInformation);
+        value,
+        new Selector(operatorSelector.kind, operatorSelector.memberName,
+            callStructure),
+        operatorTypeMask,
+        arguments,
+        sourceInformation: operatorSourceInformation);
     setValue(result);
     return rhs.kind == CompoundKind.POSTFIX ? value : result;
   }
@@ -1396,7 +1503,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       LocalElement element,
       ast.Node rhs,
       _) {
-    return irBuilder.buildLocalVariableSet(element, visit(rhs));
+    ir.Primitive value = visit(rhs);
+    value = checkTypeVsElement(value, element);
+    return irBuilder.buildLocalVariableSet(element, value);
   }
 
   @override
@@ -1535,7 +1644,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive buildLocalNoSuchSetter(LocalElement local, ir.Primitive value) {
     Selector selector = new Selector.setter(
         new Name(local.name, local.library, isSetter: true));
-    return buildStaticNoSuchMethod(selector, [value]);
+    return irBuilder.buildStaticNoSuchMethod(selector, [value]);
   }
 
   @override
@@ -1591,13 +1700,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   ir.Primitive buildStaticNoSuchGetter(Element element) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.getter(new Name(element.name, element.library)),
         const <ir.Primitive>[]);
   }
 
   ir.Primitive buildStaticNoSuchSetter(Element element, ir.Primitive value) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(new Name(element.name, element.library)),
         <ir.Primitive>[value]);
   }
@@ -1617,7 +1726,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           switch (getterKind) {
             case CompoundGetter.FIELD:
               SourceInformation src = sourceInformationBuilder.buildGet(node);
-              return irBuilder.buildStaticFieldGet(getter, src);
+              return buildStaticFieldGet(getter, src);
             case CompoundGetter.GETTER:
               return irBuilder.buildStaticGetterGet(
                   getter, sourceInformationBuilder.buildGet(node));
@@ -1655,7 +1764,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           switch (getterKind) {
             case CompoundGetter.FIELD:
               SourceInformation src = sourceInformationBuilder.buildGet(node);
-              return irBuilder.buildStaticFieldGet(getter, src);
+              return buildStaticFieldGet(getter, src);
             case CompoundGetter.GETTER:
               return irBuilder.buildStaticGetterGet(
                   getter, sourceInformationBuilder.buildGet(node));
@@ -1816,11 +1925,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         getValue: () {
           Selector selector = new Selector.index();
           List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
-          arguments =
+          CallStructure callStructure =
               normalizeDynamicArguments(selector.callStructure, arguments);
           return irBuilder.buildDynamicInvocation(
               target,
-              selector,
+              new Selector(selector.kind, selector.memberName, callStructure),
               elements.getGetterTypeMaskInComplexSendSet(node),
               arguments,
               sourceInformation:
@@ -1926,10 +2035,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildNonTailThrow(visit(node.expression));
   }
 
-  ir.Primitive buildStaticNoSuchMethod(
-      Selector selector,
-      List<ir.Primitive> arguments);
-
   ir.Primitive buildInstanceNoSuchMethod(
       Selector selector,
       TypeMask mask,
@@ -1947,7 +2052,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node rhs, _) {
     // TODO(asgerf): What is unresolved? The getter and/or the setter?
     //               If it was the setter, we must evaluate the right-hand side.
-    return buildStaticNoSuchMethod(elements.getSelector(node), []);
+    return irBuilder.buildStaticNoSuchMethod(elements.getSelector(node), []);
   }
 
   @override
@@ -1966,29 +2071,36 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NewExpression node,
       Element constructor,
       DartType type,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       Selector selector, _) {
     // If the class is there but the constructor is missing, it's an NSM error.
-    return buildStaticNoSuchMethod(selector,
-        translateDynamicArguments(arguments, selector.callStructure));
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    CallStructure callStructure = translateDynamicArguments(
+        argumentsNode, selector.callStructure, arguments);
+    return irBuilder.buildStaticNoSuchMethod(
+        new Selector(selector.kind, selector.memberName, callStructure),
+        arguments);
   }
 
   @override
   ir.Primitive visitConstructorIncompatibleInvoke(
       ast.NewExpression node,
-      Element constructor,
+      ConstructorElement constructor,
       DartType type,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure, _) {
-    return buildStaticNoSuchMethod(elements.getSelector(node.send),
-        translateDynamicArguments(arguments, callStructure));
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildStaticNoSuchMethod(
+        new Selector.call(constructor.memberName, callStructure), arguments);
   }
 
   @override
   ir.Primitive visitUnresolvedGet(
       ast.Send node,
       Element element, _) {
-    return buildStaticNoSuchMethod(elements.getSelector(node), []);
+    return irBuilder.buildStaticNoSuchMethod(elements.getSelector(node), []);
   }
 
   @override
@@ -1997,7 +2109,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       Element element,
       ast.NodeList arguments,
       Selector selector, _) {
-    return buildStaticNoSuchMethod(elements.getSelector(node),
+    return irBuilder.buildStaticNoSuchMethod(elements.getSelector(node),
         arguments.nodes.mapToList(visit));
   }
 
@@ -2006,13 +2118,16 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
        ast.NewExpression node,
        ConstructorElement constructor,
        InterfaceType type,
-       ast.NodeList arguments,
+       ast.NodeList argumentsNode,
        CallStructure callStructure, _) {
     String nameString = Elements.reconstructConstructorName(constructor);
     Name name = new Name(nameString, constructor.library);
-    return buildStaticNoSuchMethod(
-        new Selector(SelectorKind.CALL, name, callStructure),
-        translateDynamicArguments(arguments, callStructure));
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
+    return irBuilder.buildStaticNoSuchMethod(
+        new Selector.call(name, callStructure),
+        arguments);
   }
 
   @override
@@ -2020,7 +2135,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       Element element,
       ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(elements.getSelector(node), [visit(rhs)]);
+    return irBuilder.buildStaticNoSuchMethod(elements.getSelector(node),
+        [visit(rhs)]);
   }
 
   @override
@@ -2060,8 +2176,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive bulkHandleError(ast.Send node, ErroneousElement error, _) {
-    assert(compiler.compilationFailed);
+  ir.Primitive bulkHandleError(ast.Node node, ErroneousElement error, _) {
     return irBuilder.buildNullConstant();
   }
 
@@ -2072,7 +2187,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node rhs, _) {
     InterfaceType type = constant.type;
     ClassElement element = type.element;
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(element.memberName),
         [visit(rhs)]);
   }
@@ -2084,7 +2199,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node rhs, _) {
     TypedefType type = constant.type;
     TypedefElement element = type.element;
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(element.memberName),
         [visit(rhs)]);
   }
@@ -2094,7 +2209,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.SendSet node,
       TypeVariableElement element,
       ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(element.memberName), [visit(rhs)]);
   }
 
@@ -2103,7 +2218,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.SendSet node,
       ConstantExpression constant,
       ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(Names.dynamic_), [visit(rhs)]);
   }
 
@@ -2114,6 +2229,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       InterfaceType type,
       ast.NodeList arguments,
       CallStructure callStructure, _) {
+    for (ast.Node argument in arguments) visit(argument);
     return buildAbstractClassInstantiationError(element.enclosingClass);
   }
 
@@ -2123,7 +2239,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       FieldElement field,
       ast.Node rhs, _) {
     // TODO(asgerf): Include class name somehow for static class members?
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(field.memberName),
         [visit(rhs)]);
   }
@@ -2144,7 +2260,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.SendSet node,
       LocalElement local,
       ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(new Name(local.name, local.library)),
         [visit(rhs)]);
   }
@@ -2155,7 +2271,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement function,
       ast.Node rhs,
       _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(function.memberName),
         [visit(rhs)]);
   }
@@ -2166,7 +2282,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       GetterElement getter,
       ast.Node rhs,
       _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.setter(getter.memberName),
         [visit(rhs)]);
   }
@@ -2176,7 +2292,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       SetterElement setter,
       _) {
-    return buildStaticNoSuchMethod(
+    return irBuilder.buildStaticNoSuchMethod(
         new Selector.getter(setter.memberName),
         []);
   }
@@ -2185,13 +2301,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleStaticSetterInvoke(
       ast.Send node,
       SetterElement setter,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure, _) {
     // Translate as a method call.
-    List<ir.Primitive> args = arguments.nodes.mapToList(visit);
-    return buildStaticNoSuchMethod(
-        new Selector(SelectorKind.CALL, setter.memberName, callStructure),
-        args);
+    List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
+    return irBuilder.buildStaticNoSuchMethod(
+        new Selector.call(setter.memberName, callStructure),
+        arguments);
   }
 
   @override
@@ -2232,14 +2348,15 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitSuperSetterInvoke(
       ast.Send node,
       SetterElement setter,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure, _) {
-    List<ir.Primitive> args =
-        translateDynamicArguments(arguments, callStructure);
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    callStructure =
+        translateDynamicArguments(argumentsNode, callStructure, arguments);
     return buildInstanceNoSuchMethod(
-        new Selector(SelectorKind.CALL, setter.memberName, callStructure),
+        new Selector.call(setter.memberName, callStructure),
         elements.getTypeMask(node),
-        args);
+        arguments);
   }
 
   ir.FunctionDefinition nullIfGiveup(ir.FunctionDefinition action()) {
@@ -2254,7 +2371,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   internalError(ast.Node node, String message) {
-    compiler.internalError(node, message);
+    reporter.internalError(node, message);
   }
 
   @override
@@ -2270,16 +2387,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
 final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
-/// Classifies local variables and local functions as captured, if they
-/// are accessed from within a nested function.
-///
-/// This class is specific to the [DartIrBuilder], in that it gives up if it
-/// sees a feature that is currently unsupport by that builder. In particular,
-/// loop variables captured in a for-loop initializer, condition, or update
-/// expression are unsupported.
-class DartCapturedVariables extends ast.Visitor {
+/// Determines which local variables should be boxed in a mutable variable
+/// inside a given try block.
+class TryBoxedVariables extends ast.Visitor {
   final TreeElements elements;
-  DartCapturedVariables(this.elements);
+  TryBoxedVariables(this.elements);
 
   FunctionElement currentFunction;
   bool insideInitializer = false;
@@ -2323,25 +2435,6 @@ class DartCapturedVariables extends ast.Visitor {
 
   visitNode(ast.Node node) {
     node.visitChildren(this);
-  }
-
-  visitFor(ast.For node) {
-    if (node.initializer != null) visit(node.initializer);
-    if (node.condition != null) visit(node.condition);
-    if (node.update != null) visit(node.update);
-
-    // Give up if a variable was captured outside of the loop body.
-    if (node.initializer is ast.VariableDefinitions) {
-      ast.VariableDefinitions definitions = node.initializer;
-      for (ast.Node node in definitions.definitions.nodes) {
-        LocalElement loopVariable = elements[node];
-        if (capturedVariables.contains(loopVariable)) {
-          return giveup(node, 'For-loop variable captured in loop header');
-        }
-      }
-    }
-
-    if (node.body != null) visit(node.body);
   }
 
   void handleSend(ast.Send node) {
@@ -2399,19 +2492,16 @@ class DartCapturedVariables extends ast.Visitor {
     currentFunction = elements[node];
 
     if (currentFunction.asyncMarker != AsyncMarker.SYNC &&
+        currentFunction.asyncMarker != AsyncMarker.SYNC_STAR &&
         currentFunction.asyncMarker != AsyncMarker.ASYNC) {
-      giveup(node, "cannot handle sync*/async* functions");
+      giveup(node, "cannot handle async* functions");
     }
 
-    bool savedInsideInitializer = insideInitializer;
     if (node.initializers != null) {
-      insideInitializer = true;
       visit(node.initializers);
     }
-    insideInitializer = false;
     visit(node.body);
     currentFunction = savedFunction;
-    insideInitializer = savedInsideInitializer;
   }
 
   visitTryStatement(ast.TryStatement node) {
@@ -2483,14 +2573,15 @@ class GlobalProgramInformation {
   }
 
   FunctionElement get stringifyFunction {
-    return _backend.getStringInterpolationHelper();
+    return _backend.helpers.stringInterpolationHelper;
   }
 
-  FunctionElement get throwTypeErrorHelper => _backend.getThrowTypeError();
+  FunctionElement get throwTypeErrorHelper => _backend.helpers.throwTypeError;
+  Element get throwNoSuchMethod => _backend.helpers.throwNoSuchMethod;
 
-  ClassElement get nullClass => _compiler.nullClass;
+  ClassElement get nullClass => _compiler.coreClasses.nullClass;
 
-  DartType unaliasType(DartType type) => type.unalias(_compiler);
+  DartType unaliasType(DartType type) => type.unaliased;
 
   TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
     if (behavior == null) {
@@ -2504,7 +2595,7 @@ class GlobalProgramInformation {
   }
 
   Element get closureConverter {
-    return _backend.getClosureConverter();
+    return _backend.helpers.closureConverter;
   }
 
   void addNativeMethod(FunctionElement function) {
@@ -2524,9 +2615,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
   JsIrBuilderVisitor(TreeElements elements,
                      Compiler compiler,
-                     SourceInformationBuilder sourceInformationBuilder)
-      : super(elements, compiler, sourceInformationBuilder);
+                     SourceInformationBuilder sourceInformationBuilder,
+                     TypeMaskSystem typeMaskSystem)
+      : super(elements, compiler, sourceInformationBuilder, typeMaskSystem);
 
+  BackendHelpers get helpers => backend.helpers;
 
   /// Builds the IR for creating an instance of the closure class corresponding
   /// to the given nested function.
@@ -2623,6 +2716,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           root = buildConstructorBody(element);
           break;
 
+        case ElementKind.FACTORY_CONSTRUCTOR:
         case ElementKind.FUNCTION:
         case ElementKind.GETTER:
         case ElementKind.SETTER:
@@ -2641,7 +2735,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           break;
 
         default:
-          compiler.internalError(element, "Unexpected element type $element");
+          reporter.internalError(element, "Unexpected element type $element");
       }
       return root;
     });
@@ -2678,7 +2772,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return new JsIrBuilderVisitor(
         context.resolvedAst.elements,
         compiler,
-        sourceInformationBuilder.forContext(context));
+        sourceInformationBuilder.forContext(context),
+        typeMaskSystem);
   }
 
   /// Builds the IR for an [expression] taken from a different [context].
@@ -2786,7 +2881,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (value != null) {
           instanceArguments.add(value);
         } else {
-          assert(Elements.isNativeOrExtendsNative(c));
+          assert(backend.isNativeOrExtendsNative(c));
           // Native fields are initialized elsewhere.
         }
       }, includeSuperAndInjectedMembers: true);
@@ -2851,7 +2946,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (field.initializer != null) {
           fieldValues[field] = inlineExpression(field, field.initializer);
         } else {
-          if (Elements.isNativeOrExtendsNative(c)) {
+          if (backend.isNativeOrExtendsNative(c)) {
             // Native field is initialized elsewhere.
           } else {
             // Fields without an initializer default to null.
@@ -2900,7 +2995,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
               fieldValues);
           hasConstructorCall = true;
         } else {
-          compiler.internalError(initializer,
+          reporter.internalError(initializer,
                                  "Unexpected initializer type $initializer");
         }
       }
@@ -2910,7 +3005,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       ClassElement superClass = enclosingClass.superclass;
       FunctionElement target = superClass.lookupDefaultConstructor();
       if (target == null) {
-        compiler.internalError(superClass, "No default constructor available.");
+        reporter.internalError(superClass, "No default constructor available.");
       }
       target = target.implementation;
       evaluateConstructorCallFromInitializer(
@@ -3118,8 +3213,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return parameters;
   }
 
-  DartCapturedVariables _analyzeCapturedVariables(ast.Node node) {
-    DartCapturedVariables variables = new DartCapturedVariables(elements);
+  TryBoxedVariables _analyzeTryBoxedVariables(ast.Node node) {
+    TryBoxedVariables variables = new TryBoxedVariables(elements);
     try {
       variables.analyze(node);
     } catch (e) {
@@ -3149,7 +3244,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // error-prone.
     // TODO(kmillikin): We should combine closure conversion and try/catch
     // variable analysis in some way.
-    DartCapturedVariables variables = _analyzeCapturedVariables(node);
+    TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(body);
 
@@ -3174,7 +3269,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
             element,
             node,
             elements);
-    DartCapturedVariables variables = _analyzeCapturedVariables(node);
+    TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);
     return withBuilder(builder, () => _makeFunctionBody(element, node));
@@ -3189,70 +3284,56 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     }
   }
 
-  /// Inserts default arguments and normalizes order of named arguments.
-  List<ir.Primitive> normalizeStaticArguments(
-      CallStructure callStructure,
-      FunctionElement target,
-      List<ir.Primitive> arguments) {
+  CallStructure normalizeStaticArguments(CallStructure callStructure,
+                                         FunctionElement target,
+                                         List<ir.Primitive> arguments) {
     target = target.implementation;
     FunctionSignature signature = target.functionSignature;
     if (!signature.optionalParametersAreNamed &&
         signature.parameterCount == arguments.length) {
-      // Optimization: don't copy the argument list for trivial cases.
-      return arguments;
+      return callStructure;
     }
-
-    List<ir.Primitive> result = <ir.Primitive>[];
-    int i = 0;
-    signature.forEachRequiredParameter((ParameterElement element) {
-      result.add(arguments[i]);
-      ++i;
-    });
 
     if (!signature.optionalParametersAreNamed) {
+      int i = signature.requiredParameterCount;
       signature.forEachOptionalParameter((ParameterElement element) {
-        if (i < arguments.length) {
-          result.add(arguments[i]);
+        if (i < callStructure.positionalArgumentCount) {
           ++i;
         } else {
-          result.add(translateDefaultValue(element));
+          arguments.add(translateDefaultValue(element));
         }
       });
-    } else {
-      int offset = i;
-      // Iterate over the optional parameters of the signature, and try to
-      // find them in [compiledNamedArguments]. If found, we use the
-      // value in the temporary list, otherwise the default value.
-      signature.orderedOptionalParameters.forEach((ParameterElement element) {
-        int nameIndex = callStructure.namedArguments.indexOf(element.name);
-        if (nameIndex != -1) {
-          int translatedIndex = offset + nameIndex;
-          result.add(arguments[translatedIndex]);
-        } else {
-          result.add(translateDefaultValue(element));
-        }
-      });
+      return new CallStructure(signature.parameterCount);
     }
-    return result;
+
+    int offset = signature.requiredParameterCount;
+    List<ir.Primitive> namedArguments = arguments.sublist(offset);
+    arguments.length = offset;
+    List<String> normalizedNames = <String>[];
+    // Iterate over the optional parameters of the signature, and try to
+    // find them in the callStructure's named arguments. If found, we use the
+    // value in the temporary list, otherwise the default value.
+    signature.orderedOptionalParameters.forEach((ParameterElement element) {
+      int nameIndex = callStructure.namedArguments.indexOf(element.name);
+      arguments.add(nameIndex == -1 ? translateDefaultValue(element)
+                                    : namedArguments[nameIndex]);
+      normalizedNames.add(element.name);
+    });
+    return new CallStructure(signature.parameterCount, normalizedNames);
   }
 
-  /// Normalizes order of named arguments.
-  List<ir.Primitive> normalizeDynamicArguments(
-      CallStructure callStructure,
-      List<ir.Primitive> arguments) {
+  CallStructure normalizeDynamicArguments(CallStructure callStructure,
+                                          List<ir.Primitive> arguments) {
     assert(arguments.length == callStructure.argumentCount);
-    // Optimization: don't copy the argument list for trivial cases.
-    if (callStructure.namedArguments.isEmpty) return arguments;
-    List<ir.Primitive> result = <ir.Primitive>[];
-    for (int i=0; i < callStructure.positionalArgumentCount; i++) {
-      result.add(arguments[i]);
-    }
+    if (callStructure.namedArguments.isEmpty) return callStructure;
+    int destinationIndex = callStructure.positionalArgumentCount;
+    List<ir.Primitive> namedArguments = arguments.sublist(destinationIndex);
     for (String argName in callStructure.getOrderedNamedArguments()) {
-      int nameIndex = callStructure.namedArguments.indexOf(argName);
-      int translatedIndex = callStructure.positionalArgumentCount + nameIndex;
-      result.add(arguments[translatedIndex]);
+      int sourceIndex = callStructure.namedArguments.indexOf(argName);
+      arguments[destinationIndex++] = namedArguments[sourceIndex];
     }
-    return result;
+    return new CallStructure(callStructure.argumentCount,
+                             callStructure.getOrderedNamedArguments());
   }
 
   @override
@@ -3260,34 +3341,29 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       ast.NewExpression node,
       ConstructorElement constructor,
       DartType type,
-      ast.NodeList arguments,
+      ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
-    List<ir.Primitive> arguments =
-        node.send.arguments.mapToList(visit, growable:false);
+    List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
     // Use default values from the effective target, not the immediate target.
     ConstructorElement target = constructor.effectiveTarget;
-    arguments = normalizeStaticArguments(callStructure, target, arguments);
+    callStructure =
+        normalizeStaticArguments(callStructure, target, arguments);
+    TypeMask allocationSiteType;
+    ast.Node send = node.send;
+    if (Elements.isFixedListConstructorCall(constructor, send, compiler) ||
+        Elements.isGrowableListConstructorCall(constructor, send, compiler) ||
+        Elements.isFilledListConstructorCall(constructor, send, compiler) ||
+        Elements.isConstructorOfTypedArraySubclass(constructor, compiler)) {
+      allocationSiteType = getAllocationSiteType(send);
+    }
     return irBuilder.buildConstructorInvocation(
         target,
         callStructure,
         constructor.computeEffectiveTargetType(type),
         arguments,
-        sourceInformationBuilder.buildNew(node));
-  }
-
-  @override
-  ir.Primitive buildStaticNoSuchMethod(Selector selector,
-                                       List<ir.Primitive> arguments) {
-    Element thrower = backend.getThrowNoSuchMethod();
-    ir.Primitive receiver = irBuilder.buildStringConstant('');
-    ir.Primitive name = irBuilder.buildStringConstant(selector.name);
-    ir.Primitive argumentList = irBuilder.buildListLiteral(null, arguments);
-    ir.Primitive expectedArgumentNames = irBuilder.buildNullConstant();
-    return irBuilder.buildStaticFunctionInvocation(
-        thrower,
-        new CallStructure.unnamed(4),
-        [receiver, name, argumentList, expectedArgumentNames]);
+        sourceInformationBuilder.buildNew(node),
+        allocationSiteType: allocationSiteType);
   }
 
   @override
@@ -3304,7 +3380,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildRuntimeError(String message) {
     return irBuilder.buildStaticFunctionInvocation(
-        backend.getThrowRuntimeError(),
+        backend.helpers.throwRuntimeError,
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(message)]);
   }
@@ -3312,7 +3388,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildAbstractClassInstantiationError(ClassElement element) {
     return irBuilder.buildStaticFunctionInvocation(
-        backend.getThrowAbstractClassInstantiationError(),
+        backend.helpers.throwAbstractClassInstantiationError,
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(element.name)]);
   }
@@ -3326,6 +3402,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src) {
     ConstantValue constant = getConstantForVariable(field);
     if (constant != null && !field.isAssignable) {
+      typeMaskSystem.associateConstantValueWithElement(constant, field);
       return irBuilder.buildConstant(constant, sourceInformation: src);
     } else if (backend.constants.lazyStatics.contains(field)) {
       return irBuilder.buildStaticFieldLazyGet(field, src);
@@ -3362,19 +3439,21 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
     /// Call a helper method from the isolate library. The isolate library uses
     /// its own isolate structure, that encapsulates dart2js's isolate.
-    ir.Primitive buildIsolateHelperInvocation(String helperName,
+    ir.Primitive buildIsolateHelperInvocation(Element element,
                                               CallStructure callStructure) {
-      Element element = backend.isolateHelperLibrary.find(helperName);
       if (element == null) {
-        compiler.internalError(node,
+        reporter.internalError(node,
             'Isolate library and compiler mismatch.');
       }
-      List<ir.Primitive> arguments = translateStaticArguments(argumentList,
-          element, CallStructure.TWO_ARGS);
-      return irBuilder.buildStaticFunctionInvocation(element,
-          CallStructure.TWO_ARGS, arguments,
+      List<ir.Primitive> arguments = <ir.Primitive>[];
+      callStructure = translateStaticArguments(argumentList, element,
+          callStructure, arguments);
+      return irBuilder.buildStaticFunctionInvocation(
+          element,
+          callStructure,
+          arguments,
           sourceInformation:
-                sourceInformationBuilder.buildCall(node, node.selector));
+              sourceInformationBuilder.buildCall(node, node.selector));
     }
 
     /// Lookup the value of the enum described by [node].
@@ -3411,6 +3490,20 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         // using [NativeBehavior]. We can ignore these arguments in the backend.
         List<ir.Primitive> arguments =
             argumentNodes.skip(2).mapToList(visit, growable: false);
+        if (behavior.codeTemplate.positionalArgumentCount != arguments.length) {
+          reporter.reportErrorMessage(
+              node, MessageKind.GENERIC,
+              {'text':
+                'Mismatch between number of placeholders'
+                ' and number of arguments.'});
+          return irBuilder.buildNullConstant();
+        }
+
+        if (HasCapturedPlaceholders.check(behavior.codeTemplate.ast)) {
+          reporter.reportErrorMessage(node, MessageKind.JS_PLACEHOLDER_CAPTURE);
+          return irBuilder.buildNullConstant();
+        }
+
         return irBuilder.buildForeignCode(behavior.codeTemplate, arguments,
             behavior);
 
@@ -3446,7 +3539,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         validateArgumentCount(minimum: 2);
 
         ast.Node builtin = argumentNodes.tail.head;
-        JsBuiltin value = getEnumValue(builtin, backend.jsBuiltinEnum,
+        JsBuiltin value = getEnumValue(builtin, helpers.jsBuiltinEnum,
                                        JsBuiltin.values);
         js.Template template = backend.emitter.builtinTemplateFor(value);
         List<ir.Primitive> arguments =
@@ -3484,7 +3577,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         validateArgumentCount(exactly: 1);
 
         ast.Node argument = argumentNodes.head;
-        JsGetName id = getEnumValue(argument, backend.jsGetNameEnum,
+        JsGetName id = getEnumValue(argument, helpers.jsGetNameEnum,
             JsGetName.values);
         js.Name name = backend.namer.getNameForJsGetName(argument, id);
         ConstantValue nameConstant =
@@ -3521,12 +3614,12 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (!compiler.hasIsolateSupport) {
           // If the isolate library is not used, we just generate code
           // to fetch the current isolate.
-          continue GET_STATIC_STATE;
+          continue getStaticState;
         }
-        return buildIsolateHelperInvocation('_currentIsolate',
+        return buildIsolateHelperInvocation(backend.helpers.currentIsolate,
             CallStructure.NO_ARGS);
 
-      GET_STATIC_STATE: case 'JS_GET_STATIC_STATE':
+      getStaticState: case 'JS_GET_STATIC_STATE':
         validateArgumentCount(exactly: 0);
 
         return irBuilder.buildForeignCode(
@@ -3552,7 +3645,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           return irBuilder.buildCallInvocation(closure, CallStructure.NO_ARGS,
               const <ir.Primitive>[]);
         }
-        return buildIsolateHelperInvocation('_callInIsolate',
+        return buildIsolateHelperInvocation(backend.helpers.callInIsolate,
             CallStructure.TWO_ARGS);
 
       default:
@@ -3564,14 +3657,18 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive handleStaticFunctionInvoke(ast.Send node,
                                           MethodElement function,
-                                          ast.NodeList argumentList,
+                                          ast.NodeList argumentsNode,
                                           CallStructure callStructure,
                                           _) {
     if (compiler.backend.isForeign(function)) {
-      return handleForeignCode(node, function, argumentList, callStructure);
+      return handleForeignCode(node, function, argumentsNode, callStructure);
     } else {
-      return irBuilder.buildStaticFunctionInvocation(function, callStructure,
-          translateStaticArguments(argumentList, function, callStructure),
+      List<ir.Primitive> arguments = <ir.Primitive>[];
+      callStructure = translateStaticArguments(argumentsNode, function,
+          callStructure, arguments);
+      return irBuilder.buildStaticFunctionInvocation(function,
+          callStructure,
+          arguments,
           sourceInformation:
               sourceInformationBuilder.buildCall(node, node.selector));
     }

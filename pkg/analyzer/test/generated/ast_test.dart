@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.ast_test;
+library analyzer.test.generated.ast_test;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -29,6 +29,7 @@ main() {
   runReflectiveTests(IndexExpressionTest);
   runReflectiveTests(NodeListTest);
   runReflectiveTests(NodeLocatorTest);
+  runReflectiveTests(NodeLocator2Test);
   runReflectiveTests(SimpleIdentifierTest);
   runReflectiveTests(SimpleStringLiteralTest);
   runReflectiveTests(StringInterpolationTest);
@@ -945,6 +946,50 @@ class NodeListTest extends EngineTestCase {
 }
 
 @reflectiveTest
+class NodeLocator2Test extends ParserTestCase {
+  void test_onlyStartOffset() {
+    String code = ' int vv; ';
+    //             012345678
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    TopLevelVariableDeclaration declaration = unit.declarations[0];
+    VariableDeclarationList variableList = declaration.variables;
+    Identifier typeName = variableList.type.name;
+    SimpleIdentifier varName = variableList.variables[0].name;
+    expect(new NodeLocator2(0).searchWithin(unit), same(unit));
+    expect(new NodeLocator2(1).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(2).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(3).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(4).searchWithin(unit), same(variableList));
+    expect(new NodeLocator2(5).searchWithin(unit), same(varName));
+    expect(new NodeLocator2(6).searchWithin(unit), same(varName));
+    expect(new NodeLocator2(7).searchWithin(unit), same(declaration));
+    expect(new NodeLocator2(8).searchWithin(unit), same(unit));
+    expect(new NodeLocator2(9).searchWithin(unit), isNull);
+    expect(new NodeLocator2(100).searchWithin(unit), isNull);
+  }
+
+  void test_startEndOffset() {
+    String code = ' int vv; ';
+    //             012345678
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(code);
+    TopLevelVariableDeclaration declaration = unit.declarations[0];
+    VariableDeclarationList variableList = declaration.variables;
+    Identifier typeName = variableList.type.name;
+    SimpleIdentifier varName = variableList.variables[0].name;
+    expect(new NodeLocator2(-1, 2).searchWithin(unit), isNull);
+    expect(new NodeLocator2(0, 2).searchWithin(unit), same(unit));
+    expect(new NodeLocator2(1, 2).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(1, 3).searchWithin(unit), same(typeName));
+    expect(new NodeLocator2(1, 4).searchWithin(unit), same(variableList));
+    expect(new NodeLocator2(5, 6).searchWithin(unit), same(varName));
+    expect(new NodeLocator2(5, 7).searchWithin(unit), same(declaration));
+    expect(new NodeLocator2(5, 8).searchWithin(unit), same(unit));
+    expect(new NodeLocator2(5, 100).searchWithin(unit), isNull);
+    expect(new NodeLocator2(100, 200).searchWithin(unit), isNull);
+  }
+}
+
+@reflectiveTest
 class NodeLocatorTest extends ParserTestCase {
   void test_range() {
     CompilationUnit unit =
@@ -1688,6 +1733,13 @@ class ToSourceVisitorTest extends EngineTestCase {
         "assert (a);", AstFactory.assertStatement(AstFactory.identifier3("a")));
   }
 
+  void test_visitAssertStatement_withMessage() {
+    _assertSource(
+        "assert (a, b);",
+        AstFactory.assertStatement(
+            AstFactory.identifier3("a"), AstFactory.identifier3('b')));
+  }
+
   void test_visitAssignmentExpression() {
     _assertSource(
         "a = b",
@@ -1697,7 +1749,7 @@ class ToSourceVisitorTest extends EngineTestCase {
 
   void test_visitAwaitExpression() {
     _assertSource(
-        "await e;", AstFactory.awaitExpression(AstFactory.identifier3("e")));
+        "await e", AstFactory.awaitExpression(AstFactory.identifier3("e")));
   }
 
   void test_visitBinaryExpression() {
@@ -2290,6 +2342,13 @@ class ToSourceVisitorTest extends EngineTestCase {
     _assertSource("continue;", AstFactory.continueStatement());
   }
 
+  void test_visitDefaultFormalParameter_annotation() {
+    DefaultFormalParameter parameter = AstFactory.positionalFormalParameter(
+        AstFactory.simpleFormalParameter3("p"), AstFactory.integer(0));
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertSource('@A p = 0', parameter);
+  }
+
   void test_visitDefaultFormalParameter_named_noValue() {
     _assertSource(
         "p",
@@ -2414,6 +2473,12 @@ class ToSourceVisitorTest extends EngineTestCase {
     declaration.metadata
         .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated var a;", declaration);
+  }
+
+  void test_visitFieldFormalParameter_annotation() {
+    FieldFormalParameter parameter = AstFactory.fieldFormalParameter2('f');
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertSource('@A this.f', parameter);
   }
 
   void test_visitFieldFormalParameter_functionTyped() {
@@ -2892,6 +2957,13 @@ class ToSourceVisitorTest extends EngineTestCase {
     declaration.metadata
         .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
     _assertSource("@deprecated typedef A F();", declaration);
+  }
+
+  void test_visitFunctionTypedFormalParameter_annotation() {
+    FunctionTypedFormalParameter parameter =
+        AstFactory.functionTypedFormalParameter(null, "f");
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertSource('@A f()', parameter);
   }
 
   void test_visitFunctionTypedFormalParameter_noType() {
@@ -3503,6 +3575,12 @@ class ToSourceVisitorTest extends EngineTestCase {
   void test_visitScriptTag() {
     String scriptTag = "!#/bin/dart.exe";
     _assertSource(scriptTag, AstFactory.scriptTag(scriptTag));
+  }
+
+  void test_visitSimpleFormalParameter_annotation() {
+    SimpleFormalParameter parameter = AstFactory.simpleFormalParameter3('x');
+    parameter.metadata.add(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertSource('@A x', parameter);
   }
 
   void test_visitSimpleFormalParameter_keyword() {

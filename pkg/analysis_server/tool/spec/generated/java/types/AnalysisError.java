@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -72,14 +72,26 @@ public class AnalysisError {
   private final String correction;
 
   /**
+   * A hint to indicate to interested clients that this error has an associated fix (or fixes). The
+   * absence of this field implies there are not known to be fixes. Note that since the operation to
+   * calculate whether fixes apply needs to be performant it is possible that complicated tests will
+   * be skipped and a false negative returned. For this reason, this attribute should be treated as a
+   * "hint". Despite the possibility of false negatives, no false positives should be returned. If a
+   * client sees this flag set they can proceed with the confidence that there are in fact associated
+   * fixes.
+   */
+  private final Boolean hasFix;
+
+  /**
    * Constructor for {@link AnalysisError}.
    */
-  public AnalysisError(String severity, String type, Location location, String message, String correction) {
+  public AnalysisError(String severity, String type, Location location, String message, String correction, Boolean hasFix) {
     this.severity = severity;
     this.type = type;
     this.location = location;
     this.message = message;
     this.correction = correction;
+    this.hasFix = hasFix;
   }
 
   @Override
@@ -91,7 +103,8 @@ public class AnalysisError {
         ObjectUtilities.equals(other.type, type) &&
         ObjectUtilities.equals(other.location, location) &&
         ObjectUtilities.equals(other.message, message) &&
-        ObjectUtilities.equals(other.correction, correction);
+        ObjectUtilities.equals(other.correction, correction) &&
+        ObjectUtilities.equals(other.hasFix, hasFix);
     }
     return false;
   }
@@ -102,7 +115,8 @@ public class AnalysisError {
     Location location = Location.fromJson(jsonObject.get("location").getAsJsonObject());
     String message = jsonObject.get("message").getAsString();
     String correction = jsonObject.get("correction") == null ? null : jsonObject.get("correction").getAsString();
-    return new AnalysisError(severity, type, location, message, correction);
+    Boolean hasFix = jsonObject.get("hasFix") == null ? null : jsonObject.get("hasFix").getAsBoolean();
+    return new AnalysisError(severity, type, location, message, correction, hasFix);
   }
 
   public static List<AnalysisError> fromJsonArray(JsonArray jsonArray) {
@@ -124,6 +138,19 @@ public class AnalysisError {
    */
   public String getCorrection() {
     return correction;
+  }
+
+  /**
+   * A hint to indicate to interested clients that this error has an associated fix (or fixes). The
+   * absence of this field implies there are not known to be fixes. Note that since the operation to
+   * calculate whether fixes apply needs to be performant it is possible that complicated tests will
+   * be skipped and a false negative returned. For this reason, this attribute should be treated as a
+   * "hint". Despite the possibility of false negatives, no false positives should be returned. If a
+   * client sees this flag set they can proceed with the confidence that there are in fact associated
+   * fixes.
+   */
+  public Boolean getHasFix() {
+    return hasFix;
   }
 
   /**
@@ -163,6 +190,7 @@ public class AnalysisError {
     builder.append(location);
     builder.append(message);
     builder.append(correction);
+    builder.append(hasFix);
     return builder.toHashCode();
   }
 
@@ -174,6 +202,9 @@ public class AnalysisError {
     jsonObject.addProperty("message", message);
     if (correction != null) {
       jsonObject.addProperty("correction", correction);
+    }
+    if (hasFix != null) {
+      jsonObject.addProperty("hasFix", hasFix);
     }
     return jsonObject;
   }
@@ -191,7 +222,9 @@ public class AnalysisError {
     builder.append("message=");
     builder.append(message + ", ");
     builder.append("correction=");
-    builder.append(correction);
+    builder.append(correction + ", ");
+    builder.append("hasFix=");
+    builder.append(hasFix);
     builder.append("]");
     return builder.toString();
   }

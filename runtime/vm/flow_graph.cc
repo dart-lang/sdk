@@ -44,6 +44,7 @@ FlowGraph::FlowGraph(const ParsedFunction& parsed_function,
     loop_headers_(NULL),
     loop_invariant_loads_(NULL),
     guarded_fields_(parsed_function.guarded_fields()),
+    deoptimize_dependent_code_(),
     deferred_prefixes_(parsed_function.deferred_prefixes()),
     captured_parameters_(new(zone()) BitVector(zone(), variable_count())),
     inlining_id_(-1) {
@@ -921,7 +922,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*join->phis())[i];
         if (phi != NULL) {
           (*env)[i] = phi;
-          phi->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+          AllocateSSAIndexes(phi);  // New SSA temp.
           if (block_entry->InsideTryBlock() && !phi->is_alive()) {
             // This is a safe approximation.  Inside try{} all locals are
             // used at every call implicitly, so we mark all phis as live

@@ -182,3 +182,5 @@ class _AsyncStarStreamController {
     return cancellationCompleter.future;
   }
 }
+
+patch void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";

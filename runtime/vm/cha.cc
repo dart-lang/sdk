@@ -62,14 +62,20 @@ bool CHA::IsImplemented(const Class& cls) {
 
 
 bool CHA::HasOverride(const Class& cls, const String& function_name) {
-  const GrowableObjectArray& cls_direct_subclasses =
-      GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
+  // Can't track dependencies for classes on the VM heap since those are
+  // read-only.
+  // TODO(fschneider): Enable tracking of CHA dependent code for VM heap
+  // classes.
+  if (cls.InVMHeap()) return true;
+
   // Subclasses of Object are not tracked by CHA. Safely assume that overrides
   // exist.
   if (cls.IsObjectClass()) {
     return true;
   }
 
+  const GrowableObjectArray& cls_direct_subclasses =
+      GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
   if (cls_direct_subclasses.IsNull()) {
     return false;
   }

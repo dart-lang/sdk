@@ -16,7 +16,6 @@ import 'dart:isolate' show
     SendPort;
 
 import 'compilation.dart' show
-    compilerIsolate,
     compilerPort,
     currentSource;
 

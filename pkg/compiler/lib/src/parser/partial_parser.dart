@@ -4,8 +4,7 @@
 
 library dart2js.parser.partial;
 
-import '../diagnostics/messages.dart' show
-    MessageKind;
+import '../common.dart';
 import '../util/characters.dart' as Characters show
     $CLOSE_CURLY_BRACKET;
 import '../tokens/token.dart' show
@@ -21,7 +20,9 @@ import 'parser.dart' show
     Parser;
 
 class PartialParser extends Parser {
-  PartialParser(Listener listener) : super(listener);
+  PartialParser(Listener listener, {bool enableConditionalDirectives})
+      : super(listener,
+          enableConditionalDirectives: enableConditionalDirectives);
 
   Token parseClassBody(Token token) => skipClassBody(token);
 

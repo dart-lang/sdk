@@ -6,7 +6,7 @@ library services.refactoring;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart'
+import 'package:analysis_server/plugin/protocol/protocol.dart'
     show RefactoringMethodParameter, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/convert_getter_to_method.dart';
@@ -24,9 +24,9 @@ import 'package:analysis_server/src/services/refactoring/rename_library.dart';
 import 'package:analysis_server/src/services/refactoring/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -70,6 +70,18 @@ abstract class ExtractLocalRefactoring implements Refactoring {
     return new ExtractLocalRefactoringImpl(
         unit, selectionOffset, selectionLength);
   }
+
+  /**
+   * The lengths of the expressions that cover the specified selection,
+   * from the down most to the up most.
+   */
+  List<int> get coveringExpressionLengths;
+
+  /**
+   * The offsets of the expressions that cover the specified selection,
+   * from the down most to the up most.
+   */
+  List<int> get coveringExpressionOffsets;
 
   /**
    * True if all occurrences of the expression within the scope in which the
@@ -356,6 +368,9 @@ abstract class RenameRefactoring implements Refactoring {
    * type.
    */
   factory RenameRefactoring(SearchEngine searchEngine, Element element) {
+    if (element == null) {
+      return null;
+    }
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }

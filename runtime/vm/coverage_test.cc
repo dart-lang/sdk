@@ -39,13 +39,12 @@ TEST_CASE(Coverage_Empty) {
       "main() {\n"
       "}";
 
-  Isolate* isolate = Isolate::Current();
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
 
   JSONStream js;
-  CodeCoverage::PrintJSON(isolate, &js, NULL, false);
+  CodeCoverage::PrintJSON(thread, &js, NULL, false);
 
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
@@ -72,13 +71,12 @@ TEST_CASE(Coverage_MainWithClass) {
       "  foo.bar();\n"
       "}\n";
 
-  Isolate* isolate = Isolate::Current();
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
 
   JSONStream js;
-  CodeCoverage::PrintJSON(isolate, &js, NULL, false);
+  CodeCoverage::PrintJSON(thread, &js, NULL, false);
 
   char buf[1024];
   // Coverage data is printed per class, i.e., there should be two sections
@@ -115,7 +113,6 @@ TEST_CASE(Coverage_FilterFunction) {
       "  var foo = new Foo(7);\n"
       "}\n";
 
-  Isolate* isolate = Isolate::Current();
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
@@ -128,7 +125,7 @@ TEST_CASE(Coverage_FilterFunction) {
 
   JSONStream js;
   FunctionCoverageFilter filter(func);
-  CodeCoverage::PrintJSON(isolate, &js, &filter, false);
+  CodeCoverage::PrintJSON(thread, &js, &filter, false);
   // Only expect coverage data for Foo.yetAnother() on line 6.
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),

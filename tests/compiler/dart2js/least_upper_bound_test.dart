@@ -381,12 +381,12 @@ void testFunction() {
     checkLub(DartType a, DartType b, DartType expectedLub) {
       DartType lub = env.computeLeastUpperBound(a, b);
       if (a != b) {
-        expectedLub = expectedLub.unalias(env.compiler);
-        lub = lub.unalias(env.compiler);
+        expectedLub = expectedLub.unaliased;
+        lub = lub.unaliased;
       }
       Expect.equals(expectedLub, lub,
-          'Unexpected lub(${a.unalias(env.compiler)},'
-                         '${b.unalias(env.compiler)}) = '
+          'Unexpected lub(${a.unaliased},'
+                         '${b.unaliased} = '
                          '${lub}, expected ${expectedLub}');
     }
 

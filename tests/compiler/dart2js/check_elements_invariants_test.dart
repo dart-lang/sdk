@@ -20,7 +20,7 @@ const List<String> DART2JS_OPTIONS = const <String>[
       '--disable-type-inference'
     ];
 
-Iterable<ClassElement> computeLiveClasses(Compiler compiler) {
+Iterable<ClassElement> computeLiveClasses(CompilerImpl compiler) {
   return new Set<ClassElement>()
       ..addAll(compiler.resolverWorld.directlyInstantiatedClasses)
       ..addAll(compiler.codegenWorld.directlyInstantiatedClasses);

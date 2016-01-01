@@ -1,3 +1,58 @@
+## 0.27.1
+* Moved the public and private API's for the element model into their proper places.
+* Added back support for auto-processing of plugins.
+
+## 0.27.0
+* Support for DEP 37 (Assert with optional message).
+* Lexical support for DEP 40 (Interface libraries). This does not include any semantic checking to ensure that the
+  implementation libraries are compatible with the interface library.
+* Cleaned up the initialization of plugins. Clients are now required to initialize plugins, possibly using the utility
+  method AnalysisEngine.processRequiredPlugins().
+* Removed the old task model and code that supported it. None of the removed code was intended to be public API, but
+  might be in use anyway.
+* Removed previously deprecated API's (marked with the @deprecated annotation).
+
+## 0.26.4
+* Options processing API updated to accept untyped options maps (#25126).
+
+## 0.26.3
+* (Internal) Support for `_embedder.yaml` discovery and processing.
+
+## 0.26.2
+* Add code generation utilities for use in both analyzer and analysis server.
+
+## 0.26.1+17
+* (Internal) Introduced context configuration logic (`configureContext()` extracted from server).
+
+## 0.26.1+16
+* (Internal) Options validation plugin API update.
+
+## 0.26.1+15
+* (Internal) Provisional options validation plugin API.
+
+## 0.26.1+13
+* (Internal) Plugin processing fixes.
+
+## 0.26.1+11
+* Fixes to address lint registry memory leaking.
+
+## 0.26.1+10
+* New `AnalysisContext` API for associating configuration data with contexts
+  (`setConfigurationData()` and `getConfigurationData()`).
+
+## 0.26.1+9
+* `OptionsProcessor` extension point API changed to pass associated
+  `AnalysisContext` instance into the `optionsProcessed` call-back.
+
+## 0.26.1+6
+* Provisional (internal) plugin manifest parsing.
+
+## 0.26.1+5
+* Plugin configuration `ErrorHandler` typedef API fix.
+
+## 0.26.1+4
+* Provisional (internal) support for plugin configuration via `.analysis_options`.
+
 ## 0.26.1+2
 
 * Extension point for WorkManagerFactory(s).
@@ -50,7 +105,7 @@
 
 ## 0.25.2-alpha.0
 
-* Initial support for analyzing `dart:sdk` extensions from `.sdkext`. 
+* Initial support for analyzing `dart:sdk` extensions from `.sdkext`.
 
 ## 0.25.1
 
@@ -74,7 +129,7 @@
 ## 0.22.0
 
   New API:
-  
+
 * `Source.uri` added.
 
   Breaking changes:

@@ -15,7 +15,9 @@ import 'package:compiler/compiler.dart';
 import '../compiler/dart2js/mock_libraries.dart';
 
 String libProvider(Uri uri) {
-  if (uri.path.endsWith("/core.dart")) {
+  if (uri.path.endsWith(".platform")) {
+    return DEFAULT_PLATFORM_CONFIG;
+  } if (uri.path.endsWith("/core.dart")) {
     return buildLibrarySource(DEFAULT_CORE_LIBRARY);
   } else if (uri.path.endsWith('core_patch.dart')) {
     return DEFAULT_PATCH_CORE_SOURCE;

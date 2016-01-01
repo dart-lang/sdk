@@ -63,11 +63,6 @@ class LogicalRewriter extends RecursiveTransformer
 
   final FallthroughStack fallthrough = new FallthroughStack();
 
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    new LogicalRewriter().rewrite(node);
-  }
-
   /// True if the given statement is equivalent to its fallthrough semantics.
   ///
   /// This means it will ultimately translate to an empty statement.
@@ -95,7 +90,8 @@ class LogicalRewriter extends RecursiveTransformer
 
   bool isTerminator(Statement node) {
     return (node is Jump || node is Return) && !isFallthrough(node) ||
-           (node is ExpressionStatement && node.next is Unreachable);
+           (node is ExpressionStatement && node.next is Unreachable) ||
+           node is Throw;
   }
 
   Statement visitIf(If node) {
@@ -334,8 +330,13 @@ class LogicalRewriter extends RecursiveTransformer
     return isTrue(e) ||
            isFalse(e) ||
            e is Not ||
-           e is LogicalOperator ||
-           e is ApplyBuiltinOperator && operatorReturnsBool(e.operator);
+           e is LogicalOperator && isBooleanValuedLogicalOperator(e) ||
+           e is ApplyBuiltinOperator && operatorReturnsBool(e.operator) ||
+           e is TypeOperator && isBooleanValuedTypeOperator(e);
+  }
+
+  bool isBooleanValuedLogicalOperator(LogicalOperator e) {
+    return isBooleanValued(e.left) && isBooleanValued(e.right);
   }
 
   /// True if the given operator always returns `true` or `false`.
@@ -358,6 +359,10 @@ class LogicalRewriter extends RecursiveTransformer
       default:
         return false;
     }
+  }
+
+  bool isBooleanValuedTypeOperator(TypeOperator e) {
+    return e.isTypeTest;
   }
 
   BuiltinOperator negateBuiltin(BuiltinOperator operator) {
@@ -533,9 +538,9 @@ class LogicalRewriter extends RecursiveTransformer
     }
   }
 
-  /// True if [e2] is known to return the same value as [e1] 
+  /// True if [e2] is known to return the same value as [e1]
   /// (with no additional side effects) if evaluated immediately after [e1].
-  /// 
+  ///
   /// Concretely, this is true if [e1] and [e2] are uses of the same variable,
   /// or if [e2] is a use of a variable assigned by [e1].
   bool isSameVariable(Expression e1, Expression e2) {
@@ -551,4 +556,3 @@ class LogicalRewriter extends RecursiveTransformer
     --node.variable.readCount;
   }
 }
-

@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library dart2js.resolution.types;
+
+import '../common.dart';
+import '../common/resolution.dart' show
+    Feature,
+    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../dart_backend/dart_backend.dart' show
     DartBackend;
 import '../dart_types.dart';
-import '../diagnostics/messages.dart' show
-    MessageKind;
 import '../elements/elements.dart' show
     AmbiguousElement,
     ClassElement,
@@ -39,6 +42,10 @@ class TypeResolver {
 
   TypeResolver(this.compiler);
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  Resolution get resolution => compiler.resolution;
+
   /// Tries to resolve the type name as an element.
   Element resolveTypeName(Identifier prefixName,
                           Identifier typeName,
@@ -47,7 +54,7 @@ class TypeResolver {
     Element element;
     if (prefixName != null) {
       Element prefixElement =
-          lookupInScope(compiler, prefixName, scope, prefixName.source);
+          lookupInScope(reporter, prefixName, scope, prefixName.source);
       if (prefixElement != null && prefixElement.isPrefix) {
         // The receiver is a prefix. Lookup in the imported members.
         PrefixElement prefix = prefixElement;
@@ -69,7 +76,7 @@ class TypeResolver {
         element = null;
       }
     } else {
-      element = lookupInScope(compiler, typeName, scope, typeName.source);
+      element = lookupInScope(reporter, typeName, scope, typeName.source);
     }
     return element;
   }
@@ -119,18 +126,24 @@ class TypeResolver {
     Element element = resolveTypeName(prefixName, typeName, visitor.scope,
                                       deferredIsMalformed: deferredIsMalformed);
 
-    DartType reportFailureAndCreateType(MessageKind messageKind,
-                                        Map messageArguments,
-                                        {DartType userProvidedBadType,
-                                         Element erroneousElement}) {
+    DartType reportFailureAndCreateType(
+        MessageKind messageKind,
+        Map messageArguments,
+        {DartType userProvidedBadType,
+         Element erroneousElement,
+         List<DiagnosticMessage> infos: const <DiagnosticMessage>[]}) {
       if (malformedIsError) {
-        visitor.error(node, messageKind, messageArguments);
+        reporter.reportError(
+            reporter.createMessage(node, messageKind, messageArguments),
+            infos);
       } else {
-        registry.registerThrowRuntimeError();
-        visitor.warning(node, messageKind, messageArguments);
+        registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
+        reporter.reportWarning(
+            reporter.createMessage(node, messageKind, messageArguments),
+            infos);
       }
       if (erroneousElement == null) {
-        registry.registerThrowRuntimeError();
+        registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
         erroneousElement = new ErroneousElementX(
             messageKind, messageArguments, typeName.source,
             visitor.enclosingElement);
@@ -148,9 +161,12 @@ class TypeResolver {
     } else if (element.isAmbiguous) {
       AmbiguousElement ambiguous = element;
       type = reportFailureAndCreateType(
-          ambiguous.messageKind, ambiguous.messageArguments);
-      ambiguous.diagnose(registry.mapping.analyzedElement, compiler);
-    } else if (element.isErroneous) {
+          ambiguous.messageKind,
+          ambiguous.messageArguments,
+          infos: ambiguous.computeInfos(
+              registry.mapping.analyzedElement, reporter));
+      ;
+    } else if (element.isMalformed) {
       if (element is ErroneousElement) {
         type = reportFailureAndCreateType(
             element.messageKind, element.messageArguments,
@@ -168,7 +184,7 @@ class TypeResolver {
         // TODO(johnniwinther): [ensureClassWillBeResolvedInternal] should imply
         // [computeType].
         compiler.resolver.ensureClassWillBeResolvedInternal(cls);
-        cls.computeType(compiler);
+        cls.computeType(resolution);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, cls.typeVariables, arguments);
@@ -188,8 +204,8 @@ class TypeResolver {
       } else if (element.isTypedef) {
         TypedefElement typdef = element;
         // TODO(johnniwinther): [ensureResolved] should imply [computeType].
-        typdef.ensureResolved(compiler);
-        typdef.computeType(compiler);
+        typdef.ensureResolved(resolution);
+        typdef.computeType(resolution);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, typdef.typeVariables, arguments);
@@ -211,7 +227,7 @@ class TypeResolver {
         if (!outer.isClass &&
             !outer.isTypedef &&
             !Elements.hasAccessToTypeVariables(visitor.enclosingElement)) {
-          registry.registerThrowRuntimeError();
+          registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
               {'typeVariableName': node},
@@ -221,11 +237,11 @@ class TypeResolver {
         }
         type = checkNoTypeArguments(type);
       } else {
-        compiler.internalError(node,
+        reporter.internalError(node,
             "Unexpected element kind ${element.kind}.");
       }
       if (addTypeVariableBoundsCheck) {
-        registry.registerTypeVariableBoundCheck();
+        registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
         visitor.addDeferredAction(
             visitor.enclosingElement,
             () => checkTypeVariableBounds(node, type));
@@ -241,7 +257,8 @@ class TypeResolver {
                                    TypeVariableType typeVariable,
                                    DartType bound) {
       if (!compiler.types.isSubtype(typeArgument, bound)) {
-        compiler.reportWarning(node,
+        reporter.reportWarningMessage(
+            node,
             MessageKind.INVALID_TYPE_VARIABLE_BOUND,
             {'typeVariable': typeVariable,
              'bound': bound,
@@ -273,7 +290,7 @@ class TypeResolver {
          !typeArguments.isEmpty;
          typeArguments = typeArguments.tail, index++) {
       if (index > expectedVariables - 1) {
-        visitor.warning(
+        reporter.reportWarningMessage(
             typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
         typeArgumentCountMismatch = true;
       }
@@ -282,8 +299,8 @@ class TypeResolver {
       arguments.add(argType);
     }
     if (index < expectedVariables) {
-      visitor.warning(node.typeArguments,
-                      MessageKind.MISSING_TYPE_ARGUMENT);
+      reporter.reportWarningMessage(
+          node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
       typeArgumentCountMismatch = true;
     }
     return typeArgumentCountMismatch;

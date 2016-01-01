@@ -110,6 +110,17 @@ class BaseGrowableArray : public B {
     data_[j] = temp;
   }
 
+  // NOTE: Does not preserve array order.
+  void RemoveAt(intptr_t i) {
+    ASSERT(i >= 0);
+    ASSERT(i < length_);
+    intptr_t last = length_ - 1;
+    if (i < last) {
+      Swap(i, last);
+    }
+    RemoveLast();
+  }
+
   // The content is uninitialized after calling it.
   void SetLength(intptr_t new_length);
 

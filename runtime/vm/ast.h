@@ -92,7 +92,6 @@ class AstNodeVisitor : public ValueObject {
 #define DECLARE_COMMON_NODE_FUNCTIONS(type)                                    \
   virtual void Visit(AstNodeVisitor* visitor);                                 \
   virtual const char* PrettyName() const;                                      \
-  virtual bool Is##type() const { return true; }                               \
   virtual type* As##type() { return this; }
 
 
@@ -107,7 +106,7 @@ class AstNode : public ZoneAllocated {
   intptr_t token_pos() const { return token_pos_; }
 
 #define AST_TYPE_CHECK(BaseName)                                               \
-  virtual bool Is##BaseName##Node() const { return false; }                    \
+  bool Is##BaseName##Node() { return As##BaseName##Node() != NULL; }           \
   virtual BaseName##Node* As##BaseName##Node() { return NULL; }
 
   FOR_EACH_NODE(AST_TYPE_CHECK)
@@ -410,6 +409,8 @@ class StringInterpolateNode : public AstNode {
   }
 
   ArrayNode* value() const { return value_; }
+
+  virtual bool IsPotentiallyConst() const;
 
   DECLARE_COMMON_NODE_FUNCTIONS(StringInterpolateNode);
 
@@ -1226,7 +1227,6 @@ class StoreLocalNode : public AstNode {
 };
 
 
-
 class LoadInstanceFieldNode : public AstNode {
  public:
   LoadInstanceFieldNode(intptr_t token_pos,
@@ -1815,19 +1815,14 @@ class NativeBodyNode : public AstNode {
   NativeBodyNode(intptr_t token_pos,
                  const Function& function,
                  const String& native_c_function_name,
-                 NativeFunction native_c_function,
                  LocalScope* scope,
-                 bool is_bootstrap_native,
                  bool link_lazily = false)
       : AstNode(token_pos),
         function_(function),
         native_c_function_name_(native_c_function_name),
-        native_c_function_(native_c_function),
         scope_(scope),
-        is_bootstrap_native_(is_bootstrap_native),
         link_lazily_(link_lazily) {
     ASSERT(function_.IsZoneHandle());
-    ASSERT(native_c_function_ != NULL);
     ASSERT(native_c_function_name_.IsZoneHandle());
     ASSERT(native_c_function_name_.IsSymbol());
   }
@@ -1836,9 +1831,7 @@ class NativeBodyNode : public AstNode {
   const String& native_c_function_name() const {
     return native_c_function_name_;
   }
-  NativeFunction native_c_function() const { return native_c_function_; }
   LocalScope* scope() const { return scope_; }
-  bool is_bootstrap_native() const { return is_bootstrap_native_; }
 
   bool link_lazily() const { return link_lazily_; }
 
@@ -1849,9 +1842,7 @@ class NativeBodyNode : public AstNode {
  private:
   const Function& function_;  // Native Dart function.
   const String& native_c_function_name_;
-  NativeFunction native_c_function_;  // Actual non-Dart implementation.
   LocalScope* scope_;
-  const bool is_bootstrap_native_;  // Is a bootstrap native method.
   const bool link_lazily_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(NativeBodyNode);

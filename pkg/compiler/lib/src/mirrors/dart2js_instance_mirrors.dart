@@ -56,7 +56,7 @@ InstanceMirror _convertConstantToInstanceMirror(
   } else if (value.isConstructedObject) {
     return new Dart2JsConstructedConstantMirror(mirrorSystem, constant, value);
   }
-  mirrorSystem.compiler.internalError(NO_LOCATION_SPANNABLE,
+  mirrorSystem.compiler.reporter.internalError(NO_LOCATION_SPANNABLE,
       "Unexpected constant value $value");
   return null;
 }

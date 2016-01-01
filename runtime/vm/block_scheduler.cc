@@ -12,63 +12,37 @@ namespace dart {
 
 DEFINE_FLAG(bool, emit_edge_counters, true, "Emit edge counters at targets.");
 
-// Compute the edge count at the deopt id of a TargetEntry or Goto.
-static intptr_t ComputeEdgeCount(
-    const Code& unoptimized_code,
-    const ZoneGrowableArray<uword>& deopt_id_pc_pairs,
-    intptr_t deopt_id) {
-  ASSERT(deopt_id != Isolate::kNoDeoptId);
-
+static intptr_t GetEdgeCount(const Array& edge_counters, intptr_t edge_id) {
   if (!FLAG_emit_edge_counters) {
     // Assume everything was visited once.
     return 1;
   }
-
-  for (intptr_t i = 0; i < deopt_id_pc_pairs.length(); i += 2) {
-    intptr_t deopt_id_entry = static_cast<intptr_t>(deopt_id_pc_pairs[i]);
-    uword pc = deopt_id_pc_pairs[i + 1];
-    if (deopt_id_entry == deopt_id) {
-      Array& array = Array::Handle();
-      array ^= CodePatcher::GetEdgeCounterAt(pc, unoptimized_code);
-      ASSERT(!array.IsNull());
-      return Smi::Value(Smi::RawCast(array.At(0)));
-    }
-  }
-
-  UNREACHABLE();
-  return 1;
+  return Smi::Value(Smi::RawCast(edge_counters.At(edge_id)));
 }
 
 
 // There is an edge from instruction->successor.  Set its weight (edge count
 // per function entry).
-static void SetEdgeWeight(Instruction* instruction,
+static void SetEdgeWeight(BlockEntryInstr* block,
                           BlockEntryInstr* successor,
-                          const Code& unoptimized_code,
-                          const ZoneGrowableArray<uword>& deopt_id_pc_pairs,
+                          const Array& edge_counters,
                           intptr_t entry_count) {
   TargetEntryInstr* target = successor->AsTargetEntry();
   if (target != NULL) {
     // If this block ends in a goto, the edge count of this edge is the same
     // as the count on the single outgoing edge. This is true as long as the
     // block does not throw an exception.
-    GotoInstr* jump = target->last_instruction()->AsGoto();
-    const intptr_t deopt_id =
-        (jump != NULL)  ? jump->deopt_id() : target->deopt_id();
-    intptr_t count = ComputeEdgeCount(unoptimized_code,
-                                      deopt_id_pc_pairs,
-                                      deopt_id);
+    intptr_t count = GetEdgeCount(edge_counters, target->preorder_number());
     if ((count >= 0) && (entry_count != 0)) {
       double weight =
           static_cast<double>(count) / static_cast<double>(entry_count);
       target->set_edge_weight(weight);
     }
   } else {
-    GotoInstr* jump = instruction->AsGoto();
+    GotoInstr* jump = block->last_instruction()->AsGoto();
     if (jump != NULL) {
-      intptr_t count = ComputeEdgeCount(unoptimized_code,
-                                        deopt_id_pc_pairs,
-                                        jump->deopt_id());
+      intptr_t count =
+          GetEdgeCount(edge_counters, block->preorder_number());
       if ((count >= 0) && (entry_count != 0)) {
         double weight =
             static_cast<double>(count) / static_cast<double>(entry_count);
@@ -83,26 +57,15 @@ void BlockScheduler::AssignEdgeWeights() const {
   if (!FLAG_emit_edge_counters) {
     return;
   }
-  const Code& unoptimized_code = flow_graph()->parsed_function().code();
-  ASSERT(!unoptimized_code.IsNull());
 
-  ZoneGrowableArray<uword>* deopt_id_pc_pairs = new ZoneGrowableArray<uword>();
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(unoptimized_code.pc_descriptors());
-  PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kDeopt);
-  uword entry = unoptimized_code.EntryPoint();
-  while (iter.MoveNext()) {
-    intptr_t deopt_id = iter.DeoptId();
-    ASSERT(deopt_id != Isolate::kNoDeoptId);
-    uint32_t pc_offset = iter.PcOffset();
-    deopt_id_pc_pairs->Add(static_cast<uword>(deopt_id));
-    deopt_id_pc_pairs->Add(entry + pc_offset);
-  }
+  const Array& ic_data_array = Array::Handle(flow_graph()->zone(),
+      flow_graph()->parsed_function().function().ic_data_array());
+  Array& edge_counters = Array::Handle();
+  edge_counters ^= ic_data_array.At(0);
 
-  intptr_t entry_count =
-      ComputeEdgeCount(unoptimized_code,
-                       *deopt_id_pc_pairs,
-                       flow_graph()->graph_entry()->normal_entry()->deopt_id());
+  intptr_t entry_count = GetEdgeCount(
+      edge_counters,
+      flow_graph()->graph_entry()->normal_entry()->preorder_number());
   flow_graph()->graph_entry()->set_entry_count(entry_count);
 
   for (BlockIterator it = flow_graph()->reverse_postorder_iterator();
@@ -112,8 +75,7 @@ void BlockScheduler::AssignEdgeWeights() const {
     Instruction* last = block->last_instruction();
     for (intptr_t i = 0; i < last->SuccessorCount(); ++i) {
       BlockEntryInstr* succ = last->SuccessorAt(i);
-      SetEdgeWeight(last, succ,
-                    unoptimized_code, *deopt_id_pc_pairs, entry_count);
+      SetEdgeWeight(block, succ, edge_counters, entry_count);
     }
   }
 }

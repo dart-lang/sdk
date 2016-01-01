@@ -7,6 +7,60 @@ library dart2js.type_system;
 import 'dart_types.dart';
 import 'elements/elements.dart' show ClassElement;
 
+/// The core classes in Dart.
+abstract class CoreClasses {
+  /// The `Object` class defined in 'dart:core'.
+  ClassElement get objectClass;
+
+  /// The `bool` class defined in 'dart:core'.
+  ClassElement get boolClass;
+
+  /// The `num` class defined in 'dart:core'.
+  ClassElement get numClass;
+
+  /// The `int` class defined in 'dart:core'.
+  ClassElement get intClass;
+
+  /// The `double` class defined in 'dart:core'.
+  ClassElement get doubleClass;
+
+  /// The `Resource` class defined in 'dart:core'.
+  ClassElement get resourceClass;
+
+  /// The `String` class defined in 'dart:core'.
+  ClassElement get stringClass;
+
+  /// The `Symbol` class defined in 'dart:core'.
+  ClassElement get symbolClass;
+
+  /// The `Function` class defined in 'dart:core'.
+  ClassElement get functionClass;
+
+  /// The `Null` class defined in 'dart:core'.
+  ClassElement get nullClass;
+
+  /// The `Type` class defined in 'dart:core'.
+  ClassElement get typeClass;
+
+  /// The `StackTrace` class defined in 'dart:core';
+  ClassElement get stackTraceClass;
+
+  /// The `List` class defined in 'dart:core';
+  ClassElement get listClass;
+
+  /// The `Map` class defined in 'dart:core';
+  ClassElement get mapClass;
+
+  /// The `Iterable` class defined in 'dart:core';
+  ClassElement get iterableClass;
+
+  /// The `Future` class defined in 'async';
+  ClassElement get futureClass;
+
+  /// The `Stream` class defined in 'async';
+  ClassElement get streamClass;
+}
+
 /// The core types in Dart.
 abstract class CoreTypes {
   /// The `Object` type defined in 'dart:core'.
@@ -41,6 +95,9 @@ abstract class CoreTypes {
 
   /// The `Type` type defined in 'dart:core'.
   InterfaceType get typeType;
+
+  /// The `StackTrace` type defined in 'dart:core';
+  InterfaceType get stackTraceType;
 
   /// Returns an instance of the `List` type defined in 'dart:core' with
   /// [elementType] as its type argument.

@@ -2,7 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of type_graph_inferrer;
+library compiler.src.inferrer.type_graph_nodes;
+
+import 'dart:collection' show IterableBase;
+
+import '../common.dart';
+import '../common/names.dart' show Identifiers;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
+import '../dart_types.dart' show
+    DartType,
+    FunctionType,
+    InterfaceType,
+    TypeKind;
+import '../elements/elements.dart';
+import '../native/native.dart' as native;
+import '../tree/tree.dart' as ast show
+    DartString,
+    Node,
+    LiteralBool,
+    Send,
+    SendSet,
+    TryStatement;
+import '../types/types.dart' show
+    ContainerTypeMask,
+    DictionaryTypeMask,
+    MapTypeMask,
+    TypeMask,
+    ValueTypeMask;
+import '../universe/selector.dart' show Selector;
+import '../util/util.dart' show ImmutableEmptySet, Setlet;
+import '../world.dart' show ClassWorld;
+
+import 'inferrer_visitor.dart' show ArgumentsTypes;
+import 'type_graph_inferrer.dart' show
+    TypeGraphInferrerEngine,
+    TypeInformationSystem;
+import 'debug.dart' as debug;
 
 /**
  * Common class for all nodes in the graph. The current nodes are:
@@ -86,6 +123,10 @@ abstract class TypeInformation {
   void addUser(TypeInformation user) {
     assert(!user.isConcrete);
     users.add(user);
+  }
+
+  void addUsersOf(TypeInformation other) {
+    users.addAll(other.users);
   }
 
   void removeUser(TypeInformation user) {
@@ -411,7 +452,8 @@ class MemberTypeInformation extends ElementTypeInformation
       } else {
         assert(element.isFunction ||
                element.isGetter ||
-               element.isSetter);
+               element.isSetter ||
+               element.isConstructor);
         TypedElement typedElement = element;
         var elementType = typedElement.type;
         if (elementType.kind != TypeKind.FUNCTION) {
@@ -450,14 +492,14 @@ class MemberTypeInformation extends ElementTypeInformation
       return mask;
     }
     if (element.isField) {
-      return new TypeMaskSystem(compiler).narrowType(mask, element.type);
+      return _narrowType(compiler, mask, element.type);
     }
     assert(element.isFunction ||
            element.isGetter ||
            element.isFactoryConstructor);
 
     FunctionType type = element.type;
-    return new TypeMaskSystem(compiler).narrowType(mask, type.returnType);
+    return _narrowType(compiler, mask, type.returnType);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -524,6 +566,10 @@ class ParameterTypeInformation extends ElementTypeInformation {
   void tagAsTearOffClosureParameter(TypeGraphInferrerEngine inferrer) {
     assert(element.isParameter);
     isTearOffClosureParameter = true;
+    // We have to add a flow-edge for the default value (if it exists), as we
+    // might not see all call-sites and thus miss the use of it.
+    TypeInformation defaultType = inferrer.getDefaultTypeOfParameter(element);
+    if (defaultType != null) defaultType.addUser(this);
   }
 
   // TODO(herhut): Cleanup into one conditional.
@@ -540,8 +586,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // initializing formals.
     if (element.isInitializingFormal) return null;
 
-    FunctionElement function = element.functionDeclaration;
-    if ((isTearOffClosureParameter || function.isLocal) &&
+    if ((isTearOffClosureParameter || declaration.isLocal) &&
         disableInferenceForClosures) {
       // Do not infer types for parameters of closures. We do not
       // clear the assignments in case the closure is successfully
@@ -549,16 +594,20 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer, clearAssignments: false);
       return safeType(inferrer);
     }
-    if (function.isInstanceMember &&
-        (function.name == Identifiers.noSuchMethod_ ||
-        (function.name == Identifiers.call &&
+    if (declaration.isInstanceMember &&
+        (declaration.name == Identifiers.noSuchMethod_ ||
+        (declaration.name == Identifiers.call &&
          disableInferenceForClosures))) {
       // Do not infer types for parameters of [noSuchMethod] and
       // [call] instance methods.
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (function == inferrer.mainElement) {
+    if (inferrer.compiler.world.getMightBePassedToApply(declaration)) {
+      giveUp(inferrer);
+      return safeType(inferrer);
+    }
+    if (declaration == inferrer.mainElement) {
       // The implicit call to main is not seen by the inferrer,
       // therefore we explicitly set the type of its parameters as
       // dynamic.
@@ -582,7 +631,7 @@ class ParameterTypeInformation extends ElementTypeInformation {
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
     assert(!compiler.enableTypeAssertions);
-    return new TypeMaskSystem(compiler).narrowType(mask, element.type);
+    return _narrowType(compiler, mask, element.type);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -917,12 +966,13 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return containerTypeMask.elementType;
       } else if (inferrer.returnsMapValueType(selector, typeMask)) {
         if (typeMask.isDictionary &&
-            arguments.positional[0].type.isValue) {
+            arguments.positional[0].type.isValue &&
+            arguments.positional[0].type.value.isString) {
           DictionaryTypeMask dictionaryTypeMask = typeMask;
           ValueTypeMask arg = arguments.positional[0].type;
-          String key = arg.value;
+          String key = arg.value.primitiveValue.slowToString();
           if (dictionaryTypeMask.typeMap.containsKey(key)) {
-            if (_VERBOSE) {
+            if (debug.VERBOSE) {
               print("Dictionary lookup for $key yields "
                     "${dictionaryTypeMask.typeMap[key]}.");
             }
@@ -930,14 +980,14 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           } else {
             // The typeMap is precise, so if we do not find the key, the lookup
             // will be [null] at runtime.
-            if (_VERBOSE) {
+            if (debug.VERBOSE) {
               print("Dictionary lookup for $key yields [null].");
             }
             return inferrer.types.nullType.type;
           }
         }
         MapTypeMask mapTypeMask = typeMask;
-        if (_VERBOSE) {
+        if (debug.VERBOSE) {
           print(
               "Map lookup for $selector yields ${mapTypeMask.valueType}.");
         }
@@ -1070,6 +1120,11 @@ class ConcreteTypeInformation extends TypeInformation {
     // needs to notify its users.
   }
 
+  void addUsersOf(TypeInformation other) {
+    // Nothing to do, a concrete type does not get updated so never
+    // needs to notify its users.
+  }
+
   void removeUser(TypeInformation user) {
   }
 
@@ -1100,7 +1155,7 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
   final ast.DartString value;
 
   StringLiteralTypeInformation(value, TypeMask mask)
-      : super(new ValueTypeMask(mask, value.slowToString())),
+      : super(new ValueTypeMask(mask, new StringConstantValue(value))),
         this.value = value;
 
   String asString() => value.slowToString();
@@ -1108,6 +1163,21 @@ class StringLiteralTypeInformation extends ConcreteTypeInformation {
 
   accept(TypeInformationVisitor visitor) {
     return visitor.visitStringLiteralTypeInformation(this);
+  }
+}
+
+class BoolLiteralTypeInformation extends ConcreteTypeInformation {
+  final ast.LiteralBool value;
+
+  BoolLiteralTypeInformation(value, TypeMask mask)
+      : super(new ValueTypeMask(mask,
+            value.value ? new TrueConstantValue() : new FalseConstantValue())),
+        this.value = value;
+
+  String toString() => 'Type $type value ${value.value}';
+
+  accept(TypeInformationVisitor visitor) {
+    return visitor.visitBoolLiteralTypeInformation(this);
   }
 }
 
@@ -1147,7 +1217,7 @@ class NarrowTypeInformation extends TypeInformation {
     TypeMask input = assignments.first.type;
     TypeMask intersection = input.intersection(typeAnnotation,
         inferrer.classWorld);
-    if (_ANOMALY_WARN) {
+    if (debug.ANOMALY_WARN) {
       if (!input.containsMask(intersection, inferrer.classWorld) ||
           !typeAnnotation.containsMask(intersection, inferrer.classWorld)) {
         print("ANOMALY WARNING: narrowed $input to $intersection via "
@@ -1569,6 +1639,7 @@ abstract class TypeInformationVisitor<T> {
   T visitMapTypeInformation(MapTypeInformation info);
   T visitConcreteTypeInformation(ConcreteTypeInformation info);
   T visitStringLiteralTypeInformation(StringLiteralTypeInformation info);
+  T visitBoolLiteralTypeInformation(BoolLiteralTypeInformation info);
   T visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info);
   T visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info);
   T visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info);
@@ -1576,4 +1647,25 @@ abstract class TypeInformationVisitor<T> {
   T visitParameterTypeInformation(ParameterTypeInformation info);
   T visitClosureTypeInformation(ClosureTypeInformation info);
   T visitAwaitTypeInformation(AwaitTypeInformation info);
+}
+
+TypeMask _narrowType(Compiler compiler, TypeMask type, DartType annotation,
+    {bool isNullable: true}) {
+  if (annotation.treatAsDynamic) return type;
+  if (annotation.isObject) return type;
+  TypeMask otherType;
+  if (annotation.isTypedef || annotation.isFunctionType) {
+    otherType = compiler.typesTask.functionType;
+  } else if (annotation.isTypeVariable) {
+    // TODO(ngeoffray): Narrow to bound.
+    return type;
+  } else if (annotation.isVoid) {
+    otherType = compiler.typesTask.nullType;
+  } else {
+    assert(annotation.isInterfaceType);
+    otherType = new TypeMask.nonNullSubtype(annotation.element, compiler.world);
+  }
+  if (isNullable) otherType = otherType.nullable();
+  if (type == null) return otherType;
+  return type.intersection(otherType, compiler.world);
 }

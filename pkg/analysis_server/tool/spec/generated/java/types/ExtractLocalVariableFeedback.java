@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, the Dart project authors.
+ * Copyright (c) 2015, the Dart project authors.
  *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -42,6 +42,18 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   public static final List<ExtractLocalVariableFeedback> EMPTY_LIST = Lists.newArrayList();
 
   /**
+   * The offsets of the expressions that cover the specified selection, from the down most to the up
+   * most.
+   */
+  private final int[] coveringExpressionOffsets;
+
+  /**
+   * The lengths of the expressions that cover the specified selection, from the down most to the up
+   * most.
+   */
+  private final int[] coveringExpressionLengths;
+
+  /**
    * The proposed names for the local variable.
    */
   private final List<String> names;
@@ -61,7 +73,9 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   /**
    * Constructor for {@link ExtractLocalVariableFeedback}.
    */
-  public ExtractLocalVariableFeedback(List<String> names, int[] offsets, int[] lengths) {
+  public ExtractLocalVariableFeedback(int[] coveringExpressionOffsets, int[] coveringExpressionLengths, List<String> names, int[] offsets, int[] lengths) {
+    this.coveringExpressionOffsets = coveringExpressionOffsets;
+    this.coveringExpressionLengths = coveringExpressionLengths;
     this.names = names;
     this.offsets = offsets;
     this.lengths = lengths;
@@ -72,6 +86,8 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
     if (obj instanceof ExtractLocalVariableFeedback) {
       ExtractLocalVariableFeedback other = (ExtractLocalVariableFeedback) obj;
       return
+        Arrays.equals(other.coveringExpressionOffsets, coveringExpressionOffsets) &&
+        Arrays.equals(other.coveringExpressionLengths, coveringExpressionLengths) &&
         ObjectUtilities.equals(other.names, names) &&
         Arrays.equals(other.offsets, offsets) &&
         Arrays.equals(other.lengths, lengths);
@@ -80,10 +96,12 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   }
 
   public static ExtractLocalVariableFeedback fromJson(JsonObject jsonObject) {
+    int[] coveringExpressionOffsets = jsonObject.get("coveringExpressionOffsets") == null ? null : JsonUtilities.decodeIntArray(jsonObject.get("coveringExpressionOffsets").getAsJsonArray());
+    int[] coveringExpressionLengths = jsonObject.get("coveringExpressionLengths") == null ? null : JsonUtilities.decodeIntArray(jsonObject.get("coveringExpressionLengths").getAsJsonArray());
     List<String> names = JsonUtilities.decodeStringList(jsonObject.get("names").getAsJsonArray());
     int[] offsets = JsonUtilities.decodeIntArray(jsonObject.get("offsets").getAsJsonArray());
     int[] lengths = JsonUtilities.decodeIntArray(jsonObject.get("lengths").getAsJsonArray());
-    return new ExtractLocalVariableFeedback(names, offsets, lengths);
+    return new ExtractLocalVariableFeedback(coveringExpressionOffsets, coveringExpressionLengths, names, offsets, lengths);
   }
 
   public static List<ExtractLocalVariableFeedback> fromJsonArray(JsonArray jsonArray) {
@@ -96,6 +114,22 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
       list.add(fromJson(iterator.next().getAsJsonObject()));
     }
     return list;
+  }
+
+  /**
+   * The lengths of the expressions that cover the specified selection, from the down most to the up
+   * most.
+   */
+  public int[] getCoveringExpressionLengths() {
+    return coveringExpressionLengths;
+  }
+
+  /**
+   * The offsets of the expressions that cover the specified selection, from the down most to the up
+   * most.
+   */
+  public int[] getCoveringExpressionOffsets() {
+    return coveringExpressionOffsets;
   }
 
   /**
@@ -124,6 +158,8 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   @Override
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
+    builder.append(coveringExpressionOffsets);
+    builder.append(coveringExpressionLengths);
     builder.append(names);
     builder.append(offsets);
     builder.append(lengths);
@@ -132,6 +168,20 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   public JsonObject toJson() {
     JsonObject jsonObject = new JsonObject();
+    if (coveringExpressionOffsets != null) {
+      JsonArray jsonArrayCoveringExpressionOffsets = new JsonArray();
+      for (int elt : coveringExpressionOffsets) {
+        jsonArrayCoveringExpressionOffsets.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("coveringExpressionOffsets", jsonArrayCoveringExpressionOffsets);
+    }
+    if (coveringExpressionLengths != null) {
+      JsonArray jsonArrayCoveringExpressionLengths = new JsonArray();
+      for (int elt : coveringExpressionLengths) {
+        jsonArrayCoveringExpressionLengths.add(new JsonPrimitive(elt));
+      }
+      jsonObject.add("coveringExpressionLengths", jsonArrayCoveringExpressionLengths);
+    }
     JsonArray jsonArrayNames = new JsonArray();
     for (String elt : names) {
       jsonArrayNames.add(new JsonPrimitive(elt));
@@ -154,6 +204,10 @@ public class ExtractLocalVariableFeedback extends RefactoringFeedback {
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("[");
+    builder.append("coveringExpressionOffsets=");
+    builder.append(StringUtils.join(coveringExpressionOffsets, ", ") + ", ");
+    builder.append("coveringExpressionLengths=");
+    builder.append(StringUtils.join(coveringExpressionLengths, ", ") + ", ");
     builder.append("names=");
     builder.append(StringUtils.join(names, ", ") + ", ");
     builder.append("offsets=");

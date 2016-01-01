@@ -610,7 +610,7 @@ class CommandBuilder {
 
   AnalysisCommand getAnalysisCommand(
       String displayName, executable, arguments, environmentOverrides,
-      {String flavor: 'dartanalyzer'}) {
+      {String flavor: 'dart2analyzer'}) {
     var command = new AnalysisCommand._(
         flavor, displayName, executable, arguments, environmentOverrides);
     return _getUniqueCommand(command);
@@ -1679,6 +1679,10 @@ CommandOutput createCommandOutput(Command command,
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
+    if (command.displayName == 'precompiler.dart') {
+      return new VmCommandOutputImpl(
+          command, exitCode, timedOut, stdout, stderr, time, pid);
+    }
     return new CompilationCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is JSCommandlineCommand) {
@@ -2450,7 +2454,8 @@ class CommandExecutorImpl implements CommandExecutor {
   final int maxProcesses;
   final int maxBrowserProcesses;
 
-  // For dartanalyzer batch processing we keep a list of batch processes.
+  // For dart2js and analyzer batch processing,
+  // we keep a list of batch processes.
   final _batchProcesses = new Map<String, List<BatchRunnerProcess>>();
   // We keep a BrowserTestRunner for every configuration.
   final _browserTestRunners = new Map<Map, BrowserTestRunner>();

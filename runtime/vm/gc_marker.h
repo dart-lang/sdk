@@ -6,6 +6,7 @@
 #define VM_GC_MARKER_H_
 
 #include "vm/allocation.h"
+#include "vm/os_thread.h"  // Mutex.
 
 namespace dart {
 
@@ -13,7 +14,6 @@ namespace dart {
 class HandleVisitor;
 class Heap;
 class Isolate;
-class MarkingVisitor;
 class ObjectPointerVisitor;
 class PageSpace;
 class RawWeakProperty;
@@ -23,7 +23,7 @@ class RawWeakProperty;
 class GCMarker : public ValueObject {
  public:
   explicit GCMarker(Heap* heap)
-      : heap_(heap), marked_bytes_(0), done_count_(0) { }
+      : heap_(heap), marked_bytes_(0) { }
   ~GCMarker() { }
 
   void MarkObjects(Isolate* isolate,
@@ -38,28 +38,22 @@ class GCMarker : public ValueObject {
   void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateRoots(Isolate* isolate,
                     ObjectPointerVisitor* visitor,
-                    bool visit_prologue_weak_persistent_handles);
-  void IterateWeakRoots(Isolate* isolate,
-                        HandleVisitor* visitor,
-                        bool visit_prologue_weak_persistent_handles);
-  void IterateWeakReferences(Isolate* isolate, MarkingVisitor* visitor);
+                    intptr_t slice_index, intptr_t num_slices);
+  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
+  template<class MarkingVisitorType>
+  void IterateWeakReferences(Isolate* isolate, MarkingVisitorType* visitor);
   void ProcessWeakTables(PageSpace* page_space);
   void ProcessObjectIdTable(Isolate* isolate);
 
-  // Synchronization between GCMarker's main thread and its marking tasks.
-  // Called by main thread: wait for 'num_tasks' tasks, then let them resume.
-  void MainSync(intptr_t num_tasks);
-  // Called by tasks: notify main thread; wait until it lets us continue.
-  void TaskSync();
-  // Called by tasks: notify main thread, but don't wait (used for exiting).
-  void TaskNotifyDone();
   // Called by anyone: finalize and accumulate stats from 'visitor'.
-  void FinalizeResultsFrom(MarkingVisitor* visitor);
+  template<class MarkingVisitorType>
+  void FinalizeResultsFrom(MarkingVisitorType* visitor);
 
-  Monitor monitor_;  // Protects marked_bytes_ and done_count_.
   Heap* heap_;
+
+  Mutex stats_mutex_;
+  // TODO(koda): Remove after verifying it's redundant w.r.t. ClassHeapStats.
   uintptr_t marked_bytes_;
-  intptr_t done_count_;
 
   friend class MarkTask;
   DISALLOW_IMPLICIT_CONSTRUCTORS(GCMarker);

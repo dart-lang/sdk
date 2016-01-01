@@ -136,7 +136,6 @@ void HeapPage::WriteProtect(bool read_only) {
       prot = VirtualMemory::kReadOnly;
     }
   } else {
-    // TODO(23217): Should this really make all pages non-executable?
     prot = VirtualMemory::kReadWrite;
   }
   bool status = memory_->Protect(prot);
@@ -170,6 +169,9 @@ PageSpace::PageSpace(Heap* heap,
                              FLAG_old_gen_growth_time_ratio),
       gc_time_micros_(0),
       collections_(0) {
+  // We aren't holding the lock but no one can reference us yet.
+  UpdateMaxCapacityLocked();
+  UpdateMaxUsed();
 }
 
 
@@ -212,6 +214,10 @@ HeapPage* PageSpace::AllocatePage(HeapPage::PageType type) {
     }
     pages_tail_ = page;
   } else {
+    // Should not allocate executable pages when running from a precompiled
+    // snapshot.
+    ASSERT(!Dart::IsRunningPrecompiledCode());
+
     if (exec_pages_ == NULL) {
       exec_pages_ = page;
     } else {
@@ -355,10 +361,10 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
 
 
 uword PageSpace::TryAllocateInternal(intptr_t size,
-                            HeapPage::PageType type,
-                            GrowthPolicy growth_policy,
-                            bool is_protected,
-                            bool is_locked) {
+                                     HeapPage::PageType type,
+                                     GrowthPolicy growth_policy,
+                                     bool is_protected,
+                                     bool is_locked) {
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
 #ifdef DEBUG
@@ -529,6 +535,32 @@ void PageSpace::AbandonBumpAllocation() {
 }
 
 
+void PageSpace::UpdateMaxCapacityLocked() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(heap_ != NULL);
+  ASSERT(heap_->isolate() != NULL);
+  Isolate* isolate = heap_->isolate();
+  isolate->GetHeapOldCapacityMaxMetric()->SetValue(
+      static_cast<int64_t>(usage_.capacity_in_words) * kWordSize);
+}
+
+
+void PageSpace::UpdateMaxUsed() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(heap_ != NULL);
+  ASSERT(heap_->isolate() != NULL);
+  Isolate* isolate = heap_->isolate();
+  isolate->GetHeapOldUsedMaxMetric()->SetValue(
+      UsedInWords() * kWordSize);
+}
+
+
 bool PageSpace::Contains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->Contains(addr)) {
@@ -625,13 +657,15 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
 }
 
 
-void PageSpace::WriteProtect(bool read_only) {
+void PageSpace::WriteProtect(bool read_only, bool include_code_pages) {
   if (read_only) {
     // Avoid MakeIterable trying to write to the heap.
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    it.page()->WriteProtect(read_only);
+    if ((it.page()->type() != HeapPage::kExecutable) || include_code_pages) {
+      it.page()->WriteProtect(read_only);
+    }
   }
 }
 
@@ -644,9 +678,9 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
   space.AddProperty("name", "old");
   space.AddProperty("vmName", "PageSpace");
   space.AddProperty("collections", collections());
-  space.AddProperty("used", UsedInWords() * kWordSize);
-  space.AddProperty("capacity", CapacityInWords() * kWordSize);
-  space.AddProperty("external", ExternalInWords() * kWordSize);
+  space.AddProperty64("used", UsedInWords() * kWordSize);
+  space.AddProperty64("capacity", CapacityInWords() * kWordSize);
+  space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
   if (collections() > 0) {
     int64_t run_time = OS::GetCurrentTimeMicros() - isolate->start_time();
@@ -914,6 +948,11 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     freelist_[HeapPage::kExecutable].Print();
   }
 
+  UpdateMaxUsed();
+  if (heap_ != NULL) {
+    heap_->UpdateGlobalMaxUsed();
+  }
+
   isolate->thread_registry()->ResumeAllThreads();
 
   // Done, reset the task count.
@@ -1019,6 +1058,35 @@ uword PageSpace::TryAllocateSmiInitializedLocked(intptr_t size,
   }
 #endif
   return result;
+}
+
+
+void PageSpace::SetupInstructionsSnapshotPage(void* pointer, uword size) {
+  // Setup a HeapPage so precompiled Instructions can be traversed.
+  // Instructions are contiguous at [pointer, pointer + size). HeapPage
+  // expects to find objects at [memory->start() + ObjectStartOffset,
+  // memory->end()).
+  uword offset = HeapPage::ObjectStartOffset();
+  pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
+  size += offset;
+
+  ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
+
+  VirtualMemory* memory = VirtualMemory::ForInstructionsSnapshot(pointer, size);
+  ASSERT(memory != NULL);
+  HeapPage* page = reinterpret_cast<HeapPage*>(malloc(sizeof(HeapPage)));
+  page->memory_ = memory;
+  page->next_ = NULL;
+  page->object_end_ = memory->end();
+  page->executable_ = true;
+
+  MutexLocker ml(pages_lock_);
+  if (exec_pages_ == NULL) {
+    exec_pages_ = page;
+  } else {
+    exec_pages_tail_->set_next(page);
+  }
+  exec_pages_tail_ = page;
 }
 
 

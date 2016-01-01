@@ -21,6 +21,16 @@ part of dart.io;
  */
 abstract class SecurityContext {
   external factory SecurityContext();
+
+  /**
+   * Secure networking classes with an optional `context` parameter
+   * use the [defaultContext] object if the parameter is omitted.
+   * This object can also be accessed, and modified, directly.
+   * Each isolate has a different [defaultContext] object.
+   * The [defaultContext] object uses a list of well-known trusted
+   * certificate authorities as its trusted roots.  This list is
+   * taken from Mozilla, who maintains it as part of Firefox.
+   */
   external static SecurityContext get defaultContext;
 
   /**

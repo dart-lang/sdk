@@ -8,12 +8,12 @@
 #include "platform/assert.h"
 #include "vm/base_isolate.h"
 #include "vm/globals.h"
-#include "vm/thread.h"
 
 namespace dart {
 
 // Forward declarations.
 class Isolate;
+class Thread;
 
 // Stack allocated objects subclass from this base class. Objects of this type
 // cannot be allocated on either the C or object heaps. Destructors for objects
@@ -37,35 +37,14 @@ class ValueObject {
 // to a stack frame above the frame where these objects were allocated.
 class StackResource {
  public:
-  // DEPRECATED: Use Thread-based interface. During migration, this defaults
-  // to using the mutator thread (which must also be the current thread).
-  explicit StackResource(Isolate* isolate) : thread_(NULL), previous_(NULL) {
-    Init((isolate == NULL) ?
-        NULL : reinterpret_cast<BaseIsolate*>(isolate)->mutator_thread_);
-  }
-
   explicit StackResource(Thread* thread) : thread_(NULL), previous_(NULL) {
     Init(thread);
   }
 
-  virtual ~StackResource() {
-    if (thread_ != NULL) {
-      StackResource* top = thread_->top_resource();
-      ASSERT(top == this);
-      thread_->set_top_resource(previous_);
-    }
-#if defined(DEBUG)
-    if (thread_ != NULL) {
-      ASSERT(Thread::Current() == thread_);
-      BaseIsolate::AssertCurrent(reinterpret_cast<BaseIsolate*>(isolate()));
-    }
-#endif
-  }
+  virtual ~StackResource();
 
   // Convenient access to the isolate of the thread of this resource.
-  Isolate* isolate() const {
-    return thread_ == NULL ? NULL : thread_->isolate();
-  }
+  Isolate* isolate() const;
 
   // The thread that owns this resource.
   Thread* thread() const { return thread_; }
@@ -76,19 +55,7 @@ class StackResource {
   static void UnwindAbove(Thread* thread, StackResource* new_top);
 
  private:
-  void Init(Thread* thread) {
-    // We can only have longjumps and exceptions when there is a current
-    // thread and isolate.  If there is no current thread, we don't need to
-    // protect this case.
-    // TODO(23807): Eliminate this special case.
-    if (thread != NULL) {
-      ASSERT(Thread::Current() == thread);
-      thread_ = thread;
-      previous_ = thread_->top_resource();
-      ASSERT((previous_ == NULL) || (previous_->thread_ == thread));
-      thread_->set_top_resource(this);
-    }
-  }
+  void Init(Thread* thread);
 
   Thread* thread_;
   StackResource* previous_;

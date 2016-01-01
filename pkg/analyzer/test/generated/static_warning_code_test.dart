@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.static_warning_code_test;
+library analyzer.test.generated.static_warning_code_test;
 
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -956,6 +956,20 @@ f(String s) { var x = s as A; }''');
   void test_concreteClassWithAbstractMember() {
     Source source = addSource(r'''
 class A {
+  m();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER]);
+    verify([source]);
+  }
+
+  void test_concreteClassWithAbstractMember_noSuchMethod_interface() {
+    Source source = addSource(r'''
+class I {
+  noSuchMethod(v) => '';
+}
+class A implements I {
   m();
 }''');
     computeLibrarySourceErrors(source);
@@ -2650,6 +2664,23 @@ class C extends Object with B {}''');
     computeLibrarySourceErrors(source);
     assertErrors(source,
         [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_interface() {
+    // 15979
+    Source source = addSource(r'''
+class I {
+  noSuchMethod(v) => '';
+}
+abstract class A {
+  m();
+}
+class B extends A implements I {
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE]);
+    verify([source]);
   }
 
   void test_nonAbstractClassInheritsAbstractMemberOne_setter_and_implicitSetter() {

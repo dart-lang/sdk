@@ -2,13 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.testing.element_factory;
+library analyzer.src.generated.testing.element_factory;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -42,25 +45,17 @@ class ElementFactory {
       String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element = new ClassElementImpl(typeName, 0);
+    element.constructors = const <ConstructorElement>[];
     element.supertype = superclassType;
     InterfaceTypeImpl type = new InterfaceTypeImpl(element);
     element.type = type;
     if (parameterNames != null) {
       int count = parameterNames.length;
       if (count > 0) {
-        List<TypeParameterElementImpl> typeParameters =
-            new List<TypeParameterElementImpl>(count);
-        List<TypeParameterTypeImpl> typeParameterTypes =
-            new List<TypeParameterTypeImpl>(count);
-        for (int i = 0; i < count; i++) {
-          TypeParameterElementImpl typeParameter =
-              typeParameterElement(parameterNames[i]);
-          typeParameters[i] = typeParameter;
-          typeParameterTypes[i] = new TypeParameterTypeImpl(typeParameter);
-          typeParameter.type = typeParameterTypes[i];
-        }
-        element.typeParameters = typeParameters;
-        type.typeArguments = typeParameterTypes;
+        element.typeParameters = typeParameters(parameterNames);
+        type.typeArguments = new List<DartType>.from(
+            element.typeParameters.map((p) => p.type),
+            growable: false);
       }
     }
     return element;
@@ -120,8 +115,8 @@ class ElementFactory {
       constructor.parameters = <ParameterElement>[];
     }
     constructor.returnType = type;
-    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructor.type = constructorType;
+    constructor.enclosingElement = definingClass;
+    constructor.type = new FunctionTypeImpl(constructor);
     return constructor;
   }
 
@@ -204,7 +199,9 @@ class ElementFactory {
 
   static FieldElementImpl fieldElement(
       String name, bool isStatic, bool isFinal, bool isConst, DartType type) {
-    FieldElementImpl field = new FieldElementImpl(name, 0);
+    FieldElementImpl field = isConst
+        ? new ConstFieldElementImpl(name, 0)
+        : new FieldElementImpl(name, 0);
     field.const3 = isConst;
     field.final2 = isFinal;
     field.static = isStatic;
@@ -242,12 +239,12 @@ class ElementFactory {
       functionElement4(functionName, null, null, null, null);
 
   static FunctionElementImpl functionElement2(
-          String functionName, ClassElement returnElement) =>
+          String functionName, TypeDefiningElement returnElement) =>
       functionElement3(functionName, returnElement, null, null);
 
   static FunctionElementImpl functionElement3(
       String functionName,
-      ClassElement returnElement,
+      TypeDefiningElement returnElement,
       List<TypeDefiningElement> normalParameters,
       List<TypeDefiningElement> optionalParameters) {
     // We don't create parameter elements because we don't have parameter names
@@ -346,6 +343,40 @@ class ElementFactory {
       functionElement4(
           functionName, null, normalParameters, names, namedParameters);
 
+  static FunctionElementImpl functionElement8(
+      List<DartType> parameters, DartType returnType,
+      {List<DartType> optional, Map<String, DartType> named}) {
+    List<ParameterElement> parameterElements = new List<ParameterElement>();
+    for (int i = 0; i < parameters.length; i++) {
+      ParameterElementImpl parameterElement =
+          new ParameterElementImpl("a$i", i);
+      parameterElement.type = parameters[i];
+      parameterElement.parameterKind = ParameterKind.REQUIRED;
+      parameterElements.add(parameterElement);
+    }
+    if (optional != null) {
+      int j = parameters.length;
+      for (int i = 0; i < optional.length; i++) {
+        ParameterElementImpl parameterElement =
+            new ParameterElementImpl("o$i", j);
+        parameterElement.type = optional[i];
+        parameterElement.parameterKind = ParameterKind.POSITIONAL;
+        parameterElements.add(parameterElement);
+        j++;
+      }
+    } else if (named != null) {
+      int j = parameters.length;
+      for (String s in named.keys) {
+        ParameterElementImpl parameterElement = new ParameterElementImpl(s, j);
+        parameterElement.type = named[s];
+        parameterElement.parameterKind = ParameterKind.NAMED;
+        parameterElements.add(parameterElement);
+      }
+    }
+
+    return functionElementWithParameters("f", returnType, parameterElements);
+  }
+
   static FunctionElementImpl functionElementWithParameters(String functionName,
       DartType returnType, List<ParameterElement> parameters) {
     FunctionElementImpl functionElement =
@@ -372,8 +403,10 @@ class ElementFactory {
     field.static = isStatic;
     field.synthetic = true;
     field.type = type;
+    field.final2 = true;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl.forVariable(field);
+    getter.synthetic = false;
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
@@ -381,15 +414,6 @@ class ElementFactory {
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
     getter.type = getterType;
     return getter;
-  }
-
-  @deprecated
-  static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
-    Source source =
-        new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
-    HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
-    unit.source = source;
-    return unit;
   }
 
   static ImportElementImpl importFor(
@@ -408,7 +432,7 @@ class ElementFactory {
     String fileName = "/$libraryName.dart";
     CompilationUnitElementImpl unit = compilationUnit(fileName);
     LibraryElementImpl library =
-        new LibraryElementImpl(context, libraryName, 0);
+        new LibraryElementImpl(context, libraryName, 0, libraryName.length);
     library.definingCompilationUnit = unit;
     return library;
   }
@@ -442,16 +466,15 @@ class ElementFactory {
   }
 
   static MethodElementImpl methodElementWithParameters(
+      ClassElement enclosingElement,
       String methodName,
-      List<DartType> typeArguments,
       DartType returnType,
       List<ParameterElement> parameters) {
     MethodElementImpl method = new MethodElementImpl(methodName, 0);
+    method.enclosingElement = enclosingElement;
     method.parameters = parameters;
     method.returnType = returnType;
-    FunctionTypeImpl methodType = new FunctionTypeImpl(method);
-    methodType.typeArguments = typeArguments;
-    method.type = methodType;
+    method.type = new FunctionTypeImpl(method);
     return method;
   }
 
@@ -544,7 +567,8 @@ class ElementFactory {
     }
     variable.const3 = isConst;
     variable.final2 = isFinal;
-    variable.synthetic = true;
+    variable.synthetic = false;
+    variable.type = type;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl.forVariable(variable);
     getter.getter = true;
@@ -575,5 +599,26 @@ class ElementFactory {
     TypeParameterElementImpl element = new TypeParameterElementImpl(name, 0);
     element.type = new TypeParameterTypeImpl(element);
     return element;
+  }
+
+  static List<TypeParameterElement> typeParameters(List<String> names) {
+    int count = names.length;
+    if (count == 0) {
+      return TypeParameterElement.EMPTY_LIST;
+    }
+    List<TypeParameterElementImpl> typeParameters =
+        new List<TypeParameterElementImpl>(count);
+    for (int i = 0; i < count; i++) {
+      typeParameters[i] = typeParameterWithType(names[i]);
+    }
+    return typeParameters;
+  }
+
+  static TypeParameterElementImpl typeParameterWithType(String name,
+      [DartType bound]) {
+    TypeParameterElementImpl typeParameter = typeParameterElement(name);
+    typeParameter.type = new TypeParameterTypeImpl(typeParameter);
+    typeParameter.bound = bound;
+    return typeParameter;
   }
 }

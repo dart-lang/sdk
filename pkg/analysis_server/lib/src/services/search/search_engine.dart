@@ -8,7 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -68,6 +68,13 @@ class MatchKind {
  */
 abstract class SearchEngine {
   /**
+   * Returns all subtypes of the given [type].
+   *
+   * [type] - the [ClassElement] being subtyped by the found matches.
+   */
+  Future<List<SearchMatch>> searchAllSubtypes(ClassElement type);
+
+  /**
    * Returns declarations of elements with the given name.
    *
    * [name] - the name being declared by the found matches.
@@ -97,9 +104,9 @@ abstract class SearchEngine {
   Future<List<SearchMatch>> searchReferences(Element element);
 
   /**
-   * Returns subtypes of the given [type].
+   * Returns direct subtypes of the given [type].
    *
-   * [type] - the [ClassElemnet] being subtyped by the found matches.
+   * [type] - the [ClassElement] being subtyped by the found matches.
    */
   Future<List<SearchMatch>> searchSubtypes(ClassElement type);
 

@@ -55,7 +55,7 @@ void checkWarnings(Map<String, dynamic> tests, [List<String> arguments]) {
     if (statusMap != null && statusMap.containsKey('missing')) {
       missingStatus = statusMap['missing'];
     }
-    for (DiagnosticMessage message in collector.warnings) {
+    for (CollectedMessage message in collector.warnings) {
       Expect.equals(uri, message.uri);
       int lineNo = file.getLine(message.begin);
       if (expectedWarnings.containsKey(lineNo)) {

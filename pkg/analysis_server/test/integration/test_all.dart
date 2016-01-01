@@ -8,7 +8,6 @@ import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'analysis/test_all.dart' as analysis_test_all;
-import 'asynchrony_test.dart' as asynchrony_test;
 import 'completion/test_all.dart' as completion_test_all;
 import 'search/test_all.dart' as search_test_all;
 import 'server/test_all.dart' as server_test_all;
@@ -20,7 +19,6 @@ main() {
   initializeTestEnvironment();
   group('analysis_server_integration', () {
     analysis_test_all.main();
-    asynchrony_test.main();
     completion_test_all.main();
     search_test_all.main();
     server_test_all.main();

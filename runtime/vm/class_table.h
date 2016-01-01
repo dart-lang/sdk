@@ -43,8 +43,8 @@ class AllocStats {
     old_size = 0;
   }
 
-  void AddOld(T size) {
-    old_count++;
+  void AddOld(T size, T count = 1) {
+    old_count += count;
     old_size += size;
   }
 
@@ -222,7 +222,7 @@ class ClassTable {
   bool TraceAllocationFor(intptr_t cid);
 
  private:
-  friend class MarkingVisitor;
+  friend class GCMarker;
   friend class ScavengerVisitor;
   friend class ClassHeapStatsTestHelper;
   static const int initial_capacity_ = 512;
@@ -243,7 +243,7 @@ class ClassTable {
 
   // May not have updated size for variable size classes.
   ClassHeapStats* PreliminaryStatsAt(intptr_t cid);
-  void UpdateLiveOld(intptr_t cid, intptr_t size);
+  void UpdateLiveOld(intptr_t cid, intptr_t size, intptr_t count = 1);
   void UpdateLiveNew(intptr_t cid, intptr_t size);
 
   DISALLOW_COPY_AND_ASSIGN(ClassTable);

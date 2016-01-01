@@ -9,14 +9,13 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
-import 'package:analysis_server/src/server/driver.dart' as analysisServer;
 
 const Matcher isBool = const isInstanceOf<bool>('bool');
 
@@ -28,10 +27,10 @@ const Matcher isNotification = const MatchesJsonObject(
 
 const Matcher isObject = isMap;
 
+const Matcher isString = const isInstanceOf<String>('String');
+
 final Matcher isResponse = new MatchesJsonObject('response', {'id': isString},
     optionalFields: {'result': anything, 'error': isRequestError});
-
-const Matcher isString = const isInstanceOf<String>('String');
 
 Matcher isListOf(Matcher elementMatcher) => new _ListOf(elementMatcher);
 
@@ -165,6 +164,21 @@ abstract class AbstractAnalysisServerIntegrationTest
   }
 
   /**
+   * If [skipShutdown] is not set, shut down the server.
+   */
+  Future shutdownIfNeeded() {
+    if (skipShutdown) {
+      return new Future.value();
+    }
+    // Give the server a short time to comply with the shutdown request; if it
+    // doesn't exit, then forcibly terminate it.
+    sendServerShutdown();
+    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
+      return server.kill();
+    });
+  }
+
+  /**
    * Convert the given [relativePath] to an absolute path, by interpreting it
    * relative to [sourceDirectory].  On Windows any forward slashes in
    * [relativePath] are converted to backslashes.
@@ -197,7 +211,7 @@ abstract class AbstractAnalysisServerIntegrationTest
    * After every test, the server is stopped and [sourceDirectory] is deleted.
    */
   Future tearDown() {
-    return _shutdownIfNeeded().then((_) {
+    return shutdownIfNeeded().then((_) {
       sourceDirectory.deleteSync(recursive: true);
     });
   }
@@ -217,21 +231,6 @@ abstract class AbstractAnalysisServerIntegrationTest
     File file = new File(pathname);
     file.writeAsStringSync(contents);
     return file.resolveSymbolicLinksSync();
-  }
-
-  /**
-   * If [skipShutdown] is not set, shut down the server.
-   */
-  Future _shutdownIfNeeded() {
-    if (skipShutdown) {
-      return new Future.value();
-    }
-    // Give the server a short time to comply with the shutdown request; if it
-    // doesn't exit, then forcibly terminate it.
-    sendServerShutdown();
-    return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill();
-    });
   }
 }
 
@@ -583,7 +582,7 @@ class Server {
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(UTF8.encoder.convert("${line}\n"));
+    _process.stdin.add(UTF8.encoder.convert("$line\n"));
     return completer.future;
   }
 
@@ -597,7 +596,6 @@ class Server {
       {bool debugServer: false,
       int diagnosticPort,
       bool profileServer: false,
-      bool newTaskModel: false,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -615,7 +613,7 @@ class Server {
       arguments.add('--observe');
       arguments.add('--pause-isolates-on-exit');
     }
-    if (Platform.packageRoot.isNotEmpty) {
+    if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
     arguments.add('--checked');
@@ -627,9 +625,8 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (newTaskModel) {
-      arguments.add('--${analysisServer.Driver.ENABLE_NEW_TASK_MODEL}');
-    }
+//    print('Launching $serverPath');
+//    print('$dartBinary ${arguments.join(' ')}');
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {

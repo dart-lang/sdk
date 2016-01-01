@@ -7,11 +7,13 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
-import 'package:compiler/src/apiimpl.dart'
-       show Compiler;
+import 'package:compiler/src/apiimpl.dart' show
+    CompilerImpl;
 import 'memory_compiler.dart';
 import 'package:compiler/src/js/js.dart' as js;
-import 'package:compiler/src/common.dart' show Element, ClassElement;
+import 'package:compiler/src/elements/elements.dart' show
+    ClassElement,
+    Element;
 
 const String TEST_MAIN_FILE = 'test.dart';
 
@@ -31,13 +33,13 @@ String formatTest(Map test) {
   return test[TEST_MAIN_FILE];
 }
 
-String getCodeForMain(Compiler compiler) {
+String getCodeForMain(CompilerImpl compiler) {
   Element mainFunction = compiler.mainFunction;
   js.Node ast = compiler.enqueuer.codegen.generatedCode[mainFunction];
   return js.prettyPrint(ast, compiler).getText();
 }
 
-String getCodeForMethod(Compiler compiler,
+String getCodeForMethod(CompilerImpl compiler,
                         String name) {
   Element foundElement;
   for (Element element in compiler.enqueuer.codegen.generatedCode.keys) {
@@ -68,7 +70,7 @@ runTests(List<TestEntry> tests) {
             memorySourceFiles: files,
             options: <String>['--use-cps-ir']);
         Expect.isTrue(result.isSuccess);
-        Compiler compiler = result.compiler;
+        CompilerImpl compiler = result.compiler;
         String expectation = test.expectation;
         if (expectation != null) {
           String expected = test.expectation;
@@ -79,8 +81,9 @@ runTests(List<TestEntry> tests) {
             Expect.fail('Expected:\n$expected\nbut found\n$found');
           }
         }
-      } catch (e) {
+      } catch (e, st) {
         print(e);
+        print(st);
         Expect.fail('The following test failed to compile:\n'
                     '${formatTest(files)}');
       }

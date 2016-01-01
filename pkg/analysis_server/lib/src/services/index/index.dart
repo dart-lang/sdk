@@ -6,13 +6,10 @@ library services.index;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/src/provisional/index/index_core.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/html.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A filter for [Element] names.
@@ -45,20 +42,12 @@ abstract class Index implements IndexStore {
   List<Element> getTopLevelDeclarations(ElementNameFilter nameFilter);
 
   /**
-   * Processes the given [HtmlUnit] in order to record the relationships.
+   * Processes the given [object] in order to record the relationships.
    *
-   * [context] - the [AnalysisContext] in which [HtmlUnit] was resolved.
-   * [unit] - the [HtmlUnit] being indexed.
+   * [context] - the [AnalysisContext] in which the [object] being indexed.
+   * [object] - the object being indexed.
    */
-  void indexHtmlUnit(AnalysisContext context, HtmlUnit unit);
-
-  /**
-   * Processes the given [CompilationUnit] in order to record the relationships.
-   *
-   * [context] - the [AnalysisContext] in which [CompilationUnit] was resolved.
-   * [unit] - the [CompilationUnit] being indexed.
-   */
-  void indexUnit(AnalysisContext context, CompilationUnit unit);
+  void index(AnalysisContext context, Object object);
 
   /**
    * Starts the index.
@@ -78,8 +67,6 @@ abstract class Index implements IndexStore {
  * a concrete kind of this name - field, method or something else.
  */
 class IndexableName implements IndexableObject {
-  // TODO(brianwilkerson) Replace NameElement with this class. This will require
-  // generalizing the search engine to use IndexableObject rather than Element.
   /**
    * The name to be indexed.
    */
@@ -91,10 +78,10 @@ class IndexableName implements IndexableObject {
   IndexableName(this.name);
 
   @override
-  IndexableObjectKind get kind => IndexableNameKind.INSTANCE;
+  String get filePath => null;
 
   @override
-  int get length => 0;
+  IndexableNameKind get kind => IndexableNameKind.INSTANCE;
 
   @override
   int get offset {
@@ -102,7 +89,8 @@ class IndexableName implements IndexableObject {
   }
 
   @override
-  Source get source => null;
+  bool operator ==(Object object) =>
+      object is IndexableName && object.name == name;
 
   @override
   String toString() => name;
@@ -111,7 +99,7 @@ class IndexableName implements IndexableObject {
 /**
  * The kind of an indexable name.
  */
-class IndexableNameKind implements IndexableObjectKind {
+class IndexableNameKind implements IndexableObjectKind<IndexableName> {
   /**
    * The unique instance of this class.
    */
@@ -131,9 +119,15 @@ class IndexableNameKind implements IndexableObjectKind {
   }
 
   @override
-  IndexableObject decode(AnalysisContext context, String filePath, int offset) {
+  IndexableName decode(AnalysisContext context, String filePath, int offset) {
     throw new UnsupportedError(
         'Indexable names cannot be decoded through their kind');
+  }
+
+  @override
+  int encodeHash(StringToInt stringToInt, IndexableName indexable) {
+    String name = indexable.name;
+    return stringToInt(name);
   }
 }
 
@@ -148,6 +142,14 @@ class IndexConstants {
    */
   static final RelationshipImpl DEFINES =
       RelationshipImpl.getRelationship("defines");
+
+  /**
+   * Left: class.
+   *   Has ancestor (extended or implemented, directly or indirectly).
+   * Right: other class declaration.
+   */
+  static final RelationshipImpl HAS_ANCESTOR =
+      RelationshipImpl.getRelationship("has-ancestor");
 
   /**
    * Left: class.
@@ -305,7 +307,7 @@ class LocationImpl implements Location {
     if (isResolved) {
       flagsStr += ' resolved';
     }
-    return '[${offset} - ${(offset + length)}) $flagsStr in ${indexable}';
+    return '[$offset - ${offset + length}) $flagsStr in $indexable';
   }
 }
 
@@ -317,20 +319,6 @@ class LocationWithData<D> extends LocationImpl {
 
   LocationWithData(LocationImpl location, this.data)
       : super(location.indexable, location.offset, location.length);
-}
-
-/**
- * An [Element] which is used to index references to the name without specifying
- * a concrete kind of this name - field, method or something else.
- */
-class NameElement extends ElementImpl {
-  NameElement(String name) : super(name, -1);
-
-  @override
-  ElementKind get kind => ElementKind.NAME;
-
-  @override
-  accept(ElementVisitor visitor) => null;
 }
 
 /**
@@ -349,7 +337,7 @@ class RelationshipImpl implements Relationship {
   static int _NEXT_HASH_CODE = 0;
 
   /**
-   * The artifitial hash code for this object.
+   * The artificial hash code for this object.
    */
   final int _hashCode = _NEXT_HASH_CODE++;
 

@@ -11,7 +11,6 @@
 #include "include/dart_api.h"
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -99,8 +98,9 @@ class ShellUtils {
 
 class TimerUtils {
  public:
-  static int64_t GetCurrentTimeMicros();
-  static int64_t GetCurrentTimeMilliseconds();
+  static void InitOnce();
+  static int64_t GetCurrentMonotonicMicros();
+  static int64_t GetCurrentMonotonicMillis();
   static void Sleep(int64_t millis);
 };
 

@@ -73,3 +73,7 @@ class _SyncIterator implements Iterator {
     }
   }
 }
+
+patch class StackTrace {
+  /* patch */ static StackTrace get current native "StackTrace_current";
+}

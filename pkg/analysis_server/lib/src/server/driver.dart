@@ -8,14 +8,15 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/starter.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -25,6 +26,7 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:args/args.dart';
+import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -219,11 +221,6 @@ class Driver implements ServerStarter {
   static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
 
   /**
-   * The name of the option used to enable the use of the new task model.
-   */
-  static const String ENABLE_NEW_TASK_MODEL = "enable-new-task-model";
-
-  /**
    * The name of the option used to set the file read mode.
    */
   static const String FILE_READ_MODE = "file-read-mode";
@@ -299,16 +296,9 @@ class Driver implements ServerStarter {
   InstrumentationServer instrumentationServer;
 
   /**
-   * The context manager used to create analysis contexts within each of the
-   * analysis roots.
-   */
-  ContextManager contextManager;
-
-  /**
    * The package resolver provider used to override the way package URI's are
    * resolved in some contexts.
    */
-  @deprecated
   ResolverProvider packageResolverProvider;
 
   /**
@@ -388,12 +378,15 @@ class Driver implements ServerStarter {
     //
     // Initialize the instrumentation service.
     //
-    if (instrumentationServer != null) {
-      String filePath = results[INSTRUMENTATION_LOG_FILE];
-      if (filePath != null) {
-        instrumentationServer = new MulticastInstrumentationServer(
-            [instrumentationServer, new FileInstrumentationServer(filePath)]);
-      }
+    String logFilePath = results[INSTRUMENTATION_LOG_FILE];
+    if (logFilePath != null) {
+      _rollLogFiles(logFilePath, 5);
+      FileInstrumentationServer fileBasedServer =
+          new FileInstrumentationServer(logFilePath);
+      instrumentationServer = instrumentationServer != null
+          ? new MulticastInstrumentationServer(
+              [instrumentationServer, fileBasedServer])
+          : fileBasedServer;
     }
     InstrumentationService service =
         new InstrumentationService(instrumentationServer);
@@ -401,26 +394,26 @@ class Driver implements ServerStarter {
         results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
     //
-    // Enable the new task model, if appropriate.
-    //
-    if (results[ENABLE_NEW_TASK_MODEL]) {
-      AnalysisEngine.instance.useTaskModel = true;
-    }
-    //
     // Process all of the plugins so that extensions are registered.
     //
     ServerPlugin serverPlugin = new ServerPlugin();
     List<Plugin> plugins = <Plugin>[];
-    plugins.add(AnalysisEngine.instance.enginePlugin);
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
     plugins.add(serverPlugin);
+    plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
+    plugins.add(dartCompletionPlugin);
     plugins.addAll(_userDefinedPlugins);
+
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
     //
     // Create the sockets and start listening for requests.
     //
     socketServer = new SocketServer(analysisServerOptions, defaultSdk, service,
-        serverPlugin, contextManager, packageResolverProvider);
+        serverPlugin, packageResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;
@@ -430,11 +423,11 @@ class Driver implements ServerStarter {
     }
 
     _captureExceptions(service, () {
-      stdioServer.serveStdio().then((_) {
+      stdioServer.serveStdio().then((_) async {
         if (serve_http) {
           httpServer.close();
         }
-        service.shutdown();
+        await service.shutdown();
         exit(0);
       });
     },
@@ -454,7 +447,8 @@ class Driver implements ServerStarter {
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
       AnalysisServer analysisServer = socketServer.analysisServer;
-      analysisServer.sendServerErrorNotification(exception, stackTrace);
+      analysisServer.sendServerErrorNotification(
+          'Captured exception', exception, stackTrace);
       throw exception;
     };
     Function printFunction = print == null
@@ -485,11 +479,6 @@ class Driver implements ServerStarter {
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
         help: "enable sending instrumentation information to a server",
         defaultsTo: false,
-        negatable: false);
-    parser.addFlag(ENABLE_NEW_TASK_MODEL,
-        help: "enable the use of the new task model",
-        defaultsTo: false,
-        hide: true,
         negatable: false);
     parser.addFlag(HELP_OPTION,
         help: "print this help message without starting a server",
@@ -578,5 +567,21 @@ class Driver implements ServerStarter {
       uuid = 'temp-$uuid';
     }
     return uuid;
+  }
+
+  /**
+   * Perform log files rolling.
+   *
+   * Rename existing files with names `[path].(x)` to `[path].(x+1)`.
+   * Keep at most [numOld] files.
+   * Rename the file with the given [path] to `[path].1`.
+   */
+  static void _rollLogFiles(String path, int numOld) {
+    for (int i = numOld - 1; i >= 0; i--) {
+      try {
+        String oldPath = i == 0 ? path : '$path.$i';
+        new File(oldPath).renameSync('$path.${i+1}');
+      } catch (e) {}
+    }
   }
 }

@@ -17,9 +17,8 @@ class Flags {
       '--disable-native-live-type-analysis';
   static const String disableTypeInference = '--disable-type-inference';
   static const String dumpInfo = '--dump-info';
+  static const String enableAssertMessage = '--assert-message';
   static const String enableCheckedMode = '--enable-checked-mode';
-  static const String enableConcreteTypeInference =
-      '--enable-concrete-type-inference';
   static const String enableDiagnosticColors = '--enable-diagnostic-colors';
   static const String enableExperimentalMirrors =
       '--enable-experimental-mirrors';
@@ -41,8 +40,18 @@ class Flags {
   static const String testMode = '--test-mode';
   static const String trustPrimitives = '--trust-primitives';
   static const String trustTypeAnnotations = '--trust-type-annotations';
+  static const String trustJSInteropTypeAnnotations =
+      '--experimental-trust-js-interop-type-annotations';
   static const String useContentSecurityPolicy = '--csp';
   static const String useCpsIr = '--use-cps-ir';
   static const String verbose = '--verbose';
   static const String version = '--version';
+
+  // Experimental flags.
+  static const String conditionalDirectives = '--conditional-directives';
+}
+
+class Option {
+  static const String showPackageWarnings =
+      '${Flags.showPackageWarnings}|${Flags.showPackageWarnings}=.*';
 }

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library instrumentation;
+library analyzer.instrumentation.instrumentation;
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/task/model.dart';
@@ -43,7 +44,7 @@ abstract class InstrumentationServer {
    * server. This method should be invoked exactly one time and no other methods
    * should be invoked on this instance after this method has been invoked.
    */
-  void shutdown();
+  Future shutdown();
 }
 
 /**
@@ -83,7 +84,7 @@ class InstrumentationService {
   int _subprocessCounter = 0;
 
   /**
-   * Initialize a newly created instrumentation service to comunicate with the
+   * Initialize a newly created instrumentation service to communicate with the
    * given [instrumentationServer].
    */
   InstrumentationService(this._instrumentationServer);
@@ -103,9 +104,7 @@ class InstrumentationService {
    * Log that the given analysis [task] is being performed in the given
    * [context].
    */
-  void logAnalysisTask(String context, dynamic task) {
-    // TODO(brianwilkerson) When the old task model is removed, change the
-    // parameter type to AnalysisTask.
+  void logAnalysisTask(String context, AnalysisTask task) {
     if (_instrumentationServer != null) {
       String description =
           (task is AnalysisTask) ? task.description : task.toString();
@@ -216,7 +215,7 @@ class InstrumentationService {
 
   /**
    * Log the result of executing a subprocess.  [subprocessId] should be the
-   * unique IDreturned by [logSubprocessStart].
+   * unique ID returned by [logSubprocessStart].
    */
   void logSubprocessResult(
       int subprocessId, int exitCode, String stdout, String stderr) {
@@ -290,9 +289,9 @@ class InstrumentationService {
    * server. This method should be invoked exactly one time and no other methods
    * should be invoked on this instance after this method has been invoked.
    */
-  void shutdown() {
+  Future shutdown() async {
     if (_instrumentationServer != null) {
-      _instrumentationServer.shutdown();
+      await _instrumentationServer.shutdown();
       _instrumentationServer = null;
     }
   }
@@ -373,9 +372,9 @@ class MulticastInstrumentationServer implements InstrumentationServer {
   }
 
   @override
-  void shutdown() {
+  Future shutdown() async {
     for (InstrumentationServer server in _servers) {
-      server.shutdown();
+      await server.shutdown();
     }
   }
 }

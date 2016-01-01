@@ -29,9 +29,10 @@
           # '-fvisibility=hidden',
           # '-fvisibility-inlines-hidden',
           '-fstack-protector',
+          '-Wa,--noexecstack',
         ],
         'ldflags': [
-          '-Wa,--noexecstack',
+          '-Wl,-z,noexecstack',
           '-Wl,-z,now',
           '-Wl,-z,relro',
         ],
@@ -71,19 +72,19 @@
 
       'Dart_Linux_simarm_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2' ],
+        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m32', ],
       },
 
       'Dart_Linux_simarmv5te_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2' ],
+        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m32', ],
       },
 
       'Dart_Linux_simarm64_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m64', '-msse2' ],
+        'cflags': [ '-O3', '-m64', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m64', ],
       },
 
@@ -100,7 +101,7 @@
           ],
         }],
         ['_toolset=="host"', {
-          'cflags': ['-m32', '-msse2'],
+          'cflags': ['-m32', '-msse2', '-mfpmath=sse' ],
           'ldflags': ['-m32'],
         }]]
       },
@@ -131,7 +132,7 @@
           ],
         }],
         ['_toolset=="host"', {
-          'cflags': ['-m32', '-msse2'],
+          'cflags': ['-m32', '-msse2', '-mfpmath=sse' ],
           'ldflags': ['-m32'],
         }]]
       },
@@ -170,7 +171,7 @@
 
       'Dart_Linux_simmips_Base': {
         'abstract': 1,
-        'cflags': [ '-O3', '-m32', '-msse2' ],
+        'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
         'ldflags': [ '-m32', ],
       },
 
@@ -190,7 +191,7 @@
             ],
           }],
           ['_toolset=="host"',{
-            'cflags': [ '-O3', '-m32', '-msse2' ],
+            'cflags': [ '-O3', '-m32', '-msse2', '-mfpmath=sse' ],
             'ldflags': [ '-m32' ],
         }]]
       },
@@ -236,6 +237,10 @@
         ],
         'cflags': [
           '-O3',
+          '-ffunction-sections',
+        ],
+        'ldflags': [
+          '-Wl,--gc-sections',
         ],
       },
     },

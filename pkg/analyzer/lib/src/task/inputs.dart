@@ -24,6 +24,55 @@ typedef R Mapper<P, R>(P value);
  * An input to an [AnalysisTask] that is computed by accessing a single result
  * defined on a single target.
  */
+class ConstantTaskInput<V> extends TaskInputImpl<V> {
+  final V value;
+
+  ConstantTaskInput(this.value);
+
+  @override
+  TaskInputBuilder<V> createBuilder() {
+    return new ConstantTaskInputBuilder<V>(this);
+  }
+}
+
+/**
+ * A [TaskInputBuilder] used to build an input based on a [ConstantTaskInput].
+ */
+class ConstantTaskInputBuilder<V> implements TaskInputBuilder<V> {
+  final ConstantTaskInput input;
+
+  ConstantTaskInputBuilder(this.input);
+
+  @override
+  ResultDescriptor get currentResult => null;
+
+  @override
+  AnalysisTarget get currentTarget => null;
+
+  @override
+  void set currentValue(Object value) {
+    throw new StateError('Only supported after moveNext() returns true');
+  }
+
+  @override
+  bool get flushOnAccess => false;
+
+  @override
+  V get inputValue => input.value;
+
+  @override
+  void currentValueNotAvailable() {
+    throw new StateError('Only supported after moveNext() returns true');
+  }
+
+  @override
+  bool moveNext() => false;
+}
+
+/**
+ * An input to an [AnalysisTask] that is computed by accessing a single result
+ * defined on a single target.
+ */
 class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
     with ListTaskInputMixin<E>
     implements ListTaskInput<E> {
@@ -32,29 +81,92 @@ class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
    * the given [result] associated with the given [target].
    */
   ListTaskInputImpl(AnalysisTarget target, ResultDescriptor<List<E>> result)
-      : super(target, result);
+      : super._unflushable(target, result);
 }
 
 /**
  * A mixin-ready implementation of [ListTaskInput].
  */
 abstract class ListTaskInputMixin<E> implements ListTaskInput<E> {
-  ListTaskInput /*<V>*/ toList(UnaryFunction<E, dynamic /*<V>*/ > mapper) {
-    return new ListToListTaskInput<E, dynamic /*V*/ >(this, mapper);
+  @override
+  ListTaskInput /*<V>*/ toFlattenListOf /*<V>*/ (
+      ListResultDescriptor /*<V>*/ subListResult) {
+    return new ListToFlattenListTaskInput<E, dynamic /*=V*/ >(
+        this, subListResult.of as dynamic);
   }
 
-  ListTaskInput /*<V>*/ toListOf(ResultDescriptor /*<V>*/ valueResult) {
-    return (this as ListTaskInputImpl<AnalysisTarget>).toList(valueResult.of);
+  ListTaskInput /*<V>*/ toList /*<V>*/ (
+      UnaryFunction<E, dynamic /*<=V>*/ > mapper) {
+    return new ListToListTaskInput<E, dynamic /*=V*/ >(this, mapper);
   }
 
-  MapTaskInput<E, dynamic /*V*/ > toMap(
-      UnaryFunction<E, dynamic /*<V>*/ > mapper) {
-    return new ListToMapTaskInput<E, dynamic /*V*/ >(this, mapper);
+  ListTaskInput /*<V>*/ toListOf /*<V>*/ (
+      ResultDescriptor /*<V>*/ valueResult) {
+    return (this as ListTaskInput<AnalysisTarget>).toList(valueResult.of);
   }
 
-  MapTaskInput<AnalysisTarget, dynamic /*V*/ > toMapOf(
+  MapTaskInput<E, dynamic /*=V*/ > toMap /*<V>*/ (
+      UnaryFunction<E, dynamic /*<=V>*/ > mapper) {
+    return new ListToMapTaskInput<E, dynamic /*=V*/ >(this, mapper);
+  }
+
+  MapTaskInput<AnalysisTarget, dynamic /*=V*/ > toMapOf /*<V>*/ (
       ResultDescriptor /*<V>*/ valueResult) {
     return (this as ListTaskInputImpl<AnalysisTarget>).toMap(valueResult.of);
+  }
+}
+
+/**
+ * An input to an [AnalysisTask] that is computed by the following steps. First
+ * another (base) task input is used to compute a [List]-valued result. An input
+ * generator function is then used to map each element of that list to a task
+ * input. Finally, each of the task inputs are used to access analysis results,
+ * and the list of the analysis results is used as the input to the task.
+ */
+class ListToFlattenListTaskInput<B, E>
+    extends _ListToCollectionTaskInput<B, E, List<E>>
+    with ListTaskInputMixin<E>
+    implements ListTaskInput<E> {
+  /**
+   * Initialize a result accessor to use the given [baseAccessor] to access a
+   * list of values that can be passed to the given [generateTaskInputs] to
+   * generate a list of task inputs that can be used to access the elements of
+   * the input being accessed.
+   */
+  ListToFlattenListTaskInput(TaskInput<List<B>> baseAccessor,
+      GenerateTaskInputs<B, E> generateTaskInputs)
+      : super(baseAccessor, generateTaskInputs);
+
+  @override
+  TaskInputBuilder<List<E>> createBuilder() =>
+      new ListToFlattenListTaskInputBuilder<B, E>(this);
+}
+
+/**
+ * A [TaskInputBuilder] used to build an input based on a [ListToFlattenListTaskInput].
+ */
+class ListToFlattenListTaskInputBuilder<B, E>
+    extends _ListToCollectionTaskInputBuilder<B, E, List<E>> {
+  /**
+   * The list of values being built.
+   */
+  List<E> _resultValue;
+
+  /**
+   * Initialize a newly created task input builder that computes the result
+   * specified by the given [input].
+   */
+  ListToFlattenListTaskInputBuilder(ListToFlattenListTaskInput<B, E> input)
+      : super(input);
+
+  @override
+  void _addResultElement(B baseElement, E resultElement) {
+    _resultValue.addAll(resultElement as Iterable);
+  }
+
+  @override
+  void _initResultValue() {
+    _resultValue = <E>[];
   }
 }
 
@@ -167,11 +279,10 @@ class ListToMapTaskInputBuilder<B, E>
  * A mixin-ready implementation of [MapTaskInput].
  */
 abstract class MapTaskInputMixin<K, V> implements MapTaskInput<K, V> {
-  TaskInput<List /*<E>*/ > toFlattenList(
-      BinaryFunction<K, dynamic /*element of V*/, dynamic /*<E>*/ > mapper) {
+  TaskInput<List /*<E>*/ > toFlattenList /*<E>*/ (
+      BinaryFunction<K, dynamic /*element of V*/, dynamic /*<=E>*/ > mapper) {
     return new MapToFlattenListTaskInput<K, dynamic /*element of V*/,
-        dynamic /*E*/ >(
-        this as MapTaskInput<K, List /*<element of V>*/ >, mapper);
+        dynamic /*=E*/ >(this as MapTaskInput<K, List /*<element of V>*/ >, mapper);
   }
 }
 
@@ -241,6 +352,9 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
     }
     currentBuilder.currentValue = value;
   }
+
+  @override
+  bool get flushOnAccess => currentBuilder.flushOnAccess;
 
   @override
   void currentValueNotAvailable() {
@@ -327,15 +441,23 @@ class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>>
       new ObjectToListTaskInputBuilder<E>(this);
 
   @override
-  ListTaskInput /*<V>*/ toListOf(ResultDescriptor /*<V>*/ valueResult) {
-    return new ListToListTaskInput<E, dynamic /*V*/ >(
+  ListTaskInput /*<V>*/ toFlattenListOf /*<V>*/ (
+      ListResultDescriptor /*<V>*/ subListResult) {
+    return new ListToFlattenListTaskInput<E, dynamic /*=V*/ >(
+        this, subListResult.of as dynamic);
+  }
+
+  @override
+  ListTaskInput /*<V>*/ toListOf /*<V>*/ (
+      ResultDescriptor /*<V>*/ valueResult) {
+    return new ListToListTaskInput<E, dynamic /*=V*/ >(
         this, valueResult.of as dynamic);
   }
 
   @override
-  MapTaskInput<AnalysisTarget, dynamic /*V*/ > toMapOf(
+  MapTaskInput<AnalysisTarget, dynamic /*=V*/ > toMapOf /*<V>*/ (
       ResultDescriptor /*<V>*/ valueResult) {
-    return new ListToMapTaskInput<AnalysisTarget, dynamic /*V*/ >(
+    return new ListToMapTaskInput<AnalysisTarget, dynamic /*=V*/ >(
         this as dynamic, valueResult.of);
   }
 }
@@ -394,6 +516,9 @@ class ObjectToListTaskInputBuilder<E> implements TaskInputBuilder<List<E>> {
   }
 
   @override
+  bool get flushOnAccess => builder.flushOnAccess;
+
+  @override
   List<E> get inputValue {
     if (builder != null) {
       throw new StateError('Result value has not been created');
@@ -445,10 +570,23 @@ class SimpleTaskInput<V> extends TaskInputImpl<V> {
   final ResultDescriptor<V> result;
 
   /**
+   * Return `true` if the value accessed by this input builder should be flushed
+   * from the cache at the time it is retrieved.
+   */
+  final bool flushOnAccess;
+
+  /**
    * Initialize a newly created task input that computes the input by accessing
    * the given [result] associated with the given [target].
    */
-  SimpleTaskInput(this.target, this.result);
+  SimpleTaskInput(this.target, this.result, {this.flushOnAccess: false});
+
+  /**
+   * Initialize a newly created task input that computes the input by accessing
+   * the given [result] associated with the given [target].
+   */
+  SimpleTaskInput._unflushable(this.target, this.result)
+      : flushOnAccess = false;
 
   @override
   TaskInputBuilder<V> createBuilder() => new SimpleTaskInputBuilder<V>(this);
@@ -520,6 +658,9 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
   }
 
   @override
+  bool get flushOnAccess => input.flushOnAccess;
+
+  @override
   V get inputValue {
     if (_state != _AFTER) {
       throw new StateError('Result value has not been created');
@@ -555,7 +696,7 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
 
 abstract class TaskInputImpl<V> implements TaskInput<V> {
   @override
-  ListTaskInput /*<E>*/ mappedToList(List /*<E>*/ mapper(V value)) {
+  ListTaskInput /*<E>*/ mappedToList /*<E>*/ (List /*<E>*/ mapper(V value)) {
     return new ObjectToListTaskInput(this, mapper);
   }
 }
@@ -628,6 +769,9 @@ class TopLevelTaskInputBuilder
   }
 
   @override
+  bool get flushOnAccess => currentBuilder.flushOnAccess;
+
+  @override
   Map<String, Object> get inputValue {
     if (nameIndex < inputNames.length) {
       throw new StateError('Result value has not been created');
@@ -675,11 +819,18 @@ class TopLevelTaskInputBuilder
       return false;
     }
     currentBuilder = inputDescriptors[_currentName].createBuilder();
-    // NOTE: This assumes that every builder will require at least one result
-    // value to be created. If that assumption is every broken, this method will
-    // need to be changed to advance until we find a builder that does require
-    // a result to be computed (or run out of builders).
-    return currentBuilder.moveNext();
+    while (!currentBuilder.moveNext()) {
+      if (currentBuilder.inputValue != null) {
+        inputs[_currentName] = currentBuilder.inputValue;
+      }
+      nameIndex++;
+      if (nameIndex >= inputNames.length) {
+        // There is no next value, so we're done.
+        return false;
+      }
+      currentBuilder = inputDescriptors[_currentName].createBuilder();
+    }
+    return true;
   }
 }
 
@@ -772,6 +923,9 @@ abstract class _ListToCollectionTaskInputBuilder<B, E, C>
     }
     currentBuilder.currentValue = value;
   }
+
+  @override
+  bool get flushOnAccess => currentBuilder.flushOnAccess;
 
   @override
   C get inputValue {

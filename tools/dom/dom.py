@@ -139,7 +139,7 @@ def test_dart2js(browser, argv):
   return call(cmd)
 
 def test_server():
-  start_test_server(5400, os.path.join('out', 'ReleaseIA32'))
+  start_test_server(5400, os.path.join('out', 'ReleaseX64'))
 
 def test_server_dartium():
   start_test_server(5500, os.path.join('..', 'out', 'Release'))

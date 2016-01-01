@@ -2,7 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of type_graph_inferrer;
+library compiler.src.inferrer.list_tracer;
+
+import '../elements/elements.dart';
+import '../universe/selector.dart' show Selector;
+import '../util/util.dart' show Setlet;
+
+import 'node_tracer.dart';
+import 'type_graph_nodes.dart';
 
 /**
  * A set of selector names that [List] implements, that we know do not

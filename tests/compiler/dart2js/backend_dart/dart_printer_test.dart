@@ -51,7 +51,7 @@ void show(x) {
   print("${x.runtimeType}: ${buf.toString()}");
 }
 
-class PrintDiagnosticListener implements DiagnosticListener {
+class PrintDiagnosticListener implements DiagnosticReporter {
   void log(message) {
     print(message);
   }
@@ -587,9 +587,14 @@ class AstBuilder extends Listener {
     push(new ForIn(declaredIdentifier, exp, body));
   }
 
-  handleAssertStatement(Token assertKeyword, Token semicolonToken) {
+  handleAssertStatement(Token assertKeyword,
+                        Token commaToken, Token semicolonToken) {
+    Expression message;
+    if (commaToken != null) message = pop();
     Expression exp = pop();
-    Expression call = new CallFunction(new Identifier("assert"), [exp]);
+    var arguments = [exp];
+    if (message != null) arguments.add(message);
+    Expression call = new CallFunction(new Identifier("assert"), arguments);
     push(new ExpressionStatement(call));
   }
 

@@ -7,7 +7,7 @@
 
 #include "bin/file_system_watcher.h"
 
-#if !defined(TARGET_OS_IOS)
+#if !TARGET_OS_IOS
 
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
@@ -394,7 +394,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 }  // namespace bin
 }  // namespace dart
 
-#else  // !defined(TARGET_OS_IOS)
+#else  // !TARGET_OS_IOS
 
 namespace dart {
 namespace bin {
@@ -432,6 +432,6 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // !defined(TARGET_OS_IOS)
+#endif  // !TARGET_OS_IOS
 
 #endif  // defined(TARGET_OS_MACOS)

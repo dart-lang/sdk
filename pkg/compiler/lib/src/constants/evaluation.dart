@@ -6,7 +6,7 @@ library dart2js.constants.evaluation;
 
 import '../compiler.dart' show
     Compiler;
-import '../universe/universe.dart' show
+import '../universe/call_structure.dart' show
     CallStructure;
 import 'expressions.dart';
 

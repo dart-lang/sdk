@@ -6,8 +6,8 @@ library test.analysis.notification.navigation;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -26,6 +26,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 
   NavigationRegion testRegion;
   List<int> testTargetIndexes;
+  List<NavigationTarget> testTargets;
   NavigationTarget testTarget;
 
   /**
@@ -33,8 +34,6 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
    * at [offset] and with the given [length].
    */
   void assertHasFileTarget(String file, int offset, int length) {
-    List<NavigationTarget> testTargets =
-        testTargetIndexes.map((int index) => targets[index]).toList();
     for (NavigationTarget target in testTargets) {
       if (targetFiles[target.fileIndex] == file &&
           target.offset == offset &&
@@ -45,7 +44,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     }
     fail(
         'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
-        '${testRegion} in\n'
+        '$testRegion in\n'
         '${testTargets.join('\n')}');
   }
 
@@ -100,6 +99,14 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
       length = findIdentifierLength(search);
     }
     assertHasFileTarget(testFile, offset, length);
+  }
+
+  /**
+   * Validates that there is a target in [testTargets]  with [testFile], at the
+   * offset of [str] in [testFile], and with the length of  [str].
+   */
+  void assertHasTargetString(String str) {
+    assertHasTarget(str, str.length);
   }
 
   /**
@@ -159,6 +166,7 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
         }
         testRegion = region;
         testTargetIndexes = region.targets;
+        testTargets = testTargetIndexes.map((i) => targets[i]).toList();
         return;
       }
     }
@@ -171,11 +179,10 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
 
 @reflectiveTest
 class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
-  Future prepareNavigation() {
+  Future prepareNavigation() async {
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
-    return waitForTasksFinished().then((_) {
-      assertRegionsSorted();
-    });
+    await waitForTasksFinished();
+    assertRegionsSorted();
   }
 
   void processNotification(Notification notification) {
@@ -195,67 +202,169 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
     createProject();
   }
 
-  test_afterAnalysis() {
+  test_afterAnalysis() async {
     addTestFile('''
 class AAA {}
 AAA aaa;
 ''');
-    return waitForTasksFinished().then((_) {
-      return prepareNavigation().then((_) {
-        assertHasRegionTarget('AAA aaa;', 'AAA {}');
-      });
-    });
+    await waitForTasksFinished();
+    await prepareNavigation();
+    assertHasRegionTarget('AAA aaa;', 'AAA {}');
   }
 
-  test_class_fromSDK() {
+  test_annotationConstructor_implicit() async {
+    addTestFile('''
+class A {
+}
+@A()
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegionString('A()', 'A'.length);
+    assertHasTarget('A {');
+  }
+
+  test_annotationConstructor_importPrefix() async {
+    addFile(
+        '$testFolder/my_annotation.dart',
+        r'''
+library an;
+class MyAnnotation {
+  const MyAnnotation();
+  const MyAnnotation.named();
+}
+''');
+    addTestFile('''
+import 'my_annotation.dart' as man;
+@man.MyAnnotation()
+@man.MyAnnotation.named()
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('MyAnnotation()');
+    assertHasRegion('MyAnnotation.named()');
+    assertHasRegion('named()');
+    {
+      assertHasRegion('man.MyAnnotation()');
+      assertHasTarget('man;');
+    }
+    {
+      assertHasRegion('man.MyAnnotation.named()');
+      assertHasTarget('man;');
+    }
+  }
+
+  test_annotationConstructor_named() async {
+    addTestFile('''
+class A {
+  const A.named(p);
+}
+@A.named(0)
+main() {
+}
+''');
+    await prepareNavigation();
+    {
+      assertHasRegion('A.named(0)');
+      assertHasTarget('named(p);');
+    }
+    {
+      assertHasRegion('named(0)');
+      assertHasTarget('named(p);');
+    }
+  }
+
+  test_annotationConstructor_unnamed() async {
+    addTestFile('''
+class A {
+  const A();
+}
+@A()
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegionString('A()', 'A'.length);
+    assertHasTarget('A();', 0);
+  }
+
+  test_annotationField() async {
+    addTestFile('''
+const myan = new Object();
+@myan // ref
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('myan // ref');
+    assertHasTarget('myan = new Object();');
+  }
+
+  test_annotationField_importPrefix() async {
+    addFile(
+        '$testFolder/mayn.dart',
+        r'''
+library an;
+const myan = new Object();
+''');
+    addTestFile('''
+import 'mayn.dart' as man;
+@man.myan // ref
+main() {
+}
+''');
+    await prepareNavigation();
+    assertHasRegion('myan // ref');
+  }
+
+  test_class_fromSDK() async {
     addTestFile('''
 int V = 42;
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegion('int V');
-      int targetIndex = testTargetIndexes[0];
-      NavigationTarget target = targets[targetIndex];
-      expect(target.startLine, greaterThan(0));
-      expect(target.startColumn, greaterThan(0));
-    });
+    await prepareNavigation();
+    assertHasRegion('int V');
+    int targetIndex = testTargetIndexes[0];
+    NavigationTarget target = targets[targetIndex];
+    expect(target.startLine, greaterThan(0));
+    expect(target.startColumn, greaterThan(0));
   }
 
-  test_constructor_named() {
+  test_constructor_named() async {
     addTestFile('''
 class A {
   A.named(BBB p) {}
 }
 class BBB {}
 ''');
-    return prepareNavigation().then((_) {
-      // has region for complete "A.named"
-      assertHasRegionString('A.named');
-      assertHasTarget('named(BBB');
-      // no separate regions for "A" and "named"
-      assertNoRegion('A.named(', 'A'.length);
-      assertNoRegion('named(', 'named'.length);
-      // validate that we don't forget to resolve parameters
-      assertHasRegionTarget('BBB p', 'BBB {}');
-    });
+    await prepareNavigation();
+    // has region for complete "A.named"
+    assertHasRegionString('A.named');
+    assertHasTarget('named(BBB');
+    // no separate regions for "A" and "named"
+    assertNoRegion('A.named(', 'A'.length);
+    assertNoRegion('named(', 'named'.length);
+    // validate that we don't forget to resolve parameters
+    assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
-  test_constructor_unnamed() {
+  test_constructor_unnamed() async {
     addTestFile('''
 class A {
   A(BBB p) {}
 }
 class BBB {}
 ''');
-    return prepareNavigation().then((_) {
-      // has region for complete "A.named"
-      assertHasRegion("A(BBB");
-      assertHasTarget("A(BBB", 0);
-      // validate that we don't forget to resolve parameters
-      assertHasRegionTarget('BBB p', 'BBB {}');
-    });
+    await prepareNavigation();
+    // has region for complete "A.named"
+    assertHasRegion("A(BBB");
+    assertHasTarget("A(BBB", 0);
+    // validate that we don't forget to resolve parameters
+    assertHasRegionTarget('BBB p', 'BBB {}');
   }
 
-  test_factoryRedirectingConstructor_implicit() {
+  test_factoryRedirectingConstructor_implicit() async {
     addTestFile('''
 class A {
   factory A() = B;
@@ -263,13 +372,12 @@ class A {
 class B {
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegion('B;');
-      assertHasTarget('B {');
-    });
+    await prepareNavigation();
+    assertHasRegion('B;');
+    assertHasTarget('B {');
   }
 
-  test_factoryRedirectingConstructor_implicit_withTypeArgument() {
+  test_factoryRedirectingConstructor_implicit_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -277,19 +385,18 @@ class B {
 }
 class C<T> {}
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegion('C<A>');
-        assertHasTarget('C<T> {');
-      }
-      {
-        assertHasRegion('A>;');
-        assertHasTarget('A {');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegion('C<A>');
+      assertHasTarget('C<T> {');
+    }
+    {
+      assertHasRegion('A>;');
+      assertHasTarget('A {');
+    }
   }
 
-  test_factoryRedirectingConstructor_named() {
+  test_factoryRedirectingConstructor_named() async {
     addTestFile('''
 class A {
   factory A() = B.named;
@@ -298,19 +405,18 @@ class B {
   B.named();
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegionString('B.named;', 'B'.length);
-        assertHasTarget('named();');
-      }
-      {
-        assertHasRegionString('named;', 'named'.length);
-        assertHasTarget('named();');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegionString('B.named;', 'B'.length);
+      assertHasTarget('named();');
+    }
+    {
+      assertHasRegionString('named;', 'named'.length);
+      assertHasTarget('named();');
+    }
   }
 
-  test_factoryRedirectingConstructor_named_withTypeArgument() {
+  test_factoryRedirectingConstructor_named_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -320,23 +426,22 @@ class C<T> {
   C.named() {}
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegion('C<A>');
-        assertHasTarget('named() {}');
-      }
-      {
-        assertHasRegion('A>.named');
-        assertHasTarget('A {');
-      }
-      {
-        assertHasRegion('named;', 'named'.length);
-        assertHasTarget('named() {}');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegion('C<A>');
+      assertHasTarget('named() {}');
+    }
+    {
+      assertHasRegion('A>.named');
+      assertHasTarget('A {');
+    }
+    {
+      assertHasRegion('named;', 'named'.length);
+      assertHasTarget('named() {}');
+    }
   }
 
-  test_factoryRedirectingConstructor_unnamed() {
+  test_factoryRedirectingConstructor_unnamed() async {
     addTestFile('''
 class A {
   factory A() = B;
@@ -345,13 +450,12 @@ class B {
   B() {}
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegion('B;');
-      assertHasTarget('B() {}', 0);
-    });
+    await prepareNavigation();
+    assertHasRegion('B;');
+    assertHasTarget('B() {}', 0);
   }
 
-  test_factoryRedirectingConstructor_unnamed_withTypeArgument() {
+  test_factoryRedirectingConstructor_unnamed_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B {
@@ -361,53 +465,49 @@ class C<T> {
   C() {}
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegion('C<A>');
-        assertHasTarget('C() {}', 0);
-      }
-      {
-        assertHasRegion('A>;');
-        assertHasTarget('A {');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegion('C<A>');
+      assertHasTarget('C() {}', 0);
+    }
+    {
+      assertHasRegion('A>;');
+      assertHasTarget('A {');
+    }
   }
 
-  test_factoryRedirectingConstructor_unresolved() {
+  test_factoryRedirectingConstructor_unresolved() async {
     addTestFile('''
 class A {
   factory A() = B;
 }
 ''');
-    return prepareNavigation().then((_) {
-      // don't check regions, but there should be no exceptions
-    });
+    await prepareNavigation();
+    // don't check regions, but there should be no exceptions
   }
 
-  test_fieldFormalParameter() {
+  test_fieldFormalParameter() async {
     addTestFile('''
 class AAA {
   int fff = 123;
   AAA(this.fff);
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegionTarget('fff);', 'fff = 123');
-    });
+    await prepareNavigation();
+    assertHasRegionTarget('fff);', 'fff = 123');
   }
 
-  test_fieldFormalParameter_unresolved() {
+  test_fieldFormalParameter_unresolved() async {
     addTestFile('''
 class AAA {
   AAA(this.fff);
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertNoRegion('fff);', 3);
-    });
+    await prepareNavigation();
+    assertNoRegion('fff);', 3);
   }
 
-  test_identifier_resolved() {
+  test_identifier_resolved() async {
     addTestFile('''
 class AAA {}
 main() {
@@ -415,25 +515,23 @@ main() {
   print(aaa);
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegionTarget('AAA aaa', 'AAA {}');
-      assertHasRegionTarget('aaa);', 'aaa = null');
-      assertHasRegionTarget('main() {', 'main() {');
-    });
+    await prepareNavigation();
+    assertHasRegionTarget('AAA aaa', 'AAA {}');
+    assertHasRegionTarget('aaa);', 'aaa = null');
+    assertHasRegionTarget('main() {', 'main() {');
   }
 
-  test_identifier_unresolved() {
+  test_identifier_unresolved() async {
     addTestFile('''
 main() {
   print(vvv);
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertNoRegionString('vvv');
-    });
+    await prepareNavigation();
+    assertNoRegionString('vvv');
   }
 
-  test_identifier_whenStrayImportDirective() {
+  test_identifier_whenStrayImportDirective() async {
     addTestFile('''
 main() {
   int aaa = 42;
@@ -441,9 +539,8 @@ main() {
 }
 import 'dart:math';
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegionTarget('aaa);', 'aaa = 42');
-    });
+    await prepareNavigation();
+    assertHasRegionTarget('aaa);', 'aaa = 42');
   }
 
   test_inComment() async {
@@ -463,7 +560,7 @@ class SecondClass {
     assertHasRegionTarget('FirstClass(', 'FirstClass {');
   }
 
-  test_instanceCreation_implicit() {
+  test_instanceCreation_implicit() async {
     addTestFile('''
 class A {
 }
@@ -471,13 +568,12 @@ main() {
   new A();
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegionString('A()', 'A'.length);
-      assertHasTarget('A {');
-    });
+    await prepareNavigation();
+    assertHasRegionString('A()', 'A'.length);
+    assertHasTarget('A {');
   }
 
-  test_instanceCreation_implicit_withTypeArgument() {
+  test_instanceCreation_implicit_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B<T> {}
@@ -485,19 +581,18 @@ main() {
   new B<A>();
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegion('B<A>', 'B'.length);
-        assertHasTarget('B<T> {');
-      }
-      {
-        assertHasRegion('A>();', 'A'.length);
-        assertHasTarget('A {');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegion('B<A>', 'B'.length);
+      assertHasTarget('B<T> {');
+    }
+    {
+      assertHasRegion('A>();', 'A'.length);
+      assertHasTarget('A {');
+    }
   }
 
-  test_instanceCreation_named() {
+  test_instanceCreation_named() async {
     addTestFile('''
 class A {
   A.named() {}
@@ -506,19 +601,18 @@ main() {
   new A.named();
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegionString('A.named();', 'A'.length);
-        assertHasTarget('named() {}');
-      }
-      {
-        assertHasRegionString('named();', 'named'.length);
-        assertHasTarget('named() {}');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegionString('A.named();', 'A'.length);
+      assertHasTarget('named() {}');
+    }
+    {
+      assertHasRegionString('named();', 'named'.length);
+      assertHasTarget('named() {}');
+    }
   }
 
-  test_instanceCreation_named_withTypeArgument() {
+  test_instanceCreation_named_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B<T> {
@@ -528,23 +622,22 @@ main() {
   new B<A>.named();
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegionString('B<A>', 'B'.length);
-        assertHasTarget('named() {}');
-      }
-      {
-        assertHasRegion('A>.named');
-        assertHasTarget('A {');
-      }
-      {
-        assertHasRegion('named();', 'named'.length);
-        assertHasTarget('named() {}');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegionString('B<A>', 'B'.length);
+      assertHasTarget('named() {}');
+    }
+    {
+      assertHasRegion('A>.named');
+      assertHasTarget('A {');
+    }
+    {
+      assertHasRegion('named();', 'named'.length);
+      assertHasTarget('named() {}');
+    }
   }
 
-  test_instanceCreation_unnamed() {
+  test_instanceCreation_unnamed() async {
     addTestFile('''
 class A {
   A() {}
@@ -553,13 +646,12 @@ main() {
   new A();
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegionString('A();', 'A'.length);
-      assertHasTarget('A() {}', 0);
-    });
+    await prepareNavigation();
+    assertHasRegionString('A();', 'A'.length);
+    assertHasTarget('A() {}', 0);
   }
 
-  test_instanceCreation_unnamed_withTypeArgument() {
+  test_instanceCreation_unnamed_withTypeArgument() async {
     addTestFile('''
 class A {}
 class B<T> {
@@ -569,19 +661,43 @@ main() {
   new B<A>();
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegionString('B<A>();', 'B'.length);
-        assertHasTarget('B() {}', 0);
-      }
-      {
-        assertHasRegion('A>();');
-        assertHasTarget('A {');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegionString('B<A>();', 'B'.length);
+      assertHasTarget('B() {}', 0);
+    }
+    {
+      assertHasRegion('A>();');
+      assertHasTarget('A {');
+    }
   }
 
-  test_multiplyDefinedElement() {
+  test_instanceCreation_withImportPrefix_named() async {
+    addTestFile('''
+import 'dart:async' as ppp;
+main() {
+  new ppp.Future.value(42);
+}
+''');
+    await prepareNavigation();
+    {
+      assertHasRegion('ppp.');
+      assertHasTarget('ppp;');
+    }
+    assertHasRegion('Future.value');
+    assertHasRegion('value(42)');
+  }
+
+  test_library() async {
+    addTestFile('''
+library my.lib;
+''');
+    await prepareNavigation();
+    assertHasRegionString('my.lib');
+    assertHasTargetString('my.lib');
+  }
+
+  test_multiplyDefinedElement() async {
     addFile('$projectPath/bin/libA.dart', 'library A; int TEST = 1;');
     addFile('$projectPath/bin/libB.dart', 'library B; int TEST = 2;');
     addTestFile('''
@@ -591,12 +707,11 @@ main() {
   TEST;
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertNoRegionAt('TEST');
-    });
+    await prepareNavigation();
+    assertNoRegionAt('TEST');
   }
 
-  test_operator_arithmetic() {
+  test_operator_arithmetic() async {
     addTestFile('''
 class A {
   A operator +(other) => null;
@@ -620,22 +735,21 @@ main() {
   a /= 6;
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasOperatorRegion('- 1', 1, '-(other) => null', 1);
-      assertHasOperatorRegion('+ 2', 1, '+(other) => null', 1);
-      assertHasOperatorRegion('-a; // unary', 1, '-() => null', 1);
-      assertHasOperatorRegion('--a;', 2, '-(other) => null', 1);
-      assertHasOperatorRegion('++a;', 2, '+(other) => null', 1);
-      assertHasOperatorRegion('--; // mm', 2, '-(other) => null', 1);
-      assertHasOperatorRegion('++; // pp', 2, '+(other) => null', 1);
-      assertHasOperatorRegion('-= 3', 2, '-(other) => null', 1);
-      assertHasOperatorRegion('+= 4', 2, '+(other) => null', 1);
-      assertHasOperatorRegion('*= 5', 2, '*(other) => null', 1);
-      assertHasOperatorRegion('/= 6', 2, '/(other) => null', 1);
-    });
+    await prepareNavigation();
+    assertHasOperatorRegion('- 1', 1, '-(other) => null', 1);
+    assertHasOperatorRegion('+ 2', 1, '+(other) => null', 1);
+    assertHasOperatorRegion('-a; // unary', 1, '-() => null', 1);
+    assertHasOperatorRegion('--a;', 2, '-(other) => null', 1);
+    assertHasOperatorRegion('++a;', 2, '+(other) => null', 1);
+    assertHasOperatorRegion('--; // mm', 2, '-(other) => null', 1);
+    assertHasOperatorRegion('++; // pp', 2, '+(other) => null', 1);
+    assertHasOperatorRegion('-= 3', 2, '-(other) => null', 1);
+    assertHasOperatorRegion('+= 4', 2, '+(other) => null', 1);
+    assertHasOperatorRegion('*= 5', 2, '*(other) => null', 1);
+    assertHasOperatorRegion('/= 6', 2, '/(other) => null', 1);
   }
 
-  test_operator_index() {
+  test_operator_index() async {
     addTestFile('''
 class A {
   A operator +(other) => null;
@@ -651,89 +765,106 @@ main() {
   b[2] += 2;
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasOperatorRegion('] // []', 1, '[](index)', 2);
-      assertHasOperatorRegion('] = 1;', 1, '[]=(index,', 3);
-      assertHasOperatorRegion('] += 2;', 1, '[]=(index,', 3);
-      assertHasOperatorRegion('+= 2;', 2, '+(other)', 1);
-    });
+    await prepareNavigation();
+    assertHasOperatorRegion('[0', 1, '[](index)', 2);
+    assertHasOperatorRegion('] // []', 1, '[](index)', 2);
+    assertHasOperatorRegion('[1', 1, '[]=(index,', 3);
+    assertHasOperatorRegion('] = 1;', 1, '[]=(index,', 3);
+    assertHasOperatorRegion('[2', 1, '[]=(index,', 3);
+    assertHasOperatorRegion('] += 2;', 1, '[]=(index,', 3);
+    assertHasOperatorRegion('+= 2;', 2, '+(other)', 1);
   }
 
-  test_partOf() {
+  test_partOf() async {
     var libCode = 'library lib; part "test.dart";';
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('part of lib;');
-    return prepareNavigation().then((_) {
-      assertHasRegionString('part of lib');
-      assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
-    });
+    await prepareNavigation();
+    assertHasRegionString('lib');
+    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
   }
 
-  test_string_export() {
+  test_redirectingConstructorInvocation() async {
+    addTestFile('''
+class A {
+  A() {}
+  A.foo() : this();
+  A.bar() : this.foo();
+}
+''');
+    await prepareNavigation();
+    {
+      assertHasRegion('this();');
+      assertHasTarget('A() {}', 0);
+    }
+    {
+      assertHasRegion('this.foo');
+      assertHasTarget('foo() :');
+    }
+    {
+      assertHasRegion('foo();');
+      assertHasTarget('foo() :');
+    }
+  }
+
+  test_string_export() async {
     var libCode = 'library lib;';
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('export "lib.dart";');
-    return prepareNavigation().then((_) {
-      assertHasRegionString('"lib.dart"');
-      assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
-    });
+    await prepareNavigation();
+    assertHasRegionString('"lib.dart"');
+    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
   }
 
-  test_string_export_unresolvedUri() {
+  test_string_export_unresolvedUri() async {
     addTestFile('export "no.dart";');
-    return prepareNavigation().then((_) {
-      assertNoRegionString('"no.dart"');
-    });
+    await prepareNavigation();
+    assertNoRegionString('"no.dart"');
   }
 
-  test_string_import() {
+  test_string_import() async {
     var libCode = 'library lib;';
     var libFile = addFile('$projectPath/bin/lib.dart', libCode);
     addTestFile('import "lib.dart";');
-    return prepareNavigation().then((_) {
-      assertHasRegionString('"lib.dart"');
-      assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
-    });
+    await prepareNavigation();
+    assertHasRegionString('"lib.dart"');
+    assertHasFileTarget(libFile, libCode.indexOf('lib;'), 'lib'.length);
   }
 
-  test_string_import_noUri() {
+  test_string_import_noUri() async {
     addTestFile('import ;');
-    return prepareNavigation().then((_) {
-      assertNoRegionAt('import ;');
-    });
+    await prepareNavigation();
+    assertNoRegionAt('import ;');
   }
 
-  test_string_import_unresolvedUri() {
+  test_string_import_unresolvedUri() async {
     addTestFile('import "no.dart";');
-    return prepareNavigation().then((_) {
-      assertNoRegionString('"no.dart"');
-    });
+    await prepareNavigation();
+    assertNoRegionString('"no.dart"');
   }
 
-  test_string_part() {
+  test_string_part() async {
     var unitCode = 'part of lib;  f() {}';
     var unitFile = addFile('$projectPath/bin/test_unit.dart', unitCode);
     addTestFile('''
 library lib;
 part "test_unit.dart";
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegionString('"test_unit.dart"');
-      assertHasFileTarget(unitFile, 0, 0);
-    });
+    await prepareNavigation();
+    assertHasRegionString('"test_unit.dart"');
+    assertHasFileTarget(unitFile, 0, 0);
   }
 
-  test_string_part_unresolvedUri() {
+  test_string_part_unresolvedUri() async {
     addTestFile('''
 library lib;
 part "test_unit.dart";
 ''');
-    return prepareNavigation().then((_) {
-      assertNoRegionString('"test_unit.dart"');
-    });
+    await prepareNavigation();
+    assertNoRegionString('"test_unit.dart"');
   }
 
-  test_superConstructorInvocation() {
+  test_superConstructorInvocation() async {
     addTestFile('''
 class A {
   A() {}
@@ -744,19 +875,22 @@ class B extends A {
   B.named() : super.named();
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegionString('super');
-        assertHasTarget('A() {}', 0);
-      }
-      {
-        assertHasRegionString('super.named');
-        assertHasTarget('named() {}');
-      }
-    });
+    await prepareNavigation();
+    {
+      assertHasRegionString('super');
+      assertHasTarget('A() {}', 0);
+    }
+    {
+      assertHasRegion('super.named');
+      assertHasTarget('named() {}');
+    }
+    {
+      assertHasRegion('named();');
+      assertHasTarget('named() {}');
+    }
   }
 
-  test_superConstructorInvocation_synthetic() {
+  test_superConstructorInvocation_synthetic() async {
     addTestFile('''
 class A {
 }
@@ -764,45 +898,39 @@ class B extends A {
   B() : super();
 }
 ''');
-    return prepareNavigation().then((_) {
-      {
-        assertHasRegionString('super');
-        assertHasTarget('A {');
-      }
-    });
+    await prepareNavigation();
+    assertHasRegionString('super');
+    assertHasTarget('A {');
   }
 
-  test_targetElement() {
+  test_targetElement() async {
     addTestFile('''
 class AAA {}
 main() {
   AAA aaa = null;
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertHasRegionTarget('AAA aaa', 'AAA {}');
-      expect(testTarget.kind, ElementKind.CLASS);
-    });
+    await prepareNavigation();
+    assertHasRegionTarget('AAA aaa', 'AAA {}');
+    expect(testTarget.kind, ElementKind.CLASS);
   }
 
-  test_type_dynamic() {
+  test_type_dynamic() async {
     addTestFile('''
 main() {
   dynamic v = null;
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertNoRegionAt('dynamic');
-    });
+    await prepareNavigation();
+    assertNoRegionAt('dynamic');
   }
 
-  test_type_void() {
+  test_type_void() async {
     addTestFile('''
 void main() {
 }
 ''');
-    return prepareNavigation().then((_) {
-      assertNoRegionAt('void');
-    });
+    await prepareNavigation();
+    assertNoRegionAt('void');
   }
 }

@@ -214,6 +214,37 @@ class SlowPathCode : public ZoneAllocated {
 };
 
 
+class MegamorphicSlowPath : public SlowPathCode {
+ public:
+  MegamorphicSlowPath(const ICData& ic_data,
+                      intptr_t argument_count,
+                      intptr_t deopt_id,
+                      intptr_t token_pos,
+                      LocationSummary* locs,
+                      intptr_t try_index)
+    : SlowPathCode(),
+      ic_data_(ic_data),
+      argument_count_(argument_count),
+      deopt_id_(deopt_id),
+      token_pos_(token_pos),
+      locs_(locs),
+      try_index_(try_index) {}
+  virtual ~MegamorphicSlowPath() {}
+
+ private:
+  virtual void EmitNativeCode(FlowGraphCompiler* comp);
+
+  const ICData& ic_data_;
+  intptr_t argument_count_;
+  intptr_t deopt_id_;
+  intptr_t token_pos_;
+  LocationSummary* locs_;
+  const intptr_t try_index_;  // For try/catch ranges.
+
+  DISALLOW_COPY_AND_ASSIGN(MegamorphicSlowPath);
+};
+
+
 struct CidTarget {
   intptr_t cid;
   Function* target;
@@ -281,6 +312,9 @@ class FlowGraphCompiler : public ValueObject {
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
 
+  static bool IsUnboxedField(const Field& field);
+  static bool IsPotentialUnboxedField(const Field& field);
+
   // Accessors.
   Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }
@@ -328,7 +362,8 @@ class FlowGraphCompiler : public ValueObject {
   // Bail out of the flow graph compiler. Does not return to the caller.
   void Bailout(const char* reason);
 
-  void TryIntrinsify();
+  // Returns 'true' if regular code generation should be skipped.
+  bool TryIntrinsify();
 
   void GenerateRuntimeCall(intptr_t token_pos,
                            intptr_t deopt_id,
@@ -387,11 +422,7 @@ class FlowGraphCompiler : public ValueObject {
 
   bool NeedsEdgeCounter(TargetEntryInstr* block);
 
-  void EmitEdgeCounter();
-
-#if !defined(TARGET_ARCH_ARM64) && !defined(TARGET_ARCH_MIPS)
-  static int32_t EdgeCounterIncrementSizeInBytes();
-#endif  // !TARGET_ARCH_ARM64 && !TARGET_ARCH_MIPS
+  void EmitEdgeCounter(intptr_t edge_id);
 
   void EmitOptimizedInstanceCall(const StubEntry& stub_entry,
                                  const ICData& ic_data,
@@ -414,11 +445,20 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t token_pos,
                                    LocationSummary* locs);
 
-  void EmitMegamorphicInstanceCall(const ICData& ic_data,
-                                   intptr_t argument_count,
-                                   intptr_t deopt_id,
-                                   intptr_t token_pos,
-                                   LocationSummary* locs);
+  // Pass a value for try-index where block is not available (e.g. slow path).
+  void EmitMegamorphicInstanceCall(
+      const ICData& ic_data,
+      intptr_t argument_count,
+      intptr_t deopt_id,
+      intptr_t token_pos,
+      LocationSummary* locs,
+      intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
+
+  void EmitSwitchableInstanceCall(const ICData& ic_data,
+                                  intptr_t argument_count,
+                                  intptr_t deopt_id,
+                                  intptr_t token_pos,
+                                  LocationSummary* locs);
 
   void EmitTestAndCall(const ICData& ic_data,
                        intptr_t arg_count,
@@ -528,13 +568,18 @@ class FlowGraphCompiler : public ValueObject {
     return *deopt_id_to_ic_data_;
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
+  Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return zone_; }
 
   void AddStubCallTarget(const Code& code);
 
   const Array& inlined_code_intervals() const {
     return inlined_code_intervals_;
+  }
+
+  RawArray* edge_counters_array() const {
+    return edge_counters_array_.raw();
   }
 
   RawArray* InliningIdToFunction() const;
@@ -680,7 +725,7 @@ class FlowGraphCompiler : public ValueObject {
     DISALLOW_COPY_AND_ASSIGN(StaticCallsStruct);
   };
 
-  Isolate* isolate_;
+  Thread* thread_;
   Zone* zone_;
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;
@@ -727,11 +772,11 @@ class FlowGraphCompiler : public ValueObject {
   // In future AddDeoptStub should be moved out of the instruction template.
   Environment* pending_deoptimization_env_;
 
-  intptr_t entry_patch_pc_offset_;
-  intptr_t patch_code_pc_offset_;
   intptr_t lazy_deopt_pc_offset_;
 
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
+
+  Array& edge_counters_array_;
 
   Array& inlined_code_intervals_;
   const GrowableArray<const Function*>& inline_id_to_function_;

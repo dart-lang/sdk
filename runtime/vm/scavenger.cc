@@ -255,12 +255,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
 
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
-  // 'prologue_weak_were_strong' is currently only used for sanity checking.
-  explicit ScavengerWeakVisitor(Scavenger* scavenger,
-                                bool prologue_weak_were_strong)
-      :  HandleVisitor(scavenger->heap_->isolate()),
-         scavenger_(scavenger),
-         prologue_weak_were_strong_(prologue_weak_were_strong) {
+  explicit ScavengerWeakVisitor(Scavenger* scavenger)
+      :  HandleVisitor(Thread::Current()),
+         scavenger_(scavenger) {
+    ASSERT(scavenger->heap_->isolate() == Thread::Current()->isolate());
   }
 
   void VisitHandle(uword addr) {
@@ -268,17 +266,14 @@ class ScavengerWeakVisitor : public HandleVisitor {
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
     RawObject** p = handle->raw_addr();
     if (scavenger_->IsUnreachable(p)) {
-      ASSERT(!handle->IsPrologueWeakPersistent() ||
-             !prologue_weak_were_strong_);
-      handle->UpdateUnreachable(isolate());
+      handle->UpdateUnreachable(thread()->isolate());
     } else {
-      handle->UpdateRelocated(isolate());
+      handle->UpdateRelocated(thread()->isolate());
     }
   }
 
  private:
   Scavenger* scavenger_;
-  bool prologue_weak_were_strong_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
@@ -415,13 +410,18 @@ Scavenger::Scavenger(Heap* heap,
   if (to_ == NULL) {
     FATAL("Out of memory.\n");
   }
-
   // Setup local fields.
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
 
   survivor_end_ = FirstObjectStart();
+
+  UpdateMaxHeapCapacity();
+  UpdateMaxHeapUsage();
+  if (heap_ != NULL) {
+    heap_->UpdateGlobalMaxUsed();
+  }
 }
 
 
@@ -449,7 +449,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
-  Thread::PrepareForGC();
+  isolate->thread_registry()->PrepareForGC();
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   SemiSpace* from = to_;
@@ -459,6 +459,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
     // isolate to finish scavenge, etc.).
     FATAL("Out of memory.\n");
   }
+  UpdateMaxHeapCapacity();
   top_ = FirstObjectStart();
   resolved_top_ = top_;
   end_ = to_->end();
@@ -500,6 +501,10 @@ void Scavenger::Epilogue(Isolate* isolate,
   }
 #endif  // defined(DEBUG)
   from->Delete();
+  UpdateMaxHeapUsage();
+  if (heap_ != NULL) {
+    heap_->UpdateGlobalMaxUsed();
+  }
   if (invoke_api_callbacks && (isolate->gc_epilogue_callback() != NULL)) {
     (isolate->gc_epilogue_callback())();
   }
@@ -526,7 +531,8 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
       raw_object->VisitPointers(visitor);
     }
     pending->Reset();
-    isolate->store_buffer()->PushBlock(pending);
+    // Return the emptied block for recycling (no need to check threshold).
+    isolate->store_buffer()->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
     pending = next;
   }
   heap_->RecordData(kStoreBufferEntries, total_count);
@@ -549,12 +555,9 @@ void Scavenger::IterateObjectIdTable(Isolate* isolate,
 }
 
 
-void Scavenger::IterateRoots(Isolate* isolate,
-                             ScavengerVisitor* visitor,
-                             bool visit_prologue_weak_persistent_handles) {
+void Scavenger::IterateRoots(Isolate* isolate, ScavengerVisitor* visitor) {
   int64_t start = OS::GetCurrentTimeMicros();
   isolate->VisitObjectPointers(visitor,
-                               visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
   int64_t middle = OS::GetCurrentTimeMicros();
   IterateStoreBuffers(isolate, visitor);
@@ -588,81 +591,8 @@ bool Scavenger::IsUnreachable(RawObject** p) {
 }
 
 
-void Scavenger::IterateWeakReferences(Isolate* isolate,
-                                      ScavengerVisitor* visitor) {
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  while (true) {
-    WeakReferenceSet* queue = state->delayed_weak_reference_sets();
-    if (queue == NULL) {
-      // The delay queue is empty therefore no clean-up is required.
-      return;
-    }
-    state->set_delayed_weak_reference_sets(NULL);
-    while (queue != NULL) {
-      WeakReferenceSet* reference_set = WeakReferenceSet::Pop(&queue);
-      ASSERT(reference_set != NULL);
-      intptr_t num_keys = reference_set->num_keys();
-      intptr_t num_values = reference_set->num_values();
-      if ((num_keys == 1) && (num_values == 1) &&
-          reference_set->SingletonKeyEqualsValue()) {
-        // We do not have to process sets that have just one key/value pair
-        // and the key and value are identical.
-        continue;
-      }
-      bool is_unreachable = true;
-      // Test each key object for reachability.  If a key object is
-      // reachable, all value objects should be scavenged.
-      for (intptr_t k = 0; k < num_keys; ++k) {
-        if (!IsUnreachable(reference_set->get_key(k))) {
-          for (intptr_t v = 0; v < num_values; ++v) {
-            RawObject** raw_obj_addr = reference_set->get_value(v);
-            RawObject* raw_obj = *raw_obj_addr;
-            // Only visit heap objects which are in from space, aka new objects
-            // not in to space. This avoids visiting a value multiple times
-            // during a scavenge.
-            if (raw_obj->IsHeapObject() &&
-                raw_obj->IsNewObject() &&
-                !to_->Contains(RawObject::ToAddr(raw_obj))) {
-              visitor->VisitPointer(raw_obj_addr);
-            }
-          }
-          is_unreachable = false;
-          // Since we have found a key object that is reachable and all
-          // value objects have been marked we can break out of iterating
-          // this set and move on to the next set.
-          break;
-        }
-      }
-      // If all key objects are unreachable put the reference on a
-      // delay queue.  This reference will be revisited if another
-      // reference is scavenged.
-      if (is_unreachable) {
-        state->DelayWeakReferenceSet(reference_set);
-      }
-    }
-    if ((resolved_top_ < top_) || PromotedStackHasMore()) {
-      ProcessToSpace(visitor);
-    } else {
-      // Break out of the loop if there has been no forward process.
-      // All key objects in the weak reference sets are unreachable
-      // so we reset the weak reference sets queue.
-      state->set_delayed_weak_reference_sets(NULL);
-      break;
-    }
-  }
-  ASSERT(state->delayed_weak_reference_sets() == NULL);
-  // All weak reference sets are zone allocated and unmarked references which
-  // were on the delay queue will be freed when the zone is released in the
-  // epilog callback.
-}
-
-
-void Scavenger::IterateWeakRoots(Isolate* isolate,
-                                 HandleVisitor* visitor,
-                                 bool visit_prologue_weak_persistent_handles) {
-  isolate->VisitWeakPersistentHandles(visitor,
-                                      visit_prologue_weak_persistent_handles);
+void Scavenger::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
+  isolate->VisitWeakPersistentHandles(visitor);
 }
 
 
@@ -701,6 +631,33 @@ void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
       weak_property->VisitPointers(visitor);
     }
   }
+}
+
+
+void Scavenger::UpdateMaxHeapCapacity() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(to_ != NULL);
+  ASSERT(heap_ != NULL);
+  Isolate* isolate = heap_->isolate();
+  ASSERT(isolate != NULL);
+  isolate->GetHeapNewCapacityMaxMetric()->SetValue(
+      to_->size_in_words() * kWordSize);
+}
+
+
+void Scavenger::UpdateMaxHeapUsage() {
+  if (heap_ == NULL) {
+    // Some unit tests.
+    return;
+  }
+  ASSERT(to_ != NULL);
+  ASSERT(heap_ != NULL);
+  Isolate* isolate = heap_->isolate();
+  ASSERT(isolate != NULL);
+  isolate->GetHeapNewUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
 }
 
 
@@ -834,16 +791,12 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     // Setup the visitor and run the scavenge.
     ScavengerVisitor visitor(isolate, this, from);
     page_space->AcquireDataLock();
-    const bool prologue_weak_are_strong = !invoke_api_callbacks;
-    IterateRoots(isolate, &visitor, prologue_weak_are_strong);
+    IterateRoots(isolate, &visitor);
     int64_t start = OS::GetCurrentTimeMicros();
     ProcessToSpace(&visitor);
     int64_t middle = OS::GetCurrentTimeMicros();
-    IterateWeakReferences(isolate, &visitor);
-    ScavengerWeakVisitor weak_visitor(this, prologue_weak_are_strong);
-    // Include the prologue weak handles, since we must process any promotion.
-    const bool visit_prologue_weak_handles = true;
-    IterateWeakRoots(isolate, &weak_visitor, visit_prologue_weak_handles);
+    ScavengerWeakVisitor weak_visitor(this);
+    IterateWeakRoots(isolate, &weak_visitor);
     visitor.Finalize();
     ProcessWeakTables();
     page_space->ReleaseDataLock();
@@ -900,9 +853,9 @@ void Scavenger::PrintToJSONObject(JSONObject* object) const {
   } else {
     space.AddProperty("avgCollectionPeriodMillis", 0.0);
   }
-  space.AddProperty("used", UsedInWords() * kWordSize);
-  space.AddProperty("capacity", CapacityInWords() * kWordSize);
-  space.AddProperty("external", ExternalInWords() * kWordSize);
+  space.AddProperty64("used", UsedInWords() * kWordSize);
+  space.AddProperty64("capacity", CapacityInWords() * kWordSize);
+  space.AddProperty64("external", ExternalInWords() * kWordSize);
   space.AddProperty("time", MicrosecondsToSeconds(gc_time_micros()));
 }
 

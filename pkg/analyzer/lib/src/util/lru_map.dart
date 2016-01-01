@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities.lru_cache;
+library analyzer.src.util.lru_cache;
 
 import 'dart:collection';
 

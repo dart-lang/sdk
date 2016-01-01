@@ -35,8 +35,8 @@ namespace bin {
 
 class Thread {
  public:
-  static ThreadLocalKey kUnsetThreadLocalKey;
-  static ThreadId kInvalidThreadId;
+  static const ThreadLocalKey kUnsetThreadLocalKey;
+  static const ThreadId kInvalidThreadId;
 
   typedef void (*ThreadStartFunction) (uword parameter);
 

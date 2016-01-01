@@ -327,6 +327,7 @@ class ObjectPointerVisitor;
   V(_instanceOfString, "_instanceOfString")                                    \
   V(_as, "_as")                                                                \
   V(GetterPrefix, "get:")                                                      \
+  V(ClosurizePrefix, "get:#")                                                  \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
   V(_New, "_new")                                                              \
@@ -342,7 +343,7 @@ class ObjectPointerVisitor;
   V(DartIsolate, "dart:isolate")                                               \
   V(DartMirrors, "dart:mirrors")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
-  V(DartVMService, "dart:vmservice")                                           \
+  V(DartVMService, "dart:_vmservice")                                          \
   V(DartIOLibName, "dart.io")                                                  \
   V(EvalSourceUri, "evaluate:source")                                          \
   V(_Random, "_Random")                                                        \

@@ -58,12 +58,12 @@ def GuessArchitecture():
     return 'arm64'
   elif os_id.startswith('mips'):
     return 'mips'
+  elif '64' in os_id:
+    return 'x64'
   elif (not os_id) or (not re.match('(x|i[3-6])86', os_id) is None):
     return 'ia32'
   elif os_id == 'i86pc':
     return 'ia32'
-  elif '64' in os_id:
-    return 'x64'
   else:
     guess_os = GuessOS()
     print "Warning: Guessing architecture %s based on os %s\n"\
@@ -75,14 +75,18 @@ def GuessArchitecture():
 
 # Try to guess the number of cpus on this machine.
 def GuessCpus():
+  if os.getenv("DART_NUMBER_OF_CORES") is not None:
+    return int(os.getenv("DART_NUMBER_OF_CORES"))
   if os.path.exists("/proc/cpuinfo"):
     return int(commands.getoutput("grep -E '^processor' /proc/cpuinfo | wc -l"))
   if os.path.exists("/usr/bin/hostinfo"):
-    return int(commands.getoutput('/usr/bin/hostinfo | grep "processors are logically available." | awk "{ print \$1 }"'))
+    return int(commands.getoutput('/usr/bin/hostinfo |'
+        ' grep "processors are logically available." |'
+        ' awk "{ print \$1 }"'))
   win_cpu_count = os.getenv("NUMBER_OF_PROCESSORS")
   if win_cpu_count:
     return int(win_cpu_count)
-  return int(os.getenv("DART_NUMBER_OF_CORES", 2))
+  return 2
 
 def GetWindowsRegistryKeyName(name):
   import win32process
@@ -236,6 +240,7 @@ ARCH_FAMILY = {
 ARCH_GUESS = GuessArchitecture()
 BASE_DIR = os.path.abspath(os.path.join(os.curdir, '..'))
 DART_DIR = os.path.abspath(os.path.join(__file__, '..', '..'))
+VERSION_FILE = os.path.join(DART_DIR, 'tools', 'VERSION')
 
 def GetBuildbotGSUtilPath():
   gsutil = '/b/build/scripts/slave/gsutil'
@@ -337,13 +342,12 @@ def ReadVersionFile():
       return match.group(1)
     return None
 
-  version_file = os.path.join(DART_DIR, 'tools', 'VERSION')
   try:
-    fd = open(version_file)
+    fd = open(VERSION_FILE)
     content = fd.read()
     fd.close()
   except:
-    print "Warning: Couldn't read VERSION file (%s)" % version_file
+    print "Warning: Couldn't read VERSION file (%s)" % VERSION_FILE
     return None
 
   channel = match_against('^CHANNEL ([A-Za-z0-9]+)$', content)
@@ -357,7 +361,7 @@ def ReadVersionFile():
     return Version(
         channel, major, minor, patch, prerelease, prerelease_patch)
   else:
-    print "Warning: VERSION file (%s) has wrong format" % version_file
+    print "Warning: VERSION file (%s) has wrong format" % VERSION_FILE
     return None
 
 
@@ -565,6 +569,7 @@ def ExecuteCommand(cmd):
 
 
 def DartBinary():
+  # TODO(24311): Replace all uses of this with CheckedInSdk[Fix]Executable().
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   dart_binary_prefix = os.path.join(tools_dir, 'testing', 'bin')
   if IsWindows():
@@ -590,6 +595,52 @@ def DartSdkBinary():
   tools_dir = os.path.dirname(os.path.realpath(__file__))
   dart_binary_prefix = os.path.join(tools_dir, '..', 'sdk' , 'bin')
   return os.path.join(dart_binary_prefix, 'dart')
+
+
+# The checked-in SDKs are documented at
+#     https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
+def CheckedInSdkPath():
+  # We don't use the normal macos, linux, win32 directory names here, instead,
+  # we use the names that the download_from_google_storage script uses.
+  osdict = {'Darwin':'mac', 'Linux':'linux', 'Windows':'win'}
+  system = platform.system()
+  try:
+    osname = osdict[system]
+  except KeyError:
+    print >>sys.stderr, ('WARNING: platform "%s" not supported') % (system)
+    return None;
+  tools_dir = os.path.dirname(os.path.realpath(__file__))
+  return os.path.join(tools_dir,
+                      'sdks',
+                      osname,
+                      'dart-sdk')
+
+
+def CheckedInSdkExecutable():
+  name = 'dart'
+  if IsWindows():
+    name = 'dart.exe'
+  elif GuessOS() == 'linux':
+    arch = GuessArchitecture()
+    if arch == 'mips':
+      name = 'dart-mips'
+    elif arch == 'arm':
+      name = 'dart-arm'
+  return os.path.join(CheckedInSdkPath(), 'bin', name)
+
+
+def CheckedInSdkCheckExecutable():
+  executable = CheckedInSdkExecutable()
+  canary_script = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                               'canary.dart')
+  try:
+    with open(os.devnull, 'wb') as silent_sink:
+      if 0 == subprocess.call([executable, canary_script], stdout=silent_sink):
+        return True
+  except OSError as e:
+    pass
+  return False
+
 
 class TempDir(object):
   def __init__(self, prefix=''):

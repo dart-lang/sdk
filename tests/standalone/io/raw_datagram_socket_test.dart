@@ -127,7 +127,8 @@ testBroadcast() {
             asyncEnd();
           }
         }
-        broadcastTimer = new Timer.periodic(new Duration(milliseconds: 10), send);
+        broadcastTimer =
+            new Timer.periodic(new Duration(milliseconds: 10), send);
       });
   }
 
@@ -194,7 +195,7 @@ testLoopbackMulticast() {
   }
 }
 
-testSendReceive(InternetAddress bindAddress) {
+testSendReceive(InternetAddress bindAddress, int dataSize) {
   asyncStart();
 
   var total = 1000;
@@ -218,7 +219,7 @@ testSendReceive(InternetAddress bindAddress) {
       }
 
       Uint8List createDataPackage(int seq) {
-        var data = new Uint8List(1000);
+        var data = new Uint8List(dataSize);
         (new ByteData.view(data.buffer, 0, 4)).setUint32(0, seq);
         return data;
       }
@@ -236,7 +237,7 @@ testSendReceive(InternetAddress bindAddress) {
         // Send a datagram acknowledging the received sequence.
         int bytes = sender.send(
             createDataPackage(seq), bindAddress, receiver.port);
-        Expect.isTrue(bytes == 0 || bytes == 1000);
+        Expect.isTrue(bytes == 0 || bytes == dataSize);
       }
 
       void sendAck(address, port) {
@@ -287,6 +288,7 @@ testSendReceive(InternetAddress bindAddress) {
             var datagram = receiver.receive();
             if (datagram != null) {
               Expect.equals(datagram.port, sender.port);
+              Expect.equals(dataSize, datagram.data.length);
               if (!bindAddress.isMulticast) {
                 Expect.equals(receiver.address, datagram.address);
               }
@@ -318,6 +320,12 @@ main() {
   }
   testBroadcast();
   testLoopbackMulticast();
-  testSendReceive(InternetAddress.LOOPBACK_IP_V4);
-  testSendReceive(InternetAddress.LOOPBACK_IP_V6);
+  testSendReceive(InternetAddress.LOOPBACK_IP_V4, 1000);
+  testSendReceive(InternetAddress.LOOPBACK_IP_V6, 1000);
+  if (!Platform.isMacOS) {
+    testSendReceive(InternetAddress.LOOPBACK_IP_V4, 32 * 1024);
+    testSendReceive(InternetAddress.LOOPBACK_IP_V6, 32 * 1024);
+    testSendReceive(InternetAddress.LOOPBACK_IP_V4, 64 * 1024 - 32);
+    testSendReceive(InternetAddress.LOOPBACK_IP_V6, 64 * 1024 - 32);
+  }
 }

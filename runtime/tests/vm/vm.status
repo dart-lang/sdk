@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # These tests are expected to crash on all platforms.
-cc/ArrayNew_Overflow_Crash: Crash
+cc/ArrayNew_Overflow_Crash: Crash, Timeout
 cc/AllocGeneric_Overflow: Crash, Timeout
 cc/CodeImmutability: Crash
 
@@ -12,38 +12,26 @@ cc/SNPrint_BadArgs: Skip
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
 
+dart/data_uri_import_test/none: SkipByDesign
+
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
 # Negative tests of VerifiedMemory should crash iff in DEBUG mode.
 # TODO(koda): Improve support for negative tests.
-cc/VerifyImplicit_Crash: Crash
-cc/VerifyExplicit_Crash: Crash
+cc/VerifyImplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
+cc/VerifyExplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
 
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
 [ $system == windows ]
 cc/Dart2JSCompileAll: Skip
 cc/ExternalizeConstantStrings: Skip
-cc/ThreadInterrupterHigh: Skip
-cc/ThreadInterrupterMedium: Skip
-cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
-
-[ $system == linux ]
-cc/ThreadInterrupterHigh: Skip
-cc/ThreadInterrupterMedium: Skip
-cc/ThreadInterrupterLow: Skip
-
-[ $system == macos ]
-cc/ThreadInterrupterHigh: Skip
-cc/ThreadInterrupterMedium: Skip
-cc/ThreadInterrupterLow: Skip
+cc/Dart2JSCompilerStats: Skip
+cc/CorelibCompilerStats: Skip
 
 [ $arch == simarm || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
-cc/ThreadInterrupterHigh: Skip
-cc/ThreadInterrupterMedium: Skip
-cc/ThreadInterrupterLow: Skip
 cc/Service_Profile: Skip
 
 [ $arch == arm ]
@@ -65,15 +53,14 @@ dart/optimized_stacktrace_test: RuntimeError
 # minifying they can be renamed, which is issue 7953.
 dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 
-[ $compiler == dart2js || $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2js || $compiler == dart2analyzer ]
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
 
-[ $runtime == vm ]
-dart/data_uri_failures_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
-dart/data_uri_failures_test/nomime: RuntimeError, OK
-dart/data_uri_failures_test/nocharset: RuntimeError, OK
-dart/data_uri_failures_test/base64: RuntimeError, OK
+[ ($runtime == vm || $runtime == dart_precompiled) ]
+dart/data_uri_import_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
+dart/data_uri_import_test/nomime: RuntimeError, OK
+dart/data_uri_import_test/nocharset: RuntimeError, OK
 
 [ $arch == mips ]
 cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
@@ -83,11 +70,24 @@ cc/Int8ListLengthMaxElements: Skip # Issue 23536, uses 1 GB memory.
 [ $arch == mips && $mode == debug ]
 cc/FindCodeObject: Skip # Takes more than 8 minutes. Issue 17440
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning
 
 [ $runtime != vm ]
 dart/snapshot_version_test: SkipByDesign  # Spawns processes
+dart/spawn_infinite_loop_test: Skip  # VM shutdown test
+dart/spawn_shutdown_test: Skip  # VM Shutdown test
 
-[ $runtime == vm && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Skip  # Timeout.
+
+[ $noopt ]
+dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
+
+[ $noopt || $compiler == precompiler ]
+dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
+dart/inline_stack_frame_test: Fail  # Issue 24783 - inlined frames missing
+
+[ $runtime == dart_precompiled ]
+dart/optimized_stacktrace_test: Fail
+dart/data_uri_spawn_test: RuntimeError # Isolate.spawnUri

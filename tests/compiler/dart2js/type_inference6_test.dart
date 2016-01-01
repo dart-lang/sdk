@@ -23,7 +23,7 @@ main() {
 Future runTest() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var element = findElement(compiler, "foo");
