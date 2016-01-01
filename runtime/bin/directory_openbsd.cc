@@ -373,22 +373,22 @@ bool Directory::Create(const char* dir_name) {
 }
 
 char* Directory::SystemTemp() {
-  // Android does not have a /tmp directory. A partial substitute,
-  // suitable for bring-up work and tests, is to create a tmp
-  // directory in /data/local/tmp.
-  //
-  // TODO(4413): In the long run, when running in an application we should
-  // probably use the appropriate directory from the Android API,
-  // probably what File.createTempFile uses.
-#define ANDROID_TEMP_DIR "/data/local/tmp"
-  struct stat st;
-  if (stat(ANDROID_TEMP_DIR, &st) != 0) {
-    mkdir(ANDROID_TEMP_DIR, 0777);
+  const char* temp_dir = getenv("TMPDIR");
+  if (temp_dir == NULL) {
+    temp_dir = getenv("TMP");
   }
-  return strdup(ANDROID_TEMP_DIR);
+  if (temp_dir == NULL) {
+    temp_dir = "/tmp";
+  }
+  char* result = strdup(temp_dir);
+  // Remove any trailing slash.
+  int length = strlen(result);
+  if (length > 1 && result[length - 1] == '/') {
+    result[length - 1] = '\0';
+  }
+  return result;
 }
-
-
+  
 char* Directory::CreateTemp(const char* prefix) {
   // Returns a new, unused directory name, adding characters to the end
   // of prefix.  Creates the directory with the permissions specified
