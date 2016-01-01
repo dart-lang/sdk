@@ -33,7 +33,7 @@
             '<@(boringssl_mac_x86_64_sources)'
           ],
         }],
-        ['OS == "linux" or OS == "android"', {
+        ['OS == "linux" or OS == "android" or OS == "openbsd"', {
           'sources': [
             '<@(boringssl_linux_x86_64_sources)',
             '<@(boringssl_linux_x86_sources)',
