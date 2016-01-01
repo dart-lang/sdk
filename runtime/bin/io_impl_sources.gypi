@@ -22,6 +22,7 @@
     'file_system_watcher_android.cc',
     'file_system_watcher_linux.cc',
     'file_system_watcher_macos.cc',
+    'file_system_watcher_openbsd.cc',
     'file_system_watcher_win.cc',
     'filter.cc',
     'filter.h',
