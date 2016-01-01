@@ -62,6 +62,7 @@
     'stdio_android.cc',
     'stdio_linux.cc',
     'stdio_macos.cc',
+    'stdio_openbsd.cc',
     'stdio_win.cc',
   ],
   'conditions': [
