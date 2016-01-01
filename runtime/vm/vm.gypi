@@ -70,6 +70,13 @@
             ],
           },
         }],
+        ['OS=="openbsd"', {
+          'link_settings': {
+            'libraries': [
+              '-lpthread',
+            ],
+          },
+        }],
         ['OS=="win"', {
           'sources/' : [
             ['exclude', 'gdbjit.cc'],
