@@ -1,5 +1,8 @@
-#!/bin/bash -x
+#!/usr/bin/env bash
 #
+
+set -x
+
 #   go.sh [systems]
 #
 # Convenience script to generate systems.  Do not call from build steps or tests
