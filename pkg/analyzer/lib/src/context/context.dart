@@ -485,6 +485,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
+    return false;
+  }
+
+  @override
   void addListener(AnalysisListener listener) {
     if (!_listeners.contains(listener)) {
       _listeners.add(listener);

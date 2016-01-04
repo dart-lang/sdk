@@ -44,11 +44,6 @@ class AnalysisDriver {
   final InternalAnalysisContext context;
 
   /**
-   * The alternative source of analysis results.
-   */
-  ResultProvider resultProvider;
-
-  /**
    * The map of [ComputedResult] controllers.
    */
   final Map<ResultDescriptor, StreamController<ComputedResult>>
@@ -172,8 +167,8 @@ class AnalysisDriver {
     }
     TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
     try {
-      WorkItem workItem = new WorkItem(
-          context, resultProvider, target, taskDescriptor, result, 0, null);
+      WorkItem workItem =
+          new WorkItem(context, target, taskDescriptor, result, 0, null);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -509,24 +504,6 @@ class InfiniteTaskLoopException extends AnalysisException {
 }
 
 /**
- * The object used by [WorkItem] to get values without using tasks.
- */
-abstract class ResultProvider {
-  /**
-   * [WorkItem] calls this method when the [result] of the [entry] is
-   * [CacheState.INVALID], so it is about to schedule its computation.
-   *
-   * If the provider knows how to provide the value, it sets the value into
-   * the [entry] with all required dependencies, and returns `true`.
-   *
-   * Otherwise, it returns `false` to indicate that the [WorkItem] should
-   * compute the value.
-   */
-  bool provideResult(InternalAnalysisContext context, CacheEntry entry,
-      ResultDescriptor result);
-}
-
-/**
  * Object used by [CycleAwareDependencyWalker] to report a single strongly
  * connected component of nodes.
  */
@@ -556,11 +533,6 @@ class WorkItem {
    * The context in which the task will be performed.
    */
   final InternalAnalysisContext context;
-
-  /**
-   * The alternative source of analysis results.
-   */
-  final ResultProvider resultProvider;
 
   /**
    * The target for which a task is to be performed.
@@ -625,8 +597,8 @@ class WorkItem {
    * Initialize a newly created work item to compute the inputs for the task
    * described by the given descriptor.
    */
-  WorkItem(this.context, this.resultProvider, this.target, this.descriptor,
-      this.spawningResult, this.level, this.workOrder) {
+  WorkItem(this.context, this.target, this.descriptor, this.spawningResult,
+      this.level, this.workOrder) {
     AnalysisTarget actualTarget =
         identical(target, AnalysisContextTarget.request)
             ? new AnalysisContextTarget(context)
@@ -730,16 +702,15 @@ class WorkItem {
         //
         throw new UnimplementedError();
       } else if (inputState != CacheState.VALID) {
-        if (resultProvider != null &&
-            resultProvider.provideResult(context, inputEntry, inputResult)) {
+        if (context.aboutToComputeResult(inputEntry, inputResult)) {
           inputState = CacheState.VALID;
           builder.currentValue = inputEntry.getValue(inputResult);
         } else {
           try {
             TaskDescriptor descriptor =
                 taskManager.findTask(inputTarget, inputResult);
-            return new WorkItem(context, resultProvider, inputTarget,
-                descriptor, inputResult, level + 1, workOrder);
+            return new WorkItem(context, inputTarget, descriptor, inputResult,
+                level + 1, workOrder);
           } on AnalysisException catch (exception, stackTrace) {
             this.exception = new CaughtException(exception, stackTrace);
             return null;

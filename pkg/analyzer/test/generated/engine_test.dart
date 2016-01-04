@@ -348,6 +348,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
+    fail("Unexpected invocation of aboutToComputeResult");
+    return false;
+  }
+
+  @override
   void addListener(AnalysisListener listener) {
     fail("Unexpected invocation of addListener");
   }
