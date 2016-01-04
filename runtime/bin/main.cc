@@ -1233,7 +1233,6 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
         { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
         { "dart:io", "_SecureFilterImpl", "get:SIZE" },
-        { "dart:vmservice_io", "::", "_addResource" },
         { "dart:vmservice_io", "::", "main" },
         { "dart:vmservice_io", "::", "boot" },
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
