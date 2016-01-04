@@ -130,8 +130,6 @@ stringReplaceFirstRE(receiver, regexp, replacement, startIndex) {
   return stringReplaceRangeUnchecked(receiver, start, end, replacement);
 }
 
-const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
-
 stringReplaceAllUnchecked(receiver, pattern, replacement) {
   checkString(replacement);
   if (pattern is String) {
@@ -149,8 +147,10 @@ stringReplaceAllUnchecked(receiver, pattern, replacement) {
         return result.toString();
       }
     } else {
-      var quoter = JS('', "new RegExp(#, 'g')", ESCAPE_REGEXP);
-      var quoted = JS('String', r'#.replace(#, "\\$&")', pattern, quoter);
+      // Convert string [pattern] into a RegExp [replacer], escaping all
+      // metacharacters.
+      var quoted = JS('String',
+          r'#.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&")', pattern);
       var replacer = JS('', "new RegExp(#, 'g')", quoted);
       return stringReplaceJS(receiver, replacer, replacement);
     }

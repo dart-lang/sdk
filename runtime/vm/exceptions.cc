@@ -624,10 +624,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateSpawnException();
       break;
-    case kIsolateUnhandledException:
-      library = Library::IsolateLibrary();
-      class_name = &Symbols::IsolateUnhandledException();
-      break;
     case kJavascriptIntegerOverflowError:
       library = Library::CoreLibrary();
       class_name = &Symbols::JavascriptIntegerOverflowError();

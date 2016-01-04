@@ -250,8 +250,6 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
                    "_JavascriptIntegerOverflowError." },
     { "dart:core", "_TypeError", "_TypeError._create" },
     { "dart:isolate", "IsolateSpawnException", "IsolateSpawnException." },
-    { "dart:isolate", "_IsolateUnhandledException",
-                      "_IsolateUnhandledException." },
     { "dart:isolate", "::", "_getIsolateScheduleImmediateClosure" },
     { "dart:isolate", "::", "_setupHooks" },
     { "dart:isolate", "::", "_startMainIsolate" },
