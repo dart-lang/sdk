@@ -111,7 +111,7 @@ class GdbCodeObserver : public CodeObserver {
       // <name>_entry is used for code preceding the prologue sequence.
       // <name> for rest of the code (first instruction is prologue sequence).
       char* pname = OS::SCreate(Thread::Current()->zone(),
-          "%s_%s", name, "entry");      
+          "%s_%s", name, "entry");
       DebugInfo::RegisterSection(pname, base, size);
       DebugInfo::RegisterSection(name,
                                  (base + prologue_offset),
@@ -238,7 +238,7 @@ class JitdumpCodeObserver : public CodeObserver {
 
   const char* GenerateCodeName(const char* name, bool optimized) {
     const char* marker = optimized ? "*" : "";
-    return OS::SCreate(Thread::Current()->zone(), "%s%s", marker, name);    
+    return OS::SCreate(Thread::Current()->zone(), "%s%s", marker, name);
   }
 
   uint32_t GetElfMach() {
@@ -411,7 +411,7 @@ void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= kMinimumAlignment);
   void* p = NULL;
-  if(posix_memalign(&p, alignment, size)) {
+  if (posix_memalign(&p, alignment, size)) {
     UNREACHABLE();
   }
   return p;

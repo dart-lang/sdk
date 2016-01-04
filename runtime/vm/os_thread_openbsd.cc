@@ -134,8 +134,6 @@ const ThreadId OSThread::kInvalidThreadId = static_cast<ThreadId>(0);
 const ThreadJoinId OSThread::kInvalidThreadJoinId =
     static_cast<ThreadJoinId>(0);
 
-
-  
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   pthread_key_t key = kUnsetThreadLocalKey;
   int result = pthread_key_create(&key, destructor);
