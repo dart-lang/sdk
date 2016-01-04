@@ -2377,10 +2377,18 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
-    if (_enclosingClass != null) {
-      _findIdentifier(_enclosingClass.typeParameters, parameterName);
-    } else if (_enclosingAlias != null) {
-      _findIdentifier(_enclosingAlias.typeParameters, parameterName);
+
+    Element element;
+    if (_enclosingExecutable != null) {
+      element =
+          _findIdentifier(_enclosingExecutable.typeParameters, parameterName);
+    }
+    if (element == null) {
+      if (_enclosingClass != null) {
+        _findIdentifier(_enclosingClass.typeParameters, parameterName);
+      } else if (_enclosingAlias != null) {
+        _findIdentifier(_enclosingAlias.typeParameters, parameterName);
+      }
     }
     return super.visitTypeParameter(node);
   }
