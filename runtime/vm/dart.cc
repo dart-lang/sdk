@@ -248,14 +248,17 @@ const char* Dart::Cleanup() {
     // before shutting down the thread pool.
     WaitForIsolateShutdown();
 
-    // Disable creation of any new OSThread structures which means no more new
-    // threads can do an EnterIsolate. This must come after isolate shutdown
-    // because new threads may need to be spawned to shutdown the isolates.
-    OSThread::DisableOSThreadCreation();
-
     // Shutdown the thread pool. On return, all thread pool threads have exited.
     delete thread_pool_;
     thread_pool_ = NULL;
+
+    // Disable creation of any new OSThread structures which means no more new
+    // threads can do an EnterIsolate. This must come after isolate shutdown
+    // because new threads may need to be spawned to shutdown the isolates.
+    // This must come after deletion of the thread pool to avoid a race in which
+    // a thread spawned by the thread pool does not exit through the thread
+    // pool, messing up its bookkeeping.
+    OSThread::DisableOSThreadCreation();
 
     // Set the VM isolate as current isolate.
     bool result = Thread::EnterIsolate(vm_isolate_);

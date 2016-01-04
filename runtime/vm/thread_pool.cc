@@ -107,16 +107,10 @@ void ThreadPool::Shutdown() {
     while (current != NULL) {
       Worker* next = current->all_next_;
       ThreadId currentId = current->id();
-      ASSERT(id != currentId);
-      if (currentId == OSThread::kInvalidThreadId) {
-        // If the thread id is invalid, it means the thread never started
-        // because OSThread creation was disabled. Destroy the Task and Worker.
-        delete current->task_;
-        delete current;
-      } else {
+      if (currentId != id) {
         AddWorkerToShutdownList(current);
-        current->Shutdown();
       }
+      current->Shutdown();
       current = next;
     }
     saved = NULL;

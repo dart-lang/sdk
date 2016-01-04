@@ -36,18 +36,14 @@ OSThread::OSThread() :
 
 
 OSThread* OSThread::CreateOSThread() {
-  if (thread_list_lock_ == NULL) {
+  ASSERT(thread_list_lock_ != NULL);
+  MutexLocker ml(thread_list_lock_);
+  if (!creation_enabled_) {
     return NULL;
   }
-  {
-    MutexLocker ml(thread_list_lock_);
-    if (!creation_enabled_) {
-      return NULL;
-    }
-    OSThread* os_thread = new OSThread();
-    AddThreadToListLocked(os_thread);
-    return os_thread;
-  }
+  OSThread* os_thread = new OSThread();
+  AddThreadToListLocked(os_thread);
+  return os_thread;
 }
 
 
@@ -120,6 +116,9 @@ void OSThread::InitOnce() {
 
 
 void OSThread::Cleanup() {
+  // We cannot delete the thread local key and thread list lock,  yet.
+  // See the note on thread_list_lock_ in os_thread.h.
+#if 0
   if (thread_list_lock_ != NULL) {
     // Delete the thread local key.
     ASSERT(thread_key_ != kUnsetThreadLocalKey);
@@ -131,6 +130,7 @@ void OSThread::Cleanup() {
     delete thread_list_lock_;
     thread_list_lock_ = NULL;
   }
+#endif
 }
 
 

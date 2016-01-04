@@ -228,8 +228,13 @@ class OSThread : public BaseThread {
   uword stack_base_;
   Thread* thread_;
 
-  static OSThread* thread_list_head_;
+  // thread_list_lock_ cannot have a static lifetime because the order in which
+  // destructors run is undefined. At the moment this lock cannot be deleted
+  // either since otherwise, if a thread only begins to run after we have
+  // started to run TLS destructors for a call to exit(), there will be a race
+  // on its deletion in CreateOSThread().
   static Mutex* thread_list_lock_;
+  static OSThread* thread_list_head_;
   static bool creation_enabled_;
 
   friend class OSThreadIterator;
