@@ -304,7 +304,8 @@ abstract class SummaryTest {
    * specified they are assumed to refer to the defining compilation unit.
    * [expectedTargetUnit] is the index of the compilation unit in which the
    * target of the [typeRef] is expected to appear; if not specified it is
-   * assumed to be the defining compilation unit.
+   * assumed to be the defining compilation unit.  [numTypeParameters] is the
+   * number of type parameters of the thing being referred to.
    */
   void checkTypeRef(UnlinkedTypeRef typeRef, String absoluteUri,
       String relativeUri, String expectedName,
@@ -313,7 +314,8 @@ abstract class SummaryTest {
       PrelinkedReferenceKind expectedKind: PrelinkedReferenceKind.classOrEnum,
       int expectedTargetUnit: 0,
       PrelinkedUnit prelinkedSourceUnit,
-      UnlinkedUnit unlinkedSourceUnit}) {
+      UnlinkedUnit unlinkedSourceUnit,
+      int numTypeParameters: 0}) {
     prelinkedSourceUnit ??= definingUnit;
     unlinkedSourceUnit ??= unlinkedUnits[0];
     expect(typeRef, new isInstanceOf<UnlinkedTypeRef>());
@@ -349,6 +351,7 @@ abstract class SummaryTest {
     }
     expect(referenceResolution.kind, expectedKind);
     expect(referenceResolution.unit, expectedTargetUnit);
+    expect(referenceResolution.numTypeParameters, numTypeParameters);
   }
 
   /**
@@ -847,6 +850,20 @@ class E {}
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
+  test_class_reference_generic() {
+    UnlinkedTypeRef typeRef =
+        serializeTypeText('C', otherDeclarations: 'class C<D, E> {}');
+    checkTypeRef(typeRef, null, null, 'C', numTypeParameters: 2);
+  }
+
+  test_class_reference_generic_imported() {
+    addNamedSource('/lib.dart', 'class C<D, E> {}');
+    UnlinkedTypeRef typeRef =
+        serializeTypeText('C', otherDeclarations: 'import "lib.dart";');
+    checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'C',
+        numTypeParameters: 2);
+  }
+
   test_class_superclass() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.supertype, isNull);
@@ -866,7 +883,7 @@ class E {}
     expect(cls.typeParameters[0].name, 'T');
     expect(cls.typeParameters[0].bound, isNotNull);
     checkTypeRef(cls.typeParameters[0].bound, 'dart:core', 'dart:core', 'List',
-        allowTypeParameters: true);
+        allowTypeParameters: true, numTypeParameters: 1);
   }
 
   test_class_type_param_f_bound() {
@@ -1100,7 +1117,7 @@ class E {}
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C<T, U> { C(); }').executables);
     checkTypeRef(executable.returnType, null, null, 'C',
-        allowTypeParameters: true);
+        allowTypeParameters: true, numTypeParameters: 2);
     expect(executable.returnType.typeArguments, hasLength(2));
     {
       UnlinkedTypeRef typeRef = executable.returnType.typeArguments[0];
@@ -1878,13 +1895,14 @@ typedef F();
     UnlinkedVariable variable =
         serializeVariableText('import "dart:async" as a; a.Future v;');
     checkTypeRef(variable.type, 'dart:async', 'dart:async', 'Future',
-        expectedPrefix: 'a');
+        expectedPrefix: 'a', numTypeParameters: 1);
   }
 
   test_import_reference() {
     UnlinkedVariable variable =
         serializeVariableText('import "dart:async"; Future v;');
-    checkTypeRef(variable.type, 'dart:async', 'dart:async', 'Future');
+    checkTypeRef(variable.type, 'dart:async', 'dart:async', 'Future',
+        numTypeParameters: 1);
   }
 
   test_import_reference_merged_no_prefix() {
@@ -1895,8 +1913,10 @@ import "dart:async" show Stream;
 Future f;
 Stream s;
 ''');
-    checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future');
-    checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream');
+    checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future',
+        numTypeParameters: 1);
+    checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream',
+        numTypeParameters: 1);
   }
 
   test_import_reference_merged_prefixed() {
@@ -1908,9 +1928,9 @@ a.Future f;
 a.Stream s;
 ''');
     checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future',
-        expectedPrefix: 'a');
+        expectedPrefix: 'a', numTypeParameters: 1);
     checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream',
-        expectedPrefix: 'a');
+        expectedPrefix: 'a', numTypeParameters: 1);
   }
 
   test_import_show_order() {
@@ -1973,7 +1993,7 @@ a.Stream s;
   test_type_arguments_explicit() {
     UnlinkedTypeRef typeRef = serializeTypeText('List<int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
-        allowTypeParameters: true);
+        allowTypeParameters: true, numTypeParameters: 1);
     expect(typeRef.typeArguments, hasLength(1));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
   }
@@ -1981,7 +2001,7 @@ a.Stream s;
   test_type_arguments_explicit_dynamic() {
     UnlinkedTypeRef typeRef = serializeTypeText('List<dynamic>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
-        allowTypeParameters: true);
+        allowTypeParameters: true, numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
 
@@ -1990,7 +2010,8 @@ a.Stream s;
         serializeTypeText('F<dynamic>', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
-        expectedKind: PrelinkedReferenceKind.typedef);
+        expectedKind: PrelinkedReferenceKind.typedef,
+        numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
 
@@ -1999,7 +2020,8 @@ a.Stream s;
         serializeTypeText('F<int>', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
-        expectedKind: PrelinkedReferenceKind.typedef);
+        expectedKind: PrelinkedReferenceKind.typedef,
+        numTypeParameters: 1);
     expect(typeRef.typeArguments, hasLength(1));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
   }
@@ -2007,7 +2029,7 @@ a.Stream s;
   test_type_arguments_implicit() {
     UnlinkedTypeRef typeRef = serializeTypeText('List');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
-        allowTypeParameters: true);
+        allowTypeParameters: true, numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
 
@@ -2016,14 +2038,15 @@ a.Stream s;
         serializeTypeText('F', otherDeclarations: 'typedef T F<T>();');
     checkTypeRef(typeRef, null, null, 'F',
         allowTypeParameters: true,
-        expectedKind: PrelinkedReferenceKind.typedef);
+        expectedKind: PrelinkedReferenceKind.typedef,
+        numTypeParameters: 1);
     expect(typeRef.typeArguments, isEmpty);
   }
 
   test_type_arguments_order() {
     UnlinkedTypeRef typeRef = serializeTypeText('Map<int, Object>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'Map',
-        allowTypeParameters: true);
+        allowTypeParameters: true, numTypeParameters: 2);
     expect(typeRef.typeArguments, hasLength(2));
     checkTypeRef(typeRef.typeArguments[0], 'dart:core', 'dart:core', 'int');
     checkTypeRef(typeRef.typeArguments[1], 'dart:core', 'dart:core', 'Object');
@@ -2195,6 +2218,21 @@ a.Stream s;
   test_typedef_private() {
     serializeTypedefText('typedef _F();', '_F');
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
+  }
+
+  test_typedef_reference_generic() {
+    UnlinkedTypeRef typeRef =
+        serializeTypeText('F', otherDeclarations: 'typedef void F<A, B>();');
+    checkTypeRef(typeRef, null, null, 'F',
+        numTypeParameters: 2, expectedKind: PrelinkedReferenceKind.typedef);
+  }
+
+  test_typedef_reference_generic_imported() {
+    addNamedSource('/lib.dart', 'typedef void F<A, B>();');
+    UnlinkedTypeRef typeRef =
+        serializeTypeText('F', otherDeclarations: 'import "lib.dart";');
+    checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'F',
+        numTypeParameters: 2, expectedKind: PrelinkedReferenceKind.typedef);
   }
 
   test_typedef_return_type_explicit() {

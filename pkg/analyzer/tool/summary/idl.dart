@@ -130,6 +130,12 @@ class PrelinkedReference {
    * represent parts in the order of the corresponding `part` declarations.
    */
   int unit;
+
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
+  int numTypeParameters;
 }
 
 /**

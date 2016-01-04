@@ -149,22 +149,26 @@ class PrelinkedReference extends base.SummaryClass {
   int _dependency;
   PrelinkedReferenceKind _kind;
   int _unit;
+  int _numTypeParameters;
 
   PrelinkedReference.fromJson(Map json)
     : _dependency = json["dependency"],
       _kind = json["kind"] == null ? null : PrelinkedReferenceKind.values[json["kind"]],
-      _unit = json["unit"];
+      _unit = json["unit"],
+      _numTypeParameters = json["numTypeParameters"];
 
   @override
   Map<String, Object> toMap() => {
     "dependency": dependency,
     "kind": kind,
     "unit": unit,
+    "numTypeParameters": numTypeParameters,
   };
 
   int get dependency => _dependency ?? 0;
   PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
   int get unit => _unit ?? 0;
+  int get numTypeParameters => _numTypeParameters ?? 0;
 }
 
 class PrelinkedReferenceBuilder {
@@ -198,6 +202,14 @@ class PrelinkedReferenceBuilder {
     }
   }
 
+  void set numTypeParameters(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("numTypeParameters"));
+    if (_value != null) {
+      _json["numTypeParameters"] = _value;
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -205,11 +217,12 @@ class PrelinkedReferenceBuilder {
   }
 }
 
-PrelinkedReferenceBuilder encodePrelinkedReference(base.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind, int unit}) {
+PrelinkedReferenceBuilder encodePrelinkedReference(base.BuilderContext builderContext, {int dependency, PrelinkedReferenceKind kind, int unit, int numTypeParameters}) {
   PrelinkedReferenceBuilder builder = new PrelinkedReferenceBuilder(builderContext);
   builder.dependency = dependency;
   builder.kind = kind;
   builder.unit = unit;
+  builder.numTypeParameters = numTypeParameters;
   return builder;
 }
 

@@ -577,6 +577,10 @@ class _LibrarySerializer {
               element.getAncestor((Element e) => e is CompilationUnitElement);
           int unit = dependentLibrary.units.indexOf(unitElement);
           assert(unit != -1);
+          int numTypeParameters = 0;
+          if (element is TypeParameterizedElement) {
+            numTypeParameters = element.typeParameters.length;
+          }
           int index = unlinkedReferences.length;
           // TODO(paulberry): set UnlinkedReference.prefix.
           unlinkedReferences
@@ -586,7 +590,8 @@ class _LibrarySerializer {
               kind: element is FunctionTypeAliasElement
                   ? PrelinkedReferenceKind.typedef
                   : PrelinkedReferenceKind.classOrEnum,
-              unit: unit));
+              unit: unit,
+              numTypeParameters: numTypeParameters));
           return index;
         });
       }
