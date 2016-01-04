@@ -823,10 +823,7 @@ void Parser::ParseClass(const Class& cls) {
                             "ParseClass");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
-    tds.CopyArgument(
-        0,
-        "class",
-        const_cast<char*>(String::Handle(cls.Name()).ToCString()));
+    tds.CopyArgument(0, "class", String::Handle(cls.Name()).ToCString());
   }
   if (!cls.is_synthesized_class()) {
     ASSERT(thread->long_jump_base()->IsSafeToJump());
@@ -947,10 +944,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Parser parser(script, parsed_function, func.token_pos());
   if (tds.enabled()) {
     tds.SetNumArguments(1);
-    tds.CopyArgument(
-        0,
-        "function",
-        const_cast<char*>(String::Handle(func.name()).ToCString()));
+    tds.CopyArgument(0, "function", String::Handle(func.name()).ToCString());
   }
   SequenceNode* node_sequence = NULL;
   switch (func.kind()) {

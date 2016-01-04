@@ -2522,6 +2522,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   bool negated = false;
   Definition* replacement = CanonicalizeStrictCompare(this, &negated);
   if (negated && replacement->IsComparison()) {
