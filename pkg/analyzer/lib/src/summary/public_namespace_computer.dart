@@ -25,12 +25,8 @@ class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
 
   _CombinatorEncoder(this.ctx);
 
-  List<UnlinkedCombinatorNameBuilder> encodeNames(
-          NodeList<SimpleIdentifier> names) =>
-      names
-          .map((SimpleIdentifier id) =>
-              encodeUnlinkedCombinatorName(ctx, name: id.name))
-          .toList();
+  List<String> encodeNames(NodeList<SimpleIdentifier> names) =>
+      names.map((SimpleIdentifier id) => id.name).toList();
 
   @override
   UnlinkedCombinatorBuilder visitHideCombinator(HideCombinator node) {

@@ -500,12 +500,12 @@ UnlinkedClassBuilder encodeUnlinkedClass(base.BuilderContext builderContext, {St
 }
 
 class UnlinkedCombinator extends base.SummaryClass {
-  List<UnlinkedCombinatorName> _shows;
-  List<UnlinkedCombinatorName> _hides;
+  List<String> _shows;
+  List<String> _hides;
 
   UnlinkedCombinator.fromJson(Map json)
-    : _shows = json["shows"]?.map((x) => new UnlinkedCombinatorName.fromJson(x))?.toList(),
-      _hides = json["hides"]?.map((x) => new UnlinkedCombinatorName.fromJson(x))?.toList();
+    : _shows = json["shows"],
+      _hides = json["hides"];
 
   @override
   Map<String, Object> toMap() => {
@@ -513,8 +513,8 @@ class UnlinkedCombinator extends base.SummaryClass {
     "hides": hides,
   };
 
-  List<UnlinkedCombinatorName> get shows => _shows ?? const <UnlinkedCombinatorName>[];
-  List<UnlinkedCombinatorName> get hides => _hides ?? const <UnlinkedCombinatorName>[];
+  List<String> get shows => _shows ?? const <String>[];
+  List<String> get hides => _hides ?? const <String>[];
 }
 
 class UnlinkedCombinatorBuilder {
@@ -524,19 +524,19 @@ class UnlinkedCombinatorBuilder {
 
   UnlinkedCombinatorBuilder(base.BuilderContext context);
 
-  void set shows(List<UnlinkedCombinatorNameBuilder> _value) {
+  void set shows(List<String> _value) {
     assert(!_finished);
     assert(!_json.containsKey("shows"));
     if (!(_value == null || _value.isEmpty)) {
-      _json["shows"] = _value.map((b) => b.finish()).toList();
+      _json["shows"] = _value.toList();
     }
   }
 
-  void set hides(List<UnlinkedCombinatorNameBuilder> _value) {
+  void set hides(List<String> _value) {
     assert(!_finished);
     assert(!_json.containsKey("hides"));
     if (!(_value == null || _value.isEmpty)) {
-      _json["hides"] = _value.map((b) => b.finish()).toList();
+      _json["hides"] = _value.toList();
     }
   }
 
@@ -547,52 +547,10 @@ class UnlinkedCombinatorBuilder {
   }
 }
 
-UnlinkedCombinatorBuilder encodeUnlinkedCombinator(base.BuilderContext builderContext, {List<UnlinkedCombinatorNameBuilder> shows, List<UnlinkedCombinatorNameBuilder> hides}) {
+UnlinkedCombinatorBuilder encodeUnlinkedCombinator(base.BuilderContext builderContext, {List<String> shows, List<String> hides}) {
   UnlinkedCombinatorBuilder builder = new UnlinkedCombinatorBuilder(builderContext);
   builder.shows = shows;
   builder.hides = hides;
-  return builder;
-}
-
-class UnlinkedCombinatorName extends base.SummaryClass {
-  String _name;
-
-  UnlinkedCombinatorName.fromJson(Map json)
-    : _name = json["name"];
-
-  @override
-  Map<String, Object> toMap() => {
-    "name": name,
-  };
-
-  String get name => _name ?? '';
-}
-
-class UnlinkedCombinatorNameBuilder {
-  final Map _json = {};
-
-  bool _finished = false;
-
-  UnlinkedCombinatorNameBuilder(base.BuilderContext context);
-
-  void set name(String _value) {
-    assert(!_finished);
-    assert(!_json.containsKey("name"));
-    if (_value != null) {
-      _json["name"] = _value;
-    }
-  }
-
-  Map finish() {
-    assert(!_finished);
-    _finished = true;
-    return _json;
-  }
-}
-
-UnlinkedCombinatorNameBuilder encodeUnlinkedCombinatorName(base.BuilderContext builderContext, {String name}) {
-  UnlinkedCombinatorNameBuilder builder = new UnlinkedCombinatorNameBuilder(builderContext);
-  builder.name = name;
   return builder;
 }
 

@@ -342,18 +342,11 @@ class _LibrarySerializer {
       NamespaceCombinator combinator) {
     UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder(ctx);
     if (combinator is ShowElementCombinator) {
-      b.shows = combinator.shownNames.map(serializeCombinatorName).toList();
+      b.shows = combinator.shownNames;
     } else if (combinator is HideElementCombinator) {
-      b.hides = combinator.hiddenNames.map(serializeCombinatorName).toList();
+      b.hides = combinator.hiddenNames;
     }
     return b;
-  }
-
-  /**
-   * Serialize the given [name] into an [UnlinkedCombinatorName].
-   */
-  UnlinkedCombinatorNameBuilder serializeCombinatorName(String name) {
-    return encodeUnlinkedCombinatorName(ctx, name: name);
   }
 
   /**

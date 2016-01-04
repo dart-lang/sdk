@@ -266,23 +266,12 @@ class UnlinkedCombinator {
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
    */
-  List<UnlinkedCombinatorName> shows;
+  List<String> shows;
 
   /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
-  List<UnlinkedCombinatorName> hides;
-}
-
-/**
- * Unlinked summary information about a single name in a `show` or `hide`
- * combinator.
- */
-class UnlinkedCombinatorName {
-  /**
-   * The name itself.
-   */
-  String name;
+  List<String> hides;
 }
 
 /**

@@ -210,16 +210,6 @@ abstract class SummaryTest {
   addNamedSource(String filePath, String contents);
 
   /**
-   * Verify that the [combinatorName] correctly represents the given [expected]
-   * name.
-   */
-  void checkCombinatorName(
-      UnlinkedCombinatorName combinatorName, String expected) {
-    expect(combinatorName, new isInstanceOf<UnlinkedCombinatorName>());
-    expect(combinatorName.name, expected);
-  }
-
-  /**
    * Verify that the [dependency]th element of the dependency table represents
    * a file reachable via the given [absoluteUri] and [relativeUri].
    */
@@ -1703,11 +1693,9 @@ typedef F();
         isEmpty);
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides,
         hasLength(2));
-    checkCombinatorName(
-        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[0],
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[0],
         'Future');
-    checkCombinatorName(
-        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[1],
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides[1],
         'Stream');
   }
 
@@ -1726,11 +1714,9 @@ typedef F();
         hasLength(2));
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].hides,
         isEmpty);
-    checkCombinatorName(
-        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[0],
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[0],
         'Future');
-    checkCombinatorName(
-        unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[1],
+    expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].shows[1],
         'Stream');
   }
 
@@ -1810,10 +1796,8 @@ typedef F();
     expect(unlinkedUnits[0].imports[0].combinators, hasLength(1));
     expect(unlinkedUnits[0].imports[0].combinators[0].shows, isEmpty);
     expect(unlinkedUnits[0].imports[0].combinators[0].hides, hasLength(2));
-    checkCombinatorName(
-        unlinkedUnits[0].imports[0].combinators[0].hides[0], 'Future');
-    checkCombinatorName(
-        unlinkedUnits[0].imports[0].combinators[0].hides[1], 'Stream');
+    expect(unlinkedUnits[0].imports[0].combinators[0].hides[0], 'Future');
+    expect(unlinkedUnits[0].imports[0].combinators[0].hides[1], 'Stream');
   }
 
   test_import_implicit() {
@@ -1938,10 +1922,8 @@ a.Stream s;
     expect(unlinkedUnits[0].imports[0].combinators, hasLength(1));
     expect(unlinkedUnits[0].imports[0].combinators[0].shows, hasLength(2));
     expect(unlinkedUnits[0].imports[0].combinators[0].hides, isEmpty);
-    checkCombinatorName(
-        unlinkedUnits[0].imports[0].combinators[0].shows[0], 'Future');
-    checkCombinatorName(
-        unlinkedUnits[0].imports[0].combinators[0].shows[1], 'Stream');
+    expect(unlinkedUnits[0].imports[0].combinators[0].shows[0], 'Future');
+    expect(unlinkedUnits[0].imports[0].combinators[0].shows[1], 'Stream');
   }
 
   test_import_uri() {

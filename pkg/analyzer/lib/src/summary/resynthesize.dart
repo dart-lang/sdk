@@ -348,15 +348,15 @@ class _LibraryResynthesizer {
   NamespaceCombinator buildCombinator(UnlinkedCombinator serializedCombinator) {
     if (serializedCombinator.shows.isNotEmpty) {
       ShowElementCombinatorImpl combinator = new ShowElementCombinatorImpl();
-      combinator.shownNames = serializedCombinator.shows
-          .map((UnlinkedCombinatorName n) => n.name)
-          .toList();
+      // Note: we call toList() so that we don't retain a reference to the
+      // deserialized data structure.
+      combinator.shownNames = serializedCombinator.shows.toList();
       return combinator;
     } else {
       HideElementCombinatorImpl combinator = new HideElementCombinatorImpl();
-      combinator.hiddenNames = serializedCombinator.hides
-          .map((UnlinkedCombinatorName n) => n.name)
-          .toList();
+      // Note: we call toList() so that we don't retain a reference to the
+      // deserialized data structure.
+      combinator.hiddenNames = serializedCombinator.hides.toList();
       return combinator;
     }
   }
