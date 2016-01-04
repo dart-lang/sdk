@@ -357,11 +357,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       if (newElement != null) {
         _addedElements.add(newElement);
         if (newElement is MethodElement) {
-          List<MethodElement> methods = _enclosingClass.methods;
+          List<MethodElement> methods = _enclosingClass.methods.toList();
           methods.add(newElement);
           _enclosingClass.methods = methods;
         } else {
-          List<PropertyAccessorElement> accessors = _enclosingClass.accessors;
+          List<PropertyAccessorElement> accessors =
+              _enclosingClass.accessors.toList();
           accessors.add(newElement);
           _enclosingClass.accessors = accessors;
         }
