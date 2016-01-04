@@ -19,6 +19,7 @@
 #include "bin/fdutils.h"
 #include "bin/file.h"
 #include "bin/socket.h"
+#include "bin/socket_openbsd.h"
 
 #include "platform/signal_blocker.h"
 

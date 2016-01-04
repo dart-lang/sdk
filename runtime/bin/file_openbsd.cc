@@ -286,8 +286,8 @@ bool File::Copy(const char* old_path, const char* new_path) {
     const intptr_t kBufferSize = 8 * KB;
     uint8_t buffer[kBufferSize];
     while ((result = TEMP_FAILURE_RETRY(read(old_fd,
-					     buffer,
-					     kBufferSize))) > 0) {
+                                             buffer,
+                                             kBufferSize))) > 0) {
       int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
       if (wrote != result) {
         result = -1;
