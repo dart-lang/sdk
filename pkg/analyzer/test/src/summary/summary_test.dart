@@ -757,6 +757,21 @@ class E {}
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
   }
 
+  test_class_alias_reference_generic() {
+    UnlinkedTypeRef typeRef = serializeTypeText('C',
+        otherDeclarations: 'class C<D, E> = F with G; class F {} class G {}');
+    checkTypeRef(typeRef, null, null, 'C', numTypeParameters: 2);
+  }
+
+  test_class_alias_reference_generic_imported() {
+    addNamedSource(
+        '/lib.dart', 'class C<D, E> = F with G; class F {} class G {}');
+    UnlinkedTypeRef typeRef =
+        serializeTypeText('C', otherDeclarations: 'import "lib.dart";');
+    checkTypeRef(typeRef, absUri('/lib.dart'), 'lib.dart', 'C',
+        numTypeParameters: 2);
+  }
+
   test_class_alias_supertype() {
     UnlinkedClass cls =
         serializeClassText('class C = D with E; class D {} class E {}');
