@@ -2026,6 +2026,9 @@ class ICData : public Object {
   void PrintToJSONArray(const JSONArray& jsarray,
                         intptr_t token_pos,
                         bool is_static_call) const;
+  void PrintToJSONArrayNew(const JSONArray& jsarray,
+                           intptr_t token_pos,
+                           bool is_static_call) const;
 
   // Initialize the preallocated empty ICData entry arrays.
   static void InitOnce();

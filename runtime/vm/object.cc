@@ -12906,7 +12906,6 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 
   JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  // TODO(turnidge): Use AddLocation instead.
   jsobj.AddProperty("tokenPos", token_pos);
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
@@ -12930,6 +12929,35 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
     }
     cache_entry.AddProperty("count", count);
     cache_entry.AddProperty("target", func);
+  }
+}
+
+
+void ICData::PrintToJSONArrayNew(const JSONArray& jsarray,
+                                 intptr_t token_pos,
+                                 bool is_static_call) const {
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+
+  JSONObject jsobj(&jsarray);
+  jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
+  jsobj.AddProperty("tokenPos", token_pos);
+  // TODO(rmacnak): Figure out how to stringify DeoptReasons().
+  // jsobj.AddProperty("deoptReasons", ...);
+
+  JSONArray cache_entries(&jsobj, "cacheEntries");
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    JSONObject cache_entry(&cache_entries);
+    func = GetTargetAt(i);
+    intptr_t count = GetCountAt(i);
+    if (!is_static_call) {
+      intptr_t cid = GetReceiverClassIdAt(i);
+      cls ^= isolate->class_table()->At(cid);
+      cache_entry.AddProperty("receiver", cls);
+    }
+    cache_entry.AddProperty("target", func);
+    cache_entry.AddProperty("count", count);
   }
 }
 
