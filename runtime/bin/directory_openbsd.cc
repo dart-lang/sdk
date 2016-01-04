@@ -388,7 +388,7 @@ char* Directory::SystemTemp() {
   }
   return result;
 }
-  
+
 char* Directory::CreateTemp(const char* prefix) {
   // Returns a new, unused directory name, adding characters to the end
   // of prefix.  Creates the directory with the permissions specified

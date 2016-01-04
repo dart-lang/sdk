@@ -285,14 +285,16 @@ bool File::Copy(const char* old_path, const char* new_path) {
     // OpenBSD has no sendfile so use read(2)/write(2) to copy the file
     const intptr_t kBufferSize = 8 * KB;
     uint8_t buffer[kBufferSize];
-    while ((result = TEMP_FAILURE_RETRY(read(old_fd, buffer, kBufferSize))) > 0) {
+    while ((result = TEMP_FAILURE_RETRY(read(old_fd,
+					     buffer,
+					     kBufferSize))) > 0) {
       int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
       if (wrote != result) {
         result = -1;
         break;
       }
     }
-    
+
     int e = errno;
     VOID_TEMP_FAILURE_RETRY(close(old_fd));
     VOID_TEMP_FAILURE_RETRY(close(new_fd));

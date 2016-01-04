@@ -6,7 +6,7 @@
 #define BIN_EVENTHANDLER_OPENBSD_H_
 
 #if !defined(BIN_EVENTHANDLER_H_)
-#error Do not include eventhandler_openbsd.h directly; use eventhandler.h instead.
+#error Do not include eventhandler_openbsd.h directly use eventhandler.h instead
 #endif
 
 #include <errno.h>

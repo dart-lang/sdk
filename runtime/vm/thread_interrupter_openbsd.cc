@@ -53,7 +53,7 @@ void ThreadInterrupter::InterruptThread(OSThread* thread) {
 
 void ThreadInterrupter::InstallSignalHandler() {
   SignalHandler::Install(ThreadInterrupterOpenBSD::
-			 ThreadInterruptSignalHandler);
+                         ThreadInterruptSignalHandler);
 }
 
 

@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_OPENBSD)
 
 #include "bin/thread.h"
+#include "bin/thread_openbsd.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/time.h>  // NOLINT

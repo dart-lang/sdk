@@ -66,7 +66,7 @@ inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
   }
   return buffer;
 }
- 
+
 }  // namespace dart
 
 #endif  // PLATFORM_UTILS_OPENBSD_H_
