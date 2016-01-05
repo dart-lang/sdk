@@ -1932,8 +1932,7 @@ class TypeErrorDecoder {
 
     // Since we want to create a new regular expression from an unknown string,
     // we must escape all regular expression syntax.
-    message = JS('String', r"#.replace(new RegExp(#, 'g'), '\\$&')",
-                 message, ESCAPE_REGEXP);
+    message = quoteStringForRegExp(message);
 
     // Look for the special pattern \$camelCase\$ (all the $ symbols
     // have been escaped already), as we will soon be inserting

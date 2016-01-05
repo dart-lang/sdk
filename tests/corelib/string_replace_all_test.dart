@@ -46,6 +46,16 @@ testReplaceAll() {
 
   // Test replacing the empty string.
   Expect.equals("toAtoBtoCto", "ABC".replaceAll("", "to"));
+
+  // Pattern strings containing RegExp metacharacters - these are not
+  // interpreted as RegExps.
+  Expect.equals(r"$$", "||".replaceAll("|", r"$"));
+  Expect.equals(r"$$$$", "||".replaceAll("|", r"$$"));
+  Expect.equals(r"x$|x", "x|.|x".replaceAll("|.", r"$"));
+  Expect.equals(r"$$", "..".replaceAll(".", r"$"));
+  Expect.equals(r"[$$$$]", "[..]".replaceAll(".", r"$$"));
+  Expect.equals(r"[$]", "[..]".replaceAll("..", r"$"));
+  Expect.equals(r"$$", r"\\".replaceAll(r"\", r"$"));
 }
 
 testReplaceAllMapped() {
