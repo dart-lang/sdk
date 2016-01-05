@@ -265,7 +265,12 @@ class _LibraryResynthesizer {
               new ConstructorElementImpl('', -1);
           constructor.synthetic = true;
           constructor.returnType = correspondingType;
-          constructor.type = new FunctionTypeImpl(constructor);
+          constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
+              constructor,
+              null,
+              currentTypeParameters
+                  .map((TypeParameterElement e) => e.type)
+                  .toList());
           memberHolder.addConstructor(constructor);
         }
         classElement.constructors = memberHolder.constructors;
@@ -447,7 +452,12 @@ class _LibraryResynthesizer {
     } else {
       executableElement.returnType = VoidTypeImpl.instance;
     }
-    executableElement.type = new FunctionTypeImpl(executableElement);
+    executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
+        executableElement,
+        null,
+        currentTypeParameters
+            ?.map((TypeParameterElement e) => e.type)
+            ?.toList());
     executableElement.hasImplicitReturnType =
         serializedExecutable.hasImplicitReturnType;
     executableElement.external = serializedExecutable.isExternal;

@@ -202,7 +202,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   FunctionTypeImpl.elementWithNameAndArgs(
       Element element, String name, List<DartType> typeArguments)
-      : this._(element, name, null, typeArguments, false);
+      : this._(element, name, null, typeArguments, true);
 
   /**
    * Initialize a newly created function type to be declared by the given

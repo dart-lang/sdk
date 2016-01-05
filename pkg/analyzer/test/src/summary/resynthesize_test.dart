@@ -349,9 +349,11 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test evaluationResult
   }
 
-  void compareTypeImpls(TypeImpl resynthesized, TypeImpl original) {
-    expect(resynthesized.element.location, original.element.location);
-    expect(resynthesized.name, original.name);
+  void compareTypeImpls(
+      TypeImpl resynthesized, TypeImpl original, String desc) {
+    expect(resynthesized.element.location, original.element.location,
+        reason: desc);
+    expect(resynthesized.name, original.name, reason: desc);
   }
 
   void compareTypeParameterElements(TypeParameterElementImpl resynthesized,
@@ -366,7 +368,7 @@ class ResynthTest extends ResolverTestCase {
       expect(resynthesized, isNull, reason: desc);
     } else if (resynthesized is InterfaceTypeImpl &&
         original is InterfaceTypeImpl) {
-      compareTypeImpls(resynthesized, original);
+      compareTypeImpls(resynthesized, original, desc);
       expect(resynthesized.typeArguments.length, original.typeArguments.length);
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
@@ -374,7 +376,7 @@ class ResynthTest extends ResolverTestCase {
       }
     } else if (resynthesized is TypeParameterTypeImpl &&
         original is TypeParameterTypeImpl) {
-      compareTypeImpls(resynthesized, original);
+      compareTypeImpls(resynthesized, original, desc);
     } else if (resynthesized is DynamicTypeImpl &&
         original is DynamicTypeImpl) {
       expect(resynthesized, same(original));
@@ -383,16 +385,37 @@ class ResynthTest extends ResolverTestCase {
       expect(resynthesized, same(original));
     } else if (resynthesized is FunctionTypeImpl &&
         original is FunctionTypeImpl) {
-      compareTypeImpls(resynthesized, original);
+      compareTypeImpls(resynthesized, original, desc);
       if (original.element.isSynthetic &&
           original.element is FunctionTypeAliasElementImpl &&
           resynthesized.element is FunctionTypeAliasElementImpl) {
         compareFunctionTypeAliasElements(
             resynthesized.element, original.element, desc);
       }
+      expect(resynthesized.typeArguments.length, original.typeArguments.length,
+          reason: desc);
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
             '$desc type argument ${original.typeArguments[i].name}');
+      }
+      if (original.typeParameters == null) {
+        expect(resynthesized.typeParameters, isNull, reason: desc);
+      } else {
+        expect(resynthesized.typeParameters, isNotNull, reason: desc);
+        expect(
+            resynthesized.typeParameters.length, original.typeParameters.length,
+            reason: desc);
+        for (int i = 0; i < resynthesized.typeParameters.length; i++) {
+          compareTypeParameterElements(resynthesized.typeParameters[i],
+              original.typeParameters[i], '$desc type parameter $i');
+        }
+      }
+      expect(resynthesized.boundTypeParameters.length,
+          original.boundTypeParameters.length,
+          reason: desc);
+      for (int i = 0; i < resynthesized.boundTypeParameters.length; i++) {
+        compareTypeParameterElements(resynthesized.boundTypeParameters[i],
+            original.boundTypeParameters[i], '$desc bound type parameter $i');
       }
     } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
       expect(resynthesized, same(original));
