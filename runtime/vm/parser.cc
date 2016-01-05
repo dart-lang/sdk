@@ -11202,6 +11202,26 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
     // source.
     if (!FLAG_warn_on_javascript_compatibility || is_patch_source()) {
       ASSERT(num_arguments == 2);
+
+      // If both arguments are constant expressions of type string,
+      // evaluate and canonicalize them.
+      // This guarantees that identical("ab", "a"+"b") is true.
+      // An alternative way to guarantee this would be to introduce
+      // an AST node that canonicalizes a value.
+      AstNode* arg0 = arguments->NodeAt(0);
+      const Instance* val0 = arg0->EvalConstExpr();
+      if ((val0 != NULL) && (val0->IsString())) {
+        AstNode* arg1 = arguments->NodeAt(1);
+        const Instance* val1 = arg1->EvalConstExpr();
+        if ((val1 != NULL) && (val1->IsString())) {
+          arguments->SetNodeAt(0,
+              new(Z) LiteralNode(arg0->token_pos(),
+                                 EvaluateConstExpr(arg0->token_pos(), arg0)));
+          arguments->SetNodeAt(1,
+              new(Z) LiteralNode(arg1->token_pos(),
+                                 EvaluateConstExpr(arg1->token_pos(), arg1)));
+        }
+      }
       return new(Z) ComparisonNode(ident_pos,
                                    Token::kEQ_STRICT,
                                    arguments->NodeAt(0),
