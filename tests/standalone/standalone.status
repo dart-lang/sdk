@@ -106,6 +106,7 @@ pair_location_remapping_test: Skip
 precompilation_test: Skip # Standalone only test.
 precompilation_dart2js_test: Skip # Standalone only test.
 noopt_test: Skip # Standalone only test.
+regress_25335_test: Skip # Int64List not supported.
 
 [ $runtime == vm && $mode == debug ]
 precompilation_dart2js_test: Pass, Slow
