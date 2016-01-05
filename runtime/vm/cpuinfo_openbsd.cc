@@ -22,13 +22,11 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoFeatures] = "flags";
   method_ = kCpuInfoCpuId;
   CpuId::InitOnce();
-  return;
 }
 
 
 void CpuInfo::Cleanup() {
   CpuId::Cleanup();
-  return;
 }
 
 
