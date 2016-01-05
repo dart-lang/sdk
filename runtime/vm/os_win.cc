@@ -132,7 +132,7 @@ int64_t OS::GetCurrentMonotonicTicks() {
   // Grab performance counter value.
   LARGE_INTEGER now;
   QueryPerformanceCounter(&now);
-  int64_t qpc_value = static_cast<int64_t>(now.QuadPart);
+  return static_cast<int64_t>(now.QuadPart);
 }
 
 
