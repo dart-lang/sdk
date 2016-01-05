@@ -38,9 +38,6 @@ import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
 import 'type_mask_system.dart';
-import '../closure.dart' show
-    ClosureFieldElement,
-    BoxLocal;
 
 class ConstantPropagationLattice {
   final TypeMaskSystem typeSystem;
@@ -723,7 +720,6 @@ class TypePropagator extends Pass {
         _lattice = new ConstantPropagationLattice(functionCompiler);
 
   dart2js.Compiler get _compiler => _functionCompiler.compiler;
-  TypeMaskSystem get _typeSystem => _functionCompiler.typeSystem;
   InternalErrorFunction get _internalError => _compiler.reporter.internalError;
 
   @override
@@ -1263,7 +1259,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           Primitive index = node.dartArgument(0);
           if (lattice.isDefinitelyString(receiverValue) &&
               lattice.isDefinitelyInt(getValue(index))) {
-            SourceInformation sourceInfo = node.sourceInformation;
             CpsFragment cps = new CpsFragment(node.sourceInformation);
             receiver = makeBoundsCheck(cps, receiver, index);
             ApplyBuiltinOperator get =
@@ -1363,7 +1358,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             allowNull: true)) {
       return null;
     }
-    SourceInformation sourceInfo = node.sourceInformation;
     switch (node.selector.name) {
       case 'length':
         if (!node.selector.isGetter) return null;
@@ -1411,8 +1405,6 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     bool isFixedLength =
         lattice.isDefinitelyFixedArray(listValue, allowNull: true);
-    bool isMutable =
-        lattice.isDefinitelyMutableArray(listValue, allowNull: true);
     bool isExtendable =
         lattice.isDefinitelyExtendableArray(listValue, allowNull: true);
     SourceInformation sourceInfo = node.sourceInformation;
@@ -1668,11 +1660,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Returns the first parent of [node] that is not a pure expression.
   InteriorNode getEffectiveParent(Expression node) {
     while (true) {
-      Node parent = node.parent;
+      InteriorNode parent = node.parent;
       if (parent is LetCont ||
           parent is LetPrim && parent.primitive.isSafeForReordering ||
           parent is LetPrim && parent.primitive is Refinement) {
-        node = parent;
+        node = parent as dynamic; // Make analyzer accept cross cast.
       } else {
         return parent;
       }

@@ -9,7 +9,6 @@ import 'cps_ir_nodes.dart';
 import '../common/names.dart';
 import '../types/types.dart' show TypeMask;
 import 'type_mask_system.dart';
-import 'cps_fragment.dart';
 
 /// Inserts [Refinement] nodes in the IR to allow for sparse path-sensitive
 /// type analysis in the [TypePropagator] pass.

@@ -2463,17 +2463,17 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
 
   Definition visit(Node node) => node.accept(this);
 
-  Definition visitFunctionDefinition(FunctionDefinition node) {}
-  Definition visitLetPrim(LetPrim node) {}
-  Definition visitLetCont(LetCont node) {}
-  Definition visitLetHandler(LetHandler node) {}
-  Definition visitLetMutable(LetMutable node) {}
-  Definition visitInvokeContinuation(InvokeContinuation node) {}
-  Definition visitThrow(Throw node) {}
-  Definition visitRethrow(Rethrow node) {}
-  Definition visitBranch(Branch node) {}
-  Definition visitUnreachable(Unreachable node) {}
-  Definition visitContinuation(Continuation node) {}
+  visitFunctionDefinition(FunctionDefinition node) {}
+  visitLetPrim(LetPrim node) {}
+  visitLetCont(LetCont node) {}
+  visitLetHandler(LetHandler node) {}
+  visitLetMutable(LetMutable node) {}
+  visitInvokeContinuation(InvokeContinuation node) {}
+  visitThrow(Throw node) {}
+  visitRethrow(Rethrow node) {}
+  visitBranch(Branch node) {}
+  visitUnreachable(Unreachable node) {}
+  visitContinuation(Continuation node) {}
 
   Definition visitInvokeStatic(InvokeStatic node) {
     return new InvokeStatic(node.target, node.selector, getList(node.arguments),
@@ -2776,22 +2776,22 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
         sourceInformation: node.sourceInformation));
   }
 
-  Node visitThrow(Throw node) {
+  visitThrow(Throw node) {
     plug(new Throw(_definitions.getCopy(node.value)));
   }
 
-  Node visitRethrow(Rethrow node) {
+  visitRethrow(Rethrow node) {
     plug(new Rethrow());
   }
 
-  Node visitBranch(Branch node) {
+  visitBranch(Branch node) {
     plug(new Branch.loose(_definitions.getCopy(node.condition),
         _copies[node.trueContinuation.definition],
         _copies[node.falseContinuation.definition])
       ..isStrictCheck = node.isStrictCheck);
   }
 
-  Node visitUnreachable(Unreachable node) {
+  visitUnreachable(Unreachable node) {
     plug(new Unreachable());
   }
 }
