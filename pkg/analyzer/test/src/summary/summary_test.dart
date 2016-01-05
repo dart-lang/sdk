@@ -151,6 +151,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
       Scanner scanner =
           new Scanner(source, reader, AnalysisErrorListener.NULL_LISTENER);
       Parser parser = new Parser(source, AnalysisErrorListener.NULL_LISTENER);
+      parser.parseGenericMethods = true;
       CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
       UnlinkedPublicNamespace namespace =
           new UnlinkedPublicNamespace.fromBuffer(public_namespace
@@ -560,7 +561,8 @@ abstract class SummaryTest {
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-        allowErrors: allowErrors).type;
+            allowErrors: allowErrors)
+        .type;
   }
 
   /**
@@ -1498,7 +1500,8 @@ typedef F();
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
+            'class C { void operator[]=(int i, bool v) => null; }')
+        .executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);
@@ -1688,30 +1691,50 @@ typedef F();
     expect(executable.isStatic, isTrue);
   }
 
-  test_executable_type_param_f_bound() {
-    // TODO(paulberry): also test top level executables.
+  test_executable_type_param_f_bound_function() {
+    UnlinkedExecutable ex =
+        serializeExecutableText('void f<T, U extends List<T>>() {}');
+    UnlinkedTypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
+    checkParamTypeRef(typeArgument, 2);
+  }
+
+  test_executable_type_param_f_bound_method() {
     UnlinkedExecutable ex =
         serializeMethodText('void f<T, U extends List<T>>() {}');
     UnlinkedTypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
     checkParamTypeRef(typeArgument, 2);
   }
 
-  test_executable_type_param_f_bound_self_ref() {
-    // TODO(paulberry): also test top level executables.
+  test_executable_type_param_f_bound_self_ref_function() {
+    UnlinkedExecutable ex =
+        serializeExecutableText('void f<T, U extends List<U>>() {}');
+    UnlinkedTypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
+    checkParamTypeRef(typeArgument, 1);
+  }
+
+  test_executable_type_param_f_bound_self_ref_method() {
     UnlinkedExecutable ex =
         serializeMethodText('void f<T, U extends List<U>>() {}');
     UnlinkedTypeRef typeArgument = ex.typeParameters[1].bound.typeArguments[0];
     checkParamTypeRef(typeArgument, 1);
   }
 
-  test_executable_type_param_in_parameter() {
-    // TODO(paulberry): also test top level executables.
+  test_executable_type_param_in_parameter_function() {
+    UnlinkedExecutable ex = serializeExecutableText('void f<T>(T t) {}');
+    checkParamTypeRef(ex.parameters[0].type, 1);
+  }
+
+  test_executable_type_param_in_parameter_method() {
     UnlinkedExecutable ex = serializeMethodText('void f<T>(T t) {}');
     checkParamTypeRef(ex.parameters[0].type, 1);
   }
 
-  test_executable_type_param_in_return_type() {
-    // TODO(paulberry): also test top level executables.
+  test_executable_type_param_in_return_type_function() {
+    UnlinkedExecutable ex = serializeExecutableText('T f<T>() => null;');
+    checkParamTypeRef(ex.returnType, 1);
+  }
+
+  test_executable_type_param_in_return_type_method() {
     UnlinkedExecutable ex = serializeMethodText('T f<T>() => null;');
     checkParamTypeRef(ex.returnType, 1);
   }
