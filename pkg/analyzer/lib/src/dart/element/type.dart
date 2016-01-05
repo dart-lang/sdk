@@ -169,14 +169,17 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   List<DartType> _typeArguments;
 
   /**
-   * The list of [typeParameters].
+   * The list of [typeParameters], if it has been computed already.  Otherwise
+   * `null`.
    */
   List<TypeParameterElement> _typeParameters;
 
   /**
-   * The list of [boundTypeParameters].
+   * True if this type is the result of instantiating type parameters (and thus
+   * any type parameters bound by the typedef should be considered part of
+   * [typeParameters] rather than [boundTypeParameters]).
    */
-  List<TypeParameterElement> _boundTypeParameters;
+  final bool _isInstantiated;
 
   /**
    * The set of typedefs which should not be expanded when exploring this type,
@@ -191,18 +194,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   FunctionTypeImpl(ExecutableElement element,
       [List<FunctionTypeAliasElement> prunedTypedefs])
-      : this._(element, null, prunedTypedefs, null, null, null);
+      : this._(element, null, prunedTypedefs, null, false);
 
   /**
    * Initialize a newly created function type to be declared by the given
    * [element], with the given [name] and [typeArguments].
-   *
-   * TODO(paulberry): set [typeParameters] and [boundTypeParameters] properly.
    */
   FunctionTypeImpl.elementWithNameAndArgs(
       Element element, String name, List<DartType> typeArguments)
-      : this._(element, name, null, typeArguments,
-            const <TypeParameterElement>[], const <TypeParameterElement>[]);
+      : this._(element, name, null, typeArguments, false);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -210,38 +210,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
       [List<FunctionTypeAliasElement> prunedTypedefs])
-      : this._(element, element?.name, prunedTypedefs, null, null, null);
+      : this._(element, element?.name, prunedTypedefs, null, false);
 
   /**
    * Private constructor.
    */
-  FunctionTypeImpl._(
-      TypeParameterizedElement element,
-      String name,
-      this.prunedTypedefs,
-      List<DartType> typeArguments,
-      List<TypeParameterElement> typeParameters,
-      List<TypeParameterElement> boundTypeParameters)
+  FunctionTypeImpl._(TypeParameterizedElement element, String name,
+      this.prunedTypedefs, List<DartType> typeArguments, this._isInstantiated)
       : super(element, name) {
-    _boundTypeParameters = boundTypeParameters ??
-        element?.typeParameters ??
-        TypeParameterElement.EMPTY_LIST;
-
-    if (typeParameters == null) {
-      // Combine the generic type variables from all enclosing contexts, except
-      // for this generic function's type variables. Those variables are
-      // tracked in [boundTypeParameters].
-      typeParameters = <TypeParameterElement>[];
-      Element e = element?.enclosingElement;
-      while (e != null) {
-        if (e is TypeParameterizedElement) {
-          typeParameters.addAll((e as TypeParameterizedElement).typeParameters);
-        }
-        e = e.enclosingElement;
-      }
-    }
-    _typeParameters = typeParameters;
-
     if (typeArguments == null) {
       // TODO(jmesserly): reuse TypeParameterTypeImpl.getTypes once we can
       // make it generic, which will allow it to return List<DartType> instead
@@ -268,7 +244,13 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   DartType get baseReturnType => element.returnType;
 
   @override
-  List<TypeParameterElement> get boundTypeParameters => _boundTypeParameters;
+  List<TypeParameterElement> get boundTypeParameters {
+    if (_isInstantiated) {
+      return TypeParameterElement.EMPTY_LIST;
+    } else {
+      return element?.typeParameters ?? TypeParameterElement.EMPTY_LIST;
+    }
+  }
 
   @override
   String get displayName {
@@ -539,7 +521,31 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   List<DartType> get typeArguments => _typeArguments;
 
   @override
-  List<TypeParameterElement> get typeParameters => _typeParameters;
+  List<TypeParameterElement> get typeParameters {
+    if (_typeParameters == null) {
+      // Combine the generic type variables from all enclosing contexts, except
+      // for this generic function's type variables. Those variables are
+      // tracked in [boundTypeParameters].
+      _typeParameters = <TypeParameterElement>[];
+      Element e = element?.enclosingElement;
+      while (e != null) {
+        if (e is TypeParameterizedElement) {
+          _typeParameters.addAll(e.typeParameters);
+        }
+        e = e.enclosingElement;
+      }
+      if (_isInstantiated) {
+        // Once the type has been instantiated, type parameters defined at the
+        // site of the declaration of the method are no longer considered part
+        // [boundTypeParameters]; they are part of [typeParameters].
+        List<TypeParameterElement> parametersToAdd = element?.typeParameters;
+        if (parametersToAdd != null) {
+          _typeParameters.addAll(parametersToAdd);
+        }
+      }
+    }
+    return _typeParameters;
+  }
 
   @override
   bool operator ==(Object object) {
@@ -718,13 +724,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     //
     // Now instantiate([V]), and the result should be:
     //     {U/T, V/S} T -> S.
-    List<TypeParameterElement> newTypeParams = typeParameters.toList();
     List<DartType> newTypeArgs = typeArguments.toList();
-    newTypeParams.addAll(boundTypeParameters);
     newTypeArgs.addAll(argumentTypes);
 
-    return new FunctionTypeImpl._(element, name, prunedTypedefs, newTypeArgs,
-        newTypeParams, TypeParameterElement.EMPTY_LIST);
+    return new FunctionTypeImpl._(
+        element, name, prunedTypedefs, newTypeArgs, true);
   }
 
   @override
@@ -976,8 +980,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       List<DartType> typeArgs = typeArguments
           .map((TypeImpl t) => t.pruned(prune))
           .toList(growable: false);
-      return new FunctionTypeImpl._(element, name, prune, typeArgs,
-          _typeParameters, _boundTypeParameters);
+      return new FunctionTypeImpl._(
+          element, name, prune, typeArgs, _isInstantiated);
     }
   }
 
@@ -1004,7 +1008,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<DartType> typeArgs =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
     return new FunctionTypeImpl._(
-        element, name, prune, typeArgs, _typeParameters, _boundTypeParameters);
+        element, name, prune, typeArgs, _isInstantiated);
   }
 
   @override
