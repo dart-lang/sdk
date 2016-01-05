@@ -895,6 +895,12 @@ class StandardTestSuite extends TestSuite {
       var packageDirectories = {};
       if (configuration['use_repository_packages']) {
         packageDirectories = new Map.from(localPackageDirectories);
+
+        // Don't create a dependency override for pub, since it's an application
+        // package and it has a dependency on compiler_unsupported which isn't
+        // in the repo.
+        packageDirectories.remove('pub');
+
         // Do not create an dependency override for the package itself.
         if (packageDirectories.containsKey(packageName)) {
           packageDirectories.remove(packageName);
@@ -1988,6 +1994,12 @@ class PkgBuildTestSuite extends TestSuite {
         var packageDirectories = {};
         if (!configuration['use_public_packages']) {
           packageDirectories = new Map.from(localPackageDirectories);
+
+          // Don't create a dependency override for pub, since it's an
+          // application package and it has a dependency on compiler_unsupported
+          // which isn't in the repo.
+          packageDirectories.remove('pub');
+
           if (packageDirectories.containsKey(packageName)) {
             packageDirectories.remove(packageName);
           }

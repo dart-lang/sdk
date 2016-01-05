@@ -44,7 +44,7 @@ vars = {
   "dev_compiler_rev": "@0.1.9",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
-  "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
+  "http_tag" : "@0.11.3+3",
   "http_multi_server_tag" : "@2.0.0",
   "http_parser_tag" : "@1.1.0",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
@@ -73,7 +73,7 @@ vars = {
   "quiver_tag": "@0.21.4",
   "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
   "scheduled_test_tag": "@0.12.4+2",
-  "shelf_tag": "@0.6.2+1",
+  "shelf_tag": "@0.6.4+3",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_tag": "@0.10.1",
   "shelf_static_tag": "@0.2.3+1",
@@ -170,7 +170,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/html":
       (Var("github_mirror") % "html") + Var("html_tag"),
   Var("dart_root") + "/third_party/pkg/http":
-      (Var("github_mirror") % "http") + Var("http_rev"),
+      (Var("github_mirror") % "http") + Var("http_tag"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
       (Var("github_mirror") % "http_multi_server") +
       Var("http_multi_server_tag"),
