@@ -162,7 +162,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       map(f) {
         dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return new MappedListIterable(this, f);
+        return new (MappedListIterable$(E, dart.dynamic))(this, f);
       }
       reduce(combine) {
         dart.as(combine, dart.functionType(E, [dart.dynamic, E]));
@@ -182,7 +182,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         let value = initialValue;
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          value = dart.dcall(combine, value, this.elementAt(i));
+          value = combine(value, this.elementAt(i));
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
@@ -1097,20 +1097,20 @@ dart_library.library('dart/_internal', null, /* Imports */[
       static forEach(iterable, f) {
         dart.as(f, dart.functionType(dart.void, [dart.dynamic]));
         for (let e of iterable) {
-          dart.dcall(f, e);
+          f(e);
         }
       }
       static any(iterable, f) {
         dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
-          if (dart.notNull(dart.dcall(f, e))) return true;
+          if (dart.notNull(f(e))) return true;
         }
         return false;
       }
       static every(iterable, f) {
         dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
-          if (!dart.notNull(dart.dcall(f, e))) return false;
+          if (!dart.notNull(f(e))) return false;
         }
         return true;
       }
@@ -1120,24 +1120,24 @@ dart_library.library('dart/_internal', null, /* Imports */[
         if (!dart.notNull(iterator.moveNext())) dart.throw(IterableElementError.noElement());
         let value = iterator.current;
         while (dart.notNull(iterator.moveNext())) {
-          value = dart.dcall(combine, value, iterator.current);
+          value = combine(value, iterator.current);
         }
         return value;
       }
       static fold(iterable, initialValue, combine) {
         dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
         for (let element of iterable) {
-          initialValue = dart.dcall(combine, initialValue, element);
+          initialValue = combine(initialValue, element);
         }
         return initialValue;
       }
       static removeWhereList(list, test) {
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
-        let retained = [];
+        let retained = dart.list([], dart.dynamic);
         let length = list[dartx.length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = list[dartx.get](i);
-          if (!dart.notNull(dart.dcall(test, element))) {
+          if (!dart.notNull(test(element))) {
             retained[dartx.add](element);
           }
           if (length != list[dartx.length]) {
@@ -1182,7 +1182,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let element of iterable) {
-          if (dart.notNull(dart.dcall(test, element))) return element;
+          if (dart.notNull(test(element))) return element;
         }
         if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
@@ -1193,7 +1193,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
-          if (dart.notNull(dart.dcall(test, element))) {
+          if (dart.notNull(test(element))) {
             result = element;
             foundMatching = true;
           }
@@ -1207,7 +1207,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let i = dart.notNull(list[dartx.length]) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = list[dartx.get](i);
-          if (dart.notNull(dart.dcall(test, element))) return element;
+          if (dart.notNull(test(element))) return element;
         }
         if (orElse != null) return orElse();
         dart.throw(IterableElementError.noElement());
@@ -1217,7 +1217,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
-          if (dart.notNull(dart.dcall(test, element))) {
+          if (dart.notNull(test(element))) {
             if (dart.notNull(foundMatching)) {
               dart.throw(IterableElementError.tooMany());
             }
@@ -1263,8 +1263,9 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return dart.toString(buffer);
       }
       where(iterable, f) {
-        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
-        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType2));
+        dart.as(iterable, core.Iterable$(T));
+        dart.as(f, dart.functionType(core.bool, [T]));
+        return new (WhereIterable$(T))(iterable, f);
       }
       static map(iterable, f) {
         dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
@@ -1283,7 +1284,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       takeWhile(iterable, test) {
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
-        return new (TakeWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.functionType(core.bool, [T])));
+        return new (TakeWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, __CastType2));
       }
       skipList(list, n) {
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), n, null);
@@ -1443,7 +1444,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
     }
     dart.setSignature(IterableMixinWorkaround, {
       methods: () => ({
-        where: [core.Iterable$(T), [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
+        where: [core.Iterable$(T), [core.Iterable$(T), dart.functionType(core.bool, [T])]],
         takeList: [core.Iterable$(T), [core.List, core.int]],
         takeWhile: [core.Iterable$(T), [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
         skipList: [core.Iterable$(T), [core.List, core.int]],

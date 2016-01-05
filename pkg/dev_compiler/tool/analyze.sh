@@ -16,4 +16,4 @@ function fail {
 # dart_runtime_test.dart creates invalid generic type instantiation AA.
 echo "Running dartanalyzer to check for errors/warnings/hints..."
 dartanalyzer --fatal-warnings --package-warnings bin/dartdevc.dart \
-    | (! grep $PWD) || fail
+    | grep -v "\[info\] TODO" | (! grep $PWD) || fail

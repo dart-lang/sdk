@@ -20,7 +20,7 @@ AnalysisContext createAnalysisContextWithSources(
     SourceResolverOptions srcOptions,
     {DartUriResolver sdkResolver,
     List<UriResolver> fileResolvers}) {
-  AnalysisEngine.instance.useTaskModel = true;
+  AnalysisEngine.instance.processRequiredPlugins();
   var srcFactory = createSourceFactory(srcOptions,
       sdkResolver: sdkResolver, fileResolvers: fileResolvers);
   return createAnalysisContext()..sourceFactory = srcFactory;

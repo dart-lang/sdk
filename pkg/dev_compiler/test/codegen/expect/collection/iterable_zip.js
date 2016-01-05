@@ -13,7 +13,7 @@ dart_library.library('collection/iterable_zip', null, /* Imports */[
       super.IterableBase();
     }
     get iterator() {
-      let iterators = this[_iterables][dartx.map](dart.fn(x => dart.dload(x, 'iterator')))[dartx.toList]({growable: false});
+      let iterators = this[_iterables][dartx.map](dart.fn(x => x[dartx.iterator], core.Iterator, [core.Iterable]))[dartx.toList]({growable: false});
       return new _IteratorZip(iterators);
     }
   }

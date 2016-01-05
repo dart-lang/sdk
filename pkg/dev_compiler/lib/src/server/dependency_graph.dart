@@ -19,8 +19,8 @@ import 'package:analyzer/src/generated/ast.dart'
         PartDirective,
         PartOfDirective,
         UriBasedDirective;
-import 'package:analyzer/src/generated/engine.dart'
-    show ParseDartTask, AnalysisContext;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/task/dart.dart' show ParseDartTask;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
 import 'package:html/dom.dart' show Document, Node, Element;

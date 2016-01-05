@@ -78,7 +78,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         return JSArray$(E).typed(JSArray$().markFixedList(dart.as(allocation, core.List)));
       }
       static markGrowable(allocation) {
-        return JSArray$().typed(allocation);
+        return JSArray$(E).typed(allocation);
       }
       static markFixedList(list) {
         list.fixed$length = Array;
@@ -198,7 +198,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       }
       [dartx.reduce](combine) {
         dart.as(combine, dart.functionType(E, [E, E]));
-        return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
+        return _internal.IterableMixinWorkaround.reduce(this, combine);
       }
       [dartx.fold](initialValue, combine) {
         dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
@@ -208,17 +208,17 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
-        return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
+        return _internal.IterableMixinWorkaround.firstWhere(this, test, orElse);
       }
       [dartx.lastWhere](test, opts) {
         dart.as(test, dart.functionType(core.bool, [E]));
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
-        return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
+        return _internal.IterableMixinWorkaround.lastWhereList(this, test, orElse);
       }
       [dartx.singleWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        return dart.as(_internal.IterableMixinWorkaround.singleWhere(this, test), E);
+        return _internal.IterableMixinWorkaround.singleWhere(this, test);
       }
       [dartx.elementAt](index) {
         return this[dartx.get](index);
@@ -520,8 +520,8 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         return -1;
       } else if (this > dart.notNull(b)) {
         return 1;
-      } else if (dart.equals(this, b)) {
-        if (dart.equals(this, 0)) {
+      } else if (this == b) {
+        if (this == 0) {
           let bIsNegative = b[dartx.isNegative];
           if (this[dartx.isNegative] == bIsNegative) return 0;
           if (dart.notNull(this[dartx.isNegative])) return -1;
@@ -538,7 +538,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       }
     }
     get [dartx.isNegative]() {
-      return dart.equals(this, 0) ? 1 / this < 0 : this < 0;
+      return this == 0 ? 1 / this < 0 : this < 0;
     }
     get [dartx.isNaN]() {
       return isNaN(this);
@@ -613,7 +613,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         dart.throw(new core.RangeError(fractionDigits));
       }
       let result = this.toFixed(fractionDigits);
-      if (dart.equals(this, 0) && dart.notNull(this[dartx.isNegative])) return `-${result}`;
+      if (this == 0 && dart.notNull(this[dartx.isNegative])) return `-${result}`;
       return result;
     }
     [dartx.toStringAsExponential](fractionDigits) {
@@ -628,7 +628,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       } else {
         result = this.toExponential();
       }
-      if (dart.equals(this, 0) && dart.notNull(this[dartx.isNegative])) return `-${result}`;
+      if (this == 0 && dart.notNull(this[dartx.isNegative])) return `-${result}`;
       return result;
     }
     [dartx.toStringAsPrecision](precision) {
@@ -637,7 +637,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         dart.throw(new core.RangeError(precision));
       }
       let result = this.toPrecision(precision);
-      if (dart.equals(this, 0) && dart.notNull(this[dartx.isNegative])) return `-${result}`;
+      if (this == 0 && dart.notNull(this[dartx.isNegative])) return `-${result}`;
       return result;
     }
     [dartx.toRadixString](radix) {
@@ -664,7 +664,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       return dart.notNull(result) + "0"[dartx['*']](exponent);
     }
     toString() {
-      if (dart.equals(this, 0) && 1 / this < 0) {
+      if (this == 0 && 1 / this < 0) {
         return '-0.0';
       } else {
         return "" + this;

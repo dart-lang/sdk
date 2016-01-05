@@ -20,7 +20,7 @@ typedef void _ChunkedConversionCallback<T>(T accumulated);
 abstract class ChunkedConversionSink<T> implements Sink<T> {
   ChunkedConversionSink();
   factory ChunkedConversionSink.withCallback(
-      void callback(List<T> accumulated)) = _SimpleCallbackSink;
+      void callback(List<T> accumulated)) = _SimpleCallbackSink<T>;
 
   /**
    * Adds chunked data to this sink.

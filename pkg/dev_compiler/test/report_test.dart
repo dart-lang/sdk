@@ -25,13 +25,15 @@ void main() {
           test1() {
             x = "hi";
           }
-      '''.replaceAll('\n          ', '\n'),
+      '''
+          .replaceAll('\n          ', '\n'),
       'package:foo/bar.dart': '''
           List x;
           test2() {
             List<String> y = x;
           }
-      '''.replaceAll('\n          ', '\n'),
+      '''
+          .replaceAll('\n          ', '\n'),
     };
 
     var provider = createTestResourceProvider(files);
@@ -41,7 +43,8 @@ void main() {
         createAnalysisContextWithSources(srcOpts, fileResolvers: [uriResolver]);
     var reporter = new SummaryReporter(context);
     new BatchCompiler(context, new CompilerOptions(sourceOptions: srcOpts),
-        reporter: reporter).compileFromUriString('/main.dart');
+            reporter: reporter)
+        .compileFromUriString('/main.dart');
 
     _verifySummary(GlobalSummary summary) {
       var mainLib = summary.loose['file:///main.dart'];
@@ -50,7 +53,7 @@ void main() {
       expect(analyzerMsg.kind, "AnalyzerMessage");
 
       var mainMessage = mainLib.messages[1];
-      expect(mainMessage.kind, "StaticTypeError");
+      expect(mainMessage.kind, "STATIC_TYPE_ERROR");
       expect(mainMessage.level, "error");
       expect(mainMessage.span.text, '"hi"');
       expect(mainMessage.span.context, '  x = "hi";\n');
@@ -58,7 +61,7 @@ void main() {
       var barLib = summary.packages['foo'].libraries['package:foo/bar.dart'];
       expect(barLib.messages.length, 1);
       var barMessage = barLib.messages[0];
-      expect(barMessage.kind, "DownCastComposite");
+      expect(barMessage.kind, "DOWN_CAST_COMPOSITE");
       expect(barMessage.level, "warning");
       expect(barMessage.span.text, 'x');
       expect(barMessage.span.context, '  List<String> y = x;\n');

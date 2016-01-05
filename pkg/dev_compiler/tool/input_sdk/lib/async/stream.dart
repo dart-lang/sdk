@@ -296,8 +296,8 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually execute `map` for each event.
    */
-  Stream map(convert(T event)) {
-    return new _MapStream<T, dynamic>(this, convert);
+  Stream/*<S>*/ map/*<S>*/(/*=S*/ convert(T event)) {
+    return new _MapStream<T, dynamic/*=S*/>(this, convert);
   }
 
   /**
@@ -458,8 +458,8 @@ abstract class Stream<T> {
    * If a broadcast stream is listened to more than once, each subscription
    * will individually call `convert` and expand the events.
    */
-  Stream expand(Iterable convert(T value)) {
-    return new _ExpandStream<T, dynamic>(this, convert);
+  Stream/*<S>*/ expand/*<S>*/(Iterable/*<S>*/ convert(T value)) {
+    return new _ExpandStream<T, dynamic/*=S*/>(this, convert);
   }
 
   /**
@@ -523,8 +523,9 @@ abstract class Stream<T> {
   }
 
   /** Reduces a sequence of values by repeatedly applying [combine]. */
-  Future fold(var initialValue, combine(var previous, T element)) {
-    _Future result = new _Future();
+  Future/*<S>*/ fold/*<S>*/(var/*=S*/ initialValue,
+      /*=S*/ combine(var/*=S*/ previous, T element)) {
+    _Future/*<S>*/ result = new _Future();
     var value = initialValue;
     StreamSubscription subscription;
     subscription = this.listen(
@@ -1568,7 +1569,7 @@ abstract class StreamTransformer<S, T> {
    */
   const factory StreamTransformer(
       StreamSubscription<T> transformer(Stream<S> stream, bool cancelOnError))
-      = _StreamSubscriptionTransformer;
+  = _StreamSubscriptionTransformer<S, T>;
 
   /**
    * Creates a [StreamTransformer] that delegates events to the given functions.
@@ -1585,7 +1586,7 @@ abstract class StreamTransformer<S, T> {
       void handleData(S data, EventSink<T> sink),
       void handleError(Object error, StackTrace stackTrace, EventSink<T> sink),
       void handleDone(EventSink<T> sink)})
-          = _StreamHandlerTransformer;
+      = _StreamHandlerTransformer<S, T>;
 
   /**
    * Transform the incoming [stream]'s events.

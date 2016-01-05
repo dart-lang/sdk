@@ -39,7 +39,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn((key, value) => this.set(dart.as(key, K), dart.as(value, V))));
+        other.forEach(dart.fn((key, value) => this.set(key, value), V, [K, V]));
       }
       clear() {
         this[_base].clear();
@@ -49,11 +49,11 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return this[_base].containsKey(dart.dcall(this[_canonicalize], key));
       }
       containsValue(value) {
-        return this[_base].values[dartx.any](dart.fn(pair => dart.equals(dart.dload(pair, 'last'), value), core.bool, [dart.dynamic]));
+        return this[_base].values[dartx.any](dart.fn(pair => dart.equals(pair.last, value), core.bool, [utils.Pair$(K, V)]));
       }
       forEach(f) {
         dart.as(f, dart.functionType(dart.void, [K, V]));
-        this[_base].forEach(dart.fn((key, pair) => f(dart.as(dart.dload(pair, 'first'), K), dart.as(dart.dload(pair, 'last'), V)), dart.void, [dart.dynamic, dart.dynamic]));
+        this[_base].forEach(dart.fn((key, pair) => f(pair.first, pair.last), dart.void, [C, utils.Pair$(K, V)]));
       }
       get isEmpty() {
         return this[_base].isEmpty;
@@ -62,7 +62,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return this[_base].isNotEmpty;
       }
       get keys() {
-        return dart.as(this[_base].values[dartx.map](dart.fn(pair => dart.dload(pair, 'first'))), core.Iterable$(K));
+        return this[_base].values[dartx.map](dart.fn(pair => pair.first, K, [utils.Pair$(K, V)]));
       }
       get length() {
         return this[_base].length;
@@ -78,7 +78,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return pair == null ? null : pair.last;
       }
       get values() {
-        return dart.as(this[_base].values[dartx.map](dart.fn(pair => dart.dload(pair, 'last'))), core.Iterable$(V));
+        return this[_base].values[dartx.map](dart.fn(pair => pair.last, V, [utils.Pair$(K, V)]));
       }
       toString() {
         return collection.Maps.mapToString(this);

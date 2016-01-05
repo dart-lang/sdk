@@ -269,12 +269,12 @@ dart_library.library('dart/math', null, /* Imports */[
           return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
         }
       }
-      if (a == 0 && dart.notNull(b[dartx.isNegative]) || dart.notNull(b[dartx.isNaN])) return b;
+      if (a == 0 && dart.notNull(b.isNegative) || dart.notNull(b.isNaN)) return b;
       return a;
     }
     return a;
   }
-  dart.fn(min, core.num, [core.num, core.num]);
+  dart.fn(min, () => dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   function max(a, b) {
     if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
     if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
@@ -286,13 +286,13 @@ dart_library.library('dart/math', null, /* Imports */[
           return dart.notNull(a) + dart.notNull(b);
         }
       }
-      if (dart.notNull(b[dartx.isNaN])) return b;
+      if (dart.notNull(b.isNaN)) return b;
       return a;
     }
-    if (b == 0 && dart.notNull(a[dartx.isNegative])) return b;
+    if (b == 0 && dart.notNull(a.isNegative)) return b;
     return a;
   }
-  dart.fn(max, core.num, [core.num, core.num]);
+  dart.fn(max, () => dart.definiteFunctionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   function atan2(a, b) {
     return Math.atan2(_js_helper.checkNum(a), _js_helper.checkNum(b));
   }

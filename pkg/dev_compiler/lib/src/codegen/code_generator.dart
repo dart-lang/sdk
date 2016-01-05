@@ -7,7 +7,6 @@ library dev_compiler.src.codegen.code_generator;
 import 'package:analyzer/src/generated/element.dart'
     show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/task/strong/rules.dart';
 import 'package:path/path.dart' as path;
 
 import '../compiler.dart' show AbstractCompiler;
@@ -17,13 +16,11 @@ import '../options.dart' show CodegenOptions;
 
 abstract class CodeGenerator {
   final AbstractCompiler compiler;
-  final TypeRules rules;
   final AnalysisContext context;
   final CodegenOptions options;
 
   CodeGenerator(AbstractCompiler compiler)
       : compiler = compiler,
-        rules = new TypeRules(compiler.context.typeProvider),
         context = compiler.context,
         options = compiler.options.codegenOptions;
 

@@ -761,7 +761,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (message === void 0) message = null;
       if (length === void 0) length = null;
       this.indexable = indexable;
-      this.length = length != null ? length : dart.as(dart.dload(indexable, 'length'), int);
+      this.length = dart.as(length != null ? length : dart.dload(indexable, 'length'), int);
       super.value(invalidValue, name, message != null ? message : "Index out of range");
     }
     get start() {
@@ -840,7 +840,7 @@ dart_library.library('dart/core', null, /* Imports */[
           sb.write(": ");
           sb.write(Error.safeToString(value));
           i = dart.notNull(i) + 1;
-        }, dart.dynamic, [Symbol, dart.dynamic]));
+        }, dart.void, [Symbol, dart.dynamic]));
       }
       if (this[_existingArgumentNames] == null) {
         return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Arguments: [${sb}]`;
@@ -1091,7 +1091,7 @@ dart_library.library('dart/core', null, /* Imports */[
       }
       get(object) {
         let values = _js_helper.Primitives.getProperty(object, Expando$()._EXPANDO_PROPERTY_NAME);
-        return values == null ? null : dart.as(_js_helper.Primitives.getProperty(values, this[_getKey]()), T);
+        return dart.as(values == null ? null : _js_helper.Primitives.getProperty(values, this[_getKey]()), T);
       }
       set(object, value) {
         dart.as(value, T);
@@ -1138,8 +1138,8 @@ dart_library.library('dart/core', null, /* Imports */[
     static _toMangledNames(namedArguments) {
       let result = dart.map();
       namedArguments.forEach(dart.fn((symbol, value) => {
-        result.set(_symbolToString(dart.as(symbol, Symbol)), value);
-      }));
+        result.set(_symbolToString(symbol), value);
+      }, dart.void, [Symbol, dart.dynamic]));
       return result;
     }
   }
@@ -1462,7 +1462,7 @@ dart_library.library('dart/core', null, /* Imports */[
       constructors: () => ({
         new: [exports.Set$(E), []],
         identity: [exports.Set$(E), []],
-        from: [exports.Set$(E), [Iterable]]
+        from: [exports.Set$(E), [Iterable$(E)]]
       })
     });
     return Set;
@@ -2137,7 +2137,7 @@ dart_library.library('dart/core', null, /* Imports */[
     static file(path, opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
       windows = windows == null ? Uri._isWindows : windows;
-      return dart.notNull(windows) ? dart.as(Uri._makeWindowsFileUrl(path), Uri) : dart.as(Uri._makeFileUri(path), Uri);
+      return dart.as(dart.notNull(windows) ? Uri._makeWindowsFileUrl(path) : Uri._makeFileUri(path), Uri);
     }
     static get base() {
       let uri = _js_helper.Primitives.currentUri();
@@ -2149,26 +2149,26 @@ dart_library.library('dart/core', null, /* Imports */[
     }
     static _checkNonWindowsPathReservedCharacters(segments, argumentError) {
       segments[dartx.forEach](dart.fn(segment => {
-        if (dart.notNull(dart.as(dart.dsend(segment, 'contains', "/"), bool))) {
+        if (dart.notNull(segment[dartx.contains]("/"))) {
           if (dart.notNull(argumentError)) {
             dart.throw(new ArgumentError(`Illegal path character ${segment}`));
           } else {
             dart.throw(new UnsupportedError(`Illegal path character ${segment}`));
           }
         }
-      }));
+      }, dart.void, [String]));
     }
     static _checkWindowsPathReservedCharacters(segments, argumentError, firstSegment) {
       if (firstSegment === void 0) firstSegment = 0;
       segments[dartx.skip](firstSegment)[dartx.forEach](dart.fn(segment => {
-        if (dart.notNull(dart.as(dart.dsend(segment, 'contains', RegExp.new('["*/:<>?\\\\|]')), bool))) {
+        if (dart.notNull(segment[dartx.contains](RegExp.new('["*/:<>?\\\\|]')))) {
           if (dart.notNull(argumentError)) {
             dart.throw(new ArgumentError("Illegal character in path"));
           } else {
             dart.throw(new UnsupportedError("Illegal character in path"));
           }
         }
-      }));
+      }, dart.void, [String]));
     }
     static _checkWindowsDriveLetter(charCode, argumentError) {
       if (dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri._UPPER_CASE_Z) || dart.notNull(Uri._LOWER_CASE_A) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri._LOWER_CASE_Z)) {
@@ -2428,7 +2428,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (path != null) {
         result = Uri._normalize(path, start, end, dart.as(Uri._pathCharOrSlashTable, List$(int)));
       } else {
-        result = pathSegments[dartx.map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), dart.as(s, String)), String, [dart.dynamic]))[dartx.join]("/");
+        result = pathSegments[dartx.map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), s), String, [String]))[dartx.join]("/");
       }
       if (dart.notNull(dart.as(dart.dload(result, 'isEmpty'), bool))) {
         if (dart.notNull(isFile)) return "/";
@@ -2450,12 +2450,12 @@ dart_library.library('dart/core', null, /* Imports */[
           result.write("&");
         }
         first = false;
-        result.write(Uri.encodeQueryComponent(dart.as(key, String)));
-        if (value != null && !dart.notNull(dart.as(dart.dload(value, 'isEmpty'), bool))) {
+        result.write(Uri.encodeQueryComponent(key));
+        if (value != null && !dart.notNull(value[dartx.isEmpty])) {
           result.write("=");
-          result.write(Uri.encodeQueryComponent(dart.as(value, String)));
+          result.write(Uri.encodeQueryComponent(value));
         }
-      }));
+      }, dart.void, [String, String]));
       return dart.toString(result);
     }
     static _makeFragment(fragment, start, end) {
@@ -2836,18 +2836,18 @@ dart_library.library('dart/core', null, /* Imports */[
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
       return dart.as(query[dartx.split]("&")[dartx.fold](dart.map(), dart.fn((map, element) => {
-        let index = dart.as(dart.dsend(element, 'indexOf', "="), int);
+        let index = element[dartx.indexOf]("=");
         if (index == -1) {
-          if (!dart.equals(element, "")) {
-            dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(element, String), {encoding: encoding}), "");
+          if (element != "") {
+            dart.dsetindex(map, Uri.decodeQueryComponent(element, {encoding: encoding}), "");
           }
         } else if (index != 0) {
-          let key = dart.dsend(element, 'substring', 0, index);
-          let value = dart.dsend(element, 'substring', dart.notNull(index) + 1);
-          dart.dsetindex(map, Uri.decodeQueryComponent(dart.as(key, String), {encoding: encoding}), Uri.decodeQueryComponent(dart.as(value, String), {encoding: encoding}));
+          let key = element[dartx.substring](0, index);
+          let value = element[dartx.substring](dart.notNull(index) + 1);
+          dart.dsetindex(map, Uri.decodeQueryComponent(key, {encoding: encoding}), Uri.decodeQueryComponent(value, {encoding: encoding}));
         }
         return map;
-      })), Map$(String, String));
+      }, dart.dynamic, [dart.dynamic, String])), Map$(String, String));
     }
     static parseIPv4Address(host) {
       function error(msg) {
@@ -2859,12 +2859,12 @@ dart_library.library('dart/core', null, /* Imports */[
         error('IPv4 address should contain exactly 4 parts');
       }
       return dart.as(bytes[dartx.map](dart.fn(byteString => {
-        let byte = int.parse(dart.as(byteString, String));
+        let byte = int.parse(byteString);
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) {
           error('each part must be in the range of `0..255`');
         }
         return byte;
-      }))[dartx.toList](), List$(int));
+      }, dart.dynamic, [String]))[dartx.toList](), List$(int));
     }
     static parseIPv6Address(host, start, end) {
       if (start === void 0) start = 0;

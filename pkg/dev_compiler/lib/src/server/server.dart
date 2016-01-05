@@ -47,12 +47,12 @@ class ServerCompiler extends AbstractCompiler {
       {AnalysisErrorListener reporter}) {
     var srcOpts = options.sourceOptions;
     var inputFile = options.inputs[0];
-    var inputUri = inputFile.startsWith('dart:') ||
-            inputFile.startsWith('package:')
-        ? Uri.parse(inputFile)
-        : new Uri.file(path.absolute(srcOpts.useImplicitHtml
-            ? SourceResolverOptions.implicitHtmlFile
-            : inputFile));
+    var inputUri =
+        inputFile.startsWith('dart:') || inputFile.startsWith('package:')
+            ? Uri.parse(inputFile)
+            : new Uri.file(path.absolute(srcOpts.useImplicitHtml
+                ? SourceResolverOptions.implicitHtmlFile
+                : inputFile));
     var graph = new SourceGraph(context, reporter, options);
     var entryNode = graph.nodeFromUri(inputUri);
 

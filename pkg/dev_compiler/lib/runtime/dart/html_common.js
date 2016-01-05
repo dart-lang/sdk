@@ -94,7 +94,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     }
     add(value) {
       this[_validateToken](value);
-      return dart.as(this.modify(dart.fn(s => dart.dsend(s, 'add', value))), core.bool);
+      return dart.as(this.modify(dart.fn(s => s.add(value), core.bool, [core.Set$(core.String)])), core.bool);
     }
     remove(value) {
       this[_validateToken](dart.as(value, core.String));
@@ -105,23 +105,23 @@ dart_library.library('dart/html_common', null, /* Imports */[
       return result;
     }
     addAll(iterable) {
-      this.modify(dart.fn((s => dart.dsend(s, 'addAll', iterable[dartx.map](dart.bind(this, _validateToken)))).bind(this)));
+      this.modify(dart.fn((s => s.addAll(iterable[dartx.map](dart.bind(this, _validateToken)))).bind(this), dart.void, [core.Set$(core.String)]));
     }
     removeAll(iterable) {
-      this.modify(dart.fn((s => dart.dsend(s, 'removeAll', iterable[dartx.map](dart.as(dart.bind(this, _validateToken), __CastType0)))).bind(this)));
+      this.modify(dart.fn((s => s.removeAll(iterable[dartx.map](dart.as(dart.bind(this, _validateToken), __CastType0)))).bind(this), dart.void, [core.Set$(core.String)]));
     }
     toggleAll(iterable, shouldAdd) {
       if (shouldAdd === void 0) shouldAdd = null;
-      iterable[dartx.forEach](dart.fn((e => this.toggle(dart.as(e, core.String), shouldAdd)).bind(this), core.bool, [dart.dynamic]));
+      iterable[dartx.forEach](dart.fn((e => this.toggle(e, shouldAdd)).bind(this), core.bool, [core.String]));
     }
     retainAll(iterable) {
-      this.modify(dart.fn(s => dart.dsend(s, 'retainAll', iterable)));
+      this.modify(dart.fn(s => s.retainAll(iterable), dart.void, [core.Set$(core.String)]));
     }
     removeWhere(test) {
-      this.modify(dart.fn(s => dart.dsend(s, 'removeWhere', test)));
+      this.modify(dart.fn(s => s.removeWhere(test), dart.void, [core.Set$(core.String)]));
     }
     retainWhere(test) {
-      this.modify(dart.fn(s => dart.dsend(s, 'retainWhere', test)));
+      this.modify(dart.fn(s => s.retainWhere(test), dart.void, [core.Set$(core.String)]));
     }
     containsAll(collection) {
       return this.readClasses().containsAll(collection);
@@ -178,7 +178,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       return this.readClasses().elementAt(index);
     }
     clear() {
-      this.modify(dart.fn(s => dart.dsend(s, 'clear')));
+      this.modify(dart.fn(s => s.clear(), dart.void, [core.Set$(core.String)]));
     }
     modify(f) {
       let s = this.readClasses();
@@ -263,7 +263,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       return core.RegExp.new('^\\S+$');
     }
   });
-  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [core.Object]));
+  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.String, [core.Object]));
   function convertDartToNative_SerializedScriptValue(value) {
     return convertDartToNative_PrepareForStructuredClone(value);
   }
@@ -505,7 +505,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     }
     dict.forEach(dart.fn((key, value) => {
       object[key] = value;
-    }, dart.dynamic, [core.String, dart.dynamic]));
+    }, dart.void, [core.String, dart.dynamic]));
     return object;
   }
   dart.fn(convertDartToNative_Dictionary, dart.dynamic, [core.Map], [dart.functionType(dart.void, [dart.dynamic])]);
@@ -618,7 +618,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
   dart.fn(convertNativePromiseToDartFuture, async.Future, [dart.dynamic]);
   class Device extends core.Object {
     static get userAgent() {
-      return dart.as(html.window.navigator.userAgent, core.String);
+      return dart.as(dart.dload(html.window.navigator, 'userAgent'), core.String);
     }
     static get isOpera() {
       if (Device._isOpera == null) {
@@ -702,7 +702,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       this[_node] = node;
     }
     get [_iterable]() {
-      return new _internal.WhereIterable(this[_childNodes], dart.fn(n => dart.is(n, html.Element), core.bool, [dart.dynamic]));
+      return new (_internal.WhereIterable$(html.Element))(this[_childNodes], dart.fn(n => dart.is(n, html.Element), core.bool, [html.Element]));
     }
     get [_filtered]() {
       return core.List$(html.Element).from(this[_iterable], {growable: false});
@@ -755,7 +755,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       dart.throw(new core.UnsupportedError('Cannot replaceRange on filtered list'));
     }
     removeRange(start, end) {
-      core.List.from(this[_iterable][dartx.skip](start)[dartx.take](dart.notNull(end) - dart.notNull(start)))[dartx.forEach](dart.fn(el => dart.dsend(el, 'remove')));
+      core.List.from(this[_iterable][dartx.skip](start)[dartx.take](dart.notNull(end) - dart.notNull(start)))[dartx.forEach](dart.fn(el => dart.dsend(el, 'remove'), dart.void, [dart.dynamic]));
     }
     clear() {
       this[_childNodes][dartx.clear]();

@@ -163,7 +163,7 @@ main() {
     });
 
     test("await for", () {
-      f(s) async {
+      f(Stream<int> s) async {
         int i = 0;
         await for (int v in s) {
           i += v;
@@ -176,7 +176,7 @@ main() {
     });
 
     test("await for w/ await", () {
-      f(s) async {
+      f(Stream<int> s) async {
         int i = 0;
         await for (int v in s) {
           i += await new Future.value(v);
@@ -189,14 +189,14 @@ main() {
     });
 
     test("await for empty", () {
-      f(s) async {
+      f(Stream<int> s) async {
         int v = 0;
         await for (int i in s) {
           v += i;
         }
         return v;
       }
-      var s = (new StreamController()..close()).stream;
+      var s = (new StreamController<int>()..close()).stream;
       return f(s).then((v) {
         expect(v, equals(0));
       });
@@ -204,7 +204,7 @@ main() {
 
     if (checkedMode) {
       test("await for w/ await, asseert", () {
-        f(s) async {
+        f(Stream<int> s) async {
           int i = 0;
           await for (int v in s) {
             i += await new Future.microtask(() => v);
@@ -1796,8 +1796,8 @@ id(v) {
 }
 
 // Create a stream for testing "async for-in".
-Stream mkStream() {
-  var c;
+Stream<int> mkStream() {
+  StreamController<int> c;
   int i = 0;
   next() {
     c.add(i++);
@@ -1963,8 +1963,8 @@ Future syncInAsync(f) async {
 class FakeValueFuture implements Future {
   final _value;
   FakeValueFuture(this._value);
-  Future then(callback(value), {Function onError}) {
-    return new Future.microtask(() => callback(_value));
+  Future/*<S>*/ then/*<S>*/(/*=S*/ callback(value), {Function onError}) {
+    return new Future<dynamic /*=S*/>.microtask(() => callback(_value));
   }
   Future whenComplete(callback()) {
     return new Future.microtask(() { callback(); });
@@ -1982,14 +1982,14 @@ typedef BinaryFunction(a, b);
 class FakeErrorFuture implements Future {
   final _error;
   FakeErrorFuture(this._error);
-  Future then(callback(value), {Function onError}) {
+  Future/*<S>*/ then/*<S>*/(/*=S*/ callback(value), {Function onError}) {
     if (onError != null) {
       if (onError is BinaryFunction) {
-        return new Future.microtask(() => onError(_error, null));
+        return new Future/*<S>*/.microtask(() => onError(_error, null));
       }
-      return new Future.microtask(() => onError(_error));
+      return new Future/*<S>*/.microtask(() => onError(_error));
     }
-    return this;
+    return new Future/*<S>*/.error(_error);
   }
   Future whenComplete(callback()) {
     return new Future.microtask(() { callback(); }).then((_) => this);

@@ -33,6 +33,7 @@ import 'info.dart'
 import 'options.dart';
 import 'report.dart';
 import 'report/html_reporter.dart';
+import 'utils.dart' show isStrongModeError;
 
 /// Sets up the type checker logger to print a span that highlights error
 /// messages.
@@ -454,18 +455,18 @@ abstract class AbstractCompiler {
     List<AnalysisError> errors = errorContext.computeErrors(source);
     bool failure = false;
     for (var error in errors) {
+      ErrorCode code = error.errorCode;
       // Always skip TODOs.
-      if (error.errorCode.type == ErrorType.TODO) continue;
+      if (code.type == ErrorType.TODO) continue;
 
       // TODO(jmesserly): for now, treat DDC errors as having a different
       // error level from Analayzer ones.
-      if (error.errorCode.name.startsWith('dev_compiler')) {
+      if (isStrongModeError(code)) {
         reporter.onError(error);
-        if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) {
+        if (code.errorSeverity == ErrorSeverity.ERROR) {
           failure = true;
         }
-      } else if (error.errorCode.errorSeverity.ordinal >=
-          ErrorSeverity.WARNING.ordinal) {
+      } else if (code.errorSeverity.ordinal >= ErrorSeverity.WARNING.ordinal) {
         // All analyzer warnings or errors are errors for DDC.
         failure = true;
         reporter.onError(error);

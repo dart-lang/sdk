@@ -1,9 +1,3 @@
 // Messages from compiling canonicalized_map.dart
-warning: [DownCastComposite] _canonicalize(key) (dynamic) will need runtime check to cast to type C (package:collection/src/canonicalized_map.dart, line 67, col 11)
-warning: [DownCastComposite] key (dynamic) will need runtime check to cast to type K (package:collection/src/canonicalized_map.dart, line 71, col 40)
-warning: [DownCastComposite] value (dynamic) will need runtime check to cast to type V (package:collection/src/canonicalized_map.dart, line 71, col 47)
-warning: [DownCastComposite] pair.first (dynamic) will need runtime check to cast to type K (package:collection/src/canonicalized_map.dart, line 87, col 36)
-warning: [DownCastComposite] pair.last (dynamic) will need runtime check to cast to type V (package:collection/src/canonicalized_map.dart, line 87, col 48)
-warning: [DownCastComposite] _base.values.map((pair) => pair.first) (Iterable<dynamic>) will need runtime check to cast to type Iterable<K> (package:collection/src/canonicalized_map.dart, line 94, col 27)
-warning: [DownCastComposite] _canonicalize(key) (dynamic) will need runtime check to cast to type C (package:collection/src/canonicalized_map.dart, line 99, col 30)
-warning: [DownCastComposite] _base.values.map((pair) => pair.last) (Iterable<dynamic>) will need runtime check to cast to type Iterable<V> (package:collection/src/canonicalized_map.dart, line 109, col 29)
+warning: [DOWN_CAST_COMPOSITE] _canonicalize(key) (dynamic) will need runtime check to cast to type C (package:collection/src/canonicalized_map.dart, line 67, col 11)
+warning: [DOWN_CAST_COMPOSITE] _canonicalize(key) (dynamic) will need runtime check to cast to type C (package:collection/src/canonicalized_map.dart, line 99, col 30)

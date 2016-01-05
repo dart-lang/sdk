@@ -120,8 +120,8 @@ abstract class SetMixin<E> implements Set<E> {
     return result;
   }
 
-  Iterable map(f(E element)) =>
-      new EfficientLengthMappedIterable<E, dynamic>(this, f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/f(E element)) =>
+      new EfficientLengthMappedIterable<E, dynamic/*=T*/>(this, f);
 
   E get single {
     if (length > 1) throw IterableElementError.tooMany();
@@ -138,8 +138,8 @@ abstract class SetMixin<E> implements Set<E> {
 
   Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);
 
-  Iterable expand(Iterable f(E element)) =>
-      new ExpandIterable<E, dynamic>(this, f);
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element)) =>
+      new ExpandIterable<E, dynamic/*=T*/>(this, f);
 
   void forEach(void f(E element)) {
     for (E element in this) f(element);
@@ -157,8 +157,8 @@ abstract class SetMixin<E> implements Set<E> {
     return value;
   }
 
-  dynamic fold(var initialValue,
-               dynamic combine(var previousValue, E element)) {
+  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
+               dynamic/*=T*/ combine(var/*=T*/ previousValue, E element)) {
     var value = initialValue;
     for (E element in this) value = combine(value, element);
     return value;

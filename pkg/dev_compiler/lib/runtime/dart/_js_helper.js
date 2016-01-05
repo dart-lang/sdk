@@ -539,7 +539,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       dart.throw(new core.FormatException(string));
     }
     static parseInt(source, radix, handleError) {
-      if (handleError == null) handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.int), core.int, [dart.dynamic]);
+      if (handleError == null) handleError = dart.fn(s => dart.as(Primitives._throwFormatException(s), core.int), core.int, [core.String]);
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -588,7 +588,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     static parseDouble(source, handleError) {
       checkString(source);
-      if (handleError == null) handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.double), core.double, [dart.dynamic]);
+      if (handleError == null) handleError = dart.fn(s => dart.as(Primitives._throwFormatException(s), core.double), core.double, [core.String]);
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -890,7 +890,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   class NullError extends core.Error {
     NullError(message, match) {
       this[_message] = message;
-      this[_method] = match == null ? null : dart.as(match.method, core.String);
+      this[_method] = dart.as(match == null ? null : match.method, core.String);
       super.Error();
     }
     toString() {
@@ -906,8 +906,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   class JsNoSuchMethodError extends core.Error {
     JsNoSuchMethodError(message, match) {
       this[_message] = message;
-      this[_method] = match == null ? null : dart.as(match.method, core.String);
-      this[_receiver] = match == null ? null : dart.as(match.receiver, core.String);
+      this[_method] = dart.as(match == null ? null : match.method, core.String);
+      this[_receiver] = dart.as(match == null ? null : match.receiver, core.String);
       super.Error();
     }
     toString() {

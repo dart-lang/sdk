@@ -959,7 +959,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         {
           exports._globalState.currentManagerId = dart.as(dart.dindex(msg, 'id'), core.int);
           let functionName = dart.as(dart.dindex(msg, 'functionName'), core.String);
-          let entryPoint = functionName == null ? exports._globalState.entry : dart.as(IsolateNatives._getJSFunctionFromName(functionName), core.Function);
+          let entryPoint = dart.as(functionName == null ? exports._globalState.entry : IsolateNatives._getJSFunctionFromName(functionName), core.Function);
           let args = dart.dindex(msg, 'args');
           let message = _deserializeMessage(dart.dindex(msg, 'msg'));
           let isSpawnUri = dart.dindex(msg, 'isSpawnUri');
@@ -1018,7 +1018,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       let replyPort = dart.dindex(msg, 'replyPort');
       IsolateNatives.spawn(dart.as(dart.dindex(msg, 'functionName'), core.String), dart.as(dart.dindex(msg, 'uri'), core.String), dart.as(dart.dindex(msg, 'args'), core.List$(core.String)), dart.dindex(msg, 'msg'), false, dart.as(dart.dindex(msg, 'isSpawnUri'), core.bool), dart.as(dart.dindex(msg, 'startPaused'), core.bool)).then(dart.fn(msg => {
         dart.dsend(replyPort, 'send', msg);
-      }), {onError: dart.fn(errorMessage => {
+      }, dart.dynamic, [core.List]), {onError: dart.fn(errorMessage => {
           dart.dsend(replyPort, 'send', [_SPAWN_FAILED_SIGNAL, errorMessage]);
         }, dart.dynamic, [core.String])});
     }

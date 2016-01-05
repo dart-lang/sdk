@@ -80,7 +80,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
       let obj = {};
       map.forEach(dart.fn((key, value) => {
         obj[getName(key)] = value;
-      }, dart.dynamic, [core.Symbol, dart.dynamic]));
+      }, dart.void, [core.Symbol, dart.dynamic]));
       return obj;
     }
   }
@@ -129,7 +129,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
         return dart.list([], mirrors.ClassMirror);
       } else {
         let interfaces = dart.as(dart.dcall(interfaceThunk), core.List$(core.Type));
-        return interfaces[dartx.map](dart.fn(t => new JsClassMirror._(dart.as(t, core.Type)), JsClassMirror, [dart.dynamic]))[dartx.toList]();
+        return interfaces[dartx.map](dart.fn(t => new JsClassMirror._(t), JsClassMirror, [core.Type]))[dartx.toList]();
       }
     }
     getField(fieldName) {

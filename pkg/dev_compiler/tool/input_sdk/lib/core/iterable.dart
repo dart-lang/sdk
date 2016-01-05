@@ -72,7 +72,7 @@ abstract class Iterable<E> {
    * multiple times over the the returned [Iterable] will invoke the supplied
    * function [f] multiple times on the same element.
    */
-  Iterable map(f(E element));
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element));
 
   /**
    * Returns a new lazy [Iterable] with all elements that satisfy the
@@ -95,7 +95,7 @@ abstract class Iterable<E> {
    * The returned [Iterable] is lazy, and calls [f] for each element
    * of this every time it's iterated.
    */
-  Iterable expand(Iterable f(E element));
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<T>*/ f(E element));
 
   /**
    * Returns true if the collection contains an element equal to [element].
@@ -138,8 +138,8 @@ abstract class Iterable<E> {
    *     iterable.fold(0, (prev, element) => prev + element);
    *
    */
-  dynamic fold(var initialValue,
-               dynamic combine(var previousValue, E element));
+  dynamic/*=T*/ fold/*<T>*/(var/*=T*/ initialValue,
+               dynamic/*=T*/ combine(var/*=T*/ previousValue, E element));
 
   /**
    * Returns true if every elements of this collection satisify the

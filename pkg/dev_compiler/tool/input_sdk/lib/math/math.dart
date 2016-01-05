@@ -63,7 +63,7 @@ const double SQRT2 = 1.4142135623730951;
   * same mathematical value) then it is unspecified which of the two arguments
   * is returned.
   */
-num min(num a, num b) {
+num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) {
   // These partially redundant type checks improve code quality for dart2js.
   // Most of the improvement is at call sites from the inferred non-null num
   // return type.
@@ -98,7 +98,7 @@ num min(num a, num b) {
   * otherwise equal (including int and doubles with the same mathematical value)
   * then it is unspecified which of the two arguments is returned.
   */
-num max(num a, num b) {
+num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) {
   // These partially redundant type checks improve code quality for dart2js.
   // Most of the improvement is at call sites from the inferred non-null num
   // return type.

@@ -42,7 +42,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       try {
-        return _isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [dart.dynamic]));
+        return _isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.fn(msg => new Isolate(dart.as(msg[dartx.get](1), SendPort), {pauseCapability: dart.as(msg[dartx.get](2), Capability), terminateCapability: dart.as(msg[dartx.get](3), Capability)}), Isolate, [core.List]));
       } catch (e) {
         let st = dart.stackTrace(e);
         return async.Future$(Isolate).error(e, st);
@@ -63,7 +63,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
         } else if (args != null) {
           dart.throw(new core.ArgumentError(`Args must be a list of Strings ${args}`));
         }
-        return _isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [dart.dynamic]));
+        return _isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new Isolate(dart.as(msg[dartx.get](1), SendPort), {pauseCapability: dart.as(msg[dartx.get](2), Capability), terminateCapability: dart.as(msg[dartx.get](3), Capability)}), Isolate, [core.List]));
       } catch (e) {
         let st = dart.stackTrace(e);
         return async.Future$(Isolate).error(e, st);
@@ -145,11 +145,11 @@ dart_library.library('dart/isolate', null, /* Imports */[
       controller = async.StreamController.broadcast({sync: true, onListen: dart.fn((() => {
           port = RawReceivePort.new(handleError);
           this.addErrorListener(port.sendPort);
-        }).bind(this)), onCancel: dart.fn((() => {
+        }).bind(this), dart.void, []), onCancel: dart.fn((() => {
           this.removeErrorListener(port.sendPort);
           port.close();
           port = null;
-        }).bind(this))});
+        }).bind(this), dart.void, [])});
       return controller.stream;
     }
   }

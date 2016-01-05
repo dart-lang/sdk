@@ -36,8 +36,9 @@ bool isStateless(Expression node, [AstNode context]) {
   if (node is ThisExpression || node is SuperExpression) return true;
   if (node is SimpleIdentifier) {
     var e = node.staticElement;
-    if (e is PropertyAccessorElement) e =
-        (e as PropertyAccessorElement).variable;
+    if (e is PropertyAccessorElement) {
+      e = e.variable;
+    }
     if (e is VariableElement && !e.isSynthetic) {
       if (e.isFinal) return true;
       if (e is LocalVariableElement || e is ParameterElement) {
@@ -77,12 +78,15 @@ class _AssignmentFinder extends RecursiveAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     // Ignore if qualified.
     AstNode parent = node.parent;
-    if (parent is PrefixedIdentifier &&
-        identical(parent.identifier, node)) return;
-    if (parent is PropertyAccess &&
-        identical(parent.propertyName, node)) return;
-    if (parent is MethodInvocation &&
-        identical(parent.methodName, node)) return;
+    if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
+      return;
+    }
+    if (parent is PropertyAccess && identical(parent.propertyName, node)) {
+      return;
+    }
+    if (parent is MethodInvocation && identical(parent.methodName, node)) {
+      return;
+    }
     if (parent is ConstructorName) return;
     if (parent is Label) return;
 

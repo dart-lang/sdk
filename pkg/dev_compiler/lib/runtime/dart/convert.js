@@ -296,7 +296,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       ChunkedConversionSink() {
       }
       static withCallback(callback) {
-        return new _SimpleCallbackSink(callback);
+        return new (_SimpleCallbackSink$(T))(callback);
       }
     }
     ChunkedConversionSink[dart.implements] = () => [core.Sink$(T)];
@@ -1216,7 +1216,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }).bind(this), dart.dynamic, [core.String, dart.dynamic]));
+      }).bind(this), dart.void, [core.String, core.Object]));
       this.writeString('}');
     }
   }
@@ -1289,7 +1289,7 @@ dart_library.library('dart/convert', null, /* Imports */[
           this.writeString('": ');
           this.writeObject(value);
           first = false;
-        }).bind(this), dart.dynamic, [core.String, core.Object]));
+        }).bind(this), dart.void, [core.String, core.Object]));
         this.writeString('\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) - 1;
         this.writeIndentation(this[_indentLevel]);
@@ -2588,7 +2588,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     addAll(other) {
       other.forEach(dart.fn(((key, value) => {
         this.set(key, value);
-      }).bind(this)));
+      }).bind(this), dart.void, [dart.dynamic, dart.dynamic]));
     }
     containsValue(value) {
       if (dart.notNull(this[_isUpgraded])) return this[_upgradedMap].containsValue(value);
@@ -2738,10 +2738,10 @@ dart_library.library('dart/convert', null, /* Imports */[
       return this[_parent].length;
     }
     elementAt(index) {
-      return dart.notNull(this[_parent][_isUpgraded]) ? dart.as(this[_parent].keys[dartx.elementAt](index), core.String) : this[_parent][_computeKeys]()[dartx.get](index);
+      return dart.as(dart.notNull(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.elementAt](index) : this[_parent][_computeKeys]()[dartx.get](index), core.String);
     }
     get iterator() {
-      return dart.notNull(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.iterator] : this[_parent][_computeKeys]()[dartx.iterator];
+      return dart.as(dart.notNull(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.iterator] : this[_parent][_computeKeys]()[dartx.iterator], core.Iterator);
     }
     contains(key) {
       return this[_parent].containsKey(key);

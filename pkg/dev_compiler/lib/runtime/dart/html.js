@@ -430,7 +430,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let validator = opts && 'validator' in opts ? opts.validator : null;
       let treeSanitizer = opts && 'treeSanitizer' in opts ? opts.treeSanitizer : null;
       let fragment = exports.document.body.createFragment(html, {validator: validator, treeSanitizer: treeSanitizer});
-      return dart.as(fragment.nodes[dartx.where](dart.fn(e => dart.is(e, Element), core.bool, [dart.dynamic]))[dartx.single], Element);
+      return dart.as(fragment.nodes[dartx.where](dart.fn(e => dart.is(e, Element), core.bool, [Node]))[dartx.single], Element);
     }
     created() {
       this[_xtag] = null;
@@ -1611,7 +1611,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       [_forElementList](e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new _ElementListEventStreamImpl(dart.as(e, core.Iterable$(Element)), this[_eventType], useCapture);
+        return new (_ElementListEventStreamImpl$(T))(dart.as(e, core.Iterable$(Element)), this[_eventType], useCapture);
       }
       getEventType(target) {
         return this[_eventType];
@@ -4173,7 +4173,7 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     static _writeCache(key, value) {}
     static _camelCase(hyphenated) {
-      return hyphenated[dartx.replaceFirst](core.RegExp.new('^-ms-'), 'ms-')[dartx.replaceAllMapped](core.RegExp.new('-([a-z]+)', {caseSensitive: false}), dart.fn(match => dart.as(dart.dsend(dart.dsend(dart.dindex(dart.dindex(match, 0), 1), 'toUpperCase'), '+', dart.dsend(dart.dindex(match, 0), 'substring', 2)), core.String), core.String, [dart.dynamic]));
+      return hyphenated[dartx.replaceFirst](core.RegExp.new('^-ms-'), 'ms-')[dartx.replaceAllMapped](core.RegExp.new('-([a-z]+)', {caseSensitive: false}), dart.fn(match => dart.notNull(match.get(0)[dartx.get](1)[dartx.toUpperCase]()) + dart.notNull(match.get(0)[dartx.substring](2)), core.String, [core.Match]));
     }
     [_setPropertyHelper](propertyName, value, priority) {
       if (priority === void 0) priority = null;
@@ -4295,7 +4295,7 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     setProperty(propertyName, value, priority) {
       if (priority === void 0) priority = null;
-      this[_elementCssStyleDeclarationSetIterable][dartx.forEach](dart.fn(e => dart.dsend(e, 'setProperty', propertyName, value, priority)));
+      this[_elementCssStyleDeclarationSetIterable][dartx.forEach](dart.fn(e => e.setProperty(propertyName, value, priority), dart.void, [CssStyleDeclaration]));
     }
   }
   dart.setSignature(_CssStyleDeclarationSet, {
@@ -5161,7 +5161,7 @@ dart_library.library('dart/html', null, /* Imports */[
     [_filter](test, retainMatching) {
       let removed = null;
       if (dart.notNull(retainMatching)) {
-        removed = this[_element].children[dartx.where](dart.fn(e => !dart.notNull(dart.dcall(test, e)), core.bool, [dart.dynamic]));
+        removed = this[_element].children[dartx.where](dart.fn(e => !dart.notNull(dart.dcall(test, e)), core.bool, [Element]));
       } else {
         removed = this[_element].children[dartx.where](dart.as(test, __CastType0));
       }
@@ -5335,7 +5335,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return new _CssStyleDeclarationSet(this);
     }
     set classes(value) {
-      this[_nodeList][dartx.forEach](dart.fn(e => dart.dput(e, 'classes', value), core.Iterable$(core.String), [dart.dynamic]));
+      this[_nodeList][dartx.forEach](dart.fn(e => dart.dput(e, 'classes', value), core.Iterable$(core.String), [Node]));
     }
     get contentEdge() {
       return new _ContentCssListRect(this);
@@ -5955,7 +5955,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       [_forElementList](e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new _ElementListEventStreamImpl(dart.as(e, core.Iterable$(Element)), dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
+        return new (_ElementListEventStreamImpl$(T))(dart.as(e, core.Iterable$(Element)), dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
       }
       getEventType(target) {
         return dart.as(dart.dcall(this[_eventTypeGetter], target), core.String);
@@ -6042,8 +6042,8 @@ dart_library.library('dart/html', null, /* Imports */[
       let onProgress = opts && 'onProgress' in opts ? opts.onProgress : null;
       let parts = [];
       data.forEach(dart.fn((key, value) => {
-        parts[dartx.add](`${core.Uri.encodeQueryComponent(dart.as(key, core.String))}=` + `${core.Uri.encodeQueryComponent(dart.as(value, core.String))}`);
-      }));
+        parts[dartx.add](`${core.Uri.encodeQueryComponent(key)}=` + `${core.Uri.encodeQueryComponent(value)}`);
+      }, dart.void, [core.String, core.String]));
       let formData = parts[dartx.join]('&');
       if (requestHeaders == null) {
         requestHeaders = dart.map();
@@ -6076,8 +6076,8 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       if (requestHeaders != null) {
         requestHeaders.forEach(dart.fn((header, value) => {
-          xhr.setRequestHeader(dart.as(header, core.String), dart.as(value, core.String));
-        }));
+          xhr.setRequestHeader(header, value);
+        }, dart.void, [core.String, core.String]));
       }
       if (onProgress != null) {
         xhr.onProgress.listen(onProgress);
@@ -6092,7 +6092,7 @@ dart_library.library('dart/html', null, /* Imports */[
         } else {
           completer.completeError(e);
         }
-      }));
+      }, dart.void, [ProgressEvent]));
       xhr.onError.listen(dart.bind(completer, 'completeError'));
       if (sendData != null) {
         xhr.send(sendData);
@@ -6118,8 +6118,8 @@ dart_library.library('dart/html', null, /* Imports */[
       let sendData = opts && 'sendData' in opts ? opts.sendData : null;
       if (dart.notNull(HttpRequest.supportsCrossOrigin)) {
         return dart.as(HttpRequest.request(url, {method: method, sendData: sendData}).then(dart.fn(xhr => {
-          return dart.dload(xhr, 'responseText');
-        })), async.Future$(core.String));
+          return xhr.responseText;
+        }, dart.dynamic, [HttpRequest])), async.Future$(core.String));
       }
     }
     get responseHeaders() {
@@ -8492,7 +8492,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let completer = async.Completer$(core.num).sync();
       this.requestAnimationFrame(dart.fn(time => {
         completer.complete(time);
-      }));
+      }, dart.void, [core.num]));
       return completer.future;
     }
     get document() {
@@ -9340,8 +9340,8 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     addAll(other) {
       other.forEach(dart.fn(((k, v) => {
-        this.set(dart.as(k, core.String), dart.as(v, core.String));
-      }).bind(this)));
+        this.set(k, v);
+      }).bind(this), dart.void, [core.String, core.String]));
     }
     containsValue(value) {
       for (let v of this.values) {
@@ -9373,7 +9373,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let keys = core.List$(core.String).new();
       for (let i = 0, len = attributes.length; dart.notNull(i) < dart.notNull(len); i = dart.notNull(i) + 1) {
         if (dart.notNull(this[_matches](attributes.get(i)))) {
-          keys[dartx.add](dart.as(attributes.get(i).name, core.String));
+          keys[dartx.add](dart.as(dart.dload(attributes.get(i), 'name'), core.String));
         }
       }
       return keys;
@@ -9383,7 +9383,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let values = core.List$(core.String).new();
       for (let i = 0, len = attributes.length; dart.notNull(i) < dart.notNull(len); i = dart.notNull(i) + 1) {
         if (dart.notNull(this[_matches](attributes.get(i)))) {
-          values[dartx.add](dart.as(attributes.get(i).value, core.String));
+          values[dartx.add](dart.as(dart.dload(attributes.get(i), 'value'), core.String));
         }
       }
       return values;
@@ -9490,11 +9490,11 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     addAll(other) {
       other.forEach(dart.fn(((k, v) => {
-        this.set(dart.as(k, core.String), dart.as(v, core.String));
-      }).bind(this)));
+        this.set(k, v);
+      }).bind(this), dart.void, [core.String, core.String]));
     }
     containsValue(value) {
-      return this.values[dartx.any](dart.fn(v => dart.equals(v, value), core.bool, [dart.dynamic]));
+      return this.values[dartx.any](dart.fn(v => dart.equals(v, value), core.bool, [core.String]));
     }
     containsKey(key) {
       return this[_attributes].containsKey(this[_attr](dart.as(key, core.String)));
@@ -9522,7 +9522,7 @@ dart_library.library('dart/html', null, /* Imports */[
         if (dart.notNull(this[_matches](key))) {
           f(this[_strip](key), value);
         }
-      }).bind(this), dart.dynamic, [core.String, core.String]));
+      }).bind(this), dart.void, [core.String, core.String]));
     }
     get keys() {
       let keys = core.List$(core.String).new();
@@ -9530,7 +9530,7 @@ dart_library.library('dart/html', null, /* Imports */[
         if (dart.notNull(this[_matches](key))) {
           keys[dartx.add](this[_strip](key));
         }
-      }).bind(this), dart.dynamic, [core.String, core.String]));
+      }).bind(this), dart.void, [core.String, core.String]));
       return keys;
     }
     get values() {
@@ -9539,7 +9539,7 @@ dart_library.library('dart/html', null, /* Imports */[
         if (dart.notNull(this[_matches](key))) {
           values[dartx.add](value);
         }
-      }).bind(this), dart.dynamic, [core.String, core.String]));
+      }).bind(this), dart.void, [core.String, core.String]));
       return values;
     }
     get length() {
@@ -9688,10 +9688,10 @@ dart_library.library('dart/html', null, /* Imports */[
       this[_elementList] = dart.as(elementList, core.List$(Element));
     }
     set height(newHeight) {
-      this[_elementList][dartx.forEach](dart.fn(e => dart.dput(dart.dload(e, 'contentEdge'), 'height', newHeight), core.Object, [dart.dynamic]));
+      this[_elementList][dartx.forEach](dart.fn(e => e.contentEdge.height = dart.as(newHeight, core.num), core.Object, [Element]));
     }
     set width(newWidth) {
-      this[_elementList][dartx.forEach](dart.fn(e => dart.dput(dart.dload(e, 'contentEdge'), 'width', newWidth), core.Object, [dart.dynamic]));
+      this[_elementList][dartx.forEach](dart.fn(e => e.contentEdge.width = dart.as(newWidth, core.num), core.Object, [Element]));
     }
   }
   dart.setSignature(_ContentCssListRect, {
@@ -9791,7 +9791,7 @@ dart_library.library('dart/html', null, /* Imports */[
           }
         }
         modify(f) {
-          this[_sets][dartx.forEach](dart.fn(e => e.modify(f), dart.dynamic, [html_common.CssClassSetImpl]));
+          this[_sets][dartx.forEach](dart.fn(e => e.modify(f), dart.void, [html_common.CssClassSetImpl]));
         }
         toggle(value, shouldAdd) {
           if (shouldAdd === void 0) shouldAdd = null;
@@ -10124,10 +10124,11 @@ dart_library.library('dart/html', null, /* Imports */[
         super._EventStream(dart.as(target, EventTarget), dart.as(eventType, core.String), dart.as(useCapture, core.bool));
       }
       matches(selector) {
-        return dart.as(this.where(dart.fn(event => dart.as(dart.dsend(dart.dload(event, 'target'), 'matchesWithAncestors', selector), core.bool), core.bool, [dart.dynamic])).map(dart.fn(e => {
-          dart.dput(e, _selector, selector);
+        return dart.as(this.where(dart.fn(event => dart.as(dart.dcall(event.target.matchesWithAncestors, selector), core.bool), core.bool, [T])).map(dart.fn(e => {
+          dart.as(e, T);
+          e[_selector] = selector;
           return e;
-        })), async.Stream$(T));
+        }, dart.dynamic, [T])), async.Stream$(T));
       }
       capture(onData) {
         dart.as(onData, dart.functionType(dart.void, [T]));
@@ -10155,10 +10156,11 @@ dart_library.library('dart/html', null, /* Imports */[
         super.Stream();
       }
       matches(selector) {
-        return dart.as(this.where(dart.fn(event => dart.as(dart.dsend(dart.dload(event, 'target'), 'matchesWithAncestors', selector), core.bool), core.bool, [dart.dynamic])).map(dart.fn(e => {
-          dart.dput(e, _selector, selector);
+        return dart.as(this.where(dart.fn(event => dart.as(dart.dcall(event.target.matchesWithAncestors, selector), core.bool), core.bool, [T])).map(dart.fn(e => {
+          dart.as(e, T);
+          e[_selector] = selector;
           return e;
-        })), async.Stream$(T));
+        }, dart.dynamic, [T])), async.Stream$(T));
       }
       listen(onData, opts) {
         dart.as(onData, dart.functionType(dart.void, [T]));
@@ -10356,7 +10358,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.wrapped.cancelable;
     }
     get clipboardData() {
-      return this.wrapped.clipboardData;
+      return dart.dload(this.wrapped, 'clipboardData');
     }
     get currentTarget() {
       return this.wrapped.currentTarget;
@@ -10397,8 +10399,8 @@ dart_library.library('dart/html', null, /* Imports */[
       let matchedTarget = null;
       do {
         if (dart.notNull(dart.as(dart.dcall(target.matches, this[_selector]), core.bool))) return dart.as(target, Element);
-        target = dart.as(target.parent, EventTarget);
-      } while (target != null && !dart.equals(target, currentTarget.parent));
+        target = dart.as(dart.dload(target, 'parent'), EventTarget);
+      } while (target != null && !dart.equals(target, dart.dload(currentTarget, 'parent')));
       dart.throw(new core.StateError('No selector matched for populating matchedTarget.'));
     }
     get path() {
@@ -10543,7 +10545,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
     }
     get clipboardData() {
-      return this[_parent].clipboardData;
+      return dart.dload(this[_parent], 'clipboardData');
     }
     get ctrlKey() {
       return this[_parent].ctrlKey;
@@ -10740,7 +10742,7 @@ dart_library.library('dart/html', null, /* Imports */[
   _Html5NodeValidator._uriAttributes = dart.const(dart.list(['A::href', 'AREA::href', 'BLOCKQUOTE::cite', 'BODY::background', 'COMMAND::icon', 'DEL::cite', 'FORM::action', 'IMG::src', 'INPUT::src', 'INS::cite', 'Q::cite', 'VIDEO::poster'], core.String));
   dart.defineLazyProperties(_Html5NodeValidator, {
     get _allowedElements() {
-      return core.Set$(core.String).from(['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'ARTICLE', 'ASIDE', 'AUDIO', 'B', 'BDI', 'BDO', 'BIG', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CANVAS', 'CAPTION', 'CENTER', 'CITE', 'CODE', 'COL', 'COLGROUP', 'COMMAND', 'DATA', 'DATALIST', 'DD', 'DEL', 'DETAILS', 'DFN', 'DIR', 'DIV', 'DL', 'DT', 'EM', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FONT', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HGROUP', 'HR', 'I', 'IFRAME', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'LEGEND', 'LI', 'MAP', 'MARK', 'MENU', 'METER', 'NAV', 'NOBR', 'OL', 'OPTGROUP', 'OPTION', 'OUTPUT', 'P', 'PRE', 'PROGRESS', 'Q', 'S', 'SAMP', 'SECTION', 'SELECT', 'SMALL', 'SOURCE', 'SPAN', 'STRIKE', 'STRONG', 'SUB', 'SUMMARY', 'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TIME', 'TR', 'TRACK', 'TT', 'U', 'UL', 'VAR', 'VIDEO', 'WBR']);
+      return core.Set$(core.String).from(dart.list(['A', 'ABBR', 'ACRONYM', 'ADDRESS', 'AREA', 'ARTICLE', 'ASIDE', 'AUDIO', 'B', 'BDI', 'BDO', 'BIG', 'BLOCKQUOTE', 'BR', 'BUTTON', 'CANVAS', 'CAPTION', 'CENTER', 'CITE', 'CODE', 'COL', 'COLGROUP', 'COMMAND', 'DATA', 'DATALIST', 'DD', 'DEL', 'DETAILS', 'DFN', 'DIR', 'DIV', 'DL', 'DT', 'EM', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FONT', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HGROUP', 'HR', 'I', 'IFRAME', 'IMG', 'INPUT', 'INS', 'KBD', 'LABEL', 'LEGEND', 'LI', 'MAP', 'MARK', 'MENU', 'METER', 'NAV', 'NOBR', 'OL', 'OPTGROUP', 'OPTION', 'OUTPUT', 'P', 'PRE', 'PROGRESS', 'Q', 'S', 'SAMP', 'SECTION', 'SELECT', 'SMALL', 'SOURCE', 'SPAN', 'STRIKE', 'STRONG', 'SUB', 'SUMMARY', 'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH', 'THEAD', 'TIME', 'TR', 'TRACK', 'TT', 'U', 'UL', 'VAR', 'VIDEO', 'WBR'], core.String));
     },
     get _attributeValidators() {
       return dart.map();
@@ -11234,7 +11236,7 @@ dart_library.library('dart/html', null, /* Imports */[
       dart.throw('Key event handling not supported in DDC');
     }
     get [_capsLockOn]() {
-      return this[_keyDownList][dartx.any](dart.fn(element => dart.equals(dart.dload(element, 'keyCode'), KeyCode.CAPS_LOCK), core.bool, [dart.dynamic]));
+      return this[_keyDownList][dartx.any](dart.fn(element => element.keyCode == KeyCode.CAPS_LOCK, core.bool, [KeyEvent]));
     }
     [_determineKeyCodeForKeypress](event) {
       for (let prevEvent of this[_keyDownList]) {
@@ -11441,7 +11443,7 @@ dart_library.library('dart/html', null, /* Imports */[
       if (e[_shadowKeyIdentifier] != null && dart.notNull(_KeyboardEventHandler._keyIdentifier.containsKey(e[_shadowKeyIdentifier]))) {
         e[_shadowKeyCode] = _KeyboardEventHandler._keyIdentifier.get(e[_shadowKeyIdentifier]);
       }
-      e[_shadowAltKey] = this[_keyDownList][dartx.any](dart.fn(element => dart.as(dart.dload(element, 'altKey'), core.bool), core.bool, [dart.dynamic]));
+      e[_shadowAltKey] = this[_keyDownList][dartx.any](dart.fn(element => element.altKey, core.bool, [KeyEvent]));
       this[_stream].add(e);
     }
     processKeyUp(event) {
@@ -11453,7 +11455,7 @@ dart_library.library('dart/html', null, /* Imports */[
         }
       }
       if (toRemove != null) {
-        this[_keyDownList][dartx.removeWhere](dart.fn(element => dart.equals(element, toRemove), core.bool, [dart.dynamic]));
+        this[_keyDownList][dartx.removeWhere](dart.fn(element => dart.equals(element, toRemove), core.bool, [KeyEvent]));
       } else if (dart.notNull(this[_keyDownList][dartx.length]) > 0) {
         this[_keyDownList][dartx.removeLast]();
       }
@@ -11553,11 +11555,11 @@ dart_library.library('dart/html', null, /* Imports */[
       let tagNameUpper = tagName[dartx.toUpperCase]();
       let attrs = null;
       if (attributes != null) {
-        attrs = attributes[dartx.map](dart.fn(name => `${tagNameUpper}::${dart.dsend(name, 'toLowerCase')}`, core.String, [dart.dynamic]));
+        attrs = attributes[dartx.map](dart.fn(name => `${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String]));
       }
       let uriAttrs = null;
       if (uriAttributes != null) {
-        uriAttrs = uriAttributes[dartx.map](dart.fn(name => `${tagNameUpper}::${dart.dsend(name, 'toLowerCase')}`, core.String, [dart.dynamic]));
+        uriAttrs = uriAttributes[dartx.map](dart.fn(name => `${tagNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String]));
       }
       if (uriPolicy == null) {
         uriPolicy = UriPolicy.new();
@@ -11572,11 +11574,11 @@ dart_library.library('dart/html', null, /* Imports */[
       let tagNameUpper = tagName[dartx.toUpperCase]();
       let attrs = null;
       if (attributes != null) {
-        attrs = attributes[dartx.map](dart.fn(name => `${baseNameUpper}::${dart.dsend(name, 'toLowerCase')}`, core.String, [dart.dynamic]));
+        attrs = attributes[dartx.map](dart.fn(name => `${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String]));
       }
       let uriAttrs = null;
       if (uriAttributes != null) {
-        uriAttrs = uriAttributes[dartx.map](dart.fn(name => `${baseNameUpper}::${dart.dsend(name, 'toLowerCase')}`, core.String, [dart.dynamic]));
+        uriAttrs = uriAttributes[dartx.map](dart.fn(name => `${baseNameUpper}::${name[dartx.toLowerCase]()}`, core.String, [core.String]));
       }
       if (uriPolicy == null) {
         uriPolicy = UriPolicy.new();
@@ -11596,10 +11598,10 @@ dart_library.library('dart/html', null, /* Imports */[
       this[_validators][dartx.add](validator);
     }
     allowsElement(element) {
-      return this[_validators][dartx.any](dart.fn(v => dart.as(dart.dsend(v, 'allowsElement', element), core.bool), core.bool, [dart.dynamic]));
+      return this[_validators][dartx.any](dart.fn(v => v.allowsElement(element), core.bool, [NodeValidator]));
     }
     allowsAttribute(element, attributeName, value) {
-      return this[_validators][dartx.any](dart.fn(v => dart.as(dart.dsend(v, 'allowsAttribute', element, attributeName, value), core.bool), core.bool, [dart.dynamic]));
+      return this[_validators][dartx.any](dart.fn(v => v.allowsAttribute(element, attributeName, value), core.bool, [NodeValidator]));
     }
   }
   NodeValidatorBuilder[dart.implements] = () => [NodeValidator];
@@ -11646,8 +11648,8 @@ dart_library.library('dart/html', null, /* Imports */[
       this.allowedElements.addAll(dart.as((allowedElements != null ? allowedElements : dart.const([])), core.Iterable$(core.String)));
       allowedAttributes = dart.as((allowedAttributes != null ? allowedAttributes : dart.const([])), core.Iterable$(core.String));
       allowedUriAttributes = dart.as((allowedUriAttributes != null ? allowedUriAttributes : dart.const([])), core.Iterable$(core.String));
-      let legalAttributes = allowedAttributes[dartx.where](dart.fn(x => !dart.notNull(_Html5NodeValidator._uriAttributes[dartx.contains](x)), core.bool, [dart.dynamic]));
-      let extraUriAttributes = allowedAttributes[dartx.where](dart.fn(x => _Html5NodeValidator._uriAttributes[dartx.contains](x), core.bool, [dart.dynamic]));
+      let legalAttributes = allowedAttributes[dartx.where](dart.fn(x => !dart.notNull(_Html5NodeValidator._uriAttributes[dartx.contains](x)), core.bool, [core.String]));
+      let extraUriAttributes = allowedAttributes[dartx.where](dart.fn(x => _Html5NodeValidator._uriAttributes[dartx.contains](x), core.bool, [core.String]));
       this.allowedAttributes.addAll(legalAttributes);
       this.allowedUriAttributes.addAll(allowedUriAttributes);
       this.allowedUriAttributes.addAll(extraUriAttributes);
@@ -11718,7 +11720,7 @@ dart_library.library('dart/html', null, /* Imports */[
   class _TemplatingNodeValidator extends _SimpleNodeValidator {
     _TemplatingNodeValidator() {
       this[_templateAttrs] = core.Set$(core.String).from(_TemplatingNodeValidator._TEMPLATE_ATTRS);
-      super._SimpleNodeValidator(null, {allowedElements: dart.list(['TEMPLATE'], core.String), allowedAttributes: _TemplatingNodeValidator._TEMPLATE_ATTRS[dartx.map](dart.fn(attr => `TEMPLATE::${attr}`, core.String, [dart.dynamic]))});
+      super._SimpleNodeValidator(null, {allowedElements: dart.list(['TEMPLATE'], core.String), allowedAttributes: _TemplatingNodeValidator._TEMPLATE_ATTRS[dartx.map](dart.fn(attr => `TEMPLATE::${attr}`, core.String, [core.String]))});
     }
     allowsAttribute(element, attributeName, value) {
       if (dart.notNull(super.allowsAttribute(element, attributeName, value))) {
@@ -11882,7 +11884,7 @@ dart_library.library('dart/html', null, /* Imports */[
         if (request.readyState == HttpRequest.DONE) {
           onComplete(request);
         }
-      }));
+      }, dart.void, [ProgressEvent]));
       request.send();
       return request;
     }

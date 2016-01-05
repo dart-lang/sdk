@@ -202,8 +202,8 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  Future then(f(T value), { Function onError }) {
-    _Future result = new _Future();
+  Future/*<S>*/ then/*<S>*/(/*=S*/ f(T value), { Function onError }) {
+    _Future/*<S>*/ result = new _Future();
     if (!identical(result._zone, _ROOT_ZONE)) {
       f = result._zone.registerUnaryCallback(f);
       if (onError != null) {

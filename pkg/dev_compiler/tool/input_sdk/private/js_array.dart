@@ -26,7 +26,7 @@ class JSArray<E> implements List<E>, JSIndexable {
   factory JSArray.markFixed(allocation) =>
       new JSArray<E>.typed(markFixedList(allocation));
 
-  factory JSArray.markGrowable(allocation) = JSArray.typed;
+  factory JSArray.markGrowable(allocation) = JSArray<E>.typed;
 
   static List markFixedList(List list) {
     // Functions are stored in the hidden class and not as properties in
@@ -105,7 +105,7 @@ class JSArray<E> implements List<E>, JSIndexable {
     return new IterableMixinWorkaround<E>().where(this, f);
   }
 
-  Iterable expand(Iterable f(E element)) {
+  Iterable/*<T>*/ expand/*<T>*/(Iterable/*<E>*/ /*=Iterable<T>*/f(E element)) {
     return IterableMixinWorkaround.expand(this, f);
   }
 
@@ -129,7 +129,7 @@ class JSArray<E> implements List<E>, JSIndexable {
     }
   }
 
-  Iterable map(f(E element)) {
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) {
     return IterableMixinWorkaround.mapList(this, f);
   }
 
@@ -161,7 +161,7 @@ class JSArray<E> implements List<E>, JSIndexable {
     return IterableMixinWorkaround.reduce(this, combine);
   }
 
-  fold(initialValue, combine(previousValue, E element)) {
+  /*=T*/ fold/*<T>*/(/*=T*/ initialValue, /*=T*/ combine(/*=T*/ previousValue, E element)) {
     return IterableMixinWorkaround.fold(this, initialValue, combine);
   }
 

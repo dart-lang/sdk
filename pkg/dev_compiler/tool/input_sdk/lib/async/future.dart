@@ -254,11 +254,11 @@ abstract class Future<T> {
    * The call to `cleanUp` should not throw. If it does, the error will be an
    * uncaught asynchronous error.
    */
-  static Future<List> wait(Iterable<Future> futures,
+  static Future<List/*<T>*/> wait/*<T>*/(Iterable<Future/*<T>*/> futures,
                            {bool eagerError: false,
-                            void cleanUp(successValue)}) {
-    final _Future<List> result = new _Future<List>();
-    List values;  // Collects the values. Set to null on error.
+                            void cleanUp(/*=T*/ successValue)}) {
+    final _Future<List/*<T>*/> result = new _Future<List/*<T>*/>();
+    List/*<T>*/ values;  // Collects the values. Set to null on error.
     int remaining = 0;  // How many futures are we waiting for.
     var error;   // The first error from a future.
     StackTrace stackTrace;  // The stackTrace that came with the error.
@@ -312,7 +312,7 @@ abstract class Future<T> {
     if (remaining == 0) {
       return new Future.value(const []);
     }
-    values = new List(remaining);
+    values = new List/*<T>*/(remaining);
     return result;
   }
 
@@ -407,7 +407,7 @@ abstract class Future<T> {
    * with a `test` parameter, instead of handling both value and error in a
    * single [then] call.
    */
-  Future then(onValue(T value), { Function onError });
+  Future/*<S>*/ then/*<S>*/(/*=S*/ onValue(T value), { Function onError });
 
   /**
    * Handles errors emitted by this [Future].

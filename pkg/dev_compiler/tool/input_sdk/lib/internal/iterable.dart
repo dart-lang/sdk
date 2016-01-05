@@ -172,7 +172,7 @@ abstract class ListIterable<E> extends IterableBase<E>
 
   Iterable<E> where(bool test(E element)) => super.where(test);
 
-  Iterable map(f(E element)) => new MappedListIterable(this, f);
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/f(E element)) => new MappedListIterable<E, dynamic/*=T*/>(this, f);
 
   E reduce(E combine(var value, E element)) {
     int length = this.length;
@@ -188,7 +188,7 @@ abstract class ListIterable<E> extends IterableBase<E>
     return value;
   }
 
-  fold(var initialValue, combine(var previousValue, E element)) {
+  /*=T*/ fold/*<T>*/(var/*=T*/ initialValue, /*=T*/combine(var/*=T*/ previousValue, E element)) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -716,13 +716,13 @@ class EmptyIterable<E> extends IterableBase<E> implements EfficientLength {
 
   Iterable<E> where(bool test(E element)) => this;
 
-  Iterable map(f(E element)) => const EmptyIterable();
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) => const EmptyIterable();
 
   E reduce(E combine(E value, E element)) {
     throw IterableElementError.noElement();
   }
 
-  fold(var initialValue, combine(var previousValue, E element)) {
+  /*=T*/ fold/*<T>*/(var/*=T*/ initialValue, /*=T*/ combine(var/*=T*/ previousValue, E element)) {
     return initialValue;
   }
 
@@ -763,36 +763,36 @@ abstract class BidirectionalIterator<T> implements Iterator<T> {
  * The uses of this class will be replaced by mixins.
  */
 class IterableMixinWorkaround<T> {
-  static bool contains(Iterable iterable, var element) {
+  static bool contains/*<E>*/(Iterable/*<E>*/ iterable, var element) {
     for (final e in iterable) {
       if (e == element) return true;
     }
     return false;
   }
 
-  static void forEach(Iterable iterable, void f(o)) {
+  static void forEach/*<E>*/(Iterable/*<E>*/ iterable, void f(/*=E*/ o)) {
     for (final e in iterable) {
       f(e);
     }
   }
 
-  static bool any(Iterable iterable, bool f(o)) {
+  static bool any/*<E>*/(Iterable/*<E>*/ iterable, bool f(/*=E*/ o)) {
     for (final e in iterable) {
       if (f(e)) return true;
     }
     return false;
   }
 
-  static bool every(Iterable iterable, bool f(o)) {
+  static bool every/*<E>*/(Iterable/*<E>*/ iterable, bool f(/*=E*/ o)) {
     for (final e in iterable) {
       if (!f(e)) return false;
     }
     return true;
   }
 
-  static dynamic reduce(Iterable iterable,
-                        dynamic combine(previousValue, element)) {
-    Iterator iterator = iterable.iterator;
+  static dynamic/*=E*/ reduce/*<E>*/(Iterable/*<E>*/ iterable,
+                                  dynamic/*=E*/ combine(/*=E*/previousValue, /*=E*/element)) {
+    Iterator/*<E>*/ iterator = iterable.iterator;
     if (!iterator.moveNext()) throw IterableElementError.noElement();
     var value = iterator.current;
     while (iterator.moveNext()) {
@@ -801,9 +801,9 @@ class IterableMixinWorkaround<T> {
     return value;
   }
 
-  static dynamic fold(Iterable iterable,
-                      dynamic initialValue,
-                      dynamic combine(dynamic previousValue, element)) {
+  static /*=V*/ fold/*<E, V>*/(Iterable/*<E>*/ iterable,
+                               dynamic/*=V*/ initialValue,
+                               dynamic/*=V*/ combine(dynamic/*=V*/ previousValue, /*=E*/element)) {
     for (final element in iterable) {
       initialValue = combine(initialValue, element);
     }
@@ -817,8 +817,8 @@ class IterableMixinWorkaround<T> {
    * to the [test] function. First the elements to retain are found, and then
    * the original list is updated to contain those elements.
    */
-  static void removeWhereList(List list, bool test(var element)) {
-    List retained = [];
+  static void removeWhereList/*<E>*/(List/*<E>*/ list, bool test(var/*=E*/ element)) {
+    List/*<E>*/ retained = [];
     int length = list.length;
     for (int i = 0; i < length; i++) {
       var element = list[i];
@@ -836,54 +836,54 @@ class IterableMixinWorkaround<T> {
     }
   }
 
-  static bool isEmpty(Iterable iterable) {
+  static bool isEmpty/*<E>*/(Iterable/*<E>*/ iterable) {
     return !iterable.iterator.moveNext();
   }
 
-  static dynamic first(Iterable iterable) {
-    Iterator it = iterable.iterator;
+  static dynamic/*=E*/ first/*<E>*/(Iterable/*<E>*/ iterable) {
+    Iterator/*<E>*/ it = iterable.iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
     return it.current;
   }
 
-  static dynamic last(Iterable iterable) {
-    Iterator it = iterable.iterator;
+  static dynamic/*=E*/ last/*<E>*/(Iterable/*<E>*/ iterable) {
+    Iterator/*<E>*/ it = iterable.iterator;
     if (!it.moveNext()) {
       throw IterableElementError.noElement();
     }
-    dynamic result;
+    var/*=E*/ result;
     do {
       result = it.current;
     } while(it.moveNext());
     return result;
   }
 
-  static dynamic single(Iterable iterable) {
-    Iterator it = iterable.iterator;
+  static dynamic/*=E*/ single/*<E>*/(Iterable/*<E>*/ iterable) {
+    Iterator/*<E>*/ it = iterable.iterator;
     if (!it.moveNext()) throw IterableElementError.noElement();
-    dynamic result = it.current;
+    var result = it.current;
     if (it.moveNext()) throw IterableElementError.tooMany();
     return result;
   }
 
-  static dynamic firstWhere(Iterable iterable,
-                            bool test(dynamic value),
-                            dynamic orElse()) {
-    for (dynamic element in iterable) {
+  static dynamic/*=E*/ firstWhere/*<E>*/(Iterable/*<E>*/ iterable,
+                                         bool test(dynamic/*=E*/ value),
+                                         dynamic/*=E*/ orElse()) {
+    for (var element in iterable) {
       if (test(element)) return element;
     }
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  static dynamic lastWhere(Iterable iterable,
-                           bool test(dynamic value),
-                           dynamic orElse()) {
-    dynamic result = null;
+  static dynamic/*=E*/ lastWhere/*<E>*/(Iterable/*<E>*/ iterable,
+                           bool test(dynamic/*=E*/ value),
+                           dynamic/*=E*/ orElse()) {
+    dynamic/*=E*/ result = null;
     bool foundMatching = false;
-    for (dynamic element in iterable) {
+    for (var element in iterable) {
       if (test(element)) {
         result = element;
         foundMatching = true;
@@ -894,22 +894,22 @@ class IterableMixinWorkaround<T> {
     throw IterableElementError.noElement();
   }
 
-  static dynamic lastWhereList(List list,
-                               bool test(dynamic value),
-                               dynamic orElse()) {
+  static dynamic/*=E*/ lastWhereList/*<E>*/(List/*<E>*/ list,
+                               bool test(dynamic/*=E*/ value),
+                               dynamic/*=E*/ orElse()) {
     // TODO(floitsch): check that arguments are of correct type?
     for (int i = list.length - 1; i >= 0; i--) {
-      dynamic element = list[i];
+      var element = list[i];
       if (test(element)) return element;
     }
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
 
-  static dynamic singleWhere(Iterable iterable, bool test(dynamic value)) {
-    dynamic result = null;
+  static dynamic/*=E*/ singleWhere/*<E>*/(Iterable/*<E>*/ iterable, bool test(dynamic/*=E*/ value)) {
+    dynamic/*=E*/ result = null;
     bool foundMatching = false;
-    for (dynamic element in iterable) {
+    for (var element in iterable) {
       if (test(element)) {
         if (foundMatching) {
           throw IterableElementError.tooMany();
@@ -922,7 +922,7 @@ class IterableMixinWorkaround<T> {
     throw IterableElementError.noElement();
   }
 
-  static elementAt(Iterable iterable, int index) {
+  static dynamic/*=E*/ elementAt/*<E>*/(Iterable/*<E>*/ iterable, int index) {
     if (index is! int) throw new ArgumentError.notNull("index");
     RangeError.checkNotNegative(index, "index");
     int elementIndex = 0;
@@ -933,13 +933,13 @@ class IterableMixinWorkaround<T> {
     throw new RangeError.index(index, iterable, "index", null, elementIndex);
   }
 
-  static String join(Iterable iterable, [String separator]) {
+  static String join/*<E>*/(Iterable/*<E>*/ iterable, [String separator]) {
     StringBuffer buffer = new StringBuffer();
     buffer.writeAll(iterable, separator);
     return buffer.toString();
   }
 
-  static String joinList(List list, [String separator]) {
+  static String joinList/*<E>*/(List/*<E>*/ list, [String separator]) {
     if (list.isEmpty) return "";
     if (list.length == 1) return "${list[0]}";
     StringBuffer buffer = new StringBuffer();
@@ -957,20 +957,20 @@ class IterableMixinWorkaround<T> {
     return buffer.toString();
   }
 
-  Iterable<T> where(Iterable iterable, bool f(var element)) {
+  Iterable<T> where(Iterable<T> iterable, bool f(T element)) {
     return new WhereIterable<T>(iterable, f);
   }
 
-  static Iterable map(Iterable iterable, f(var element)) {
-    return new MappedIterable(iterable, f);
+  static Iterable/*<V>*/ map/*<E, V>*/(Iterable/*<E>*/ iterable, /*=V*/ f(var/*=E*/ element)) {
+    return new MappedIterable/*<E, V>*/(iterable, f);
   }
 
-  static Iterable mapList(List list, f(var element)) {
-    return new MappedListIterable(list, f);
+  static Iterable/*<V>*/ mapList/*<E, V>*/(List/*<E>*/ list, /*=V*/ f(var/*=E*/ element)) {
+    return new MappedListIterable/*<E, V>*/(list, f);
   }
 
-  static Iterable expand(Iterable iterable, Iterable f(var element)) {
-    return new ExpandIterable(iterable, f);
+  static Iterable/*<V>*/ expand/*<E, V>*/(Iterable/*<E>*/ iterable, Iterable/*<V>*/ f(var/*=E*/ element)) {
+    return new ExpandIterable/*<E, V>*/(iterable, f);
   }
 
   Iterable<T> takeList(List list, int n) {

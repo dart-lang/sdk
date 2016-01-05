@@ -22,9 +22,9 @@ import 'package:analyzer/src/generated/ast.dart'
         MethodInvocation;
 import 'package:analyzer/src/generated/constant.dart' show DartObject;
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show ParseDartTask, AnalysisContext;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/error.dart' show ErrorCode;
+import 'package:analyzer/src/task/dart.dart' show ParseDartTask;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/analyzer.dart' show parseDirectives;
@@ -408,11 +408,15 @@ SourceSpanWithContext createSpanHelper(
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }
 
+String _strongModeErrorPrefix = 'STRONG_MODE';
+
+bool isStrongModeError(ErrorCode errorCode) {
+  return errorCode.name.startsWith(_strongModeErrorPrefix);
+}
+
 String errorCodeName(ErrorCode errorCode) {
-  var name = errorCode.name;
-  final prefix = 'dev_compiler.';
-  if (name.startsWith(prefix)) {
-    return name.substring(prefix.length);
+  if (isStrongModeError(errorCode)) {
+    return errorCode.name.substring(_strongModeErrorPrefix.length + 1);
   } else {
     // TODO(jmesserly): this is for backwards compat, but not sure it's very
     // useful to log this.
@@ -420,10 +424,12 @@ String errorCodeName(ErrorCode errorCode) {
   }
 }
 
-bool isInlineJS(Element e) => e is FunctionElement &&
+bool isInlineJS(Element e) =>
+    e is FunctionElement &&
     e.library.source.uri.toString() == 'dart:_foreign_helper' &&
     e.name == 'JS';
 
-bool isDartMathMinMax(Element e) => e is FunctionElement &&
+bool isDartMathMinMax(Element e) =>
+    e is FunctionElement &&
     e.library.source.uri.toString() == 'dart:math' &&
     (e.name == 'min' || e.name == 'max');

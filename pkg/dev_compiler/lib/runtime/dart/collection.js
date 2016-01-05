@@ -84,7 +84,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         let result = HashMap$(K, V).new();
         other.forEach(dart.fn((k, v) => {
           result.set(dart.as(k, K), dart.as(v, V));
-        }));
+        }, dart.void, [dart.dynamic, dart.dynamic]));
         return result;
       }
       static fromIterable(iterable, opts) {
@@ -244,7 +244,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         let value = initialValue;
         for (let element of this)
-          value = dart.dcall(combine, value, element);
+          value = combine(value, element);
         return value;
       }
       every(f) {
@@ -569,7 +569,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         let value = initialValue;
         for (let element of this)
-          value = dart.dcall(combine, value, element);
+          value = combine(value, element);
         return value;
       }
       every(f) {
@@ -823,7 +823,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         let value = initialValue;
         for (let element of this)
-          value = dart.dcall(combine, value, element);
+          value = combine(value, element);
         return value;
       }
       every(f) {
@@ -1248,7 +1248,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         let result = LinkedHashMap$(K, V).new();
         other.forEach(dart.fn((k, v) => {
           result.set(dart.as(k, K), dart.as(v, V));
-        }));
+        }, dart.void, [dart.dynamic, dart.dynamic]));
         return result;
       }
       static fromIterable(iterable, opts) {
@@ -1367,7 +1367,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       addAll(entries) {
         dart.as(entries, core.Iterable$(E));
-        entries[dartx.forEach](dart.fn((entry => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.void, [dart.dynamic]));
+        entries[dartx.forEach](dart.fn((entry => this[_insertAfter](this[_previous], entry)).bind(this), dart.void, [E]));
       }
       remove(entry) {
         dart.as(entry, E);
@@ -1695,7 +1695,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       map(f) {
         dart.as(f, dart.functionType(dart.dynamic, [E]));
-        return new _internal.MappedListIterable(this, f);
+        return new (_internal.MappedListIterable$(E, dart.dynamic))(this, f);
       }
       expand(f) {
         dart.as(f, dart.functionType(core.Iterable, [E]));
@@ -1719,7 +1719,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         let value = initialValue;
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          value = dart.dcall(combine, value, this.get(i));
+          value = combine(value, this.get(i));
           if (length != this.length) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
@@ -1829,7 +1829,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       sort(compare) {
         if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        _internal.Sort.sort(this, compare == null ? core.Comparable.compare : compare);
+        _internal.Sort.sort(this, dart.as(compare == null ? core.Comparable.compare : compare, __CastType0));
       }
       shuffle(random) {
         if (random === void 0) random = null;
@@ -2132,6 +2132,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return ListBase;
   });
   let ListBase = ListBase$();
+  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [dart.dynamic, dart.dynamic]));
   const MapMixin$ = dart.generic(function(K, V) {
     class MapMixin extends core.Object {
       forEach(action) {
@@ -2465,7 +2466,7 @@ dart_library.library('dart/collection', null, /* Imports */[
           result.write(k);
           result.write(': ');
           result.write(v);
-        }));
+        }, dart.void, [dart.dynamic, dart.dynamic]));
         result.write('}');
       } finally {
         dart.assert(core.identical(IterableBase._toStringVisiting[dartx.last], m));
@@ -3388,7 +3389,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
         this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(K));
-        this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, K), core.bool, [dart.dynamic]);
+        this[_validKey] = dart.as(isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, K), core.bool, [core.Object]), _Predicate$(core.Object));
         super._SplayTree();
       }
       static from(other, compare, isValidKey) {
@@ -3397,7 +3398,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         let result = new (SplayTreeMap$(K, V))();
         other.forEach(dart.fn((k, v) => {
           result.set(dart.as(k, K), dart.as(v, V));
-        }));
+        }, dart.void, [dart.dynamic, dart.dynamic]));
         return result;
       }
       static fromIterable(iterable, opts) {
@@ -3487,7 +3488,7 @@ dart_library.library('dart/collection', null, /* Imports */[
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), dart.dynamic, [K, V]));
+        }).bind(this), dart.void, [K, V]));
       }
       get isEmpty() {
         return this[_root] == null;
@@ -3806,7 +3807,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
         this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(E));
-        this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, E), core.bool, [dart.dynamic]);
+        this[_validKey] = dart.as(isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, E), core.bool, [core.Object]), _Predicate$(core.Object));
         super._SplayTree();
       }
       static from(elements, compare, isValidKey) {
@@ -4009,7 +4010,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [dart.dynamic]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(_HashMap$()._isStringKey(key))) {
@@ -4037,15 +4038,15 @@ dart_library.library('dart/collection', null, /* Imports */[
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), dart.dynamic, [K, V]));
+        }).bind(this), dart.void, [K, V]));
       }
       get(key) {
         if (dart.notNull(_HashMap$()._isStringKey(key))) {
           let strings = this[_strings];
-          return strings == null ? null : dart.as(_HashMap$()._getTableEntry(strings, key), V);
+          return dart.as(strings == null ? null : _HashMap$()._getTableEntry(strings, key), V);
         } else if (dart.notNull(_HashMap$()._isNumericKey(key))) {
           let nums = this[_nums];
-          return nums == null ? null : dart.as(_HashMap$()._getTableEntry(nums, key), V);
+          return dart.as(nums == null ? null : _HashMap$()._getTableEntry(nums, key), V);
         } else {
           return this[_get](key);
         }
@@ -4055,7 +4056,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         if (rest == null) return null;
         let bucket = this[_getBucket](rest, key);
         let index = this[_findBucketIndex](bucket, key);
-        return dart.notNull(index) < 0 ? null : dart.as(bucket[dart.notNull(index) + 1], V);
+        return dart.as(dart.notNull(index) < 0 ? null : bucket[dart.notNull(index) + 1], V);
       }
       set(key, value) {
         dart.as(key, K);
@@ -4313,7 +4314,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       _CustomHashMap(equals, hashCode, validKey) {
         this[_equals] = equals;
         this[_hashCode] = hashCode;
-        this[_validKey] = validKey != null ? validKey : dart.fn(v => dart.is(v, K), core.bool, [dart.dynamic]);
+        this[_validKey] = dart.as(validKey != null ? validKey : dart.fn(v => dart.is(v, K), core.bool, [core.Object]), _Predicate$(core.Object));
         super._HashMap();
       }
       get(key) {
@@ -4469,7 +4470,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [dart.dynamic]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {
@@ -4493,7 +4494,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[dartx.any](dart.fn((each => dart.equals(this.get(each), value)).bind(this), core.bool, [dart.dynamic]));
+        return this.keys[dartx.any](dart.fn((each => dart.equals(this.get(each), value)).bind(this), core.bool, [K]));
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
@@ -4501,19 +4502,19 @@ dart_library.library('dart/collection', null, /* Imports */[
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), dart.dynamic, [K, V]));
+        }).bind(this), dart.void, [K, V]));
       }
       get(key) {
         if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {
           let strings = this[_strings];
           if (strings == null) return null;
           let cell = dart.as(_LinkedHashMap$()._getTableEntry(strings, key), LinkedHashMapCell);
-          return cell == null ? null : dart.as(cell[_value], V);
+          return dart.as(cell == null ? null : cell[_value], V);
         } else if (dart.notNull(_LinkedHashMap$()._isNumericKey(key))) {
           let nums = this[_nums];
           if (nums == null) return null;
           let cell = dart.as(_LinkedHashMap$()._getTableEntry(nums, key), LinkedHashMapCell);
-          return cell == null ? null : dart.as(cell[_value], V);
+          return dart.as(cell == null ? null : cell[_value], V);
         } else {
           return this[_get](key);
         }
@@ -4772,7 +4773,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       _LinkedCustomHashMap(equals, hashCode, validKey) {
         this[_equals] = equals;
         this[_hashCode] = hashCode;
-        this[_validKey] = validKey != null ? validKey : dart.fn(v => dart.is(v, K), core.bool, [dart.dynamic]);
+        this[_validKey] = dart.as(validKey != null ? validKey : dart.fn(v => dart.is(v, K), core.bool, [core.Object]), _Predicate$(core.Object));
         super._LinkedHashMap();
       }
       get(key) {
@@ -5203,7 +5204,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       _CustomHashSet(equality, hasher, validKey) {
         this[_equality] = equality;
         this[_hasher] = hasher;
-        this[_validKey] = validKey != null ? validKey : dart.fn(x => dart.is(x, E), core.bool, [dart.dynamic]);
+        this[_validKey] = dart.as(validKey != null ? validKey : dart.fn(x => dart.is(x, E), core.bool, [core.Object]), _Predicate$(core.Object));
         super._HashSet();
       }
       [_newSet]() {
@@ -5621,7 +5622,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       _LinkedCustomHashSet(equality, hasher, validKey) {
         this[_equality] = equality;
         this[_hasher] = hasher;
-        this[_validKey] = validKey != null ? validKey : dart.fn(x => dart.is(x, E), core.bool, [dart.dynamic]);
+        this[_validKey] = dart.as(validKey != null ? validKey : dart.fn(x => dart.is(x, E), core.bool, [core.Object]), _Predicate$(core.Object));
         super._LinkedHashSet();
       }
       [_newSet]() {

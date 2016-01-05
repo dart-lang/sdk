@@ -62,7 +62,7 @@ ErrorSeverity _strongModeErrorSeverity(AnalysisError error) {
   // Upgrade analyzer warnings to errors.
   // TODO(jmesserly: reconcile this with analyzer_cli
   var severity = error.errorCode.errorSeverity;
-  if (!error.errorCode.name.startsWith('dev_compiler.') &&
+  if (!isStrongModeError(error.errorCode) &&
       severity == ErrorSeverity.WARNING) {
     return ErrorSeverity.ERROR;
   }

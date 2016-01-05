@@ -152,7 +152,8 @@ class _Annotation {
     if (!line.contains('///')) {
       return null;
     }
-    var parts = line.split('///')[1]
+    var parts = line
+        .split('///')[1]
         .split(':')
         .map((s) => s.trim())
         .where((s) => s.length > 0)

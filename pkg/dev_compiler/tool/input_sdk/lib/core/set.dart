@@ -72,7 +72,7 @@ abstract class Set<E> extends IterableBase<E> implements EfficientLength {
    * The set is equivalent to one created by
    * `new LinkedHashSet<E>.from(elements)`.
    */
-  factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
+  factory Set.from(Iterable<E> elements) = LinkedHashSet<E>.from;
 
   /**
    * Provides an iterator that iterates over the elements of this set.

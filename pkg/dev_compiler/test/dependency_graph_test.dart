@@ -739,9 +739,11 @@ void main() {
       var node = nodeOf('/index3.html');
       rebuild(node, buildNoTransitiveChange);
       // Note: a6.dart is not included because it built as part of a2.dart
-      expect(results, ['a3.dart', 'a10.dart', 'a4.dart', 'a5.dart', 'a2.dart']
-        ..addAll(runtimeFilesWithoutPath)
-        ..add('index3.html'));
+      expect(
+          results,
+          ['a3.dart', 'a10.dart', 'a4.dart', 'a5.dart', 'a2.dart']
+            ..addAll(runtimeFilesWithoutPath)
+            ..add('index3.html'));
 
       // Marks are removed automatically by rebuild
       expectGraph(
