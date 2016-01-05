@@ -186,7 +186,7 @@ class Dart < Formula
 
   def shim_script target
     <<-EOS.undent
-      #!/bin/bash
+      #!/usr/bin/env bash
       exec "#{prefix}/#{target}" "\$@"
     EOS
   end
