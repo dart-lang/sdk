@@ -6,9 +6,117 @@ library analyzer.src.summary.summary_sdk;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/context/cache.dart' show CacheEntry;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:analyzer/src/task/dart.dart'
+    show
+        LIBRARY_ELEMENT1,
+        LIBRARY_ELEMENT2,
+        LIBRARY_ELEMENT3,
+        LIBRARY_ELEMENT4,
+        LIBRARY_ELEMENT5,
+        LIBRARY_ELEMENT6,
+        LIBRARY_ELEMENT7,
+        LIBRARY_ELEMENT8,
+        READY_LIBRARY_ELEMENT2,
+        READY_LIBRARY_ELEMENT5,
+        READY_LIBRARY_ELEMENT6,
+        TYPE_PROVIDER;
+import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart'
+    show AnalysisTarget, ResultDescriptor, TargetedResult;
+
+/**
+ * An [SdkAnalysisContext] for Dart SDK with a summary [SdkBundle].
+ */
+class SummarySdkAnalysisContext extends SdkAnalysisContext {
+  final SdkBundle bundle;
+  final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
+
+  SummaryResynthesizer resynthesizer;
+
+  SummarySdkAnalysisContext(this.bundle);
+
+  @override
+  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
+    if (resynthesizer == null) {
+      resynthesizer = new SummaryResynthesizer(this, typeProvider,
+          _getPrelinkedSummary, _getUnlinkedSummary, sourceFactory);
+      _buildCoreLibrary();
+      _buildAsyncLibrary();
+    }
+    if (result == TYPE_PROVIDER) {
+      entry.setValue(result, typeProvider, TargetedResult.EMPTY_LIST);
+      return true;
+    }
+    AnalysisTarget target = entry.target;
+//    print('SummarySdkAnalysisContext: $result of $target');
+    if (target is Source && target.isInSystemLibrary) {
+      if (result == LIBRARY_ELEMENT1 ||
+          result == LIBRARY_ELEMENT2 ||
+          result == LIBRARY_ELEMENT3 ||
+          result == LIBRARY_ELEMENT4 ||
+          result == LIBRARY_ELEMENT5 ||
+          result == LIBRARY_ELEMENT6 ||
+          result == LIBRARY_ELEMENT7 ||
+          result == LIBRARY_ELEMENT8 ||
+          result == LIBRARY_ELEMENT) {
+        // TODO(scheglov) try to find a way to avoid listing every result
+        // e.g. "result.whenComplete == LIBRARY_ELEMENT"
+        String uri = target.uri.toString();
+        LibraryElement libraryElement = resynthesizer.getLibraryElement(uri);
+        entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
+        return true;
+      } else if (result == READY_LIBRARY_ELEMENT2 ||
+          result == READY_LIBRARY_ELEMENT5 ||
+          result == READY_LIBRARY_ELEMENT6) {
+        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        return true;
+      } else if (result == SOURCE_KIND) {
+        // TODO(scheglov) not every source is a library
+        entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
+        return true;
+      } else {
+//        throw new UnimplementedError('$result of $target');
+      }
+    }
+    return false;
+  }
+
+  void _buildAsyncLibrary() {
+    LibraryElement library = resynthesizer.getLibraryElement('dart:async');
+    typeProvider.initializeAsync(library);
+  }
+
+  void _buildCoreLibrary() {
+    LibraryElement library = resynthesizer.getLibraryElement('dart:core');
+    typeProvider.initializeCore(library);
+  }
+
+  PrelinkedLibrary _getPrelinkedSummary(String uri) {
+    for (int i = 0; i < bundle.prelinkedLibraryUris.length; i++) {
+      if (bundle.prelinkedLibraryUris[i] == uri) {
+        return bundle.prelinkedLibraries[i];
+      }
+    }
+    throw new StateError('Unable to find prelinked summary for $uri');
+  }
+
+  UnlinkedUnit _getUnlinkedSummary(String uri) {
+    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+      if (bundle.unlinkedUnitUris[i] == uri) {
+        return bundle.unlinkedUnits[i];
+      }
+    }
+    throw new StateError('Unable to find unlinked summary for $uri');
+  }
+}
 
 /**
  * Implementation of [TypeProvider] which can be initialized separately with

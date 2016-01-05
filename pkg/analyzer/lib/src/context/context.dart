@@ -486,6 +486,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
+    AnalysisTarget target = entry.target;
+    // TYPE_PROVIDER
+    if (target is AnalysisContextTarget && result == TYPE_PROVIDER) {
+      DartSdk dartSdk = sourceFactory.dartSdk;
+      if (dartSdk != null) {
+        AnalysisContext sdkContext = dartSdk.context;
+        if (!identical(sdkContext, this) &&
+            sdkContext is InternalAnalysisContext) {
+          return sdkContext.aboutToComputeResult(entry, result);
+        }
+      }
+    }
+    // A result for a Source.
+    Source source = target.source;
+    if (source != null) {
+      InternalAnalysisContext context = _cache.getContextFor(source);
+      if (!identical(context, this)) {
+        return context.aboutToComputeResult(entry, result);
+      }
+    }
     return false;
   }
 
