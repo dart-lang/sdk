@@ -343,15 +343,7 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 
 
 char* Directory::Current() {
-  // Android's getcwd adheres closely to the POSIX standard. It won't
-  // allocate memory. We need to make our own copy.
-
-  char buffer[PATH_MAX];
-  if (NULL == getcwd(buffer, PATH_MAX)) {
-    return NULL;
-  }
-
-  return strdup(buffer);
+  return getcwd(NULL, 0);
 }
 
 
