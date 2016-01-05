@@ -10,6 +10,10 @@ library analyzer.src.summary.format;
 import 'dart:convert';
 import 'base.dart' as base;
 
+/**
+ * Enum used to indicate the kind of entity referred to by a
+ * [PrelinkedReference].
+ */
 enum PrelinkedReferenceKind {
   classOrEnum,
   typedef,
@@ -18,6 +22,9 @@ enum PrelinkedReferenceKind {
   unresolved,
 }
 
+/**
+ * Enum used to indicate the kind of an executable.
+ */
 enum UnlinkedExecutableKind {
   functionOrMethod,
   getter,
@@ -25,12 +32,19 @@ enum UnlinkedExecutableKind {
   constructor,
 }
 
+/**
+ * Enum used to indicate the kind of a parameter.
+ */
 enum UnlinkedParamKind {
   required,
   positional,
   named,
 }
 
+/**
+ * Information about a dependency that exists between one library and another
+ * due to an "import" declaration.
+ */
 class PrelinkedDependency extends base.SummaryClass {
   String _uri;
 
@@ -42,6 +56,9 @@ class PrelinkedDependency extends base.SummaryClass {
     "uri": uri,
   };
 
+  /**
+   * The relative URI used to import one library from the other.
+   */
   String get uri => _uri ?? '';
 }
 
@@ -52,6 +69,9 @@ class PrelinkedDependencyBuilder {
 
   PrelinkedDependencyBuilder(base.BuilderContext context);
 
+  /**
+   * The relative URI used to import one library from the other.
+   */
   void set uri(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("uri"));
@@ -73,6 +93,9 @@ PrelinkedDependencyBuilder encodePrelinkedDependency(base.BuilderContext builder
   return builder;
 }
 
+/**
+ * Pre-linked summary of a library.
+ */
 class PrelinkedLibrary extends base.SummaryClass {
   List<PrelinkedUnit> _units;
   List<PrelinkedDependency> _dependencies;
@@ -92,8 +115,32 @@ class PrelinkedLibrary extends base.SummaryClass {
 
   PrelinkedLibrary.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
+  /**
+   * The pre-linked summary of all the compilation units constituting the
+   * library.  The summary of the defining compilation unit is listed first,
+   * followed by the summary of each part, in the order of the `part`
+   * declarations in the defining compilation unit.
+   */
   List<PrelinkedUnit> get units => _units ?? const <PrelinkedUnit>[];
+
+  /**
+   * The libraries that this library depends on (either via an explicit import
+   * statement or via the implicit dependencies on `dart:core` and
+   * `dart:async`).  The first element of this array is a pseudo-dependency
+   * representing the library itself (it is also used for "dynamic").
+   *
+   * TODO(paulberry): consider removing this entirely and just using
+   * [UnlinkedLibrary.imports].
+   */
   List<PrelinkedDependency> get dependencies => _dependencies ?? const <PrelinkedDependency>[];
+
+  /**
+   * For each import in [UnlinkedUnit.imports], an index into [dependencies]
+   * of the library being imported.
+   *
+   * TODO(paulberry): if [dependencies] is removed, this can be removed as
+   * well, since there will effectively be a one-to-one mapping.
+   */
   List<int> get importDependencies => _importDependencies ?? const <int>[];
 }
 
@@ -104,6 +151,12 @@ class PrelinkedLibraryBuilder {
 
   PrelinkedLibraryBuilder(base.BuilderContext context);
 
+  /**
+   * The pre-linked summary of all the compilation units constituting the
+   * library.  The summary of the defining compilation unit is listed first,
+   * followed by the summary of each part, in the order of the `part`
+   * declarations in the defining compilation unit.
+   */
   void set units(List<PrelinkedUnitBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("units"));
@@ -112,6 +165,15 @@ class PrelinkedLibraryBuilder {
     }
   }
 
+  /**
+   * The libraries that this library depends on (either via an explicit import
+   * statement or via the implicit dependencies on `dart:core` and
+   * `dart:async`).  The first element of this array is a pseudo-dependency
+   * representing the library itself (it is also used for "dynamic").
+   *
+   * TODO(paulberry): consider removing this entirely and just using
+   * [UnlinkedLibrary.imports].
+   */
   void set dependencies(List<PrelinkedDependencyBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("dependencies"));
@@ -120,6 +182,13 @@ class PrelinkedLibraryBuilder {
     }
   }
 
+  /**
+   * For each import in [UnlinkedUnit.imports], an index into [dependencies]
+   * of the library being imported.
+   *
+   * TODO(paulberry): if [dependencies] is removed, this can be removed as
+   * well, since there will effectively be a one-to-one mapping.
+   */
   void set importDependencies(List<int> _value) {
     assert(!_finished);
     assert(!_json.containsKey("importDependencies"));
@@ -145,6 +214,9 @@ PrelinkedLibraryBuilder encodePrelinkedLibrary(base.BuilderContext builderContex
   return builder;
 }
 
+/**
+ * Information about the resolution of an [UnlinkedReference].
+ */
 class PrelinkedReference extends base.SummaryClass {
   int _dependency;
   PrelinkedReferenceKind _kind;
@@ -165,9 +237,30 @@ class PrelinkedReference extends base.SummaryClass {
     "numTypeParameters": numTypeParameters,
   };
 
+  /**
+   * Index into [PrelinkedLibrary.dependencies] indicating which imported library
+   * declares the entity being referred to.
+   */
   int get dependency => _dependency ?? 0;
+
+  /**
+   * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
+   * the kind is [PrelinkedReferenceKind.classOrEnum].
+   */
   PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+
+  /**
+   * Integer index indicating which unit in the imported library contains the
+   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * zero represents the defining compilation unit, and nonzero values
+   * represent parts in the order of the corresponding `part` declarations.
+   */
   int get unit => _unit ?? 0;
+
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
   int get numTypeParameters => _numTypeParameters ?? 0;
 }
 
@@ -178,6 +271,10 @@ class PrelinkedReferenceBuilder {
 
   PrelinkedReferenceBuilder(base.BuilderContext context);
 
+  /**
+   * Index into [PrelinkedLibrary.dependencies] indicating which imported library
+   * declares the entity being referred to.
+   */
   void set dependency(int _value) {
     assert(!_finished);
     assert(!_json.containsKey("dependency"));
@@ -186,6 +283,10 @@ class PrelinkedReferenceBuilder {
     }
   }
 
+  /**
+   * The kind of the entity being referred to.  For the pseudo-type `dynamic`,
+   * the kind is [PrelinkedReferenceKind.classOrEnum].
+   */
   void set kind(PrelinkedReferenceKind _value) {
     assert(!_finished);
     assert(!_json.containsKey("kind"));
@@ -194,6 +295,12 @@ class PrelinkedReferenceBuilder {
     }
   }
 
+  /**
+   * Integer index indicating which unit in the imported library contains the
+   * definition of the entity.  As with indices into [PrelinkedLibrary.units],
+   * zero represents the defining compilation unit, and nonzero values
+   * represent parts in the order of the corresponding `part` declarations.
+   */
   void set unit(int _value) {
     assert(!_finished);
     assert(!_json.containsKey("unit"));
@@ -202,6 +309,10 @@ class PrelinkedReferenceBuilder {
     }
   }
 
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
   void set numTypeParameters(int _value) {
     assert(!_finished);
     assert(!_json.containsKey("numTypeParameters"));
@@ -226,6 +337,9 @@ PrelinkedReferenceBuilder encodePrelinkedReference(base.BuilderContext builderCo
   return builder;
 }
 
+/**
+ * Pre-linked summary of a compilation unit.
+ */
 class PrelinkedUnit extends base.SummaryClass {
   List<PrelinkedReference> _references;
 
@@ -237,6 +351,10 @@ class PrelinkedUnit extends base.SummaryClass {
     "references": references,
   };
 
+  /**
+   * For each reference in [UnlinkedUnit.references], information about how
+   * that reference is resolved.
+   */
   List<PrelinkedReference> get references => _references ?? const <PrelinkedReference>[];
 }
 
@@ -247,6 +365,10 @@ class PrelinkedUnitBuilder {
 
   PrelinkedUnitBuilder(base.BuilderContext context);
 
+  /**
+   * For each reference in [UnlinkedUnit.references], information about how
+   * that reference is resolved.
+   */
   void set references(List<PrelinkedReferenceBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("references"));
@@ -268,6 +390,9 @@ PrelinkedUnitBuilder encodePrelinkedUnit(base.BuilderContext builderContext, {Li
   return builder;
 }
 
+/**
+ * Information about SDK.
+ */
 class SdkBundle extends base.SummaryClass {
   List<String> _prelinkedLibraryUris;
   List<PrelinkedLibrary> _prelinkedLibraries;
@@ -290,9 +415,24 @@ class SdkBundle extends base.SummaryClass {
 
   SdkBundle.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
+  /**
+   * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
+   */
   List<String> get prelinkedLibraryUris => _prelinkedLibraryUris ?? const <String>[];
+
+  /**
+   * Pre-linked libraries.
+   */
   List<PrelinkedLibrary> get prelinkedLibraries => _prelinkedLibraries ?? const <PrelinkedLibrary>[];
+
+  /**
+   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
+   */
   List<String> get unlinkedUnitUris => _unlinkedUnitUris ?? const <String>[];
+
+  /**
+   * Unlinked information for the compilation units constituting the SDK.
+   */
   List<UnlinkedUnit> get unlinkedUnits => _unlinkedUnits ?? const <UnlinkedUnit>[];
 }
 
@@ -303,6 +443,9 @@ class SdkBundleBuilder {
 
   SdkBundleBuilder(base.BuilderContext context);
 
+  /**
+   * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
+   */
   void set prelinkedLibraryUris(List<String> _value) {
     assert(!_finished);
     assert(!_json.containsKey("prelinkedLibraryUris"));
@@ -311,6 +454,9 @@ class SdkBundleBuilder {
     }
   }
 
+  /**
+   * Pre-linked libraries.
+   */
   void set prelinkedLibraries(List<PrelinkedLibraryBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("prelinkedLibraries"));
@@ -319,6 +465,9 @@ class SdkBundleBuilder {
     }
   }
 
+  /**
+   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
+   */
   void set unlinkedUnitUris(List<String> _value) {
     assert(!_finished);
     assert(!_json.containsKey("unlinkedUnitUris"));
@@ -327,6 +476,9 @@ class SdkBundleBuilder {
     }
   }
 
+  /**
+   * Unlinked information for the compilation units constituting the SDK.
+   */
   void set unlinkedUnits(List<UnlinkedUnitBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("unlinkedUnits"));
@@ -353,6 +505,9 @@ SdkBundleBuilder encodeSdkBundle(base.BuilderContext builderContext, {List<Strin
   return builder;
 }
 
+/**
+ * Unlinked summary information about a class declaration.
+ */
 class UnlinkedClass extends base.SummaryClass {
   String _name;
   List<UnlinkedTypeParam> _typeParameters;
@@ -391,15 +546,57 @@ class UnlinkedClass extends base.SummaryClass {
     "hasNoSupertype": hasNoSupertype,
   };
 
+  /**
+   * Name of the class.
+   */
   String get name => _name ?? '';
+
+  /**
+   * Type parameters of the class, if any.
+   */
   List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+
+  /**
+   * Supertype of the class, or `null` if either (a) the class doesn't
+   * explicitly declare a supertype (and hence has supertype `Object`), or (b)
+   * the class *is* `Object` (and hence has no supertype).
+   */
   UnlinkedTypeRef get supertype => _supertype;
+
+  /**
+   * Mixins appearing in a `with` clause, if any.
+   */
   List<UnlinkedTypeRef> get mixins => _mixins ?? const <UnlinkedTypeRef>[];
+
+  /**
+   * Interfaces appearing in an `implements` clause, if any.
+   */
   List<UnlinkedTypeRef> get interfaces => _interfaces ?? const <UnlinkedTypeRef>[];
+
+  /**
+   * Field declarations contained in the class.
+   */
   List<UnlinkedVariable> get fields => _fields ?? const <UnlinkedVariable>[];
+
+  /**
+   * Executable objects (methods, getters, and setters) contained in the class.
+   */
   List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
+
+  /**
+   * Indicates whether the class is declared with the `abstract` keyword.
+   */
   bool get isAbstract => _isAbstract ?? false;
+
+  /**
+   * Indicates whether the class is declared using mixin application syntax.
+   */
   bool get isMixinApplication => _isMixinApplication ?? false;
+
+  /**
+   * Indicates whether this class is the core "Object" class (and hence has no
+   * supertype)
+   */
   bool get hasNoSupertype => _hasNoSupertype ?? false;
 }
 
@@ -410,6 +607,9 @@ class UnlinkedClassBuilder {
 
   UnlinkedClassBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the class.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -418,6 +618,9 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Type parameters of the class, if any.
+   */
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typeParameters"));
@@ -426,6 +629,11 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Supertype of the class, or `null` if either (a) the class doesn't
+   * explicitly declare a supertype (and hence has supertype `Object`), or (b)
+   * the class *is* `Object` (and hence has no supertype).
+   */
   void set supertype(UnlinkedTypeRefBuilder _value) {
     assert(!_finished);
     assert(!_json.containsKey("supertype"));
@@ -434,6 +642,9 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Mixins appearing in a `with` clause, if any.
+   */
   void set mixins(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("mixins"));
@@ -442,6 +653,9 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Interfaces appearing in an `implements` clause, if any.
+   */
   void set interfaces(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("interfaces"));
@@ -450,6 +664,9 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Field declarations contained in the class.
+   */
   void set fields(List<UnlinkedVariableBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("fields"));
@@ -458,6 +675,9 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Executable objects (methods, getters, and setters) contained in the class.
+   */
   void set executables(List<UnlinkedExecutableBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("executables"));
@@ -466,6 +686,9 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Indicates whether the class is declared with the `abstract` keyword.
+   */
   void set isAbstract(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isAbstract"));
@@ -474,6 +697,9 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Indicates whether the class is declared using mixin application syntax.
+   */
   void set isMixinApplication(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isMixinApplication"));
@@ -482,6 +708,10 @@ class UnlinkedClassBuilder {
     }
   }
 
+  /**
+   * Indicates whether this class is the core "Object" class (and hence has no
+   * supertype)
+   */
   void set hasNoSupertype(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("hasNoSupertype"));
@@ -512,6 +742,10 @@ UnlinkedClassBuilder encodeUnlinkedClass(base.BuilderContext builderContext, {St
   return builder;
 }
 
+/**
+ * Unlinked summary information about a `show` or `hide` combinator in an
+ * import or export declaration.
+ */
 class UnlinkedCombinator extends base.SummaryClass {
   List<String> _shows;
   List<String> _hides;
@@ -526,7 +760,14 @@ class UnlinkedCombinator extends base.SummaryClass {
     "hides": hides,
   };
 
+  /**
+   * List of names which are shown.  Empty if this is a `hide` combinator.
+   */
   List<String> get shows => _shows ?? const <String>[];
+
+  /**
+   * List of names which are hidden.  Empty if this is a `show` combinator.
+   */
   List<String> get hides => _hides ?? const <String>[];
 }
 
@@ -537,6 +778,9 @@ class UnlinkedCombinatorBuilder {
 
   UnlinkedCombinatorBuilder(base.BuilderContext context);
 
+  /**
+   * List of names which are shown.  Empty if this is a `hide` combinator.
+   */
   void set shows(List<String> _value) {
     assert(!_finished);
     assert(!_json.containsKey("shows"));
@@ -545,6 +789,9 @@ class UnlinkedCombinatorBuilder {
     }
   }
 
+  /**
+   * List of names which are hidden.  Empty if this is a `show` combinator.
+   */
   void set hides(List<String> _value) {
     assert(!_finished);
     assert(!_json.containsKey("hides"));
@@ -567,6 +814,9 @@ UnlinkedCombinatorBuilder encodeUnlinkedCombinator(base.BuilderContext builderCo
   return builder;
 }
 
+/**
+ * Unlinked summary information about an enum declaration.
+ */
 class UnlinkedEnum extends base.SummaryClass {
   String _name;
   List<UnlinkedEnumValue> _values;
@@ -581,7 +831,14 @@ class UnlinkedEnum extends base.SummaryClass {
     "values": values,
   };
 
+  /**
+   * Name of the enum type.
+   */
   String get name => _name ?? '';
+
+  /**
+   * Values listed in the enum declaration, in declaration order.
+   */
   List<UnlinkedEnumValue> get values => _values ?? const <UnlinkedEnumValue>[];
 }
 
@@ -592,6 +849,9 @@ class UnlinkedEnumBuilder {
 
   UnlinkedEnumBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the enum type.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -600,6 +860,9 @@ class UnlinkedEnumBuilder {
     }
   }
 
+  /**
+   * Values listed in the enum declaration, in declaration order.
+   */
   void set values(List<UnlinkedEnumValueBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("values"));
@@ -622,6 +885,10 @@ UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {Stri
   return builder;
 }
 
+/**
+ * Unlinked summary information about a single enumerated value in an enum
+ * declaration.
+ */
 class UnlinkedEnumValue extends base.SummaryClass {
   String _name;
 
@@ -633,6 +900,9 @@ class UnlinkedEnumValue extends base.SummaryClass {
     "name": name,
   };
 
+  /**
+   * Name of the enumerated value.
+   */
   String get name => _name ?? '';
 }
 
@@ -643,6 +913,9 @@ class UnlinkedEnumValueBuilder {
 
   UnlinkedEnumValueBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the enumerated value.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -664,6 +937,10 @@ UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderCont
   return builder;
 }
 
+/**
+ * Unlinked summary information about a function, method, getter, or setter
+ * declaration.
+ */
 class UnlinkedExecutable extends base.SummaryClass {
   String _name;
   List<UnlinkedTypeParam> _typeParameters;
@@ -705,16 +982,72 @@ class UnlinkedExecutable extends base.SummaryClass {
     "isExternal": isExternal,
   };
 
+  /**
+   * Name of the executable.  For setters, this includes the trailing "=".  For
+   * named constructors, this excludes the class name and excludes the ".".
+   * For unnamed constructors, this is the empty string.
+   */
   String get name => _name ?? '';
+
+  /**
+   * Type parameters of the executable, if any.  Empty if support for generic
+   * method syntax is disabled.
+   */
   List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+
+  /**
+   * Declared return type of the executable.  Absent if the return type is
+   * `void`.  Note that when strong mode is enabled, the actual return type may
+   * be different due to type inference.
+   */
   UnlinkedTypeRef get returnType => _returnType;
+
+  /**
+   * Parameters of the executable, if any.  Note that getters have no
+   * parameters (hence this will be the empty list), and setters have a single
+   * parameter.
+   */
   List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
+
+  /**
+   * The kind of the executable (function/method, getter, setter, or
+   * constructor).
+   */
   UnlinkedExecutableKind get kind => _kind ?? UnlinkedExecutableKind.functionOrMethod;
+
+  /**
+   * Indicates whether the executable is declared using the `abstract` keyword.
+   */
   bool get isAbstract => _isAbstract ?? false;
+
+  /**
+   * Indicates whether the executable is declared using the `static` keyword.
+   *
+   * Note that for top level executables, this flag is false, since they are
+   * not declared using the `static` keyword (even though they are considered
+   * static for semantic purposes).
+   */
   bool get isStatic => _isStatic ?? false;
+
+  /**
+   * Indicates whether the executable is declared using the `const` keyword.
+   */
   bool get isConst => _isConst ?? false;
+
+  /**
+   * Indicates whether the executable is declared using the `factory` keyword.
+   */
   bool get isFactory => _isFactory ?? false;
+
+  /**
+   * Indicates whether the executable lacks an explicit return type
+   * declaration.  False for constructors and setters.
+   */
   bool get hasImplicitReturnType => _hasImplicitReturnType ?? false;
+
+  /**
+   * Indicates whether the executable is declared using the `external` keyword.
+   */
   bool get isExternal => _isExternal ?? false;
 }
 
@@ -725,6 +1058,11 @@ class UnlinkedExecutableBuilder {
 
   UnlinkedExecutableBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the executable.  For setters, this includes the trailing "=".  For
+   * named constructors, this excludes the class name and excludes the ".".
+   * For unnamed constructors, this is the empty string.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -733,6 +1071,10 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Type parameters of the executable, if any.  Empty if support for generic
+   * method syntax is disabled.
+   */
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typeParameters"));
@@ -741,6 +1083,11 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Declared return type of the executable.  Absent if the return type is
+   * `void`.  Note that when strong mode is enabled, the actual return type may
+   * be different due to type inference.
+   */
   void set returnType(UnlinkedTypeRefBuilder _value) {
     assert(!_finished);
     assert(!_json.containsKey("returnType"));
@@ -749,6 +1096,11 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Parameters of the executable, if any.  Note that getters have no
+   * parameters (hence this will be the empty list), and setters have a single
+   * parameter.
+   */
   void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parameters"));
@@ -757,6 +1109,10 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * The kind of the executable (function/method, getter, setter, or
+   * constructor).
+   */
   void set kind(UnlinkedExecutableKind _value) {
     assert(!_finished);
     assert(!_json.containsKey("kind"));
@@ -765,6 +1121,9 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the executable is declared using the `abstract` keyword.
+   */
   void set isAbstract(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isAbstract"));
@@ -773,6 +1132,13 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the executable is declared using the `static` keyword.
+   *
+   * Note that for top level executables, this flag is false, since they are
+   * not declared using the `static` keyword (even though they are considered
+   * static for semantic purposes).
+   */
   void set isStatic(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isStatic"));
@@ -781,6 +1147,9 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the executable is declared using the `const` keyword.
+   */
   void set isConst(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isConst"));
@@ -789,6 +1158,9 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the executable is declared using the `factory` keyword.
+   */
   void set isFactory(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isFactory"));
@@ -797,6 +1169,10 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the executable lacks an explicit return type
+   * declaration.  False for constructors and setters.
+   */
   void set hasImplicitReturnType(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("hasImplicitReturnType"));
@@ -805,6 +1181,9 @@ class UnlinkedExecutableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the executable is declared using the `external` keyword.
+   */
   void set isExternal(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isExternal"));
@@ -836,6 +1215,9 @@ UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderCo
   return builder;
 }
 
+/**
+ * Unlinked summary information about an export declaration.
+ */
 class UnlinkedExport extends base.SummaryClass {
   String _uri;
   List<UnlinkedCombinator> _combinators;
@@ -850,7 +1232,14 @@ class UnlinkedExport extends base.SummaryClass {
     "combinators": combinators,
   };
 
+  /**
+   * URI used in the source code to reference the exported library.
+   */
   String get uri => _uri ?? '';
+
+  /**
+   * Combinators contained in this import declaration.
+   */
   List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
 }
 
@@ -861,6 +1250,9 @@ class UnlinkedExportBuilder {
 
   UnlinkedExportBuilder(base.BuilderContext context);
 
+  /**
+   * URI used in the source code to reference the exported library.
+   */
   void set uri(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("uri"));
@@ -869,6 +1261,9 @@ class UnlinkedExportBuilder {
     }
   }
 
+  /**
+   * Combinators contained in this import declaration.
+   */
   void set combinators(List<UnlinkedCombinatorBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("combinators"));
@@ -891,6 +1286,9 @@ UnlinkedExportBuilder encodeUnlinkedExport(base.BuilderContext builderContext, {
   return builder;
 }
 
+/**
+ * Unlinked summary information about an import declaration.
+ */
 class UnlinkedImport extends base.SummaryClass {
   String _uri;
   int _offset;
@@ -917,11 +1315,38 @@ class UnlinkedImport extends base.SummaryClass {
     "isImplicit": isImplicit,
   };
 
+  /**
+   * URI used in the source code to reference the imported library.
+   */
   String get uri => _uri ?? '';
+
+  /**
+   * If [isImplicit] is false, offset of the "import" keyword.  If [isImplicit]
+   * is true, zero.
+   */
   int get offset => _offset ?? 0;
+
+  /**
+   * Index into [UnlinkedUnit.references] of the prefix declared by this
+   * import declaration, or zero if this import declaration declares no prefix.
+   *
+   * Note that multiple imports can declare the same prefix.
+   */
   int get prefixReference => _prefixReference ?? 0;
+
+  /**
+   * Combinators contained in this import declaration.
+   */
   List<UnlinkedCombinator> get combinators => _combinators ?? const <UnlinkedCombinator>[];
+
+  /**
+   * Indicates whether the import declaration uses the `deferred` keyword.
+   */
   bool get isDeferred => _isDeferred ?? false;
+
+  /**
+   * Indicates whether the import declaration is implicit.
+   */
   bool get isImplicit => _isImplicit ?? false;
 }
 
@@ -932,6 +1357,9 @@ class UnlinkedImportBuilder {
 
   UnlinkedImportBuilder(base.BuilderContext context);
 
+  /**
+   * URI used in the source code to reference the imported library.
+   */
   void set uri(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("uri"));
@@ -940,6 +1368,10 @@ class UnlinkedImportBuilder {
     }
   }
 
+  /**
+   * If [isImplicit] is false, offset of the "import" keyword.  If [isImplicit]
+   * is true, zero.
+   */
   void set offset(int _value) {
     assert(!_finished);
     assert(!_json.containsKey("offset"));
@@ -948,6 +1380,12 @@ class UnlinkedImportBuilder {
     }
   }
 
+  /**
+   * Index into [UnlinkedUnit.references] of the prefix declared by this
+   * import declaration, or zero if this import declaration declares no prefix.
+   *
+   * Note that multiple imports can declare the same prefix.
+   */
   void set prefixReference(int _value) {
     assert(!_finished);
     assert(!_json.containsKey("prefixReference"));
@@ -956,6 +1394,9 @@ class UnlinkedImportBuilder {
     }
   }
 
+  /**
+   * Combinators contained in this import declaration.
+   */
   void set combinators(List<UnlinkedCombinatorBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("combinators"));
@@ -964,6 +1405,9 @@ class UnlinkedImportBuilder {
     }
   }
 
+  /**
+   * Indicates whether the import declaration uses the `deferred` keyword.
+   */
   void set isDeferred(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isDeferred"));
@@ -972,6 +1416,9 @@ class UnlinkedImportBuilder {
     }
   }
 
+  /**
+   * Indicates whether the import declaration is implicit.
+   */
   void set isImplicit(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isImplicit"));
@@ -998,6 +1445,9 @@ UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {
   return builder;
 }
 
+/**
+ * Unlinked summary information about a function parameter.
+ */
 class UnlinkedParam extends base.SummaryClass {
   String _name;
   UnlinkedTypeRef _type;
@@ -1027,12 +1477,45 @@ class UnlinkedParam extends base.SummaryClass {
     "hasImplicitType": hasImplicitType,
   };
 
+  /**
+   * Name of the parameter.
+   */
   String get name => _name ?? '';
+
+  /**
+   * If [isFunctionTyped] is `true`, the declared return type.  If
+   * [isFunctionTyped] is `false`, the declared type.  Absent if
+   * [isFunctionTyped] is `true` and the declared return type is `void`.  Note
+   * that when strong mode is enabled, the actual type may be different due to
+   * type inference.
+   */
   UnlinkedTypeRef get type => _type;
+
+  /**
+   * If [isFunctionTyped] is `true`, the parameters of the function type.
+   */
   List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
+
+  /**
+   * Kind of the parameter.
+   */
   UnlinkedParamKind get kind => _kind ?? UnlinkedParamKind.required;
+
+  /**
+   * Indicates whether this is a function-typed parameter.
+   */
   bool get isFunctionTyped => _isFunctionTyped ?? false;
+
+  /**
+   * Indicates whether this is an initializing formal parameter (i.e. it is
+   * declared using `this.` syntax).
+   */
   bool get isInitializingFormal => _isInitializingFormal ?? false;
+
+  /**
+   * Indicates whether this parameter lacks an explicit type declaration.
+   * Always false for a function-typed parameter.
+   */
   bool get hasImplicitType => _hasImplicitType ?? false;
 }
 
@@ -1043,6 +1526,9 @@ class UnlinkedParamBuilder {
 
   UnlinkedParamBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the parameter.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -1051,6 +1537,13 @@ class UnlinkedParamBuilder {
     }
   }
 
+  /**
+   * If [isFunctionTyped] is `true`, the declared return type.  If
+   * [isFunctionTyped] is `false`, the declared type.  Absent if
+   * [isFunctionTyped] is `true` and the declared return type is `void`.  Note
+   * that when strong mode is enabled, the actual type may be different due to
+   * type inference.
+   */
   void set type(UnlinkedTypeRefBuilder _value) {
     assert(!_finished);
     assert(!_json.containsKey("type"));
@@ -1059,6 +1552,9 @@ class UnlinkedParamBuilder {
     }
   }
 
+  /**
+   * If [isFunctionTyped] is `true`, the parameters of the function type.
+   */
   void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parameters"));
@@ -1067,6 +1563,9 @@ class UnlinkedParamBuilder {
     }
   }
 
+  /**
+   * Kind of the parameter.
+   */
   void set kind(UnlinkedParamKind _value) {
     assert(!_finished);
     assert(!_json.containsKey("kind"));
@@ -1075,6 +1574,9 @@ class UnlinkedParamBuilder {
     }
   }
 
+  /**
+   * Indicates whether this is a function-typed parameter.
+   */
   void set isFunctionTyped(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isFunctionTyped"));
@@ -1083,6 +1585,10 @@ class UnlinkedParamBuilder {
     }
   }
 
+  /**
+   * Indicates whether this is an initializing formal parameter (i.e. it is
+   * declared using `this.` syntax).
+   */
   void set isInitializingFormal(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isInitializingFormal"));
@@ -1091,6 +1597,10 @@ class UnlinkedParamBuilder {
     }
   }
 
+  /**
+   * Indicates whether this parameter lacks an explicit type declaration.
+   * Always false for a function-typed parameter.
+   */
   void set hasImplicitType(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("hasImplicitType"));
@@ -1118,6 +1628,9 @@ UnlinkedParamBuilder encodeUnlinkedParam(base.BuilderContext builderContext, {St
   return builder;
 }
 
+/**
+ * Unlinked summary information about a part declaration.
+ */
 class UnlinkedPart extends base.SummaryClass {
   String _uri;
 
@@ -1129,6 +1642,9 @@ class UnlinkedPart extends base.SummaryClass {
     "uri": uri,
   };
 
+  /**
+   * String used in the compilation unit to refer to the part file.
+   */
   String get uri => _uri ?? '';
 }
 
@@ -1139,6 +1655,9 @@ class UnlinkedPartBuilder {
 
   UnlinkedPartBuilder(base.BuilderContext context);
 
+  /**
+   * String used in the compilation unit to refer to the part file.
+   */
   void set uri(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("uri"));
@@ -1160,6 +1679,20 @@ UnlinkedPartBuilder encodeUnlinkedPart(base.BuilderContext builderContext, {Stri
   return builder;
 }
 
+/**
+ * Unlinked summary information about a specific name contributed by a
+ * compilation unit to a library's public namespace.
+ *
+ * TODO(paulberry): add a count of generic parameters, so that resynthesis
+ * doesn't have to peek into the library to obtain this info.
+ *
+ * TODO(paulberry): for classes, add info about static members and
+ * constructors, since this will be needed to prelink info about constants.
+ *
+ * TODO(paulberry): some of this information is redundant with information
+ * elsewhere in the summary.  Consider reducing the redundancy to reduce
+ * summary size.
+ */
 class UnlinkedPublicName extends base.SummaryClass {
   String _name;
   PrelinkedReferenceKind _kind;
@@ -1174,7 +1707,14 @@ class UnlinkedPublicName extends base.SummaryClass {
     "kind": kind,
   };
 
+  /**
+   * The name itself.
+   */
   String get name => _name ?? '';
+
+  /**
+   * The kind of object referred to by the name.
+   */
   PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
 }
 
@@ -1185,6 +1725,9 @@ class UnlinkedPublicNameBuilder {
 
   UnlinkedPublicNameBuilder(base.BuilderContext context);
 
+  /**
+   * The name itself.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -1193,6 +1736,9 @@ class UnlinkedPublicNameBuilder {
     }
   }
 
+  /**
+   * The kind of object referred to by the name.
+   */
   void set kind(PrelinkedReferenceKind _value) {
     assert(!_finished);
     assert(!_json.containsKey("kind"));
@@ -1215,6 +1761,11 @@ UnlinkedPublicNameBuilder encodeUnlinkedPublicName(base.BuilderContext builderCo
   return builder;
 }
 
+/**
+ * Unlinked summary information about what a compilation unit contributes to a
+ * library's public namespace.  This is the subset of [UnlinkedUnit] that is
+ * required from dependent libraries in order to perform prelinking.
+ */
 class UnlinkedPublicNamespace extends base.SummaryClass {
   List<UnlinkedPublicName> _names;
   List<UnlinkedExport> _exports;
@@ -1234,8 +1785,22 @@ class UnlinkedPublicNamespace extends base.SummaryClass {
 
   UnlinkedPublicNamespace.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
+  /**
+   * Public names defined in the compilation unit.
+   *
+   * TODO(paulberry): consider sorting these names to reduce unnecessary
+   * relinking.
+   */
   List<UnlinkedPublicName> get names => _names ?? const <UnlinkedPublicName>[];
+
+  /**
+   * Export declarations in the compilation unit.
+   */
   List<UnlinkedExport> get exports => _exports ?? const <UnlinkedExport>[];
+
+  /**
+   * Part declarations in the compilation unit.
+   */
   List<UnlinkedPart> get parts => _parts ?? const <UnlinkedPart>[];
 }
 
@@ -1246,6 +1811,12 @@ class UnlinkedPublicNamespaceBuilder {
 
   UnlinkedPublicNamespaceBuilder(base.BuilderContext context);
 
+  /**
+   * Public names defined in the compilation unit.
+   *
+   * TODO(paulberry): consider sorting these names to reduce unnecessary
+   * relinking.
+   */
   void set names(List<UnlinkedPublicNameBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("names"));
@@ -1254,6 +1825,9 @@ class UnlinkedPublicNamespaceBuilder {
     }
   }
 
+  /**
+   * Export declarations in the compilation unit.
+   */
   void set exports(List<UnlinkedExportBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("exports"));
@@ -1262,6 +1836,9 @@ class UnlinkedPublicNamespaceBuilder {
     }
   }
 
+  /**
+   * Part declarations in the compilation unit.
+   */
   void set parts(List<UnlinkedPartBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parts"));
@@ -1287,6 +1864,10 @@ UnlinkedPublicNamespaceBuilder encodeUnlinkedPublicNamespace(base.BuilderContext
   return builder;
 }
 
+/**
+ * Unlinked summary information about a name referred to in one library that
+ * might be defined in another.
+ */
 class UnlinkedReference extends base.SummaryClass {
   String _name;
   int _prefixReference;
@@ -1301,7 +1882,16 @@ class UnlinkedReference extends base.SummaryClass {
     "prefixReference": prefixReference,
   };
 
+  /**
+   * Name of the entity being referred to.  The empty string refers to the
+   * pseudo-type `dynamic`.
+   */
   String get name => _name ?? '';
+
+  /**
+   * Prefix used to refer to the entity, or zero if no prefix is used.  This is
+   * an index into [UnlinkedUnit.references].
+   */
   int get prefixReference => _prefixReference ?? 0;
 }
 
@@ -1312,6 +1902,10 @@ class UnlinkedReferenceBuilder {
 
   UnlinkedReferenceBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the entity being referred to.  The empty string refers to the
+   * pseudo-type `dynamic`.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -1320,6 +1914,10 @@ class UnlinkedReferenceBuilder {
     }
   }
 
+  /**
+   * Prefix used to refer to the entity, or zero if no prefix is used.  This is
+   * an index into [UnlinkedUnit.references].
+   */
   void set prefixReference(int _value) {
     assert(!_finished);
     assert(!_json.containsKey("prefixReference"));
@@ -1342,6 +1940,9 @@ UnlinkedReferenceBuilder encodeUnlinkedReference(base.BuilderContext builderCont
   return builder;
 }
 
+/**
+ * Unlinked summary information about a typedef declaration.
+ */
 class UnlinkedTypedef extends base.SummaryClass {
   String _name;
   List<UnlinkedTypeParam> _typeParameters;
@@ -1362,9 +1963,24 @@ class UnlinkedTypedef extends base.SummaryClass {
     "parameters": parameters,
   };
 
+  /**
+   * Name of the typedef.
+   */
   String get name => _name ?? '';
+
+  /**
+   * Type parameters of the typedef, if any.
+   */
   List<UnlinkedTypeParam> get typeParameters => _typeParameters ?? const <UnlinkedTypeParam>[];
+
+  /**
+   * Return type of the typedef.  Absent if the return type is `void`.
+   */
   UnlinkedTypeRef get returnType => _returnType;
+
+  /**
+   * Parameters of the executable, if any.
+   */
   List<UnlinkedParam> get parameters => _parameters ?? const <UnlinkedParam>[];
 }
 
@@ -1375,6 +1991,9 @@ class UnlinkedTypedefBuilder {
 
   UnlinkedTypedefBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the typedef.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -1383,6 +2002,9 @@ class UnlinkedTypedefBuilder {
     }
   }
 
+  /**
+   * Type parameters of the typedef, if any.
+   */
   void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typeParameters"));
@@ -1391,6 +2013,9 @@ class UnlinkedTypedefBuilder {
     }
   }
 
+  /**
+   * Return type of the typedef.  Absent if the return type is `void`.
+   */
   void set returnType(UnlinkedTypeRefBuilder _value) {
     assert(!_finished);
     assert(!_json.containsKey("returnType"));
@@ -1399,6 +2024,9 @@ class UnlinkedTypedefBuilder {
     }
   }
 
+  /**
+   * Parameters of the executable, if any.
+   */
   void set parameters(List<UnlinkedParamBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("parameters"));
@@ -1423,6 +2051,9 @@ UnlinkedTypedefBuilder encodeUnlinkedTypedef(base.BuilderContext builderContext,
   return builder;
 }
 
+/**
+ * Unlinked summary information about a type parameter declaration.
+ */
 class UnlinkedTypeParam extends base.SummaryClass {
   String _name;
   UnlinkedTypeRef _bound;
@@ -1437,7 +2068,15 @@ class UnlinkedTypeParam extends base.SummaryClass {
     "bound": bound,
   };
 
+  /**
+   * Name of the type parameter.
+   */
   String get name => _name ?? '';
+
+  /**
+   * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
+   * null.
+   */
   UnlinkedTypeRef get bound => _bound;
 }
 
@@ -1448,6 +2087,9 @@ class UnlinkedTypeParamBuilder {
 
   UnlinkedTypeParamBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the type parameter.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -1456,6 +2098,10 @@ class UnlinkedTypeParamBuilder {
     }
   }
 
+  /**
+   * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
+   * null.
+   */
   void set bound(UnlinkedTypeRefBuilder _value) {
     assert(!_finished);
     assert(!_json.containsKey("bound"));
@@ -1478,6 +2124,9 @@ UnlinkedTypeParamBuilder encodeUnlinkedTypeParam(base.BuilderContext builderCont
   return builder;
 }
 
+/**
+ * Unlinked summary information about a reference to a type.
+ */
 class UnlinkedTypeRef extends base.SummaryClass {
   int _reference;
   int _paramReference;
@@ -1495,8 +2144,43 @@ class UnlinkedTypeRef extends base.SummaryClass {
     "typeArguments": typeArguments,
   };
 
+  /**
+   * Index into [UnlinkedUnit.references] for the type being referred to, or
+   * zero if this is a reference to a type parameter.
+   *
+   * Note that since zero is also a valid index into
+   * [UnlinkedUnit.references], we cannot distinguish between references to
+   * type parameters and references to types by checking [reference] against
+   * zero.  To distinguish between references to type parameters and references
+   * to types, check whether [paramReference] is zero.
+   */
   int get reference => _reference ?? 0;
+
+  /**
+   * If this is a reference to a type parameter, one-based index into the list
+   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
+   * Bruijn index conventions; that is, innermost parameters come first, and
+   * if a class or method has multiple parameters, they are indexed from right
+   * to left.  So for instance, if the enclosing declaration is
+   *
+   *     class C<T,U> {
+   *       m<V,W> {
+   *         ...
+   *       }
+   *     }
+   *
+   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
+   * respectively.
+   *
+   * If the type being referred to is not a type parameter, [paramReference] is
+   * zero.
+   */
   int get paramReference => _paramReference ?? 0;
+
+  /**
+   * If this is an instantiation of a generic type, the type arguments used to
+   * instantiate it.  Trailing type arguments of type `dynamic` are omitted.
+   */
   List<UnlinkedTypeRef> get typeArguments => _typeArguments ?? const <UnlinkedTypeRef>[];
 }
 
@@ -1507,6 +2191,16 @@ class UnlinkedTypeRefBuilder {
 
   UnlinkedTypeRefBuilder(base.BuilderContext context);
 
+  /**
+   * Index into [UnlinkedUnit.references] for the type being referred to, or
+   * zero if this is a reference to a type parameter.
+   *
+   * Note that since zero is also a valid index into
+   * [UnlinkedUnit.references], we cannot distinguish between references to
+   * type parameters and references to types by checking [reference] against
+   * zero.  To distinguish between references to type parameters and references
+   * to types, check whether [paramReference] is zero.
+   */
   void set reference(int _value) {
     assert(!_finished);
     assert(!_json.containsKey("reference"));
@@ -1515,6 +2209,25 @@ class UnlinkedTypeRefBuilder {
     }
   }
 
+  /**
+   * If this is a reference to a type parameter, one-based index into the list
+   * of [UnlinkedTypeParam]s currently in effect.  Indexing is done using De
+   * Bruijn index conventions; that is, innermost parameters come first, and
+   * if a class or method has multiple parameters, they are indexed from right
+   * to left.  So for instance, if the enclosing declaration is
+   *
+   *     class C<T,U> {
+   *       m<V,W> {
+   *         ...
+   *       }
+   *     }
+   *
+   * Then [paramReference] values of 1, 2, 3, and 4 represent W, V, U, and T,
+   * respectively.
+   *
+   * If the type being referred to is not a type parameter, [paramReference] is
+   * zero.
+   */
   void set paramReference(int _value) {
     assert(!_finished);
     assert(!_json.containsKey("paramReference"));
@@ -1523,6 +2236,10 @@ class UnlinkedTypeRefBuilder {
     }
   }
 
+  /**
+   * If this is an instantiation of a generic type, the type arguments used to
+   * instantiate it.  Trailing type arguments of type `dynamic` are omitted.
+   */
   void set typeArguments(List<UnlinkedTypeRefBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typeArguments"));
@@ -1546,6 +2263,9 @@ UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(base.BuilderContext builderContext,
   return builder;
 }
 
+/**
+ * Unlinked summary information about a compilation unit ("part file").
+ */
 class UnlinkedUnit extends base.SummaryClass {
   String _libraryName;
   UnlinkedPublicNamespace _publicNamespace;
@@ -1583,14 +2303,52 @@ class UnlinkedUnit extends base.SummaryClass {
 
   UnlinkedUnit.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));
 
+  /**
+   * Name of the library (from a "library" declaration, if present).
+   */
   String get libraryName => _libraryName ?? '';
+
+  /**
+   * Unlinked public namespace of this compilation unit.
+   */
   UnlinkedPublicNamespace get publicNamespace => _publicNamespace;
+
+  /**
+   * Top level and prefixed names referred to by this compilation unit.  The
+   * zeroth element of this array is always populated and always represents a
+   * reference to the pseudo-type "dynamic".
+   */
   List<UnlinkedReference> get references => _references ?? const <UnlinkedReference>[];
+
+  /**
+   * Classes declared in the compilation unit.
+   */
   List<UnlinkedClass> get classes => _classes ?? const <UnlinkedClass>[];
+
+  /**
+   * Enums declared in the compilation unit.
+   */
   List<UnlinkedEnum> get enums => _enums ?? const <UnlinkedEnum>[];
+
+  /**
+   * Top level executable objects (functions, getters, and setters) declared in
+   * the compilation unit.
+   */
   List<UnlinkedExecutable> get executables => _executables ?? const <UnlinkedExecutable>[];
+
+  /**
+   * Import declarations in the compilation unit.
+   */
   List<UnlinkedImport> get imports => _imports ?? const <UnlinkedImport>[];
+
+  /**
+   * Typedefs declared in the compilation unit.
+   */
   List<UnlinkedTypedef> get typedefs => _typedefs ?? const <UnlinkedTypedef>[];
+
+  /**
+   * Top level variables declared in the compilation unit.
+   */
   List<UnlinkedVariable> get variables => _variables ?? const <UnlinkedVariable>[];
 }
 
@@ -1601,6 +2359,9 @@ class UnlinkedUnitBuilder {
 
   UnlinkedUnitBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the library (from a "library" declaration, if present).
+   */
   void set libraryName(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("libraryName"));
@@ -1609,6 +2370,9 @@ class UnlinkedUnitBuilder {
     }
   }
 
+  /**
+   * Unlinked public namespace of this compilation unit.
+   */
   void set publicNamespace(UnlinkedPublicNamespaceBuilder _value) {
     assert(!_finished);
     assert(!_json.containsKey("publicNamespace"));
@@ -1617,6 +2381,11 @@ class UnlinkedUnitBuilder {
     }
   }
 
+  /**
+   * Top level and prefixed names referred to by this compilation unit.  The
+   * zeroth element of this array is always populated and always represents a
+   * reference to the pseudo-type "dynamic".
+   */
   void set references(List<UnlinkedReferenceBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("references"));
@@ -1625,6 +2394,9 @@ class UnlinkedUnitBuilder {
     }
   }
 
+  /**
+   * Classes declared in the compilation unit.
+   */
   void set classes(List<UnlinkedClassBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("classes"));
@@ -1633,6 +2405,9 @@ class UnlinkedUnitBuilder {
     }
   }
 
+  /**
+   * Enums declared in the compilation unit.
+   */
   void set enums(List<UnlinkedEnumBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("enums"));
@@ -1641,6 +2416,10 @@ class UnlinkedUnitBuilder {
     }
   }
 
+  /**
+   * Top level executable objects (functions, getters, and setters) declared in
+   * the compilation unit.
+   */
   void set executables(List<UnlinkedExecutableBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("executables"));
@@ -1649,6 +2428,9 @@ class UnlinkedUnitBuilder {
     }
   }
 
+  /**
+   * Import declarations in the compilation unit.
+   */
   void set imports(List<UnlinkedImportBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("imports"));
@@ -1657,6 +2439,9 @@ class UnlinkedUnitBuilder {
     }
   }
 
+  /**
+   * Typedefs declared in the compilation unit.
+   */
   void set typedefs(List<UnlinkedTypedefBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("typedefs"));
@@ -1665,6 +2450,9 @@ class UnlinkedUnitBuilder {
     }
   }
 
+  /**
+   * Top level variables declared in the compilation unit.
+   */
   void set variables(List<UnlinkedVariableBuilder> _value) {
     assert(!_finished);
     assert(!_json.containsKey("variables"));
@@ -1696,6 +2484,10 @@ UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {Stri
   return builder;
 }
 
+/**
+ * Unlinked summary information about a top level variable, local variable, or
+ * a field.
+ */
 class UnlinkedVariable extends base.SummaryClass {
   String _name;
   UnlinkedTypeRef _type;
@@ -1722,11 +2514,39 @@ class UnlinkedVariable extends base.SummaryClass {
     "hasImplicitType": hasImplicitType,
   };
 
+  /**
+   * Name of the variable.
+   */
   String get name => _name ?? '';
+
+  /**
+   * Declared type of the variable.  Note that when strong mode is enabled, the
+   * actual type of the variable may be different due to type inference.
+   */
   UnlinkedTypeRef get type => _type;
+
+  /**
+   * Indicates whether the variable is declared using the `static` keyword.
+   *
+   * Note that for top level variables, this flag is false, since they are not
+   * declared using the `static` keyword (even though they are considered
+   * static for semantic purposes).
+   */
   bool get isStatic => _isStatic ?? false;
+
+  /**
+   * Indicates whether the variable is declared using the `final` keyword.
+   */
   bool get isFinal => _isFinal ?? false;
+
+  /**
+   * Indicates whether the variable is declared using the `const` keyword.
+   */
   bool get isConst => _isConst ?? false;
+
+  /**
+   * Indicates whether this variable lacks an explicit type declaration.
+   */
   bool get hasImplicitType => _hasImplicitType ?? false;
 }
 
@@ -1737,6 +2557,9 @@ class UnlinkedVariableBuilder {
 
   UnlinkedVariableBuilder(base.BuilderContext context);
 
+  /**
+   * Name of the variable.
+   */
   void set name(String _value) {
     assert(!_finished);
     assert(!_json.containsKey("name"));
@@ -1745,6 +2568,10 @@ class UnlinkedVariableBuilder {
     }
   }
 
+  /**
+   * Declared type of the variable.  Note that when strong mode is enabled, the
+   * actual type of the variable may be different due to type inference.
+   */
   void set type(UnlinkedTypeRefBuilder _value) {
     assert(!_finished);
     assert(!_json.containsKey("type"));
@@ -1753,6 +2580,13 @@ class UnlinkedVariableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the variable is declared using the `static` keyword.
+   *
+   * Note that for top level variables, this flag is false, since they are not
+   * declared using the `static` keyword (even though they are considered
+   * static for semantic purposes).
+   */
   void set isStatic(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isStatic"));
@@ -1761,6 +2595,9 @@ class UnlinkedVariableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the variable is declared using the `final` keyword.
+   */
   void set isFinal(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isFinal"));
@@ -1769,6 +2606,9 @@ class UnlinkedVariableBuilder {
     }
   }
 
+  /**
+   * Indicates whether the variable is declared using the `const` keyword.
+   */
   void set isConst(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("isConst"));
@@ -1777,6 +2617,9 @@ class UnlinkedVariableBuilder {
     }
   }
 
+  /**
+   * Indicates whether this variable lacks an explicit type declaration.
+   */
   void set hasImplicitType(bool _value) {
     assert(!_finished);
     assert(!_json.containsKey("hasImplicitType"));
