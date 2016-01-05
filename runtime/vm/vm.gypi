@@ -137,7 +137,7 @@
               '-lpthread',
             ],
           },
-        }],	
+        }],
         ['OS=="android" and _toolset=="host"', {
           'link_settings': {
             'libraries': [
@@ -207,7 +207,7 @@
               '-lpthread',
             ],
           },
-        }],	
+        }],
         ['OS=="android" and _toolset=="host"', {
           'link_settings': {
             'libraries': [
