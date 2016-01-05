@@ -195,11 +195,14 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   /**
    * Initialize a newly created function type to be declared by the given
-   * [element], with the given [name].
+   * [element], with the given [name] and [typeArguments].
+   *
+   * TODO(paulberry): set [typeParameters] and [boundTypeParameters] properly.
    */
-  FunctionTypeImpl.elementWithName(Element element, String name)
-      : prunedTypedefs = null,
-        super(element, name);
+  FunctionTypeImpl.elementWithNameAndArgs(
+      Element element, String name, List<DartType> typeArguments)
+      : this._(element, name, null, typeArguments,
+            const <TypeParameterElement>[], const <TypeParameterElement>[]);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -1107,11 +1110,14 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   /**
    * Initialize a newly created type to be declared by the given [element],
-   * with the given [name].
+   * with the given [name] and [typeArguents].
    */
-  InterfaceTypeImpl.elementWithName(ClassElement element, String name)
+  InterfaceTypeImpl.elementWithNameAndArgs(
+      ClassElement element, String name, List<DartType> typeArguments)
       : prunedTypedefs = null,
-        super(element, name);
+        super(element, name) {
+    this.typeArguments = typeArguments;
+  }
 
   /**
    * Initialize a newly created type to have the given [name]. This constructor

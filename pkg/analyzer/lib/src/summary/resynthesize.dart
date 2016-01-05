@@ -25,66 +25,6 @@ typedef PrelinkedLibrary GetPrelinkedSummaryCallback(String uri);
 typedef UnlinkedUnit GetUnlinkedSummaryCallback(String uri);
 
 /**
- * Specialization of [FunctionTypeImpl] used for function types resynthesized
- * from summaries.
- */
-class ResynthesizedFunctionTypeImpl extends FunctionTypeImpl
-    with ResynthesizedType {
-  final SummaryResynthesizer summaryResynthesizer;
-
-  ResynthesizedFunctionTypeImpl(
-      FunctionTypeAliasElement element, String name, this.summaryResynthesizer)
-      : super.elementWithName(element, name);
-
-  int get _numTypeParameters {
-    FunctionTypeAliasElement element = this.element;
-    return element.typeParameters.length;
-  }
-}
-
-/**
- * Specialization of [InterfaceTypeImpl] used for interface types resynthesized
- * from summaries.
- */
-class ResynthesizedInterfaceTypeImpl extends InterfaceTypeImpl
-    with ResynthesizedType {
-  final SummaryResynthesizer summaryResynthesizer;
-
-  ResynthesizedInterfaceTypeImpl(
-      ClassElement element, String name, this.summaryResynthesizer)
-      : super.elementWithName(element, name);
-
-  int get _numTypeParameters => element.typeParameters.length;
-}
-
-/**
- * Common code for types resynthesized from summaries.  This code takes care of
- * filling in the appropriate number of copies of `dynamic` when it is queried
- * for type parameters on a bare type reference (i.e. it converts `List` to
- * `List<dynamic>`).
- */
-abstract class ResynthesizedType implements DartType {
-  /**
-   * The type arguments, if known.  Otherwise `null`.
-   */
-  List<DartType> _typeArguments;
-
-  SummaryResynthesizer get summaryResynthesizer;
-
-  List<DartType> get typeArguments {
-    if (_typeArguments == null) {
-      // Default to replicating "dynamic" as many times as the class element
-      // requires.
-      _typeArguments = new List<DartType>.filled(
-          _numTypeParameters, summaryResynthesizer.typeProvider.dynamicType);
-    }
-    return _typeArguments;
-  }
-
-  int get _numTypeParameters;
-}
-
-/**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
  * model from summaries.
  */
@@ -812,33 +752,36 @@ class _LibraryResynthesizer {
           partUri = referencedLibraryUri;
         }
       }
-      ResynthesizedType resynthesizedType;
       ElementLocationImpl location = new ElementLocationImpl.con3(
           <String>[referencedLibraryUri, partUri, reference.name]);
+      List<DartType> typeArguments = const <DartType>[];
+      if (referenceResolution.numTypeParameters != 0) {
+        typeArguments = <DartType>[];
+        for (int i = 0; i < referenceResolution.numTypeParameters; i++) {
+          if (i < type.typeArguments.length) {
+            typeArguments.add(buildType(type.typeArguments[i]));
+          } else {
+            typeArguments.add(summaryResynthesizer.typeProvider.dynamicType);
+          }
+        }
+      }
       switch (referenceResolution.kind) {
         case PrelinkedReferenceKind.classOrEnum:
-          resynthesizedType = new ResynthesizedInterfaceTypeImpl(
+          return new InterfaceTypeImpl.elementWithNameAndArgs(
               new ClassElementHandle(summaryResynthesizer, location),
               reference.name,
-              summaryResynthesizer);
-          break;
+              typeArguments);
         case PrelinkedReferenceKind.typedef:
-          resynthesizedType = new ResynthesizedFunctionTypeImpl(
+          return new FunctionTypeImpl.elementWithNameAndArgs(
               new FunctionTypeAliasElementHandle(
                   summaryResynthesizer, location),
               reference.name,
-              summaryResynthesizer);
-          break;
+              typeArguments);
         default:
           // TODO(paulberry): figure out how to handle this case (which should
           // only occur in the event of erroneous code).
           throw new UnimplementedError();
       }
-      if (type.typeArguments.isNotEmpty) {
-        resynthesizedType._typeArguments =
-            type.typeArguments.map(buildType).toList();
-      }
-      return resynthesizedType;
     }
   }
 
