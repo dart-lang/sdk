@@ -10,14 +10,12 @@
 namespace dart {
 
 DEFINE_NATIVE_ENTRY(Stopwatch_now, 0) {
-  // TODO(iposva): investigate other hi-res time sources such as cycle count.
-  return Integer::New(OS::GetCurrentMonotonicMicros());
+  return Integer::New(OS::GetCurrentMonotonicTicks());
 }
 
 
 DEFINE_NATIVE_ENTRY(Stopwatch_frequency, 0) {
-  // TODO(iposva): investigate other hi-res time sources such as cycle count.
-  return Integer::New(1000000);
+  return Integer::New(OS::GetCurrentMonotonicFrequency());
 }
 
 }  // namespace dart

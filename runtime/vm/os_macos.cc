@@ -90,7 +90,10 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
-int64_t OS::GetCurrentMonotonicMicros() {
+static mach_timebase_info_data_t timebase_info;
+
+
+int64_t OS::GetCurrentMonotonicTicks() {
 #if TARGET_OS_IOS
   // On iOS mach_absolute_time stops while the device is sleeping. Instead use
   // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
@@ -106,23 +109,32 @@ int64_t OS::GetCurrentMonotonicMicros() {
   origin += boottime.tv_usec;
   return now - origin;
 #else
-  static mach_timebase_info_data_t timebase_info;
-  if (timebase_info.denom == 0) {
-    // Zero-initialization of statics guarantees that denom will be 0 before
-    // calling mach_timebase_info.  mach_timebase_info will never set denom to
-    // 0 as that would be invalid, so the zero-check can be used to determine
-    // whether mach_timebase_info has already been called.  This is
-    // recommended by Apple's QA1398.
-    kern_return_t kr = mach_timebase_info(&timebase_info);
-    ASSERT(KERN_SUCCESS == kr);
-  }
-
-  // timebase_info converts absolute time tick units into nanoseconds.  Convert
-  // to microseconds.
-  int64_t result = mach_absolute_time() / kNanosecondsPerMicrosecond;
+  ASSERT(timebase_info.denom != 0);
+  // timebase_info converts absolute time tick units into nanoseconds.
+  int64_t result = mach_absolute_time();
   result *= timebase_info.numer;
   result /= timebase_info.denom;
   return result;
+#endif  // TARGET_OS_IOS
+}
+
+
+int64_t OS::GetCurrentMonotonicFrequency() {
+#if TARGET_OS_IOS
+  return kMicrosecondsPerSecond;
+#else
+  return kNanosecondsPerSecond;
+#endif  // TARGET_OS_IOS
+}
+
+
+int64_t OS::GetCurrentMonotonicMicros() {
+#if TARGET_OS_IOS
+  ASSERT(GetCurrentMonotonicFrequency() == kMicrosecondsPerSecond);
+  return GetCurrentMonotonicTicks();
+#else
+  ASSERT(GetCurrentMonotonicFrequency() == kNanosecondsPerSecond);
+  return GetCurrentMonotonicTicks() / kNanosecondsPerMicrosecond;
 #endif  // TARGET_OS_IOS
 }
 
@@ -361,6 +373,8 @@ void OS::InitOnce() {
   static bool init_once_called = false;
   ASSERT(init_once_called == false);
   init_once_called = true;
+  kern_return_t kr = mach_timebase_info(&timebase_info);
+  ASSERT(KERN_SUCCESS == kr);
 }
 
 
