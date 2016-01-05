@@ -1245,7 +1245,6 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 
 
 static bool CanOptimizeFunction(const Function& function, Thread* thread) {
-  const intptr_t kLowInvocationCount = -100000000;
   Isolate* isolate = thread->isolate();
   if (isolate->debugger()->IsStepping() ||
       isolate->debugger()->HasBreakpoint(function, thread->zone())) {
@@ -1258,14 +1257,16 @@ static bool CanOptimizeFunction(const Function& function, Thread* thread) {
       FLAG_max_deoptimization_counter_threshold) {
     if (FLAG_trace_failed_optimization_attempts ||
         FLAG_stop_on_excessive_deoptimization) {
-      OS::PrintErr("Too Many Deoptimizations: %s\n",
+      THR_Print("Too many deoptimizations: %s\n",
           function.ToFullyQualifiedCString());
       if (FLAG_stop_on_excessive_deoptimization) {
         FATAL("Stop on excessive deoptimization");
       }
     }
-    // TODO(srdjan): Investigate excessive deoptimization.
-    function.set_usage_counter(kLowInvocationCount);
+    // The function will not be optimized any longer. This situation can occur
+    // mostly with small optimization counter thresholds.
+    function.SetIsOptimizable(false);
+    function.set_usage_counter(INT_MIN);
     return false;
   }
   if (FLAG_optimization_filter != NULL) {
@@ -1287,16 +1288,17 @@ static bool CanOptimizeFunction(const Function& function, Thread* thread) {
     }
     delete[] filter;
     if (!found) {
-      function.set_usage_counter(kLowInvocationCount);
+      function.set_usage_counter(INT_MIN);
       return false;
     }
   }
   if (!function.IsOptimizable()) {
+    // Huge methods (code size above --huge_method_cutoff_in_code_size) become
+    // non-optimizable only after the code has been generated.
     if (FLAG_trace_failed_optimization_attempts) {
-      OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());
+      THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
     }
-    // TODO(5442338): Abort as this should not happen.
-    function.set_usage_counter(kLowInvocationCount);
+    function.set_usage_counter(INT_MIN);
     return false;
   }
   return true;

@@ -70,6 +70,7 @@ DEFINE_FLAG(int, max_speculative_inlining_attempts, 1,
     "Max number of attempts with speculative inlining (precompilation only)");
 
 DECLARE_FLAG(bool, background_compilation);
+DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
@@ -466,6 +467,11 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
       Code::FinalizeCode(function, assembler, optimized()));
   code.set_is_optimized(optimized());
   code.set_owner(function);
+  if (!function.IsOptimizable()) {
+    // A function with huge unoptimized code can become non-optimizable
+    // after generating unoptimized code.
+    function.set_usage_counter(INT_MIN);
+  }
 
   const Array& intervals = graph_compiler->inlined_code_intervals();
   INC_STAT(thread(), total_code_size,

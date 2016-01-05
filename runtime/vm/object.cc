@@ -2797,9 +2797,10 @@ static bool IsMutatorOrAtSafepoint() {
 }
 #endif
 
+
 void Class::RegisterCHACode(const Code& code) {
   if (FLAG_trace_cha) {
-    THR_Print("RegisterCHACode %s class %s\n",
+    THR_Print("RegisterCHACode '%s' depends on class '%s'\n",
         Function::Handle(code.function()).ToQualifiedCString(), ToCString());
   }
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
@@ -2809,9 +2810,12 @@ void Class::RegisterCHACode(const Code& code) {
 }
 
 
-void Class::DisableCHAOptimizedCode() {
+void Class::DisableCHAOptimizedCode(const Class& subclass) {
   ASSERT(Thread::Current()->IsMutatorThread());
   CHACodeArray a(*this);
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    THR_Print("Adding subclass %s\n", subclass.ToCString());
+  }
   a.DisableCode();
 }
 
@@ -5820,7 +5824,7 @@ bool Function::IsOptimizable() const {
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
     return (unoptimized_code() == Object::null()) ||
-           (Code::Handle(unoptimized_code()).Size() <
+        (Code::Handle(unoptimized_code()).Size() <
             FLAG_huge_method_cutoff_in_code_size);
   }
   return false;
@@ -5837,6 +5841,7 @@ void Function::SetIsOptimizable(bool value) const {
   set_is_optimizable(value);
   if (!value) {
     set_is_inlinable(false);
+    set_usage_counter(INT_MIN);
   }
 }
 

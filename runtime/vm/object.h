@@ -1354,7 +1354,7 @@ class Class : public Object {
   // leaf method, ...).
   void RegisterCHACode(const Code& code);
 
-  void DisableCHAOptimizedCode();
+  void DisableCHAOptimizedCode(const Class& subclass);
 
   RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
   void set_cha_codes(const Array& value) const;

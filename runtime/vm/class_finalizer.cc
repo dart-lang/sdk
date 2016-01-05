@@ -35,9 +35,12 @@ bool ClassFinalizer::AllClassesFinalized() {
 // Only methods which owner classes where subclasses can be invalid.
 // TODO(srdjan): Be even more precise by recording the exact CHA optimization.
 static void RemoveCHAOptimizedCode(
+    const Class& subclass,
     const GrowableArray<intptr_t>& added_subclass_to_cids) {
   ASSERT(FLAG_use_cha_deopt);
-  if (added_subclass_to_cids.is_empty()) return;
+  if (added_subclass_to_cids.is_empty()) {
+    return;
+  }
   // Switch all functions' code to unoptimized.
   const ClassTable& class_table = *Isolate::Current()->class_table();
   Class& cls = Class::Handle();
@@ -45,7 +48,7 @@ static void RemoveCHAOptimizedCode(
     intptr_t cid = added_subclass_to_cids[i];
     cls = class_table.At(cid);
     ASSERT(!cls.IsNull());
-    cls.DisableCHAOptimizedCode();
+    cls.DisableCHAOptimizedCode(subclass);
   }
 }
 
@@ -2412,7 +2415,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     GrowableArray<intptr_t> cids;
     CollectFinalizedSuperClasses(cls, &cids);
     CollectImmediateSuperInterfaces(cls, &cids);
-    RemoveCHAOptimizedCode(cids);
+    RemoveCHAOptimizedCode(cls, cids);
   }
   if (cls.is_enum_class()) {
     AllocateEnumValues(cls);
