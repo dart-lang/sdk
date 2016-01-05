@@ -1192,7 +1192,9 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
    */
   DartType get returnType;
 
-  @override
+  /**
+   * The type of this element, which will be a function type.
+   */
   FunctionType get type;
 }
 
