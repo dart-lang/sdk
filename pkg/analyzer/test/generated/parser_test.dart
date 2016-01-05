@@ -7038,6 +7038,30 @@ void''');
     expect(declaration.propertyKeyword, isNull);
   }
 
+  void test_parseCompilationUnitMember_function_generic_noReturnType() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "f<E>() {}");
+    expect(declaration.returnType, isNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_function_generic_returnType() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "E f<E>() {}");
+    expect(declaration.returnType, isNotNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
+  void test_parseCompilationUnitMember_function_generic_void() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "void f<T>(T t) {}");
+    expect(declaration.functionExpression, isNotNull);
+    expect(declaration.propertyKeyword, isNull);
+  }
+
   void test_parseCompilationUnitMember_function_noType() {
     FunctionDeclaration declaration = parse("parseCompilationUnitMember",
         <Object>[emptyCommentAndMetadata()], "f() {}");
@@ -7056,14 +7080,6 @@ void''');
     FunctionDeclaration declaration = parse("parseCompilationUnitMember",
         <Object>[emptyCommentAndMetadata()], "void f() {}");
     expect(declaration.returnType, isNotNull);
-  }
-
-  void test_parseCompilationUnitMember_function_withTypeParameters() {
-    enableGenericMethods = true;
-    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
-        <Object>[emptyCommentAndMetadata()], "void f<T>(T t) {}");
-    expect(declaration.functionExpression, isNotNull);
-    expect(declaration.propertyKeyword, isNull);
   }
 
   void test_parseCompilationUnitMember_getter_external_noType() {

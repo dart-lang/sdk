@@ -4219,6 +4219,14 @@ class Parser {
     return _tokenMatches(token, TokenType.OPEN_PAREN);
   }
 
+  bool _isPeekGenericTypeParametersAndOpenParen() {
+    if (!parseGenericMethods) {
+      return false;
+    }
+    Token token = _skipTypeArgumentList(_peek());
+    return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
+  }
+
   /**
    * Return `true` if the current token appears to be the beginning of a switch
    * member.
@@ -5216,6 +5224,9 @@ class Parser {
       }
       _reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
       return null;
+    } else if (_isPeekGenericTypeParametersAndOpenParen()) {
+      return _parseFunctionDeclaration(
+          commentAndMetadata, modifiers.externalKeyword, null);
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
       TypeName returnType = _parseOptionalTypeNameComment();
       _validateModifiersForTopLevelFunction(modifiers);
@@ -5275,7 +5286,8 @@ class Parser {
     if (_peek().matchesAny([
       TokenType.OPEN_PAREN,
       TokenType.FUNCTION,
-      TokenType.OPEN_CURLY_BRACKET
+      TokenType.OPEN_CURLY_BRACKET,
+      TokenType.LT
     ])) {
       _validateModifiersForTopLevelFunction(modifiers);
       return _parseFunctionDeclaration(
