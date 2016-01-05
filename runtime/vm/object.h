@@ -6829,7 +6829,11 @@ class Array : public Instance {
     // An Array is raw or takes one type argument. However, its type argument
     // vector may be longer than 1 due to a type optimization reusing the type
     // argument vector of the instantiator.
-    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 1) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/mandel_isolate_test.dart.
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -6992,7 +6996,10 @@ class GrowableObjectArray : public Instance {
     // A GrowableObjectArray is raw or takes one type argument. However, its
     // type argument vector may be longer than 1 due to a type optimization
     // reusing the type argument vector of the instantiator.
-    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 1) &&
+            value.IsInstantiated() &&
+            value.IsCanonical()));
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
@@ -7540,7 +7547,11 @@ class LinkedHashMap : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const TypeArguments& value) const {
-    ASSERT(value.IsNull() || ((value.Length() >= 2) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 2) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/message3_test.dart.
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
   static intptr_t type_arguments_offset() {
@@ -7681,6 +7692,7 @@ class Closure : public AllStatic {
   }
   static void SetTypeArguments(const Instance& closure,
                                const TypeArguments& value) {
+    ASSERT(value.IsNull() || value.IsCanonical());
     closure.StorePointer(TypeArgumentsAddr(closure), value.raw());
   }
   static intptr_t type_arguments_offset() {

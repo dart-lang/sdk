@@ -68,7 +68,6 @@ DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
 DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, show_invisible_frames);
-DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, write_protect_code);
@@ -2347,6 +2346,12 @@ intptr_t Class::NumTypeParameters(Thread* thread) const {
     ClassFinalizer::ApplyMixinType(*this);
   }
   if (type_parameters() == TypeArguments::null()) {
+    const intptr_t cid = id();
+    if ((cid == kArrayCid) ||
+        (cid == kImmutableArrayCid) ||
+        (cid == kGrowableObjectArrayCid)) {
+      return 1;  // List's type parameter may not have been parsed yet.
+    }
     return 0;
   }
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
@@ -3634,7 +3639,7 @@ void Class::set_canonical_types(const Object& value) const {
 
 
 RawType* Class::CanonicalType() const {
-  if (NumTypeArguments() == 0) {
+  if (!IsGeneric()) {
     return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
   }
   Array& types = Array::Handle();
@@ -3648,7 +3653,7 @@ RawType* Class::CanonicalType() const {
 
 void Class::SetCanonicalType(const Type& type) const {
   ASSERT(type.IsCanonical());
-  if (NumTypeArguments() == 0) {
+  if (!IsGeneric()) {
     ASSERT((canonical_types() == Object::null()) ||
            (canonical_types() == type.raw()));  // Set during own finalization.
     set_canonical_types(type);
@@ -14958,7 +14963,7 @@ RawType* Instance::GetType() const {
   }
   const Class& cls = Class::Handle(clazz());
   Type& type = Type::Handle();
-  if (cls.NumTypeArguments() == 0) {
+  if (!cls.IsGeneric()) {
     type = cls.CanonicalType();
   }
   if (type.IsNull()) {
@@ -16219,13 +16224,20 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.
-  if (cls.NumTypeArguments() == 0) {
+  if (!cls.IsGeneric()) {
     type = cls.CanonicalType();
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
-      cls.set_canonical_types(*this);
-      SetCanonical();
-      return this->raw();
+      // Canonicalize the type arguments of the supertype, if any.
+      TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+      type_args = type_args.Canonicalize(trail);
+      set_arguments(type_args);
+      type = cls.CanonicalType();  // May be set while canonicalizing type args.
+      if (type.IsNull()) {
+        cls.set_canonical_types(*this);
+        SetCanonical();
+        return this->raw();
+      }
     }
     ASSERT(this->Equals(type));
     ASSERT(type.IsCanonical());
