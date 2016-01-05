@@ -75,7 +75,7 @@ void Platform::FreeEnvironment(char** env, intptr_t count) {
 
 
 char* Platform::ResolveExecutablePath() {
-  // FIXME: This won't work on OpenBSD the way it is now
+  // TODO(mulander): There is no procfs on OpenBSD - find a workaround
   return File::LinkTarget("/proc/self/exe");
 }
 

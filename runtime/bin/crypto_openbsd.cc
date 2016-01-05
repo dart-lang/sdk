@@ -17,7 +17,7 @@
 namespace dart {
 namespace bin {
 
-  // FIXME: Use getentropy(2) ?
+// TODO(mulander): Consider using getentropy(2)
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   ThreadSignalBlocker signal_blocker(SIGPROF);
   intptr_t fd = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
