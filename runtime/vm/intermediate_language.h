@@ -6842,6 +6842,8 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
                         Range* range);
 
  private:
+  Definition* CreateConstantResult(FlowGraph* graph, const Integer& result);
+
   const Token::Kind op_kind_;
 
   bool can_overflow_;

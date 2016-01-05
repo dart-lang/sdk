@@ -1735,6 +1735,19 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
 }
 
 
+Definition* BinaryIntegerOpInstr::CreateConstantResult(FlowGraph* flow_graph,
+                                                       const Integer& result) {
+  Definition* result_defn = flow_graph->GetConstant(result);
+  if (representation() != kTagged) {
+    result_defn = UnboxInstr::Create(representation(),
+                                     new Value(result_defn),
+                                     GetDeoptId());
+    flow_graph->InsertBefore(this, result_defn, env(), FlowGraph::kValue);
+  }
+  return result_defn;
+}
+
+
 Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
@@ -1747,7 +1760,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         Evaluate(Integer::Cast(left()->BoundConstant()),
                  Integer::Cast(right()->BoundConstant())));
     if (!result.IsNull()) {
-      return flow_graph->GetConstant(result);
+      return CreateConstantResult(flow_graph, result);
     }
   }
 
@@ -1872,7 +1885,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         DeoptimizeInstr* deopt =
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
-        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
       break;
 
@@ -1886,7 +1899,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
               new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
           flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         }
-        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
       break;
     }
@@ -2202,11 +2215,13 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   // Fold away UnboxInteger<rep_to>(BoxInteger<rep_from>(v)).
   BoxIntegerInstr* box_defn = value()->definition()->AsBoxInteger();
   if (box_defn != NULL) {
-    if (box_defn->value()->definition()->representation() == representation()) {
+    Representation from_representation =
+        box_defn->value()->definition()->representation();
+    if (from_representation == representation()) {
       return box_defn->value()->definition();
     } else {
       UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
-          box_defn->value()->definition()->representation(),
+          from_representation,
           representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
