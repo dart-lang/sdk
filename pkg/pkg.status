@@ -65,6 +65,7 @@ analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
 analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 21628
+analyzer/test/src/summary/resynthesize_test: Pass, Slow
 analyzer/test/src/summary/summary_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/dart_work_manager_test: Pass, Slow # Issue 21628
@@ -163,6 +164,11 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 
 [ $use_repository_packages ]
 analyzer/test/*: PubGetError
+
+[ $compiler == dart2js && $cps_ir && $host_checked == false ]
+analyzer/test/dart/element/element_test: Pass, Slow # Times out due to inlining, but see issue 24485
+analyzer/test/src/summary/resynthesize_test: Pass, Slow # Times out due to inlining, but see issue 24485
+analyzer/test/src/task/strong_mode_test: Pass, Slow # Times out due to inlining, but see issue 24485
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 analyzer/test/enum_test: Crash # Issue 24485

@@ -191,6 +191,7 @@ void CodeCoverage::PrintClass(const Library& lib,
     }
   }
 
+  // TODO(turnidge): This looks like it prints closures many, many times.
   const GrowableObjectArray& closures = GrowableObjectArray::Handle(
       thread->isolate()->object_store()->closure_functions());
   pos_to_line.Clear();

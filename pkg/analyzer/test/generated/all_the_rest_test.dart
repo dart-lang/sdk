@@ -6356,7 +6356,8 @@ class ElementBuilderTest extends EngineTestCase {
 
   void _assertHasDocRange(
       Element element, int expectedOffset, int expectedLength) {
-    SourceRange docRange = element.docRange;
+    // Cast to dynamic here to avoid a hint about @deprecated docRange.
+    SourceRange docRange = (element as dynamic).docRange;
     expect(docRange, isNotNull);
     expect(docRange.offset, expectedOffset);
     expect(docRange.length, expectedLength);

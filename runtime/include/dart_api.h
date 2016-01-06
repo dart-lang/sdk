@@ -2819,4 +2819,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
     uint8_t** instructions_snapshot_buffer,
     intptr_t* instructions_snapshot_size);
 
+
+DART_EXPORT bool Dart_IsRunningPrecompiledCode();
+
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

@@ -396,14 +396,20 @@ class ProfilerService : public AllStatic {
 
   static void PrintJSON(JSONStream* stream,
                         Profile::TagOrder tag_order,
-                        intptr_t extra_tags);
+                        intptr_t extra_tags,
+                        int64_t time_origin_micros,
+                        int64_t time_extent_micros);
 
   static void PrintAllocationJSON(JSONStream* stream,
                                   Profile::TagOrder tag_order,
-                                  const Class& cls);
+                                  const Class& cls,
+                                  int64_t time_origin_micros,
+                                  int64_t time_extent_micros);
 
   static void PrintTimelineJSON(JSONStream* stream,
-                                Profile::TagOrder tag_order);
+                                Profile::TagOrder tag_order,
+                                int64_t time_origin_micros,
+                                int64_t time_extent_micros);
 
   static void ClearSamples();
 

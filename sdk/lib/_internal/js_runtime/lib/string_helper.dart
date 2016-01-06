@@ -130,7 +130,12 @@ stringReplaceFirstRE(receiver, regexp, replacement, startIndex) {
   return stringReplaceRangeUnchecked(receiver, start, end, replacement);
 }
 
-const String ESCAPE_REGEXP = r'[[\]{}()*+?.\\^$|]';
+
+/// Returns a string for a RegExp pattern that matches [string]. This is done by
+/// escaping all RegExp metacharacters.
+quoteStringForRegExp(string) {
+  return JS('String', r'#.replace(/[[\]{}()*+?.\\^$|]/g, "\\$&")', string);
+}
 
 stringReplaceAllUnchecked(receiver, pattern, replacement) {
   checkString(replacement);
@@ -149,8 +154,7 @@ stringReplaceAllUnchecked(receiver, pattern, replacement) {
         return result.toString();
       }
     } else {
-      var quoter = JS('', "new RegExp(#, 'g')", ESCAPE_REGEXP);
-      var quoted = JS('String', r'#.replace(#, "\\$&")', pattern, quoter);
+      var quoted = quoteStringForRegExp(pattern);
       var replacer = JS('', "new RegExp(#, 'g')", quoted);
       return stringReplaceJS(receiver, replacer, replacement);
     }

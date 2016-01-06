@@ -74,6 +74,13 @@ bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
+static mach_timebase_info_data_t timebase_info;
+
+void TimerUtils::InitOnce() {
+  kern_return_t kr = mach_timebase_info(&timebase_info);
+  ASSERT(KERN_SUCCESS == kr);
+}
+
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
@@ -94,17 +101,7 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
   origin += boottime.tv_usec;
   return now - origin;
 #else
-  static mach_timebase_info_data_t timebase_info;
-  if (timebase_info.denom == 0) {
-    // Zero-initialization of statics guarantees that denom will be 0 before
-    // calling mach_timebase_info.  mach_timebase_info will never set denom to
-    // 0 as that would be invalid, so the zero-check can be used to determine
-    // whether mach_timebase_info has already been called.  This is
-    // recommended by Apple's QA1398.
-    kern_return_t kr = mach_timebase_info(&timebase_info);
-    ASSERT(KERN_SUCCESS == kr);
-  }
-
+  ASSERT(timebase_info.denom != 0);
   // timebase_info converts absolute time tick units into nanoseconds.  Convert
   // to microseconds.
   int64_t result = mach_absolute_time() / kNanosecondsPerMicrosecond;

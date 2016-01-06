@@ -265,8 +265,7 @@ Future<MirrorSystem> mirrorSystemFor(Map<String,String> memorySourceFiles,
                                       List<String> options: const [],
                                       bool showDiagnostics: true}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  Uri packageRoot = Uri.base.resolveUri(
-      new Uri.file('${Platform.packageRoot}/'));
+  Uri packageRoot = Uri.base.resolve(Platform.packageRoot);
 
   var provider = new MemorySourceFileProvider(memorySourceFiles);
   var handler =

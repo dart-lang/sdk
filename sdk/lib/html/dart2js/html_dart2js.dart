@@ -31962,10 +31962,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
+  WindowBase _open2(url, name) =>
+      JS('Window|Null', '#.open(#,#)', this, url, name);
 
   WindowBase _open3(url, name, options) =>
-      JS('Window', '#.open(#,#,#)', this, url, name, options);
+      JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
    * Opens a new window.

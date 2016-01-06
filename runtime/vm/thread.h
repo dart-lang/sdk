@@ -122,7 +122,7 @@ class Thread : public BaseThread {
   }
 
   // Makes the current thread enter 'isolate'.
-  static void EnterIsolate(Isolate* isolate);
+  static bool EnterIsolate(Isolate* isolate);
   // Makes the current thread exit its isolate.
   static void ExitIsolate();
 
@@ -130,7 +130,7 @@ class Thread : public BaseThread {
   // "helper" to gain limited concurrent access to the isolate. One example is
   // SweeperTask (which uses the class table, which is copy-on-write).
   // TODO(koda): Properly synchronize heap access to expand allowed operations.
-  static void EnterIsolateAsHelper(Isolate* isolate,
+  static bool EnterIsolateAsHelper(Isolate* isolate,
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 

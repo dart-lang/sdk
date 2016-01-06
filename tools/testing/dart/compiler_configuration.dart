@@ -74,6 +74,9 @@ abstract class CompilerConfiguration {
             isHostChecked: isHostChecked, useCps: useCps, useSdk: useSdk,
             isCsp: isCsp, extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
+      case 'precompiler':
+        return new PrecompilerCompilerConfiguration(
+            isDebug: isDebug, isChecked: isChecked);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked,
@@ -117,6 +120,12 @@ abstract class CompilerConfiguration {
       List arguments,
       Map<String, String> environmentOverrides) {
     return new CommandArtifact([], null, null);
+  }
+
+  List<String> computeCompilerArguments(vmOptions, sharedOptions, args) {
+    return new List<String>()
+        ..addAll(sharedOptions)
+        ..addAll(args);
   }
 
   List<String> computeRuntimeArguments(
@@ -293,6 +302,92 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
         ..add(artifact.filename);
   }
 }
+
+
+class PrecompilerCompilerConfiguration extends CompilerConfiguration {
+  PrecompilerCompilerConfiguration({
+      bool isDebug,
+      bool isChecked})
+      : super._subclass(isDebug: isDebug, isChecked: isChecked);
+
+  int computeTimeoutMultiplier() {
+    int multiplier = 2;
+    if (isDebug) multiplier *= 4;
+    if (isChecked) multiplier *= 2;
+    return multiplier;
+  }
+
+  CommandArtifact computeCompilationArtifact(
+      String buildDir,
+      String tempDir,
+      CommandBuilder commandBuilder,
+      List arguments,
+      Map<String, String> environmentOverrides) {
+    return new CommandArtifact(
+        <Command>[
+            this.computeCompilationCommand(
+                tempDir,
+                buildDir,
+                CommandBuilder.instance,
+                arguments,
+                environmentOverrides)],
+        '$tempDir',
+        'application/dart-precompiled');
+  }
+
+  CompilationCommand computeCompilationCommand(
+      String tempDir,
+      String buildDir,
+      CommandBuilder commandBuilder,
+      List arguments,
+      Map<String, String> environmentOverrides) {
+    var exec = "$buildDir/dart";
+    var args = new List();
+    args.add("tools/precompilation/precompiler.dart");
+    args.add("$buildDir/dart_no_snapshot");
+    args.add("--gen-precompiled-snapshot=$tempDir");
+    args.addAll(arguments);
+
+    return commandBuilder.getCompilationCommand(
+        'precompiler.dart', tempDir, !useSdk,
+        bootstrapDependencies(buildDir),
+        exec, args, environmentOverrides);
+  }
+
+  List<String> computeCompilerArguments(vmOptions,
+                                        sharedOptions,
+                                        originalArguments) {
+    List<String> args = [];
+    if (isChecked) {
+      args.add('--enable_asserts');
+      args.add('--enable_type_checks');
+    }
+    return args
+        ..addAll(vmOptions)
+        ..addAll(sharedOptions)
+        ..addAll(originalArguments);
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      String buildDir,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    List<String> args = [];
+    if (isChecked) {
+      args.add('--enable_asserts');
+      args.add('--enable_type_checks');
+    }
+    return args
+        ..addAll(vmOptions)
+        ..addAll(sharedOptions)
+        ..addAll(originalArguments);
+  }
+}
+
 
 class AnalyzerCompilerConfiguration extends CompilerConfiguration {
   AnalyzerCompilerConfiguration(

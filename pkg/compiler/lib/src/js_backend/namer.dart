@@ -356,6 +356,11 @@ class Namer {
   jsAst.Name _literalSetterPrefix;
   jsAst.Name _literalLazyGetterPrefix;
 
+  jsAst.Name _staticsPropertyName;
+
+  jsAst.Name get staticsPropertyName =>
+      _staticsPropertyName ??= new StringBackedName('static');
+
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
 

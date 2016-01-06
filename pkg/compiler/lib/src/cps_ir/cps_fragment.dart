@@ -130,11 +130,14 @@ class CpsFragment {
 
   /// Inserts an invocation and returns a primitive holding the returned value.
   Primitive invokeMethod(Primitive receiver,
-                         Selector selector,
-                         TypeMask mask,
-                         List<Primitive> arguments) {
-    return letPrim(new InvokeMethod(receiver, selector, mask, arguments,
-        sourceInformation));
+      Selector selector,
+      TypeMask mask,
+      List<Primitive> arguments,
+      [CallingConvention callingConvention = CallingConvention.Normal]) {
+    InvokeMethod invoke =
+        new InvokeMethod(receiver, selector, mask, arguments, sourceInformation)
+            ..callingConvention = callingConvention;
+    return letPrim(invoke);
   }
 
   /// Inserts an invocation and returns a primitive holding the returned value.
@@ -345,4 +348,18 @@ void destroyAndReplace(Expression node, Expression newNode) {
   RemovalVisitor.remove(node);
   parent.body = newNode;
   newNode.parent = parent;
+}
+
+/// Removes all [Refinement] uses of a given primitive that has no effective
+/// uses.
+void destroyRefinementsOfDeadPrimitive(Primitive prim) {
+  while (prim.firstRef != null) {
+    Refinement refine = prim.firstRef.parent;
+    destroyRefinementsOfDeadPrimitive(refine);
+    LetPrim letPrim = refine.parent;
+    InteriorNode parent = letPrim.parent;
+    parent.body = letPrim.body;
+    letPrim.body.parent = parent;
+    prim.firstRef.unlink();
+  }
 }

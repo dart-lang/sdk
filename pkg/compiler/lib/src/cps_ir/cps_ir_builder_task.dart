@@ -3565,10 +3565,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           ConstantValue interceptorValue =
               new InterceptorConstantValue(constant.representedType);
           return irBuilder.buildConstant(interceptorValue);
-        } else {
-          internalError(argument, 'expected Type as argument');
         }
-        break;
+        return internalError(argument, 'expected Type as argument');
 
       case 'JS_EFFECT':
         return irBuilder.buildNullConstant();
@@ -3649,8 +3647,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
             CallStructure.TWO_ARGS);
 
       default:
-        giveup(node, 'unplemented native construct: ${function.name}');
-        break;
+        return giveup(node, 'unplemented native construct: ${function.name}');
     }
   }
 

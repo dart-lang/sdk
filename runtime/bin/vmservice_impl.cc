@@ -89,14 +89,6 @@ class Resources {
 };
 
 
-void TriggerResourceLoad(Dart_NativeArguments args) {
-  Dart_Handle library = Dart_RootLibrary();
-  ASSERT(!Dart_IsError(library));
-  Dart_Handle result = VmService::LoadResources(library);
-  ASSERT(!Dart_IsError(result));
-}
-
-
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();
   const char* ip_chars;
@@ -131,7 +123,6 @@ struct VmServiceIONativeEntry {
 
 
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
-  {"VMServiceIO_TriggerResourceLoad", 0, TriggerResourceLoad},
   {"VMServiceIO_NotifyServerState", 2, NotifyServerState},
 };
 
@@ -324,63 +315,6 @@ Dart_Handle VmService::LoadSource(Dart_Handle library, const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(name);
   Dart_Handle source = GetSource(name);
   return Dart_LoadSource(library, uri, source, 0, 0);
-}
-
-
-Dart_Handle VmService::LoadResource(Dart_Handle library,
-                                    const char* resource_name) {
-  // Prepare for invoke call.
-  Dart_Handle name = Dart_NewStringFromCString(resource_name);
-  RETURN_ERROR_HANDLE(name);
-  const char* data_buffer = NULL;
-  int data_buffer_length = Resources::ResourceLookup(resource_name,
-                                                     &data_buffer);
-  if (data_buffer_length == Resources::kNoSuchInstance) {
-    printf("Could not find %s %s\n", resource_name, resource_name);
-  }
-  ASSERT(data_buffer_length != Resources::kNoSuchInstance);
-  Dart_Handle data_list = Dart_NewTypedData(Dart_TypedData_kUint8,
-                                            data_buffer_length);
-  RETURN_ERROR_HANDLE(data_list);
-  Dart_TypedData_Type type = Dart_TypedData_kInvalid;
-  void* data_list_buffer = NULL;
-  intptr_t data_list_buffer_length = 0;
-  Dart_Handle result = Dart_TypedDataAcquireData(data_list, &type,
-                                                 &data_list_buffer,
-                                                 &data_list_buffer_length);
-  RETURN_ERROR_HANDLE(result);
-  ASSERT(data_buffer_length == data_list_buffer_length);
-  ASSERT(data_list_buffer != NULL);
-  ASSERT(type == Dart_TypedData_kUint8);
-  memmove(data_list_buffer, &data_buffer[0], data_buffer_length);
-  result = Dart_TypedDataReleaseData(data_list);
-  RETURN_ERROR_HANDLE(result);
-
-  // Make invoke call.
-  const intptr_t kNumArgs = 3;
-  Dart_Handle compressed = Dart_True();
-  Dart_Handle args[kNumArgs] = { name, data_list, compressed };
-  result = Dart_Invoke(library, Dart_NewStringFromCString("_addResource"),
-                       kNumArgs, args);
-  return result;
-}
-
-
-Dart_Handle VmService::LoadResources(Dart_Handle library) {
-  Dart_Handle result = Dart_Null();
-  intptr_t prefixLen = strlen(kLibrarySourceNamePrefix);
-  for (intptr_t i = 0; Resources::Path(i) != NULL; i++) {
-    const char* path = Resources::Path(i);
-    // If it doesn't begin with kLibrarySourceNamePrefix it is a frontend
-    // resource.
-    if (strncmp(path, kLibrarySourceNamePrefix, prefixLen) != 0) {
-      result = LoadResource(library, path);
-      if (Dart_IsError(result)) {
-        break;
-      }
-    }
-  }
-  return result;
 }
 
 

@@ -36,6 +36,7 @@ class AbstractDriverTest {
   void setUp() {
     context = new _InternalAnalysisContextMock();
     analysisDriver = new AnalysisDriver(taskManager, workManagers, context);
+    when(context.aboutToComputeResult(anyObject, anyObject)).thenReturn(false);
   }
 }
 
@@ -697,6 +698,61 @@ class WorkItemTest extends AbstractDriverTest {
     WorkItem result = item.gatherInputs(taskManager, []);
     expect(result, isNull);
     expect(item.exception, isNotNull);
+  }
+
+  test_gatherInputs_aboutToComputeResult_hasResult() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor resultA = new ResultDescriptor('resultA', null);
+    ResultDescriptor resultB = new ResultDescriptor('resultB', null);
+    // prepare tasks
+    TaskDescriptor task1 = new TaskDescriptor(
+        'task',
+        (context, target) =>
+            new TestAnalysisTask(context, target, results: [resultA]),
+        (target) => {},
+        [resultA]);
+    TaskDescriptor task2 = new TaskDescriptor(
+        'task',
+        (context, target) => new TestAnalysisTask(context, target),
+        (target) => {'one': resultA.of(target)},
+        [resultB]);
+    taskManager.addTaskDescriptor(task1);
+    taskManager.addTaskDescriptor(task2);
+    // configure mocks
+    when(context.aboutToComputeResult(anyObject, resultA)).thenReturn(true);
+    // gather inputs
+    WorkItem item = new WorkItem(context, target, task2, null, 0, null);
+    WorkItem inputItem = item.gatherInputs(taskManager, []);
+    expect(inputItem, isNull);
+  }
+
+  test_gatherInputs_aboutToComputeResult_noResult() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor resultA = new ResultDescriptor('resultA', null);
+    ResultDescriptor resultB = new ResultDescriptor('resultB', null);
+    // prepare tasks
+    TaskDescriptor task1 = new TaskDescriptor(
+        'task',
+        (context, target) =>
+            new TestAnalysisTask(context, target, results: [resultA]),
+        (target) => {},
+        [resultA]);
+    TaskDescriptor task2 = new TaskDescriptor(
+        'task',
+        (context, target) => new TestAnalysisTask(context, target),
+        (target) => {'one': resultA.of(target)},
+        [resultB]);
+    taskManager.addTaskDescriptor(task1);
+    taskManager.addTaskDescriptor(task2);
+    // configure ResultProvider
+    // configure mocks
+    when(context.aboutToComputeResult(anyObject, resultA)).thenReturn(false);
+    // gather inputs
+    WorkItem item = new WorkItem(context, target, task2, null, 0, null);
+    WorkItem inputItem = item.gatherInputs(taskManager, []);
+    expect(inputItem, isNotNull);
+    expect(inputItem.target, target);
+    expect(inputItem.descriptor, task1);
   }
 }
 

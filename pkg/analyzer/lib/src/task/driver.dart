@@ -504,7 +504,7 @@ class InfiniteTaskLoopException extends AnalysisException {
 }
 
 /**
- * Object used by CycleAwareDependencyWalker to report a single strongly
+ * Object used by [CycleAwareDependencyWalker] to report a single strongly
  * connected component of nodes.
  */
 class StronglyConnectedComponent<Node> {
@@ -702,14 +702,19 @@ class WorkItem {
         //
         throw new UnimplementedError();
       } else if (inputState != CacheState.VALID) {
-        try {
-          TaskDescriptor descriptor =
-              taskManager.findTask(inputTarget, inputResult);
-          return new WorkItem(context, inputTarget, descriptor, inputResult,
-              level + 1, workOrder);
-        } on AnalysisException catch (exception, stackTrace) {
-          this.exception = new CaughtException(exception, stackTrace);
-          return null;
+        if (context.aboutToComputeResult(inputEntry, inputResult)) {
+          inputState = CacheState.VALID;
+          builder.currentValue = inputEntry.getValue(inputResult);
+        } else {
+          try {
+            TaskDescriptor descriptor =
+                taskManager.findTask(inputTarget, inputResult);
+            return new WorkItem(context, inputTarget, descriptor, inputResult,
+                level + 1, workOrder);
+          } on AnalysisException catch (exception, stackTrace) {
+            this.exception = new CaughtException(exception, stackTrace);
+            return null;
+          }
         }
       } else {
         builder.currentValue = inputEntry.getValue(inputResult);

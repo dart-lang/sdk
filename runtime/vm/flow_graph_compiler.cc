@@ -49,6 +49,7 @@ DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, code_comments);
+DECLARE_FLAG(bool, collect_dynamic_function_names);
 DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
@@ -77,6 +78,12 @@ DECLARE_FLAG(bool, interpret_irregexp);
 DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, link_natives_lazily);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(int, inlining_hotness);
+DECLARE_FLAG(int, inlining_size_threshold);
+DECLARE_FLAG(int, inlining_callee_size_threshold);
+DECLARE_FLAG(int, inline_getters_setters_smaller_than);
+DECLARE_FLAG(int, inlining_depth_threshold);
+DECLARE_FLAG(int, inlining_caller_size_threshold);
 
 bool FLAG_precompilation = false;
 static void PrecompilationModeHandler(bool value) {
@@ -117,9 +124,21 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_fields_may_be_reset = true;
     FLAG_allow_absolute_addresses = false;
 
+    // There is no counter feedback in precompilation, so ignore the counter
+    // when making inlining decisions.
+    FLAG_inlining_hotness = 0;
+    // Use smaller thresholds in precompilation as we are compiling everything
+    // with the optimizing compiler instead of only hot functions.
+    FLAG_inlining_size_threshold = 5;
+    FLAG_inline_getters_setters_smaller_than = 5;
+    FLAG_inlining_callee_size_threshold = 20;
+    FLAG_inlining_depth_threshold = 2;
+    FLAG_inlining_caller_size_threshold = 1000;
+
     // Background compilation relies on two-stage compilation pipeline,
     // while precompilation has only one.
     FLAG_background_compilation = false;
+    FLAG_collect_dynamic_function_names = true;
   }
 }
 
@@ -1118,7 +1137,8 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t token_pos,
     intptr_t argument_count,
     LocationSummary* locs,
-    const ICData& ic_data) {
+    const ICData& ic_data_in) {
+  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   if (Compiler::always_optimize()) {
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
@@ -1185,7 +1205,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            intptr_t argument_count,
                                            const Array& argument_names,
                                            LocationSummary* locs,
-                                           const ICData& ic_data) {
+                                           const ICData& ic_data_in) {
+  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   const Array& arguments_descriptor = Array::ZoneHandle(
       ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
                                                   argument_names)

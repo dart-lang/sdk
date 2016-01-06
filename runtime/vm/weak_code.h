@@ -31,8 +31,10 @@ class WeakCodeReferences : public ValueObject {
 
   void DisableCode();
 
+  bool HasCodes() const;
+
  private:
-  const Array& array_;
+  const Array& array_;  // Array of Code objects.
   DISALLOW_COPY_AND_ASSIGN(WeakCodeReferences);
 };
 

@@ -43,8 +43,7 @@ main(List args) {
     return;
   }
 
-  var pkgRoot = Uri.parse(Platform.packageRoot);
-  var abs_package_root = new File.fromUri(pkgRoot).absolute.path;
+  var abs_package_root = Uri.parse(Platform.packageRoot).toFilePath();
   var dart_executable =
       Directory.current.path + Platform.pathSeparator + Platform.executable;
   Directory tmp;

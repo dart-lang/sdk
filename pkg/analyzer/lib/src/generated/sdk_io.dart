@@ -18,6 +18,9 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/summary/format.dart' show SdkBundle;
+import 'package:analyzer/src/summary/summary_sdk.dart';
+import 'package:path/path.dart' as pathos;
 
 /**
  * A Dart SDK installed in a specified directory. Typical Dart SDK layout is
@@ -241,7 +244,12 @@ class DirectoryBasedDartSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext();
+      SdkBundle sdkBundle = _getSummarySdkBundle();
+      if (sdkBundle != null) {
+        _analysisContext = new SummarySdkAnalysisContext(sdkBundle);
+      } else {
+        _analysisContext = new SdkAnalysisContext();
+      }
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       List<String> uris = this.uris;
@@ -530,6 +538,26 @@ class DirectoryBasedDartSdk implements DartSdk {
     } on URISyntaxException {
       return null;
     }
+  }
+
+  /**
+   * Return the [SdkBundle] for this SDK, if it exists, or `null` otherwise.
+   */
+  SdkBundle _getSummarySdkBundle() {
+    String rootPath = directory.getAbsolutePath();
+    String path = pathos.join(rootPath, 'lib', '_internal', 'analysis_summary');
+    try {
+      File file = new File(path);
+      if (file.existsSync()) {
+        List<int> bytes = file.readAsBytesSync();
+        return new SdkBundle.fromBuffer(bytes);
+      }
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Failed to load SDK analysis summary from $path',
+          new CaughtException(exception, stackTrace));
+    }
+    return null;
   }
 
   /**

@@ -1469,7 +1469,6 @@ void EffectGraphVisitor::VisitBinaryOpWithMask32Node(
 
 void EffectGraphVisitor::BuildTypecheckPushArguments(
     intptr_t token_pos,
-    PushArgumentInstr** push_instantiator_result,
     PushArgumentInstr** push_instantiator_type_arguments_result) {
   const Class& instantiator_class = Class::Handle(
       Z, owner()->function().Owner());
@@ -1479,15 +1478,11 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
   Value* instantiator = BuildInstantiator(instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
-    *push_instantiator_result = PushArgument(BuildNullValue());
     instantiator_type_arguments =
         BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   } else {
-    instantiator = Bind(BuildStoreExprTemp(instantiator));
-    *push_instantiator_result = PushArgument(instantiator);
-    Value* loaded = Bind(BuildLoadExprTemp());
-    instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, instantiator_class, loaded);
+    instantiator_type_arguments = BuildInstantiatorTypeArguments(
+        token_pos, instantiator_class, instantiator);
   }
   *push_instantiator_type_arguments_result =
       PushArgument(instantiator_type_arguments);
@@ -1497,7 +1492,6 @@ void EffectGraphVisitor::BuildTypecheckPushArguments(
 
 void EffectGraphVisitor::BuildTypecheckArguments(
     intptr_t token_pos,
-    Value** instantiator_result,
     Value** instantiator_type_arguments_result) {
   Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
@@ -1508,17 +1502,12 @@ void EffectGraphVisitor::BuildTypecheckArguments(
   instantiator = BuildInstantiator(instantiator_class);
   if (instantiator == NULL) {
     // No instantiator when inside factory.
-    instantiator = BuildNullValue();
     instantiator_type_arguments =
         BuildInstantiatorTypeArguments(token_pos, instantiator_class, NULL);
   } else {
-    // Preserve instantiator.
-    instantiator = Bind(BuildStoreExprTemp(instantiator));
-    Value* loaded = Bind(BuildLoadExprTemp());
-    instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, instantiator_class, loaded);
+    instantiator_type_arguments = BuildInstantiatorTypeArguments(
+        token_pos, instantiator_class, instantiator);
   }
-  *instantiator_result = instantiator;
   *instantiator_type_arguments_result = instantiator_type_arguments;
 }
 
@@ -1535,21 +1524,16 @@ AssertAssignableInstr* EffectGraphVisitor::BuildAssertAssignable(
     const AbstractType& dst_type,
     const String& dst_name) {
   // Build the type check computation.
-  Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
   if (dst_type.IsInstantiated()) {
-    instantiator = BuildNullValue();
     instantiator_type_arguments = BuildNullValue();
   } else {
-    BuildTypecheckArguments(token_pos,
-                            &instantiator,
-                            &instantiator_type_arguments);
+    BuildTypecheckArguments(token_pos, &instantiator_type_arguments);
   }
 
   const intptr_t deopt_id = Thread::Current()->GetNextDeoptId();
   return new(Z) AssertAssignableInstr(token_pos,
                                       value,
-                                      instantiator,
                                       instantiator_type_arguments,
                                       dst_type,
                                       dst_name,
@@ -1651,20 +1635,15 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   }
 
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
-  PushArgumentInstr* push_instantiator = NULL;
   PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
-    push_instantiator = PushArgument(BuildNullValue());
     push_type_args = PushArgument(BuildNullValue());
   } else {
-    BuildTypecheckPushArguments(node->token_pos(),
-                                &push_instantiator,
-                                &push_type_args);
+    BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(5);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(4);
   arguments->Add(push_left);
-  arguments->Add(push_instantiator);
   arguments->Add(push_type_args);
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
   Value* type_const = Bind(new(Z) ConstantInstr(type));
@@ -1708,20 +1687,15 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
     }
   }
   PushArgumentInstr* push_left = PushArgument(for_value.value());
-  PushArgumentInstr* push_instantiator = NULL;
   PushArgumentInstr* push_type_args = NULL;
   if (type.IsInstantiated()) {
-    push_instantiator = PushArgument(BuildNullValue());
     push_type_args = PushArgument(BuildNullValue());
   } else {
-    BuildTypecheckPushArguments(node->token_pos(),
-                                &push_instantiator,
-                                &push_type_args);
+    BuildTypecheckPushArguments(node->token_pos(), &push_type_args);
   }
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(4);
+      new(Z) ZoneGrowableArray<PushArgumentInstr*>(3);
   arguments->Add(push_left);
-  arguments->Add(push_instantiator);
   arguments->Add(push_type_args);
   Value* type_arg = Bind(new(Z) ConstantInstr(type));
   arguments->Add(PushArgument(type_arg));
@@ -1749,10 +1723,10 @@ StrictCompareInstr* EffectGraphVisitor::BuildStrictCompare(AstNode* left,
   right->Visit(&for_right_value);
   Append(for_right_value);
   StrictCompareInstr* comp = new(Z) StrictCompareInstr(token_pos,
-                                                    kind,
-                                                    for_left_value.value(),
-                                                    for_right_value.value(),
-                                                    true);  // Number check.
+                                                       kind,
+                                                       for_left_value.value(),
+                                                       for_right_value.value(),
+                                                       true);  // Number check.
   return comp;
 }
 

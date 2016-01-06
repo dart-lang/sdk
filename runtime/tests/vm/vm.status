@@ -14,6 +14,8 @@ cc/Sleep: Pass, Fail
 
 dart/data_uri_import_test/none: SkipByDesign
 
+dart/spawn_shutdown_test: Skip # Issue 25351
+
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
@@ -57,7 +59,7 @@ dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
 
-[ $runtime == vm ]
+[ ($runtime == vm || $runtime == dart_precompiled) ]
 dart/data_uri_import_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
 dart/data_uri_import_test/nomime: RuntimeError, OK
 dart/data_uri_import_test/nocharset: RuntimeError, OK
@@ -78,10 +80,16 @@ dart/snapshot_version_test: SkipByDesign  # Spawns processes
 dart/spawn_infinite_loop_test: Skip  # VM shutdown test
 dart/spawn_shutdown_test: Skip  # VM Shutdown test
 
-[ $runtime == vm && $mode == debug && $builder_tag == asan ]
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Skip  # Timeout.
 
 [ $noopt ]
-dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
+
+[ $noopt || $compiler == precompiler ]
+dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
 dart/inline_stack_frame_test: Fail  # Issue 24783 - inlined frames missing
+
+[ $runtime == dart_precompiled ]
+dart/optimized_stacktrace_test: Fail
+dart/data_uri_spawn_test: RuntimeError # Isolate.spawnUri

@@ -2304,8 +2304,12 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
 
 class NoAllocationSampleFilter : public SampleFilter {
  public:
-  explicit NoAllocationSampleFilter(Isolate* isolate)
-      : SampleFilter(isolate) {
+  NoAllocationSampleFilter(Isolate* isolate,
+                           int64_t time_origin_micros,
+                           int64_t time_extent_micros)
+      : SampleFilter(isolate,
+                     time_origin_micros,
+                     time_extent_micros) {
   }
 
   bool FilterSample(Sample* sample) {
@@ -2316,10 +2320,14 @@ class NoAllocationSampleFilter : public SampleFilter {
 
 void ProfilerService::PrintJSON(JSONStream* stream,
                                 Profile::TagOrder tag_order,
-                                intptr_t extra_tags) {
+                                intptr_t extra_tags,
+                                int64_t time_origin_micros,
+                                int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  NoAllocationSampleFilter filter(isolate);
+  NoAllocationSampleFilter filter(isolate,
+                                  time_origin_micros,
+                                  time_extent_micros);
   const bool as_timeline = false;
   PrintJSONImpl(thread, stream, tag_order, extra_tags, &filter, as_timeline);
 }
@@ -2327,8 +2335,13 @@ void ProfilerService::PrintJSON(JSONStream* stream,
 
 class ClassAllocationSampleFilter : public SampleFilter {
  public:
-  ClassAllocationSampleFilter(Isolate* isolate, const Class& cls)
-      : SampleFilter(isolate),
+  ClassAllocationSampleFilter(Isolate* isolate,
+                              const Class& cls,
+                              int64_t time_origin_micros,
+                              int64_t time_extent_micros)
+      : SampleFilter(isolate,
+                     time_origin_micros,
+                     time_extent_micros),
         cls_(Class::Handle(cls.raw())) {
     ASSERT(!cls_.IsNull());
   }
@@ -2345,20 +2358,29 @@ class ClassAllocationSampleFilter : public SampleFilter {
 
 void ProfilerService::PrintAllocationJSON(JSONStream* stream,
                                           Profile::TagOrder tag_order,
-                                          const Class& cls) {
+                                          const Class& cls,
+                                          int64_t time_origin_micros,
+                                          int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  ClassAllocationSampleFilter filter(isolate, cls);
+  ClassAllocationSampleFilter filter(isolate,
+                                     cls,
+                                     time_origin_micros,
+                                     time_extent_micros);
   const bool as_timeline = false;
   PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
 }
 
 
 void ProfilerService::PrintTimelineJSON(JSONStream* stream,
-                                        Profile::TagOrder tag_order) {
+                                        Profile::TagOrder tag_order,
+                                        int64_t time_origin_micros,
+                                        int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  NoAllocationSampleFilter filter(isolate);
+  NoAllocationSampleFilter filter(isolate,
+                                  time_origin_micros,
+                                  time_extent_micros);
   const bool as_timeline = true;
   PrintJSONImpl(thread, stream, tag_order, kNoExtraTags, &filter, as_timeline);
 }

@@ -558,13 +558,6 @@ abstract class Element implements AnalysisTarget {
   String get displayName;
 
   /**
-   * Return the content of the documentation comment (including delimiters) for
-   * this element, or `null` if this element does not or cannot have
-   * documentation.
-   */
-  String get documentationComment;
-
-  /**
    * Return the source range of the documentation comment for this element,
    * or `null` if this element does not or cannot have a documentation.
    *
@@ -572,6 +565,13 @@ abstract class Element implements AnalysisTarget {
    */
   @deprecated
   SourceRange get docRange;
+
+  /**
+   * Return the content of the documentation comment (including delimiters) for
+   * this element, or `null` if this element does not or cannot have
+   * documentation.
+   */
+  String get documentationComment;
 
   /**
    * Return the element that either physically or logically encloses this
@@ -1153,7 +1153,8 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionTypeAliasElement implements FunctionTypedElement {
+abstract class FunctionTypeAliasElement
+    implements FunctionTypedElement, TypeDefiningElement {
   /**
    * An empty array of type alias elements.
    */
@@ -1177,8 +1178,7 @@ abstract class FunctionTypeAliasElement implements FunctionTypedElement {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionTypedElement
-    implements TypeDefiningElement, TypeParameterizedElement {
+abstract class FunctionTypedElement implements TypeParameterizedElement {
   /**
    * Return a list containing all of the parameters defined by this executable
    * element.
@@ -1192,7 +1192,9 @@ abstract class FunctionTypedElement
    */
   DartType get returnType;
 
-  @override
+  /**
+   * The type of this element, which will be a function type.
+   */
   FunctionType get type;
 }
 

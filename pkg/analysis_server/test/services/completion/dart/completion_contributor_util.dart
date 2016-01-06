@@ -23,6 +23,7 @@ import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../abstract_context.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -436,7 +437,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
 
   Future computeSuggestions([int times = 200]) async {
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
-        context, provider, searchEngine, testSource, completionOffset);
+        context,
+        provider,
+        searchEngine,
+        testSource,
+        completionOffset,
+        new CompletionPerformance());
 
     // Build the request
     Completer<DartCompletionRequest> requestCompleter =

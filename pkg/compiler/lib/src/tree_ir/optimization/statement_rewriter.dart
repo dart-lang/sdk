@@ -239,9 +239,14 @@ class StatementRewriter extends Transformer implements Pass {
   /// If the given expression always returns the value of one of its
   /// subexpressions, and that subexpression is a variable use, returns that
   /// variable. Otherwise `null`.
-  Variable getRightHand(Expression e) {
+  Variable getRightHandVariable(Expression e) {
     Expression value = getValueSubexpression(e);
     return value is VariableUse ? value.variable : null;
+  }
+
+  Constant getRightHandConstant(Expression e) {
+    Expression value = getValueSubexpression(e);
+    return value is Constant ? value : null;
   }
 
   /// True if the given expression (taken from [constantEnvironment]) uses a
@@ -322,7 +327,7 @@ class StatementRewriter extends Transformer implements Pass {
       //
       //     { E.foo = x; bar(x) } ==> bar(E.foo = x)
       //
-      if (getRightHand(binding) == node.variable) {
+      if (getRightHandVariable(binding) == node.variable) {
         environment.removeLast();
         --node.variable.readCount;
         return visitExpression(binding);
@@ -585,8 +590,15 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  bool isNullConstant(Expression node) {
+    return node is Constant && node.value.isNull;
+  }
+
   Statement visitReturn(Return node) {
-    node.value = visitExpression(node.value);
+    if (!isNullConstant(node.value)) {
+      // Do not chain assignments into a null return.
+      node.value = visitExpression(node.value);
+    }
     return node;
   }
 
@@ -709,6 +721,12 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitConstant(Constant node) {
+    if (!environment.isEmpty) {
+      Constant constant = getRightHandConstant(environment.last);
+      if (constant != null && constant.value == node.value) {
+        return visitExpression(environment.removeLast());
+      }
+    }
     return node;
   }
 

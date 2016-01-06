@@ -27,7 +27,8 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            DestFrameOptions dest_options,
                            fpu_register_t* fpu_registers,
                            intptr_t* cpu_registers,
-                           bool is_lazy_deopt)
+                           bool is_lazy_deopt,
+                           bool deoptimizing_code)
     : code_(code.raw()),
       object_pool_(code.GetObjectPool()),
       deopt_info_(TypedData::null()),
@@ -47,7 +48,8 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deferred_slots_(NULL),
       deferred_objects_count_(0),
       deferred_objects_(NULL),
-      is_lazy_deopt_(is_lazy_deopt) {
+      is_lazy_deopt_(is_lazy_deopt),
+      deoptimizing_code_(deoptimizing_code) {
   const TypedData& deopt_info = TypedData::Handle(
       code.GetDeoptInfoAtPc(frame->pc(), &deopt_reason_, &deopt_flags_));
   ASSERT(!deopt_info.IsNull());
@@ -103,7 +105,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
   }
 
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr(
+    THR_Print(
         "Deoptimizing (reason %d '%s') at pc %#" Px " '%s' (count %d)\n",
         deopt_reason(),
         DeoptReasonToCString(deopt_reason()),

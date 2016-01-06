@@ -493,7 +493,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   void visitBoundsCheck(BoundsCheck node) {
     if (node.checks == BoundsCheck.NONE) return;
     assert(node.index != null); // Because there is at least one check.
-    Primitive object = node.object.definition;
     SignedVariable length = node.length == null
         ? null
         : getValue(node.length.definition);

@@ -230,6 +230,9 @@ class FixProcessor {
     if (errorCode == ParserErrorCode.VAR_AS_TYPE_NAME) {
       _addFix_replaceVarWithDynamic();
     }
+    if (errorCode == StaticWarningCode.ASSIGNMENT_TO_FINAL) {
+      _addFix_makeFieldNotFinal();
+    }
     if (errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER) {
       _addFix_makeEnclosingClassAbstract();
     }
@@ -1588,6 +1591,41 @@ class FixProcessor {
     String className = enclosingClass.name.name;
     _addInsertEdit(enclosingClass.classKeyword.offset, 'abstract ');
     _addFix(DartFixKind.MAKE_CLASS_ABSTRACT, [className]);
+  }
+
+  void _addFix_makeFieldNotFinal() {
+    AstNode node = this.node;
+    if (node is SimpleIdentifier &&
+        node.bestElement is PropertyAccessorElement) {
+      PropertyAccessorElement getter = node.bestElement;
+      if (getter.isGetter &&
+          getter.isSynthetic &&
+          !getter.variable.isSynthetic &&
+          getter.variable.setter == null &&
+          getter.enclosingElement is ClassElement) {
+        AstNode variable = getter.variable.computeNode();
+        if (variable is VariableDeclaration &&
+            variable.parent is VariableDeclarationList &&
+            variable.parent.parent is FieldDeclaration) {
+          VariableDeclarationList declarationList = variable.parent;
+          Token keywordToken = declarationList.keyword;
+          if (declarationList.variables.length == 1 &&
+              keywordToken is KeywordToken &&
+              keywordToken.keyword == Keyword.FINAL) {
+            if (declarationList.type != null) {
+              SourceRange range =
+                  rf.rangeStartStart(keywordToken, declarationList.type);
+              _addRemoveEdit(range);
+            } else {
+              SourceRange range = rf.rangeStartStart(keywordToken, variable);
+              _addReplaceEdit(range, 'var ');
+            }
+            String fieldName = getter.variable.displayName;
+            _addFix(DartFixKind.MAKE_FIELD_NOT_FINAL, [fieldName]);
+          }
+        }
+      }
+    }
   }
 
   void _addFix_nonBoolCondition_addNotNull() {

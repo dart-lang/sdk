@@ -9,6 +9,7 @@
 #include "bin/eventhandler.h"
 #include "bin/platform.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 #include "zlib/zlib.h"
 
@@ -34,6 +35,7 @@ void VmServiceServer::Bootstrap() {
   }
   DartUtils::SetOriginalWorkingDirectory();
   Thread::InitOnce();
+  TimerUtils::InitOnce();
   EventHandler::Start();
 }
 

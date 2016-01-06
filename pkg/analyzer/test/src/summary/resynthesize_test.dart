@@ -6,7 +6,7 @@ library test.src.serialization.elements_test;
 
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/builder.dart';
+import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
@@ -349,9 +349,11 @@ class ResynthTest extends ResolverTestCase {
     // TODO(paulberry): test evaluationResult
   }
 
-  void compareTypeImpls(TypeImpl resynthesized, TypeImpl original) {
-    expect(resynthesized.element.location, original.element.location);
-    expect(resynthesized.name, original.name);
+  void compareTypeImpls(
+      TypeImpl resynthesized, TypeImpl original, String desc) {
+    expect(resynthesized.element.location, original.element.location,
+        reason: desc);
+    expect(resynthesized.name, original.name, reason: desc);
   }
 
   void compareTypeParameterElements(TypeParameterElementImpl resynthesized,
@@ -366,7 +368,7 @@ class ResynthTest extends ResolverTestCase {
       expect(resynthesized, isNull, reason: desc);
     } else if (resynthesized is InterfaceTypeImpl &&
         original is InterfaceTypeImpl) {
-      compareTypeImpls(resynthesized, original);
+      compareTypeImpls(resynthesized, original, desc);
       expect(resynthesized.typeArguments.length, original.typeArguments.length);
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
@@ -374,7 +376,7 @@ class ResynthTest extends ResolverTestCase {
       }
     } else if (resynthesized is TypeParameterTypeImpl &&
         original is TypeParameterTypeImpl) {
-      compareTypeImpls(resynthesized, original);
+      compareTypeImpls(resynthesized, original, desc);
     } else if (resynthesized is DynamicTypeImpl &&
         original is DynamicTypeImpl) {
       expect(resynthesized, same(original));
@@ -383,16 +385,37 @@ class ResynthTest extends ResolverTestCase {
       expect(resynthesized, same(original));
     } else if (resynthesized is FunctionTypeImpl &&
         original is FunctionTypeImpl) {
-      compareTypeImpls(resynthesized, original);
+      compareTypeImpls(resynthesized, original, desc);
       if (original.element.isSynthetic &&
           original.element is FunctionTypeAliasElementImpl &&
           resynthesized.element is FunctionTypeAliasElementImpl) {
         compareFunctionTypeAliasElements(
             resynthesized.element, original.element, desc);
       }
+      expect(resynthesized.typeArguments.length, original.typeArguments.length,
+          reason: desc);
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
         compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
             '$desc type argument ${original.typeArguments[i].name}');
+      }
+      if (original.typeParameters == null) {
+        expect(resynthesized.typeParameters, isNull, reason: desc);
+      } else {
+        expect(resynthesized.typeParameters, isNotNull, reason: desc);
+        expect(
+            resynthesized.typeParameters.length, original.typeParameters.length,
+            reason: desc);
+        for (int i = 0; i < resynthesized.typeParameters.length; i++) {
+          compareTypeParameterElements(resynthesized.typeParameters[i],
+              original.typeParameters[i], '$desc type parameter $i');
+        }
+      }
+      expect(resynthesized.boundTypeParameters.length,
+          original.boundTypeParameters.length,
+          reason: desc);
+      for (int i = 0; i < resynthesized.boundTypeParameters.length; i++) {
+        compareTypeParameterElements(resynthesized.boundTypeParameters[i],
+            original.boundTypeParameters[i], '$desc bound type parameter $i');
       }
     } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
       expect(resynthesized, same(original));
@@ -463,6 +486,7 @@ class ResynthTest extends ResolverTestCase {
     }
     SummaryResynthesizer resynthesizer = new SummaryResynthesizer(
         analysisContext,
+        analysisContext.typeProvider,
         getPrelinkedSummary,
         getUnlinkedSummary,
         analysisContext.sourceFactory);
@@ -597,6 +621,14 @@ class E {
 
   test_class_getters() {
     checkLibrary('class C { int get x => null; get y => null; }');
+  }
+
+  test_class_implicitField_getterFirst() {
+    checkLibrary('class C { int get x => 0; void set x(int value) {} }');
+  }
+
+  test_class_implicitField_setterFirst() {
+    checkLibrary('class C { void set x(int value) {} int get x => 0; }');
   }
 
   test_class_interfaces() {
@@ -940,6 +972,13 @@ class E {
     addNamedSource(
         '/b.dart', 'part of l; class C {} enum E { v } typedef F();');
     checkLibrary('import "a.dart"; C c; E e; F f;');
+  }
+
+  test_type_reference_to_import_part2() {
+    addLibrarySource('/a.dart', 'library l; part "p1.dart"; part "p2.dart";');
+    addNamedSource('/p1.dart', 'part of l; class C1 {}');
+    addNamedSource('/p2.dart', 'part of l; class C2 {}');
+    checkLibrary('import "a.dart"; C1 c1; C2 c2;');
   }
 
   test_type_reference_to_import_part_in_subdir() {

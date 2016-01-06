@@ -1887,6 +1887,18 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   List<WorkManager> get workManagers;
 
   /**
+   * This method is invoked when the state of the [result] of the [entry] is
+   * [CacheState.INVALID], so it is about to be computed.
+   *
+   * If the context knows how to provide the value, it sets the value into
+   * the [entry] with all required dependencies, and returns `true`.
+   *
+   * Otherwise, it returns `false` to indicate that the result should be
+   * computed as usually.
+   */
+  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result);
+
+  /**
    * Return a list containing the sources of the libraries that are exported by
    * the library with the given [source]. The list will be empty if the given
    * source is invalid, if the given source does not represent a library, or if

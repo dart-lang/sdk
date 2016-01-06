@@ -218,13 +218,12 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(EAX));  // Value.
-  summary->set_in(1, Location::RegisterLocation(ECX));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(EDX));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(EDX));  // Type arguments.
   summary->set_out(0, Location::RegisterLocation(EAX));
   return summary;
 }
@@ -2010,13 +2009,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(EAX));
-  summary->set_in(1, Location::RegisterLocation(ECX));
-  summary->set_in(2, Location::RegisterLocation(EDX));
+  summary->set_in(1, Location::RegisterLocation(EDX));
   summary->set_out(0, Location::RegisterLocation(EAX));
   return summary;
 }
@@ -2024,8 +2022,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == EAX);  // Value.
-  ASSERT(locs()->in(1).reg() == ECX);  // Instantiator.
-  ASSERT(locs()->in(2).reg() == EDX);  // Instantiator type arguments.
+  ASSERT(locs()->in(1).reg() == EDX);  // Instantiator type arguments.
 
   compiler->GenerateInstanceOf(token_pos(),
                                deopt_id(),

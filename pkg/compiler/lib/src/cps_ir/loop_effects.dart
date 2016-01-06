@@ -2,7 +2,6 @@ library dart2js.cps_ir.loop_effects;
 
 import 'cps_ir_nodes.dart';
 import 'loop_hierarchy.dart';
-import 'type_mask_system.dart';
 import '../universe/side_effects.dart';
 import '../elements/elements.dart';
 import '../world.dart';

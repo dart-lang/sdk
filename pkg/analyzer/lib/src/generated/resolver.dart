@@ -2377,10 +2377,18 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
-    if (_enclosingClass != null) {
-      _findIdentifier(_enclosingClass.typeParameters, parameterName);
-    } else if (_enclosingAlias != null) {
-      _findIdentifier(_enclosingAlias.typeParameters, parameterName);
+
+    Element element;
+    if (_enclosingExecutable != null) {
+      element =
+          _findIdentifier(_enclosingExecutable.typeParameters, parameterName);
+    }
+    if (element == null) {
+      if (_enclosingClass != null) {
+        _findIdentifier(_enclosingClass.typeParameters, parameterName);
+      } else if (_enclosingAlias != null) {
+        _findIdentifier(_enclosingAlias.typeParameters, parameterName);
+      }
     }
     return super.visitTypeParameter(node);
   }
@@ -5415,6 +5423,8 @@ class InferenceContext {
    * A stack of return types for all of the enclosing
    * functions and methods.
    */
+  // TODO(leafp) Handle the implicit union type for Futures
+  // https://github.com/dart-lang/sdk/issues/25322
   List<DartType> _returnStack = <DartType>[];
 
   InferenceContext._(this._errorListener, TypeProvider typeProvider,
@@ -5423,9 +5433,15 @@ class InferenceContext {
 
   /**
    * Get the return type of the current enclosing function, if any.
+   *
+   * The type returned for a function is the type that is expected
+   * to be used in a return or yield context.  For ordinary functions
+   * this is the same as the return type of the function.  For async
+   * functions returning Future<T> and for generator functions
+   * returning Stream<T> or Iterable<T>, this is T.
    */
   DartType get returnContext =>
-      (_returnStack.isNotEmpty) ? _returnStack.last : null;
+      _returnStack.isNotEmpty ? _returnStack.last : null;
 
   /**
    * Match type [t1] against type [t2] as follows.
@@ -8359,8 +8375,10 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitAwaitExpression(AwaitExpression node) {
-    //TODO(leafp): Handle the implicit union type here
-    DartType contextType = InferenceContext.getType(node);
+    // TODO(leafp): Handle the implicit union type here
+    // https://github.com/dart-lang/sdk/issues/25322
+    DartType contextType = StaticTypeAnalyzer.flattenFutures(
+        typeProvider, InferenceContext.getType(node));
     if (contextType != null) {
       InterfaceType futureT =
           typeProvider.futureType.substitute4([contextType]);
@@ -8894,7 +8912,11 @@ class ResolverVisitor extends ScopedVisitor {
         DartType functionType = InferenceContext.getType(node);
         if (functionType is FunctionType) {
           _inferFormalParameterList(node.parameters, functionType);
-          InferenceContext.setType(node.body, functionType.returnType);
+          DartType returnType = _computeReturnOrYieldType(
+              functionType.returnType,
+              _enclosingFunction.isGenerator,
+              _enclosingFunction.isAsynchronous);
+          InferenceContext.setType(node.body, returnType);
         }
         super.visitFunctionExpression(node);
       } finally {
@@ -9099,7 +9121,11 @@ class ResolverVisitor extends ScopedVisitor {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
       _enclosingFunction = node.element;
-      InferenceContext.setType(node.body, node.element.type?.returnType);
+      DartType returnType = _computeReturnOrYieldType(
+          _enclosingFunction.type?.returnType,
+          _enclosingFunction.isGenerator,
+          _enclosingFunction.isAsynchronous);
+      InferenceContext.setType(node.body, returnType);
       super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -9328,18 +9354,15 @@ class ResolverVisitor extends ScopedVisitor {
       // If we're not in a generator ([a]sync*, then we shouldn't have a yield.
       // so don't infer
       if (_enclosingFunction.isGenerator) {
-        // If this is a yield*, then we just propagate the return type downwards
+        // If this just a yield, then we just pass on the element type
         DartType type = returnType;
-        // If this just a yield, then we need to get the element type
-        if (node.star == null) {
+        if (node.star != null) {
+          // If this is a yield*, then we wrap the element return type
           // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-          InterfaceType wrapperD = _enclosingFunction.isSynchronous
-              ? typeProvider.iterableDynamicType
-              : typeProvider.streamDynamicType;
-          // Match the types to instantiate the type arguments if possible
-          List<DartType> targs =
-              inferenceContext.matchTypes(wrapperD, returnType);
-          type = (targs?.length == 1) ? targs[0] : null;
+          InterfaceType wrapperType = _enclosingFunction.isSynchronous
+              ? typeProvider.iterableType
+              : typeProvider.streamType;
+          type = wrapperType.substitute4(<DartType>[type]);
         }
         InferenceContext.setType(node.expression, type);
       }
@@ -9377,6 +9400,34 @@ class ResolverVisitor extends ScopedVisitor {
         _promoteManager.setType(element, null);
       }
     }
+  }
+
+  /**
+   * Given the declared return type of a function, compute the type of the
+   * values which should be returned or yielded as appropriate.  If a type
+   * cannot be computed from the declared return type, return null.
+   */
+  DartType _computeReturnOrYieldType(
+      DartType declaredType, bool isGenerator, bool isAsynchronous) {
+    // Ordinary functions just return their declared types.
+    if (!isGenerator && !isAsynchronous) {
+      return declaredType;
+    }
+    if (isGenerator) {
+      if (declaredType is! InterfaceType) {
+        return null;
+      }
+      // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
+      InterfaceType rawType = isAsynchronous
+          ? typeProvider.streamDynamicType
+          : typeProvider.iterableDynamicType;
+      // Match the types to instantiate the type arguments if possible
+      List<DartType> typeArgs =
+          inferenceContext.matchTypes(rawType, declaredType);
+      return (typeArgs?.length == 1) ? typeArgs[0] : null;
+    }
+    // Must be asynchronous to reach here, so strip off any layers of Future
+    return StaticTypeAnalyzer.flattenFutures(typeProvider, declaredType);
   }
 
   /**

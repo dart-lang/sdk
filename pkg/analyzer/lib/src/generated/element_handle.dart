@@ -335,6 +335,7 @@ abstract class ElementHandle implements Element {
   @override
   String get displayName => actualElement.displayName;
 
+  @deprecated
   @override
   SourceRange get docRange => actualElement.docRange;
 

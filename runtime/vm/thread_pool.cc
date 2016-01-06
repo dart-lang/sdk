@@ -258,6 +258,7 @@ bool ThreadPool::ReleaseIdleWorker(Worker* worker) {
 
 // Only call while holding the exit_monitor_
 void ThreadPool::AddWorkerToShutdownList(Worker* worker) {
+  ASSERT(exit_monitor_.IsOwnedByCurrentThread());
   worker->shutdown_next_ = shutting_down_workers_;
   shutting_down_workers_ = worker;
 }
@@ -267,6 +268,7 @@ void ThreadPool::AddWorkerToShutdownList(Worker* worker) {
 bool ThreadPool::RemoveWorkerFromShutdownList(Worker* worker) {
   ASSERT(worker != NULL);
   ASSERT(shutting_down_workers_ != NULL);
+  ASSERT(exit_monitor_.IsOwnedByCurrentThread());
 
   // Special case head of list.
   if (shutting_down_workers_ == worker) {

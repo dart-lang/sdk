@@ -1562,6 +1562,7 @@ void Assembler::LoadIsolate(Register rd) {
 
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -1578,6 +1579,7 @@ void Assembler::LoadObjectHelper(Register rd,
                                  Condition cond,
                                  bool is_unique,
                                  Register pp) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   // Load common VM constants from the thread. This works also in places where
   // no constant pool is set up (e.g. intrinsic code).
   if (Thread::CanLoadFromThread(object)) {
@@ -1636,12 +1638,14 @@ void Assembler::LoadNativeEntry(Register rd,
 
 
 void Assembler::PushObject(const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   LoadObject(IP, object);
   Push(IP);
 }
 
 
 void Assembler::CompareObject(Register rn, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(rn != IP);
   if (object.IsSmi()) {
     CompareImmediate(rn, reinterpret_cast<int32_t>(object.raw()));
@@ -1900,6 +1904,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value,
                                          FieldContent old_content) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
@@ -1912,6 +1917,7 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                int32_t offset,
                                                const Object& value,
                                                FieldContent old_content) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,

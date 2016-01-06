@@ -1807,6 +1807,9 @@ abstract class ElementImpl implements Element {
   @override
   ElementLocation get location {
     if (_cachedLocation == null) {
+      if (library == null) {
+        return new ElementLocationImpl.con1(this);
+      }
       _cachedLocation = new ElementLocationImpl.con1(this);
     }
     return _cachedLocation;
@@ -1860,11 +1863,9 @@ abstract class ElementImpl implements Element {
     if (identical(this, object)) {
       return true;
     }
-    if (object == null || hashCode != object.hashCode) {
-      return false;
-    }
-    return object.runtimeType == runtimeType &&
-        (object as Element).location == location;
+    return object is Element &&
+        object.kind == kind &&
+        object.location == location;
   }
 
   /**

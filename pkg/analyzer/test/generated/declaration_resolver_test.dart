@@ -6,6 +6,7 @@ library engine.declaration_resolver_test;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:unittest/unittest.dart';
 
@@ -17,6 +18,19 @@ import 'test_support.dart';
 main() {
   initializeTestEnvironment();
   runReflectiveTests(DeclarationResolverTest);
+  runReflectiveTests(StrongModeDeclarationResolverTest);
+}
+
+CompilationUnit _cloneResolveUnit(CompilationUnit unit) {
+  CompilationUnit clonedUnit = AstCloner.clone(unit);
+  new DeclarationResolver().resolve(clonedUnit, unit.element);
+  return clonedUnit;
+}
+
+SimpleIdentifier _findSimpleIdentifier(
+    AstNode root, String code, String search) {
+  return EngineTestCase.findNode(
+      root, code, search, (n) => n is SimpleIdentifier);
 }
 
 @reflectiveTest
@@ -32,11 +46,11 @@ int get zzz => 42;
 ''';
     CompilationUnit unit = resolveSource(code);
     PropertyAccessorElement getterElement =
-        findSimpleIdentifier(unit, code, 'zzz =>').staticElement;
+        _findSimpleIdentifier(unit, code, 'zzz =>').staticElement;
     expect(getterElement.isGetter, isTrue);
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
-    SimpleIdentifier getterName = findSimpleIdentifier(unit2, code, 'zzz =>');
+    SimpleIdentifier getterName = _findSimpleIdentifier(unit2, code, 'zzz =>');
     expect(getterName.staticElement, same(getterElement));
   }
 
@@ -46,11 +60,11 @@ void set zzz(_) {}
 ''';
     CompilationUnit unit = resolveSource(code);
     PropertyAccessorElement setterElement =
-        findSimpleIdentifier(unit, code, 'zzz(_)').staticElement;
+        _findSimpleIdentifier(unit, code, 'zzz(_)').staticElement;
     expect(setterElement.isSetter, isTrue);
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
-    SimpleIdentifier getterName = findSimpleIdentifier(unit2, code, 'zzz(_)');
+    SimpleIdentifier getterName = _findSimpleIdentifier(unit2, code, 'zzz(_)');
     expect(getterName.staticElement, same(setterElement));
   }
 
@@ -62,10 +76,10 @@ main() {
 ''';
     CompilationUnit unit = resolveSource(code);
     FunctionElement getterElement =
-        findSimpleIdentifier(unit, code, 'zzz =>').staticElement;
+        _findSimpleIdentifier(unit, code, 'zzz =>').staticElement;
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
-    SimpleIdentifier getterName = findSimpleIdentifier(unit2, code, 'zzz =>');
+    SimpleIdentifier getterName = _findSimpleIdentifier(unit2, code, 'zzz =>');
     expect(getterName.staticElement, same(getterElement));
   }
 
@@ -77,22 +91,67 @@ main() {
 ''';
     CompilationUnit unit = resolveSource(code);
     FunctionElement setterElement =
-        findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
+        _findSimpleIdentifier(unit, code, 'zzz(x)').staticElement;
     // re-resolve
     CompilationUnit unit2 = _cloneResolveUnit(unit);
-    SimpleIdentifier setterName = findSimpleIdentifier(unit2, code, 'zzz(x)');
+    SimpleIdentifier setterName = _findSimpleIdentifier(unit2, code, 'zzz(x)');
     expect(setterName.staticElement, same(setterElement));
   }
+}
 
-  static SimpleIdentifier findSimpleIdentifier(
-      AstNode root, String code, String search) {
-    return EngineTestCase.findNode(
-        root, code, search, (n) => n is SimpleIdentifier);
+/**
+ * Strong mode DeclarationResolver tests
+ */
+@reflectiveTest
+class StrongModeDeclarationResolverTest extends ResolverTestCase {
+  @override
+  void setUp() {
+    resetWithOptions(new AnalysisOptionsImpl()..strongMode = true);
   }
 
-  static CompilationUnit _cloneResolveUnit(CompilationUnit unit) {
-    CompilationUnit clonedUnit = AstCloner.clone(unit);
-    new DeclarationResolver().resolve(clonedUnit, unit.element);
-    return clonedUnit;
+  void test_genericFunction_typeParameter() {
+    String code = r'''
+/*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;
+''';
+    CompilationUnit unit = resolveSource(code);
+    FunctionDeclaration node = _findSimpleIdentifier(unit, code, 'max').parent;
+    TypeParameter t = node.functionExpression.typeParameters.typeParameters[0];
+
+    FunctionElement element = node.name.staticElement;
+    TypeParameterElement tElement = element.typeParameters[0];
+    expect(tElement, isNotNull);
+    expect(element.typeParameters.toString(), "[T]");
+    expect(element.type.toString(), "<T>(T, T) → T");
+    expect(t.element, same(tElement));
+
+    // re-resolve
+    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    node = _findSimpleIdentifier(unit2, code, 'max').parent;
+    t = node.functionExpression.typeParameters.typeParameters[0];
+    expect(t.element, same(tElement));
+  }
+
+  void test_genericMethod_typeParameter() {
+    String code = r'''
+class C {
+  /*=T*/ max/*<T>*/(/*=T*/ x, /*=T*/ y) => null;
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    MethodDeclaration node = _findSimpleIdentifier(unit, code, 'max').parent;
+    TypeParameter t = node.typeParameters.typeParameters[0];
+
+    MethodElement element = node.name.staticElement;
+    TypeParameterElement tElement = element.typeParameters[0];
+    expect(tElement, isNotNull);
+    expect(element.typeParameters.toString(), "[T]");
+    expect(element.type.toString(), "<T>(T, T) → T");
+    expect(t.element, same(tElement));
+
+    // re-resolve
+    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    node = _findSimpleIdentifier(unit2, code, 'max').parent;
+    t = node.typeParameters.typeParameters[0];
+    expect(t.element, same(tElement));
   }
 }

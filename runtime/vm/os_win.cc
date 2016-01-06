@@ -123,7 +123,8 @@ int64_t OS::GetCurrentTimeMicros() {
 
 static int64_t qpc_ticks_per_second = 0;
 
-int64_t OS::GetCurrentMonotonicMicros() {
+
+int64_t OS::GetCurrentMonotonicTicks() {
   if (qpc_ticks_per_second == 0) {
     // QueryPerformanceCounter not supported, fallback.
     return GetCurrentTimeMicros();
@@ -131,12 +132,28 @@ int64_t OS::GetCurrentMonotonicMicros() {
   // Grab performance counter value.
   LARGE_INTEGER now;
   QueryPerformanceCounter(&now);
-  int64_t qpc_value = static_cast<int64_t>(now.QuadPart);
+  return static_cast<int64_t>(now.QuadPart);
+}
+
+
+int64_t OS::GetCurrentMonotonicFrequency() {
+  if (qpc_ticks_per_second == 0) {
+    // QueryPerformanceCounter not supported, fallback.
+    return kMicrosecondsPerSecond;
+  }
+  return qpc_ticks_per_second;
+}
+
+
+int64_t OS::GetCurrentMonotonicMicros() {
+  int64_t ticks = GetCurrentMonotonicTicks();
+  int64_t frequency = GetCurrentMonotonicFrequency();
+
   // Convert to microseconds.
-  int64_t seconds = qpc_value / qpc_ticks_per_second;
-  int64_t leftover_ticks = qpc_value - (seconds * qpc_ticks_per_second);
+  int64_t seconds = ticks / frequency;
+  int64_t leftover_ticks = ticks - (seconds * frequency);
   int64_t result = seconds * kMicrosecondsPerSecond;
-  result += ((leftover_ticks * kMicrosecondsPerSecond) / qpc_ticks_per_second);
+  result += ((leftover_ticks * kMicrosecondsPerSecond) / frequency);
   return result;
 }
 

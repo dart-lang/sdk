@@ -38,7 +38,7 @@ DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_time_all);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
-DEFINE_FLAG(bool, shutdown, false, "Do a clean shutdown of the VM");
+DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
@@ -228,7 +228,8 @@ const char* Dart::Cleanup() {
   {
     // Set the VM isolate as current isolate when shutting down
     // Metrics so that we can use a StackZone.
-    Thread::EnterIsolate(vm_isolate_);
+    bool result = Thread::EnterIsolate(vm_isolate_);
+    ASSERT(result);
     Metric::Cleanup();
     Thread::ExitIsolate();
   }
@@ -251,8 +252,17 @@ const char* Dart::Cleanup() {
     delete thread_pool_;
     thread_pool_ = NULL;
 
+    // Disable creation of any new OSThread structures which means no more new
+    // threads can do an EnterIsolate. This must come after isolate shutdown
+    // because new threads may need to be spawned to shutdown the isolates.
+    // This must come after deletion of the thread pool to avoid a race in which
+    // a thread spawned by the thread pool does not exit through the thread
+    // pool, messing up its bookkeeping.
+    OSThread::DisableOSThreadCreation();
+
     // Set the VM isolate as current isolate.
-    Thread::EnterIsolate(vm_isolate_);
+    bool result = Thread::EnterIsolate(vm_isolate_);
+    ASSERT(result);
 
     ShutdownIsolate();
     vm_isolate_ = NULL;
@@ -270,6 +280,9 @@ const char* Dart::Cleanup() {
   } else {
     // Shutdown the service isolate.
     ServiceIsolate::Shutdown();
+
+    // Disable thread creation.
+    OSThread::DisableOSThreadCreation();
   }
 
   CodeObservers::DeleteAll();
@@ -407,7 +420,8 @@ void Dart::RunShutdownCallback() {
 void Dart::ShutdownIsolate(Isolate* isolate) {
   ASSERT(Isolate::Current() == NULL);
   // We need to enter the isolate in order to shut it down.
-  Thread::EnterIsolate(isolate);
+  bool result = Thread::EnterIsolate(isolate);
+  ASSERT(result);
   ShutdownIsolate();
   // Since the isolate is shutdown and deleted, there is no need to
   // exit the isolate here.

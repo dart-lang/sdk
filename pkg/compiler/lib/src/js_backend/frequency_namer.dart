@@ -21,6 +21,9 @@ class FrequencyBasedNamer extends Namer with _MinifiedFieldNamer,
   final String setterPrefix = 's';
   final String callPrefix = ''; // this will create function names $<n>
 
+  jsAst.Name get staticsPropertyName =>
+      _staticsPropertyName ??= getFreshName(instanceScope, 'static');
+
   FrequencyBasedNamer(Compiler compiler) : super(compiler) {
     fieldRegistry = new _FieldNamingRegistry(this);
   }

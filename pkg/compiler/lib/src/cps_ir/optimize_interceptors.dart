@@ -14,7 +14,6 @@ import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart' show TypeMask;
 import '../io/source_information.dart' show SourceInformation;
-import '../universe/selector.dart';
 
 /// Replaces `getInterceptor` calls with interceptor constants when possible,
 /// or with "almost constant" expressions like "x && CONST" when the input

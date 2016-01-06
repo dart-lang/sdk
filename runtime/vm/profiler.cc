@@ -296,6 +296,18 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
 #endif
 
 
+bool SampleFilter::TimeFilterSample(Sample* sample) {
+  if ((time_origin_micros_ == -1) ||
+      (time_extent_micros_ == -1)) {
+    // No time filter passed in, always pass.
+    return true;
+  }
+  const int64_t timestamp = sample->timestamp();
+  int64_t delta = timestamp - time_origin_micros_;
+  return (delta >= 0) && (delta <= time_extent_micros_);
+}
+
+
 ClearProfileVisitor::ClearProfileVisitor(Isolate* isolate)
     : SampleVisitor(isolate) {
 }
@@ -1206,6 +1218,10 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
     }
     if (sample->At(0) == 0) {
       // No frames.
+      continue;
+    }
+    if (!filter->TimeFilterSample(sample)) {
+      // Did not pass time filter.
       continue;
     }
     if (!filter->FilterSample(sample)) {

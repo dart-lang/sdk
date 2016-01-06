@@ -67,13 +67,17 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
 
   // This constructor is not used for actual compile-time constants.
   // The instantiation of constant maps is shortcut by the compiler.
-  const ConstantStringMap._(this.length, this._jsObject, this._keys)
+  const ConstantStringMap._(this._length, this._jsObject, this._keys)
       : super._();
 
-  final int length;
+  // TODO(18131): Ensure type inference knows the precise types of the fields.
+  final int _length;
   // A constant map is backed by a JavaScript object.
   final _jsObject;
   final List<K> _keys;
+
+  int get length => JS('JSUInt31', '#', _length);
+  List get _keysArray => JS('JSUnmodifiableArray', '#', _keys);
 
   bool containsValue(Object needle) {
     return values.any((V value) => value == needle);
@@ -97,7 +101,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
     // Use a JS 'cast' to get efficient loop.  Type inferrence doesn't get this
     // since constant map representation is chosen after type inferrence and the
     // instantiation is shortcut by the compiler.
-    var keys = JS('JSArray', '#', _keys);
+    var keys = _keysArray;
     for (int i = 0; i < keys.length; i++) {
       var key = keys[i];
       f(key, _fetch(key));
@@ -109,7 +113,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
   }
 
   Iterable<V> get values {
-    return new MappedIterable<K, V>(_keys, (key) => _fetch(key));
+    return new MappedIterable<K, V>(_keysArray, (key) => _fetch(key));
   }
 }
 
@@ -135,9 +139,9 @@ class _ConstantMapKeyIterable<K> extends Iterable<K> {
   ConstantStringMap<K, dynamic> _map;
   _ConstantMapKeyIterable(this._map);
 
-  Iterator<K> get iterator => _map._keys.iterator;
+  Iterator<K> get iterator => _map._keysArray.iterator;
 
-  int get length => _map._keys.length;
+  int get length => _map._keysArray.length;
 }
 
 class GeneralConstantMap<K, V> extends ConstantMap<K, V> {

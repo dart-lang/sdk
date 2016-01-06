@@ -19,6 +19,7 @@
 #include "bin/file.h"
 #include "bin/log.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 
 #include "platform/globals.h"
@@ -1017,6 +1018,7 @@ int main(int argc, char** argv) {
   Thread::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
   // Start event handler.
+  TimerUtils::InitOnce();
   EventHandler::Start();
 
   vm_options.AddArgument("--load_deferred_eagerly");

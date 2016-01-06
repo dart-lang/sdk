@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary/builder.dart';
+import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
 
 /**
@@ -156,28 +156,64 @@ class _LibrarySerializer {
    */
   void addCompilationUnitElements(CompilationUnitElement element, int unitNum) {
     UnlinkedUnitBuilder b = new UnlinkedUnitBuilder(ctx);
+    referenceMap.clear();
     unlinkedReferences = <UnlinkedReferenceBuilder>[
       encodeUnlinkedReference(ctx)
     ];
     prelinkedReferences = <PrelinkedReferenceBuilder>[
       encodePrelinkedReference(ctx, kind: PrelinkedReferenceKind.classOrEnum)
     ];
+    List<UnlinkedPublicNameBuilder> names = <UnlinkedPublicNameBuilder>[];
+    for (PropertyAccessorElement accessor in element.accessors) {
+      if (accessor.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.other, name: accessor.name));
+      }
+    }
+    for (ClassElement cls in element.types) {
+      if (cls.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.classOrEnum, name: cls.name));
+      }
+    }
+    for (ClassElement enm in element.enums) {
+      if (enm.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.classOrEnum, name: enm.name));
+      }
+    }
+    for (FunctionElement function in element.functions) {
+      if (function.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.other, name: function.name));
+      }
+    }
+    for (FunctionTypeAliasElement typedef in element.functionTypeAliases) {
+      if (typedef.isPublic) {
+        names.add(encodeUnlinkedPublicName(ctx,
+            kind: PrelinkedReferenceKind.typedef, name: typedef.name));
+      }
+    }
     if (unitNum == 0) {
+      if (libraryElement.name.isNotEmpty) {
+        b.libraryName = libraryElement.name;
+      }
+      b.publicNamespace = encodeUnlinkedPublicNamespace(ctx,
+          exports: libraryElement.exports.map(serializeExport).toList(),
+          parts: libraryElement.parts
+              .map((CompilationUnitElement e) =>
+                  encodeUnlinkedPart(ctx, uri: e.uri))
+              .toList(),
+          names: names);
+      b.imports = libraryElement.imports.map(serializeImport).toList();
+    } else {
       // TODO(paulberry): we need to figure out a way to record library, part,
       // import, and export declarations that appear in non-defining
       // compilation units (even though such declarations are prohibited by the
       // language), so that if the user makes code changes that cause a
       // non-defining compilation unit to become a defining compilation unit,
       // we can create a correct summary by simply re-linking.
-      if (libraryElement.name.isNotEmpty) {
-        b.libraryName = libraryElement.name;
-      }
-      b.exports = libraryElement.exports.map(serializeExport).toList();
-      b.imports = libraryElement.imports.map(serializeImport).toList();
-      b.parts = libraryElement.parts
-          .map(
-              (CompilationUnitElement e) => encodeUnlinkedPart(ctx, uri: e.uri))
-          .toList();
+      b.publicNamespace = encodeUnlinkedPublicNamespace(ctx, names: names);
     }
     b.classes = element.types.map(serializeClass).toList();
     b.enums = element.enums.map(serializeEnum).toList();
@@ -306,18 +342,11 @@ class _LibrarySerializer {
       NamespaceCombinator combinator) {
     UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder(ctx);
     if (combinator is ShowElementCombinator) {
-      b.shows = combinator.shownNames.map(serializeCombinatorName).toList();
+      b.shows = combinator.shownNames;
     } else if (combinator is HideElementCombinator) {
-      b.hides = combinator.hiddenNames.map(serializeCombinatorName).toList();
+      b.hides = combinator.hiddenNames;
     }
     return b;
-  }
-
-  /**
-   * Serialize the given [name] into an [UnlinkedCombinatorName].
-   */
-  UnlinkedCombinatorNameBuilder serializeCombinatorName(String name) {
-    return encodeUnlinkedCombinatorName(ctx, name: name);
   }
 
   /**
@@ -447,7 +476,9 @@ class _LibrarySerializer {
   /**
    * Serialize the given [parameter] into an [UnlinkedParam].
    */
-  UnlinkedParamBuilder serializeParam(ParameterElement parameter) {
+  UnlinkedParamBuilder serializeParam(ParameterElement parameter,
+      [Element context]) {
+    context ??= parameter;
     UnlinkedParamBuilder b = new UnlinkedParamBuilder(ctx);
     b.name = parameter.name;
     switch (parameter.parameterKind) {
@@ -468,9 +499,11 @@ class _LibrarySerializer {
       if (!type.returnType.isVoid) {
         b.type = serializeTypeRef(type.returnType, parameter);
       }
-      b.parameters = type.parameters.map(serializeParam).toList();
+      b.parameters = type.parameters
+          .map((parameter) => serializeParam(parameter, context))
+          .toList();
     } else {
-      b.type = serializeTypeRef(type, parameter);
+      b.type = serializeTypeRef(type, context);
       b.hasImplicitType = parameter.hasImplicitType;
     }
     return b;
@@ -544,6 +577,10 @@ class _LibrarySerializer {
               element.getAncestor((Element e) => e is CompilationUnitElement);
           int unit = dependentLibrary.units.indexOf(unitElement);
           assert(unit != -1);
+          int numTypeParameters = 0;
+          if (element is TypeParameterizedElement) {
+            numTypeParameters = element.typeParameters.length;
+          }
           int index = unlinkedReferences.length;
           // TODO(paulberry): set UnlinkedReference.prefix.
           unlinkedReferences
@@ -553,7 +590,8 @@ class _LibrarySerializer {
               kind: element is FunctionTypeAliasElement
                   ? PrelinkedReferenceKind.typedef
                   : PrelinkedReferenceKind.classOrEnum,
-              unit: unit));
+              unit: unit,
+              numTypeParameters: numTypeParameters));
           return index;
         });
       }

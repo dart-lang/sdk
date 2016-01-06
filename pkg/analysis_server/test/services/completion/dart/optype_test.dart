@@ -4,8 +4,9 @@
 
 library test.services.completion.contributor.dart.optype;
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analysis_server/src/services/completion/optype.dart';
+import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -13,9 +14,8 @@ import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../abstract_context.dart';
-import '../../utils.dart';
-import 'package:analysis_server/src/protocol_server.dart';
+import '../../../abstract_context.dart';
+import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();

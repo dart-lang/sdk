@@ -34,16 +34,22 @@ main() {
 }
 """, """
 function() {
-  L0:
+  L1:
     while (true)
-      while (true) {
-        while (V.foo(true))
-          if (V.foo(false)) {
-            P.print(2);
-            continue L0;
+      L0:
+        while (true)
+          while (true) {
+            P.print(true);
+            if (false) {
+              P.print(1);
+              continue L0;
+            }
+            P.print(false);
+            if (false) {
+              P.print(2);
+              continue L1;
+            }
           }
-        P.print(1);
-      }
 }"""),
   const TestEntry("""
 foo(a) { print(a); return a; }
@@ -56,13 +62,19 @@ main() {
   print(2);
 }""", """
 function() {
-  var i = 0;
-  for (; V.foo(true) === true; i = V.foo(i)) {
-    P.print(1);
-    if (V.foo(false) === true)
-      break;
+  while (true) {
+    P.print(true);
+    if (true === true) {
+      P.print(1);
+      P.print(false);
+      if (false !== true) {
+        P.print(0);
+        continue;
+      }
+    }
+    P.print(2);
+    return null;
   }
-  P.print(2);
 }"""),
 const TestEntry("""
 foo(a) { print(a); return a; }
@@ -77,8 +89,9 @@ main() {
  print(3);
 }""", """
 function() {
-  V.foo(false);
-  V.foo(true) ? P.print(1) : P.print(2);
+  P.print(false);
+  P.print(true);
+  true ? P.print(1) : P.print(2);
   P.print(3);
 }"""),
 const TestEntry("""
@@ -96,8 +109,9 @@ main() {
  print(3);
 }""", """
 function() {
-  V.foo(false);
-  if (V.foo(true)) {
+  P.print(false);
+  P.print(true);
+  if (true) {
     P.print(1);
     P.print(1);
   } else {
@@ -127,7 +141,7 @@ main() {
   }
 }""","""
 function() {
-  V.foo();
+  P.print("2");
   P.print("good");
 }"""),
   const TestEntry("""
@@ -138,9 +152,19 @@ main() {
   }
 }""",r"""
 function() {
-  var list = [1, 2, 3, 4, 5, 6], i = 0;
-  for (; i < 6; i = i + 1)
-    P.print(list[i]);
+  var list = [1, 2, 3, 4, 5, 6], i = 0, v0;
+  for (; i < 6; i = i + 1) {
+    v0 = H.S(list[i]);
+    if (typeof dartPrint == "function")
+      dartPrint(v0);
+    else if (typeof console == "object" && typeof console.log != "undefined")
+      console.log(v0);
+    else if (!(typeof window == "object")) {
+      if (!(typeof print == "function"))
+        throw "Unable to print message: " + String(v0);
+      print(v0);
+    }
+  }
 }"""),
   const TestEntry("""
 main() {

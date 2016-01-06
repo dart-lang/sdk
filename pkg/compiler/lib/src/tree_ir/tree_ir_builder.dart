@@ -53,6 +53,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
       <cps_ir.Primitive, Variable>{};
   final Map<cps_ir.MutableVariable, Variable> mutable2variable =
       <cps_ir.MutableVariable, Variable>{};
+  final Set<cps_ir.Constant> inlinedConstants = new Set<cps_ir.Constant>();
 
   // Continuations with more than one use are replaced with Tree labels.  This
   // is the mapping from continuations to labels.
@@ -109,6 +110,9 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   /// returned expression must be used in the tree.
   Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
     cps_ir.Primitive prim = reference.definition.effectiveDefinition;
+    if (prim is cps_ir.Constant && inlinedConstants.contains(prim)) {
+      return new Constant(prim.value);
+    }
     if (thisParameter != null && prim == thisParameter) {
       return new This();
     }
@@ -279,6 +283,53 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return prim.accept(this);
   }
 
+  /************************ CONSTANT COPYING *****************************/
+
+  /// Estimate of the number of characters needed to emit a use of the given
+  /// constant.
+  int constantSize(PrimitiveConstantValue value) {
+    // TODO(asgerf): We could interface with the emitter to get the exact size.
+    if (value is StringConstantValue) {
+      // Account for the quotes, but ignore the cost of encoding non-ASCII
+      // characters to avoid traversing the string and depending on encoding.
+      return value.length + 2;
+    } else if (value is BoolConstantValue) {
+      return 2; // Printed as !0 and !1 when minified
+    } else {
+      // TODO(asgerf): Get the exact length of numbers using '1e10' notation.
+      return '${value.primitiveValue}'.length;
+    }
+  }
+
+  /// The number of uses [prim] has, or `-1` if it is used in a phi assignment.
+  int countNonPhiUses(cps_ir.Primitive prim) {
+    int count = 0;
+    for (cps_ir.Reference ref = prim.firstRef; ref != null; ref = ref.next) {
+      cps_ir.Node use = ref.parent;
+      if (use is cps_ir.InvokeContinuation) {
+        return -1;
+      }
+      count++;
+    }
+    return count;
+  }
+
+  /// True if the given [constant] should be copied to every use site.
+  bool shouldCopyToUses(cps_ir.Constant constant) {
+    if (!constant.value.isPrimitive) return false;
+    if (constant.hasAtMostOneUse) return true;
+    int uses = countNonPhiUses(constant);
+    if (uses == -1) return false; // Copying might prevent elimination of a phi.
+    int size = constantSize(constant.value);
+    // Compare the expected code size output of copying vs sharing.
+    const int USE = 2; // Minified locals usually have length 2.
+    const int ASSIGN = USE + 2; // Variable and '=' and ';'
+    const int BIAS = 2; // Artificial bias to slightly favor copying.
+    int costOfSharing = USE * uses + size + ASSIGN + BIAS;
+    int costOfCopying = size * uses;
+    return costOfCopying <= costOfSharing;
+  }
+
   /************************ INTERIOR EXPRESSIONS  ************************/
   //
   // Visit methods for interior expressions must return a function:
@@ -287,6 +338,10 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   //
 
   NodeCallback visitLetPrim(cps_ir.LetPrim node) {
+    if (node.primitive is cps_ir.Constant && shouldCopyToUses(node.primitive)) {
+      inlinedConstants.add(node.primitive);
+      return (Statement next) => next;
+    }
     Variable variable = getVariable(node.primitive);
     var value = translatePrimitive(node.primitive);
     if (value is Expression) {

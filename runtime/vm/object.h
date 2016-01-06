@@ -1354,7 +1354,7 @@ class Class : public Object {
   // leaf method, ...).
   void RegisterCHACode(const Code& code);
 
-  void DisableCHAOptimizedCode();
+  void DisableCHAOptimizedCode(const Class& subclass);
 
   RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
   void set_cha_codes(const Array& value) const;
@@ -1748,11 +1748,20 @@ class PatchClass : public Object {
 
 
 // Object holding information about an IC: test classes and their
-// corresponding targets.
+// corresponding targets. The owner of the ICData can be either the function
+// or the original ICData object. In case of background compilation we
+// copy the ICData in a child object, thus freezing it during background
+// compilation. Code may contain only original ICData objects.
 class ICData : public Object {
  public:
-  RawFunction* owner() const {
-    return raw_ptr()->owner_;
+  RawFunction* Owner() const;
+
+  RawICData* Original() const;
+
+  void SetOriginal(const ICData& value) const;
+
+  bool IsOriginal() const {
+    return Original() == this->raw();
   }
 
   RawString* target_name() const {
@@ -2017,6 +2026,9 @@ class ICData : public Object {
   void PrintToJSONArray(const JSONArray& jsarray,
                         intptr_t token_pos,
                         bool is_static_call) const;
+  void PrintToJSONArrayNew(const JSONArray& jsarray,
+                           intptr_t token_pos,
+                           bool is_static_call) const;
 
   // Initialize the preallocated empty ICData entry arrays.
   static void InitOnce();
@@ -6817,7 +6829,11 @@ class Array : public Instance {
     // An Array is raw or takes one type argument. However, its type argument
     // vector may be longer than 1 due to a type optimization reusing the type
     // argument vector of the instantiator.
-    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 1) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/mandel_isolate_test.dart.
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
@@ -6980,7 +6996,10 @@ class GrowableObjectArray : public Instance {
     // A GrowableObjectArray is raw or takes one type argument. However, its
     // type argument vector may be longer than 1 due to a type optimization
     // reusing the type argument vector of the instantiator.
-    ASSERT(value.IsNull() || ((value.Length() >= 1) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 1) &&
+            value.IsInstantiated() &&
+            value.IsCanonical()));
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
@@ -7528,7 +7547,11 @@ class LinkedHashMap : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const TypeArguments& value) const {
-    ASSERT(value.IsNull() || ((value.Length() >= 2) && value.IsInstantiated()));
+    ASSERT(value.IsNull() ||
+           ((value.Length() >= 2) &&
+            value.IsInstantiated() /*&& value.IsCanonical()*/));
+    // TODO(asiva): Values read from a message snapshot are not properly marked
+    // as canonical. See for example tests/isolate/message3_test.dart.
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
   static intptr_t type_arguments_offset() {
@@ -7669,6 +7692,7 @@ class Closure : public AllStatic {
   }
   static void SetTypeArguments(const Instance& closure,
                                const TypeArguments& value) {
+    ASSERT(value.IsNull() || value.IsCanonical());
     closure.StorePointer(TypeArgumentsAddr(closure), value.raw());
   }
   static intptr_t type_arguments_offset() {

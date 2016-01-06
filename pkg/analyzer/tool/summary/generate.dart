@@ -13,7 +13,7 @@
  * - A "builder" class which can be used to generate serialized summary data.
  *   This class has write-only semantics.
  *
- * Each of the "builder" classess has a single `finish` method which finalizes
+ * Each of the "builder" classes has a single `finish` method which finalizes
  * the entity being built and returns it as an [Object].  This object should
  * only be passed to other builders (or to [BuilderContext.getBuffer]);
  * otherwise the client should treat it as opaque, since it exposes
@@ -54,10 +54,11 @@ final GeneratedFile target =
   CharacterReader idlReader = new CharSequenceReader(idlText);
   Scanner scanner = new Scanner(idlSource, idlReader, errorListener);
   Token tokenStream = scanner.tokenize();
+  LineInfo lineInfo = new LineInfo(scanner.lineStarts);
   Parser parser = new Parser(idlSource, new BooleanErrorListener());
   CompilationUnit idlParsed = parser.parseCompilationUnit(tokenStream);
   _CodeGenerator codeGenerator = new _CodeGenerator();
-  codeGenerator.processCompilationUnit(idlParsed);
+  codeGenerator.processCompilationUnit(lineInfo, idlParsed);
   return codeGenerator._outBuffer.toString();
 });
 
@@ -83,18 +84,22 @@ class _CodeGenerator {
    */
   void checkIdl() {
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
-      cls.fields.forEach((String fieldName, idlModel.FieldType type) {
+      for (idlModel.FieldDeclaration field in cls.fields) {
+        String fieldName = field.name;
+        idlModel.FieldType type = field.type;
         if (type.isList) {
           if (_idl.classes.containsKey(type.typeName)) {
             // List of classes is ok
           } else if (type.typeName == 'int') {
             // List of ints is ok
+          } else if (type.typeName == 'String') {
+            // List of strings is ok
           } else {
             throw new Exception(
                 '$name.$fieldName: illegal type (list of ${type.typeName})');
           }
         }
-      });
+      }
     });
   }
 
@@ -152,7 +157,7 @@ class _CodeGenerator {
    * Process the AST in [idlParsed] and store the resulting semantic model in
    * [_idl].  Also perform some error checking.
    */
-  void extractIdl(CompilationUnit idlParsed) {
+  void extractIdl(LineInfo lineInfo, CompilationUnit idlParsed) {
     _idl = new idlModel.Idl();
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
@@ -163,9 +168,10 @@ class _CodeGenerator {
             isTopLevel = true;
           }
         }
+        String doc = _getNodeDoc(lineInfo, decl);
         idlModel.ClassDeclaration cls =
-            new idlModel.ClassDeclaration(isTopLevel);
-        _idl.classes[decl.name.name] = cls;
+            new idlModel.ClassDeclaration(doc, decl.name.name, isTopLevel);
+        _idl.classes[cls.name] = cls;
         for (ClassMember classMember in decl.members) {
           if (classMember is FieldDeclaration) {
             TypeName type = classMember.fields.type;
@@ -179,23 +185,27 @@ class _CodeGenerator {
             if (type.typeArguments != null) {
               throw new Exception('Cannot handle type arguments in `$type`');
             }
+            String doc = _getNodeDoc(lineInfo, classMember);
             idlModel.FieldType fieldType =
                 new idlModel.FieldType(type.name.name, isList);
             for (VariableDeclaration field in classMember.fields.variables) {
-              cls.fields[field.name.name] = fieldType;
+              cls.fields.add(new idlModel.FieldDeclaration(
+                  doc, field.name.name, fieldType));
             }
           } else {
             throw new Exception('Unexpected class member `$classMember`');
           }
         }
       } else if (decl is EnumDeclaration) {
-        idlModel.EnumDeclaration enm = new idlModel.EnumDeclaration();
-        _idl.enums[decl.name.name] = enm;
+        String doc = _getNodeDoc(lineInfo, decl);
+        idlModel.EnumDeclaration enm =
+            new idlModel.EnumDeclaration(doc, decl.name.name);
+        _idl.enums[enm.name] = enm;
         for (EnumConstantDeclaration constDecl in decl.constants) {
           enm.values.add(constDecl.name.name);
         }
       } else if (decl is TopLevelVariableDeclaration) {
-        // Ignore top leve variable declarations; they are present just to make
+        // Ignore top level variable declarations; they are present just to make
         // the IDL analyze without warnings.
       } else {
         throw new Exception('Unexpected declaration `$decl`');
@@ -228,12 +238,18 @@ class _CodeGenerator {
     }
   }
 
+  void outDoc(String documentation) {
+    if (documentation != null) {
+      documentation.split('\n').forEach(out);
+    }
+  }
+
   /**
    * Entry point to the code generator.  Interpret the AST in [idlParsed],
    * generate code, and output it to [_outBuffer].
    */
-  void processCompilationUnit(CompilationUnit idlParsed) {
-    extractIdl(idlParsed);
+  void processCompilationUnit(LineInfo lineInfo, CompilationUnit idlParsed) {
+    extractIdl(lineInfo, idlParsed);
     checkIdl();
     out('// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file');
     out('// for details. All rights reserved. Use of this source code is governed by a');
@@ -245,9 +261,10 @@ class _CodeGenerator {
     out('library analyzer.src.summary.format;');
     out();
     out("import 'dart:convert';");
-    out("import 'builder.dart' as builder;");
+    out("import 'base.dart' as base;");
     out();
     _idl.enums.forEach((String name, idlModel.EnumDeclaration enm) {
+      outDoc(enm.documentation);
       out('enum $name {');
       indent(() {
         for (String value in enm.values) {
@@ -258,22 +275,29 @@ class _CodeGenerator {
       out();
     });
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
-      out('class $name {');
+      outDoc(cls.documentation);
+      out('class $name extends base.SummaryClass {');
       indent(() {
-        cls.fields.forEach((String fieldName, idlModel.FieldType type) {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          String fieldName = field.name;
+          idlModel.FieldType type = field.type;
           out('${dartType(type)} _$fieldName;');
-        });
+        }
         out();
         out('$name.fromJson(Map json)');
         indent(() {
           List<String> initializers = <String>[];
-          cls.fields.forEach((String fieldName, idlModel.FieldType type) {
+          for (idlModel.FieldDeclaration field in cls.fields) {
+            String fieldName = field.name;
+            idlModel.FieldType type = field.type;
             String convert = 'json[${quoted(fieldName)}]';
-            if (type.isList && type.typeName == 'int') {
-              // No conversion necessary.
-            } else if (type.isList) {
-              convert =
-                  '$convert?.map((x) => new ${type.typeName}.fromJson(x))?.toList()';
+            if (type.isList) {
+              if (type.typeName == 'int' || type.typeName == 'String') {
+                // No conversion necessary.
+              } else {
+                convert =
+                    '$convert?.map((x) => new ${type.typeName}.fromJson(x))?.toList()';
+              }
             } else if (_idl.classes.containsKey(type.typeName)) {
               convert =
                   '$convert == null ? null : new ${type.typeName}.fromJson($convert)';
@@ -282,7 +306,7 @@ class _CodeGenerator {
                   '$convert == null ? null : ${type.typeName}.values[$convert]';
             }
             initializers.add('_$fieldName = $convert');
-          });
+          }
           for (int i = 0; i < initializers.length; i++) {
             String prefix = i == 0 ? ': ' : '  ';
             String suffix = i == initializers.length - 1 ? ';' : ',';
@@ -290,13 +314,29 @@ class _CodeGenerator {
           }
         });
         out();
+        out('@override');
+        out('Map<String, Object> toMap() => {');
+        indent(() {
+          for (idlModel.FieldDeclaration field in cls.fields) {
+            String fieldName = field.name;
+            out('${quoted(fieldName)}: $fieldName,');
+          }
+        });
+        out('};');
+        out();
         if (cls.isTopLevel) {
           out('$name.fromBuffer(List<int> buffer) : this.fromJson(JSON.decode(UTF8.decode(buffer)));');
           out();
         }
-        cls.fields.forEach((String fieldName, idlModel.FieldType type) {
+        cls.fields.asMap().forEach((index, field) {
+          String fieldName = field.name;
+          idlModel.FieldType type = field.type;
+          if (index != 0) {
+            out();
+          }
           String def = defaultValue(type);
           String defaultSuffix = def == null ? '' : ' ?? $def';
+          outDoc(field.documentation);
           out('${dartType(type)} get $fieldName => _$fieldName$defaultSuffix;');
         });
       });
@@ -309,9 +349,12 @@ class _CodeGenerator {
         out();
         out('bool _finished = false;');
         out();
-        out('${name}Builder(builder.BuilderContext context);');
-        cls.fields.forEach((String fieldName, idlModel.FieldType type) {
+        out('${name}Builder(base.BuilderContext context);');
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          String fieldName = field.name;
+          idlModel.FieldType type = field.type;
           out();
+          outDoc(field.documentation);
           String conversion = '_value';
           String condition = '';
           if (type.isList) {
@@ -332,14 +375,18 @@ class _CodeGenerator {
           indent(() {
             out('assert(!_finished);');
             out('assert(!_json.containsKey(${quoted(fieldName)}));');
-            out('if (_value != null$condition) {');
+            if (condition.isEmpty) {
+              out('if (_value != null) {');
+            } else {
+              out('if (!(_value == null$condition)) {');
+            }
             indent(() {
               out('_json[${quoted(fieldName)}] = $conversion;');
             });
             out('}');
           });
           out('}');
-        });
+        }
         if (cls.isTopLevel) {
           out();
           out('List<int> toBuffer() => UTF8.encode(JSON.encode(finish()));');
@@ -355,12 +402,13 @@ class _CodeGenerator {
       });
       out('}');
       out();
-      out('${name}Builder encode$name(builder.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
+      out('${name}Builder encode$name(base.BuilderContext builderContext, {${builderParams.join(', ')}}) {');
       indent(() {
         out('${name}Builder builder = new ${name}Builder(builderContext);');
-        cls.fields.forEach((String fieldName, idlModel.FieldType type) {
+        for (idlModel.FieldDeclaration field in cls.fields) {
+          String fieldName = field.name;
           out('builder.$fieldName = $fieldName;');
-        });
+        }
         out('return builder;');
       });
       out('}');
@@ -373,5 +421,28 @@ class _CodeGenerator {
    */
   String quoted(String s) {
     return JSON.encode(s);
+  }
+
+  /**
+   * Return the documentation text of the given [node], or `null` if the [node]
+   * does not have a comment.  Each line is `\n` separated.
+   */
+  String _getNodeDoc(LineInfo lineInfo, AnnotatedNode node) {
+    Comment comment = node.documentationComment;
+    if (comment != null &&
+        comment.isDocumentation &&
+        comment.tokens.length == 1 &&
+        comment.tokens.first.type == TokenType.MULTI_LINE_COMMENT) {
+      Token token = comment.tokens.first;
+      int column = lineInfo.getLocation(token.offset).columnNumber;
+      String indent = ' ' * (column - 1);
+      return token.lexeme.split('\n').map((String line) {
+        if (line.startsWith(indent)) {
+          line = line.substring(indent.length);
+        }
+        return line;
+      }).join('\n');
+    }
+    return null;
   }
 }

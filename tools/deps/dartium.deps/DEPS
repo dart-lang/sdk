@@ -69,6 +69,7 @@ vars.update({
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
+  "WebCore_rev": "@4f90b41b0165f23f412cecdba07b7d81d3fbb5b5",
 
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
 })
@@ -186,7 +187,7 @@ deps.update({
       (Var("github_mirror") % "test") + Var("unittest_tag"),
 
   "src/dart/third_party/WebCore":
-    "http://dart.googlecode.com/svn/third_party/WebCore",
+    "https://github.com/dart-lang/webcore.git" + Var("WebCore_rev"),
 
   "src/dart/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),

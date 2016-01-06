@@ -53,10 +53,7 @@ patch class Object {
 
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
-  bool _instanceOf(instantiator,
-                   instantiator_type_arguments,
-                   type,
-                   bool negate)
+  bool _instanceOf(instantiator_type_arguments, type, bool negate)
       native "Object_instanceOf";
 
   bool _instanceOfDouble(bool negate) native "Object_instanceOfDouble";
@@ -67,7 +64,7 @@ patch class Object {
 
   // Call this function instead of inlining 'as', thus collecting type
   // feedback. Returns receiver.
-  _as(instantiator, instantiator_type_arguments, type) native "Object_as";
+  _as(instantiator_type_arguments, type) native "Object_as";
 
   static _symbolMapToStringMap(Map<Symbol, dynamic> map) {
     var result = new Map<String, dynamic>();

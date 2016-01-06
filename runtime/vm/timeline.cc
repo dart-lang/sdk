@@ -200,47 +200,53 @@ void TimelineEvent::Reset() {
 }
 
 
-void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
+void TimelineEvent::AsyncBegin(const char* label,
+                               int64_t async_id,
+                               int64_t micros) {
   Init(kAsyncBegin, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
   set_timestamp1(async_id);
 }
 
 
 void TimelineEvent::AsyncInstant(const char* label,
-                                 int64_t async_id) {
+                                 int64_t async_id,
+                                 int64_t micros) {
   Init(kAsyncInstant, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
   set_timestamp1(async_id);
 }
 
 
 void TimelineEvent::AsyncEnd(const char* label,
-                             int64_t async_id) {
+                             int64_t async_id,
+                             int64_t micros) {
   Init(kAsyncEnd, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
   // Overload timestamp1_ with the async_id.
   set_timestamp1(async_id);
 }
 
 
-void TimelineEvent::DurationBegin(const char* label) {
+void TimelineEvent::DurationBegin(const char* label,
+                                  int64_t micros) {
   Init(kDuration, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
 }
 
 
-void TimelineEvent::DurationEnd() {
+void TimelineEvent::DurationEnd(int64_t micros) {
   ASSERT(timestamp1_ == 0);
-  set_timestamp1(OS::GetCurrentMonotonicMicros());
+  set_timestamp1(micros);
 }
 
 
-void TimelineEvent::Instant(const char* label) {
+void TimelineEvent::Instant(const char* label,
+                            int64_t micros) {
   Init(kInstant, label);
-  set_timestamp0(OS::GetCurrentMonotonicMicros());
+  set_timestamp0(micros);
 }
 
 
@@ -267,10 +273,11 @@ void TimelineEvent::End(const char* label,
 }
 
 
-void TimelineEvent::SerializedJSON(const char* json) {
-  Init(kSerializedJSON, "Dart");
+void TimelineEvent::CompleteWithPreSerializedJSON(const char* json) {
+  set_pre_serialized_json(true);
   SetNumArguments(1);
   CopyArgument(0, "Dart", json);
+  Complete();
 }
 
 
@@ -378,8 +385,31 @@ void TimelineEvent::Init(EventType event_type,
 }
 
 
+bool TimelineEvent::Within(int64_t time_origin_micros,
+                           int64_t time_extent_micros) {
+  if ((time_origin_micros == -1) ||
+      (time_extent_micros == -1)) {
+    // No time range specified.
+    return true;
+  }
+  if (IsFinishedDuration()) {
+    // Event is from e_t0 to e_t1.
+    int64_t e_t0 = TimeOrigin();
+    int64_t e_t1 = TimeEnd();
+    ASSERT(e_t0 <= e_t1);
+    // Range is from r_t0 to r_t1.
+    int64_t r_t0 = time_origin_micros;
+    int64_t r_t1 = time_origin_micros + time_extent_micros;
+    ASSERT(r_t0 <= r_t1);
+    return !((r_t1 < e_t0) || (e_t1 < r_t0));
+  }
+  int64_t delta = TimeOrigin() - time_origin_micros;
+  return (delta >= 0) && (delta <= time_extent_micros);
+}
+
+
 const char* TimelineEvent::GetSerializedJSON() const {
-  ASSERT(event_type() == kSerializedJSON);
+  ASSERT(pre_serialized_json());
   ASSERT(arguments_length_ == 1);
   ASSERT(arguments_ != NULL);
   return arguments_[0].value;
@@ -387,7 +417,7 @@ const char* TimelineEvent::GetSerializedJSON() const {
 
 
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
-  if (event_type() == kSerializedJSON) {
+  if (pre_serialized_json()) {
     // Event has already been serialized into JSON- just append the
     // raw data.
     stream->AppendSerializedObject(GetSerializedJSON());
@@ -714,7 +744,12 @@ void TimelineBeginEndScope::EmitEnd() {
 }
 
 
-TimelineEventFilter::TimelineEventFilter() {
+TimelineEventFilter::TimelineEventFilter(int64_t time_origin_micros,
+                                         int64_t time_extent_micros)
+    : time_origin_micros_(time_origin_micros),
+      time_extent_micros_(time_extent_micros) {
+  ASSERT(time_origin_micros_ >= -1);
+  ASSERT(time_extent_micros_ >= -1);
 }
 
 
@@ -722,8 +757,13 @@ TimelineEventFilter::~TimelineEventFilter() {
 }
 
 
-IsolateTimelineEventFilter::IsolateTimelineEventFilter(Dart_Port isolate_id)
-    : isolate_id_(isolate_id) {
+IsolateTimelineEventFilter::IsolateTimelineEventFilter(
+    Dart_Port isolate_id,
+    int64_t time_origin_micros,
+    int64_t time_extent_micros)
+    : TimelineEventFilter(time_origin_micros,
+                          time_extent_micros),
+      isolate_id_(isolate_id) {
 }
 
 
@@ -937,7 +977,9 @@ void TimelineEventRingRecorder::PrintJSONEvents(
     }
     for (intptr_t event_idx = 0; event_idx < block->length(); event_idx++) {
       TimelineEvent* event = block->At(event_idx);
-      if (filter->IncludeEvent(event)) {
+      if (filter->IncludeEvent(event) &&
+          event->Within(filter->time_origin_micros(),
+                        filter->time_extent_micros())) {
         events->AddValue(event);
       }
     }
@@ -1129,10 +1171,11 @@ void TimelineEventEndlessRecorder::PrintJSONEvents(
     intptr_t length = current->length();
     for (intptr_t i = 0; i < length; i++) {
       TimelineEvent* event = current->At(i);
-      if (!filter->IncludeEvent(event)) {
-        continue;
+      if (filter->IncludeEvent(event) &&
+          event->Within(filter->time_origin_micros(),
+                        filter->time_extent_micros())) {
+        events->AddValue(event);
       }
-      events->AddValue(event);
     }
     current = current->next();
   }

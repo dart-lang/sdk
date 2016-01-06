@@ -1679,6 +1679,10 @@ CommandOutput createCommandOutput(Command command,
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
+    if (command.displayName == 'precompiler.dart') {
+      return new VmCommandOutputImpl(
+          command, exitCode, timedOut, stdout, stderr, time, pid);
+    }
     return new CompilationCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is JSCommandlineCommand) {

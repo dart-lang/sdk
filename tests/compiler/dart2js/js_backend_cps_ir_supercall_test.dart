@@ -9,7 +9,7 @@ library supercall_test;
 import 'js_backend_cps_ir.dart';
 
 const List<TestEntry> tests = const [
-  const TestEntry.forMethod('function(Sub#m)', """
+  const TestEntry("""
 class Base {
   m(x) {
     print(x+1);
@@ -22,8 +22,19 @@ main() {
   new Sub().m(100);
 }""",
 r"""
-function(x) {
-  return V.Base.prototype.m$1.call(this, x + 10);
+function() {
+  var v0;
+  V.Sub$();
+  v0 = H.S(100 + 10 + 1);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 
   // Reenable when we support compiling functions that
@@ -51,7 +62,7 @@ function(x) {
 //   return V.Base.prototype.$add.call(null, v2, v1);
 // }"""),
 
-const TestEntry.forMethod('function(Sub#m)', """
+const TestEntry("""
 class Base {
   var field = 123;
 }
@@ -62,8 +73,17 @@ main() {
   print(new Sub().m(10));
 }""",
 r"""
-function(x) {
-  return x + this.field;
+function() {
+  var v0 = H.S(10 + V.Sub$().field);
+  if (typeof dartPrint == "function")
+    dartPrint(v0);
+  else if (typeof console == "object" && typeof console.log != "undefined")
+    console.log(v0);
+  else if (!(typeof window == "object")) {
+    if (!(typeof print == "function"))
+      throw "Unable to print message: " + String(v0);
+    print(v0);
+  }
 }"""),
 
 

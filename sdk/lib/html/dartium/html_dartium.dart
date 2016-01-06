@@ -20360,16 +20360,9 @@ class HtmlDocument extends Document {
             createdParametersValid = createdParametersValid && parameter.isOptional;
           });
         }
-
-        // Get the created constructor source and look at the initializer;
-        // Must call super.created() if not its as an error.
-        var createdSource = methodMirror.source;
-        superCreatedCalled = createdSource.contains("super.created(");
       }
 
-      if (!superCreatedCalled) {
-        throw new DomException.jsInterop('created constructor initializer must call super.created()');
-      } else if (!createdParametersValid) {
+      if (!createdParametersValid) {
         throw new DomException.jsInterop('created constructor must have no parameters');
       }
 

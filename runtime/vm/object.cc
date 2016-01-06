@@ -68,7 +68,6 @@ DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
 DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, show_invisible_frames);
-DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, write_protect_code);
@@ -2347,6 +2346,12 @@ intptr_t Class::NumTypeParameters(Thread* thread) const {
     ClassFinalizer::ApplyMixinType(*this);
   }
   if (type_parameters() == TypeArguments::null()) {
+    const intptr_t cid = id();
+    if ((cid == kArrayCid) ||
+        (cid == kImmutableArrayCid) ||
+        (cid == kGrowableObjectArrayCid)) {
+      return 1;  // List's type parameter may not have been parsed yet.
+    }
     return 0;
   }
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
@@ -2797,9 +2802,10 @@ static bool IsMutatorOrAtSafepoint() {
 }
 #endif
 
+
 void Class::RegisterCHACode(const Code& code) {
   if (FLAG_trace_cha) {
-    THR_Print("RegisterCHACode %s class %s\n",
+    THR_Print("RegisterCHACode '%s' depends on class '%s'\n",
         Function::Handle(code.function()).ToQualifiedCString(), ToCString());
   }
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
@@ -2809,9 +2815,12 @@ void Class::RegisterCHACode(const Code& code) {
 }
 
 
-void Class::DisableCHAOptimizedCode() {
+void Class::DisableCHAOptimizedCode(const Class& subclass) {
   ASSERT(Thread::Current()->IsMutatorThread());
   CHACodeArray a(*this);
+  if (FLAG_trace_deoptimization && a.HasCodes()) {
+    THR_Print("Adding subclass %s\n", subclass.ToCString());
+  }
   a.DisableCode();
 }
 
@@ -3630,7 +3639,7 @@ void Class::set_canonical_types(const Object& value) const {
 
 
 RawType* Class::CanonicalType() const {
-  if (NumTypeArguments() == 0) {
+  if (!IsGeneric()) {
     return reinterpret_cast<RawType*>(raw_ptr()->canonical_types_);
   }
   Array& types = Array::Handle();
@@ -3644,7 +3653,7 @@ RawType* Class::CanonicalType() const {
 
 void Class::SetCanonicalType(const Type& type) const {
   ASSERT(type.IsCanonical());
-  if (NumTypeArguments() == 0) {
+  if (!IsGeneric()) {
     ASSERT((canonical_types() == Object::null()) ||
            (canonical_types() == type.raw()));  // Set during own finalization.
     set_canonical_types(type);
@@ -5820,7 +5829,7 @@ bool Function::IsOptimizable() const {
       ((end_token_pos() - token_pos()) < FLAG_huge_method_cutoff_in_tokens)) {
     // Additional check needed for implicit getters.
     return (unoptimized_code() == Object::null()) ||
-           (Code::Handle(unoptimized_code()).Size() <
+        (Code::Handle(unoptimized_code()).Size() <
             FLAG_huge_method_cutoff_in_code_size);
   }
   return false;
@@ -5837,6 +5846,7 @@ void Function::SetIsOptimizable(bool value) const {
   set_is_optimizable(value);
   if (!value) {
     set_is_inlinable(false);
+    set_usage_counter(INT_MIN);
   }
 }
 
@@ -7033,7 +7043,9 @@ void Function::RestoreICDataMap(
       ICData& ic_data = ICData::ZoneHandle(zone);
       ic_data ^= saved_ic_data.At(i);
       if (clone_descriptors) {
+        ICData& original_ic_data = ICData::Handle(zone, ic_data.raw());
         ic_data = ICData::CloneDescriptor(ic_data);
+        ic_data.SetOriginal(original_ic_data);
       }
       (*deopt_id_to_ic_data)[ic_data.deopt_id()] = &ic_data;
     }
@@ -7723,8 +7735,8 @@ class FieldDependentArray : public WeakCodeReferences {
   virtual void ReportSwitchingCode(const Code& code) {
     if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
       Function& function = Function::Handle(code.function());
-      THR_Print("Switching %s to unoptimized code because guard"
-                " on field %s was violated.\n",
+      THR_Print("Switching '%s' to unoptimized code because guard"
+                " on field '%s' was violated.\n",
                 function.ToFullyQualifiedCString(),
                 field_.ToCString());
     }
@@ -9589,7 +9601,10 @@ bool Library::LookupResolvedNamesCache(const String& name,
   ResolvedNamesMap cache(resolved_names());
   bool present = false;
   *obj = cache.GetOrNull(name, &present);
-  ASSERT(cache.Release().raw() == resolved_names());
+  // Mutator compiler thread may add entries and therefore
+  // change 'resolved_names()' while running a background compilation;
+  // do not ASSERT that 'resolved_names()' has not changed.
+  cache.Release();
   return present;
 }
 
@@ -12176,9 +12191,41 @@ const char* ICData::ToCString() const {
 }
 
 
+RawFunction* ICData::Owner() const {
+  Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).raw();
+  } else {
+    ICData& original = ICData::Handle();
+    original ^= obj.raw();
+    return original.Owner();
+  }
+}
+
+
+RawICData* ICData::Original() const {
+  if (IsNull()) {
+    return ICData::null();
+  }
+  Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsFunction()) {
+    return this->raw();
+  } else {
+    return ICData::RawCast(obj.raw());
+  }
+}
+
+
+void ICData::SetOriginal(const ICData& value) const {
+  ASSERT(value.IsOriginal());
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
+}
+
+
 void ICData::set_owner(const Function& value) const {
   ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->owner_, value.raw());
+  StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
 }
 
 
@@ -12817,7 +12864,7 @@ RawICData* ICData::New(const Function& owner,
 
 RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
   const ICData& result = ICData::Handle(ICData::New(
-      Function::Handle(from.owner()),
+      Function::Handle(from.Owner()),
       String::Handle(from.target_name()),
       Array::Handle(from.arguments_descriptor()),
       from.deopt_id(),
@@ -12832,7 +12879,7 @@ RawICData* ICData::CloneDescriptor(const ICData& from) {
   Zone* zone = Thread::Current()->zone();
   const ICData& result = ICData::Handle(ICData::NewDescriptor(
       zone,
-      Function::Handle(zone, from.owner()),
+      Function::Handle(zone, from.Owner()),
       String::Handle(zone, from.target_name()),
       Array::Handle(zone, from.arguments_descriptor()),
       from.deopt_id(),
@@ -12849,7 +12896,7 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
   jsobj.AddServiceId(*this);
-  jsobj.AddProperty("_owner", Object::Handle(owner()));
+  jsobj.AddProperty("_owner", Object::Handle(Owner()));
   jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
   if (ref) {
     return;
@@ -12869,7 +12916,6 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 
   JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  // TODO(turnidge): Use AddLocation instead.
   jsobj.AddProperty("tokenPos", token_pos);
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
@@ -12893,6 +12939,35 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
     }
     cache_entry.AddProperty("count", count);
     cache_entry.AddProperty("target", func);
+  }
+}
+
+
+void ICData::PrintToJSONArrayNew(const JSONArray& jsarray,
+                                 intptr_t token_pos,
+                                 bool is_static_call) const {
+  Isolate* isolate = Isolate::Current();
+  Class& cls = Class::Handle();
+  Function& func = Function::Handle();
+
+  JSONObject jsobj(&jsarray);
+  jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
+  jsobj.AddProperty("tokenPos", token_pos);
+  // TODO(rmacnak): Figure out how to stringify DeoptReasons().
+  // jsobj.AddProperty("deoptReasons", ...);
+
+  JSONArray cache_entries(&jsobj, "cacheEntries");
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    JSONObject cache_entry(&cache_entries);
+    func = GetTargetAt(i);
+    intptr_t count = GetCountAt(i);
+    if (!is_static_call) {
+      intptr_t cid = GetReceiverClassIdAt(i);
+      cls ^= isolate->class_table()->At(cid);
+      cache_entry.AddProperty("receiver", cls);
+    }
+    cache_entry.AddProperty("target", func);
+    cache_entry.AddProperty("count", count);
   }
 }
 
@@ -14888,7 +14963,7 @@ RawType* Instance::GetType() const {
   }
   const Class& cls = Class::Handle(clazz());
   Type& type = Type::Handle();
-  if (cls.NumTypeArguments() == 0) {
+  if (!cls.IsGeneric()) {
     type = cls.CanonicalType();
   }
   if (type.IsNull()) {
@@ -16149,13 +16224,20 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.
-  if (cls.NumTypeArguments() == 0) {
+  if (!cls.IsGeneric()) {
     type = cls.CanonicalType();
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
-      cls.set_canonical_types(*this);
-      SetCanonical();
-      return this->raw();
+      // Canonicalize the type arguments of the supertype, if any.
+      TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+      type_args = type_args.Canonicalize(trail);
+      set_arguments(type_args);
+      type = cls.CanonicalType();  // May be set while canonicalizing type args.
+      if (type.IsNull()) {
+        cls.set_canonical_types(*this);
+        SetCanonical();
+        return this->raw();
+      }
     }
     ASSERT(this->Equals(type));
     ASSERT(type.IsCanonical());

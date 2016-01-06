@@ -4,6 +4,7 @@
 library dart2js.ir_nodes;
 
 import 'dart:collection';
+import 'cps_fragment.dart' show CpsFragment;
 import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
@@ -203,18 +204,7 @@ class EffectiveUseIterable extends IterableBase<Reference<Primitive>> {
 ///
 /// All primitives except [Parameter] must be bound by a [LetPrim].
 abstract class Primitive extends Variable<Primitive> {
-  /// The [VariableElement] or [ParameterElement] from which the primitive
-  /// binding originated.
-  Entity hint;
-
-  /// Use the given element as a hint for naming this primitive.
-  ///
-  /// Has no effect if this primitive already has a non-null [element].
-  void useElementAsHint(Entity hint) {
-    if (this.hint == null) {
-      this.hint = hint;
-    }
-  }
+  Primitive() : super(null);
 
   /// True if this primitive has a value that can be used by other expressions.
   bool get hasValue;
@@ -294,6 +284,23 @@ abstract class Primitive extends Variable<Primitive> {
     let.primitive = newDefinition;
     newDefinition.parent = let;
     newDefinition.useElementAsHint(hint);
+  }
+
+  /// Replaces this definition with a CPS fragment (a term with a hole in it),
+  /// given the value to replace the uses of the definition with.
+  ///
+  /// This can be thought of as substituting:
+  ///
+  ///     let x = OLD in BODY
+  ///       ==>
+  ///     FRAGMENT[BODY{newPrimitive/x}]
+  void replaceWithFragment(CpsFragment fragment, Primitive newPrimitive) {
+    assert(this is! Parameter);
+    replaceUsesWith(newPrimitive);
+    destroy();
+    LetPrim let = parent;
+    fragment.insertBelow(let);
+    let.remove();
   }
 }
 
@@ -464,6 +471,43 @@ class LetMutable extends InteriorExpression {
   }
 }
 
+enum CallingConvention {
+  /// JS receiver is the Dart receiver, there are no extra arguments.
+  ///
+  /// This includes cases (e.g., static functions, constructors) where there
+  /// is no receiver.
+  ///
+  /// For example: `foo.bar$1(x)`
+  Normal,
+
+  /// JS receiver is an interceptor, the first argument is the Dart receiver.
+  ///
+  /// For example: `getInterceptor(foo).bar$1(foo, x)`
+  Intercepted,
+
+  /// JS receiver is the Dart receiver, the first argument is a dummy value.
+  ///
+  /// For example: `foo.bar$1(0, x)`
+  DummyIntercepted,
+
+  /// JS receiver is the Dart receiver, there are no extra arguments.
+  ///
+  /// Compiles to a one-shot interceptor, e.g: `J.bar$1(foo, x)`
+  OneShotIntercepted,
+}
+
+/// Base class of function invocations.
+///
+/// This class defines the common interface of function invocations.
+abstract class InvocationPrimitive extends UnsafePrimitive {
+  Reference<Primitive> get receiver => null;
+  List<Reference<Primitive>> get arguments;
+  SourceInformation get sourceInformation;
+
+  Reference<Primitive> get dartReceiverReference => null;
+  CallingConvention get callingConvention => CallingConvention.Normal;
+}
+
 /// Invoke a static function.
 ///
 /// All optional arguments declared by [target] are passed in explicitly, and
@@ -472,7 +516,7 @@ class LetMutable extends InteriorExpression {
 /// Discussion:
 /// All information in the [selector] is technically redundant; it will likely
 /// be removed.
-class InvokeStatic extends UnsafePrimitive {
+class InvokeStatic extends InvocationPrimitive {
   final FunctionElement target;
   final Selector selector;
   final List<Reference<Primitive>> arguments;
@@ -498,28 +542,6 @@ class InvokeStatic extends UnsafePrimitive {
   }
 }
 
-enum CallingConvention {
-  /// JS receiver is the Dart receiver, there are no extra arguments.
-  ///
-  /// For example: `foo.bar$1(x)`
-  Normal,
-
-  /// JS receiver is an interceptor, the first argument is the Dart receiver.
-  ///
-  /// For example: `getInterceptor(foo).bar$1(foo, x)`
-  Intercepted,
-
-  /// JS receiver is the Dart receiver, the first argument is a dummy value.
-  ///
-  /// For example: `foo.bar$1(0, x)`
-  DummyIntercepted,
-
-  /// JS receiver is the Dart receiver, there are no extra arguments.
-  ///
-  /// Compiles to a one-shot interceptor, e.g: `J.bar$1(foo, x)`
-  OneShotIntercepted,
-}
-
 /// Invoke a method on an object.
 ///
 /// This includes getters, setters, operators, and index getter/setters.
@@ -529,7 +551,7 @@ enum CallingConvention {
 ///
 /// The [selector] records the names of named arguments. The value of named
 /// arguments occur at the end of the [arguments] list, in normalized order.
-class InvokeMethod extends UnsafePrimitive {
+class InvokeMethod extends InvocationPrimitive {
   Reference<Primitive> receiver;
   Selector selector;
   TypeMask mask;
@@ -606,7 +628,7 @@ class InvokeMethod extends UnsafePrimitive {
 ///
 /// All optional arguments declared by [target] are passed in explicitly, and
 /// occur at the end of [arguments] list, in normalized order.
-class InvokeMethodDirectly extends UnsafePrimitive {
+class InvokeMethodDirectly extends InvocationPrimitive {
   Reference<Primitive> receiver;
   final FunctionElement target;
   final Selector selector;
@@ -664,7 +686,7 @@ class InvokeMethodDirectly extends UnsafePrimitive {
 ///
 /// Note that [InvokeConstructor] does it itself allocate an object.
 /// The invoked constructor will do that using [CreateInstance].
-class InvokeConstructor extends UnsafePrimitive {
+class InvokeConstructor extends InvocationPrimitive {
   final DartType dartType;
   final ConstructorElement target;
   final List<Reference<Primitive>> arguments;
@@ -1688,13 +1710,24 @@ abstract class Variable<T extends Variable<T>> extends Definition<T> {
   ///
   /// Is `null` until initialized by type propagation.
   TypeMask type;
+
+  /// The [VariableElement] or [ParameterElement] from which the variable
+  /// binding originated.
+  Entity hint;
+
+  Variable(this.hint);
+
+  /// Use the given element as a hint for naming this primitive.
+  ///
+  /// Has no effect if this primitive already has a non-null [element].
+  void useElementAsHint(Entity hint) {
+    this.hint ??= hint;
+  }
 }
 
 /// Identifies a mutable variable.
 class MutableVariable extends Variable<MutableVariable> {
-  Entity hint;
-
-  MutableVariable(this.hint);
+  MutableVariable(Entity hint) : super(hint);
 
   accept(Visitor v) => v.visitMutableVariable(this);
 
@@ -1874,23 +1907,23 @@ abstract class Visitor<T> {
   T visitLetHandler(LetHandler node);
   T visitLetMutable(LetMutable node);
   T visitInvokeContinuation(InvokeContinuation node);
+  T visitThrow(Throw node);
+  T visitRethrow(Rethrow node);
+  T visitBranch(Branch node);
+  T visitUnreachable(Unreachable node);
+
+  // Definitions.
   T visitInvokeStatic(InvokeStatic node);
   T visitInvokeMethod(InvokeMethod node);
   T visitInvokeMethodDirectly(InvokeMethodDirectly node);
   T visitInvokeConstructor(InvokeConstructor node);
-  T visitThrow(Throw node);
-  T visitRethrow(Rethrow node);
-  T visitBranch(Branch node);
   T visitTypeCast(TypeCast node);
   T visitSetMutable(SetMutable node);
   T visitSetStatic(SetStatic node);
-  T visitGetLazyStatic(GetLazyStatic node);
   T visitSetField(SetField node);
-  T visitUnreachable(Unreachable node);
+  T visitGetLazyStatic(GetLazyStatic node);
   T visitAwait(Await node);
   T visitYield(Yield node);
-
-  // Definitions.
   T visitLiteralList(LiteralList node);
   T visitLiteralMap(LiteralMap node);
   T visitConstant(Constant node);
@@ -2390,5 +2423,375 @@ class RemovalVisitor extends TrampolineRecursiveVisitor {
 
   static void remove(Node node) {
     (new RemovalVisitor()).visit(node);
+  }
+}
+
+/// A visitor to copy instances of [Definition] or its subclasses, except for
+/// instances of [Continuation].
+///
+/// The visitor maintains a map from original definitions to their copies.
+/// When the [copy] method is called for a non-Continuation definition,
+/// a copy is created, added to the map and returned as the result. Copying a
+/// definition assumes that the definitions of all references have already
+/// been copied by the same visitor.
+class DefinitionCopyingVisitor extends Visitor<Definition> {
+  Map<Definition, Definition> _copies = <Definition, Definition>{};
+
+  /// Put a copy into the map.
+  ///
+  /// This method should be used instead of directly adding copies to the map.
+  Definition putCopy(Definition original, Definition copy) {
+    if (copy is Variable) {
+      Variable originalVariable = original;
+      copy.type = originalVariable.type;
+      copy.hint = originalVariable.hint;
+    }
+    return _copies[original] = copy;
+  }
+
+  /// Get the copy of a [Reference]'s definition from the map.
+  Definition getCopy(Reference reference) => _copies[reference.definition];
+
+  /// Map a list of [Reference]s to the list of their definition's copies.
+  List<Definition> getList(List<Reference> list) => list.map(getCopy).toList();
+
+  /// Copy a non-[Continuation] [Definition].
+  Definition copy(Definition node) {
+    assert (node is! Continuation);
+    return putCopy(node, visit(node));
+  }
+
+  Definition visit(Node node) => node.accept(this);
+
+  visitFunctionDefinition(FunctionDefinition node) {}
+  visitLetPrim(LetPrim node) {}
+  visitLetCont(LetCont node) {}
+  visitLetHandler(LetHandler node) {}
+  visitLetMutable(LetMutable node) {}
+  visitInvokeContinuation(InvokeContinuation node) {}
+  visitThrow(Throw node) {}
+  visitRethrow(Rethrow node) {}
+  visitBranch(Branch node) {}
+  visitUnreachable(Unreachable node) {}
+  visitContinuation(Continuation node) {}
+
+  Definition visitInvokeStatic(InvokeStatic node) {
+    return new InvokeStatic(node.target, node.selector, getList(node.arguments),
+        node.sourceInformation);
+  }
+
+  Definition visitInvokeMethod(InvokeMethod node) {
+    return new InvokeMethod(getCopy(node.receiver), node.selector, node.mask,
+        getList(node.arguments),
+        node.sourceInformation);
+  }
+
+  Definition visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    return new InvokeMethodDirectly(getCopy(node.receiver), node.target,
+        node.selector,
+        getList(node.arguments),
+        node.sourceInformation);
+  }
+
+  Definition visitInvokeConstructor(InvokeConstructor node) {
+    return new InvokeConstructor(node.dartType, node.target, node.selector,
+        getList(node.arguments),
+        node.sourceInformation);
+  }
+
+  Definition visitTypeCast(TypeCast node) {
+    return new TypeCast(getCopy(node.value), node.dartType,
+        getList(node.typeArguments));
+  }
+
+  Definition visitSetMutable(SetMutable node) {
+    return new SetMutable(getCopy(node.variable), getCopy(node.value));
+  }
+
+  Definition visitSetStatic(SetStatic node) {
+    return new SetStatic(node.element, getCopy(node.value),
+        node.sourceInformation);
+  }
+
+  Definition visitSetField(SetField node) {
+    return new SetField(getCopy(node.object), node.field, getCopy(node.value));
+  }
+
+  Definition visitGetLazyStatic(GetLazyStatic node) {
+    return new GetLazyStatic(node.element, node.sourceInformation);
+  }
+
+  Definition visitAwait(Await node) {
+    return new Await(getCopy(node.input));
+  }
+
+  Definition visitYield(Yield node) {
+    return new Yield(getCopy(node.input), node.hasStar);
+  }
+
+  Definition visitLiteralList(LiteralList node) {
+    return new LiteralList(node.dartType, getList(node.values));
+  }
+
+  Definition visitLiteralMap(LiteralMap node) {
+    List<LiteralMapEntry> entries = node.entries.map((LiteralMapEntry entry) {
+      return new LiteralMapEntry(getCopy(entry.key), getCopy(entry.value));
+    }).toList();
+    return new LiteralMap(node.dartType, entries);
+  }
+
+  Definition visitConstant(Constant node) {
+    return new Constant(node.value, sourceInformation: node.sourceInformation);
+  }
+
+  Definition visitGetMutable(GetMutable node) {
+    return new GetMutable(getCopy(node.variable));
+  }
+
+  Definition visitParameter(Parameter node) {
+    return new Parameter(node.hint);
+  }
+
+  Definition visitMutableVariable(MutableVariable node) {
+    return new MutableVariable(node.hint);
+  }
+
+  Definition visitGetStatic(GetStatic node) {
+    return new GetStatic(node.element, node.sourceInformation);
+  }
+
+  Definition visitInterceptor(Interceptor node) {
+    return new Interceptor(getCopy(node.input), node.sourceInformation)
+        ..interceptedClasses.addAll(node.interceptedClasses);
+  }
+
+  Definition visitCreateInstance(CreateInstance node) {
+    return new CreateInstance(node.classElement, getList(node.arguments),
+        getList(node.typeInformation),
+        node.sourceInformation);
+  }
+
+  Definition visitGetField(GetField node) {
+    return new GetField(getCopy(node.object), node.field);
+  }
+
+  Definition visitCreateBox(CreateBox node) {
+    return new CreateBox();
+  }
+
+  Definition visitReifyRuntimeType(ReifyRuntimeType node) {
+    return new ReifyRuntimeType(getCopy(node.value), node.sourceInformation);
+  }
+
+  Definition visitReadTypeVariable(ReadTypeVariable node) {
+    return new ReadTypeVariable(node.variable, getCopy(node.target),
+        node.sourceInformation);
+  }
+
+  Definition visitTypeExpression(TypeExpression node) {
+    return new TypeExpression(node.dartType, getList(node.arguments));
+  }
+
+  Definition visitCreateInvocationMirror(CreateInvocationMirror node) {
+    return new CreateInvocationMirror(node.selector, getList(node.arguments));
+  }
+
+  Definition visitTypeTest(TypeTest node) {
+    return new TypeTest(getCopy(node.value), node.dartType,
+        getList(node.typeArguments));
+  }
+
+  Definition visitTypeTestViaFlag(TypeTestViaFlag node) {
+    return new TypeTestViaFlag(getCopy(node.interceptor), node.dartType);
+  }
+
+  Definition visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    return new ApplyBuiltinOperator(node.operator, getList(node.arguments),
+        node.sourceInformation);
+  }
+
+  Definition visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
+    return new ApplyBuiltinMethod(node.method, getCopy(node.receiver),
+        getList(node.arguments),
+        node.sourceInformation,
+        receiverIsNotNull: node.receiverIsNotNull);
+  }
+
+  Definition visitGetLength(GetLength node) {
+    return new GetLength(getCopy(node.object));
+  }
+
+  Definition visitGetIndex(GetIndex node) {
+    return new GetIndex(getCopy(node.object), getCopy(node.index));
+  }
+
+  Definition visitSetIndex(SetIndex node) {
+    return new SetIndex(getCopy(node.object), getCopy(node.index),
+        getCopy(node.value));
+  }
+
+  Definition visitRefinement(Refinement node) {
+    return new Refinement(getCopy(node.value), node.refineType);
+  }
+
+  Definition visitBoundsCheck(BoundsCheck node) {
+    if (node.hasNoChecks) {
+      return new BoundsCheck.noCheck(getCopy(node.object),
+          node.sourceInformation);
+    } else {
+      return new BoundsCheck(getCopy(node.object), getCopy(node.index),
+          getCopy(node.length),
+          node.checks,
+          node.sourceInformation);
+    }
+  }
+
+  Definition visitNullCheck(NullCheck node) {
+    return new NullCheck(getCopy(node.value), node.sourceInformation);
+  }
+
+  Definition visitForeignCode(ForeignCode node) {
+    return new ForeignCode(node.codeTemplate, node.type,
+        getList(node.arguments),
+        node.nativeBehavior,
+        dependency: node.dependency);
+  }
+}
+
+/// A trampolining visitor to copy [FunctionDefinition]s.
+class CopyingVisitor extends TrampolineRecursiveVisitor {
+  // The visitor maintains a map from original continuations to their copies.
+  Map<Continuation, Continuation> _copies = <Continuation, Continuation>{};
+
+  // The visitor uses an auxiliary visitor to copy definitions.
+  DefinitionCopyingVisitor _definitions = new DefinitionCopyingVisitor();
+
+  // While copying a block, the state of the visitor is a 'linked list' of
+  // the expressions in the block's body, with a pointer to the last element
+  // of the list.
+  Expression _first = null;
+  Expression _current = null;
+
+  void plug(Expression body) {
+    if (_first == null) {
+      _first = body;
+    } else {
+      assert(_current != null);
+      InteriorExpression interior = _current;
+      interior.body = body;
+    }
+    _current = body;
+  }
+
+  // Continuations are added to the visitor's stack to be visited after copying
+  // the current block is finished.  The stack action saves the current block,
+  // copies the continuation's body, sets the body on the copy of the
+  // continuation, and restores the current block.
+  //
+  // Note that continuations are added to the copy map before the stack action
+  // to visit them is performed.
+  void push(Continuation cont) {
+    assert(!cont.isReturnContinuation);
+    _stack.add(() {
+      Expression savedFirst = _first;
+      _first = _current = null;
+      _processBlock(cont.body);
+      _copies[cont].body = _first;
+      _first = savedFirst;
+      _current = null;
+    });
+  }
+
+  FunctionDefinition copy(FunctionDefinition node) {
+    assert(_first == null && _current == null);
+    _first = _current = null;
+    // Definitions are copied where they are bound, before processing
+    // expressions in the scope of their binding.
+    Parameter thisParameter = node.thisParameter == null
+        ? null
+        : _definitions.copy(node.thisParameter);
+    List<Parameter> parameters =
+        node.parameters.map(_definitions.copy).toList();
+    // Though the return continuation's parameter does not have any uses,
+    // we still make a proper copy to ensure that hints, type, etc. are
+    // copied.
+    Parameter returnParameter =
+        _definitions.copy(node.returnContinuation.parameters.first);
+    Continuation returnContinuation = _copies[node.returnContinuation] =
+        new Continuation([returnParameter]);
+
+    visit(node.body);
+    FunctionDefinition copy = new FunctionDefinition(node.element,
+        thisParameter,
+        parameters,
+        returnContinuation,
+        _first);
+    _first = _current = null;
+    return copy;
+  }
+
+  Node visit(Node node) => node.accept(this);
+
+  Expression traverseLetCont(LetCont node) {
+    // Continuations are copied where they are bound, before processing
+    // expressions in the scope of their binding.
+    List<Continuation> continuations = node.continuations.map((Continuation c) {
+      push(c);
+      return _copies[c] =
+          new Continuation(c.parameters.map(_definitions.copy).toList());
+    }).toList();
+    plug(new LetCont.many(continuations, null));
+    return node.body;
+  }
+
+  Expression traverseLetHandler(LetHandler node) {
+    // Continuations are copied where they are bound, before processing
+    // expressions in the scope of their binding.
+    push(node.handler);
+    Continuation handler = _copies[node.handler] =
+        new Continuation(node.handler.parameters.map(_definitions.copy)
+            .toList());
+    plug(new LetHandler(handler, null));
+    return node.body;
+  }
+
+  Expression traverseLetPrim(LetPrim node) {
+    plug(new LetPrim(_definitions.copy(node.primitive)));
+    return node.body;
+  }
+
+  Expression traverseLetMutable(LetMutable node) {
+    plug(new LetMutable(_definitions.copy(node.variable),
+        _definitions.getCopy(node.value)));
+    return node.body;
+  }
+
+  // Tail expressions do not have references, so we do not need to map them
+  // to their copies.
+  visitInvokeContinuation(InvokeContinuation node) {
+    plug(new InvokeContinuation(_copies[node.continuation.definition],
+        _definitions.getList(node.arguments),
+        isRecursive: node.isRecursive,
+        isEscapingTry: node.isEscapingTry,
+        sourceInformation: node.sourceInformation));
+  }
+
+  visitThrow(Throw node) {
+    plug(new Throw(_definitions.getCopy(node.value)));
+  }
+
+  visitRethrow(Rethrow node) {
+    plug(new Rethrow());
+  }
+
+  visitBranch(Branch node) {
+    plug(new Branch.loose(_definitions.getCopy(node.condition),
+        _copies[node.trueContinuation.definition],
+        _copies[node.falseContinuation.definition])
+      ..isStrictCheck = node.isStrictCheck);
+  }
+
+  visitUnreachable(Unreachable node) {
+    plug(new Unreachable());
   }
 }

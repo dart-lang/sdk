@@ -212,6 +212,19 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  String get dartPrecompiledBinaryFileName {
+    // Controlled by user with the option "--dart_precompiled".
+    String dartExecutable = configuration['dart_precompiled'];
+
+    if (dartExecutable == null || dartExecutable == '') {
+      String suffix = executableBinarySuffix;
+      dartExecutable = '$buildDir/dart_precompiled$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, configuration);
+    return dartExecutable;
+  }
+
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
     var d8Dir = TestUtils.dartDir.append('third_party/d8');
@@ -882,6 +895,12 @@ class StandardTestSuite extends TestSuite {
       var packageDirectories = {};
       if (configuration['use_repository_packages']) {
         packageDirectories = new Map.from(localPackageDirectories);
+
+        // Don't create a dependency override for pub, since it's an application
+        // package and it has a dependency on compiler_unsupported which isn't
+        // in the repo.
+        packageDirectories.remove('pub');
+
         // Do not create an dependency override for the package itself.
         if (packageDirectories.containsKey(packageName)) {
           packageDirectories.remove(packageName);
@@ -1009,9 +1028,10 @@ class StandardTestSuite extends TestSuite {
     List<String> compileTimeArguments = <String>[];
     String tempDir;
     if (compilerConfiguration.hasCompiler) {
-      compileTimeArguments
-          ..addAll(sharedOptions)
-          ..addAll(args);
+      compileTimeArguments =
+          compilerConfiguration.computeCompilerArguments(vmOptions,
+                                                         sharedOptions,
+                                                         args);
       // Avoid doing this for analyzer.
       tempDir = createCompilationOutputDirectory(info.filePath);
     }
@@ -1772,8 +1792,8 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none'];
-    var RUNTIMES = const ['none', 'vm', 'drt', 'dartium',
+    var COMPILERS = const ['none', 'precompiler'];
+    var RUNTIMES = const ['none', 'dart_precompiled', 'vm', 'drt', 'dartium',
                           'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
@@ -1974,6 +1994,12 @@ class PkgBuildTestSuite extends TestSuite {
         var packageDirectories = {};
         if (!configuration['use_public_packages']) {
           packageDirectories = new Map.from(localPackageDirectories);
+
+          // Don't create a dependency override for pub, since it's an
+          // application package and it has a dependency on compiler_unsupported
+          // which isn't in the repo.
+          packageDirectories.remove('pub');
+
           if (packageDirectories.containsKey(packageName)) {
             packageDirectories.remove(packageName);
           }

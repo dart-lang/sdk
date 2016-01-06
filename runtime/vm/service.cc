@@ -476,6 +476,36 @@ class UIntParameter : public MethodParameter {
 };
 
 
+class Int64Parameter : public MethodParameter {
+ public:
+  Int64Parameter(const char* name, bool required)
+      : MethodParameter(name, required) {
+  }
+
+  virtual bool Validate(const char* value) const {
+    if (value == NULL) {
+      return false;
+    }
+    for (const char* cp = value; *cp != '\0'; cp++) {
+      if ((*cp < '0' || *cp > '9') && (*cp != '-')) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static int64_t Parse(const char* value, int64_t default_value = -1) {
+    if ((value == NULL) || (*value == '\0')) {
+      return default_value;
+    }
+    char* end_ptr = NULL;
+    int64_t result = strtoll(value, &end_ptr, 10);
+    ASSERT(*end_ptr == '\0');  // Parsed full string
+    return result;
+  }
+};
+
+
 class IdParameter : public MethodParameter {
  public:
   IdParameter(const char* name, bool required)
@@ -2605,6 +2635,8 @@ static bool ClearVMTimeline(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* get_vm_timeline_params[] = {
   NO_ISOLATE_PARAMETER,
+  new Int64Parameter("timeOriginMicros", false),
+  new Int64Parameter("timeExtentMicros", false),
   NULL,
 };
 
@@ -2617,7 +2649,11 @@ static bool GetVMTimeline(Thread* thread, JSONStream* js) {
   TimelineEventRecorder* timeline_recorder = Timeline::recorder();
   // TODO(johnmccutchan): Return an error.
   ASSERT(timeline_recorder != NULL);
-  TimelineEventFilter filter;
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  TimelineEventFilter filter(time_origin_micros, time_extent_micros);
   timeline_recorder->PrintJSON(js, &filter);
   return true;
 }
@@ -2733,6 +2769,8 @@ static const MethodParameter* get_cpu_profile_params[] = {
   ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
   new BoolParameter("_codeTransitionTags", false),
+  new Int64Parameter("timeOriginMicros", false),
+  new Int64Parameter("timeExtentMicros", false),
   NULL,
 };
 
@@ -2745,7 +2783,15 @@ static bool GetCpuProfile(Thread* thread, JSONStream* js) {
   if (BoolParameter::Parse(js->LookupParam("_codeTransitionTags"))) {
     extra_tags |= ProfilerService::kCodeTransitionTagsBit;
   }
-  ProfilerService::PrintJSON(js, tag_order, extra_tags);
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
+  ProfilerService::PrintJSON(js,
+                             tag_order,
+                             extra_tags,
+                             time_origin_micros,
+                             time_extent_micros);
   return true;
 }
 
@@ -2753,6 +2799,8 @@ static bool GetCpuProfile(Thread* thread, JSONStream* js) {
 static const MethodParameter* get_cpu_profile_timeline_params[] = {
   ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
+  new Int64Parameter("timeOriginMicros", false),
+  new Int64Parameter("timeExtentMicros", false),
   NULL,
 };
 
@@ -2760,7 +2808,14 @@ static const MethodParameter* get_cpu_profile_timeline_params[] = {
 static bool GetCpuProfileTimeline(Thread* thread, JSONStream* js) {
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
-  ProfilerService::PrintTimelineJSON(js, tag_order);
+  int64_t time_origin_micros =
+      UIntParameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      UIntParameter::Parse(js->LookupParam("timeExtentMicros"));
+  ProfilerService::PrintTimelineJSON(js,
+                                     tag_order,
+                                     time_origin_micros,
+                                     time_extent_micros);
   return true;
 }
 
@@ -2769,6 +2824,8 @@ static const MethodParameter* get_allocation_samples_params[] = {
   ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
   new IdParameter("classId", false),
+  new Int64Parameter("timeOriginMicros", false),
+  new Int64Parameter("timeExtentMicros", false),
   NULL,
 };
 
@@ -2776,13 +2833,21 @@ static const MethodParameter* get_allocation_samples_params[] = {
 static bool GetAllocationSamples(Thread* thread, JSONStream* js) {
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  int64_t time_origin_micros =
+      Int64Parameter::Parse(js->LookupParam("timeOriginMicros"));
+  int64_t time_extent_micros =
+      Int64Parameter::Parse(js->LookupParam("timeExtentMicros"));
   const char* class_id = js->LookupParam("classId");
   intptr_t cid = -1;
   GetPrefixedIntegerId(class_id, "classes/", &cid);
   Isolate* isolate = thread->isolate();
   if (IsValidClassId(isolate, cid)) {
     const Class& cls = Class::Handle(GetClassForId(isolate, cid));
-    ProfilerService::PrintAllocationJSON(js, tag_order, cls);
+    ProfilerService::PrintAllocationJSON(js,
+                                         tag_order,
+                                         cls,
+                                         time_origin_micros,
+                                         time_extent_micros);
   } else {
     PrintInvalidParamError(js, "classId");
   }

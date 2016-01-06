@@ -48,7 +48,9 @@ DEFINE_FLAG(bool, load_deferred_eagerly, false,
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
-DEFINE_FLAG(bool, move_super, false, "Move super initializer to end of list");
+DEFINE_FLAG(bool, move_super, true, "Move super initializer to end of list.");
+DEFINE_FLAG(bool, warn_super, false,
+    "Warning if super initializer not last in initializer list.");
 
 DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -821,10 +823,7 @@ void Parser::ParseClass(const Class& cls) {
                             "ParseClass");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
-    tds.CopyArgument(
-        0,
-        "class",
-        const_cast<char*>(String::Handle(cls.Name()).ToCString()));
+    tds.CopyArgument(0, "class", String::Handle(cls.Name()).ToCString());
   }
   if (!cls.is_synthesized_class()) {
     ASSERT(thread->long_jump_base()->IsSafeToJump());
@@ -945,10 +944,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   Parser parser(script, parsed_function, func.token_pos());
   if (tds.enabled()) {
     tds.SetNumArguments(1);
-    tds.CopyArgument(
-        0,
-        "function",
-        const_cast<char*>(String::Handle(func.name()).ToCString()));
+    tds.CopyArgument(0, "function", String::Handle(func.name()).ToCString());
   }
   SequenceNode* node_sequence = NULL;
   switch (func.kind()) {
@@ -2816,7 +2812,9 @@ void Parser::ParseInitializers(const Class& cls,
     // A(x) : super(x), f = x++ { ... }
     // is transformed to:
     // A(x) : temp = x, f = x++, super(temp) { ... }
-    ReportWarning("Super initizlizer not at end");
+    if (FLAG_warn_super) {
+      ReportWarning("Super initializer not at end");
+    }
     ASSERT(super_init_index >= 0);
     ArgumentListNode* ctor_args = super_init_call->arguments();
     LetNode* saved_args = new(Z) LetNode(super_init_call->token_pos());
@@ -3125,7 +3123,10 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
   }
 
   SequenceNode* init_statements = CloseBlock();
-  if (is_redirecting_constructor) {
+  if (FLAG_move_super) {
+    // Ignore the phase parameter.
+    current_block_->statements->Add(init_statements);
+  } else if (is_redirecting_constructor) {
     // A redirecting super constructor simply passes the phase parameter on to
     // the target which executes the corresponding phase.
     current_block_->statements->Add(init_statements);
@@ -3272,24 +3273,29 @@ SequenceNode* Parser::ParseConstructor(const Function& func) {
 
   SequenceNode* ctor_block = CloseBlock();
   if (ctor_block->length() > 0) {
-    // Generate guard around the constructor body code.
-    LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value =
-        new LoadLocalNode(Scanner::kNoSourcePos, phase_param);
-    AstNode* phase_check =
-        new BinaryOpNode(Scanner::kNoSourcePos, Token::kBIT_AND,
-            phase_value,
-            new LiteralNode(Scanner::kNoSourcePos,
-                Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
-    AstNode* comparison =
-        new ComparisonNode(Scanner::kNoSourcePos,
-                           Token::kNE_STRICT,
-                           phase_check,
-                           new LiteralNode(body_pos,
-                                           Smi::ZoneHandle(Smi::New(0))));
-    AstNode* guarded_block_statements =
-        new IfNode(Scanner::kNoSourcePos, comparison, ctor_block, NULL);
-    current_block_->statements->Add(guarded_block_statements);
+    if (FLAG_move_super) {
+      // Ignore the phase parameter.
+      current_block_->statements->Add(ctor_block);
+    } else {
+      // Generate guard around the constructor body code.
+      LocalVariable* phase_param = LookupPhaseParameter();
+      AstNode* phase_value =
+          new LoadLocalNode(Scanner::kNoSourcePos, phase_param);
+      AstNode* phase_check =
+          new BinaryOpNode(Scanner::kNoSourcePos, Token::kBIT_AND,
+              phase_value,
+              new LiteralNode(Scanner::kNoSourcePos,
+                  Smi::ZoneHandle(Smi::New(Function::kCtorPhaseBody))));
+      AstNode* comparison =
+          new ComparisonNode(Scanner::kNoSourcePos,
+                             Token::kNE_STRICT,
+                             phase_check,
+                             new LiteralNode(body_pos,
+                                             Smi::ZoneHandle(Smi::New(0))));
+      AstNode* guarded_block_statements =
+          new IfNode(Scanner::kNoSourcePos, comparison, ctor_block, NULL);
+      current_block_->statements->Add(guarded_block_statements);
+    }
   }
   current_block_->statements->Add(new ReturnNode(func.end_token_pos()));
   SequenceNode* statements = CloseBlock();
@@ -11196,6 +11202,26 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
     // source.
     if (!FLAG_warn_on_javascript_compatibility || is_patch_source()) {
       ASSERT(num_arguments == 2);
+
+      // If both arguments are constant expressions of type string,
+      // evaluate and canonicalize them.
+      // This guarantees that identical("ab", "a"+"b") is true.
+      // An alternative way to guarantee this would be to introduce
+      // an AST node that canonicalizes a value.
+      AstNode* arg0 = arguments->NodeAt(0);
+      const Instance* val0 = arg0->EvalConstExpr();
+      if ((val0 != NULL) && (val0->IsString())) {
+        AstNode* arg1 = arguments->NodeAt(1);
+        const Instance* val1 = arg1->EvalConstExpr();
+        if ((val1 != NULL) && (val1->IsString())) {
+          arguments->SetNodeAt(0,
+              new(Z) LiteralNode(arg0->token_pos(),
+                                 EvaluateConstExpr(arg0->token_pos(), arg0)));
+          arguments->SetNodeAt(1,
+              new(Z) LiteralNode(arg1->token_pos(),
+                                 EvaluateConstExpr(arg1->token_pos(), arg1)));
+        }
+      }
       return new(Z) ComparisonNode(ident_pos,
                                    Token::kEQ_STRICT,
                                    arguments->NodeAt(0),
@@ -12052,8 +12078,10 @@ bool Parser::GetCachedConstant(intptr_t token_pos, Instance* value) {
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
   bool is_present = false;
   *value ^= constants.GetOrNull(key, &is_present);
-  ASSERT(constants.Release().raw() ==
-      isolate()->object_store()->compile_time_constants());
+  // Mutator compiler thread may add constants while background compiler
+  // is running , and thus change the value of 'compile_time_constants';
+  // do not assert that 'compile_time_constants' has not changed.
+  constants.Release();
   if (FLAG_compiler_stats && is_present) {
     isolate_->compiler_stats()->num_const_cache_hits++;
   }

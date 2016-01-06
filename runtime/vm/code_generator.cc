@@ -57,9 +57,10 @@ DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
 DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
-DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(int, max_polymorphic_checks);
 
@@ -338,11 +339,9 @@ static void PrintTypeCheck(
 // case it contains just the result of the class subtype test, not including
 // the evaluation of type arguments.
 // This operation is currently very slow (lookup of code is not efficient yet).
-// 'instantiator' can be null, in which case inst_targ
 static void UpdateTypeTestCache(
     const Instance& instance,
     const AbstractType& type,
-    const Instance& instantiator,
     const TypeArguments& instantiator_type_arguments,
     const Bool& result,
     const SubtypeTestCache& new_cache) {
@@ -447,18 +446,16 @@ static void UpdateTypeTestCache(
 // Tested instance may not be null, because the null test is inlined.
 // Arg0: instance being checked.
 // Arg1: type.
-// Arg2: instantiator (or null).
-// Arg3: type arguments of the instantiator of the type.
-// Arg4: SubtypeTestCache.
+// Arg2: type arguments of the instantiator of the type.
+// Arg3: SubtypeTestCache.
 // Return value: true or false, or may throw a type error in checked mode.
-DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
+DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
   const Instance& instance = Instance::CheckedHandle(arguments.ArgAt(0));
   const AbstractType& type = AbstractType::CheckedHandle(arguments.ArgAt(1));
-  const Instance& instantiator = Instance::CheckedHandle(arguments.ArgAt(2));
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(3));
+      TypeArguments::CheckedHandle(arguments.ArgAt(2));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
+      SubtypeTestCache::CheckedHandle(arguments.ArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsDynamicType());  // No need to check assignment.
   ASSERT(!type.IsMalformed());  // Already checked in code generator.
@@ -482,8 +479,8 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
         Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
-  UpdateTypeTestCache(instance, type, instantiator,
-                      instantiator_type_arguments, result, cache);
+  UpdateTypeTestCache(
+      instance, type, instantiator_type_arguments, result, cache);
   arguments.SetReturn(result);
 }
 
@@ -492,22 +489,19 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 // can therefore be assigned.
 // Arg0: instance being assigned.
 // Arg1: type being assigned to.
-// Arg2: instantiator (or null).
-// Arg3: type arguments of the instantiator of the type being assigned to.
-// Arg4: name of variable being assigned to.
-// Arg5: SubtypeTestCache.
+// Arg2: type arguments of the instantiator of the type being assigned to.
+// Arg3: name of variable being assigned to.
+// Arg4: SubtypeTestCache.
 // Return value: instance if a subtype, otherwise throw a TypeError.
-DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
+DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
   const AbstractType& dst_type =
       AbstractType::CheckedHandle(arguments.ArgAt(1));
-  const Instance& dst_instantiator =
-      Instance::CheckedHandle(arguments.ArgAt(2));
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(arguments.ArgAt(3));
-  const String& dst_name = String::CheckedHandle(arguments.ArgAt(4));
+      TypeArguments::CheckedHandle(arguments.ArgAt(2));
+  const String& dst_name = String::CheckedHandle(arguments.ArgAt(3));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.ArgAt(5));
+      SubtypeTestCache::CheckedHandle(arguments.ArgAt(4));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!dst_type.IsMalbounded());  // Already checked in code generator.
@@ -565,9 +559,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
                                         dst_name, bound_error_message);
     UNREACHABLE();
   }
-  UpdateTypeTestCache(src_instance, dst_type,
-                      dst_instantiator, instantiator_type_arguments,
-                      Bool::True(), cache);
+  UpdateTypeTestCache(
+      src_instance, dst_type, instantiator_type_arguments, Bool::True(), cache);
   arguments.SetReturn(src_instance);
 }
 
@@ -684,7 +677,7 @@ DEFINE_RUNTIME_ENTRY(PatchStaticCall, 0) {
                                  target_code);
   caller_code.SetStaticCallTargetCodeAt(caller_frame->pc(), target_code);
   if (FLAG_trace_patching) {
-    OS::PrintErr("PatchStaticCall: patching caller pc %#" Px ""
+    THR_Print("PatchStaticCall: patching caller pc %#" Px ""
         " to '%s' new entry point %#" Px " (%s)\n",
         caller_frame->pc(),
         target_function.ToFullyQualifiedCString(),
@@ -1252,7 +1245,6 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 
 
 static bool CanOptimizeFunction(const Function& function, Thread* thread) {
-  const intptr_t kLowInvocationCount = -100000000;
   Isolate* isolate = thread->isolate();
   if (isolate->debugger()->IsStepping() ||
       isolate->debugger()->HasBreakpoint(function, thread->zone())) {
@@ -1262,17 +1254,19 @@ static bool CanOptimizeFunction(const Function& function, Thread* thread) {
     return false;
   }
   if (function.deoptimization_counter() >=
-      FLAG_deoptimization_counter_threshold) {
+      FLAG_max_deoptimization_counter_threshold) {
     if (FLAG_trace_failed_optimization_attempts ||
         FLAG_stop_on_excessive_deoptimization) {
-      OS::PrintErr("Too Many Deoptimizations: %s\n",
+      THR_Print("Too many deoptimizations: %s\n",
           function.ToFullyQualifiedCString());
       if (FLAG_stop_on_excessive_deoptimization) {
         FATAL("Stop on excessive deoptimization");
       }
     }
-    // TODO(srdjan): Investigate excessive deoptimization.
-    function.set_usage_counter(kLowInvocationCount);
+    // The function will not be optimized any longer. This situation can occur
+    // mostly with small optimization counter thresholds.
+    function.SetIsOptimizable(false);
+    function.set_usage_counter(INT_MIN);
     return false;
   }
   if (FLAG_optimization_filter != NULL) {
@@ -1294,16 +1288,17 @@ static bool CanOptimizeFunction(const Function& function, Thread* thread) {
     }
     delete[] filter;
     if (!found) {
-      function.set_usage_counter(kLowInvocationCount);
+      function.set_usage_counter(INT_MIN);
       return false;
     }
   }
   if (!function.IsOptimizable()) {
+    // Huge methods (code size above --huge_method_cutoff_in_code_size) become
+    // non-optimizable only after the code has been generated.
     if (FLAG_trace_failed_optimization_attempts) {
-      OS::PrintErr("Not Optimizable: %s\n", function.ToFullyQualifiedCString());
+      THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
     }
-    // TODO(5442338): Abort as this should not happen.
-    function.set_usage_counter(kLowInvocationCount);
+    function.set_usage_counter(INT_MIN);
     return false;
   }
   return true;
@@ -1506,7 +1501,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
-    if (FLAG_trace_compiler) {
+    if (FLAG_trace_compiler || FLAG_trace_optimizing_compiler) {
       if (function.HasOptimizedCode()) {
         THR_Print("ReCompiling function: '%s' \n",
                   function.ToFullyQualifiedCString());
@@ -1714,6 +1709,9 @@ static void CopySavedRegisters(uword saved_registers_address,
 
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.
+// The calling code must be optimized, but its function may not have
+// have optimized code if the code is OSR code, or if the code was invalidated
+// through class loading/finalization or field guard.
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                           2,
                           uword saved_registers_address,
@@ -1735,6 +1733,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(caller_frame != NULL);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(optimized_code.is_optimized());
+  const Function& top_function =
+      Function::Handle(thread->zone(), optimized_code.function());
+  const bool deoptimizing_code = top_function.HasOptimizedCode();
+  if (FLAG_trace_deoptimization) {
+    const Function& function = Function::Handle(optimized_code.function());
+    THR_Print("== Deoptimizing code for '%s', %s, %s\n",
+       function.ToFullyQualifiedCString(),
+       deoptimizing_code ? "code & frame" : "frame",
+       is_lazy_deopt ? "lazy-deopt" : "");
+  }
 
   // Copy the saved registers from the stack.
   fpu_register_t* fpu_registers;
@@ -1748,7 +1756,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                        DeoptContext::kDestIsOriginalFrame,
                        fpu_registers,
                        cpu_registers,
-                       is_lazy_deopt != 0);
+                       is_lazy_deopt != 0,
+                       deoptimizing_code);
   isolate->set_deopt_context(deopt_context);
 
   // Stack size (FP - SP) in bytes.

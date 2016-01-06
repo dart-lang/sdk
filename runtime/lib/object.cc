@@ -155,17 +155,14 @@ static void WarnOnJSIntegralNumTypeTest(
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  // Instantiator at position 1 is not used. It is passed along so that the call
-  // can be easily converted to an optimized implementation. Instantiator is
-  // used to populate the subtype cache.
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(2));
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
   const AbstractType& type =
-      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(4));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
@@ -267,15 +264,12 @@ DEFINE_NATIVE_ENTRY(Object_instanceOfString, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_as, 4) {
+DEFINE_NATIVE_ENTRY(Object_as, 3) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  // Instantiator at position 1 is not used. It is passed along so that the call
-  // can be easily converted to an optimized implementation. Instantiator is
-  // used to populate the subtype cache.
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(arguments->NativeArgAt(2));
+      TypeArguments::CheckedHandle(arguments->NativeArgAt(1));
   const AbstractType& type =
-      AbstractType::CheckedHandle(arguments->NativeArgAt(3));
+      AbstractType::CheckedHandle(arguments->NativeArgAt(2));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());

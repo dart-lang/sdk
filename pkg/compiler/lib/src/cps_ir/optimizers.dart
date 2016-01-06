@@ -18,7 +18,9 @@ export 'update_refinements.dart' show UpdateRefinements;
 export 'redundant_refinement.dart' show RedundantRefinementEliminator;
 export 'optimize_interceptors.dart' show OptimizeInterceptors;
 export 'bounds_checker.dart' show BoundsChecker;
+export 'backward_null_check_remover.dart' show BackwardNullCheckRemover;
 export 'gvn.dart' show GVN;
+export 'inline.dart' show Inliner;
 export 'eagerly_load_statics.dart' show EagerlyLoadStatics;
 export 'parent_visitor.dart' show ParentVisitor;
 

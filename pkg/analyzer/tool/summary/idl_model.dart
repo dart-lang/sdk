@@ -12,28 +12,62 @@ library analyzer.tool.summary.idl_model;
 /**
  * Information about a single class defined in the IDL.
  */
-class ClassDeclaration {
+class ClassDeclaration extends Declaration {
   /**
    * Fields defined in the class.
    */
-  final Map<String, FieldType> fields = <String, FieldType>{};
+  final List<FieldDeclaration> fields = <FieldDeclaration>[];
 
   /**
    * Indicates whether the class has the `topLevel` annotation.
    */
   final bool isTopLevel;
 
-  ClassDeclaration(this.isTopLevel);
+  ClassDeclaration(String documentation, String name, this.isTopLevel)
+      : super(documentation, name);
+}
+
+/**
+ * Information about a declaration in the IDL.
+ */
+class Declaration {
+  /**
+   * The optional documentation, may be `null`.
+   */
+  final String documentation;
+
+  /**
+   * The name of the declaration.
+   */
+  final String name;
+
+  Declaration(this.documentation, this.name);
 }
 
 /**
  * Information about a single enum defined in the IDL.
  */
-class EnumDeclaration {
+class EnumDeclaration extends Declaration {
   /**
    * List of enumerated values.
    */
   final List<String> values = <String>[];
+
+  EnumDeclaration(String documentation, String name)
+      : super(documentation, name);
+}
+
+/**
+ * Information about a single class field defined in the IDL.
+ */
+class FieldDeclaration extends Declaration {
+  /**
+   * The file of the field.
+   */
+  final FieldType type;
+
+  FieldDeclaration(String documentation, String name, this.type)
+      : super(documentation, name);
 }
 
 /**

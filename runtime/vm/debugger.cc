@@ -1444,7 +1444,8 @@ RawArray* Debugger::DeoptimizeToArray(Thread* thread,
                        DeoptContext::kDestIsAllocated,
                        NULL,
                        NULL,
-                       true);
+                       true,
+                       false /* deoptimizing_code */);
   isolate->set_deopt_context(deopt_context);
 
   deopt_context->FillDestFrame();

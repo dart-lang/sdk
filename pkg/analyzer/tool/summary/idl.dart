@@ -98,7 +98,7 @@ class PrelinkedLibrary {
   List<PrelinkedDependency> dependencies;
 
   /**
-   * For each import in [UnlinkedLibrary.imports], an index into [dependencies]
+   * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
    *
    * TODO(paulberry): if [dependencies] is removed, this can be removed as
@@ -130,6 +130,12 @@ class PrelinkedReference {
    * represent parts in the order of the corresponding `part` declarations.
    */
   int unit;
+
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
+  int numTypeParameters;
 }
 
 /**
@@ -172,6 +178,32 @@ class PrelinkedUnit {
    * that reference is resolved.
    */
   List<PrelinkedReference> references;
+}
+
+/**
+ * Information about SDK.
+ */
+@topLevel
+class SdkBundle {
+  /**
+   * The list of URIs of items in [prelinkedLibraries], e.g. `dart:core`.
+   */
+  List<String> prelinkedLibraryUris;
+
+  /**
+   * Pre-linked libraries.
+   */
+  List<PrelinkedLibrary> prelinkedLibraries;
+
+  /**
+   * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
+   */
+  List<String> unlinkedUnitUris;
+
+  /**
+   * Unlinked information for the compilation units constituting the SDK.
+   */
+  List<UnlinkedUnit> unlinkedUnits;
 }
 
 /**
@@ -240,23 +272,12 @@ class UnlinkedCombinator {
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
    */
-  List<UnlinkedCombinatorName> shows;
+  List<String> shows;
 
   /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
-  List<UnlinkedCombinatorName> hides;
-}
-
-/**
- * Unlinked summary information about a single name in a `show` or `hide`
- * combinator.
- */
-class UnlinkedCombinatorName {
-  /**
-   * The name itself.
-   */
-  String name;
+  List<String> hides;
 }
 
 /**
@@ -516,6 +537,58 @@ class UnlinkedPart {
 }
 
 /**
+ * Unlinked summary information about a specific name contributed by a
+ * compilation unit to a library's public namespace.
+ *
+ * TODO(paulberry): add a count of generic parameters, so that resynthesis
+ * doesn't have to peek into the library to obtain this info.
+ *
+ * TODO(paulberry): for classes, add info about static members and
+ * constructors, since this will be needed to prelink info about constants.
+ *
+ * TODO(paulberry): some of this information is redundant with information
+ * elsewhere in the summary.  Consider reducing the redundancy to reduce
+ * summary size.
+ */
+class UnlinkedPublicName {
+  /**
+   * The name itself.
+   */
+  String name;
+
+  /**
+   * The kind of object referred to by the name.
+   */
+  PrelinkedReferenceKind kind;
+}
+
+/**
+ * Unlinked summary information about what a compilation unit contributes to a
+ * library's public namespace.  This is the subset of [UnlinkedUnit] that is
+ * required from dependent libraries in order to perform prelinking.
+ */
+@topLevel
+class UnlinkedPublicNamespace {
+  /**
+   * Public names defined in the compilation unit.
+   *
+   * TODO(paulberry): consider sorting these names to reduce unnecessary
+   * relinking.
+   */
+  List<UnlinkedPublicName> names;
+
+  /**
+   * Export declarations in the compilation unit.
+   */
+  List<UnlinkedExport> exports;
+
+  /**
+   * Part declarations in the compilation unit.
+   */
+  List<UnlinkedPart> parts;
+}
+
+/**
  * Unlinked summary information about a name referred to in one library that
  * might be defined in another.
  */
@@ -629,6 +702,11 @@ class UnlinkedUnit {
   String libraryName;
 
   /**
+   * Unlinked public namespace of this compilation unit.
+   */
+  UnlinkedPublicNamespace publicNamespace;
+
+  /**
    * Top level and prefixed names referred to by this compilation unit.  The
    * zeroth element of this array is always populated and always represents a
    * reference to the pseudo-type "dynamic".
@@ -652,19 +730,9 @@ class UnlinkedUnit {
   List<UnlinkedExecutable> executables;
 
   /**
-   * Export declarations in the compilation unit.
-   */
-  List<UnlinkedExport> exports;
-
-  /**
    * Import declarations in the compilation unit.
    */
   List<UnlinkedImport> imports;
-
-  /**
-   * Part declarations in the compilation unit.
-   */
-  List<UnlinkedPart> parts;
 
   /**
    * Typedefs declared in the compilation unit.

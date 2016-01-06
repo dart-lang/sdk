@@ -653,14 +653,6 @@ class IrBuilder {
     return primitive;
   }
 
-  ir.Primitive _continueWithExpression(ir.Expression build(ir.Continuation k)) {
-    ir.Parameter v = new ir.Parameter(null);
-    ir.Continuation k = new ir.Continuation([v]);
-    ir.Expression expression = build(k);
-    add(new ir.LetCont(k, expression));
-    return v;
-  }
-
   ir.Primitive _buildInvokeStatic(Element element,
                                   Selector selector,
                                   List<ir.Primitive> arguments,

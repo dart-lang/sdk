@@ -470,7 +470,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (type.IsTypeParameter()) {
     const TypeParameter& type_param = TypeParameter::Cast(type);
-    // Load instantiator (or null) and instantiator type arguments on stack.
+    // Load instantiator type arguments on stack.
     __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
     // EDX: instantiator type arguments.
     // Check if type arguments are null, i.e. equivalent to vector of dynamic.
@@ -595,8 +595,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Inputs:
 // - EAX: object.
 // - EDX: instantiator type arguments or raw_null.
-// - ECX: instantiator or raw_null.
-// Clobbers ECX and EDX.
+// Clobbers EDX.
 // Returns:
 // - true or false in EAX.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
@@ -609,7 +608,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label is_instance, is_not_instance;
-  __ pushl(ECX);  // Store instantiator on stack.
   __ pushl(EDX);  // Store instantiator type arguments.
   // If type is instantiated and non-parameterized, we can inline code
   // checking whether the tested instance is a Smi.
@@ -635,22 +633,20 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   if (!test_cache.IsNull()) {
     // Generate runtime call.
     __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
-    __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
     __ PushObject(Object::null_object());  // Make room for the result.
     __ pushl(EAX);  // Push the instance.
     __ PushObject(type);  // Push the type.
-    __ pushl(ECX);  // Instantiator.
     __ pushl(EDX);  // Instantiator type arguments.
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
     GenerateRuntimeCall(token_pos,
                         deopt_id,
                         kInstanceofRuntimeEntry,
-                        5,
+                        4,
                         locs);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(5);
+    __ Drop(4);
     if (negate_result) {
       __ popl(EDX);
       __ LoadObject(EAX, Bool::True());
@@ -670,7 +666,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
   __ LoadObject(EAX, Bool::Get(!negate_result));
   __ Bind(&done);
   __ popl(EDX);  // Remove pushed instantiator type arguments.
-  __ popl(ECX);  // Remove pushed instantiator.
 }
 
 
@@ -681,7 +676,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
 // Inputs:
 // - EAX: object.
 // - EDX: instantiator type arguments or raw_null.
-// - ECX: instantiator or raw_null.
 // Returns:
 // - object in EAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
@@ -697,7 +691,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformedOrMalbounded() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  __ pushl(ECX);  // Store instantiator.
   __ pushl(EDX);  // Store instantiator type arguments.
   // A null object is always assignable and is returned as result.
   const Immediate& raw_null =
@@ -722,7 +715,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
     __ Bind(&is_assignable);  // For a null object.
     __ popl(EDX);  // Remove pushed instantiator type arguments.
-    __ popl(ECX);  // Remove pushed instantiator.
     return;
   }
 
@@ -733,24 +725,21 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
 
   __ Bind(&runtime_call);
   __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
-  __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
   __ PushObject(Object::null_object());  // Make room for the result.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
-  __ pushl(ECX);  // Instantiator.
   __ pushl(EDX);  // Instantiator type arguments.
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
-  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
+  GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 5, locs);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(6);
+  __ Drop(5);
   __ popl(EAX);
 
   __ Bind(&is_assignable);
   __ popl(EDX);  // Remove pushed instantiator type arguments.
-  __ popl(ECX);  // Remove pushed instantiator.
 }
 
 
@@ -1012,6 +1001,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
   if (CanOptimizeFunction() &&
       function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
+    __ Comment("Invocation Count Check");
     const Register function_reg = EBX;
     __ LoadObject(function_reg, function);
 

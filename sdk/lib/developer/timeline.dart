@@ -68,6 +68,9 @@ class Timeline {
     }
   }
 
+  /// The current time stamp from the clock used by the timeline. Units are
+  /// microseconds.
+  static int get now => _getTraceClock();
   static final List<_SyncBlock> _stack = new List<_SyncBlock>();
   static final int _isolateId = _getIsolateNum();
   static final String _isolateIdString = _isolateId.toString();

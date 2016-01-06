@@ -396,17 +396,29 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
-int64_t OS::GetCurrentMonotonicMicros() {
+int64_t OS::GetCurrentMonotonicTicks() {
   struct timespec ts;
   if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
     UNREACHABLE();
     return 0;
   }
-  // Convert to microseconds.
+  // Convert to nanoseconds.
   int64_t result = ts.tv_sec;
-  result *= kMicrosecondsPerSecond;
-  result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
+  result *= kNanosecondsPerSecond;
+  result += ts.tv_nsec;
   return result;
+}
+
+
+int64_t OS::GetCurrentMonotonicFrequency() {
+  return kNanosecondsPerSecond;
+}
+
+
+int64_t OS::GetCurrentMonotonicMicros() {
+  int64_t ticks = GetCurrentMonotonicTicks();
+  ASSERT(GetCurrentMonotonicFrequency() == kNanosecondsPerSecond);
+  return ticks / kNanosecondsPerMicrosecond;
 }
 
 

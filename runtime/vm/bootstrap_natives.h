@@ -20,13 +20,13 @@ namespace dart {
   V(Object_toString, 1)                                                        \
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
-  V(Object_instanceOf, 5)                                                      \
+  V(Object_instanceOf, 4)                                                      \
   V(Object_instanceOfNum, 2)                                                   \
   V(Object_instanceOfInt, 2)                                                   \
   V(Object_instanceOfSmi, 2)                                                   \
   V(Object_instanceOfDouble, 2)                                                \
   V(Object_instanceOfString, 2)                                                \
-  V(Object_as, 4)                                                              \
+  V(Object_as, 3)                                                              \
   V(Function_apply, 2)                                                         \
   V(FunctionImpl_equals, 2)                                                    \
   V(FunctionImpl_hashCode, 1)                                                  \

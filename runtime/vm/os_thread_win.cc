@@ -52,12 +52,14 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   MonitorData::GetMonitorWaitDataForThread();
 
   // Create new OSThread object and set as TLS for new thread.
-  OSThread* thread = new OSThread();
-  OSThread::SetCurrent(thread);
-  thread->set_name(name);
+  OSThread* thread = OSThread::CreateOSThread();
+  if (thread != NULL) {
+    OSThread::SetCurrent(thread);
+    thread->set_name(name);
 
-  // Call the supplied thread start function handing it its parameters.
-  function(parameter);
+    // Call the supplied thread start function handing it its parameters.
+    function(parameter);
+  }
 
   // Clean up the monitor wait data for this thread.
   MonitorWaitData::ThreadExit();

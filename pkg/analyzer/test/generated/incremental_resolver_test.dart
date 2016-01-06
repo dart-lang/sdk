@@ -25,7 +25,6 @@ import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
-import 'parser_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
 
@@ -1547,6 +1546,34 @@ class A {
 ''');
   }
 
+  void test_false_method_getKeyword_add() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void foo() {}
+}
+''',
+        r'''
+class A {
+  void get foo {}
+}
+''');
+  }
+
+  void test_false_method_getKeyword_remove() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void get foo {}
+}
+''',
+        r'''
+class A {
+  void foo() {}
+}
+''');
+  }
+
   void test_false_method_list_add() {
     _assertDoesNotMatchOK(
         r'''
@@ -1637,6 +1664,34 @@ class A {
         r'''
 class A {
   String m() {}
+}
+''');
+  }
+
+  void test_false_method_setKeyword_add() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void foo(x) {}
+}
+''',
+        r'''
+class A {
+  void set foo(x) {}
+}
+''');
+  }
+
+  void test_false_method_setKeyword_remove() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void set foo(x) {}
+}
+''',
+        r'''
+class A {
+  void foo(x) {}
 }
 ''');
   }
@@ -3003,7 +3058,7 @@ class B extends Object with A {}
     LibraryElement library = resolve2(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
     // parse
-    CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent);
+    CompilationUnit newUnit = IncrementalResolverTest._parseUnit(newContent);
     // build elements
     {
       ElementHolder holder = new ElementHolder();
@@ -3987,6 +4042,27 @@ class A {
     print(2 + 3);
   }
 }
+''');
+  }
+
+  void test_inBody_functionExpression() {
+    _resolveUnit(r'''
+class C extends D {
+  static final f = () {
+    var x = 0;
+  }();
+}
+
+class D {}
+''');
+    _updateAndValidate(r'''
+class C extends D {
+  static final f = () {
+    var x = 01;
+  }();
+}
+
+class D {}
 ''');
   }
 

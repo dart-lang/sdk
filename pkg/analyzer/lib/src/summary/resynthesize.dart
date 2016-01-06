@@ -25,66 +25,6 @@ typedef PrelinkedLibrary GetPrelinkedSummaryCallback(String uri);
 typedef UnlinkedUnit GetUnlinkedSummaryCallback(String uri);
 
 /**
- * Specialization of [FunctionTypeImpl] used for function types resynthesized
- * from summaries.
- */
-class ResynthesizedFunctionTypeImpl extends FunctionTypeImpl
-    with ResynthesizedType {
-  final SummaryResynthesizer summaryResynthesizer;
-
-  ResynthesizedFunctionTypeImpl(
-      FunctionTypeAliasElement element, String name, this.summaryResynthesizer)
-      : super.elementWithName(element, name);
-
-  int get _numTypeParameters {
-    FunctionTypeAliasElement element = this.element;
-    return element.typeParameters.length;
-  }
-}
-
-/**
- * Specialization of [InterfaceTypeImpl] used for interface types resynthesized
- * from summaries.
- */
-class ResynthesizedInterfaceTypeImpl extends InterfaceTypeImpl
-    with ResynthesizedType {
-  final SummaryResynthesizer summaryResynthesizer;
-
-  ResynthesizedInterfaceTypeImpl(
-      ClassElement element, String name, this.summaryResynthesizer)
-      : super.elementWithName(element, name);
-
-  int get _numTypeParameters => element.typeParameters.length;
-}
-
-/**
- * Common code for types resynthesized from summaries.  This code takes care of
- * filling in the appropriate number of copies of `dynamic` when it is queried
- * for type parameters on a bare type reference (i.e. it converts `List` to
- * `List<dynamic>`).
- */
-abstract class ResynthesizedType implements DartType {
-  /**
-   * The type arguments, if known.  Otherwise `null`.
-   */
-  List<DartType> _typeArguments;
-
-  SummaryResynthesizer get summaryResynthesizer;
-
-  List<DartType> get typeArguments {
-    if (_typeArguments == null) {
-      // Default to replicating "dynamic" as many times as the class element
-      // requires.
-      _typeArguments = new List<DartType>.filled(
-          _numTypeParameters, summaryResynthesizer.typeProvider.dynamicType);
-    }
-    return _typeArguments;
-  }
-
-  int get _numTypeParameters;
-}
-
-/**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
  * model from summaries.
  */
@@ -112,9 +52,6 @@ class SummaryResynthesizer extends ElementResynthesizer {
   /**
    * The [TypeProvider] used to obtain core types (such as Object, int, List,
    * and dynamic) during resynthesis.
-   *
-   * TODO(paulberry): will this create a chicken-and-egg problem when trying to
-   * resynthesize the core library from summaries?
    */
   final TypeProvider typeProvider;
 
@@ -133,10 +70,9 @@ class SummaryResynthesizer extends ElementResynthesizer {
   final Map<String, LibraryElement> _resynthesizedLibraries =
       <String, LibraryElement>{};
 
-  SummaryResynthesizer(AnalysisContext context, this.getPrelinkedSummary,
-      this.getUnlinkedSummary, this.sourceFactory)
-      : super(context),
-        typeProvider = context.typeProvider;
+  SummaryResynthesizer(AnalysisContext context, this.typeProvider,
+      this.getPrelinkedSummary, this.getUnlinkedSummary, this.sourceFactory)
+      : super(context);
 
   /**
    * Number of libraries that have been resynthesized so far.
@@ -181,7 +117,7 @@ class SummaryResynthesizer extends ElementResynthesizer {
         getUnlinkedSummary(uri)
       ];
       Source librarySource = _getSource(uri);
-      for (UnlinkedPart part in serializedUnits[0].parts) {
+      for (UnlinkedPart part in serializedUnits[0].publicNamespace.parts) {
         String partAbsUri =
             sourceFactory.resolveUri(librarySource, part.uri).uri.toString();
         serializedUnits.add(getUnlinkedSummary(partAbsUri));
@@ -228,6 +164,17 @@ class _LibraryResynthesizer {
   final Source librarySource;
 
   /**
+   * Indicates whether [librarySource] is the `dart:core` library.
+   */
+  bool isCoreLibrary;
+
+  /**
+   * Classes which should have their supertype set to "object" once
+   * resynthesis is complete.  Only used if [isCoreLibrary] is `true`.
+   */
+  List<ClassElementImpl> delayedObjectSubclasses = <ClassElementImpl>[];
+
+  /**
    * [ElementHolder] into which resynthesized elements should be placed.  This
    * object is recreated afresh for each unit in the library, and is used to
    * populate the [CompilationUnitElement].
@@ -260,7 +207,9 @@ class _LibraryResynthesizer {
   List<TypeParameterElement> currentTypeParameters;
 
   _LibraryResynthesizer(this.summaryResynthesizer, this.prelinkedLibrary,
-      this.unlinkedUnits, this.librarySource);
+      this.unlinkedUnits, this.librarySource) {
+    isCoreLibrary = librarySource.uri.toString() == 'dart:core';
+  }
 
   /**
    * Resynthesize a [ClassElement] and place it in [unitHolder].
@@ -280,7 +229,11 @@ class _LibraryResynthesizer {
       if (serializedClass.supertype != null) {
         classElement.supertype = buildType(serializedClass.supertype);
       } else if (!serializedClass.hasNoSupertype) {
-        classElement.supertype = summaryResynthesizer.typeProvider.objectType;
+        if (isCoreLibrary) {
+          delayedObjectSubclasses.add(classElement);
+        } else {
+          classElement.supertype = summaryResynthesizer.typeProvider.objectType;
+        }
       }
       classElement.interfaces =
           serializedClass.interfaces.map(buildType).toList();
@@ -312,7 +265,12 @@ class _LibraryResynthesizer {
               new ConstructorElementImpl('', -1);
           constructor.synthetic = true;
           constructor.returnType = correspondingType;
-          constructor.type = new FunctionTypeImpl(constructor);
+          constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
+              constructor,
+              null,
+              currentTypeParameters
+                  .map((TypeParameterElement e) => e.type)
+                  .toList());
           memberHolder.addConstructor(constructor);
         }
         classElement.constructors = memberHolder.constructors;
@@ -335,15 +293,15 @@ class _LibraryResynthesizer {
   NamespaceCombinator buildCombinator(UnlinkedCombinator serializedCombinator) {
     if (serializedCombinator.shows.isNotEmpty) {
       ShowElementCombinatorImpl combinator = new ShowElementCombinatorImpl();
-      combinator.shownNames = serializedCombinator.shows
-          .map((UnlinkedCombinatorName n) => n.name)
-          .toList();
+      // Note: we call toList() so that we don't retain a reference to the
+      // deserialized data structure.
+      combinator.shownNames = serializedCombinator.shows.toList();
       return combinator;
     } else {
       HideElementCombinatorImpl combinator = new HideElementCombinatorImpl();
-      combinator.hiddenNames = serializedCombinator.hides
-          .map((UnlinkedCombinatorName n) => n.name)
-          .toList();
+      // Note: we call toList() so that we don't retain a reference to the
+      // deserialized data structure.
+      combinator.hiddenNames = serializedCombinator.hides.toList();
       return combinator;
     }
   }
@@ -367,6 +325,7 @@ class _LibraryResynthesizer {
    * associated fields and implicit accessors.
    */
   void buildEnum(UnlinkedEnum serializedEnum) {
+    assert(!isCoreLibrary);
     // TODO(paulberry): add offset support (for this element type and others)
     ClassElementImpl classElement =
         new ClassElementImpl(serializedEnum.name, -1);
@@ -493,7 +452,12 @@ class _LibraryResynthesizer {
     } else {
       executableElement.returnType = VoidTypeImpl.instance;
     }
-    executableElement.type = new FunctionTypeImpl(executableElement);
+    executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
+        executableElement,
+        null,
+        currentTypeParameters
+            ?.map((TypeParameterElement e) => e.type)
+            ?.toList());
     executableElement.hasImplicitReturnType =
         serializedExecutable.hasImplicitReturnType;
     executableElement.external = serializedExecutable.isExternal;
@@ -572,18 +536,18 @@ class _LibraryResynthesizer {
    */
   FieldElementImpl buildImplicitField(String name, DartType type,
       UnlinkedExecutableKind kind, ElementHolder holder) {
-    if (holder.getField(name) == null) {
-      FieldElementImpl field = new FieldElementImpl(name, -1);
+    FieldElementImpl field = holder.getField(name);
+    if (field == null) {
+      field = new FieldElementImpl(name, -1);
       field.synthetic = true;
       field.final2 = kind == UnlinkedExecutableKind.getter;
       field.type = type;
       holder.addField(field);
       return field;
     } else {
-      // TODO(paulberry): if adding a setter where there was previously
-      // only a getter, remove "final" modifier.
       // TODO(paulberry): what if the getter and setter have a type mismatch?
-      throw new UnimplementedError();
+      field.final2 = false;
+      return field;
     }
   }
 
@@ -654,11 +618,12 @@ class _LibraryResynthesizer {
     definingCompilationUnit.librarySource = librarySource;
     List<CompilationUnitElement> parts = <CompilationUnitElement>[];
     UnlinkedUnit unlinkedDefiningUnit = unlinkedUnits[0];
-    assert(
-        unlinkedDefiningUnit.parts.length + 1 == prelinkedLibrary.units.length);
+    assert(unlinkedDefiningUnit.publicNamespace.parts.length + 1 ==
+        prelinkedLibrary.units.length);
     for (int i = 1; i < prelinkedLibrary.units.length; i++) {
-      CompilationUnitElementImpl part =
-          buildPart(unlinkedDefiningUnit.parts[i - 1].uri, unlinkedUnits[i]);
+      CompilationUnitElementImpl part = buildPart(
+          unlinkedDefiningUnit.publicNamespace.parts[i - 1].uri,
+          unlinkedUnits[i]);
       parts.add(part);
     }
     libraryElement.parts = parts;
@@ -669,10 +634,17 @@ class _LibraryResynthesizer {
     }
     libraryElement.imports = imports;
     libraryElement.exports =
-        unlinkedDefiningUnit.exports.map(buildExport).toList();
+        unlinkedDefiningUnit.publicNamespace.exports.map(buildExport).toList();
     populateUnit(definingCompilationUnit, 0);
     for (int i = 0; i < parts.length; i++) {
       populateUnit(parts[i], i + 1);
+    }
+    if (isCoreLibrary) {
+      ClassElement objectElement = libraryElement.getType('Object');
+      assert(objectElement != null);
+      for (ClassElementImpl classElement in delayedObjectSubclasses) {
+        classElement.supertype = objectElement.type;
+      }
     }
     return libraryElement;
   }
@@ -765,7 +737,8 @@ class _LibraryResynthesizer {
         if (referenceResolution.unit != 0) {
           UnlinkedUnit referencedLibraryDefiningUnit =
               summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
-          String uri = referencedLibraryDefiningUnit.parts[0].uri;
+          String uri = referencedLibraryDefiningUnit.publicNamespace.parts[
+              referenceResolution.unit - 1].uri;
           Source partSource = summaryResynthesizer.sourceFactory
               .resolveUri(referencedLibrarySource, uri);
           partUri = partSource.uri.toString();
@@ -780,7 +753,8 @@ class _LibraryResynthesizer {
       } else {
         referencedLibraryUri = librarySource.uri.toString();
         if (referenceResolution.unit != 0) {
-          String uri = unlinkedUnits[0].parts[referenceResolution.unit - 1].uri;
+          String uri = unlinkedUnits[0].publicNamespace.parts[
+              referenceResolution.unit - 1].uri;
           Source partSource =
               summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
           partUri = partSource.uri.toString();
@@ -788,33 +762,36 @@ class _LibraryResynthesizer {
           partUri = referencedLibraryUri;
         }
       }
-      ResynthesizedType resynthesizedType;
       ElementLocationImpl location = new ElementLocationImpl.con3(
           <String>[referencedLibraryUri, partUri, reference.name]);
+      List<DartType> typeArguments = const <DartType>[];
+      if (referenceResolution.numTypeParameters != 0) {
+        typeArguments = <DartType>[];
+        for (int i = 0; i < referenceResolution.numTypeParameters; i++) {
+          if (i < type.typeArguments.length) {
+            typeArguments.add(buildType(type.typeArguments[i]));
+          } else {
+            typeArguments.add(summaryResynthesizer.typeProvider.dynamicType);
+          }
+        }
+      }
       switch (referenceResolution.kind) {
         case PrelinkedReferenceKind.classOrEnum:
-          resynthesizedType = new ResynthesizedInterfaceTypeImpl(
+          return new InterfaceTypeImpl.elementWithNameAndArgs(
               new ClassElementHandle(summaryResynthesizer, location),
               reference.name,
-              summaryResynthesizer);
-          break;
+              typeArguments);
         case PrelinkedReferenceKind.typedef:
-          resynthesizedType = new ResynthesizedFunctionTypeImpl(
+          return new FunctionTypeImpl.elementWithNameAndArgs(
               new FunctionTypeAliasElementHandle(
                   summaryResynthesizer, location),
               reference.name,
-              summaryResynthesizer);
-          break;
+              typeArguments);
         default:
           // TODO(paulberry): figure out how to handle this case (which should
           // only occur in the event of erroneous code).
           throw new UnimplementedError();
       }
-      if (type.typeArguments.isNotEmpty) {
-        resynthesizedType._typeArguments =
-            type.typeArguments.map(buildType).toList();
-      }
-      return resynthesizedType;
     }
   }
 
