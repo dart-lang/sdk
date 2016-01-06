@@ -18,7 +18,7 @@ import '../elements/modelx.dart' show
     EnumClassElementX,
     FieldElementX,
     LibraryElementX,
-    MixinApplicationElementX,
+    NamedMixinApplicationElementX,
     VariableList;
 import '../native/native.dart' as native;
 import '../string_validator.dart' show
@@ -301,9 +301,8 @@ class ElementListener extends Listener {
 
     int id = idGenerator();
     Element enclosing = compilationUnitElement;
-    pushElement(new MixinApplicationElementX(name.source, enclosing, id,
-                                             namedMixinApplication,
-                                             modifiers));
+    pushElement(new NamedMixinApplicationElementX(
+        name.source, enclosing, id, namedMixinApplication));
     rejectBuiltInIdentifier(name);
   }
 
@@ -626,7 +625,9 @@ class ElementListener extends Listener {
     reportFatalError(node, message);
   }
 
-  void pushElement(Element element) {
+  void pushElement(ElementX element) {
+    assert(invariant(element, element.declarationSite != null,
+        message: 'Missing declaration site for $element.'));
     popMetadata(element);
     compilationUnitElement.addMember(element, reporter);
   }

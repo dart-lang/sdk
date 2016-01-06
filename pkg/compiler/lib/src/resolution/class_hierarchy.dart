@@ -19,7 +19,8 @@ import '../elements/modelx.dart' show
     ErroneousElementX,
     MixinApplicationElementX,
     SynthesizedConstructorElementX,
-    TypeVariableElementX;
+    TypeVariableElementX,
+    UnnamedMixinApplicationElementX;
 import '../ordered_typeset.dart' show
     OrderedTypeSet,
     OrderedTypeSetBuilder;
@@ -324,12 +325,12 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   DartType applyMixin(DartType supertype, DartType mixinType, Node node) {
     String superName = supertype.name;
     String mixinName = mixinType.name;
-    MixinApplicationElementX mixinApplication = new MixinApplicationElementX(
-        "${superName}+${mixinName}",
-        element.compilationUnit,
-        compiler.getNextFreeClassId(),
-        node,
-        new Modifiers.withFlags(new NodeList.empty(), Modifiers.FLAG_ABSTRACT));
+    MixinApplicationElementX mixinApplication =
+        new UnnamedMixinApplicationElementX(
+          "${superName}+${mixinName}",
+          element.compilationUnit,
+          compiler.getNextFreeClassId(),
+          node);
     // Create synthetic type variables for the mixin application.
     List<DartType> typeVariables = <DartType>[];
     int index = 0;
@@ -379,9 +380,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return constructor;
   }
 
-  void doApplyMixinTo(MixinApplicationElementX mixinApplication,
-                      DartType supertype,
-                      DartType mixinType) {
+  void doApplyMixinTo(
+      MixinApplicationElementX mixinApplication,
+      DartType supertype,
+      DartType mixinType) {
     Node node = mixinApplication.parseNode(resolution.parsing);
 
     if (mixinApplication.supertype != null) {
