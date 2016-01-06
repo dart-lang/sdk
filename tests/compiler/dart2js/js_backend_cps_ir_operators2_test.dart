@@ -74,8 +74,7 @@ main() {
   print(foo(-100));
 }""", r"""
 function(a) {
-  var v0;
-  return (a | 0) === a && (13 | 0) === 13 ? a / 13 | 0 : J.getInterceptor$n(v0 = a / 13).toInt$0(v0);
+  return (a | 0) === a && (13 | 0) === 13 ? a / 13 | 0 : J.toInt$0$n(a / 13);
 }"""),
 
   const TestEntry(r"""
@@ -97,8 +96,7 @@ main() {
   print(foo(8000000000));
 }""", r"""
 function(a) {
-  var v0;
-  return (a | 0) === a && (13 | 0) === 13 ? a / 13 | 0 : J.getInterceptor$n(v0 = a / 13).toInt$0(v0);
+  return (a | 0) === a && (13 | 0) === 13 ? a / 13 | 0 : J.toInt$0$n(a / 13);
 }"""),
 
 ];

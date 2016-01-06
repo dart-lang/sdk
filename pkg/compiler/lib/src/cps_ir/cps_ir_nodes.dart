@@ -589,15 +589,10 @@ class InvokeMethod extends InvocationPrimitive {
                this.selector,
                this.mask,
                List<Primitive> arguments,
-               [this.sourceInformation])
+               {this.sourceInformation,
+                this.callingConvention: CallingConvention.Normal})
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments);
-
-  InvokeMethod.byReference(this.receiver,
-                           this.selector,
-                           this.mask,
-                           this.arguments,
-                           this.sourceInformation);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 
@@ -2483,7 +2478,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   Definition visitInvokeMethod(InvokeMethod node) {
     return new InvokeMethod(getCopy(node.receiver), node.selector, node.mask,
         getList(node.arguments),
-        node.sourceInformation);
+        sourceInformation: node.sourceInformation,
+        callingConvention: node.callingConvention);
   }
 
   Definition visitInvokeMethodDirectly(InvokeMethodDirectly node) {

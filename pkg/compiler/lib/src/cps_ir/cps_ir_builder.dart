@@ -681,7 +681,8 @@ class IrBuilder {
                                    SourceInformation sourceInformation) {
     assert(isOpen);
     return addPrimitive(new ir.InvokeMethod(
-        receiver, selector, mask, arguments, sourceInformation));
+        receiver, selector, mask, arguments,
+        sourceInformation: sourceInformation));
   }
 
   ir.Primitive _buildInvokeCall(ir.Primitive target,

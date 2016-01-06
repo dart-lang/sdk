@@ -1751,7 +1751,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         new Selector.call(getter.memberName, call.callStructure),
         type,
         node.arguments.map((ref) => ref.definition).toList(),
-        node.sourceInformation);
+        sourceInformation: node.sourceInformation);
       node.receiver.changeTo(new Parameter(null)); // Remove the tear off use.
 
       if (tearOff.hasNoEffectiveUses) {

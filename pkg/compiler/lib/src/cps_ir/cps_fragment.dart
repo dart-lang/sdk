@@ -135,8 +135,9 @@ class CpsFragment {
       List<Primitive> arguments,
       [CallingConvention callingConvention = CallingConvention.Normal]) {
     InvokeMethod invoke =
-        new InvokeMethod(receiver, selector, mask, arguments, sourceInformation)
-            ..callingConvention = callingConvention;
+        new InvokeMethod(receiver, selector, mask, arguments,
+                         sourceInformation: sourceInformation,
+                         callingConvention: callingConvention);
     return letPrim(invoke);
   }
 
