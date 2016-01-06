@@ -13021,16 +13021,17 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
-  void fail_genericFunction_parameter() {
+  void test_genericFunction_parameter() {
     _resolveTestUnit(r'''
 void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
 ''');
     SimpleIdentifier f = _findIdentifier('f');
     ParameterElementImpl e = f.staticElement;
+    FunctionType type = e.type;
     expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.boundTypeParameters.toString(), '[T]');
-    expect(e.type.toString(), '<T>(T) → T');
-    FunctionType ft = e.type.instantiate([typeProvider.stringType]);
+    expect(type.boundTypeParameters.toString(), '[T]');
+    expect(type.toString(), '<T>(T) → T');
+    FunctionType ft = type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
 
@@ -13158,7 +13159,7 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
     expect(_findIdentifier('paramCall').staticType.toString(), "int");
   }
 
-  void fail_genericMethod_tearoff() {
+  void test_genericMethod_tearoff() {
     _resolveTestUnit(r'''
 class C<E> {
   /*=T*/ f/*<T>*/(E e) => null;

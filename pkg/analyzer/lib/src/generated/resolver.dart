@@ -12842,7 +12842,9 @@ class TypeResolverVisitor extends ScopedVisitor {
     functionElement.shareParameters(parameters);
     functionElement.returnType = _computeReturnType(returnType);
     functionElement.enclosingElement = element;
+    functionElement.shareTypeParameters(element.typeParameters);
     element.type = new FunctionTypeImpl(functionElement);
+    functionElement.type = element.type;
   }
 
   /**
