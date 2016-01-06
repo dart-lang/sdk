@@ -623,7 +623,7 @@ struct MemberDesc {
     metadata_pos = Scanner::kNoSourcePos;
     operator_token = Token::kILLEGAL;
     type = NULL;
-    name_pos = 0;
+    name_pos = Scanner::kNoSourcePos;
     name = NULL;
     redirect_name = NULL;
     dict_name = NULL;
@@ -3483,7 +3483,7 @@ SequenceNode* Parser::ParseFunc(const Function& func) {
 
   BoolScope allow_await(&this->await_is_keyword_,
                         func.IsAsyncOrGenerator() || func.is_generated_body());
-  intptr_t end_token_pos = 0;
+  intptr_t end_token_pos = Scanner::kNoSourcePos;
   if (CurrentToken() == Token::kLBRACE) {
     ConsumeToken();
     if (String::Handle(Z, func.name()).Equals(Symbols::EqualOperator())) {
@@ -4004,7 +4004,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (library_.is_dart_scheme() && library_.IsPrivate(*method->name)) {
     func.set_is_reflectable(false);
   }
-  if (FLAG_enable_mirrors && (method->metadata_pos > 0)) {
+  if (FLAG_enable_mirrors && (method->metadata_pos >= 0)) {
     library_.AddFunctionMetadata(func, method->metadata_pos);
   }
   if (method->has_native) {
@@ -4035,7 +4035,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
          CurrentToken() == Token::kCOMMA ||
          CurrentToken() == Token::kASSIGN);
   ASSERT(field->type != NULL);
-  ASSERT(field->name_pos > 0);
+  ASSERT(field->name_pos >= 0);
   ASSERT(current_member_ == field);
   // All const fields are also final.
   ASSERT(!field->has_const || field->has_final);
@@ -4463,8 +4463,8 @@ void Parser::ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
                                   const Object& tl_owner,
                                   intptr_t metadata_pos) {
   TRACE_PARSER("ParseEnumDeclaration");
-  const intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos
-                                                      : TokenPos();
+  const intptr_t declaration_pos = (metadata_pos >= 0) ? metadata_pos
+                                                       : TokenPos();
   ConsumeToken();
   const intptr_t name_pos = TokenPos();
   String* enum_name =
@@ -4515,7 +4515,7 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
   TRACE_PARSER("ParseClassDeclaration");
   bool is_patch = false;
   bool is_abstract = false;
-  intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos : TokenPos();
+  intptr_t declaration_pos = (metadata_pos >= 0) ? metadata_pos : TokenPos();
   if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
       CurrentLiteral()->Equals("patch")) {
@@ -5107,7 +5107,7 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
                           const Object& tl_owner,
                           intptr_t metadata_pos) {
   TRACE_PARSER("ParseTypedef");
-  intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos : TokenPos();
+  intptr_t declaration_pos = (metadata_pos >= 0) ? metadata_pos : TokenPos();
   ExpectToken(Token::kTYPEDEF);
 
   if (IsMixinAppAlias()) {
@@ -5248,7 +5248,7 @@ void Parser::ConsumeRightAngleBracket() {
 
 intptr_t Parser::SkipMetadata() {
   if (CurrentToken() != Token::kAT) {
-    return -1;
+    return Scanner::kNoSourcePos;
   }
   intptr_t metadata_pos = TokenPos();
   while (CurrentToken() == Token::kAT) {
@@ -5316,8 +5316,8 @@ void Parser::ParseTypeParameters(const Class& cls) {
       ConsumeToken();
       const intptr_t metadata_pos = SkipMetadata();
       const intptr_t type_parameter_pos = TokenPos();
-      const intptr_t declaration_pos = (metadata_pos > 0) ? metadata_pos
-                                                          : type_parameter_pos;
+      const intptr_t declaration_pos = (metadata_pos >= 0) ? metadata_pos
+                                                           : type_parameter_pos;
       String& type_parameter_name =
           *ExpectUserDefinedTypeIdentifier("type parameter expected");
       // Check for duplicate type parameters.
@@ -5960,7 +5960,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
     CheckToken(Token::kAS, "'as' expected");
   }
   String& prefix = String::Handle(Z);
-  intptr_t prefix_pos = 0;
+  intptr_t prefix_pos = Scanner::kNoSourcePos;
   if (is_import && (CurrentToken() == Token::kAS)) {
     ConsumeToken();
     prefix_pos = TokenPos();
@@ -7518,7 +7518,7 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   ASSERT(current_block_ != NULL);
   const intptr_t previous_pos =
       current_block_->scope->PreviousReferencePos(ident);
-  if (previous_pos >= 0) {
+  if (previous_pos != Scanner::kNoSourcePos) {
     ASSERT(!script_.IsNull());
     if (previous_pos > ident_pos) {
       ReportError(ident_pos,
@@ -7646,7 +7646,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   result_type = Type::DynamicType();
 
   const intptr_t function_pos = TokenPos();
-  intptr_t metadata_pos = -1;
+  intptr_t metadata_pos = Scanner::kNoSourcePos;
   if (is_literal) {
     ASSERT(CurrentToken() == Token::kLPAREN);
     function_name = &Symbols::AnonymousClosure();
@@ -8956,7 +8956,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     ReportError("Loop variable cannot be 'const'");
   }
   const String* loop_var_name = NULL;
-  intptr_t loop_var_pos = 0;
+  intptr_t loop_var_pos = Scanner::kNoSourcePos;
   bool new_loop_var = false;
   AbstractType& loop_var_type =  AbstractType::ZoneHandle(Z);
   if (LookaheadToken(1) == Token::kIN) {
@@ -10067,14 +10067,14 @@ AstNode* Parser::ParseYieldStatement() {
 AstNode* Parser::ParseStatement() {
   TRACE_PARSER("ParseStatement");
   AstNode* statement = NULL;
-  intptr_t label_pos = 0;
+  intptr_t label_pos = Scanner::kNoSourcePos;
   String* label_name = NULL;
   if (IsIdentifier()) {
     if (LookaheadToken(1) == Token::kCOLON) {
       // Statement starts with a label.
       label_name = CurrentLiteral();
       label_pos = TokenPos();
-      ASSERT(label_pos > 0);
+      ASSERT(label_pos >= 0);
       ConsumeToken();  // Consume identifier.
       ConsumeToken();  // Consume colon.
     }

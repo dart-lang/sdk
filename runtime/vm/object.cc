@@ -2637,7 +2637,7 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                     false,  // Not external.
                     false,  // Not native.
                     *this,
-                    0));  // No token position.
+                    0));    // token_pos
   ArgumentsDescriptor desc(args_desc);
   invocation.set_num_fixed_parameters(desc.PositionalCount());
   invocation.SetNumOptionalParameters(desc.NamedCount(),
@@ -2694,7 +2694,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
                   false,  // Not external.
                   false,  // Not native.
                   owner,
-                  0));  // No token position.
+                  0));    // token_pos
 
   // Initialize signature: receiver is a single fixed parameter.
   const intptr_t kNumParameters = 1;
@@ -6519,7 +6519,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     /* is_external = */ false,
                     /* is_native = */ false,
                     owner,
-                    0));
+                    /* token_pos = */ 0));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
   result.set_is_visible(true);
