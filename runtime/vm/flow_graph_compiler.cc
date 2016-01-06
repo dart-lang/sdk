@@ -78,6 +78,12 @@ DECLARE_FLAG(bool, interpret_irregexp);
 DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, link_natives_lazily);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(int, inlining_hotness);
+DECLARE_FLAG(int, inlining_size_threshold);
+DECLARE_FLAG(int, inlining_callee_size_threshold);
+DECLARE_FLAG(int, inline_getters_setters_smaller_than);
+DECLARE_FLAG(int, inlining_depth_threshold);
+DECLARE_FLAG(int, inlining_caller_size_threshold);
 
 bool FLAG_precompilation = false;
 static void PrecompilationModeHandler(bool value) {
@@ -117,6 +123,17 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_link_natives_lazily = true;
     FLAG_fields_may_be_reset = true;
     FLAG_allow_absolute_addresses = false;
+
+    // There is no counter feedback in precompilation, so ignore the counter
+    // when making inlining decisions.
+    FLAG_inlining_hotness = 0;
+    // Use smaller thresholds in precompilation as we are compiling everything
+    // with the optimizing compiler instead of only hot functions.
+    FLAG_inlining_size_threshold = 5;
+    FLAG_inline_getters_setters_smaller_than = 5;
+    FLAG_inlining_callee_size_threshold = 20;
+    FLAG_inlining_depth_threshold = 2;
+    FLAG_inlining_caller_size_threshold = 1000;
 
     // Background compilation relies on two-stage compilation pipeline,
     // while precompilation has only one.
