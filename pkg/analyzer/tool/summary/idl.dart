@@ -560,6 +560,12 @@ class UnlinkedPublicName {
    * The kind of object referred to by the name.
    */
   PrelinkedReferenceKind kind;
+
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
+  int numTypeParameters;
 }
 
 /**

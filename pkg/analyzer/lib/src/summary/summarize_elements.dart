@@ -167,13 +167,17 @@ class _LibrarySerializer {
     for (PropertyAccessorElement accessor in element.accessors) {
       if (accessor.isPublic) {
         names.add(encodeUnlinkedPublicName(ctx,
-            kind: PrelinkedReferenceKind.other, name: accessor.name));
+            kind: PrelinkedReferenceKind.other,
+            name: accessor.name,
+            numTypeParameters: accessor.typeParameters.length));
       }
     }
     for (ClassElement cls in element.types) {
       if (cls.isPublic) {
         names.add(encodeUnlinkedPublicName(ctx,
-            kind: PrelinkedReferenceKind.classOrEnum, name: cls.name));
+            kind: PrelinkedReferenceKind.classOrEnum,
+            name: cls.name,
+            numTypeParameters: cls.typeParameters.length));
       }
     }
     for (ClassElement enm in element.enums) {
@@ -185,13 +189,17 @@ class _LibrarySerializer {
     for (FunctionElement function in element.functions) {
       if (function.isPublic) {
         names.add(encodeUnlinkedPublicName(ctx,
-            kind: PrelinkedReferenceKind.other, name: function.name));
+            kind: PrelinkedReferenceKind.other,
+            name: function.name,
+            numTypeParameters: function.typeParameters.length));
       }
     }
     for (FunctionTypeAliasElement typedef in element.functionTypeAliases) {
       if (typedef.isPublic) {
         names.add(encodeUnlinkedPublicName(ctx,
-            kind: PrelinkedReferenceKind.typedef, name: typedef.name));
+            kind: PrelinkedReferenceKind.typedef,
+            name: typedef.name,
+            numTypeParameters: typedef.typeParameters.length));
       }
     }
     if (unitNum == 0) {

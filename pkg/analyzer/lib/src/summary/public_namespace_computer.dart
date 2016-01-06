@@ -47,9 +47,11 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   _PublicNamespaceVisitor(this.ctx);
 
-  void addNameIfPublic(String name, PrelinkedReferenceKind kind) {
+  void addNameIfPublic(
+      String name, PrelinkedReferenceKind kind, int numTypeParameters) {
     if (isPublic(name)) {
-      names.add(encodeUnlinkedPublicName(ctx, name: name, kind: kind));
+      names.add(encodeUnlinkedPublicName(ctx,
+          name: name, kind: kind, numTypeParameters: numTypeParameters));
     }
   }
 
@@ -57,17 +59,19 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum);
+    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum,
+        node.typeParameters?.typeParameters?.length ?? 0);
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
-    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum);
+    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum,
+        node.typeParameters?.typeParameters?.length ?? 0);
   }
 
   @override
   visitEnumDeclaration(EnumDeclaration node) {
-    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum);
+    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum, 0);
   }
 
   @override
@@ -85,12 +89,14 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
     if (node.isSetter) {
       name += '=';
     }
-    addNameIfPublic(name, PrelinkedReferenceKind.other);
+    addNameIfPublic(name, PrelinkedReferenceKind.other,
+        node.functionExpression.typeParameters?.typeParameters?.length ?? 0);
   }
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    addNameIfPublic(node.name.name, PrelinkedReferenceKind.typedef);
+    addNameIfPublic(node.name.name, PrelinkedReferenceKind.typedef,
+        node.typeParameters?.typeParameters?.length ?? 0);
   }
 
   @override
@@ -101,9 +107,9 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     String name = node.name.name;
-    addNameIfPublic(name, PrelinkedReferenceKind.other);
+    addNameIfPublic(name, PrelinkedReferenceKind.other, 0);
     if (!node.isFinal && !node.isConst) {
-      addNameIfPublic('$name=', PrelinkedReferenceKind.other);
+      addNameIfPublic('$name=', PrelinkedReferenceKind.other, 0);
     }
   }
 }

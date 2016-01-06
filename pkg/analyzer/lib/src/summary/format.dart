@@ -1696,15 +1696,18 @@ UnlinkedPartBuilder encodeUnlinkedPart(base.BuilderContext builderContext, {Stri
 class UnlinkedPublicName extends base.SummaryClass {
   String _name;
   PrelinkedReferenceKind _kind;
+  int _numTypeParameters;
 
   UnlinkedPublicName.fromJson(Map json)
     : _name = json["name"],
-      _kind = json["kind"] == null ? null : PrelinkedReferenceKind.values[json["kind"]];
+      _kind = json["kind"] == null ? null : PrelinkedReferenceKind.values[json["kind"]],
+      _numTypeParameters = json["numTypeParameters"];
 
   @override
   Map<String, Object> toMap() => {
     "name": name,
     "kind": kind,
+    "numTypeParameters": numTypeParameters,
   };
 
   /**
@@ -1716,6 +1719,12 @@ class UnlinkedPublicName extends base.SummaryClass {
    * The kind of object referred to by the name.
    */
   PrelinkedReferenceKind get kind => _kind ?? PrelinkedReferenceKind.classOrEnum;
+
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
+  int get numTypeParameters => _numTypeParameters ?? 0;
 }
 
 class UnlinkedPublicNameBuilder {
@@ -1747,6 +1756,18 @@ class UnlinkedPublicNameBuilder {
     }
   }
 
+  /**
+   * If the entity being referred to is generic, the number of type parameters
+   * it accepts.  Otherwise zero.
+   */
+  void set numTypeParameters(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("numTypeParameters"));
+    if (_value != null) {
+      _json["numTypeParameters"] = _value;
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -1754,10 +1775,11 @@ class UnlinkedPublicNameBuilder {
   }
 }
 
-UnlinkedPublicNameBuilder encodeUnlinkedPublicName(base.BuilderContext builderContext, {String name, PrelinkedReferenceKind kind}) {
+UnlinkedPublicNameBuilder encodeUnlinkedPublicName(base.BuilderContext builderContext, {String name, PrelinkedReferenceKind kind, int numTypeParameters}) {
   UnlinkedPublicNameBuilder builder = new UnlinkedPublicNameBuilder(builderContext);
   builder.name = name;
   builder.kind = kind;
+  builder.numTypeParameters = numTypeParameters;
   return builder;
 }
 

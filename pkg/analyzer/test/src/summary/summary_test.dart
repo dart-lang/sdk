@@ -721,12 +721,18 @@ C c;
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
   test_class_alias_flag() {
     UnlinkedClass cls =
         serializeClassText('class C = D with E; class D {} class E {}');
     expect(cls.isMixinApplication, true);
+  }
+
+  test_class_alias_generic() {
+    serializeClassText('class C<A, B> = _D with _E; class _D {} class _E {}');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 2);
   }
 
   test_class_alias_mixin_order() {
@@ -787,6 +793,7 @@ class E {}
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'C');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
   test_class_interface() {
@@ -919,6 +926,7 @@ class E {}
     expect(cls.typeParameters, hasLength(1));
     expect(cls.typeParameters[0].name, 'T');
     expect(cls.typeParameters[0].bound, isNull);
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
 
   test_constructor() {
@@ -1248,6 +1256,7 @@ typedef F();
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'E');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
   test_enum_order() {
@@ -1284,6 +1293,7 @@ typedef F();
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.other);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'f');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
   test_executable_function_explicit_return() {
@@ -1710,6 +1720,7 @@ typedef F();
   test_executable_type_param_in_parameter_function() {
     UnlinkedExecutable ex = serializeExecutableText('void f<T>(T t) {}');
     checkParamTypeRef(ex.parameters[0].type, 1);
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
 
   test_executable_type_param_in_parameter_method() {
@@ -2224,6 +2235,7 @@ a.Stream s;
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.typedef);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'F');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
   }
 
   test_typedef_param_none() {
@@ -2266,6 +2278,7 @@ a.Stream s;
   test_typedef_type_param_in_parameter() {
     UnlinkedTypedef type = serializeTypedefText('typedef F<T>(T t);');
     checkParamTypeRef(type.parameters[0].type, 1);
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
 
   test_typedef_type_param_in_return_type() {
@@ -2293,9 +2306,11 @@ a.Stream s;
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.other);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'i');
+    expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
     expect(unlinkedUnits[0].publicNamespace.names[1].kind,
         PrelinkedReferenceKind.other);
     expect(unlinkedUnits[0].publicNamespace.names[1].name, 'i=');
+    expect(unlinkedUnits[0].publicNamespace.names[1].numTypeParameters, 0);
   }
 
   test_variable_const() {
