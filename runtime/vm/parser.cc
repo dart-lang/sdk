@@ -49,6 +49,8 @@ DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
 DEFINE_FLAG(bool, move_super, true, "Move super initializer to end of list.");
+DEFINE_FLAG(bool, conditional_directives, false,
+    "Enable conditional directives");
 DEFINE_FLAG(bool, warn_super, false,
     "Warning if super initializer not last in initializer list.");
 
@@ -5947,6 +5949,53 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
   ConsumeToken();
   CheckToken(Token::kSTRING, "library url expected");
   AstNode* url_literal = ParseStringLiteral(false);
+  if (FLAG_conditional_directives) {
+    bool condition_triggered = false;
+    while (CurrentToken() == Token::kIF) {
+      // Conditional import: if (env == val) uri.
+      ConsumeToken();
+      ExpectToken(Token::kLPAREN);
+      // Parse dotted name.
+      const GrowableObjectArray& pieces =
+          GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+      pieces.Add(*ExpectIdentifier("identifier expected"));
+      while (CurrentToken() == Token::kPERIOD) {
+        pieces.Add(Symbols::Dot());
+        ConsumeToken();
+        pieces.Add(*ExpectIdentifier("identifier expected"));
+      }
+      AstNode* valueNode = NULL;
+      if (CurrentToken() == Token::kEQ) {
+        ConsumeToken();
+        CheckToken(Token::kSTRING, "string literal expected");
+        valueNode = ParseStringLiteral(false);
+        ASSERT(valueNode->IsLiteralNode());
+        ASSERT(valueNode->AsLiteralNode()->literal().IsString());
+      }
+      ExpectToken(Token::kRPAREN);
+      CheckToken(Token::kSTRING, "library url expected");
+      AstNode* conditional_url_literal = ParseStringLiteral(false);
+
+      // If there was already a condition that triggered, don't try to match
+      // again.
+      if (condition_triggered) {
+        continue;
+      }
+      // Check if this conditional line overrides the default import.
+      const String& key = String::Handle(
+          String::ConcatAll(Array::Handle(Array::MakeArray(pieces))));
+      const String& value = (valueNode == NULL)
+          ? Symbols::True()
+          : String::Cast(valueNode->AsLiteralNode()->literal());
+      // Call the embedder to supply us with the environment.
+      const String& env_value =
+          String::Handle(Api::CallEnvironmentCallback(T, key));
+      if (!env_value.IsNull() && env_value.Equals(value)) {
+        condition_triggered = true;
+        url_literal = conditional_url_literal;
+      }
+    }
+  }
   ASSERT(url_literal->IsLiteralNode());
   ASSERT(url_literal->AsLiteralNode()->literal().IsString());
   const String& url = String::Cast(url_literal->AsLiteralNode()->literal());
