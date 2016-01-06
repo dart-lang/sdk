@@ -561,8 +561,7 @@ abstract class SummaryTest {
   UnlinkedTypeRef serializeTypeText(String text,
       {String otherDeclarations: '', bool allowErrors: false}) {
     return serializeVariableText('$otherDeclarations\n$text v;',
-            allowErrors: allowErrors)
-        .type;
+        allowErrors: allowErrors).type;
   }
 
   /**
@@ -1127,23 +1126,13 @@ class E {}
   test_constructor_return_type() {
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C { C(); }').executables);
-    checkTypeRef(executable.returnType, null, null, 'C');
+    expect(executable.returnType, isNull);
   }
 
   test_constructor_return_type_parameterized() {
     UnlinkedExecutable executable = findExecutable('',
         executables: serializeClassText('class C<T, U> { C(); }').executables);
-    checkTypeRef(executable.returnType, null, null, 'C',
-        allowTypeParameters: true, numTypeParameters: 2);
-    expect(executable.returnType.typeArguments, hasLength(2));
-    {
-      UnlinkedTypeRef typeRef = executable.returnType.typeArguments[0];
-      checkParamTypeRef(typeRef, 2);
-    }
-    {
-      UnlinkedTypeRef typeRef = executable.returnType.typeArguments[1];
-      checkParamTypeRef(typeRef, 1);
-    }
+    expect(executable.returnType, isNull);
   }
 
   test_dependencies_export_none() {
@@ -1500,8 +1489,7 @@ typedef F();
 
   test_executable_operator_index_set() {
     UnlinkedExecutable executable = serializeClassText(
-            'class C { void operator[]=(int i, bool v) => null; }')
-        .executables[0];
+        'class C { void operator[]=(int i, bool v) => null; }').executables[0];
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.name, '[]=');
     expect(executable.hasImplicitReturnType, false);
@@ -2200,12 +2188,9 @@ a.Stream s;
   test_type_reference_to_part() {
     addNamedSource('/a.dart', 'part of foo; class C { C(); }');
     serializeLibraryText('library foo; part "a.dart"; C c;');
-    UnlinkedClass classA = findClass('C', unit: unlinkedUnits[1]);
-    checkTypeRef(classA.executables.single.returnType, null, null, 'C',
+    checkTypeRef(unlinkedUnits[0].variables.single.type, null, null, 'C',
         expectedKind: PrelinkedReferenceKind.classOrEnum,
-        expectedTargetUnit: 1,
-        prelinkedSourceUnit: prelinked.units[1],
-        unlinkedSourceUnit: unlinkedUnits[1]);
+        expectedTargetUnit: 1);
   }
 
   test_type_reference_to_typedef() {

@@ -393,7 +393,8 @@ class _LibrarySerializer {
       ExecutableElement executableElement) {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder(ctx);
     b.name = executableElement.name;
-    if (!executableElement.type.returnType.isVoid) {
+    if (executableElement is! ConstructorElement &&
+        !executableElement.type.returnType.isVoid) {
       b.returnType = serializeTypeRef(
           executableElement.type.returnType, executableElement);
     }

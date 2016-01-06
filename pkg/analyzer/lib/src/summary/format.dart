@@ -997,8 +997,8 @@ class UnlinkedExecutable extends base.SummaryClass {
 
   /**
    * Declared return type of the executable.  Absent if the return type is
-   * `void`.  Note that when strong mode is enabled, the actual return type may
-   * be different due to type inference.
+   * `void` or the executable is a constructor.  Note that when strong mode is
+   * enabled, the actual return type may be different due to type inference.
    */
   UnlinkedTypeRef get returnType => _returnType;
 
@@ -1085,8 +1085,8 @@ class UnlinkedExecutableBuilder {
 
   /**
    * Declared return type of the executable.  Absent if the return type is
-   * `void`.  Note that when strong mode is enabled, the actual return type may
-   * be different due to type inference.
+   * `void` or the executable is a constructor.  Note that when strong mode is
+   * enabled, the actual return type may be different due to type inference.
    */
   void set returnType(UnlinkedTypeRefBuilder _value) {
     assert(!_finished);

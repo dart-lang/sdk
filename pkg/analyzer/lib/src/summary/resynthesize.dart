@@ -246,7 +246,8 @@ class _LibraryResynthesizer {
         switch (serializedExecutable.kind) {
           case UnlinkedExecutableKind.constructor:
             constructorFound = true;
-            buildConstructor(serializedExecutable, memberHolder);
+            buildConstructor(
+                serializedExecutable, memberHolder, correspondingType);
             break;
           case UnlinkedExecutableKind.functionOrMethod:
           case UnlinkedExecutableKind.getter:
@@ -308,12 +309,15 @@ class _LibraryResynthesizer {
 
   /**
    * Resynthesize a [ConstructorElement] and place it in the given [holder].
+   * [classType] is the type of the class for which this element is a
+   * constructor.
    */
-  void buildConstructor(
-      UnlinkedExecutable serializedExecutable, ElementHolder holder) {
+  void buildConstructor(UnlinkedExecutable serializedExecutable,
+      ElementHolder holder, InterfaceType classType) {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
     ConstructorElementImpl constructorElement =
         new ConstructorElementImpl(serializedExecutable.name, -1);
+    constructorElement.returnType = classType;
     buildExecutableCommonParts(constructorElement, serializedExecutable);
     constructorElement.factory = serializedExecutable.isFactory;
     constructorElement.const2 = serializedExecutable.isConst;
@@ -449,6 +453,9 @@ class _LibraryResynthesizer {
         serializedExecutable.parameters.map(buildParameter).toList();
     if (serializedExecutable.returnType != null) {
       executableElement.returnType = buildType(serializedExecutable.returnType);
+    } else if (serializedExecutable.kind ==
+        UnlinkedExecutableKind.constructor) {
+      // Return type was set by the caller.
     } else {
       executableElement.returnType = VoidTypeImpl.instance;
     }
