@@ -420,7 +420,9 @@ const Field& LoadStaticFieldInstr::StaticField() const {
 }
 
 
-ConstantInstr::ConstantInstr(const Object& value) : value_(value) {
+ConstantInstr::ConstantInstr(const Object& value, intptr_t token_pos)
+    : value_(value),
+      token_pos_(token_pos) {
   // Check that the value is not an incorrect Integer representation.
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoSmi());
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoInt64());

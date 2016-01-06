@@ -2541,7 +2541,8 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
 class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
-  explicit ConstantInstr(const Object& value);
+  ConstantInstr(const Object& value,
+                intptr_t token_pos = Scanner::kNoSourcePos);
 
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
@@ -2560,6 +2561,7 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
  private:
   const Object& value_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantInstr);
 };

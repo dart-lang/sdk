@@ -254,7 +254,7 @@ TEST_CASE(StackOverflowStacktraceInfo) {
   Dart_StringToCString(script_url, &cstr);
   EXPECT_STREQ("test-lib", cstr);
   EXPECT_EQ(2, line_number);
-  EXPECT_EQ(3, column_number);
+  EXPECT_EQ(13, column_number);
 
   // Out-of-bounds frames.
   result = Dart_GetActivationFrame(stacktrace, frame_count, &frame);

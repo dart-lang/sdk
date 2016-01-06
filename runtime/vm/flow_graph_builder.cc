@@ -855,7 +855,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
 
 Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
   if (local.IsConst()) {
-    return new(Z) ConstantInstr(*local.ConstValue());
+    return new(Z) ConstantInstr(*local.ConstValue(), local.token_pos());
   } else if (local.is_captured()) {
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
@@ -867,9 +867,9 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
           Scanner::kNoSourcePos));
     }
     return new(Z) LoadFieldInstr(context,
-                              Context::variable_offset(local.index()),
-                              local.type(),
-                              Scanner::kNoSourcePos);
+                                 Context::variable_offset(local.index()),
+                                 local.type(),
+                                 Scanner::kNoSourcePos);
   } else {
     return new(Z) LoadLocalInstr(local);
   }
@@ -4057,7 +4057,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     if (!function.IsImplicitGetterFunction() &&
         !function.IsImplicitSetterFunction()) {
       CheckStackOverflowInstr* check =
-          new(Z) CheckStackOverflowInstr(function.token_pos(), 0);
+          new(Z) CheckStackOverflowInstr(node->token_pos(), 0);
       // If we are inlining don't actually attach the stack check. We must still
       // create the stack check in order to allocate a deopt id.
       if (!owner()->IsInlining()) {
