@@ -706,7 +706,21 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   // ## Sends ##
   @override
   void previsitDeferredAccess(ast.Send node, PrefixElement prefix, _) {
-    giveup(node, 'deferred access is not implemented');
+    if (prefix != null) buildCheckDeferredIsLoaded(prefix, node);
+  }
+
+  /// Create a call to check that a deferred import has already been loaded.
+  ir.Primitive buildCheckDeferredIsLoaded(PrefixElement prefix, ast.Send node) {
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildCall(node, node.selector);
+    JavaScriptBackend backend = compiler.backend;
+    return irBuilder.buildStaticFunctionInvocation(
+        backend.helpers.checkDeferredIsLoaded,
+        CallStructure.TWO_ARGS, <ir.Primitive>[
+          irBuilder.buildStringConstant(
+              compiler.deferredLoadTask.getImportDeferName(node, prefix)),
+          irBuilder.buildStringConstant('${prefix.deferredImport.uri}'),
+        ], sourceInformation: sourceInformation);
   }
 
   ir.Primitive visitNamedArgument(ast.NamedArgument node) {
@@ -825,8 +839,26 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       FunctionElement getter,
       _) {
-    return irBuilder.buildStaticGetterGet(
-        getter, sourceInformationBuilder.buildGet(node));
+    return buildStaticGetterGet(getter, node);
+  }
+
+  /// Create a getter invocation of the static getter [getter]. This also
+  /// handles the special case where [getter] is the `loadLibrary`
+  /// pseudo-function on library prefixes of deferred imports.
+  ir.Primitive buildStaticGetterGet(MethodElement getter, ast.Send node) {
+    SourceInformation sourceInformation =
+        sourceInformationBuilder.buildGet(node);
+    if (getter.isDeferredLoaderGetter) {
+      PrefixElement prefix = getter.enclosingElement;
+      ir.Primitive loadId = irBuilder.buildStringConstant(
+          compiler.deferredLoadTask.getImportDeferName(node, prefix));
+      return irBuilder.buildStaticFunctionInvocation(
+          compiler.loadLibraryFunction,
+          CallStructure.ONE_ARG, <ir.Primitive>[loadId],
+          sourceInformation: sourceInformation);
+    } else {
+      return irBuilder.buildStaticGetterGet(getter, sourceInformation);
+    }
   }
 
   @override
@@ -1257,8 +1289,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
-    ir.Primitive target = irBuilder.buildStaticGetterGet(getter,
-        sourceInformationBuilder.buildGet(node));
+    ir.Primitive target = buildStaticGetterGet(getter, node);
     List<ir.Primitive> arguments = <ir.Primitive>[];
     callStructure =
         translateDynamicArguments(argumentsNode, callStructure, arguments);
@@ -1728,8 +1759,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               SourceInformation src = sourceInformationBuilder.buildGet(node);
               return buildStaticFieldGet(getter, src);
             case CompoundGetter.GETTER:
-              return irBuilder.buildStaticGetterGet(
-                  getter, sourceInformationBuilder.buildGet(node));
+              return buildStaticGetterGet(getter, node);
             case CompoundGetter.METHOD:
               return irBuilder.buildStaticFunctionGet(getter);
             case CompoundGetter.UNRESOLVED:
@@ -1766,8 +1796,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               SourceInformation src = sourceInformationBuilder.buildGet(node);
               return buildStaticFieldGet(getter, src);
             case CompoundGetter.GETTER:
-              return irBuilder.buildStaticGetterGet(
-                  getter, sourceInformationBuilder.buildGet(node));
+              return buildStaticGetterGet(getter, node);
             case CompoundGetter.METHOD:
               return irBuilder.buildStaticFunctionGet(getter);
             case CompoundGetter.UNRESOLVED:
@@ -3344,13 +3373,35 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       ast.NodeList argumentsNode,
       CallStructure callStructure,
       _) {
+
+    // TODO(sigmund): move these checks down after visiting arguments
+    // (see issue #25355)
+    ast.Send send = node.send;
+    // If an allocation refers to a type using a deferred import prefix (e.g.
+    // `new lib.A()`), we must ensure that the deferred import has already been
+    // loaded.
+    var prefix = compiler.deferredLoadTask.deferredPrefixElement(
+        send, elements);
+    if (prefix != null) buildCheckDeferredIsLoaded(prefix, send);
+
+    // We also emit deferred import checks when using redirecting factories that
+    // refer to deferred prefixes.
+    if (constructor.isRedirectingFactory && !constructor.isCyclicRedirection) {
+      ConstructorElement current = constructor;
+      while (current.isRedirectingFactory) {
+        var prefix = current.redirectionDeferredPrefix;
+        if (prefix != null) buildCheckDeferredIsLoaded(prefix, send);
+        current = current.immediateRedirectionTarget;
+      }
+    }
+
     List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
     // Use default values from the effective target, not the immediate target.
     ConstructorElement target = constructor.effectiveTarget;
-    callStructure =
-        normalizeStaticArguments(callStructure, target, arguments);
+
+    callStructure = normalizeStaticArguments(callStructure, target, arguments);
     TypeMask allocationSiteType;
-    ast.Node send = node.send;
+
     if (Elements.isFixedListConstructorCall(constructor, send, compiler) ||
         Elements.isGrowableListConstructorCall(constructor, send, compiler) ||
         Elements.isFilledListConstructorCall(constructor, send, compiler) ||
