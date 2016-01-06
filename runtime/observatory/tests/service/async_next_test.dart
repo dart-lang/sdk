@@ -25,6 +25,7 @@ testMain() {
 }
 
 asyncNext(Isolate isolate) async {
+  print('asyncNext');
   return isolate.asyncStepOver()[Isolate.kSecondResume];
 }
 

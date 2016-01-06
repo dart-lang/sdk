@@ -3449,7 +3449,7 @@ void Class::set_script(const Script& value) const {
 
 
 void Class::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -4379,7 +4379,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
 
 
 void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -5780,9 +5780,9 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 }
 
 
-void Function::set_token_pos(intptr_t value) const {
-  ASSERT(value >= 0);
-  StoreNonPointer(&raw_ptr()->token_pos_, value);
+void Function::set_token_pos(intptr_t token_pos) const {
+  ASSERT(token_pos >= 0);
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -14572,9 +14572,9 @@ void LanguageError::set_script(const Script& value) const {
 }
 
 
-void LanguageError::set_token_pos(intptr_t value) const {
-  ASSERT(value >= 0);
-  StoreNonPointer(&raw_ptr()->token_pos_, value);
+void LanguageError::set_token_pos(intptr_t token_pos) const {
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
+  StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
 
@@ -16389,7 +16389,7 @@ RawType* Type::New(const Object& clazz,
 
 
 void Type::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -16820,7 +16820,7 @@ RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
 
 
 void TypeParameter::set_token_pos(intptr_t token_pos) const {
-  ASSERT(token_pos >= 0);
+  ASSERT(Scanner::ValidSourcePosition(token_pos));
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
 }
 
@@ -21582,7 +21582,7 @@ static intptr_t PrintOneStacktrace(Zone* zone,
   const String& url = String::Handle(zone, script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos > 0) {
+  if (token_pos >= 0) {
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {

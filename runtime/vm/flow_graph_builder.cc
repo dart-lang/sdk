@@ -2284,7 +2284,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
   char name[64];
   OS::SNPrint(name, 64, ":tmp_local%" Pd, index);
   LocalVariable*  var =
-      new(Z) LocalVariable(0,
+      new(Z) LocalVariable(Scanner::kNoSourcePos,
                            String::ZoneHandle(Z, Symbols::New(name)),
                            *value->Type()->ToAbstractType());
   var->set_index(index);
@@ -4002,7 +4002,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           // Create a temporary local describing the original position.
           const String& temp_name = Symbols::TempParam();
           LocalVariable* temp_local = new(Z) LocalVariable(
-              0,  // Token index.
+              Scanner::kNoSourcePos,  // Token index.
               temp_name,
               Object::dynamic_type());  // Type.
           temp_local->set_index(param_frame_index);
@@ -4043,6 +4043,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     if (check_pos == Scanner::kNoSourcePos) {
       // No parameters or synthetic parameters.
       check_pos = node->token_pos();
+      ASSERT(check_pos != Scanner::kNoSourcePos);
     }
     AddInstruction(new(Z) DebugStepCheckInstr(check_pos,
                                               RawPcDescriptors::kRuntimeCall));

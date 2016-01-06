@@ -236,7 +236,7 @@ void ParsedFunction::AllocateVariables() {
 
 struct CatchParamDesc {
   CatchParamDesc()
-      : token_pos(0), type(NULL), name(NULL), var(NULL) { }
+      : token_pos(Scanner::kNoSourcePos), type(NULL), name(NULL), var(NULL) { }
   intptr_t token_pos;
   const AbstractType* type;
   const String* name;
@@ -390,7 +390,7 @@ Parser::~Parser() {
     const GrowableObjectArray& pending_functions =
         GrowableObjectArray::Handle(T->pending_functions());
     ASSERT(pending_functions.Length() > 0);
-    ASSERT(pending_functions.At(pending_functions.Length()-1) ==
+    ASSERT(pending_functions.At(pending_functions.Length() - 1) ==
         current_function().raw());
     pending_functions.RemoveLast();
   }
@@ -515,7 +515,7 @@ RawInteger* Parser::CurrentIntegerLiteral() const {
 struct ParamDesc {
   ParamDesc()
       : type(NULL),
-        name_pos(0),
+        name_pos(Scanner::kNoSourcePos),
         name(NULL),
         default_value(NULL),
         metadata(NULL),
@@ -620,7 +620,7 @@ struct MemberDesc {
     has_factory = false;
     has_operator = false;
     has_native = false;
-    metadata_pos = -1;
+    metadata_pos = Scanner::kNoSourcePos;
     operator_token = Token::kILLEGAL;
     type = NULL;
     name_pos = 0;
