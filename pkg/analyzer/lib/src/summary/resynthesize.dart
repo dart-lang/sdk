@@ -118,8 +118,8 @@ class SummaryResynthesizer extends ElementResynthesizer {
       ];
       Source librarySource = _getSource(uri);
       for (UnlinkedPart part in serializedUnits[0].publicNamespace.parts) {
-        String partAbsUri =
-            sourceFactory.resolveUri(librarySource, part.uri).uri.toString();
+        Source partSource = sourceFactory.resolveUri(librarySource, part.uri);
+        String partAbsUri = partSource.uri.toString();
         serializedUnits.add(getUnlinkedSummary(partAbsUri));
       }
       _LibraryResynthesizer libraryResynthesizer = new _LibraryResynthesizer(
@@ -719,7 +719,8 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-          currentTypeParameters.length - type.paramReference].type;
+              currentTypeParameters.length - type.paramReference]
+          .type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).
@@ -743,8 +744,8 @@ class _LibraryResynthesizer {
         if (referenceResolution.unit != 0) {
           UnlinkedUnit referencedLibraryDefiningUnit =
               summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
-          String uri = referencedLibraryDefiningUnit.publicNamespace.parts[
-              referenceResolution.unit - 1].uri;
+          String uri = referencedLibraryDefiningUnit
+              .publicNamespace.parts[referenceResolution.unit - 1].uri;
           Source partSource = summaryResynthesizer.sourceFactory
               .resolveUri(referencedLibrarySource, uri);
           partUri = partSource.uri.toString();
@@ -759,8 +760,10 @@ class _LibraryResynthesizer {
       } else {
         referencedLibraryUri = librarySource.uri.toString();
         if (referenceResolution.unit != 0) {
-          String uri = unlinkedUnits[0].publicNamespace.parts[
-              referenceResolution.unit - 1].uri;
+          String uri = unlinkedUnits[0]
+              .publicNamespace
+              .parts[referenceResolution.unit - 1]
+              .uri;
           Source partSource =
               summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
           partUri = partSource.uri.toString();
