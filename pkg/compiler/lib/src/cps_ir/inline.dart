@@ -163,7 +163,7 @@ class Inliner implements Pass {
   }
 
   void rewrite(FunctionDefinition node, [CallStructure callStructure]) {
-    Element function = node.element;
+    ExecutableElement function = node.element;
 
     // Inlining in asynchronous or generator functions is disabled.  Inlining
     // triggers a bug in the async rewriter.
@@ -171,6 +171,13 @@ class Inliner implements Pass {
     // sense.
     if (function is FunctionElement &&
         function.asyncMarker != AsyncMarker.SYNC) {
+      return;
+    }
+
+    // Do not inline in functions containing try statements.  V8 does not
+    // optimize code in such functions, so inlining will move optimizable code
+    // into a context where it cannot be optimized.
+    if (function.resolvedAst.elements.containsTryStatement) {
       return;
     }
 
@@ -350,9 +357,16 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
   Primitive tryInlining(InvocationPrimitive invoke, FunctionElement target,
                         CallStructure callStructure) {
     // Quick checks: do not inline or even cache calls to targets without an
-    // AST node or targets that are asynchronous or generator functions.
+    // AST node, targets that are asynchronous or generator functions, or
+    // targets containing a try statement.
     if (!target.hasNode) return null;
     if (target.asyncMarker != AsyncMarker.SYNC) return null;
+    // V8 does not optimize functions containing a try statement.  Inlining
+    // code containing a try statement will make the optimizable calling code
+    // become unoptimizable.
+    if (target.resolvedAst.elements.containsTryStatement) {
+      return null;
+    }
 
     Reference<Primitive> dartReceiver = invoke.dartReceiverReference;
     TypeMask abstractReceiver =
