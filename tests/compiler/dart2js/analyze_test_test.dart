@@ -27,7 +27,8 @@ import 'memory_compiler.dart';
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
 const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
-  "analyze_all_test.dart": const [
+  // Several tests import mirrors; any of these might trigger the warning.
+  ".dart": const [
       MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
   ],
   "/test/src/util/": const [
