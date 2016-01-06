@@ -81,6 +81,7 @@
       'defines': [
         # The only effect of DART_SHARED_LIB is to export the Dart API entries.
         'DART_SHARED_LIB',
+        'DART_PRECOMPILED',
       ],
       'direct_dependent_settings': {
         'include_dirs': [

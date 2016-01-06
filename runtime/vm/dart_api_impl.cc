@@ -5901,6 +5901,29 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 }
 
 
+#if defined(DART_PRECOMPILED)
+
+DART_EXPORT Dart_Handle Dart_Precompile(
+    Dart_QualifiedFunctionName entry_points[],
+    bool reset_fields) {
+  UNREACHABLE();
+  return 0;
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
+    uint8_t** vm_isolate_snapshot_buffer,
+    intptr_t* vm_isolate_snapshot_size,
+    uint8_t** isolate_snapshot_buffer,
+    intptr_t* isolate_snapshot_size,
+    uint8_t** instructions_snapshot_buffer,
+    intptr_t* instructions_snapshot_size) {
+  UNREACHABLE();
+  return 0;
+}
+
+#else  // DART_PRECOMPILED
+
 DART_EXPORT Dart_Handle Dart_Precompile(
     Dart_QualifiedFunctionName entry_points[],
     bool reset_fields) {
@@ -5973,6 +5996,7 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
 
   return Api::Success();
 }
+#endif  // DART_PRECOMPILED
 
 
 DART_EXPORT bool Dart_IsRunningPrecompiledCode() {

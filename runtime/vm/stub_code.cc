@@ -45,9 +45,13 @@ void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void StubCode::InitOnce() {
+#if !defined(DART_PRECOMPILED)
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
+#else
+  UNREACHABLE();
+#endif  // DART_PRECOMPILED
 }
 
 
