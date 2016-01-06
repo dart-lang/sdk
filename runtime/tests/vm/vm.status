@@ -14,6 +14,8 @@ cc/Sleep: Pass, Fail
 
 dart/data_uri_import_test/none: SkipByDesign
 
+dart/spawn_shutdown_test: Skip # Issue 25351
+
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
