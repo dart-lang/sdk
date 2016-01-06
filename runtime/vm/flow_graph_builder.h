@@ -418,7 +418,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
   Definition* BuildStoreStaticField(StoreStaticFieldNode* node,
-                                    bool result_is_needed);
+                                    bool result_is_needed,
+                                    intptr_t token_pos);
 
   void BuildClosureCall(ClosureCallNode* node, bool result_needed);
 

@@ -3711,7 +3711,9 @@ void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
 
 
 Definition* EffectGraphVisitor::BuildStoreStaticField(
-  StoreStaticFieldNode* node, bool result_is_needed) {
+    StoreStaticFieldNode* node,
+    bool result_is_needed,
+    intptr_t token_pos) {
   ValueGraphVisitor for_value(owner());
   node->value()->Visit(&for_value);
   Append(for_value);
@@ -3722,7 +3724,7 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
     store_value = for_value.value();
   }
   StoreStaticFieldInstr* store =
-      new(Z) StoreStaticFieldInstr(node->field(), store_value);
+      new(Z) StoreStaticFieldInstr(node->field(), store_value, token_pos);
 
   if (result_is_needed) {
     Do(store);
@@ -3734,12 +3736,14 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
 
 
 void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
-  ReturnDefinition(BuildStoreStaticField(node, kResultNotNeeded));
+  ReturnDefinition(
+      BuildStoreStaticField(node, kResultNotNeeded, node->token_pos()));
 }
 
 
 void ValueGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
-  ReturnDefinition(BuildStoreStaticField(node, kResultNeeded));
+  ReturnDefinition(
+      BuildStoreStaticField(node, kResultNeeded, node->token_pos()));
 }
 
 

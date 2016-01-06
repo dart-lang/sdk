@@ -3277,7 +3277,7 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
  private:
   const LocalVariable& local_;
   bool is_last_;
-  intptr_t token_pos_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
@@ -3392,7 +3392,7 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
   const LocalVariable& local_;
   bool is_dead_;
   bool is_last_;
-  intptr_t token_pos_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
@@ -3679,7 +3679,7 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual intptr_t token_pos() const { return token_pos_; }
 
  private:
-  intptr_t token_pos_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
@@ -3687,8 +3687,11 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
 
 class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  StoreStaticFieldInstr(const Field& field, Value* value)
-      : field_(field) {
+  StoreStaticFieldInstr(const Field& field,
+                        Value* value,
+                        intptr_t token_pos = Scanner::kNoSourcePos)
+      : field_(field),
+        token_pos_(token_pos) {
     ASSERT(field.IsZoneHandle());
     SetInputAt(kValuePos, value);
   }
@@ -3711,6 +3714,8 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   // are marked as having no side-effects.
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
@@ -3720,6 +3725,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   }
 
   const Field& field_;
+  const intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);
 };
