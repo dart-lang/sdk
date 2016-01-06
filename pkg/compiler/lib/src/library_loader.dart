@@ -147,7 +147,13 @@ abstract class LibraryLoaderTask implements CompilerTask {
   /// [LibraryElement] for the library and computes the import/export scope,
   /// loading and computing the import/export scopes of all required libraries
   /// in the process. The method handles cyclic dependency between libraries.
-  Future<LibraryElement> loadLibrary(Uri resolvedUri);
+  ///
+  /// If [skipFileWithPartOfTag] is `true`, `null` is returned if the
+  /// compilation unit for [resolvedUri] contains a `part of` tag. This is only
+  /// used for analysis through [Compiler.analyzeUri].
+  Future<LibraryElement> loadLibrary(
+      Uri resolvedUri,
+      {bool skipFileWithPartOfTag: false});
 
   /// Reset the library loader task to prepare for compilation. If provided,
   /// libraries matching [reuseLibrary] are reused.
@@ -339,18 +345,27 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     Uri resourceUri = library.entryCompilationUnit.script.resourceUri;
     libraryResourceUriMap[resourceUri] = library;
 
-    String name = library.libraryOrScriptName;
-    libraryNames[name] = library;
+    if (library.hasLibraryName) {
+      String name = library.libraryName;
+      libraryNames[name] = library;
+    }
   }
 
-  Future<LibraryElement> loadLibrary(Uri resolvedUri) {
+  Future<LibraryElement> loadLibrary(
+      Uri resolvedUri,
+      {bool skipFileWithPartOfTag: false}) {
     return measure(() {
       assert(currentHandler == null);
       // TODO(johnniwinther): Ensure that currentHandler correctly encloses the
       // loading of a library cluster.
       currentHandler = new LibraryDependencyHandler(this);
-      return createLibrary(currentHandler, null, resolvedUri)
+      return createLibrary(currentHandler, null, resolvedUri,
+          skipFileWithPartOfTag: skipFileWithPartOfTag)
           .then((LibraryElement library) {
+        if (library == null) {
+          currentHandler = null;
+          return null;
+        }
         return reporter.withCurrentElement(library, () {
           return measure(() {
             currentHandler.computeExports();
@@ -506,7 +521,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
              'canonicalUri2': existing.canonicalUri});
       }
     } else if (library.hasLibraryName) {
-      String name = library.libraryOrScriptName;
+      String name = library.libraryName;
       existing = libraryNames.putIfAbsent(name, () => library);
       if (!identical(existing, library)) {
         reporter.withCurrentElement(library, () {
@@ -563,7 +578,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       LibraryDependencyElementX libraryDependency) {
     Uri base = library.canonicalUri;
     Uri resolvedUri = base.resolveUri(libraryDependency.uri);
-    return createLibrary(handler, library, resolvedUri, libraryDependency)
+    return createLibrary(handler, library, resolvedUri, node: libraryDependency)
         .then((LibraryElement loadedLibrary) {
           if (loadedLibrary == null) return;
           reporter.withCurrentElement(library, () {
@@ -600,10 +615,12 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
    *
    * If a new library is created, the [handler] is notified.
    */
-  Future<LibraryElement> createLibrary(LibraryDependencyHandler handler,
-                                       LibraryElement importingLibrary,
-                                       Uri resolvedUri,
-                                       [Spannable node]) {
+  Future<LibraryElement> createLibrary(
+      LibraryDependencyHandler handler,
+      LibraryElement importingLibrary,
+      Uri resolvedUri,
+      {Spannable node,
+       bool skipFileWithPartOfTag: false}) {
     Uri readableUri =
         compiler.translateResolvedUri(importingLibrary, resolvedUri, node);
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
@@ -626,6 +643,12 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
             createLibrarySync(handler, script, resolvedUri);
         CompilationUnitElementX compilationUnit = element.entryCompilationUnit;
         if (compilationUnit.partTag != null) {
+          if (skipFileWithPartOfTag) {
+            // TODO(johnniwinther): Avoid calling [Compiler.onLibraryCreated]
+            // for this library.
+            libraryCanonicalUriMap.remove(resolvedUri);
+            return null;
+          }
           DiagnosticMessage error = reporter.withCurrentElement(
               compilationUnit,
               () => reporter.createMessage(

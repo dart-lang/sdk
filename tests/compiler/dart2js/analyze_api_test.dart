@@ -29,5 +29,5 @@ void main() {
       uriList.add(new Uri(scheme: 'dart', path: name));
     }
   });
-  asyncTest(() => analyze(uriList, WHITE_LIST));
+  asyncTest(() => analyze(uriList, WHITE_LIST, mode: AnalysisMode.ALL));
 }

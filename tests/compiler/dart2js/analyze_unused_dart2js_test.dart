@@ -76,7 +76,7 @@ void main() {
       // TODO(johnniwinther): Use [WHITE_LIST] again when
       // [Compiler.reportUnusedCode] is reenabled.
       const {}, // WHITE_LIST
-      analyzeAll: false,
+      mode: AnalysisMode.TREE_SHAKING,
       checkResults: checkResults));
 }
 

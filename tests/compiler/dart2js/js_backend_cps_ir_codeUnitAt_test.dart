@@ -4,7 +4,7 @@
 
 // Tests for constant folding and lowering String.codeUnitAt.
 
-library basic_tests;
+library codeUnitAt_tests;
 
 import 'js_backend_cps_ir.dart';
 

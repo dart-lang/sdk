@@ -14,6 +14,7 @@ import 'memory_compiler.dart';
 import 'package:compiler/src/cps_ir/cps_ir_nodes.dart' as ir;
 import 'package:compiler/src/cps_ir/cps_ir_nodes_sexpr.dart' as ir;
 import 'package:compiler/src/js/js.dart' as js;
+import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/elements/elements.dart';
 
 const String TEST_MAIN_FILE = 'test.dart';
@@ -78,8 +79,9 @@ runTests(List<TestEntry> tests) {
       }
 
       Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
-      compiler.backend.functionCompiler.cpsBuilderTask.builderCallback =
-          cacheIrNodeForMain;
+      JavaScriptBackend backend = compiler.backend;
+      var functionCompiler = backend.functionCompiler;
+      functionCompiler.cpsBuilderTask.builderCallback = cacheIrNodeForMain;
 
       return compiler.run(uri).then((bool success) {
         Expect.isTrue(success);

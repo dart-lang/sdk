@@ -4,7 +4,7 @@
 
 // Test for iterators on for [SubclassNode].
 
-library world_test;
+library class_set_test;
 
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';

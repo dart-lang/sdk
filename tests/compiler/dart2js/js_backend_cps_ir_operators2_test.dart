@@ -4,7 +4,7 @@
 
 // Tests of operators.
 
-library operators_tests;
+library operators2_tests;
 
 import 'js_backend_cps_ir.dart';
 

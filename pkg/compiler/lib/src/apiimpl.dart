@@ -435,7 +435,10 @@ class CompilerImpl extends Compiler {
     if (packages == null) {
       setupFutures.add(setupPackages(uri));
     }
-    return Future.wait(setupFutures).then((_) => super.analyzeUri(uri));
+    return Future.wait(setupFutures).then((_) {
+      return super.analyzeUri(uri,
+          skipLibraryWithPartOfTag: skipLibraryWithPartOfTag);
+    });
   }
 
   Future setupPackages(Uri uri) {

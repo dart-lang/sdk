@@ -198,8 +198,10 @@ Future testTypeVariables() {
                            '}');
       ClassElement foo = compiler.mainApp.find('Foo');
       foo.ensureResolved(compiler.resolution);
-      foo.lookupLocalMember('t').computeType(compiler.resolution);
-      foo.lookupLocalMember('foo').computeType(compiler.resolution);
+      MemberElement tMember = foo.lookupLocalMember('t');
+      tMember.computeType(compiler.resolution);
+      MemberElement fooMember = foo.lookupLocalMember('foo');
+      fooMember.computeType(compiler.resolution);
       compiler.resolver.resolve(foo.lookupLocalMember('bar'));
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length);

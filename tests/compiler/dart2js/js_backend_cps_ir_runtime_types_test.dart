@@ -4,7 +4,7 @@
 
 // Tests for the runtime type implementation.
 
-library basic_tests;
+library runtime_types_tests;
 
 import 'js_backend_cps_ir.dart';
 

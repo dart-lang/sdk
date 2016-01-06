@@ -4,7 +4,7 @@
 
 // Test that the GVN optimization pass works as expected.
 
-library basic_tests;
+library gvn_tests;
 
 import 'js_backend_cps_ir.dart';
 

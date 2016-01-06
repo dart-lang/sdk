@@ -8,11 +8,18 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import 'package:compiler/src/dart_types.dart';
-import "package:compiler/src/elements/elements.dart"
-       show Element, ClassElement, MemberSignature, Name, PublicName,
-            DeclaredMember, Member;
-import "package:compiler/src/resolution/class_members.dart"
-  show MembersCreator, DeclaredMember, ErroneousMember, SyntheticMember;
+import "package:compiler/src/elements/elements.dart" show
+    Element,
+    ClassElement,
+    MemberSignature,
+    Name,
+    PublicName,
+    Member;
+import "package:compiler/src/resolution/class_members.dart" show
+    MembersCreator,
+    DeclaredMember,
+    ErroneousMember,
+    SyntheticMember;
 
 void main() {
   testClassMembers();
