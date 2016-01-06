@@ -1921,13 +1921,15 @@ class TryCatchNode : public AstNode {
                const LocalVariable* context_var,
                CatchClauseNode* catch_block,
                SequenceNode* finally_block,
-               intptr_t try_index)
+               intptr_t try_index,
+               SequenceNode* rethrow_clause)
       : AstNode(token_pos),
         try_block_(try_block),
         context_var_(*context_var),
         catch_block_(catch_block),
         finally_block_(finally_block),
-        try_index_(try_index) {
+        try_index_(try_index),
+        rethrow_clause_(rethrow_clause) {
     ASSERT(try_block_ != NULL);
     ASSERT(context_var != NULL);
     ASSERT(catch_block_ != NULL);
@@ -1938,6 +1940,8 @@ class TryCatchNode : public AstNode {
   SequenceNode* finally_block() const { return finally_block_; }
   const LocalVariable& context_var() const { return context_var_; }
   intptr_t try_index() const { return try_index_; }
+
+  SequenceNode* rethrow_clause() const { return rethrow_clause_; }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const {
     try_block_->Visit(visitor);
@@ -1957,6 +1961,7 @@ class TryCatchNode : public AstNode {
   CatchClauseNode* catch_block_;
   SequenceNode* finally_block_;
   const intptr_t try_index_;
+  SequenceNode* rethrow_clause_;
 
   DISALLOW_COPY_AND_ASSIGN(TryCatchNode);
 };

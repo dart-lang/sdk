@@ -273,7 +273,7 @@ void FlowGraphCompiler::InitCompiler() {
                             isolate()->GetCompilerStream(),
                             "InitCompiler");
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
-  exception_handlers_list_ = new(zone())ExceptionHandlerList();
+  exception_handlers_list_ = new(zone()) ExceptionHandlerList();
   block_info_.Clear();
   // Conservative detection of leaf routines used to remove the stack check
   // on function entry.

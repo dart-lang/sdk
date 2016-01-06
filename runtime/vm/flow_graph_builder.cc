@@ -4220,7 +4220,7 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
 
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   InlineBailout("EffectGraphVisitor::VisitTryCatchNode (exception)");
-  intptr_t original_handler_index = owner()->try_index();
+  const intptr_t original_handler_index = owner()->try_index();
   const intptr_t try_handler_index = node->try_index();
   ASSERT(try_handler_index != original_handler_index);
   owner()->set_try_index(try_handler_index);
@@ -4292,13 +4292,14 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   }
 
   if (finally_block != NULL) {
+    ASSERT(node->rethrow_clause() != NULL);
     // Create a handler for the code in the catch block, containing the
     // code in the finally block.
     owner()->set_try_index(original_handler_index);
     EffectGraphVisitor for_finally(owner());
     for_finally.BuildRestoreContext(catch_block->context_var());
 
-    finally_block->Visit(&for_finally);
+    node->rethrow_clause()->Visit(&for_finally);
     if (for_finally.is_open()) {
       // Rethrow the exception.  Manually build the graph for rethrow.
       Value* exception = for_finally.Bind(

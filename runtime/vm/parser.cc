@@ -6465,7 +6465,8 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
                           context_var,
                           catch_clause,
                           finally_clause,
-                          try_index);
+                          try_index,
+                          finally_clause);
   current_block_->statements->Add(try_catch_node);
   return CloseBlock();
 }
@@ -6581,7 +6582,8 @@ SequenceNode* Parser::CloseAsyncTryBlock(SequenceNode* try_block) {
       context_var,
       catch_clause,
       NULL,  // No finally clause.
-      try_index);
+      try_index,
+      NULL);  // No rethrow-finally clause.
   current_block_->statements->Add(try_catch_node);
   return CloseBlock();
 }
@@ -8936,7 +8938,8 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                          context_var,
                          catch_clause,
                          finally_clause,
-                         try_index);
+                         try_index,
+                         finally_clause);
 
   ASSERT(current_block_ == loop_block);
   loop_block->statements->Add(try_catch_node);
@@ -9762,6 +9765,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // of an existing outer try. Generate a finally clause to this purpose if it
   // is not declared.
   SequenceNode* finally_clause = NULL;
+  SequenceNode* rethrow_clause = NULL;
   const bool parse = CurrentToken() == Token::kFINALLY;
   if (parse || (is_async && (try_stack_ != NULL))) {
     if (parse) {
@@ -9795,6 +9799,21 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
         stack_trace_var,
         is_async ? saved_exception_var : exception_var,
         is_async ? saved_stack_trace_var : stack_trace_var);
+    if (finally_clause != NULL) {
+      // Re-parse to create a duplicate of finally clause to avoid unintended
+      // sharing of try-indices if the finally-block contains a try-catch.
+      // The flow graph builder emits two copies of the finally-block if the
+      // try-block has a normal exit: one for the exception- and one for the
+      // non-exception case (see EffectGraphVisitor::VisitTryCatchNode)
+      tokens_iterator_.SetCurrentPosition(finally_pos);
+      rethrow_clause = EnsureFinallyClause(
+          parse,
+          is_async,
+          exception_var,
+          stack_trace_var,
+          is_async ? saved_exception_var : exception_var,
+          is_async ? saved_stack_trace_var : stack_trace_var);
+    }
   }
 
   CatchClauseNode* catch_clause = new(Z) CatchClauseNode(
@@ -9814,7 +9833,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // on the try/catch, close the block that's embedding the try statement
   // and attach the label to it.
   AstNode* try_catch_node = new(Z) TryCatchNode(
-      try_pos, try_block, context_var, catch_clause, finally_clause, try_index);
+      try_pos, try_block, context_var, catch_clause, finally_clause, try_index,
+      rethrow_clause);
 
   if (try_label != NULL) {
     current_block_->statements->Add(try_catch_node);
