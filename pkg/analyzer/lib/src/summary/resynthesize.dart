@@ -212,6 +212,13 @@ class _LibraryResynthesizer {
   }
 
   /**
+   * Return a list of type arguments corresponding to [currentTypeParameters].
+   */
+  List<TypeParameterType> get currentTypeArguments => currentTypeParameters
+      ?.map((TypeParameterElement param) => param.type)
+      ?.toList();
+
+  /**
    * Resynthesize a [ClassElement] and place it in [unitHolder].
    */
   void buildClass(UnlinkedClass serializedClass) {
@@ -267,11 +274,7 @@ class _LibraryResynthesizer {
           constructor.synthetic = true;
           constructor.returnType = correspondingType;
           constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
-              constructor,
-              null,
-              currentTypeParameters
-                  .map((TypeParameterElement e) => e.type)
-                  .toList());
+              constructor, null, currentTypeArguments);
           memberHolder.addConstructor(constructor);
         }
         classElement.constructors = memberHolder.constructors;
@@ -279,8 +282,7 @@ class _LibraryResynthesizer {
       classElement.accessors = memberHolder.accessors;
       classElement.fields = memberHolder.fields;
       classElement.methods = memberHolder.methods;
-      correspondingType.typeArguments =
-          currentTypeParameters.map((param) => param.type).toList();
+      correspondingType.typeArguments = currentTypeArguments;
       classElement.type = correspondingType;
       unitHolder.addType(classElement);
     } finally {
@@ -460,11 +462,7 @@ class _LibraryResynthesizer {
       executableElement.returnType = VoidTypeImpl.instance;
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-        executableElement,
-        null,
-        currentTypeParameters
-            ?.map((TypeParameterElement e) => e.type)
-            ?.toList());
+        executableElement, null, currentTypeArguments);
     executableElement.hasImplicitReturnType =
         serializedExecutable.hasImplicitReturnType;
     executableElement.external = serializedExecutable.isExternal;
@@ -675,7 +673,8 @@ class _LibraryResynthesizer {
       } else {
         parameterTypeElement.returnType = VoidTypeImpl.instance;
       }
-      parameterElement.type = new FunctionTypeImpl(parameterTypeElement);
+      parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
+          parameterTypeElement, null, currentTypeArguments);
     } else {
       parameterElement.type = buildType(serializedParameter.type);
       parameterElement.hasImplicitType = serializedParameter.hasImplicitType;

@@ -829,6 +829,10 @@ class E {
     checkLibrary('class C { f(g(x, y)) {} }');
   }
 
+  test_method_parameter_parameters_in_generic_class() {
+    checkLibrary('class C<A, B> { f(A g(B x)) {} }');
+  }
+
   test_method_parameter_return_type() {
     checkLibrary('class C { f(int g()) {} }');
   }
@@ -1015,6 +1019,10 @@ class E {
 
   test_typedef_parameter_parameters() {
     checkLibrary('typedef F(g(x, y));');
+  }
+
+  test_typedef_parameter_parameters_in_generic_class() {
+    checkLibrary('typedef F<A, B>(A g(B x));');
   }
 
   test_typedef_parameter_return_type() {
