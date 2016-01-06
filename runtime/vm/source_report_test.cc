@@ -409,4 +409,53 @@ TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
       buffer);
 }
 
+
+TEST_CASE(SourceReport_MultipleReports) {
+  char buffer[1024];
+  const char* kScript =
+      "helper0() {}\n"
+      "helper1() {}\n"
+      "main() {\n"
+      "  helper0();\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script = Script::Handle(lib.LookupScript(
+      String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kCallSites|SourceReport::kCoverage);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // One range compiled with no callsites (helper0).
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "\"callSites\":[],"
+      "\"coverage\":{\"hits\":[],\"misses\":[]}},"
+
+      // One range not compiled (helper1).
+      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":false},"
+
+      // One range compiled with one callsite (main).
+      "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":22,\"compiled\":true,"
+      "\"callSites\":["
+      "{\"name\":\"helper0\",\"tokenPos\":17,\"cacheEntries\":["
+      "{\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
+      "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
+      "\"id\":\"\",\"name\":\"\",\"uri\":\"test-lib\"},"
+      "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
+      "\"_intrinsic\":false,\"_native\":false},\"count\":1}]}],"
+      "\"coverage\":{\"hits\":[17],\"misses\":[]}}],"
+
+      // One script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      buffer);
+}
+
 }  // namespace dart

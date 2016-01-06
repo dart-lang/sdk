@@ -30,6 +30,7 @@
 #include "vm/reusable_handles.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
+#include "vm/source_report.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/unicode.h"
@@ -559,6 +560,125 @@ T EnumMapper(const char* value, const char* const* enums, T* values) {
   // Default value.
   return values[i];
 }
+
+
+class EnumListParameter : public MethodParameter {
+ public:
+  EnumListParameter(const char* name, bool required, const char* const* enums)
+      : MethodParameter(name, required),
+        enums_(enums) {
+  }
+
+  virtual bool Validate(const char* value) const {
+    return ElementCount(value) >= 0;
+  }
+
+  const char** Parse(Zone* zone, const char* value_in) const {
+    const char* kJsonChars = " \t\r\n[,]";
+
+    // Make a writeable copy of the value.
+    char* value = zone->MakeCopyOfString(value_in);
+    intptr_t element_count = ElementCount(value);
+    intptr_t element_pos = 0;
+
+    // Allocate our element array.  +1 for NULL terminator.
+    char** elements = zone->Alloc<char*>(element_count + 1);
+    elements[element_count] = NULL;
+
+    // Parse the string destructively.  Build the list of elements.
+    while (element_pos < element_count) {
+      // Skip to the next element.
+      value += strspn(value, kJsonChars);
+
+      intptr_t len = strcspn(value, kJsonChars);
+      ASSERT(len > 0);  // We rely on the parameter being validated already.
+      value[len] = '\0';
+      elements[element_pos++] = value;
+
+      // Advance.  +1 for null terminator.
+      value += (len + 1);
+    }
+    return const_cast<const char**>(elements);
+  }
+
+ private:
+  // For now observatory enums are ascii letters plus underscore.
+  static bool IsEnumChar(char c) {
+    return (((c >= 'a') && (c <= 'z')) ||
+            ((c >= 'A') && (c <= 'Z')) ||
+            (c == '_'));
+  }
+
+  // Returns number of elements in the list.  -1 on parse error.
+  intptr_t ElementCount(const char* value) const {
+    const char* kJsonWhitespaceChars = " \t\r\n";
+
+    if (value == NULL) {
+      return -1;
+    }
+    const char* cp = value;
+    cp += strspn(cp, kJsonWhitespaceChars);
+    if (*cp++ != '[') {
+      // Missing initial [.
+      return -1;
+    }
+    bool closed = false;
+    bool element_allowed = true;
+    intptr_t element_count = 0;
+    while (true) {
+      // Skip json whitespace.
+      cp += strspn(cp, kJsonWhitespaceChars);
+      switch (*cp) {
+        case '\0':
+          return closed ? element_count : -1;
+        case ']':
+          closed = true;
+          cp++;
+          break;
+        case ',':
+          if (element_allowed) {
+            return -1;
+          }
+          element_allowed = true;
+          cp++;
+          break;
+        default:
+          if (!element_allowed) {
+            return -1;
+          }
+          bool valid_enum = false;
+          if (enums_ != NULL) {
+            for (intptr_t i = 0; enums_[i] != NULL; i++) {
+              intptr_t len = strlen(enums_[i]);
+              if (strncmp(cp, enums_[i], len) == 0) {
+                element_count++;
+                valid_enum = true;
+                cp += len;
+                element_allowed = false;  // we need a comma first.
+                break;
+              }
+            }
+          } else {
+            // Allow any identifiers
+            const char* id_start = cp;
+            while (IsEnumChar(*cp)) {
+              cp++;
+            }
+            if (cp == id_start) {
+              // Empty identifier, something like this [,].
+              return -1;
+            }
+          }
+          if (!valid_enum) {
+            return -1;
+          }
+          break;
+      }
+    }
+  }
+
+  const char* const* enums_;
+};
 
 
 typedef bool (*ServiceMethodEntry)(Thread* thread, JSONStream* js);
@@ -2191,6 +2311,80 @@ static bool GetCoverage(Thread* thread, JSONStream* js) {
 }
 
 
+static const char* kCallSitesStr = "CallSites";
+static const char* kCoverageStr = "Coverage";
+
+
+static const char* const report_enum_names[] = {
+  kCallSitesStr,
+  kCoverageStr,
+  NULL,
+};
+
+
+static const EnumListParameter* reports_parameter =
+    new EnumListParameter("reports", true, report_enum_names);
+
+
+static const MethodParameter* get_source_report_params[] = {
+  ISOLATE_PARAMETER,
+  reports_parameter,
+  new IdParameter("scriptId", false),
+  new UIntParameter("tokenPos", false),
+  new UIntParameter("endTokenPos", false),
+  NULL,
+};
+
+
+static bool GetSourceReport(Thread* thread, JSONStream* js) {
+  const char* reports_str = js->LookupParam("reports");
+  const char** reports = reports_parameter->Parse(thread->zone(), reports_str);
+  intptr_t report_set = 0;
+  while (*reports != NULL) {
+    if (strcmp(*reports, kCallSitesStr) == 0) {
+      report_set |= SourceReport::kCallSites;
+    } else if (strcmp(*reports, kCoverageStr) == 0) {
+      report_set |= SourceReport::kCoverage;
+    }
+    reports++;
+  }
+
+  Script& script = Script::Handle();
+  intptr_t start_pos = UIntParameter::Parse(js->LookupParam("tokenPos"));
+  intptr_t end_pos = UIntParameter::Parse(js->LookupParam("endTokenPos"));
+
+  if (js->HasParam("scriptId")) {
+    // Get the target script.
+    const char* script_id_param = js->LookupParam("scriptId");
+    const Object& obj =
+        Object::Handle(LookupHeapObject(thread, script_id_param, NULL));
+    if (obj.raw() == Object::sentinel().raw() || !obj.IsScript()) {
+      PrintInvalidParamError(js, "scriptId");
+      return true;
+    }
+    script ^= obj.raw();
+  } else {
+    if (js->HasParam("tokenPos")) {
+      js->PrintError(
+          kInvalidParams,
+          "%s: the 'tokenPos' parameter requires the 'scriptId' parameter",
+          js->method());
+      return true;
+    }
+    if (js->HasParam("endTokenPos")) {
+      js->PrintError(
+          kInvalidParams,
+          "%s: the 'endTokenPos' parameter requires the 'scriptId' parameter",
+          js->method());
+      return true;
+    }
+  }
+  SourceReport report(report_set);
+  report.PrintJSON(js, script, start_pos, end_pos);
+  return true;
+}
+
+
 static const MethodParameter* get_call_site_data_params[] = {
   ISOLATE_PARAMETER,
   new IdParameter("targetId", false),
@@ -3608,6 +3802,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
+  { "_getSourceReport", GetSourceReport,
+    get_source_report_params },
   { "getStack", GetStack,
     get_stack_params },
   { "_getTagProfile", GetTagProfile,
