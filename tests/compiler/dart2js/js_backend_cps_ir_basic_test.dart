@@ -25,23 +25,23 @@ main() {
   print('($m)');
 }""",r"""
 function() {
-  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]), value_ = C.JSArray_methods, res, v0, v1;
+  var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]), v0, v1;
   P.print("()");
   P.print("(true)");
   P.print("(1)");
-  if (!(typeof (res = value_.toString$0(v0 = [1, 2, 3])) === "string"))
-    throw H.wrapException(H.argumentErrorValue(v0));
-  P.print("(" + res + ")");
-  if (!(typeof (v1 = P.Maps_mapToString(v0 = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]))) === "string"))
-    throw H.wrapException(H.argumentErrorValue(v0));
-  P.print("(" + v1 + ")");
-  P.print("(1)");
-  if (!(typeof (res = value_.toString$0(l)) === "string"))
-    throw H.wrapException(H.argumentErrorValue(l));
-  P.print("(" + res + ")");
-  if (!(typeof (v0 = P.Maps_mapToString(m)) === "string"))
-    throw H.wrapException(H.argumentErrorValue(m));
+  if (!(typeof (v0 = P.IterableBase_iterableToFullString(v1 = [1, 2, 3], "[", "]")) === "string"))
+    throw H.wrapException(H.argumentErrorValue(v1));
   P.print("(" + v0 + ")");
+  if (!(typeof (v0 = P.Maps_mapToString(v1 = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]))) === "string"))
+    throw H.wrapException(H.argumentErrorValue(v1));
+  P.print("(" + v0 + ")");
+  P.print("(1)");
+  if (!(typeof (v1 = P.IterableBase_iterableToFullString(l, "[", "]")) === "string"))
+    throw H.wrapException(H.argumentErrorValue(l));
+  P.print("(" + v1 + ")");
+  if (!(typeof (v1 = P.Maps_mapToString(m)) === "string"))
+    throw H.wrapException(H.argumentErrorValue(m));
+  P.print("(" + v1 + ")");
 }"""),
   const TestEntry("""
 foo(a, [b = "b"]) { print(b); return b; }
