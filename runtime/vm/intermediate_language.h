@@ -3251,8 +3251,9 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
 class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  explicit LoadLocalInstr(const LocalVariable& local)
-      : local_(local), is_last_(false) { }
+  LoadLocalInstr(const LocalVariable& local,
+                 intptr_t token_pos = Scanner::kNoSourcePos)
+      : local_(local), is_last_(false), token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
   virtual CompileType ComputeType() const;
@@ -3271,9 +3272,12 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
   void mark_last() { is_last_ = true; }
   bool is_last() const { return is_last_; }
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
   const LocalVariable& local_;
   bool is_last_;
+  intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
@@ -3354,8 +3358,10 @@ class DropTempsInstr : public Definition {
 
 class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  StoreLocalInstr(const LocalVariable& local, Value* value)
-      : local_(local), is_dead_(false), is_last_(false) {
+  StoreLocalInstr(const LocalVariable& local,
+                  Value* value,
+                  intptr_t token_pos = Scanner::kNoSourcePos)
+      : local_(local), is_dead_(false), is_last_(false), token_pos_(token_pos) {
     SetInputAt(0, value);
   }
 
@@ -3380,10 +3386,13 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
     return EffectSet::None();
   }
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
   const LocalVariable& local_;
   bool is_dead_;
   bool is_last_;
+  intptr_t token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
@@ -3645,7 +3654,8 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
 
 class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit LoadStaticFieldInstr(Value* field_value) {
+  LoadStaticFieldInstr(Value* field_value, intptr_t token_pos)
+      : token_pos_(token_pos) {
     ASSERT(field_value->BindsToConstant());
     SetInputAt(0, field_value);
   }
@@ -3666,7 +3676,11 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual intptr_t token_pos() const { return token_pos_; }
+
  private:
+  intptr_t token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
 

@@ -304,8 +304,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
   Definition* BuildStoreExprTemp(Value* value);
   Definition* BuildLoadExprTemp();
 
-  Definition* BuildStoreLocal(const LocalVariable& local, Value* value);
-  Definition* BuildLoadLocal(const LocalVariable& local);
+  Definition* BuildStoreLocal(const LocalVariable& local,
+                              Value* value,
+                              intptr_t token_pos = Scanner::kNoSourcePos);
+  Definition* BuildLoadLocal(const LocalVariable& local,
+                             intptr_t token_pos = Scanner::kNoSourcePos);
   LoadLocalInstr* BuildLoadThisVar(LocalScope* scope);
   LoadFieldInstr* BuildNativeGetter(
       NativeBodyNode* node,

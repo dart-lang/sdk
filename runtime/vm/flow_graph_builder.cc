@@ -826,7 +826,8 @@ Definition* EffectGraphVisitor::BuildLoadExprTemp() {
 
 
 Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
-                                                Value* value) {
+                                                Value* value,
+                                                intptr_t token_pos) {
   if (local.is_captured()) {
     LocalVariable* tmp_var = EnterTempLocalScope(value);
     intptr_t delta =
@@ -836,7 +837,7 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
     while (delta-- > 0) {
       context = Bind(new(Z) LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle(Z, Type::null()),
-          Scanner::kNoSourcePos));
+          token_pos));
     }
     Value* tmp_val = Bind(new(Z) LoadLocalInstr(*tmp_var));
     StoreInstanceFieldInstr* store =
@@ -844,18 +845,19 @@ Definition* EffectGraphVisitor::BuildStoreLocal(const LocalVariable& local,
                                        context,
                                        tmp_val,
                                        kEmitStoreBarrier,
-                                       Scanner::kNoSourcePos);
+                                       token_pos);
     Do(store);
     return ExitTempLocalScope(tmp_var);
   } else {
-    return new(Z) StoreLocalInstr(local, value);
+    return new(Z) StoreLocalInstr(local, value, token_pos);
   }
 }
 
 
-Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
+Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local,
+                                               intptr_t token_pos) {
   if (local.IsConst()) {
-    return new(Z) ConstantInstr(*local.ConstValue(), local.token_pos());
+    return new(Z) ConstantInstr(*local.ConstValue(), token_pos);
   } else if (local.is_captured()) {
     intptr_t delta =
         owner()->context_level() - local.owner()->context_level();
@@ -864,14 +866,14 @@ Definition* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     while (delta-- > 0) {
       context = Bind(new(Z) LoadFieldInstr(
           context, Context::parent_offset(), Type::ZoneHandle(Z, Type::null()),
-          Scanner::kNoSourcePos));
+          token_pos));
     }
     return new(Z) LoadFieldInstr(context,
                                  Context::variable_offset(local.index()),
                                  local.type(),
-                                 Scanner::kNoSourcePos);
+                                 token_pos);
   } else {
-    return new(Z) LoadLocalInstr(local);
+    return new(Z) LoadLocalInstr(local, token_pos);
   }
 }
 
@@ -3583,7 +3585,7 @@ void EffectGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
 
 
 void ValueGraphVisitor::VisitLoadLocalNode(LoadLocalNode* node) {
-  Definition* load = BuildLoadLocal(node->local());
+  Definition* load = BuildLoadLocal(node->local(), node->token_pos());
   ReturnDefinition(load);
 }
 
@@ -3617,7 +3619,9 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
                                        node->local().type(),
                                        node->local().name());
   }
-  Definition* store = BuildStoreLocal(node->local(), store_value);
+  Definition* store = BuildStoreLocal(node->local(),
+                                      store_value,
+                                      node->token_pos());
   ReturnDefinition(store);
 }
 
@@ -3690,16 +3694,18 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
 
 
 void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
+  const intptr_t token_pos = node->token_pos();
   if (node->field().is_const()) {
     ASSERT(node->field().StaticValue() != Object::sentinel().raw());
     ASSERT(node->field().StaticValue() !=
            Object::transition_sentinel().raw());
     Definition* result = new(Z) ConstantInstr(
-        Instance::ZoneHandle(Z, node->field().StaticValue()));
+        Instance::ZoneHandle(Z, node->field().StaticValue()), token_pos);
     return ReturnDefinition(result);
   }
-  Value* field_value = Bind(new(Z) ConstantInstr(node->field()));
-  LoadStaticFieldInstr* load = new(Z) LoadStaticFieldInstr(field_value);
+  Value* field_value = Bind(new(Z) ConstantInstr(node->field(), token_pos));
+  LoadStaticFieldInstr* load =
+      new(Z) LoadStaticFieldInstr(field_value, token_pos);
   ReturnDefinition(load);
 }
 
