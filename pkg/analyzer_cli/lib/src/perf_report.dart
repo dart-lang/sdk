@@ -9,6 +9,7 @@ import 'dart:io' show File, Platform;
 
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
+import 'package:analyzer/task/model.dart' show AnalysisTask;
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
 const _JSON = const JsonEncoder.withIndent("  ");
@@ -70,13 +71,36 @@ String makePerfReport(int startTime, int endTime, CommandLineOptions options) {
   }
   perfTagsJson['other'] = otherTime;
 
-  var json = <String, dynamic>{
+  // Generate task table.
+  var taskRows = <_TaskRow>[];
+  int totalTaskTime = 0;
+  for (var key in AnalysisTask.stopwatchMap.keys) {
+    var time = AnalysisTask.stopwatchMap[key].elapsedMilliseconds;
+    if (time == 0) continue;
+    totalTaskTime += time;
+    var count = AnalysisTask.countMap[key];
+    taskRows.add(new _TaskRow(key.toString(), time, count));
+  }
+  taskRows.sort((a, b) => b.time.compareTo(a.time));
+
+  var reportJson = <String, dynamic>{
     'perfReportVersion': 0,
     'platform': platformJson,
     'options': optionsJson,
     'totalElapsedTime': totalTime,
-    'performanceTags': perfTagsJson
+    'totalTaskTime': totalTaskTime,
+    'performanceTags': perfTagsJson,
+    'tasks': taskRows.map((r) => r.toJson()).toList(),
   };
 
-  return _JSON.convert(json);
+  return _JSON.convert(reportJson);
+}
+
+class _TaskRow {
+  final String name;
+  final int time;
+  final int count;
+  _TaskRow(this.name, this.time, this.count);
+
+  Map toJson() => <String, dynamic>{'name': name, 'time': time, 'count': count};
 }
