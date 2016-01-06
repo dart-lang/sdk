@@ -141,9 +141,6 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign  # Uses Isolate.packageRoot
 package_map_test: SkipByDesign  # Uses Isolate.packageMap
 
-[ $compiler == dart2js && $cps_ir ]
-deferred_in_isolate2_test: RuntimeError # A.loadLibrary is not a function
-
 [ ($noopt || $compiler == precompiler) ]
 # Imports dart:mirrors
 count_test: CompileTimeError
