@@ -36,11 +36,6 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Pass, F
 LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Dartium JSInterop failure
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) ]
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: Fail # Please triage this failure.
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: Fail # Please triage this failure.
-Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: Fail # Please triage this failure.
-Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t01: Fail # Please triage this failure.
-Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t02: Fail # Please triage this failure.
 Language/Classes/Constructors/Generative_Constructors/final_variables_t01: Pass, Fail #: Please triage this failure.
 Language/Classes/Getters/type_object_t01: RuntimeError # Please triage this failure.
 Language/Classes/Getters/type_object_t02: RuntimeError # Please triage this failure.

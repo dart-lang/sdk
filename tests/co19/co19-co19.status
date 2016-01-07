@@ -14,6 +14,12 @@
 [ $runtime == vm || $runtime != vm ]
 # Tests that fail everywhere, including the analyzer.
 
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t01: Pass, Fail, OK # co19 issue 18
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t02: Pass, Fail, OK # co19 issue 18
+Language/Classes/Constructors/Constant_Constructors/initializer_not_a_constant_t03: Pass, Fail, OK # co19 issue 18
+Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t01: Pass, Fail, OK # co19 issue 18
+Language/Classes/Constructors/Constant_Constructors/not_a_constant_in_superclass_t02: Pass, Fail, OK # co19 issue 18
+
 # Super is now allowed in mixins and mixins may now extend a subclass of Object.
 Language/09_Mixins/09_Mixins_A01_t01: Skip # co19 issue 9.
 Language/09_Mixins/09_Mixins_A03_t01: Skip # co19 issue 9.
