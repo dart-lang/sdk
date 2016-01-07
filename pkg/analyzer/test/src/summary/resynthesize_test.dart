@@ -594,6 +594,42 @@ class E {
     checkLibrary('class C { factory C() => null; }');
   }
 
+  test_class_constructor_field_formal_dynamic_dynamic() {
+    checkLibrary('class C { dynamic x; C(dynamic this.x); }');
+  }
+
+  test_class_constructor_field_formal_dynamic_typed() {
+    checkLibrary('class C { dynamic x; C(int this.x); }');
+  }
+
+  test_class_constructor_field_formal_dynamic_untyped() {
+    checkLibrary('class C { dynamic x; C(this.x); }');
+  }
+
+  test_class_constructor_field_formal_typed_dynamic() {
+    checkLibrary('class C { num x; C(dynamic this.x); }');
+  }
+
+  test_class_constructor_field_formal_typed_typed() {
+    checkLibrary('class C { num x; C(int this.x); }');
+  }
+
+  test_class_constructor_field_formal_typed_untyped() {
+    checkLibrary('class C { num x; C(this.x); }');
+  }
+
+  test_class_constructor_field_formal_untyped_dynamic() {
+    checkLibrary('class C { var x; C(dynamic this.x); }');
+  }
+
+  test_class_constructor_field_formal_untyped_typed() {
+    checkLibrary('class C { var x; C(int this.x); }');
+  }
+
+  test_class_constructor_field_formal_untyped_untyped() {
+    checkLibrary('class C { var x; C(this.x); }');
+  }
+
   test_class_constructor_implicit() {
     checkLibrary('class C {}');
   }
