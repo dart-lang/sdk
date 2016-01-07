@@ -64,6 +64,8 @@ abstract class Expression extends Node {
   /// For [InteriorExpression]s this is the body, for [CallExpressions] it is
   /// the body of the continuation, and for [TailExpressions] it is `null`.
   Expression get next;
+
+  accept(BlockVisitor visitor);
 }
 
 /// Represents a node with a child node, which can be accessed through the
@@ -77,6 +79,8 @@ abstract class Expression extends Node {
 abstract class InteriorNode extends Node {
   Expression get body;
   void set body(Expression body);
+
+  accept(BlockVisitor visitor);
 }
 
 /// An expression that creates new bindings and continues evaluation in
@@ -370,7 +374,7 @@ class LetPrim extends InteriorExpression {
     return body = expr;
   }
 
-  accept(Visitor visitor) => visitor.visitLetPrim(this);
+  accept(BlockVisitor visitor) => visitor.visitLetPrim(this);
 
   void setParentPointers() {
     primitive.parent = this;
@@ -410,7 +414,7 @@ class LetCont extends InteriorExpression {
     return continuations.first.body = expr;
   }
 
-  accept(Visitor visitor) => visitor.visitLetCont(this);
+  accept(BlockVisitor visitor) => visitor.visitLetCont(this);
 
   void setParentPointers() {
     _setParentsOnNodes(continuations, this);
@@ -433,7 +437,7 @@ class LetHandler extends InteriorExpression {
 
   LetHandler(this.handler, this.body);
 
-  accept(Visitor visitor) => visitor.visitLetHandler(this);
+  accept(BlockVisitor visitor) => visitor.visitLetHandler(this);
 
   void setParentPointers() {
     handler.parent = this;
@@ -462,7 +466,7 @@ class LetMutable extends InteriorExpression {
     return body = expr;
   }
 
-  accept(Visitor visitor) => visitor.visitLetMutable(this);
+  accept(BlockVisitor visitor) => visitor.visitLetMutable(this);
 
   void setParentPointers() {
     variable.parent = this;
@@ -1047,7 +1051,7 @@ class Throw extends TailExpression {
 
   Throw(Primitive value) : value = new Reference<Primitive>(value);
 
-  accept(Visitor visitor) => visitor.visitThrow(this);
+  accept(BlockVisitor visitor) => visitor.visitThrow(this);
 
   void setParentPointers() {
     value.parent = this;
@@ -1060,7 +1064,7 @@ class Throw extends TailExpression {
 /// implicitly throws the exception parameter of the enclosing handler with
 /// the same stack trace as the enclosing handler.
 class Rethrow extends TailExpression {
-  accept(Visitor visitor) => visitor.visitRethrow(this);
+  accept(BlockVisitor visitor) => visitor.visitRethrow(this);
   void setParentPointers() {}
 }
 
@@ -1069,7 +1073,7 @@ class Rethrow extends TailExpression {
 /// This can be placed as the body of a call continuation, when the caller is
 /// known never to invoke it, e.g. because the calling expression always throws.
 class Unreachable extends TailExpression {
-  accept(Visitor visitor) => visitor.visitUnreachable(this);
+  accept(BlockVisitor visitor) => visitor.visitUnreachable(this);
   void setParentPointers() {}
 }
 
@@ -1158,7 +1162,7 @@ class InvokeContinuation extends TailExpression {
         arguments = null,
         sourceInformation = null;
 
-  accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
+  accept(BlockVisitor visitor) => visitor.visitInvokeContinuation(this);
 
   void setParentPointers() {
     if (continuation != null) continuation.parent = this;
@@ -1197,7 +1201,7 @@ class Branch extends TailExpression {
         falseContinuation = new Reference<Continuation>(falseCont),
         this.isStrictCheck = false;
 
-  accept(Visitor visitor) => visitor.visitBranch(this);
+  accept(BlockVisitor visitor) => visitor.visitBranch(this);
 
   void setParentPointers() {
     condition.parent = this;
@@ -1691,7 +1695,7 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
     : parameters = <Parameter>[new Parameter(null)],
       isRecursive = false;
 
-  accept(Visitor visitor) => visitor.visitContinuation(this);
+  accept(BlockVisitor visitor) => visitor.visitContinuation(this);
 
   void setParentPointers() {
     _setParentsOnNodes(parameters, this);
@@ -1746,7 +1750,7 @@ class FunctionDefinition extends InteriorNode {
       this.returnContinuation,
       this.body);
 
-  accept(Visitor visitor) => visitor.visitFunctionDefinition(this);
+  accept(BlockVisitor visitor) => visitor.visitFunctionDefinition(this);
 
   void setParentPointers() {
     if (thisParameter != null) thisParameter.parent = this;
@@ -1888,24 +1892,74 @@ void _setParentsOnList(List<Reference> nodes, Node parent) {
   }
 }
 
-abstract class Visitor<T> {
+/// Visitor for block-level traversals that do not need to dispatch on
+/// primitives.
+abstract class BlockVisitor<T> {
+  const BlockVisitor();
+
+  T visit(Node node) => node.accept(this);
+
+  // Block headers.
+  T visitFunctionDefinition(FunctionDefinition node) => null;
+  T visitContinuation(Continuation node) => null;
+
+  // Interior expressions.
+  T visitLetPrim(LetPrim node) => null;
+  T visitLetCont(LetCont node) => null;
+  T visitLetHandler(LetHandler node) => null;
+  T visitLetMutable(LetMutable node) => null;
+
+  // Tail expressions.
+  T visitInvokeContinuation(InvokeContinuation node) => null;
+  T visitThrow(Throw node) => null;
+  T visitRethrow(Rethrow node) => null;
+  T visitBranch(Branch node) => null;
+  T visitUnreachable(Unreachable node) => null;
+
+  /// Visits block-level nodes in lexical post-order (not post-dominator order).
+  ///
+  /// Continuations and function definitions are considered "block headers".
+  /// The block itself is the sequence of interior expressions in the body,
+  /// terminated by a tail expression.
+  ///
+  /// Each block is visited starting with its tail expression, then every
+  /// interior expression from bottom to top, and finally the block header
+  /// is visited.
+  ///
+  /// Blocks are visited in post-order, so the body of a continuation is always
+  /// processed before its non-recursive invocation sites.
+  ///
+  /// The IR may be transformed during the traversal, but only the original
+  /// nodes will be visited.
+  static void traverseInPostOrder(FunctionDefinition root, BlockVisitor v) {
+    List<Continuation> stack = <Continuation>[];
+    List<Node> nodes = <Node>[];
+    void walkBlock(InteriorNode block) {
+      nodes.add(block);
+      Expression node = block.body;
+      nodes.add(node);
+      while (node.next != null) {
+        if (node is LetCont) {
+          stack.addAll(node.continuations);
+        } else if (node is LetHandler) {
+          stack.add(node.handler);
+        }
+        node = node.next;
+        nodes.add(node);
+      }
+    }
+    walkBlock(root);
+    while (stack.isNotEmpty) {
+      walkBlock(stack.removeLast());
+    }
+    nodes.reversed.forEach(v.visit);
+  }
+}
+
+abstract class Visitor<T> implements BlockVisitor<T> {
   const Visitor();
 
   T visit(Node node);
-
-  // Concrete classes.
-  T visitFunctionDefinition(FunctionDefinition node);
-
-  // Expressions.
-  T visitLetPrim(LetPrim node);
-  T visitLetCont(LetCont node);
-  T visitLetHandler(LetHandler node);
-  T visitLetMutable(LetMutable node);
-  T visitInvokeContinuation(InvokeContinuation node);
-  T visitThrow(Throw node);
-  T visitRethrow(Rethrow node);
-  T visitBranch(Branch node);
-  T visitUnreachable(Unreachable node);
 
   // Definitions.
   T visitInvokeStatic(InvokeStatic node);
@@ -1924,7 +1978,6 @@ abstract class Visitor<T> {
   T visitConstant(Constant node);
   T visitGetMutable(GetMutable node);
   T visitParameter(Parameter node);
-  T visitContinuation(Continuation node);
   T visitMutableVariable(MutableVariable node);
   T visitGetStatic(GetStatic node);
   T visitInterceptor(Interceptor node);
@@ -1945,8 +1998,6 @@ abstract class Visitor<T> {
   T visitRefinement(Refinement node);
   T visitBoundsCheck(BoundsCheck node);
   T visitNullCheck(NullCheck node);
-
-  // Support for literal foreign code.
   T visitForeignCode(ForeignCode node);
 }
 
