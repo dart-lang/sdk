@@ -743,7 +743,7 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
   const Object& value = def->constant_value();
   if (IsNonConstant(value)) {
     const AbstractType& checked_type = instr->type();
-    intptr_t value_cid = instr->value()->Type()->ToCid();
+    intptr_t value_cid = instr->value()->definition()->Type()->ToCid();
     Representation rep = def->representation();
     if ((checked_type.IsFloat32x4Type() && (rep == kUnboxedFloat32x4)) ||
         (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4)) ||
