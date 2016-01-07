@@ -32,7 +32,7 @@ UNIT_TEST_CASE(LoadRelaxed) {
 }
 
 
-UNIT_TEST_CASE(CompareAndSwapWord) {
+TEST_CASE(CompareAndSwapWord) {
   uword old_value = 42;
   uword new_value = 100;
   uword result = AtomicOperations::CompareAndSwapWord(
@@ -41,7 +41,7 @@ UNIT_TEST_CASE(CompareAndSwapWord) {
 }
 
 
-UNIT_TEST_CASE(CompareAndSwapUint32) {
+TEST_CASE(CompareAndSwapUint32) {
   uint32_t old_value = 42;
   uint32_t new_value = 100;
   uint32_t result = AtomicOperations::CompareAndSwapUint32(
