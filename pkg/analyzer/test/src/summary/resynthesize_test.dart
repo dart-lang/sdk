@@ -5,6 +5,7 @@
 library test.src.serialization.elements_test;
 
 import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/base.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -397,6 +398,8 @@ class ResynthTest extends ResolverTestCase {
     } else if (resynthesized is FunctionTypeImpl &&
         original is FunctionTypeImpl) {
       compareTypeImpls(resynthesized, original, desc);
+      expect(resynthesized.isInstantiated, original.isInstantiated,
+          reason: desc);
       if (original.element.isSynthetic &&
           original.element is FunctionTypeAliasElementImpl &&
           resynthesized.element is FunctionTypeAliasElementImpl) {
@@ -842,6 +845,16 @@ class E {
     checkLibrary('void f() {}');
   }
 
+  test_function_type_parameter() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('T f<T, U>(U u) => null;');
+  }
+
+  test_function_type_parameter_with_function_typed_parameter() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('void f<T, U>(T x(U u)) {}');
+  }
+
   test_functions() {
     checkLibrary('f() {} g() {}');
   }
@@ -902,6 +915,21 @@ class E {
 
   test_method_parameter_return_type_void() {
     checkLibrary('class C { f(void g()) {} }');
+  }
+
+  test_method_type_parameter() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('class C { T f<T, U>(U u) => null; }');
+  }
+
+  test_method_type_parameter_in_generic_class() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
+  }
+
+  test_method_type_parameter_with_function_typed_parameter() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
   test_operator() {

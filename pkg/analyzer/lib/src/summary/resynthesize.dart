@@ -200,11 +200,15 @@ class _LibraryResynthesizer {
       <String, Map<String, Element>>{};
 
   /**
-   * Type parameters for the class or typedef currently being resynthesized.
-   *
-   * TODO(paulberry): extend this to do the right thing for generic methods.
+   * Type parameters for the generic class, typedef, or executable currently
+   * being resynthesized, if any.  If multiple entities with type parameters
+   * are nested (e.g. a generic executable inside a generic class), this is the
+   * concatenation of all type parameters from all declarations currently in
+   * force, with the outermost declaration appearing first.  If there are no
+   * type parameters, or we are not currently resynthesizing a class, typedef,
+   * or executable, then this is an empty list.
    */
-  List<TypeParameterElement> currentTypeParameters;
+  List<TypeParameterElement> currentTypeParameters = <TypeParameterElement>[];
 
   _LibraryResynthesizer(this.summaryResynthesizer, this.prelinkedLibrary,
       this.unlinkedUnits, this.librarySource) {
@@ -274,7 +278,7 @@ class _LibraryResynthesizer {
           constructor.synthetic = true;
           constructor.returnType = correspondingType;
           constructor.type = new FunctionTypeImpl.elementWithNameAndArgs(
-              constructor, null, currentTypeArguments);
+              constructor, null, currentTypeArguments, false);
           memberHolder.addConstructor(constructor);
         }
         classElement.constructors = memberHolder.constructors;
@@ -286,7 +290,7 @@ class _LibraryResynthesizer {
       classElement.type = correspondingType;
       unitHolder.addType(classElement);
     } finally {
-      currentTypeParameters = null;
+      currentTypeParameters = <TypeParameterElement>[];
     }
   }
 
@@ -451,6 +455,13 @@ class _LibraryResynthesizer {
    */
   void buildExecutableCommonParts(ExecutableElementImpl executableElement,
       UnlinkedExecutable serializedExecutable) {
+    List<TypeParameterType> oldTypeArguments = currentTypeArguments;
+    int oldTypeParametersLength = currentTypeParameters.length;
+    if (serializedExecutable.typeParameters.isNotEmpty) {
+      executableElement.typeParameters =
+          serializedExecutable.typeParameters.map(buildTypeParameter).toList();
+      currentTypeParameters.addAll(executableElement.typeParameters);
+    }
     executableElement.parameters =
         serializedExecutable.parameters.map(buildParameter).toList();
     if (serializedExecutable.returnType != null) {
@@ -462,10 +473,12 @@ class _LibraryResynthesizer {
       executableElement.returnType = VoidTypeImpl.instance;
     }
     executableElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-        executableElement, null, currentTypeArguments);
+        executableElement, null, oldTypeArguments, false);
     executableElement.hasImplicitReturnType =
         serializedExecutable.hasImplicitReturnType;
     executableElement.external = serializedExecutable.isExternal;
+    currentTypeParameters.removeRange(
+        oldTypeParametersLength, currentTypeParameters.length);
   }
 
   /**
@@ -675,7 +688,7 @@ class _LibraryResynthesizer {
         parameterTypeElement.returnType = VoidTypeImpl.instance;
       }
       parameterElement.type = new FunctionTypeImpl.elementWithNameAndArgs(
-          parameterTypeElement, null, currentTypeArguments);
+          parameterTypeElement, null, currentTypeArguments, false);
     } else {
       parameterElement.type = buildType(serializedParameter.type);
       parameterElement.hasImplicitType = serializedParameter.hasImplicitType;
@@ -720,8 +733,7 @@ class _LibraryResynthesizer {
     if (type.paramReference != 0) {
       // TODO(paulberry): make this work for generic methods.
       return currentTypeParameters[
-              currentTypeParameters.length - type.paramReference]
-          .type;
+          currentTypeParameters.length - type.paramReference].type;
     } else {
       // TODO(paulberry): handle references to things other than classes (note:
       // this should only occur in the case of erroneous code).
@@ -745,8 +757,8 @@ class _LibraryResynthesizer {
         if (referenceResolution.unit != 0) {
           UnlinkedUnit referencedLibraryDefiningUnit =
               summaryResynthesizer.getUnlinkedSummary(referencedLibraryUri);
-          String uri = referencedLibraryDefiningUnit
-              .publicNamespace.parts[referenceResolution.unit - 1].uri;
+          String uri = referencedLibraryDefiningUnit.publicNamespace.parts[
+              referenceResolution.unit - 1].uri;
           Source partSource = summaryResynthesizer.sourceFactory
               .resolveUri(referencedLibrarySource, uri);
           partUri = partSource.uri.toString();
@@ -761,10 +773,8 @@ class _LibraryResynthesizer {
       } else {
         referencedLibraryUri = librarySource.uri.toString();
         if (referenceResolution.unit != 0) {
-          String uri = unlinkedUnits[0]
-              .publicNamespace
-              .parts[referenceResolution.unit - 1]
-              .uri;
+          String uri = unlinkedUnits[0].publicNamespace.parts[
+              referenceResolution.unit - 1].uri;
           Source partSource =
               summaryResynthesizer.sourceFactory.resolveUri(librarySource, uri);
           partUri = partSource.uri.toString();
@@ -796,7 +806,8 @@ class _LibraryResynthesizer {
               new FunctionTypeAliasElementHandle(
                   summaryResynthesizer, location),
               reference.name,
-              typeArguments);
+              typeArguments,
+              typeArguments.isNotEmpty);
         default:
           // TODO(paulberry): figure out how to handle this case (which should
           // only occur in the event of erroneous code).
@@ -832,7 +843,7 @@ class _LibraryResynthesizer {
       functionTypeAliasElement.typeParameters = currentTypeParameters;
       unitHolder.addTypeAlias(functionTypeAliasElement);
     } finally {
-      currentTypeParameters = null;
+      currentTypeParameters = <TypeParameterElement>[];
     }
   }
 

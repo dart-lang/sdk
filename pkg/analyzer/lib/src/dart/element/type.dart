@@ -200,9 +200,9 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Initialize a newly created function type to be declared by the given
    * [element], with the given [name] and [typeArguments].
    */
-  FunctionTypeImpl.elementWithNameAndArgs(
-      Element element, String name, List<DartType> typeArguments)
-      : this._(element, name, null, typeArguments, true);
+  FunctionTypeImpl.elementWithNameAndArgs(Element element, String name,
+      List<DartType> typeArguments, bool isInstantiated)
+      : this._(element, name, null, typeArguments, isInstantiated);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -368,6 +368,11 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     int skipCount = typeArguments.length - typeParameterCount;
     return new List<DartType>.from(typeArguments.skip(skipCount));
   }
+
+  /**
+   * Return `true` if this type is the result of instantiating type parameters.
+   */
+  bool get isInstantiated => _isInstantiated;
 
   @override
   Map<String, DartType> get namedParameterTypes {
