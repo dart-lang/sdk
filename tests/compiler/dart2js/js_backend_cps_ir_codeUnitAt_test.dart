@@ -43,7 +43,7 @@ main() {
 }""",r"""
 function(s) {
   var v0 = s.length, sum = 0, i = 0;
-  for (; i < v0; sum = sum + s.charCodeAt(i), i = i + 1)
+  for (; i < v0; sum += s.charCodeAt(i), ++i)
     ;
   return sum;
 }"""),

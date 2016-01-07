@@ -153,7 +153,7 @@ main() {
 }""",r"""
 function() {
   var list = [1, 2, 3, 4, 5, 6], i = 0, v0;
-  for (; i < 6; i = i + 1) {
+  for (; i < 6; ++i) {
     v0 = H.S(list[i]);
     if (typeof dartPrint == "function")
       dartPrint(v0);
@@ -177,7 +177,7 @@ main() {
 }""",r"""
 function() {
   var xs = ["x", "y", "z"], ys = ["A", "B", "C"], i = 0, i1 = 0, current, current1;
-  for (; i < 3; i = i + 1, i1 = i1 + 1) {
+  for (; i < 3; ++i, ++i1) {
     current = xs[i];
     if (!(i1 < 3))
       break;

@@ -20,7 +20,8 @@ import '../../js/js.dart' as js;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../tree_ir/tree_ir_nodes.dart' show
     BuiltinMethod,
-    BuiltinOperator;
+    BuiltinOperator,
+    isCompoundableOperator;
 import '../../types/types.dart' show
     TypeMask;
 import '../../universe/call_structure.dart' show
@@ -505,11 +506,67 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return new js.VariableUse(getVariableName(variable));
   }
 
+  /// Returns the JS operator for the given built-in operator for use in a
+  /// compound assignment (not including the '=' sign).
+  String getAsCompoundOperator(BuiltinOperator operator) {
+    switch (operator) {
+      case BuiltinOperator.NumAdd:
+      case BuiltinOperator.StringConcatenate:
+        return '+';
+      case BuiltinOperator.NumSubtract:
+        return '-';
+      case BuiltinOperator.NumMultiply:
+        return '*';
+      case BuiltinOperator.NumDivide:
+        return '/';
+      case BuiltinOperator.NumRemainder:
+        return '%';
+      default:
+        throw 'Not a compoundable operator: $operator';
+    }
+  }
+
+  bool isCompoundableBuiltin(tree_ir.Expression exp) {
+    return exp is tree_ir.ApplyBuiltinOperator &&
+           exp.arguments.length == 2 &&
+           isCompoundableOperator(exp.operator);
+  }
+
+  bool isOneConstant(tree_ir.Expression exp) {
+    return exp is tree_ir.Constant && exp.value.isOne;
+  }
+
+  js.Expression makeAssignment(
+      js.Expression leftHand,
+      tree_ir.Expression value,
+      {BuiltinOperator compound}) {
+    if (isOneConstant(value)) {
+      if (compound == BuiltinOperator.NumAdd) {
+        return new js.Prefix('++', leftHand);
+      }
+      if (compound == BuiltinOperator.NumSubtract) {
+        return new js.Prefix('--', leftHand);
+      }
+    }
+    if (compound != null) {
+      return new js.Assignment.compound(leftHand,
+          getAsCompoundOperator(compound), visitExpression(value));
+    }
+    return new js.Assignment(leftHand, visitExpression(value));
+  }
+
   @override
   js.Expression visitAssign(tree_ir.Assign node) {
-    return new js.Assignment(
-        buildVariableAccess(node.variable),
-        visitExpression(node.value));
+    js.Expression variable = buildVariableAccess(node.variable);
+    if (isCompoundableBuiltin(node.value)) {
+      tree_ir.ApplyBuiltinOperator rhs = node.value;
+      tree_ir.Expression left = rhs.arguments[0];
+      tree_ir.Expression right = rhs.arguments[1];
+      if (left is tree_ir.VariableUse && left.variable == node.variable) {
+        return makeAssignment(variable, right, compound: rhs.operator);
+      }
+    }
+    return makeAssignment(variable, node.value);
   }
 
   @override
@@ -823,13 +880,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  js.Assignment visitSetField(tree_ir.SetField node) {
+  js.Expression visitSetField(tree_ir.SetField node) {
     registry.registerStaticUse(new StaticUse.fieldSet(node.field));
     js.PropertyAccess field =
         new js.PropertyAccess(
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
-    return new js.Assignment(field, visitExpression(node.value));
+    return makeAssignment(field, node.value, compound: node.compound);
   }
 
   @override
@@ -879,10 +936,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitSetIndex(tree_ir.SetIndex node) {
-    return js.js('#[#] = #',
-        [visitExpression(node.object),
-         visitExpression(node.index),
-         visitExpression(node.value)]);
+    js.Expression index = new js.PropertyAccess(
+        visitExpression(node.object), visitExpression(node.index));
+    return makeAssignment(index, node.value, compound: node.compound);
   }
 
   js.Expression buildStaticHelperInvocation(

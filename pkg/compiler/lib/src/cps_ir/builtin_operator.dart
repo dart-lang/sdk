@@ -158,26 +158,41 @@ enum BuiltinOperator {
 
 /// A method supported natively in the CPS and Tree IRs using the
 /// `ApplyBuiltinMethod` instructions.
-/// 
+///
 /// These methods all operate on a distinguished 'object' argument, and
 /// take zero or more additional arguments.
-/// 
+///
 /// These methods may mutate and depend on the state of the object argument,
 /// but may not depend on or mutate any other state. An exception is thrown
 /// if the object is null, but otherwise they cannot throw or diverge.
 enum BuiltinMethod {
   /// Add an item to a native list.
-  /// 
+  ///
   /// Takes any number of arguments, each argument will be added to the
   /// list on the order given (as per the JS `push` method).
-  /// 
+  ///
   /// Compiles to `object.push(x1, ..., xN)`.
   Push,
 
   /// Remove and return the last item from a native list.
-  /// 
+  ///
   /// Takes no arguments.
-  /// 
+  ///
   /// Compiles to `object.pop()`.
   Pop,
+}
+
+/// True for the built-in operators that may be used in a compound assignment.
+bool isCompoundableOperator(BuiltinOperator operator) {
+  switch(operator) {
+    case BuiltinOperator.NumAdd:
+    case BuiltinOperator.NumSubtract:
+    case BuiltinOperator.NumMultiply:
+    case BuiltinOperator.NumDivide:
+    case BuiltinOperator.NumRemainder:
+    case BuiltinOperator.StringConcatenate:
+      return true;
+    default:
+      return false;
+  }
 }

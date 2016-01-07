@@ -743,7 +743,11 @@ class SetField extends Expression {
   Element field;
   Expression value;
 
-  SetField(this.object, this.field, this.value);
+  /// If non-null, this is a compound assignment to the field, using the given
+  /// operator.  The operator must be a compoundable operator.
+  BuiltinOperator compound;
+
+  SetField(this.object, this.field, this.value, {this.compound});
 
   accept(ExpressionVisitor visitor) => visitor.visitSetField(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
@@ -813,8 +817,9 @@ class SetIndex extends Expression {
   Expression object;
   Expression index;
   Expression value;
+  BuiltinOperator compound;
 
-  SetIndex(this.object, this.index, this.value);
+  SetIndex(this.object, this.index, this.value, {this.compound});
 
   accept(ExpressionVisitor v) => v.visitSetIndex(this);
   accept1(ExpressionVisitor1 v, arg) => v.visitSetIndex(this, arg);

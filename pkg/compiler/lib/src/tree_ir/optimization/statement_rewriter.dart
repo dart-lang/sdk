@@ -758,9 +758,35 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
+  bool sameVariable(Expression e1, Expression e2) {
+    return e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable;
+  }
+
+  bool isCompoundableBuiltin(Expression e) {
+    return e is ApplyBuiltinOperator &&
+           e.arguments.length == 2 &&
+           isCompoundableOperator(e.operator);
+  }
+
+  void destroyVariableUse(VariableUse node) {
+    --node.variable.readCount;
+  }
+
   Expression visitSetField(SetField node) {
     allowRhsPropagation.add(true);
     node.value = visitExpression(node.value);
+    if (isCompoundableBuiltin(node.value)) {
+      ApplyBuiltinOperator rhs = node.value;
+      Expression left = rhs.arguments[0];
+      Expression right = rhs.arguments[1];
+      if (left is GetField &&
+          left.field == node.field &&
+          sameVariable(left.object, node.object)) {
+        destroyVariableUse(left.object);
+        node.compound = rhs.operator;
+        node.value = right;
+      }
+    }
     node.object = visitExpression(node.object);
     allowRhsPropagation.removeLast();
     return node;
@@ -834,6 +860,19 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitSetIndex(SetIndex node) {
     node.value = visitExpression(node.value);
+    if (isCompoundableBuiltin(node.value)) {
+      ApplyBuiltinOperator rhs = node.value;
+      Expression left = rhs.arguments[0];
+      Expression right = rhs.arguments[1];
+      if (left is GetIndex &&
+          sameVariable(left.object, node.object) &&
+          sameVariable(left.index, node.index)) {
+        destroyVariableUse(left.object);
+        destroyVariableUse(left.index);
+        node.compound = rhs.operator;
+        node.value = right;
+      }
+    }
     node.index = visitExpression(node.index);
     node.object = visitExpression(node.object);
     return node;

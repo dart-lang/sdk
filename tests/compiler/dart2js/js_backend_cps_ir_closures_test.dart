@@ -106,7 +106,7 @@ r"""
 function() {
   var _box_0 = {}, a = new V.main_closure(_box_0), v0;
   _box_0.x = 122;
-  _box_0.x = _box_0.x + 1;
+  ++_box_0.x;
   v0 = H.S(a.call$0());
   if (typeof dartPrint == "function")
     dartPrint(v0);
@@ -161,7 +161,7 @@ r"""
 function() {
   var _box_0 = {}, a = new V.main_closure(_box_0), v0;
   _box_0.x = 122;
-  _box_0.x = _box_0.x + 1;
+  ++_box_0.x;
   v0 = H.S(a.call$0().call$0());
   if (typeof dartPrint == "function")
     dartPrint(v0);
@@ -187,7 +187,7 @@ main() {
 r"""
 function() {
   var a = null, i = 0, v0;
-  for (; i < 10; a = new V.main_closure(i), i = i + 1)
+  for (; i < 10; a = new V.main_closure(i), ++i)
     ;
   v0 = H.S(a.call$0());
   if (typeof dartPrint == "function")

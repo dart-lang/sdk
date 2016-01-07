@@ -43,9 +43,9 @@ main() {
 r"""
 function() {
   var l = ["hest", ["h", "e", "s", "t"]], i = 0, x, j;
-  for (P.print(2); i < 2; i = i + 1) {
+  for (P.print(2); i < 2; ++i) {
     x = l[i];
-    for (j = 0; j < x.length; j = j + 1)
+    for (j = 0; j < x.length; ++j)
       P.print(x[j]);
   }
 }"""),
