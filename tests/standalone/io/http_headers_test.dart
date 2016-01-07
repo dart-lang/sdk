@@ -296,6 +296,8 @@ void testHeaderValue() {
     "  attachment  ;filename=genome.jpeg  ;"
     "modification-date = \"Wed, 12 February 1997 16:29:51 -0500\""  );
   check(headerValue, "attachment", parameters);
+  headerValue = HeaderValue.parse("xxx; aaa; bbb; ccc");
+  check(headerValue, "xxx", {"aaa": null, "bbb": null, "ccc": null});
 }
 
 void testContentType() {
