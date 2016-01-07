@@ -130,11 +130,10 @@ main() {
   print(list);
 }""", r"""
 function() {
-  var list = [1, 2, 3], res, v0;
+  var list = [1, 2, 3], v0;
   list[1] = 6;
-  if (!(typeof (res = C.JSArray_methods.toString$0(list)) === "string"))
+  if (!(typeof (v0 = P.IterableBase_iterableToFullString(list, "[", "]")) === "string"))
     throw H.wrapException(H.argumentErrorValue(list));
-  v0 = res;
   if (typeof dartPrint == "function")
     dartPrint(v0);
   else if (typeof console == "object" && typeof console.log != "undefined")

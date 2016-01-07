@@ -2073,6 +2073,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         if (argumentsWereRemoved) {
           node.arguments.removeWhere((ref) => ref == null);
         }
+        if (node.arguments.length == 1) {
+          Primitive input = node.arguments[0].definition;
+          node.replaceUsesWith(input);
+          input.useElementAsHint(node.hint);
+        }
         // TODO(asgerf): Rebalance nested StringConcats that arise from
         //               rewriting the + operator to StringConcat.
         break;
