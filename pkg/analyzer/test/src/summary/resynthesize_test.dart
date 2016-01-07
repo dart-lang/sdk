@@ -427,12 +427,11 @@ class ResynthTest extends ResolverTestCase {
               original.typeParameters[i], '$desc type parameter $i');
         }
       }
-      expect(resynthesized.boundTypeParameters.length,
-          original.boundTypeParameters.length,
+      expect(resynthesized.typeFormals.length, original.typeFormals.length,
           reason: desc);
-      for (int i = 0; i < resynthesized.boundTypeParameters.length; i++) {
-        compareTypeParameterElements(resynthesized.boundTypeParameters[i],
-            original.boundTypeParameters[i], '$desc bound type parameter $i');
+      for (int i = 0; i < resynthesized.typeFormals.length; i++) {
+        compareTypeParameterElements(resynthesized.typeFormals[i],
+            original.typeFormals[i], '$desc bound type parameter $i');
       }
     } else if (resynthesized is VoidTypeImpl && original is VoidTypeImpl) {
       expect(resynthesized, same(original));

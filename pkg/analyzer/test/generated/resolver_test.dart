@@ -13222,7 +13222,7 @@ void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
     ParameterElementImpl e = f.staticElement;
     FunctionType type = e.type;
     expect(e.typeParameters.toString(), '[T]');
-    expect(type.boundTypeParameters.toString(), '[T]');
+    expect(type.typeFormals.toString(), '[T]');
     expect(type.toString(), '<T>(T) → T');
     FunctionType ft = type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
