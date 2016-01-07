@@ -8088,6 +8088,21 @@ class MethodInvocation extends Expression {
   ArgumentList _argumentList;
 
   /**
+   * The function type of the method invocation, or `null` if the AST
+   * structure has not been resolved, or if the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType staticInvokeType;
+
+  /**
+   * Like [staticInvokeType], but reflects propagated type information.
+   */
+  DartType propagatedInvokeType;
+
+  /**
    * Initialize a newly created method invocation. The [target] and [operator]
    * can be `null` if there is no target.
    */

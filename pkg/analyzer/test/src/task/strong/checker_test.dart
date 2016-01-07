@@ -102,11 +102,9 @@ void main() {
           B f = new B();
           int x;
           double y;
-          // The analyzer has what I believe is a bug (dartbug.com/23252) which
-          // causes the return type of calls to f to be treated as dynamic.
-          x = /*info:DYNAMIC_CAST should be pass*/f(3);
+          x = f(3);
           x = /*severe:STATIC_TYPE_ERROR*/f.col(3.0);
-          y = /*info:DYNAMIC_CAST should be severe:STATIC_TYPE_ERROR*/f(3);
+          y = /*severe:STATIC_TYPE_ERROR*/f(3);
           y = f.col(3.0);
           f(/*severe:STATIC_TYPE_ERROR*/3.0);
           f.col(/*severe:STATIC_TYPE_ERROR*/3);

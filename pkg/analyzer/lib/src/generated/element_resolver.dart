@@ -9,14 +9,12 @@ import 'dart:collection';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart' as sc;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * An object used by instances of [ResolverVisitor] to resolve references within
@@ -639,64 +637,43 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         }
       }
     }
-    //
-    // Check for a generic method & apply type arguments if any were passed.
-    //
-    if (staticElement is MethodElement || staticElement is FunctionElement) {
-      FunctionType type = (staticElement as ExecutableElement).type;
-      List<TypeParameterElement> parameters = type.boundTypeParameters;
-
-      NodeList<TypeName> arguments = node.typeArguments?.arguments;
-      if (arguments != null && arguments.length != parameters.length) {
-        // Wrong number of type arguments. Ignore them
-        arguments = null;
-        _resolver.reportErrorForNode(
-            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
-            methodName,
-            [type, parameters.length, arguments.length]);
-      }
-      if (parameters.isNotEmpty) {
-        List<DartType> typeArgs;
-        if (arguments == null) {
-          typeArgs = new List<DartType>.filled(
-              parameters.length, DynamicTypeImpl.instance);
-        } else {
-          typeArgs = new List<DartType>.from(arguments.map((n) => n.type));
-        }
-        type = type.instantiate(typeArgs);
-
-        if (staticElement is MethodMember) {
-          MethodMember member = staticElement;
-          staticElement =
-              new MethodMember(member.baseElement, member.definingType, type);
-        } else if (staticElement is MethodElement) {
-          ClassElement clazz = staticElement.enclosingElement;
-          staticElement = new MethodMember(staticElement, clazz.type, type);
-        } else {
-          staticElement =
-              new FunctionMember(staticElement as FunctionElement, type);
-        }
-      }
-    }
 
     staticElement = _convertSetterToGetter(staticElement);
     propagatedElement = _convertSetterToGetter(propagatedElement);
+
+    DartType staticInvokeType = _computeMethodInvokeType(node, staticElement);
+    DartType propagatedInvokeType =
+        _computeMethodInvokeType(node, propagatedElement);
+
     //
     // Record the results.
     //
     methodName.staticElement = staticElement;
     methodName.propagatedElement = propagatedElement;
+
+    node.staticInvokeType = staticInvokeType;
+    if (propagatedInvokeType != null &&
+        propagatedInvokeType.isMoreSpecificThan(staticInvokeType)) {
+      // Don't store the propagated invoke type unless it's more specific than
+      // the static type. We still need to record the propagated parameter
+      // elements however, as that is used for the propagatedType downwards
+      // inference of lambda parameters.
+      node.propagatedInvokeType = propagatedInvokeType;
+    } else {
+      node.propagatedInvokeType = null;
+    }
+
     ArgumentList argumentList = node.argumentList;
-    if (staticElement != null) {
+    if (staticInvokeType != null) {
       List<ParameterElement> parameters =
-          _computeCorrespondingParameters(argumentList, staticElement);
+          _computeCorrespondingParameters(argumentList, staticInvokeType);
       if (parameters != null) {
         argumentList.correspondingStaticParameters = parameters;
       }
     }
-    if (propagatedElement != null) {
+    if (propagatedInvokeType != null) {
       List<ParameterElement> parameters =
-          _computeCorrespondingParameters(argumentList, propagatedElement);
+          _computeCorrespondingParameters(argumentList, propagatedInvokeType);
       if (parameters != null) {
         argumentList.correspondingPropagatedParameters = parameters;
       }
@@ -1336,44 +1313,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * arguments, or `null` if no correspondence could be computed.
    */
   List<ParameterElement> _computeCorrespondingParameters(
-      ArgumentList argumentList, Element element) {
-    if (element is PropertyAccessorElement) {
-      //
-      // This is an invocation of the call method defined on the value returned
-      // by the getter.
-      //
-      FunctionType getterType = element.type;
-      if (getterType != null) {
-        DartType getterReturnType = getterType.returnType;
-        if (getterReturnType is InterfaceType) {
-          MethodElement callMethod = getterReturnType.lookUpMethod(
-              FunctionElement.CALL_METHOD_NAME, _definingLibrary);
-          if (callMethod != null) {
-            return _resolveArgumentsToFunction(false, argumentList, callMethod);
-          }
-        } else if (getterReturnType is FunctionType) {
-          List<ParameterElement> parameters = getterReturnType.parameters;
-          return _resolveArgumentsToParameters(false, argumentList, parameters);
-        }
+      ArgumentList argumentList, DartType type) {
+    if (type is InterfaceType) {
+      MethodElement callMethod =
+          type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
+      if (callMethod != null) {
+        return _resolveArgumentsToFunction(false, argumentList, callMethod);
       }
-    } else if (element is ExecutableElement) {
-      return _resolveArgumentsToFunction(false, argumentList, element);
-    } else if (element is VariableElement) {
-      VariableElement variable = element;
-      DartType type = _promoteManager.getStaticType(variable);
-      if (type is FunctionType) {
-        FunctionType functionType = type;
-        List<ParameterElement> parameters = functionType.parameters;
-        return _resolveArgumentsToParameters(false, argumentList, parameters);
-      } else if (type is InterfaceType) {
-        // "call" invocation
-        MethodElement callMethod = type.lookUpMethod(
-            FunctionElement.CALL_METHOD_NAME, _definingLibrary);
-        if (callMethod != null) {
-          List<ParameterElement> parameters = callMethod.parameters;
-          return _resolveArgumentsToParameters(false, argumentList, parameters);
-        }
-      }
+    } else if (type is FunctionType) {
+      return _resolveArgumentsToParameters(
+          false, argumentList, type.parameters);
     }
     return null;
   }
@@ -1512,6 +1461,49 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       staticType = _resolver.typeProvider.functionType;
     }
     return staticType;
+  }
+
+  DartType _computeMethodInvokeType(MethodInvocation node, Element element) {
+    if (element == null) {
+      return null;
+    }
+
+    DartType invokeType;
+    if (element is PropertyAccessorElement) {
+      invokeType = element.returnType;
+    } else if (element is ExecutableElement) {
+      invokeType = element.type;
+    } else if (element is VariableElement) {
+      invokeType = _promoteManager.getStaticType(element);
+    }
+
+    //
+    // Check for a generic method & apply type arguments if any were passed.
+    //
+    // TODO(jmesserly): support generic "call" methods on InterfaceType.
+    if (invokeType is FunctionType) {
+      FunctionType type = invokeType;
+      List<TypeParameterElement> parameters = type.typeFormals;
+
+      NodeList<TypeName> arguments = node.typeArguments?.arguments;
+      if (arguments != null && arguments.length != parameters.length) {
+        // Wrong number of type arguments. Ignore them
+        arguments = null;
+        _resolver.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+            node.methodName,
+            [type, parameters.length, arguments?.length ?? 0]);
+      }
+      if (parameters.isNotEmpty) {
+        if (arguments == null) {
+          invokeType = _resolver.typeSystem.instantiateToBounds(type);
+        } else {
+          invokeType = type.instantiate(arguments.map((n) => n.type).toList());
+        }
+      }
+    }
+
+    return invokeType;
   }
 
   /**
@@ -1948,102 +1940,35 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Given an [argumentList] and the [executableElement] that will be invoked
    * using those argument, compute the list of parameters that correspond to the
    * list of arguments. An error will be reported if any of the arguments cannot
-   * be matched to a parameter. The flag [reportError] should be `true` if a
+   * be matched to a parameter. The flag [reportAsError] should be `true` if a
    * compile-time error should be reported; or `false` if a compile-time warning
    * should be reported. Return the parameters that correspond to the arguments,
    * or `null` if no correspondence could be computed.
    */
-  List<ParameterElement> _resolveArgumentsToFunction(bool reportError,
+  List<ParameterElement> _resolveArgumentsToFunction(bool reportAsError,
       ArgumentList argumentList, ExecutableElement executableElement) {
     if (executableElement == null) {
       return null;
     }
     List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(reportError, argumentList, parameters);
+    return _resolveArgumentsToParameters(
+        reportAsError, argumentList, parameters);
   }
 
   /**
    * Given an [argumentList] and the [parameters] related to the element that
    * will be invoked using those arguments, compute the list of parameters that
    * correspond to the list of arguments. An error will be reported if any of
-   * the arguments cannot be matched to a parameter. The flag [reportError]
+   * the arguments cannot be matched to a parameter. The flag [reportAsError]
    * should be `true` if a compile-time error should be reported; or `false` if
    * a compile-time warning should be reported. Return the parameters that
    * correspond to the arguments.
    */
-  List<ParameterElement> _resolveArgumentsToParameters(bool reportError,
+  List<ParameterElement> _resolveArgumentsToParameters(bool reportAsError,
       ArgumentList argumentList, List<ParameterElement> parameters) {
-    List<ParameterElement> requiredParameters = new List<ParameterElement>();
-    List<ParameterElement> positionalParameters = new List<ParameterElement>();
-    HashMap<String, ParameterElement> namedParameters =
-        new HashMap<String, ParameterElement>();
-    for (ParameterElement parameter in parameters) {
-      ParameterKind kind = parameter.parameterKind;
-      if (kind == ParameterKind.REQUIRED) {
-        requiredParameters.add(parameter);
-      } else if (kind == ParameterKind.POSITIONAL) {
-        positionalParameters.add(parameter);
-      } else {
-        namedParameters[parameter.name] = parameter;
-      }
-    }
-    List<ParameterElement> unnamedParameters =
-        new List<ParameterElement>.from(requiredParameters);
-    unnamedParameters.addAll(positionalParameters);
-    int unnamedParameterCount = unnamedParameters.length;
-    int unnamedIndex = 0;
-    NodeList<Expression> arguments = argumentList.arguments;
-    int argumentCount = arguments.length;
-    List<ParameterElement> resolvedParameters =
-        new List<ParameterElement>(argumentCount);
-    int positionalArgumentCount = 0;
-    HashSet<String> usedNames = new HashSet<String>();
-    bool noBlankArguments = true;
-    for (int i = 0; i < argumentCount; i++) {
-      Expression argument = arguments[i];
-      if (argument is NamedExpression) {
-        SimpleIdentifier nameNode = argument.name.label;
-        String name = nameNode.name;
-        ParameterElement element = namedParameters[name];
-        if (element == null) {
-          ErrorCode errorCode = (reportError
-              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
-              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
-          _resolver.reportErrorForNode(errorCode, nameNode, [name]);
-        } else {
-          resolvedParameters[i] = element;
-          nameNode.staticElement = element;
-        }
-        if (!usedNames.add(name)) {
-          _resolver.reportErrorForNode(
-              CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, [name]);
-        }
-      } else {
-        if (argument is SimpleIdentifier && argument.name.isEmpty) {
-          noBlankArguments = false;
-        }
-        positionalArgumentCount++;
-        if (unnamedIndex < unnamedParameterCount) {
-          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
-        }
-      }
-    }
-    if (positionalArgumentCount < requiredParameters.length &&
-        noBlankArguments) {
-      ErrorCode errorCode = (reportError
-          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
-          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
-      _resolver.reportErrorForNode(errorCode, argumentList,
-          [requiredParameters.length, positionalArgumentCount]);
-    } else if (positionalArgumentCount > unnamedParameterCount &&
-        noBlankArguments) {
-      ErrorCode errorCode = (reportError
-          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
-          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
-      _resolver.reportErrorForNode(errorCode, argumentList,
-          [unnamedParameterCount, positionalArgumentCount]);
-    }
-    return resolvedParameters;
+    return ResolverVisitor.resolveArgumentsToParameters(
+        argumentList, parameters, _resolver.reportErrorForNode,
+        reportAsError: reportAsError);
   }
 
   void _resolveBinaryExpression(BinaryExpression node, String methodName) {

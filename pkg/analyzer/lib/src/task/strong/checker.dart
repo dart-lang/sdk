@@ -788,8 +788,14 @@ class CodeChecker extends RecursiveAstVisitor {
   /// in the caller position of a call (that is, accounting
   /// for the possibility of a call method).  Returns null
   /// if expression is not statically callable.
-  FunctionType _getTypeAsCaller(Expression applicand) {
-    var t = applicand.staticType ?? DynamicTypeImpl.instance;
+  FunctionType _getTypeAsCaller(Expression node) {
+    DartType t = node.staticType;
+    if (node is SimpleIdentifier) {
+      Expression parent = node.parent;
+      if (parent is MethodInvocation) {
+        t = parent.staticInvokeType;
+      }
+    }
     if (t is InterfaceType) {
       return rules.getCallMethodType(t);
     }

@@ -131,13 +131,20 @@ abstract class DartType {
  */
 abstract class FunctionType implements ParameterizedType {
   /**
-   * The type parameters of this generic function. For example `<T> T -> T`.
+   * Deprecated: use [typeFormals].
+   */
+  @deprecated
+  List<TypeParameterElement> get boundTypeParameters;
+
+  /**
+   * The formal type parameters of this generic function.
+   * For example `<T> T -> T`.
    *
    * These are distinct from the [typeParameters] list, which contains type
    * parameters from surrounding contexts, and thus are free type variables from
    * the perspective of this function type.
    */
-  List<TypeParameterElement> get boundTypeParameters;
+  List<TypeParameterElement> get typeFormals;
 
   /**
    * Return a map from the names of named parameters to the types of the named
@@ -569,7 +576,7 @@ abstract class InterfaceType implements ParameterizedType {
    */
   // TODO(jmesserly): introduce a new "instantiate" and deprecate this.
   // The new "instantiate" should work similar to FunctionType.instantiate,
-  // which uses [boundTypeParameters] to model type parameters that haven't been
+  // which uses [typeFormals] to model type parameters that haven't been
   // filled in yet. Those are kept separate from already-substituted type
   // parameters or free variables from the enclosing scopes, which allows nested
   // generics to work, such as a generic method in a generic class.
@@ -590,7 +597,16 @@ abstract class InterfaceType implements ParameterizedType {
 }
 
 /**
- * A type with type parameters, such as a class or function type alias.
+ * A type that can track substituted type parameters, either for itself after
+ * instantiation, or from a surrounding context.
+ *
+ * For example, given a class `Foo<T>`, after instantiation with S for T, it
+ * will track the substitution `{S/T}`.
+ *
+ * This substitution will be propagated to its members. For example, say our
+ * `Foo<T>` class has a field `T bar;`. When we look up this field, we will get
+ * back a [FieldElement] that tracks the substituted type as `{S/T}T`, so when
+ * we ask for the field type we will get`S`.
  *
  * Clients may not extend, implement or mix-in this class.
  */

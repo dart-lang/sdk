@@ -726,7 +726,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       _resolver.recordPropagatedTypeIfBetter(methodNameNode, propagatedType);
     }
     // Record static return type of the static element.
-    DartType staticStaticType = _computeStaticReturnType(staticMethodElement);
+    DartType staticStaticType = _computeInvokeReturnType(node.staticInvokeType);
     _recordStaticType(node, staticStaticType);
     // Record propagated return type of the static element.
     DartType staticPropagatedType =
@@ -736,12 +736,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     bool needPropagatedType = true;
     String methodName = methodNameNode.name;
     if (_strongMode) {
-      // TODO(leafp): Revisit this.  It's here to associate a type with the
-      // method name, which is important to the DDC backend (but apparently
-      // no-one else).  Not sure that there's a problem having this here, but
-      // it's a little ad hoc.
-      visitSimpleIdentifier(methodNameNode);
-
       _inferMethodInvocation(node);
     }
     if (methodName == "then") {
@@ -1438,38 +1432,28 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       //
       FunctionType propertyType = element.type;
       if (propertyType != null) {
-        DartType returnType = propertyType.returnType;
-        if (returnType.isDartCoreFunction) {
-          return _dynamicType;
-        } else if (returnType is InterfaceType) {
-          MethodElement callMethod = returnType.lookUpMethod(
-              FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
-          if (callMethod != null) {
-            return callMethod.type.returnType;
-          }
-        } else if (returnType is FunctionType) {
-          DartType innerReturnType = returnType.returnType;
-          if (innerReturnType != null) {
-            return innerReturnType;
-          }
-        }
-        if (returnType != null) {
-          return returnType;
-        }
+        return _computeInvokeReturnType(propertyType.returnType);
       }
     } else if (element is ExecutableElement) {
-      FunctionType type = element.type;
-      if (type != null) {
-        // TODO(brianwilkerson) Figure out the conditions under which the type
-        // is null.
-        return type.returnType;
-      }
+      return _computeInvokeReturnType(element.type);
     } else if (element is VariableElement) {
-      VariableElement variable = element;
-      DartType variableType = _promoteManager.getStaticType(variable);
-      if (variableType is FunctionType) {
-        return variableType.returnType;
-      }
+      DartType variableType = _promoteManager.getStaticType(element);
+      return _computeInvokeReturnType(variableType);
+    }
+    return _dynamicType;
+  }
+
+  /**
+   * Compute the return type of the method or function represented by the given
+   * type that is being invoked.
+   */
+  DartType _computeInvokeReturnType(DartType type) {
+    if (type is InterfaceType) {
+      MethodElement callMethod = type.lookUpMethod(
+          FunctionElement.CALL_METHOD_NAME, _resolver.definingLibrary);
+      return callMethod?.type?.returnType ?? _dynamicType;
+    } else if (type is FunctionType) {
+      return type.returnType ?? _dynamicType;
     }
     return _dynamicType;
   }
@@ -1823,58 +1807,41 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   bool _inferMethodInvocationGeneric(MethodInvocation node) {
     Element element = node.methodName.staticElement;
-    DartType fnType = node.methodName.staticType;
+    DartType invokeType = node.staticInvokeType;
+
     TypeSystem ts = _typeSystem;
     if (node.typeArguments == null &&
         element is ExecutableElement &&
-        fnType is FunctionTypeImpl &&
         ts is StrongTypeSystemImpl) {
-      FunctionTypeImpl genericFunction = fnType.originalFunction;
-      if (element is PropertyAccessorElement) {
-        genericFunction = element.type.returnType;
-      }
-      if (genericFunction.boundTypeParameters.isEmpty) {
-        return false;
-      }
-      for (DartType typeArg in fnType.instantiatedTypeArguments) {
-        if (!typeArg.isDynamic) {
-          return false;
-        }
-      }
+      FunctionType fnType = element.type;
+      if (fnType.typeFormals.isNotEmpty &&
+          ts.instantiateToBounds(fnType) == invokeType) {
+        // Get the parameters that correspond to the uninstantiated generic.
+        List<ParameterElement> genericParameters =
+            ResolverVisitor.resolveArgumentsToParameters(
+                node.argumentList, fnType.parameters, null);
 
-      List<ParameterElement> genericParameters = genericFunction.parameters;
-      List<DartType> argTypes = new List<DartType>();
-      List<DartType> paramTypes = new List<DartType>();
-      for (Expression arg in node.argumentList.arguments) {
-        // We may have too many (or too few) arguments.  Only use arguments
-        // which have been matched up with a static parameter.
-        ParameterElement p = arg.staticParameterElement;
-        if (p != null) {
-          int i = element.parameters.indexOf(p);
-          argTypes.add(arg.staticType);
-          paramTypes.add(genericParameters[i].type);
+        int length = genericParameters.length;
+        List<DartType> argTypes = new List<DartType>(length);
+        List<DartType> paramTypes = new List<DartType>(length);
+        for (int i = 0; i < length; i++) {
+          argTypes[i] = node.argumentList.arguments[i].staticType;
+          paramTypes[i] = genericParameters[i].type;
         }
-      }
 
-      FunctionType inferred = ts.inferCallFromArguments(
-          _typeProvider, genericFunction, paramTypes, argTypes);
-      if (inferred != fnType) {
-        // TODO(jmesserly): we need to fix up the parameter elements based on
-        // inferred method.
-        List<ParameterElement> inferredParameters = inferred.parameters;
-        List<ParameterElement> correspondingParams =
-            new List<ParameterElement>();
-        for (Expression arg in node.argumentList.arguments) {
-          ParameterElement p = arg.staticParameterElement;
-          if (p != null) {
-            int i = element.parameters.indexOf(p);
-            correspondingParams.add(inferredParameters[i]);
-          }
+        FunctionType inferred = ts.inferCallFromArguments(
+            _typeProvider, fnType, paramTypes, argTypes);
+
+        if (inferred != fnType) {
+          // Fix up the parameter elements based on inferred method.
+          List<ParameterElement> inferredParameters =
+              ResolverVisitor.resolveArgumentsToParameters(
+                  node.argumentList, inferred.parameters, null);
+          node.argumentList.correspondingStaticParameters = inferredParameters;
+          node.staticInvokeType = inferred;
+          _recordStaticType(node, inferred.returnType);
+          return true;
         }
-        node.argumentList.correspondingStaticParameters = correspondingParams;
-        _recordStaticType(node.methodName, inferred);
-        _recordStaticType(node, inferred.returnType);
-        return true;
       }
     }
     return false;
@@ -1934,7 +1901,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         inferredType.parameters.isEmpty &&
         node.argumentList.arguments.isEmpty &&
         _typeProvider.nonSubtypableTypes.contains(inferredType.returnType)) {
-      _recordStaticType(node.methodName, inferredType);
+      node.staticInvokeType = inferredType;
       _recordStaticType(node, inferredType.returnType);
       return true;
     }

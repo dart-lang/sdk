@@ -339,15 +339,21 @@ class FieldMember extends VariableMember implements FieldElement {
 }
 
 /**
+ * Deprecated: this type is no longer used. Use
+ * [MethodInvocation.staticInvokeType] to get the instantiated type of a generic
+ * method invocation.
+ *
  * An element of a generic function, where the type parameters are known.
  */
 // TODO(jmesserly): the term "function member" is a bit weird, but it allows
 // a certain consistency.
+@deprecated
 class FunctionMember extends ExecutableMember implements FunctionElement {
   /**
    * Initialize a newly created element to represent a function, based on the
    * [baseElement], with the corresponding function [type].
    */
+  @deprecated
   FunctionMember(FunctionElement baseElement, [DartType type])
       : super(baseElement, null, type);
 
@@ -673,12 +679,6 @@ class ParameterMember extends VariableMember
 
   @override
   SourceRange get visibleRange => baseElement.visibleRange;
-
-  // TODO(jmesserly): this equality is broken. It should consider the defining
-  // type as well, otherwise we're dropping the substitution.
-  @override
-  bool operator ==(Object object) =>
-      object is ParameterMember && baseElement == object.baseElement;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);

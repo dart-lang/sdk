@@ -9149,21 +9149,112 @@ class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.typeArguments);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
-    Element methodElement = node.methodName.staticElement;
-    DartType contextType = null;
-    if (methodElement is PropertyAccessorElement && methodElement.isGetter) {
-      contextType = methodElement.returnType;
-    } else if (methodElement is VariableElement) {
-      contextType = methodElement.type;
-    } else if (methodElement is ExecutableElement) {
-      contextType = methodElement.type;
-    }
+    DartType contextType = node.staticInvokeType;
     if (contextType is FunctionType) {
       InferenceContext.setType(node.argumentList, contextType);
     }
     safelyVisit(node.argumentList);
     node.accept(typeAnalyzer);
     return null;
+  }
+
+  /**
+   * Given an [argumentList] and the [parameters] related to the element that
+   * will be invoked using those arguments, compute the list of parameters that
+   * correspond to the list of arguments.
+   *
+   * An error will be reported to [onError] if any of the arguments cannot be
+   * matched to a parameter. onError can be null to ignore the error.
+   *
+   * The flag [reportAsError] should be `true` if a compile-time error should be
+   * reported; or `false` if a compile-time warning should be reported
+   *
+   * Returns the parameters that correspond to the arguments.
+   */
+  static List<ParameterElement> resolveArgumentsToParameters(
+      ArgumentList argumentList,
+      List<ParameterElement> parameters,
+      void onError(ErrorCode errorCode, AstNode node, [List<Object> arguments]),
+      {bool reportAsError: false}) {
+    List<ParameterElement> requiredParameters = new List<ParameterElement>();
+    List<ParameterElement> positionalParameters = new List<ParameterElement>();
+    HashMap<String, ParameterElement> namedParameters =
+        new HashMap<String, ParameterElement>();
+    for (ParameterElement parameter in parameters) {
+      ParameterKind kind = parameter.parameterKind;
+      if (kind == ParameterKind.REQUIRED) {
+        requiredParameters.add(parameter);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        positionalParameters.add(parameter);
+      } else {
+        namedParameters[parameter.name] = parameter;
+      }
+    }
+    List<ParameterElement> unnamedParameters =
+        new List<ParameterElement>.from(requiredParameters);
+    unnamedParameters.addAll(positionalParameters);
+    int unnamedParameterCount = unnamedParameters.length;
+    int unnamedIndex = 0;
+    NodeList<Expression> arguments = argumentList.arguments;
+    int argumentCount = arguments.length;
+    List<ParameterElement> resolvedParameters =
+        new List<ParameterElement>(argumentCount);
+    int positionalArgumentCount = 0;
+    HashSet<String> usedNames = new HashSet<String>();
+    bool noBlankArguments = true;
+    for (int i = 0; i < argumentCount; i++) {
+      Expression argument = arguments[i];
+      if (argument is NamedExpression) {
+        SimpleIdentifier nameNode = argument.name.label;
+        String name = nameNode.name;
+        ParameterElement element = namedParameters[name];
+        if (element == null) {
+          ErrorCode errorCode = (reportAsError
+              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
+              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
+          if (onError != null) {
+            onError(errorCode, nameNode, [name]);
+          }
+        } else {
+          resolvedParameters[i] = element;
+          nameNode.staticElement = element;
+        }
+        if (!usedNames.add(name)) {
+          if (onError != null) {
+            onError(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode,
+                [name]);
+          }
+        }
+      } else {
+        if (argument is SimpleIdentifier && argument.name.isEmpty) {
+          noBlankArguments = false;
+        }
+        positionalArgumentCount++;
+        if (unnamedIndex < unnamedParameterCount) {
+          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
+        }
+      }
+    }
+    if (positionalArgumentCount < requiredParameters.length &&
+        noBlankArguments) {
+      ErrorCode errorCode = (reportAsError
+          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
+          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
+      if (onError != null) {
+        onError(errorCode, argumentList,
+            [requiredParameters.length, positionalArgumentCount]);
+      }
+    } else if (positionalArgumentCount > unnamedParameterCount &&
+        noBlankArguments) {
+      ErrorCode errorCode = (reportAsError
+          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
+          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
+      if (onError != null) {
+        onError(errorCode, argumentList,
+            [unnamedParameterCount, positionalArgumentCount]);
+      }
+    }
+    return resolvedParameters;
   }
 
   @override
@@ -12556,7 +12647,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (type is InterfaceType) {
       return type.typeArguments;
     } else if (type is FunctionType) {
-      return TypeParameterTypeImpl.getTypes(type.boundTypeParameters);
+      return TypeParameterTypeImpl.getTypes(type.typeFormals);
     }
     return DartType.EMPTY_LIST;
   }
@@ -12596,6 +12687,10 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   DartType _instantiateType(DartType type, List<DartType> typeArguments) {
+    // TODO(jmesserly): this should use TypeSystem.instantiateToBounds,
+    // from calling methods when they know they're just trying to fill in
+    // "dynamic" for the case of missing type arguments.
+
     if (type is InterfaceTypeImpl) {
       return type.substitute4(typeArguments);
     } else if (type is FunctionTypeImpl) {
