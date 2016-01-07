@@ -372,6 +372,8 @@ void InlineExitCollector::PrepareGraphs(FlowGraph* callee_graph) {
       instr->AsGoto()->adjust_edge_weight(scale_factor);
     }
   }
+
+  RemoveUnreachableExits(callee_graph);
 }
 
 
@@ -392,6 +394,25 @@ void InlineExitCollector::Union(const InlineExitCollector* other) {
 
 int InlineExitCollector::LowestBlockIdFirst(const Data* a, const Data* b) {
   return (a->exit_block->block_id() - b->exit_block->block_id());
+}
+
+
+void InlineExitCollector::RemoveUnreachableExits(FlowGraph* callee_graph) {
+  const GrowableArray<BlockEntryInstr*>& postorder = callee_graph->postorder();
+  int j = 0;
+  for (int i = 0; i < exits_.length(); ++i) {
+    BlockEntryInstr* block = exits_[i].exit_return->GetBlock();
+    if ((block != NULL) &&
+        (0 <= block->postorder_number()) &&
+        (block->postorder_number() < postorder.length()) &&
+        (postorder[block->postorder_number()] == block)) {
+      if (i != j) {
+        exits_[j] = exits_[i];
+      }
+      j++;
+    }
+  }
+  exits_.TruncateTo(j);
 }
 
 

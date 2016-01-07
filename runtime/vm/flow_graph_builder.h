@@ -42,6 +42,8 @@ class InlineExitCollector: public ZoneAllocated {
   // Before replacing a call with a graph, the outer environment needs to be
   // attached to each instruction in the callee graph and the caller graph
   // needs to have its block and instruction ID state updated.
+  // Additionally we need to remove all unreachable exits from the list of
+  // collected exits.
   void PrepareGraphs(FlowGraph* callee_graph);
 
   // Inline a graph at a call site.
@@ -78,6 +80,7 @@ class InlineExitCollector: public ZoneAllocated {
 
   static int LowestBlockIdFirst(const Data* a, const Data* b);
   void SortExits();
+  void RemoveUnreachableExits(FlowGraph* callee_graph);
 
   Definition* JoinReturns(BlockEntryInstr** exit_block,
                           Instruction** last_instruction,
