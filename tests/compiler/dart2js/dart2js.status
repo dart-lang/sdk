@@ -47,10 +47,19 @@ backend_dart/opt_constprop_test: Skip
 backend_dart/opt_shrinking_test: Skip
 backend_dart/opt_redundant_phi_test: Skip
 
-# These tests run the compiler multiple times.
-js_backend_cps_ir_basic_test: Pass, Slow
-js_backend_cps_ir_closures_test: Pass, Slow
-js_backend_cps_ir_constructor_test: Pass, Slow
+# These tests are disabled because they have become ineffective.
+js_backend_cps_ir_basic_test: Skip
+js_backend_cps_ir_closures_test: Skip
+js_backend_cps_ir_codeUnitAt_test: Skip
+js_backend_cps_ir_constructor_test: Skip
+js_backend_cps_ir_control_flow_test: Skip
+js_backend_cps_ir_gvn_test: Skip
+js_backend_cps_ir_interceptors_test: Skip
+js_backend_cps_ir_literals_test: Skip
+js_backend_cps_ir_operators2_test: Skip
+js_backend_cps_ir_operators_test: Skip
+js_backend_cps_ir_runtime_types_test: Skip
+js_backend_cps_ir_supercall_test: Skip
 
 # Source information is not correct due to inlining.
 js_backend_cps_ir_source_information_test: Fail
