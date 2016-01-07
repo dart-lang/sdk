@@ -25,11 +25,11 @@ enum Register {
   R12 = 12,
   R13 = 13,
   R14 = 14,
-  R15 = 15,
+  R15 = 15,  // SP in Dart code.
   R16 = 16,  // IP0 aka TMP
   R17 = 17,  // IP1 aka TMP2
   R18 = 18,  // "platform register" on iOS.
-  R19 = 19,  // SP in Dart code.
+  R19 = 19,
   R20 = 20,  // THR
   R21 = 21,
   R22 = 22,
@@ -53,7 +53,7 @@ enum Register {
   // Aliases.
   IP0 = R16,
   IP1 = R17,
-  SP = R19,
+  SP = R15,
   FP = R29,
   LR = R30,
 };
@@ -112,7 +112,7 @@ const Register CTX = R28;  // Location of current context at method entry.
 const Register PP = R27;  // Caches object pool pointer in generated code.
 const Register CODE_REG = R24;
 const Register FPREG = FP;  // Frame pointer register.
-const Register SPREG = R19;  // Stack pointer register.
+const Register SPREG = R15;  // Stack pointer register.
 const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
@@ -143,12 +143,12 @@ const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3) |
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7);
 const RegList kAbiPreservedCpuRegs =
-    (1 << R20) | (1 << R21) | (1 << R22) | (1 << R23) |
-    (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) |
-    (1 << R28);
-const Register kAbiFirstPreservedCpuReg = R20;
+    (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
+    (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) |
+    (1 << R27) | (1 << R28);
+const Register kAbiFirstPreservedCpuReg = R19;
 const Register kAbiLastPreservedCpuReg = R28;
-const int kAbiPreservedCpuRegCount = 9;
+const int kAbiPreservedCpuRegCount = 10;
 const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
@@ -172,8 +172,8 @@ const RegList kDartAvailableCpuRegs =
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
 const Register kDartFirstVolatileCpuReg = R0;
-const Register kDartLastVolatileCpuReg = R15;
-const int kDartVolatileCpuRegCount = 16;
+const Register kDartLastVolatileCpuReg = R14;
+const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
 
 static inline Register ConcreteRegister(Register r) {

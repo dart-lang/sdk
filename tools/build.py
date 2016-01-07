@@ -153,8 +153,10 @@ def GetToolchainPrefix(target_os, arch, options):
   if arch == 'arm':
     # To use a non-hf compiler, specify on the command line with --toolchain.
     return (DEFAULT_ARM_CROSS_COMPILER_PATH + "/arm-linux-gnueabihf")
+  if arch == 'arm64':
+    return (DEFAULT_ARM_CROSS_COMPILER_PATH + "/aarch64-linux-gnu")
 
-  # TODO(zra): Find default MIPS and ARM64 Linux cross-compilers.
+  # TODO(zra): Find default MIPS Linux cross-compiler.
 
   return None
 
