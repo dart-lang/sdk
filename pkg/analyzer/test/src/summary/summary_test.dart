@@ -840,6 +840,7 @@ class E {}
     var classText = 'class C {}';
     UnlinkedClass cls = serializeClassText(classText);
     expect(cls.name, 'C');
+    expect(cls.nameOffset, classText.indexOf('C'));
   }
 
   test_class_no_flags() {
@@ -922,19 +923,23 @@ class E {}
   }
 
   test_class_type_param_no_bound() {
-    UnlinkedClass cls = serializeClassText('class C<T> {}');
+    String text = 'class C<T> {}';
+    UnlinkedClass cls = serializeClassText(text);
     expect(cls.typeParameters, hasLength(1));
     expect(cls.typeParameters[0].name, 'T');
+    expect(cls.typeParameters[0].nameOffset, text.indexOf('T'));
     expect(cls.typeParameters[0].bound, isNull);
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 1);
   }
 
   test_constructor() {
-    UnlinkedExecutable executable = findExecutable('',
-        executables: serializeClassText('class C { C(); }').executables);
+    String text = 'class C { C(); }';
+    UnlinkedExecutable executable =
+        findExecutable('', executables: serializeClassText(text).executables);
     expect(executable.kind, UnlinkedExecutableKind.constructor);
     expect(executable.hasImplicitReturnType, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.nameOffset, text.indexOf('C();'));
   }
 
   test_constructor_anonymous() {
@@ -1114,9 +1119,11 @@ class E {}
   }
 
   test_constructor_named() {
+    String text = 'class C { C.foo(); }';
     UnlinkedExecutable executable = findExecutable('foo',
-        executables: serializeClassText('class C { C.foo(); }').executables);
+        executables: serializeClassText(text).executables);
     expect(executable.name, 'foo');
+    expect(executable.nameOffset, text.indexOf('foo'));
   }
 
   test_constructor_non_const() {
@@ -1248,10 +1255,13 @@ typedef F();
   }
 
   test_enum() {
-    UnlinkedEnum e = serializeEnumText('enum E { v1 }');
+    String text = 'enum E { v1 }';
+    UnlinkedEnum e = serializeEnumText(text);
     expect(e.name, 'E');
+    expect(e.nameOffset, text.indexOf('E'));
     expect(e.values, hasLength(1));
     expect(e.values[0].name, 'v1');
+    expect(e.values[0].nameOffset, text.indexOf('v1'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.classOrEnum);
@@ -1284,11 +1294,13 @@ typedef F();
   }
 
   test_executable_function() {
-    UnlinkedExecutable executable = serializeExecutableText('f() {}');
+    String text = '  f() {}';
+    UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.kind, UnlinkedExecutableKind.functionOrMethod);
     expect(executable.hasImplicitReturnType, isTrue);
     checkDynamicTypeRef(executable.returnType);
     expect(executable.isExternal, isFalse);
+    expect(executable.nameOffset, text.indexOf('f'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.other);
@@ -1314,10 +1326,12 @@ typedef F();
   }
 
   test_executable_getter() {
-    UnlinkedExecutable executable = serializeExecutableText('int get f => 1;');
+    String text = 'int get f => 1;';
+    UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.kind, UnlinkedExecutableKind.getter);
     expect(executable.hasImplicitReturnType, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
     expect(findExecutable('f='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -1583,9 +1597,11 @@ typedef F();
   }
 
   test_executable_param_name() {
-    UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
+    String text = 'f(x) {}';
+    UnlinkedExecutable executable = serializeExecutableText(text);
     expect(executable.parameters, hasLength(1));
     expect(executable.parameters[0].name, 'x');
+    expect(executable.parameters[0].nameOffset, text.indexOf('x'));
   }
 
   test_executable_param_no_flags() {
@@ -1641,11 +1657,12 @@ typedef F();
   }
 
   test_executable_setter() {
-    UnlinkedExecutable executable =
-        serializeExecutableText('void set f(value) {}', 'f=');
+    String text = 'void set f(value) {}';
+    UnlinkedExecutable executable = serializeExecutableText(text, 'f=');
     expect(executable.kind, UnlinkedExecutableKind.setter);
     expect(executable.hasImplicitReturnType, isFalse);
     expect(executable.isExternal, isFalse);
+    expect(executable.nameOffset, text.indexOf('f'));
     expect(findVariable('f'), isNull);
     expect(findExecutable('f'), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
@@ -1765,6 +1782,7 @@ typedef F();
     expect(unlinkedUnits[0].exports[0].uriOffset,
         libraryText.indexOf('"dart:async"'));
     expect(unlinkedUnits[0].exports[0].uriEnd, libraryText.indexOf(';'));
+    expect(unlinkedUnits[0].exports[0].offset, libraryText.indexOf('export'));
   }
 
   test_export_show_order() {
@@ -1925,6 +1943,7 @@ typedef F();
     // Second import is the implicit import of dart:core
     expect(unlinkedUnits[0].imports, hasLength(2));
     checkPrefix(unlinkedUnits[0].imports[0].prefixReference, 'a');
+    expect(unlinkedUnits[0].imports[0].prefixOffset, libraryText.indexOf('a;'));
   }
 
   test_import_prefix_none() {
@@ -2005,15 +2024,27 @@ a.Stream s;
     expect(unlinkedUnits[0].imports[0].uri, 'dart:async');
   }
 
+  test_library_name_with_spaces() {
+    String text = 'library foo . bar ;';
+    serializeLibraryText(text);
+    expect(unlinkedUnits[0].libraryName, 'foo.bar');
+    expect(unlinkedUnits[0].libraryNameOffset, text.indexOf('foo . bar'));
+    expect(unlinkedUnits[0].libraryNameLength, 'foo . bar'.length);
+  }
+
   test_library_named() {
     String text = 'library foo.bar;';
     serializeLibraryText(text);
     expect(unlinkedUnits[0].libraryName, 'foo.bar');
+    expect(unlinkedUnits[0].libraryNameOffset, text.indexOf('foo.bar'));
+    expect(unlinkedUnits[0].libraryNameLength, 'foo.bar'.length);
   }
 
   test_library_unnamed() {
     serializeLibraryText('');
     expect(unlinkedUnits[0].libraryName, isEmpty);
+    expect(unlinkedUnits[0].libraryNameOffset, 0);
+    expect(unlinkedUnits[0].libraryNameLength, 0);
   }
 
   test_part_declaration() {
@@ -2253,8 +2284,10 @@ a.Stream s;
   }
 
   test_typedef_name() {
-    UnlinkedTypedef type = serializeTypedefText('typedef F();');
+    String text = 'typedef F();';
+    UnlinkedTypedef type = serializeTypedefText(text);
     expect(type.name, 'F');
+    expect(type.nameOffset, text.indexOf('F'));
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         PrelinkedReferenceKind.typedef);
@@ -2323,7 +2356,9 @@ a.Stream s;
   }
 
   test_variable() {
-    serializeVariableText('int i;', variableName: 'i');
+    String text = 'int i;';
+    UnlinkedVariable v = serializeVariableText(text, variableName: 'i');
+    expect(v.nameOffset, text.indexOf('i;'));
     expect(findExecutable('i'), isNull);
     expect(findExecutable('i='), isNull);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(2));

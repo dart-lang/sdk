@@ -205,6 +205,8 @@ class _LibrarySerializer {
     if (unitNum == 0) {
       if (libraryElement.name.isNotEmpty) {
         b.libraryName = libraryElement.name;
+        b.libraryNameOffset = libraryElement.nameOffset;
+        b.libraryNameLength = libraryElement.nameLength;
       }
       b.publicNamespace = encodeUnlinkedPublicNamespace(ctx,
           exports: libraryElement.exports.map(serializeExportPublic).toList(),
@@ -307,6 +309,7 @@ class _LibrarySerializer {
   UnlinkedClassBuilder serializeClass(ClassElement classElement) {
     UnlinkedClassBuilder b = new UnlinkedClassBuilder(ctx);
     b.name = classElement.name;
+    b.nameOffset = classElement.nameOffset;
     b.typeParameters =
         classElement.typeParameters.map(serializeTypeParam).toList();
     if (classElement.supertype == null) {
@@ -388,10 +391,12 @@ class _LibrarySerializer {
   UnlinkedEnumBuilder serializeEnum(ClassElement enumElement) {
     UnlinkedEnumBuilder b = new UnlinkedEnumBuilder(ctx);
     b.name = enumElement.name;
+    b.nameOffset = enumElement.nameOffset;
     List<UnlinkedEnumValueBuilder> values = <UnlinkedEnumValueBuilder>[];
     for (FieldElement field in enumElement.fields) {
       if (field.isConst && field.type.element == enumElement) {
-        values.add(encodeUnlinkedEnumValue(ctx, name: field.name));
+        values.add(encodeUnlinkedEnumValue(ctx,
+            name: field.name, nameOffset: field.nameOffset));
       }
     }
     b.values = values;
@@ -405,6 +410,7 @@ class _LibrarySerializer {
       ExecutableElement executableElement) {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder(ctx);
     b.name = executableElement.name;
+    b.nameOffset = executableElement.nameOffset;
     if (executableElement is! ConstructorElement &&
         !executableElement.type.returnType.isVoid) {
       b.returnType = serializeTypeRef(
@@ -441,6 +447,7 @@ class _LibrarySerializer {
   UnlinkedExportNonPublicBuilder serializeExportNonPublic(
       ExportElement exportElement) {
     UnlinkedExportNonPublicBuilder b = new UnlinkedExportNonPublicBuilder(ctx);
+    b.offset = exportElement.nameOffset;
     b.uriOffset = exportElement.uriOffset;
     b.uriEnd = exportElement.uriEnd;
     return b;
@@ -468,6 +475,7 @@ class _LibrarySerializer {
     b.combinators = importElement.combinators.map(serializeCombinator).toList();
     if (importElement.prefix != null) {
       b.prefixReference = serializePrefix(importElement.prefix);
+      b.prefixOffset = importElement.prefix.nameOffset;
     }
     if (importElement.isSynthetic) {
       b.isImplicit = true;
@@ -508,6 +516,7 @@ class _LibrarySerializer {
     context ??= parameter;
     UnlinkedParamBuilder b = new UnlinkedParamBuilder(ctx);
     b.name = parameter.name;
+    b.nameOffset = parameter.nameOffset;
     switch (parameter.parameterKind) {
       case ParameterKind.REQUIRED:
         b.kind = UnlinkedParamKind.required;
@@ -557,6 +566,7 @@ class _LibrarySerializer {
       FunctionTypeAliasElement typedefElement) {
     UnlinkedTypedefBuilder b = new UnlinkedTypedefBuilder(ctx);
     b.name = typedefElement.name;
+    b.nameOffset = typedefElement.nameOffset;
     b.typeParameters =
         typedefElement.typeParameters.map(serializeTypeParam).toList();
     if (!typedefElement.returnType.isVoid) {
@@ -574,6 +584,7 @@ class _LibrarySerializer {
       TypeParameterElement typeParameter) {
     UnlinkedTypeParamBuilder b = new UnlinkedTypeParamBuilder(ctx);
     b.name = typeParameter.name;
+    b.nameOffset = typeParameter.nameOffset;
     if (typeParameter.bound != null) {
       b.bound = serializeTypeRef(typeParameter.bound, typeParameter);
     }
@@ -664,6 +675,7 @@ class _LibrarySerializer {
   UnlinkedVariableBuilder serializeVariable(PropertyInducingElement variable) {
     UnlinkedVariableBuilder b = new UnlinkedVariableBuilder(ctx);
     b.name = variable.name;
+    b.nameOffset = variable.nameOffset;
     b.type = serializeTypeRef(variable.type, variable);
     b.isStatic = variable.isStatic && variable.enclosingElement is ClassElement;
     b.isFinal = variable.isFinal;

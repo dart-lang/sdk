@@ -216,6 +216,12 @@ class UnlinkedClass {
   String name;
 
   /**
+   * Offset of the class name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
+
+  /**
    * Type parameters of the class, if any.
    */
   List<UnlinkedTypeParam> typeParameters;
@@ -290,6 +296,12 @@ class UnlinkedEnum {
   String name;
 
   /**
+   * Offset of the enum name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
+
+  /**
    * Values listed in the enum declaration, in declaration order.
    */
   List<UnlinkedEnumValue> values;
@@ -304,6 +316,12 @@ class UnlinkedEnumValue {
    * Name of the enumerated value.
    */
   String name;
+
+  /**
+   * Offset of the enum value name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
 }
 
 /**
@@ -317,6 +335,15 @@ class UnlinkedExecutable {
    * For unnamed constructors, this is the empty string.
    */
   String name;
+
+  /**
+   * Offset of the executable name relative to the beginning of the file.  For
+   * named constructors, this excludes the class name and excludes the ".".
+   * For unnamed constructors, this is the offset of the class name (i.e. the
+   * offset of the second "C" in "class C { C(); }").
+   */
+  @informative
+  int nameOffset;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -411,6 +438,12 @@ enum UnlinkedExecutableKind {
  */
 class UnlinkedExportNonPublic {
   /**
+   * Offset of the "export" keyword.
+   */
+  @informative
+  int offset;
+
+  /**
    * Offset of the URI string (including quotes) relative to the beginning of
    * the file.
    */
@@ -493,6 +526,13 @@ class UnlinkedImport {
    */
   @informative
   int uriEnd;
+
+  /**
+   * Offset of the prefix name relative to the beginning of the file, or zero
+   * if there is no prefix.
+   */
+  @informative
+  int prefixOffset;
 }
 
 /**
@@ -503,6 +543,12 @@ class UnlinkedParam {
    * Name of the parameter.
    */
   String name;
+
+  /**
+   * Offset of the parameter name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
@@ -666,6 +712,12 @@ class UnlinkedTypedef {
   String name;
 
   /**
+   * Offset of the typedef name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
+
+  /**
    * Type parameters of the typedef, if any.
    */
   List<UnlinkedTypeParam> typeParameters;
@@ -689,6 +741,12 @@ class UnlinkedTypeParam {
    * Name of the type parameter.
    */
   String name;
+
+  /**
+   * Offset of the type parameter name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
@@ -750,6 +808,20 @@ class UnlinkedUnit {
    * Name of the library (from a "library" declaration, if present).
    */
   String libraryName;
+
+  /**
+   * Offset of the library name relative to the beginning of the file (or 0 if
+   * the library has no name).
+   */
+  @informative
+  int libraryNameOffset;
+
+  /**
+   * Length of the library name as it appears in the source code (or 0 if the
+   * library has no name).
+   */
+  @informative
+  int libraryNameLength;
 
   /**
    * Unlinked public namespace of this compilation unit.
@@ -814,6 +886,12 @@ class UnlinkedVariable {
    * Name of the variable.
    */
   String name;
+
+  /**
+   * Offset of the variable name relative to the beginning of the file.
+   */
+  @informative
+  int nameOffset;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the

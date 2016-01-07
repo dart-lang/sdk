@@ -510,6 +510,7 @@ SdkBundleBuilder encodeSdkBundle(base.BuilderContext builderContext, {List<Strin
  */
 class UnlinkedClass extends base.SummaryClass {
   String _name;
+  int _nameOffset;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _supertype;
   List<UnlinkedTypeRef> _mixins;
@@ -522,6 +523,7 @@ class UnlinkedClass extends base.SummaryClass {
 
   UnlinkedClass.fromJson(Map json)
     : _name = json["name"],
+      _nameOffset = json["nameOffset"],
       _typeParameters = json["typeParameters"]?.map((x) => new UnlinkedTypeParam.fromJson(x))?.toList(),
       _supertype = json["supertype"] == null ? null : new UnlinkedTypeRef.fromJson(json["supertype"]),
       _mixins = json["mixins"]?.map((x) => new UnlinkedTypeRef.fromJson(x))?.toList(),
@@ -535,6 +537,7 @@ class UnlinkedClass extends base.SummaryClass {
   @override
   Map<String, Object> toMap() => {
     "name": name,
+    "nameOffset": nameOffset,
     "typeParameters": typeParameters,
     "supertype": supertype,
     "mixins": mixins,
@@ -550,6 +553,11 @@ class UnlinkedClass extends base.SummaryClass {
    * Name of the class.
    */
   String get name => _name ?? '';
+
+  /**
+   * Offset of the class name relative to the beginning of the file.
+   */
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * Type parameters of the class, if any.
@@ -615,6 +623,17 @@ class UnlinkedClassBuilder {
     assert(!_json.containsKey("name"));
     if (_value != null) {
       _json["name"] = _value;
+    }
+  }
+
+  /**
+   * Offset of the class name relative to the beginning of the file.
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("nameOffset"));
+    if (_value != null) {
+      _json["nameOffset"] = _value;
     }
   }
 
@@ -727,9 +746,10 @@ class UnlinkedClassBuilder {
   }
 }
 
-UnlinkedClassBuilder encodeUnlinkedClass(base.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
+UnlinkedClassBuilder encodeUnlinkedClass(base.BuilderContext builderContext, {String name, int nameOffset, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder supertype, List<UnlinkedTypeRefBuilder> mixins, List<UnlinkedTypeRefBuilder> interfaces, List<UnlinkedVariableBuilder> fields, List<UnlinkedExecutableBuilder> executables, bool isAbstract, bool isMixinApplication, bool hasNoSupertype}) {
   UnlinkedClassBuilder builder = new UnlinkedClassBuilder(builderContext);
   builder.name = name;
+  builder.nameOffset = nameOffset;
   builder.typeParameters = typeParameters;
   builder.supertype = supertype;
   builder.mixins = mixins;
@@ -819,15 +839,18 @@ UnlinkedCombinatorBuilder encodeUnlinkedCombinator(base.BuilderContext builderCo
  */
 class UnlinkedEnum extends base.SummaryClass {
   String _name;
+  int _nameOffset;
   List<UnlinkedEnumValue> _values;
 
   UnlinkedEnum.fromJson(Map json)
     : _name = json["name"],
+      _nameOffset = json["nameOffset"],
       _values = json["values"]?.map((x) => new UnlinkedEnumValue.fromJson(x))?.toList();
 
   @override
   Map<String, Object> toMap() => {
     "name": name,
+    "nameOffset": nameOffset,
     "values": values,
   };
 
@@ -835,6 +858,11 @@ class UnlinkedEnum extends base.SummaryClass {
    * Name of the enum type.
    */
   String get name => _name ?? '';
+
+  /**
+   * Offset of the enum name relative to the beginning of the file.
+   */
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * Values listed in the enum declaration, in declaration order.
@@ -861,6 +889,17 @@ class UnlinkedEnumBuilder {
   }
 
   /**
+   * Offset of the enum name relative to the beginning of the file.
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("nameOffset"));
+    if (_value != null) {
+      _json["nameOffset"] = _value;
+    }
+  }
+
+  /**
    * Values listed in the enum declaration, in declaration order.
    */
   void set values(List<UnlinkedEnumValueBuilder> _value) {
@@ -878,9 +917,10 @@ class UnlinkedEnumBuilder {
   }
 }
 
-UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {String name, List<UnlinkedEnumValueBuilder> values}) {
+UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {String name, int nameOffset, List<UnlinkedEnumValueBuilder> values}) {
   UnlinkedEnumBuilder builder = new UnlinkedEnumBuilder(builderContext);
   builder.name = name;
+  builder.nameOffset = nameOffset;
   builder.values = values;
   return builder;
 }
@@ -891,19 +931,27 @@ UnlinkedEnumBuilder encodeUnlinkedEnum(base.BuilderContext builderContext, {Stri
  */
 class UnlinkedEnumValue extends base.SummaryClass {
   String _name;
+  int _nameOffset;
 
   UnlinkedEnumValue.fromJson(Map json)
-    : _name = json["name"];
+    : _name = json["name"],
+      _nameOffset = json["nameOffset"];
 
   @override
   Map<String, Object> toMap() => {
     "name": name,
+    "nameOffset": nameOffset,
   };
 
   /**
    * Name of the enumerated value.
    */
   String get name => _name ?? '';
+
+  /**
+   * Offset of the enum value name relative to the beginning of the file.
+   */
+  int get nameOffset => _nameOffset ?? 0;
 }
 
 class UnlinkedEnumValueBuilder {
@@ -924,6 +972,17 @@ class UnlinkedEnumValueBuilder {
     }
   }
 
+  /**
+   * Offset of the enum value name relative to the beginning of the file.
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("nameOffset"));
+    if (_value != null) {
+      _json["nameOffset"] = _value;
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -931,9 +990,10 @@ class UnlinkedEnumValueBuilder {
   }
 }
 
-UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderContext, {String name}) {
+UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderContext, {String name, int nameOffset}) {
   UnlinkedEnumValueBuilder builder = new UnlinkedEnumValueBuilder(builderContext);
   builder.name = name;
+  builder.nameOffset = nameOffset;
   return builder;
 }
 
@@ -943,6 +1003,7 @@ UnlinkedEnumValueBuilder encodeUnlinkedEnumValue(base.BuilderContext builderCont
  */
 class UnlinkedExecutable extends base.SummaryClass {
   String _name;
+  int _nameOffset;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _returnType;
   List<UnlinkedParam> _parameters;
@@ -956,6 +1017,7 @@ class UnlinkedExecutable extends base.SummaryClass {
 
   UnlinkedExecutable.fromJson(Map json)
     : _name = json["name"],
+      _nameOffset = json["nameOffset"],
       _typeParameters = json["typeParameters"]?.map((x) => new UnlinkedTypeParam.fromJson(x))?.toList(),
       _returnType = json["returnType"] == null ? null : new UnlinkedTypeRef.fromJson(json["returnType"]),
       _parameters = json["parameters"]?.map((x) => new UnlinkedParam.fromJson(x))?.toList(),
@@ -970,6 +1032,7 @@ class UnlinkedExecutable extends base.SummaryClass {
   @override
   Map<String, Object> toMap() => {
     "name": name,
+    "nameOffset": nameOffset,
     "typeParameters": typeParameters,
     "returnType": returnType,
     "parameters": parameters,
@@ -988,6 +1051,14 @@ class UnlinkedExecutable extends base.SummaryClass {
    * For unnamed constructors, this is the empty string.
    */
   String get name => _name ?? '';
+
+  /**
+   * Offset of the executable name relative to the beginning of the file.  For
+   * named constructors, this excludes the class name and excludes the ".".
+   * For unnamed constructors, this is the offset of the class name (i.e. the
+   * offset of the second "C" in "class C { C(); }").
+   */
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * Type parameters of the executable, if any.  Empty if support for generic
@@ -1068,6 +1139,20 @@ class UnlinkedExecutableBuilder {
     assert(!_json.containsKey("name"));
     if (_value != null) {
       _json["name"] = _value;
+    }
+  }
+
+  /**
+   * Offset of the executable name relative to the beginning of the file.  For
+   * named constructors, this excludes the class name and excludes the ".".
+   * For unnamed constructors, this is the offset of the class name (i.e. the
+   * offset of the second "C" in "class C { C(); }").
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("nameOffset"));
+    if (_value != null) {
+      _json["nameOffset"] = _value;
     }
   }
 
@@ -1199,9 +1284,10 @@ class UnlinkedExecutableBuilder {
   }
 }
 
-UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
+UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderContext, {String name, int nameOffset, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters, UnlinkedExecutableKind kind, bool isAbstract, bool isStatic, bool isConst, bool isFactory, bool hasImplicitReturnType, bool isExternal}) {
   UnlinkedExecutableBuilder builder = new UnlinkedExecutableBuilder(builderContext);
   builder.name = name;
+  builder.nameOffset = nameOffset;
   builder.typeParameters = typeParameters;
   builder.returnType = returnType;
   builder.parameters = parameters;
@@ -1220,18 +1306,26 @@ UnlinkedExecutableBuilder encodeUnlinkedExecutable(base.BuilderContext builderCo
  * [UnlinkedPublicNamespace]).
  */
 class UnlinkedExportNonPublic extends base.SummaryClass {
+  int _offset;
   int _uriOffset;
   int _uriEnd;
 
   UnlinkedExportNonPublic.fromJson(Map json)
-    : _uriOffset = json["uriOffset"],
+    : _offset = json["offset"],
+      _uriOffset = json["uriOffset"],
       _uriEnd = json["uriEnd"];
 
   @override
   Map<String, Object> toMap() => {
+    "offset": offset,
     "uriOffset": uriOffset,
     "uriEnd": uriEnd,
   };
+
+  /**
+   * Offset of the "export" keyword.
+   */
+  int get offset => _offset ?? 0;
 
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
@@ -1252,6 +1346,17 @@ class UnlinkedExportNonPublicBuilder {
   bool _finished = false;
 
   UnlinkedExportNonPublicBuilder(base.BuilderContext context);
+
+  /**
+   * Offset of the "export" keyword.
+   */
+  void set offset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("offset"));
+    if (_value != null) {
+      _json["offset"] = _value;
+    }
+  }
 
   /**
    * Offset of the URI string (including quotes) relative to the beginning of
@@ -1284,8 +1389,9 @@ class UnlinkedExportNonPublicBuilder {
   }
 }
 
-UnlinkedExportNonPublicBuilder encodeUnlinkedExportNonPublic(base.BuilderContext builderContext, {int uriOffset, int uriEnd}) {
+UnlinkedExportNonPublicBuilder encodeUnlinkedExportNonPublic(base.BuilderContext builderContext, {int offset, int uriOffset, int uriEnd}) {
   UnlinkedExportNonPublicBuilder builder = new UnlinkedExportNonPublicBuilder(builderContext);
+  builder.offset = offset;
   builder.uriOffset = uriOffset;
   builder.uriEnd = uriEnd;
   return builder;
@@ -1375,6 +1481,7 @@ class UnlinkedImport extends base.SummaryClass {
   bool _isImplicit;
   int _uriOffset;
   int _uriEnd;
+  int _prefixOffset;
 
   UnlinkedImport.fromJson(Map json)
     : _uri = json["uri"],
@@ -1384,7 +1491,8 @@ class UnlinkedImport extends base.SummaryClass {
       _isDeferred = json["isDeferred"],
       _isImplicit = json["isImplicit"],
       _uriOffset = json["uriOffset"],
-      _uriEnd = json["uriEnd"];
+      _uriEnd = json["uriEnd"],
+      _prefixOffset = json["prefixOffset"];
 
   @override
   Map<String, Object> toMap() => {
@@ -1396,6 +1504,7 @@ class UnlinkedImport extends base.SummaryClass {
     "isImplicit": isImplicit,
     "uriOffset": uriOffset,
     "uriEnd": uriEnd,
+    "prefixOffset": prefixOffset,
   };
 
   /**
@@ -1443,6 +1552,12 @@ class UnlinkedImport extends base.SummaryClass {
    * file.  If [isImplicit] is true, zero.
    */
   int get uriEnd => _uriEnd ?? 0;
+
+  /**
+   * Offset of the prefix name relative to the beginning of the file, or zero
+   * if there is no prefix.
+   */
+  int get prefixOffset => _prefixOffset ?? 0;
 }
 
 class UnlinkedImportBuilder {
@@ -1546,6 +1661,18 @@ class UnlinkedImportBuilder {
     }
   }
 
+  /**
+   * Offset of the prefix name relative to the beginning of the file, or zero
+   * if there is no prefix.
+   */
+  void set prefixOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("prefixOffset"));
+    if (_value != null) {
+      _json["prefixOffset"] = _value;
+    }
+  }
+
   Map finish() {
     assert(!_finished);
     _finished = true;
@@ -1553,7 +1680,7 @@ class UnlinkedImportBuilder {
   }
 }
 
-UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int uriOffset, int uriEnd}) {
+UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {String uri, int offset, int prefixReference, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int uriOffset, int uriEnd, int prefixOffset}) {
   UnlinkedImportBuilder builder = new UnlinkedImportBuilder(builderContext);
   builder.uri = uri;
   builder.offset = offset;
@@ -1563,6 +1690,7 @@ UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {
   builder.isImplicit = isImplicit;
   builder.uriOffset = uriOffset;
   builder.uriEnd = uriEnd;
+  builder.prefixOffset = prefixOffset;
   return builder;
 }
 
@@ -1571,6 +1699,7 @@ UnlinkedImportBuilder encodeUnlinkedImport(base.BuilderContext builderContext, {
  */
 class UnlinkedParam extends base.SummaryClass {
   String _name;
+  int _nameOffset;
   UnlinkedTypeRef _type;
   List<UnlinkedParam> _parameters;
   UnlinkedParamKind _kind;
@@ -1580,6 +1709,7 @@ class UnlinkedParam extends base.SummaryClass {
 
   UnlinkedParam.fromJson(Map json)
     : _name = json["name"],
+      _nameOffset = json["nameOffset"],
       _type = json["type"] == null ? null : new UnlinkedTypeRef.fromJson(json["type"]),
       _parameters = json["parameters"]?.map((x) => new UnlinkedParam.fromJson(x))?.toList(),
       _kind = json["kind"] == null ? null : UnlinkedParamKind.values[json["kind"]],
@@ -1590,6 +1720,7 @@ class UnlinkedParam extends base.SummaryClass {
   @override
   Map<String, Object> toMap() => {
     "name": name,
+    "nameOffset": nameOffset,
     "type": type,
     "parameters": parameters,
     "kind": kind,
@@ -1602,6 +1733,11 @@ class UnlinkedParam extends base.SummaryClass {
    * Name of the parameter.
    */
   String get name => _name ?? '';
+
+  /**
+   * Offset of the parameter name relative to the beginning of the file.
+   */
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * If [isFunctionTyped] is `true`, the declared return type.  If
@@ -1655,6 +1791,17 @@ class UnlinkedParamBuilder {
     assert(!_json.containsKey("name"));
     if (_value != null) {
       _json["name"] = _value;
+    }
+  }
+
+  /**
+   * Offset of the parameter name relative to the beginning of the file.
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("nameOffset"));
+    if (_value != null) {
+      _json["nameOffset"] = _value;
     }
   }
 
@@ -1737,9 +1884,10 @@ class UnlinkedParamBuilder {
   }
 }
 
-UnlinkedParamBuilder encodeUnlinkedParam(base.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType}) {
+UnlinkedParamBuilder encodeUnlinkedParam(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedTypeRefBuilder type, List<UnlinkedParamBuilder> parameters, UnlinkedParamKind kind, bool isFunctionTyped, bool isInitializingFormal, bool hasImplicitType}) {
   UnlinkedParamBuilder builder = new UnlinkedParamBuilder(builderContext);
   builder.name = name;
+  builder.nameOffset = nameOffset;
   builder.type = type;
   builder.parameters = parameters;
   builder.kind = kind;
@@ -2112,12 +2260,14 @@ UnlinkedReferenceBuilder encodeUnlinkedReference(base.BuilderContext builderCont
  */
 class UnlinkedTypedef extends base.SummaryClass {
   String _name;
+  int _nameOffset;
   List<UnlinkedTypeParam> _typeParameters;
   UnlinkedTypeRef _returnType;
   List<UnlinkedParam> _parameters;
 
   UnlinkedTypedef.fromJson(Map json)
     : _name = json["name"],
+      _nameOffset = json["nameOffset"],
       _typeParameters = json["typeParameters"]?.map((x) => new UnlinkedTypeParam.fromJson(x))?.toList(),
       _returnType = json["returnType"] == null ? null : new UnlinkedTypeRef.fromJson(json["returnType"]),
       _parameters = json["parameters"]?.map((x) => new UnlinkedParam.fromJson(x))?.toList();
@@ -2125,6 +2275,7 @@ class UnlinkedTypedef extends base.SummaryClass {
   @override
   Map<String, Object> toMap() => {
     "name": name,
+    "nameOffset": nameOffset,
     "typeParameters": typeParameters,
     "returnType": returnType,
     "parameters": parameters,
@@ -2134,6 +2285,11 @@ class UnlinkedTypedef extends base.SummaryClass {
    * Name of the typedef.
    */
   String get name => _name ?? '';
+
+  /**
+   * Offset of the typedef name relative to the beginning of the file.
+   */
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * Type parameters of the typedef, if any.
@@ -2166,6 +2322,17 @@ class UnlinkedTypedefBuilder {
     assert(!_json.containsKey("name"));
     if (_value != null) {
       _json["name"] = _value;
+    }
+  }
+
+  /**
+   * Offset of the typedef name relative to the beginning of the file.
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("nameOffset"));
+    if (_value != null) {
+      _json["nameOffset"] = _value;
     }
   }
 
@@ -2209,9 +2376,10 @@ class UnlinkedTypedefBuilder {
   }
 }
 
-UnlinkedTypedefBuilder encodeUnlinkedTypedef(base.BuilderContext builderContext, {String name, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
+UnlinkedTypedefBuilder encodeUnlinkedTypedef(base.BuilderContext builderContext, {String name, int nameOffset, List<UnlinkedTypeParamBuilder> typeParameters, UnlinkedTypeRefBuilder returnType, List<UnlinkedParamBuilder> parameters}) {
   UnlinkedTypedefBuilder builder = new UnlinkedTypedefBuilder(builderContext);
   builder.name = name;
+  builder.nameOffset = nameOffset;
   builder.typeParameters = typeParameters;
   builder.returnType = returnType;
   builder.parameters = parameters;
@@ -2223,15 +2391,18 @@ UnlinkedTypedefBuilder encodeUnlinkedTypedef(base.BuilderContext builderContext,
  */
 class UnlinkedTypeParam extends base.SummaryClass {
   String _name;
+  int _nameOffset;
   UnlinkedTypeRef _bound;
 
   UnlinkedTypeParam.fromJson(Map json)
     : _name = json["name"],
+      _nameOffset = json["nameOffset"],
       _bound = json["bound"] == null ? null : new UnlinkedTypeRef.fromJson(json["bound"]);
 
   @override
   Map<String, Object> toMap() => {
     "name": name,
+    "nameOffset": nameOffset,
     "bound": bound,
   };
 
@@ -2239,6 +2410,11 @@ class UnlinkedTypeParam extends base.SummaryClass {
    * Name of the type parameter.
    */
   String get name => _name ?? '';
+
+  /**
+   * Offset of the type parameter name relative to the beginning of the file.
+   */
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
@@ -2266,6 +2442,17 @@ class UnlinkedTypeParamBuilder {
   }
 
   /**
+   * Offset of the type parameter name relative to the beginning of the file.
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("nameOffset"));
+    if (_value != null) {
+      _json["nameOffset"] = _value;
+    }
+  }
+
+  /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
    * null.
    */
@@ -2284,9 +2471,10 @@ class UnlinkedTypeParamBuilder {
   }
 }
 
-UnlinkedTypeParamBuilder encodeUnlinkedTypeParam(base.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder bound}) {
+UnlinkedTypeParamBuilder encodeUnlinkedTypeParam(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedTypeRefBuilder bound}) {
   UnlinkedTypeParamBuilder builder = new UnlinkedTypeParamBuilder(builderContext);
   builder.name = name;
+  builder.nameOffset = nameOffset;
   builder.bound = bound;
   return builder;
 }
@@ -2435,6 +2623,8 @@ UnlinkedTypeRefBuilder encodeUnlinkedTypeRef(base.BuilderContext builderContext,
  */
 class UnlinkedUnit extends base.SummaryClass {
   String _libraryName;
+  int _libraryNameOffset;
+  int _libraryNameLength;
   UnlinkedPublicNamespace _publicNamespace;
   List<UnlinkedReference> _references;
   List<UnlinkedClass> _classes;
@@ -2448,6 +2638,8 @@ class UnlinkedUnit extends base.SummaryClass {
 
   UnlinkedUnit.fromJson(Map json)
     : _libraryName = json["libraryName"],
+      _libraryNameOffset = json["libraryNameOffset"],
+      _libraryNameLength = json["libraryNameLength"],
       _publicNamespace = json["publicNamespace"] == null ? null : new UnlinkedPublicNamespace.fromJson(json["publicNamespace"]),
       _references = json["references"]?.map((x) => new UnlinkedReference.fromJson(x))?.toList(),
       _classes = json["classes"]?.map((x) => new UnlinkedClass.fromJson(x))?.toList(),
@@ -2462,6 +2654,8 @@ class UnlinkedUnit extends base.SummaryClass {
   @override
   Map<String, Object> toMap() => {
     "libraryName": libraryName,
+    "libraryNameOffset": libraryNameOffset,
+    "libraryNameLength": libraryNameLength,
     "publicNamespace": publicNamespace,
     "references": references,
     "classes": classes,
@@ -2480,6 +2674,18 @@ class UnlinkedUnit extends base.SummaryClass {
    * Name of the library (from a "library" declaration, if present).
    */
   String get libraryName => _libraryName ?? '';
+
+  /**
+   * Offset of the library name relative to the beginning of the file (or 0 if
+   * the library has no name).
+   */
+  int get libraryNameOffset => _libraryNameOffset ?? 0;
+
+  /**
+   * Length of the library name as it appears in the source code (or 0 if the
+   * library has no name).
+   */
+  int get libraryNameLength => _libraryNameLength ?? 0;
 
   /**
    * Unlinked public namespace of this compilation unit.
@@ -2550,6 +2756,30 @@ class UnlinkedUnitBuilder {
     assert(!_json.containsKey("libraryName"));
     if (_value != null) {
       _json["libraryName"] = _value;
+    }
+  }
+
+  /**
+   * Offset of the library name relative to the beginning of the file (or 0 if
+   * the library has no name).
+   */
+  void set libraryNameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("libraryNameOffset"));
+    if (_value != null) {
+      _json["libraryNameOffset"] = _value;
+    }
+  }
+
+  /**
+   * Length of the library name as it appears in the source code (or 0 if the
+   * library has no name).
+   */
+  void set libraryNameLength(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("libraryNameLength"));
+    if (_value != null) {
+      _json["libraryNameLength"] = _value;
     }
   }
 
@@ -2675,9 +2905,11 @@ class UnlinkedUnitBuilder {
   }
 }
 
-UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {String libraryName, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
+UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {String libraryName, int libraryNameOffset, int libraryNameLength, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedPartBuilder> parts, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables}) {
   UnlinkedUnitBuilder builder = new UnlinkedUnitBuilder(builderContext);
   builder.libraryName = libraryName;
+  builder.libraryNameOffset = libraryNameOffset;
+  builder.libraryNameLength = libraryNameLength;
   builder.publicNamespace = publicNamespace;
   builder.references = references;
   builder.classes = classes;
@@ -2697,6 +2929,7 @@ UnlinkedUnitBuilder encodeUnlinkedUnit(base.BuilderContext builderContext, {Stri
  */
 class UnlinkedVariable extends base.SummaryClass {
   String _name;
+  int _nameOffset;
   UnlinkedTypeRef _type;
   bool _isStatic;
   bool _isFinal;
@@ -2705,6 +2938,7 @@ class UnlinkedVariable extends base.SummaryClass {
 
   UnlinkedVariable.fromJson(Map json)
     : _name = json["name"],
+      _nameOffset = json["nameOffset"],
       _type = json["type"] == null ? null : new UnlinkedTypeRef.fromJson(json["type"]),
       _isStatic = json["isStatic"],
       _isFinal = json["isFinal"],
@@ -2714,6 +2948,7 @@ class UnlinkedVariable extends base.SummaryClass {
   @override
   Map<String, Object> toMap() => {
     "name": name,
+    "nameOffset": nameOffset,
     "type": type,
     "isStatic": isStatic,
     "isFinal": isFinal,
@@ -2725,6 +2960,11 @@ class UnlinkedVariable extends base.SummaryClass {
    * Name of the variable.
    */
   String get name => _name ?? '';
+
+  /**
+   * Offset of the variable name relative to the beginning of the file.
+   */
+  int get nameOffset => _nameOffset ?? 0;
 
   /**
    * Declared type of the variable.  Note that when strong mode is enabled, the
@@ -2772,6 +3012,17 @@ class UnlinkedVariableBuilder {
     assert(!_json.containsKey("name"));
     if (_value != null) {
       _json["name"] = _value;
+    }
+  }
+
+  /**
+   * Offset of the variable name relative to the beginning of the file.
+   */
+  void set nameOffset(int _value) {
+    assert(!_finished);
+    assert(!_json.containsKey("nameOffset"));
+    if (_value != null) {
+      _json["nameOffset"] = _value;
     }
   }
 
@@ -2842,9 +3093,10 @@ class UnlinkedVariableBuilder {
   }
 }
 
-UnlinkedVariableBuilder encodeUnlinkedVariable(base.BuilderContext builderContext, {String name, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
+UnlinkedVariableBuilder encodeUnlinkedVariable(base.BuilderContext builderContext, {String name, int nameOffset, UnlinkedTypeRefBuilder type, bool isStatic, bool isFinal, bool isConst, bool hasImplicitType}) {
   UnlinkedVariableBuilder builder = new UnlinkedVariableBuilder(builderContext);
   builder.name = name;
+  builder.nameOffset = nameOffset;
   builder.type = type;
   builder.isStatic = isStatic;
   builder.isFinal = isFinal;

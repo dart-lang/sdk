@@ -61,8 +61,9 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.exports.length, original.exports.length);
     for (int i = 0; i < resynthesized.exports.length; i++) {
       compareExportElements(resynthesized.exports[i], original.exports[i],
-          'export ${original.exports[i].name}');
+          'export ${original.exports[i].uri}');
     }
+    expect(resynthesized.nameLength, original.nameLength);
     // TODO(paulberry): test entryPoint, exportNamespace, publicNamespace,
     // and metadata.
   }
@@ -189,6 +190,7 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.kind, original.kind);
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
+    expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
     for (Modifier modifier in Modifier.values) {
       if (modifier == Modifier.MIXIN) {
         // Skipping for now.  TODO(paulberry): fix.
@@ -898,6 +900,10 @@ class E {
 
   test_library() {
     checkLibrary('');
+  }
+
+  test_library_name_with_spaces() {
+    checkLibrary('library foo . bar ;');
   }
 
   test_library_named() {

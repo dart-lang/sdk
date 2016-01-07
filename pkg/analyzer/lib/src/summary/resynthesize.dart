@@ -233,8 +233,8 @@ class _LibraryResynthesizer {
         finishTypeParameter(
             serializedClass.typeParameters[i], currentTypeParameters[i]);
       }
-      ClassElementImpl classElement =
-          new ClassElementImpl(serializedClass.name, -1);
+      ClassElementImpl classElement = new ClassElementImpl(
+          serializedClass.name, serializedClass.nameOffset);
       classElement.mixinApplication = serializedClass.isMixinApplication;
       InterfaceTypeImpl correspondingType = new InterfaceTypeImpl(classElement);
       if (serializedClass.supertype != null) {
@@ -321,8 +321,8 @@ class _LibraryResynthesizer {
   void buildConstructor(UnlinkedExecutable serializedExecutable,
       ElementHolder holder, InterfaceType classType) {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
-    ConstructorElementImpl constructorElement =
-        new ConstructorElementImpl(serializedExecutable.name, -1);
+    ConstructorElementImpl constructorElement = new ConstructorElementImpl(
+        serializedExecutable.name, serializedExecutable.nameOffset);
     constructorElement.returnType = classType;
     buildExecutableCommonParts(constructorElement, serializedExecutable);
     constructorElement.factory = serializedExecutable.isFactory;
@@ -338,7 +338,7 @@ class _LibraryResynthesizer {
     assert(!isCoreLibrary);
     // TODO(paulberry): add offset support (for this element type and others)
     ClassElementImpl classElement =
-        new ClassElementImpl(serializedEnum.name, -1);
+        new ClassElementImpl(serializedEnum.name, serializedEnum.nameOffset);
     classElement.enum2 = true;
     InterfaceType enumType = new InterfaceTypeImpl(classElement);
     classElement.type = enumType;
@@ -359,8 +359,8 @@ class _LibraryResynthesizer {
     memberHolder.addField(valuesField);
     buildImplicitAccessors(valuesField, memberHolder);
     for (UnlinkedEnumValue serializedEnumValue in serializedEnum.values) {
-      ConstFieldElementImpl valueField =
-          new ConstFieldElementImpl(serializedEnumValue.name, -1);
+      ConstFieldElementImpl valueField = new ConstFieldElementImpl(
+          serializedEnumValue.name, serializedEnumValue.nameOffset);
       valueField.const3 = true;
       valueField.static = true;
       valueField.type = enumType;
@@ -392,11 +392,12 @@ class _LibraryResynthesizer {
       case UnlinkedExecutableKind.functionOrMethod:
         if (isTopLevel) {
           FunctionElementImpl executableElement =
-              new FunctionElementImpl(name, -1);
+              new FunctionElementImpl(name, serializedExecutable.nameOffset);
           buildExecutableCommonParts(executableElement, serializedExecutable);
           holder.addFunction(executableElement);
         } else {
-          MethodElementImpl executableElement = new MethodElementImpl(name, -1);
+          MethodElementImpl executableElement =
+              new MethodElementImpl(name, serializedExecutable.nameOffset);
           buildExecutableCommonParts(executableElement, serializedExecutable);
           executableElement.static = serializedExecutable.isStatic;
           holder.addMethod(executableElement);
@@ -405,7 +406,8 @@ class _LibraryResynthesizer {
       case UnlinkedExecutableKind.getter:
       case UnlinkedExecutableKind.setter:
         PropertyAccessorElementImpl executableElement =
-            new PropertyAccessorElementImpl(name, -1);
+            new PropertyAccessorElementImpl(
+                name, serializedExecutable.nameOffset);
         if (isTopLevel) {
           executableElement.static = true;
         } else {
@@ -486,7 +488,8 @@ class _LibraryResynthesizer {
    */
   ExportElement buildExport(UnlinkedExportPublic serializedExportPublic,
       UnlinkedExportNonPublic serializedExportNonPublic) {
-    ExportElementImpl exportElement = new ExportElementImpl(0);
+    ExportElementImpl exportElement =
+        new ExportElementImpl(serializedExportNonPublic.offset);
     String exportedLibraryUri = summaryResynthesizer.sourceFactory
         .resolveUri(librarySource, serializedExportPublic.uri)
         .uri
@@ -522,7 +525,7 @@ class _LibraryResynthesizer {
     String name = element.name;
     DartType type = element.type;
     PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl(name, -1);
+        new PropertyAccessorElementImpl(name, element.nameOffset);
     getter.getter = true;
     getter.static = element.isStatic;
     getter.synthetic = true;
@@ -534,12 +537,12 @@ class _LibraryResynthesizer {
     element.getter = getter;
     if (!(element.isConst || element.isFinal)) {
       PropertyAccessorElementImpl setter =
-          new PropertyAccessorElementImpl(name, -1);
+          new PropertyAccessorElementImpl(name, element.nameOffset);
       setter.setter = true;
       setter.static = element.isStatic;
       setter.synthetic = true;
       setter.parameters = <ParameterElement>[
-        new ParameterElementImpl('_$name', -1)
+        new ParameterElementImpl('_$name', element.nameOffset)
           ..synthetic = true
           ..type = type
           ..parameterKind = ParameterKind.REQUIRED
@@ -621,7 +624,8 @@ class _LibraryResynthesizer {
     if (serializedImport.prefixReference != 0) {
       UnlinkedReference serializedPrefix =
           unlinkedUnits[0].references[serializedImport.prefixReference];
-      importElement.prefix = new PrefixElementImpl(serializedPrefix.name, -1);
+      importElement.prefix = new PrefixElementImpl(
+          serializedPrefix.name, serializedImport.prefixOffset);
     }
     importElement.combinators =
         serializedImport.combinators.map(buildCombinator).toList();
@@ -632,9 +636,12 @@ class _LibraryResynthesizer {
    * Main entry point.  Resynthesize the [LibraryElement] and return it.
    */
   LibraryElement buildLibrary() {
-    // TODO(paulberry): is it ok to pass -1 for offset and nameLength?
+    bool hasName = unlinkedUnits[0].libraryName.isNotEmpty;
     LibraryElementImpl libraryElement = new LibraryElementImpl(
-        summaryResynthesizer.context, unlinkedUnits[0].libraryName, -1, -1);
+        summaryResynthesizer.context,
+        unlinkedUnits[0].libraryName,
+        hasName ? unlinkedUnits[0].libraryNameOffset : -1,
+        unlinkedUnits[0].libraryNameLength);
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl(librarySource.shortName);
     libraryElement.definingCompilationUnit = definingCompilationUnit;
@@ -684,8 +691,8 @@ class _LibraryResynthesizer {
    * Resynthesize a [ParameterElement].
    */
   ParameterElement buildParameter(UnlinkedParam serializedParameter) {
-    ParameterElementImpl parameterElement =
-        new ParameterElementImpl(serializedParameter.name, -1);
+    ParameterElementImpl parameterElement = new ParameterElementImpl(
+        serializedParameter.name, serializedParameter.nameOffset);
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
           new FunctionElementImpl('', -1);
@@ -843,7 +850,8 @@ class _LibraryResynthesizer {
             serializedTypedef.typeParameters[i], currentTypeParameters[i]);
       }
       FunctionTypeAliasElementImpl functionTypeAliasElement =
-          new FunctionTypeAliasElementImpl(serializedTypedef.name, -1);
+          new FunctionTypeAliasElementImpl(
+              serializedTypedef.name, serializedTypedef.nameOffset);
       functionTypeAliasElement.parameters =
           serializedTypedef.parameters.map(buildParameter).toList();
       if (serializedTypedef.returnType != null) {
@@ -872,7 +880,8 @@ class _LibraryResynthesizer {
   TypeParameterElement buildTypeParameter(
       UnlinkedTypeParam serializedTypeParameter) {
     TypeParameterElementImpl typeParameterElement =
-        new TypeParameterElementImpl(serializedTypeParameter.name, -1);
+        new TypeParameterElementImpl(
+            serializedTypeParameter.name, serializedTypeParameter.nameOffset);
     typeParameterElement.type = new TypeParameterTypeImpl(typeParameterElement);
     return typeParameterElement;
   }
@@ -883,14 +892,14 @@ class _LibraryResynthesizer {
   void buildVariable(UnlinkedVariable serializedVariable,
       [ElementHolder holder]) {
     if (holder == null) {
-      TopLevelVariableElementImpl element =
-          new TopLevelVariableElementImpl(serializedVariable.name, -1);
+      TopLevelVariableElementImpl element = new TopLevelVariableElementImpl(
+          serializedVariable.name, serializedVariable.nameOffset);
       buildVariableCommonParts(element, serializedVariable);
       unitHolder.addTopLevelVariable(element);
       buildImplicitAccessors(element, unitHolder);
     } else {
-      FieldElementImpl element =
-          new FieldElementImpl(serializedVariable.name, -1);
+      FieldElementImpl element = new FieldElementImpl(
+          serializedVariable.name, serializedVariable.nameOffset);
       buildVariableCommonParts(element, serializedVariable);
       element.static = serializedVariable.isStatic;
       holder.addField(element);
