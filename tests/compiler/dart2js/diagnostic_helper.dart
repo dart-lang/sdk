@@ -27,7 +27,10 @@ class CollectedMessage {
 
   MessageKind get messageKind => message.kind;
 
-  String toString() => '${message.kind}:$uri:$begin:$end:$text:$kind';
+  String toString() {
+    return '${message != null ? message.kind : ''}'
+           ':$uri:$begin:$end:$text:$kind';
+  }
 }
 
 class DiagnosticCollector implements CompilerDiagnostics {
@@ -77,6 +80,48 @@ class DiagnosticCollector implements CompilerDiagnostics {
   void clear() {
     messages.clear();
   }
+
+  void checkMessages(List<Expected> expectedMessages) {
+    int index = 0;
+    Iterable<CollectedMessage> messages =
+        filterMessagesByKinds(
+            [Diagnostic.ERROR,
+             Diagnostic.WARNING,
+             Diagnostic.HINT,
+             Diagnostic.INFO]);
+    for (CollectedMessage message in messages) {
+      if (index >= expectedMessages.length) {
+        Expect.fail("Unexpected messages:\n "
+                    "${messages.skip(index).join('\n ')}");
+      } else {
+        Expected expected = expectedMessages[index];
+        Expect.equals(expected.messageKind, message.messageKind,
+            "Unexpected message kind in:\n ${messages.join('\n ')}");
+        Expect.equals(expected.diagnosticKind, message.kind,
+            "Unexpected diagnostic kind in\n ${messages.join('\n ')}");
+        index++;
+      }
+    }
+  }
+}
+
+class Expected {
+  final MessageKind messageKind;
+  final Diagnostic diagnosticKind;
+
+  const Expected(this.messageKind, this.diagnosticKind);
+
+  const Expected.error(MessageKind messageKind)
+      : this(messageKind, Diagnostic.ERROR);
+
+  const Expected.warning(MessageKind messageKind)
+      : this(messageKind, Diagnostic.WARNING);
+
+  const Expected.hint(MessageKind messageKind)
+      : this(messageKind, Diagnostic.HINT);
+
+  const Expected.info(MessageKind messageKind)
+      : this(messageKind, Diagnostic.INFO);
 }
 
 

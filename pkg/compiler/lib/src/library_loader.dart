@@ -649,16 +649,24 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
             libraryCanonicalUriMap.remove(resolvedUri);
             return null;
           }
-          DiagnosticMessage error = reporter.withCurrentElement(
-              compilationUnit,
-              () => reporter.createMessage(
-                  compilationUnit.partTag, MessageKind.IMPORT_PART_OF));
-          DiagnosticMessage info = reporter.withCurrentElement(
-              importingLibrary,
-              () => reporter.createMessage(
-                  node,
-                  MessageKind.IMPORT_PART_OF_HERE));
-          reporter.reportError(error, <DiagnosticMessage>[info]);
+          if (importingLibrary == null) {
+            DiagnosticMessage error = reporter.withCurrentElement(
+                compilationUnit,
+                () => reporter.createMessage(
+                    compilationUnit.partTag, MessageKind.MAIN_HAS_PART_OF));
+            reporter.reportError(error);
+          } else {
+            DiagnosticMessage error = reporter.withCurrentElement(
+                compilationUnit,
+                () => reporter.createMessage(
+                    compilationUnit.partTag, MessageKind.IMPORT_PART_OF));
+            DiagnosticMessage info = reporter.withCurrentElement(
+                importingLibrary,
+                () => reporter.createMessage(
+                    node,
+                    MessageKind.IMPORT_PART_OF_HERE));
+            reporter.reportError(error, [info]);
+          }
         }
         return processLibraryTags(handler, element).then((_) {
           reporter.withCurrentElement(element, () {
