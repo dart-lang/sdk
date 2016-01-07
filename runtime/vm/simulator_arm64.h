@@ -102,6 +102,9 @@ class Simulator {
   static uword CompareExchange(uword* address,
                                uword compare_value,
                                uword new_value);
+  static uint32_t CompareExchangeUint32(uint32_t* address,
+                                        uint32_t compare_value,
+                                        uint32_t new_value);
 
   // Runtime and native call support.
   enum CallKind {

@@ -32,6 +32,13 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword new_value) {
   return __sync_val_compare_and_swap(ptr, old_value, new_value);
 }
+
+
+inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
+                                                       uint32_t old_value,
+                                                       uint32_t new_value) {
+  return __sync_val_compare_and_swap(ptr, old_value, new_value);
+}
 #endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart
