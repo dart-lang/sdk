@@ -303,7 +303,7 @@ type_variable_field_initializer_test: RuntimeError # Please triage this failure.
 type_variable_nested_test: RuntimeError # Please triage this failure.
 
 [ $compiler == dart2js && $cps_ir && $host_checked == false ]
-regress_21795_test: RuntimeError # Due to inlining?
+regress_21795_test: Pass, RuntimeError # Due to inlining?
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 async_throw_in_catch_test/forceAwait: Crash # Issue 24485
