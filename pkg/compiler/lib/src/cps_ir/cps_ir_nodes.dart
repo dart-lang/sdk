@@ -634,7 +634,7 @@ class InvokeMethodDirectly extends InvocationPrimitive {
   final List<Reference<Primitive>> arguments;
   final SourceInformation sourceInformation;
 
-  CallingConvention callingConvention = CallingConvention.Normal;
+  CallingConvention callingConvention;
 
   Reference<Primitive> get dartReceiverReference {
     return callingConvention == CallingConvention.Intercepted
@@ -656,7 +656,8 @@ class InvokeMethodDirectly extends InvocationPrimitive {
                        this.target,
                        this.selector,
                        List<Primitive> arguments,
-                       this.sourceInformation)
+                       this.sourceInformation,
+                       {this.callingConvention: CallingConvention.Normal})
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments);
 
@@ -2537,7 +2538,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
     return new InvokeMethodDirectly(getCopy(node.receiver), node.target,
         node.selector,
         getList(node.arguments),
-        node.sourceInformation);
+        node.sourceInformation,
+        callingConvention: node.callingConvention);
   }
 
   Definition visitInvokeConstructor(InvokeConstructor node) {
