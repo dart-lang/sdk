@@ -380,9 +380,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     // Negative inlining result in the cache.
     if (cachedResult == InliningCache.NO_INLINE) return null;
 
-    // Positive inlining result in the cache.
-    if (cachedResult is FunctionDefinition) {
-      FunctionDefinition function = cachedResult;
+    Primitive finish(FunctionDefinition function) {
       _fragment = new CpsFragment(invoke.sourceInformation);
       Primitive receiver = invoke.receiver?.definition;
       List<Primitive> arguments =
@@ -400,6 +398,11 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       }
       return _fragment.inlineFunction(function, receiver, arguments,
           hint: invoke.hint);
+    }
+
+    // Positive inlining result in the cache.
+    if (cachedResult is FunctionDefinition) {
+      return finish(cachedResult);
     }
 
     // We have not seen this combination of target and abstract arguments
@@ -445,23 +448,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
 
     _inliner.cache.putPositive(target, callStructure, abstractReceiver,
         abstractArguments, function);
-    _fragment = new CpsFragment(invoke.sourceInformation);
-    Primitive receiver = invoke.receiver?.definition;
-    List<Primitive> arguments =
-        invoke.arguments.map((Reference ref) => ref.definition).toList();
-    if (dartReceiver != null && abstractReceiver.isNullable) {
-      Primitive check =
-          _fragment.letPrim(new NullCheck(dartReceiver.definition,
-              invoke.sourceInformation));
-      check.type = abstractReceiver.nonNullable();
-      if (invoke.callingConvention == CallingConvention.Intercepted) {
-        arguments[0] = check;
-      } else {
-        receiver = check;
-      }
-    }
-    return _fragment.inlineFunction(function, receiver, arguments,
-        hint: invoke.hint);
+    return finish(function);
   }
 
   Primitive nullReceiverGuard(InvocationPrimitive invoke,
