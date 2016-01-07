@@ -7,6 +7,7 @@ library test.src.serialization.test_all;
 import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
+import 'flat_buffers_test.dart' as flat_buffers_test;
 import 'resynthesize_test.dart' as resynthesize_test;
 import 'summary_sdk_test.dart' as summary_sdk_test;
 import 'summary_test.dart' as summary_test;
@@ -15,6 +16,7 @@ import 'summary_test.dart' as summary_test;
 main() {
   initializeTestEnvironment();
   group('summary tests', () {
+    flat_buffers_test.main();
     resynthesize_test.main();
     summary_sdk_test.main();
     summary_test.main();
