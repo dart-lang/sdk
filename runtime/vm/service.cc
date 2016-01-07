@@ -2332,6 +2332,7 @@ static const MethodParameter* get_source_report_params[] = {
   new IdParameter("scriptId", false),
   new UIntParameter("tokenPos", false),
   new UIntParameter("endTokenPos", false),
+  new BoolParameter("forceCompile", false),
   NULL,
 };
 
@@ -2347,6 +2348,11 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
       report_set |= SourceReport::kCoverage;
     }
     reports++;
+  }
+
+  SourceReport::CompileMode compile_mode = SourceReport::kNoCompile;
+  if (BoolParameter::Parse(js->LookupParam("forceCompile"), false)) {
+    compile_mode = SourceReport::kForceCompile;
   }
 
   Script& script = Script::Handle();
@@ -2379,7 +2385,7 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
       return true;
     }
   }
-  SourceReport report(report_set);
+  SourceReport report(report_set, compile_mode);
   report.PrintJSON(js, script, start_pos, end_pos);
   return true;
 }

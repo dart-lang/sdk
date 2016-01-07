@@ -244,6 +244,15 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
   ASSERT(!code.IsNull());
 
+  // We skip compiled async functions.  Once an async function has
+  // been compiled, there is another function with the same range which
+  // actually contains the user code.
+  if (func.IsAsyncFunction() ||
+      func.IsAsyncGenerator() ||
+      func.IsSyncGenerator()) {
+    return;
+  }
+
   JSONObject range(jsarr);
   range.AddProperty("scriptIndex", GetScriptIndex(script));
   range.AddProperty("startPos", begin_pos);

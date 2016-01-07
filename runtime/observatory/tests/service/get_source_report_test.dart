@@ -34,6 +34,15 @@ void testFunction() {
   MyClass.myFunction(10000);
 }
 
+bool allRangesCompiled(coverage) {
+  for (int i = 0; i < coverage['ranges'].length; i++) {
+    if (!coverage['ranges'][i]['compiled']) {
+      return false;
+    }
+  }
+  return true;
+}
+
 var tests = [
 
 hasStoppedAtBreakpoint,
@@ -64,11 +73,21 @@ hasStoppedAtBreakpoint,
                  'scriptId' : func.location.script.id };
   var coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
   expect(coverage['type'], equals('SourceReport'));
-  expect(coverage['ranges'].length, 5);
+  expect(coverage['ranges'].length, 6);
   expect(coverage['ranges'][0], equals(expectedRange));
   expect(coverage['scripts'].length, 1);
   expect(coverage['scripts'][0]['uri'],
          endsWith('get_source_report_test.dart'));
+  expect(allRangesCompiled(coverage), isFalse);
+
+  // Force compilation.
+  params = { 'reports' : ['Coverage'],
+             'scriptId' : func.location.script.id,
+             'forceCompile' : true };
+  coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
+  expect(coverage['type'], equals('SourceReport'));
+  expect(coverage['ranges'].length, 6);
+  expect(allRangesCompiled(coverage), isTrue);
 
   // One function
   params = { 'reports' : ['Coverage'],
