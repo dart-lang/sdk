@@ -653,7 +653,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
     node.staticInvokeType = staticInvokeType;
     if (propagatedInvokeType != null &&
-        propagatedInvokeType.isMoreSpecificThan(staticInvokeType)) {
+        (staticInvokeType == null ||
+            propagatedInvokeType.isMoreSpecificThan(staticInvokeType))) {
       // Don't store the propagated invoke type unless it's more specific than
       // the static type. We still need to record the propagated parameter
       // elements however, as that is used for the propagatedType downwards
