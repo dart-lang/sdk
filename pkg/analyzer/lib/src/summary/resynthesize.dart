@@ -513,6 +513,7 @@ class _LibraryResynthesizer {
     getter.returnType = type;
     getter.type = new FunctionTypeImpl(getter);
     getter.variable = element;
+    getter.hasImplicitReturnType = element.hasImplicitType;
     holder.addAccessor(getter);
     element.getter = getter;
     if (!(element.isConst || element.isFinal)) {
@@ -879,6 +880,7 @@ class _LibraryResynthesizer {
       UnlinkedVariable serializedVariable) {
     element.type = buildType(serializedVariable.type);
     element.const3 = serializedVariable.isConst;
+    element.hasImplicitType = serializedVariable.hasImplicitType;
   }
 
   /**

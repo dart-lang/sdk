@@ -107,11 +107,15 @@ class ResynthTest extends ResolverTestCase {
     for (int i = 0; i < resynthesized.accessors.length; i++) {
       String name = original.accessors[i].name;
       if (name.endsWith('=')) {
-        comparePropertyAccessorElements(resynthesized.getSetter(name),
-            original.accessors[i], '$desc.${original.accessors[i].name}=');
+        comparePropertyAccessorElements(
+            resynthesized.getSetter(name),
+            original.accessors[i],
+            '$desc setter ${original.accessors[i].name}');
       } else {
-        comparePropertyAccessorElements(resynthesized.getGetter(name),
-            original.accessors[i], '$desc.${original.accessors[i].name}');
+        comparePropertyAccessorElements(
+            resynthesized.getGetter(name),
+            original.accessors[i],
+            '$desc getter ${original.accessors[i].name}');
       }
     }
     expect(resynthesized.methods.length, original.methods.length);
@@ -135,13 +139,15 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.topLevelVariables.length,
         original.topLevelVariables.length);
     for (int i = 0; i < resynthesized.topLevelVariables.length; i++) {
-      compareTopLevelVariableElements(resynthesized.topLevelVariables[i],
-          original.topLevelVariables[i], original.topLevelVariables[i].name);
+      compareTopLevelVariableElements(
+          resynthesized.topLevelVariables[i],
+          original.topLevelVariables[i],
+          'variable ${original.topLevelVariables[i].name}');
     }
     expect(resynthesized.functions.length, original.functions.length);
     for (int i = 0; i < resynthesized.functions.length; i++) {
       compareFunctionElements(resynthesized.functions[i], original.functions[i],
-          original.functions[i].name);
+          'function ${original.functions[i].name}');
     }
     expect(resynthesized.functionTypeAliases.length,
         original.functionTypeAliases.length);
@@ -158,8 +164,13 @@ class ResynthTest extends ResolverTestCase {
     }
     expect(resynthesized.accessors.length, original.accessors.length);
     for (int i = 0; i < resynthesized.accessors.length; i++) {
-      comparePropertyAccessorElements(resynthesized.accessors[i],
-          original.accessors[i], original.accessors[i].name);
+      if (original.accessors[i].isGetter) {
+        comparePropertyAccessorElements(resynthesized.accessors[i],
+            original.accessors[i], 'getter ${original.accessors[i].name}');
+      } else {
+        comparePropertyAccessorElements(resynthesized.accessors[i],
+            original.accessors[i], 'setter ${original.accessors[i].name}');
+      }
     }
     // TODO(paulberry): test metadata and offsetToElementMap.
   }
@@ -603,6 +614,10 @@ class E {
     checkLibrary('class C { static const int i = 0; }');
   }
 
+  test_class_field_implicit_type() {
+    checkLibrary('class C { var x; }');
+  }
+
   test_class_field_static() {
     checkLibrary('class C { static int i; }');
   }
@@ -613,6 +628,10 @@ class E {
 
   test_class_getter_external() {
     checkLibrary('class C { external int get x; }');
+  }
+
+  test_class_getter_implicit_return_type() {
+    checkLibrary('class C { get x => null; }');
   }
 
   test_class_getter_static() {
@@ -657,6 +676,14 @@ class E {
 
   test_class_setter_external() {
     checkLibrary('class C { external void set x(int value); }');
+  }
+
+  test_class_setter_implicit_param_type() {
+    checkLibrary('class C { void set x(value) {} }');
+  }
+
+  test_class_setter_implicit_return_type() {
+    checkLibrary('class C { set x(int value) {} }');
   }
 
   test_class_setter_static() {
@@ -1079,6 +1106,10 @@ class E {
 
   test_variable_const() {
     checkLibrary('const int i = 0;');
+  }
+
+  test_variable_implicit_type() {
+    checkLibrary('var x;');
   }
 
   test_variables() {
